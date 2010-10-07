@@ -270,7 +270,7 @@ if __name__=='__main__':
     
     print(resolution)
     for a in range(2):#len(match_times_list)):
-        i=a+21
+        i=a
         print(i)
         
         match_avhrr = match_times_list[i][0:24]
