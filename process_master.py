@@ -9,15 +9,22 @@ import sys
 import pdb
 import time
 
+def get_environ(name, default=None):
+    """Get the environment variable *name*. If it is not defined, return 
+    *default*."""
+    try:
+        return os.environ[name]
+    except KeyError:
+        return default
+
 
 avhrr_sat = 'Metop02'
 RESOLUTION = 1 #1 or 5
 clsat_type = 1 #1=GEOPROG 2=CWC_RVOD
-SAT_DIR = "/data/proj/saf/ejohansson/Satellite_Data"
+SAT_DIR = get_environ('SAT_DIR', "/data/proj/saf/ejohansson/Satellite_Data")
 
 
 sec_timeThr = 20*60 # Make sure that this time Threshold is the same as the one in cloudsat_calipso_avhrr_match.py
-#match_avhrr = "  2008  8  1  3 28  34.2"
 match_file = "/data/proj/saf/ejohansson/SNO_tools/Snotimes/08/matchups_augsep_2008_mod.dat"
 #--------------------------------------------------------------------------------------------------------
 def MonthLessTen(month_org):
@@ -46,9 +53,6 @@ def AvhrrSec(avhrrfile_name):
 #-------------------------------------------------------------------------------------------------------- 
 
 def FindAvhrrFile(match_avhrr):
-    
-    #match_avhrr = "  2008  8  1  3 28  34.2"
-    #match_avhrr = "  2008  8  3 23  2  57.5"
     fixed_avhrr = string.capwords(match_avhrr)
     fixed_avhrr_split = fixed_avhrr.split(" ")
     fixed_avhrr_split[5] = str(int(float(fixed_avhrr_split[5])))
@@ -124,14 +128,6 @@ def FindAvhrrFile(match_avhrr):
 #--------------------------------------------------------------------------------------------------------
 
 def FindFiles(avhrrfile, avhrr_dir_date): 
-    #avhrr_sat = 'NOAA-18'
-    #RESOLUTION = 5
-    #avhrr_dir_date = ['06','2007','06','2007']
-    #CL_DIR = "%s/CloudSat/5km/2007/06" %(SAT_DIR)
-    #CAL_DIR = "%s/Calipso/5km/2007/06" %(SAT_DIR)
-    #AVHRR_DIR = "%s/%s/5km/2007/06" %(SAT_DIR,avhrr_sat)
-    
-    #cloudtypefile = 'noaa18_20070622_1208_10760_satproj_00000_07619_cloudtype.h5'
     avhrr_split = os.path.basename(avhrrfile).split("_")
     avhrr_year = avhrr_split[1][0:4]
     avhrr_month = avhrr_split[1][4:6]
@@ -262,32 +258,42 @@ def FindFiles(avhrrfile, avhrr_dir_date):
 #------------------------------------------------------------------------------------------------------------------  
 if __name__=='__main__':
     #pdb.set_trace()
-    match_times_file = open("%s" % (match_file), "r")
+    from optparse import OptionParser
+    import find_crosses
+    
+    parser = OptionParser()
+    parser.add_option('-m', '--matches', type='string', metavar='FILE',
+                      default=match_file, help="Use FILE for matchups (SNO output)")
+    (options, args) = parser.parse_args()
+    
+    matchups = find_crosses.parse_crosses_file(options.matches)
+    if matchups[0].satellite1 is not None:
+        global avhrr_sat
+        # Assume AVHRR satellite name in satellite1 (first argument to SNO executable)
+        avhrr_sat = matchups[0].satellite1.lower()
+    #match_times_file = open(options.matches, "r")
 
-    match_times_list = match_times_file.readlines()
-    match_times_file.close()
+    #match_times_list = match_times_file.readlines()
+    #match_times_file.close()
     resolution = "%i.%i" %(RESOLUTION,clsat_type)
     
     print(resolution)
-    for a in range(2):#len(match_times_list)):
-        i=a
-        print(i)
+    for match in matchups:
+        mode_options = ['BASIC','EMISSFILT','ICE_COVER_SEA','ICE_FREE_SEA','SNOW_COVER_LAND','SNOW_FREE_LAND','COASTAL_ZONE']
         
-        match_avhrr = match_times_list[i][0:24]
-
-        mode_opptions = ['BASIC','EMISSFILT','ICE_COVER_SEA','ICE_FREE_SEA','SNOW_COVER_LAND','SNOW_FREE_LAND','COASTAL_ZONE']
-        #mode = 'BASIC'
-        #mode = 'EMISSFILT'
-        #mode = "ICE_COVER_SEA"
-        #mode = "ICE_FREE_SEA"
-        #mode = "SNOW_COVER_LAND"
-        #mode = "SNOW_FREE_LAND"
-        #mode = "COASTAL_ZONE"
-        (avhrr_file, avhrr_dir_date) = FindAvhrrFile(match_avhrr)
+        # A bit backwards, but makes it possible to use find_crosses for parsing
+        # the SNO output file. We don't have to prune the file in advance...
+        (avhrr_file, avhrr_dir_date) = FindAvhrrFile(match.as_sno_line()[:24])
+        
+        # This is what I would like to do instead...
+        # import file_finders
+        # pps_finder = file_finders.PpsFileFinder(basedir=???, ending='avhrr.h5')
+        #avhrr_file = pps_finder.find(match)
+        
         cloudsat_file, calipso_file, cloudtype_file, ctth_file, avhrr_file, nwp_tsur_file, sunsatangles_file = FindFiles(avhrr_file, avhrr_dir_date)
         #pdb.set_trace()
         for j in range(7):
-            mode = mode_opptions[j]
+            mode = mode_options[j]
                     
             cmdstr ="python cloudsat_calipso_avhrr_match.py %s %s %s %s %s %s %s %s %s" \
                         % (cloudsat_file,calipso_file,cloudtype_file,ctth_file,avhrr_file,nwp_tsur_file,sunsatangles_file,mode,resolution)
