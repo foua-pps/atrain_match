@@ -277,7 +277,6 @@ if __name__=='__main__':
     
     matchups = find_crosses.parse_crosses_file(options.matches)
     if matchups[0].satellite1 is not None:
-        global avhrr_sat
         # Assume AVHRR satellite name in satellite1 (first argument to SNO executable)
         avhrr_sat = matchups[0].satellite1.lower()
     #match_times_file = open(options.matches, "r")
