@@ -120,7 +120,7 @@ def FindAvhrrFile(match_avhrr):
             k.append(i)
             #print((match_avhrr_sec-filesec)/60)
             if (filesec+(0*60)) > match_avhrr_sec:
-                avhrr_file = all_avhrr[k[-3]]
+                avhrr_file = all_avhrr[k[-2]]
                 break
     #pdb.set_trace()
     return avhrr_file, avhrr_dir_date         
