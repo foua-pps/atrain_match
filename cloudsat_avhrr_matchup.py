@@ -77,7 +77,7 @@ def getCloudsatAvhrrMatch(avhrrfile,cloudsatfile,ctypefile,ctthfile,surftfile,su
         surft = nwpinst.gain*nwpinst.data.astype('d')+nwpinst.intercept
         
         # --------------------------------------------------------------------
-        write_log("INFO","Read CLOUDSAT GEOPROF and CWC-RWOD data")
+        #write_log("INFO","Read CLOUDSAT GEOPROF and CWC-RWOD data")
         # Read CLOUDSAT Radar data:
         if cloudsat_type == 'GEOPROF':
             write_log("INFO","Read CLOUDSAT GEOPROF data")
