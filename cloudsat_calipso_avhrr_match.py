@@ -104,7 +104,7 @@ import numpy.oldnumeric as Numeric
 import rpy
 import numpy
 import inspect
-sys.path.append("./SPARC")
+#sys.path.append("./SPARC")
 from radiance_tb_tables_kgtest import * #Just use the brightness temperature to radiance conversion/KG
 
 from pps_basic_configure import *
@@ -114,7 +114,7 @@ from cloudsat_calipso_avhrr_statistics import *
 from cloudsat_calipso_avhrr_plot import *
 from trajectory_plot import *
 from cloudsat_calipso_avhrr_prepare import *
-from cloudsat_calipso_avhrr_SPARC import *
+#from cloudsat_calipso_avhrr_SPARC import *
 
 
 MAIN_RUNDIR = os.getcwd()
