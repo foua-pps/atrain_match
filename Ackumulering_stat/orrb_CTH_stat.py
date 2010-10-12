@@ -3,18 +3,10 @@
 # This program calculates basic statistics for the cloud top (CTH) product for
 # each month
 
-import os, string, glob
-import sys, math
-import pdb
-import numpy
+import string, glob
+import math
 
-SATELLITE = ["metop02"]
-RESOLUTION = ["1km"]
-STUDIED_YEAR = ["2008"]
-STUDIED_MONTHS = ["08","09"]
-MAP = ["arctic_super_5010"]
-MAIN_DATADIR = "/data/proj/saf/ejohansson/atrain_match" # Should contain the Results directory
-OUTPUT_DIR = "%s/Ackumulering_stat" % MAIN_DATADIR
+from orrb_conf import SATELLITE, RESOLUTION, STUDIED_YEAR, STUDIED_MONTHS, MAP, MAIN_DATADIR, OUTPUT_DIR
 
 # -----------------------------------------------------
 if __name__ == "__main__":
@@ -166,19 +158,6 @@ if __name__ == "__main__":
         result.append("Weighted RMS error medium-level cases: %f\n" % rms_cal_medium)
         result.append("Weighted RMS error high-level cases: %f\n" % rms_cal_high)
         result.append("\n")
-    fd=open("./Results/cth_results_summary_%s%s-%s%s.dat" %(STUDIED_YEAR[0],STUDIED_MONTHS[0],STUDIED_YEAR[-1],STUDIED_MONTHS[-1]),'w')
+    fd=open("%s/cth_results_summary_%s%s-%s%s.dat" %(OUTPUT_DIR, STUDIED_YEAR[0],STUDIED_MONTHS[0],STUDIED_YEAR[-1],STUDIED_MONTHS[-1]),'w')
     fd.writelines(result)
     fd.close()
-    
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-

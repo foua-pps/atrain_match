@@ -3,22 +3,10 @@
 # This program calculates basic statistics for the cloud amount (CFC) product for
 # each month
 
-import os, string, glob
-import sys, math
-import numpy
-import pdb
-SATELLITE = ["metop02"]
-RESOLUTION = ["1km"]
-#STUDIED_MONTHS = ["200706","200707","200708","200712"]
-STUDIED_YEAR = ["2008"]
-STUDIED_MONTHS = ["08","09"]
-MAP = ["arctic_super_5010"]
-#MAIN_DATADIR = "/data/proj/saf/kgkarl/calipso_cloudsat/scr/orr-b-stat/results/"
-MAIN_DATADIR = "/data/proj/saf/ejohansson/atrain_match"
-OUTPUT_DIR = "%s/Ackumulering_stat" % MAIN_DATADIR
-BASIC_INDATA_DIR = "%s/Results/%s/%s/%s/BASIC/" % (MAIN_DATADIR, SATELLITE[0], RESOLUTION[0] , STUDIED_YEAR[0])
-EMISSFILT_INDATA_DIR = "%s/Results/%s/%s/%s/EMISSFILT/" % (MAIN_DATADIR, SATELLITE[0], RESOLUTION[0] , STUDIED_YEAR[0])
-SURFACES = ["ICE_COVER_SEA","ICE_FREE_SEA","SNOW_COVER_LAND","SNOW_FREE_LAND","COASTAL_ZONE"]
+import string, glob
+import math
+
+from orrb_conf import SATELLITE, RESOLUTION, STUDIED_YEAR, STUDIED_MONTHS, MAP, MAIN_DATADIR, OUTPUT_DIR, SURFACES
 
 # -----------------------------------------------------
 if __name__ == "__main__":
@@ -86,37 +74,6 @@ if __name__ == "__main__":
                 n_cloudy_cloudy_cal_MODIS = n_cloudy_cloudy_cal_MODIS + int(modis_data[7])
 
                 current_datafile.close()
-            
-            if month == "200712":   # Add second half of CALIOP matches
-                for datafile in datafiles2:
-                    current_datafile = open(datafile, "r")
-                    datalist = current_datafile.readlines()
-                    #print "Datafile: ", datafile
-                    csa_data = string.split(datalist[4])
-                    cal_data = string.split(datalist[8])
-                
-                    # Don't accumulate CloudSat statistics (they will otherwise be duplicated!)
-                
-                    #n_clear_clear_csa = n_clear_clear_csa + int(csa_data[4])
-                    #n_clear_cloudy_csa = n_clear_cloudy_csa + int(csa_data[5])
-                    #n_cloudy_clear_csa = n_cloudy_clear_csa + int(csa_data[6])
-                    #n_cloudy_cloudy_csa = n_cloudy_cloudy_csa + int(csa_data[7])
-                
-                    # Accumulate CALIOP statistics
-                
-                    n_clear_clear_cal = n_clear_clear_cal + int(cal_data[4])
-                    n_clear_cloudy_cal = n_clear_cloudy_cal + int(cal_data[5])
-                    n_cloudy_clear_cal = n_cloudy_clear_cal + int(cal_data[6])
-                    n_cloudy_cloudy_cal = n_cloudy_cloudy_cal + int(cal_data[7])
-                
-                    # Accumulate CALIOP-MODIS statistics
-            
-                    n_clear_clear_cal_MODIS = n_clear_clear_cal_MODIS + int(modis_data[4])
-                    n_clear_cloudy_cal_MODIS = n_clear_cloudy_cal_MODIS + int(modis_data[5])
-                    n_cloudy_clear_cal_MODIS = n_cloudy_clear_cal_MODIS + int(modis_data[6])
-                    n_cloudy_cloudy_cal_MODIS = n_cloudy_cloudy_cal_MODIS + int(modis_data[7])
-
-                    current_datafile.close()
             
             samples_csa = n_clear_clear_csa + n_clear_cloudy_csa + n_cloudy_clear_csa +\
                           n_cloudy_cloudy_csa
@@ -193,7 +150,7 @@ if __name__ == "__main__":
         result.append("\n")
     print
     result.append("\n")
-    fd=open("./Results/cfc_results_surfaces_summary_%s%s-%s%s.dat" %(STUDIED_YEAR[0],STUDIED_MONTHS[0],STUDIED_YEAR[-1],STUDIED_MONTHS[-1]),'w')
+    fd=open("%s/cfc_results_surfaces_summary_%s%s-%s%s.dat" %(OUTPUT_DIR, STUDIED_YEAR[0],STUDIED_MONTHS[0],STUDIED_YEAR[-1],STUDIED_MONTHS[-1]),'w')
     fd.writelines(result)
     fd.close()
     

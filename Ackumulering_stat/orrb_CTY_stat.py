@@ -3,23 +3,10 @@
 # This program calculates basic statistics for the cloud type (CTY) product for
 # each month
 
-import os, string, glob
-import sys, math
-import pdb
-import numpy
+import string, glob
+import math
 
-SATELLITE = ["metop02"]
-RESOLUTION = ["1km"]
-#STUDIED_MONTHS = ["200706","200707","200708","200712"]
-STUDIED_YEAR = ["2008"]
-STUDIED_MONTHS = ["08","09"]
-MAP = ["arctic_super_5010"]
-#MAIN_DATADIR = "/data/proj/saf/kgkarl/calipso_cloudsat/scr/orr-b-stat/results/"
-MAIN_DATADIR = "/data/proj/saf/ejohansson/atrain_match"
-OUTPUT_DIR = "%s/Ackumulering_stat" % MAIN_DATADIR
-BASIC_INDATA_DIR = "%s/Results/%s/%s/%s/BASIC/" % (MAIN_DATADIR, SATELLITE[0], RESOLUTION[0] , STUDIED_YEAR[0])
-EMISSFILT_INDATA_DIR = "%sEMISSFILT/" % MAIN_DATADIR
-SURFACES = ["ICE_COVER_SEA","ICE_FREE_SEA","SNOW_COVER_LAND","SNOW_FREE_LAND","COASTAL_ZONE"]
+from orrb_conf import SATELLITE, RESOLUTION, STUDIED_YEAR, STUDIED_MONTHS, MAP, MAIN_DATADIR, OUTPUT_DIR
 
 # -----------------------------------------------------
 if __name__ == "__main__":
@@ -113,39 +100,6 @@ if __name__ == "__main__":
             n_frac_clear = n_frac_clear + int(cal_data_missed[11])
 
             current_datafile.close()
-            
-        if month == "200712":   # Add second half of CALIOP matches
-            for datafile in datafiles2:
-                current_datafile = open(datafile, "r")
-                datalist = current_datafile.readlines()
-                #print "Datafile: ", datafile
-                cal_data = string.split(datalist[12])
-                cal_data_missed = string.split(datalist[14])
-                
-                # Accumulate CALIOP statistics
-                
-                n_low_low = n_low_low + int(cal_data[4])
-                n_low_medium = n_low_medium + int(cal_data[5])
-                n_low_high = n_low_high + int(cal_data[6])
-                n_medium_low = n_medium_low + int(cal_data[7])
-                n_medium_medium = n_medium_medium + int(cal_data[8])
-                n_medium_high = n_medium_high + int(cal_data[9])
-                n_high_low = n_high_low + int(cal_data[10])
-                n_high_medium = n_high_medium + int(cal_data[11])
-                n_high_high = n_high_high + int(cal_data[12])
-                n_frac_low = n_frac_low + int(cal_data[13])
-                n_frac_medium = n_frac_medium + int(cal_data[14])
-                n_frac_high = n_frac_high + int(cal_data[15])
-                
-                n_clear_low = n_clear_low + int(cal_data_missed[5]) 
-                n_clear_medium = n_clear_medium + int(cal_data_missed[6]) 
-                n_clear_high = n_clear_high + int(cal_data_missed[7])
-                n_low_clear = n_low_clear + int(cal_data_missed[8])
-                n_medium_clear = n_medium_clear + int(cal_data_missed[9])
-                n_high_clear = n_high_clear + int(cal_data_missed[10])
-                n_frac_clear = n_frac_clear + int(cal_data_missed[11])
-
-                current_datafile.close()
             
         samples_pps_missed = n_clear_low + n_clear_medium + n_clear_high
         samples_pps_missed_low = n_clear_low
@@ -335,7 +289,7 @@ if __name__ == "__main__":
         result.append("Missclassified clear: %d (low:%d, medium:%d, high:%d)\n" % (samples_pps_missed,samples_pps_missed_low,samples_pps_missed_medium,samples_pps_missed_high))
         result.append("Missclassified cloudy: %d (low:%d, medium:%d, high:%d, frac:%d)\n" % (samples_pps_misclass,samples_pps_misclass_low,samples_pps_misclass_medium,samples_pps_misclass_high,samples_pps_misclass_frac))
         result.append("\n")
-    fd=open("./Results/cty_results_summary_%s%s-%s%s.dat" %(STUDIED_YEAR[0],STUDIED_MONTHS[0],STUDIED_YEAR[-1],STUDIED_MONTHS[-1]),'w')
+    fd=open("%s/cty_results_summary_%s%s-%s%s.dat" %(OUTPUT_DIR, STUDIED_YEAR[0],STUDIED_MONTHS[0],STUDIED_YEAR[-1],STUDIED_MONTHS[-1]),'w')
     fd.writelines(result)
     fd.close()
         
