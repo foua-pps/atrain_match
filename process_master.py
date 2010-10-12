@@ -261,10 +261,19 @@ if __name__=='__main__':
     from optparse import OptionParser
     import find_crosses
     
+    mode_options = ['BASIC','EMISSFILT','ICE_COVER_SEA','ICE_FREE_SEA','SNOW_COVER_LAND','SNOW_FREE_LAND','COASTAL_ZONE']
+    
     parser = OptionParser()
     parser.add_option('-m', '--matches', type='string', metavar='FILE',
                       default=match_file, help="Use FILE for matchups (SNO output)")
+    parser.add_option('-M', '--mode', type='string', action='append',
+                      help="Run validation software in MODE (valid modes are %s)" % ', '.join(mode_options))
     (options, args) = parser.parse_args()
+    
+    try:
+        run_modes = options.mode
+    except:
+        run_modes = mode_options
     
     matchups = find_crosses.parse_crosses_file(options.matches)
     if matchups[0].satellite1 is not None:
@@ -279,7 +288,6 @@ if __name__=='__main__':
     
     print(resolution)
     for match in matchups:
-        mode_options = ['BASIC','EMISSFILT','ICE_COVER_SEA','ICE_FREE_SEA','SNOW_COVER_LAND','SNOW_FREE_LAND','COASTAL_ZONE']
         
         # A bit backwards, but makes it possible to use find_crosses for parsing
         # the SNO output file. We don't have to prune the file in advance...
@@ -292,9 +300,7 @@ if __name__=='__main__':
         
         cloudsat_file, calipso_file, cloudtype_file, ctth_file, avhrr_file, nwp_tsur_file, sunsatangles_file = FindFiles(avhrr_file, avhrr_dir_date)
         #pdb.set_trace()
-        for j in range(7):
-            mode = mode_options[j]
-                    
+        for mode in run_modes:
             cmdstr ="python cloudsat_calipso_avhrr_match.py %s %s %s %s %s %s %s %s %s" \
                         % (cloudsat_file,calipso_file,cloudtype_file,ctth_file,avhrr_file,nwp_tsur_file,sunsatangles_file,mode,resolution)
             os.system(cmdstr)
