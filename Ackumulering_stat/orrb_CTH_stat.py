@@ -10,16 +10,11 @@ import numpy
 
 SATELLITE = ["metop02"]
 RESOLUTION = ["1km"]
-#STUDIED_MONTHS = ["200706","200707","200708","200712"]
 STUDIED_YEAR = ["2008"]
 STUDIED_MONTHS = ["08","09"]
 MAP = ["arctic_super_5010"]
-#MAIN_DATADIR = "/data/proj/saf/kgkarl/calipso_cloudsat/scr/orr-b-stat/results/"
-MAIN_DATADIR = "/data/proj/saf/ejohansson/atrain_match"
+MAIN_DATADIR = "/data/proj/saf/ejohansson/atrain_match" # Should contain the Results directory
 OUTPUT_DIR = "%s/Ackumulering_stat" % MAIN_DATADIR
-BASIC_INDATA_DIR = "%s/Results/%s/%s/%s/BASIC/" % (MAIN_DATADIR, SATELLITE[0], RESOLUTION[0] , STUDIED_YEAR[0])
-EMISSFILT_INDATA_DIR = "%sEMISSFILT/" % MAIN_DATADIR
-SURFACES = ["ICE_COVER_SEA","ICE_FREE_SEA","SNOW_COVER_LAND","SNOW_FREE_LAND","COASTAL_ZONE"]
 
 # -----------------------------------------------------
 if __name__ == "__main__":
@@ -100,64 +95,6 @@ if __name__ == "__main__":
                                         int(cal_high_data[7])*float(cal_high_data[6])*float(cal_high_data[6])  
             
             current_datafile.close()
-            
-        if month == "200712":   # Add second half of CALIOP matches
-            for datafile in datafiles2:
-                current_datafile = open(datafile, "r")
-                datalist = current_datafile.readlines()
-                csa_data = string.split(datalist[15])
-                cal_all_data = string.split(datalist[16])
-                cal_low_data = string.split(datalist[17])
-                cal_medium_data = string.split(datalist[18])
-                cal_high_data = string.split(datalist[19])
-
-
-                # Don't accumulate CloudSat statistics (would otherwise be duplicated)
-                                
-                #csa_samples = csa_samples + int(csa_data[6])
-                #mean_error_csa_sum = mean_error_csa_sum + int(csa_data[6])*float(csa_data[4])  
-                #rms_error_csa_sum = rms_error_csa_sum + int(csa_data[6])*float(csa_data[5])  
-                
-                
-                # Accumulate CALIOP statistics
-                
-                cal_all_samples = cal_all_samples + int(cal_all_data[7])
-                cal_low_samples = cal_low_samples + int(cal_low_data[7])
-                cal_medium_samples = cal_medium_samples + int(cal_medium_data[7])
-                cal_high_samples = cal_high_samples + int(cal_high_data[7])
-                mean_error_cal_all_sum = mean_error_cal_all_sum + \
-                                            int(cal_all_data[7])*float(cal_all_data[5])  
-                mean_error_cal_low_sum = mean_error_cal_low_sum + \
-                                            int(cal_low_data[7])*float(cal_low_data[5])  
-                mean_error_cal_medium_sum = mean_error_cal_medium_sum + \
-                                            int(cal_medium_data[7])*float(cal_medium_data[5])  
-                mean_error_cal_high_sum = mean_error_cal_high_sum + \
-                                            int(cal_high_data[7])*float(cal_high_data[5])  
-
-# Notice that the original linear averaging of RMS values is wrong! We have now changed to a correct averaging!/KG 20091126
-##                 rms_error_cal_all_sum = rms_error_cal_all_sum + \
-##                                          int(cal_all_data[7])*float(cal_all_data[6])  
-##                 rms_error_cal_low_sum = rms_error_cal_low_sum + \
-##                                          int(cal_low_data[7])*float(cal_low_data[6])  
-##                 rms_error_cal_medium_sum = rms_error_cal_medium_sum + \
-##                                             int(cal_medium_data[7])*float(cal_medium_data[6])  
-##                 rms_error_cal_high_sum = rms_error_cal_high_sum + \
-##                                           int(cal_high_data[7])*float(cal_high_data[6])  
-
-                rms_error_cal_all_sum = rms_error_cal_all_sum + \
-                                            int(cal_all_data[7])*float(cal_all_data[6])*float(cal_all_data[6])  
-                rms_error_cal_low_sum = rms_error_cal_low_sum + \
-                                            int(cal_low_data[7])*float(cal_low_data[6])*float(cal_low_data[6])  
-                rms_error_cal_medium_sum = rms_error_cal_medium_sum + \
-                                            int(cal_medium_data[7])*float(cal_medium_data[6])*float(cal_medium_data[6])  
-                rms_error_cal_high_sum = rms_error_cal_high_sum + \
-                                            int(cal_high_data[7])*float(cal_high_data[6])*float(cal_high_data[6])  
-
-
-
-                current_datafile.close()
-
-
             
         bias_csa = mean_error_csa_sum/csa_samples
         bias_cal_all = mean_error_cal_all_sum/cal_all_samples
