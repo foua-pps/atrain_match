@@ -229,6 +229,8 @@ if __name__ == "__main__":
         noaa_number=18
     elif platform == "metop02":
         noaa_number=2 # Poor man's solution!
+    elif platform == 'noaa19':
+        noaa_number = 19
     else:
         print("Add Noaa-satellite")
         print("Program cloudsat_calipso_avhrr_match.py at line %i" %(inspect.currentframe().f_lineno+1))
