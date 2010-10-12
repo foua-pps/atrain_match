@@ -104,7 +104,6 @@ import numpy.oldnumeric as Numeric
 import rpy
 import numpy
 import inspect
-#sys.path.append("./SPARC")
 from radiance_tb_tables_kgtest import * #Just use the brightness temperature to radiance conversion/KG
 
 from pps_basic_configure import *
@@ -114,11 +113,17 @@ from cloudsat_calipso_avhrr_statistics import *
 from cloudsat_calipso_avhrr_plot import *
 from trajectory_plot import *
 from cloudsat_calipso_avhrr_prepare import *
-#from cloudsat_calipso_avhrr_SPARC import *
 
 
+def get_environ(name, default=None):
+    """Get the environment variable *name*. If it is not defined, return 
+    *default*."""
+    try:
+        return os.environ[name]
+    except KeyError:
+        return default
 MAIN_RUNDIR = os.getcwd()
-MAIN_DIR = MAIN_RUNDIR
+MAIN_DIR = get_environ('VALIDATION_RESULTS_DIR', MAIN_RUNDIR)
 SUB_DIR = "%s/Matchups" %MAIN_DIR
 RESHAPE_DIR = "%s/Reshaped_Files" %MAIN_DIR
 DATA_DIR = "%s/Data" %MAIN_DIR
@@ -306,7 +311,6 @@ if __name__ == "__main__":
         print("Program cloudsat_calipso_avhrr_match.py at line %i" %(inspect.currentframe().f_lineno+1))
         sys.exit(-9) 
     
-    #avhrr_cloud_index = AddSPARCFeatures(caObj.calipso.avhrr_linnum,caObj.calipso.avhrr_pixnum,avhrrfile)
     ##########################################################################################################################################   
     #pdb.set_trace()
     # Issue a warning if startpoint or endpoint latitude of CloudSat and CALIPSO differ by more than 0.1 degrees
