@@ -291,7 +291,11 @@ if __name__=='__main__':
         
         # A bit backwards, but makes it possible to use find_crosses for parsing
         # the SNO output file. We don't have to prune the file in advance...
-        (avhrr_file, avhrr_dir_date) = FindAvhrrFile(match.as_sno_line()[:24])
+        try:
+            (avhrr_file, avhrr_dir_date) = FindAvhrrFile(match.as_sno_line()[:24])
+        except:
+            # There was no match with local AVHRR data files
+            continue
         
         # This is what I would like to do instead...
         # import file_finders
