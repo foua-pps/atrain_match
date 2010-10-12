@@ -307,15 +307,3 @@ if __name__=='__main__':
             cmdstr ="python cloudsat_calipso_avhrr_match.py %s %s %s %s %s %s %s %s %s" \
                         % (cloudsat_file,calipso_file,cloudtype_file,ctth_file,avhrr_file,nwp_tsur_file,sunsatangles_file,mode,resolution)
             os.system(cmdstr)
-
-
-
-
-
-
-
-
-
-
-
-
