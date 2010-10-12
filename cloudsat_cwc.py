@@ -566,8 +566,11 @@ def get_cloudsatCwc_avhrr_linpix_segment(avhrrIn,lon,lat,lines,swath_width,tmppc
         x,y=int(xy_tup[0]+0.5),int(xy_tup[1]+0.5)
 ##        dimx=4500 Should be 5010!!!/KG
 ##        dimy=4500
-        dimx=5010
-        dimy=5010
+        #dimx=5010
+        #dimy=5010
+        dimx=mapped_line.shape[1]#1002#5010
+        dimy=mapped_line.shape[0]#1002#5010
+        
         if(x < dimx and x >= 0 and y >= 0 and y < dimy):
             cloudsat_avhrr_line.append(mapped_line[y,x])
             cloudsat_avhrr_pixel.append(mapped_pixel[y,x])
