@@ -55,7 +55,6 @@ def getCaliopAvhrrMatch(avhrrfile,calipsofile,ctypefile,ctthfile,surftfile,sunan
         # Read AVHRR lon,lat data
         write_log("INFO","Read AVHRR geolocation data")
         avhrrGeoObj = pps_io.readAvhrrGeoData(avhrrfile)
-        pdb.set_trace()
         # Read AVHRR sunsatangels (satellite zenith angle)
         write_log("INFO","Read AVHRR Sun -and Satellites Angels data")
         avhrrAngObj = pps_io.readSunSatAngles(sunanglefile) #, withAbsoluteAzimuthAngles=True)
@@ -75,7 +74,6 @@ def getCaliopAvhrrMatch(avhrrfile,calipsofile,ctypefile,ctthfile,surftfile,sunan
         write_log("INFO","Read CALIPSO data")
         # Read CALIPSO Lidar (CALIOP) data:
         calipso = reshapeCalipso1km(calipsofile,avhrrGeoObj)
-        pdb.set_trace()
         # Read remapped NWP Surface temperature data
         write_log("INFO","Read NWP surface temperature")
         nwpinst = epshdf.read_nwpdata(surftfile)
