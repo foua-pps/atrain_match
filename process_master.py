@@ -270,9 +270,9 @@ if __name__=='__main__':
                       help="Run validation software in MODE (valid modes are %s)" % ', '.join(mode_options))
     (options, args) = parser.parse_args()
     
-    try:
+    if options.mode is not None:
         run_modes = options.mode
-    except:
+    else:
         run_modes = mode_options
     
     matchups = find_crosses.parse_crosses_file(options.matches)
