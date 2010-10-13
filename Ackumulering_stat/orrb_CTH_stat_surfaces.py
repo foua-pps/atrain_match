@@ -22,9 +22,7 @@ if __name__ == "__main__":
         for i in range(len(STUDIED_MONTHS)):
             month="%s%s" %(STUDIED_YEAR[0],STUDIED_MONTHS[i])
             surface_indata_dir = "%s/Results/%s/%s/%s/%s/%s/%s/" % (MAIN_DATADIR, SATELLITE[0], RESOLUTION[0] , STUDIED_YEAR[0], STUDIED_MONTHS[i], MAP[0],surface)
-            datafiles = glob.glob("%s*1.dat" % surface_indata_dir)
-            datafiles2 = glob.glob("%s*1.dat" % surface_indata_dir)
-
+            datafiles = glob.glob("%s*.dat" % surface_indata_dir)
             scenes = len(datafiles)
         
             # First calculate total number of cases

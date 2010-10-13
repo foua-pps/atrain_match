@@ -14,8 +14,7 @@ if __name__ == "__main__":
     for i in range(len(STUDIED_MONTHS)):
         month=("%s%s" %(STUDIED_YEAR[0],STUDIED_MONTHS[i]))
         basic_indata_dir = "%s/Results/%s/%s/%s/%s/%s/BASIC/" % (MAIN_DATADIR, SATELLITE[0], RESOLUTION[0] , STUDIED_YEAR[0], STUDIED_MONTHS[i], MAP[0])
-        datafiles = glob.glob("%s*1.dat" % basic_indata_dir)
-        datafiles2 = glob.glob("%s*1.dat" % basic_indata_dir)
+        datafiles = glob.glob("%s*.dat" % basic_indata_dir)
         if month == "200706":
             CFC_CALIOP = 67.54
             CFC_PPS = 66.24

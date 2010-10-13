@@ -14,8 +14,7 @@ if __name__ == "__main__":
     for i in range(len(STUDIED_MONTHS)):
         month="%s%s" %(STUDIED_YEAR[0],STUDIED_MONTHS[i])
         emissfilt_indata_dir = "%s/Results/%s/%s/%s/%s/%s/EMISSFILT/" % (MAIN_DATADIR, SATELLITE[0], RESOLUTION[0] , STUDIED_YEAR[0], STUDIED_MONTHS[i], MAP[0])
-        datafiles = glob.glob("%s*1.dat" % emissfilt_indata_dir)
-        datafiles2 = glob.glob("%s*1.dat" % emissfilt_indata_dir)
+        datafiles = glob.glob("%s*.dat" % emissfilt_indata_dir)
         n_clear_clear_csa = 0
         n_clear_cloudy_csa = 0
         n_cloudy_clear_csa = 0

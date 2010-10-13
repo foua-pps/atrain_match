@@ -373,9 +373,7 @@ if __name__ == "__main__":
             resultpath = "%s/%s/%ikm/%s/%s/%s/%s" % (RESULT_DIR, base_sat,int(Resolution[0]), base_year, base_month,AREA,process_mode)
             if not os.path.exists(resultpath):
                 os.makedirs(resultpath)
-            statfilename = "%s/%ikm_%s_cloudsat_calipso_avhrr_stat_1.dat" % (resultpath,int(Resolution[0]),basename)
-            if os.path.exists(statfilename):
-                statfilename = "%s/%ikm_%s_cloudsat_calipso_avhrr_stat_2.dat" % (resultpath,int(Resolution[0]),basename)
+            statfilename = "%s/%ikm_%s_cloudsat_calipso_avhrr_stat.dat" % (resultpath,int(Resolution[0]),basename)
 
             statfile = open(statfilename,"w")
             if process_mode == "BASIC":
@@ -538,9 +536,7 @@ if __name__ == "__main__":
             resultpath = "%s/%s/%ikm/%s/%s/%s/%s" % (RESULT_DIR, base_sat,int(Resolution[0]), base_year, base_month,AREA,process_mode)
             if not os.path.exists(statpath):
                 os.makedirs(statpath)
-            statfilename = "%s/5km_%s_cloudsat_calipso_avhrr_stat_1.dat" % (resultpath,basename)
-            if os.path.exists(statfilename):
-                statfilename = "%s/5km_%s_cloudsat_calipso_avhrr_stat_2.dat" % (resultpath,basename)
+            statfilename = "%s/5km_%s_cloudsat_calipso_avhrr_stat.dat" % (resultpath,basename)
 
             statfile = open(statfilename,"w")
             if process_mode == "BASIC":

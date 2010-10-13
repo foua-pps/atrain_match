@@ -15,8 +15,7 @@ if __name__ == "__main__":
         month=(STUDIED_YEAR[0],STUDIED_MONTHS[i])
         basic_indata_dir = "%s/Results/%s/%s/%s/%s/%s/BASIC/" % (MAIN_DATADIR, SATELLITE[0], RESOLUTION[0] , STUDIED_YEAR[0], STUDIED_MONTHS[i], MAP[0])
         
-        datafiles = glob.glob("%s*1.dat" % basic_indata_dir)
-        datafiles2 = glob.glob("%s*1.dat" % basic_indata_dir)
+        datafiles = glob.glob("%s*.dat" % basic_indata_dir)
         #pdb.set_trace()
         #datafiles = glob.glob("%s*%s*1.dat" % (BASIC_INDATA_DIR,month))
         #datafiles2 = glob.glob("%s*%s*2.dat" % (BASIC_INDATA_DIR,month))
