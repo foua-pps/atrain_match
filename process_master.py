@@ -264,6 +264,11 @@ if __name__=='__main__':
     mode_options = ['BASIC','EMISSFILT','ICE_COVER_SEA','ICE_FREE_SEA','SNOW_COVER_LAND','SNOW_FREE_LAND','COASTAL_ZONE']
     
     parser = OptionParser()
+    parser.set_usage("usage: %prog [options]\n"
+                     "Some influential environment variables:\n"
+                     "SAT_DIR                   Base directory where satellite data files are stored.\n"
+                     "VALIDATION_RESULTS_DIR    Base directory where results will be stored.\n"
+                     "                          Used indirectly by cloudsat_calipso_avhrr_match.py.")
     parser.add_option('-m', '--matches', type='string', metavar='FILE',
                       default=match_file, help="Use FILE for matchups (SNO output)")
     parser.add_option('-M', '--mode', type='string', action='append',
