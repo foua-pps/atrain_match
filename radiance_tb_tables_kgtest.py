@@ -75,6 +75,8 @@ def get_central_wavenumber(noaa_number,temp):
         retv = 2669.3554,926.2947,839.8246
     elif noaa_number == 18:
         retv = 2659.7952,928.1460,833.2532
+    elif noaa_number == 19:
+        retv = (2670.0, 928.9, 831.9)
 
     # METOP-A interpreted as noaa_number 2
     
@@ -82,8 +84,7 @@ def get_central_wavenumber(noaa_number,temp):
         retv = 2687.0,927.2,837.7
 
     else:
-	print "Satellite noaa %d not supported!"%(noaa_number)	
-	return None
+        raise NotImplementedError("No support for NOAA%d yet." % noaa_number)
     
     return retv
 
@@ -140,6 +141,13 @@ def tb2radiance_using_central_wavenumber_klm(cwnum,temp,noaa_number,channel):
         B_coeff_3b = 0.996960
         B_coeff_4 = 0.998607
         B_coeff_5 = 0.999057
+    elif noaa_number == 19:
+        A_coeff_3b = 1.67396
+        A_coeff_4 = 0.53959
+        A_coeff_5 = 0.36064
+        B_coeff_3b = 0.997364
+        B_coeff_4 = 0.998534
+        B_coeff_5 = 0.998913
     elif noaa_number == 2: # Assuming METOP-02
 	A_coeff_3a = 2.06699
 	A_coeff_4 = 0.55126
@@ -147,6 +155,8 @@ def tb2radiance_using_central_wavenumber_klm(cwnum,temp,noaa_number,channel):
         B_coeff_3b = 0.996577
         B_coeff_4 = 0.998509
         B_coeff_5 = 0.998947
+    else:
+        raise NotImplementedError("No support for NOAA%d yet." % noaa_number)
 
     if channel == '3b':
         A_coeff = A_coeff_3b
