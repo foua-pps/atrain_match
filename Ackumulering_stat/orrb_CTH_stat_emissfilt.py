@@ -74,7 +74,13 @@ def do_stats():
                                       int(cal_high_data[7])*float(cal_high_data[6])  
             
             current_datafile.close()
-            
+        
+        # Check to see that we have some samples...
+        tot_samples = [csa_samples, cal_all_samples, cal_low_samples, cal_medium_samples, cal_high_samples]
+        if 0 in tot_samples:
+            print("%s, num samples: %s" % (month, ', '.join([str(n) for n in tot_samples])))
+            continue # Don't do anything more with this month
+        
         bias_csa = mean_error_csa_sum/csa_samples
         bias_cal_all = mean_error_cal_all_sum/cal_all_samples
         bias_cal_low = mean_error_cal_low_sum/cal_low_samples

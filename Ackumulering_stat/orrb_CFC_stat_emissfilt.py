@@ -69,6 +69,12 @@ def do_stats():
                       n_cloudy_cloudy_csa
         samples_cal = n_clear_clear_cal + n_clear_cloudy_cal + n_cloudy_clear_cal +\
                       n_cloudy_cloudy_cal
+        
+        # Check to see that we have some samples...
+        if 0 in [samples_csa, samples_cal]:
+            print("%s: samples_cal: %d, samples_csa: %d" % (month, samples_cal, samples_csa))
+            continue # Don't do anything more with this month
+        
         mean_CFC_csa = 100.0*(n_cloudy_cloudy_csa+n_cloudy_clear_csa)/samples_csa
         mean_CFC_cal = 100.0*(n_cloudy_cloudy_cal+n_cloudy_clear_cal)/samples_cal
         bias_csa = float(n_clear_cloudy_csa - n_cloudy_clear_csa)/float(samples_csa)
