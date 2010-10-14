@@ -11,6 +11,7 @@ def compile_stats(results_files):
     import orrb_CFC_stat, orrb_CFC_stat_emissfilt, orrb_CFC_stat_surfaces
     import orrb_CTH_stat, orrb_CTH_stat_emissfilt, orrb_CTH_stat_surfaces
     import orrb_CTY_stat
+    
     """Run through all stats."""
     cfc_results = orrb_CFC_stat.do_stats(results_files)
     print("=========== Cloud fraction ============")
@@ -59,10 +60,15 @@ def weighted_averages(vals, num_key):
 if __name__ == '__main__':
     from glob import glob
     results_files = []
+    print("Gathering statistics from all validation results files in the "
+          "following directories:")
     for case in CASES:
-        basic_indata_dir = "%s/Results/%s/%s/%s/%02d/%s/BASIC/" % \
+        basic_indata_dir = "%s/Results/%s/%s/%s/%02d/%s/BASIC" % \
             (MAIN_DATADIR, case['satname'], RESOLUTION[0] , case['year'], case['month'], MAP[0])
-        results_files.extend(glob("%s*.dat" % basic_indata_dir))
+        print("-> " + basic_indata_dir)
+        results_files.extend(glob("%s/*.dat" % basic_indata_dir))
+    print('')
+    
     cfc_results, cth_results, cty_results = compile_stats(results_files)
     #all_values, tot_samples = gather_values_all_months(cfc_results, cth_results)
     #averages = weighted_averages(all_values, tot_samples)
