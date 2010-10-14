@@ -9,7 +9,7 @@ import math
 from orrb_conf import SATELLITE, RESOLUTION, STUDIED_YEAR, STUDIED_MONTHS, MAP, MAIN_DATADIR, OUTPUT_DIR
 
 # -----------------------------------------------------
-if __name__ == "__main__":
+def do_stats(cfc_results=None):
     result=[]
     for i in range(len(STUDIED_MONTHS)):
         month=("%s%s" %(STUDIED_YEAR[0],STUDIED_MONTHS[i]))
@@ -34,15 +34,23 @@ if __name__ == "__main__":
         elif month == "200808":
             CFC_CALIOP = 81.45
             CFC_MEAN_ERROR = 0.024868
-            CFC_PPS = CFC_CALIOP + CFC_MEAN_ERROR
             Totpix = 40212
         elif month == "200809": 
             CFC_CALIOP = 75.57
             CFC_MEAN_ERROR = -0.92
-            CFC_PPS = CFC_CALIOP + CFC_MEAN_ERROR
             Totpix = 3574
-        #datafiles = glob.glob("%s*%s*1.dat" % (BASIC_INDATA_DIR,month))
-        #datafiles2 = glob.glob("%s*%s*2.dat" % (BASIC_INDATA_DIR,month))
+        elif month == "200907": 
+            CFC_CALIOP = 67.121972
+            CFC_MEAN_ERROR = -9.289297
+            Totpix = 56226
+        
+        # The above is crazy!!! I will keep it for now, but extend the functionality
+        # to make it possible to pass the values to the function.
+        if cfc_results is not None:
+            CFC_CALIOP = cfc_results[STUDIED_MONTHS[i]]['caliop']
+            CFC_MEAN_ERROR = cfc_results[STUDIED_MONTHS[i]]['mean_error']
+            Totpix = cfc_results[STUDIED_MONTHS[i]]['totpix']
+        CFC_PPS = CFC_CALIOP + CFC_MEAN_ERROR
         
         n_low_low = 0
         n_low_medium = 0
@@ -291,5 +299,7 @@ if __name__ == "__main__":
     fd=open("%s/cty_results_summary_%s%s-%s%s.dat" %(OUTPUT_DIR, STUDIED_YEAR[0],STUDIED_MONTHS[0],STUDIED_YEAR[-1],STUDIED_MONTHS[-1]),'w')
     fd.writelines(result)
     fd.close()
-        
-        
+
+
+if __name__ == "__main__":
+    do_stats()

@@ -9,7 +9,7 @@ import math
 from orrb_conf import SATELLITE, RESOLUTION, STUDIED_YEAR, STUDIED_MONTHS, MAP, MAIN_DATADIR, OUTPUT_DIR, SURFACES
 
 # -----------------------------------------------------
-if __name__ == "__main__":
+def do_stats():
     result=[]
     for surface in SURFACES:
         print ""
@@ -152,7 +152,7 @@ if __name__ == "__main__":
     fd=open("%s/cfc_results_surfaces_summary_%s%s-%s%s.dat" %(OUTPUT_DIR, STUDIED_YEAR[0],STUDIED_MONTHS[0],STUDIED_YEAR[-1],STUDIED_MONTHS[-1]),'w')
     fd.writelines(result)
     fd.close()
-    
-    
-    
-    
+
+
+if __name__ == "__main__":
+    do_stats()

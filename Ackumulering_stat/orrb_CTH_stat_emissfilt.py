@@ -8,7 +8,7 @@ import string, glob
 from orrb_conf import SATELLITE, RESOLUTION, STUDIED_YEAR, STUDIED_MONTHS, MAP, MAIN_DATADIR, OUTPUT_DIR
 
 # -----------------------------------------------------
-if __name__ == "__main__":
+def do_stats():
     result=[]
     for i in range(len(STUDIED_MONTHS)):
         month="%s%s" %(STUDIED_YEAR[0],STUDIED_MONTHS[i])
@@ -139,6 +139,7 @@ if __name__ == "__main__":
     fd=open("%s/cth_results_emissfilt_summary_%s%s-%s%s.dat" %(OUTPUT_DIR, STUDIED_YEAR[0],STUDIED_MONTHS[0],STUDIED_YEAR[-1],STUDIED_MONTHS[-1]),'w')
     fd.writelines(result)
     fd.close()      
-        
-        
-        
+
+
+if __name__ == "__main__":
+    do_stats()
