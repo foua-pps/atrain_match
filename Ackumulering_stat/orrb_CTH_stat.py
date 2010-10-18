@@ -179,7 +179,7 @@ if __name__ == "__main__":
         results['month'] = month
         
         lines.extend(printout(results))
-    fd=open("%s/cty_results_summary_%s%s-%s%s.dat" %(OUTPUT_DIR, STUDIED_YEAR[0],STUDIED_MONTHS[0],STUDIED_YEAR[-1],STUDIED_MONTHS[-1]),'w')
+    fd=open("%s/cth_results_summary_%s%s-%s%s.dat" %(OUTPUT_DIR, STUDIED_YEAR[0],STUDIED_MONTHS[0],STUDIED_YEAR[-1],STUDIED_MONTHS[-1]),'w')
     for l in lines:
         fd.writelines(l + '\n')
     fd.close()
