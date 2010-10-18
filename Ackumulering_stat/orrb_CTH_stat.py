@@ -3,10 +3,8 @@
 # This program calculates basic statistics for the cloud top (CTH) product for
 # each month
 
-import string, glob
+import string
 import math
-
-from orrb_conf import SATELLITE, RESOLUTION, STUDIED_YEAR, STUDIED_MONTHS, MAP, MAIN_DATADIR, OUTPUT_DIR
 
 # -----------------------------------------------------
 def do_stats(results_files):
@@ -168,13 +166,15 @@ def printout(results):
 
 
 if __name__ == "__main__":
+    from glob import glob
+    from orrb_conf import SATELLITE, RESOLUTION, STUDIED_YEAR, STUDIED_MONTHS, MAP, MAIN_DATADIR, OUTPUT_DIR
     lines = []
     
     for i in range(len(STUDIED_MONTHS)):
         month=("%s%s" %(STUDIED_YEAR[0],STUDIED_MONTHS[i]))
-        basic_indata_dir = "%s/liness/%s/%s/%s/%s/%s/BASIC/" % (MAIN_DATADIR, SATELLITE[0], RESOLUTION[0] , STUDIED_YEAR[0], STUDIED_MONTHS[i], MAP[0])
+        results_dir = "%s/Results/%s/%s/%s/%s/%s/BASIC" % (MAIN_DATADIR, SATELLITE[0], RESOLUTION[0] , STUDIED_YEAR[0], STUDIED_MONTHS[i], MAP[0])
         
-        results_files = glob.glob("%s*.dat" % basic_indata_dir)
+        results_files = glob("%s/*.dat" % results_dir)
         results = do_stats(results_files)
         results['month'] = month
         
