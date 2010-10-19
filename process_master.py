@@ -314,7 +314,7 @@ if __name__=='__main__':
                         % (cloudsat_file,calipso_file,cloudtype_file,ctth_file,avhrr_file,nwp_tsur_file,sunsatangles_file,mode,resolution)
             status = os.system(cmdstr)
             if status != 0:
-                problem_files.add((avhrr_file, cloudsat_file, calipso_file))
+                problem_files.add(avhrr_file)
                 break
     if len(problem_files) > 0:
         print("Problem files:")
