@@ -149,9 +149,7 @@ def run(cloudsatfile, calipsofile, ctypefile, ctthfile, avhrrfile, surftfile, su
     elif platform == 'noaa19':
         noaa_number = 19
     else:
-        print("Add Noaa-satellite")
-        print("Program cloudsat_calipso_avhrr_match.py at line %i" %(inspect.currentframe().f_lineno+1))
-        sys.exit(-9)
+        raise NotImplementedError("Support for satellite %s is not yet implemented." % platform)
         
     norbit = string.atoi(sl[3]) #verkar inte vara string langre?????
     yyyymmdd = sl[1]
@@ -171,7 +169,7 @@ def run(cloudsatfile, calipsofile, ctypefile, ctthfile, avhrrfile, surftfile, su
 #            write_log("INFO","Define Cloudsat type")
 #            print("Program cloudsat_calipso_avhrr_match.py at line %i" %(inspect.currentframe().f_lineno+1))
 #            sys.exit(-9)  
-    
+        
         clsatObj,clsat_min_diff,clsat_max_diff = getCloudsatAvhrrMatch(avhrrfile,cloudsatfile,ctypefile,ctthfile,surftfile,sunanglefile,cloudsat_type)
         caObj,ca_min_diff,ca_max_diff = getCaliopAvhrrMatch(avhrrfile,calipsofile,ctypefile,ctthfile,surftfile,sunanglefile)
         clsatObj, caObj = CloudsatCalipsoAvhrrSatz1km(clsatObj,caObj)
