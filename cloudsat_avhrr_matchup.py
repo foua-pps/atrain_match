@@ -12,7 +12,7 @@ from calipso import *
 from cloudsat import *
 from cloudsat_cwc import *
 
-from cloudsat_calipso_avhrr_match import AREA1KM, RESHAPE_DIR
+from setup import AREA1KM, RESHAPE_DIR
 #MAIN_DIR = "/data/proj/safworks/adam/calipso_data"
 #MAIN_DIR = "/local_disk/calipso_data"
 #SUB_DIR = "metop02_calipso_2007spring"

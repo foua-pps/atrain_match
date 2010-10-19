@@ -7,7 +7,7 @@ from pps_error_messages import *
 
 #DSEC_PER_AVHRR_SCALINE = 0.1667 # Full scan period, i.e. the time interval between two consecutive lines (sec)
 DSEC_PER_AVHRR_SCALINE5KM = 1.0/6*4 # A "work for the time being" solution
-from cloudsat_calipso_avhrr_match import AREA5KM, SUB_DIR, DATA_DIR, sec_timeThr
+from setup import AREA5KM, SUB_DIR, DATA_DIR, sec_timeThr
 
 #AREA = "cea5km_test" #
 #AREA = "arctic_super_1002_5km"

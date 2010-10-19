@@ -5,7 +5,7 @@ from pps_basic_configure import *
 from pps_error_messages import *
 
 DSEC_PER_AVHRR_SCALINE = 0.1667 # Full scan period, i.e. the time interval between two consecutive lines (sec)
-from cloudsat_calipso_avhrr_match import AREA1KM, SUB_DIR, DATA_DIR, sec_timeThr
+from setup import AREA1KM, SUB_DIR, DATA_DIR, sec_timeThr
 #MAIN_DIR = "/data/proj/safworks/adam/calipso_data"
 #MAIN_DIR = "/data/proj_nsc1/safworks/calipso_cloudsat/data/arctic/"
 #MAIN_DIR = "/data/proj_nsc1/safworks/kgkarl/ORR-B-datasets/calipso/"

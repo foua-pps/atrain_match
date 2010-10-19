@@ -1,10 +1,14 @@
 #Program cloudsat_calipso_avhrr_plot.py
 
-from cloudsat_calipso_avhrr_match import MAIN_DIR, SUB_DIR, MAIN_RUNDIR, CLOUDSAT_TRACK_RESOLUTION, CLOUDSAT_CLOUDY_THR, EMISS_FILTERING, CLOUDSAT5KM_TRACK_RESOLUTION, MAXHEIGHT
+from setup import MAIN_DIR, SUB_DIR, MAIN_RUNDIR, CLOUDSAT_TRACK_RESOLUTION, CLOUDSAT_CLOUDY_THR, CLOUDSAT5KM_TRACK_RESOLUTION, MAXHEIGHT
 
 
 # -----------------------------------------------------
-def drawCalClsatGEOPROFAvhrr1kmPlot(clsatObj, caObj, elevation, data_ok, CALIPSO_DISPLACED, caliop_base, caliop_height, cal_data_ok, avhrr_ctth_cal_ok, plotpath, basename):
+def drawCalClsatGEOPROFAvhrr1kmPlot(clsatObj, caObj, elevation, data_ok,
+                                    CALIPSO_DISPLACED, caliop_base,
+                                    caliop_height, cal_data_ok,
+                                    avhrr_ctth_cal_ok, plotpath, basename,
+                                    mode, emissfilt_calipso_ok=None):
     import pdb
     import os, string
     import sys
@@ -95,7 +99,7 @@ def drawCalClsatGEOPROFAvhrr1kmPlot(clsatObj, caObj, elevation, data_ok, CALIPSO
                                 col="green",lty=1,lwd=0.5)
 
     #Second version for avhrr ctth plotting based on data along CALIPSO track
-    if EMISS_FILTERING:
+    if mode is 'EMISSFILT':
         cal_plot_data_ok = numpy.logical_and(emissfilt_calipso_ok,numpy.greater(avhrr_ctth_cal_ok[::],0))
     else:
         cal_plot_data_ok = numpy.greater(avhrr_ctth_cal_ok[::],0)
@@ -207,7 +211,11 @@ def drawCalClsatCWCAvhrr1kmPlot(clsatObj, elevationcwc, data_okcwc, plotpath, ba
 
 
 # -----------------------------------------------------
-def drawCalClsatGEOPROFAvhrr5kmPlot(clsatObj, caObj, elevation, data_ok, CALIPSO_DISPLACED, caliop_base, caliop_height, cal_data_ok, avhrr_ctth_cal_ok, plotpath, basename):
+def drawCalClsatGEOPROFAvhrr5kmPlot(clsatObj, caObj, elevation, data_ok,
+                                    CALIPSO_DISPLACED, caliop_base,
+                                    caliop_height, cal_data_ok,
+                                    avhrr_ctth_cal_ok, plotpath, basename,
+                                    mode, emissfilt_calipso_ok=None):
     import pdb
     import os, string
     import sys
@@ -298,7 +306,7 @@ def drawCalClsatGEOPROFAvhrr5kmPlot(clsatObj, caObj, elevation, data_ok, CALIPSO
                                 col="green",lty=1,lwd=1)
 
     #Second version for avhrr ctth plotting based on data along CALIPSO track
-    if EMISS_FILTERING:
+    if mode is 'EMISSFILT':
         cal_plot_data_ok = numpy.logical_and(emissfilt_calipso_ok,numpy.greater(avhrr_ctth_cal_ok[::],0))
     else:
         cal_plot_data_ok = numpy.greater(avhrr_ctth_cal_ok[::],0)

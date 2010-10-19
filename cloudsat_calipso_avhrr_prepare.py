@@ -38,7 +38,7 @@ def CloudsatCloudOpticalDepth(cloud_top, cloud_base, optical_depth):
 def CloudsatCalipsoAvhrrSatz1km(clsatObj,caObj):
     import pdb
     import numpy
-    from cloudsat_calipso_avhrr_match import AZIMUTH_THR
+    from setup import AZIMUTH_THR
     # CloudSat:
     clsat_satz_ok = numpy.where(clsatObj.avhrr.satz<=AZIMUTH_THR)
     n_clsat_satz_ok = len(clsat_satz_ok[0])

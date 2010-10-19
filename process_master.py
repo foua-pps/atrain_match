@@ -5,27 +5,10 @@
 
 # Writer Erik Johansson
 import os, string
-import sys
-import pdb
 import time
+from pps_error_messages import write_log
+import setup
 
-def get_environ(name, default=None):
-    """Get the environment variable *name*. If it is not defined, return 
-    *default*."""
-    try:
-        return os.environ[name]
-    except KeyError:
-        return default
-
-
-avhrr_sat = 'Metop02'
-RESOLUTION = 1 #1 or 5
-clsat_type = 1 #1=GEOPROG 2=CWC_RVOD
-SAT_DIR = get_environ('SAT_DIR', "/data/proj/saf/ejohansson/Satellite_Data")
-
-
-sec_timeThr = 20*60 # Make sure that this time Threshold is the same as the one in cloudsat_calipso_avhrr_match.py
-match_file = "/data/proj/saf/ejohansson/SNO_tools/Snotimes/08/matchups_augsep_2008_mod.dat"
 #--------------------------------------------------------------------------------------------------------
 def MonthLessTen(month_org):
     if int(month_org) < 10:
@@ -71,10 +54,10 @@ def FindAvhrrFile(match_avhrr):
             month_avhrr_temp = str(int(fixed_avhrr_split[1])-1)
         
         month_avhrr_temp = MonthLessTen(month_avhrr_temp) # Month before
-        avhrr_dir_temp = "%s/%s/%skm/%s/%s/export" %(SAT_DIR,avhrr_sat,RESOLUTION,year_avhrr_temp,month_avhrr_temp) #Dir month before
+        avhrr_dir_temp = "%s/%s/%skm/%s/%s/export" %(setup.SAT_DIR,avhrr_sat,setup.RESOLUTION,year_avhrr_temp,month_avhrr_temp) #Dir month before
         all_avhrr = os.listdir(avhrr_dir_temp)  #Files month before
         month_avhrr = MonthLessTen(fixed_avhrr_split[1]) # month
-        avhrr_dir = "%s/%s/%skm/%s/%s/export" %(SAT_DIR,avhrr_sat,RESOLUTION,fixed_avhrr_split[0],month_avhrr) # Dir month
+        avhrr_dir = "%s/%s/%skm/%s/%s/export" %(setup.SAT_DIR,avhrr_sat,setup.RESOLUTION,fixed_avhrr_split[0],month_avhrr) # Dir month
         all_avhrr_temp = os.listdir(avhrr_dir) #file month
         all_avhrr.extend(all_avhrr_temp) #All files
         avhrr_dir_date.append(month_avhrr_temp)
@@ -92,10 +75,10 @@ def FindAvhrrFile(match_avhrr):
             month_avhrr_temp = str(int(fixed_avhrr_split[1])+1)
         
         month_avhrr = MonthLessTen(fixed_avhrr_split[1]) # month
-        avhrr_dir = "%s/%s/%skm/%s/%s/export" %(SAT_DIR,avhrr_sat,RESOLUTION,fixed_avhrr_split[0],month_avhrr) # dir month
+        avhrr_dir = "%s/%s/%skm/%s/%s/export" %(setup.SAT_DIR,avhrr_sat,setup.RESOLUTION,fixed_avhrr_split[0],month_avhrr) # dir month
         all_avhrr = os.listdir(avhrr_dir) #file month
         month_avhrr_temp = MonthLessTen(month_avhrr_temp) # month after
-        avhrr_dir_temp = "%s/%s/%skm/%s/%s/export" %(SAT_DIR,avhrr_sat,RESOLUTION,year_avhrr_temp,month_avhrr_temp) #dir month after
+        avhrr_dir_temp = "%s/%s/%skm/%s/%s/export" %(setup.SAT_DIR,avhrr_sat,setup.RESOLUTION,year_avhrr_temp,month_avhrr_temp) #dir month after
         all_avhrr_temp = os.listdir(avhrr_dir_temp) # files month after
         all_avhrr.extend(all_avhrr_temp) # All files
         avhrr_dir_date.append(month_avhrr)
@@ -104,7 +87,7 @@ def FindAvhrrFile(match_avhrr):
         avhrr_dir_date.append(year_avhrr_temp)
     else:
         month_avhrr = MonthLessTen(fixed_avhrr_split[1])
-        avhrr_dir = "%s/%s/%skm/%s/%s/export" %(SAT_DIR,avhrr_sat,RESOLUTION,fixed_avhrr_split[0],month_avhrr)
+        avhrr_dir = "%s/%s/%skm/%s/%s/export" %(setup.SAT_DIR,avhrr_sat,setup.RESOLUTION,fixed_avhrr_split[0],month_avhrr)
         all_avhrr = os.listdir(avhrr_dir)
         avhrr_dir_date.append(month_avhrr)
         avhrr_dir_date.append(fixed_avhrr_split[0])
@@ -139,17 +122,17 @@ def FindFiles(avhrrfile, avhrr_dir_date):
     #avhrr_date = time.strptime(avhrr_date, "%Y %m %d %H %M")
     #avhrr_sec = time.mktime(avhrr_date)-sec_timeThr
     avhrr_sec = AvhrrSec(avhrrfile)
-    avhrr_sec = avhrr_sec-sec_timeThr
+    avhrr_sec = avhrr_sec-setup.sec_timeThr
     new_date = time.localtime(avhrr_sec)
     # Controls if more than one cloudsat/calipso dir is necessary
     all_cl = []
     all_cal = []
 
     if avhrr_dir_date[0]!=avhrr_dir_date[2]:
-        CL_DIR = "%s/CloudSat/%skm/%s/%s" %(SAT_DIR,RESOLUTION,avhrr_dir_date[1],avhrr_dir_date[0])
-        CAL_DIR = "%s/Calipso/%skm/%s/%s" %(SAT_DIR,RESOLUTION,avhrr_dir_date[1],avhrr_dir_date[0])
-        CL_DIR_1 = "%s/CloudSat/%skm/%s/%s" %(SAT_DIR,RESOLUTION,avhrr_dir_date[3],avhrr_dir_date[2])
-        CAL_DIR_1 = "%s/Calipso/%skm/%s/%s" %(SAT_DIR,RESOLUTION,avhrr_dir_date[3],avhrr_dir_date[2])
+        CL_DIR = "%s/CloudSat/%skm/%s/%s" %(setup.SAT_DIR,setup.RESOLUTION,avhrr_dir_date[1],avhrr_dir_date[0])
+        CAL_DIR = "%s/Calipso/%skm/%s/%s" %(setup.SAT_DIR,setup.RESOLUTION,avhrr_dir_date[1],avhrr_dir_date[0])
+        CL_DIR_1 = "%s/CloudSat/%skm/%s/%s" %(setup.SAT_DIR,setup.RESOLUTION,avhrr_dir_date[3],avhrr_dir_date[2])
+        CAL_DIR_1 = "%s/Calipso/%skm/%s/%s" %(setup.SAT_DIR,setup.RESOLUTION,avhrr_dir_date[3],avhrr_dir_date[2])
         all_cl = os.listdir(CL_DIR)
         all_cl_1 = os.listdir(CL_DIR_1)
         all_cl.extend(all_cl_1)
@@ -158,8 +141,8 @@ def FindFiles(avhrrfile, avhrr_dir_date):
         all_cal_1 = os.listdir(CAL_DIR_1)
         all_cal.extend(all_cal_1)
     else:
-        CL_DIR = "%s/CloudSat/%skm/%s/%s" %(SAT_DIR,RESOLUTION,avhrr_dir_date[1],avhrr_dir_date[0])
-        CAL_DIR = "%s/Calipso/%skm/%s/%s" %(SAT_DIR,RESOLUTION,avhrr_dir_date[1],avhrr_dir_date[0])
+        CL_DIR = "%s/CloudSat/%skm/%s/%s" %(setup.SAT_DIR,setup.RESOLUTION,avhrr_dir_date[1],avhrr_dir_date[0])
+        CAL_DIR = "%s/Calipso/%skm/%s/%s" %(setup.SAT_DIR,setup.RESOLUTION,avhrr_dir_date[1],avhrr_dir_date[0])
         all_cl = os.listdir(CL_DIR)
         all_cal = os.listdir(CAL_DIR)
   
@@ -167,10 +150,10 @@ def FindFiles(avhrrfile, avhrr_dir_date):
     all_cl_cwc = []
     
     #This just beqause the file in one and 5 km data set have different names
-    if RESOLUTION==1:
+    if setup.RESOLUTION==1:
         clsat_type_place=3
         clsat_time_place=0
-    elif RESOLUTION==5:
+    elif setup.RESOLUTION==5:
         clsat_type_place=4
         clsat_time_place=1
         
@@ -184,9 +167,9 @@ def FindFiles(avhrrfile, avhrr_dir_date):
             all_cl_cwc.append(all_cl[i])
         
     
-    if clsat_type==1:
+    if setup.clsat_type==1:
         all_clsat=all_cl_geo
-    elif clsat_type==2:
+    elif setup.clsat_type==2:
         all_clsat=all_cl_cwc
         
     CLOUDSAT_DIR=[]
@@ -205,10 +188,11 @@ def FindFiles(avhrrfile, avhrr_dir_date):
             
         if cloudsat_sec >= avhrr_sec and ncl==0:
             #clsat_file = "'%s/%s'   '%s/%s'    '%s/%s'" %(CLOUDSAT_DIR[j-1],all_clsat[j-1],CLOUDSAT_DIR[j],all_clsat[j],CLOUDSAT_DIR[j+1],all_clsat[j+1])
-            clsat_file = "'%s/%s'   '%s/%s'" %(CLOUDSAT_DIR[j-1],all_clsat[j-1],CLOUDSAT_DIR[j],all_clsat[j])
+            clsat_file = ['%s/%s' % (CLOUDSAT_DIR[j-1], all_clsat[j-1])]
+            clsat_file.append('%s/%s' % (CLOUDSAT_DIR[j], all_clsat[j]))
             ncl=ncl+1
         elif cloudsat_sec >= avhrr_sec and ncl==1:
-            clsat_file = "%s   '%s/%s'" %(clsat_file,CLOUDSAT_DIR[j],all_clsat[j])
+            clsat_file.append('%s/%s' % (CLOUDSAT_DIR[j], all_clsat[j]))
             ncl=ncl+1
         if ncl>1:
             break
@@ -235,15 +219,17 @@ def FindFiles(avhrrfile, avhrr_dir_date):
             CALIPSO_DIR.append(CAL_DIR_1)
         
         if cal_tot_sec >= avhrr_sec and ncal==0:         
-            cal_file = "'%s/%s'   '%s/%s'   '%s/%s'" %(CALIPSO_DIR[a-2],all_cal[a-2],CALIPSO_DIR[a-1],all_cal[a-1],CALIPSO_DIR[a],all_cal[a])
+            cal_file = ['%s/%s' % (CALIPSO_DIR[a-2], all_cal[a-2])]
+            cal_file.append('%s/%s' % (CALIPSO_DIR[a-1], all_cal[a-1]))
+            cal_file.append('%s/%s' % (CALIPSO_DIR[a], all_cal[a]))
             ncal=ncal+1
         elif cal_tot_sec >= avhrr_sec and ncal>=1 and ncal<4:
-            cal_file = "%s   '%s/%s'" %(cal_file,CALIPSO_DIR[a],all_cal[a])
+            cal_file.append('%s/%s' % (CALIPSO_DIR[a], all_cal[a]))
             ncal=ncal+1
         if ncl >3:
             break
             
-    AVHRR_DIR = "%s/%s/%skm/%s/%s" %(SAT_DIR,avhrr_sat,RESOLUTION,avhrr_year,avhrr_month)
+    AVHRR_DIR = "%s/%s/%skm/%s/%s" %(setup.SAT_DIR,avhrr_sat,setup.RESOLUTION,avhrr_year,avhrr_month)
     #test=all_cal.sort()
     avhrr_join = string.join(avhrr_split[0:-1],"_")
     cloudtype_file = "%s/export/%s_cloudtype.h5" %(AVHRR_DIR, avhrr_join)
@@ -260,8 +246,8 @@ if __name__=='__main__':
     #pdb.set_trace()
     from optparse import OptionParser
     import find_crosses
-    
-    mode_options = ['BASIC','EMISSFILT','ICE_COVER_SEA','ICE_FREE_SEA','SNOW_COVER_LAND','SNOW_FREE_LAND','COASTAL_ZONE']
+    import cloudsat_calipso_avhrr_match
+    import setup
     
     parser = OptionParser()
     parser.set_usage("usage: %prog [options]\n"
@@ -270,15 +256,16 @@ if __name__=='__main__':
                      "VALIDATION_RESULTS_DIR    Base directory where results will be stored.\n"
                      "                          Used indirectly by cloudsat_calipso_avhrr_match.py.")
     parser.add_option('-m', '--matches', type='string', metavar='FILE',
-                      default=match_file, help="Use FILE for matchups (SNO output)")
+                      default=setup.match_file, help="Use FILE for matchups (SNO output)")
     parser.add_option('-M', '--mode', type='string', action='append',
-                      help="Run validation software in MODE (valid modes are %s)" % ', '.join(mode_options))
+                      help="Run validation software in MODE (valid modes are %s)" % \
+                      ', '.join(setup.ALLOWED_MODES))
     (options, args) = parser.parse_args()
     
     if options.mode is not None:
         run_modes = options.mode
     else:
-        run_modes = mode_options
+        run_modes = setup.ALLOWED_MODES
     
     matchups = find_crosses.parse_crosses_file(options.matches)
     if matchups[0].satellite1 is not None:
@@ -288,7 +275,7 @@ if __name__=='__main__':
 
     #match_times_list = match_times_file.readlines()
     #match_times_file.close()
-    resolution = "%i.%i" %(RESOLUTION,clsat_type)
+    resolution = "%i.%i" %(setup.RESOLUTION,setup.clsat_type)
     
     print(resolution)
     problem_files = set()
@@ -310,12 +297,16 @@ if __name__=='__main__':
         cloudsat_file, calipso_file, cloudtype_file, ctth_file, avhrr_file, nwp_tsur_file, sunsatangles_file = FindFiles(avhrr_file, avhrr_dir_date)
         #pdb.set_trace()
         for mode in run_modes:
-            cmdstr ="python cloudsat_calipso_avhrr_match.py %s %s %s %s %s %s %s %s %s" \
-                        % (cloudsat_file,calipso_file,cloudtype_file,ctth_file,avhrr_file,nwp_tsur_file,sunsatangles_file,mode,resolution)
-            status = os.system(cmdstr)
-            if status != 0:
+            try:
+                cloudsat_calipso_avhrr_match.run(cloudsat_file, calipso_file,
+                                                 cloudtype_file, ctth_file,
+                                                 avhrr_file, nwp_tsur_file,
+                                                 sunsatangles_file, mode, 
+                                                 resolution)
+            except:
                 problem_files.add(avhrr_file)
+                write_log('WARNING', "Couldn't run cloudsat_calipso_avhrr_match.")
                 break
     if len(problem_files) > 0:
-        print("Problem files:")
-        print(problem_files)
+        write_log('WARNING', "%d problem files:" % len(problem_files))
+        write_log('WARNING', problem_files)

@@ -96,8 +96,6 @@
 
 # /KG March 2010
 
-import pdb
-
 import os, string
 import sys
 import numpy.oldnumeric as Numeric
@@ -109,107 +107,26 @@ from radiance_tb_tables_kgtest import * #Just use the brightness temperature to 
 from pps_basic_configure import *
 from pps_error_messages import *
 
+import setup
+
 from cloudsat_calipso_avhrr_statistics import *
 from cloudsat_calipso_avhrr_plot import *
 from trajectory_plot import *
 from cloudsat_calipso_avhrr_prepare import *
 
-
-def get_environ(name, default=None):
-    """Get the environment variable *name*. If it is not defined, return 
-    *default*."""
-    try:
-        return os.environ[name]
-    except KeyError:
-        return default
-MAIN_RUNDIR = os.getcwd()
-MAIN_DIR = get_environ('VALIDATION_RESULTS_DIR', MAIN_RUNDIR)
-SUB_DIR = "%s/Matchups" %MAIN_DIR
-RESHAPE_DIR = "%s/Reshaped_Files" %MAIN_DIR
-DATA_DIR = "%s/Data" %MAIN_DIR
-PLOT_DIR = "%s/Plot" %MAIN_DIR
-RESULT_DIR = "%s/Results" %MAIN_DIR
-
-AREA5KM = "cea5km_test"  
-#AREA5KM = "arctic_super_1002_5km"
-AREA1KM = "arctic_super_5010"
-#AREA1KM = "cea5km_test"
-#MAIN_RUNDIR = "/data/proj/saf/kgkarl/calipso_cloudsat/scr/orr-b-stat/debug/" # Only for debugging
-
-# All directory settings right below are commented out since supervising
-# program orrb_process_master.py is supplying all necessary specifications 
-
-##MAIN_DIR = "/data/proj_nsc1/safworks/calipso_cloudsat/data/arctic/"
-###SUB_DIR = "metop02_calipso_2007spring"
-###SUB_DIR = "noaa18_calipso_cloudsat_2007JUN_KG"
-##SUB_DIR = "noaa18_calipso_cloudsat_2007DEC_KG"
-###SUB_DIR = "noaa17_calipso_cloudsat_2007JUN_KG"
-###SUB_DIR = "metop_calipso_cloudsat_2007JUN_KG"
-###SUB_DIR = "metop_calipso_cloudsat_2007DEC_KG"
-###SUB_DIR = "noaa18_calipso_cloudsat_2007JUN_GME_KG"
-
-##CTYPE_DIR = "%s/%s"%(MAIN_DIR,SUB_DIR)
-##AVHRR_DIR = "%s/%s"%(MAIN_DIR,SUB_DIR)
-##SURFTEMP_DIR = "%s/%s"%(MAIN_DIR,SUB_DIR)
-##CLOUDSAT_DIR = "%s/%s"%(MAIN_DIR,SUB_DIR)
-##CALIPSO_DIR = "%s/%s"%(MAIN_DIR,SUB_DIR)
-sec_timeThr = 60*20 # Allow for 20 minute deviation between AVHRR and CALIPSO/CloudSat matchup
-
-CLOUDSAT_CLOUDY_THR = 30.0  # Recommended cloud threshold for the CloudSat cloud mask. In 5km data this threshold have already been aplied therfore no reason to change it for thise data set. 
-MAXHEIGHT = 25000.0
-MAXHEIGHT = 12000.0
-    
-AZIMUTH_THR = 360.0
-CLOUDSAT_TRACK_RESOLUTION = 1.076     # CloudSat sampling frequency in km (or rather the most likely
-                                      # resolution difference between CALIPSO 1 km datasets and
-                                      # the CloudSat 2B-GEOPROF dataset). Nominally CloudSat sampling
-                                      # rate is said to be 1.1 km but it seems as the CALIPSO sampling
-                                      # rate is not exactly 1 km but slightly above - as based on the
-                                      # optimised matching of plots of the two datasets. /KG
-                                      
-CLOUDSAT5KM_TRACK_RESOLUTION = 1.076#*5.0
-
-PLOT_OPTION = 0  # Set to zero if you don't want to generate the plot but just compute statistics
-
-EMISS_FILTERING = 0  # A way to filter out cases with the thinnest topmost CALIPSO layers
-EMISS_MIN_HEIGHT = 2000.0 # Only filter clouds above this level - surface temperatures too uncertain
-                          # for emissivity calculations at lower altitudes
-EMISS_LIMIT = 0.2 # A value of 0.2-0.3 in cloud emissivity seems reasonable
-
-# Settings below only affect statistics calculations, not plotting operations
-
-ICE_COVER_SEA = 0 # If set, calculations are restricted to ice cover over sea using NSIDC and IGBP data
-ICE_FREE_SEA = 0 # If set, calculations are restricted to ice-free sea using NSIDC and IGBP data
-SNOW_COVER_LAND = 0 # If set, calculations are restricted to snow over land using NSIDC and IGBP data
-SNOW_FREE_LAND = 0 # If set, calculations are restricted to snow-free land using NSIDC and IGBP data
-COASTAL_ZONE = 0 # If set, calculations are restricted to coastal regions using NSIDC data (mixed microwave region)
-
 from cloudsat_avhrr_matchup import *
 from calipso_avhrr_matchup import *
 from cloudsat_avhrr_matchup5km import *
 from calipso_avhrr_matchup5km import *
+
 # -----------------------------------------------------
-if __name__ == "__main__":
-    import sys
 
-    if len(sys.argv) < 17:
-        write_log("INFO","Usage: %s <3*cloudsat-hdf5-file> <6*calipso-hdf5-file> <pps cloudtype file> <pps ctth file> <pps avhrr file> <pps surftemp file> <pps sunsatangle file> <processing_mode> <resolution>" %sys.argv[0],moduleid=MODULE_ID)
-        print("Program cloudsat_calipso_avhrr_match.py at line %i" %(inspect.currentframe().f_lineno+1))
-        sys.exit(-9)
-    else:
-        cloudsatfile = sys.argv[1:4]
-        calipsofile = sys.argv[4:-7]
-        ctypefile = sys.argv[-7]
-        print "Case: ", ctypefile
-        ctthfile = sys.argv[-6]
-        avhrrfile = sys.argv[-5]
-        surftfile = sys.argv[-4]
-        sunanglefile = sys.argv[-3]
-        process_mode = sys.argv[-2]
-        Resolution = sys.argv[-1]
-
-        cloudsat_type = os.path.basename(cloudsatfile[0]).split(".h5")[0]
-        cloudsat_type = string.join(cloudsat_type.split("_")[-5].split("-")[1:],"-")
+def run(cloudsatfile, calipsofile, ctypefile, ctthfile, avhrrfile, surftfile, sunanglefile, process_mode, Resolution):
+    write_log('INFO', "Case: %s" % ctypefile)
+    write_log('INFO', "Process mode: %s" % process_mode)
+    
+    cloudsat_type = os.path.basename(cloudsatfile[0]).split(".h5")[0]
+    cloudsat_type = string.join(cloudsat_type.split("_")[-5].split("-")[1:],"-")
         
     basename = os.path.basename(ctypefile).split(".h5")[0]  # delar vid h5 
     base_sat = basename.split("_")[-8]
@@ -239,30 +156,6 @@ if __name__ == "__main__":
     norbit = string.atoi(sl[3]) #verkar inte vara string langre?????
     yyyymmdd = sl[1]
 
-
-    # Now set appropriate processing flags associated with each processing mode
-
-    if process_mode == "BASIC":
-        print "Processing mode: %s " % process_mode
-        PLOT_OPTION = 1
-    elif process_mode == "EMISSFILT":
-        print "Processing mode: %s " % process_mode
-        EMISS_FILTERING = 1
-    elif process_mode == "ICE_COVER_SEA":
-        print "Processing mode: %s " % process_mode
-        ICE_COVER_SEA = 1
-    elif process_mode == "ICE_FREE_SEA":
-        print "Processing mode: %s " % process_mode
-        ICE_FREE_SEA = 1
-    elif process_mode == "SNOW_COVER_LAND":
-        print "Processing mode: %s " % process_mode
-        SNOW_COVER_LAND = 1
-    elif process_mode == "SNOW_FREE_LAND":
-        print "Processing mode: %s " % process_mode
-        SNOW_FREE_LAND = 1
-    elif process_mode == "COASTAL_ZONE":
-        print "Processing mode: %s " % process_mode
-        COASTAL_ZONE = 1
 
     # Now fetch all the datasets for the section of the AREA where all
     # three datasets match. Also get maximum and minimum time differences to AVHRR (in seconds)
@@ -370,7 +263,7 @@ if __name__ == "__main__":
             # Notice that more than one file
             # (but maximum 2) can be created for one particular noaa orbit.
             
-            resultpath = "%s/%s/%ikm/%s/%s/%s/%s" % (RESULT_DIR, base_sat,int(Resolution[0]), base_year, base_month,AREA,process_mode)
+            resultpath = "%s/%s/%ikm/%s/%s/%s/%s" % (setup.RESULT_DIR, base_sat,int(Resolution[0]), base_year, base_month,AREA,process_mode)
             if not os.path.exists(resultpath):
                 os.makedirs(resultpath)
             statfilename = "%s/%ikm_%s_cloudsat_calipso_avhrr_stat.dat" % (resultpath,int(Resolution[0]),basename)
@@ -470,10 +363,10 @@ if __name__ == "__main__":
             else:
                 Ec[i]=-9.0                   
     
-        if EMISS_FILTERING: #Apply only when cloud heights are above EMISS_MIN_HEIGHT
+        if process_mode is 'EMISSFILT': #Apply only when cloud heights are above EMISS_MIN_HEIGHT
             #print "Emissivity filtering applied!"
-            caliop_min_height_ok = Numeric.greater(caliop_max_height,EMISS_MIN_HEIGHT)
-            emissfilt_calipso_ok = Numeric.logical_or(Numeric.logical_and(Numeric.greater(Ec,EMISS_LIMIT),caliop_min_height_ok),Numeric.logical_or(Numeric.equal(caliop_max_height,-9.),Numeric.less_equal(caliop_max_height,EMISS_MIN_HEIGHT)))
+            caliop_min_height_ok = Numeric.greater(caliop_max_height, setup.EMISS_MIN_HEIGHT)
+            emissfilt_calipso_ok = Numeric.logical_or(Numeric.logical_and(Numeric.greater(Ec, setup.EMISS_LIMIT),caliop_min_height_ok),Numeric.logical_or(Numeric.equal(caliop_max_height,-9.),Numeric.less_equal(caliop_max_height, setup.EMISS_MIN_HEIGHT)))
     ##########################################################################################################################################
     #pdb.set_trace()
     ### 1 KM DATA CWC-RVOD ###                       
@@ -496,7 +389,7 @@ if __name__ == "__main__":
             for j in range(clsatObj.cloudsat5km.latitude.shape[0]):
                 if (abs(clsatObj.cloudsat5km.latitude[j] - caObj.calipso5km.latitude[0]) < 0.05) and\
                        (abs(clsatObj.cloudsat5km.longitude[j] - caObj.calipso5km.longitude[0]) < 0.1):
-                    calipso_displacement=int(j*CLOUDSAT_TRACK_RESOLUTION5KM)
+                    calipso_displacement=int(j*CLOUDSAT5KM_TRACK_RESOLUTION)
                     print "CALIPSO_DISPLACEMENT: ", calipso_displacement
                     break       
         # First make sure that PPS cloud top heights are converted to height above sea level
@@ -533,9 +426,9 @@ if __name__ == "__main__":
             # If everything is OK, now create filename for statistics output file and open it for writing.
             # Notice that more than one file
             # (but maximum 2) can be created for one particular noaa orbit.
-            resultpath = "%s/%s/%ikm/%s/%s/%s/%s" % (RESULT_DIR, base_sat,int(Resolution[0]), base_year, base_month,AREA,process_mode)
-            if not os.path.exists(statpath):
-                os.makedirs(statpath)
+            resultpath = "%s/%s/%ikm/%s/%s/%s/%s" % (setup.RESULT_DIR, base_sat,int(Resolution[0]), base_year, base_month,AREA,process_mode)
+            if not os.path.exists(resultpath):
+                os.makedirs(resultpath)
             statfilename = "%s/5km_%s_cloudsat_calipso_avhrr_stat.dat" % (resultpath,basename)
 
             statfile = open(statfilename,"w")
@@ -641,10 +534,10 @@ if __name__ == "__main__":
             else:
                Ec[i]=-9.0 
   
-        if EMISS_FILTERING: #Apply only when cloud heights are above EMISS_MIN_HEIGHT
+        if process_mode is 'EMISSFILT': #Apply only when cloud heights are above EMISS_MIN_HEIGHT
             #print "Emissivity filtering applied!"
-            caliop_min_height_ok = Numeric.greater(caliop_max_height,EMISS_MIN_HEIGHT)
-            emissfilt_calipso_ok = Numeric.logical_or(Numeric.logical_and(Numeric.greater(Ec,EMISS_LIMIT),caliop_min_height_ok),Numeric.logical_or(Numeric.equal(caliop_max_height,-9.),Numeric.less_equal(caliop_max_height,EMISS_MIN_HEIGHT)))         
+            caliop_min_height_ok = Numeric.greater(caliop_max_height, setup.EMISS_MIN_HEIGHT)
+            emissfilt_calipso_ok = Numeric.logical_or(Numeric.logical_and(Numeric.greater(Ec, setup.EMISS_LIMIT),caliop_min_height_ok),Numeric.logical_or(Numeric.equal(caliop_max_height,-9.),Numeric.less_equal(caliop_max_height, setup.EMISS_MIN_HEIGHT)))         
             
     ### 5 KM DATA CWC-RVOD ###                       
     elif int(Resolution[0])==5 and cloudsat_type=='CWC-RVOD':   
@@ -701,10 +594,10 @@ if __name__ == "__main__":
 
     #==============================================================================================
     #Draw plot
-    if PLOT_OPTION:
+    if process_mode in setup.PLOT_MODES:
     ##########################################################################################################################################   
         #pdb.set_trace()
-        plotpath = "%s/%s/%ikm/%s/%s/%s" %(PLOT_DIR, base_sat, int(Resolution[0]), base_year, base_month, AREA)
+        plotpath = "%s/%s/%ikm/%s/%s/%s" %(setup.PLOT_DIR, base_sat, int(Resolution[0]), base_year, base_month, AREA)
         if not os.path.exists(plotpath):
             os.makedirs(plotpath)
             
@@ -715,9 +608,18 @@ if __name__ == "__main__":
         trajectoryname = "%s/%skm_%s_trajectory" %(trajectorypath,int(Resolution[0]),basename)
           ##########################################################################################################################################   
         #pdb.set_trace()     
+        # To make it possible to use the same function call to drawCalClsatGEOPROFAvhrr*kmPlot
+        # in any processing mode:
+        if 'emissfilt_calipso_ok' not in locals():
+            emissfilt_calipso_ok = None
+        
         if int(Resolution[0])==1 and cloudsat_type=='GEOPROF': 
             drawCalClsatAvhrrPlotSATZ(cllat, clsatObj.avhrr.satz, caObj.avhrr.satz, plotpath, basename, Resolution[0])
-            drawCalClsatGEOPROFAvhrr1kmPlot(clsatObj, caObj, elevation, data_ok, CALIPSO_DISPLACED, caliop_base, caliop_height, cal_data_ok, avhrr_ctth_cal_ok, plotpath, basename)
+            drawCalClsatGEOPROFAvhrr1kmPlot(clsatObj, caObj, elevation, data_ok,
+                                            CALIPSO_DISPLACED, caliop_base,
+                                            caliop_height, cal_data_ok,
+                                            avhrr_ctth_cal_ok, plotpath,
+                                            basename, process_mode, emissfilt_calipso_ok)
             drawCalClsatAvhrrPlotTimeDiff(cllat, clsatObj.diff_sec_1970, caObj.diff_sec_1970, plotpath, basename, Resolution[0])
             plotSatelliteTrajectory(cllon,cllat,calon,calat,avhrlon,avhrlat,trajectoryname)
             
@@ -729,7 +631,11 @@ if __name__ == "__main__":
             drawCalClsatCWCAvhrr1kmPlot(clsatObj, elevationcwc, data_okcwc, plotpath, basename, phase) #caObj, CALIPSO_DISPLACED, caliop_base, caliop_height, cal_data_ok, avhrr_ctth_cal_ok)
         elif int(Resolution[0])==5 and cloudsat_type=='GEOPROF':
             drawCalClsatAvhrrPlotSATZ(cllat, clsatObj.avhrr5km.satz, caObj.avhrr5km.satz, plotpath, basename, Resolution[0])
-            drawCalClsatGEOPROFAvhrr5kmPlot(clsatObj, caObj, elevation, data_ok, CALIPSO_DISPLACED, caliop_base, caliop_height, cal_data_ok, avhrr_ctth_cal_ok, plotpath, basename)
+            drawCalClsatGEOPROFAvhrr5kmPlot(clsatObj, caObj, elevation, data_ok,
+                                            CALIPSO_DISPLACED, caliop_base,
+                                            caliop_height, cal_data_ok,
+                                            avhrr_ctth_cal_ok, plotpath,
+                                            basename, process_mode, emissfilt_calipso_ok)
             drawCalClsatAvhrrPlotTimeDiff(cllat, clsatObj.diff_sec_1970, caObj.diff_sec_1970, plotpath, basename, Resolution[0])
             plotSatelliteTrajectory(cllon,cllat,calon,calat,avhrlon,avhrlat,trajectoryname)          
         elif int(Resolution[0])==5 and cloudsat_type=='CWC-RVOD':
@@ -740,17 +646,37 @@ if __name__ == "__main__":
     #================================================================================================
     #Calculate Statistics
     if cloudsat_type=='GEOPROF':
-        if process_mode == "EMISSFILT":
+        if process_mode is 'EMISSFILT':
             process_calipso_ok = emissfilt_calipso_ok
         else:
             process_calipso_ok = 0
 
-        CalculateStatistics(ICE_COVER_SEA,ICE_FREE_SEA,SNOW_COVER_LAND,SNOW_FREE_LAND,COASTAL_ZONE,clsatObj,CLOUDSAT_CLOUDY_THR,statfile,EMISS_FILTERING,caObj\
-                            ,cal_MODIS_cflag,cal_vert_feature,0,MAXHEIGHT,avhrr_ctth_csat_ok,data_ok,cal_data_ok,avhrr_ctth_cal_ok,caliop_max_height\
-                            ,process_mode,process_calipso_ok,Resolution)
-
+        CalculateStatistics(process_mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
+                            cal_vert_feature, avhrr_ctth_csat_ok, data_ok,
+                            cal_data_ok, avhrr_ctth_cal_ok, caliop_max_height,
+                            process_calipso_ok, Resolution)
          
 
     
 
     
+
+if __name__ == "__main__":
+    import sys
+
+    if len(sys.argv) < 17:
+        write_log("INFO","Usage: %s <3*cloudsat-hdf5-file> <6*calipso-hdf5-file> <pps cloudtype file> <pps ctth file> <pps avhrr file> <pps surftemp file> <pps sunsatangle file> <processing_mode> <resolution>" %sys.argv[0],moduleid=MODULE_ID)
+        print("Program cloudsat_calipso_avhrr_match.py at line %i" %(inspect.currentframe().f_lineno+1))
+        sys.exit(-9)
+
+    cloudsatfile = sys.argv[1:4]
+    calipsofile = sys.argv[4:-7]
+    ctypefile = sys.argv[-7]
+    ctthfile = sys.argv[-6]
+    avhrrfile = sys.argv[-5]
+    surftfile = sys.argv[-4]
+    sunanglefile = sys.argv[-3]
+    process_mode = sys.argv[-2]
+    Resolution = sys.argv[-1]
+    
+    run(cloudsatfile, calipsofile, ctypefile, ctthfile, avhrrfile, surftfile, sunanglefile, process_mode, Resolution)

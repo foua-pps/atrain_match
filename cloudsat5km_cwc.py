@@ -14,7 +14,7 @@ from pps_basic_configure import *
 from pps_error_messages import *
 
 from calipso5km import *
-from cloudsat_calipso_avhrr_match import AREA5KM, SUB_DIR, DATA_DIR
+from setup import AREA5KM, SUB_DIR, DATA_DIR
 
 #MAIN_DIR = "/data/proj/safworks/adam/cloudsat_data"
 #MAIN_DIR = "/data/proj_nsc1/safworks/kgkarl/ORR-B-datasets/cloudsat/"

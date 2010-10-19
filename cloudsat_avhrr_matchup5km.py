@@ -10,7 +10,7 @@ import numpy.oldnumeric as Numeric
 from calipso5km import *
 #from cloudsat5km import *
 #from cloudsat5km_cwc import *
-from cloudsat_calipso_avhrr_match import AREA5KM, RESHAPE_DIR
+from setup import AREA5KM, RESHAPE_DIR
 #MAIN_DIR = "/data/proj/safworks/adam/calipso_data"
 #MAIN_DIR = "/local_disk/calipso_data"
 #SUB_DIR = "metop02_calipso_2007spring"
@@ -53,7 +53,7 @@ def getCloudsat5kmAvhrr5kmMatch(avhrrfile5km,cloudsatfile5km,ctypefile5km,ctthfi
         avhrrGeoObj5km = pps_io.readAvhrrGeoData(avhrrfile5km)
         
         # Read AVHRR sunsatangels
-        write_log("INFO","Read AVHRR Sun -and Satellites Angels data")
+        write_log("INFO","Read AVHRR Sun -and Satellites Angles data")
         avhrrAngObj5km = pps_io.readSunSatAngles(sunanglefile5km) #, withAbsoluteAzimuthAngles=True)
         
         # Read AVHRR data

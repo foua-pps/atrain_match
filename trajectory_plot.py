@@ -11,7 +11,7 @@ def plotSatelliteTrajectory(cllon,cllat,calon,calat,avhrlon,avhrlat,trajectoryna
     import pylab
     #import pdb
     #pdb.set_trace()
-    #from cloudsat_calipso_avhrr_match import AREA
+    #from setup import AREA
     
     upplosning = len(cllon)/500
     print('Resolution = %i' %(upplosning))
