@@ -247,6 +247,7 @@ if __name__=='__main__':
     from optparse import OptionParser
     import find_crosses
     import cloudsat_calipso_avhrr_match
+    from common import MatchupError
     import setup
     
     parser = OptionParser()
@@ -286,7 +287,8 @@ if __name__=='__main__':
         try:
             (avhrr_file, avhrr_dir_date) = FindAvhrrFile(match.as_sno_line()[:24])
         except:
-            # There was no match with local AVHRR data files
+            write_log('WARNING', "No matching AVHRR file found for %s %s." % \
+                      (match.satellite1, match.time1.strftime("%F %T")))
             continue
         
         # This is what I would like to do instead...
@@ -303,10 +305,14 @@ if __name__=='__main__':
                                                  avhrr_file, nwp_tsur_file,
                                                  sunsatangles_file, mode, 
                                                  resolution)
+            except MatchupError:
+                write_log('WARNING', "No matchups found for %s %s." % \
+                          (match.satellite1, match.time1.strftime("%F %T")))
+                break
             except:
                 problem_files.add(avhrr_file)
                 write_log('WARNING', "Couldn't run cloudsat_calipso_avhrr_match.")
-                break
+                raise
     if len(problem_files) > 0:
         write_log('WARNING', "%d problem files:" % len(problem_files))
         write_log('WARNING', problem_files)

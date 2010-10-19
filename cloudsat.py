@@ -524,6 +524,9 @@ def match_cloudsat_avhrr(ctypefile,cloudsatObj,avhrrGeoObj,avhrrObj,ctype,ctth,s
     #sec_timeThr = 60*20 # Allow for 20 minute deviation between AVHRR and CLOUDSAT matchup
     secTup = avhrrGeoObj.sec1970_start,avhrrGeoObj.sec1970_end
     idx_match = select_cloudsat_inside_avhrr(cloudsatObj,cal,secTup,sec_timeThr)
+    
+    if idx_match.sum() == 0:
+        raise MatchupError("No matches within region.")
 
     print "Make CPR echo top array..."
     retv.cloudsat.echo_top = Numeric.repeat(cloudsatObj.CPR_Echo_Top,idx_match).astype('b')
