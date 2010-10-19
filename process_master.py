@@ -291,6 +291,7 @@ if __name__=='__main__':
     resolution = "%i.%i" %(RESOLUTION,clsat_type)
     
     print(resolution)
+    problem_files = set()
     for match in matchups:
         
         # A bit backwards, but makes it possible to use find_crosses for parsing
@@ -308,13 +309,13 @@ if __name__=='__main__':
         
         cloudsat_file, calipso_file, cloudtype_file, ctth_file, avhrr_file, nwp_tsur_file, sunsatangles_file = FindFiles(avhrr_file, avhrr_dir_date)
         #pdb.set_trace()
-        problem_files = set()
         for mode in run_modes:
             cmdstr ="python cloudsat_calipso_avhrr_match.py %s %s %s %s %s %s %s %s %s" \
                         % (cloudsat_file,calipso_file,cloudtype_file,ctth_file,avhrr_file,nwp_tsur_file,sunsatangles_file,mode,resolution)
             status = os.system(cmdstr)
             if status != 0:
                 problem_files.add((avhrr_file, cloudsat_file, calipso_file))
+                break
     if len(problem_files) > 0:
         print("Problem files:")
         print(problem_files)
