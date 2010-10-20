@@ -280,6 +280,7 @@ if __name__=='__main__':
     
     print(resolution)
     problem_files = set()
+    no_matchup_files = set()
     for match in matchups:
         
         # A bit backwards, but makes it possible to use find_crosses for parsing
@@ -305,14 +306,19 @@ if __name__=='__main__':
                                                  avhrr_file, nwp_tsur_file,
                                                  sunsatangles_file, mode, 
                                                  resolution)
-            except MatchupError:
-                write_log('WARNING', "No matchups found for %s %s." % \
-                          (match.satellite1, match.time1.strftime("%F %T")))
+            except MatchupError, err:
+                write_log('WARNING', "Matchup problem for %s %s: %s" % \
+                          (match.satellite1, match.time1.strftime("%F %T"),
+                           err.message))
+                no_matchup_files.add(avhrr_file)
                 break
             except:
                 problem_files.add(avhrr_file)
                 write_log('WARNING', "Couldn't run cloudsat_calipso_avhrr_match.")
                 raise
+    if len(no_matchup_files) > 0:
+        write_log('WARNING', "%d files had no matchups:" % len(no_matchup_files))
+        write_log('WARNING', no_matchup_files)
     if len(problem_files) > 0:
         write_log('WARNING', "%d problem files:" % len(problem_files))
         write_log('WARNING', problem_files)
