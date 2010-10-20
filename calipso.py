@@ -4,6 +4,7 @@ import pdb
 from pps_basic_configure import *
 from pps_error_messages import *
 
+from common import MatchupError, elements_within_range
 DSEC_PER_AVHRR_SCALINE = 0.1667 # Full scan period, i.e. the time interval between two consecutive lines (sec)
 from setup import AREA1KM, SUB_DIR, DATA_DIR, sec_timeThr
 #MAIN_DIR = "/data/proj/safworks/adam/calipso_data"
@@ -546,6 +547,7 @@ def match_calipso_avhrr(ctypefile,calipsoObj,avhrrGeoObj,avhrrObj,ctype,ctth,sur
     import numpy.oldnumeric as Numeric
     import time
     import string
+    import numpy
     ##########################################################################################################################################
     #pdb.set_trace()
     retv = CalipsoAvhrrTrackObject()
@@ -556,28 +558,27 @@ def match_calipso_avhrr(ctypefile,calipsoObj,avhrrGeoObj,avhrrObj,ctype,ctth,sur
     # --------------------------------------------------------------------
 
     cal,cap = get_calipso_avhrr_linpix(avhrrGeoObj,lonCalipso,latCalipso)
+    calnan = numpy.where(cal == NODATA, numpy.nan, cal)
+    if (~numpy.isnan(calnan)).sum() == 0:
+        raise MatchupError("No matches within region.")
+    avhrr_lines_sec_1970 = calnan * DSEC_PER_AVHRR_SCALINE + avhrrGeoObj.sec1970_start
 
-    idx_calipso = Numeric.arange(ndim)
-    idx_calipso_on_avhrr=Numeric.repeat(idx_calipso,Numeric.not_equal(cal,NODATA))
-    
-    lon_calipso = Numeric.repeat(lonCalipso,Numeric.not_equal(cal,NODATA))
-    lat_calipso = Numeric.repeat(latCalipso,Numeric.not_equal(cal,NODATA))
+    # Find all matching Cloudsat pixels within +/- sec_timeThr from the AVHRR data
+    dsec = time.mktime((1993,1,1,0,0,0,0,0,0)) - time.timezone # Convert from TAI time to UTC in seconds since 1970
+    idx_match = elements_within_range(calipsoObj.time[::,0] + dsec, avhrr_lines_sec_1970, sec_timeThr)
+    if idx_match.sum() == 0:
+        raise MatchupError("No matches in region within time threshold %d s." % sec_timeThr)
+
+    lon_calipso = Numeric.repeat(lonCalipso, idx_match)
+    lat_calipso = Numeric.repeat(latCalipso, idx_match)
     # Calipso line,pixel inside AVHRR swath:
-    cal_on_avhrr = Numeric.repeat(cal,Numeric.not_equal(cal,NODATA))
-    cap_on_avhrr = Numeric.repeat(cap,Numeric.not_equal(cal,NODATA))
-
-    timetup_start = time.gmtime(avhrrGeoObj.sec1970_start)
-    timetup_end   = time.gmtime(avhrrGeoObj.sec1970_end)
-
-    # Convert from TAI time to UTC in seconds since 1970:
-    dsec = time.mktime((1993,1,1,0,0,0,0,0,0)) - time.timezone
+    cal_on_avhrr = Numeric.repeat(cal, idx_match)
+    cap_on_avhrr = Numeric.repeat(cap, idx_match)
 
     print "Start and end times: ",time.gmtime(calipsoObj.time[0][0] + dsec),time.gmtime(calipsoObj.time[ndim-1][0] + dsec)
     
 ##########################################################################################################################################
     #pdb.set_trace()
-    secTup = avhrrGeoObj.sec1970_start,avhrrGeoObj.sec1970_end
-    idx_match = select_calipso_inside_avhrr(calipsoObj,cal,dsec,secTup,sec_timeThr)
 
     retv.calipso.sec_1970 = Numeric.repeat(calipsoObj.time[::,0] + dsec,idx_match)
 

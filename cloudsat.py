@@ -14,7 +14,7 @@ from pps_error_messages import *
 
 from calipso import *
 from setup import AREA1KM, SUB_DIR, DATA_DIR, sec_timeThr
-from common import MatchupError
+from common import MatchupError, elements_within_range
 
 #MAIN_DIR = "/data/proj/safworks/adam/cloudsat_data"
 #MAIN_DIR = "/data/proj_nsc1/safworks/kgkarl/ORR-B-datasets/cloudsat/"
@@ -497,6 +497,7 @@ def match_cloudsat_avhrr(ctypefile,cloudsatObj,avhrrGeoObj,avhrrObj,ctype,ctth,s
     import numpy.oldnumeric as Numeric
     import time
     import string
+    import numpy
     
     retv = CloudsatAvhrrTrackObject()
     
@@ -507,26 +508,24 @@ def match_cloudsat_avhrr(ctypefile,cloudsatObj,avhrrGeoObj,avhrrObj,ctype,ctth,s
     # --------------------------------------------------------------------
 
     cal,cap = get_cloudsat_avhrr_linpix(avhrrGeoObj,lonCloudsat,latCloudsat)
+    calnan = numpy.where(cal == NODATA, numpy.nan, cal)
+    if (~numpy.isnan(calnan)).sum() == 0:
+        raise MatchupError("No matches within region.")
+    avhrr_lines_sec_1970 = calnan * DSEC_PER_AVHRR_SCALINE + avhrrGeoObj.sec1970_start
 
-    #print len(cal), len(cap), ndim
+    # Find all matching Cloudsat pixels within +/- sec_timeThr from the AVHRR data
+    idx_match = elements_within_range(cloudsatObj.sec1970, avhrr_lines_sec_1970, sec_timeThr)
+    #            numpy.logical_and(cloudsatObj.sec1970 > avhrr_lines_sec_1970 - sec_timeThr,
+    #                              cloudsatObj.sec1970 < avhrr_lines_sec_1970 + sec_timeThr)
+    if idx_match.sum() == 0:
+        raise MatchupError("No matches in region within time threshold %d s." % sec_timeThr)
 
-    idx_cloudsat = Numeric.arange(ndim)
-    idx_cloudsat_on_avhrr=Numeric.repeat(idx_cloudsat,Numeric.not_equal(cal,NODATA))    
-    lon_cloudsat = Numeric.repeat(lonCloudsat,Numeric.not_equal(cal,NODATA))
-    lat_cloudsat = Numeric.repeat(latCloudsat,Numeric.not_equal(cal,NODATA))
+    lon_cloudsat = Numeric.repeat(lonCloudsat, idx_match)
+    lat_cloudsat = Numeric.repeat(latCloudsat, idx_match)
 
     # Cloudsat line,pixel inside AVHRR swath:
-    cal_on_avhrr = Numeric.repeat(cal,Numeric.not_equal(cal,NODATA))
-    cap_on_avhrr = Numeric.repeat(cap,Numeric.not_equal(cal,NODATA))
-    timetup_start = time.gmtime(avhrrGeoObj.sec1970_start)
-    timetup_end   = time.gmtime(avhrrGeoObj.sec1970_end)
-
-    #sec_timeThr = 60*20 # Allow for 20 minute deviation between AVHRR and CLOUDSAT matchup
-    secTup = avhrrGeoObj.sec1970_start,avhrrGeoObj.sec1970_end
-    idx_match = select_cloudsat_inside_avhrr(cloudsatObj,cal,secTup,sec_timeThr)
-    
-    if idx_match.sum() == 0:
-        raise MatchupError("No matches within region.")
+    cal_on_avhrr = Numeric.repeat(cal, idx_match)
+    cap_on_avhrr = Numeric.repeat(cap, idx_match)
 
     print "Make CPR echo top array..."
     retv.cloudsat.echo_top = Numeric.repeat(cloudsatObj.CPR_Echo_Top,idx_match).astype('b')
