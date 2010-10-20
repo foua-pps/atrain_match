@@ -4,9 +4,8 @@ import pdb
 from pps_basic_configure import *
 from pps_error_messages import *
 
+from setup import AREA1KM, SUB_DIR, DATA_DIR, sec_timeThr, DSEC_PER_AVHRR_SCALINE
 from common import MatchupError, elements_within_range
-DSEC_PER_AVHRR_SCALINE = 0.1667 # Full scan period, i.e. the time interval between two consecutive lines (sec)
-from setup import AREA1KM, SUB_DIR, DATA_DIR, sec_timeThr
 #MAIN_DIR = "/data/proj/safworks/adam/calipso_data"
 #MAIN_DIR = "/data/proj_nsc1/safworks/calipso_cloudsat/data/arctic/"
 #MAIN_DIR = "/data/proj_nsc1/safworks/kgkarl/ORR-B-datasets/calipso/"
@@ -882,7 +881,7 @@ def reshapeCalipso1km(calipsofiles,avhrr):
     
     cal= CalipsoObject()
     if avhrr.sec1970_end<avhrr.sec1970_start:
-        avhrr_end = int(DSEC_PER_AVHRR_SCALINE1KM*avhrr.num_of_lines+avhrr.sec1970_start)
+        avhrr_end = int(DSEC_PER_AVHRR_SCALINE*avhrr.num_of_lines+avhrr.sec1970_start)
     else:
         avhrr_end = avhrr.sec1970_end
     avhrr_start = avhrr.sec1970_start

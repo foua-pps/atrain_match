@@ -13,7 +13,7 @@ from pps_basic_configure import *
 from pps_error_messages import *
 
 from calipso import *
-from setup import AREA1KM, SUB_DIR, DATA_DIR, sec_timeThr
+from setup import AREA1KM, SUB_DIR, DATA_DIR, sec_timeThr, DSEC_PER_AVHRR_SCALINE
 from common import MatchupError, elements_within_range
 
 #MAIN_DIR = "/data/proj/safworks/adam/cloudsat_data"
@@ -698,7 +698,7 @@ def reshapeCloudsat1km(cloudsatfiles,avhrr):
     
     clsat = CloudsatObject()
     if avhrr.sec1970_end<avhrr.sec1970_start:
-        avhrr_end = int(DSEC_PER_AVHRR_SCALINE1KM*avhrr.num_of_lines+avhrr.sec1970_start)
+        avhrr_end = int(DSEC_PER_AVHRR_SCALINE*avhrr.num_of_lines+avhrr.sec1970_start)
     else:
         avhrr_end = avhrr.sec1970_end
     avhrr_start = avhrr.sec1970_start

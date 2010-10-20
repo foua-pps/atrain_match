@@ -51,6 +51,8 @@ CLOUDSAT5KM_TRACK_RESOLUTION = 1.076#*5.0
 EMISS_MIN_HEIGHT = 2000.0
 EMISS_LIMIT = 0.2 # A value of 0.2-0.3 in cloud emissivity seems reasonable
 
+DSEC_PER_AVHRR_SCALINE = 0.1667 # Full scan period, i.e. the time interval between two consecutive lines (sec)
+
 ALLOWED_MODES = ['BASIC',
                  'EMISSFILT',        # Filter out cases with the thinnest topmost CALIPSO layers
                  'ICE_COVER_SEA',    # Restrict to ice cover over sea using NSIDC and IGBP data
