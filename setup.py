@@ -4,7 +4,6 @@ Created on Oct 19, 2010
 @author: a001696
 '''
 import os
-from pps_error_messages import write_log
 
 def get_environ(name, default=None):
     """Get the environment variable *name*. If it is not defined, return 
