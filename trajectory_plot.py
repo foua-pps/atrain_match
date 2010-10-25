@@ -13,7 +13,9 @@ def plotSatelliteTrajectory(cllon,cllat,calon,calat,avhrlon,avhrlat,trajectoryna
     #pdb.set_trace()
     #from setup import AREA
     
-    upplosning = len(cllon)/500
+    # TODO: This plotting function needs to be looked over...
+    N = len(cllon)/500 + 2 # Number of segments (make sure we have at least two)
+    upplosning = len(cllon)/N
     print('Resolution = %i' %(upplosning))
     m = Basemap(projection='cyl',llcrnrlat=-90,urcrnrlat=90,\
                 llcrnrlon=-180,urcrnrlon=180,resolution='c')
