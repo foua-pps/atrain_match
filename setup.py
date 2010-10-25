@@ -27,10 +27,17 @@ RESHAPE_DIR = "%s/Reshaped_Files" %MAIN_DIR
 DATA_DIR = "%s/Data" %MAIN_DIR
 PLOT_DIR = "%s/Plot" %MAIN_DIR
 RESULT_DIR = "%s/Results" %MAIN_DIR
+CLOUDSAT_DIR = "%s/CloudSat" % SAT_DIR
+CLOUDSAT_TYPE = 'GEOPROF'
+CALIPSO_DIR = "%s/Calipso" % SAT_DIR
+
+SAT_ORBIT_DURATION = 90*60 # Duration of a satellite orbit in seconds
+
+CTTH_FILE = 'ctth' # One of 'ctth', 'ctth_opaque', and 'ctth_semitransparent'
 
 AREA5KM = "arctic_super_1002_5km"
 AREA1KM = "baltrad1km"
-sec_timeThr = 60*20 # Allow for 20 minute deviation between AVHRR and CALIPSO/CloudSat matchup
+sec_timeThr = 60*20 # Allowed time deviation in seconds between AVHRR and CALIPSO/CloudSat matchup
 
 CLOUDSAT_CLOUDY_THR = 30.0  # Recommended cloud threshold for the CloudSat cloud mask. In 5km data this threshold have already been aplied therfore no reason to change it for thise data set. 
 MAXHEIGHT = 25000.0
@@ -60,3 +67,18 @@ ALLOWED_MODES = ['BASIC',
                  'SNOW_FREE_LAND',   # Restrict to snow-free land using NSIDC and IGBP data
                  'COASTAL_ZONE']      # Restrict to coastal regions using NSIDC data (mixed microwave region)
 PLOT_MODES = ['BASIC']
+
+def subdir(self, satname, date):
+    """This method is used by FileFinders for finding the correct subdir."""
+    dir = "%s/%dkm/%d/%02d" % (satname, RESOLUTION, date.year, date.month)
+    try:
+        for ending in ['avhrr', 'sunsatangles', 'nwp_tsur']:
+            if ending in self.ending:
+                dir = os.path.join(dir, 'import')
+        for ending in ['cloudtype', 'ctth']:
+            if ending in self.ending:
+                dir = os.path.join(dir, 'export')
+    except (AttributeError, TypeError):
+        # We're dealing with some other satellite data, e.g. Calipso or Cloudsat
+        pass
+    return dir
