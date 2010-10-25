@@ -317,6 +317,7 @@ if __name__=='__main__':
     
     problem_files = set()
     no_matchup_files = []
+    no_matchup_cross = []
     processed_avhrr_files = set()
     for match in matchups:
         
@@ -334,6 +335,7 @@ if __name__=='__main__':
         except IndexError:
             write_log('WARNING', "No matching AVHRR file found for %s %s." % \
                       (match.satellite1, match.time1.strftime("%F %T")))
+            no_matchup_cross.append(match)
             continue
         if avhrr_file in processed_avhrr_files:
             write_log('WARNING', "Matching AVHRR file has already been processed: %s" % avhrr_file)
@@ -363,10 +365,14 @@ if __name__=='__main__':
             except:
                 problem_files.add(avhrr_file)
                 write_log('WARNING', "Couldn't run cloudsat_calipso_avhrr_match.")
-                raise
+                break
+    if len(no_matchup_cross) > 0:
+        write_log('WARNING', "%d of %d cases had no matching AVHRR files:\n%s" % \
+                  (len(no_matchup_cross), len(matchups),
+                   '\n'.join([str(c) for c in no_matchup_cross])))
     if len(no_matchup_files) > 0:
-        write_log('WARNING', "%d files had no matchups: %s" % \
-                  (len(no_matchup_files), '\n'.join(no_matchup_files)))
+        write_log('WARNING', "%d of %d cases had no matchups in region, within the time window:\n%s" % \
+                  (len(no_matchup_files), len(matchups), '\n'.join(no_matchup_files)))
     if len(problem_files) > 0:
-        write_log('WARNING', "%d problem files: %s" % \
-                  (len(problem_files), '\n'.join(problem_files)))
+        write_log('WARNING', "%d of %d cases had unknown problems:\n%s" % \
+                  (len(problem_files), len(matchups), '\n'.join(problem_files)))
