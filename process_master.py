@@ -336,7 +336,8 @@ if __name__=='__main__':
                       (match.satellite1, match.time1.strftime("%F %T")))
             continue
         if avhrr_file in processed_avhrr_files:
-            raise MatchupError("Found matching AVHRR file which has already been processed.")
+            write_log('WARNING', "Matching AVHRR file has already been processed: %s" % avhrr_file)
+            continue
         processed_avhrr_files.add(avhrr_file)
         
         # This is what I would like to do instead...
