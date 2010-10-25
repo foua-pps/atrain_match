@@ -110,7 +110,36 @@ def FindAvhrrFile(match_avhrr):
         
 #--------------------------------------------------------------------------------------------------------
 
-def FindFiles(avhrrfile, avhrr_dir_date): 
+def FindFiles(avhrrfile, avhrr_dir_date=None):
+    if avhrr_dir_date is None:
+        # Use the file_finders package for finding files
+        import file_finders
+        
+        pps_finder = file_finders.PpsFileFinder(setup.SAT_DIR)
+        try:
+            pps_finder.set_subdir_method(setup.subdir)
+        except AttributeError:
+            pass
+        parsed = pps_finder.parse(avhrrfile)
+        satname = parsed['satellite']
+        datetime = parsed['datetime']
+        cloudsat_finder = file_finders.CloudsatFileFinder(setup.CLOUDSAT_DIR,
+                                                          setup.RESOLUTION,
+                                                          setup.CLOUDSAT_TYPE)
+        cloudsat_files = sorted(cloudsat_finder.find(datetime))
+        calipso_finder = file_finders.CalipsoFileFinder(setup.CALIPSO_DIR,
+                                                        setup.RESOLUTION)
+        calipso_files = sorted(calipso_finder.find(datetime))
+        cloudtype_file = pps_finder.find(satname, datetime, ending='cloudtype.h5')[0]
+        ctth_file = pps_finder.find(satname, datetime,
+                                    ending='%s.h5' % setup.CTTH_FILE)[0]
+        avhrr_file = avhrrfile
+        nwp_tsur_file = pps_finder.find(satname, datetime, ending='nwp_tsur.h5')[0]
+        sunsatangles_file = pps_finder.find(satname, datetime, ending='sunsatangles.h5')[0]
+        
+        return (cloudsat_files, calipso_files, cloudtype_file, ctth_file, 
+                avhrr_file, nwp_tsur_file, sunsatangles_file)
+    
     avhrr_split = os.path.basename(avhrrfile).split("_")
     avhrr_year = avhrr_split[1][0:4]
     avhrr_month = avhrr_split[1][4:6]
@@ -237,7 +266,8 @@ def FindFiles(avhrrfile, avhrr_dir_date):
     avhrr_file = "%s/import/%s_avhrr.h5" %(AVHRR_DIR, avhrr_join)
     nwp_tsur_file = "%s/import/%s_nwp_tsur.h5" %(AVHRR_DIR, avhrr_join)
     sunsatangles_file = "%s/import/%s_sunsatangles.h5" %(AVHRR_DIR, avhrr_join)
-        
+    
+    raise Warning
     #   avhrr_date = (avhrr_year,avhrr_month,avhrr_day,avhrr_hour,avhrr_min)
     return clsat_file, cal_file, cloudtype_file, ctth_file, avhrr_file, nwp_tsur_file, sunsatangles_file
 
@@ -246,9 +276,9 @@ if __name__=='__main__':
     #pdb.set_trace()
     from optparse import OptionParser
     import find_crosses
+    import file_finders
     import cloudsat_calipso_avhrr_match
     from common import MatchupError
-    import setup
     
     parser = OptionParser()
     parser.set_usage("usage: %prog [options]\n"
@@ -278,19 +308,36 @@ if __name__=='__main__':
     #match_times_file.close()
     resolution = "%i.%i" %(setup.RESOLUTION,setup.clsat_type)
     
-    print(resolution)
+    avhrr_finder = file_finders.PpsFileFinder(setup.SAT_DIR, 'avhrr.h5')
+    if matchups[0].time_window is not None:
+        avhrr_finder.set_time_window([-setup.SAT_ORBIT_DURATION + matchups[0].time_window, 0])
+    else:
+        avhrr_finder.set_time_window([-setup.SAT_ORBIT_DURATION + setup.sec_timeThr, 0])
+    avhrr_finder.set_subdir_method(setup.subdir)
+    
     problem_files = set()
-    no_matchup_files = set()
+    no_matchup_files = []
+    processed_avhrr_files = set()
     for match in matchups:
         
-        # A bit backwards, but makes it possible to use find_crosses for parsing
-        # the SNO output file. We don't have to prune the file in advance...
         try:
-            (avhrr_file, avhrr_dir_date) = FindAvhrrFile(match.as_sno_line()[:24])
-        except:
+            # A bit backwards, but makes it possible to use find_crosses for parsing
+            # the SNO output file. We don't have to prune the file in advance...
+            #(avhrr_file, avhrr_dir_date) = FindAvhrrFile(match.as_sno_line()[:24])
+            
+            avhrr_file = avhrr_finder.find(match.satellite1.lower(), match.time1)[0]
+            parsed = avhrr_finder.parse(avhrr_file)
+            
+            #avhrr_dir_date = ("%02d" % parsed['datetime'].month, "%d" % parsed['datetime'].year,
+            #                  "%02d" % parsed['datetime'].month, "%d" % parsed['datetime'].year)
+            avhrr_dir_date = None
+        except IndexError:
             write_log('WARNING', "No matching AVHRR file found for %s %s." % \
                       (match.satellite1, match.time1.strftime("%F %T")))
             continue
+        if avhrr_file in processed_avhrr_files:
+            raise MatchupError("Found matching AVHRR file which has already been processed.")
+        processed_avhrr_files.add(avhrr_file)
         
         # This is what I would like to do instead...
         # import file_finders
@@ -310,15 +357,15 @@ if __name__=='__main__':
                 write_log('WARNING', "Matchup problem for %s %s: %s" % \
                           (match.satellite1, match.time1.strftime("%F %T"),
                            err.message))
-                no_matchup_files.add(avhrr_file)
+                no_matchup_files.append(avhrr_file)
                 break
             except:
                 problem_files.add(avhrr_file)
                 write_log('WARNING', "Couldn't run cloudsat_calipso_avhrr_match.")
                 raise
     if len(no_matchup_files) > 0:
-        write_log('WARNING', "%d files had no matchups:" % len(no_matchup_files))
-        write_log('WARNING', no_matchup_files)
+        write_log('WARNING', "%d files had no matchups: %s" % \
+                  (len(no_matchup_files), '\n'.join(no_matchup_files)))
     if len(problem_files) > 0:
-        write_log('WARNING', "%d problem files:" % len(problem_files))
-        write_log('WARNING', problem_files)
+        write_log('WARNING', "%d problem files: %s" % \
+                  (len(problem_files), '\n'.join(problem_files)))
