@@ -218,14 +218,17 @@ def run(cloudsatfile, calipsofile, ctypefile, ctthfile, avhrrfile, surftfile, su
         latdiff = abs(clsatObj.cloudsat.latitude[0] - caObj.calipso.latitude[0])
         print "latdiff: ", latdiff
         if latdiff > 0.1:
-            print "WARNING: CloudSat/CALIPSO startpoint differ by %f degrees!" % latdiff
-            print clsatObj.cloudsat.latitude[0],clsatObj.cloudsat.longitude[0],caObj.calipso.latitude[0],caObj.calipso.longitude[0]
+            write_log('INFO', "CloudSat/CALIPSO startpoint differ by %f degrees." % latdiff)
+            write_log('INFO', "Cloudsat start lon, lat: %f, %f" % \
+                      (clsatObj.cloudsat.longitude[0], clsatObj.cloudsat.latitude[0]))
+            write_log('INFO', "CALIPSO start lon, lat: %f, %f" % \
+                      (caObj.calipso.longitude[0], caObj.calipso.latitude[0]))
             CALIPSO_DISPLACED = 1
             for j in range(clsatObj.cloudsat.latitude.shape[0]):
                 if (abs(clsatObj.cloudsat.latitude[j] - caObj.calipso.latitude[0]) < 0.05) and\
                        (abs(clsatObj.cloudsat.longitude[j] - caObj.calipso.longitude[0]) < 0.1):
                     calipso_displacement=int(j*CLOUDSAT_TRACK_RESOLUTION)
-                    print "CALIPSO_DISPLACEMENT: ", calipso_displacement
+                    write_log('INFO', "CALIPSO_DISPLACEMENT: %d" % calipso_displacement)
                     break
         # First make sure that PPS cloud top heights are converted to height above sea level
         # just as CloudSat and CALIPSO heights are defined. Use corresponding DEM data.            
