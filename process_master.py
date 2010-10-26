@@ -115,7 +115,7 @@ def FindFiles(avhrrfile, avhrr_dir_date=None):
         # Use the file_finders package for finding files
         import file_finders
         
-        pps_finder = file_finders.PpsFileFinder(setup.SAT_DIR)
+        pps_finder = file_finders.PpsFileFinder(setup.SAT_DIR, time_window=5*60)
         try:
             pps_finder.set_subdir_method(setup.subdir)
         except AttributeError:
@@ -126,9 +126,11 @@ def FindFiles(avhrrfile, avhrr_dir_date=None):
         cloudsat_finder = file_finders.CloudsatFileFinder(setup.CLOUDSAT_DIR,
                                                           setup.RESOLUTION,
                                                           setup.CLOUDSAT_TYPE)
+        cloudsat_finder.set_time_window(setup.SAT_ORBIT_DURATION + setup.sec_timeThr)
         cloudsat_files = sorted(cloudsat_finder.find(datetime))
         calipso_finder = file_finders.CalipsoFileFinder(setup.CALIPSO_DIR,
                                                         setup.RESOLUTION)
+        calipso_finder.set_time_window(setup.SAT_ORBIT_DURATION + setup.sec_timeThr)
         calipso_files = sorted(calipso_finder.find(datetime))
         cloudtype_file = pps_finder.find(satname, datetime, ending='cloudtype.h5')[0]
         ctth_file = pps_finder.find(satname, datetime,
@@ -310,9 +312,9 @@ if __name__=='__main__':
     
     avhrr_finder = file_finders.PpsFileFinder(setup.SAT_DIR, 'avhrr.h5')
     if matchups[0].time_window is not None:
-        avhrr_finder.set_time_window([-setup.SAT_ORBIT_DURATION + matchups[0].time_window, 0])
+        avhrr_finder.set_time_window(-(setup.SAT_ORBIT_DURATION + matchups[0].time_window), matchups[0].time_window)
     else:
-        avhrr_finder.set_time_window([-setup.SAT_ORBIT_DURATION + setup.sec_timeThr, 0])
+        avhrr_finder.set_time_window(-(setup.SAT_ORBIT_DURATION + setup.sec_timeThr), setup.sec_timeThr)
     avhrr_finder.set_subdir_method(setup.subdir)
     
     problem_files = set()
