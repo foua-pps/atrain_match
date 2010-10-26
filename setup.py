@@ -33,7 +33,7 @@ CALIPSO_DIR = "%s/Calipso" % SAT_DIR
 
 SAT_ORBIT_DURATION = 90*60 # Duration of a satellite orbit in seconds
 
-CTTH_FILE = 'ctth' # One of 'ctth', 'ctth_opaque', and 'ctth_semitransparent'
+CTTH_FILE = get_environ('CTTH_FILE', 'ctth') # One of 'ctth', 'ctth_opaque', and 'ctth_semitransparent'
 
 AREA5KM = "arctic_super_1002_5km"
 AREA1KM = "baltrad1km"
