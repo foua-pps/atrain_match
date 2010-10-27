@@ -606,7 +606,7 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
         avhrr_height_work = numpy.repeat(avhrr_ctth_cal_ok[::],okcaliop)
         caliop_max_height_work = numpy.repeat(caliop_max_height[::],okcaliop)
         if len(caliop_max_height_work) > 0:
-            if len(avhrr_height) > 20:
+            if len(avhrr_height_work) > 20:
                 corr_caliop_avhrr = Scientific.Statistics.correlation(caliop_max_height_work,avhrr_height_work)
             else:
                 corr_caliop_avhrr = -99.0
