@@ -293,6 +293,7 @@ if __name__=='__main__':
     parser.add_option('-M', '--mode', type='string', action='append',
                       help="Run validation software in MODE (valid modes are %s)" % \
                       ', '.join(setup.ALLOWED_MODES))
+    parser.add_option('-d', '--debug', action='store_true')
     (options, args) = parser.parse_args()
     
     if options.mode is not None:
@@ -367,6 +368,8 @@ if __name__=='__main__':
             except:
                 problem_files.add(avhrr_file)
                 write_log('WARNING', "Couldn't run cloudsat_calipso_avhrr_match.")
+                if options.debug is True:
+                    raise
                 break
     if len(no_matchup_cross) > 0:
         write_log('WARNING', "%d of %d cases had no matching AVHRR files:\n%s" % \
