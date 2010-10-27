@@ -51,6 +51,16 @@ class Cross:
     
     def __str__(self):
         return self.__repr__()
+    
+    def __lt__(self, other):
+        return self.time1 < other.time1
+    
+    def __eq__(self, other):
+        return self.time1 == other.time1 and self.time2 == other.time2 and \
+               self.satellite1 == other.satellite1 and self.satellite2 == other.satellite2
+    
+    def __hash__(self):
+        return hash(self.time1) ^ hash(self.time2) ^ hash(self.satellite1) ^ hash(self.satellite2)
 
 
 
