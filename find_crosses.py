@@ -2,15 +2,7 @@
 """Find satellite passes where the given satellites cross paths within a given
 time window."""
 
-import os
-
-def get_environ(name, default=None):
-    """Get the environment variable *name*. If it is not defined, return 
-    *default*."""
-    try:
-        return os.environ[name]
-    except KeyError:
-        return default
+from setup import get_environ
 
 # SNO executable
 SNO_EXECUTABLE = get_environ('SNO_EXECUTABLE', "/data/proj/saf/ejohansson/SNO_tools/snotimes")
