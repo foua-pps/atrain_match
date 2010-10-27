@@ -349,9 +349,15 @@ if __name__=='__main__':
         # import file_finders
         # pps_finder = file_finders.PpsFileFinder(basedir=???, ending='avhrr.h5')
         #avhrr_file = pps_finder.find(match)
+        try:
+            cloudsat_file, calipso_file, cloudtype_file, ctth_file, avhrr_file, nwp_tsur_file, sunsatangles_file = FindFiles(avhrr_file, avhrr_dir_date)
+        except IndexError:
+            problem_files.add(avhrr_file)
+            write_log('WARNING', "Couldn't find all needed files for %s." % avhrr_file)
+            if options.debug is True:
+                raise
+            break
         
-        cloudsat_file, calipso_file, cloudtype_file, ctth_file, avhrr_file, nwp_tsur_file, sunsatangles_file = FindFiles(avhrr_file, avhrr_dir_date)
-        #pdb.set_trace()
         for mode in run_modes:
             try:
                 cloudsat_calipso_avhrr_match.run(cloudsat_file, calipso_file,
