@@ -16,7 +16,6 @@ def get_environ(name, default=None):
 SNO_EXECUTABLE = get_environ('SNO_EXECUTABLE', "/data/proj/saf/ejohansson/SNO_tools/snotimes")
 # Time window between satellite data reception time and sat1-sat2 crossing time, in seconds
 SATELLITE_CROSS_RECEPTION_TIME_WINDOW = int(get_environ('SATELLITE_CROSS_RECEPTION_TIME_WINDOW', 60*60))
-AAPP_WORKING_DIR = get_environ('AAPP_WORKING_DIR')
 
 
 class Cross:
@@ -138,15 +137,6 @@ def parse_range(range):
     """Parse *range*, which should look like -35.7354:25.1. Return (lower, upper)."""
     l = range.split(':')
     return (float(l[0]), float(l[1]))
-
-
-def prepare_aapp(hrpt_filename, aapp_working_dir=AAPP_WORKING_DIR):
-    """Create symbolic link to *hrpt_filename* in *aapp_working_dir/incoming*,
-    in preparation for running AAPP to create Level 1B AVHRR files, suitable for
-    PPS processing."""
-    import os
-    os.symlink(hrpt_filename, os.path.join(aapp_working_dir, 'incoming', 
-               os.path.basename(hrpt_filename)))
 
 
 if __name__ == '__main__':
