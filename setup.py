@@ -27,6 +27,7 @@ RESHAPE_DIR = "%s/Reshaped_Files" %MAIN_DIR
 DATA_DIR = "%s/Data" %MAIN_DIR
 PLOT_DIR = "%s/Plot" %MAIN_DIR
 RESULT_DIR = "%s/Results" %MAIN_DIR
+PPS_DATA_DIR = get_environ('PPS_DATA_DIR', SAT_DIR) # The naming of the PPS env variable DATA_DIR is a bit unfortunate...
 CLOUDSAT_DIR = "%s/CloudSat" % SAT_DIR
 CLOUDSAT_TYPE = 'GEOPROF'
 CALIPSO_DIR = "%s/Calipso" % SAT_DIR
@@ -68,17 +69,18 @@ ALLOWED_MODES = ['BASIC',
                  'COASTAL_ZONE']      # Restrict to coastal regions using NSIDC data (mixed microwave region)
 PLOT_MODES = ['BASIC']
 
-def subdir(self, satname, date):
-    """This method is used by FileFinders for finding the correct subdir."""
-    dir = "%s/%dkm/%d/%02d" % (satname, RESOLUTION, date.year, date.month)
-    try:
-        for ending in ['avhrr', 'sunsatangles', 'nwp_tsur']:
-            if ending in self.ending:
-                dir = os.path.join(dir, 'import')
-        for ending in ['cloudtype', 'ctth']:
-            if ending in self.ending:
-                dir = os.path.join(dir, 'export')
-    except (AttributeError, TypeError):
-        # We're dealing with some other satellite data, e.g. Calipso or Cloudsat
-        pass
-    return dir
+if False: # Do we use this def?
+    def subdir(self, satname, date):
+        """This method is used by FileFinders for finding the correct subdir."""
+        dir = "%s/%dkm/%d/%02d" % (satname, RESOLUTION, date.year, date.month)
+        try:
+            for ending in ['avhrr', 'sunsatangles', 'nwp_tsur']:
+                if ending in self.ending:
+                    dir = os.path.join(dir, 'import')
+            for ending in ['cloudtype', 'ctth']:
+                if ending in self.ending:
+                    dir = os.path.join(dir, 'export')
+        except (AttributeError, TypeError):
+            # We're dealing with some other satellite data, e.g. Calipso or Cloudsat
+            pass
+        return dir

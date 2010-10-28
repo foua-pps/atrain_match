@@ -115,7 +115,7 @@ def FindFiles(avhrrfile, avhrr_dir_date=None):
         # Use the file_finders package for finding files
         import file_finders
         
-        pps_finder = file_finders.PpsFileFinder(setup.SAT_DIR, time_window=5*60)
+        pps_finder = file_finders.PpsFileFinder(setup.PPS_DATA_DIR, time_window=5*60)
         try:
             pps_finder.set_subdir_method(setup.subdir)
         except AttributeError:
@@ -311,12 +311,15 @@ if __name__=='__main__':
     #match_times_file.close()
     resolution = "%i.%i" %(setup.RESOLUTION,setup.clsat_type)
     
-    avhrr_finder = file_finders.PpsFileFinder(setup.SAT_DIR, 'avhrr.h5')
+    avhrr_finder = file_finders.PpsFileFinder(setup.PPS_DATA_DIR, 'avhrr.h5')
     if matchups[0].time_window is not None:
         avhrr_finder.set_time_window(-(setup.SAT_ORBIT_DURATION + matchups[0].time_window), matchups[0].time_window)
     else:
         avhrr_finder.set_time_window(-(setup.SAT_ORBIT_DURATION + setup.sec_timeThr), setup.sec_timeThr)
-    avhrr_finder.set_subdir_method(setup.subdir)
+    try:
+        avhrr_finder.set_subdir_method(setup.subdir)
+    except AttributeError:
+        pass
     
     problem_files = set()
     no_matchup_files = []
