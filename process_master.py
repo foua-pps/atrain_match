@@ -39,58 +39,8 @@ def FindFiles(avhrrfile):
             avhrr_file, nwp_tsur_file, sunsatangles_file)
 
 
-#------------------------------------------------------------------------------------------------------------------  
-if __name__=='__main__':
-    #pdb.set_trace()
-    from optparse import OptionParser
-    import find_crosses
-    import file_finders
-    import cloudsat_calipso_avhrr_match
-    from common import MatchupError
-    
-    parser = OptionParser()
-    parser.set_usage("usage: %prog [options] sno_output_files...\n"
-                     "Some influential environment variables:\n"
-                     "SAT_DIR                   Base directory where satellite data files are stored.\n"
-                     "VALIDATION_RESULTS_DIR    Base directory where results will be stored.\n"
-                     "                          Used indirectly by cloudsat_calipso_avhrr_match.py.\n"
-                     "CTTH_FILE                 CTTH file type to use (one of 'ctth', 'ctth_opaque, \n"
-                     "                          and 'ctth_semitransparent.\n")
-    parser.add_option('-M', '--mode', type='string', action='append',
-                      help="Run validation software in MODE (valid modes are %s)" % \
-                      ', '.join(setup.ALLOWED_MODES))
-    parser.add_option('-d', '--debug', action='store_true')
-    (options, args) = parser.parse_args()
-    
-    if options.mode is not None:
-        run_modes = options.mode
-    else:
-        run_modes = setup.ALLOWED_MODES
-    
-    if len(args) > 0:
-        sno_output_files = args
-    else:
-        sno_output_files = setup.match_files
-    
-    resolution = "%i.%i" %(setup.RESOLUTION,setup.clsat_type)
-    avhrr_finder = file_finders.PpsFileFinder(setup.PPS_DATA_DIR, 'avhrr.h5')
-    try:
-        avhrr_finder.set_subdir_method(setup.subdir)
-    except AttributeError:
-        pass
-    
-    matchups = []
-    for sno_output_file in sno_output_files:
-        found_matchups = find_crosses.parse_crosses_file(sno_output_file)
-            
-        if len(found_matchups) == 0:
-            write_log('WARNING', "No matchups found in SNO output file %s" % sno_output_file)
-            if options.debug is True:
-                raise Warning
-            continue
-        else:
-            matchups.extend(found_matchups)
-    
+def process_matchups(matchups):
+    """Run the given SNO *matchups* through the validation system."""
     problem_files = set()
     no_matchup_files = []
     no_matchup_cross = []
@@ -155,3 +105,58 @@ if __name__=='__main__':
     if len(problem_files) > 0:
         write_log('WARNING', "%d of %d cases had unknown problems:\n%s" % \
                   (len(problem_files), len(matchups), '\n'.join(problem_files)))
+
+
+#------------------------------------------------------------------------------------------------------------------  
+if __name__=='__main__':
+    #pdb.set_trace()
+    from optparse import OptionParser
+    import find_crosses
+    import file_finders
+    import cloudsat_calipso_avhrr_match
+    from common import MatchupError
+    
+    parser = OptionParser()
+    parser.set_usage("usage: %prog [options] sno_output_files...\n"
+                     "Some influential environment variables:\n"
+                     "SAT_DIR                   Base directory where satellite data files are stored.\n"
+                     "VALIDATION_RESULTS_DIR    Base directory where results will be stored.\n"
+                     "                          Used indirectly by cloudsat_calipso_avhrr_match.py.\n"
+                     "CTTH_FILE                 CTTH file type to use (one of 'ctth', 'ctth_opaque, \n"
+                     "                          and 'ctth_semitransparent.\n")
+    parser.add_option('-M', '--mode', type='string', action='append',
+                      help="Run validation software in MODE (valid modes are %s)" % \
+                      ', '.join(setup.ALLOWED_MODES))
+    parser.add_option('-d', '--debug', action='store_true')
+    (options, args) = parser.parse_args()
+    
+    if options.mode is not None:
+        run_modes = options.mode
+    else:
+        run_modes = setup.ALLOWED_MODES
+    
+    if len(args) > 0:
+        sno_output_files = args
+    else:
+        sno_output_files = setup.match_files
+    
+    resolution = "%i.%i" %(setup.RESOLUTION,setup.clsat_type)
+    avhrr_finder = file_finders.PpsFileFinder(setup.PPS_DATA_DIR, 'avhrr.h5')
+    try:
+        avhrr_finder.set_subdir_method(setup.subdir)
+    except AttributeError:
+        pass
+    
+    matchups = []
+    for sno_output_file in sno_output_files:
+        found_matchups = find_crosses.parse_crosses_file(sno_output_file)
+            
+        if len(found_matchups) == 0:
+            write_log('WARNING', "No matchups found in SNO output file %s" % sno_output_file)
+            if options.debug is True:
+                raise Warning
+            continue
+        else:
+            matchups.extend(found_matchups)
+    
+    process_matchups(matchups)
