@@ -8,37 +8,35 @@ from pps_error_messages import write_log
 import setup
 
 
-def FindFiles(avhrrfile, avhrr_dir_date=None):
-    if avhrr_dir_date is None:
-        # Use the file_finders package for finding files
-        import file_finders
-        
-        pps_finder = file_finders.PpsFileFinder(setup.PPS_DATA_DIR, time_window=5*60)
-        try:
-            pps_finder.set_subdir_method(setup.subdir)
-        except AttributeError:
-            pass
-        parsed = pps_finder.parse(avhrrfile)
-        satname = parsed['satellite']
-        datetime = parsed['datetime']
-        cloudsat_finder = file_finders.CloudsatFileFinder(setup.CLOUDSAT_DIR,
-                                                          setup.RESOLUTION,
-                                                          setup.CLOUDSAT_TYPE)
-        cloudsat_finder.set_time_window(setup.SAT_ORBIT_DURATION + setup.sec_timeThr)
-        cloudsat_files = sorted(cloudsat_finder.find(datetime))
-        calipso_finder = file_finders.CalipsoFileFinder(setup.CALIPSO_DIR,
-                                                        setup.RESOLUTION)
-        calipso_finder.set_time_window(setup.SAT_ORBIT_DURATION + setup.sec_timeThr)
-        calipso_files = sorted(calipso_finder.find(datetime))
-        cloudtype_file = pps_finder.find(satname, datetime, ending='cloudtype.h5')[0]
-        ctth_file = pps_finder.find(satname, datetime,
-                                    ending='%s.h5' % setup.CTTH_FILE)[0]
-        avhrr_file = avhrrfile
-        nwp_tsur_file = pps_finder.find(satname, datetime, ending='nwp_tsur.h5')[0]
-        sunsatangles_file = pps_finder.find(satname, datetime, ending='sunsatangles.h5')[0]
-        
-        return (cloudsat_files, calipso_files, cloudtype_file, ctth_file, 
-                avhrr_file, nwp_tsur_file, sunsatangles_file)
+def FindFiles(avhrrfile):
+    import file_finders
+    
+    pps_finder = file_finders.PpsFileFinder(setup.PPS_DATA_DIR, time_window=5*60)
+    try:
+        pps_finder.set_subdir_method(setup.subdir)
+    except AttributeError:
+        pass
+    parsed = pps_finder.parse(avhrrfile)
+    satname = parsed['satellite']
+    datetime = parsed['datetime']
+    cloudsat_finder = file_finders.CloudsatFileFinder(setup.CLOUDSAT_DIR,
+                                                      setup.RESOLUTION,
+                                                      setup.CLOUDSAT_TYPE)
+    cloudsat_finder.set_time_window(setup.SAT_ORBIT_DURATION + setup.sec_timeThr)
+    cloudsat_files = sorted(cloudsat_finder.find(datetime))
+    calipso_finder = file_finders.CalipsoFileFinder(setup.CALIPSO_DIR,
+                                                    setup.RESOLUTION)
+    calipso_finder.set_time_window(setup.SAT_ORBIT_DURATION + setup.sec_timeThr)
+    calipso_files = sorted(calipso_finder.find(datetime))
+    cloudtype_file = pps_finder.find(satname, datetime, ending='cloudtype.h5')[0]
+    ctth_file = pps_finder.find(satname, datetime,
+                                ending='%s.h5' % setup.CTTH_FILE)[0]
+    avhrr_file = avhrrfile
+    nwp_tsur_file = pps_finder.find(satname, datetime, ending='nwp_tsur.h5')[0]
+    sunsatangles_file = pps_finder.find(satname, datetime, ending='sunsatangles.h5')[0]
+    
+    return (cloudsat_files, calipso_files, cloudtype_file, ctth_file, 
+            avhrr_file, nwp_tsur_file, sunsatangles_file)
 
 
 #------------------------------------------------------------------------------------------------------------------  
@@ -105,7 +103,6 @@ if __name__=='__main__':
         
         try:
             avhrr_file = avhrr_finder.find(match.satellite1.lower(), match.time1)[0]
-            avhrr_dir_date = None
         except IndexError:
             write_log('WARNING', "No matching AVHRR file found for %s %s." % \
                       (match.satellite1, match.time1.strftime("%F %T")))
@@ -121,7 +118,7 @@ if __name__=='__main__':
         # pps_finder = file_finders.PpsFileFinder(basedir=???, ending='avhrr.h5')
         #avhrr_file = pps_finder.find(match)
         try:
-            cloudsat_file, calipso_file, cloudtype_file, ctth_file, avhrr_file, nwp_tsur_file, sunsatangles_file = FindFiles(avhrr_file, avhrr_dir_date)
+            cloudsat_file, calipso_file, cloudtype_file, ctth_file, avhrr_file, nwp_tsur_file, sunsatangles_file = FindFiles(avhrr_file)
         except IndexError:
             problem_files.add(avhrr_file)
             write_log('WARNING', "Couldn't find all needed files for %s." % avhrr_file)
