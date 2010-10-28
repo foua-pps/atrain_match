@@ -18,7 +18,7 @@ RESOLUTION = 1 #1 or 5
 clsat_type = 1 #1=GEOPROG 2=CWC_RVOD
 SAT_DIR = get_environ('SAT_DIR', default="/data/proj/saf/ejohansson/Satellite_Data")
 
-match_file = "/data/proj/saf/ejohansson/SNO_tools/Snotimes/08/matchups_augsep_2008_mod.dat"
+match_files = ["/data/proj/saf/ejohansson/SNO_tools/Snotimes/08/matchups_augsep_2008_mod.dat"]
 
 MAIN_RUNDIR = os.getcwd()
 MAIN_DIR = get_environ('VALIDATION_RESULTS_DIR', MAIN_RUNDIR)

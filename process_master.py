@@ -283,13 +283,13 @@ if __name__=='__main__':
     from common import MatchupError
     
     parser = OptionParser()
-    parser.set_usage("usage: %prog [options]\n"
+    parser.set_usage("usage: %prog [options] sno_output_files...\n"
                      "Some influential environment variables:\n"
                      "SAT_DIR                   Base directory where satellite data files are stored.\n"
                      "VALIDATION_RESULTS_DIR    Base directory where results will be stored.\n"
-                     "                          Used indirectly by cloudsat_calipso_avhrr_match.py.")
-    parser.add_option('-m', '--matches', type='string', metavar='FILE',
-                      default=setup.match_file, help="Use FILE for matchups (SNO output)")
+                     "                          Used indirectly by cloudsat_calipso_avhrr_match.py.\n"
+                     "CTTH_FILE                 CTTH file type to use (one of 'ctth', 'ctth_opaque, \n"
+                     "                          and 'ctth_semitransparent.\n")
     parser.add_option('-M', '--mode', type='string', action='append',
                       help="Run validation software in MODE (valid modes are %s)" % \
                       ', '.join(setup.ALLOWED_MODES))
@@ -301,31 +301,39 @@ if __name__=='__main__':
     else:
         run_modes = setup.ALLOWED_MODES
     
-    matchups = find_crosses.parse_crosses_file(options.matches)
-    if matchups[0].satellite1 is not None:
-        # Assume AVHRR satellite name in satellite1 (first argument to SNO executable)
-        avhrr_sat = matchups[0].satellite1.lower()
-    #match_times_file = open(options.matches, "r")
-
-    #match_times_list = match_times_file.readlines()
-    #match_times_file.close()
-    resolution = "%i.%i" %(setup.RESOLUTION,setup.clsat_type)
-    
-    avhrr_finder = file_finders.PpsFileFinder(setup.PPS_DATA_DIR, 'avhrr.h5')
-    if matchups[0].time_window is not None:
-        avhrr_finder.set_time_window(-(setup.SAT_ORBIT_DURATION + matchups[0].time_window), matchups[0].time_window)
+    if len(args) > 0:
+        sno_output_files = args
     else:
-        avhrr_finder.set_time_window(-(setup.SAT_ORBIT_DURATION + setup.sec_timeThr), setup.sec_timeThr)
+        sno_output_files = setup.match_files
+    
+    resolution = "%i.%i" %(setup.RESOLUTION,setup.clsat_type)
+    avhrr_finder = file_finders.PpsFileFinder(setup.PPS_DATA_DIR, 'avhrr.h5')
     try:
         avhrr_finder.set_subdir_method(setup.subdir)
     except AttributeError:
         pass
+    
+    matchups = []
+    for sno_output_file in sno_output_files:
+        found_matchups = find_crosses.parse_crosses_file(sno_output_file)
+            
+        if len(found_matchups) == 0:
+            write_log('WARNING', "No matchups found in SNO output file %s" % sno_output_file)
+            if options.debug is True:
+                raise Warning
+            continue
+        else:
+            matchups.extend(found_matchups)
     
     problem_files = set()
     no_matchup_files = []
     no_matchup_cross = []
     processed_avhrr_files = set()
     for match in matchups:
+        if match.time_window is not None:
+            avhrr_finder.set_time_window(-(setup.SAT_ORBIT_DURATION + match.time_window), match.time_window)
+        else:
+            avhrr_finder.set_time_window(-(setup.SAT_ORBIT_DURATION + setup.sec_timeThr), setup.sec_timeThr)
         
         try:
             # A bit backwards, but makes it possible to use find_crosses for parsing
