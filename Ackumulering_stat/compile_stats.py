@@ -4,7 +4,7 @@ Created on Oct 13, 2010
 @author: a001696
 '''
 
-from orrb_conf import CASES, MAIN_DATADIR, MAP, RESOLUTION
+from setup import CASES, MAIN_DATADIR, MAP, RESOLUTION
 
 
 def compile_stats(results_files):

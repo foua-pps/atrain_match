@@ -176,7 +176,7 @@ def printout(results):
 
 if __name__ == "__main__":
     from glob import glob
-    from orrb_conf import SATELLITE, RESOLUTION, STUDIED_YEAR, STUDIED_MONTHS, MAP, MAIN_DATADIR, OUTPUT_DIR
+    from setup import SATELLITE, RESOLUTION, STUDIED_YEAR, STUDIED_MONTHS, MAP, MAIN_DATADIR, OUTPUT_DIR
     lines = []
     
     for i in range(len(STUDIED_MONTHS)):

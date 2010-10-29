@@ -84,3 +84,19 @@ if False: # Do we use this def?
             # We're dealing with some other satellite data, e.g. Calipso or Cloudsat
             pass
         return dir
+
+
+#========== Statistics setup ==========#
+RESOLUTION = ["1km"]
+CASES = [{'satname': 'noaa18', 'year': 2009, 'month': 1},
+         {'satname': 'noaa18', 'year': 2009, 'month': 7},
+         {'satname': 'noaa19', 'year': 2009, 'month': 7}]
+MAP = [AREA1KM]
+MAIN_DATADIR = MAIN_DIR # Should contain the Results directory
+SURFACES = ["ICE_COVER_SEA","ICE_FREE_SEA","SNOW_COVER_LAND","SNOW_FREE_LAND","COASTAL_ZONE"]
+
+# The following are used in the old-style script interface
+SATELLITE = ['noaa18', 'noaa19']
+STUDIED_YEAR = ["2009"]
+STUDIED_MONTHS = ['01', "07"]
+OUTPUT_DIR = "%s/Ackumulering_stat/Results/%s" % (MAIN_DATADIR, SATELLITE[0])
