@@ -12,7 +12,7 @@ from orrb_stat_class import OrrbStats
 class CloudFractionStats(OrrbStats):
     
     def do_stats(self):
-        from numpy import NaN
+        from numpy import NaN, divide
     
         scenes = len(self.results_files)
         
@@ -105,29 +105,27 @@ class CloudFractionStats(OrrbStats):
             rms_modis = 100.0*math.sqrt(square_sum_modis/(samples_cal-1.))
         else:
             rms_modis = NaN
+        
+        pod_cloudy_cal = divide(100.0*n_cloudy_cloudy_cal, (n_cloudy_cloudy_cal+n_cloudy_clear_cal))
+        pod_cloudy_cal_MODIS = divide(100.0*n_cloudy_cloudy_cal_MODIS, n_cloudy_cloudy_cal_MODIS+n_cloudy_clear_cal_MODIS)
+        pod_clear_cal = divide(100.0*n_clear_clear_cal, n_clear_clear_cal+n_clear_cloudy_cal)
+        pod_clear_cal_MODIS = divide(100.0*n_clear_clear_cal_MODIS, n_clear_clear_cal_MODIS+n_clear_cloudy_cal_MODIS)
+        far_cloudy_cal = divide(100.0*n_clear_cloudy_cal, n_cloudy_cloudy_cal+n_clear_cloudy_cal)
+        far_clear_cal = divide(100.0*n_cloudy_clear_cal, n_clear_clear_cal+n_cloudy_clear_cal)
+        far_cloudy_cal_MODIS = divide(100.0*n_clear_cloudy_cal_MODIS, n_cloudy_cloudy_cal_MODIS+n_clear_cloudy_cal_MODIS)
+        far_clear_cal_MODIS = divide(100.0*n_cloudy_clear_cal_MODIS, n_clear_clear_cal_MODIS+n_cloudy_clear_cal_MODIS)
     
-        pod_cloudy_cal = 100.0*n_cloudy_cloudy_cal/(n_cloudy_cloudy_cal+n_cloudy_clear_cal)
-        pod_cloudy_cal_MODIS = 100.0*n_cloudy_cloudy_cal_MODIS/(n_cloudy_cloudy_cal_MODIS+n_cloudy_clear_cal_MODIS)
-        pod_clear_cal = 100.0*n_clear_clear_cal/(n_clear_clear_cal+n_clear_cloudy_cal)
-        pod_clear_cal_MODIS = 100.0*n_clear_clear_cal_MODIS/(n_clear_clear_cal_MODIS+n_clear_cloudy_cal_MODIS)
-    ##         far_cloudy_cal = 100.0*n_cloudy_clear_cal/(n_cloudy_cloudy_cal+n_cloudy_clear_cal) #Not correct!
-    ##         far_clear_cal = 100.0*n_clear_cloudy_cal/(n_clear_clear_cal+n_clear_cloudy_cal)    #Not correct!
-        far_cloudy_cal = 100.0*n_clear_cloudy_cal/(n_cloudy_cloudy_cal+n_clear_cloudy_cal)
-        far_clear_cal = 100.0*n_cloudy_clear_cal/(n_clear_clear_cal+n_cloudy_clear_cal)
-        far_cloudy_cal_MODIS = 100.0*n_clear_cloudy_cal_MODIS/(n_cloudy_cloudy_cal_MODIS+n_clear_cloudy_cal_MODIS)
-        far_clear_cal_MODIS = 100.0*n_cloudy_clear_cal_MODIS/(n_clear_clear_cal_MODIS+n_cloudy_clear_cal_MODIS)
+        kuipers = divide(1.0*(n_clear_clear_cal*n_cloudy_cloudy_cal-n_cloudy_clear_cal*n_clear_cloudy_cal),
+                         ((n_clear_clear_cal+n_clear_cloudy_cal)*(n_cloudy_clear_cal+n_cloudy_cloudy_cal)))
     
-        kuipers = 1.0*(n_clear_clear_cal*n_cloudy_cloudy_cal-n_cloudy_clear_cal*n_clear_cloudy_cal)/ \
-                    ((n_clear_clear_cal+n_clear_cloudy_cal)*(n_cloudy_clear_cal+n_cloudy_cloudy_cal))
+        hitrate = divide(1.0*(n_clear_clear_cal+n_cloudy_cloudy_cal),
+                         (n_clear_clear_cal+n_clear_cloudy_cal+n_cloudy_clear_cal+n_cloudy_cloudy_cal))
     
-        hitrate = 1.0*(n_clear_clear_cal+n_cloudy_cloudy_cal)/(n_clear_clear_cal+n_clear_cloudy_cal+ \
-                                                            n_cloudy_clear_cal+n_cloudy_cloudy_cal)
+        kuipers_MODIS = divide(1.0*(n_clear_clear_cal_MODIS*n_cloudy_cloudy_cal_MODIS-n_cloudy_clear_cal_MODIS*n_clear_cloudy_cal_MODIS),
+                               ((n_clear_clear_cal_MODIS+n_clear_cloudy_cal_MODIS)*(n_cloudy_clear_cal_MODIS+n_cloudy_cloudy_cal_MODIS)))
     
-        kuipers_MODIS = 1.0*(n_clear_clear_cal_MODIS*n_cloudy_cloudy_cal_MODIS-n_cloudy_clear_cal_MODIS*n_clear_cloudy_cal_MODIS)/((n_clear_clear_cal_MODIS+n_clear_cloudy_cal_MODIS)*(n_cloudy_clear_cal_MODIS+n_cloudy_cloudy_cal_MODIS))
-    
-        hitrate_MODIS = 1.0*(n_clear_clear_cal_MODIS+n_cloudy_cloudy_cal_MODIS)/ \
-                        (n_clear_clear_cal_MODIS+n_clear_cloudy_cal_MODIS+n_cloudy_clear_cal_MODIS+ \
-                            n_cloudy_cloudy_cal_MODIS)
+        hitrate_MODIS = divide(1.0*(n_clear_clear_cal_MODIS+n_cloudy_cloudy_cal_MODIS),
+                               (n_clear_clear_cal_MODIS+n_clear_cloudy_cal_MODIS+n_cloudy_clear_cal_MODIS+ n_cloudy_cloudy_cal_MODIS))
         
         # Store values of interest as attributes
         self.scenes = scenes,
