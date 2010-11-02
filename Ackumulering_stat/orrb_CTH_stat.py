@@ -82,19 +82,14 @@ class CloudTopStats(OrrbStats):
                                         int(cal_medium_data[7])*float(cal_medium_data[6])*float(cal_medium_data[6])  
             rms_error_cal_high_sum = rms_error_cal_high_sum + \
                                         int(cal_high_data[7])*float(cal_high_data[6])*float(cal_high_data[6])  
-            
         
-        # Check to see that we have some samples...
-        tot_samples = [csa_samples, cal_all_samples, cal_low_samples, cal_medium_samples, cal_high_samples]
-        if 0 in tot_samples:
-            raise ValueError("Num samples: %s" % ', '.join([str(n) for n in tot_samples]))
-        
-        bias_csa = mean_error_csa_sum/csa_samples
-        bias_cal_all = mean_error_cal_all_sum/cal_all_samples
-        bias_cal_low = mean_error_cal_low_sum/cal_low_samples
-        bias_cal_medium = mean_error_cal_medium_sum/cal_medium_samples
-        bias_cal_high = mean_error_cal_high_sum/cal_high_samples
-        rms_csa = rms_error_csa_sum/csa_samples
+        # numpy.divide handles potential division by zero
+        bias_csa = divide(1.*mean_error_csa_sum, csa_samples)
+        bias_cal_all = divide(1.*mean_error_cal_all_sum, cal_all_samples)
+        bias_cal_low = divide(1.*mean_error_cal_low_sum, cal_low_samples)
+        bias_cal_medium = divide(1.*mean_error_cal_medium_sum, cal_medium_samples)
+        bias_cal_high = divide(1.*mean_error_cal_high_sum, cal_high_samples)
+        rms_csa = divide(1.*rms_error_csa_sum, csa_samples)
     
     
     # Notice that the original linear averaging of RMS values is wrong! We have now changed to a correct averaging!/KG 20091126
@@ -103,10 +98,10 @@ class CloudTopStats(OrrbStats):
     ##         rms_cal_medium = rms_error_cal_medium_sum/cal_medium_samples
     ##         rms_cal_high = rms_error_cal_high_sum/cal_high_samples
     
-        rms_cal_all = math.sqrt(rms_error_cal_all_sum/cal_all_samples)
-        rms_cal_low = math.sqrt(rms_error_cal_low_sum/cal_low_samples)
-        rms_cal_medium = math.sqrt(rms_error_cal_medium_sum/cal_medium_samples)
-        rms_cal_high = math.sqrt(rms_error_cal_high_sum/cal_high_samples)
+        rms_cal_all = math.sqrt(divide(1.*rms_error_cal_all_sum, cal_all_samples))
+        rms_cal_low = math.sqrt(divide(1.*rms_error_cal_low_sum, cal_low_samples))
+        rms_cal_medium = math.sqrt(divide(1.*rms_error_cal_medium_sum, cal_medium_samples))
+        rms_cal_high = math.sqrt(divide(1.*rms_error_cal_high_sum, cal_high_samples))
     
     ##         square_sum_csa =  float(n_clear_clear_csa+n_cloudy_cloudy_csa)*bias_csa*bias_csa + \
     ##                          n_cloudy_clear_csa*(-1.0-bias_csa)*(-1.0-bias_csa) + \
