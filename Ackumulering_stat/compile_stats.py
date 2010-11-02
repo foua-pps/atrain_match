@@ -12,21 +12,25 @@ def compile_basic_stats(results_files):
     
     print("=========== Cloud fraction ============")
     import orrb_CFC_stat
-    cfc_results = orrb_CFC_stat.CloudFractionStats(results_files)
-    for l in cfc_results.printout():
+    cfc_stats = orrb_CFC_stat.CloudFractionStats(results_files)
+    for l in cfc_stats.printout():
         print(l)
     
     print("========== Cloud top height ===========")
     import orrb_CTH_stat
-    cth_results = orrb_CTH_stat.do_stats(results_files)
-    orrb_CTH_stat.printout(cth_results)
+    cth_stats = orrb_CTH_stat.CloudTopStats(results_files)
+    cth_stats.printout()
+    for l in cth_stats.printout():
+        print(l)
     
     print("============= Cloud type ==============")
     import orrb_CTY_stat
-    cty_results = orrb_CTY_stat.do_stats(results_files, cfc_results)
-    orrb_CTY_stat.printout(cty_results)
+    cty_stats = orrb_CTY_stat.CloudTypeStats(results_files, cfc_stats)
+    cty_stats.printout()
+    for l in cty_stats.printout():
+        print(l)
     
-    return cfc_results, cth_results, cty_results
+    return cfc_stats, cth_stats, cty_stats
 
 
 if __name__ == '__main__':
@@ -41,5 +45,5 @@ if __name__ == '__main__':
         results_files.extend(glob("%s/*.dat" % basic_indata_dir))
     print('')
     
-    cfc_results, cth_results, cty_results = compile_basic_stats(results_files)
+    cfc_stats, cth_stats, cty_stats = compile_basic_stats(results_files)
 
