@@ -8,10 +8,9 @@ class OrrbStats():
     """Abstract class for accumulating statistics from atrain_match. (What does 
     orrb stand for?)"""
     
-    def __init__(self, results_files = None, mode='BASIC'):
+    def __init__(self, results_files=None):
         """Create an OrrbStats object with results from *results_files*."""
         self.results_files = results_files
-        self.mode = mode
         if self.results_files is not None:
             self.do_stats()
     
