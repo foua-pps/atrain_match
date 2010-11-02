@@ -43,45 +43,24 @@ class CloudTopStats(OrrbStats):
             cal_high_data = string.split(datalist[19])
     
             # Accumulate CloudSat statistics
-                                
-            csa_samples = csa_samples + int(csa_data[6])
-            mean_error_csa_sum = mean_error_csa_sum + int(csa_data[6])*float(csa_data[4])  
-            rms_error_csa_sum = rms_error_csa_sum + int(csa_data[6])*float(csa_data[5])  
-    
+            csa_samples += int(csa_data[6])
+            mean_error_csa_sum += int(csa_data[6])*float(csa_data[4])
+            rms_error_csa_sum += int(csa_data[6])*float(csa_data[5])
             
-    
             # Accumulate CALIOP statistics
-    
-            cal_all_samples = cal_all_samples + int(cal_all_data[7])
-            cal_low_samples = cal_low_samples + int(cal_low_data[7])
-            cal_medium_samples = cal_medium_samples + int(cal_medium_data[7])
-            cal_high_samples = cal_high_samples + int(cal_high_data[7])
-            mean_error_cal_all_sum = mean_error_cal_all_sum + \
-                                        int(cal_all_data[7])*float(cal_all_data[5])  
-            mean_error_cal_low_sum = mean_error_cal_low_sum + \
-                                        int(cal_low_data[7])*float(cal_low_data[5])  
-            mean_error_cal_medium_sum = mean_error_cal_medium_sum + \
-                                        int(cal_medium_data[7])*float(cal_medium_data[5])  
-            mean_error_cal_high_sum = mean_error_cal_high_sum + \
-                                        int(cal_high_data[7])*float(cal_high_data[5])  
-    
-    # Notice that the original linear averaging of RMS values is wrong! We have now changed to a correct averaging!/KG 20091126
-    ##             rms_error_cal_all_sum = rms_error_cal_all_sum + \
-    ##                                      int(cal_all_data[7])*float(cal_all_data[6])  
-    ##             rms_error_cal_low_sum = rms_error_cal_low_sum + \
-    ##                                      int(cal_low_data[7])*float(cal_low_data[6])  
-    ##             rms_error_cal_medium_sum = rms_error_cal_medium_sum + \
-    ##                                         int(cal_medium_data[7])*float(cal_medium_data[6])  
-    ##             rms_error_cal_high_sum = rms_error_cal_high_sum + \
-    ##                                       int(cal_high_data[7])*float(cal_high_data[6])  
-            rms_error_cal_all_sum = rms_error_cal_all_sum + \
-                                    int(cal_all_data[7])*float(cal_all_data[6])*float(cal_all_data[6])  
-            rms_error_cal_low_sum = rms_error_cal_low_sum + \
-                                    int(cal_low_data[7])*float(cal_low_data[6])*float(cal_low_data[6])  
-            rms_error_cal_medium_sum = rms_error_cal_medium_sum + \
-                                        int(cal_medium_data[7])*float(cal_medium_data[6])*float(cal_medium_data[6])  
-            rms_error_cal_high_sum = rms_error_cal_high_sum + \
-                                        int(cal_high_data[7])*float(cal_high_data[6])*float(cal_high_data[6])  
+            cal_all_samples += int(cal_all_data[7])
+            cal_low_samples += int(cal_low_data[7])
+            cal_medium_samples += int(cal_medium_data[7])
+            cal_high_samples += int(cal_high_data[7])
+            mean_error_cal_all_sum += int(cal_all_data[7])*float(cal_all_data[5])
+            mean_error_cal_low_sum += int(cal_low_data[7])*float(cal_low_data[5])
+            mean_error_cal_medium_sum += int(cal_medium_data[7])*float(cal_medium_data[5])
+            mean_error_cal_high_sum += int(cal_high_data[7])*float(cal_high_data[5])
+            
+            rms_error_cal_all_sum += int(cal_all_data[7])*float(cal_all_data[6])**2
+            rms_error_cal_low_sum += int(cal_low_data[7])*float(cal_low_data[6])**2
+            rms_error_cal_medium_sum += int(cal_medium_data[7])*float(cal_medium_data[6])**2
+            rms_error_cal_high_sum += int(cal_high_data[7])*float(cal_high_data[6])**2
         
         # numpy.divide handles potential division by zero
         bias_csa = divide(1.*mean_error_csa_sum, csa_samples)
@@ -91,26 +70,10 @@ class CloudTopStats(OrrbStats):
         bias_cal_high = divide(1.*mean_error_cal_high_sum, cal_high_samples)
         rms_csa = divide(1.*rms_error_csa_sum, csa_samples)
     
-    
-    # Notice that the original linear averaging of RMS values is wrong! We have now changed to a correct averaging!/KG 20091126
-    ##         rms_cal_all = rms_error_cal_all_sum/cal_all_samples
-    ##         rms_cal_low = rms_error_cal_low_sum/cal_low_samples
-    ##         rms_cal_medium = rms_error_cal_medium_sum/cal_medium_samples
-    ##         rms_cal_high = rms_error_cal_high_sum/cal_high_samples
-    
         rms_cal_all = math.sqrt(divide(1.*rms_error_cal_all_sum, cal_all_samples))
         rms_cal_low = math.sqrt(divide(1.*rms_error_cal_low_sum, cal_low_samples))
         rms_cal_medium = math.sqrt(divide(1.*rms_error_cal_medium_sum, cal_medium_samples))
         rms_cal_high = math.sqrt(divide(1.*rms_error_cal_high_sum, cal_high_samples))
-    
-    ##         square_sum_csa =  float(n_clear_clear_csa+n_cloudy_cloudy_csa)*bias_csa*bias_csa + \
-    ##                          n_cloudy_clear_csa*(-1.0-bias_csa)*(-1.0-bias_csa) + \
-    ##                          n_clear_cloudy_csa*(1.0-bias_csa)*(1.0-bias_csa)
-    ##         rms_csa = 100.0*math.sqrt(square_sum_csa/(samples_csa-1))
-    ##         square_sum_cal =  float(n_clear_clear_cal+n_cloudy_cloudy_cal)*bias_cal*bias_cal + \
-    ##                          n_cloudy_clear_cal*(-1.0-bias_cal)*(-1.0-bias_cal) + \
-    ##                          n_clear_cloudy_cal*(1.0-bias_cal)*(1.0-bias_cal)
-    ##         rms_cal = 100.0*math.sqrt(square_sum_cal/(samples_cal-1))
         
         self.scenes = scenes
         self.csa_samples = csa_samples
