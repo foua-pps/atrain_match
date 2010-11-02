@@ -12,6 +12,7 @@ from orrb_stat_class import OrrbStats
 class CloudFractionStats(OrrbStats):
     
     def do_stats(self):
+        from numpy import NaN
         n_clear_clear_csa = 0
         n_clear_cloudy_csa = 0
         n_cloudy_clear_csa = 0
@@ -62,32 +63,48 @@ class CloudFractionStats(OrrbStats):
                         n_cloudy_cloudy_csa
         samples_cal = n_clear_clear_cal + n_clear_cloudy_cal + n_cloudy_clear_cal +\
                         n_cloudy_cloudy_cal
-        
-        # Check to see that we have some samples...
-        if 0 in [samples_csa, samples_cal]:
-            raise ValueError("samples_cal: %d, samples_csa: %d" % (samples_cal, samples_csa))
-        
-        mean_CFC_csa = 100.0*(n_cloudy_cloudy_csa+n_cloudy_clear_csa)/samples_csa
-        mean_CFC_cal = 100.0*(n_cloudy_cloudy_cal+n_cloudy_clear_cal)/samples_cal
-        bias_csa = float(n_clear_cloudy_csa - n_cloudy_clear_csa)/float(samples_csa)
-        bias_cal = float(n_clear_cloudy_cal - n_cloudy_clear_cal)/float(samples_cal)
-        bias_modis = float(n_clear_cloudy_cal_MODIS - n_cloudy_clear_cal_MODIS)/float(samples_cal-1)
-        bias_csa_perc = 100.0*float(n_clear_cloudy_csa - n_cloudy_clear_csa)/float(samples_csa)
-        bias_cal_perc = 100.0*float(n_clear_cloudy_cal - n_cloudy_clear_cal)/float(samples_cal)
-        bias_modis_perc = 100.0*float(n_clear_cloudy_cal_MODIS - n_cloudy_clear_cal_MODIS)/float(samples_cal-1)
+        if samples_csa > 0:
+            bias_csa = float(n_clear_cloudy_csa - n_cloudy_clear_csa)/float(samples_csa)
+            bias_csa_perc = 100.0*float(n_clear_cloudy_csa - n_cloudy_clear_csa)/float(samples_csa)
+            mean_CFC_csa = 100.0*(n_cloudy_cloudy_csa+n_cloudy_clear_csa)/samples_csa
+        else:
+            bias_csa = NaN
+            bias_csa_perc = NaN
+            mean_CFC_csa = NaN
+        if samples_cal > 0:
+            mean_CFC_cal = 100.0*(n_cloudy_cloudy_cal+n_cloudy_clear_cal)/samples_cal
+            bias_cal = float(n_clear_cloudy_cal - n_cloudy_clear_cal)/float(samples_cal)
+            bias_modis = float(n_clear_cloudy_cal_MODIS - n_cloudy_clear_cal_MODIS)/float(samples_cal-1)
+            bias_cal_perc = 100.0*float(n_clear_cloudy_cal - n_cloudy_clear_cal)/float(samples_cal)
+            bias_modis_perc = 100.0*float(n_clear_cloudy_cal_MODIS - n_cloudy_clear_cal_MODIS)/float(samples_cal-1)
+        else:
+            mean_CFC_cal = NaN
+            bias_cal = NaN
+            bias_modis = NaN
+            bias_cal_perc = NaN
+            bias_modis_perc = NaN
     
         square_sum_csa =  float(n_clear_clear_csa+n_cloudy_cloudy_csa)*bias_csa*bias_csa + \
                             n_cloudy_clear_csa*(-1.0-bias_csa)*(-1.0-bias_csa) + \
                             n_clear_cloudy_csa*(1.0-bias_csa)*(1.0-bias_csa)
-        rms_csa = 100.0*math.sqrt(square_sum_csa/(samples_csa-1))
+        if samples_csa > 0:
+            rms_csa = 100.0*math.sqrt(square_sum_csa/(samples_csa-1))
+        else:
+            rms_csa = NaN
         square_sum_cal =  float(n_clear_clear_cal+n_cloudy_cloudy_cal)*bias_cal*bias_cal + \
                             n_cloudy_clear_cal*(-1.0-bias_cal)*(-1.0-bias_cal) + \
                             n_clear_cloudy_cal*(1.0-bias_cal)*(1.0-bias_cal)
-        rms_cal = 100.0*math.sqrt(square_sum_cal/(samples_cal-1))
+        if samples_cal > 0:
+            rms_cal = 100.0*math.sqrt(square_sum_cal/(samples_cal-1))
+        else:
+            rms_cal = NaN
         square_sum_modis =  float(n_clear_clear_cal+n_cloudy_cloudy_cal)*bias_modis*bias_modis + \
                             n_cloudy_clear_cal*(-1.0-bias_modis)*(-1.0-bias_modis) + \
                             n_clear_cloudy_cal*(1.0-bias_modis)*(1.0-bias_modis)
-        rms_modis = 100.0*math.sqrt(square_sum_modis/(samples_cal-1))
+        if samples_cal > 0:
+            rms_modis = 100.0*math.sqrt(square_sum_modis/(samples_cal-1))
+        else:
+            rms_modis = NaN
     
         pod_cloudy_cal = 100.0*n_cloudy_cloudy_cal/(n_cloudy_cloudy_cal+n_cloudy_clear_cal)
         pod_cloudy_cal_MODIS = 100.0*n_cloudy_cloudy_cal_MODIS/(n_cloudy_cloudy_cal_MODIS+n_cloudy_clear_cal_MODIS)
