@@ -7,12 +7,8 @@ from orrb_CFC_stat import CloudFractionStats
 
 class CloudFractionFilteredStats(CloudFractionStats):
     
-    def printout(self, silent=False):
+    def printout(self):
         lines = []
-        try:
-            lines.append("Month is:  %s" % self.month)
-        except KeyError:
-            pass
         lines.append("Total number of matched scenes is: %s" % self.scenes)
         lines.append("Total number of Cloudsat matched FOVs: %d" % self.samples_csa)
         lines.append("Mean CFC Cloudsat: %f" % self.mean_CFC_csa)
@@ -26,10 +22,6 @@ class CloudFractionFilteredStats(CloudFractionStats):
         lines.append("Mean error MODIS: %f" % self.bias_modis_perc)
         lines.append("RMS error MODIS: %f" % self.rms_modis)
         lines.append("")
-        
-        if not silent:
-            for l in lines:
-                print(l)
         
         return lines
 

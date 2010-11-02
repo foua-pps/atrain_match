@@ -13,7 +13,8 @@ def compile_basic_stats(results_files):
     print("=========== Cloud fraction ============")
     import orrb_CFC_stat
     cfc_results = orrb_CFC_stat.CloudFractionStats(results_files)
-    cfc_results.printout()
+    for l in cfc_results.printout():
+        print(l)
     
     print("========== Cloud top height ===========")
     import orrb_CTH_stat

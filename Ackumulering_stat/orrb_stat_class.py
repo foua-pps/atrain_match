@@ -49,11 +49,15 @@ class OrrbStats():
                 
                 self.results_files = glob("%s/*.dat" % results_dir)
                 self.do_stats()
-                self.month = month
                 
+                lines.append("Month is:  %s" % month)
                 lines.extend(self.printout())
             lines.append("")
             lines.append("")
+        
+        for l in lines:
+            print(l)
+        
         fd=open("%s/%s_%s%s-%s%s.dat" %(OUTPUT_DIR, output_file_desc, STUDIED_YEAR[0],STUDIED_MONTHS[0],STUDIED_YEAR[-1],STUDIED_MONTHS[-1]),'w')
         for l in lines:
             fd.writelines(l + '\n')

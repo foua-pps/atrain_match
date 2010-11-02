@@ -155,12 +155,6 @@ class CloudFractionStats(OrrbStats):
 
     def printout(self):
         lines = []
-        try:
-            # TODO: Change this to "Period: ..."
-            # TODO: Move as much of this as possible to OrrbStats
-            lines.append("Month is:  %s" % self.month)
-        except AttributeError:
-            pass
         lines.append("Total number of matched scenes is: %s" % self.scenes)
         lines.append("Total number of Cloudsat matched FOVs: %d " % self.samples_csa)
         lines.append("Mean CFC Cloudsat: %f " % self.mean_CFC_csa)
@@ -186,9 +180,6 @@ class CloudFractionStats(OrrbStats):
         lines.append("Hitrate: %f" % self.hitrate)
         lines.append("Hitrate MODIS: %f" % self.hitrate_MODIS)
         lines.append("")
-        
-        for l in lines:
-            print(l)
         
         return lines
 

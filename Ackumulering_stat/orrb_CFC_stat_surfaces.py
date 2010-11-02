@@ -10,10 +10,6 @@ class CloudFractionSurfacesStats(CloudFractionStats):
     
     def printout(self):
         lines = []
-        try:
-            lines.append("Month is:  %s" % self.month)
-        except KeyError:
-            pass
         lines.append("Total number of matched scenes is: %s" % self.scenes)
         lines.append("")
         lines.append("Total number of CALIOP matched FOVs: %d" % self.samples_cal)
@@ -23,9 +19,6 @@ class CloudFractionSurfacesStats(CloudFractionStats):
         lines.append("Mean error MODIS: %f" % self.bias_modis_perc)
         lines.append("RMS error MODIS: %f" % self.rms_modis)
         lines.append("")
-        
-        for l in lines:
-            print(l)
         
         return lines
 
