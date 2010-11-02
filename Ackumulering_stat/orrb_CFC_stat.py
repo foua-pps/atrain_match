@@ -128,28 +128,28 @@ class CloudFractionStats(OrrbStats):
                                (n_clear_clear_cal_MODIS+n_clear_cloudy_cal_MODIS+n_cloudy_clear_cal_MODIS+ n_cloudy_cloudy_cal_MODIS))
         
         # Store values of interest as attributes
-        self.scenes = scenes,
-        self.samples_csa = samples_csa,
-        self.mean_CFC_csa = mean_CFC_csa,
-        self.bias_csa_perc = bias_csa_perc,
-        self.rms_csa = rms_csa,
-        self.samples_cal = samples_cal,
-        self.mean_CFC_cal = mean_CFC_cal,
-        self.bias_cal_perc = bias_cal_perc,
-        self.rms_cal = rms_cal,
-        self.bias_modis_perc = bias_modis_perc,
-        self.rms_modis = rms_modis,
-        self.pod_cloudy_cal = pod_cloudy_cal,
-        self.pod_cloudy_cal_MODIS = pod_cloudy_cal_MODIS,
-        self.pod_clear_cal = pod_clear_cal,
-        self.pod_clear_cal_MODIS = pod_clear_cal_MODIS,
-        self.far_cloudy_cal = far_cloudy_cal,
-        self.far_cloudy_cal_MODIS = far_cloudy_cal_MODIS,
-        self.far_clear_cal = far_clear_cal,
-        self.far_clear_cal_MODIS = far_clear_cal_MODIS,
-        self.kuipers = kuipers,
-        self.kuipers_MODIS = kuipers_MODIS,
-        self.hitrate = hitrate,
+        self.scenes = scenes
+        self.samples_csa = samples_csa
+        self.mean_CFC_csa = mean_CFC_csa
+        self.bias_csa_perc = bias_csa_perc
+        self.rms_csa = rms_csa
+        self.samples_cal = samples_cal
+        self.mean_CFC_cal = mean_CFC_cal
+        self.bias_cal_perc = bias_cal_perc
+        self.rms_cal = rms_cal
+        self.bias_modis_perc = bias_modis_perc
+        self.rms_modis = rms_modis
+        self.pod_cloudy_cal = pod_cloudy_cal
+        self.pod_cloudy_cal_MODIS = pod_cloudy_cal_MODIS
+        self.pod_clear_cal = pod_clear_cal
+        self.pod_clear_cal_MODIS = pod_clear_cal_MODIS
+        self.far_cloudy_cal = far_cloudy_cal
+        self.far_cloudy_cal_MODIS = far_cloudy_cal_MODIS
+        self.far_clear_cal = far_clear_cal
+        self.far_clear_cal_MODIS = far_clear_cal_MODIS
+        self.kuipers = kuipers
+        self.kuipers_MODIS = kuipers_MODIS
+        self.hitrate = hitrate
         self.hitrate_MODIS = hitrate_MODIS
 
 
