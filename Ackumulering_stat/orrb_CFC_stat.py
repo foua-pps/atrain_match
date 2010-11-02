@@ -13,6 +13,9 @@ class CloudFractionStats(OrrbStats):
     
     def do_stats(self):
         from numpy import NaN
+    
+        scenes = len(self.results_files)
+        
         n_clear_clear_csa = 0
         n_clear_cloudy_csa = 0
         n_cloudy_clear_csa = 0
@@ -25,9 +28,6 @@ class CloudFractionStats(OrrbStats):
         n_clear_cloudy_cal_MODIS = 0
         n_cloudy_clear_cal_MODIS = 0
         n_cloudy_cloudy_cal_MODIS = 0
-    
-        scenes = len(self.results_files)
-        
         for datafile in self.results_files:
             current_datafile = open(datafile, "r")
             datalist = current_datafile.readlines()
@@ -40,24 +40,24 @@ class CloudFractionStats(OrrbStats):
     
             # Accumulate CloudSat statistics
             
-            n_clear_clear_csa = n_clear_clear_csa + int(csa_data[4])
-            n_clear_cloudy_csa = n_clear_cloudy_csa + int(csa_data[5])
-            n_cloudy_clear_csa = n_cloudy_clear_csa + int(csa_data[6])
-            n_cloudy_cloudy_csa = n_cloudy_cloudy_csa + int(csa_data[7])
+            n_clear_clear_csa += int(csa_data[4])
+            n_clear_cloudy_csa += int(csa_data[5])
+            n_cloudy_clear_csa += int(csa_data[6])
+            n_cloudy_cloudy_csa += int(csa_data[7])
             
             # Accumulate CALIOP statistics
             
-            n_clear_clear_cal = n_clear_clear_cal + int(cal_data[4])
-            n_clear_cloudy_cal = n_clear_cloudy_cal + int(cal_data[5])
-            n_cloudy_clear_cal = n_cloudy_clear_cal + int(cal_data[6])
-            n_cloudy_cloudy_cal = n_cloudy_cloudy_cal + int(cal_data[7])
+            n_clear_clear_cal += int(cal_data[4])
+            n_clear_cloudy_cal += int(cal_data[5])
+            n_cloudy_clear_cal += int(cal_data[6])
+            n_cloudy_cloudy_cal += int(cal_data[7])
     
             # Accumulate CALIOP-MODIS statistics
             
-            n_clear_clear_cal_MODIS = n_clear_clear_cal_MODIS + int(modis_data[4])
-            n_clear_cloudy_cal_MODIS = n_clear_cloudy_cal_MODIS + int(modis_data[5])
-            n_cloudy_clear_cal_MODIS = n_cloudy_clear_cal_MODIS + int(modis_data[6])
-            n_cloudy_cloudy_cal_MODIS = n_cloudy_cloudy_cal_MODIS + int(modis_data[7])
+            n_clear_clear_cal_MODIS += int(modis_data[4])
+            n_clear_cloudy_cal_MODIS += int(modis_data[5])
+            n_cloudy_clear_cal_MODIS += int(modis_data[6])
+            n_cloudy_cloudy_cal_MODIS += int(modis_data[7])
     
         samples_csa = n_clear_clear_csa + n_clear_cloudy_csa + n_cloudy_clear_csa +\
                         n_cloudy_cloudy_csa
@@ -71,7 +71,7 @@ class CloudFractionStats(OrrbStats):
             bias_csa = NaN
             bias_csa_perc = NaN
             mean_CFC_csa = NaN
-        if samples_cal > 0:
+        if samples_cal > 1:
             mean_CFC_cal = 100.0*(n_cloudy_cloudy_cal+n_cloudy_clear_cal)/samples_cal
             bias_cal = float(n_clear_cloudy_cal - n_cloudy_clear_cal)/float(samples_cal)
             bias_modis = float(n_clear_cloudy_cal_MODIS - n_cloudy_clear_cal_MODIS)/float(samples_cal-1)
@@ -84,25 +84,25 @@ class CloudFractionStats(OrrbStats):
             bias_cal_perc = NaN
             bias_modis_perc = NaN
     
-        square_sum_csa =  float(n_clear_clear_csa+n_cloudy_cloudy_csa)*bias_csa*bias_csa + \
-                            n_cloudy_clear_csa*(-1.0-bias_csa)*(-1.0-bias_csa) + \
-                            n_clear_cloudy_csa*(1.0-bias_csa)*(1.0-bias_csa)
-        if samples_csa > 0:
+        square_sum_csa =  (n_clear_clear_csa+n_cloudy_cloudy_csa)*bias_csa**2 + \
+                            n_cloudy_clear_csa*(-1.0-bias_csa)**2 + \
+                            n_clear_cloudy_csa*(1.0-bias_csa)**2
+        if samples_csa > 1:
             rms_csa = 100.0*math.sqrt(square_sum_csa/(samples_csa-1))
         else:
             rms_csa = NaN
-        square_sum_cal =  float(n_clear_clear_cal+n_cloudy_cloudy_cal)*bias_cal*bias_cal + \
-                            n_cloudy_clear_cal*(-1.0-bias_cal)*(-1.0-bias_cal) + \
-                            n_clear_cloudy_cal*(1.0-bias_cal)*(1.0-bias_cal)
-        if samples_cal > 0:
-            rms_cal = 100.0*math.sqrt(square_sum_cal/(samples_cal-1))
+        square_sum_cal =  (n_clear_clear_cal+n_cloudy_cloudy_cal)*bias_cal**2 + \
+                            n_cloudy_clear_cal*(-1.0-bias_cal)**2 + \
+                            n_clear_cloudy_cal*(1.0-bias_cal)**2
+        if samples_cal > 1:
+            rms_cal = 100.0*math.sqrt(square_sum_cal/(samples_cal-1.))
         else:
             rms_cal = NaN
-        square_sum_modis =  float(n_clear_clear_cal+n_cloudy_cloudy_cal)*bias_modis*bias_modis + \
-                            n_cloudy_clear_cal*(-1.0-bias_modis)*(-1.0-bias_modis) + \
-                            n_clear_cloudy_cal*(1.0-bias_modis)*(1.0-bias_modis)
+        square_sum_modis =  (n_clear_clear_cal+n_cloudy_cloudy_cal)*bias_modis**2 + \
+                            n_cloudy_clear_cal*(-1.0-bias_modis)**2 + \
+                            n_clear_cloudy_cal*(1.0-bias_modis)**2
         if samples_cal > 0:
-            rms_modis = 100.0*math.sqrt(square_sum_modis/(samples_cal-1))
+            rms_modis = 100.0*math.sqrt(square_sum_modis/(samples_cal-1.))
         else:
             rms_modis = NaN
     
@@ -117,16 +117,16 @@ class CloudFractionStats(OrrbStats):
         far_cloudy_cal_MODIS = 100.0*n_clear_cloudy_cal_MODIS/(n_cloudy_cloudy_cal_MODIS+n_clear_cloudy_cal_MODIS)
         far_clear_cal_MODIS = 100.0*n_cloudy_clear_cal_MODIS/(n_clear_clear_cal_MODIS+n_cloudy_clear_cal_MODIS)
     
-        kuipers = 1.0*(n_clear_clear_cal*n_cloudy_cloudy_cal-n_cloudy_clear_cal*n_clear_cloudy_cal)/\
+        kuipers = 1.0*(n_clear_clear_cal*n_cloudy_cloudy_cal-n_cloudy_clear_cal*n_clear_cloudy_cal)/ \
                     ((n_clear_clear_cal+n_clear_cloudy_cal)*(n_cloudy_clear_cal+n_cloudy_cloudy_cal))
     
-        hitrate = 1.0*(n_clear_clear_cal+n_cloudy_cloudy_cal)/(n_clear_clear_cal+n_clear_cloudy_cal+\
+        hitrate = 1.0*(n_clear_clear_cal+n_cloudy_cloudy_cal)/(n_clear_clear_cal+n_clear_cloudy_cal+ \
                                                             n_cloudy_clear_cal+n_cloudy_cloudy_cal)
     
         kuipers_MODIS = 1.0*(n_clear_clear_cal_MODIS*n_cloudy_cloudy_cal_MODIS-n_cloudy_clear_cal_MODIS*n_clear_cloudy_cal_MODIS)/((n_clear_clear_cal_MODIS+n_clear_cloudy_cal_MODIS)*(n_cloudy_clear_cal_MODIS+n_cloudy_cloudy_cal_MODIS))
     
-        hitrate_MODIS = 1.0*(n_clear_clear_cal_MODIS+n_cloudy_cloudy_cal_MODIS)/\
-                        (n_clear_clear_cal_MODIS+n_clear_cloudy_cal_MODIS+n_cloudy_clear_cal_MODIS+\
+        hitrate_MODIS = 1.0*(n_clear_clear_cal_MODIS+n_cloudy_cloudy_cal_MODIS)/ \
+                        (n_clear_clear_cal_MODIS+n_clear_cloudy_cal_MODIS+n_cloudy_clear_cal_MODIS+ \
                             n_cloudy_cloudy_cal_MODIS)
         
         # Store values of interest as attributes
