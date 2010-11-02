@@ -7,32 +7,29 @@ Created on Oct 13, 2010
 from setup import CASES, MAIN_DATADIR, MAP, RESOLUTION
 
 
-def compile_stats(results_files):
-    import orrb_CFC_stat, orrb_CFC_stat_emissfilt, orrb_CFC_stat_surfaces
-    import orrb_CTH_stat, orrb_CTH_stat_emissfilt, orrb_CTH_stat_surfaces
-    import orrb_CTY_stat
+def compile_basic_stats(results_files):
+    """Run through all summary statistics."""
     
-    """Run through all stats."""
-    cfc_results = orrb_CFC_stat.do_stats(results_files)
     print("=========== Cloud fraction ============")
-    orrb_CFC_stat.printout(cfc_results)
-    #orrb_CFC_stat_emissfilt.do_stats()
-    #orrb_CFC_stat_surfaces.do_stats()
+    import orrb_CFC_stat
+    cfc_results = orrb_CFC_stat.CloudFractionStats(results_files)
+    cfc_results.printout()
     
-    cth_results = orrb_CTH_stat.do_stats(results_files)
     print("========== Cloud top height ===========")
+    import orrb_CTH_stat
+    cth_results = orrb_CTH_stat.do_stats(results_files)
     orrb_CTH_stat.printout(cth_results)
-    #orrb_CTH_stat_emissfilt.do_stats()
-    #orrb_CTH_stat_surfaces.do_stats()
     
-    cty_results = orrb_CTY_stat.do_stats(results_files, cfc_results)
     print("============= Cloud type ==============")
+    import orrb_CTY_stat
+    cty_results = orrb_CTY_stat.do_stats(results_files, cfc_results)
     orrb_CTY_stat.printout(cty_results)
     
     return cfc_results, cth_results, cty_results
 
 
 def gather_values_all_months(cfc_results, cth_results):
+    raise NotImplementedError("This function needs correction and is currently disabled.")
     all_values = {}
     for results_type, name in [(cfc_results, 'CFC'), (cth_results, 'CTH')]:
         for results in results_type.values():
