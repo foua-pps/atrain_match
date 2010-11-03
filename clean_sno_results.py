@@ -11,14 +11,14 @@ AAPP_WORKING_DIR = get_environ('AAPP_WORKING_DIR')
 def clean(crosses, file_finder=None):
     """Clean the SNO crosses in *crosses*, so that only those for which data is
     available are kept. If a file_finders object is provided, it will be used
-    for searching for data files. Otherwise an HrptFinder will be used, with the
-    time window in *crosses[0]* (or default HrptFinder time window if 
+    for searching for data files. Otherwise an HrptFileFinder will be used, with the
+    time window in *crosses[0]* (or default HrptFileFinder time window if 
     crosses[0].time_window is None).
     
     Returns a dictionary with cross: data file pairs."""
     if file_finder is None:
-        from file_finders import HrptFinder
-        file_finder = HrptFinder()
+        from file_finders import HrptFileFinder
+        file_finder = HrptFileFinder()
         if crosses[0].time_window is not None:
             file_finder.set_time_window(crosses[0].time_window)
     
