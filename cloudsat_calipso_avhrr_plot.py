@@ -1,6 +1,19 @@
+# -*- coding: utf-8 -*-
 #Program cloudsat_calipso_avhrr_plot.py
 
-from setup import MAIN_DIR, SUB_DIR, MAIN_RUNDIR, CLOUDSAT_TRACK_RESOLUTION, CLOUDSAT_CLOUDY_THR, CLOUDSAT5KM_TRACK_RESOLUTION, MAXHEIGHT
+from setup import MAIN_DIR, SUB_DIR, MAIN_RUNDIR, CLOUDSAT_TRACK_RESOLUTION, CLOUDSAT_CLOUDY_THR, CLOUDSAT5KM_TRACK_RESOLUTION, MAXHEIGHT, AZIMUTH_RANGE
+
+
+def format_title(title):
+    """
+    Format *title*, possibly adding satellite azimuth range (depending on range).
+    
+    Returns formatted title.
+    """
+    if AZIMUTH_RANGE[0] > 0 or AZIMUTH_RANGE[1] < 90:
+        title = "%s (satz range [%.1f, %.1f] deg)" % (title, AZIMUTH_RANGE[0], AZIMUTH_RANGE[1])
+    
+    return title
 
 
 # -----------------------------------------------------
@@ -34,11 +47,11 @@ def drawCalClsatGEOPROFAvhrr1kmPlot(clsatObj, caObj, elevation, data_ok,
         elevation_index = int(i/CLOUDSAT_TRACK_RESOLUTION + 0.5)
         dummy_elevation_adjusted[i] = elevation[elevation_index] # Scales elevation
         #time_diff_cloudsat[i] = clsatObj.diff_sec_1970[elevation_index] #For time ploting
-        
+    
     dummy = rpy.r.plot(pixel_position_geometric[::],dummy_elevation_adjusted,
                         ylim=[0,MAXHEIGHT],
                         xlab="Track Position",ylab="Cloud Height",
-                        main="AVHRR-CloudSat-Caliop Cloud Top Heights",
+                        main=format_title("AVHRR-CloudSat-Caliop Cloud Top Heights"),
                         col="black",type='l',lwd=1)
 
     
@@ -245,7 +258,7 @@ def drawCalClsatGEOPROFAvhrr5kmPlot(clsatObj, caObj, elevation, data_ok,
     dummy = rpy.r.plot(pixel_position_geometric[::],dummy_elevation_adjusted,
                         ylim=[0,MAXHEIGHT],
                         xlab="Track Position",ylab="Cloud Height",
-                        main="5km AVHRR-CloudSat-Caliop Cloud Top Heights",
+                        main=format_title("5km AVHRR-CloudSat-Caliop Cloud Top Heights"),
                         col="black",type='l',lwd=1)
 
 # Makes the surface black
@@ -346,7 +359,7 @@ def drawCalClsatAvhrrPlotTimeDiff(cllat, clsat_diff_sec_1970, cal_diff_sec_1970,
     MINVALUE=(min(clsat_diff_sec_1970)/60-10)
     rpy.r.plot(x,y,ylim=[MINVALUE,MAXVALUE],
                         xlab="Track Position",ylab="Time diff [min]",
-                        main="Time Difference Between Avhrr and CloudSat/Calispo",
+                        main=format_title("Time Difference Between Avhrr and CloudSat/Calispo"),
                         col="black",type='l',lwd=0)
     biggest_Cloudsat_diff_place = numpy.argmax(numpy.abs(time_diff_cloudsat))
     biggest_Cloudsat_diff = time_diff_cloudsat[biggest_Cloudsat_diff_place]
@@ -392,7 +405,7 @@ def drawCalClsatAvhrrPlotSATZ(cllat, AvhrrClsatSatz, AvhrrCalSatz, plotpath, bas
     MINVALUE=(min(AvhrrClsatSatz)-10)
     rpy.r.plot(x,y,ylim=[MINVALUE,MAXVALUE],                        
                         xlab="Track Position",ylab="satellite zenith angle [deg]",
-                        main="Avhrr compared to CloudSat/Calipso",
+                        main=format_title("Avhrr compared to CloudSat/Calipso"),
                         col="black",type='l',lwd=0)
         
     rpy.r.points(AvhrrClsatSatz_adjust,col="red",pch="+",cex=0.7)

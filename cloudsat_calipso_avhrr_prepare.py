@@ -38,9 +38,10 @@ def CloudsatCloudOpticalDepth(cloud_top, cloud_base, optical_depth):
 def CloudsatCalipsoAvhrrSatz1km(clsatObj,caObj):
     import pdb
     import numpy
-    from setup import AZIMUTH_THR
+    from setup import AZIMUTH_RANGE
     # CloudSat:
-    clsat_satz_ok = numpy.where(clsatObj.avhrr.satz<=AZIMUTH_THR)
+    clsat_satz_ok = numpy.where((AZIMUTH_RANGE[0] <= clsatObj.avhrr.satz) * \
+                                (clsatObj.avhrr.satz <= AZIMUTH_RANGE[1]))
     n_clsat_satz_ok = len(clsat_satz_ok[0])
     clsatObj.cloudsat.longitude = clsatObj.cloudsat.longitude[clsat_satz_ok]
     clsatObj.cloudsat.latitude = clsatObj.cloudsat.latitude[clsat_satz_ok]
@@ -73,7 +74,8 @@ def CloudsatCalipsoAvhrrSatz1km(clsatObj,caObj):
     clsatObj.avhrr.satz = clsatObj.avhrr.satz[clsat_satz_ok]   
     
     # Calipso:
-    ca_satz_ok = numpy.where(caObj.avhrr.satz<=AZIMUTH_THR)
+    ca_satz_ok = numpy.where((AZIMUTH_RANGE[0] <= caObj.avhrr.satz) * \
+                                (caObj.avhrr.satz <= AZIMUTH_RANGE[1]))
     n_ca_satz_ok = len(ca_satz_ok[0])
     caObj.calipso.longitude = caObj.calipso.longitude[ca_satz_ok]
     caObj.calipso.latitude = caObj.calipso.latitude[ca_satz_ok]

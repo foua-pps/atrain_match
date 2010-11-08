@@ -43,8 +43,9 @@ sec_timeThr = 60*20 # Allowed time deviation in seconds between AVHRR and CALIPS
 CLOUDSAT_CLOUDY_THR = 30.0  # Recommended cloud threshold for the CloudSat cloud mask. In 5km data this threshold have already been aplied therfore no reason to change it for thise data set. 
 MAXHEIGHT = 25000.0
 MAXHEIGHT = 12000.0
-    
-AZIMUTH_THR = 360.0
+
+#: Range of allowed (AVHRR) satellite azimuth angles, in degrees
+AZIMUTH_RANGE = (0., 360.)
 
 # CloudSat sampling frequency in km (or rather the most likely
 # resolution difference between CALIPSO 1 km datasets and
