@@ -5,7 +5,7 @@ Created on Oct 27, 2010
 '''
 
 
-from setup import get_environ
+from config import get_environ
 AAPP_WORKING_DIR = get_environ('AAPP_WORKING_DIR')
 
 def clean(crosses, file_finder=None):

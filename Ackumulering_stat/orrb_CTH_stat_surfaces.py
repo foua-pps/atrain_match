@@ -7,6 +7,6 @@ from orrb_CTH_stat import CloudTopStats as CloudTopSurfacesStats
 
 
 if __name__ == "__main__":
-    import setup
+    import config
     stats = CloudTopSurfacesStats()
     stats.old_interface(modes=setup.SURFACES, output_file_desc="cth_results_surfaces_summary")

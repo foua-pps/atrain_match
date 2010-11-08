@@ -10,7 +10,7 @@ import numpy.oldnumeric as Numeric
 from calipso5km import *
 #from cloudsat5km import *
 #from cloudsat5km_cwc import *
-from setup import AREA5KM, RESHAPE_DIR
+from config import AREA5KM, RESHAPE_DIR
 #MAIN_DIR = "/data/proj/safworks/adam/calipso_data"
 #MAIN_DIR = "/local_disk/calipso_data"
 #SUB_DIR = "metop02_calipso_2007spring"

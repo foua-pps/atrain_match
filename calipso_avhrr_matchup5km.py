@@ -15,7 +15,7 @@ sys.path.append("%s/angles/test"%(ACPG_SOURCE))
 import Numeric
 
 from calipso5km import *
-from setup import AREA5KM, RESHAPE_DIR
+from config import AREA5KM, RESHAPE_DIR
 
 #MAIN_DIR = "/data/proj/safworks/adam/calipso_data"
 #MAIN_DIR = "/local_disk/calipso_data"

@@ -5,32 +5,32 @@
 
 # Writer Erik Johansson
 from pps_error_messages import write_log
-import setup
+import config
 
 
 def FindFiles(avhrrfile):
     import file_finders
     
-    pps_finder = file_finders.PpsFileFinder(setup.PPS_DATA_DIR, time_window=5*60)
+    pps_finder = file_finders.PpsFileFinder(config.PPS_DATA_DIR, time_window=5*60)
     try:
-        pps_finder.set_subdir_method(setup.subdir)
+        pps_finder.set_subdir_method(config.subdir)
     except AttributeError:
         pass
     parsed = pps_finder.parse(avhrrfile)
     satname = parsed['satellite']
     datetime = parsed['datetime']
-    cloudsat_finder = file_finders.CloudsatFileFinder(setup.CLOUDSAT_DIR,
-                                                      setup.RESOLUTION,
-                                                      setup.CLOUDSAT_TYPE)
-    cloudsat_finder.set_time_window(setup.SAT_ORBIT_DURATION + setup.sec_timeThr)
+    cloudsat_finder = file_finders.CloudsatFileFinder(config.CLOUDSAT_DIR,
+                                                      config.RESOLUTION,
+                                                      config.CLOUDSAT_TYPE)
+    cloudsat_finder.set_time_window(config.SAT_ORBIT_DURATION + config.sec_timeThr)
     cloudsat_files = sorted(cloudsat_finder.find(datetime))
-    calipso_finder = file_finders.CalipsoFileFinder(setup.CALIPSO_DIR,
-                                                    setup.RESOLUTION)
-    calipso_finder.set_time_window(setup.SAT_ORBIT_DURATION + setup.sec_timeThr)
+    calipso_finder = file_finders.CalipsoFileFinder(config.CALIPSO_DIR,
+                                                    config.RESOLUTION)
+    calipso_finder.set_time_window(config.SAT_ORBIT_DURATION + config.sec_timeThr)
     calipso_files = sorted(calipso_finder.find(datetime))
     cloudtype_file = pps_finder.find(satname, datetime, ending='cloudtype.h5')[0]
     ctth_file = pps_finder.find(satname, datetime,
-                                ending='%s.h5' % setup.CTTH_FILE)[0]
+                                ending='%s.h5' % config.CTTH_FILE)[0]
     avhrr_file = avhrrfile
     nwp_tsur_file = pps_finder.find(satname, datetime, ending='nwp_tsur.h5')[0]
     sunsatangles_file = pps_finder.find(satname, datetime, ending='sunsatangles.h5')[0]
@@ -47,9 +47,9 @@ def process_matchups(matchups):
     processed_avhrr_files = set()
     for match in matchups:
         if match.time_window is not None:
-            avhrr_finder.set_time_window(-(setup.SAT_ORBIT_DURATION + match.time_window), match.time_window)
+            avhrr_finder.set_time_window(-(config.SAT_ORBIT_DURATION + match.time_window), match.time_window)
         else:
-            avhrr_finder.set_time_window(-(setup.SAT_ORBIT_DURATION + setup.sec_timeThr), setup.sec_timeThr)
+            avhrr_finder.set_time_window(-(config.SAT_ORBIT_DURATION + config.sec_timeThr), config.sec_timeThr)
         
         try:
             avhrr_file = avhrr_finder.find(match.satellite1.lower(), match.time1)[0]
@@ -128,24 +128,24 @@ if __name__=='__main__':
                      "                          and 'ctth_semitransparent.\n")
     parser.add_option('-M', '--mode', type='string', action='append',
                       help="Run validation software in MODE (valid modes are %s)" % \
-                      ', '.join(setup.ALLOWED_MODES))
+                      ', '.join(config.ALLOWED_MODES))
     parser.add_option('-d', '--debug', action='store_true')
     (options, args) = parser.parse_args()
     
     if options.mode is not None:
         run_modes = options.mode
     else:
-        run_modes = setup.ALLOWED_MODES
+        run_modes = config.ALLOWED_MODES
     
     if len(args) > 0:
         sno_output_files = args
     else:
-        sno_output_files = setup.match_files
+        sno_output_files = config.match_files
     
-    resolution = "%i.%i" %(setup.RESOLUTION,setup.clsat_type)
-    avhrr_finder = file_finders.PpsFileFinder(setup.PPS_DATA_DIR, 'avhrr.h5')
+    resolution = "%i.%i" %(config.RESOLUTION,config.clsat_type)
+    avhrr_finder = file_finders.PpsFileFinder(config.PPS_DATA_DIR, 'avhrr.h5')
     try:
-        avhrr_finder.set_subdir_method(setup.subdir)
+        avhrr_finder.set_subdir_method(config.subdir)
     except AttributeError:
         pass
     

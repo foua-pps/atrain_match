@@ -32,10 +32,10 @@ class OrrbStats():
         f.close()
     
     def old_interface(self, modes, output_file_desc):
-        """Run through stats using old interface with setup.STUDIED_MONTHS, YEARS
+        """Run through stats using old interface with config.STUDIED_MONTHS, YEARS
         and so on..."""
         from glob import glob
-        from setup import SATELLITE, RESOLUTION, STUDIED_YEAR, STUDIED_MONTHS, MAP, MAIN_DATADIR, OUTPUT_DIR
+        from config import SATELLITE, RESOLUTION, STUDIED_YEAR, STUDIED_MONTHS, MAP, MAIN_DATADIR, OUTPUT_DIR
         lines = []
         
         for mode in modes:

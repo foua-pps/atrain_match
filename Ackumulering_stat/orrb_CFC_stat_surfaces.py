@@ -24,6 +24,6 @@ class CloudFractionSurfacesStats(CloudFractionStats):
 
 
 if __name__ == "__main__":
-    import setup
+    import config
     stats = CloudFractionSurfacesStats()
     stats.old_interface(modes=setup.SURFACES, output_file_desc="cfc_results_surfaces_summary")

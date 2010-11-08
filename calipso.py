@@ -4,7 +4,7 @@ import pdb
 from pps_basic_configure import *
 from pps_error_messages import *
 
-from setup import AREA1KM, SUB_DIR, DATA_DIR, sec_timeThr, DSEC_PER_AVHRR_SCALINE
+from config import AREA1KM, SUB_DIR, DATA_DIR, sec_timeThr, DSEC_PER_AVHRR_SCALINE
 from common import MatchupError, elements_within_range
 #MAIN_DIR = "/data/proj/safworks/adam/calipso_data"
 #MAIN_DIR = "/data/proj_nsc1/safworks/calipso_cloudsat/data/arctic/"

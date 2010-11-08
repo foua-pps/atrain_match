@@ -1,5 +1,5 @@
 #Program cloudsat_calipso_avhrr_statistics.py
-import setup
+import config
 
 def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
                         cal_vert_feature, avhrr_ctth_csat_ok, data_ok,
@@ -508,7 +508,7 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
 
         #print "STATISTICS CLOUD TOP HEIGHT: CLOUDSAT - AVHRR"
 
-        #if mode not in setup.PLOT_MODES:
+        #if mode not in config.PLOT_MODES:
         if True: # TODO: The above if statement seems to have lost its meaning...
             dummy=clsatObj.cloudsat.latitude.shape[0]
             pixel_position_plain=numpy.arange(dummy)
@@ -1224,7 +1224,7 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
 
         #print "STATISTICS CLOUD TOP HEIGHT: CLOUDSAT - AVHRR"
 
-        # if mode not in setup.PLOT_MODES:
+        # if mode not in config.PLOT_MODES:
         if True: # TODO: The above if statement seems to have lost its meaning...
             dummy=clsatObj.cloudsat5km.latitude.shape[0]
             pixel_position_plain=numpy.arange(dummy)

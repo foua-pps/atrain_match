@@ -107,7 +107,7 @@ from radiance_tb_tables_kgtest import * #Just use the brightness temperature to 
 from pps_basic_configure import *
 from pps_error_messages import *
 
-import setup
+import config
 
 from cloudsat_calipso_avhrr_statistics import *
 from cloudsat_calipso_avhrr_plot import *

@@ -2,7 +2,7 @@
 """Find satellite passes where the given satellites cross paths within a given
 time window."""
 
-from setup import get_environ
+from config import get_environ
 
 # SNO executable
 SNO_EXECUTABLE = get_environ('SNO_EXECUTABLE', "/data/proj/saf/ejohansson/SNO_tools/snotimes")
