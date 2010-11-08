@@ -69,12 +69,14 @@ def process_matchups(matchups):
         #avhrr_file = pps_finder.find(match)
         try:
             cloudsat_file, calipso_file, cloudtype_file, ctth_file, avhrr_file, nwp_tsur_file, sunsatangles_file = FindFiles(avhrr_file)
+            if len(cloudsat_file) == 0 or len(calipso_file) == 0:
+                raise IndexError # For lack of a more descriptive error
         except IndexError:
             problem_files.add(avhrr_file)
             write_log('WARNING', "Couldn't find all needed files for %s." % avhrr_file)
             if options.debug is True:
                 raise
-            break
+            continue
         
         for mode in run_modes:
             try:
