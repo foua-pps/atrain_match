@@ -87,7 +87,6 @@ if False: # Do we use this def?
 
 
 #========== Statistics setup ==========#
-RESOLUTION = ["1km"]
 CASES = [{'satname': 'noaa18', 'year': 2009, 'month': 1},
          {'satname': 'noaa18', 'year': 2009, 'month': 7},
          {'satname': 'noaa19', 'year': 2009, 'month': 7}]

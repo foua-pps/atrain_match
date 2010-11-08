@@ -39,7 +39,7 @@ if __name__ == '__main__':
     print("Gathering statistics from all validation results files in the "
           "following directories:")
     for case in CASES:
-        basic_indata_dir = "%s/Results/%s/%s/%s/%02d/%s/BASIC" % \
+        basic_indata_dir = "%s/Results/%s/%skm/%s/%02d/%s/BASIC" % \
             (MAIN_DATADIR, case['satname'], RESOLUTION[0] , case['year'], case['month'], MAP[0])
         print("-> " + basic_indata_dir)
         results_files.extend(glob("%s/*.dat" % basic_indata_dir))

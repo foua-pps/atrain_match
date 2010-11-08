@@ -44,7 +44,7 @@ class OrrbStats():
             lines.append("")
             for i in range(len(STUDIED_MONTHS)):
                 month="%s%s" %(STUDIED_YEAR[0],STUDIED_MONTHS[i])
-                results_dir = "%s/Results/%s/%s/%s/%s/%s/%s" % (MAIN_DATADIR, SATELLITE[0], RESOLUTION[0] , STUDIED_YEAR[0], STUDIED_MONTHS[i], MAP[0], self.mode)
+                results_dir = "%s/Results/%s/%skm/%s/%s/%s/%s" % (MAIN_DATADIR, SATELLITE[0], RESOLUTION[0] , STUDIED_YEAR[0], STUDIED_MONTHS[i], MAP[0], self.mode)
                 
                 self.results_files = glob("%s/*.dat" % results_dir)
                 self.do_stats()
