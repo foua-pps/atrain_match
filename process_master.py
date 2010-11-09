@@ -48,7 +48,10 @@ def process_matchups(matchups):
             avhrr_finder.set_time_window(-(config.SAT_ORBIT_DURATION + config.sec_timeThr), config.sec_timeThr)
         
         try:
-            avhrr_file = avhrr_finder.find(match.satellite1.lower(), match.time1)[0]
+            satellite = match.satellite1.lower()
+            if satellite == 'metopa':
+                satellite = 'metop02'
+            avhrr_file = avhrr_finder.find(satellite, match.time1)[0]
         except IndexError:
             write_log('WARNING', "No matching AVHRR file found for %s %s." % \
                       (match.satellite1, match.time1.strftime("%F %T")))
