@@ -1,9 +1,5 @@
 # program process_master.py
 
-# source /data/proj/saf/ejohansson/runscripts/source_erik_cmsaf
-# python process_master.py
-
-# Writer Erik Johansson
 from pps_error_messages import write_log
 import config
 
