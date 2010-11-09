@@ -93,6 +93,7 @@ CASES = [{'satname': 'noaa18', 'year': 2009, 'month': 1},
          {'satname': 'noaa19', 'year': 2009, 'month': 7}]
 MAP = [AREA1KM]
 MAIN_DATADIR = MAIN_DIR # Should contain the Results directory
+COMPILED_STATS_FILENAME = 'Results/compiled_stats' %MAIN_DATADIR
 SURFACES = ["ICE_COVER_SEA","ICE_FREE_SEA","SNOW_COVER_LAND","SNOW_FREE_LAND","COASTAL_ZONE"]
 
 # The following are used in the old-style script interface
