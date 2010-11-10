@@ -232,8 +232,8 @@ def run(cloudsatfile, calipsofile, ctypefile, ctthfile, avhrrfile, surftfile, su
                     break
         # First make sure that PPS cloud top heights are converted to height above sea level
         # just as CloudSat and CALIPSO heights are defined. Use corresponding DEM data.            
-        elevation = Numeric.where(Numeric.greater(clsatObj.cloudsat.elevation,0),
-                            clsatObj.cloudsat.elevation,-9)			# If clsatObj.cloudsat.elevation is bigger then 0 elevation(i,j)=clsatObj.cloudsat.elevation(i,j) else the value =-9
+        elevation = numpy.where(numpy.less_equal(clsatObj.cloudsat.elevation,0),\
+                            -9,clsatObj.cloudsat.elevation)			# If clsatObj.cloudsat.elevation is <= 0 elevation(i,j)=-9, else the value = clsatObj.cloudsat.elevation(i,j)
 
 ###        elevationcwc = Numeric.where(Numeric.greater(clsatObj.cloudsatcwc.elevation,0),
 ###                            clsatObj.cloudsatcwc.elevation,-9)
@@ -248,8 +248,8 @@ def run(cloudsatfile, calipsofile, ctypefile, ctthfile, avhrrfile, surftfile, su
 
         # CALIPSO
 
-        cal_elevation = Numeric.where(Numeric.greater(caObj.calipso.elevation,0),
-                                    caObj.calipso.elevation,-9)
+        cal_elevation = numpy.where(numpy.less_equal(caObj.calipso.elevation,0),
+                                    -9,caObj.calipso.elevation)
         cal_data_ok = Numeric.ones(caObj.calipso.elevation.shape,'b')
         print "Length of CALIOP array: ", len(cal_data_ok)
         avhrr_ctth_cal_ok = Numeric.repeat(caObj.avhrr.ctth_height[::],cal_data_ok)
@@ -264,7 +264,7 @@ def run(cloudsatfile, calipsofile, ctypefile, ctthfile, avhrrfile, surftfile, su
             # Notice that more than one file
             # (but maximum 2) can be created for one particular noaa orbit.
             
-            resultpath = "%s/%s/%ikm/%s/%s/%s/%s" % (setup.RESULT_DIR, base_sat,int(Resolution[0]), base_year, base_month,AREA,process_mode)
+            resultpath = "%s/%s/%ikm/%s/%s/%s/%s" % (config.RESULT_DIR, base_sat,int(Resolution[0]), base_year, base_month,AREA,process_mode)
             if not os.path.exists(resultpath):
                 os.makedirs(resultpath)
             statfilename = "%s/%ikm_%s_cloudsat_calipso_avhrr_stat.dat" % (resultpath,int(Resolution[0]),basename)
@@ -372,8 +372,8 @@ def run(cloudsatfile, calipsofile, ctypefile, ctthfile, avhrrfile, surftfile, su
     #pdb.set_trace()
     ### 1 KM DATA CWC-RVOD ###                       
     elif int(Resolution[0])==1 and cloudsat_type=='CWC-RVOD':   
-        elevationcwc = Numeric.where(Numeric.greater(clsatObj.cloudsatcwc.elevation,0),
-                            clsatObj.cloudsatcwc.elevation,-9)
+        elevationcwc = numpy.where(numpy.less_equal(clsatObj.cloudsatcwc.elevation,0),
+                            -9, clsatObj.cloudsatcwc.elevation)
 
         data_okcwc = Numeric.ones(clsatObj.cloudsatcwc.elevation.shape,'b')
     ### 5 KM DATA ###
@@ -395,8 +395,8 @@ def run(cloudsatfile, calipsofile, ctypefile, ctthfile, avhrrfile, surftfile, su
                     break       
         # First make sure that PPS cloud top heights are converted to height above sea level
         # just as CloudSat and CALIPSO heights are defined. Use corresponding DEM data.            
-        elevation = Numeric.where(Numeric.greater(clsatObj.cloudsat5km.elevation,0),
-                    clsatObj.cloudsat5km.elevation,-9)			# If clsatObj.cloudsat.elevation is bigger then 0 elevation(i,j)=clsatObj.cloudsat.elevation(i,j) else the value =-9
+        elevation = numpy.where(numpy.less_equal(clsatObj.cloudsat5km.elevation,0),
+                    -9, clsatObj.cloudsat5km.elevation)			# If clsatObj.cloudsat.elevation is bigger then 0 elevation(i,j)=clsatObj.cloudsat.elevation(i,j) else the value =-9
 
         #elevationcwc = Numeric.where(Numeric.greater(clsatObj.cloudsatcwc.elevation,0),
         #            clsatObj.cloudsatcwc.elevation,-9)
@@ -411,8 +411,8 @@ def run(cloudsatfile, calipsofile, ctypefile, ctthfile, avhrrfile, surftfile, su
 
         # CALIPSO
 
-        cal_elevation = Numeric.where(Numeric.greater(caObj.calipso5km.elevation,0),
-                    caObj.calipso5km.elevation,-9)
+        cal_elevation = numpy.where(numpy.less_equal(caObj.calipso5km.elevation,0),
+                    -9, caObj.calipso5km.elevation,-9)
         cal_data_ok = Numeric.ones(caObj.calipso5km.elevation.shape,'b')
         print "Length of CALIOP array: ", len(cal_data_ok)
         avhrr_ctth_cal_ok = Numeric.repeat(caObj.avhrr5km.ctth_height[::],cal_data_ok)
@@ -542,8 +542,8 @@ def run(cloudsatfile, calipsofile, ctypefile, ctthfile, avhrrfile, surftfile, su
             
     ### 5 KM DATA CWC-RVOD ###                       
     elif int(Resolution[0])==5 and cloudsat_type=='CWC-RVOD':   
-        elevationcwc = Numeric.where(Numeric.greater(clsatObj.cloudsat5kmcwc.elevation,0),
-                            clsatObj.cloudsat5kmcwc.elevation,-9)
+        elevationcwc = numpy.where(numpy.less_equal(clsatObj.cloudsat5kmcwc.elevation,0),
+                            -9, clsatObj.cloudsat5kmcwc.elevation,-9)
 
         data_okcwc = Numeric.ones(clsatObj.cloudsat5kmcwc.elevation.shape,'b')   
 ##    print "lat,lon start CALIPSO: ", caObj.calipso.latitude[0],caObj.calipso.longitude[0]
@@ -595,10 +595,10 @@ def run(cloudsatfile, calipsofile, ctypefile, ctthfile, avhrrfile, surftfile, su
 
     #==============================================================================================
     #Draw plot
-    if process_mode in setup.PLOT_MODES:
+    if process_mode in config.PLOT_MODES:
     ##########################################################################################################################################   
         #pdb.set_trace()
-        plotpath = "%s/%s/%ikm/%s/%s/%s" %(setup.PLOT_DIR, base_sat, int(Resolution[0]), base_year, base_month, AREA)
+        plotpath = "%s/%s/%ikm/%s/%s/%s" %(config.PLOT_DIR, base_sat, int(Resolution[0]), base_year, base_month, AREA)
         if not os.path.exists(plotpath):
             os.makedirs(plotpath)
             
@@ -622,7 +622,7 @@ def run(cloudsatfile, calipsofile, ctypefile, ctthfile, avhrrfile, surftfile, su
                                             avhrr_ctth_cal_ok, plotpath,
                                             basename, process_mode, emissfilt_calipso_ok)
             drawCalClsatAvhrrPlotTimeDiff(cllat, clsatObj.diff_sec_1970, caObj.diff_sec_1970, plotpath, basename, Resolution[0])
-            plotSatelliteTrajectory(cllon,cllat,calon,calat,avhrlon,avhrlat,trajectoryname)
+            plotSatelliteTrajectory(cllon,cllat,trajectoryname,'eps')
             
         elif int(Resolution[0])==1 and cloudsat_type=='CWC-RVOD':
             drawCalClsatAvhrrPlotTimeDiff(cllat, clsatObj.diff_sec_1970, caObj.diff_sec_1970, plotpath, basename, Resolution[0])
