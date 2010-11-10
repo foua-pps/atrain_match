@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #Program cloudsat_calipso_avhrr_plot.py
 
-from config import MAIN_DIR, SUB_DIR, MAIN_RUNDIR, CLOUDSAT_TRACK_RESOLUTION, CLOUDSAT_CLOUDY_THR, CLOUDSAT5KM_TRACK_RESOLUTION, MAXHEIGHT, AZIMUTH_RANGE
+from config import MAIN_DIR, SUB_DIR, MAIN_RUNDIR, CLOUDSAT_TRACK_RESOLUTION, CLOUDSAT_CLOUDY_THR, CLOUDSAT5KM_TRACK_RESOLUTION, AZIMUTH_RANGE
 
 
 def format_title(title):
@@ -30,6 +30,12 @@ def drawCalClsatGEOPROFAvhrr1kmPlot(clsatObj, caObj, elevation, data_ok,
     #MAXHEIGHT = max(elevation)+10000
     #pdb.set_trace()   
     # Create environment for plotting
+    
+    MAXHEIGHT_CLOUDSAT = numpy.nanmax(numpy.where(clsatObj.cloudsat.cloud_mask>=CLOUDSAT_CLOUDY_THR,clsatObj.cloudsat.Height,numpy.nan))+120
+    MAXHEIGHT_CALIPSO = numpy.nanmax(caliop_height)
+    
+    MAXHEIGHT = numpy.nanmax([MAXHEIGHT_CALIPSO,MAXHEIGHT_CLOUDSAT])
+    
     device = rpy.r.postscript
     device("%s/1km_%s_cloudsat_calipso_avhrr_clouds.eps"%(plotpath,basename),width=900,height=400) 
 
@@ -47,7 +53,7 @@ def drawCalClsatGEOPROFAvhrr1kmPlot(clsatObj, caObj, elevation, data_ok,
         elevation_index = int(i/CLOUDSAT_TRACK_RESOLUTION + 0.5)
         dummy_elevation_adjusted[i] = elevation[elevation_index] # Scales elevation
         #time_diff_cloudsat[i] = clsatObj.diff_sec_1970[elevation_index] #For time ploting
-    
+    #dummy_elevation_adjusted = numpy.where(dummy_elevation_adjusted==-9,numpy.nan,dummy_elevation_adjusted)
     dummy = rpy.r.plot(pixel_position_geometric[::],dummy_elevation_adjusted,
                         ylim=[0,MAXHEIGHT],
                         xlab="Track Position",ylab="Cloud Height",
@@ -71,17 +77,17 @@ def drawCalClsatGEOPROFAvhrr1kmPlot(clsatObj, caObj, elevation, data_ok,
         colors.append(rpy.r.rgb([255],[50],[50],maxColorValue=255))
     
     # Plot CloudSat
-    clsat_max_height = numpy.repeat(clsatObj.cloudsat.Height[124,::],data_ok) #Takes lowest Hight
+    clsat_max_height = numpy.repeat(clsatObj.cloudsat.Height[124,::],data_ok)
     
     for i in range(125):
         height = clsatObj.cloudsat.Height[i,::]
         cmask_ok = clsatObj.cloudsat.cloud_mask[i,::]
-    
+        
         for idx in range(len(pixel_position_plain)):
             nidx = int(cmask_ok[idx]+0.5)
             if nidx == 0:
                 continue
-            if height[idx] < 240*4 or height[idx] > MAXHEIGHT:
+            if height[idx] < 240*4: #or height[idx] > MAXHEIGHT:
                 continue
             base_height = height[idx]-120
             top_height = height[idx]+120
@@ -400,9 +406,9 @@ def drawCalClsatAvhrrPlotSATZ(cllat, AvhrrClsatSatz, AvhrrCalSatz, plotpath, bas
     for i in range(geometric_range_CloudSat): #Just extend original x array
         elevation_index = int(i/CLOUDSAT5KM_TRACK_RESOLUTION + 0.5)        
         AvhrrClsatSatz_adjust[i] = AvhrrClsatSatz[elevation_index] #For satz ploting
-
-    MAXVALUE=(max(AvhrrClsatSatz)+10)
-    MINVALUE=(min(AvhrrClsatSatz)-10)
+    
+    MAXVALUE=(numpy.nanmax(AvhrrClsatSatz)+10)
+    MINVALUE=(numpy.nanmin(AvhrrClsatSatz)-10)
     rpy.r.plot(x,y,ylim=[MINVALUE,MAXVALUE],                        
                         xlab="Track Position",ylab="satellite zenith angle [deg]",
                         main=format_title("Avhrr compared to CloudSat/Calipso"),
