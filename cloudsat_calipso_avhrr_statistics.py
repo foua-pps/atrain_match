@@ -43,7 +43,7 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
         dummy=clsatObj.cloudsat.latitude.shape[0]
         pixel_position=numpy.arange(dummy)
         cloudsat_cloud_mask=clsatObj.cloudsat.cloud_mask
-        cloudsat_cloud_mask=numpy.greater_equal(cloudsat_cloud_mask, setup.CLOUDSAT_CLOUDY_THR)
+        cloudsat_cloud_mask=numpy.greater_equal(cloudsat_cloud_mask, config.CLOUDSAT_CLOUDY_THR)
         
         cloudsat_cloud_fraction=numpy.zeros(len(pixel_position))
         
@@ -526,11 +526,11 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
                         continue
                     #print idx,nidx,colors[nidx]
                     #if height[idx] < 0 or height[idx] > MAXHEIGHT:
-                    if height[idx] < 240*4 or height[idx] > setup.MAXHEIGHT:
+                    if height[idx] < 240*4: # or height[idx] > config.MAXHEIGHT:
                         continue
                     base_height = height[idx]-120
                     top_height = height[idx]+120
-                    if nidx >= int(setup.CLOUDSAT_CLOUDY_THR):
+                    if nidx >= int(config.CLOUDSAT_CLOUDY_THR):
     #                if nidx >= 20:
                         clsat_max_height[idx] = max(clsat_max_height[idx],top_height)  
 
@@ -759,7 +759,7 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
         dummy=clsatObj.cloudsat5km.latitude.shape[0]
         pixel_position=numpy.arange(dummy)
         cloudsat_cloud_mask=clsatObj.cloudsat5km.cloud_mask
-        cloudsat_cloud_mask=numpy.greater_equal(cloudsat_cloud_mask,setup.CLOUDSAT_CLOUDY_THR)
+        cloudsat_cloud_mask=numpy.greater_equal(cloudsat_cloud_mask,config.CLOUDSAT_CLOUDY_THR)
         
         cloudsat_cloud_fraction=numpy.zeros(len(pixel_position))
         
@@ -1242,11 +1242,11 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
                         continue
                     #print idx,nidx,colors[nidx]
                     #if height[idx] < 0 or height[idx] > MAXHEIGHT:
-                    if height[idx] < 240*4 or height[idx] > setup.MAXHEIGHT:
+                    if height[idx] < 240*4 or height[idx] > config.MAXHEIGHT:
                         continue
                     base_height = height[idx]-120
                     top_height = height[idx]+120
-                    if nidx >= int(setup.CLOUDSAT_CLOUDY_THR):
+                    if nidx >= int(config.CLOUDSAT_CLOUDY_THR):
     #                if nidx >= 20:
                         clsat_max_height[idx] = max(clsat_max_height[idx],top_height)  
 
