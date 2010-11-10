@@ -42,74 +42,85 @@ def CloudsatCalipsoAvhrrSatz1km(clsatObj,caObj):
     # CloudSat:
     clsat_satz_ok = numpy.where((AZIMUTH_RANGE[0] <= clsatObj.avhrr.satz) * \
                                 (clsatObj.avhrr.satz <= AZIMUTH_RANGE[1]))
-    n_clsat_satz_ok = len(clsat_satz_ok[0])
-    clsatObj.cloudsat.longitude = clsatObj.cloudsat.longitude[clsat_satz_ok]
-    clsatObj.cloudsat.latitude = clsatObj.cloudsat.latitude[clsat_satz_ok]
-    clsatObj.cloudsat.avhrr_linnum = clsatObj.cloudsat.avhrr_linnum[clsat_satz_ok]
-    clsatObj.cloudsat.avhrr_pixnum = clsatObj.cloudsat.avhrr_pixnum[clsat_satz_ok]
-  
-    clsatObj.cloudsat.cloud_mask = numpy.reshape(clsatObj.cloudsat.cloud_mask[:,clsat_satz_ok],(-1,n_clsat_satz_ok))
-    clsatObj.cloudsat.Radar_Reflectivity = numpy.reshape(clsatObj.cloudsat.Radar_Reflectivity[:,clsat_satz_ok],(-1,n_clsat_satz_ok))
-    clsatObj.cloudsat.Height = numpy.reshape(clsatObj.cloudsat.Height[:,clsat_satz_ok],(-1,n_clsat_satz_ok))
-    clsatObj.cloudsat.echo_top = clsatObj.cloudsat.echo_top[clsat_satz_ok]
-    clsatObj.cloudsat.SurfaceHeightBin = clsatObj.cloudsat.SurfaceHeightBin[clsat_satz_ok]
-    clsatObj.cloudsat.SurfaceHeightBin_fraction = clsatObj.cloudsat.SurfaceHeightBin_fraction[clsat_satz_ok]
     
-    clsatObj.cloudsat.elevation = clsatObj.cloudsat.elevation[clsat_satz_ok]
-    clsatObj.cloudsat.sec_1970 = clsatObj.cloudsat.sec_1970[clsat_satz_ok]
-    clsatObj.cloudsat.MODIS_Cloud_Fraction = clsatObj.cloudsat.MODIS_Cloud_Fraction[clsat_satz_ok]
-    clsatObj.cloudsat.MODIS_cloud_flag = clsatObj.cloudsat.MODIS_cloud_flag[clsat_satz_ok]
+    clsat_satz_ok_bools = (AZIMUTH_RANGE[0] <= clsatObj.avhrr.satz) == \
+                                (clsatObj.avhrr.satz <= AZIMUTH_RANGE[1])
+    
+    n_clsat_satz_ok = len(clsat_satz_ok[0])
+    n_clsat_satz_ok_bools = len(clsat_satz_ok_bools)
+    clsatObj.cloudsat.longitude = numpy.where(clsat_satz_ok_bools,clsatObj.cloudsat.longitude,numpy.nan)
+    clsatObj.cloudsat.latitude = numpy.where(clsat_satz_ok_bools,clsatObj.cloudsat.latitude,numpy.nan)
+    clsatObj.cloudsat.avhrr_linnum = numpy.where(clsat_satz_ok_bools,clsatObj.cloudsat.avhrr_linnum,numpy.nan)
+    clsatObj.cloudsat.avhrr_pixnum = numpy.where(clsat_satz_ok_bools,clsatObj.cloudsat.avhrr_pixnum,numpy.nan)
+
+    for i in range(clsatObj.cloudsat.cloud_mask.shape[0]):
+        clsatObj.cloudsat.cloud_mask[i,:] = numpy.where(clsat_satz_ok_bools,clsatObj.cloudsat.cloud_mask[i,:],numpy.nan)
+        clsatObj.cloudsat.Radar_Reflectivity[i,:] = numpy.where(clsat_satz_ok_bools,clsatObj.cloudsat.Radar_Reflectivity[i,:],numpy.nan)
+        clsatObj.cloudsat.Height[i,:] = numpy.where(clsat_satz_ok_bools,clsatObj.cloudsat.Height[i,:],numpy.nan)
+    clsatObj.cloudsat.echo_top = numpy.where(clsat_satz_ok_bools,clsatObj.cloudsat.echo_top,numpy.nan)
+    clsatObj.cloudsat.SurfaceHeightBin = numpy.where(clsat_satz_ok_bools,clsatObj.cloudsat.SurfaceHeightBin,numpy.nan)
+    clsatObj.cloudsat.SurfaceHeightBin_fraction = numpy.where(clsat_satz_ok_bools,clsatObj.cloudsat.SurfaceHeightBin_fraction,numpy.nan)
+    
+    clsatObj.cloudsat.elevation = numpy.where(clsat_satz_ok_bools,clsatObj.cloudsat.elevation,numpy.nan)
+    clsatObj.cloudsat.sec_1970 = numpy.where(clsat_satz_ok_bools,clsatObj.cloudsat.sec_1970,numpy.nan)
+    clsatObj.cloudsat.MODIS_Cloud_Fraction = numpy.where(clsat_satz_ok_bools,clsatObj.cloudsat.MODIS_Cloud_Fraction,numpy.nan)
+    clsatObj.cloudsat.MODIS_cloud_flag = numpy.where(clsat_satz_ok_bools,clsatObj.cloudsat.MODIS_cloud_flag,numpy.nan)
 
     # AVHRR - Cloudsat:
-    clsatObj.avhrr.longitude = clsatObj.avhrr.longitude[clsat_satz_ok]
-    clsatObj.avhrr.latitude = clsatObj.avhrr.latitude[clsat_satz_ok]
-    clsatObj.avhrr.sec_1970 = clsatObj.avhrr.sec_1970[clsat_satz_ok]
-    clsatObj.avhrr.cloudtype = clsatObj.avhrr.cloudtype[clsat_satz_ok]
-    clsatObj.avhrr.ctth_height = clsatObj.avhrr.ctth_height[clsat_satz_ok]
-    clsatObj.avhrr.ctth_pressure = clsatObj.avhrr.ctth_pressure[clsat_satz_ok]
-    clsatObj.avhrr.ctth_temperature = clsatObj.avhrr.ctth_temperature[clsat_satz_ok]
-    clsatObj.avhrr.bt11micron = clsatObj.avhrr.bt11micron[clsat_satz_ok]
-    clsatObj.avhrr.bt12micron = clsatObj.avhrr.bt12micron[clsat_satz_ok]
-    clsatObj.avhrr.surftemp = clsatObj.avhrr.surftemp[clsat_satz_ok]
-    clsatObj.avhrr.satz = clsatObj.avhrr.satz[clsat_satz_ok]   
+    clsatObj.avhrr.longitude = numpy.where(clsat_satz_ok_bools,clsatObj.avhrr.longitude,numpy.nan)
+    clsatObj.avhrr.latitude = numpy.where(clsat_satz_ok_bools,clsatObj.avhrr.latitude,numpy.nan)
+    clsatObj.avhrr.sec_1970 = numpy.where(clsat_satz_ok_bools,clsatObj.avhrr.sec_1970,numpy.nan)
+    clsatObj.avhrr.cloudtype = numpy.where(clsat_satz_ok_bools,clsatObj.avhrr.cloudtype,numpy.nan)
+    clsatObj.avhrr.ctth_height = numpy.where(clsat_satz_ok_bools,clsatObj.avhrr.ctth_height,numpy.nan)
+    clsatObj.avhrr.ctth_pressure = numpy.where(clsat_satz_ok_bools,clsatObj.avhrr.ctth_pressure,numpy.nan)
+    clsatObj.avhrr.ctth_temperature = numpy.where(clsat_satz_ok_bools,clsatObj.avhrr.ctth_temperature,numpy.nan)
+    clsatObj.avhrr.bt11micron = numpy.where(clsat_satz_ok_bools,clsatObj.avhrr.bt11micron,numpy.nan)
+    clsatObj.avhrr.bt12micron = numpy.where(clsat_satz_ok_bools,clsatObj.avhrr.bt12micron,numpy.nan)
+    clsatObj.avhrr.surftemp = numpy.where(clsat_satz_ok_bools,clsatObj.avhrr.surftemp,numpy.nan)
+    clsatObj.avhrr.satz = numpy.where(clsat_satz_ok_bools,clsatObj.avhrr.satz,numpy.nan) 
     
+
     # Calipso:
     ca_satz_ok = numpy.where((AZIMUTH_RANGE[0] <= caObj.avhrr.satz) * \
                                 (caObj.avhrr.satz <= AZIMUTH_RANGE[1]))
+    ca_satz_ok_bools = (AZIMUTH_RANGE[0] <= caObj.avhrr.satz) == \
+                                (caObj.avhrr.satz <= AZIMUTH_RANGE[1])                         
     n_ca_satz_ok = len(ca_satz_ok[0])
-    caObj.calipso.longitude = caObj.calipso.longitude[ca_satz_ok]
-    caObj.calipso.latitude = caObj.calipso.latitude[ca_satz_ok]
-    caObj.calipso.avhrr_linnum = caObj.calipso.avhrr_linnum[ca_satz_ok]
-    caObj.calipso.avhrr_pixnum = caObj.calipso.avhrr_pixnum[ca_satz_ok]
+    n_ca_satz_ok_bools = len(ca_satz_ok_bools)
+    caObj.calipso.longitude = numpy.where(ca_satz_ok_bools,caObj.calipso.longitude,numpy.nan)
+    caObj.calipso.latitude = numpy.where(ca_satz_ok_bools,caObj.calipso.latitude,numpy.nan)
+    caObj.calipso.avhrr_linnum = numpy.where(ca_satz_ok_bools,caObj.calipso.avhrr_linnum,numpy.nan)
+    caObj.calipso.avhrr_pixnum = numpy.where(ca_satz_ok_bools,caObj.calipso.avhrr_pixnum,numpy.nan)
     
-    caObj.calipso.cloud_fraction = caObj.calipso.cloud_fraction[ca_satz_ok]
-    caObj.calipso.cloud_top_profile = numpy.reshape(caObj.calipso.cloud_top_profile[:,ca_satz_ok],(-1,n_ca_satz_ok))
-    caObj.calipso.cloud_base_profile = numpy.reshape(caObj.calipso.cloud_base_profile[:,ca_satz_ok],(-1,n_ca_satz_ok))
-    caObj.calipso.cloud_mid_temperature = numpy.reshape(caObj.calipso.cloud_mid_temperature[:,ca_satz_ok],(-1,n_ca_satz_ok))
-    caObj.calipso.elevation = caObj.calipso.elevation[ca_satz_ok]
-    caObj.calipso.number_of_layers_found = caObj.calipso.number_of_layers_found[ca_satz_ok]
-    try:
-        caObj.calipso.feature_classification_flags = numpy.reshape(caObj.calipso.feature_classification_flags[:,ca_satz_ok],(-1,n_ca_satz_ok))
-    except:
-        print "No feature_classification_flags array in file!"
-        pass
+    caObj.calipso.cloud_fraction = numpy.where(ca_satz_ok_bools,caObj.calipso.cloud_fraction,numpy.nan)
+    caObj.calipso.elevation = numpy.where(ca_satz_ok_bools,caObj.calipso.elevation,numpy.nan)
+    caObj.calipso.number_of_layers_found = numpy.where(ca_satz_ok_bools,caObj.calipso.number_of_layers_found,numpy.nan)
     
-    caObj.calipso.igbp = caObj.calipso.igbp[ca_satz_ok]
-    caObj.calipso.nsidc = caObj.calipso.nsidc  [ca_satz_ok]  
-    caObj.calipso.sec_1970 = caObj.calipso.sec_1970[ca_satz_ok]
+    caObj.calipso.igbp = numpy.where(ca_satz_ok_bools,caObj.calipso.igbp,numpy.nan)
+    caObj.calipso.nsidc = numpy.where(ca_satz_ok_bools,caObj.calipso.nsidc  ,numpy.nan)  
+    caObj.calipso.sec_1970 = numpy.where(ca_satz_ok_bools,caObj.calipso.sec_1970,numpy.nan)  
 
+    for j in range(caObj.calipso.cloud_top_profile.shape[0]):
+        caObj.calipso.cloud_top_profile[j,:] = numpy.where(ca_satz_ok_bools, caObj.calipso.cloud_top_profile[j,:], numpy.nan)
+        caObj.calipso.cloud_base_profile[j,:] = numpy.where(ca_satz_ok_bools,caObj.calipso.cloud_base_profile[j,:], numpy.nan)
+        caObj.calipso.cloud_mid_temperature[j,:] = numpy.where(ca_satz_ok_bools, caObj.calipso.cloud_mid_temperature[j,:], numpy.nan)
+        try:
+            caObj.calipso.feature_classification_flags[j,:] = numpy.where(ca_satz_ok_bools,caObj.calipso.feature_classification_flags[j,:],numpy.nan)
+        except:
+            print "No feature_classification_flags array in file!"
+            pass
     # AVHRR - Calipso:
-    caObj.avhrr.longitude = caObj.avhrr.longitude[ca_satz_ok]
-    caObj.avhrr.latitude = caObj.avhrr.latitude[ca_satz_ok]
-    caObj.avhrr.sec_1970 = caObj.avhrr.sec_1970[ca_satz_ok]
-    caObj.avhrr.cloudtype = caObj.avhrr.cloudtype[ca_satz_ok]
-    caObj.avhrr.ctth_height = caObj.avhrr.ctth_height[ca_satz_ok]
-    caObj.avhrr.ctth_pressure = caObj.avhrr.ctth_pressure[ca_satz_ok]
-    caObj.avhrr.ctth_temperature = caObj.avhrr.ctth_temperature[ca_satz_ok]
-    caObj.avhrr.bt11micron = caObj.avhrr.bt11micron[ca_satz_ok]
-    caObj.avhrr.bt12micron = caObj.avhrr.bt12micron[ca_satz_ok]
-    caObj.avhrr.surftemp = caObj.avhrr.surftemp[ca_satz_ok]
-    caObj.avhrr.satz = caObj.avhrr.satz[ca_satz_ok]
+    caObj.avhrr.longitude = numpy.where(ca_satz_ok_bools,caObj.avhrr.longitude,numpy.nan)
+    caObj.avhrr.latitude = numpy.where(ca_satz_ok_bools,caObj.avhrr.latitude,numpy.nan)
+    caObj.avhrr.sec_1970 = numpy.where(ca_satz_ok_bools,caObj.avhrr.sec_1970,numpy.nan)
+    caObj.avhrr.cloudtype = numpy.where(ca_satz_ok_bools,caObj.avhrr.cloudtype,numpy.nan)
+    caObj.avhrr.ctth_height = numpy.where(ca_satz_ok_bools,caObj.avhrr.ctth_height,numpy.nan)
+    caObj.avhrr.ctth_pressure = numpy.where(ca_satz_ok_bools,caObj.avhrr.ctth_pressure,numpy.nan)
+    caObj.avhrr.ctth_temperature = numpy.where(ca_satz_ok_bools,caObj.avhrr.ctth_temperature,numpy.nan)
+    caObj.avhrr.bt11micron = numpy.where(ca_satz_ok_bools,caObj.avhrr.bt11micron,numpy.nan)
+    caObj.avhrr.bt12micron = numpy.where(ca_satz_ok_bools,caObj.avhrr.bt12micron,numpy.nan)
+    caObj.avhrr.surftemp = numpy.where(ca_satz_ok_bools,caObj.avhrr.surftemp,numpy.nan)
+    caObj.avhrr.satz = numpy.where(ca_satz_ok_bools,caObj.avhrr.satz,numpy.nan)
 
     return clsatObj, caObj
 
