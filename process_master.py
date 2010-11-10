@@ -1,3 +1,4 @@
+#!/usr/bin/python
 # program process_master.py
 
 from pps_error_messages import write_log
