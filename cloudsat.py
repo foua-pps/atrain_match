@@ -13,26 +13,11 @@ from pps_basic_configure import *
 from pps_error_messages import *
 
 from calipso import *
-from config import AREA1KM, SUB_DIR, DATA_DIR, sec_timeThr, DSEC_PER_AVHRR_SCALINE
+from config import AREA, SUB_DIR, DATA_DIR, sec_timeThr, DSEC_PER_AVHRR_SCALINE
 from common import MatchupError, elements_within_range
 
-#MAIN_DIR = "/data/proj/safworks/adam/cloudsat_data"
-#MAIN_DIR = "/data/proj_nsc1/safworks/kgkarl/ORR-B-datasets/cloudsat/"
-#MAIN_DIR = "/data/proj_nsc1/safworks/calipso_cloudsat/data/arctic"
-#SUB_DIR = "matchups/"
-#SUB_DIR = "metop02_calipso_2007spring"
-#SUB_DIR = "noaa18_calipso_cloudsat_2007DEC_KG"
-#SUB_DIR = "noaa17_calipso_cloudsat_2007JUN_KG"
-#SUB_DIR = "noaa18_calipso_cloudsat_2007JUN_KG"
+COVERAGE_DIR = "%s/%skm/%s"%(SUB_DIR,RESOLUTION,AREA)
 
-#SATPOS_DIR = "%s/%s"%(MAIN_DIR,SUB_DIR)
-#EPHE_DIR = "%s/%s"%(MAIN_DIR,SUB_DIR)
-#COMPRESS_LVL = 6
-COVERAGE_DIR = "%s/1km/%s"%(SUB_DIR,AREA1KM)
-#NLINES=1000
-#NLINES=6000
-#SWATHWD=2048
-#NODATA=-9
 
 
 class CloudsatObject:
@@ -148,37 +133,37 @@ def writeCloudsatAvhrrMatchObj(filename,ca_obj,compress_lvl):
     b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/avhrr_pixnum")
     b.setArrayValue(1,shape,ca_obj.cloudsat.avhrr_pixnum,"int",-1)
     a.addNode(b)
-
+    
     shape2d = ca_obj.cloudsat.cloud_mask.shape
     b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/cloud_mask")
-    b.setArrayValue(1,shape2d,ca_obj.cloudsat.cloud_mask,"uchar",-1)
+    b.setArrayValue(1,shape2d,ca_obj.cloudsat.cloud_mask,"double",-1)
     a.addNode(b)
     b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/Radar_Reflectivity")
-    b.setArrayValue(1,shape2d,ca_obj.cloudsat.Radar_Reflectivity,"short",-1)
+    b.setArrayValue(1,shape2d,ca_obj.cloudsat.Radar_Reflectivity,"double",-1)
     a.addNode(b)
     b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/Height")
-    b.setArrayValue(1,shape2d,ca_obj.cloudsat.Height,"short",-1)
+    b.setArrayValue(1,shape2d,ca_obj.cloudsat.Height,"double",-1)
     a.addNode(b)
     b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/echo_top")
-    b.setArrayValue(1,shape,ca_obj.cloudsat.echo_top,"uchar",-1)
+    b.setArrayValue(1,shape,ca_obj.cloudsat.echo_top,"double",-1)
     a.addNode(b)
     b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/SurfaceHeightBin")
-    b.setArrayValue(1,shape,ca_obj.cloudsat.SurfaceHeightBin,"uchar",-1)
+    b.setArrayValue(1,shape,ca_obj.cloudsat.SurfaceHeightBin,"double",-1)
     a.addNode(b)
     b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/SurfaceHeightBin_fraction")
     b.setArrayValue(1,shape,ca_obj.cloudsat.SurfaceHeightBin_fraction,"double",-1)
     a.addNode(b)
     b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/elevation")
-    b.setArrayValue(1,shape,ca_obj.cloudsat.elevation,"short",-1)
+    b.setArrayValue(1,shape,ca_obj.cloudsat.elevation,"double",-1)
     a.addNode(b)
     b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/sec_1970")
     b.setArrayValue(1,shape,ca_obj.cloudsat.sec_1970,"double",-1)
     a.addNode(b)
     b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/MODIS_Cloud_Fraction")
-    b.setArrayValue(1,shape,ca_obj.cloudsat.MODIS_Cloud_Fraction,"uchar",-1)
+    b.setArrayValue(1,shape,ca_obj.cloudsat.MODIS_Cloud_Fraction.astype('double'),"double",-1)
     a.addNode(b)
     b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/MODIS_cloud_flag")
-    b.setArrayValue(1,shape,ca_obj.cloudsat.MODIS_cloud_flag,"uchar",-1)
+    b.setArrayValue(1,shape,ca_obj.cloudsat.MODIS_cloud_flag.astype('double'),"double",-1)
     a.addNode(b)
     
 
@@ -249,16 +234,20 @@ def select_cloudsat_inside_avhrr(cloudsatObj,cal,sec1970_start_end,sec_timeThr):
 # -----------------------------------------------------
 def get_cloudsat(filename):
     import _pypps_filters
-    #import numpy.oldnumeric as Numeric
+    #import numpy
     import time
 
     # Read CLOUDSAT Radar data:
     cloudsat = read_cloudsat(filename)
 
-    # GEOPROF
-    # ====
-    lonCloudsat = cloudsat.longitude.ravel()
-    latCloudsat = cloudsat.latitude.ravel()
+    if RESOLUTION == 1:
+        lonCloudsat = cloudsat.longitude.ravel()
+        latCloudsat = cloudsat.latitude.ravel()
+        timeCloudsat = cloudsat.Profile_time.ravel()
+    elif RESOLUTION == 5:
+        lonCloudsat = cloudsat.longitude[:,1].ravel()
+        latCloudsat = cloudsat.latitude[:,1].ravel()
+        timeCloudsat = cloudsat.Profile_time[:,1].ravel()
     ndim = lonCloudsat.shape[0]
 
     # --------------------------------------------------------------------
@@ -273,7 +262,7 @@ def get_cloudsat(filename):
     end_sec1970 = cloudsat.TAI_start + dsec + cloudsat.Profile_time[ndim-1]
     end_time = time.gmtime(end_sec1970[0])
     print "GEOPROF Start and end times: ",start_time,end_time
-    cloudsat.sec1970 = cloudsat.Profile_time + start_sec1970
+    cloudsat.sec1970 = timeCloudsat + start_sec1970
 
    # --------------------------------------------------------------------
 
@@ -282,7 +271,7 @@ def get_cloudsat(filename):
 # -----------------------------------------------------
 def read_cloudsat(filename):
     import _pyhl
-    import numpy.oldnumeric as Numeric
+    import numpy
     
     # GEOPROF
     # ====
@@ -291,74 +280,112 @@ def read_cloudsat(filename):
     b=a.getNodeNames()
     a.selectAll()
     a.fetch()
-
     retv = CloudsatObject()
-    root="/2B-GEOPROF"
-
-    d=a.getNode("%s/Geolocation Fields/Longitude"%root)
-    retv.longitude=Numeric.fromstring(d.data(),'f').astype('d')
-    d=a.getNode("%s/Geolocation Fields/Latitude"%root)
-    retv.latitude=Numeric.fromstring(d.data(),'f').astype('d')
-    
-    # International Atomic Time (TAI) seconds from Jan 1, 1993:
-    d=a.getNode("%s/Geolocation Fields/Profile_time"%root)
-    retv.Profile_time=Numeric.fromstring(d.data(),'f').astype('d')
-    d=a.getNode("%s/Geolocation Fields/TAI_start"%root)
-    retv.TAI_start=Numeric.fromstring(d.data(),'d').astype('d')
-
-    d=a.getNode("%s/Geolocation Fields/DEM_elevation"%root)
-    retv.elevation=Numeric.fromstring(d.data(),'Int16').astype('Int16')
-   
-    # The radar data:
-    # 2-d arrays of dimension Nx125:
-    d=a.getNode("%s/Data Fields/CPR_Cloud_mask"%root)
-    retv.CPR_Cloud_mask=d.data()
-
-    d=a.getNode("%s/Geolocation Fields/Height"%root)
-    retv.Height=d.data()
-
-    d=a.getNode("%s/Data Fields/Radar_Reflectivity"%root)
-    retv.Radar_Reflectivity=d.data().astype('Int16')
-    d=a.getNode("%s/Data Fields/Gaseous_Attenuation"%root)
-    retv.Gaseous_Attenuation=d.data().astype('Int16')
-
-    d=a.getNode("%s/Data Fields/CPR_Echo_Top"%root)
-    retv.CPR_Echo_Top=Numeric.fromstring(d.data(),'b').astype('b')
-    d=a.getNode("%s/Data Fields/Clutter_reduction_flag"%root)
-    retv.Clutter_reduction_flag=Numeric.fromstring(d.data(),'b').astype('b')
-    d=a.getNode("%s/Data Fields/Data_quality"%root)
-    retv.Data_quality=Numeric.fromstring(d.data(),'b').astype('b')
-    d=a.getNode("%s/Data Fields/Data_targetID"%root)
-    retv.Data_targetID=Numeric.fromstring(d.data(),'b').astype('b')
-    d=a.getNode("%s/Data Fields/MODIS_Cloud_Fraction"%root)
-    retv.MODIS_Cloud_Fraction=Numeric.fromstring(d.data(),'b').astype('b')
-    d=a.getNode("%s/Data Fields/MODIS_cloud_flag"%root)
-    retv.MODIS_cloud_flag=Numeric.fromstring(d.data(),'b').astype('b')
-    d=a.getNode("%s/Data Fields/Sigma-Zero"%root)
-    retv.SigmaZero=Numeric.fromstring(d.data(),'Int16').astype('Int16')
-    d=a.getNode("%s/Data Fields/SurfaceHeightBin"%root)
-    retv.SurfaceHeightBin=Numeric.fromstring(d.data(),'b').astype('b')
-    d=a.getNode("%s/Data Fields/SurfaceHeightBin_fraction"%root)
-    retv.SurfaceHeightBin_fraction=Numeric.fromstring(d.data(),'f').astype('d')
-    d=a.getNode("%s/Data Fields/sem_NoiseFloor"%root)
-    retv.sem_NoiseFloor=Numeric.fromstring(d.data(),'f').astype('d')
-    d=a.getNode("%s/Data Fields/sem_NoiseFloorVar"%root)
-    retv.sem_NoiseFloorVar=Numeric.fromstring(d.data(),'f').astype('d')
-    d=a.getNode("%s/Data Fields/sem_NoiseGate"%root)
-    retv.sem_NoiseGate=Numeric.fromstring(d.data(),'b').astype('b')
-    
-    
+    if RESOLUTION == 1:
+        root="/2B-GEOPROF"
+        d=a.getNode("%s/Geolocation Fields/Longitude"%root)    
+        retv.longitude=numpy.fromstring(d.data(),'f').astype('d')
+        d=a.getNode("%s/Geolocation Fields/Latitude"%root)
+        retv.latitude=numpy.fromstring(d.data(),'f').astype('d')    
+        # International Atomic Time (TAI) seconds from Jan 1, 1993:
+        d=a.getNode("%s/Geolocation Fields/Profile_time"%root)
+        retv.Profile_time=numpy.fromstring(d.data(),'f').astype('d')
+        d=a.getNode("%s/Geolocation Fields/TAI_start"%root)
+        retv.TAI_start=numpy.fromstring(d.data(),'d').astype('d')
+        d=a.getNode("%s/Geolocation Fields/DEM_elevation"%root)
+        retv.elevation=numpy.fromstring(d.data(),'Int16').astype('Int16')  
+        # The radar data:
+        # 2-d arrays of dimension Nx125:
+        d=a.getNode("%s/Data Fields/CPR_Cloud_mask"%root)
+        retv.CPR_Cloud_mask=d.data()
+        d=a.getNode("%s/Geolocation Fields/Height"%root)
+        retv.Height=d.data()
+        d=a.getNode("%s/Data Fields/Radar_Reflectivity"%root)
+        retv.Radar_Reflectivity=d.data().astype('Int16')
+        d=a.getNode("%s/Data Fields/Gaseous_Attenuation"%root)
+        retv.Gaseous_Attenuation=d.data().astype('Int16')
+        d=a.getNode("%s/Data Fields/CPR_Echo_Top"%root)
+        retv.CPR_Echo_Top=numpy.fromstring(d.data(),'b').astype('b')
+        d=a.getNode("%s/Data Fields/Clutter_reduction_flag"%root)
+        retv.Clutter_reduction_flag=numpy.fromstring(d.data(),'b').astype('b')
+        d=a.getNode("%s/Data Fields/Data_quality"%root)
+        retv.Data_quality=numpy.fromstring(d.data(),'b').astype('b')
+        d=a.getNode("%s/Data Fields/Data_targetID"%root)
+        retv.Data_targetID=numpy.fromstring(d.data(),'b').astype('b')
+        d=a.getNode("%s/Data Fields/MODIS_Cloud_Fraction"%root)
+        retv.MODIS_Cloud_Fraction=numpy.fromstring(d.data(),'b').astype('b')
+        d=a.getNode("%s/Data Fields/MODIS_cloud_flag"%root)
+        retv.MODIS_cloud_flag=numpy.fromstring(d.data(),'b').astype('b')
+        d=a.getNode("%s/Data Fields/Sigma-Zero"%root)
+        retv.SigmaZero=numpy.fromstring(d.data(),'Int16').astype('Int16')
+        d=a.getNode("%s/Data Fields/SurfaceHeightBin"%root)
+        retv.SurfaceHeightBin=numpy.fromstring(d.data(),'b').astype('b')
+        d=a.getNode("%s/Data Fields/SurfaceHeightBin_fraction"%root)
+        retv.SurfaceHeightBin_fraction=numpy.fromstring(d.data(),'f').astype('d')
+        d=a.getNode("%s/Data Fields/sem_NoiseFloor"%root)
+        retv.sem_NoiseFloor=numpy.fromstring(d.data(),'f').astype('d')
+        d=a.getNode("%s/Data Fields/sem_NoiseFloorVar"%root)
+        retv.sem_NoiseFloorVar=numpy.fromstring(d.data(),'f').astype('d')
+        d=a.getNode("%s/Data Fields/sem_NoiseGate"%root)
+        retv.sem_NoiseGate=numpy.fromstring(d.data(),'b').astype('b')
+    elif RESOLUTION == 5:
+        root="/cloudsat"
+        d=a.getNode("%s/Geolocation Fields/Longitude"%root)
+        retv.longitude=d.data().astype('d')
+        d=a.getNode("%s/Geolocation Fields/Latitude"%root)
+        retv.latitude=d.data().astype('d')    
+        # International Atomic Time (TAI) seconds from Jan 1, 1993:
+        d=a.getNode("%s/Geolocation Fields/Profile_time"%root)
+        retv.Profile_time=d.data().astype('d')
+        d=a.getNode("%s/Geolocation Fields/TAI_start"%root)
+        retv.TAI_start=d.data().astype('d')
+        d=a.getNode("%s/Geolocation Fields/DEM_elevation"%root)
+        retv.elevation=d.data().astype('d')   
+        # The radar data:
+        # 2-d arrays of dimension Nx125:
+        d=a.getNode("%s/Data Fields/CPR_Cloud_mask"%root)
+        retv.CPR_Cloud_mask=d.data()
+        d=a.getNode("%s/Geolocation Fields/Height"%root)
+        retv.Height=d.data()
+        d=a.getNode("%s/Data Fields/Radar_Reflectivity"%root)
+        retv.Radar_Reflectivity=d.data().astype('d')
+        d=a.getNode("%s/Data Fields/Gaseous_Attenuation"%root)
+        retv.Gaseous_Attenuation=d.data().astype('d')
+        d=a.getNode("%s/Data Fields/CPR_Echo_Top"%root)
+        retv.CPR_Echo_Top=d.data().astype('d')
+        d=a.getNode("%s/Data Fields/Clutter_reduction_flag"%root)
+        retv.Clutter_reduction_flag=d.data().astype('d')
+        d=a.getNode("%s/Data Fields/Data_quality"%root)
+        retv.Data_quality=d.data().astype('d')
+        d=a.getNode("%s/Data Fields/Data_targetID"%root)
+        retv.Data_targetID=d.data().astype('d')
+        d=a.getNode("%s/Data Fields/MODIS_Cloud_Fraction"%root)
+        retv.MODIS_Cloud_Fraction=d.data().astype('d')
+        d=a.getNode("%s/Data Fields/MODIS_cloud_flag"%root)
+        retv.MODIS_cloud_flag=d.data().astype('d')
+        d=a.getNode("%s/Data Fields/Sigma-Zero"%root)
+        retv.SigmaZero=d.data().astype('d')
+        d=a.getNode("%s/Data Fields/SurfaceHeightBin"%root)
+        retv.SurfaceHeightBin=d.data().astype('d')
+        d=a.getNode("%s/Data Fields/SurfaceHeightBin_fraction"%root)
+        retv.SurfaceHeightBin_fraction=d.data().astype('d')
+        d=a.getNode("%s/Data Fields/sem_NoiseFloor"%root)
+        retv.sem_NoiseFloor=d.data().astype('d')
+        d=a.getNode("%s/Data Fields/sem_NoiseFloorVar"%root)
+        retv.sem_NoiseFloorVar=d.data().astype('d')
+        d=a.getNode("%s/Data Fields/sem_NoiseGate"%root)
+        retv.sem_NoiseGate=d.data().astype('d')
     return retv
 # --------------------------------------------
-def get_cloudsat_avhrr_linpix(avhrrIn,lon,lat):
-    import numpy.oldnumeric as Numeric
+def get_cloudsat_avhrr_linpix(avhrrIn,avhrrname,lon,lat,clTime):
+    import numpy
 
     tmppcs="tmpproj"
     define_pcs(tmppcs, "Plate Caree, central meridian at 15E",
                ['proj=eqc','ellps=bessel', 'lon_0=15'])
-
+    orbittime =  os.path.basename(avhrrname).split("_")[1:3]
+    
     startline=0
-
     Inside=0
     HasEncounteredMatch=0
     i=0    
@@ -369,29 +396,30 @@ def get_cloudsat_avhrr_linpix(avhrrIn,lon,lat):
         write_log("INFO","Calling get_cloudsat_avhrr_linpix: start-line = ",startline)
         tmpaid = "tmparea_%d"%i
         endline = startline+NLINES
-        coverage_filename = "%s/coverage_avhrr_cloudsat-GEOPROF_matchup_%s_%.5d_%.5d_%.5d_%s.h5"%\
-                            (COVERAGE_DIR,avhrrIn.satellite,avhrrIn.orbit,
+        coverage_filename = "%s/coverage_avhrr_cloudsat_matchup_%s_%s_%s_%.5d_%.5d_%s.h5"%\
+                            (COVERAGE_DIR,avhrrIn.satellite,orbittime[0],orbittime[1],
                              startline,endline,tmpaid)
         write_log("INFO","Coverage filename = ",coverage_filename)
-        cal,cap,ok = get_cloudsat_avhrr_linpix_segment(avhrrIn,lon,lat,
+        cal,cap,ok = get_cloudsat_avhrr_linpix_segment(avhrrIn,lon,lat,clTime,
                                                       (startline,endline),
                                                       SWATHWD,tmppcs,tmpaid,
                                                       coverage_filename)
         if ok:
             HasEncounteredMatch=1
             write_log("INFO","There was a match...")
-            
-        if not ok and HasEncounteredMatch:
-            write_log("INFO","Data is now empty. Leave the loop...")
-            break
+
+        # Do not like this one /Erik    
+        #if not ok and HasEncounteredMatch:
+        #    write_log("INFO","Data is now empty. Leave the loop...")
+        #    break
         
         if(startline==0):
             # First time:
-            cloudsat_avhrr_line,cloudsat_avhrr_pixel = Numeric.array(cal),Numeric.array(cap)
+            cloudsat_avhrr_line,cloudsat_avhrr_pixel = numpy.array(cal),numpy.array(cap)
         else:
             # Merge:
-            cloudsat_avhrr_line = Numeric.where(Numeric.equal(cloudsat_avhrr_line,-9),cal,cloudsat_avhrr_line)
-            cloudsat_avhrr_pixel = Numeric.where(Numeric.equal(cloudsat_avhrr_pixel,-9),cap,cloudsat_avhrr_pixel)
+            cloudsat_avhrr_line = numpy.where(numpy.equal(cloudsat_avhrr_line,-9),cal,cloudsat_avhrr_line)
+            cloudsat_avhrr_pixel = numpy.where(numpy.equal(cloudsat_avhrr_pixel,-9),cap,cloudsat_avhrr_pixel)
 
         startline=startline+NLINES
         i=i+1
@@ -399,13 +427,14 @@ def get_cloudsat_avhrr_linpix(avhrrIn,lon,lat):
     return cloudsat_avhrr_line,cloudsat_avhrr_pixel
 
 # --------------------------------------------
-def get_cloudsat_avhrr_linpix_segment(avhrrIn,lon,lat,lines,swath_width,tmppcs,
+def get_cloudsat_avhrr_linpix_segment(avhrrIn,lon,lat,cltime,lines,swath_width,tmppcs,
                                       tmpaid,covfilename):
-    import numpy.oldnumeric as Numeric
+    import numpy
     import _satproj
     import area,pcs
     import pps_gisdata
-
+    import numpy
+    
     ndim = lon.shape[0]
     
     if avhrrIn.longitude.shape[0] > lines[1]:
@@ -421,14 +450,14 @@ def get_cloudsat_avhrr_linpix_segment(avhrrIn,lon,lat,lines,swath_width,tmppcs,
 
     idx_start = lines_start*swath_width
     idx_end   = lines_end*swath_width
-    idx = Numeric.arange(idx_start,idx_end)
+    idx = numpy.arange(idx_start,idx_end)
     
-    linearr = Numeric.divide(idx,swath_width)
+    linearr = numpy.divide(idx,swath_width)
     write_log("INFO","Start and end line numbers: ",linearr[0],linearr[idx.shape[0]-1])
     
-    linearr = Numeric.reshape(linearr,(nlines,swath_width))
-    pixelarr = Numeric.fmod(idx,swath_width).astype('l')
-    pixelarr = Numeric.reshape(pixelarr,(nlines,swath_width))
+    linearr = numpy.reshape(linearr,(nlines,swath_width))
+    pixelarr = numpy.fmod(idx,swath_width).astype('l')
+    pixelarr = numpy.reshape(pixelarr,(nlines,swath_width))
 
     """
     write_log("INFO","Get bounding box...")
@@ -445,17 +474,22 @@ def get_cloudsat_avhrr_linpix_segment(avhrrIn,lon,lat,lines,swath_width,tmppcs,
 
     areaObj = area.area(tmpaid)
     """
-    areaObj = area.area(AREA1KM)
+    areaObj = area.area(AREA)
 
-    
-    if not os.path.exists(covfilename):
-        write_log("INFO","Create Coverage map...")
-        cov = _satproj.create_coverage(areaObj,lonarr,latarr,1)
-        print covfilename
-        writeCoverage(cov,covfilename,"satproj",AREA1KM)
-    else:
-        write_log("INFO","Read the AVHRR-CLOUDSAT matchup coverage from file...")
-        cov,info = readCoverage(covfilename)
+    # Dont use thise one /Erik
+    #if not os.path.exists(covfilename):
+    #    write_log("INFO","Create Coverage map...")
+    #    cov = _satproj.create_coverage(areaObj,lonarr,latarr,1)
+    #    print covfilename
+    #    writeCoverage(cov,covfilename,"satproj",AREA1KM)
+    #else:
+    #    write_log("INFO","Read the AVHRR-CLOUDSAT matchup coverage from file...")
+    #    cov,info = readCoverage(covfilename)
+    # Do like this instead
+    write_log("INFO","Create Coverage map...")
+    cov = _satproj.create_coverage(areaObj,lonarr,latarr,1)
+    print covfilename
+    writeCoverage(cov,covfilename,"satproj",AREA)
     
     mapped_line = _satproj.project(cov.coverage,cov.rowidx,cov.colidx,linearr,NODATA)
     mapped_pixel = _satproj.project(cov.coverage,cov.rowidx,cov.colidx,pixelarr,NODATA)
@@ -464,50 +498,78 @@ def get_cloudsat_avhrr_linpix_segment(avhrrIn,lon,lat,lines,swath_width,tmppcs,
     write_log("INFO","Go through cloudsat track:")
     cloudsat_avhrr_line = []
     cloudsat_avhrr_pixel = []
+    cloudsat_avhrr_line_time = []
+    cloudsat_avhrr_pixel_time = []
     for i in range(ndim):
-        xy_tup=pps_gisdata.lonlat2xy(AREA1KM,lon[i],lat[i])
+        xy_tup=pps_gisdata.lonlat2xy(AREA,lon[i],lat[i])
         x,y=int(xy_tup[0]+0.5),int(xy_tup[1]+0.5)
-##        dimx=4500 Should be 5010!!!/KG
-##        dimy=4500
-        #dimx=5010
-        #dimy=5010
         dimx=mapped_line.shape[1]#1002#5010
         dimy=mapped_line.shape[0]#1002#5010
         if(x < dimx and x >= 0 and y >= 0 and y < dimy):
             cloudsat_avhrr_line.append(mapped_line[y,x])
             cloudsat_avhrr_pixel.append(mapped_pixel[y,x])
+            cloudsat_avhrr_line_time.append(-9)
+            cloudsat_avhrr_pixel_time.append(-9)
         else:
             cloudsat_avhrr_line.append(-9)
             cloudsat_avhrr_pixel.append(-9)
-
-    cloudsat_avhrr_line = Numeric.array(cloudsat_avhrr_line)
-    cloudsat_avhrr_pixel = Numeric.array(cloudsat_avhrr_pixel)
-
-    x=Numeric.repeat(cloudsat_avhrr_line,Numeric.not_equal(cloudsat_avhrr_line,-9))
+            cloudsat_avhrr_line_time.append(-9)
+            cloudsat_avhrr_pixel_time.append(-9)
+            
+    cloudsat_avhrr_line = numpy.array(cloudsat_avhrr_line)
+    cloudsat_avhrr_pixel = numpy.array(cloudsat_avhrr_pixel)
+    cloudsat_avhrr_line_time = numpy.array(cloudsat_avhrr_line_time)
+    cloudsat_avhrr_pixel_time = numpy.array(cloudsat_avhrr_pixel_time)
+    # Control the time diference
+    match_cloudsat_points = numpy.where(numpy.not_equal(cloudsat_avhrr_line,-9))
+    avhrr_time = (cloudsat_avhrr_line[match_cloudsat_points] * DSEC_PER_AVHRR_SCALINE) + avhrrIn.sec1970_start
+    cl_time = cltime[match_cloudsat_points]
+    time_diff = avhrr_time-cl_time
+    #max_time_diff_allowed = 50*60 #Based on that a lap is 102 min
+    max_time_diff_allowed = sec_timeThr
+    time_match = numpy.where(abs(time_diff)<max_time_diff_allowed)
+    if time_match[0].shape[0]==0:
+        x=numpy.repeat(cloudsat_avhrr_line_time,numpy.not_equal(cloudsat_avhrr_line_time,-9))
+    else:
+        cloudsat_avhrr_line_time[match_cloudsat_points[0][time_match]]= cloudsat_avhrr_line[match_cloudsat_points[0][time_match]]
+        cloudsat_avhrr_pixel_time[match_cloudsat_points[0][time_match]] = cloudsat_avhrr_pixel[match_cloudsat_points[0][time_match]]
+        x=numpy.repeat(cloudsat_avhrr_line_time,numpy.not_equal(cloudsat_avhrr_line_time,-9)) 
+   
     write_log("INFO","Number of matching points = ",x.shape[0])
     if x.shape[0] > 0:
         matchOk = 1
     else:
         matchOk = 0
 
-    return cloudsat_avhrr_line,cloudsat_avhrr_pixel,matchOk
+    return cloudsat_avhrr_line_time, cloudsat_avhrr_pixel_time, matchOk
 
 # -----------------------------------------------------
 def match_cloudsat_avhrr(ctypefile,cloudsatObj,avhrrGeoObj,avhrrObj,ctype,ctth,surft,avhrrAngObj):
-    import numpy.oldnumeric as Numeric
+    import numpy
     import time
     import string
     import numpy
     
     retv = CloudsatAvhrrTrackObject()
     
-    lonCloudsat = cloudsatObj.longitude.ravel()
-    latCloudsat = cloudsatObj.latitude.ravel()
+    if RESOLUTION ==1:
+        lonCloudsat = cloudsatObj.longitude.ravel()
+        latCloudsat = cloudsatObj.latitude.ravel()
+    
+    elif RESOLUTION ==5:
+        lonCloudsat = cloudsatObj.longitude[:,1].ravel()
+        latCloudsat = cloudsatObj.latitude[:,1].ravel()
+        
+    timeCloudsat = cloudsatObj.sec1970.ravel()
     ndim = lonCloudsat.shape[0]
-
+# Add time
+    if avhrrGeoObj.sec1970_end<avhrrGeoObj.sec1970_start:
+        avhrr_sec1970_end = int(DSEC_PER_AVHRR_SCALINE*avhrrObj.num_of_lines+avhrrGeoObj.sec1970_start)
+        avhrrGeoObj.sec1970_end = avhrr_sec1970_end
     # --------------------------------------------------------------------
 
-    cal,cap = get_cloudsat_avhrr_linpix(avhrrGeoObj,lonCloudsat,latCloudsat)
+    cal,cap = get_cloudsat_avhrr_linpix(avhrrGeoObj,ctypefile,lonCloudsat,latCloudsat,timeCloudsat)
+    
     calnan = numpy.where(cal == NODATA, numpy.nan, cal)
     if (~numpy.isnan(calnan)).sum() == 0:
         raise MatchupError("No matches within region.")
@@ -520,80 +582,76 @@ def match_cloudsat_avhrr(ctypefile,cloudsatObj,avhrrGeoObj,avhrrObj,ctype,ctth,s
     if idx_match.sum() == 0:
         raise MatchupError("No matches in region within time threshold %d s." % sec_timeThr)
 
-    lon_cloudsat = Numeric.repeat(lonCloudsat, idx_match)
-    lat_cloudsat = Numeric.repeat(latCloudsat, idx_match)
+    lon_cloudsat = numpy.repeat(lonCloudsat, idx_match)
+    lat_cloudsat = numpy.repeat(latCloudsat, idx_match)
 
     # Cloudsat line,pixel inside AVHRR swath:
-    cal_on_avhrr = Numeric.repeat(cal, idx_match)
-    cap_on_avhrr = Numeric.repeat(cap, idx_match)
+    cal_on_avhrr = numpy.repeat(cal, idx_match)
+    cap_on_avhrr = numpy.repeat(cap, idx_match)
 
     print "Make CPR echo top array..."
-    retv.cloudsat.echo_top = Numeric.repeat(cloudsatObj.CPR_Echo_Top,idx_match).astype('b')
+    retv.cloudsat.echo_top = numpy.repeat(cloudsatObj.CPR_Echo_Top,idx_match).astype('d')
 
-    retv.cloudsat.sec_1970 = Numeric.repeat(cloudsatObj.sec1970,idx_match)
+    retv.cloudsat.sec_1970 = numpy.repeat(cloudsatObj.sec1970,idx_match)
 
-    retv.cloudsat.latitude = Numeric.repeat(latCloudsat,idx_match)
-    retv.cloudsat.longitude = Numeric.repeat(lonCloudsat,idx_match)
+    retv.cloudsat.latitude = numpy.repeat(latCloudsat,idx_match)
+    retv.cloudsat.longitude = numpy.repeat(lonCloudsat,idx_match)
 
-    retv.cloudsat.MODIS_Cloud_Fraction = Numeric.repeat(cloudsatObj.MODIS_Cloud_Fraction,idx_match)
-    retv.cloudsat.MODIS_cloud_flag = Numeric.repeat(cloudsatObj.MODIS_cloud_flag,idx_match)
-    
+    retv.cloudsat.MODIS_Cloud_Fraction = numpy.repeat(cloudsatObj.MODIS_Cloud_Fraction,idx_match)
+    retv.cloudsat.MODIS_cloud_flag = numpy.repeat(cloudsatObj.MODIS_cloud_flag,idx_match)
     print "cap_on_avhrr.shape: ",cap_on_avhrr.shape
     retv.cloudsat.avhrr_linnum = cal_on_avhrr.astype('i')
     retv.cloudsat.avhrr_pixnum = cap_on_avhrr.astype('i')
     
-    print "Make CPR cloud mask array..."
-    x = Numeric.repeat(cloudsatObj.CPR_Cloud_mask[::,0],idx_match)
-    for i in range(1,125):
-        x = Numeric.concatenate((x,Numeric.repeat(cloudsatObj.CPR_Cloud_mask[::,i],idx_match)))
-    N = x.shape[0]/125
-    retv.cloudsat.cloud_mask = Numeric.reshape(x,(125,N)).astype('b')
-
     missing_data = -9.9
-    print "Make Radar reflectivity array..."
-    x = Numeric.repeat(cloudsatObj.Radar_Reflectivity[::,0],idx_match)
-    for i in range(1,125):
-        x = Numeric.concatenate((x,Numeric.repeat(cloudsatObj.Radar_Reflectivity[::,i],idx_match)))
-    N = x.shape[0]/125
-    RadarRefl = Numeric.reshape(x,(125,N))
-    RadarRefl = Numeric.where(Numeric.less(RadarRefl,0),missing_data,RadarRefl)
-    retv.cloudsat.Radar_Reflectivity = RadarRefl.astype('Int16')
-
-    x = Numeric.repeat(cloudsatObj.Height[::,0],idx_match)
-    for i in range(1,125):
-        x = Numeric.concatenate((x,Numeric.repeat(cloudsatObj.Height[::,i],idx_match)))
-    N = x.shape[0]/125
-    retv.cloudsat.Height = Numeric.reshape(x,(125,N)).astype('Int16')
+    col_dim = cloudsatObj.CPR_Cloud_mask.shape[1]
+    x_ccm = numpy.repeat(cloudsatObj.CPR_Cloud_mask[::,0],idx_match)
+    x_rr = numpy.repeat(cloudsatObj.Radar_Reflectivity[::,0],idx_match)
+    x_H = numpy.repeat(cloudsatObj.Height[::,0],idx_match)
+    
+    for i in range(1,col_dim):
+        x_ccm = numpy.concatenate((x_ccm,numpy.repeat(cloudsatObj.CPR_Cloud_mask[::,i],idx_match)))
+        x_rr = numpy.concatenate((x_rr,numpy.repeat(cloudsatObj.Radar_Reflectivity[::,i],idx_match)))
+        x_H = numpy.concatenate((x_H,numpy.repeat(cloudsatObj.Height[::,i],idx_match)))
+    
+    N_ccm = x_ccm.shape[0]/col_dim
+    retv.cloudsat.cloud_mask = numpy.reshape(x_ccm,(col_dim,N_ccm)).astype('d')    
+    N_rr = x_rr.shape[0]/col_dim
+    RadarRefl = numpy.reshape(x_rr,(col_dim,N_rr))
+    RadarRefl = numpy.where(numpy.less(RadarRefl,0),missing_data,RadarRefl)
+    retv.cloudsat.Radar_Reflectivity = RadarRefl.astype('d')
+    N_H = x_H.shape[0]/col_dim
+    retv.cloudsat.Height = numpy.reshape(x_H,(col_dim,N_H)).astype('d')
 
     # One-d arrays:
     retv.cloudsat.SurfaceHeightBin = \
-                       Numeric.repeat(cloudsatObj.SurfaceHeightBin.ravel(),
-                                      idx_match.ravel()).astype('b')
+                       numpy.repeat(cloudsatObj.SurfaceHeightBin.ravel(),
+                                      idx_match.ravel()).astype('d')
     retv.cloudsat.SurfaceHeightBin_fraction = \
-                       Numeric.repeat(cloudsatObj.SurfaceHeightBin_fraction.ravel(),
+                       numpy.repeat(cloudsatObj.SurfaceHeightBin_fraction.ravel(),
                                       idx_match.ravel()).astype('d')
 
     print "Cloudsat observation time of first cloudsat-avhrr match: ",\
           time.gmtime(retv.cloudsat.sec_1970[0])
     print "Cloudsat observation time of last cloudsat-avhrr match: ",\
-          time.gmtime(retv.cloudsat.sec_1970[N-1])
+          time.gmtime(retv.cloudsat.sec_1970[N_H-1])
     
     # Elevation is given in km's. Convert to meters:
-    retv.cloudsat.elevation = Numeric.repeat(\
-        cloudsatObj.elevation.ravel(),idx_match.ravel()).astype('Int16')
+    retv.cloudsat.elevation = numpy.repeat(\
+        cloudsatObj.elevation.ravel(),idx_match.ravel()).astype('d')
 
-    retv.avhrr.sec_1970 = Numeric.add(avhrrGeoObj.sec1970_start,
+    retv.avhrr.sec_1970 = numpy.add(avhrrGeoObj.sec1970_start,
                                       cal_on_avhrr * DSEC_PER_AVHRR_SCALINE)
     retv.diff_sec_1970 = retv.cloudsat.sec_1970 - retv.avhrr.sec_1970
-    min_diff = Numeric.minimum.reduce(retv.diff_sec_1970)
-    max_diff = Numeric.maximum.reduce(retv.diff_sec_1970)
+    min_diff = numpy.minimum.reduce(retv.diff_sec_1970)
+    max_diff = numpy.maximum.reduce(retv.diff_sec_1970)
     print "Maximum and minimum time differences in sec (avhrr-cloudsat): ",\
-          Numeric.maximum.reduce(retv.diff_sec_1970),Numeric.minimum.reduce(retv.diff_sec_1970)
+          numpy.maximum.reduce(retv.diff_sec_1970),numpy.minimum.reduce(retv.diff_sec_1970)
 
     print "AVHRR observation time of first cloudsat-avhrr match: ",\
           time.gmtime(retv.avhrr.sec_1970[0])
     print "AVHRR observation time of last cloudsat-avhrr match: ",\
-          time.gmtime(retv.avhrr.sec_1970[N-1])
+          time.gmtime(retv.avhrr.sec_1970[N_H-1])
 
     # Make the latitude and pps cloudtype on the cloudsat track:
     # line and pixel arrays have equal dimensions
@@ -609,6 +667,7 @@ def match_cloudsat_avhrr(ctypefile,cloudsatObj,avhrrGeoObj,avhrrObj,ctype,ctth,s
     bt11micron_track = []
     bt12micron_track = []
     satz_track = []
+    # maby skould take consideration of missing data also, as for satz.
     for i in range(cal_on_avhrr.shape[0]):
         lat_avhrr_track.append(avhrrGeoObj.latitude[cal_on_avhrr[i],cap_on_avhrr[i]])
         lon_avhrr_track.append(avhrrGeoObj.longitude[cal_on_avhrr[i],cap_on_avhrr[i]])
@@ -624,6 +683,11 @@ def match_cloudsat_avhrr(ctypefile,cloudsatObj,avhrrGeoObj,avhrrObj,ctype,ctth,s
         else:
             b12 = avhrrObj.channels[4].data[cal_on_avhrr[i],cap_on_avhrr[i]] * avhrrObj.channels[4].gain + avhrrObj.channels[4].intercept
         bt12micron_track.append(b12)
+        if avhrrAngObj.satz.data[cal_on_avhrr[i],cap_on_avhrr[i]] == avhrrAngObj.satz.no_data or avhrrAngObj.satz.data[cal_on_avhrr[i],cap_on_avhrr[i]] == avhrrAngObj.satz.missing_data:
+            ang = -9
+        else:
+            ang = avhrrAngObj.satz.data[cal_on_avhrr[i],cap_on_avhrr[i]] * avhrrAngObj.satz.gain + avhrrAngObj.satz.intercept
+        satz_track.append(ang)
         if ctth == None:
             continue
         if ctth.height[cal_on_avhrr[i],cap_on_avhrr[i]] == ctth.h_nodata:
@@ -642,23 +706,18 @@ def match_cloudsat_avhrr(ctypefile,cloudsatObj,avhrrGeoObj,avhrrObj,ctype,ctth,s
         else:
             pp = ctth.pressure[cal_on_avhrr[i],cap_on_avhrr[i]] * ctth.p_gain + ctth.p_intercept
         ctth_pressure_track.append(pp)
-        if avhrrAngObj.satz.data[cal_on_avhrr[i],cap_on_avhrr[i]] == avhrrAngObj.satz.no_data or avhrrAngObj.satz.data[cal_on_avhrr[i],cap_on_avhrr[i]] == avhrrAngObj.satz.missing_data:
-            ang = -9
-        else:
-            ang = avhrrAngObj.satz.data[cal_on_avhrr[i],cap_on_avhrr[i]] * avhrrAngObj.satz.gain + avhrrAngObj.satz.intercept
-        satz_track.append(ang)
 
-    retv.avhrr.latitude = Numeric.array(lat_avhrr_track)
-    retv.avhrr.longitude = Numeric.array(lon_avhrr_track)
-    retv.avhrr.cloudtype = Numeric.array(ctype_track)
-    retv.avhrr.bt11micron = Numeric.array(bt11micron_track)
-    retv.avhrr.bt12micron = Numeric.array(bt12micron_track)
-    retv.avhrr.satz = Numeric.array(satz_track)
+    retv.avhrr.latitude = numpy.array(lat_avhrr_track)
+    retv.avhrr.longitude = numpy.array(lon_avhrr_track)
+    retv.avhrr.cloudtype = numpy.array(ctype_track)
+    retv.avhrr.surftemp = numpy.array(surft_track)
+    retv.avhrr.bt11micron = numpy.array(bt11micron_track)
+    retv.avhrr.bt12micron = numpy.array(bt12micron_track)
+    retv.avhrr.satz = numpy.array(satz_track)
     if ctth:
-        retv.avhrr.ctth_height = Numeric.array(ctth_height_track)
-        retv.avhrr.ctth_pressure = Numeric.array(ctth_pressure_track)
-        retv.avhrr.ctth_temperature = Numeric.array(ctth_temperature_track)
-    retv.avhrr.surftemp = Numeric.array(surft_track)
+        retv.avhrr.ctth_height = numpy.array(ctth_height_track)
+        retv.avhrr.ctth_pressure = numpy.array(ctth_pressure_track)
+        retv.avhrr.ctth_temperature = numpy.array(ctth_temperature_track)
 
     print "AVHRR-PPS Cloud Type,latitude: shapes = ",\
           retv.avhrr.cloudtype.shape,retv.avhrr.latitude.shape
@@ -673,17 +732,16 @@ def match_cloudsat_avhrr(ctypefile,cloudsatObj,avhrrGeoObj,avhrrObj,ctype,ctth,s
     base_month = basename.split("_")[-7][4:6]
     basename = string.join(basename.split("_")[0:4],"_")
     
-    datapath = "%s/%s/1km/%s/%s/%s" %(DATA_DIR, base_sat, base_year, base_month, AREA1KM)
+    datapath = "%s/%s/%skm/%s/%s/%s" %(DATA_DIR, base_sat, RESOLUTION, base_year, base_month, AREA)
     if not os.path.exists(datapath):
         os.makedirs(datapath)   
-    fd = open("%s/1km_%s_cloudtype_cloudsat-GEOPROF_track2.txt"%(datapath,basename),"w")
+    fd = open("%s/%skm_%s_cloudtype_cloudsat-GEOPROF_track2.txt"%(datapath, RESOLUTION, basename),"w")
     fd.writelines(ll)
     fd.close()
-
     ll = []
-    for i in range(N):
+    for i in range(N_H):
         ll.append(("%7.3f  %7.3f  %d\n"%(lon_cloudsat[i],lat_cloudsat[i],0)))
-    fd = open("%s/1km_%s_cloudtype_cloudsat-GEOPROF_track_excl.txt"%(datapath,basename),"w")
+    fd = open("%s/%skm_%s_cloudtype_cloudsat-GEOPROF_track_excl.txt"%(datapath, RESOLUTION, basename),"w")
     fd.writelines(ll)
     fd.close()
     
@@ -691,7 +749,7 @@ def match_cloudsat_avhrr(ctypefile,cloudsatObj,avhrrGeoObj,avhrrObj,ctype,ctth,s
 
 #------------------------------------------------------------------------------------------
 
-def reshapeCloudsat1km(cloudsatfiles,avhrr):
+def reshapeCloudsat(cloudsatfiles,avhrr):
     import time
     import numpy
     import sys
@@ -720,63 +778,116 @@ def reshapeCloudsat1km(cloudsatfiles,avhrr):
             print("Program cloudsat.py at line %i" %(inspect.currentframe().f_lineno+1))
             sys.exit(-9)
         clsat_break = numpy.argmin(numpy.abs(clsat_start_all - clsat_new_all[0]))+1
-        #pdb.set_trace()
-        startCloudsat.sec1970 = numpy.concatenate((startCloudsat.sec1970[0:clsat_break],newCloudsat.sec1970))
-        startCloudsat.longitude = numpy.concatenate((startCloudsat.longitude[0:clsat_break],newCloudsat.longitude))
-        startCloudsat.latitude = numpy.concatenate((startCloudsat.latitude[0:clsat_break],newCloudsat.latitude))
-        startCloudsat.elevation = numpy.concatenate((startCloudsat.elevation[0:clsat_break],newCloudsat.elevation))
-        startCloudsat.Profile_time = numpy.concatenate((startCloudsat.Profile_time[0:clsat_break],newCloudsat.Profile_time))
-        startCloudsat.CPR_Cloud_mask = numpy.concatenate((startCloudsat.CPR_Cloud_mask[0:clsat_break,:],newCloudsat.CPR_Cloud_mask))
-        startCloudsat.CPR_Echo_Top = numpy.concatenate((startCloudsat.CPR_Echo_Top[0:clsat_break],newCloudsat.CPR_Echo_Top))
-        startCloudsat.Clutter_reduction_flag = numpy.concatenate((startCloudsat.Clutter_reduction_flag[0:clsat_break],newCloudsat.Clutter_reduction_flag))
-        startCloudsat.Data_quality = numpy.concatenate((startCloudsat.Data_quality[0:clsat_break],newCloudsat.Data_quality))
-        startCloudsat.Data_targetID = numpy.concatenate((startCloudsat.Data_targetID[0:clsat_break],newCloudsat.Data_targetID))
-        startCloudsat.Gaseous_Attenuation = numpy.concatenate((startCloudsat.Gaseous_Attenuation[0:clsat_break,:],newCloudsat.Gaseous_Attenuation))
-        startCloudsat.MODIS_Cloud_Fraction = numpy.concatenate((startCloudsat.MODIS_Cloud_Fraction[0:clsat_break],newCloudsat.MODIS_Cloud_Fraction))
-        startCloudsat.MODIS_cloud_flag = numpy.concatenate((startCloudsat.MODIS_cloud_flag[0:clsat_break],newCloudsat.MODIS_cloud_flag))
-        startCloudsat.Radar_Reflectivity = numpy.concatenate((startCloudsat.Radar_Reflectivity[0:clsat_break,:],newCloudsat.Radar_Reflectivity))
-        startCloudsat.Height = numpy.concatenate((startCloudsat.Height[0:clsat_break,:],newCloudsat.Height))
-        startCloudsat.SigmaZero = numpy.concatenate((startCloudsat.SigmaZero[0:clsat_break],newCloudsat.SigmaZero))
-        startCloudsat.SurfaceHeightBin = numpy.concatenate((startCloudsat.SurfaceHeightBin[0:clsat_break],newCloudsat.SurfaceHeightBin))
-        startCloudsat.SurfaceHeightBin_fraction = numpy.concatenate((startCloudsat.SurfaceHeightBin_fraction[0:clsat_break],newCloudsat.SurfaceHeightBin_fraction))
-        startCloudsat.sem_NoiseFloor = numpy.concatenate((startCloudsat.sem_NoiseFloor[0:clsat_break],newCloudsat.sem_NoiseFloor))        
-        startCloudsat.sem_NoiseFloorVar = numpy.concatenate((startCloudsat.sem_NoiseFloorVar[0:clsat_break],newCloudsat.sem_NoiseFloorVar))
-        startCloudsat.sem_NoiseGate = numpy.concatenate((startCloudsat.sem_NoiseGate[0:clsat_break],newCloudsat.sem_NoiseGate))
         
-
-    start_break = numpy.argmin((numpy.abs((startCloudsat.sec1970) - (avhrr_start - sec_timeThr))))-1 # Minus one to get one extra, just to be certain
-    end_break = numpy.argmin((numpy.abs((startCloudsat.sec1970) - (avhrr_end + sec_timeThr)))) + 2    # Plus two to get one extra, just to be certain
+        startCloudsat.sec1970 = numpy.concatenate((startCloudsat.sec1970[0:clsat_break],newCloudsat.sec1970))
+        if RESOLUTION ==1:
+            startCloudsat.longitude = numpy.concatenate((startCloudsat.longitude[0:clsat_break],newCloudsat.longitude))
+            startCloudsat.latitude = numpy.concatenate((startCloudsat.latitude[0:clsat_break],newCloudsat.latitude))
+            startCloudsat.elevation = numpy.concatenate((startCloudsat.elevation[0:clsat_break],newCloudsat.elevation))
+            startCloudsat.Profile_time = numpy.concatenate((startCloudsat.Profile_time[0:clsat_break],newCloudsat.Profile_time))
+            startCloudsat.CPR_Echo_Top = numpy.concatenate((startCloudsat.CPR_Echo_Top[0:clsat_break],newCloudsat.CPR_Echo_Top))
+            startCloudsat.Clutter_reduction_flag = numpy.concatenate((startCloudsat.Clutter_reduction_flag[0:clsat_break],newCloudsat.Clutter_reduction_flag))
+            startCloudsat.Data_quality = numpy.concatenate((startCloudsat.Data_quality[0:clsat_break],newCloudsat.Data_quality))
+            startCloudsat.CPR_Cloud_mask = numpy.concatenate((startCloudsat.CPR_Cloud_mask[0:clsat_break,:],newCloudsat.CPR_Cloud_mask))        
+            startCloudsat.Data_targetID = numpy.concatenate((startCloudsat.Data_targetID[0:clsat_break],newCloudsat.Data_targetID))
+            startCloudsat.Gaseous_Attenuation = numpy.concatenate((startCloudsat.Gaseous_Attenuation[0:clsat_break,:],newCloudsat.Gaseous_Attenuation))
+            startCloudsat.MODIS_Cloud_Fraction = numpy.concatenate((startCloudsat.MODIS_Cloud_Fraction[0:clsat_break],newCloudsat.MODIS_Cloud_Fraction))
+            startCloudsat.MODIS_cloud_flag = numpy.concatenate((startCloudsat.MODIS_cloud_flag[0:clsat_break],newCloudsat.MODIS_cloud_flag))
+            startCloudsat.Radar_Reflectivity = numpy.concatenate((startCloudsat.Radar_Reflectivity[0:clsat_break,:],newCloudsat.Radar_Reflectivity))
+            startCloudsat.Height = numpy.concatenate((startCloudsat.Height[0:clsat_break,:],newCloudsat.Height))
+            startCloudsat.SigmaZero = numpy.concatenate((startCloudsat.SigmaZero[0:clsat_break],newCloudsat.SigmaZero))
+            startCloudsat.SurfaceHeightBin = numpy.concatenate((startCloudsat.SurfaceHeightBin[0:clsat_break],newCloudsat.SurfaceHeightBin))
+            startCloudsat.SurfaceHeightBin_fraction = numpy.concatenate((startCloudsat.SurfaceHeightBin_fraction[0:clsat_break],newCloudsat.SurfaceHeightBin_fraction))
+            startCloudsat.sem_NoiseFloor = numpy.concatenate((startCloudsat.sem_NoiseFloor[0:clsat_break],newCloudsat.sem_NoiseFloor))        
+            startCloudsat.sem_NoiseFloorVar = numpy.concatenate((startCloudsat.sem_NoiseFloorVar[0:clsat_break],newCloudsat.sem_NoiseFloorVar))
+            startCloudsat.sem_NoiseGate = numpy.concatenate((startCloudsat.sem_NoiseGate[0:clsat_break],newCloudsat.sem_NoiseGate))
+            start_break = numpy.argmin((numpy.abs((startCloudsat.sec1970) - (avhrr_start - sec_timeThr))))-1 # Minus one to get one extra, just to be certain
+            end_break = numpy.argmin((numpy.abs((startCloudsat.sec1970) - (avhrr_end + sec_timeThr)))) + 2    # Plus two to get one extra, just to be certain
     
-    clsat.sec1970 = startCloudsat.sec1970[start_break:end_break] 
-    clsat.longitude = startCloudsat.longitude[start_break:end_break] 
-    clsat.latitude = startCloudsat.latitude[start_break:end_break] 
-    clsat.elevation = startCloudsat.elevation[start_break:end_break] 
-    clsat.Profile_time = startCloudsat.Profile_time[start_break:end_break] 
-    clsat.CPR_Cloud_mask = startCloudsat.CPR_Cloud_mask[start_break:end_break,:] 
-    clsat.CPR_Echo_Top = startCloudsat.CPR_Echo_Top[start_break:end_break] 
-    clsat.Clutter_reduction_flag = startCloudsat.Clutter_reduction_flag[start_break:end_break]  
-    clsat.Data_quality = startCloudsat.Data_quality[start_break:end_break] 
-    clsat.Data_targetID = startCloudsat.Data_targetID[start_break:end_break] 
-    clsat.Gaseous_Attenuation = startCloudsat.Gaseous_Attenuation[start_break:end_break,:] 
-    clsat.MODIS_Cloud_Fraction = startCloudsat.MODIS_Cloud_Fraction[start_break:end_break] 
-    clsat.MODIS_cloud_flag = startCloudsat.MODIS_cloud_flag[start_break:end_break] 
-    clsat.Radar_Reflectivity = startCloudsat.Radar_Reflectivity[start_break:end_break,:] 
-    clsat.Height = startCloudsat.Height[start_break:end_break,:] 
-    clsat.SigmaZero = startCloudsat.SigmaZero[start_break:end_break] 
-    clsat.SurfaceHeightBin = startCloudsat.SurfaceHeightBin[start_break:end_break] 
-    clsat.SurfaceHeightBin_fraction = startCloudsat.SurfaceHeightBin_fraction[start_break:end_break] 
-    clsat.sem_NoiseFloor = startCloudsat.sem_NoiseFloor[start_break:end_break] 
-    clsat.sem_NoiseFloorVar = startCloudsat.sem_NoiseFloorVar[start_break:end_break] 
-    clsat.sem_NoiseGate = startCloudsat.sem_NoiseGate[start_break:end_break] 
+            clsat.sec1970 = startCloudsat.sec1970[start_break:end_break] 
+            clsat.longitude = startCloudsat.longitude[start_break:end_break] 
+            clsat.latitude = startCloudsat.latitude[start_break:end_break] 
+            clsat.elevation = startCloudsat.elevation[start_break:end_break] 
+            clsat.Profile_time = startCloudsat.Profile_time[start_break:end_break] 
+            clsat.CPR_Cloud_mask = startCloudsat.CPR_Cloud_mask[start_break:end_break,:] 
+            clsat.CPR_Echo_Top = startCloudsat.CPR_Echo_Top[start_break:end_break] 
+            clsat.Clutter_reduction_flag = startCloudsat.Clutter_reduction_flag[start_break:end_break]  
+            clsat.Data_quality = startCloudsat.Data_quality[start_break:end_break] 
+            clsat.Data_targetID = startCloudsat.Data_targetID[start_break:end_break] 
+            clsat.Gaseous_Attenuation = startCloudsat.Gaseous_Attenuation[start_break:end_break,:] 
+            clsat.MODIS_Cloud_Fraction = startCloudsat.MODIS_Cloud_Fraction[start_break:end_break] 
+            clsat.MODIS_cloud_flag = startCloudsat.MODIS_cloud_flag[start_break:end_break] 
+            clsat.Radar_Reflectivity = startCloudsat.Radar_Reflectivity[start_break:end_break,:] 
+            clsat.Height = startCloudsat.Height[start_break:end_break,:] 
+            clsat.SigmaZero = startCloudsat.SigmaZero[start_break:end_break] 
+            clsat.SurfaceHeightBin = startCloudsat.SurfaceHeightBin[start_break:end_break] 
+            clsat.SurfaceHeightBin_fraction = startCloudsat.SurfaceHeightBin_fraction[start_break:end_break] 
+            clsat.sem_NoiseFloor = startCloudsat.sem_NoiseFloor[start_break:end_break] 
+            clsat.sem_NoiseFloorVar = startCloudsat.sem_NoiseFloorVar[start_break:end_break] 
+            clsat.sem_NoiseGate = startCloudsat.sem_NoiseGate[start_break:end_break] 
+            if clsat.Profile_time.shape[0] <= 0:
+                print("No time match, please try with some other CloudSat files")
+                print("Program cloudsat.py at line %i" %(inspect.currentframe().f_lineno+1))
+                sys.exit(-9)
+            else:
+                clsat.TAI_start = clsat.Profile_time[0]
+                clsat.Profile_time = clsat.Profile_time - clsat.TAI_start
+        
+        elif RESOLUTION ==5:
+            startCloudsat.longitude = numpy.concatenate((startCloudsat.longitude[0:clsat_break,:],newCloudsat.longitude))
+            startCloudsat.latitude = numpy.concatenate((startCloudsat.latitude[0:clsat_break,:],newCloudsat.latitude))
+            startCloudsat.elevation = numpy.concatenate((startCloudsat.elevation[0:clsat_break,:],newCloudsat.elevation)) 
+            startCloudsat.Profile_time = numpy.concatenate((startCloudsat.Profile_time[0:clsat_break,:],newCloudsat.Profile_time))  
+            startCloudsat.CPR_Echo_Top = numpy.concatenate((startCloudsat.CPR_Echo_Top[0:clsat_break,:],newCloudsat.CPR_Echo_Top))
+            startCloudsat.Clutter_reduction_flag = numpy.concatenate((startCloudsat.Clutter_reduction_flag[0:clsat_break,:],newCloudsat.Clutter_reduction_flag))
+            startCloudsat.Data_quality = numpy.concatenate((startCloudsat.Data_quality[0:clsat_break,:],newCloudsat.Data_quality))
+            startCloudsat.CPR_Cloud_mask = numpy.concatenate((startCloudsat.CPR_Cloud_mask[0:clsat_break,:],newCloudsat.CPR_Cloud_mask))
+            startCloudsat.Data_targetID = numpy.concatenate((startCloudsat.Data_targetID[0:clsat_break,:],newCloudsat.Data_targetID))
+            startCloudsat.Gaseous_Attenuation = numpy.concatenate((startCloudsat.Gaseous_Attenuation[0:clsat_break,:],newCloudsat.Gaseous_Attenuation))
+            startCloudsat.MODIS_Cloud_Fraction = numpy.concatenate((startCloudsat.MODIS_Cloud_Fraction[0:clsat_break,:],newCloudsat.MODIS_Cloud_Fraction))
+            startCloudsat.MODIS_cloud_flag = numpy.concatenate((startCloudsat.MODIS_cloud_flag[0:clsat_break,:],newCloudsat.MODIS_cloud_flag))
+            startCloudsat.Radar_Reflectivity = numpy.concatenate((startCloudsat.Radar_Reflectivity[0:clsat_break,:],newCloudsat.Radar_Reflectivity))
+            startCloudsat.Height = numpy.concatenate((startCloudsat.Height[0:clsat_break,:],newCloudsat.Height))
+            startCloudsat.SigmaZero = numpy.concatenate((startCloudsat.SigmaZero[0:clsat_break,:],newCloudsat.SigmaZero))
+            startCloudsat.SurfaceHeightBin = numpy.concatenate((startCloudsat.SurfaceHeightBin[0:clsat_break,:],newCloudsat.SurfaceHeightBin))
+            startCloudsat.SurfaceHeightBin_fraction = numpy.concatenate((startCloudsat.SurfaceHeightBin_fraction[0:clsat_break,:],newCloudsat.SurfaceHeightBin_fraction))
+            startCloudsat.sem_NoiseFloor = numpy.concatenate((startCloudsat.sem_NoiseFloor[0:clsat_break,:],newCloudsat.sem_NoiseFloor))            
+            startCloudsat.sem_NoiseFloorVar = numpy.concatenate((startCloudsat.sem_NoiseFloorVar[0:clsat_break,:],newCloudsat.sem_NoiseFloorVar))
+            startCloudsat.sem_NoiseGate = numpy.concatenate((startCloudsat.sem_NoiseGate[0:clsat_break,:],newCloudsat.sem_NoiseGate))
+            start_break = numpy.argmin((numpy.abs((startCloudsat.sec1970) - (avhrr_start - sec_timeThr))))-1 # Minus one to get one extra, just to be certain
+            end_break = numpy.argmin((numpy.abs((startCloudsat.sec1970) - (avhrr_end + sec_timeThr)))) + 2    # Plus two to get one extra, just to be certain
 
-    if clsat.Profile_time.shape[0] <= 0:
-        print("No time match, please try with some other CloudSat files")
-        print("Program cloudsat5km.py at line %i" %(inspect.currentframe().f_lineno+1))
-        sys.exit(-9)
-    else:
-        clsat.TAI_start = clsat.Profile_time[0]
-        clsat.Profile_time = clsat.Profile_time - clsat.TAI_start
-    
+            clsat.sec1970 = startCloudsat.sec1970[start_break:end_break] 
+            clsat.longitude = startCloudsat.longitude[start_break:end_break,:] 
+            clsat.latitude = startCloudsat.latitude[start_break:end_break,:] 
+            clsat.elevation = startCloudsat.elevation[start_break:end_break,:] 
+            clsat.Profile_time = startCloudsat.Profile_time[start_break:end_break,:] 
+            clsat.CPR_Cloud_mask = startCloudsat.CPR_Cloud_mask[start_break:end_break,:] 
+            clsat.CPR_Echo_Top = startCloudsat.CPR_Echo_Top[start_break:end_break,:] 
+            clsat.Clutter_reduction_flag = startCloudsat.Clutter_reduction_flag[start_break:end_break,:]  
+            clsat.Data_quality = startCloudsat.Data_quality[start_break:end_break,:] 
+            clsat.Data_targetID = startCloudsat.Data_targetID[start_break:end_break,:] 
+            clsat.Gaseous_Attenuation = startCloudsat.Gaseous_Attenuation[start_break:end_break,:] 
+            clsat.MODIS_Cloud_Fraction = startCloudsat.MODIS_Cloud_Fraction[start_break:end_break,:] 
+            clsat.MODIS_cloud_flag = startCloudsat.MODIS_cloud_flag[start_break:end_break,:] 
+            clsat.Radar_Reflectivity = startCloudsat.Radar_Reflectivity[start_break:end_break,:] 
+            clsat.Height = startCloudsat.Height[start_break:end_break,:] 
+            clsat.SigmaZero = startCloudsat.SigmaZero[start_break:end_break,:] 
+            clsat.SurfaceHeightBin = startCloudsat.SurfaceHeightBin[start_break:end_break,:] 
+            clsat.SurfaceHeightBin_fraction = startCloudsat.SurfaceHeightBin_fraction[start_break:end_break,:] 
+            clsat.sem_NoiseFloor = startCloudsat.sem_NoiseFloor[start_break:end_break,:] 
+            clsat.sem_NoiseFloorVar = startCloudsat.sem_NoiseFloorVar[start_break:end_break,:] 
+            clsat.sem_NoiseGate = startCloudsat.sem_NoiseGate[start_break:end_break,:] 
+            
+            if clsat.Profile_time.shape[0] <= 0:
+                print("No time match, please try with some other CloudSat files")
+                print("Program cloudsat.py at line %i" %(inspect.currentframe().f_lineno+1))
+                sys.exit(-9)
+            else:
+                clsat.TAI_start = clsat.Profile_time[0,0]
+                clsat.Profile_time = clsat.Profile_time - clsat.TAI_start
+
+
     return clsat
     
     
@@ -787,7 +898,7 @@ if __name__ == "__main__":
     import string
     import epshdf
     import pps_io
-    import numpy.oldnumeric as Numeric
+    import numpy
     
     CLOUDSAT_DIR = "%s/%s"%(MAIN_DIR,SUB_DIR)
 
@@ -804,11 +915,11 @@ if __name__ == "__main__":
 
     # Test:
     ndim = lonCloudsat.ravel().shape[0]
-    idx_match = Numeric.zeros((ndim,),'b')
+    idx_match = numpy.zeros((ndim,),'b')
     idx_match[0:10] = 1
 
-    x = Numeric.repeat(cloudsat.Height[::,0],idx_match)
+    x = numpy.repeat(cloudsat.Height[::,0],idx_match)
     for i in range(1,125):
-        x = Numeric.concatenate((x,Numeric.repeat(cloudsat.Height[::,i],idx_match)))
+        x = numpy.concatenate((x,numpy.repeat(cloudsat.Height[::,i],idx_match)))
     N = x.shape[0]/125
-    cloudsat.Height = Numeric.reshape(x,(125,N))
+    cloudsat.Height = numpy.reshape(x,(125,N))

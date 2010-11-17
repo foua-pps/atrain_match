@@ -11,7 +11,7 @@
 def CloudsatCloudOpticalDepth(cloud_top, cloud_base, optical_depth):
     import numpy
     import pdb
-    
+    from config import MIN_OPTICAL_DEPTH
     
     new_cloud_top = numpy.ones(cloud_top.shape,'d')*numpy.min(cloud_top)
     new_cloud_base = numpy.ones(cloud_base.shape,'d')*numpy.min(cloud_base)
@@ -25,8 +25,8 @@ def CloudsatCloudOpticalDepth(cloud_top, cloud_base, optical_depth):
                 break
             
             depthsum = depthsum + optical_depth[j,i]
-            # Removes the cloud values for all pixels that have a optical depth (integrated from the top) below one and moves the first valid value to the first column and so on.
-            if depthsum >=1:
+            # Removes the cloud values for all pixels that have a optical depth (integrated from the top) below MIN_OPTICAL_DEPTH and moves the first valid value to the first column and so on.
+            if depthsum >= MIN_OPTICAL_DEPTH:
                 new_cloud_top[0:(optical_depth.shape[0]-j),i] = cloud_top[j:,i]
                 new_cloud_base[0:(optical_depth.shape[0]-j),i] = cloud_base[j:,i]                               
                 break
@@ -35,7 +35,7 @@ def CloudsatCloudOpticalDepth(cloud_top, cloud_base, optical_depth):
                 
 #---------------------------------------------------------------------
                
-def CloudsatCalipsoAvhrrSatz1km(clsatObj,caObj):
+def CloudsatCalipsoAvhrrSatz(clsatObj,caObj):
     import pdb
     import numpy
     from config import AZIMUTH_RANGE

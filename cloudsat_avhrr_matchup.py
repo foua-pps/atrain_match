@@ -12,7 +12,7 @@ from calipso import *
 from cloudsat import *
 from cloudsat_cwc import *
 
-from config import AREA1KM, RESHAPE_DIR
+from config import AREA, RESHAPE_DIR
 #MAIN_DIR = "/data/proj/safworks/adam/calipso_data"
 #MAIN_DIR = "/local_disk/calipso_data"
 #SUB_DIR = "metop02_calipso_2007spring"
@@ -41,8 +41,8 @@ def getCloudsatAvhrrMatch(avhrrfile,cloudsatfile,ctypefile,ctthfile,surftfile,su
     #dirname = os.path.dirname(ctypefile).split("/")[0:2]
     #dirname = string.join(dirname,"/")
     
-    savepath = "%s/%s/1km/%s/%s/%s" %(RESHAPE_DIR, base_sat, base_year, base_month, AREA1KM)
-    ca_match_file = "%s/1km_%s_cloudsat-%s_avhrr_match.h5"%(savepath,basename,cloudsat_type)
+    savepath = "%s/%s/%skm/%s/%s/%s" %(RESHAPE_DIR, base_sat, RESOLUTION, base_year, base_month, AREA)
+    ca_match_file = "%s/%skm_%s_cloudsat-%s_avhrr_match.h5"%(savepath, RESOLUTION, basename, cloudsat_type)
     if not os.path.exists(savepath):
         os.makedirs(savepath)
 
@@ -81,7 +81,7 @@ def getCloudsatAvhrrMatch(avhrrfile,cloudsatfile,ctypefile,ctthfile,surftfile,su
         # Read CLOUDSAT Radar data:
         if cloudsat_type == 'GEOPROF':
             write_log("INFO","Read CLOUDSAT GEOPROF data")
-            cloudsat = reshapeCloudsat1km(cloudsatfile,avhrrGeoObj)
+            cloudsat = reshapeCloudsat(cloudsatfile,avhrrGeoObj)
             #cloudsat = get_cloudsat(cloudsatfile)
             retv,min_diff,max_diff = match_cloudsat_avhrr(ctypefile,cloudsat,avhrrGeoObj,avhrrObj,ctype,ctth,surft,avhrrAngObj)
             writeCloudsatAvhrrMatchObj(ca_match_file,retv,6)

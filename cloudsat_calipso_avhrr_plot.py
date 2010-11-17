@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
 #Program cloudsat_calipso_avhrr_plot.py
 
-from config import MAIN_DIR, SUB_DIR, MAIN_RUNDIR, CLOUDSAT_TRACK_RESOLUTION, CLOUDSAT_CLOUDY_THR, CLOUDSAT5KM_TRACK_RESOLUTION, AZIMUTH_RANGE
-
+from config import MAIN_DIR, SUB_DIR, MAIN_RUNDIR, CLOUDSAT_TRACK_RESOLUTION, CLOUDSAT_CLOUDY_THR, CLOUDSAT5KM_TRACK_RESOLUTION, AZIMUTH_RANGE, RESOLUTION
+import pdb
+import os, string
+import sys
+import rpy
+import numpy
 
 def format_title(title):
     """
@@ -14,33 +18,50 @@ def format_title(title):
         title = "%s (satz range [%.1f, %.1f] deg)" % (title, AZIMUTH_RANGE[0], AZIMUTH_RANGE[1])
     
     return title
-
-
 # -----------------------------------------------------
-def drawCalClsatGEOPROFAvhrr1kmPlot(clsatObj, caObj, elevation, data_ok,
+def drawCalClsatGEOPROFAvhrrPlot(clsatObj_cloudsat, clsatObj_avhrr, caObj_calipso, caObj_avhrr, elevation, data_ok,
                                     CALIPSO_DISPLACED, caliop_base,
                                     caliop_height, cal_data_ok,
                                     avhrr_ctth_cal_ok, plotpath, basename,
-                                    mode, emissfilt_calipso_ok=None):
-    import pdb
-    import os, string
-    import sys
-    import rpy
-    import numpy
-    #MAXHEIGHT = max(elevation)+10000
-    #pdb.set_trace()   
-    # Create environment for plotting
+                                    mode, emissfilt_calipso_ok=None, file_type='eps'):
     
-    MAXHEIGHT_CLOUDSAT = numpy.nanmax(numpy.where(clsatObj.cloudsat.cloud_mask>=CLOUDSAT_CLOUDY_THR,clsatObj.cloudsat.Height,numpy.nan))+120
+    # Prepare for Avhrr
+    #Second version for avhrr ctth plotting based on data along CALIPSO track
+    if mode is 'EMISSFILT':
+        cal_plot_data_ok = numpy.logical_and(emissfilt_calipso_ok,numpy.greater(avhrr_ctth_cal_ok[::],0))
+    else:
+        cal_plot_data_ok = numpy.greater(avhrr_ctth_cal_ok[::],0)
+    dummy=caObj_calipso.latitude.shape[0]
+    pixel_position=numpy.arange(dummy)
+    pixel_position_ok = numpy.repeat(pixel_position[::],cal_plot_data_ok)
+    avhrr_ctth_ok = numpy.repeat(avhrr_ctth_cal_ok[::],cal_plot_data_ok)    
+    
+    
+    # Calculates Hihest Cloud Top   
+    MAXHEIGHT_CLOUDSAT = numpy.nanmax(numpy.where(clsatObj_cloudsat.cloud_mask>=CLOUDSAT_CLOUDY_THR,clsatObj_cloudsat.Height,numpy.nan))+120
     MAXHEIGHT_CALIPSO = numpy.nanmax(caliop_height)
+    MAXHEIGHT_AVHRR = numpy.nanmax(avhrr_ctth_ok)
+    MAXHEIGHT = numpy.nanmax([MAXHEIGHT_CALIPSO,MAXHEIGHT_CLOUDSAT,MAXHEIGHT_AVHRR])
     
-    MAXHEIGHT = numpy.nanmax([MAXHEIGHT_CALIPSO,MAXHEIGHT_CLOUDSAT])
-    
-    device = rpy.r.postscript
-    device("%s/1km_%s_cloudsat_calipso_avhrr_clouds.eps"%(plotpath,basename),width=900,height=400) 
+    if file_type == 'eps' or file_type == 'ps':
+        device = rpy.r.postscript
+    elif file_type == 'jpeg' or file_type == 'jpg':
+       device = rpy.r.jpeg
+    elif file_type == 'npg':
+        device = rpy.r.npg
+    elif file_type == 'bmp':
+        device = rpy.r.bmp
+    elif file_type == 'pdf':
+        device = rpy.r.pdf
+    elif file_type == 'tiff':
+        device = rpy.r.tiff   
+    else:
+        print('only formats eps, ps, jpeg, jpg, npg, bmp, pdf and tiff are suported')
+        sys.exit()
+    device("%s/%skm_%s_cloudsat_calipso_avhrr_clouds.%s"%(plotpath,RESOLUTION,basename,file_type),width=900,height=400) 
 
     # Let's use the CloudSat track as our reference
-    dummy=clsatObj.cloudsat.latitude.shape[0]
+    dummy=clsatObj_cloudsat.latitude.shape[0]
     #print "Length of cloudsat array: ", dummy
     geometric_range_CloudSat = int(dummy*CLOUDSAT_TRACK_RESOLUTION)
     #print "Geometric length of cloudsat array: ", geometric_range_CloudSat
@@ -52,7 +73,7 @@ def drawCalClsatGEOPROFAvhrr1kmPlot(clsatObj, caObj, elevation, data_ok,
     for i in range(geometric_range_CloudSat): #Just extend original elevation array
         elevation_index = int(i/CLOUDSAT_TRACK_RESOLUTION + 0.5)
         dummy_elevation_adjusted[i] = elevation[elevation_index] # Scales elevation
-        #time_diff_cloudsat[i] = clsatObj.diff_sec_1970[elevation_index] #For time ploting
+        #time_diff_cloudsat[i] = clsatObj_diff_sec_1970[elevation_index] #For time ploting
     #dummy_elevation_adjusted = numpy.where(dummy_elevation_adjusted==-9,numpy.nan,dummy_elevation_adjusted)
     dummy = rpy.r.plot(pixel_position_geometric[::],dummy_elevation_adjusted,
                         ylim=[0,MAXHEIGHT],
@@ -77,11 +98,11 @@ def drawCalClsatGEOPROFAvhrr1kmPlot(clsatObj, caObj, elevation, data_ok,
         colors.append(rpy.r.rgb([255],[50],[50],maxColorValue=255))
     
     # Plot CloudSat
-    clsat_max_height = numpy.repeat(clsatObj.cloudsat.Height[124,::],data_ok)
+    clsat_max_height = numpy.repeat(clsatObj_cloudsat.Height[124,::],data_ok)
     
     for i in range(125):
-        height = clsatObj.cloudsat.Height[i,::]
-        cmask_ok = clsatObj.cloudsat.cloud_mask[i,::]
+        height = clsatObj_cloudsat.Height[i,::]
+        cmask_ok = clsatObj_cloudsat.cloud_mask[i,::]
         
         for idx in range(len(pixel_position_plain)):
             nidx = int(cmask_ok[idx]+0.5)
@@ -100,35 +121,29 @@ def drawCalClsatGEOPROFAvhrr1kmPlot(clsatObj, caObj, elevation, data_ok,
     # Plot Caliop 
     calipso_displacement = 0
     if CALIPSO_DISPLACED: # Search for startpoint along CloudSat array
-        for i in range(clsatObj.cloudsat.latitude.shape[0]):
-            if (abs(clsatObj.cloudsat.latitude[i] - caObj.calipso.latitude[0]) < 0.005) and\
-                (abs(clsatObj.cloudsat.longitude[i] - caObj.calipso.longitude[0]) < 1.0):
+        for i in range(clsatObj_cloudsat.latitude.shape[0]):
+            if (abs(clsatObj_cloudsat.latitude[i] - caObj_calipso.latitude[0]) < 0.005) and\
+                (abs(clsatObj_cloudsat.longitude[i] - caObj_calipso.longitude[0]) < 1.0):
                 calipso_displacement=int(i*CLOUDSAT_TRACK_RESOLUTION)
                 break
     
-    dummy=caObj.calipso.latitude.shape[0]
+    dummy=caObj_calipso.latitude.shape[0]
     pixel_position=numpy.arange(dummy)
     for i in range(10):
         base_ok = caliop_base[i]
         top_ok = caliop_height[i]
         for idx in range(len(pixel_position)):
             if cal_data_ok[idx]:
-                if caObj.calipso.number_of_layers_found[idx] > i:
+                if caObj_calipso.number_of_layers_found[idx] > i:
                     rpy.r.lines([pixel_position[idx]+calipso_displacement,pixel_position[idx]+calipso_displacement],[base_ok[idx],top_ok[idx]],
                                 col="green",lty=1,lwd=0.5)
 
-    #Second version for avhrr ctth plotting based on data along CALIPSO track
-    if mode is 'EMISSFILT':
-        cal_plot_data_ok = numpy.logical_and(emissfilt_calipso_ok,numpy.greater(avhrr_ctth_cal_ok[::],0))
-    else:
-        cal_plot_data_ok = numpy.greater(avhrr_ctth_cal_ok[::],0)
-        
-    pixel_position_ok = numpy.repeat(pixel_position[::],cal_plot_data_ok)
-    avhrr_ctth_ok = numpy.repeat(avhrr_ctth_cal_ok[::],cal_plot_data_ok)
     
+    
+    #Plot Avhrr   
     rpy.r.points(pixel_position_ok+calipso_displacement,avhrr_ctth_ok,col="blue",pch="+",cex=0.7)
+    # Close Figure
     rpy.r.dev_off()
-            
 
 # -----------------------------------------------------
 def drawCalClsatCWCAvhrr1kmPlot(clsatObj, elevationcwc, data_okcwc, plotpath, basename, phase):#, caObj, CALIPSO_DISPLACED, caliop_base, caliop_height, cal_data_ok, avhrr_ctth_cal_ok):
@@ -230,114 +245,7 @@ def drawCalClsatCWCAvhrr1kmPlot(clsatObj, elevationcwc, data_okcwc, plotpath, ba
 
 
 # -----------------------------------------------------
-def drawCalClsatGEOPROFAvhrr5kmPlot(clsatObj, caObj, elevation, data_ok,
-                                    CALIPSO_DISPLACED, caliop_base,
-                                    caliop_height, cal_data_ok,
-                                    avhrr_ctth_cal_ok, plotpath, basename,
-                                    mode, emissfilt_calipso_ok=None):
-    import pdb
-    import os, string
-    import sys
-    import rpy
-    import numpy
-          
-    
-    # -----------------------------------------------------
-    # Create environment for plotting
-    device = rpy.r.postscript
-    device("%s/5km_%s_cloudsat_calipso_avhrr_clouds.eps"%(plotpath,basename),width=900,height=400) 
 
-    # Let's use the CloudSat track as our reference
-    dummy=clsatObj.cloudsat5km.latitude.shape[0]
-    #print "Length of cloudsat array: ", dummy
-    geometric_range_CloudSat = int(dummy*CLOUDSAT5KM_TRACK_RESOLUTION)
-    #print "Geometric length of cloudsat array: ", geometric_range_CloudSat
-    pixel_position_plain=numpy.arange(dummy)
-    pixel_position_geometric=numpy.arange(geometric_range_CloudSat)
-    dummy_elevation_adjusted=numpy.zeros((geometric_range_CloudSat),'d')
-    time_diff_cloudsat=numpy.zeros((geometric_range_CloudSat),'d')
-    for i in range(geometric_range_CloudSat): #Just extend original elevation array
-        elevation_index = int(i/CLOUDSAT5KM_TRACK_RESOLUTION + 0.5)
-        dummy_elevation_adjusted[i] = elevation[elevation_index] # Scales elevation
-        time_diff_cloudsat[i] = clsatObj.diff_sec_1970[elevation_index] #For time ploting
-
-    dummy = rpy.r.plot(pixel_position_geometric[::],dummy_elevation_adjusted,
-                        ylim=[0,MAXHEIGHT],
-                        xlab="Track Position",ylab="Cloud Height",
-                        main=format_title("5km AVHRR-CloudSat-Caliop Cloud Top Heights"),
-                        col="black",type='l',lwd=1)
-
-# Makes the surface black
-    for i in range(geometric_range_CloudSat): #Let's also plot elevation in the vertical
-        if dummy_elevation_adjusted[i] > 0.0:
-            rpy.r.lines([i,i],[0.0,dummy_elevation_adjusted[i]],
-                            col="black",lty=1,lwd=1) 
-
-    # Colors:
-    colors=[]
-    for i in range(10):
-        colors.append(rpy.r.rgb([(40-i)*6],[(40-i)*6],[(40-i)*6],maxColorValue=255))
-    for i in range(10,30):
-        colors.append(rpy.r.rgb([100+(i-10)*5],[100+(i-10)*5],[100-(i-10)*5],maxColorValue=255))
-    for i in range(30,100):
-        colors.append(rpy.r.rgb([255],[50],[50],maxColorValue=255))
-
-    # Plot CloudSat
-    clsat_max_height = numpy.repeat(clsatObj.cloudsat5km.Height[124,::],data_ok) #Takes lowest Hight
-
-    for i in range(125):
-        height = clsatObj.cloudsat5km.Height[i,::]
-        cmask_ok = clsatObj.cloudsat5km.cloud_mask[i,::]
-    
-        for idx in range(len(pixel_position_plain)):
-            nidx = int(cmask_ok[idx]+0.5)
-            
-            if nidx == 0:
-                continue
-            if height[idx] < 240*4 or height[idx] > MAXHEIGHT:
-                continue
-            base_height = height[idx]-120
-            top_height = height[idx]+120
-            
-            if nidx >= int(CLOUDSAT_CLOUDY_THR):
-                rpy.r.lines([int(pixel_position_plain[idx]*CLOUDSAT5KM_TRACK_RESOLUTION),\
-                                int(pixel_position_plain[idx]*CLOUDSAT5KM_TRACK_RESOLUTION)],[base_height,top_height],\
-                            col='red',lty=1,lwd=1)#   col='red' colors[nidx]
-                clsat_max_height[idx] = max(clsat_max_height[idx],top_height)         
-    # Plot Caliop 
-    calipso_displacement = 0
-    if CALIPSO_DISPLACED: # Search for startpoint along CloudSat array
-        for i in range(clsatObj.cloudsat5km.latitude.shape[0]):
-            if (abs(clsatObj.cloudsat5km.latitude[i] - caObj.calipso5km.latitude[0]) < 0.005) and\
-                (abs(clsatObj.cloudsat5km.longitude[i] - caObj.calipso5km.longitude[0]) < 1.0):
-                calipso_displacement=int(i*CLOUDSAT5KM_TRACK_RESOLUTION)
-                break
-
-    dummy=caObj.calipso5km.latitude.shape[0]
-    pixel_position=numpy.arange(dummy)
-    for i in range(10):
-        base_ok = caliop_base[i]
-        top_ok = caliop_height[i]
-        for idx in range(len(pixel_position)):
-            if cal_data_ok[idx]:
-                if caObj.calipso5km.number_of_layers_found[idx] > i:
-                    rpy.r.lines([pixel_position[idx]+calipso_displacement,pixel_position[idx]+calipso_displacement],[base_ok[idx],top_ok[idx]],
-                                col="green",lty=1,lwd=1)
-
-    #Second version for avhrr ctth plotting based on data along CALIPSO track
-    if mode is 'EMISSFILT':
-        cal_plot_data_ok = numpy.logical_and(emissfilt_calipso_ok,numpy.greater(avhrr_ctth_cal_ok[::],0))
-    else:
-        cal_plot_data_ok = numpy.greater(avhrr_ctth_cal_ok[::],0)
-        
-    pixel_position_ok = numpy.repeat(pixel_position[::],cal_plot_data_ok)
-    avhrr_ctth_ok = numpy.repeat(avhrr_ctth_cal_ok[::],cal_plot_data_ok)
-
-    rpy.r.points(pixel_position_ok+calipso_displacement,avhrr_ctth_ok,col="blue",pch="+",cex=0.7)
-    rpy.r.dev_off()
-
-
-# -----------------------------------------------------
 def drawCalClsatAvhrrPlotTimeDiff(cllat, clsat_diff_sec_1970, cal_diff_sec_1970, plotpath, basename, res):
     import pdb
     import os, string

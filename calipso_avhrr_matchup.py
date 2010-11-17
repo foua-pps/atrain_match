@@ -15,7 +15,7 @@ sys.path.append("%s/angles/test"%(ACPG_SOURCE))
 import Numeric
 
 from calipso import *
-from config import AREA1KM, RESHAPE_DIR
+from config import AREA, RESHAPE_DIR
 #MAIN_DIR = "/data/proj/safworks/adam/calipso_data"
 #MAIN_DIR = "/local_disk/calipso_data"
 #SUB_DIR = "metop02_calipso_2007spring"
@@ -44,13 +44,12 @@ def getCaliopAvhrrMatch(avhrrfile,calipsofile,ctypefile,ctthfile,surftfile,sunan
     #dirname = os.path.dirname(ctypefile).split("/")[0:2]
     #dirname = string.join(dirname,"/")
 
-    savepath = "%s/%s/1km/%s/%s/%s" %(RESHAPE_DIR, base_sat, base_year, base_month, AREA1KM)
-    ca_match_file = "%s/1km_%s_caliop_avhrr_match.h5"%(savepath,basename)
+    savepath = "%s/%s/%skm/%s/%s/%s" %(RESHAPE_DIR, base_sat, RESOLUTION, base_year, base_month, AREA)
+    ca_match_file = "%s/%skm_%s_caliop_avhrr_match.h5"%(savepath, RESOLUTION, basename)
 
     if not os.path.exists(savepath):
         os.makedirs(savepath)
     #print "Match-up file: ",ca_match_file
-
     if not os.path.exists(ca_match_file):
         # Read AVHRR lon,lat data
         write_log("INFO","Read AVHRR geolocation data")
@@ -73,7 +72,7 @@ def getCaliopAvhrrMatch(avhrrfile,calipsofile,ctypefile,ctthfile,surftfile,sunan
         # --------------------------------------------------------------------
         write_log("INFO","Read CALIPSO data")
         # Read CALIPSO Lidar (CALIOP) data:
-        calipso = reshapeCalipso1km(calipsofile,avhrrGeoObj)
+        calipso = reshapeCalipso(calipsofile,avhrrGeoObj)
         # Read remapped NWP Surface temperature data
         write_log("INFO","Read NWP surface temperature")
         nwpinst = epshdf.read_nwpdata(surftfile)
