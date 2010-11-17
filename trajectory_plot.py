@@ -18,8 +18,9 @@ def makesTheActuallyTrajectoryPlot(m,lon,lat):
     m.drawgreatcircle(lon[i],lat[i],lon[-1],lat[-1],color='red')
     return(m)
 
-def plotSatelliteTrajectory(longitude,latitude,trajectoryname,fig_type):
+def plotSatelliteTrajectory(longitude,latitude,trajectoryname,fig_type='eps'):
     # TODO: This plotting function needs to be looked over...
+    
     from mpl_toolkits.basemap import Basemap
     import pylab
     import pdb
@@ -64,12 +65,7 @@ def plotSatelliteTrajectory(longitude,latitude,trajectoryname,fig_type):
         
         lon = longitude[lon_nanix[lon_ix_split[-1]+1:]]
         lat = latitude[lon_nanix[lon_ix_split[-1]+1:]]
-        m = makesTheActuallyTrajectoryPlot(m,lon,lat)  
-        
-        
-    
-
-    
+        m = makesTheActuallyTrajectoryPlot(m,lon,lat)    
 
     pylab.legend((m1),['CloudSat/Calipso'],loc=0)
     
