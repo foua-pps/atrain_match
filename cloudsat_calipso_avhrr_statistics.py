@@ -4,7 +4,7 @@ import config
 def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
                         cal_vert_feature, avhrr_ctth_csat_ok, data_ok,
                         cal_data_ok, avhrr_ctth_cal_ok, caliop_max_height,
-                        process_calipso_ok, Resolution):
+                        process_calipso_ok):
     import Scientific.Statistics
     import numpy
 #    import numpy.oldnumpy as Numeric
