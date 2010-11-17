@@ -70,16 +70,21 @@ def parse_sno_matchup_line(l):
     return (time1, time2, lon, lat)
 
 
-def find_crosses(satellite1, start, end, satellite2='calipso', t_window=2, lon_range=None,
+def find_crosses(satellite1, start, end, satellite2='calipso', time_window=20, lon_range=None,
                  lat_range=None):
     """Use snotimes to find satellite passes where the given *satellite* crosses 
     CALIPSO's path within a time window *t_window*. Sort out any cross points
     which are outside *lon_range* and/or *lat_range*."""
-    import subprocess
+    from subprocess import Popen, PIPE
+    import os
     
-    cmd = [SNO_EXECUTABLE, satellite1, satellite2, start, end, str(t_window)]
+    wd = os.getcwd()
+    os.chdir(os.path.dirname(SNO_EXECUTABLE))
+    cmd = [SNO_EXECUTABLE, satellite1, satellite2, start, end, str(time_window)]
     print(' '.join(cmd))
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+    process = Popen(cmd, stdout=PIPE, stderr=PIPE)
+    process.stderr.close()
+    os.chdir(wd)
     return parse_crosses_file(process.stdout, lon_range, lat_range)
 
 
@@ -136,9 +141,10 @@ if __name__ == '__main__':
     
     # Set up and handle command line arguments
     parser = OptionParser()
-    parser.set_usage("usage: %prog [options] satellite1 [satellite2 [...]]")
-    parser.add_option('-t', '--time_window', type='int', default=2,
-                      help="Time window for crossing.")
+    parser.set_usage("usage: %prog [options] <start YYMMDD> <end YYMMDD> satellite1 [satellite2 [...]]\n"
+                     "Find times and locations where Calipso and the specified satellites cross paths.")
+    parser.add_option('-t', '--time_window', type='int', default=20,
+                      help="Time window for crossing. Default: 20 min.")
     parser.add_option('-x', '--longitudes', type='string',
                       help="Range of acceptable longitudes (e.g. -35.7:25.12).")
     parser.add_option('-y', '--latitudes', type='string',
@@ -164,5 +170,13 @@ if __name__ == '__main__':
     else:
         lat_range = None
     
-    for satellite in args:
-        find_crosses(satellite, options.time_window, lon_range, lat_range)
+    start = args[0]
+    end = args[1]
+    
+    crosses = set()
+    for satellite in args[2:]:
+        crosses.update(find_crosses(satellite, start, end, time_window=options.time_window,
+                                 lon_range=lon_range, lat_range=lat_range))
+    
+    for cross in sorted(crosses):
+        print(cross)
