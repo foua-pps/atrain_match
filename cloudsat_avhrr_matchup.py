@@ -10,7 +10,7 @@ import numpy.oldnumeric as Numeric
 from calipso import *
 
 from cloudsat import *
-from cloudsat_cwc import *
+#from cloudsat_cwc import *
 
 from config import AREA, RESHAPE_DIR
 #MAIN_DIR = "/data/proj/safworks/adam/calipso_data"

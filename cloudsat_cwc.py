@@ -13,8 +13,8 @@ from pps_basic_configure import *
 from pps_error_messages import *
 
 from calipso import *
-from config import AREA1KM, SUB_DIR, DATA_DIR, sec_timeThr
-
+from config import SUB_DIR, DATA_DIR, sec_timeThr
+from config import AREA as AREA1KM
 #MAIN_DIR = "/data/proj/safworks/adam/cloudsat_data"
 #MAIN_DIR = "/data/proj_nsc1/safworks/kgkarl/ORR-B-datasets/cloudsat/"
 #MAIN_DIR = "/data/proj_nsc1/safworks/calipso_cloudsat/data/arctic"

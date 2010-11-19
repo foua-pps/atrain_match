@@ -152,7 +152,7 @@ def drawCalClsatCWCAvhrr1kmPlot(clsatObj, elevationcwc, data_okcwc, plotpath, ba
     import sys
     import rpy
     import numpy
-
+    from config import MAXHEIGHT as MAXHEIGHT
 
     
     # -------------------------------------------------------------------------------------------------------------------------------
