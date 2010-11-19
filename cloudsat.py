@@ -9,44 +9,94 @@
 #         changed start_sec1970 and end_sec1970 to rank0 array 
 #         by setting start_sec1970[0] and end_sec1970[0]
 
+
 from pps_basic_configure import *
 from pps_error_messages import *
 
 from calipso import *
-from config import AREA, SUB_DIR, DATA_DIR, sec_timeThr, DSEC_PER_AVHRR_SCALINE
+from config import AREA, SUB_DIR, DATA_DIR, sec_timeThr, DSEC_PER_AVHRR_SCALINE, CLOUDSAT_TYPE
 from common import MatchupError, elements_within_range
 
 COVERAGE_DIR = "%s/%skm/%s"%(SUB_DIR,RESOLUTION,AREA)
 
-
-
-class CloudsatObject:
+class DataObject(object):
+    """
+    Class to handle data objects with several arrays. Set a mask and the object only returns
+    those indices for which the mask is true.
+    """
     def __init__(self):
-        self.longitude=None
-        self.latitude=None
-        self.avhrr_linnum=None
-        self.avhrr_pixnum=None
-        self.elevation=None
-        self.Profile_time=None
-        self.TAI_start=None 
-        self.sec_1970=None
-        # The data:
-        self.CPR_Cloud_mask=None
-        self.CPR_Echo_Top=None
-        self.Clutter_reduction_flag=None
-        self.Data_quality=None
-        self.Data_targetID=None
-        self.Gaseous_Attenuation=None
-        self.MODIS_Cloud_Fraction=None
-        self.MODIS_cloud_flag=None
-        self.Radar_Reflectivity=None
-        self.Height=None
-        self.SigmaZero=None
-        self.SurfaceHeightBin=None
-        self.SurfaceHeightBin_fraction=None
-        self.sem_NoiseFloor=None
-        self.sem_NoiseFloorVar=None
-        self.sem_NoiseGate=None
+        self.mask = None
+    
+    def __getattr__(self, name):
+        try:
+            if self.mask is None:
+                return self.all_arrays[name]
+            else:
+                return self.all_arrays[name][self.mask]
+        except KeyError:
+            raise AttributeError()
+    
+    def __setattr__(self, name, value):
+        if name in ('all_arrays', 'mask'):
+            object.__setattr__(self, name, value)
+        else:
+            self.all_arrays[name] = value
+    
+    def set_mask(self, mask):
+        """
+        Set a mask which will be used when getting an attribute array.
+        """
+        object.__setattr__(self, 'mask', mask)
+
+class CloudsatObject(DataObject):
+    def __init__(self):
+        DataObject.__init__(self)
+        self.all_arrays = {
+                            'longitude': None,
+                            'latitude': None,
+                            'avhrr_linnum': None,
+                            'avhrr_pixnum': None,
+                            'elevation': None,
+                            'Profile_time': None,
+                            'TAI_start': None,
+                            'sec_1970': None,
+                            # The data:
+                            'CPR_Cloud_mask': None,
+                            'CPR_Echo_Top': None,
+                            'Clutter_reduction_flag': None,
+                            'Data_quality': None,
+                            'Data_targetID': None,
+                            'Gaseous_Attenuation': None,
+                            'MODIS_Cloud_Fraction': None,
+                            'MODIS_cloud_flag': None,
+                            'Radar_Reflectivity': None,
+                            'Height': None,
+                            'SigmaZero': None,
+                            'SurfaceHeightBin': None,
+                            'SurfaceHeightBin_fraction': None,
+                            'sem_NoiseFloor': None,
+                            'sem_NoiseFloorVar': None,
+                            'sem_NoiseGate': None,
+                            'RVOD_liq_water_path': None,
+                            'RVOD_liq_water_path_uncertainty': None,
+                            'RVOD_ice_water_path': None,
+                            'RVOD_ice_water_path_uncertainty': None,
+                            'LO_RVOD_liquid_water_path': None,
+                            'LO_RVOD_liquid_water_path_uncertainty': None,
+                            'IO_RVOD_ice_water_path': None,
+                            'IO_RVOD_ice_water_path_uncertainty': None,
+                            'RVOD_liq_water_content': None,
+                            'RVOD_liq_water_content_uncertainty': None,
+                            'RVOD_ice_water_content': None,
+                            'RVOD_ice_water_content_uncertainty': None,
+                            'LO_RVOD_liquid_water_content': None,
+                            'LO_RVOD_liquid_water_content_uncertainty': None,
+                            'IO_RVOD_ice_water_content': None,
+                            'IO_RVOD_ice_water_content_uncertainty': None,
+                            'Temp_min_mixph_K': None,
+                            'Temp_max_mixph_K': None
+                           }
+
 
 class CloudsatAvhrrTrackObject:
     def __init__(self):
@@ -74,19 +124,41 @@ def readCloudsatAvhrrMatchObj(filename):
     retv.cloudsat.latitude = a.getNode("/cloudsat/latitude").data()
     retv.cloudsat.avhrr_linnum = a.getNode("/cloudsat/avhrr_linnum").data()
     retv.cloudsat.avhrr_pixnum = a.getNode("/cloudsat/avhrr_pixnum").data()
-    
-    retv.cloudsat.cloud_mask = a.getNode("/cloudsat/cloud_mask").data()
-    retv.cloudsat.Radar_Reflectivity = a.getNode("/cloudsat/Radar_Reflectivity").data()
     retv.cloudsat.Height = a.getNode("/cloudsat/Height").data()
-    retv.cloudsat.echo_top = a.getNode("/cloudsat/echo_top").data()
-    retv.cloudsat.SurfaceHeightBin = a.getNode("/cloudsat/SurfaceHeightBin").data()
-    retv.cloudsat.SurfaceHeightBin_fraction = a.getNode("/cloudsat/SurfaceHeightBin_fraction").data()
-    
     retv.cloudsat.elevation = a.getNode("/cloudsat/elevation").data()
     retv.cloudsat.sec_1970 = a.getNode("/cloudsat/sec_1970").data()
-    retv.cloudsat.MODIS_Cloud_Fraction = a.getNode("/cloudsat/MODIS_Cloud_Fraction").data()
-    retv.cloudsat.MODIS_cloud_flag = a.getNode("/cloudsat/MODIS_cloud_flag").data()
+            
+    if CLOUDSAT_TYPE == 'GEOPROF':
+        retv.cloudsat.cloud_mask = a.getNode("/cloudsat/cloud_mask").data()
+        retv.cloudsat.Radar_Reflectivity = a.getNode("/cloudsat/Radar_Reflectivity").data()
+        retv.cloudsat.echo_top = a.getNode("/cloudsat/echo_top").data()
+        retv.cloudsat.SurfaceHeightBin = a.getNode("/cloudsat/SurfaceHeightBin").data()
+        retv.cloudsat.SurfaceHeightBin_fraction = a.getNode("/cloudsat/SurfaceHeightBin_fraction").data()
+        
+        retv.cloudsat.MODIS_Cloud_Fraction = a.getNode("/cloudsat/MODIS_Cloud_Fraction").data()
+        retv.cloudsat.MODIS_cloud_flag = a.getNode("/cloudsat/MODIS_cloud_flag").data()
+    elif CLOUDSAT_TYPE == 'CWC-RVOD':
+        retv.cloudsat.RVOD_liq_water_path = a.getNode("/cloudsat/RVOD_liq_water_path").data()
+        retv.cloudsat.RVOD_liq_water_path_uncertainty = a.getNode("/cloudsat/RVOD_liq_water_path_uncertainty").data()
+        retv.cloudsat.RVOD_ice_water_path = a.getNode("/cloudsat/RVOD_ice_water_path").data()
+        retv.cloudsat.RVOD_ice_water_path_uncertainty = a.getNode("/cloudsat/RVOD_ice_water_path_uncertainty").data()
+        retv.cloudsat.LO_RVOD_liquid_water_path = a.getNode("/cloudsat/LO_RVOD_liquid_water_path").data()
+        retv.cloudsat.LO_RVOD_liquid_water_path_uncertainty = a.getNode("/cloudsat/LO_RVOD_liquid_water_path_uncertainty").data()
+        retv.cloudsat.IO_RVOD_ice_water_path = a.getNode("/cloudsat/IO_RVOD_ice_water_path").data()
+        retv.cloudsat.IO_RVOD_ice_water_path_uncertainty = a.getNode("/cloudsat/IO_RVOD_ice_water_path_uncertainty").data()
 
+       
+        retv.cloudsat.RVOD_liq_water_content = a.getNode("/cloudsat/RVOD_liq_water_content").data()
+        retv.cloudsat.RVOD_liq_water_content_uncertainty = a.getNode("/cloudsat/RVOD_liq_water_content_uncertainty").data()
+        retv.cloudsat.RVOD_ice_water_content = a.getNode("/cloudsat/RVOD_ice_water_content").data()
+        retv.cloudsat.RVOD_ice_water_content_uncertainty = a.getNode("/cloudsat/RVOD_ice_water_content_uncertainty").data()
+        retv.cloudsat.LO_RVOD_liquid_water_content = a.getNode("/cloudsat/LO_RVOD_liquid_water_content").data()
+        retv.cloudsat.LO_RVOD_liquid_water_content_uncertainty = a.getNode("/cloudsat/LO_RVOD_liquid_water_content_uncertainty").data()
+        retv.cloudsat.IO_RVOD_ice_water_content = a.getNode("/cloudsat/IO_RVOD_ice_water_content").data()
+        retv.cloudsat.IO_RVOD_ice_water_content_uncertainty = a.getNode("/cloudsat/IO_RVOD_ice_water_content_uncertainty").data()
+        retv.cloudsat.Temp_min_mixph_K = a.getNode("/cloudsat/Temp_min_mixph_K").data()
+        retv.cloudsat.Temp_max_mixph_K = a.getNode("/cloudsat/Temp_max_mixph_K").data()
+            
     # AVHRR:
     retv.avhrr.longitude = a.getNode("/avhrr/longitude").data()
     retv.avhrr.latitude = a.getNode("/avhrr/latitude").data()
@@ -110,7 +182,9 @@ def writeCloudsatAvhrrMatchObj(filename,ca_obj,compress_lvl):
     a=_pyhl.nodelist()
 
     shape = [ca_obj.cloudsat.longitude.shape[0]]
-
+    shape2d = ca_obj.cloudsat.cloud_mask.shape
+    shapeTAIcwc = [ca_obj.cloudsat.Temp_min_mixph_K.shape[0]]
+    shapecwclong = [ca_obj.cloudsat.Profile_time.shape[0]]
     # Match-Up - time difference:
     # ====
     b=_pyhl.node(_pyhl.DATASET_ID,"/diff_sec_1970")
@@ -133,40 +207,95 @@ def writeCloudsatAvhrrMatchObj(filename,ca_obj,compress_lvl):
     b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/avhrr_pixnum")
     b.setArrayValue(1,shape,ca_obj.cloudsat.avhrr_pixnum,"int",-1)
     a.addNode(b)
-    
-    shape2d = ca_obj.cloudsat.cloud_mask.shape
-    b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/cloud_mask")
-    b.setArrayValue(1,shape2d,ca_obj.cloudsat.cloud_mask,"double",-1)
-    a.addNode(b)
-    b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/Radar_Reflectivity")
-    b.setArrayValue(1,shape2d,ca_obj.cloudsat.Radar_Reflectivity,"double",-1)
+    b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/elevation")
+    b.setArrayValue(1,shape,ca_obj.cloudsat.elevation,"double",-1)
     a.addNode(b)
     b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/Height")
     b.setArrayValue(1,shape2d,ca_obj.cloudsat.Height,"double",-1)
     a.addNode(b)
-    b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/echo_top")
-    b.setArrayValue(1,shape,ca_obj.cloudsat.echo_top,"double",-1)
-    a.addNode(b)
-    b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/SurfaceHeightBin")
-    b.setArrayValue(1,shape,ca_obj.cloudsat.SurfaceHeightBin,"double",-1)
-    a.addNode(b)
-    b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/SurfaceHeightBin_fraction")
-    b.setArrayValue(1,shape,ca_obj.cloudsat.SurfaceHeightBin_fraction,"double",-1)
-    a.addNode(b)
-    b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/elevation")
-    b.setArrayValue(1,shape,ca_obj.cloudsat.elevation,"double",-1)
-    a.addNode(b)
     b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/sec_1970")
     b.setArrayValue(1,shape,ca_obj.cloudsat.sec_1970,"double",-1)
     a.addNode(b)
-    b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/MODIS_Cloud_Fraction")
-    b.setArrayValue(1,shape,ca_obj.cloudsat.MODIS_Cloud_Fraction.astype('double'),"double",-1)
-    a.addNode(b)
-    b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/MODIS_cloud_flag")
-    b.setArrayValue(1,shape,ca_obj.cloudsat.MODIS_cloud_flag.astype('double'),"double",-1)
-    a.addNode(b)
     
-
+    if CLOUDSAT_TYPE == 'GEOPROF':
+        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/cloud_mask")
+        b.setArrayValue(1,shape2d,ca_obj.cloudsat.cloud_mask,"double",-1)
+        a.addNode(b)
+        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/Radar_Reflectivity")
+        b.setArrayValue(1,shape2d,ca_obj.cloudsat.Radar_Reflectivity,"double",-1)
+        a.addNode(b)
+        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/echo_top")
+        b.setArrayValue(1,shape,ca_obj.cloudsat.echo_top,"double",-1)
+        a.addNode(b)
+        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/SurfaceHeightBin")
+        b.setArrayValue(1,shape,ca_obj.cloudsat.SurfaceHeightBin,"double",-1)
+        a.addNode(b)
+        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/SurfaceHeightBin_fraction")
+        b.setArrayValue(1,shape,ca_obj.cloudsat.SurfaceHeightBin_fraction,"double",-1)
+        a.addNode(b)
+        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/MODIS_Cloud_Fraction")
+        b.setArrayValue(1,shape,ca_obj.cloudsat.MODIS_Cloud_Fraction.astype('double'),"double",-1)
+        a.addNode(b)
+        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/MODIS_cloud_flag")
+        b.setArrayValue(1,shape,ca_obj.cloudsat.MODIS_cloud_flag.astype('double'),"double",-1)
+        a.addNode(b)
+    
+    elif CLOUDSAT_TYPE == 'CWC-RVOD':
+        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/RVOD_liq_water_path")
+        b.setArrayValue(1,shapecwc,ca_obj.cloudsat.RVOD_liq_water_path,"short",-1)
+        a.addNode(b)
+        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/RVOD_liq_water_path_uncertainty")
+        b.setArrayValue(1,shapecwc,ca_obj.cloudsat.RVOD_liq_water_path_uncertainty,"uchar",-1)
+        a.addNode(b)
+        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/RVOD_ice_water_path")
+        b.setArrayValue(1,shapecwc,ca_obj.cloudsat.RVOD_ice_water_path,"short",-1)
+        a.addNode(b)
+        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/RVOD_ice_water_path_uncertainty")
+        b.setArrayValue(1,shapecwc,ca_obj.cloudsat.RVOD_ice_water_path_uncertainty,"uchar",-1)
+        a.addNode(b)
+        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/LO_RVOD_liquid_water_path")
+        b.setArrayValue(1,shapecwc,ca_obj.cloudsat.LO_RVOD_liquid_water_path,"short",-1)
+        a.addNode(b)
+        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/LO_RVOD_liquid_water_path_uncertainty")
+        b.setArrayValue(1,shapecwc,ca_obj.cloudsat.LO_RVOD_liquid_water_path_uncertainty,"uchar",-1)
+        a.addNode(b)
+        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/IO_RVOD_ice_water_path")
+        b.setArrayValue(1,shapecwc,ca_obj.cloudsat.IO_RVOD_ice_water_path,"short",-1)
+        a.addNode(b)
+        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/IO_RVOD_ice_water_path_uncertainty")
+        b.setArrayValue(1,shapecwc,ca_obj.cloudsat.IO_RVOD_ice_water_path_uncertainty,"uchar",-1)
+        a.addNode(b)
+   
+        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/RVOD_liq_water_content")
+        b.setArrayValue(1,shape2dcwc,ca_obj.cloudsat.RVOD_liq_water_content,"short",-1)
+        a.addNode(b)
+        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/RVOD_liq_water_content_uncertainty")
+        b.setArrayValue(1,shape2dcwc,ca_obj.cloudsat.RVOD_liq_water_content_uncertainty,"uchar",-1)
+        a.addNode(b)
+        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/RVOD_ice_water_content")
+        b.setArrayValue(1,shape2dcwc,ca_obj.cloudsat.RVOD_ice_water_content,"short",-1)
+        a.addNode(b)
+        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/RVOD_ice_water_content_uncertainty")
+        b.setArrayValue(1,shape2dcwc,ca_obj.cloudsat.RVOD_ice_water_content_uncertainty,"uchar",-1)
+        a.addNode(b)
+        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/LO_RVOD_liquid_water_content")
+        b.setArrayValue(1,shape2dcwc,ca_obj.cloudsat.LO_RVOD_liquid_water_content,"short",-1)
+        a.addNode(b)
+        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/LO_RVOD_liquid_water_content_uncertainty")
+        b.setArrayValue(1,shape2dcwc,ca_obj.cloudsat.LO_RVOD_liquid_water_content_uncertainty,"uchar",-1)
+        a.addNode(b)
+        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/IO_RVOD_ice_water_content")
+        b.setArrayValue(1,shape2dcwc,ca_obj.cloudsat.IO_RVOD_ice_water_content,"short",-1)
+        a.addNode(b)
+        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/IO_RVOD_ice_water_content_uncertainty")
+        b.setArrayValue(1,shape2dcwc,ca_obj.cloudsat.IO_RVOD_ice_water_content_uncertainty,"uchar",-1)
+        a.addNode(b)
+        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/Temp_min_mixph_K")
+        b.setArrayValue(1,shapeTAIcwc,ca_obj.cloudsat.Temp_min_mixph_K,"double",-1)
+        a.addNode(b)
+        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/Temp_max_mixph_K")
+        b.setArrayValue(1,shapeTAIcwc,ca_obj.cloudsat.Temp_max_mixph_K,"double",-1)
+        a.addNode(b)
     # AVHRR
     # ====
     b=_pyhl.node(_pyhl.GROUP_ID,"/avhrr")
@@ -282,52 +411,93 @@ def read_cloudsat(filename):
     a.fetch()
     retv = CloudsatObject()
     if RESOLUTION == 1:
-        root="/2B-GEOPROF"
+        root="/2B-%s" %CLOUDSAT_TYPE
+    
         d=a.getNode("%s/Geolocation Fields/Longitude"%root)    
         retv.longitude=numpy.fromstring(d.data(),'f').astype('d')
         d=a.getNode("%s/Geolocation Fields/Latitude"%root)
         retv.latitude=numpy.fromstring(d.data(),'f').astype('d')    
-        # International Atomic Time (TAI) seconds from Jan 1, 1993:
-        d=a.getNode("%s/Geolocation Fields/Profile_time"%root)
-        retv.Profile_time=numpy.fromstring(d.data(),'f').astype('d')
-        d=a.getNode("%s/Geolocation Fields/TAI_start"%root)
-        retv.TAI_start=numpy.fromstring(d.data(),'d').astype('d')
         d=a.getNode("%s/Geolocation Fields/DEM_elevation"%root)
         retv.elevation=numpy.fromstring(d.data(),'Int16').astype('Int16')  
-        # The radar data:
-        # 2-d arrays of dimension Nx125:
-        d=a.getNode("%s/Data Fields/CPR_Cloud_mask"%root)
-        retv.CPR_Cloud_mask=d.data()
         d=a.getNode("%s/Geolocation Fields/Height"%root)
         retv.Height=d.data()
-        d=a.getNode("%s/Data Fields/Radar_Reflectivity"%root)
-        retv.Radar_Reflectivity=d.data().astype('Int16')
-        d=a.getNode("%s/Data Fields/Gaseous_Attenuation"%root)
-        retv.Gaseous_Attenuation=d.data().astype('Int16')
-        d=a.getNode("%s/Data Fields/CPR_Echo_Top"%root)
-        retv.CPR_Echo_Top=numpy.fromstring(d.data(),'b').astype('b')
-        d=a.getNode("%s/Data Fields/Clutter_reduction_flag"%root)
-        retv.Clutter_reduction_flag=numpy.fromstring(d.data(),'b').astype('b')
+        d=a.getNode("%s/Geolocation Fields/Profile_time"%root)
+        retv.Profile_time=numpy.fromstring(d.data(),'f').astype('d')
+        # International Atomic Time (TAI) seconds from Jan 1, 1993:
+        d=a.getNode("%s/Geolocation Fields/TAI_start"%root)
+        retv.TAI_start=numpy.fromstring(d.data(),'d').astype('d')
         d=a.getNode("%s/Data Fields/Data_quality"%root)
         retv.Data_quality=numpy.fromstring(d.data(),'b').astype('b')
         d=a.getNode("%s/Data Fields/Data_targetID"%root)
         retv.Data_targetID=numpy.fromstring(d.data(),'b').astype('b')
-        d=a.getNode("%s/Data Fields/MODIS_Cloud_Fraction"%root)
-        retv.MODIS_Cloud_Fraction=numpy.fromstring(d.data(),'b').astype('b')
-        d=a.getNode("%s/Data Fields/MODIS_cloud_flag"%root)
-        retv.MODIS_cloud_flag=numpy.fromstring(d.data(),'b').astype('b')
-        d=a.getNode("%s/Data Fields/Sigma-Zero"%root)
-        retv.SigmaZero=numpy.fromstring(d.data(),'Int16').astype('Int16')
-        d=a.getNode("%s/Data Fields/SurfaceHeightBin"%root)
-        retv.SurfaceHeightBin=numpy.fromstring(d.data(),'b').astype('b')
-        d=a.getNode("%s/Data Fields/SurfaceHeightBin_fraction"%root)
-        retv.SurfaceHeightBin_fraction=numpy.fromstring(d.data(),'f').astype('d')
-        d=a.getNode("%s/Data Fields/sem_NoiseFloor"%root)
-        retv.sem_NoiseFloor=numpy.fromstring(d.data(),'f').astype('d')
-        d=a.getNode("%s/Data Fields/sem_NoiseFloorVar"%root)
-        retv.sem_NoiseFloorVar=numpy.fromstring(d.data(),'f').astype('d')
-        d=a.getNode("%s/Data Fields/sem_NoiseGate"%root)
-        retv.sem_NoiseGate=numpy.fromstring(d.data(),'b').astype('b')
+        
+        if CLOUDSAT_TYPE == 'GEOPROF':
+            d=a.getNode("%s/Data Fields/CPR_Cloud_mask"%root)
+            retv.CPR_Cloud_mask=d.data()
+            d=a.getNode("%s/Data Fields/Radar_Reflectivity"%root)
+            retv.Radar_Reflectivity=d.data().astype('Int16')
+            d=a.getNode("%s/Data Fields/Gaseous_Attenuation"%root)
+            retv.Gaseous_Attenuation=d.data().astype('Int16')
+            d=a.getNode("%s/Data Fields/CPR_Echo_Top"%root)
+            retv.CPR_Echo_Top=numpy.fromstring(d.data(),'b').astype('b')
+            d=a.getNode("%s/Data Fields/Clutter_reduction_flag"%root)
+            retv.Clutter_reduction_flag=numpy.fromstring(d.data(),'b').astype('b')
+            d=a.getNode("%s/Data Fields/MODIS_Cloud_Fraction"%root)
+            retv.MODIS_Cloud_Fraction=numpy.fromstring(d.data(),'b').astype('b')
+            d=a.getNode("%s/Data Fields/MODIS_cloud_flag"%root)
+            retv.MODIS_cloud_flag=numpy.fromstring(d.data(),'b').astype('b')
+            d=a.getNode("%s/Data Fields/Sigma-Zero"%root)
+            retv.SigmaZero=numpy.fromstring(d.data(),'Int16').astype('Int16')
+            d=a.getNode("%s/Data Fields/SurfaceHeightBin"%root)
+            retv.SurfaceHeightBin=numpy.fromstring(d.data(),'b').astype('b')
+            d=a.getNode("%s/Data Fields/SurfaceHeightBin_fraction"%root)
+            retv.SurfaceHeightBin_fraction=numpy.fromstring(d.data(),'f').astype('d')
+            d=a.getNode("%s/Data Fields/sem_NoiseFloor"%root)
+            retv.sem_NoiseFloor=numpy.fromstring(d.data(),'f').astype('d')
+            d=a.getNode("%s/Data Fields/sem_NoiseFloorVar"%root)
+            retv.sem_NoiseFloorVar=numpy.fromstring(d.data(),'f').astype('d')
+            d=a.getNode("%s/Data Fields/sem_NoiseGate"%root)
+            retv.sem_NoiseGate=numpy.fromstring(d.data(),'b').astype('b')
+    
+        elif CLOUDSAT_TYPE == 'CWC-RVOD':
+            # IWP and LWP		
+            d=a.getNode("%s/Data Fields/RVOD_liq_water_path"%root)
+            retv.RVOD_liq_water_path=numpy.fromstring(d.data(),'Int16').astype('Int16')			
+            d=a.getNode("%s/Data Fields/RVOD_liq_water_path_uncertainty"%root)
+            retv.RVOD_liq_water_path_uncertainty=numpy.fromstring(d.data(),'uint8').astype('uint8')    
+            d=a.getNode("%s/Data Fields/RVOD_ice_water_path"%root)
+            retv.RVOD_ice_water_path=numpy.fromstring(d.data(),'Int16').astype('Int16')
+            d=a.getNode("%s/Data Fields/RVOD_ice_water_path_uncertainty"%root)
+            retv.RVOD_ice_water_path_uncertainty=numpy.fromstring(d.data(),'uint8').astype('uint8')
+            d=a.getNode("%s/Data Fields/LO_RVOD_liquid_water_path"%root)
+            retv.LO_RVOD_liquid_water_path=numpy.fromstring(d.data(),'Int16').astype('Int16')			
+            d=a.getNode("%s/Data Fields/LO_RVOD_liquid_water_path_uncertainty"%root)
+            retv.LO_RVOD_liquid_water_path_uncertainty=numpy.fromstring(d.data(),'uint8').astype('uint8')
+            d=a.getNode("%s/Data Fields/IO_RVOD_ice_water_path"%root)
+            retv.IO_RVOD_ice_water_path=numpy.fromstring(d.data(),'Int16').astype('Int16')
+            d=a.getNode("%s/Data Fields/IO_RVOD_ice_water_path_uncertainty"%root)
+            retv.IO_RVOD_ice_water_path_uncertainty=numpy.fromstring(d.data(),'uint8').astype('uint8')
+        # IWC and LWC
+            d=a.getNode("%s/Data Fields/RVOD_liq_water_content"%root)
+            retv.RVOD_liq_water_content=d.data()#.astype('Int16')		
+            d=a.getNode("%s/Data Fields/RVOD_liq_water_content_uncertainty"%root)
+            retv.RVOD_liq_water_content_uncertainty=d.data()#.astype('Int16')
+            d=a.getNode("%s/Data Fields/RVOD_ice_water_content"%root)
+            retv.RVOD_ice_water_content=d.data()#.astype('Int16')
+            d=a.getNode("%s/Data Fields/RVOD_ice_water_content_uncertainty"%root)
+            retv.RVOD_ice_water_content_uncertainty=d.data()#.astype('Int16')
+            d=a.getNode("%s/Data Fields/LO_RVOD_liquid_water_content"%root)
+            retv.LO_RVOD_liquid_water_content=d.data()#.astype('Int16')			
+            d=a.getNode("%s/Data Fields/LO_RVOD_liquid_water_content_uncertainty"%root)
+            retv.LO_RVOD_liquid_water_content_uncertainty=d.data()#.astype('Int16')
+            d=a.getNode("%s/Data Fields/IO_RVOD_ice_water_content"%root)
+            retv.IO_RVOD_ice_water_content=d.data()#.astype('Int16')
+            d=a.getNode("%s/Data Fields/IO_RVOD_ice_water_content_uncertainty"%root)
+            retv.IO_RVOD_ice_water_content_uncertainty=d.data()#.astype('Int16')
+            d=a.getNode("%s/Data Fields/Temp_min_mixph_K"%root)
+            retv.Temp_min_mixph_K=numpy.fromstring(d.data(),'f').astype('d')
+            d=a.getNode("%s/Data Fields/Temp_max_mixph_K"%root)
+            retv.Temp_max_mixph_K=numpy.fromstring(d.data(),'f').astype('d')    
     elif RESOLUTION == 5:
         root="/cloudsat"
         d=a.getNode("%s/Geolocation Fields/Longitude"%root)
@@ -433,7 +603,6 @@ def get_cloudsat_avhrr_linpix_segment(avhrrIn,lon,lat,cltime,lines,swath_width,t
     import _satproj
     import area,pcs
     import pps_gisdata
-    import numpy
     
     ndim = lon.shape[0]
     
@@ -548,7 +717,6 @@ def match_cloudsat_avhrr(ctypefile,cloudsatObj,avhrrGeoObj,avhrrObj,ctype,ctth,s
     import numpy
     import time
     import string
-    import numpy
     
     retv = CloudsatAvhrrTrackObject()
     
@@ -588,7 +756,7 @@ def match_cloudsat_avhrr(ctypefile,cloudsatObj,avhrrGeoObj,avhrrObj,ctype,ctth,s
     # Cloudsat line,pixel inside AVHRR swath:
     cal_on_avhrr = numpy.repeat(cal, idx_match)
     cap_on_avhrr = numpy.repeat(cap, idx_match)
-
+    pdb.set_trace()
     print "Make CPR echo top array..."
     retv.cloudsat.echo_top = numpy.repeat(cloudsatObj.CPR_Echo_Top,idx_match).astype('d')
 
@@ -783,24 +951,12 @@ def reshapeCloudsat(cloudsatfiles,avhrr):
         if RESOLUTION ==1:
             startCloudsat.longitude = numpy.concatenate((startCloudsat.longitude[0:clsat_break],newCloudsat.longitude))
             startCloudsat.latitude = numpy.concatenate((startCloudsat.latitude[0:clsat_break],newCloudsat.latitude))
-            startCloudsat.elevation = numpy.concatenate((startCloudsat.elevation[0:clsat_break],newCloudsat.elevation))
             startCloudsat.Profile_time = numpy.concatenate((startCloudsat.Profile_time[0:clsat_break],newCloudsat.Profile_time))
-            startCloudsat.CPR_Echo_Top = numpy.concatenate((startCloudsat.CPR_Echo_Top[0:clsat_break],newCloudsat.CPR_Echo_Top))
-            startCloudsat.Clutter_reduction_flag = numpy.concatenate((startCloudsat.Clutter_reduction_flag[0:clsat_break],newCloudsat.Clutter_reduction_flag))
-            startCloudsat.Data_quality = numpy.concatenate((startCloudsat.Data_quality[0:clsat_break],newCloudsat.Data_quality))
-            startCloudsat.CPR_Cloud_mask = numpy.concatenate((startCloudsat.CPR_Cloud_mask[0:clsat_break,:],newCloudsat.CPR_Cloud_mask))        
-            startCloudsat.Data_targetID = numpy.concatenate((startCloudsat.Data_targetID[0:clsat_break],newCloudsat.Data_targetID))
-            startCloudsat.Gaseous_Attenuation = numpy.concatenate((startCloudsat.Gaseous_Attenuation[0:clsat_break,:],newCloudsat.Gaseous_Attenuation))
-            startCloudsat.MODIS_Cloud_Fraction = numpy.concatenate((startCloudsat.MODIS_Cloud_Fraction[0:clsat_break],newCloudsat.MODIS_Cloud_Fraction))
-            startCloudsat.MODIS_cloud_flag = numpy.concatenate((startCloudsat.MODIS_cloud_flag[0:clsat_break],newCloudsat.MODIS_cloud_flag))
-            startCloudsat.Radar_Reflectivity = numpy.concatenate((startCloudsat.Radar_Reflectivity[0:clsat_break,:],newCloudsat.Radar_Reflectivity))
             startCloudsat.Height = numpy.concatenate((startCloudsat.Height[0:clsat_break,:],newCloudsat.Height))
-            startCloudsat.SigmaZero = numpy.concatenate((startCloudsat.SigmaZero[0:clsat_break],newCloudsat.SigmaZero))
-            startCloudsat.SurfaceHeightBin = numpy.concatenate((startCloudsat.SurfaceHeightBin[0:clsat_break],newCloudsat.SurfaceHeightBin))
-            startCloudsat.SurfaceHeightBin_fraction = numpy.concatenate((startCloudsat.SurfaceHeightBin_fraction[0:clsat_break],newCloudsat.SurfaceHeightBin_fraction))
-            startCloudsat.sem_NoiseFloor = numpy.concatenate((startCloudsat.sem_NoiseFloor[0:clsat_break],newCloudsat.sem_NoiseFloor))        
-            startCloudsat.sem_NoiseFloorVar = numpy.concatenate((startCloudsat.sem_NoiseFloorVar[0:clsat_break],newCloudsat.sem_NoiseFloorVar))
-            startCloudsat.sem_NoiseGate = numpy.concatenate((startCloudsat.sem_NoiseGate[0:clsat_break],newCloudsat.sem_NoiseGate))
+            startCloudsat.Data_quality = numpy.concatenate((startCloudsat.Data_quality[0:clsat_break],newCloudsat.Data_quality))
+            startCloudsat.Data_targetID = numpy.concatenate((startCloudsat.Data_targetID[0:clsat_break],newCloudsat.Data_targetID))            
+            startCloudsat.elevation = numpy.concatenate((startCloudsat.elevation[0:clsat_break],newCloudsat.elevation))
+            
             start_break = numpy.argmin((numpy.abs((startCloudsat.sec1970) - (avhrr_start - sec_timeThr))))-1 # Minus one to get one extra, just to be certain
             end_break = numpy.argmin((numpy.abs((startCloudsat.sec1970) - (avhrr_end + sec_timeThr)))) + 2    # Plus two to get one extra, just to be certain
     
@@ -809,22 +965,9 @@ def reshapeCloudsat(cloudsatfiles,avhrr):
             clsat.latitude = startCloudsat.latitude[start_break:end_break] 
             clsat.elevation = startCloudsat.elevation[start_break:end_break] 
             clsat.Profile_time = startCloudsat.Profile_time[start_break:end_break] 
-            clsat.CPR_Cloud_mask = startCloudsat.CPR_Cloud_mask[start_break:end_break,:] 
-            clsat.CPR_Echo_Top = startCloudsat.CPR_Echo_Top[start_break:end_break] 
-            clsat.Clutter_reduction_flag = startCloudsat.Clutter_reduction_flag[start_break:end_break]  
             clsat.Data_quality = startCloudsat.Data_quality[start_break:end_break] 
             clsat.Data_targetID = startCloudsat.Data_targetID[start_break:end_break] 
-            clsat.Gaseous_Attenuation = startCloudsat.Gaseous_Attenuation[start_break:end_break,:] 
-            clsat.MODIS_Cloud_Fraction = startCloudsat.MODIS_Cloud_Fraction[start_break:end_break] 
-            clsat.MODIS_cloud_flag = startCloudsat.MODIS_cloud_flag[start_break:end_break] 
-            clsat.Radar_Reflectivity = startCloudsat.Radar_Reflectivity[start_break:end_break,:] 
             clsat.Height = startCloudsat.Height[start_break:end_break,:] 
-            clsat.SigmaZero = startCloudsat.SigmaZero[start_break:end_break] 
-            clsat.SurfaceHeightBin = startCloudsat.SurfaceHeightBin[start_break:end_break] 
-            clsat.SurfaceHeightBin_fraction = startCloudsat.SurfaceHeightBin_fraction[start_break:end_break] 
-            clsat.sem_NoiseFloor = startCloudsat.sem_NoiseFloor[start_break:end_break] 
-            clsat.sem_NoiseFloorVar = startCloudsat.sem_NoiseFloorVar[start_break:end_break] 
-            clsat.sem_NoiseGate = startCloudsat.sem_NoiseGate[start_break:end_break] 
             if clsat.Profile_time.shape[0] <= 0:
                 print("No time match, please try with some other CloudSat files")
                 print("Program cloudsat.py at line %i" %(inspect.currentframe().f_lineno+1))
@@ -832,7 +975,75 @@ def reshapeCloudsat(cloudsatfiles,avhrr):
             else:
                 clsat.TAI_start = clsat.Profile_time[0]
                 clsat.Profile_time = clsat.Profile_time - clsat.TAI_start
-        
+            
+            if CLOUDSAT_TYPE == 'GEOPROF':
+                startCloudsat.CPR_Echo_Top = numpy.concatenate((startCloudsat.CPR_Echo_Top[0:clsat_break],newCloudsat.CPR_Echo_Top))
+                startCloudsat.Clutter_reduction_flag = numpy.concatenate((startCloudsat.Clutter_reduction_flag[0:clsat_break],newCloudsat.Clutter_reduction_flag))
+                startCloudsat.CPR_Cloud_mask = numpy.concatenate((startCloudsat.CPR_Cloud_mask[0:clsat_break,:],newCloudsat.CPR_Cloud_mask))        
+                startCloudsat.Gaseous_Attenuation = numpy.concatenate((startCloudsat.Gaseous_Attenuation[0:clsat_break,:],newCloudsat.Gaseous_Attenuation))
+                startCloudsat.MODIS_Cloud_Fraction = numpy.concatenate((startCloudsat.MODIS_Cloud_Fraction[0:clsat_break],newCloudsat.MODIS_Cloud_Fraction))
+                startCloudsat.MODIS_cloud_flag = numpy.concatenate((startCloudsat.MODIS_cloud_flag[0:clsat_break],newCloudsat.MODIS_cloud_flag))
+                startCloudsat.SigmaZero = numpy.concatenate((startCloudsat.SigmaZero[0:clsat_break],newCloudsat.SigmaZero))
+                startCloudsat.SurfaceHeightBin = numpy.concatenate((startCloudsat.SurfaceHeightBin[0:clsat_break],newCloudsat.SurfaceHeightBin))
+                startCloudsat.SurfaceHeightBin_fraction = numpy.concatenate((startCloudsat.SurfaceHeightBin_fraction[0:clsat_break],newCloudsat.SurfaceHeightBin_fraction))
+                startCloudsat.sem_NoiseFloor = numpy.concatenate((startCloudsat.sem_NoiseFloor[0:clsat_break],newCloudsat.sem_NoiseFloor))        
+                startCloudsat.sem_NoiseFloorVar = numpy.concatenate((startCloudsat.sem_NoiseFloorVar[0:clsat_break],newCloudsat.sem_NoiseFloorVar))
+                startCloudsat.sem_NoiseGate = numpy.concatenate((startCloudsat.sem_NoiseGate[0:clsat_break],newCloudsat.sem_NoiseGate))
+                    
+                                
+                clsat.CPR_Echo_Top = startCloudsat.CPR_Echo_Top[start_break:end_break] 
+                clsat.Clutter_reduction_flag = startCloudsat.Clutter_reduction_flag[start_break:end_break]  
+                clsat.CPR_Cloud_mask = startCloudsat.CPR_Cloud_mask[start_break:end_break,:] 
+                clsat.Gaseous_Attenuation = startCloudsat.Gaseous_Attenuation[start_break:end_break,:]                
+                clsat.MODIS_Cloud_Fraction = startCloudsat.MODIS_Cloud_Fraction[start_break:end_break] 
+                clsat.MODIS_cloud_flag = startCloudsat.MODIS_cloud_flag[start_break:end_break] 
+                clsat.Radar_Reflectivity = startCloudsat.Radar_Reflectivity[start_break:end_break,:] 
+                clsat.SigmaZero = startCloudsat.SigmaZero[start_break:end_break] 
+                clsat.SurfaceHeightBin = startCloudsat.SurfaceHeightBin[start_break:end_break] 
+                clsat.SurfaceHeightBin_fraction = startCloudsat.SurfaceHeightBin_fraction[start_break:end_break] 
+                clsat.sem_NoiseFloor = startCloudsat.sem_NoiseFloor[start_break:end_break] 
+                clsat.sem_NoiseFloorVar = startCloudsat.sem_NoiseFloorVar[start_break:end_break] 
+                clsat.sem_NoiseGate = startCloudsat.sem_NoiseGate[start_break:end_break] 
+                
+                
+                
+            elif CLOUDSAT_TYPE == 'CWC-RVOD':
+                startCloudsat.RVOD_liq_water_path = numpy.concatenate((startCloudsat.RVOD_liq_water_path[0:clsat_break],newCloudsat.RVOD_liq_water_path))
+            startCloudsat.RVOD_liq_water_path_uncertainty = numpy.concatenate((startCloudsat.RVOD_liq_water_path_uncertainty[0:clsat_break],newCloudsat.RVOD_liq_water_path_uncertainty))
+            startCloudsat.RVOD_ice_water_path = numpy.concatenate((startCloudsat.RVOD_ice_water_path[0:clsat_break],newCloudsat.RVOD_ice_water_path))
+            startCloudsat.RVOD_ice_water_path_uncertainty = numpy.concatenate((startCloudsat.RVOD_ice_water_path_uncertainty[0:clsat_break],newCloudsat.RVOD_ice_water_path_uncertainty))
+            startCloudsat.LO_RVOD_liquid_water_path = numpy.concatenate((startCloudsat.LO_RVOD_liquid_water_path[0:clsat_break],newCloudsat.LO_RVOD_liquid_water_path))
+            startCloudsat.LO_RVOD_liquid_water_path_uncertainty = numpy.concatenate((startCloudsat.LO_RVOD_liquid_water_path_uncertainty[0:clsat_break],newCloudsat.LO_RVOD_liquid_water_path_uncertainty))
+            startCloudsat.IO_RVOD_ice_water_path = numpy.concatenate((startCloudsat.IO_RVOD_ice_water_path[0:clsat_break],newCloudsat.IO_RVOD_ice_water_path))
+            startCloudsat.IO_RVOD_ice_water_path_uncertainty = numpy.concatenate((startCloudsat.IO_RVOD_ice_water_path_uncertainty[0:clsat_break],newCloudsat.IO_RVOD_ice_water_path_uncertainty))
+            startCloudsat.RVOD_liq_water_content = numpy.concatenate((startCloudsat.RVOD_liq_water_content[0:clsat_break,:],newCloudsat.RVOD_liq_water_content))
+            startCloudsat.RVOD_liq_water_content_uncertainty = numpy.concatenate((startCloudsat.RVOD_liq_water_content_uncertainty[0:clsat_break,:],newCloudsat.RVOD_liq_water_content_uncertainty))
+            startCloudsat.RVOD_ice_water_content = numpy.concatenate((startCloudsat.RVOD_ice_water_content[0:clsat_break,:],newCloudsat.RVOD_ice_water_content))
+            startCloudsat.RVOD_ice_water_content_uncertainty = numpy.concatenate((startCloudsat.RVOD_ice_water_content_uncertainty[0:clsat_break,:],newCloudsat.RVOD_ice_water_content_uncertainty))
+            startCloudsat.LO_RVOD_liquid_water_content = numpy.concatenate((startCloudsat.LO_RVOD_liquid_water_content[0:clsat_break,:],newCloudsat.LO_RVOD_liquid_water_content))
+            startCloudsat.LO_RVOD_liquid_water_content_uncertainty = numpy.concatenate((startCloudsat.LO_RVOD_liquid_water_content_uncertainty[0:clsat_break,:],newCloudsat.LO_RVOD_liquid_water_content_uncertainty))
+            startCloudsat.IO_RVOD_ice_water_content = numpy.concatenate((startCloudsat.IO_RVOD_ice_water_content[0:clsat_break,:],newCloudsat.IO_RVOD_ice_water_content))
+            startCloudsat.IO_RVOD_ice_water_content_uncertainty = numpy.concatenate((startCloudsat.IO_RVOD_ice_water_content_uncertainty[0:clsat_break,:],newCloudsat.IO_RVOD_ice_water_content_uncertainty))
+            clsat.RVOD_liq_water_path = startCloudsat.RVOD_liq_water_path[start_break:end_break]
+            clsat.RVOD_liq_water_path_uncertainty = startCloudsat.RVOD_liq_water_path_uncertainty[start_break:end_break]
+            clsat.RVOD_ice_water_path = startCloudsat.RVOD_ice_water_path[start_break:end_break]
+            clsat.RVOD_ice_water_path_uncertainty = startCloudsat.RVOD_ice_water_path_uncertainty[start_break:end_break]
+            clsat.LO_RVOD_liquid_water_path = startCloudsat.LO_RVOD_liquid_water_path[start_break:end_break]
+            clsat.LO_RVOD_liquid_water_path_uncertainty = startCloudsat.LO_RVOD_liquid_water_path_uncertainty[start_break:end_break]
+            clsat.IO_RVOD_ice_water_path = startCloudsat.IO_RVOD_ice_water_path[start_break:end_break]
+            clsat.IO_RVOD_ice_water_path_uncertainty = startCloudsat.IO_RVOD_ice_water_path_uncertainty[start_break:end_break]
+            clsat.RVOD_liq_water_content = startCloudsat.RVOD_liq_water_content[start_break:end_break,:]
+            clsat.RVOD_liq_water_content_uncertainty = startCloudsat.RVOD_liq_water_content_uncertainty[start_break:end_break,:]
+            clsat.RVOD_ice_water_content = startCloudsat.RVOD_ice_water_content[start_break:end_break,:]
+            clsat.RVOD_ice_water_content_uncertainty = startCloudsat.RVOD_ice_water_content_uncertainty[start_break:end_break,:]
+            clsat.LO_RVOD_liquid_water_content = startCloudsat.LO_RVOD_liquid_water_content[start_break:end_break,:]
+            clsat.LO_RVOD_liquid_water_content_uncertainty = startCloudsat.LO_RVOD_liquid_water_content_uncertainty[start_break:end_break,:]
+            clsat.IO_RVOD_ice_water_content = startCloudsat.IO_RVOD_ice_water_content[start_break:end_break,:]
+            clsat.IO_RVOD_ice_water_content_uncertainty = startCloudsat.IO_RVOD_ice_water_content_uncertainty[start_break:end_break,:]
+            clsat.Temp_min_mixph_K = startCloudsat.Temp_min_mixph_K
+            clsat.Temp_max_mixph_K = startCloudsat.Temp_max_mixph_K
+            
+            
         elif RESOLUTION ==5:
             startCloudsat.longitude = numpy.concatenate((startCloudsat.longitude[0:clsat_break,:],newCloudsat.longitude))
             startCloudsat.latitude = numpy.concatenate((startCloudsat.latitude[0:clsat_break,:],newCloudsat.latitude))
