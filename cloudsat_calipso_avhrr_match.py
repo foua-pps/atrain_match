@@ -135,7 +135,7 @@ def find_avhrr_file(cross):
                           (str(cross), avhrr_finder.pattern(cross.satellite1.lower(), cross.time1)))
         except:
             pass
-        avhrr_file = avhrr_finder.find(cross.satellite1.lower(), cross.time1)[0]
+        avhrr_file = avhrr_finder.find(cross.time1, cross.satellite1.lower())[0]
     except IndexError:
         raise MatchupError("No avhrr file found for %s." % cross)
     
@@ -173,24 +173,24 @@ def find_files_from_avhrr(avhrr_file):
         raise MatchupError("No calipso files found corresponding to %s." % avhrr_file)
     
     try:
-        cloudtype_file = pps_finder.find(satname, datetime, ending='cloudtype.h5')[0]
+        cloudtype_file = pps_finder.find(datetime, satname, ending='cloudtype.h5')[0]
     except IndexError:
         raise MatchupError("No cloudtype file found corresponding to %s." % avhrr_file)
     
     try:
-        ctth_file = pps_finder.find(satname, datetime,
+        ctth_file = pps_finder.find(datetime, satname,
                                     ending='%s.h5' % config.CTTH_FILE)[0]
     except IndexError:
         raise MatchupError("No %s file found corresponding to %s." % \
                            (config.CTTH_FILE, avhrr_file))
     
     try:
-        nwp_tsur_file = pps_finder.find(satname, datetime, ending='nwp_tsur.h5')[0]
+        nwp_tsur_file = pps_finder.find(datetime, satname, ending='nwp_tsur.h5')[0]
     except IndexError:
         raise MatchupError("No nwp_tsur file found corresponding to %s." % avhrr_file)
     
     try:
-        sunsatangles_file = pps_finder.find(satname, datetime, ending='sunsatangles.h5')[0]
+        sunsatangles_file = pps_finder.find(datetime, satname, ending='sunsatangles.h5')[0]
     except IndexError:
         raise MatchupError("No sunsatangles file found corresponding to %s." % avhrr_file)
     
@@ -345,8 +345,8 @@ def get_matchups(cross, reprocess=False):
                                                            region=config.AREA)
         attach_subdir_from_config(match_finder)
         try:
-            ca_match_file = match_finder.find(satellite, datetime, atrain_datatype='caliop')[0]
-            cl_match_file = match_finder.find(satellite, datetime, atrain_datatype='cloudsat-%s' % config.CLOUDSAT_TYPE)[0]
+            ca_match_file = match_finder.find(datetime, satellite, atrain_datatype='caliop')[0]
+            cl_match_file = match_finder.find(datetime, satellite, atrain_datatype='cloudsat-%s' % config.CLOUDSAT_TYPE)[0]
             caObj = readCaliopAvhrrMatchObj(ca_match_file)
             if config.CLOUDSAT_TYPE == 'CWC-RVOD' and config.RESOLUTION == 5:
                 clObj = readCloudsatCwc5kmAvhrrMatchObj(cl_match_file)
