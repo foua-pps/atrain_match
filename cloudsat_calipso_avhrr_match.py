@@ -111,7 +111,7 @@ from cloudsat_avhrr_matchup import *
 from calipso_avhrr_matchup import *
 #from cloudsat_avhrr_matchup5km import *
 #from calipso_avhrr_matchup5km import *
-
+test = 0
 # -----------------------------------------------------
 
 def find_avhrr_file(cross):
@@ -203,14 +203,20 @@ def get_cloudsat_matchups(cloudsat_files, cloudtype_file, avhrrGeoObj, avhrrObj,
     Read Cloudsat data and match with the given PPS data.
     """
     if config.CLOUDSAT_TYPE == 'CWC-RVOD':
-        if config.RESOLUTION == 1:
-            reshape_fun = reshapeCloudsat1kmCwc
-            match_fun = match_cloudsatCwc_avhrr
+        if config.RESOLUTION == 1:      
+            if test == 1:
+                from cloudsat_cwc import match_cloudsatCwc_avhrr
+                from cloudsat_cwc import reshapeCloudsat1kmCwc
+                reshape_fun = reshapeCloudsat1kmCwc
+                match_fun = match_cloudsatCwc_avhrr
+            else:
+                reshape_fun = reshapeCloudsat
+                match_fun = match_cloudsat_avhrr 
         elif config.RESOLUTION == 5:
             reshape_fun = reshapeCloudsat5kmCwc
             match_fun = match_cloudsatCwc_avhrr5km
     else:
-        reshape_fun = reshapeCloudsat1km
+        reshape_fun = reshapeCloudsat
         match_fun = match_cloudsat_avhrr
     cloudsat = reshape_fun(cloudsat_files, avhrrGeoObj)
     cl_matchup, cl_min_diff, cl_max_diff = match_fun(cloudtype_file, cloudsat,
@@ -224,11 +230,6 @@ def get_calipso_matchups(calipso_files, cloudtype_file, avhrrGeoObj, avhrrObj, c
     """
     Read Calipso data and match with the given PPS data.
     """
-    if config.RESOLUTION == 1:
-        reshape_fun = 
-        match_fun = 
-    else:
-        raise NotImplementedError("So far, only 1km resolution has been restructured.")
     calipso = reshapeCalipso(calipso_files,avhrrGeoObj)
     ca_matchup, ca_min_diff, ca_max_diff = match_calipso_avhrr(cloudtype_file, calipso,
                                                      avhrrGeoObj, avhrrObj, ctype,
@@ -305,11 +306,16 @@ def get_matchups_from_data(cross):
     
     # Write cloudsat matchup
     cl_match_file = rematched_file_base.replace('atrain_datatype', 'cloudsat-%s' % config.CLOUDSAT_TYPE)
-    writeCloudsatAvhrrMatchObj(cl_match_file, cl_matchup, 6)
+    if config.RESOLUTION == 5 and config.CLOUDSAT_TYPE == 'CWC-RVOD':
+        writeCloudsatCwc5kmAvhrrMatchObj(cl_match_file, cl_matchup, config.COMPRESS_LVL)
+    if config.RESOLUTION == 1 and config.CLOUDSAT_TYPE == 'CWC-RVOD':
+        writeCloudsatCwcAvhrrMatchObj(cl_match_file, cl_matchup, config.COMPRESS_LVL)
+    else:    
+        writeCloudsatAvhrrMatchObj(cl_match_file, cl_matchup, config.COMPRESS_LVL)
     
     # Write calipso matchup
     ca_match_file = rematched_file_base.replace('atrain_datatype', 'caliop')
-    writeCaliopAvhrrMatchObj(ca_match_file,ca_matchup,6)
+    writeCaliopAvhrrMatchObj(ca_match_file,ca_matchup,config.COMPRESS_LVL)
     
     return {'cloudsat': cl_matchup, 'cloudsat_time_diff': cl_time_diff,
             'calipso': ca_matchup, 'calipso_time_diff': ca_time_diff,
@@ -342,7 +348,13 @@ def get_matchups(cross, reprocess=False):
             ca_match_file = match_finder.find(satellite, datetime, atrain_datatype='caliop')[0]
             cl_match_file = match_finder.find(satellite, datetime, atrain_datatype='cloudsat-%s' % config.CLOUDSAT_TYPE)[0]
             caObj = readCaliopAvhrrMatchObj(ca_match_file)
-            clObj = readCloudsatAvhrrMatchObj(cl_match_file)
+            if config.CLOUDSAT_TYPE == 'CWC-RVOD' and config.RESOLUTION == 5:
+                clObj = readCloudsatCwc5kmAvhrrMatchObj(cl_match_file)
+            elif config.CLOUDSAT_TYPE == 'CWC-RVOD' and config.RESOLUTION == 1:
+                clObj = readCloudsatCwcAvhrrMatchObj(cl_match_file)
+            else:
+                clObj = readCloudsatAvhrrMatchObj(cl_match_file)
+            
             basename = '_'.join(os.path.basename(ca_match_file).split('_')[1:5])
         except:
             write_log('INFO', "No processed match files found. Generating from source data.")
@@ -365,7 +377,7 @@ def run(cross, process_mode, reprocess=False):
         noaa_number=17
     elif sno_satname == "noaa18":
         noaa_number=18
-    elif sno_satname == "metopa":
+    elif sno_satname == "metop02":
         noaa_number=2 # Poor man's solution!
     elif sno_satname == 'noaa19':
         noaa_number = 19
@@ -402,10 +414,10 @@ def run(cross, process_mode, reprocess=False):
         avhrlat = caObj.avhrr.latitude.copy()
         
     elif cloudsat_type=='GEOPROF' or (config.RESOLUTION == 1 and cloudsat_type == 'CWC-RVOD'):                
-        clsatObj,clsat_min_diff,clsat_max_diff = getCloudsatAvhrrMatch(avhrrfile,cloudsatfile,ctypefile,ctthfile,surftfile,sunanglefile,cloudsat_type)
-        caObj,ca_min_diff,ca_max_diff = getCaliopAvhrrMatch(avhrrfile,calipsofile,ctypefile,ctthfile,surftfile,sunanglefile)  
+        #clsatObj,clsat_min_diff,clsat_max_diff = getCloudsatAvhrrMatch(avhrrfile,cloudsatfile,ctypefile,ctthfile,surftfile,sunanglefile,cloudsat_type)
+        #caObj,ca_min_diff,ca_max_diff = getCaliopAvhrrMatch(avhrrfile,calipsofile,ctypefile,ctthfile,surftfile,sunanglefile)  
         #caObj,ca_min_diff,ca_max_diff = getCaliop5kmAvhrr5kmMatch(avhrrfile,calipsofile1,calipsofile2,calipsofile3,ctypefile,ctthfile,surftfile,int(Resolution[-1]))
-        clsatObj, caObj = CloudsatCalipsoAvhrrSatz(clsatObj,caObj)
+        
         if cloudsat_type=='CWC-RVOD':
             cllon = clsatObj.cloudsatcwc.longitude.copy()
             cllat = clsatObj.cloudsatcwc.latitude.copy()
@@ -414,6 +426,7 @@ def run(cross, process_mode, reprocess=False):
             avhrlon = caObj.avhrr.longitude.copy()
             avhrlat = caObj.avhrr.latitude.copy()       
         else:
+            clsatObj, caObj = CloudsatCalipsoAvhrrSatz(clsatObj,caObj)
             cllon = clsatObj.cloudsat.longitude.copy()
             cllat = clsatObj.cloudsat.latitude.copy()           
             calon = caObj.calipso.longitude.copy()
@@ -624,7 +637,7 @@ def run(cross, process_mode, reprocess=False):
             emissfilt_calipso_ok = None
         
         if cloudsat_type=='GEOPROF': 
-            drawCalClsatAvhrrPlotSATZ(cllat, clsatObj.avhrr.satz, caObj.avhrr.satz, plotpath, basename, Resolution[0])
+            drawCalClsatAvhrrPlotSATZ(cllat, clsatObj.avhrr.satz, caObj.avhrr.satz, plotpath, basename, config.RESOLUTION)
             drawCalClsatGEOPROFAvhrrPlot(clsatObj.cloudsat, clsatObj.avhrr, caObj.calipso, caObj.avhrr, elevation, data_ok,
                                             CALIPSO_DISPLACED, caliop_base,
                                             caliop_height, cal_data_ok,
