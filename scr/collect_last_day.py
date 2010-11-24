@@ -6,6 +6,7 @@ collected data can then be used for further validation processing.
 from urllib2 import urlopen
 import re
 import logging
+import os
 
 
 #: URL to Cloudsat and Calipso two-line elements (TLEs)
@@ -18,7 +19,7 @@ NOAA_URL = 'http://celestrak.com/NORAD/elements/noaa.txt'
 PPS_DATA24_DIR = '/data/24/saf/pps'
 
 #: Base directory where data should be stored
-PPS_ARKIV_DIR = '/data/arkiv/proj/safworks/data/pps'
+PPS_ARKIV_DIR = os.getenv('PPS_ARKIV_DIR', '/data/arkiv/proj/safworks/data/pps')
 
 #: PPS file types to collect, ordered by importance. If one file is missing, all following files will be skipped
 PPS_FILE_TYPES = ['lvl1b', 'NWP', 'avhrr', 'nwp_tsur', 'cloudtype',
@@ -34,7 +35,6 @@ logger = logging.getLogger('collect')
 def get_tles():
     """Get latest TLEs from NORAD, and store them in a file ``TLINSET``."""
     from find_crosses import SNO_EXECUTABLE
-    import os
     
     try:
         science = urlopen(SCIENCE_URL)
@@ -78,7 +78,6 @@ def get_files(satellites=['noaa18', 'noaa19'], time_window=TIME_WINDOW,
     from datetime import date, timedelta
     from file_finders import PpsExtendedFileFinder
     import shutil
-    import os
     from glob import glob
     
     start = (date.today() - timedelta(1)).strftime('%y%m%d')
