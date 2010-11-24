@@ -108,6 +108,11 @@ def get_files(satellites=['noaa18', 'noaa19'], time_window=TIME_WINDOW,
                                                            satname=cross.satellite1))
             dst_path = os.path.join(dst_dir, os.path.basename(found_file))
             
+            # Hack to change NWP subdir to standard
+            if file_type == 'NWP':
+                dst_path = dst_path.replace(pps_finder.get_finder('NWP').subdir(None),
+                                            pps_finder.get_finder('NWP').__class__.subdir(pps_finder.get_finder('NWP'), None))
+            
             if file_type == 'lvl1b':
                 # We need to copy the lvl1b directory + '.okay' files
                 if not os.path.exists(dst_path):
