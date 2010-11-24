@@ -38,6 +38,97 @@ logging.basicConfig()
 logger = logging.getLogger('collect')
 
 
+def run_pps(cross, file_type=None):
+    """
+    Produce cloud mask, cloud type and CTTH products for the given *cross*.
+    """
+    from file_finders.pps import Lvl1bDirFinder
+    lvl1b_finder = Lvl1bDirFinder(PPS_ARKIV_DIR)
+    found_dir = lvl1b_finder.find(cross.time1, cross.satellite1)[0]
+    orbit = lvl1b_finder.parse(found_dir)['orbit']
+    
+    try:
+        try:
+            logger.debug("Running create_pps_argument")
+            import pps_arguments
+            ppsarg = pps_arguments.create_pps_argument(pps_arguments.USE_AAPP_LVL1B_GLOB,
+                                                       pps_arguments.SATELLITE_PROJ,
+                                                       cross.satellite1, orbit)
+            import pps_ioproxy
+            ioproxy = pps_ioproxy.pps_ioproxy(ppsarg)
+        except:
+            logger.debug("Couldn't build pps arguments")
+            raise
+        
+        if file_type in ['avhrr', 'sunsatangles', None]:
+            logger.debug("file_type = '%s': Making avhrr and sunsatangles" % file_type)
+            try:
+                logger.debug("Running extractAvhrrFromLvl1b")
+                retv = ioproxy.extractAvhrrFromLvl1b()
+                if retv is not None:
+                    ioproxy.writeAvhrrData(retv)
+                    ioproxy.writeSunSatAngles(retv)
+            except:
+                logger.debug("Couldn't make avhrr and sunsatangles")
+                raise
+        
+        elif 'nwp' in file_type or file_type is None:
+            logger.debug("file_type = '%s': Making remapped nwp" % file_type)
+            try:
+                # Physiography is needed for NWP remapping
+                logger.debug("Running extractPhys")
+                import ppsMakePhysiography
+                status = ppsMakePhysiography.extractPhys(ppsarg)
+                if status != 0:
+                    raise RuntimeError("Status returned from extractPhys: %d" % status)
+                
+                logger.debug("Running extractNwp")
+                import ppsMakeNwp
+                from pps_basic_configure import NWP_TIME_RESOLUTION
+                status = ppsMakeNwp.extractNwp(ppsarg, NWP_TIME_RESOLUTION)
+                if status != 0:
+                    raise RuntimeError("Status returned from extractNwp: %d" % status)
+            except:
+                logger.debug("Couldn't make remapped nwp")
+                raise
+        
+        elif file_type in ['cloudtype', None]:
+            logger.debug("file_type = '%s': Making cloudtype" % file_type)
+            try:
+                logger.debug("Running extractEmiss")
+                import ppsMakeEmissivity
+                status = ppsMakeEmissivity.extractEmiss(ppsarg)
+                if status != 0:
+                    raise RuntimeError("Status returned from extractEmiss: %d" % status)
+                
+                logger.debug("Running pps_prepare_pge0102")
+                import CloudMaskCloudTypePrepare
+                status = CloudMaskCloudTypePrepare.pps_prepare_pge0102(ppsarg)
+                if status != 0:
+                    raise RuntimeError("Status returned from pps_prepare_pge0102: %d" % status)
+                
+                logger.debug("Running pps_pge01")
+                import CloudMask
+                status = CloudMask.pps_pge01(ppsarg,None,1)
+                if status != 0:
+                    raise RuntimeError("Status returned from pps_pge01: %d" % status)
+                
+                logger.debug("Running pps_pge02")
+                import ppsCtype
+                status = ppsCtype.pps_pge02(satday,sathour,norbit,platform_id,line_min_max)
+                if status != 0:
+                    raise RuntimeError("Status returned from pps_pge02: %d" % status)
+            except:
+                logger.debug("Couldn't make cloudtype")
+                raise
+        
+        else:
+            raise NotImplementedError("file_type = %s not yet supported in run_pps" % file_type)
+    except:
+        logger.info("Could not reproduce PPS products.")
+        raise
+
+
 def get_tles():
     """Get latest TLEs from NORAD, and store them in a file ``TLINSET``."""
     from find_crosses import SNO_EXECUTABLE
@@ -123,6 +214,8 @@ def get_files(satellites=['noaa18', 'noaa19'], time_window=TIME_WINDOW,
                         logger.debug("Search pattern was '%s'" % pps_finder.pattern(cross.time1, file_type=file_type,
                                                                                        satname=cross.satellite1,
                                                                                        basedir=arkivdir))
+                        logger.info("Regenerating %s data" % file_type)
+                        run_pps(cross, file_type)
                     else:
                         logger.debug("%s file already exists at destination" % file_type)
             
