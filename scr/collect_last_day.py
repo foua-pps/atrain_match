@@ -109,11 +109,22 @@ def get_files(satellites=['noaa18', 'noaa19'], time_window=TIME_WINDOW,
                                                 satname=cross.satellite1,
                                                 time_window=time_window)[0]
             except IndexError:
-                logger.debug("No %s file found for %s at %s." % \
-                             (file_type, cross,
-                              pps_finder.pattern(cross.time1, file_type=file_type,
-                                                 satname=cross.satellite1)))
-                break # Don't continue with the rest of the file_types
+                logger.debug("No %s file found in source path" % file_type)
+                logger.debug("Search pattern was '%s'" % pps_finder.pattern(cross.time1, file_type=file_type,
+                                                                            satname=cross.satellite1))
+                if file_type in REQUIRED_FILE_TYPES:
+                    logger.debug("Stopping further processing of %s" % cross)
+                    break # Don't continue with the rest of the file_types
+                elif file_type in REPRODUCIBLE_FILE_TYPES:
+                    if len(pps_finder.find(cross.time1, file_type=file_type,
+                                              satname=cross.satellite1,
+                                              basedir=arkivdir)) == 0:
+                        logger.debug("No %s file found at destination" % file_type)
+                        logger.debug("Search pattern was '%s'" % pps_finder.pattern(cross.time1, file_type=file_type,
+                                                                                       satname=cross.satellite1,
+                                                                                       basedir=arkivdir))
+                    else:
+                        logger.debug("%s file already exists at destination" % file_type)
             
             dst_dir = os.path.join(arkivdir, pps_finder.subdir(cross.time1, file_type=file_type,
                                                            satname=cross.satellite1))
