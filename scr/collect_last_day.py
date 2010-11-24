@@ -106,8 +106,8 @@ def get_files(satellites=['noaa18', 'noaa19'], time_window=TIME_WINDOW,
                 else:
                     time_window = None # Use default time_window
                 found_file = pps_finder.find(cross.time1, file_type=file_type,
-                                             satname=cross.satellite1,
-                                             time_window=time_window)[0]
+                                                satname=cross.satellite1,
+                                                time_window=time_window)[0]
             except IndexError:
                 logger.debug("No %s file found for %s at %s." % \
                              (file_type, cross,
