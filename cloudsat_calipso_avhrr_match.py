@@ -356,9 +356,9 @@ def get_matchups(cross, reprocess=False):
                 clObj = readCloudsatAvhrrMatchObj(cl_match_file)
             
             basename = '_'.join(os.path.basename(ca_match_file).split('_')[1:5])
+            write_log('INFO', "Matchups read from previously processed data.")
         except:
             write_log('INFO', "No processed match files found. Generating from source data.")
-        write_log('INFO', "Matchups read from previously processed data.")
     
     if None in [caObj, clObj]:
         return get_matchups_from_data(cross)
