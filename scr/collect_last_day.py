@@ -90,7 +90,10 @@ def get_files(satellites=['noaa18', 'noaa19'], time_window=TIME_WINDOW,
     
     pps_finder = PpsExtendedFileFinder(data24dir)
     pps_finder.get_finder('NWP').set_subdir_method(NWP_subdir)
+    
+    logger.info("Found %d crosses of satellites %s with Calipso" % (len(crosses), ', '.join(satellites)))
     for cross in sorted(crosses):
+        logger.debug("Copying files for %s" % str(cross))
         for file_type in file_types:
             try:
                 if file_type == 'NWP':
@@ -101,7 +104,10 @@ def get_files(satellites=['noaa18', 'noaa19'], time_window=TIME_WINDOW,
                                              satname=cross.satellite1,
                                              time_window=time_window)[0]
             except IndexError:
-                logger.debug("No %s file found for %s at %s." % (file_type, cross, pps_finder.pattern(cross.time1, file_type=file_type, satname=cross.satellite1)))
+                logger.debug("No %s file found for %s at %s." % \
+                             (file_type, cross,
+                              pps_finder.pattern(cross.time1, file_type=file_type,
+                                                 satname=cross.satellite1)))
                 break # Don't continue with the rest of the file_types
             
             dst_dir = os.path.join(arkivdir, pps_finder.subdir(cross.time1, file_type=file_type,
