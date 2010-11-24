@@ -20,9 +20,9 @@ PPS_DATA24_DIR = '/data/24/saf/pps'
 #: Base directory where data should be stored
 PPS_ARKIV_DIR = '/data/arkiv/proj/safworks/data/pps'
 
-#: PPS file types to collect
-PPS_FILE_TYPES = ['avhrr', 'nwp_tsur', 'cloudtype', 'ctth', 'ctth_opaque',
-                  'ctth_semitransparent', 'sunsatangles', 'lvl1b', 'NWP', 'satpos']
+#: PPS file types to collect, ordered by importance. If one file is missing, all following files will be skipped
+PPS_FILE_TYPES = ['lvl1b', 'NWP', 'avhrr', 'nwp_tsur', 'cloudtype',
+                  'ctth', 'ctth_opaque', 'ctth_semitransparent', 'sunsatangles']
 
 #: Default time window, in minutes
 TIME_WINDOW = 30
