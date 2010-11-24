@@ -107,8 +107,8 @@ def parse_crosses_file(f, lon_range=None, lat_range=None):
             try:
                 # Catch line describing satellite names and time window
                 a = l.split("Satellites and Time Window:")[1].split()
-                satellite1 = a[0].replace('METOPA', 'METOP02')
-                satellite2 = a[1].replace('METOPA', 'METOP02')
+                satellite1 = a[0].replace('METOPA', 'METOP02').lower()
+                satellite2 = a[1].replace('METOPA', 'METOP02').lower()
                 time_window = int(math.ceil(float(a[2]))) * 60 # Time window in integer seconds
                 continue
             except:
