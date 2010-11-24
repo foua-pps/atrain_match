@@ -21,9 +21,15 @@ PPS_DATA24_DIR = '/data/24/saf/pps'
 #: Base directory where data should be stored
 PPS_ARKIV_DIR = os.getenv('PPS_ARKIV_DIR', '/data/arkiv/proj/safworks/data/pps')
 
-#: PPS file types to collect, ordered by importance. If one file is missing, all following files will be skipped
-PPS_FILE_TYPES = ['lvl1b', 'NWP', 'avhrr', 'nwp_tsur', 'cloudtype',
-                  'ctth', 'ctth_opaque', 'ctth_semitransparent', 'sunsatangles']
+#: Required PPS file types to collect, ordered by importance. If one file is missing, processing of the cross is stopped
+REQUIRED_FILE_TYPES = ['lvl1b', 'NWP', 'satpos']
+#: Reproduceable PPS file types to either collect, or reproduce
+REPRODUCIBLE_FILE_TYPES = ['avhrr', 'nwp_tsur', 'cloudtype', 'ctth',
+                            'ctth_opaque', 'ctth_semitransparent', 'sunsatangles']
+
+PPS_FILE_TYPES = []
+PPS_FILE_TYPES.extend(REQUIRED_FILE_TYPES)
+PPS_FILE_TYPES.extend(REPRODUCIBLE_FILE_TYPES)
 
 #: Default time window, in minutes
 TIME_WINDOW = 30
