@@ -132,7 +132,7 @@ def find_avhrr_file(cross):
         try:
             if config.DEBUG is True:
                 write_log('DEBUG', "Looking for avhrr file corresponding to %s: %s" % \
-                          (str(cross), avhrr_finder.pattern(cross.satellite1.lower(), cross.time1)))
+                          (str(cross), avhrr_finder.pattern(cross.time1, cross.satellite1.lower())))
         except:
             pass
         avhrr_file = avhrr_finder.find(cross.time1, cross.satellite1.lower())[0]
