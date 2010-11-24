@@ -104,28 +104,39 @@ def get_files(satellites=['noaa18', 'noaa19'], time_window=TIME_WINDOW,
                 logger.debug("No %s file found for %s at %s." % (file_type, cross, pps_finder.pattern(cross.time1, file_type=file_type, satname=cross.satellite1)))
                 break # Don't continue with the rest of the file_types
             
-            dst = os.path.join(arkivdir, pps_finder.subdir(cross.time1, file_type=file_type,
+            dst_dir = os.path.join(arkivdir, pps_finder.subdir(cross.time1, file_type=file_type,
                                                            satname=cross.satellite1))
+            dst_path = os.path.join(dst_dir, os.path.basename(found_file))
+            
             if file_type == 'lvl1b':
                 # We need to copy the lvl1b directory + '.okay' files
-                dst_lvl1b = os.path.join(dst, os.path.basename(found_file))
-                try:
-                    shutil.copytree(found_file, dst_lvl1b, symlinks=False)
-                except IOError:
-                    logger.critical("Couldn't copy directory %s to %s." % (found_file, dst_lvl1b))
-                    raise
-                for f in glob(found_file + '*.okay'):
+                if not os.path.exists(dst_path):
                     try:
-                        shutil.copy(f, dst)
+                        shutil.copytree(found_file, dst_path, symlinks=False)
                     except IOError:
-                        logger.critical("Couldn't copy %s to %s." % (f, dst))
+                        logger.critical("Couldn't copy directory %s to %s." % (found_file, dst_path))
                         raise
+                else:
+                    logger.debug("Destination already exists: %s", dst_path)
+                for f in glob(found_file + '*.okay'):
+                    dst_path = os.path.join(dst_dir, os.path.basename(f))
+                    if not os.path.exists(dst_path):
+                        try:
+                            shutil.copy(f, dst_path)
+                        except IOError:
+                            logger.critical("Couldn't copy %s to %s." % (f, dst_path))
+                            raise
+                    else:
+                        logger.debug("Destination already exists: %s", dst_path)
             else:
-                try:
-                    shutil.copy(found_file, dst)
-                except IOError:
-                    logger.critical("Couldn't copy %s to %s." % (found_file, dst))
-                    raise
+                if not os.path.exists(dst_path):
+                    try:
+                        shutil.copy(found_file, dst_path)
+                    except IOError:
+                        logger.critical("Couldn't copy %s to %s." % (found_file, dst_path))
+                        raise
+                else:
+                    logger.debug("Destination already exists: %s", dst_path)
 
 
 if __name__ == '__main__':
