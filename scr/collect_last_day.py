@@ -128,7 +128,7 @@ def run_pps(cross, file_type=None):
                 raise
         
         elif 'ctth' in file_type or file_type is None:
-            logger.debug("file_type = '%s': Making cloudtype" % file_type)
+            logger.debug("file_type = '%s': Making ctth" % file_type)
             try:
                 logger.debug("Running pps_prepare_ctth")
                 import ppsCtthPrepare
@@ -141,6 +141,12 @@ def run_pps(cross, file_type=None):
                 status = ppsCtth.pps_pge03(ppsarg)
                 if status != 0:
                     raise RuntimeError("Status returned from pps_pge03: %d" % status)
+                
+                logger.debug("Running pps_pge03_semi")
+                import ppsCtthPlus
+                status = ppsCtthPlus.pps_pge03_semi(ppsarg)
+                if status != 0:
+                    raise RuntimeError("Status returned from pps_pge03_semi: %d" % status)
             except:
                 logger.debug("Couldn't make ctth")
                 raise
