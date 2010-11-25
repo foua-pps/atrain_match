@@ -45,9 +45,15 @@ def run_pps(cross, file_type=None):
     from file_finders.pps import Lvl1bDirFinder
     lvl1b_finder = Lvl1bDirFinder(PPS_ARKIV_DIR)
     found_dir = lvl1b_finder.find(cross.time1, cross.satellite1)[0]
-    orbit = lvl1b_finder.parse(found_dir)['orbit']
+    parsed = lvl1b_finder.parse(found_dir)
+    orbit = parsed['orbit']
+    datetime = parsed['datetime']
+    satday = "%d%02d%02d" % (datetime.year, datetime.month, datetime.day)
+    sathour = "%02d%02d" % (datetime.hour, datetime.minute)
     
     try:
+        from pps_basic_configure import NWP_TIME_RESOLUTION
+        
         try:
             logger.debug("Running create_pps_argument")
             import pps_arguments
@@ -84,7 +90,6 @@ def run_pps(cross, file_type=None):
                 
                 logger.debug("Running extractNwp")
                 import ppsMakeNwp
-                from pps_basic_configure import NWP_TIME_RESOLUTION
                 status = ppsMakeNwp.extractNwp(ppsarg, NWP_TIME_RESOLUTION)
                 if status != 0:
                     raise RuntimeError("Status returned from extractNwp: %d" % status)
@@ -115,11 +120,29 @@ def run_pps(cross, file_type=None):
                 
                 logger.debug("Running pps_pge02")
                 import ppsCtype
-                status = ppsCtype.pps_pge02(satday,sathour,norbit,platform_id,line_min_max)
+                status = ppsCtype.pps_pge02(satday, sathour, orbit, cross.satellite1, None)
                 if status != 0:
                     raise RuntimeError("Status returned from pps_pge02: %d" % status)
             except:
                 logger.debug("Couldn't make cloudtype")
+                raise
+        
+        elif 'ctth' in file_type or file_type is None:
+            logger.debug("file_type = '%s': Making cloudtype" % file_type)
+            try:
+                logger.debug("Running pps_prepare_ctth")
+                import ppsCtthPrepare
+                status = ppsCtthPrepare.pps_prepare_ctth(ppsarg, NWP_TIME_RESOLUTION)
+                if status != 0:
+                    raise RuntimeError("Status returned from pps_prepare_ctth: %d" % status)
+                
+                logger.debug("Running pps_pge03")
+                import ppsCtth
+                status = ppsCtth.pps_pge03(ppsarg)
+                if status != 0:
+                    raise RuntimeError("Status returned from pps_pge03: %d" % status)
+            except:
+                logger.debug("Couldn't make ctth")
                 raise
         
         else:
