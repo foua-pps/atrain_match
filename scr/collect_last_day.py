@@ -63,7 +63,7 @@ def run_pps(cross, file_type=None):
             import pps_ioproxy
             ioproxy = pps_ioproxy.pps_ioproxy(ppsarg)
         except:
-            logger.debug("Couldn't build pps arguments")
+            logger.warning("Couldn't build pps arguments")
             raise
         
         if file_type in ['avhrr', 'sunsatangles', None]:
@@ -75,7 +75,7 @@ def run_pps(cross, file_type=None):
                     ioproxy.writeAvhrrData(retv)
                     ioproxy.writeSunSatAngles(retv)
             except:
-                logger.debug("Couldn't make avhrr and sunsatangles")
+                logger.warning("Couldn't make avhrr and sunsatangles")
                 raise
         
         elif 'nwp' in file_type or file_type is None:
@@ -94,7 +94,7 @@ def run_pps(cross, file_type=None):
                 if status != 0:
                     raise RuntimeError("Status returned from extractNwp: %d" % status)
             except:
-                logger.debug("Couldn't make remapped nwp")
+                logger.warning("Couldn't make remapped nwp")
                 raise
         
         elif file_type in ['cloudtype', None]:
@@ -124,7 +124,7 @@ def run_pps(cross, file_type=None):
                 if status != 0:
                     raise RuntimeError("Status returned from pps_pge02: %d" % status)
             except:
-                logger.debug("Couldn't make cloudtype")
+                logger.warning("Couldn't make cloudtype")
                 raise
         
         elif 'ctth' in file_type or file_type is None:
@@ -148,7 +148,7 @@ def run_pps(cross, file_type=None):
                 if status != 0:
                     raise RuntimeError("Status returned from pps_pge03_semi: %d" % status)
             except:
-                logger.debug("Couldn't make ctth")
+                logger.warning("Couldn't make ctth")
                 raise
         
         else:
@@ -244,7 +244,10 @@ def get_files(satellites=['noaa18', 'noaa19'], time_window=TIME_WINDOW,
                                                                                        satname=cross.satellite1,
                                                                                        basedir=arkivdir))
                         logger.info("Regenerating %s data" % file_type)
-                        run_pps(cross, file_type)
+                        try:
+                            run_pps(cross, file_type)
+                        except:
+                            continue
                     else:
                         logger.debug("%s file already exists at destination" % file_type)
             
