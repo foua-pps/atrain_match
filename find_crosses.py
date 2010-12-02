@@ -80,7 +80,7 @@ def find_crosses(satellite1, start, end, satellite2='calipso', time_window=20, l
     
     wd = os.getcwd()
     os.chdir(os.path.dirname(SNO_EXECUTABLE))
-    cmd = [SNO_EXECUTABLE, satellite1, satellite2, start, end, str(time_window)]
+    cmd = [os.path.abspath(os.path.basename(SNO_EXECUTABLE)), satellite1, satellite2, start, end, str(time_window)]
     print(' '.join(cmd))
     process = Popen(cmd, stdout=PIPE, stderr=PIPE)
     process.stderr.close()
