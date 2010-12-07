@@ -209,7 +209,7 @@ def get_tles():
         raise
 
 
-def NWP_subdir(self, time, *args, **kwargs):
+def _NWP_subdir(self, time, *args, **kwargs):
     """NWP data is stored in a non-standard subdir."""
     return "import/NWP_data/global_out"
 
@@ -250,7 +250,7 @@ def get_files(satellites=['noaa18', 'noaa19'], time_window=TIME_WINDOW,
         crosses.update(find_crosses(satellite, start, end, 'CALIPSO', time_window))
     
     pps_finder = PpsExtendedFileFinder(data24dir)
-    pps_finder.get_finder('NWP').set_subdir_method(NWP_subdir)
+    pps_finder.get_finder('NWP').set_subdir_method(_NWP_subdir)
     
     logger.info("Found %d crosses of satellites %s with Calipso" % (len(crosses), ', '.join(satellites)))
     for cross in sorted(crosses):
