@@ -1,5 +1,13 @@
 #!/usr/bin/python
-# program process_master.py
+"""
+This module can be used to match noaa and/or metop data with Cloudsat and
+Calipso data, and produce statistics for validation of PPS cloud mask, cloud
+type and cloud top temperature and height products.
+
+It is really a wrapper to :func:`cloudsat_calipso_avhrr_match.run`, for running
+through a set of SNO matchups.
+
+"""
 
 from pps_error_messages import write_log
 import config
@@ -7,9 +15,13 @@ import config
 
 def process_matchups(matchups, run_modes, reprocess=False, debug=False):
     """
-    Run the given SNO *matchups* through the validation system. If *reprocess is
-    True, disregard any previously generated Cloudsat- and Calipso-AVHRR matchup
-    files.
+    Run the given SNO *matchups* through the validation system.
+    
+    *matchups* should be a list of :class:`find_crosses.Cross` instances.
+    
+    If *reprocess* is True, disregard any previously generated Cloudsat- and
+    Calipso-AVHRR matchup files.
+    
     """
     import cloudsat_calipso_avhrr_match
     from common import MatchupError

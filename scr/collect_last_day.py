@@ -179,7 +179,7 @@ def run_pps_on_cross(cross, file_type=None):
 
 def get_tles():
     """Get latest TLEs from NORAD, and store them in a file ``TLINSET`` in the
-    same directory as ``find_crosses.SNO_EXECUTABLE``.
+    same directory as :data:`find_crosses.SNO_EXECUTABLE`.
     
     Uses (module wide) SCIENCE_URL and NOAA_URL to get TLEs from the internet.
     
@@ -227,10 +227,10 @@ def get_files(satellites=['noaa18', 'noaa19'], time_window=TIME_WINDOW,
     *arkivdir* is the destination directory for PPS data.
     *file_types* should be a list of PPS file types to copy.
     
-    If a file type is in (module wide) REQUIRED_FILE_TYPES, but does not exist
+    If a file type is in :data:`REQUIRED_FILE_TYPES`, but does not exist
     at the origin, no further processing of the scene will be carried out.
     
-    If a file type is in (module wide) REPRODUCIBLE_FILE_TYPES, but does not
+    If a file type is in :data:`REPRODUCIBLE_FILE_TYPES`, but does not
     exist at the origin, it is reproduced by running PPS. For this to work, the
     shell environment must be set up properly (e.g. by sourcing a ``source_me``
     or ``.profile_pps`` file).
