@@ -159,7 +159,12 @@ def run_pps(cross, file_type=None):
 
 
 def get_tles():
-    """Get latest TLEs from NORAD, and store them in a file ``TLINSET``."""
+    """Get latest TLEs from NORAD, and store them in a file ``TLINSET`` in the
+    same directory as ``find_crosses.SNO_EXECUTABLE``.
+    
+    Uses (module wide) SCIENCE_URL and NOAA_URL to get TLEs from the internet.
+    
+    """
     from find_crosses import SNO_EXECUTABLE
     
     try:
@@ -193,12 +198,24 @@ def NWP_subdir(self, time, *args, **kwargs):
 def get_files(satellites=['noaa18', 'noaa19'], time_window=TIME_WINDOW,
               data24dir=PPS_DATA24_DIR, arkivdir=PPS_ARKIV_DIR, file_types=PPS_FILE_TYPES):
     """
-    Find crosses and copy all files needed to run validation for found crosses.
+    Find crosses and copy all files needed to run validation for scenes where
+    *satellites* have overlaps with Calipso.
     
-    *satellites* should be a list of satellite names to consider. (Default: noaa18
-    and noaa19. (metop???))
+    *satellites* should be a list of satellite names to consider. (Default:
+    noaa18 and noaa19. (metop???))
     *time_window* is the time in minutes to pass to SNO ``findtimes``.
-    *basedir* is the base directory for PPS data.
+    *data24dir* is the origin directory for PPS data.
+    *arkivdir* is the destination directory for PPS data.
+    *file_types* should be a list of PPS file types to copy.
+    
+    If a file type is in (module wide) REQUIRED_FILE_TYPES, but does not exist
+    at the origin, no further processing of the scene will be carried out.
+    
+    If a file type is in (module wide) REPRODUCIBLE_FILE_TYPES, but does not
+    exist at the origin, it is reproduced by running PPS. For this to work, the
+    shell environment must be set up properly (e.g. by sourcing a ``source_me``
+    or ``.profile_pps`` file).
+    
     """
     from find_crosses import find_crosses
     from datetime import date, timedelta
