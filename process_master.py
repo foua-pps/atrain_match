@@ -52,7 +52,16 @@ def process_matchups(matchups, run_modes, reprocess=False, debug=False):
                    '\n'.join([str(m) for m in problematic])))
 
 
-def main():
+def main(args=None):
+    """
+    Process command line options and run matchup and validation.
+    
+    If *args* is provided, it should be a list of command line arguments (e.g.
+    sys.argv[1:]).
+    
+    For a complete usage description, run 'python process_master -h'.
+    
+    """
     from optparse import OptionParser
     import find_crosses
     
@@ -71,7 +80,7 @@ def main():
                       help="Disregard any previously generated Cloudsat- and "
                       "Calipso-AVHRR matchup files.")
     parser.add_option('-d', '--debug', action='store_true', default=False)
-    (options, args) = parser.parse_args()
+    (options, args) = parser.parse_args(args)
     
     if options.mode is not None:
         run_modes = options.mode
