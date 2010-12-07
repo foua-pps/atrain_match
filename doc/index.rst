@@ -10,7 +10,9 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-.. automodule:: process_master
+   utilities
+   
+   find_crosses
 
 Indices and tables
 ==================
