@@ -38,16 +38,17 @@ logging.basicConfig()
 logger = logging.getLogger('collect')
 
 
-def run_pps(cross, file_type=None):
+def run_pps(satellite, datetime, orbit, file_type=None):
     """
-    Produce cloud mask, cloud type and CTTH products for the given *cross*.
+    Produce cloud mask, cloud type and CTTH products for the given *satellite*,
+    *datetime*, and *orbit*.
+    
+    If *file_type* is specified, only the corresponding PPS product or
+    intermediate product will be produced. (Note: this will fail if files which
+    the product depends on are not available.)
+    
     """
-    from file_finders.pps import Lvl1bDirFinder
-    lvl1b_finder = Lvl1bDirFinder(PPS_ARKIV_DIR)
-    found_dir = lvl1b_finder.find(cross.time1, cross.satellite1)[0]
-    parsed = lvl1b_finder.parse(found_dir)
-    orbit = parsed['orbit']
-    datetime = parsed['datetime']
+    
     satday = "%d%02d%02d" % (datetime.year, datetime.month, datetime.day)
     sathour = "%02d%02d" % (datetime.hour, datetime.minute)
     
@@ -59,7 +60,7 @@ def run_pps(cross, file_type=None):
             import pps_arguments
             ppsarg = pps_arguments.create_pps_argument(pps_arguments.USE_AAPP_LVL1B_GLOB,
                                                        pps_arguments.SATELLITE_PROJ,
-                                                       cross.satellite1, orbit)
+                                                       satellite, orbit)
             import pps_ioproxy
             ioproxy = pps_ioproxy.pps_ioproxy(ppsarg)
         except:
@@ -120,7 +121,7 @@ def run_pps(cross, file_type=None):
                 
                 logger.debug("Running pps_pge02")
                 import ppsCtype
-                status = ppsCtype.pps_pge02(satday, sathour, orbit, cross.satellite1, None)
+                status = ppsCtype.pps_pge02(satday, sathour, orbit, satellite, None)
                 if status != 0:
                     raise RuntimeError("Status returned from pps_pge02: %d" % status)
             except:
@@ -152,10 +153,28 @@ def run_pps(cross, file_type=None):
                 raise
         
         else:
-            raise NotImplementedError("file_type = %s not yet supported in run_pps" % file_type)
+            raise NotImplementedError("file_type = %s not yet supported in run_pps_on_cross" % file_type)
     except:
         logger.info("Could not reproduce PPS products.")
         raise
+
+
+def run_pps_on_cross(cross, file_type=None):
+    """
+    Produce cloud mask, cloud type and CTTH products for the given *cross*.
+    
+    If *file_type* is specified, only the corresponding PPS product or
+    intermediate product will be produced. (Note: this will fail if files which
+    the product depends on are not available.)
+    
+    """
+    from file_finders.pps import Lvl1bDirFinder
+    lvl1b_finder = Lvl1bDirFinder(PPS_ARKIV_DIR)
+    found_dir = lvl1b_finder.find(cross.time1, cross.satellite1)[0]
+    parsed = lvl1b_finder.parse(found_dir)
+    
+    run_pps(cross.satellite1, parsed['datetime'], parsed['orbit'], file_type)
+
 
 
 def get_tles():
@@ -262,7 +281,7 @@ def get_files(satellites=['noaa18', 'noaa19'], time_window=TIME_WINDOW,
                                                                                        basedir=arkivdir))
                         logger.info("Regenerating %s data" % file_type)
                         try:
-                            run_pps(cross, file_type)
+                            run_pps_on_cross(cross, file_type)
                         except:
                             continue
                     else:
