@@ -1,11 +1,15 @@
 #!/usr/bin/python
 """
-This module can be used to match noaa and/or metop data with Cloudsat and
-Calipso data, and produce statistics for validation of PPS cloud mask, cloud
-type and cloud top temperature and height products.
+This module is the main entry point for matching noaa and/or metop data with
+Cloudsat and Calipso data, and produce statistics for validation of PPS
+cloud mask, cloud type and cloud top temperature and height products.
 
 It is really a wrapper to :func:`cloudsat_calipso_avhrr_match.run`, for running
 through a set of SNO matchups.
+
+.. note::
+
+    This module has a command line interface.
 
 """
 

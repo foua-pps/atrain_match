@@ -5,6 +5,15 @@
 Welcome to atrain_match's documentation!
 ========================================
 
+``atrain_match`` contains functionality for matching AVHRR data with Cloudsat
+and Calipso data, and producing statistics summaries for PPS products Cloud
+Mask, Cloud Type, and Cloud Top Temperature and Height, compared with
+corresponding Cloudsat and/or Calipso products.
+
+Additionally, the :mod:`collect_last_day` module can be set up to collect
+data files needed for matching and validation from a temporary directory (e.g.
+``/data/24/...`` at SMHI) to an archive directory.
+
 Contents:
 
 .. toctree::

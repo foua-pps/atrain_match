@@ -1,6 +1,13 @@
 #!/usr/bin/python
-"""Find satellite passes where the given satellites cross paths within a given
-time window."""
+"""
+Find satellite passes where the given satellites cross paths within a given
+time window.
+
+.. note::
+
+    This module has a command line interface.
+
+"""
 
 from config import get_environ
 

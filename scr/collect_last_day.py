@@ -1,6 +1,12 @@
+#!/usr/bin/env python
 """
 Collect data from /data/24 for satellite passes crossing paths with Calipso. The
 collected data can then be used for further validation processing.
+
+.. note::
+
+    This module has a command line interface.
+
 """
 
 from urllib2 import urlopen
