@@ -1,93 +1,96 @@
+"""
+Program cloudsat_calipso_avhrr_match.py
 
-# Program cloudsat_calipso_avhrr_match.py
+This program is used to process and output statistics for the inter-comparison of AVHRR PPS
+results and CloudSat/CALIPSO observations. It may be run
+repeatedly and supervised by program cloudsat_calipso_process_master.py.
 
-# This program is used to process and output statistics for the inter-comparison of AVHRR PPS
-# results and CloudSat/CALIPSO observations. It may be run
-# repeatedly and supervised by program cloudsat_calipso_process_master.py.
+This particular version of Adam's original CloudSat/CALIPSO matchup and analysis program has been complemented
+with the following:
 
-# This particular version of Adam's original CloudSat/CALIPSO matchup and analysis program has been complemented
-# with the following:
+ * A method to calculate cloud emissivities for the uppermost CALIPSO cloud layer. With the
+   use of parameters EMISS_FILTERING, EMISS_MIN_HEIGHT and EMISS_LIMIT the thinnest uppermost
+   CALIPSO cloud layers can be analysed and the entire column can be disregarded if the
+   emissivity falls below the EMISS_LIMIT value.
+   Cloud emissivities Ec are calculated as follows:
 
-#  * A method to calculate cloud emissivities for the uppermost CALIPSO cloud layer. With the
-#    use of parameters EMISS_FILTERING, EMISS_MIN_HEIGHT and EMISS_LIMIT the thinnest uppermost
-#    CALIPSO cloud layers can be analysed and the entire column can be disregarded if the
-#    emissivity falls below the EMISS_LIMIT value.
-#    Cloud emissivities Ec are calculated as follows:
-#
-#                     Ec = (I-Iclear)/(B(Tc)-Iclear)
-#    where
-#        I = Measured radiance in AVHRR channel 4 (11 micron)
-#            To be calculated as the Planck radiance for the associated brightness temperature
-#        Iclear = Estimated radiance in cloud free situations
-#                 To be calculate as the Planck radiance for the NWP-analysed surface temperature
-#                 (i.e., neglecting further atmospheric contributions)
-#        B(Tc) = Planck radiance for the uppermost cloud layer using CALIPSO mid-layer temperatures
+                    Ec = (I-Iclear)/(B(Tc)-Iclear)
+   where
+       I = Measured radiance in AVHRR channel 4 (11 micron)
+           To be calculated as the Planck radiance for the associated brightness temperature
+       Iclear = Estimated radiance in cloud free situations
+                To be calculate as the Planck radiance for the NWP-analysed surface temperature
+                (i.e., neglecting further atmospheric contributions)
+       B(Tc) = Planck radiance for the uppermost cloud layer using CALIPSO mid-layer temperatures
 
-#  * Adjusted scales between CloudSat and CALIPSO datasets. The previous assumption that both datasets
-#    had 1 km resolution resulted in that datasets went out of phase for distances longer than about
-#    1000 km. An empirical scale factor (CLOUDSAT_TRACK_RESOLUTION) of 1.076 is used to get the most
-#    optimal match.
+ * Adjusted scales between CloudSat and CALIPSO datasets. The previous assumption that both datasets
+   had 1 km resolution resulted in that datasets went out of phase for distances longer than about
+   1000 km. An empirical scale factor (CLOUDSAT_TRACK_RESOLUTION) of 1.076 is used to get the most
+   optimal match.
 
-#  * AVHRR cloud top height datasets have been recalculated to heights above mean sea level using
-#    CloudSat and CALIPSO elevation data
+ * AVHRR cloud top height datasets have been recalculated to heights above mean sea level using
+   CloudSat and CALIPSO elevation data
 
-#  * The MODIS cloud flag has been added to the extracted CALIPSO dataset. This enables direct
-#    comparisons to the MODIS cloud mask! Consequently, corresponding MODIS Cloud Mask statistics
-#    are calculated and printed.
+ * The MODIS cloud flag has been added to the extracted CALIPSO dataset. This enables direct
+   comparisons to the MODIS cloud mask! Consequently, corresponding MODIS Cloud Mask statistics
+   are calculated and printed.
 
-#  * The Vertical Feature Mask parameter in the CALIPSO dataset has been used to subdivide results
-#    into three cloud groups: Low, Medium and High. This has enabled an evaluation of PPS Cloud Type
-#    results and a further sub-division of Cloud Top Height results
+ * The Vertical Feature Mask parameter in the CALIPSO dataset has been used to subdivide results
+   into three cloud groups: Low, Medium and High. This has enabled an evaluation of PPS Cloud Type
+   results and a further sub-division of Cloud Top Height results
 
-#  * The National Snow and Ice Data Center (NSIDC) ice and snow mapping results have been added
-#    to the extracted Calipso parameters. Together with the IGBP land use classification it is then
-#    possible to isolate the study to focus on one of the following categories:
+ * The National Snow and Ice Data Center (NSIDC) ice and snow mapping results have been added
+   to the extracted Calipso parameters. Together with the IGBP land use classification it is then
+   possible to isolate the study to focus on one of the following categories:
 
-#        ICE_COVER_SEA, ICE_FREE_SEA, SNOW_COVER_LAND, SNOW_FREE_LAND or COASTAL_ZONE
+       ICE_COVER_SEA, ICE_FREE_SEA, SNOW_COVER_LAND, SNOW_FREE_LAND or COASTAL_ZONE
 
-#  RUNNING INSTRUCTIONS:
+RUNNING INSTRUCTIONS
+--------------------
 
-# The program is capable of running in a wide range of modes (according to description above). These
-# various modes are selected by enabling (disabling) the following parameters:
+The program is capable of running in a wide range of modes (according to description above). These
+various modes are selected by enabling (disabling) the following parameters:
 
-# PLOT_OPTION, EMISS_FILTERING, ICE_COVER_SEA, ICE_FREE_SEA, SNOW_COVER_LAND, SNOW_FREE_LAND, COASTAL_ZONE
+PLOT_OPTION, EMISS_FILTERING, ICE_COVER_SEA, ICE_FREE_SEA, SNOW_COVER_LAND, SNOW_FREE_LAND, COASTAL_ZONE
 
-# However, notice that only one mode can be chosen for each run. The only exception is PLOT_OPTION
-# (i.e., the generation of a PNG plot) which can be combined with EMISS_FILTERING. This also means
-# that processing of individual surface categories only generates statistics and not any plots.
+However, notice that only one mode can be chosen for each run. The only exception is PLOT_OPTION
+(i.e., the generation of a PNG plot) which can be combined with EMISS_FILTERING. This also means
+that processing of individual surface categories only generates statistics and not any plots.
 
-# Input data has to be supplied at directories defined by MAIN_DIR and SUB_DIR parameters below.
+Input data has to be supplied at directories defined by MAIN_DIR and SUB_DIR parameters below.
  
-# Every exection of the program prints out statistics for PPS Cloud Mask, Cloud Type and Cloud Top Height
-# directly on the screen.
+Every exection of the program prints out statistics for PPS Cloud Mask, Cloud Type and Cloud Top Height
+directly on the screen.
 
-# Don't forget to set all parameters needed for standard ACPG/AHAMAP execution since the matchup
-# software uses parts of the ACPG/AHAMAP software.
+Don't forget to set all parameters needed for standard ACPG/AHAMAP execution since the matchup
+software uses parts of the ACPG/AHAMAP software.
 
-# Dependencies: For a successful run of the program the following supporting python modules must be
-#               available in the default run directory:
+Dependencies: For a successful run of the program the following supporting python modules must be
+              available in the default run directory:
 
-#               cloudsat.py
-#               calipso.py
-#               calipso_avhrr_matchup.py
-#               cloudsat_avhrr_matchup.py
-#               radiance_tb_tables_kgtest.py
+              cloudsat.py
+              calipso.py
+              calipso_avhrr_matchup.py
+              cloudsat_avhrr_matchup.py
+              radiance_tb_tables_kgtest.py
 
-#               For full consistency make sure that MAIN_DIR and SUB_DIR parameters are the same also
-#               in modules cloudsat.py and calipso.py.
+              For full consistency make sure that MAIN_DIR and SUB_DIR parameters are the same also
+              in modules cloudsat.py and calipso.py.
 
-# Output data files: Main results are generally written in the directory MAIN_DIR/SUB_DIR but plotting
-#                    results are stored at ./Plot and temporary results at ./Data directories. Thus,
-#                    make sure that these directories exist as subdirectories at the default run directory.
-#                   This is now made automatic /Erik
+Output data files: Main results are generally written in the directory MAIN_DIR/SUB_DIR but plotting
+                   results are stored at ./Plot and temporary results at ./Data directories. Thus,
+                   make sure that these directories exist as subdirectories at the default run directory.
+                  This is now made automatic /Erik
 
-# Finally, notice that the matching of the PPS, CloudSat and CALIPSO datasets have been calculated using the
-# fix area arctic_super_5010 defined over the Arctic region in Lambert Azimuthal Equal Area projection. Thus,
-# for matching data to other regions please modify modules calipso.py and cloudsat.py and replace area
-# arctic_super_5010 with the desired area.
-# This is now made below /Erik
+Finally, notice that the matching of the PPS, CloudSat and CALIPSO datasets have been calculated using the
+fix area arctic_super_5010 defined over the Arctic region in Lambert Azimuthal Equal Area projection. Thus,
+for matching data to other regions please modify modules calipso.py and cloudsat.py and replace area
+arctic_super_5010 with the desired area.
+This is now made below /Erik
 
-# /KG March 2010
+/KG March 2010
+
+"""
 
 import sys
 import rpy
@@ -367,6 +370,10 @@ def get_matchups(cross, reprocess=False):
 
 
 def run(cross, process_mode, reprocess=False):
+    """
+    The main work horse.
+    
+    """
     write_log('INFO', "Case: %s" % str(cross))
     write_log('INFO', "Process mode: %s" % process_mode)
     

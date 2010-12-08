@@ -22,6 +22,8 @@ Contents:
    utilities
    
    find_crosses
+   
+   cloudsat_calipso_avhrr_match
 
 Indices and tables
 ==================
