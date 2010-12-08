@@ -17,8 +17,6 @@ import sys, os
 sys.path.append('..')
 sys.path.append('../Ackumulering_stat')
 sys.path.append('../scr')
-sys.path.append('/data/proj/safworks/opt/linda2/ACPG/pps-2010-patches_r4/lib')
-sys.path.append('/data/proj/safworks/opt/linda2/ACPG/pps-2010-patches_r4/scr')
 
 # If your extensions are in another directory, add it here. If the directory
 # is relative to the documentation root, use os.path.abspath to make it
