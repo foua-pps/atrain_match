@@ -1,8 +1,10 @@
-'''
-Created on Oct 19, 2010
+"""
+Configuration file for ``atrain_match``. Most configuration options and constants
+used in ``atrain_match`` are set in this file. However, there may
+still be some modules which have internal constants defined.
 
-@author: a001696
-'''
+"""
+
 import os
 
 def get_environ(name, default=None):
