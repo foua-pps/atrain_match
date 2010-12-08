@@ -115,6 +115,8 @@ elif RESOLUTION == 5:
     SWATHWD=409
     AREA = "arctic_super_1002_5km"
     ALLOWED_MODES.append('OPTICAL_DEPTH')      # Filter out cases with the thinnest topmost CALIPSO layers. Define MIN_OPTICAL_DEPTH below
+else:
+    raise ValueError("RESOLUTION == %s not supported" % str(RESOLUTION))
 
 #: Threshold for optical thickness. If optical thickness is below this value it will be filtered out.
 MIN_OPTICAL_DEPTH = 1
