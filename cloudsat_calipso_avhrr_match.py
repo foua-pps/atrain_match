@@ -299,7 +299,7 @@ def get_matchups_from_data(cross):
                                                        region=config.AREA)
     attach_subdir_from_config(match_finder)
     rematched_file_base = os.path.join(config.RESHAPE_DIR,
-                                       match_finder.subdir(satellite, datetime),
+                                       match_finder.subdir(datetime, satname=satellite),
                                        "%dkm_%s_atrain_datatype_avhrr_match.h5" % \
                                        (config.RESOLUTION, basename))
     
