@@ -8,42 +8,65 @@ from config import AREA, SUB_DIR, DATA_DIR, sec_timeThr, DSEC_PER_AVHRR_SCALINE,
 from common import MatchupError, elements_within_range
 
 COVERAGE_DIR = "%s/%ikm/%s"%(SUB_DIR,RESOLUTION,AREA)
-
-class ppsAvhrrObject:
+class DataObject(object):
+    """
+    Class to handle data objects with several arrays.
+    
+    """
+    def __getattr__(self, name):
+        try:
+            return self.all_arrays[name]
+        except KeyError:
+            raise AttributeError("%s instance has no attribute '%s'" % (self.__class__.__name__, name))
+    
+    def __setattr__(self, name, value):
+        if name == 'all_arrays':
+            object.__setattr__(self, name, value)
+        else:
+            self.all_arrays[name] = value
+            
+class ppsAvhrrObject(DataObject):
     def __init__(self):
-        self.longitude=None
-        self.latitude=None
-        self.sec_1970=None
-        self.ctth_height=None
-        self.ctth_pressure=None
-        self.ctth_temperature=None
-        self.cloudtype=None
-        self.surftemp=None
-        self.bt11micron=None
-        self.bt12micron=None
-        self.satz=None
+        DataObject.__init__(self)                            
+        self.all_arrays = {
+            'longitude': None,
+            'latitude': None,
+            'sec_1970': None,
+            'ctth_height': None,
+            'ctth_pressure': None,
+            'ctth_temperature': None,
+            'cloudtype': None,
+            'surftemp': None,
+            'bt11micron': None,
+            'bt12micron': None,
+            'satz': None,
+            'surftemp': None
+            }
         
-class CalipsoObject:
+class CalipsoObject(DataObject):
     def __init__(self):
-        self.longitude=None
-        self.latitude=None
-        self.avhrr_linnum=None
-        self.avhrr_pixnum=None
-        self.cloud_fraction=None
-        self.cloud_top_profile=None
-        self.cloud_base_profile=None
-        self.cloud_mid_temperature=None
-        self.number_of_layers_found=None
-        self.igbp=None
-        self.nsidc=None
-        self.elevation=None
-        self.time=None
-        self.utc_time=None 
-        self.sec_1970=None
-        self.feature_classification_flags=None
-        self.day_night_flag=None
-        self.optical_depth=None
-        self.optical_depth_uncertainty=None
+        DataObject.__init__(self)                            
+        self.all_arrays = {
+            'longitude': None,
+            'latitude': None,
+            'avhrr_linnum': None,
+            'avhrr_pixnum': None,
+            'cloud_fraction': None,
+            'cloud_top_profile': None,
+            'cloud_base_profile': None,
+            'cloud_mid_temperature': None,
+            'number_of_layers_found': None,
+            'igbp': None,
+            'nsidc': None,
+            'elevation': None,
+            'time': None,
+            'utc_time': None, 
+            'sec_1970': None,
+            'feature_classification_flags': None,
+            'day_night_flag': None,
+            'optical_depth': None,
+            'optical_depth_uncertainty': None
+            }
 class CalipsoAvhrrTrackObject:
     def __init__(self):
         self.avhrr=ppsAvhrrObject()
