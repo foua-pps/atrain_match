@@ -74,8 +74,6 @@ class CloudsatAvhrrTrackObject:
         self.avhrr=ppsAvhrrObject()
         self.cloudsat=CloudsatObject()
         self.diff_sec_1970=None
-##########################################################################################################################################   
-#pdb.set_trace()
 
 # ----------------------------------------
 def readCloudsatAvhrrMatchObj(filename):
@@ -112,7 +110,7 @@ def writeCloudsatAvhrrMatchObj(filename,ca_obj,compress_lvl):
     b=_pyhl.node(_pyhl.DATASET_ID,"/diff_sec_1970")
     b.setArrayValue(1,shapediff,ca_obj.diff_sec_1970,dtypediff,-1)
     a.addNode(b)
-    pdb.set_trace()
+    
     # Cloudsat
     # ====
     b=_pyhl.node(_pyhl.GROUP_ID,"/cloudsat")
@@ -127,7 +125,7 @@ def writeCloudsatAvhrrMatchObj(filename,ca_obj,compress_lvl):
             b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/%s" %arnamecl)  
             b.setArrayValue(1,shapecl,valuecl,dtypecl,-1)
             a.addNode(b)
-    pdb.set_trace()
+    
     # AVHRR
     # ====
     b=_pyhl.node(_pyhl.GROUP_ID,"/avhrr")
