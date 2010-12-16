@@ -360,7 +360,7 @@ def get_matchups(cross, reprocess=False):
             
             basename = '_'.join(os.path.basename(ca_match_file).split('_')[1:5])
             write_log('INFO', "Matchups read from previously processed data.")
-        except:
+        except IndexError:
             write_log('INFO', "No processed match files found. Generating from source data.")
     
     if None in [caObj, clObj]:
