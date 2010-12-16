@@ -47,8 +47,8 @@ def drawCalClsatGEOPROFAvhrrPlot(clsatObj_cloudsat, clsatObj_avhrr, caObj_calips
         device = rpy.r.postscript
     elif file_type == 'jpeg' or file_type == 'jpg':
        device = rpy.r.jpeg
-    elif file_type == 'npg':
-        device = rpy.r.npg
+    elif file_type == 'png':
+        device = rpy.r.png
     elif file_type == 'bmp':
         device = rpy.r.bmp
     elif file_type == 'pdf':
