@@ -80,68 +80,21 @@ class CloudsatAvhrrTrackObject:
 # ----------------------------------------
 def readCloudsatAvhrrMatchObj(filename):
     import _pyhl
-
+    import h5py
+    
     retv = CloudsatAvhrrTrackObject()
+    
+    h5file = h5py.File(filename, 'r')
+    for group, data_obj in [(h5file['/cloudsat'], retv.cloudsat),
+                            (h5file['/avhrr'], retv.avhrr)]:
+        for dataset in group.keys():        
+            if dataset in data_obj.all_arrays.keys():
+                data_obj.all_arrays[dataset] = group[dataset].value
+    
+    retv.diff_sec_1970 = h5file['diff_sec_1970'].value
 
-    a=_pyhl.read_nodelist(filename)
-    a.selectAll()
-    a.fetch()
+    h5file.close()
 
-    # Match-Up - time difference:
-    retv.diff_sec_1970 = a.getNode("/diff_sec_1970").data()
-
-    # Cloudsat:
-    retv.cloudsat.longitude = a.getNode("/cloudsat/longitude").data()
-    retv.cloudsat.latitude = a.getNode("/cloudsat/latitude").data()
-    retv.cloudsat.avhrr_linnum = a.getNode("/cloudsat/avhrr_linnum").data()
-    retv.cloudsat.avhrr_pixnum = a.getNode("/cloudsat/avhrr_pixnum").data()
-    retv.cloudsat.Height = a.getNode("/cloudsat/Height").data()
-    retv.cloudsat.elevation = a.getNode("/cloudsat/elevation").data()
-    retv.cloudsat.sec_1970 = a.getNode("/cloudsat/sec_1970").data()
-            
-    if CLOUDSAT_TYPE == 'GEOPROF':
-        retv.cloudsat.cloud_mask = a.getNode("/cloudsat/cloud_mask").data()
-        retv.cloudsat.Radar_Reflectivity = a.getNode("/cloudsat/Radar_Reflectivity").data()
-        retv.cloudsat.echo_top = a.getNode("/cloudsat/echo_top").data()
-        retv.cloudsat.SurfaceHeightBin = a.getNode("/cloudsat/SurfaceHeightBin").data()
-        retv.cloudsat.SurfaceHeightBin_fraction = a.getNode("/cloudsat/SurfaceHeightBin_fraction").data()
-        
-        retv.cloudsat.MODIS_Cloud_Fraction = a.getNode("/cloudsat/MODIS_Cloud_Fraction").data()
-        retv.cloudsat.MODIS_cloud_flag = a.getNode("/cloudsat/MODIS_cloud_flag").data()
-    elif CLOUDSAT_TYPE == 'CWC-RVOD':
-        retv.cloudsat.RVOD_liq_water_path = a.getNode("/cloudsat/RVOD_liq_water_path").data()
-        retv.cloudsat.RVOD_liq_water_path_uncertainty = a.getNode("/cloudsat/RVOD_liq_water_path_uncertainty").data()
-        retv.cloudsat.RVOD_ice_water_path = a.getNode("/cloudsat/RVOD_ice_water_path").data()
-        retv.cloudsat.RVOD_ice_water_path_uncertainty = a.getNode("/cloudsat/RVOD_ice_water_path_uncertainty").data()
-        retv.cloudsat.LO_RVOD_liquid_water_path = a.getNode("/cloudsat/LO_RVOD_liquid_water_path").data()
-        retv.cloudsat.LO_RVOD_liquid_water_path_uncertainty = a.getNode("/cloudsat/LO_RVOD_liquid_water_path_uncertainty").data()
-        retv.cloudsat.IO_RVOD_ice_water_path = a.getNode("/cloudsat/IO_RVOD_ice_water_path").data()
-        retv.cloudsat.IO_RVOD_ice_water_path_uncertainty = a.getNode("/cloudsat/IO_RVOD_ice_water_path_uncertainty").data()
-
-       
-        retv.cloudsat.RVOD_liq_water_content = a.getNode("/cloudsat/RVOD_liq_water_content").data()
-        retv.cloudsat.RVOD_liq_water_content_uncertainty = a.getNode("/cloudsat/RVOD_liq_water_content_uncertainty").data()
-        retv.cloudsat.RVOD_ice_water_content = a.getNode("/cloudsat/RVOD_ice_water_content").data()
-        retv.cloudsat.RVOD_ice_water_content_uncertainty = a.getNode("/cloudsat/RVOD_ice_water_content_uncertainty").data()
-        retv.cloudsat.LO_RVOD_liquid_water_content = a.getNode("/cloudsat/LO_RVOD_liquid_water_content").data()
-        retv.cloudsat.LO_RVOD_liquid_water_content_uncertainty = a.getNode("/cloudsat/LO_RVOD_liquid_water_content_uncertainty").data()
-        retv.cloudsat.IO_RVOD_ice_water_content = a.getNode("/cloudsat/IO_RVOD_ice_water_content").data()
-        retv.cloudsat.IO_RVOD_ice_water_content_uncertainty = a.getNode("/cloudsat/IO_RVOD_ice_water_content_uncertainty").data()
-        retv.cloudsat.Temp_min_mixph_K = a.getNode("/cloudsat/Temp_min_mixph_K").data()
-        retv.cloudsat.Temp_max_mixph_K = a.getNode("/cloudsat/Temp_max_mixph_K").data()
-            
-    # AVHRR:
-    retv.avhrr.longitude = a.getNode("/avhrr/longitude").data()
-    retv.avhrr.latitude = a.getNode("/avhrr/latitude").data()
-    retv.avhrr.sec_1970 = a.getNode("/avhrr/sec_1970").data()
-    retv.avhrr.cloudtype = a.getNode("/avhrr/cloudtype").data()
-    retv.avhrr.ctth_height = a.getNode("/avhrr/ctth_height").data()
-    retv.avhrr.ctth_pressure = a.getNode("/avhrr/ctth_pressure").data()
-    retv.avhrr.ctth_temperature = a.getNode("/avhrr/ctth_temperature").data()
-    retv.avhrr.bt11micron = a.getNode("/avhrr/bt11micron").data()
-    retv.avhrr.bt12micron = a.getNode("/avhrr/bt12micron").data()
-    retv.avhrr.surftemp = a.getNode("/avhrr/surftemp").data()
-    retv.avhrr.satz = a.getNode("/avhrr/satz").data()
     return retv
 
 
@@ -149,167 +102,49 @@ def readCloudsatAvhrrMatchObj(filename):
 def writeCloudsatAvhrrMatchObj(filename,ca_obj,compress_lvl):
     import _pyhl
     status = -1
+
+    typedict = {'float64': 'double', 'float32': 'float', 'int32': 'int', 'int16': 'short','uint8': 'uchar'}
     
     a=_pyhl.nodelist()
-
-    shape = [ca_obj.cloudsat.longitude.shape[0]]
-    shape2d = ca_obj.cloudsat.cloud_mask.shape
-    shapeTAIcwc = [ca_obj.cloudsat.Temp_min_mixph_K.shape[0]]
-    shapecwclong = [ca_obj.cloudsat.Profile_time.shape[0]]
-    # Match-Up - time difference:
-    # ====
+    
+    shapediff = ca_obj.diff_sec_1970.shape
+    dtypediff = typedict[ca_obj.diff_sec_1970.dtype.name]    
     b=_pyhl.node(_pyhl.DATASET_ID,"/diff_sec_1970")
-    b.setArrayValue(1,shape,ca_obj.diff_sec_1970,"double",-1)
+    b.setArrayValue(1,shapediff,ca_obj.diff_sec_1970,dtypediff,-1)
     a.addNode(b)
-
+    pdb.set_trace()
     # Cloudsat
     # ====
     b=_pyhl.node(_pyhl.GROUP_ID,"/cloudsat")
     a.addNode(b)
-    b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/longitude")
-    b.setArrayValue(1,shape,ca_obj.cloudsat.longitude,"double",-1)
-    a.addNode(b)
-    b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/latitude")
-    b.setArrayValue(1,shape,ca_obj.cloudsat.latitude,"double",-1)
-    a.addNode(b)
-    b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/avhrr_linnum")
-    b.setArrayValue(1,shape,ca_obj.cloudsat.avhrr_linnum,"int",-1)
-    a.addNode(b)
-    b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/avhrr_pixnum")
-    b.setArrayValue(1,shape,ca_obj.cloudsat.avhrr_pixnum,"int",-1)
-    a.addNode(b)
-    b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/elevation")
-    b.setArrayValue(1,shape,ca_obj.cloudsat.elevation,"double",-1)
-    a.addNode(b)
-    b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/Height")
-    b.setArrayValue(1,shape2d,ca_obj.cloudsat.Height,"double",-1)
-    a.addNode(b)
-    b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/sec_1970")
-    b.setArrayValue(1,shape,ca_obj.cloudsat.sec_1970,"double",-1)
-    a.addNode(b)
-    
-    if CLOUDSAT_TYPE == 'GEOPROF':
-        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/cloud_mask")
-        b.setArrayValue(1,shape2d,ca_obj.cloudsat.cloud_mask,"double",-1)
-        a.addNode(b)
-        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/Radar_Reflectivity")
-        b.setArrayValue(1,shape2d,ca_obj.cloudsat.Radar_Reflectivity,"double",-1)
-        a.addNode(b)
-        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/echo_top")
-        b.setArrayValue(1,shape,ca_obj.cloudsat.echo_top,"double",-1)
-        a.addNode(b)
-        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/SurfaceHeightBin")
-        b.setArrayValue(1,shape,ca_obj.cloudsat.SurfaceHeightBin,"double",-1)
-        a.addNode(b)
-        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/SurfaceHeightBin_fraction")
-        b.setArrayValue(1,shape,ca_obj.cloudsat.SurfaceHeightBin_fraction,"double",-1)
-        a.addNode(b)
-        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/MODIS_Cloud_Fraction")
-        b.setArrayValue(1,shape,ca_obj.cloudsat.MODIS_Cloud_Fraction.astype('double'),"double",-1)
-        a.addNode(b)
-        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/MODIS_cloud_flag")
-        b.setArrayValue(1,shape,ca_obj.cloudsat.MODIS_cloud_flag.astype('double'),"double",-1)
-        a.addNode(b)
-    
-    elif CLOUDSAT_TYPE == 'CWC-RVOD':
-        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/RVOD_liq_water_path")
-        b.setArrayValue(1,shapecwc,ca_obj.cloudsat.RVOD_liq_water_path,"short",-1)
-        a.addNode(b)
-        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/RVOD_liq_water_path_uncertainty")
-        b.setArrayValue(1,shapecwc,ca_obj.cloudsat.RVOD_liq_water_path_uncertainty,"uchar",-1)
-        a.addNode(b)
-        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/RVOD_ice_water_path")
-        b.setArrayValue(1,shapecwc,ca_obj.cloudsat.RVOD_ice_water_path,"short",-1)
-        a.addNode(b)
-        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/RVOD_ice_water_path_uncertainty")
-        b.setArrayValue(1,shapecwc,ca_obj.cloudsat.RVOD_ice_water_path_uncertainty,"uchar",-1)
-        a.addNode(b)
-        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/LO_RVOD_liquid_water_path")
-        b.setArrayValue(1,shapecwc,ca_obj.cloudsat.LO_RVOD_liquid_water_path,"short",-1)
-        a.addNode(b)
-        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/LO_RVOD_liquid_water_path_uncertainty")
-        b.setArrayValue(1,shapecwc,ca_obj.cloudsat.LO_RVOD_liquid_water_path_uncertainty,"uchar",-1)
-        a.addNode(b)
-        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/IO_RVOD_ice_water_path")
-        b.setArrayValue(1,shapecwc,ca_obj.cloudsat.IO_RVOD_ice_water_path,"short",-1)
-        a.addNode(b)
-        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/IO_RVOD_ice_water_path_uncertainty")
-        b.setArrayValue(1,shapecwc,ca_obj.cloudsat.IO_RVOD_ice_water_path_uncertainty,"uchar",-1)
-        a.addNode(b)
-   
-        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/RVOD_liq_water_content")
-        b.setArrayValue(1,shape2dcwc,ca_obj.cloudsat.RVOD_liq_water_content,"short",-1)
-        a.addNode(b)
-        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/RVOD_liq_water_content_uncertainty")
-        b.setArrayValue(1,shape2dcwc,ca_obj.cloudsat.RVOD_liq_water_content_uncertainty,"uchar",-1)
-        a.addNode(b)
-        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/RVOD_ice_water_content")
-        b.setArrayValue(1,shape2dcwc,ca_obj.cloudsat.RVOD_ice_water_content,"short",-1)
-        a.addNode(b)
-        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/RVOD_ice_water_content_uncertainty")
-        b.setArrayValue(1,shape2dcwc,ca_obj.cloudsat.RVOD_ice_water_content_uncertainty,"uchar",-1)
-        a.addNode(b)
-        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/LO_RVOD_liquid_water_content")
-        b.setArrayValue(1,shape2dcwc,ca_obj.cloudsat.LO_RVOD_liquid_water_content,"short",-1)
-        a.addNode(b)
-        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/LO_RVOD_liquid_water_content_uncertainty")
-        b.setArrayValue(1,shape2dcwc,ca_obj.cloudsat.LO_RVOD_liquid_water_content_uncertainty,"uchar",-1)
-        a.addNode(b)
-        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/IO_RVOD_ice_water_content")
-        b.setArrayValue(1,shape2dcwc,ca_obj.cloudsat.IO_RVOD_ice_water_content,"short",-1)
-        a.addNode(b)
-        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/IO_RVOD_ice_water_content_uncertainty")
-        b.setArrayValue(1,shape2dcwc,ca_obj.cloudsat.IO_RVOD_ice_water_content_uncertainty,"uchar",-1)
-        a.addNode(b)
-        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/Temp_min_mixph_K")
-        b.setArrayValue(1,shapeTAIcwc,ca_obj.cloudsat.Temp_min_mixph_K,"double",-1)
-        a.addNode(b)
-        b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/Temp_max_mixph_K")
-        b.setArrayValue(1,shapeTAIcwc,ca_obj.cloudsat.Temp_max_mixph_K,"double",-1)
-        a.addNode(b)
+    # arname = array name from ca_obj.cloudsat
+    for arnamecl, valuecl in ca_obj.cloudsat.all_arrays.items(): 
+        if valuecl != None:
+            if valuecl.ndim == 0:
+                valuecl = valuecl.ravel()                            
+            shapecl = valuecl.shape
+            dtypecl = typedict[valuecl.dtype.name]
+            b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/%s" %arnamecl)  
+            b.setArrayValue(1,shapecl,valuecl,dtypecl,-1)
+            a.addNode(b)
+    pdb.set_trace()
     # AVHRR
     # ====
     b=_pyhl.node(_pyhl.GROUP_ID,"/avhrr")
     a.addNode(b)
-    b=_pyhl.node(_pyhl.DATASET_ID,"/avhrr/longitude")
-    shape = ca_obj.avhrr.longitude.shape
-    b.setArrayValue(1,shape,ca_obj.avhrr.longitude,"float",-1)
-    a.addNode(b)
-    b=_pyhl.node(_pyhl.DATASET_ID,"/avhrr/latitude")
-    b.setArrayValue(1,shape,ca_obj.avhrr.latitude,"float",-1)
-    a.addNode(b)
+    # arnameav = array name from ca_obj_avhrr
+    for arnameav,valueav in ca_obj.avhrr.all_arrays.items():
+        if valueav != None:
+            if valueav.ndim == 0:
+                valueav = valueav.ravel()
+            shapeav = valueav.shape
+            dtypeav = typedict[valueav.dtype.name]
+            b=_pyhl.node(_pyhl.DATASET_ID,"/avhrr/%s" %arnameav)  
+            b.setArrayValue(1,shapeav,valueav,dtypeav,-1)
+            a.addNode(b)
 
-    b=_pyhl.node(_pyhl.DATASET_ID,"/avhrr/sec_1970")
-    b.setArrayValue(1,shape,ca_obj.avhrr.sec_1970,"double",-1)
-    a.addNode(b)
-    b=_pyhl.node(_pyhl.DATASET_ID,"/avhrr/ctth_pressure")
-    b.setArrayValue(1,shape,ca_obj.avhrr.ctth_pressure,"double",-1)
-    a.addNode(b)
-    b=_pyhl.node(_pyhl.DATASET_ID,"/avhrr/ctth_temperature")
-    b.setArrayValue(1,shape,ca_obj.avhrr.ctth_temperature,"double",-1)
-    a.addNode(b)
-    b=_pyhl.node(_pyhl.DATASET_ID,"/avhrr/ctth_height")
-    b.setArrayValue(1,shape,ca_obj.avhrr.ctth_height,"double",-1)
-    a.addNode(b)
-    b=_pyhl.node(_pyhl.DATASET_ID,"/avhrr/cloudtype")
-    b.setArrayValue(1,shape,ca_obj.avhrr.cloudtype,"uchar",-1)
-    a.addNode(b)
-    b=_pyhl.node(_pyhl.DATASET_ID,"/avhrr/bt11micron")
-    b.setArrayValue(1,shape,ca_obj.avhrr.bt11micron,"double",-1)
-    a.addNode(b)
-    b=_pyhl.node(_pyhl.DATASET_ID,"/avhrr/bt12micron")
-    b.setArrayValue(1,shape,ca_obj.avhrr.bt12micron,"double",-1)
-    a.addNode(b)
-    b=_pyhl.node(_pyhl.DATASET_ID,"/avhrr/surftemp")
-    b.setArrayValue(1,shape,ca_obj.avhrr.surftemp,"double",-1)
-    a.addNode(b)
-    b=_pyhl.node(_pyhl.DATASET_ID,"/avhrr/satz")
-    b.setArrayValue(1,shape,ca_obj.avhrr.satz,"double",-1)
-    a.addNode(b)
-    
     status = a.write(filename,compress_lvl)
-##########################################################################################################################################
-    #pdb.set_trace()
+
     return status
 
 # -----------------------------------------------------
@@ -372,150 +207,47 @@ def get_cloudsat(filename):
 def read_cloudsat(filename):
     import _pyhl
     import numpy
-    
-    # GEOPROF
-    # ====
-    a=_pyhl.read_nodelist(filename)
-     
-    b=a.getNodeNames()
-    a.selectAll()
-    a.fetch()
+    import h5py
+
     retv = CloudsatObject()
-    if RESOLUTION == 1:
-        root="/2B-%s" %CLOUDSAT_TYPE
-    
-        d=a.getNode("%s/Geolocation Fields/Longitude"%root)    
-        retv.longitude=numpy.fromstring(d.data(),'f').astype('d')
-        d=a.getNode("%s/Geolocation Fields/Latitude"%root)
-        retv.latitude=numpy.fromstring(d.data(),'f').astype('d')    
-        d=a.getNode("%s/Geolocation Fields/DEM_elevation"%root)
-        retv.elevation=numpy.fromstring(d.data(),'Int16').astype('Int16')  
-        d=a.getNode("%s/Geolocation Fields/Height"%root)
-        retv.Height=d.data()
-        d=a.getNode("%s/Geolocation Fields/Profile_time"%root)
-        retv.Profile_time=numpy.fromstring(d.data(),'f').astype('d')
-        # International Atomic Time (TAI) seconds from Jan 1, 1993:
-        d=a.getNode("%s/Geolocation Fields/TAI_start"%root)
-        retv.TAI_start=numpy.fromstring(d.data(),'d').astype('d')
-        d=a.getNode("%s/Data Fields/Data_quality"%root)
-        retv.Data_quality=numpy.fromstring(d.data(),'b').astype('b')
-        d=a.getNode("%s/Data Fields/Data_targetID"%root)
-        retv.Data_targetID=numpy.fromstring(d.data(),'b').astype('b')
-        
-        if CLOUDSAT_TYPE == 'GEOPROF':
-            d=a.getNode("%s/Data Fields/CPR_Cloud_mask"%root)
-            retv.CPR_Cloud_mask=d.data()
-            d=a.getNode("%s/Data Fields/Radar_Reflectivity"%root)
-            retv.Radar_Reflectivity=d.data().astype('Int16')
-            d=a.getNode("%s/Data Fields/Gaseous_Attenuation"%root)
-            retv.Gaseous_Attenuation=d.data().astype('Int16')
-            d=a.getNode("%s/Data Fields/CPR_Echo_Top"%root)
-            retv.CPR_Echo_Top=numpy.fromstring(d.data(),'b').astype('b')
-            d=a.getNode("%s/Data Fields/Clutter_reduction_flag"%root)
-            retv.Clutter_reduction_flag=numpy.fromstring(d.data(),'b').astype('b')
-            d=a.getNode("%s/Data Fields/MODIS_Cloud_Fraction"%root)
-            retv.MODIS_Cloud_Fraction=numpy.fromstring(d.data(),'b').astype('b')
-            d=a.getNode("%s/Data Fields/MODIS_cloud_flag"%root)
-            retv.MODIS_cloud_flag=numpy.fromstring(d.data(),'b').astype('b')
-            d=a.getNode("%s/Data Fields/Sigma-Zero"%root)
-            retv.SigmaZero=numpy.fromstring(d.data(),'Int16').astype('Int16')
-            d=a.getNode("%s/Data Fields/SurfaceHeightBin"%root)
-            retv.SurfaceHeightBin=numpy.fromstring(d.data(),'b').astype('b')
-            d=a.getNode("%s/Data Fields/SurfaceHeightBin_fraction"%root)
-            retv.SurfaceHeightBin_fraction=numpy.fromstring(d.data(),'f').astype('d')
-            d=a.getNode("%s/Data Fields/sem_NoiseFloor"%root)
-            retv.sem_NoiseFloor=numpy.fromstring(d.data(),'f').astype('d')
-            d=a.getNode("%s/Data Fields/sem_NoiseFloorVar"%root)
-            retv.sem_NoiseFloorVar=numpy.fromstring(d.data(),'f').astype('d')
-            d=a.getNode("%s/Data Fields/sem_NoiseGate"%root)
-            retv.sem_NoiseGate=numpy.fromstring(d.data(),'b').astype('b')
-    
-        elif CLOUDSAT_TYPE == 'CWC-RVOD':
-            # IWP and LWP		
-            d=a.getNode("%s/Data Fields/RVOD_liq_water_path"%root)
-            retv.RVOD_liq_water_path=numpy.fromstring(d.data(),'Int16').astype('Int16')			
-            d=a.getNode("%s/Data Fields/RVOD_liq_water_path_uncertainty"%root)
-            retv.RVOD_liq_water_path_uncertainty=numpy.fromstring(d.data(),'uint8').astype('uint8')    
-            d=a.getNode("%s/Data Fields/RVOD_ice_water_path"%root)
-            retv.RVOD_ice_water_path=numpy.fromstring(d.data(),'Int16').astype('Int16')
-            d=a.getNode("%s/Data Fields/RVOD_ice_water_path_uncertainty"%root)
-            retv.RVOD_ice_water_path_uncertainty=numpy.fromstring(d.data(),'uint8').astype('uint8')
-            d=a.getNode("%s/Data Fields/LO_RVOD_liquid_water_path"%root)
-            retv.LO_RVOD_liquid_water_path=numpy.fromstring(d.data(),'Int16').astype('Int16')			
-            d=a.getNode("%s/Data Fields/LO_RVOD_liquid_water_path_uncertainty"%root)
-            retv.LO_RVOD_liquid_water_path_uncertainty=numpy.fromstring(d.data(),'uint8').astype('uint8')
-            d=a.getNode("%s/Data Fields/IO_RVOD_ice_water_path"%root)
-            retv.IO_RVOD_ice_water_path=numpy.fromstring(d.data(),'Int16').astype('Int16')
-            d=a.getNode("%s/Data Fields/IO_RVOD_ice_water_path_uncertainty"%root)
-            retv.IO_RVOD_ice_water_path_uncertainty=numpy.fromstring(d.data(),'uint8').astype('uint8')
-        # IWC and LWC
-            d=a.getNode("%s/Data Fields/RVOD_liq_water_content"%root)
-            retv.RVOD_liq_water_content=d.data()#.astype('Int16')		
-            d=a.getNode("%s/Data Fields/RVOD_liq_water_content_uncertainty"%root)
-            retv.RVOD_liq_water_content_uncertainty=d.data()#.astype('Int16')
-            d=a.getNode("%s/Data Fields/RVOD_ice_water_content"%root)
-            retv.RVOD_ice_water_content=d.data()#.astype('Int16')
-            d=a.getNode("%s/Data Fields/RVOD_ice_water_content_uncertainty"%root)
-            retv.RVOD_ice_water_content_uncertainty=d.data()#.astype('Int16')
-            d=a.getNode("%s/Data Fields/LO_RVOD_liquid_water_content"%root)
-            retv.LO_RVOD_liquid_water_content=d.data()#.astype('Int16')			
-            d=a.getNode("%s/Data Fields/LO_RVOD_liquid_water_content_uncertainty"%root)
-            retv.LO_RVOD_liquid_water_content_uncertainty=d.data()#.astype('Int16')
-            d=a.getNode("%s/Data Fields/IO_RVOD_ice_water_content"%root)
-            retv.IO_RVOD_ice_water_content=d.data()#.astype('Int16')
-            d=a.getNode("%s/Data Fields/IO_RVOD_ice_water_content_uncertainty"%root)
-            retv.IO_RVOD_ice_water_content_uncertainty=d.data()#.astype('Int16')
-            d=a.getNode("%s/Data Fields/Temp_min_mixph_K"%root)
-            retv.Temp_min_mixph_K=numpy.fromstring(d.data(),'f').astype('d')
-            d=a.getNode("%s/Data Fields/Temp_max_mixph_K"%root)
-            retv.Temp_max_mixph_K=numpy.fromstring(d.data(),'f').astype('d')    
-    elif RESOLUTION == 5:
-        root="/cloudsat"
-        d=a.getNode("%s/Geolocation Fields/Longitude"%root)
-        retv.longitude=d.data().astype('d')
-        d=a.getNode("%s/Geolocation Fields/Latitude"%root)
-        retv.latitude=d.data().astype('d')    
-        # International Atomic Time (TAI) seconds from Jan 1, 1993:
-        d=a.getNode("%s/Geolocation Fields/Profile_time"%root)
-        retv.Profile_time=d.data().astype('d')
-        d=a.getNode("%s/Geolocation Fields/TAI_start"%root)
-        retv.TAI_start=d.data().astype('d')
-        d=a.getNode("%s/Geolocation Fields/DEM_elevation"%root)
-        retv.elevation=d.data().astype('d')   
-        # The radar data:
-        # 2-d arrays of dimension Nx125:
-        d=a.getNode("%s/Data Fields/CPR_Cloud_mask"%root)
-        retv.CPR_Cloud_mask=d.data()
-        d=a.getNode("%s/Geolocation Fields/Height"%root)
-        retv.Height=d.data()
-        d=a.getNode("%s/Data Fields/Radar_Reflectivity"%root)
-        retv.Radar_Reflectivity=d.data().astype('d')
-        d=a.getNode("%s/Data Fields/Gaseous_Attenuation"%root)
-        retv.Gaseous_Attenuation=d.data().astype('d')
-        d=a.getNode("%s/Data Fields/CPR_Echo_Top"%root)
-        retv.CPR_Echo_Top=d.data().astype('d')
-        d=a.getNode("%s/Data Fields/Clutter_reduction_flag"%root)
-        retv.Clutter_reduction_flag=d.data().astype('d')
-        d=a.getNode("%s/Data Fields/Data_quality"%root)
-        retv.Data_quality=d.data().astype('d')
-        d=a.getNode("%s/Data Fields/Data_targetID"%root)
-        retv.Data_targetID=d.data().astype('d')
-        d=a.getNode("%s/Data Fields/MODIS_Cloud_Fraction"%root)
-        retv.MODIS_Cloud_Fraction=d.data().astype('d')
-        d=a.getNode("%s/Data Fields/MODIS_cloud_flag"%root)
-        retv.MODIS_cloud_flag=d.data().astype('d')
-        d=a.getNode("%s/Data Fields/Sigma-Zero"%root)
-        retv.SigmaZero=d.data().astype('d')
-        d=a.getNode("%s/Data Fields/SurfaceHeightBin"%root)
-        retv.SurfaceHeightBin=d.data().astype('d')
-        d=a.getNode("%s/Data Fields/SurfaceHeightBin_fraction"%root)
-        retv.SurfaceHeightBin_fraction=d.data().astype('d')
-        d=a.getNode("%s/Data Fields/sem_NoiseFloor"%root)
-        retv.sem_NoiseFloor=d.data().astype('d')
-        d=a.getNode("%s/Data Fields/sem_NoiseFloorVar"%root)
-        retv.sem_NoiseFloorVar=d.data().astype('d')
-        d=a.getNode("%s/Data Fields/sem_NoiseGate"%root)
-        retv.sem_NoiseGate=d.data().astype('d')
+    h5file = h5py.File(filename, 'r')
+    root="/2B-%s" %CLOUDSAT_TYPE
+    for group in ['Geolocation Fields', 'Data Fields']:
+        tempG = h5file["%s/%s" % (root, group)]
+        for dataset in tempG.keys():
+            if dataset in retv.all_arrays.keys():
+                type_name = tempG[dataset].value.dtype.names                
+                if type_name == None:
+                    dtype = tempG[dataset].value.dtype
+                    #if dtype == '>f4': # float32
+                    #    dtype = '>f8'  # float64
+                    retv.all_arrays[dataset] = tempG[dataset].value.astype(dtype)
+                else:
+                    dtype = tempG[dataset].value.dtype[0]
+                    #if dtype == '>f4': # float32
+                    #    dtype = '>f8'  # float64
+                    retv.all_arrays[dataset] = tempG[dataset].value[type_name[0]].astype(dtype)
+            elif dataset.lower() in retv.all_arrays.keys():
+                type_name = tempG[dataset].value.dtype.names                
+                if type_name == None:
+                    dtype = tempG[dataset].value.dtype
+                    #if dtype == '>f4': # float32
+                    #    dtype = '>f8'  # float64
+                    retv.all_arrays[dataset.lower()] = tempG[dataset].value.astype(dtype)
+                else:
+                    dtype = tempG[dataset].value.dtype[0]
+                    #if dtype == '>f4': # float32
+                    #    dtype = '>f8'  # float64
+                    retv.all_arrays[dataset.lower()] = tempG[dataset].value[type_name[0]].astype(dtype)
+            elif dataset == 'DEM_elevation':            
+                type_name = tempG[dataset].value.dtype.names
+                dtype = tempG[dataset].value.dtype[0]
+                retv.all_arrays['elevation'] = tempG[dataset].value[type_name[0]].astype(dtype)
+            elif dataset == 'Sigma-Zero':
+                type_name = tempG[dataset].value.dtype.names
+                dtype = tempG[dataset].value.dtype[0]              
+                retv.all_arrays['SigmaZero'] = tempG[dataset].value[type_name[0]].astype(dtype)
+    h5file.close()
     return retv
 # --------------------------------------------
 def get_cloudsat_avhrr_linpix(avhrrIn,avhrrname,lon,lat,clTime):
@@ -692,7 +424,7 @@ def match_cloudsat_avhrr(ctypefile,cloudsatObj,avhrrGeoObj,avhrrObj,ctype,ctth,s
     import inspect
     
     retv = CloudsatAvhrrTrackObject()
-    test = CloudsatAvhrrTrackObject()
+
     if RESOLUTION ==1:
         lonCloudsat = cloudsatObj.longitude.ravel()
         latCloudsat = cloudsatObj.latitude.ravel()
@@ -742,8 +474,8 @@ def match_cloudsat_avhrr(ctypefile,cloudsatObj,avhrrGeoObj,avhrrObj,ctype,ctth,s
                 retv.cloudsat.all_arrays[arnamecl] = temp.transpose()
     
     # Special because in 5km lon and lat is 2dim and shold just be 1dim
-    retv.cloudsat.longitude = numpy.repeat(lonCloudsat, idx_match)
-    retv.cloudsat.latitude = numpy.repeat(latCloudsat, idx_match)
+    retv.cloudsat.longitude = numpy.repeat(lonCloudsat, idx_match).astype('d')
+    retv.cloudsat.latitude = numpy.repeat(latCloudsat, idx_match).astype('d')
     
     # Cloudsat line,pixel inside AVHRR swath:
     cal_on_avhrr = numpy.repeat(cal, idx_match)
@@ -879,6 +611,7 @@ def match_cloudsat_avhrr(ctypefile,cloudsatObj,avhrrGeoObj,avhrrObj,ctype,ctth,s
     fd = open("%s/%skm_%s_cloudtype_cloudsat-GEOPROF_track_excl.txt"%(datapath, RESOLUTION, basename),"w")
     fd.writelines(ll)
     fd.close()
+
     return retv,min_diff,max_diff
 
 #------------------------------------------------------------------------------------------
@@ -931,19 +664,19 @@ def reshapeCloudsat(cloudsatfiles,avhrr):
                 clsat.all_arrays[arnamecl] = valuecl[start_break:end_break,...]
             else:
                 clsat.all_arrays[arnamecl] = valuecl
-                
-                
-    pdb.set_trace()
+
     if clsat.Profile_time.shape[0] <= 0:
         print("No time match, please try with some other CloudSat files")
         print("Program cloudsat.py at line %i" %(inspect.currentframe().f_lineno+1))
         sys.exit(-9)
     else:
-        clsat.TAI_start = clsat.Profile_time[0,0]
+        if clsat.Profile_time.ndim == 1:
+            clsat.TAI_start = clsat.Profile_time[0]
+        else:
+            clsat.TAI_start = clsat.Profile_time[0,0]
         clsat.Profile_time = clsat.Profile_time - clsat.TAI_start        
-        
-    
-    pdb.set_trace()
+        clsat.TAI_start = numpy.asarray(clsat.TAI_start)
+
     return clsat
     
     
