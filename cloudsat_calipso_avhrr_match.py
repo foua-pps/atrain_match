@@ -309,12 +309,7 @@ def get_matchups_from_data(cross):
     
     # Write cloudsat matchup
     cl_match_file = rematched_file_base.replace('atrain_datatype', 'cloudsat-%s' % config.CLOUDSAT_TYPE)
-    if config.RESOLUTION == 5 and config.CLOUDSAT_TYPE == 'CWC-RVOD':
-        writeCloudsatCwc5kmAvhrrMatchObj(cl_match_file, cl_matchup, config.COMPRESS_LVL)
-    if config.RESOLUTION == 1 and config.CLOUDSAT_TYPE == 'CWC-RVOD':
-        writeCloudsatCwcAvhrrMatchObj(cl_match_file, cl_matchup, config.COMPRESS_LVL)
-    else:    
-        writeCloudsatAvhrrMatchObj(cl_match_file, cl_matchup, config.COMPRESS_LVL)
+    writeCloudsatAvhrrMatchObj(cl_match_file, cl_matchup, config.COMPRESS_LVL)
     
     # Write calipso matchup
     ca_match_file = rematched_file_base.replace('atrain_datatype', 'caliop')
@@ -351,12 +346,7 @@ def get_matchups(cross, reprocess=False):
             ca_match_file = match_finder.find(datetime, satellite, atrain_datatype='caliop')[0]
             cl_match_file = match_finder.find(datetime, satellite, atrain_datatype='cloudsat-%s' % config.CLOUDSAT_TYPE)[0]
             caObj = readCaliopAvhrrMatchObj(ca_match_file)
-            if config.CLOUDSAT_TYPE == 'CWC-RVOD' and config.RESOLUTION == 5:
-                clObj = readCloudsatCwc5kmAvhrrMatchObj(cl_match_file)
-            elif config.CLOUDSAT_TYPE == 'CWC-RVOD' and config.RESOLUTION == 1:
-                clObj = readCloudsatCwcAvhrrMatchObj(cl_match_file)
-            else:
-                clObj = readCloudsatAvhrrMatchObj(cl_match_file)
+            clObj = readCloudsatAvhrrMatchObj(cl_match_file)
             
             basename = '_'.join(os.path.basename(ca_match_file).split('_')[1:5])
             write_log('INFO', "Matchups read from previously processed data.")
