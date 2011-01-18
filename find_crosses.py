@@ -97,7 +97,16 @@ def find_crosses(satellite1, start, end, satellite2='calipso', time_window=20, l
 
 def parse_crosses_file(f, lon_range=None, lat_range=None):
     """Parse output from snotimes in file *f*. Filter on *lon_range* and 
-    *lat_range*, if provided."""
+    *lat_range*, if provided.
+    
+    Examples
+    --------
+    
+    >>> crosses = parse_crosses_file(filename)
+    >>> print(crosses[0])
+    Cross(aqua x envisat: 2009-01-28 19:35:49 (+ 0:09:03), (-117.1,  72.9))
+    
+    """
     satellite1 = None
     satellite2 = None
     time_window = None
