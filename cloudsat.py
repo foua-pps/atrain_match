@@ -649,7 +649,9 @@ def reshapeCloudsat(cloudsatfiles,avhrr):
                     startCloudsat.all_arrays[arname] = numpy.concatenate((value[0:clsat_break,...],newCloudsat.all_arrays[arname]))
                 
     # Finds Break point
-    start_break = numpy.argmin((numpy.abs((startCloudsat.sec1970) - (avhrr_start - sec_timeThr))))-1 # Minus one to get one extra, just to be certain
+    start_break = numpy.argmin((numpy.abs((startCloudsat.sec1970) - (avhrr_start - sec_timeThr))))
+    if start_break != 0:
+        start_break = start_break - 1 # Minus one to get one extra, just to be certain
     end_break = numpy.argmin((numpy.abs((startCloudsat.sec1970) - (avhrr_end + sec_timeThr)))) + 2    # Plus two to get one extra, just to be certain
 
     # Cute the feature values
