@@ -217,45 +217,36 @@ def read_cloudsat(filename):
     import numpy
     import h5py
 
+    def get_data(dataset):
+        type_name = dataset.value.dtype.names
+        try:
+            data = dataset.value[type_name[0]]
+        except TypeError:
+            data = dataset.value
+        # Convert 1-dimensional matrices to 1-d arrays
+        if len(data.shape) == 2:
+            if data.shape[1] == 1:
+                return data[:, 0]
+            elif data.shape[0] == 1:
+                return data[0, :]
+        return data
+
     retv = CloudsatObject()
     h5file = h5py.File(filename, 'r')
-    root="/2B-%s" %CLOUDSAT_TYPE
+    root="/cloudsat"
     for group in ['Geolocation Fields', 'Data Fields']:
         tempG = h5file["%s/%s" % (root, group)]
         for dataset in tempG.keys():
             if dataset in retv.all_arrays.keys():
-                type_name = tempG[dataset].value.dtype.names                
-                if type_name == None:
-                    dtype = tempG[dataset].value.dtype
-                    #if dtype == '>f4': # float32
-                    #    dtype = '>f8'  # float64
-                    retv.all_arrays[dataset] = tempG[dataset].value.astype(dtype)
-                else:
-                    dtype = tempG[dataset].value.dtype[0]
-                    #if dtype == '>f4': # float32
-                    #    dtype = '>f8'  # float64
-                    retv.all_arrays[dataset] = tempG[dataset].value[type_name[0]].astype(dtype)
+                retv.all_arrays[dataset] = get_data(tempG[dataset])
             elif dataset.lower() in retv.all_arrays.keys():
-                type_name = tempG[dataset].value.dtype.names                
-                if type_name == None:
-                    dtype = tempG[dataset].value.dtype
-                    #if dtype == '>f4': # float32
-                    #    dtype = '>f8'  # float64
-                    retv.all_arrays[dataset.lower()] = tempG[dataset].value.astype(dtype)
-                else:
-                    dtype = tempG[dataset].value.dtype[0]
-                    #if dtype == '>f4': # float32
-                    #    dtype = '>f8'  # float64
-                    retv.all_arrays[dataset.lower()] = tempG[dataset].value[type_name[0]].astype(dtype)
-            elif dataset == 'DEM_elevation':            
-                type_name = tempG[dataset].value.dtype.names
-                dtype = tempG[dataset].value.dtype[0]
-                retv.all_arrays['elevation'] = tempG[dataset].value[type_name[0]].astype(dtype)
-            elif dataset == 'Sigma-Zero':
-                type_name = tempG[dataset].value.dtype.names
-                dtype = tempG[dataset].value.dtype[0]              
-                retv.all_arrays['SigmaZero'] = tempG[dataset].value[type_name[0]].astype(dtype)
+                retv.all_arrays[dataset.lower()] = get_data(tempG[dataset])
+            elif dataset == 'DEM_elevation':
+                retv.all_arrays['elevation'] = get_data(tempG[dataset])
+            elif dataset == 'Sigma-Zero':           
+                retv.all_arrays['SigmaZero'] = get_data(tempG[dataset])
     h5file.close()
+
     return retv
 # --------------------------------------------
 def get_cloudsat_avhrr_linpix(avhrrIn,avhrrname,lon,lat,clTime):
