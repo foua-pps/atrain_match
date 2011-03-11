@@ -606,8 +606,8 @@ def run(cross, process_mode, reprocess=False):
     
         if process_mode is 'EMISSFILT': #Apply only when cloud heights are above EMISS_MIN_HEIGHT
             #print "Emissivity filtering applied!"
-            caliop_min_height_ok = numpy.greater(caliop_max_height, setup.EMISS_MIN_HEIGHT)
-            emissfilt_calipso_ok = numpy.logical_or(numpy.logical_and(numpy.greater(Ec, setup.EMISS_LIMIT),caliop_min_height_ok),numpy.logical_or(numpy.equal(caliop_max_height,-9.),numpy.less_equal(caliop_max_height, setup.EMISS_MIN_HEIGHT)))
+            caliop_min_height_ok = numpy.greater(caliop_max_height, config.EMISS_MIN_HEIGHT)
+            emissfilt_calipso_ok = numpy.logical_or(numpy.logical_and(numpy.greater(Ec, config.EMISS_LIMIT),caliop_min_height_ok),numpy.logical_or(numpy.equal(caliop_max_height,-9.),numpy.less_equal(caliop_max_height, config.EMISS_MIN_HEIGHT)))
     ##########################################################################################################################################
     #pdb.set_trace()
     ### 1 KM DATA CWC-RVOD ###                       
