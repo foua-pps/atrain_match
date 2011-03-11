@@ -30,6 +30,7 @@ class CloudsatObject(DataObject):
                             'elevation': None,
                             'Profile_time': None,
                             'sec_1970': None,
+                            'sec1970': None,
                             'TAI_start': None,
                             'Temp_min_mixph_K': None,
                             'Temp_max_mixph_K': None,
@@ -75,6 +76,13 @@ class CloudsatAvhrrTrackObject:
         self.cloudsat=CloudsatObject()
         self.diff_sec_1970=None
 
+
+def duplicate_names(cloudsatObj):
+    # For some reason these ones have two names
+    cloudsatObj.echo_top = cloudsatObj.CPR_Echo_Top
+    cloudsatObj.sec_1970 = cloudsatObj.sec1970
+    cloudsatObj.cloud_mask = cloudsatObj.CPR_Cloud_mask
+
 # ----------------------------------------
 def readCloudsatAvhrrMatchObj(filename):
     import _pyhl
@@ -88,6 +96,8 @@ def readCloudsatAvhrrMatchObj(filename):
         for dataset in group.keys():        
             if dataset in data_obj.all_arrays.keys():
                 data_obj.all_arrays[dataset] = group[dataset].value
+
+    duplicate_names(retv.cloudsat)
     
     retv.diff_sec_1970 = h5file['diff_sec_1970'].value
 
@@ -452,11 +462,8 @@ def match_cloudsat_avhrr(ctypefile,cloudsatObj,avhrrGeoObj,avhrrObj,ctype,ctth,s
     #                              cloudsatObj.sec1970 < avhrr_lines_sec_1970 + sec_timeThr)
     if idx_match.sum() == 0:
         raise MatchupError("No matches in region within time threshold %d s." % sec_timeThr)  
-  
-    # For some reason these ones have two names
-    cloudsatObj.echo_top = cloudsatObj.CPR_Echo_Top
-    cloudsatObj.sec_1970 = cloudsatObj.sec1970
-    cloudsatObj.cloud_mask = cloudsatObj.CPR_Cloud_mask
+    
+    duplicate_names(cloudsatObj)
     
     #arnamecl = array name from cloudsatObj
     for arnamecl, value in cloudsatObj.all_arrays.items(): 
