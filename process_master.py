@@ -77,7 +77,7 @@ def main(args=None):
                      "                          Used indirectly by cloudsat_calipso_avhrr_match.py.\n"
                      "CTTH_FILE                 CTTH file type to use (one of 'ctth', 'ctth_opaque, \n"
                      "                          and 'ctth_semitransparent.\n")
-    parser.add_option('-M', '--mode', type='string', action='append',
+    parser.add_option('-M', '--mode', type='choice', action='append', choices=config.ALLOWED_MODES,
                       help="Run validation software in MODE (valid modes are %s)" % \
                       ', '.join(config.ALLOWED_MODES))
     parser.add_option('-r', '--reprocess', action='store_true', default=False,
