@@ -127,9 +127,9 @@ def find_avhrr_file(cross):
     
     # Set time window
     if cross.time_window is not None:
-        avhrr_finder.set_time_window(-(config.SAT_ORBIT_DURATION + cross.time_window), cross.time_window)
+        avhrr_finder.set_time_window(-(config.SAT_ORBIT_DURATION + cross.time_window), 0)
     else:
-        avhrr_finder.set_time_window(-(config.SAT_ORBIT_DURATION + config.sec_timeThr), config.sec_timeThr)
+        avhrr_finder.set_time_window(-(config.SAT_ORBIT_DURATION + config.sec_timeThr), 0)
     
     try:
         try:
@@ -341,6 +341,13 @@ def get_matchups(cross, reprocess=False):
         match_finder = CloudsatCalipsoAvhrrMatchFileFinder(config.RESHAPE_DIR,
                                                            config.RESOLUTION,
                                                            region=config.AREA)
+    
+        # Set time window
+        if cross.time_window is not None:
+            match_finder.set_time_window(-(config.SAT_ORBIT_DURATION + cross.time_window), 0)
+        else:
+            match_finder.set_time_window(-(config.SAT_ORBIT_DURATION + config.sec_timeThr), 0)
+        
         attach_subdir_from_config(match_finder)
         try:
             ca_match_file = match_finder.find(datetime, satellite, atrain_datatype='caliop')[0]
@@ -599,8 +606,8 @@ def run(cross, process_mode, reprocess=False):
     
         if process_mode is 'EMISSFILT': #Apply only when cloud heights are above EMISS_MIN_HEIGHT
             #print "Emissivity filtering applied!"
-            caliop_min_height_ok = numpy.greater(caliop_max_height, setup.EMISS_MIN_HEIGHT)
-            emissfilt_calipso_ok = numpy.logical_or(numpy.logical_and(numpy.greater(Ec, setup.EMISS_LIMIT),caliop_min_height_ok),numpy.logical_or(numpy.equal(caliop_max_height,-9.),numpy.less_equal(caliop_max_height, setup.EMISS_MIN_HEIGHT)))
+            caliop_min_height_ok = numpy.greater(caliop_max_height, config.EMISS_MIN_HEIGHT)
+            emissfilt_calipso_ok = numpy.logical_or(numpy.logical_and(numpy.greater(Ec, config.EMISS_LIMIT),caliop_min_height_ok),numpy.logical_or(numpy.equal(caliop_max_height,-9.),numpy.less_equal(caliop_max_height, config.EMISS_MIN_HEIGHT)))
     ##########################################################################################################################################
     #pdb.set_trace()
     ### 1 KM DATA CWC-RVOD ###                       
