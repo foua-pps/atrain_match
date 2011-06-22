@@ -14,7 +14,7 @@ def compile_basic_stats(results_files, write=False):
     import orrb_CFC_stat
     cfc_stats = orrb_CFC_stat.CloudFractionStats(results_files)
     if write:
-        cfs_stats.write(COMPILED_STATS_FILENAME + '_cfc')
+        cfc_stats.write(COMPILED_STATS_FILENAME + '_cfc')
     for l in cfc_stats.printout():
         print(l)
     
@@ -22,7 +22,7 @@ def compile_basic_stats(results_files, write=False):
     import orrb_CTH_stat
     cth_stats = orrb_CTH_stat.CloudTopStats(results_files)
     if write:
-        cfs_stats.write(COMPILED_STATS_FILENAME + '_cth')
+        cth_stats.write(COMPILED_STATS_FILENAME + '_cth')
     cth_stats.printout()
     for l in cth_stats.printout():
         print(l)
@@ -31,7 +31,7 @@ def compile_basic_stats(results_files, write=False):
     import orrb_CTY_stat
     cty_stats = orrb_CTY_stat.CloudTypeStats(results_files, cfc_stats)
     if write:
-        cfs_stats.write(COMPILED_STATS_FILENAME + '_cty')
+        cty_stats.write(COMPILED_STATS_FILENAME + '_cty')
     cty_stats.printout()
     for l in cty_stats.printout():
         print(l)
@@ -52,8 +52,9 @@ if __name__ == '__main__':
     print("Gathering statistics from all validation results files in the "
           "following directories:")
     for case in CASES:
+        print(RESOLUTION)
         basic_indata_dir = "%s/Results/%s/%skm/%s/%02d/%s/BASIC" % \
-            (MAIN_DATADIR, case['satname'], RESOLUTION[0] , case['year'], case['month'], MAP[0])
+            (MAIN_DATADIR, case['satname'], RESOLUTION , case['year'], case['month'], MAP[0])
         print("-> " + basic_indata_dir)
         results_files.extend(glob("%s/*.dat" % basic_indata_dir))
     print('')

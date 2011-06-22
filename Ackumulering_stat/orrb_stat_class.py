@@ -19,15 +19,15 @@ class OrrbStats():
         raise NotImplementedError("The do_stats method should be implemented in"
                                   " a subclass of OrrbStat.")
     
-    def printouts(self):
+    def printout(self):
         """Generate nice printout of the results."""
-        raise NotImplementedError("The printouts method should be implemented in"
+        raise NotImplementedError("The printout method should be implemented in"
                                   " a subclass of OrrbStat.")
     
     def write(self, filename):
-        """Write printouts to a file."""
-        f = open(filename)
-        for l in self.printouts():
+        """Write printout to a file."""
+        f = open(filename, 'w')
+        for l in self.printout():
             f.write(l + '\n')
         f.close()
     
