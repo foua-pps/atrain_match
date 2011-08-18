@@ -4,6 +4,7 @@ Calculate how well the tracks of two satellites correlate.
 """
 
 import ephem
+from merge_tles import get_tles
 
 #: Degrees to radians
 _d2r = 3.141597 / 180
@@ -20,26 +21,6 @@ def get_tle_file():
     return _TLE_FILE
 
 
-def tle_time(l1):
-    """Given first line in a two-line element, TLE, return a `datetime.datetime`
-    object for when the TLE was valid.
-    
-    """
-    from datetime import datetime, timedelta
-    from math import floor
-    
-    epoch = l1.split()[3]
-    year = int(epoch[:2])
-    if year >= 57: # See https://www.space-track.org/tle_format.html#epoch2
-        year += 1900
-    else:
-        year += 2000
-    fractional_day = float(epoch[2:])
-    day = floor(fractional_day)
-    seconds = (fractional_day - day) * 24 * 60 * 60
-    
-    return datetime(year, 1, 1) + timedelta(floor(day), seconds)
-
 def get_tle(filename, satellite, time=None):
     """Get the two-line element for *satellite* from file *filename*, closest
     in time to *time*. If *time* is None, return the latest TLE.
@@ -48,16 +29,14 @@ def get_tle(filename, satellite, time=None):
     
     """
     from datetime import datetime
+    from merge_tles import tle_time
     
     if time is None:
         time = datetime(3000, 1, 1) # Far enough in the future?
     
-    with open(filename, 'r') as f:
-        lines = [l.strip() for l in f.readlines()]
-    
     tles = []
-    for ix in range(0, len(lines), 3):
-        name, l1, l2 = lines[ix:ix + 3]
+    for tle in get_tles(filename):
+        tle_time, name, l1, l2 = tle
         if name.lower() == satellite.lower():
             tles.append((abs(tle_time(l1) - time), l1, l2))
     
@@ -97,6 +76,7 @@ def angle(p1, p2, radians=False):
     
     from math import acos, sin, cos
     
+    # From http://en.wikipedia.org/wiki/Great-circle_distance
     return acos(sin(lon1) * sin(lon2) +
                 cos(lon1) * cos(lon2) * cos(lat1 - lat2)) / factor
     
