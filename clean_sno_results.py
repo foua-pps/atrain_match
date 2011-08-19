@@ -5,9 +5,6 @@ Created on Oct 27, 2010
 '''
 
 
-from config import get_environ
-AAPP_WORKING_DIR = get_environ('AAPP_WORKING_DIR')
-
 def clean(crosses, file_finder=None):
     """Clean the SNO crosses in *crosses*, so that only those for which data is
     available are kept. If a file_finders object is provided, it will be used

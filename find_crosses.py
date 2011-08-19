@@ -9,12 +9,14 @@ time window.
 
 """
 
-from config import get_environ
+import os
 
 # SNO executable
-SNO_EXECUTABLE = get_environ('SNO_EXECUTABLE', "/data/proj/saf/ejohansson/SNO_tools/snotimes")
+SNO_EXECUTABLE = os.environ.get('SNO_EXECUTABLE',
+                                "/data/proj/saf/ejohansson/SNO_tools/snotimes")
 # Time window between satellite data reception time and sat1-sat2 crossing time, in seconds
-SATELLITE_CROSS_RECEPTION_TIME_WINDOW = int(get_environ('SATELLITE_CROSS_RECEPTION_TIME_WINDOW', 60*60))
+SATELLITE_CROSS_RECEPTION_TIME_WINDOW = int(
+            os.environ.get('SATELLITE_CROSS_RECEPTION_TIME_WINDOW', 60*60))
 
 
 class Cross:
