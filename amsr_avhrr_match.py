@@ -306,15 +306,18 @@ def _test():
     logger.warning("Replacing '.h5' with '.hdf' in CPP filename, due to a bug "
                    "in CPP.")
     cpp_filename = os.path.join(OUTPUT_DIR, ppsarg.files.cpp.replace('.h5', '.hdf'))
-    cpp_lwp = mapper(get_cpp_lwp(cpp_filename))
-    
-    landuse = ioproxy.getLanduseOnly()
-    # Sea pixels in AMSR-E swath
-    sea = mapper(landuse == 16)
-    
-    imshow_lwps(amsr_lwp, cpp_lwp, time_diff, sea, title=title)
-    
-    validate_lwp(amsr_lwp, cpp_lwp, sea)
+    if os.path.exists(cpp_filename):
+        cpp_lwp = mapper(get_cpp_lwp(cpp_filename))
+        
+        landuse = ioproxy.getLanduseOnly()
+        # Sea pixels in AMSR-E swath
+        sea = mapper(landuse == 16)
+        
+        imshow_lwps(amsr_lwp, cpp_lwp, time_diff, sea, title=title)
+        
+        validate_lwp(amsr_lwp, cpp_lwp, sea)
+    else:
+        logger.warning("No CPP product found")
     
     import matplotlib.pyplot as pl
     pl.show()
