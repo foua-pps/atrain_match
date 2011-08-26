@@ -5,7 +5,6 @@ from config import MAIN_DIR, SUB_DIR, MAIN_RUNDIR, CLOUDSAT_TRACK_RESOLUTION, CL
 import pdb
 import os, string
 import sys
-import rpy
 import numpy
 
 def format_title(title):
@@ -24,6 +23,7 @@ def drawCalClsatGEOPROFAvhrrPlot(clsatObj_cloudsat, clsatObj_avhrr, caObj_calips
                                     caliop_height, cal_data_ok,
                                     avhrr_ctth_cal_ok, plotpath, basename,
                                     mode, emissfilt_calipso_ok=None, file_type='eps'):
+    import rpy
     
     # Prepare for Avhrr
     #Second version for avhrr ctth plotting based on data along CALIPSO track
@@ -424,24 +424,3 @@ def drawCalClsatCWCAvhrr5kmPlot(clsatObj, elevationcwc, data_okcwc, plotpath, ba
                 clsatcwc_max_height[0,idx] = max(clsatcwc_max_height[0,idx],top_heightcwc) 
 
     rpy.r.dev_off()
- 
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    

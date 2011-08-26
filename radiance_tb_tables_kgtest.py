@@ -12,7 +12,7 @@ import string
 import filtfunc
 #print "filter function module: ",filtfunc.__file__
 
-import Numeric
+from numpy import oldnumeric as Numeric
 import math
 
 PI = math.pi

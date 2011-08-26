@@ -1,10 +1,10 @@
 
-import pdb
-
 import os, string
 import sys
-from pps_basic_configure import *
-from pps_error_messages import *
+from pps_error_messages import write_log
+from numpy import oldnumeric as Numeric
+from calipso import reshapeCalipso, match_calipso_avhrr,\
+    writeCaliopAvhrrMatchObj, readCaliopAvhrrMatchObj
 
 ESTAT_DIR = os.environ["DIR_ANA"]
 
@@ -12,10 +12,8 @@ ACPG_SOURCE="/local_disk/laptop/acpgDevelop"
 #ACPG_SOURCE="/data/proj/saf/adybbroe/acpgDevelop"
 sys.path.append("%s/angles/test"%(ACPG_SOURCE))
 
-import Numeric
 
-from calipso import *
-from config import AREA, RESHAPE_DIR
+from config import AREA, RESHAPE_DIR, RESOLUTION, CALIPSO_DIR
 #MAIN_DIR = "/data/proj/safworks/adam/calipso_data"
 #MAIN_DIR = "/local_disk/calipso_data"
 #SUB_DIR = "metop02_calipso_2007spring"
@@ -33,7 +31,6 @@ def getCaliopAvhrrMatch(avhrrfile,calipsofile,ctypefile,ctthfile,surftfile,sunan
     import string,os
     import pps_io
     import epshdf
-    import Numeric
 
     basename = os.path.basename(ctypefile).split(".h5")[0]
     base_sat = basename.split("_")[-8]
@@ -89,19 +86,17 @@ def getCaliopAvhrrMatch(avhrrfile,calipsofile,ctypefile,ctthfile,surftfile,sunan
 
 # -----------------------------------------------------
 if __name__ == "__main__":
-    import sys
     if len(sys.argv) < 5:
-	write_log("INFO","Usage: %s <calipso-hdf5-file> <pps cloudtype file> <pps ctth file> <pps avhrr file>"%sys.argv[0],moduleid=MODULE_ID)
-	sys.exit(-9)
-    else:
-        calipsofile = "%s/%s"%(CALIPSO_DIR,sys.argv[1])
-        ctypefile = "%s/%s"%(CTYPE_DIR,sys.argv[2])
-        ctthfile = "%s/%s"%(CTYPE_DIR,sys.argv[3])
-        avhrrfile = "%s/%s"%(AVHRR_DIR,sys.argv[4])
-
-    import string,os
-    import Numeric
-    import rpy
+        print("Usage: %s <calipso-hdf5-file> <pps cloudtype file> "
+              "<pps ctth file> <pps avhrr file>" % sys.argv[0])
+        sys.exit(-9)
+    
+    from config import CTYPE_DIR
+    
+    calipsofile = "%s/%s"%(CALIPSO_DIR,sys.argv[1])
+    ctypefile = "%s/%s"%(CTYPE_DIR,sys.argv[2])
+    ctthfile = "%s/%s"%(CTYPE_DIR,sys.argv[3])
+    avhrrfile = "%s/%s"%(AVHRR_DIR,sys.argv[4])
     
     basename = os.path.basename(ctypefile).split(".h5")[0]
     basename = string.join(basename.split("_")[0:4],"_")
