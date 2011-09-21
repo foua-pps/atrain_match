@@ -85,12 +85,11 @@ def find_crosses(satellite1, start, end, satellite2='calipso', time_window=20, l
     CALIPSO's path within a time window *t_window*. Sort out any cross points
     which are outside *lon_range* and/or *lat_range*."""
     from subprocess import Popen, PIPE
-    import os
     
     wd = os.getcwd()
     os.chdir(os.path.dirname(SNO_EXECUTABLE))
     cmd = [os.path.abspath(os.path.basename(SNO_EXECUTABLE)), satellite1, satellite2, start, end, str(time_window)]
-    print(' '.join(cmd))
+    #print(' '.join(cmd))
     process = Popen(cmd, stdout=PIPE, stderr=PIPE)
     process.stderr.close()
     os.chdir(wd)
@@ -215,6 +214,13 @@ if __name__ == '__main__':
                       help="Range of acceptable latitudes (e.g. -35.7:25.12).")
     parser.add_option('-d', '--daytime', action='store_true',
                       help="Only daytime crosses")
+    parser.add_option('-q', '--quiet', action='store_true',
+                      help="Don't print detailed information about crosses")
+    parser.add_option('-D', '--dates', action='store_true',
+                      help="Print dates of crosses found (formatted for "
+                      "easy use with ECMWF mars script for getting NWP files)")
+    parser.add_option('-T', '--datetimes', action='store_true',
+                      help="Print dates and times of crosses (YYYYMMDDhhmm)")
     
     (options, args) = parser.parse_args()
     if len(args) == 0:
@@ -249,6 +255,13 @@ if __name__ == '__main__':
                                 time_window=options.time_window,
                                 lon_range=lon_range, lat_range=lat_range))
     
-    for cross in sorted(crosses):
-        if not options.daytime or _daytime(cross):
-            print(cross)
+    if not options.quiet:
+        for cross in sorted(crosses):
+            if not options.daytime or _daytime(cross):
+                print(cross)
+    
+    if options.dates:
+        print('/'.join(c.time1.strftime('%Y%m%d') for c in sorted(crosses)))
+    
+    if options.datetimes:
+        print(' '.join(c.time1.strftime('%Y%m%d%H%M') for c in sorted(crosses)))
