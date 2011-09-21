@@ -8,7 +8,10 @@ import logging
 logger = logging.getLogger(__name__)
 
 import matplotlib
-matplotlib.use('agg', warn=False)
+try:
+    matplotlib.use('agg', warn=False)
+except TypeError: # For some reason, I don't always have 'warn'
+    matplotlib.use('agg')
 
 
 def imshow_lwps(amsr_lwp, cpp_lwp, time_diff, sea, title=None):
@@ -22,6 +25,10 @@ def imshow_lwps(amsr_lwp, cpp_lwp, time_diff, sea, title=None):
     from utility_functions import broken_cmap
     from matplotlib.colors import ListedColormap
     
+    # Use average of all AVHRR pixels in AMSR footprint
+    if len(cpp_lwp) == 3:
+        cpp_lwp = cpp_lwp.mean(axis=-1)
+    
     fig = pl.figure()
     
     break_value = 170 # g m**-2
@@ -30,10 +37,11 @@ def imshow_lwps(amsr_lwp, cpp_lwp, time_diff, sea, title=None):
     if vmax < vmin:
         vmax = max(break_value, amsr_lwp.max(), cpp_lwp.max())
     cmap = broken_cmap(np.array([vmin, vmax]), break_value=break_value)
-    ground_sea_map = ListedColormap(['g', 'b'], name="ground/sea map")
+    ground_sea_cmap = ListedColormap(['g', 'b'], name="ground/sea map")
+    sea_map = np.ma.array(sea, mask=sea.mask + sea)
     
     ax = fig.add_subplot(131)
-    ax.imshow(np.ma.array(sea, mask=sea.mask + sea), cmap=ground_sea_map)
+    ax.imshow(sea_map, cmap=ground_sea_cmap)
     im = ax.imshow(np.ma.array(amsr_lwp, mask=~sea),
                    vmin=vmin, vmax=vmax, cmap=cmap)
     cbar = fig.colorbar(im)
@@ -41,7 +49,7 @@ def imshow_lwps(amsr_lwp, cpp_lwp, time_diff, sea, title=None):
     ax.set_title('AMSR-E lwp')
     
     ax = fig.add_subplot(132, sharex=ax, sharey=ax)
-    ax.imshow(np.ma.array(sea, mask=sea.mask + sea), cmap=ground_sea_map)
+    ax.imshow(sea_map, cmap=ground_sea_cmap)
     im = ax.imshow(np.ma.array(cpp_lwp, mask=~sea),
                    vmin=vmin, vmax=vmax, cmap=cmap)
     cbar = fig.colorbar(im)
@@ -159,6 +167,24 @@ def plot_fields(fields, break_value=170):
         fig.colorbar(mesh)
         ax.set_title(f.desc)
     
+    return fig
+
+
+def plot_hist(fields, bins=500):
+    """
+    Plot histograms of *fields* (list of (data, label) tuples).
+    
+    """
+    from matplotlib import pyplot as pl
+    fig = pl.figure()
+    ax = fig.add_subplot(111)
+    
+    for data, label in fields:
+        values, _bins = np.histogram(data, bins=bins)
+        ax.plot((_bins[:-1] + _bins[1:]) / 2., values,
+                label=label + ' %d' % values.sum())
+    
+    ax.legend()
     return fig
 
 

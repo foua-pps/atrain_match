@@ -88,8 +88,8 @@ def get_amsr_lwp(filename):
                                    'High_res_cloud'].attrs['Scale'],
                             nodata=-9990, scale_up=True)
     
-    density = 1e3 # Density of water
-    return lwp_mm.array * density
+    density = 1e3 # Density of water [kg m**-3]
+    return lwp_mm.array * density # [mm * kg m**-3 = g m**-2]
 
 
 def get_cpp_lwp(filename):

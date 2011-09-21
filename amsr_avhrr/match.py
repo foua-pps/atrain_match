@@ -9,6 +9,14 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+#: Default threshold for lwp screening [kg m**-2]
+LWP_THRESHOLD = 170
+
+
+class MatchError(RuntimeError):
+    """Match error occurred"""
+
+
 class MatchMapper(object):
     """
     Map arrays from one swath to another.
@@ -87,16 +95,14 @@ class MatchMapper(object):
             rows = f['rows'][:]
             cols = f['cols'][:]
             pixel_mask = f['pixel_mask'][:]
-            time_diff = None
-            time_threshold = None
-            try:
+            if 'time_diff' in f.keys():
                 time_diff = f['time_diff'][:]
-            except KeyError:
-                pass
-            try:
-                time_threshold = f.attrs['time_threshold']
-            except KeyError:
-                pass
+            else:
+                time_diff = None
+            if 'time_threshold' in f['time_diff'].attrs.keys():
+                time_threshold = f['time_diff'].attrs['time_threshold']
+            else:
+                time_threshold = None
         
         return cls(rows=rows, cols=cols, pixel_mask=pixel_mask,
                    time_diff=time_diff, time_threshold=time_threshold)
@@ -120,11 +126,14 @@ def match_lonlat(source, target, radius_of_influence=1e3, n_neighbours=1):
     source_def = SwathDefinition(*source)
     target_def = SwathDefinition(*target)
     
+    logger.debug("Matching %d nearest neighbours" % n_neighbours)
     valid_in, valid_out, indices, distances = get_neighbour_info( #@UnusedVariable
         source_def, target_def, radius_of_influence, neighbours=n_neighbours)
     
-    indices.shape = target_def.shape
-    distances.shape = target_def.shape
+    shape = list(target_def.shape)
+    shape.append(n_neighbours)
+    indices.shape = shape
+    distances.shape = shape
     
     rows = indices // source_def.shape[1]
     cols = indices % source_def.shape[1]
@@ -148,7 +157,8 @@ def match(amsr_filename, avhrr_filename, radius_of_influence=1e3,
         avhrr_filename: string
             full path of AVHRR PPS HDF5 file
         radius_of_influence: float
-            radius of influence in meters in pixel-pixel matching (default: 1000 m)
+            radius of influence in meters in pixel-pixel matching (default:
+            1000 m)
         time_threshold: float
             largest absolute time difference to include in match
     
@@ -163,12 +173,14 @@ def match(amsr_filename, avhrr_filename, radius_of_influence=1e3,
     avhrr_lonlat = get_avhrr_lonlat(avhrr_filename)
     amsr_lonlat = get_amsr_lonlat(amsr_filename)
     
-    mapper = match_lonlat(avhrr_lonlat, amsr_lonlat, radius_of_influence)
+    mapper = match_lonlat(avhrr_lonlat, amsr_lonlat, radius_of_influence,
+                          n_neighbours=8)
     
     avhrr_time = get_avhrr_time(avhrr_filename)
     amsr_time = get_amsr_time(amsr_filename)
     
-    time_diff = np.abs(avhrr_time[mapper.rows] - amsr_time.reshape((amsr_time.size, 1)))
+    time_diff = np.abs(avhrr_time[mapper.rows] -
+                       amsr_time.reshape((amsr_time.size, 1, 1))).astype(np.float32)
     
     mapper.time_diff = time_diff
     mapper.time_threshold = time_threshold
@@ -195,30 +207,77 @@ def find_amsr(avhrr_filename):
     return amsr_finder.find(parsed['datetime'])
 
 
-def validate_lwp(amsr_lwp, cpp_lwp, sea, threshold=170, plotting=False):
+def screen_lwp(amsr_lwp, cpp_lwp, sea, lat, threshold=LWP_THRESHOLD):
+    """
+    Screen lwp pixels based on *sea* mask, amsr < threshold, and cpp_lwp < 0.
+    
+    Returns an bool array with screened out pixels set to True, suitable for
+    creating masked arrays.
+    
+    """
+    def show_mask(mask, screened):
+        return # Don't use
+        
+        from matplotlib import pyplot as plt
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        im = ax.imshow(mask[..., 0])
+        fig.colorbar(im)
+        ax.set_title(', '.join(screened))
+        fig.savefig('mask%d.png' % len(screened))
+    
+    mask = np.zeros(sea.shape, dtype=np.bool)
+    screened = []
+    
+    mask |= ~sea
+    screened.append('non-sea')
+    show_mask(mask, screened)
+    
+    mask |= (amsr_lwp < threshold)
+    screened.append('AMSR-E lwp < %r g m**-2' % threshold)
+    show_mask(mask, screened)
+    
+    mask |= (cpp_lwp < 0)
+    screened.append('CPP lwp < 0')
+    show_mask(mask, screened)
+    
+    mask |= (abs(lat) > 70)
+    screened.append('abs(lat) > 70 degrees')
+    show_mask(mask, screened)
+    
+    return mask, screened
+
+
+def validate_lwp(amsr_lwp, cpp_lwp, sea, lat, threshold=LWP_THRESHOLD):
     """
     Compare liquid water path, lwp, in *amsr_filename* and *cpp_filename* files.
     False pixels in *sea* are masked out. Only values above *threshold* (g
     m**-2) are considered.
     
     """
-    amsr_masked = np.ma.array(amsr_lwp, mask=~sea + (amsr_lwp < threshold))
-    cpp_masked = np.ma.array(cpp_lwp, mask=~sea)
+    # Screen out undesired pixels
+    amsr_lwp_3d = amsr_lwp.reshape(amsr_lwp.shape[0], amsr_lwp.shape[1], 1)
+    lat_3d = lat.reshape(lat.shape[0], lat.shape[1], 1)
+    mask, screened = screen_lwp(amsr_lwp_3d, cpp_lwp, sea, lat_3d, threshold)
+    mask_n0 = mask[..., 0] # Nearest neighbour mask
+    if mask_n0.all():
+        logger.warning("No matches after screening")
+        raise MatchError("No matches after screening")
+    amsr_masked = np.ma.array(amsr_lwp, mask=mask_n0)
+    cpp_masked = np.ma.array(cpp_lwp, mask=mask)
     
-    diff = amsr_masked - cpp_masked
+    # Use average of all AVHRR pixels in AMSR footprint
+    assert len(cpp_masked.shape) == 3
+    cpp_masked = cpp_masked.mean(axis=-1)
+    
+    lwp_diff = amsr_masked - cpp_masked
     
     print('=' * 40)
     print("AMSR-E lwp - CPP cwp")
-    print("Non-sea pixels screened out")
-    print("Pixels where AMSR-E lwp < %r g m**-2 screened out" % threshold)
-    print("Number of pixels in comparison: %d" % diff.compressed().size)
-    print("bias:    %.4g" % diff.mean())
-    print("std:     %.4g" % diff.std())
-    print("rel std: %.4g %%" % abs(100. * diff.std() / diff.mean()))
+    print("Screened out pixels: %s" % ', '.join(screened))
+    print("Number of pixels in comparison: %d" % lwp_diff.compressed().size)
+    print("bias:    %.4g" % lwp_diff.mean())
+    print("std:     %.4g" % lwp_diff.std())
+    print("rel std: %.4g %%" % abs(100. * lwp_diff.std() / lwp_diff.mean()))
     
-    if plotting:
-        from matplotlib import pyplot as pl
-        fig = pl.figure()
-        ax = fig.add_subplot(111)
-        ax.hist(diff.compressed())
-        return fig
+    return lwp_diff, screened
