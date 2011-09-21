@@ -31,11 +31,13 @@ def parse_segment_filename(filename):
     
     basename = os.path.basename(filename).lower()
     
+    # Try to match ~'avhrr_20100112_152600_noaa19.hrp'
     m = re.match('avhrr_(\d{8})_(\d{6})_([a-z]+)(\d*)\..*', basename)
     if m is not None:
         date, time, platform, satnumber = m.groups()
         datetime_s = date + time
     else:
+        # Try to match ~'N19-AVEA-AVHEAR00-NA-NA-20100112152600.000000000Z-1011664'
         m = re.match('([a-z])(\d+).*(\d{14})\..*', basename)
         if m is not None:
             short, satnumber, datetime_s = m.groups()
