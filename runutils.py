@@ -8,7 +8,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def process_scenes(scenes, fun, ignore_errors=True):
+def process_scenes(scenes, fun, ignore_errors=True, *args, **kwargs):
     """
     For each string in *scenes*, process corresponding noaa scene, by calling
     function *fun* with arguments satname, orbit, as parsed from *scenes*. Each
@@ -18,13 +18,15 @@ def process_scenes(scenes, fun, ignore_errors=True):
     If *ignore_errors* is True (default), exceptions will be ignored and
     problematic scenes reported after all scenes have been processed.
     
+    Any additional arguments and keyword arguments are passed to *fun*.
+    
     """
     errors = []
     for _file in scenes:
         filename = os.path.basename(_file)
         satname, _datetime, orbit = parse_scene(filename)
         try:
-            fun(satname, orbit)
+            fun(satname, orbit, *args, **kwargs)
         except Exception, err:
             if ignore_errors:
                 errors.append((filename, err))

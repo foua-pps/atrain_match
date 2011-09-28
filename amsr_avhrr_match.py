@@ -12,11 +12,11 @@ from runutils import process_scenes
 #: Should results be plotted?
 _PLOTTING = False
 
-#: Append lwp differences to this file
-_DIFF_OUTPUT_FILE = 'lwp_diff.h5'
+#: Directory for mapper files
+MATCH_DIR = os.environ.get('MATCH_DIR', '.')
 
 
-def process_noaa_scene(satname, orbit, amsr_filename=None):
+def process_noaa_scene(satname, orbit, amsr_filename=None, ctype=None):
     from pps_runutil import get_ppsProductArguments
     from pps_basic_configure import AVHRR_DIR, OUTPUT_DIR, AUX_DIR
     
@@ -34,10 +34,14 @@ def process_noaa_scene(satname, orbit, amsr_filename=None):
     
     cpp_filename = os.path.join(OUTPUT_DIR, ppsarg.files.cpp)
     physiography_filename = os.path.join(AUX_DIR, ppsarg.files.physiography)
+    if ctype is not None:
+        ctype_filename = os.path.join(OUTPUT_DIR, ppsarg.files.pge02)
+    else:
+        ctype_filename = None
     
     for amsr_filename in amsr_filenames:
         process_case(amsr_filename, avhrr_filename, cpp_filename,
-                      physiography_filename)
+                      physiography_filename, ctype, ctype_filename)
 
 
 def _match_file(amsr_filename, avhrr_filename):
@@ -53,22 +57,23 @@ def _plot_title(amsr_filename, avhrr_filename):
 
 
 def process_case(amsr_filename, avhrr_filename, cpp_filename,
-                  physiography_filename):
+                  physiography_filename, ctype=None, ctype_filename=None):
     """
     Match, plot, and validate scene defined by the given files.
     
     """
     match_file = _match_file(amsr_filename, avhrr_filename)
-    if os.path.exists(match_file):
-        logger.info("Reading match from %r" % match_file)
+    match_path = os.path.join(MATCH_DIR, match_file)
+    if os.path.exists(match_path):
+        logger.info("Reading match from %r" % match_path)
         from amsr_avhrr.match import MatchMapper
-        mapper = MatchMapper.from_file(match_file)
+        mapper = MatchMapper.from_file(match_path)
     else:
         logger.info("Matching AMSR-E and AVHRR swaths")
         from amsr_avhrr.match import match
         mapper = match(amsr_filename, avhrr_filename)
-        mapper.write(match_file)
-        logger.info("Match written to %r" % match_file)
+        mapper.write(match_path)
+        logger.info("Match written to %r" % match_path)
     
     if False:
         logger.warning("Replacing '.h5' extension with '.hdf' in CPP filename, "
@@ -76,7 +81,8 @@ def process_case(amsr_filename, avhrr_filename, cpp_filename,
         cpp_filename = '.hdf'.join(cpp_filename.rsplit('.h5', 1)) # last '.h5'
     if os.path.exists(cpp_filename):
         compare_lwps(mapper, amsr_filename, cpp_filename,
-                     physiography_filename, avhrr_filename)
+                     physiography_filename, avhrr_filename, ctype,
+                     ctype_filename)
     else:
         logger.warning("No CPP product found")
     
@@ -103,7 +109,8 @@ def write_data(data, name, filename, mode=None, attributes=None):
 
 
 def compare_lwps(mapper, amsr_filename, cpp_filename,
-                 physiography_filename, avhrr_filename=None):
+                 physiography_filename, avhrr_filename=None, ctype=None,
+                 ctype_filename=None):
     """
     Compare liquid water paths in *amsr_filename* and *cpp_filename*, with
     matching in *mapper*. Sea mask is taken from *physiography_filename*.
@@ -126,17 +133,28 @@ def compare_lwps(mapper, amsr_filename, cpp_filename,
     # Sea pixels in AMSR-E swath
     sea = mapper(landuse == 16)
     
-    from amsr_avhrr.match import validate_lwp, MatchError
-    try:
-        lwp_diff, screened = validate_lwp(amsr_lwp, cpp_lwp, sea, lat)
-    except MatchError:
-        logger.warning("Couldn't validate")
-        return
+    # Select only sea pixels (AMSR-E lwp is only available over sea)
+    selection = sea
+    restrictions = ['sea']
     
-    diff_file = (_fig_base(_match_file(amsr_filename, avhrr_filename)) +
-                 'lwp_diff.h5')
-    write_data(lwp_diff, 'lwp_diff', diff_file, mode='w',
-               attributes={'screening': screened})
+    # Select only pixels with cloud type *ctype*
+    if ctype is not None and ctype_filename:
+        from epshdf import read_cloudtype
+        ctype_obj = read_cloudtype(ctype_filename, 1, 0, 0)
+        selection &= (mapper(ctype_obj.cloudtype == ctype))
+        restrictions.append('cloud type == %d' % ctype)
+    
+    from amsr_avhrr.validation import validate_lwp
+    lwp_diff, restrictions = validate_lwp(amsr_lwp, cpp_lwp, selection,
+                                          restrictions)
+    if lwp_diff is None:
+        logger.warning("No matches with restrictions: %s" %
+                       '; '.join(restrictions))
+    else:
+        diff_file = (_fig_base(_match_file(amsr_filename, avhrr_filename)) +
+                     'lwp_diff.h5')
+        write_data(lwp_diff, 'lwp_diff', diff_file, mode='w',
+                   attributes={'restrictions': restrictions})
     
     if _PLOTTING:
         title = _plot_title(amsr_filename, avhrr_filename)
@@ -152,12 +170,11 @@ def compare_lwps(mapper, amsr_filename, cpp_filename,
         fig.savefig(fig_base + "lwp_arrays.png")
         
         logger.debug("Plotting lwp swaths")
-        from amsr_avhrr.util import get_avhrr_lonlat, get_amsr_lonlat
+        from amsr_avhrr.util import get_avhrr_lonlat
         avhrr_lonlat = get_avhrr_lonlat(avhrr_filename)
-        amsr_lonlat = get_amsr_lonlat(amsr_filename)
         from amsr_avhrr.plotting import Field, plot_fields
         fields = [Field(cpp_lwp_avhrr_proj, desc='CPP cwp', *avhrr_lonlat),
-                  Field(amsr_lwp, desc='AMSR-E lwp', *amsr_lonlat)]
+                  Field(amsr_lwp, lon, lat, desc='AMSR-E lwp')]
         fig = plot_fields(fields)
         fig.suptitle(title)
         fig.set_size_inches(20, 10)
@@ -175,6 +192,8 @@ if __name__ == '__main__':
     parser.add_option('-v', '--verbose', action='store_true')
     parser.add_option('-d', '--debug', action='store_true',
                       help="Don't ignore errors")
+    parser.add_option('-c', '--cloudtype', type='int',
+                      help="Screen by CLOUDTYPE (integer value)")
     opts, args = parser.parse_args()
     
     if opts.verbose:
@@ -190,6 +209,7 @@ if __name__ == '__main__':
     # Command line handling
     if args[0] == 'satproj':
         satname, orbit = args[1:]
-        process_noaa_scene(satname, orbit)
+        process_noaa_scene(satname, orbit, ctype=opts.cloudtype)
     else:
-        process_scenes(args, process_noaa_scene, ignore_errors=not opts.debug)
+        process_scenes(args, process_noaa_scene, ignore_errors=not opts.debug,
+                       ctype=opts.cloudtype)

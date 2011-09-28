@@ -9,14 +9,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-#: Default threshold for lwp screening [kg m**-2]
-LWP_THRESHOLD = 170
-
-
-class MatchError(RuntimeError):
-    """Match error occurred"""
-
-
 class MatchMapper(object):
     """
     Map arrays from one swath to another.
@@ -205,79 +197,3 @@ def find_amsr(avhrr_filename):
     # start of the AVHRR swath
     amsr_finder = AmsrFileFinder(time_window=(-45 * 60, 20 * 60))
     return amsr_finder.find(parsed['datetime'])
-
-
-def screen_lwp(amsr_lwp, cpp_lwp, sea, lat, threshold=LWP_THRESHOLD):
-    """
-    Screen lwp pixels based on *sea* mask, amsr < threshold, and cpp_lwp < 0.
-    
-    Returns an bool array with screened out pixels set to True, suitable for
-    creating masked arrays.
-    
-    """
-    def show_mask(mask, screened):
-        return # Don't use
-        
-        from matplotlib import pyplot as plt
-        fig = plt.figure()
-        ax = fig.add_subplot(111)
-        im = ax.imshow(mask[..., 0])
-        fig.colorbar(im)
-        ax.set_title(', '.join(screened))
-        fig.savefig('mask%d.png' % len(screened))
-    
-    mask = np.zeros(sea.shape, dtype=np.bool)
-    screened = []
-    
-    mask |= ~sea
-    screened.append('non-sea')
-    show_mask(mask, screened)
-    
-    mask |= (amsr_lwp < threshold)
-    screened.append('AMSR-E lwp < %r g m**-2' % threshold)
-    show_mask(mask, screened)
-    
-    mask |= (cpp_lwp < 0)
-    screened.append('CPP lwp < 0')
-    show_mask(mask, screened)
-    
-    mask |= (abs(lat) > 70)
-    screened.append('abs(lat) > 70 degrees')
-    show_mask(mask, screened)
-    
-    return mask, screened
-
-
-def validate_lwp(amsr_lwp, cpp_lwp, sea, lat, threshold=LWP_THRESHOLD):
-    """
-    Compare liquid water path, lwp, in *amsr_filename* and *cpp_filename* files.
-    False pixels in *sea* are masked out. Only values above *threshold* (g
-    m**-2) are considered.
-    
-    """
-    # Screen out undesired pixels
-    amsr_lwp_3d = amsr_lwp.reshape(amsr_lwp.shape[0], amsr_lwp.shape[1], 1)
-    lat_3d = lat.reshape(lat.shape[0], lat.shape[1], 1)
-    mask, screened = screen_lwp(amsr_lwp_3d, cpp_lwp, sea, lat_3d, threshold)
-    mask_n0 = mask[..., 0] # Nearest neighbour mask
-    if mask_n0.all():
-        logger.warning("No matches after screening")
-        raise MatchError("No matches after screening")
-    amsr_masked = np.ma.array(amsr_lwp, mask=mask_n0)
-    cpp_masked = np.ma.array(cpp_lwp, mask=mask)
-    
-    # Use average of all AVHRR pixels in AMSR footprint
-    assert len(cpp_masked.shape) == 3
-    cpp_masked = cpp_masked.mean(axis=-1)
-    
-    lwp_diff = amsr_masked - cpp_masked
-    
-    print('=' * 40)
-    print("AMSR-E lwp - CPP cwp")
-    print("Screened out pixels: %s" % ', '.join(screened))
-    print("Number of pixels in comparison: %d" % lwp_diff.compressed().size)
-    print("bias:    %.4g" % lwp_diff.mean())
-    print("std:     %.4g" % lwp_diff.std())
-    print("rel std: %.4g %%" % abs(100. * lwp_diff.std() / lwp_diff.mean()))
-    
-    return lwp_diff, screened

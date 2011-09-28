@@ -22,7 +22,7 @@ def imshow_lwps(amsr_lwp, cpp_lwp, time_diff, sea, title=None):
     """
     import matplotlib.pyplot as pl
     
-    from utility_functions import broken_cmap
+    from utility_functions import broken_cmap_r
     from matplotlib.colors import ListedColormap
     
     # Use average of all AVHRR pixels in AMSR footprint
@@ -36,7 +36,7 @@ def imshow_lwps(amsr_lwp, cpp_lwp, time_diff, sea, title=None):
     vmax = min(amsr_lwp.max(), cpp_lwp.max())
     if vmax < vmin:
         vmax = max(break_value, amsr_lwp.max(), cpp_lwp.max())
-    cmap = broken_cmap(np.array([vmin, vmax]), break_value=break_value)
+    cmap = broken_cmap_r(np.array([vmin, vmax]), break_value=break_value)
     ground_sea_cmap = ListedColormap(['g', 'b'], name="ground/sea map")
     sea_map = np.ma.array(sea, mask=sea.mask + sea)
     
@@ -133,7 +133,7 @@ def plot_fields(fields, break_value=170):
     """
     from mpl_toolkits.basemap import Basemap
     from matplotlib import pyplot as pl
-    from utility_functions import broken_cmap
+    from utility_functions import broken_cmap_r
     
     lon_0 = fields[0].lon.mean()
     lat_0 = fields[0].lat.mean()
@@ -142,7 +142,7 @@ def plot_fields(fields, break_value=170):
     vmax = min(f.data.max() for f in  fields)
     if vmax < vmin:
         vmax = max(break_value, *(f.data.max() for f in  fields))
-    cmap = broken_cmap(np.array([vmin, vmax]), break_value=break_value)
+    cmap = broken_cmap_r(np.array([vmin, vmax]), break_value=break_value)
     
     fig = pl.figure()
     ax = None
@@ -166,11 +166,16 @@ def plot_fields(fields, break_value=170):
         mesh = m.pcolormesh(x, y, data, vmin=vmin, vmax=vmax, cmap=cmap)
         fig.colorbar(mesh)
         ax.set_title(f.desc)
+        
+        m.drawmeridians(range(0, 360, 20), linewidth=.5)
+        m.drawparallels(range(-80, 90, 10), linewidth=.5)
+        # Mark 70 deg latitudes (cut off for validation)
+        m.drawparallels([-70, 70], color='r', dashes=[1, 0], latmax=70)
     
     return fig
 
 
-def plot_hist(fields, bins=500):
+def plot_hists(fields, bins=500):
     """
     Plot histograms of *fields* (list of (data, label) tuples).
     
@@ -185,6 +190,28 @@ def plot_hist(fields, bins=500):
                 label=label + ' %d' % values.sum())
     
     ax.legend()
+    return fig
+
+
+def plot_hist(data, bins=500):
+    from matplotlib import pyplot as plt
+    
+    mean = data.mean()
+    median = np.median(data)
+    std = data.std()
+    
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    n, bins, bars = ax.hist(data, bins=bins) #@UnusedVariable
+    ax.set_ylabel('frequency')
+    ax.axvline(mean, label='mean = %.2f' % mean, color='r')
+    ax.axvline(median, label='median = %.2f' % median, color='r',
+               linestyle='--')
+    ax.hlines(n.max() / 2, mean - std, mean + std,
+              label='std = %.2f' % std, colors='r', linestyles='dashdot')
+    ax.grid()
+    ax.legend()
+    
     return fig
 
 
