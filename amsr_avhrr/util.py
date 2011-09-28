@@ -92,13 +92,9 @@ def get_amsr_lwp(filename):
     return lwp_mm.array * density # [mm * kg m**-3 = g m**-2]
 
 
-def get_cpp_lwp(filename):
-    """
-    Return liquid water path (lwp) from PPS CPP file *filename*. Units of the
-    returned array are g m**-2.
-    
-    """
+def get_cpp_product(filename, product):
+    """Get *product* from CPP file *filename*."""
     from ppshdf_cloudproducts import CppProducts
     
-    cpp = CppProducts(filename=filename, product_names=['cwp'])
-    return cpp.products['cwp'].array
+    cpp = CppProducts(filename=filename, product_names=[product])
+    return cpp.products[product].array
