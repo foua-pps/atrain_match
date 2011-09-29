@@ -14,7 +14,7 @@ except TypeError: # For some reason, I don't always have 'warn'
     matplotlib.use('agg')
 
 
-def imshow_lwps(amsr_lwp, cpp_lwp, time_diff, sea, title=None):
+def imshow_lwps(amsr_lwp, cpp_lwp, time_diff, sea, title=None, lwp_max=None):
     """
     Show *amsr_lwp* and *cpp_lwp* side by side. *sea* is used to draw a
     background, and mask out any pixels which are not sea.
@@ -31,11 +31,7 @@ def imshow_lwps(amsr_lwp, cpp_lwp, time_diff, sea, title=None):
     
     fig = pl.figure()
     
-    break_value = 170 # g m**-2
-    vmin = 0
-    vmax = min(amsr_lwp.max(), cpp_lwp.max())
-    if vmax < vmin:
-        vmax = max(break_value, amsr_lwp.max(), cpp_lwp.max())
+    vmin, vmax, break_value = limits([amsr_lwp, cpp_lwp], lwp_max)
     cmap = broken_cmap_r(np.array([vmin, vmax]), break_value=break_value)
     ground_sea_cmap = ListedColormap(['g', 'b'], name="ground/sea map")
     sea_map = np.ma.array(sea, mask=sea.mask + sea)
@@ -123,7 +119,48 @@ class Field(object):
         self.lat = lat
         self.desc = desc
 
-def plot_fields(fields, break_value=170):
+
+def limits(arrays, break_value=None):
+    """
+    Returns data limits for color scaling (vmin, vmax, break_value).
+    
+    vmax is the smallest of the maxima::
+    
+    >>> limits([np.arange(13), np.arange(6, 20)], 3)
+    (0, 12, 3)
+    
+    If *break_value* is not given, vmax is returned::
+    
+    >>> limits([np.arange(17)])
+    (0, 16, 16)
+    
+    vmin is always set to 0::
+    
+    >>> limits([np.arange(4, 10)])
+    (0, 9, 9)
+    
+    break_values > vmax are retained::
+    
+    >>> limits([np.arange(4, 10)], 20)
+    (0, 9, 20)
+    
+    When all maxima are below 0, vmax is set to *break_value*::
+    
+    >>> limits([np.arange(-10, -4)], 8)
+    (0, 8, 8)
+    
+    """
+    vmin = 0
+    vmax = min(a.max() for a in arrays)
+    if break_value is None:
+        break_value = vmax
+    if vmax < vmin:
+        vmax = max(break_value, *(a.max() for a in arrays))
+    
+    return vmin, vmax, break_value
+
+
+def plot_fields(fields, break_value=None):
     """
     Plot *fields*. Each element in *fields* should be a `Field` instance.
     
@@ -138,11 +175,8 @@ def plot_fields(fields, break_value=170):
     lon_0 = fields[0].lon.mean()
     lat_0 = fields[0].lat.mean()
     
-    vmin = 0
-    vmax = min(f.data.max() for f in  fields)
-    if vmax < vmin:
-        vmax = max(break_value, *(f.data.max() for f in  fields))
-    cmap = broken_cmap_r(np.array([vmin, vmax]), break_value=break_value)
+    vmin, vmax, break_value = limits([f.data for f in fields], break_value)
+    cmap = broken_cmap_r(vmin=vmin, vmax=vmax, break_value=break_value)
     
     fig = pl.figure()
     ax = None

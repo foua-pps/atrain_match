@@ -48,27 +48,18 @@ def screen_lwp(amsr_lwp, cpp_lwp, mask, screened, threshold=LWP_THRESHOLD):
     return mask, screened
 
 
-def validate_lwp(amsr_lwp, cpp_lwp, selection, restrictions,
-                 threshold=LWP_THRESHOLD):
+def validate_lwp(amsr_lwp, cpp_lwp, selection):
     """
     Compare liquid water path, lwp, in *amsr_filename* and *cpp_filename* files.
-    Only values below *threshold* (g m**-2) in the AMSR-E data are considered.
+    Use only `True` elements in selection.
     
     """
-    # Screen out undesired pixels
-    restrictions = list(restrictions) # local copy
-    amsr_lwp_3d = amsr_lwp.reshape(amsr_lwp.shape[0], amsr_lwp.shape[1], 1)
-    selection &= (amsr_lwp_3d < threshold)
-    restrictions.append('AMSR-E lwp < %r g m**-2' % threshold)
-    selection &= (amsr_lwp_3d >= 0)
-    restrictions.append('AMSR-E lwp >= 0')
-    selection &= (cpp_lwp >= 0)
-    restrictions.append('CPP lwp >= 0')
+    # Use pixels with at least one selected AVHRR pixel
+    selection_amsr = selection.any(axis=2)
+    if not selection_amsr.any():
+        return None
     
-    selection_n0 = selection[..., 0] # _nearest_ neighbour selection
-    if not selection_n0.any():
-        return None, restrictions
-    amsr_masked = np.ma.array(amsr_lwp, mask=~selection_n0)
+    amsr_masked = np.ma.array(amsr_lwp, mask=~selection_amsr)
     cpp_masked = np.ma.array(cpp_lwp, mask=~selection)
     
     # Use average of all AVHRR pixels in AMSR footprint
@@ -79,13 +70,12 @@ def validate_lwp(amsr_lwp, cpp_lwp, selection, restrictions,
     
     print('=' * 40)
     print("CPP cwp - AMSR-E lwp")
-    print("Selected pixels: %s" % ', '.join(restrictions))
     print("Number of pixels in comparison: %d" % lwp_diff.compressed().size)
     print("bias:    %.4g" % lwp_diff.mean())
     print("std:     %.4g" % lwp_diff.std())
     print("rel std: %.4g %%" % abs(100. * lwp_diff.std() / lwp_diff.mean()))
     
-    return lwp_diff, restrictions
+    return lwp_diff
 
 
 def validate_all(filenames):

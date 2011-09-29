@@ -17,7 +17,7 @@ MATCH_DIR = os.environ.get('MATCH_DIR', '.')
 
 
 def process_noaa_scene(satname, orbit, amsr_filename=None, ctype=None,
-                       reff_limits=None):
+                       reff_max=None, lwp_max=None):
     from pps_runutil import get_ppsProductArguments
     from pps_basic_configure import AVHRR_DIR, OUTPUT_DIR, AUX_DIR
     
@@ -42,7 +42,8 @@ def process_noaa_scene(satname, orbit, amsr_filename=None, ctype=None,
     
     for amsr_filename in amsr_filenames:
         process_case(amsr_filename, avhrr_filename, cpp_filename,
-                      physiography_filename, ctype, ctype_filename, reff_limits)
+                      physiography_filename, ctype, ctype_filename, reff_max,
+                      lwp_max)
 
 
 def _match_file(amsr_filename, avhrr_filename):
@@ -59,7 +60,7 @@ def _plot_title(amsr_filename, avhrr_filename):
 
 def process_case(amsr_filename, avhrr_filename, cpp_filename,
                   physiography_filename, ctype=None, ctype_filename=None,
-                  reff_limits=None):
+                  reff_max=None, lwp_max=None):
     """
     Match, plot, and validate scene defined by the given files.
     
@@ -84,7 +85,7 @@ def process_case(amsr_filename, avhrr_filename, cpp_filename,
     if os.path.exists(cpp_filename):
         compare_lwps(mapper, amsr_filename, cpp_filename,
                      physiography_filename, avhrr_filename, ctype,
-                     ctype_filename, reff_limits)
+                     ctype_filename, reff_max, lwp_max)
     else:
         logger.warning("No CPP product found")
     
@@ -110,9 +111,58 @@ def write_data(data, name, filename, mode=None, attributes=None):
                 d.attrs[k] = v
 
 
+
+def get_sea(mapper, physiography_filename):
+    """
+    Get sea map from *physiography_filename*, mapped to *mapper*'s target.
+    
+    """
+    from epshdf import read_physiography
+    landuse = read_physiography(physiography_filename, 1, 0, 0).landuse
+    
+    # Sea pixels in AMSR-E swath
+    return mapper(landuse == 16)
+
+
+def select_pixels(mapper, amsr_lwp, cpp_cwp, sea,
+                  lwp_max=None,
+                  ctype=None, ctype_filename=None,
+                  reff_max=None, cpp_filename=None):
+    # Select only sea pixels (AMSR-E lwp is only available over sea)
+    selection = sea
+    restrictions = ['sea']
+    
+    # Select only pixels with cloud type *ctype*
+    if ctype is not None:
+        if not ctype_filename:
+            raise ValueError("Need *ctype_filename* for screening on *ctype*")
+        from epshdf import read_cloudtype
+        ctype_obj = read_cloudtype(ctype_filename, 1, 0, 0)
+        selection &= mapper(ctype_obj.cloudtype == ctype)
+        restrictions.append('cloud type == %d' % ctype)
+    
+    if reff_max is not None:
+        from amsr_avhrr.util import get_cpp_product
+        reff = get_cpp_product(cpp_filename, 'reff')
+        selection &= mapper(reff < reff_max)
+        restrictions.append('effective radius < %.2g' % reff_max)
+    
+    amsr_lwp_3d = amsr_lwp.reshape(amsr_lwp.shape[0], amsr_lwp.shape[1], 1)
+    selection &= 0 <= amsr_lwp_3d # Remove pixels with negative lwp (nodata)
+    if lwp_max is None:
+        restrictions.append('0 <= AMSR-E lwp')
+    else:
+        selection &= amsr_lwp_3d < lwp_max
+        restrictions.append('0 <= AMSR-E lwp < %.2g' % lwp_max)
+    
+    selection &= cpp_cwp >= 0 # Remove pixels with negative cwp (nodata)
+    restrictions.append('CPP cwp >= 0')
+    
+    return selection, restrictions
+
 def compare_lwps(mapper, amsr_filename, cpp_filename,
                  physiography_filename, avhrr_filename=None, ctype=None,
-                 ctype_filename=None, reff_limits=None):
+                 ctype_filename=None, reff_max=None, lwp_max=None):
     """
     Compare liquid water paths in *amsr_filename* and *cpp_filename*, with
     matching in *mapper*. Sea mask is taken from *physiography_filename*.
@@ -129,33 +179,15 @@ def compare_lwps(mapper, amsr_filename, cpp_filename,
     amsr_lwp = get_amsr_lwp(amsr_filename)
     lon, lat = get_amsr_lonlat(amsr_filename) #@UnusedVariable
     
-    from epshdf import read_physiography
-    landuse =  read_physiography(physiography_filename, 1, 0, 0).landuse
+    sea = get_sea(mapper, physiography_filename)
     
-    # Sea pixels in AMSR-E swath
-    sea = mapper(landuse == 16)
-    
-    # Select only sea pixels (AMSR-E lwp is only available over sea)
-    selection = sea
-    restrictions = ['sea']
-    
-    # Select only pixels with cloud type *ctype*
-    if ctype is not None and ctype_filename:
-        from epshdf import read_cloudtype
-        ctype_obj = read_cloudtype(ctype_filename, 1, 0, 0)
-        selection &= mapper(ctype_obj.cloudtype == ctype)
-        restrictions.append('cloud type == %d' % ctype)
-    
-    if reff_limits is not None:
-        reff_min, reff_max = sorted(reff_limits)
-        reff = get_cpp_product(cpp_filename, 'reff')
-        selection &= mapper((reff_min <= reff) & (reff < reff_max))
-        restrictions.append('%.2g <= effective radius < %.2g' %
-                            (reff_min, reff_max))
+    selection, restrictions = select_pixels(mapper, amsr_lwp, cpp_cwp, sea,
+                                            lwp_max, ctype, ctype_filename,
+                                            reff_max, cpp_filename)
+    logger.debug("Selected pixels: %s" % '; '.join(restrictions))
     
     from amsr_avhrr.validation import validate_lwp
-    lwp_diff, restrictions = validate_lwp(amsr_lwp, cpp_cwp, selection,
-                                          restrictions)
+    lwp_diff = validate_lwp(amsr_lwp, cpp_cwp, selection)
     if lwp_diff is None:
         logger.warning("No matches with restrictions: %s" %
                        '; '.join(restrictions))
@@ -173,7 +205,7 @@ def compare_lwps(mapper, amsr_filename, cpp_filename,
         from amsr_avhrr.plotting import imshow_lwps
         fig = imshow_lwps(amsr_lwp, cpp_cwp.mean(axis=-1),
                           mapper.time_diff.mean(axis=-1),
-                          sea.mean(axis=-1) > .5)
+                          sea.mean(axis=-1) > .5, lwp_max=lwp_max)
         fig.suptitle(title)
         fig.set_size_inches(20, 12)
         fig.savefig(fig_base + "lwp_arrays.png")
@@ -184,7 +216,7 @@ def compare_lwps(mapper, amsr_filename, cpp_filename,
         from amsr_avhrr.plotting import Field, plot_fields
         fields = [Field(cpp_cwp_avhrr_proj, desc='CPP cwp', *avhrr_lonlat),
                   Field(amsr_lwp, lon, lat, desc='AMSR-E lwp')]
-        fig = plot_fields(fields)
+        fig = plot_fields(fields, break_value=lwp_max)
         fig.suptitle(title)
         fig.set_size_inches(20, 10)
         fig.savefig(fig_base + "lwp_swaths.png")
@@ -205,6 +237,8 @@ if __name__ == '__main__':
                       help="Only include CLOUDTYPE (integer value)")
     parser.add_option('-r', '--reff_max', type='float',
                       help="Screen out effective radii > REFF_MAX")
+    parser.add_option('-l', '--lwp_max', type='float',
+                      help="Screen out AMSR-E liquid water path > LWP_MAX")
     opts, args = parser.parse_args()
     
     if opts.verbose:
@@ -221,7 +255,9 @@ if __name__ == '__main__':
     if opts.cloudtype is not None:
         processing_kwargs['ctype'] = opts.cloudtype
     if opts.reff_max is not None:
-        processing_kwargs['reff_limits'] = (0, opts.reff_max)
+        processing_kwargs['reff_max'] = opts.reff_max
+    if opts.lwp_max is not None:
+        processing_kwargs['lwp_max'] = opts.lwp_max
     
     # Command line handling
     if args[0] == 'satproj':
