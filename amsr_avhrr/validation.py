@@ -108,7 +108,9 @@ def validate_all(filenames):
     print("Standard deviation: %.2f" % std)
     
     from .plotting import plot_hist
-    fig = plot_hist(lwp_diff_array, bins=np.linspace(-200, 200, 500))
+    hist_range = (np.percentile(lwp_diff_array, 1),
+                  np.percentile(lwp_diff_array, 99))
+    fig = plot_hist(lwp_diff_array, bins=500, range=hist_range)
     fig.axes[0].set_xlabel('lwp difference (g m**-2)')
     fig.suptitle("CPP cwp - AMSR-E lwp\nRestrictions: %s\nPixels left: %d" %
                  ('; '.join(restrictions), lwp_diff_array.size))

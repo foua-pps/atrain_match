@@ -227,7 +227,7 @@ def plot_hists(fields, bins=500):
     return fig
 
 
-def plot_hist(data, bins=500):
+def plot_hist(data, **kwargs):
     from matplotlib import pyplot as plt
     
     mean = data.mean()
@@ -236,7 +236,7 @@ def plot_hist(data, bins=500):
     
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    n, bins, bars = ax.hist(data, bins=bins) #@UnusedVariable
+    n, bins, bars = ax.hist(data, **kwargs) #@UnusedVariable
     ax.set_ylabel('frequency')
     ax.axvline(mean, label='mean = %.2f' % mean, color='r')
     ax.axvline(median, label='median = %.2f' % median, color='r',
