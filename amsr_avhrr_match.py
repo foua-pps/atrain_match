@@ -105,7 +105,9 @@ def process_case(amsr_filename, avhrr_filename, cpp_filename,
 def write_data(data, name, filename, mode=None, attributes=None):
     import h5py
     with h5py.File(filename, mode) as f:
-        d = f.create_dataset(name, data=data.compressed())
+        if hasattr(data, 'mask'):
+            data = data.compressed()
+        d = f.create_dataset(name, data=data)
         if attributes:
             for k, v in attributes.items():
                 d.attrs[k] = v
@@ -196,6 +198,11 @@ def compare_lwps(mapper, amsr_filename, cpp_filename,
                      'lwp_diff.h5')
         write_data(lwp_diff, 'lwp_diff', diff_file, mode='w',
                    attributes={'restrictions': restrictions})
+        import numpy as np
+        write_data(np.ma.array(cpp_cwp, mask=~selection).mean(axis=-1), 'cpp_cwp', diff_file,
+                   mode='a')
+        write_data(amsr_lwp[selection.any(axis=-1)], 'amsr_lwp', diff_file,
+                   mode='a')
     
     if _PLOTTING:
         title = _plot_title(amsr_filename, avhrr_filename)
