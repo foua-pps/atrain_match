@@ -191,9 +191,9 @@ def _daytime(cross):
     return day
 
 
-def parse_range(range):
-    """Parse *range*, which should look like -35.7354:25.1. Return (lower, upper)."""
-    l = range.split(':')
+def parse_range(_range):
+    """Parse *_range*, which should look like -35.7354:25.1. Return (lower, upper)."""
+    l = _range.split(':')
     return (float(l[0]), float(l[1]))
 
 
