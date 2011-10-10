@@ -54,8 +54,8 @@ def validate_lwp(amsr_lwp, cpp_lwp, selection):
     Use only `True` elements in selection.
     
     """
-    # Use pixels with at least one selected AVHRR pixel
-    selection_amsr = selection.any(axis=2)
+    # Use only AMSR-E pixels for which all corresponding AVHRR pixel are valid
+    selection_amsr = selection.all(axis=-1)
     if not selection_amsr.any():
         return None
     
