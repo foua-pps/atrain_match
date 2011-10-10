@@ -15,9 +15,15 @@ _PLOTTING = False
 #: Directory for mapper files
 MATCH_DIR = os.environ.get('MATCH_DIR', '.')
 
+#: Radius of AMSR-E footprint (m)
+AMSR_RADIUS = 10e3
+
+#: h5py compression settings (True, or an integer in range(10))
+_COMPRESSION = True
+
 
 def process_noaa_scene(satname, orbit, amsr_filename=None, ctype=None,
-                       reff_max=None, lwp_max=None):
+                       reff_max=None, lwp_max=None, n_neighbours=8):
     from pps_runutil import get_ppsProductArguments
     from pps_basic_configure import AVHRR_DIR, OUTPUT_DIR, AUX_DIR
     
@@ -43,7 +49,7 @@ def process_noaa_scene(satname, orbit, amsr_filename=None, ctype=None,
     for amsr_filename in amsr_filenames:
         process_case(amsr_filename, avhrr_filename, cpp_filename,
                       physiography_filename, ctype, ctype_filename, reff_max,
-                      lwp_max)
+                      lwp_max, n_neighbours)
 
 
 def _match_file(amsr_filename, avhrr_filename):
@@ -60,7 +66,7 @@ def _plot_title(amsr_filename, avhrr_filename):
 
 def process_case(amsr_filename, avhrr_filename, cpp_filename,
                   physiography_filename, ctype=None, ctype_filename=None,
-                  reff_max=None, lwp_max=None):
+                  reff_max=None, lwp_max=None, n_neighbours=8):
     """
     Match, plot, and validate scene defined by the given files.
     
@@ -74,8 +80,10 @@ def process_case(amsr_filename, avhrr_filename, cpp_filename,
     else:
         logger.info("Matching AMSR-E and AVHRR swaths")
         from amsr_avhrr.match import match
-        mapper = match(amsr_filename, avhrr_filename)
-        mapper.write(match_path)
+        mapper = match(amsr_filename, avhrr_filename,
+                       radius_of_influence=AMSR_RADIUS,
+                       n_neighbours=n_neighbours)
+        mapper.write(match_path, compression=_COMPRESSION)
         logger.info("Match written to %r" % match_path)
     
     if False:
@@ -107,7 +115,7 @@ def write_data(data, name, filename, mode=None, attributes=None):
     with h5py.File(filename, mode) as f:
         if hasattr(data, 'mask'):
             data = data.compressed()
-        d = f.create_dataset(name, data=data)
+        d = f.create_dataset(name, data=data, compression=_COMPRESSION)
         if attributes:
             for k, v in attributes.items():
                 d.attrs[k] = v
@@ -246,6 +254,8 @@ if __name__ == '__main__':
                       help="Screen out effective radii > REFF_MAX")
     parser.add_option('-l', '--lwp_max', type='float',
                       help="Screen out AMSR-E liquid water path > LWP_MAX")
+    parser.add_option('-n', '--neighbours', type='int',
+                      help="Number of nearest AVHRR neighbours to use")
     opts, args = parser.parse_args()
     
     if opts.verbose:
@@ -265,6 +275,8 @@ if __name__ == '__main__':
         processing_kwargs['reff_max'] = opts.reff_max
     if opts.lwp_max is not None:
         processing_kwargs['lwp_max'] = opts.lwp_max
+    if opts.neighbours is not None:
+        processing_kwargs['n_neighbours'] = opts.neighbours
     
     # Command line handling
     if args[0] == 'satproj':

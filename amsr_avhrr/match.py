@@ -59,7 +59,7 @@ class MatchMapper(object):
                     (abs(self.time_diff) > self.time_threshold))
         return self._pixel_mask
     
-    def write(self, filename):
+    def write(self, filename, compression=None):
         """
         Write mapper to hdf5 file *filename*.
         
@@ -67,11 +67,15 @@ class MatchMapper(object):
         import h5py
         
         with h5py.File(filename, 'w') as f:
-            f.create_dataset('rows', data=self.rows.filled())
-            f.create_dataset('cols', data=self.cols.filled())
-            f.create_dataset('pixel_mask', data=self._pixel_mask)
+            f.create_dataset('rows', data=self.rows.filled(),
+                             compression=compression)
+            f.create_dataset('cols', data=self.cols.filled(),
+                             compression=compression)
+            f.create_dataset('pixel_mask', data=self._pixel_mask,
+                             compression=compression)
             if self.time_diff is not None:
-                f.create_dataset('time_diff', data=self.time_diff.filled())
+                f.create_dataset('time_diff', data=self.time_diff.filled(),
+                                 compression=compression)
             if self.time_threshold is not None:
                 f.attrs['time_threshold'] = self.time_threshold
     
@@ -138,7 +142,7 @@ def match_lonlat(source, target, radius_of_influence=1e3, n_neighbours=1):
 
 
 def match(amsr_filename, avhrr_filename, radius_of_influence=1e3,
-          time_threshold=None):
+          time_threshold=None, n_neighbours=8):
     """
     Find matching indices in AVHRR array for each element in AMSR swath.
     
@@ -153,6 +157,8 @@ def match(amsr_filename, avhrr_filename, radius_of_influence=1e3,
             1000 m)
         time_threshold: float
             largest absolute time difference to include in match
+        n_neighbours: int
+            number of nearest AVHRR neighbours to use
     
     Returns:
     
@@ -166,7 +172,7 @@ def match(amsr_filename, avhrr_filename, radius_of_influence=1e3,
     amsr_lonlat = get_amsr_lonlat(amsr_filename)
     
     mapper = match_lonlat(avhrr_lonlat, amsr_lonlat, radius_of_influence,
-                          n_neighbours=8)
+                          n_neighbours=n_neighbours)
     
     avhrr_time = get_avhrr_time(avhrr_filename)
     amsr_time = get_amsr_time(amsr_filename)
