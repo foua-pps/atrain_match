@@ -86,6 +86,8 @@ def validate_all(filenames):
     import h5py
     
     lwp_diffs = []
+    cwps = []
+    lwps = []
     for filename in filenames:
         with h5py.File(filename, 'r') as f:
             data = f['lwp_diff'][:]
@@ -95,8 +97,13 @@ def validate_all(filenames):
                     raise RuntimeError("Inconsistent restrictions: %r != %r" %
                                        (restrictions, lwp_diffs[-1][-1]))
             lwp_diffs.append((filename, data, restrictions))
+            if 'amsr_lwp' in f.keys():
+                lwps.append(f['amsr_lwp'][:])
+            if 'cpp_cwp' in f.keys():
+                cwps.append(f['cpp_cwp'][:])
     
-    lwp_diff_array = np.hstack(data for filename, data, restrictions in lwp_diffs)
+    lwp_diff_array = np.concatenate([data for
+                                     filename, data, restrictions in lwp_diffs])
     mean = lwp_diff_array.mean()
     median = np.median(lwp_diff_array)
     std = lwp_diff_array.std()
@@ -107,7 +114,7 @@ def validate_all(filenames):
     print("Median: %.2f" % median)
     print("Standard deviation: %.2f" % std)
     
-    from .plotting import plot_hist
+    from .plotting import plot_hist, density
     hist_range = (np.percentile(lwp_diff_array, 1),
                   np.percentile(lwp_diff_array, 99))
     fig = plot_hist(lwp_diff_array, bins=500, range=hist_range)
@@ -115,5 +122,14 @@ def validate_all(filenames):
     fig.suptitle("CPP cwp - AMSR-E lwp\nRestrictions: %s\nPixels left: %d" %
                  ('; '.join(restrictions), lwp_diff_array.size))
     fig.savefig('validate_all.pdf')
+    
+    if not 0 in (len(cwps), len(lwps)):
+        fig2 = density(np.concatenate(cwps), np.concatenate(lwps),
+                       bins=xrange(0, 171))
+        fig2.axes[0].set_xlabel('CPP cwp (g m**-2)')
+        fig2.axes[0].set_ylabel('AMSR-E lwp (g m**-2)')
+        fig2.suptitle("Restrictions: %s\nNumber of pixels: %d" %
+                     ('; '.join(restrictions), lwp_diff_array.size))
+        fig2.savefig('density_all.pdf')
     
     return mean, median, std, lwp_diff_array

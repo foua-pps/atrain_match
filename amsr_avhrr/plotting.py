@@ -249,6 +249,25 @@ def plot_hist(data, **kwargs):
     return fig
 
 
+def density(x, y, bins=None, log=True):
+    """
+    Create a 2d density plot of correlated values in *x* and *y*.
+    
+    """
+    H, xedges, yedges = np.histogram2d(y, x, bins=bins) #@UnusedVariable
+    
+    from matplotlib import pyplot as plt
+    from matplotlib.colors import LogNorm
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    norm = LogNorm(vmin=1, vmax=10**np.ceil(np.log10(H.max()))) if log else None
+    ax.plot((0, min(H.shape)), (0, min(H.shape)), 'k', linewidth=.5, alpha=.5)
+    im = ax.imshow(H, norm=norm, origin='lower')
+    fig.colorbar(im)
+    
+    return fig
+
+
 def basemap2area_def(m, x_size, y_size, **kwargs):
     """Get AreaDefinition instance from Basemap *m*
     
