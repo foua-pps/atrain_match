@@ -207,9 +207,9 @@ def compare_lwps(mapper, amsr_filename, cpp_filename,
         write_data(lwp_diff, 'lwp_diff', diff_file, mode='w',
                    attributes={'restrictions': restrictions})
         import numpy as np
-        write_data(np.ma.array(cpp_cwp, mask=~selection).mean(axis=-1), 'cpp_cwp', diff_file,
-                   mode='a')
-        write_data(amsr_lwp[selection.any(axis=-1)], 'amsr_lwp', diff_file,
+        write_data(np.ma.array(cpp_cwp, mask=~selection).mean(axis=-1)[selection.all(axis=-1)],
+                   'cpp_cwp', diff_file, mode='a')
+        write_data(amsr_lwp[selection.all(axis=-1)], 'amsr_lwp', diff_file,
                    mode='a')
     
     if _PLOTTING:
