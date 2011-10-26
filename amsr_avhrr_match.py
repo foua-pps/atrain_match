@@ -23,7 +23,8 @@ _COMPRESSION = True
 
 
 def process_noaa_scene(satname, orbit, amsr_filename=None, ctype=None,
-                       reff_max=None, lwp_max=None, n_neighbours=8):
+                       reff_max=None, lwp_max=None, water=False,
+                       n_neighbours=8):
     from pps_runutil import get_ppsProductArguments
     from pps_basic_configure import AVHRR_DIR, OUTPUT_DIR, AUX_DIR
     
@@ -49,7 +50,7 @@ def process_noaa_scene(satname, orbit, amsr_filename=None, ctype=None,
     for amsr_filename in amsr_filenames:
         process_case(amsr_filename, avhrr_filename, cpp_filename,
                       physiography_filename, ctype, ctype_filename, reff_max,
-                      lwp_max, n_neighbours)
+                      lwp_max, water, n_neighbours)
 
 
 def _match_file(amsr_filename, avhrr_filename):
@@ -66,7 +67,7 @@ def _plot_title(amsr_filename, avhrr_filename):
 
 def process_case(amsr_filename, avhrr_filename, cpp_filename,
                   physiography_filename, ctype=None, ctype_filename=None,
-                  reff_max=None, lwp_max=None, n_neighbours=8):
+                  reff_max=None, lwp_max=None, water=False, n_neighbours=8):
     """
     Match, plot, and validate scene defined by the given files.
     
@@ -93,7 +94,7 @@ def process_case(amsr_filename, avhrr_filename, cpp_filename,
     if os.path.exists(cpp_filename):
         compare_lwps(mapper, amsr_filename, cpp_filename,
                      physiography_filename, avhrr_filename, ctype,
-                     ctype_filename, reff_max, lwp_max)
+                     ctype_filename, reff_max, lwp_max, water)
     else:
         logger.warning("No CPP product found")
     
@@ -137,7 +138,12 @@ def get_sea(mapper, physiography_filename):
 def select_pixels(mapper, amsr_lwp, cpp_cwp, sea,
                   lwp_max=None,
                   ctype=None, ctype_filename=None,
-                  reff_max=None, cpp_filename=None):
+                  reff_max=None, cpp_filename=None, water=False):
+    """
+    Find valid pixels
+    
+    """
+    from amsr_avhrr.util import get_cpp_product
     # Select only sea pixels (AMSR-E lwp is only available over sea)
     selection = sea
     restrictions = ['sea']
@@ -152,10 +158,14 @@ def select_pixels(mapper, amsr_lwp, cpp_cwp, sea,
         restrictions.append('cloud type == %d' % ctype)
     
     if reff_max is not None:
-        from amsr_avhrr.util import get_cpp_product
         reff = get_cpp_product(cpp_filename, 'reff')
         selection &= mapper(reff < reff_max)
         restrictions.append('effective radius < %.2g' % reff_max)
+    
+    if water:
+        phase = get_cpp_product(cpp_filename, 'cph')
+        selection &= mapper(phase == 1)
+        restrictions.append('CPP phase is water')
     
     amsr_lwp_3d = amsr_lwp.reshape(amsr_lwp.shape[0], amsr_lwp.shape[1], 1)
     selection &= 0 <= amsr_lwp_3d # Remove pixels with negative lwp (nodata)
@@ -172,7 +182,8 @@ def select_pixels(mapper, amsr_lwp, cpp_cwp, sea,
 
 def compare_lwps(mapper, amsr_filename, cpp_filename,
                  physiography_filename, avhrr_filename=None, ctype=None,
-                 ctype_filename=None, reff_max=None, lwp_max=None):
+                 ctype_filename=None, reff_max=None, lwp_max=None,
+                 water=False):
     """
     Compare liquid water paths in *amsr_filename* and *cpp_filename*, with
     matching in *mapper*. Sea mask is taken from *physiography_filename*.
@@ -193,7 +204,7 @@ def compare_lwps(mapper, amsr_filename, cpp_filename,
     
     selection, restrictions = select_pixels(mapper, amsr_lwp, cpp_cwp, sea,
                                             lwp_max, ctype, ctype_filename,
-                                            reff_max, cpp_filename)
+                                            reff_max, cpp_filename, water)
     logger.debug("Selected pixels: %s" % '; '.join(restrictions))
     
     from amsr_avhrr.validation import validate_lwp
@@ -256,6 +267,8 @@ if __name__ == '__main__':
                       help="Screen out AMSR-E liquid water path > LWP_MAX")
     parser.add_option('-n', '--neighbours', type='int',
                       help="Number of nearest AVHRR neighbours to use")
+    parser.add_option('-w', '--water', action='store_true',
+                      help="Select only CPP water phase pixels")
     opts, args = parser.parse_args()
     
     if opts.verbose:
@@ -277,6 +290,8 @@ if __name__ == '__main__':
         processing_kwargs['lwp_max'] = opts.lwp_max
     if opts.neighbours is not None:
         processing_kwargs['n_neighbours'] = opts.neighbours
+    if opts.water:
+        processing_kwargs['water'] = True
     
     # Command line handling
     if args[0] == 'satproj':
