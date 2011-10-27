@@ -178,6 +178,8 @@ def select_pixels(mapper, amsr_lwp, cpp_cwp, sea,
     selection &= cpp_cwp >= 0 # Remove pixels with negative cwp (nodata)
     restrictions.append('CPP cwp >= 0')
     
+    selection.fill_value = False # masked values are never part of selection
+    
     return selection, restrictions
 
 def compare_lwps(mapper, amsr_filename, cpp_filename,
@@ -217,10 +219,11 @@ def compare_lwps(mapper, amsr_filename, cpp_filename,
                      'lwp_diff.h5')
         write_data(lwp_diff, 'lwp_diff', diff_file, mode='w',
                    attributes={'restrictions': restrictions})
-        import numpy as np
-        write_data(np.ma.array(cpp_cwp, mask=~selection).mean(axis=-1)[selection.all(axis=-1)],
+        selection_2d = selection.all(axis=-1)
+        selection_2d.fill_value = False
+        write_data(cpp_cwp.mean(axis=-1)[selection_2d.filled()],
                    'cpp_cwp', diff_file, mode='a')
-        write_data(amsr_lwp[selection.all(axis=-1)], 'amsr_lwp', diff_file,
+        write_data(amsr_lwp[selection_2d.filled()], 'amsr_lwp', diff_file,
                    mode='a')
     
     if _PLOTTING:
