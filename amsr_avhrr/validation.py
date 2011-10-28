@@ -83,53 +83,34 @@ def validate_all(filenames):
     Use lwp_diff in all files in *filenames* for validation.
     
     """
-    import h5py
+    from .util import get_diff_data
+    lwp_diff, restrictions, cwp, lwp = get_diff_data(filenames)
     
-    lwp_diffs = []
-    cwps = []
-    lwps = []
-    for filename in filenames:
-        with h5py.File(filename, 'r') as f:
-            data = f['lwp_diff'][:]
-            restrictions = f['lwp_diff'].attrs['restrictions']
-            if len(lwp_diffs) > 0:
-                if not (restrictions == lwp_diffs[-1][-1]).all():
-                    raise RuntimeError("Inconsistent restrictions: %r != %r" %
-                                       (restrictions, lwp_diffs[-1][-1]))
-            lwp_diffs.append((filename, data, restrictions))
-            if 'amsr_lwp' in f.keys():
-                lwps.append(f['amsr_lwp'][:])
-            if 'cpp_cwp' in f.keys():
-                cwps.append(f['cpp_cwp'][:])
-    
-    lwp_diff_array = np.concatenate([data for
-                                     filename, data, restrictions in lwp_diffs])
-    mean = lwp_diff_array.mean()
-    median = np.median(lwp_diff_array)
-    std = lwp_diff_array.std()
+    mean = lwp_diff.mean()
+    median = np.median(lwp_diff)
+    std = lwp_diff.std()
     
     print("Restrictions: %s" % '; '.join(restrictions))
-    print("Number of pixels: %d" % lwp_diff_array.size)
+    print("Number of pixels: %d" % lwp_diff.size)
     print("Mean: %.2f" % mean)
     print("Median: %.2f" % median)
     print("Standard deviation: %.2f" % std)
     
     from .plotting import plot_hist, density
-    hist_range = (np.percentile(lwp_diff_array, 1),
-                  np.percentile(lwp_diff_array, 99))
-    fig = plot_hist(lwp_diff_array, bins=500, range=hist_range)
+    hist_range = (np.percentile(lwp_diff, 1),
+                  np.percentile(lwp_diff, 99))
+    fig = plot_hist(lwp_diff, bins=500, range=hist_range)
     fig.axes[0].set_xlabel('lwp difference (g m**-2)')
     fig.suptitle("CPP cwp - AMSR-E lwp\nRestrictions: %s\nPixels left: %d" %
-                 ('; '.join(restrictions), lwp_diff_array.size))
+                 ('; '.join(restrictions), lwp_diff.size))
     fig.savefig('validate_all.pdf')
-    
-    if not 0 in (len(cwps), len(lwps)):
-        fig2 = density(np.concatenate(cwps), np.concatenate(lwps),
+    if not None in (cwp, lwp):
+        fig2 = density(cwp, lwp,
                        bins=xrange(0, 171))
         fig2.axes[0].set_xlabel('CPP cwp (g m**-2)')
         fig2.axes[0].set_ylabel('AMSR-E lwp (g m**-2)')
         fig2.suptitle("Restrictions: %s\nNumber of pixels: %d" %
-                     ('; '.join(restrictions), lwp_diff_array.size))
+                     ('; '.join(restrictions), lwp_diff.size))
         fig2.savefig('density_all.pdf')
     
-    return mean, median, std, lwp_diff_array
+    return mean, median, std, lwp_diff

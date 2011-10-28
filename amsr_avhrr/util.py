@@ -98,3 +98,40 @@ def get_cpp_product(filename, product):
     
     cpp = CppProducts(filename=filename, product_names=[product])
     return cpp.products[product].array
+
+
+def get_diff_data(filenames):
+    """
+    Read data from diff files *filenames* and return concatenated arrays
+    (lwp_diff, cwp, lwp).
+    
+    """
+    import h5py
+    lwp_diffs = []
+    cwps = []
+    lwps = []
+    for filename in filenames:
+        with h5py.File(filename, 'r') as f:
+            data = f['lwp_diff'][:]
+            restrictions = f['lwp_diff'].attrs['restrictions']
+            if len(lwp_diffs) > 0:
+                if not (restrictions == lwp_diffs[-1][-1]).all():
+                    raise RuntimeError(
+                        "Inconsistent restrictions: %r != %r" % (restrictions, lwp_diffs[-1][-1]))
+            lwp_diffs.append((filename, data, restrictions))
+            if 'amsr_lwp' in f.keys():
+                lwps.append(f['amsr_lwp'][:])
+            if 'cpp_cwp' in f.keys():
+                cwps.append(f['cpp_cwp'][:])
+    
+    lwp_diff_array = np.concatenate([data for 
+            (filename, data, restrictions) in lwp_diffs])
+    
+    if not 0 in (len(cwps), len(lwps)):
+        cwp_array = np.concatenate(cwps)
+        lwp_array = np.concatenate(lwps)
+    else:
+        cwp_array = None
+        lwp_array = None
+    
+    return lwp_diff_array, restrictions, cwp_array, lwp_array
