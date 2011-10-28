@@ -1,355 +1,305 @@
 """
-Match AMSR and AVHRR data
+Script for matching AMSR-E and AVHRR swaths
 
 """
 
-from __future__ import with_statement
-import numpy as np
-from datetime import datetime
 import os
-from ppshdf_cloudproducts import PpsProduct
 import logging
 logger = logging.getLogger(__name__)
-
-TAI93 = datetime(1993, 1, 1)
-
-
-class MatchMapper(object):
-    """
-    Map arrays from one swath to another.
-    
-    """
-    def __init__(self, rows, cols, mask):
-        self.rows = rows
-        self.cols = cols
-        self.mask = mask
-    
-    def __call__(self, array):
-        """
-        Maps *array* to target swath.
-        
-        """
-        return np.ma.array(array[self.rows, self.cols], mask=self.mask)
+from runutils import process_scenes
 
 
-def get_amsr_lonlat(filename):
-    """
-    Get (lon, lat) from AMSR file *filename*.
-    
-    """
-    import h5py
-    
-    with h5py.File(filename, 'r') as f:
-        lon = f['Swath1/Geolocation Fields/Longitude'][:]
-        lat = f['Swath1/Geolocation Fields/Latitude'][:]
-    
-    return lon, lat
+#: Should results be plotted?
+_PLOTTING = False
+
+#: Directory for mapper files
+MATCH_DIR = os.environ.get('MATCH_DIR', '.')
+
+#: Radius of AMSR-E footprint (m)
+AMSR_RADIUS = 10e3
+
+#: h5py compression settings (True, or an integer in range(10))
+_COMPRESSION = True
 
 
-def get_avhrr_lonlat(filename):
-    """
-    Get (lon, lat) from AVHRR file *filename* (remapped by PPS).
-    
-    """
-    import pps_io
-    
-    geo = pps_io.readAvhrrGeoData(filename)
-    
-    return geo.longitude, geo.latitude
-
-
-def match_lonlat(source, target, radius_of_influence=1e3):
-    """
-    Produce a masked array of the same shape as the arrays in *target*, with
-    indices of nearest neighbours in *source*. *source* and *target* should be
-    tuples (lon, lat) of the source and target swaths, respectively.
-    
-    Note::
-    
-        Fastest matching is obtained when *target* has lower resolution than
-        *source*.
-    
-    """
-    from pyresample.geometry import SwathDefinition
-    from pyresample.kd_tree import get_neighbour_info
-    
-    source_def = SwathDefinition(*source)
-    target_def = SwathDefinition(*target)
-    
-    valid_in, valid_out, indices, distances = get_neighbour_info( #@UnusedVariable
-        source_def, target_def, radius_of_influence, 1)
-    
-    indices.shape = target_def.shape
-    distances.shape = target_def.shape
-    
-    rows = indices // source_def.shape[0]
-    cols = indices % source_def.shape[1]
-    mask = distances > radius_of_influence
-    
-    return MatchMapper(rows, cols, mask)
-
-
-def get_amsr_time(filename):
-    """
-    Get time of each scanline in AMSR file *filename*.
-    
-    Note::
-    
-        Time is converted from seconds since 1993-01-01 to seconds since
-        1970-01-01.
-    
-    """
-    import h5py
-    
-    with h5py.File(filename) as f:
-        sec1993 = f['Swath1/Geolocation Fields/Time']['Time'][:]
-    
-    from calendar import timegm
-    epoch_diff = timegm(TAI93.utctimetuple())
-    
-    sec1970 = sec1993.round().astype(np.int64) + epoch_diff
-    
-    return sec1970
-
-def get_avhrr_time(filename):
-    """
-    Get time of each scanline in AVHRR file *filename*.
-    
-    """
-    import pps_io
-    
-    geo = pps_io.readAvhrrGeoData(filename)
-    
-    n_scanlines = geo.longitude.shape[0]
-    sec1970 = np.linspace(geo.sec1970_start, geo.sec1970_end, n_scanlines)
-    
-    return sec1970
-
-
-def match(amsr_filename, avhrr_filename):
-    """
-    Find matching indices in AVHRR array for each element in AMSR swath.
-    
-    Returns three masked arrays (rows, columns, time_difference), where masked-
-    out elements had too large differences in either space or time.
-    
-    """
-    from config import RESOLUTION, sec_timeThr
-    
-    avhrr_lonlat = get_avhrr_lonlat(avhrr_filename)
-    amsr_lonlat = get_amsr_lonlat(amsr_filename)
-    
-    mapper = match_lonlat(avhrr_lonlat, amsr_lonlat, RESOLUTION * 1e3)
-    
-    avhrr_time = get_avhrr_time(avhrr_filename)
-    amsr_time = get_amsr_time(amsr_filename)
-    
-    time_diff = np.abs(avhrr_time[mapper.rows] - amsr_time.reshape((amsr_time.size, 1)))
-    time_diff = np.ma.array(time_diff, mask=mapper.mask.copy())
-    
-    mapper.mask[time_diff > sec_timeThr] = True
-    
-    print("Time diff (min, max): %r" % ((time_diff.min(), time_diff.max()),))
-    
-    return mapper, time_diff
-
-
-def adjust_lon(lon):
-    """
-    Analyse longitudes in *lon*, to see whether there is a gap somewhere in the
-    middle of the range in *lon*. If there is a gap, shift longitudes up.
-    
-    Returns (lon_shifted, lon0)
-    
-    """
-    n, bins = np.histogram(lon, bins=50)
-    lon0 = -180
-    if 0 in n:
-        lo, hi = (n == 0).nonzero()[0][[0, -1]] + 1
-        lon0 = np.mean((bins[lo], bins[hi]))
-    return np.where(lon < lon0, lon + 360, lon), lon0
-
-
-def plot_array(lon, lat, data, title, legend):
-    """
-    Make a plot of *data*
-    
-    """
-    import matplotlib.pyplot as pl
-    from mpl_toolkits.basemap import Basemap
-    
-    lon, lon0 = adjust_lon(lon)
-    
-    fig = pl.figure()
-    fig.suptitle(title)
-    ax = fig.add_subplot(111)
-    
-    m = Basemap(projection='cyl', llcrnrlat=-90, urcrnrlat=90,
-                llcrnrlon=lon0, urcrnrlon=lon0 + 360, resolution='c', ax=ax)
-    m.drawcoastlines(linewidth=.5)
-    dashes = [1, 3]
-    labels = [1, 1, 1, 1]
-    parallels = range(-80, 81, 20)
-    m.drawparallels(parallels, linewidth=.5, dashes=dashes, labels=labels)
-    meridian0 = int(np.ceil(lon0 / 45.)) * 45
-    meridians = range(meridian0, meridian0 + 360, 45)
-    m.drawmeridians(meridians, linewidth=.5, dashes=dashes, labels=labels)
-    
-    x, y = m(lon, lat)
-    mesh = m.pcolormesh(x, y, data)
-    cbar = fig.colorbar(mesh)
-    cbar.ax.set_ylabel(legend)
-
-
-def get_amsr_lwp(filename):
-    """
-    Return liquid water path (lwp) from AMSR-E file *filename*. The units of lwp
-    are converted from mm to g m**-2.
-    
-    """
-    import h5py
-    
-    with h5py.File(filename, 'r') as f:
-        lwp_mm = PpsProduct(f['Swath1/Data Fields/High_res_cloud'][:],
-                            description='lwp (mm)',
-                            gain=f['Swath1/Data Fields/'
-                                   'High_res_cloud'].attrs['Scale'],
-                            nodata=-9990, scale_up=True)
-    
-    density = 1e3 # Density of water
-    return lwp_mm.array * density
-
-
-def get_cpp_lwp(filename):
-    """
-    Return liquid water path (lwp) from PPS CPP file *filename*. Units of the
-    returned array are g m**-2.
-    
-    """
-    import h5py
-    
-    with h5py.File(filename, 'r') as f:
-        lwp = PpsProduct(f['cwp'][:], description=f['cwp'].attrs['description'],
-                            gain=f['cwp'].attrs['gain'],
-                            nodata=f['cwp'].attrs['no_data_value'],
-                            scale_up=True)
-    
-    return lwp.array
-
-
-def imshow_lwps(amsr_lwp, cpp_lwp, time_diff, sea, title=None):
-    """
-    Show *amsr_lwp* and *cpp_lwp* side by side. *sea* is used to draw a
-    background, and mask out any pixels which are not sea.
-    
-    """
-    import matplotlib.pyplot as pl
-    
-    from utility_functions import broken_cmap
-    from matplotlib.colors import ListedColormap
-    
-    fig = pl.figure()
-    
-    vmin = 0
-    vmax = max([amsr_lwp.max(), cpp_lwp.max()])
-    cmap = broken_cmap(np.array([vmin, vmax]), break_value=170)
-    ground_sea_map = ListedColormap(['g', 'b'], name="ground/sea map")
-    
-    ax = fig.add_subplot(131)
-    ax.imshow(np.ma.array(sea, mask=sea.mask + sea), cmap=ground_sea_map)
-    im = ax.imshow(np.ma.array(amsr_lwp, mask=~sea),
-                   vmin=vmin, vmax=vmax, cmap=cmap)
-    cbar = fig.colorbar(im)
-    cbar.set_label('g m**-2')
-    ax.set_title('AMSR-E lwp')
-    
-    ax = fig.add_subplot(132, sharex=ax, sharey=ax)
-    ax.imshow(np.ma.array(sea, mask=sea.mask + sea), cmap=ground_sea_map)
-    im = ax.imshow(np.ma.array(cpp_lwp, mask=~sea),
-                   vmin=vmin, vmax=vmax, cmap=cmap)
-    cbar = fig.colorbar(im)
-    cbar.set_label('g m**-2')
-    ax.set_title('PPS CPP cwp')
-    
-    ax = fig.add_subplot(133, sharex=ax, sharey=ax)
-    im = ax.imshow(time_diff)
-    cbar = fig.colorbar(im)
-    cbar.set_label('s')
-    ax.set_title('Time difference')
-    
-    if title:
-        fig.suptitle(title)
-
-
-def _test():
-    import sys
+def process_noaa_scene(satname, orbit, amsr_filename=None, ctype=None,
+                       reff_max=None, lwp_max=None, water=False,
+                       n_neighbours=8):
     from pps_runutil import get_ppsProductArguments
-    from pps_ioproxy import pps_ioproxy
-    from pps_basic_configure import AVHRR_DIR, OUTPUT_DIR
+    from pps_basic_configure import AVHRR_DIR, OUTPUT_DIR, AUX_DIR
     
-    amsr_filename = sys.argv.pop(1)
-    ppsarg, arealist = get_ppsProductArguments(sys.argv) #@UnusedVariable
-    ioproxy = pps_ioproxy(ppsarg)
+    #argv = [sys.argv[0], 'satproj', satname, orbit]
+    # get_ppsProductArguments can't take non-string orbit
+    argv = ['', 'satproj', satname, str(orbit)]
+    ppsarg, arealist = get_ppsProductArguments(argv) #@UnusedVariable
     avhrr_filename = os.path.join(AVHRR_DIR, ppsarg.files.avhrr)
+    if amsr_filename:
+        amsr_filenames = [amsr_filename]
+    else:
+        from amsr_avhrr.match import find_amsr
+        amsr_filenames = find_amsr(avhrr_filename)
+        logger.debug("Found AMSR-E files: %r" % amsr_filenames)
     
-    mapper, time_diff = match(amsr_filename, avhrr_filename)
+    cpp_filename = os.path.join(OUTPUT_DIR, ppsarg.files.cpp)
+    physiography_filename = os.path.join(AUX_DIR, ppsarg.files.physiography)
+    if ctype is not None:
+        ctype_filename = os.path.join(OUTPUT_DIR, ppsarg.files.pge02)
+    else:
+        ctype_filename = None
     
-    lon, lat = get_amsr_lonlat(amsr_filename)
-    title = "%r\nmatched with\n%r" % (os.path.basename(avhrr_filename),
-                                      os.path.basename(amsr_filename))
-    plot_array(lon, lat, time_diff, title=title, legend="time difference (s)")
+    for amsr_filename in amsr_filenames:
+        process_case(amsr_filename, avhrr_filename, cpp_filename,
+                      physiography_filename, ctype, ctype_filename, reff_max,
+                      lwp_max, water, n_neighbours)
+
+
+def _match_file(amsr_filename, avhrr_filename):
+    return "match--%s--%s.h5" % (os.path.basename(avhrr_filename),
+                                 os.path.basename(amsr_filename))
+
+def _fig_base(match_file):
+    return match_file.rsplit('.h5', 1)[0] + '--'
+
+def _plot_title(amsr_filename, avhrr_filename):
+    "%r\nmatched with\n%r" % (os.path.basename(avhrr_filename),
+                              os.path.basename(amsr_filename))
+
+
+def process_case(amsr_filename, avhrr_filename, cpp_filename,
+                  physiography_filename, ctype=None, ctype_filename=None,
+                  reff_max=None, lwp_max=None, water=False, n_neighbours=8):
+    """
+    Match, plot, and validate scene defined by the given files.
     
-    # Compare liquid water paths
-    amsr_lwp = get_amsr_lwp(amsr_filename)
-    #amsr_lwp[amsr_lwp < 0] = -1
+    """
+    match_file = _match_file(amsr_filename, avhrr_filename)
+    match_path = os.path.join(MATCH_DIR, match_file)
+    if os.path.exists(match_path):
+        logger.info("Reading match from %r" % match_path)
+        from amsr_avhrr.match import MatchMapper
+        mapper = MatchMapper.from_file(match_path)
+    else:
+        logger.info("Matching AMSR-E and AVHRR swaths")
+        from amsr_avhrr.match import match
+        mapper = match(amsr_filename, avhrr_filename,
+                       radius_of_influence=AMSR_RADIUS,
+                       n_neighbours=n_neighbours)
+        mapper.write(match_path, compression=_COMPRESSION)
+        logger.info("Match written to %r" % match_path)
     
-    logger.warning("Replacing '.h5' with '.hdf' in CPP filename, due to a bug "
-                   "in CPP.")
-    cpp_filename = os.path.join(OUTPUT_DIR, ppsarg.files.cpp.replace('.h5', '.hdf'))
+    if False:
+        logger.warning("Replacing '.h5' extension with '.hdf' in CPP filename, "
+                       "due to a bug in CPP.")
+        cpp_filename = '.hdf'.join(cpp_filename.rsplit('.h5', 1)) # last '.h5'
     if os.path.exists(cpp_filename):
-        cpp_lwp = mapper(get_cpp_lwp(cpp_filename))
-        
-        landuse = ioproxy.getLanduseOnly()
-        # Sea pixels in AMSR-E swath
-        sea = mapper(landuse == 16)
-        
-        imshow_lwps(amsr_lwp, cpp_lwp, time_diff, sea, title=title)
-        
-        validate_lwp(amsr_lwp, cpp_lwp, sea)
+        compare_lwps(mapper, amsr_filename, cpp_filename,
+                     physiography_filename, avhrr_filename, ctype,
+                     ctype_filename, reff_max, lwp_max, water)
     else:
         logger.warning("No CPP product found")
     
-    import matplotlib.pyplot as pl
-    pl.show()
+    if _PLOTTING:
+        logger.debug("Plotting time difference")
+        from amsr_avhrr.util import get_amsr_lonlat
+        lon, lat = get_amsr_lonlat(amsr_filename)
+        from amsr_avhrr.plotting import plot_array
+        fig = plot_array(lon, lat, mapper.time_diff,
+                         legend="time difference (s)")
+        fig_base = _fig_base(match_file)
+        fig.set_size_inches(20, 12)
+        fig.suptitle(_plot_title(amsr_filename, avhrr_filename))
+        fig.savefig(fig_base + "time_diff.png")
 
 
-def validate_lwp(amsr_lwp, cpp_lwp, sea, threshold=170):
+def write_data(data, name, filename, mode=None, attributes=None):
+    import h5py
+    with h5py.File(filename, mode) as f:
+        if hasattr(data, 'mask'):
+            data = data.compressed()
+        d = f.create_dataset(name, data=data, compression=_COMPRESSION)
+        if attributes:
+            for k, v in attributes.items():
+                d.attrs[k] = v
+
+
+
+def get_sea(mapper, physiography_filename):
     """
-    Compare liquid water path, lwp, in *amsr_filename* and *cpp_filename* files.
-    False pixels in *sea* are masked out. Only values above *threshold* (g
-    m**-2) are considered.
+    Get sea map from *physiography_filename*, mapped to *mapper*'s target.
     
     """
-    amsr_masked = np.ma.array(amsr_lwp, mask=~sea + (amsr_lwp < threshold))
-    cpp_masked = np.ma.array(cpp_lwp, mask=~sea)
+    from epshdf import read_physiography
+    landuse = read_physiography(physiography_filename, 1, 0, 0).landuse
     
-    diff = amsr_masked - cpp_masked
+    # Sea pixels in AMSR-E swath
+    return mapper(landuse == 16)
+
+
+def select_pixels(mapper, amsr_lwp, cpp_cwp, sea,
+                  lwp_max=None,
+                  ctype=None, ctype_filename=None,
+                  reff_max=None, cpp_filename=None, water=False):
+    """
+    Find valid pixels
     
-    print('=' * 40)
-    print("AMSR-E lwp - CPP cwp")
-    print("Non-sea pixels screened out")
-    print("Pixels where AMSR-E lwp < %r g m**-2 screened out" % threshold)
-    print("Number of pixels in comparison: %d" % diff.compressed().size)
-    print("bias:    %.4g" % diff.mean())
-    print("std:     %.4g" % diff.std())
-    print("rel std: %.4g %%" % abs(100. * diff.std() / diff.mean()))
+    """
+    from amsr_avhrr.util import get_cpp_product
+    # Select only sea pixels (AMSR-E lwp is only available over sea)
+    selection = sea
+    restrictions = ['sea']
     
-    from matplotlib import pyplot as pl
-    fig = pl.figure()
-    ax = fig.add_subplot(111)
-    ax.hist(diff.compressed())
+    # Select only pixels with cloud type *ctype*
+    if ctype is not None:
+        if not ctype_filename:
+            raise ValueError("Need *ctype_filename* for screening on *ctype*")
+        from epshdf import read_cloudtype
+        ctype_obj = read_cloudtype(ctype_filename, 1, 0, 0)
+        selection &= mapper(ctype_obj.cloudtype == ctype)
+        restrictions.append('cloud type == %d' % ctype)
+    
+    if reff_max is not None:
+        reff = get_cpp_product(cpp_filename, 'reff')
+        selection &= mapper(reff < reff_max)
+        restrictions.append('effective radius < %.2g' % reff_max)
+    
+    if water:
+        phase = get_cpp_product(cpp_filename, 'cph')
+        selection &= mapper(phase == 1)
+        restrictions.append('CPP phase is water')
+    
+    amsr_lwp_3d = amsr_lwp.reshape(amsr_lwp.shape[0], amsr_lwp.shape[1], 1)
+    selection &= 0 <= amsr_lwp_3d # Remove pixels with negative lwp (nodata)
+    if lwp_max is None:
+        restrictions.append('0 <= AMSR-E lwp')
+    else:
+        selection &= amsr_lwp_3d < lwp_max
+        restrictions.append('0 <= AMSR-E lwp < %.2g' % lwp_max)
+    
+    selection &= cpp_cwp >= 0 # Remove pixels with negative cwp (nodata)
+    restrictions.append('CPP cwp >= 0')
+    
+    selection.fill_value = False # masked values are never part of selection
+    
+    return selection, restrictions
+
+def compare_lwps(mapper, amsr_filename, cpp_filename,
+                 physiography_filename, avhrr_filename=None, ctype=None,
+                 ctype_filename=None, reff_max=None, lwp_max=None,
+                 water=False):
+    """
+    Compare liquid water paths in *amsr_filename* and *cpp_filename*, with
+    matching in *mapper*. Sea mask is taken from *physiography_filename*.
+    
+    If plotting is on, AVHRR lon/lat is read from *avhrr_filename*.
+    
+    """
+    
+    from amsr_avhrr.util import get_cpp_product
+    cpp_cwp_avhrr_proj = get_cpp_product(cpp_filename, 'cwp')
+    cpp_cwp = mapper(cpp_cwp_avhrr_proj)
+    
+    from amsr_avhrr.util import get_amsr_lwp, get_amsr_lonlat
+    amsr_lwp = get_amsr_lwp(amsr_filename)
+    lon, lat = get_amsr_lonlat(amsr_filename) #@UnusedVariable
+    
+    sea = get_sea(mapper, physiography_filename)
+    
+    selection, restrictions = select_pixels(mapper, amsr_lwp, cpp_cwp, sea,
+                                            lwp_max, ctype, ctype_filename,
+                                            reff_max, cpp_filename, water)
+    logger.debug("Selected pixels: %s" % '; '.join(restrictions))
+    
+    from amsr_avhrr.validation import validate_lwp
+    lwp_diff = validate_lwp(amsr_lwp, cpp_cwp, selection)
+    if lwp_diff is None:
+        logger.warning("No matches with restrictions: %s" %
+                       '; '.join(restrictions))
+    else:
+        diff_file = (_fig_base(_match_file(amsr_filename, avhrr_filename)) +
+                     'lwp_diff.h5')
+        write_data(lwp_diff, 'lwp_diff', diff_file, mode='w',
+                   attributes={'restrictions': restrictions})
+        selection_2d = selection.all(axis=-1)
+        selection_2d.fill_value = False
+        write_data(cpp_cwp.mean(axis=-1)[selection_2d.filled()],
+                   'cpp_cwp', diff_file, mode='a')
+        write_data(amsr_lwp[selection_2d.filled()], 'amsr_lwp', diff_file,
+                   mode='a')
+    
+    if _PLOTTING:
+        title = _plot_title(amsr_filename, avhrr_filename)
+        fig_base = _fig_base(_match_file(amsr_filename, avhrr_filename))
+        
+        logger.debug("Plotting lwp arrays")
+        from amsr_avhrr.plotting import imshow_lwps
+        fig = imshow_lwps(amsr_lwp, cpp_cwp.mean(axis=-1),
+                          mapper.time_diff.mean(axis=-1),
+                          sea.mean(axis=-1) > .5, lwp_max=lwp_max)
+        fig.suptitle(title)
+        fig.set_size_inches(20, 12)
+        fig.savefig(fig_base + "lwp_arrays.png")
+        
+        logger.debug("Plotting lwp swaths")
+        from amsr_avhrr.util import get_avhrr_lonlat
+        avhrr_lonlat = get_avhrr_lonlat(avhrr_filename)
+        from amsr_avhrr.plotting import Field, plot_fields
+        fields = [Field(cpp_cwp_avhrr_proj, desc='CPP cwp', *avhrr_lonlat),
+                  Field(amsr_lwp, lon, lat, desc='AMSR-E lwp')]
+        fig = plot_fields(fields, break_value=lwp_max)
+        fig.suptitle(title)
+        fig.set_size_inches(20, 10)
+        fig.savefig(fig_base + "lwp_swaths.png")
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
-    _test()
+    from optparse import OptionParser
+    parser = OptionParser(usage="Usage: %prog [options] satproj "
+                                "<satname> <orbit> \n"
+                                "or:    %prog [options] CASE [...]\n"
+                                "          where CASE ~ 'possible/path/"
+                                "noaa19_20110916_0959_03456*'")
+    parser.add_option('-p', '--plot', help="Create plots", action='store_true')
+    parser.add_option('-v', '--verbose', action='store_true')
+    parser.add_option('-d', '--debug', action='store_true',
+                      help="Don't ignore errors")
+    parser.add_option('-c', '--cloudtype', type='int',
+                      help="Only include CLOUDTYPE (integer value)")
+    parser.add_option('-r', '--reff_max', type='float',
+                      help="Screen out effective radii > REFF_MAX")
+    parser.add_option('-l', '--lwp_max', type='float',
+                      help="Screen out AMSR-E liquid water path > LWP_MAX")
+    parser.add_option('-n', '--neighbours', type='int',
+                      help="Number of nearest AVHRR neighbours to use")
+    parser.add_option('-w', '--water', action='store_true',
+                      help="Select only CPP water phase pixels")
+    opts, args = parser.parse_args()
+    
+    if opts.verbose:
+        logging.basicConfig(level=logging.DEBUG)
+        logger.debug("Verbose")
+    else:
+        logging.basicConfig(level=logging.INFO)
+    
+    if opts.plot:
+        logger.debug("Plotting enabled")
+        _PLOTTING = True
+    
+    processing_kwargs = {}
+    if opts.cloudtype is not None:
+        processing_kwargs['ctype'] = opts.cloudtype
+    if opts.reff_max is not None:
+        processing_kwargs['reff_max'] = opts.reff_max
+    if opts.lwp_max is not None:
+        processing_kwargs['lwp_max'] = opts.lwp_max
+    if opts.neighbours is not None:
+        processing_kwargs['n_neighbours'] = opts.neighbours
+    if opts.water:
+        processing_kwargs['water'] = True
+    
+    # Command line handling
+    if args[0] == 'satproj':
+        satname, orbit = args[1:]
+        process_noaa_scene(satname, orbit, **processing_kwargs)
+    else:
+        process_scenes(args, process_noaa_scene, ignore_errors=not opts.debug,
+                       **processing_kwargs)

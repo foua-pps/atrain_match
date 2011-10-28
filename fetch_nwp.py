@@ -49,7 +49,7 @@ def fetch_for_times(times, N=2, maxdiff_hours=12):
     Fetch the *N* nearest-in-time NWP files to each entry in *times*
     
     @param times: list of times for which to get NWP files
-    @type times: list
+    @type times: list of `datetime.datetime` instances
     @param maxdiff_hours: maximum difference in time
         (abs(*time* - nwptime) < maxdiff_hours)
     @type maxdiff_hours: float
