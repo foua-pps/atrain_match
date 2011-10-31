@@ -113,8 +113,10 @@ def match_lonlat(source, target, radius_of_influence=1e3, n_neighbours=1):
     
     Note::
     
-        Fastest matching is obtained when *target* has lower resolution than
+        * Fastest matching is obtained when *target* has lower resolution than
         *source*.
+        
+        * *source* should have 2-dimensional lon and lat arrays.
     
     """
     from pyresample.geometry import SwathDefinition
