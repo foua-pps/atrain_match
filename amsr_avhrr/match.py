@@ -93,11 +93,12 @@ class MatchMapper(object):
             pixel_mask = f['pixel_mask'][:]
             if 'time_diff' in f.keys():
                 time_diff = f['time_diff'][:]
+                if 'time_threshold' in f['time_diff'].attrs.keys():
+                    time_threshold = f['time_diff'].attrs['time_threshold']
+                else:
+                    time_threshold = None
             else:
                 time_diff = None
-            if 'time_threshold' in f['time_diff'].attrs.keys():
-                time_threshold = f['time_diff'].attrs['time_threshold']
-            else:
                 time_threshold = None
         
         return cls(rows=rows, cols=cols, pixel_mask=pixel_mask,
