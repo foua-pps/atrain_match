@@ -1,10 +1,11 @@
 
 import pdb
 import inspect
+import os
 from pps_basic_configure import *
-from pps_error_messages import *
+from pps_error_messages import * #@UnusedWildImport
 
-from config import AREA, SUB_DIR, DATA_DIR, sec_timeThr, DSEC_PER_AVHRR_SCALINE, RESOLUTION, COMPRESS_LVL, NLINES, SWATHWD, NODATA
+from config import AREA, SUB_DIR, DATA_DIR, sec_timeThr, RESOLUTION, COMPRESS_LVL, NLINES, SWATHWD, NODATA
 from common import MatchupError, elements_within_range
 
 COVERAGE_DIR = "%s/%ikm/%s"%(SUB_DIR,RESOLUTION,AREA)
@@ -83,7 +84,7 @@ class SatProjCov:
         self.rowidx=None 
 # ----------------------------------------
 def readCaliopAvhrrMatchObj(filename):
-    import _pyhl
+    import _pyhl #@UnresolvedImport
 
     retv = CalipsoAvhrrTrackObject()
 
@@ -129,15 +130,18 @@ def readCaliopAvhrrMatchObj(filename):
     retv.avhrr.ctth_temperature = a.getNode("/avhrr/ctth_temperature").data()
     retv.avhrr.bt11micron = a.getNode("/avhrr/bt11micron").data()
     retv.avhrr.bt12micron = a.getNode("/avhrr/bt12micron").data()
-    retv.avhrr.surftemp = a.getNode("/avhrr/surftemp").data()
     retv.avhrr.satz = a.getNode("/avhrr/satz").data()
-    
+    try:
+        retv.avhrr.surftemp = a.getNode("/avhrr/surftemp").data()
+    except IOError:
+        print("No surfttemp. Continue")
     return retv
 
 # ----------------------------------------
 def writeCaliopAvhrrMatchObj(filename,ca_obj,compress_lvl):
-    import _pyhl
-    status = -1
+
+    import _pyhl #@UnresolvedImport
+#    status = -1
     
     a=_pyhl.nodelist()
 
@@ -148,7 +152,7 @@ def writeCaliopAvhrrMatchObj(filename,ca_obj,compress_lvl):
     b=_pyhl.node(_pyhl.DATASET_ID,"/diff_sec_1970")
     b.setArrayValue(1,shape,ca_obj.diff_sec_1970,"double",-1)
     a.addNode(b)
-
+    
     # Calipso
     # ====
     b=_pyhl.node(_pyhl.GROUP_ID,"/calipso")
@@ -214,6 +218,7 @@ def writeCaliopAvhrrMatchObj(filename,ca_obj,compress_lvl):
         b.setArrayValue(1,shape2d,ca_obj.calipso.feature_classification_flags,"int",-1)
         a.addNode(b)
     except:
+        pdb.set_trace()
         pass
     
     if RESOLUTION == 5:
@@ -234,7 +239,6 @@ def writeCaliopAvhrrMatchObj(filename,ca_obj,compress_lvl):
     b=_pyhl.node(_pyhl.DATASET_ID,"/avhrr/latitude")
     b.setArrayValue(1,shape,ca_obj.avhrr.latitude,"float",-1)
     a.addNode(b)
-
     b=_pyhl.node(_pyhl.DATASET_ID,"/avhrr/sec_1970")
     b.setArrayValue(1,shape,ca_obj.avhrr.sec_1970,"double",-1)
     a.addNode(b)
@@ -256,19 +260,23 @@ def writeCaliopAvhrrMatchObj(filename,ca_obj,compress_lvl):
     b=_pyhl.node(_pyhl.DATASET_ID,"/avhrr/bt12micron")
     b.setArrayValue(1,shape,ca_obj.avhrr.bt12micron,"double",-1)
     a.addNode(b)
-    b=_pyhl.node(_pyhl.DATASET_ID,"/avhrr/surftemp")
-    b.setArrayValue(1,shape,ca_obj.avhrr.surftemp,"double",-1)
-    a.addNode(b)
+    try:        
+        b=_pyhl.node(_pyhl.DATASET_ID,"/avhrr/surftemp")
+        b.setArrayValue(1,shape,ca_obj.avhrr.surftemp,"double",-1)
+        a.addNode(b)
+    except AttributeError:
+        print("No surftemp. Continue")
+        
     b=_pyhl.node(_pyhl.DATASET_ID,"/avhrr/satz")
     b.setArrayValue(1,shape,ca_obj.avhrr.satz,"double",-1)
     a.addNode(b)
-    
     status = a.write(filename,compress_lvl)
+
     return status
 
 # ------------------------------------------------------------------
 def writeCoverage(covIn,filename,inAid,outAid):
-    import _pyhl
+    import _pyhl #@UnresolvedImport
         
     a=_pyhl.nodelist()
 
@@ -295,10 +303,10 @@ def writeCoverage(covIn,filename,inAid,outAid):
 
 # ------------------------------------------------------------------
 def readCoverage(filename):
-    import _pyhl
+    import _pyhl #@UnresolvedImport #@UnresolvedImport
 
     a=_pyhl.read_nodelist(filename)
-    b=a.getNodeNames()
+#    b=a.getNodeNames()
     
     a.selectNode("/info/description")
     a.selectNode("/coverage")
@@ -360,18 +368,18 @@ def sec1970_to_julianday(sec1970):
 def avhrr_linepix_from_lonlat_aapp(lon,lat,avhrrObj,platform,norbit,yyyymmdd):
     import numpy
     import CreateAngles
-    import _py_linepix_lonlat
+    import _py_linepix_lonlat #@UnresolvedImport
     
     ndim = lon.shape[0]
     lin = numpy.zeros((ndim,),'d')
     pix = numpy.zeros((ndim,),'d')
 
     if platform.find("metop") >= 0:
-        file_satpos = "%s/satpos_M%.2d_%s.txt"%(SATPOS_DIR,string.atoi(platform.split("metop")[1]),yyyymmdd)
+        file_satpos = "%s/satpos_M%.2d_%s.txt"%(SATPOS_DIR,string.atoi(platform.split("metop")[1]),yyyymmdd) #@UndefinedVariable
     else:
-        file_satpos = "%s/satpos_%s_%s.txt"%(SATPOS_DIR,platform,yyyymmdd)
+        file_satpos = "%s/satpos_%s_%s.txt"%(SATPOS_DIR,platform,yyyymmdd) #@UndefinedVariable
 
-    file_ephe = "%s/ephe_%s.txt"%(EPHE_DIR,yyyymmdd)
+    file_ephe = "%s/ephe_%s.txt"%(EPHE_DIR,yyyymmdd) #@UndefinedVariable
     print file_ephe
     
     start_jday,end_jday,sec1970_start,sec1970_end = CreateAngles.get_acqtime(file_ephe,norbit)
@@ -430,8 +438,8 @@ def get_calipso_avhrr_linpix(avhrrIn,avhrrname,lon,lat,caTime):
     that.save("./yt_thumbnail.png")
     """
     orbittime =  os.path.basename(avhrrname).split("_")[1:3]
-    Inside=0
-    HasEncounteredMatch=0
+#    Inside=0
+#    HasEncounteredMatch=0
     i=0
     if not os.path.exists(COVERAGE_DIR):
         os.makedirs(COVERAGE_DIR)
@@ -448,7 +456,7 @@ def get_calipso_avhrr_linpix(avhrrIn,avhrrname,lon,lat,caTime):
                                                       SWATHWD,tmppcs,tmpaid,
                                                       coverage_filename)
         if ok:
-            HasEncounteredMatch=1
+#            HasEncounteredMatch=1
             write_log("INFO","There was a match...")
         # Do not like this one /Erik    
         #if not ok and HasEncounteredMatch:
@@ -473,7 +481,8 @@ def get_calipso_avhrr_linpix_segment(avhrrIn,lon,lat,catime,lines,swath_width,tm
                                      tmpaid,covfilename):
     import numpy
     import _satproj
-    import area,pcs
+    import area
+#    import pcs
     import pps_gisdata
 
     ndim = lon.shape[0]
@@ -525,18 +534,20 @@ def get_calipso_avhrr_linpix_segment(avhrrIn,lon,lat,catime,lines,swath_width,tm
 #        cov,info = readCoverage(covfilename)
     # Do like this instead /Erik
     write_log("INFO","Create Coverage map...")
-    cov = _satproj.create_coverage(areaObj,lonarr,latarr,1)
-    writeCoverage(cov,covfilename,"satproj",AREA)
+    lonarr = lonarr.astype('float64')
+    latarr = latarr.astype('float64')
     
-    mapped_line = _satproj.project(cov.coverage,cov.rowidx,cov.colidx,linearr,NODATA)
-    mapped_pixel = _satproj.project(cov.coverage,cov.rowidx,cov.colidx,pixelarr,NODATA)
+    cov = _satproj.create_coverage(areaObj,lonarr,latarr,0) #@UndefinedVariable
+    writeCoverage(cov,covfilename,"satproj",AREA)
 
+    mapped_line = _satproj.project(cov.coverage,cov.rowidx,cov.colidx,linearr,NODATA) #@UndefinedVariable
+    mapped_pixel = _satproj.project(cov.coverage,cov.rowidx,cov.colidx,pixelarr,NODATA) #@UndefinedVariable
 
     write_log("INFO","Go through calipso track:")
     calipso_avhrr_line = []
     calipso_avhrr_pixel = []
-    calipso_avhrr_line_time = []
-    calipso_avhrr_pixel_time = []
+#    calipso_avhrr_line_time = []
+#    calipso_avhrr_pixel_time = []
     for i in range(ndim):
         xy_tup=pps_gisdata.lonlat2xy(AREA,lon[i],lat[i])
         x,y=int(xy_tup[0]+0.5),int(xy_tup[1]+0.5)
@@ -546,49 +557,86 @@ def get_calipso_avhrr_linpix_segment(avhrrIn,lon,lat,catime,lines,swath_width,tm
         if(x < dimx and x >= 0 and y >= 0 and y < dimy):
             calipso_avhrr_line.append(mapped_line[y,x])
             calipso_avhrr_pixel.append(mapped_pixel[y,x])
-            calipso_avhrr_line_time.append(-9)
-            calipso_avhrr_pixel_time.append(-9)
+#            calipso_avhrr_line_time.append(-9)
+#            calipso_avhrr_pixel_time.append(-9)
         else:
             calipso_avhrr_line.append(-9)
             calipso_avhrr_pixel.append(-9)
-            calipso_avhrr_line_time.append(-9)
-            calipso_avhrr_pixel_time.append(-9)
+#            calipso_avhrr_line_time.append(-9)
+#            calipso_avhrr_pixel_time.append(-9)
 
     calipso_avhrr_line = numpy.array(calipso_avhrr_line)
     calipso_avhrr_pixel = numpy.array(calipso_avhrr_pixel)
-    calipso_avhrr_line_time = numpy.array(calipso_avhrr_line_time)
-    calipso_avhrr_pixel_time = numpy.array(calipso_avhrr_pixel_time)
-    
+#    calipso_avhrr_line_time = numpy.array(calipso_avhrr_line_time)
+#    calipso_avhrr_pixel_time = numpy.array(calipso_avhrr_pixel_time)
     # Control the time diference
-    match_calipso_points = numpy.where(numpy.not_equal(calipso_avhrr_line,-9))
-    avhrr_time = (calipso_avhrr_line[match_calipso_points] * DSEC_PER_AVHRR_SCALINE) + avhrrIn.sec1970_start
-    cal_time = catime[match_calipso_points]
-    time_diff = avhrr_time-cal_time
+#    match_calipso_points = numpy.where(numpy.not_equal(calipso_avhrr_line,-9))
+#    avhrr_time = (calipso_avhrr_line[match_calipso_points] * DSEC_PER_AVHRR_SCALINE) + avhrrIn.sec1970_start
+#    cal_time = catime[match_calipso_points]
+#    time_diff = avhrr_time-cal_time
     #max_time_diff_allowed = 50*60 #Based on that a lap is 102 min
-    max_time_diff_allowed = sec_timeThr
-    time_match = numpy.where(abs(time_diff)<max_time_diff_allowed)
-    if time_match[0].shape[0]==0:             
-        x=numpy.repeat(calipso_avhrr_line_time,numpy.not_equal(calipso_avhrr_line_time,-9))
-    else:
-        calipso_avhrr_line_time[match_calipso_points[0][time_match]] = calipso_avhrr_line[match_calipso_points[0][time_match]]
-        calipso_avhrr_pixel_time[match_calipso_points[0][time_match]] = calipso_avhrr_pixel[match_calipso_points[0][time_match]]
-        x=numpy.repeat(calipso_avhrr_line_time,numpy.not_equal(calipso_avhrr_line_time,-9))
-    
+#    max_time_diff_allowed = sec_timeThr
+#    time_match = numpy.where(abs(time_diff)<max_time_diff_allowed)
+#    if time_match[0].shape[0]==0:             
+#        x=numpy.repeat(calipso_avhrr_line_time,numpy.not_equal(calipso_avhrr_line_time,-9))
+#    else:
+#        calipso_avhrr_line_time[match_calipso_points[0][time_match]] = calipso_avhrr_line[match_calipso_points[0][time_match]]
+#        calipso_avhrr_pixel_time[match_calipso_points[0][time_match]] = calipso_avhrr_pixel[match_calipso_points[0][time_match]]
+#        x=numpy.repeat(calipso_avhrr_line_time,numpy.not_equal(calipso_avhrr_line_time,-9))
+    x = numpy.repeat(calipso_avhrr_line, numpy.not_equal(calipso_avhrr_line, -9))
     write_log("INFO","Number of matching points = ",x.shape[0])
     if x.shape[0] > 0:
         matchOk = 1
     else:
         matchOk = 0
 
-    return calipso_avhrr_line_time,calipso_avhrr_pixel_time,matchOk
-                    
+    return calipso_avhrr_line, calipso_avhrr_pixel, matchOk
+
+#----------------------------------------------------------------------------------------------------
+def createAvhrrTime(Obt, filename):
+    import os #@Reimport
+    import numpy
+    from config import DSEC_PER_AVHRR_SCALINE
+
+    filename = os.path.basename(filename)
+
+    if Obt.sec1970_end < Obt.sec1970_start:
+        """
+        In some GAC edition the end time is negative. If so this if statement 
+        tries to estimate the endtime depending on the start time plus number of 
+        scanlines multiplied with the estimate scan time for the instrument. 
+        This estimation is not that correct but what to do?
+        """
+        Obt.sec1970_end = int(DSEC_PER_AVHRR_SCALINE * Obt.num_of_lines + Obt.sec1970_start)
+    
+    if filename.split('_')[-3] != '00000':
+        """
+        This if statement takes care of a bug in start and end time, 
+        that occurs when a file is cute at midnight
+        """
+        
+        import calendar, time
+        timediff = Obt.sec1970_end - Obt.sec1970_start
+        old_start = time.gmtime(Obt.sec1970_start + (24 * 3600)) # Adds 24 h to get the next day in new start
+        new_start = calendar.timegm(time.strptime('%i %i %i' %(old_start.tm_year, \
+                                                               old_start.tm_mon, \
+                                                               old_start.tm_mday), \
+                                                               '%Y %m %d'))
+        Obt.sec1970_start = new_start
+        Obt.sec1970_end = new_start + timediff
+    
+    
+    Obt.time = numpy.linspace(Obt.sec1970_start, Obt.sec1970_end, Obt.num_of_lines)
+    
+    return Obt
+
 # -----------------------------------------------------
 def match_calipso_avhrr(ctypefile,calipsoObj,avhrrGeoObj,avhrrObj,ctype,ctth,surft,avhrrAngObj):
-    import numpy
+
     import time
     import string
     import numpy
-
+    
     retv = CalipsoAvhrrTrackObject()
     dsec = time.mktime((1993,1,1,0,0,0,0,0,0)) - time.timezone # Convert from TAI time to UTC in seconds since 1970
     if RESOLUTION == 1:
@@ -602,9 +650,7 @@ def match_calipso_avhrr(ctypefile,calipsoObj,avhrrGeoObj,avhrrObj,ctype,ctth,sur
         latCalipso = calipsoObj.latitude[:,1].ravel()
         timeCalipso = calipsoObj.time[:,1].ravel() + dsec
         elevationCalipso = calipsoObj.elevation[::,2].ravel()
-    if avhrrGeoObj.sec1970_end<avhrrGeoObj.sec1970_start:
-        avhrr_sec1970_end = int(DSEC_PER_AVHRR_SCALINE*avhrrObj.num_of_lines+avhrrGeoObj.sec1970_start)        
-        avhrrGeoObj.sec1970_end = avhrr_sec1970_end 
+    
     ndim = lonCalipso.shape[0]
     
     # --------------------------------------------------------------------
@@ -613,9 +659,13 @@ def match_calipso_avhrr(ctypefile,calipsoObj,avhrrGeoObj,avhrrObj,ctype,ctth,sur
     calnan = numpy.where(cal == NODATA, numpy.nan, cal)
     if (~numpy.isnan(calnan)).sum() == 0:
         raise MatchupError("No matches within region.")
-    avhrr_lines_sec_1970 = calnan * DSEC_PER_AVHRR_SCALINE + avhrrGeoObj.sec1970_start
+    avhrrGeoObj = createAvhrrTime(avhrrGeoObj, ctypefile)
+    avhrr_lines_sec_1970 = numpy.where(cal != NODATA, avhrrGeoObj.time[cal], numpy.nan)
+    
+#    avhrr_lines_sec_1970 = calnan * DSEC_PER_AVHRR_SCALINE + avhrrGeoObj.sec1970_start
     # Find all matching Cloudsat pixels within +/- sec_timeThr from the AVHRR data
     idx_match = elements_within_range(timeCalipso, avhrr_lines_sec_1970, sec_timeThr) 
+
     if idx_match.sum() == 0:
         raise MatchupError("No matches in region within time threshold %d s." % sec_timeThr)
     
@@ -644,7 +694,7 @@ def match_calipso_avhrr(ctypefile,calipsoObj,avhrrGeoObj,avhrrObj,ctype,ctth,sur
     #idx_match_2d = numpy.reshape(x,(ndim,10))
 
     print "Make cloud top and base arrays..."
-    missing_data = -9.9
+#    missing_data = -9.9
     #cloud_top = numpy.repeat(calipsoObj.cloud_top_profile.flat,idx_match_2d.flat)
     #cloud_top = numpy.where(numpy.less(cloud_top,0),missing_data,cloud_top)
     #N = cloud_top.flat.shape[0]/10
@@ -676,7 +726,7 @@ def match_calipso_avhrr(ctypefile,calipsoObj,avhrrGeoObj,avhrrObj,ctype,ctth,sur
     if RESOLUTION == 5:
         x_od = numpy.repeat(calipsoObj.optical_depth[::,0],idx_match)
         x_odu = numpy.repeat(calipsoObj.optical_depth_uncertainty[::,0],idx_match)
-        for i in range(col_dim-1):
+        for i in range(1, col_dim):
             x_od = numpy.concatenate(\
                 (x_od,numpy.repeat(calipsoObj.optical_depth[::,i],idx_match)))
             x_odu = numpy.concatenate(\
@@ -685,6 +735,7 @@ def match_calipso_avhrr(ctypefile,calipsoObj,avhrrGeoObj,avhrrObj,ctype,ctth,sur
         retv.calipso.optical_depth = numpy.reshape(x_od,(col_dim,N_od)).astype('d')
         N_odu = x_odu.shape[0]/col_dim
         retv.calipso.optical_depth_uncertainty = numpy.reshape(x_odu,(col_dim,N_odu)).astype('d')
+
     #cloud_mid_temp = numpy.repeat(calipsoObj.cloud_mid_temperature.flat,idx_match_2d.flat)
     #cloud_mid_temp = numpy.where(numpy.less(cloud_mid_temp,0),missing_data,cloud_mid_temp)
     #cloud_mid_temp = numpy.reshape(cloud_mid_temp,(N,10))
@@ -702,11 +753,11 @@ def match_calipso_avhrr(ctypefile,calipsoObj,avhrrGeoObj,avhrrObj,ctype,ctth,sur
 
     retv.calipso.number_of_layers_found = numpy.repeat(\
         calipsoObj.number_of_layers_found.ravel(),idx_match.ravel()).astype('i')
-
-    retv.avhrr.sec_1970 = numpy.add(avhrrGeoObj.sec1970_start,
-                                      cal_on_avhrr * DSEC_PER_AVHRR_SCALINE)
-                                      
+    
+    # Time
+    retv.avhrr.sec_1970 = avhrrGeoObj.time[cal_on_avhrr]
     retv.diff_sec_1970 = retv.calipso.sec_1970 - retv.avhrr.sec_1970
+
     min_diff = numpy.minimum.reduce(retv.diff_sec_1970)
     max_diff = numpy.maximum.reduce(retv.diff_sec_1970)
     print "Maximum and minimum time differences in sec (avhrr-calipso): ",\
@@ -731,12 +782,14 @@ def match_calipso_avhrr(ctypefile,calipsoObj,avhrrGeoObj,avhrrObj,ctype,ctth,sur
     bt11micron_track = []
     bt12micron_track = []
     satz_track = []
-    # maby skould take consideration of missing data also, as for satz.
+    #TODO: maby skould take consideration of missing data also, as for satz.
     for i in range(cal_on_avhrr.shape[0]):
         lat_avhrr_track.append(avhrrGeoObj.latitude[cal_on_avhrr[i],cap_on_avhrr[i]])
         lon_avhrr_track.append(avhrrGeoObj.longitude[cal_on_avhrr[i],cap_on_avhrr[i]])
         ctype_track.append(ctype.cloudtype[cal_on_avhrr[i],cap_on_avhrr[i]])
-        surft_track.append(surft[cal_on_avhrr[i],cap_on_avhrr[i]])
+        if surft != None:
+            print("No surface temperatur")
+            surft_track.append(surft[cal_on_avhrr[i],cap_on_avhrr[i]])        
         if avhrrObj.channels[3].data[cal_on_avhrr[i],cap_on_avhrr[i]] == avhrrObj.nodata:
             b11 = -9.
         else:
@@ -780,7 +833,8 @@ def match_calipso_avhrr(ctypefile,calipsoObj,avhrrGeoObj,avhrrObj,ctype,ctth,sur
         retv.avhrr.ctth_height = numpy.array(ctth_height_track)
         retv.avhrr.ctth_pressure = numpy.array(ctth_pressure_track)
         retv.avhrr.ctth_temperature = numpy.array(ctth_temperature_track)
-    retv.avhrr.surftemp = numpy.array(surft_track)
+    if surft != None:
+        retv.avhrr.surftemp = numpy.array(surft_track)
 
     print "AVHRR-PPS Cloud Type,latitude: shapes = ",\
           retv.avhrr.cloudtype.shape,retv.avhrr.latitude.shape
@@ -829,10 +883,10 @@ def select_calipso_inside_avhrr(calipsoObj,cal,dsec,sec1970_start_end,sec_timeTh
                                    numpy.less(\
             calipsoObj.time[:,0],sec1970_end - dsec   + sec_timeThr))
     elif RESOLUTION == 5:
-        idx_time_okay5km = numpy.logical_and(numpy.greater(\
-            calipso5kmObj.time[:,1],sec1970_start - dsec - sec_timeThr),
+        idx_time_okay = numpy.logical_and(numpy.greater(\
+            calipsoObj.time[:,1],sec1970_start - dsec - sec_timeThr),
                                    numpy.less(\
-            calipso5kmObj.time[:,1],sec1970_end - dsec   + sec_timeThr)) ##########################################################################################################################################   
+            calipsoObj.time[:,1],sec1970_end - dsec   + sec_timeThr)) ##########################################################################################################################################   
     #pdb.set_trace()
     #idx_match = numpy.not_equal(cal,NODATA)        
     idx_place_okay = numpy.where(numpy.not_equal(cal,NODATA),idx_time_okay,False)
@@ -861,36 +915,39 @@ def get_calipso(filename):
     if RESOLUTION == 1:
         lonCalipso = calipso.longitude.ravel()
         latCalipso = calipso.latitude.ravel()
+        # --------------------------------------------------------------------
+        # Derive the calipso cloud fraction using the 
+        # cloud height:       
+        winsz=3
+        caliop_max_height = numpy.ones(calipso.cloud_top_profile[::,0].shape)*-9
+        for i in range(calipso.cloud_top_profile.shape[1]):
+            caliop_max_height = numpy.maximum(caliop_max_height,
+                                                calipso.cloud_top_profile[::,i] * 1000.)
+    
+        #calipso_clmask = numpy.greater(calipso.cloud_base_profile[::,0],0).astype('d')
+        calipso_clmask = numpy.greater(caliop_max_height,0).astype('d')
+        cloud_mask = numpy.concatenate((calipso_clmask,calipso_clmask))
+        for idx in range(2,winsz):
+            cloud_mask = numpy.concatenate((cloud_mask,calipso_clmask))
+        cloud_mask = numpy.reshape(cloud_mask,(winsz,ndim)).astype('d')
+    
+        calipso.cloud_fraction=numpy.zeros((winsz,ndim),'d')
+        _pypps_filters.texture(cloud_mask,calipso.cloud_fraction,winsz,"mean") #@UndefinedVariable
+        calipso.cloud_fraction = calipso.cloud_fraction[winsz/2,::]
+    
     elif RESOLUTION == 5:
-        lonCalipso = calipso.longitude[:,1].ravel()
-        latCalipso = calipso.latitude[:,1].ravel()
-    # --------------------------------------------------------------------
-    # Derive the calipso cloud fraction using the 
-    # cloud height:       
-    winsz=3
-    caliop_max_height = numpy.ones(calipso.cloud_top_profile[::,0].shape)*-9
-    for i in range(calipso.cloud_top_profile.shape[1]):
-        caliop_max_height = numpy.maximum(caliop_max_height,
-                                            calipso.cloud_top_profile[::,i] * 1000.)
-
-    #calipso_clmask = numpy.greater(calipso.cloud_base_profile[::,0],0).astype('d')
-    calipso_clmask = numpy.greater(caliop_max_height,0).astype('d')
-    cloud_mask = numpy.concatenate((calipso_clmask,calipso_clmask))
-    for idx in range(2,winsz):
-        cloud_mask = numpy.concatenate((cloud_mask,calipso_clmask))
-    cloud_mask = numpy.reshape(cloud_mask,(winsz,ndim)).astype('d')
-
-    calipso.cloud_fraction=numpy.zeros((winsz,ndim),'d')
-    _pypps_filters.texture(cloud_mask,calipso.cloud_fraction,winsz,"mean")
-    calipso.cloud_fraction = calipso.cloud_fraction[winsz/2,::]
+#        lonCalipso = calipso.longitude[:,1].ravel()
+#        latCalipso = calipso.latitude[:,1].ravel()
+        calipso.cloud_fraction = numpy.where(calipso.cloud_top_profile[:,0] > 0, 1, 0).astype('d')
+    
     return calipso
 
 # -----------------------------------------------------
 def read_calipso(filename):
-    import _pyhl
+    import _pyhl #@UnresolvedImport
 
     a=_pyhl.read_nodelist(filename)
-    b=a.getNodeNames()
+#    b=a.getNodeNames()
     a.selectAll()
     a.fetch()
 
@@ -906,7 +963,7 @@ def read_calipso(filename):
     retv.utc_time=c.data()
 
     c=a.getNode("/Feature_Classification_Flags")
-    retv.feature_classification_flags=c.data().astype('i')
+    retv.feature_classification_flags=c.data().astype('uint16')
     c=a.getNode("/Layer_Top_Altitude")
     retv.cloud_top_profile=c.data()
     c=a.getNode("/Layer_Base_Altitude")
@@ -933,16 +990,14 @@ def read_calipso(filename):
         retv.optical_depth_uncertainty=c.data()
     return retv
 # -----------------------------------------------------
-def reshapeCalipso(calipsofiles,avhrr):
+def reshapeCalipso(calipsofiles, avhrr, avhrrfilename):
     import time
     import numpy
     import sys
     
     cal= CalipsoObject()
-    if avhrr.sec1970_end<avhrr.sec1970_start:
-        avhrr_end = int(DSEC_PER_AVHRR_SCALINE*avhrr.num_of_lines+avhrr.sec1970_start)
-    else:
-        avhrr_end = avhrr.sec1970_end
+    avhrr = createAvhrrTime(avhrr, avhrrfilename)
+    avhrr_end = avhrr.sec1970_end
     avhrr_start = avhrr.sec1970_start
     
     dsec = time.mktime((1993,1,1,0,0,0,0,0,0)) - time.timezone
@@ -960,7 +1015,7 @@ def reshapeCalipso(calipsofiles,avhrr):
             print "calipso files are in the wrong order"
             print("Program calipso.py at line %i" %(inspect.currentframe().f_lineno+1))
             sys.exit(-9)
-        
+
         cal_break = numpy.argmin(numpy.abs(cal_start_all - cal_new_all[0]))+1
         
         startCalipso.time = numpy.concatenate((startCalipso.time[0:cal_break,:],newCalipso.time))
@@ -1010,7 +1065,7 @@ def reshapeCalipso(calipsofiles,avhrr):
         print("No time match, please try with some other Calipso files")
         print("Program calipso.py at line %i" %(inspect.currentframe().f_lineno+1))
         sys.exit(-9)
-         
+
     return cal
 
 # -----------------------------------------------------
@@ -1059,8 +1114,6 @@ if __name__ == "__main__":
     # Calculations with AAPP in ERROR!!! Fixme, Ad 2007-09-19
     #lin,pix = avhrr_linepix_from_lonlat_aapp(lonCalipso,latCalipso,avhrrGeoObj,platform,norbit,yyyymmdd)
 
-
-    import numpy
     caliop_height = []
     caliop_base = []
     caliop_max_height = numpy.ones(calipso.cloud_top_profile[::,0].shape)*-9

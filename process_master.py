@@ -15,7 +15,7 @@ through a set of SNO matchups.
 
 from pps_error_messages import write_log
 import config
-
+import pdb
 
 def process_matchups(matchups, run_modes, reprocess=False, debug=False):
     """
@@ -33,14 +33,17 @@ def process_matchups(matchups, run_modes, reprocess=False, debug=False):
     problematic = set()
     no_matchup_files = []
     for match in sorted(matchups):
+#        match = matchups[i + 50]
         for mode in run_modes:
+#            cloudsat_calipso_avhrr_match.run(match, mode, reprocess)
+#            pdb.set_trace()
             try:
                 cloudsat_calipso_avhrr_match.run(match, mode, reprocess)
             except MatchupError, err:
                 write_log('WARNING', "Matchup problem: %s" % err.message)
                 no_matchup_files.append(match)
                 break
-            except:
+            except:                
                 problematic.add(match)
                 write_log('WARNING', "Couldn't run cloudsat_calipso_avhrr_match.")
                 if debug is True:
@@ -54,7 +57,7 @@ def process_matchups(matchups, run_modes, reprocess=False, debug=False):
         write_log('WARNING', "%d of %d cases had unknown problems:\n%s" % \
                   (len(problematic), len(matchups),
                    '\n'.join([str(m) for m in problematic])))
-
+    pdb.set_trace()
 
 def main(args=None):
     """
@@ -109,7 +112,6 @@ def main(args=None):
             continue
         else:
             matchups.extend(found_matchups)
-    
     process_matchups(matchups, run_modes, options.reprocess, options.debug)
     
     return 0

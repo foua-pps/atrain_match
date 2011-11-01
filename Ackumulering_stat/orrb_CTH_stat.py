@@ -5,6 +5,7 @@
 
 import string
 import math
+import pdb
 
 from orrb_stat_class import OrrbStats
 
@@ -35,17 +36,18 @@ class CloudTopStats(OrrbStats):
             current_datafile = open(datafile, "r")
             datalist = current_datafile.readlines()
             current_datafile.close()
-            
+
             csa_data = string.split(datalist[15])
             cal_all_data = string.split(datalist[16])
             cal_low_data = string.split(datalist[17])
             cal_medium_data = string.split(datalist[18])
             cal_high_data = string.split(datalist[19])
-    
-            # Accumulate CloudSat statistics
-            csa_samples += int(csa_data[6])
-            mean_error_csa_sum += int(csa_data[6])*float(csa_data[4])
-            rms_error_csa_sum += int(csa_data[6])*float(csa_data[5])
+            
+            if ' '.join(csa_data) != "No CloudSat":
+                # Accumulate CloudSat statistics
+                csa_samples += int(csa_data[6])
+                mean_error_csa_sum += int(csa_data[6])*float(csa_data[4])
+                rms_error_csa_sum += int(csa_data[6])*float(csa_data[5])
             
             # Accumulate CALIOP statistics
             cal_all_samples += int(cal_all_data[7])
@@ -63,12 +65,13 @@ class CloudTopStats(OrrbStats):
             rms_error_cal_high_sum += int(cal_high_data[7])*float(cal_high_data[6])**2
         
         # numpy.divide handles potential division by zero
-        bias_csa = divide(1.*mean_error_csa_sum, csa_samples)
+        if ' '.join(csa_data) != "No CloudSat":
+            bias_csa = divide(1.*mean_error_csa_sum, csa_samples)
+            rms_csa = divide(1.*rms_error_csa_sum, csa_samples)
         bias_cal_all = divide(1.*mean_error_cal_all_sum, cal_all_samples)
         bias_cal_low = divide(1.*mean_error_cal_low_sum, cal_low_samples)
         bias_cal_medium = divide(1.*mean_error_cal_medium_sum, cal_medium_samples)
         bias_cal_high = divide(1.*mean_error_cal_high_sum, cal_high_samples)
-        rms_csa = divide(1.*rms_error_csa_sum, csa_samples)
     
         rms_cal_all = math.sqrt(divide(1.*rms_error_cal_all_sum, cal_all_samples))
         rms_cal_low = math.sqrt(divide(1.*rms_error_cal_low_sum, cal_low_samples))
@@ -76,9 +79,10 @@ class CloudTopStats(OrrbStats):
         rms_cal_high = math.sqrt(divide(1.*rms_error_cal_high_sum, cal_high_samples))
         
         self.scenes = scenes
-        self.csa_samples = csa_samples
-        self.bias_csa = bias_csa
-        self.rms_csa = rms_csa
+        if ' '.join(csa_data) != "No CloudSat":
+            self.csa_samples = csa_samples
+            self.bias_csa = bias_csa
+            self.rms_csa = rms_csa
         self.cal_all_samples = cal_all_samples
         self.cal_low_samples = cal_low_samples
         self.cal_medium_samples = cal_medium_samples
@@ -94,27 +98,45 @@ class CloudTopStats(OrrbStats):
     
     
     def printout(self):
-        lines = []
-        lines.append("Total number of matched scenes is: %s" % self.scenes)
-        lines.append("Total number of Cloudsat matched cloudtops: %d " % self.csa_samples)
-        lines.append("Mean error: %f" % self.bias_csa)
-        lines.append("Weighted RMS error: %f" % self.rms_csa)
-        #lines.append("RMS error: %f" % self.rms_csa)
-        lines.append("")
-        lines.append("Total number of CALIOP matched cloudtops: %d" % self.cal_all_samples)
-        lines.append("Number of CALIOP matched low cloudtops: %d" % self.cal_low_samples)
-        lines.append("Number of CALIOP matched medium cloudtops: %d" % self.cal_medium_samples)
-        lines.append("Number of CALIOP matched high cloudtops: %d" % self.cal_high_samples)
-        lines.append("Mean error total cases: %f" % self.bias_cal_all)
-        lines.append("Mean error low-level cases: %f" % self.bias_cal_low)
-        lines.append("Mean error medium-level cases: %f" % self.bias_cal_medium)
-        lines.append("Mean error high-level cases: %f" % self.bias_cal_high)
-        lines.append("Weighted RMS error total cases: %f" % self.rms_cal_all)
-        lines.append("Weighted RMS error low-level cases: %f" % self.rms_cal_low)
-        lines.append("Weighted RMS error medium-level cases: %f" % self.rms_cal_medium)
-        lines.append("Weighted RMS error high-level cases: %f" % self.rms_cal_high)
-        lines.append("")
-        
+        try:
+            lines = []
+            lines.append("Total number of matched scenes is: %s" % self.scenes)
+            lines.append("Total number of Cloudsat matched cloudtops: %d " % self.csa_samples)
+            lines.append("Mean error: %f" % self.bias_csa)
+            lines.append("Weighted RMS error: %f" % self.rms_csa)
+            #lines.append("RMS error: %f" % self.rms_csa)
+            lines.append("")
+            lines.append("Total number of CALIOP matched cloudtops: %d" % self.cal_all_samples)
+            lines.append("Number of CALIOP matched low cloudtops: %d" % self.cal_low_samples)
+            lines.append("Number of CALIOP matched medium cloudtops: %d" % self.cal_medium_samples)
+            lines.append("Number of CALIOP matched high cloudtops: %d" % self.cal_high_samples)
+            lines.append("Mean error total cases: %f" % self.bias_cal_all)
+            lines.append("Mean error low-level cases: %f" % self.bias_cal_low)
+            lines.append("Mean error medium-level cases: %f" % self.bias_cal_medium)
+            lines.append("Mean error high-level cases: %f" % self.bias_cal_high)
+            lines.append("Weighted RMS error total cases: %f" % self.rms_cal_all)
+            lines.append("Weighted RMS error low-level cases: %f" % self.rms_cal_low)
+            lines.append("Weighted RMS error medium-level cases: %f" % self.rms_cal_medium)
+            lines.append("Weighted RMS error high-level cases: %f" % self.rms_cal_high)
+            lines.append("")
+        except AttributeError:
+            lines = []
+            lines.append("Total number of matched scenes is: %s" % self.scenes)
+            #lines.append("RMS error: %f" % self.rms_csa)
+            lines.append("")
+            lines.append("Total number of CALIOP matched cloudtops: %d" % self.cal_all_samples)
+            lines.append("Number of CALIOP matched low cloudtops: %d" % self.cal_low_samples)
+            lines.append("Number of CALIOP matched medium cloudtops: %d" % self.cal_medium_samples)
+            lines.append("Number of CALIOP matched high cloudtops: %d" % self.cal_high_samples)
+            lines.append("Mean error total cases: %f" % self.bias_cal_all)
+            lines.append("Mean error low-level cases: %f" % self.bias_cal_low)
+            lines.append("Mean error medium-level cases: %f" % self.bias_cal_medium)
+            lines.append("Mean error high-level cases: %f" % self.bias_cal_high)
+            lines.append("Weighted RMS error total cases: %f" % self.rms_cal_all)
+            lines.append("Weighted RMS error low-level cases: %f" % self.rms_cal_low)
+            lines.append("Weighted RMS error medium-level cases: %f" % self.rms_cal_medium)
+            lines.append("Weighted RMS error high-level cases: %f" % self.rms_cal_high)
+            lines.append("")
         return lines
 
 

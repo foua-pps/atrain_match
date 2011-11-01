@@ -8,37 +8,51 @@
 
 
 
-def CloudsatCloudOpticalDepth(cloud_top, cloud_base, optical_depth):
+def CloudsatCloudOpticalDepth(cloud_top, cloud_base, optical_depth, cloud_fraction, fcf):
     import numpy
     import pdb
     from config import MIN_OPTICAL_DEPTH
-    
+
     new_cloud_top = numpy.ones(cloud_top.shape,'d')*numpy.min(cloud_top)
     new_cloud_base = numpy.ones(cloud_base.shape,'d')*numpy.min(cloud_base)
-    
+    new_cloud_fraction = numpy.zeros(cloud_fraction.shape,'d')
+    new_fcf = numpy.ones(fcf.shape).astype(fcf.dtype)
     
     for i in range(optical_depth.shape[1]):
+
         depthsum = 0 #Used to sum the optical_depth        
         for j in range(optical_depth.shape[0]):
             # Just stops the for loop when there are no more valid value 
-            if optical_depth[j,i] < 0: 
+            if optical_depth[j,i] < 0:
                 break
+            else:
+                depthsum = depthsum + optical_depth[j,i]
             
-            depthsum = depthsum + optical_depth[j,i]
-            # Removes the cloud values for all pixels that have a optical depth (integrated from the top) below MIN_OPTICAL_DEPTH and moves the first valid value to the first column and so on.
-            if depthsum >= MIN_OPTICAL_DEPTH:
-                new_cloud_top[0:(optical_depth.shape[0]-j),i] = cloud_top[j:,i]
-                new_cloud_base[0:(optical_depth.shape[0]-j),i] = cloud_base[j:,i]                               
-                break
-               
-    return new_cloud_top,new_cloud_base      
+                # Removes the cloud values for all pixels that have a optical depth (integrated from the top) below MIN_OPTICAL_DEPTH and moves the first valid value to the first column and so on.
+                if depthsum >= MIN_OPTICAL_DEPTH:
+                    new_cloud_top[0:(optical_depth.shape[0]-j),i] = cloud_top[j:,i]
+                    new_cloud_base[0:(optical_depth.shape[0]-j),i] = cloud_base[j:,i]
+                    new_cloud_fraction[i] = 1
+                    new_fcf[0:(fcf.shape[0]-j),i] = fcf[j:,i]
+                    #extrra to get a cloud top that corresponds better to avhrr
+                    for k in range(new_cloud_top.shape[0]):
+                        if new_cloud_top[k, i] < 0:
+                            break
+                        elif new_cloud_top[k, i] - new_cloud_base[k, i] > 2:
+                            new_cloud_top[k, i] = new_cloud_base[k, i] + \
+                            ((new_cloud_top[k, i] - new_cloud_base[k, i]) * 3/4.)
+                        else:
+                            new_cloud_top[k, i] = new_cloud_base[k, i] + \
+                            ((new_cloud_top[k, i] - new_cloud_base[k, i]) * 1/2.)
+                    break
+
+    return new_cloud_top, new_cloud_base, new_cloud_fraction, new_fcf
                 
 #---------------------------------------------------------------------
-               
-def CloudsatCalipsoAvhrrSatz(clsatObj,caObj):
-    import pdb
+def CloudsatAvhrrSatz(clsatObj):
     import numpy
     from config import AZIMUTH_RANGE
+    
     # CloudSat:
     clsat_satz_ok = numpy.where((AZIMUTH_RANGE[0] <= clsatObj.avhrr.satz) * \
                                 (clsatObj.avhrr.satz <= AZIMUTH_RANGE[1]))
@@ -77,9 +91,13 @@ def CloudsatCalipsoAvhrrSatz(clsatObj,caObj):
     clsatObj.avhrr.bt11micron = numpy.where(clsat_satz_ok_bools,clsatObj.avhrr.bt11micron,numpy.nan)
     clsatObj.avhrr.bt12micron = numpy.where(clsat_satz_ok_bools,clsatObj.avhrr.bt12micron,numpy.nan)
     clsatObj.avhrr.surftemp = numpy.where(clsat_satz_ok_bools,clsatObj.avhrr.surftemp,numpy.nan)
-    clsatObj.avhrr.satz = numpy.where(clsat_satz_ok_bools,clsatObj.avhrr.satz,numpy.nan) 
-    
+    clsatObj.avhrr.satz = numpy.where(clsat_satz_ok_bools,clsatObj.avhrr.satz,numpy.nan)
+    return clsatObj
 
+def CalipsoAvhrrSatz(caObj):
+    import numpy
+    from config import AZIMUTH_RANGE
+    import pdb
     # Calipso:
     ca_satz_ok = numpy.where((AZIMUTH_RANGE[0] <= caObj.avhrr.satz) * \
                                 (caObj.avhrr.satz <= AZIMUTH_RANGE[1]))
@@ -119,10 +137,14 @@ def CloudsatCalipsoAvhrrSatz(clsatObj,caObj):
     caObj.avhrr.ctth_temperature = numpy.where(ca_satz_ok_bools,caObj.avhrr.ctth_temperature,numpy.nan)
     caObj.avhrr.bt11micron = numpy.where(ca_satz_ok_bools,caObj.avhrr.bt11micron,numpy.nan)
     caObj.avhrr.bt12micron = numpy.where(ca_satz_ok_bools,caObj.avhrr.bt12micron,numpy.nan)
-    caObj.avhrr.surftemp = numpy.where(ca_satz_ok_bools,caObj.avhrr.surftemp,numpy.nan)
     caObj.avhrr.satz = numpy.where(ca_satz_ok_bools,caObj.avhrr.satz,numpy.nan)
 
-    return clsatObj, caObj
+    if caObj.avhrr.surftemp == None:        
+        print("No Surftemp. Continue")
+    else:
+        caObj.avhrr.surftemp = numpy.where(ca_satz_ok_bools,caObj.avhrr.surftemp,numpy.nan)
+
+    return caObj
 
 
 

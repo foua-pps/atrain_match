@@ -5,6 +5,7 @@ from config import MAIN_DIR, SUB_DIR, MAIN_RUNDIR, CLOUDSAT_TRACK_RESOLUTION, CL
 import pdb
 import os, string
 import sys
+
 import numpy
 
 def format_title(title):
@@ -23,7 +24,7 @@ def drawCalClsatGEOPROFAvhrrPlot(clsatObj_cloudsat, clsatObj_avhrr, caObj_calips
                                     caliop_height, cal_data_ok,
                                     avhrr_ctth_cal_ok, plotpath, basename,
                                     mode, emissfilt_calipso_ok=None, file_type='eps'):
-    import rpy
+    import rpy #@UnresolvedImport
     
     # Prepare for Avhrr
     #Second version for avhrr ctth plotting based on data along CALIPSO track
@@ -150,7 +151,7 @@ def drawCalClsatCWCAvhrr1kmPlot(clsatObj, elevationcwc, data_okcwc, plotpath, ba
     import pdb
     import os, string
     import sys
-    import rpy
+    import rpy #@UnresolvedImport
     import numpy
     from config import MAXHEIGHT as MAXHEIGHT
 
@@ -248,14 +249,11 @@ def drawCalClsatCWCAvhrr1kmPlot(clsatObj, elevationcwc, data_okcwc, plotpath, ba
 
 def drawCalClsatAvhrrPlotTimeDiff(cllat, clsat_diff_sec_1970, cal_diff_sec_1970, plotpath, basename, res):
     import pdb
-    import os, string
-    import sys
-    import rpy
+    from matplotlib import pyplot as plt
     import numpy       
     # Plot time diff
-        
-    device = rpy.r.postscript
-    device("%s/%skm_%s_time_diff.eps"%(plotpath,res,basename),width=900,height=400)
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
     # Let's use the CloudSat track as our reference
     dummy=cllat.shape[0]
     geometric_range_CloudSat = int(dummy*CLOUDSAT5KM_TRACK_RESOLUTION)
@@ -264,44 +262,46 @@ def drawCalClsatAvhrrPlotTimeDiff(cllat, clsat_diff_sec_1970, cal_diff_sec_1970,
     y=numpy.ones(geometric_range_CloudSat)*-1000
     
     time_diff_cloudsat=numpy.zeros((geometric_range_CloudSat),'d')
-    
-    for i in range(geometric_range_CloudSat): #Just extend original time_diff array
-        elevation_index = int(i/CLOUDSAT5KM_TRACK_RESOLUTION + 0.5)        
-        time_diff_cloudsat[i] = clsat_diff_sec_1970[elevation_index] 
-    
-    MAXVALUE=(max(clsat_diff_sec_1970)/60+10)
-    MINVALUE=(min(clsat_diff_sec_1970)/60-10)
-    rpy.r.plot(x,y,ylim=[MINVALUE,MAXVALUE],
-                        xlab="Track Position",ylab="Time diff [min]",
-                        main=format_title("Time Difference Between Avhrr and CloudSat/Calispo"),
-                        col="black",type='l',lwd=0)
-    biggest_Cloudsat_diff_place = numpy.argmax(numpy.abs(time_diff_cloudsat))
-    biggest_Cloudsat_diff = time_diff_cloudsat[biggest_Cloudsat_diff_place]
+    title = "Time Difference Between Avhrr and Calispo"
+    if clsat_diff_sec_1970 != None:
+        for i in range(geometric_range_CloudSat): #Just extend original time_diff array
+            elevation_index = int(i/CLOUDSAT5KM_TRACK_RESOLUTION + 0.5)        
+            time_diff_cloudsat[i] = clsat_diff_sec_1970[elevation_index] 
+        
+        MAXVALUE=(max(clsat_diff_sec_1970)/60+10)
+        MINVALUE=(min(clsat_diff_sec_1970)/60-10)
+        biggest_Cloudsat_diff_place = numpy.argmax(numpy.abs(time_diff_cloudsat))
+        biggest_Cloudsat_diff = time_diff_cloudsat[biggest_Cloudsat_diff_place]
+        if time_diff_cloudsat.shape[0] >= cal_diff_sec_1970.shape[0]:
+            length_time_diff = time_diff_cloudsat.shape[0]
+        else:
+            length_time_diff = cal_diff_sec_1970.shape[0]
+        title = "Time Difference Between Avhrr and CloudSat/Calispo"
+#    rpy.r.plot(x,y,ylim=[MINVALUE,MAXVALUE],
+#                        xlab="Track Position",ylab="Time diff [min]",
+#                        main=format_title("Time Difference Between Avhrr and CloudSat/Calispo"),
+#                        col="black",type='l',lwd=0)
     biggest_Calipso_diff_place = numpy.argmax(numpy.abs(cal_diff_sec_1970))
     biggest_Calipso_diff = cal_diff_sec_1970[biggest_Calipso_diff_place]
-
-    if time_diff_cloudsat.shape[0] >= cal_diff_sec_1970.shape[0]:
-        length_time_diff = time_diff_cloudsat.shape[0]
-    else:
-        length_time_diff = cal_diff_sec_1970.shape[0]
-        
-    rpy.r.points(time_diff_cloudsat/60,col="red",pch="+",cex=0.7)
-    rpy.r.points(cal_diff_sec_1970/60,col="green",pch="+",cex=0.7)
-    rpy.r.legend((length_time_diff-1500),MAXVALUE-5,["CloudSat (max time diff %.2f min)" % round(biggest_Cloudsat_diff/60,2),"Calipso (max time diff %.2f min)" % round(biggest_Calipso_diff/60,2)],pch=[4,4],col=["red","green"])
-    rpy.r.dev_off()
+    ax.set_title(title)    
+    ax.set_xlabel("Track Position")
+    ax.set_ylabel("Time diff [min]")
+    ax.plot(cal_diff_sec_1970/60,"g+", label = "CALIPSO (max time diff %.2f min)" % round(biggest_Calipso_diff/60,2))
+    ax.legend()
+    fig.savefig("%s/%skm_%s_cloudsat_calipso_avhrr_clouds.%s"%(plotpath,RESOLUTION,basename,'eps'))
+    fig.savefig("%s/%skm_%s_cloudsat_calipso_avhrr_clouds.%s"%(plotpath,RESOLUTION,basename,'png'))
     
     
 # -----------------------------------------------------   
 def drawCalClsatAvhrrPlotSATZ(cllat, AvhrrClsatSatz, AvhrrCalSatz, plotpath, basename, res):
     import pdb
-    import os, string
-    import sys
-    import rpy
     import numpy       
+    from matplotlib import pyplot as plt
+    from config import MAXHEIGHT as MAXHEIGHT
     # Plot time diff
-        
-    device = rpy.r.postscript
-    device("%s/%skm_%s_satz.eps"%(plotpath,res,basename),width=900,height=400)
+    fig = plt.figure() 
+    ax = fig.add_subplot(111)
+    
     # Let's use the CloudSat track as our reference
     dummy=cllat.shape[0]    
     geometric_range_CloudSat = int(dummy*CLOUDSAT5KM_TRACK_RESOLUTION)   
@@ -309,19 +309,21 @@ def drawCalClsatAvhrrPlotSATZ(cllat, AvhrrClsatSatz, AvhrrCalSatz, plotpath, bas
     x=numpy.arange(geometric_range_CloudSat)    
     y=numpy.ones(geometric_range_CloudSat)*-1000
     
-    AvhrrClsatSatz_adjust=numpy.zeros((geometric_range_CloudSat),'d')
+#    AvhrrClsatSatz_adjust=numpy.zeros((geometric_range_CloudSat),'d')
     
-    for i in range(geometric_range_CloudSat): #Just extend original x array
-        elevation_index = int(i/CLOUDSAT5KM_TRACK_RESOLUTION + 0.5)        
-        AvhrrClsatSatz_adjust[i] = AvhrrClsatSatz[elevation_index] #For satz ploting
-    
-    MAXVALUE=(numpy.nanmax(AvhrrClsatSatz)+10)
-    MINVALUE=(numpy.nanmin(AvhrrClsatSatz)-10)
-    rpy.r.plot(x,y,ylim=[MINVALUE,MAXVALUE],                        
-                        xlab="Track Position",ylab="satellite zenith angle [deg]",
-                        main=format_title("Avhrr compared to CloudSat/Calipso"),
-                        col="black",type='l',lwd=0)
-        
+#    for i in range(geometric_range_CloudSat): #Just extend original x array
+#        elevation_index = int(i/CLOUDSAT5KM_TRACK_RESOLUTION + 0.5)        
+#        AvhrrClsatSatz_adjust[i] = AvhrrClsatSatz[elevation_index] #For satz ploting
+#    
+#    MAXVALUE=(numpy.nanmax(AvhrrClsatSatz)+10)
+#    MINVALUE=(numpy.nanmin(AvhrrClsatSatz)-10)
+#    rpy.r.plot(x,y,ylim=[MINVALUE,MAXVALUE],                        
+#                        xlab="Track Position",ylab="satellite zenith angle [deg]",
+#                        main=format_title("Avhrr compared to CloudSat/Calipso"),
+#                        col="black",type='l',lwd=0)
+#        
+    ax.plot(AvhrrCalSatz, 'g+')
+    pdb.set_trace()
     rpy.r.points(AvhrrClsatSatz_adjust,col="red",pch="+",cex=0.7)
     rpy.r.points(AvhrrCalSatz,col="green",pch="+",cex=0.7)
     rpy.r.legend(0,MAXVALUE,["CloudSat","Calipso"],pch=[4,4],col=["red","green"])
@@ -332,7 +334,7 @@ def drawCalClsatCWCAvhrr5kmPlot(clsatObj, elevationcwc, data_okcwc, plotpath, ba
     import pdb
     import os, string
     import sys
-    import rpy
+    import rpy #@UnresolvedImport
     import numpy
 
 

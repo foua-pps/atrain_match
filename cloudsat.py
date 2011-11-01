@@ -11,10 +11,10 @@
 
 
 from pps_basic_configure import *
-from pps_error_messages import *
+from pps_error_messages import * #@UnusedWildImport
 
-from calipso import *
-from config import AREA, SUB_DIR, DATA_DIR, sec_timeThr, DSEC_PER_AVHRR_SCALINE, CLOUDSAT_TYPE
+from calipso import * #@UnusedWildImport
+from config import AREA, SUB_DIR, DATA_DIR, sec_timeThr, CLOUDSAT_TYPE 
 from common import MatchupError, elements_within_range
 
 COVERAGE_DIR = "%s/%skm/%s"%(SUB_DIR,RESOLUTION,AREA)
@@ -313,12 +313,12 @@ def get_cloudsat_avhrr_linpix_segment(avhrrIn,lon,lat,cltime,lines,swath_width,t
     else:
         lines_end = avhrrIn.longitude.shape[0]
     lines_start = lines[0]
-    
+    # TODO: Do not use swath_with. Use Shape[1] instead. /Erik
     write_log("INFO","lines_start,lines_end: ",lines_start,lines_end)
     nlines = lines_end - lines_start
     lonarr = avhrrIn.longitude[lines_start:lines_end,::]
     latarr = avhrrIn.latitude[lines_start:lines_end,::]
-
+    
     idx_start = lines_start*swath_width
     idx_end   = lines_end*swath_width
     idx = numpy.arange(idx_start,idx_end)
@@ -329,7 +329,7 @@ def get_cloudsat_avhrr_linpix_segment(avhrrIn,lon,lat,cltime,lines,swath_width,t
     linearr = numpy.reshape(linearr,(nlines,swath_width))
     pixelarr = numpy.fmod(idx,swath_width).astype('l')
     pixelarr = numpy.reshape(pixelarr,(nlines,swath_width))
-
+    
     """
     write_log("INFO","Get bounding box...")
     bounds = getBoundingBox(lonarr,latarr)
@@ -359,18 +359,18 @@ def get_cloudsat_avhrr_linpix_segment(avhrrIn,lon,lat,cltime,lines,swath_width,t
     # Do like this instead
     write_log("INFO","Create Coverage map...")
     cov = _satproj.create_coverage(areaObj,lonarr,latarr,1)
+    pdb.set_trace()
     print covfilename
     writeCoverage(cov,covfilename,"satproj",AREA)
-    
     mapped_line = _satproj.project(cov.coverage,cov.rowidx,cov.colidx,linearr,NODATA)
     mapped_pixel = _satproj.project(cov.coverage,cov.rowidx,cov.colidx,pixelarr,NODATA)
-
-
+    
+    pdb.set_trace()
     write_log("INFO","Go through cloudsat track:")
     cloudsat_avhrr_line = []
     cloudsat_avhrr_pixel = []
-    cloudsat_avhrr_line_time = []
-    cloudsat_avhrr_pixel_time = []
+#    cloudsat_avhrr_line_time = []
+#    cloudsat_avhrr_pixel_time = []
     for i in range(ndim):
         xy_tup=pps_gisdata.lonlat2xy(AREA,lon[i],lat[i])
         x,y=int(xy_tup[0]+0.5),int(xy_tup[1]+0.5)
@@ -379,40 +379,39 @@ def get_cloudsat_avhrr_linpix_segment(avhrrIn,lon,lat,cltime,lines,swath_width,t
         if(x < dimx and x >= 0 and y >= 0 and y < dimy):
             cloudsat_avhrr_line.append(mapped_line[y,x])
             cloudsat_avhrr_pixel.append(mapped_pixel[y,x])
-            cloudsat_avhrr_line_time.append(-9)
-            cloudsat_avhrr_pixel_time.append(-9)
+#            cloudsat_avhrr_line_time.append(-9)
+#            cloudsat_avhrr_pixel_time.append(-9)
         else:
             cloudsat_avhrr_line.append(-9)
             cloudsat_avhrr_pixel.append(-9)
-            cloudsat_avhrr_line_time.append(-9)
-            cloudsat_avhrr_pixel_time.append(-9)
-            
+#            cloudsat_avhrr_line_time.append(-9)
+#            cloudsat_avhrr_pixel_time.append(-9)
     cloudsat_avhrr_line = numpy.array(cloudsat_avhrr_line)
     cloudsat_avhrr_pixel = numpy.array(cloudsat_avhrr_pixel)
-    cloudsat_avhrr_line_time = numpy.array(cloudsat_avhrr_line_time)
-    cloudsat_avhrr_pixel_time = numpy.array(cloudsat_avhrr_pixel_time)
+    x=numpy.repeat(cloudsat_avhrr_line, numpy.not_equal(cloudsat_avhrr_line,-9))
+#    cloudsat_avhrr_line_time = numpy.array(cloudsat_avhrr_line_time)
+#    cloudsat_avhrr_pixel_time = numpy.array(cloudsat_avhrr_pixel_time)
     # Control the time diference
-    match_cloudsat_points = numpy.where(numpy.not_equal(cloudsat_avhrr_line,-9))
-    avhrr_time = (cloudsat_avhrr_line[match_cloudsat_points] * DSEC_PER_AVHRR_SCALINE) + avhrrIn.sec1970_start
-    cl_time = cltime[match_cloudsat_points]
-    time_diff = avhrr_time-cl_time
+#    match_cloudsat_points = numpy.where(numpy.not_equal(cloudsat_avhrr_line,-9))
+#    avhrr_time = (cloudsat_avhrr_line[match_cloudsat_points] * DSEC_PER_AVHRR_SCALINE) + avhrrIn.sec1970_start
+#    cl_time = cltime[match_cloudsat_points]
+#    time_diff = avhrr_time-cl_time
     #max_time_diff_allowed = 50*60 #Based on that a lap is 102 min
-    max_time_diff_allowed = sec_timeThr
-    time_match = numpy.where(abs(time_diff)<max_time_diff_allowed)
-    if time_match[0].shape[0]==0:
-        x=numpy.repeat(cloudsat_avhrr_line_time,numpy.not_equal(cloudsat_avhrr_line_time,-9))
-    else:
-        cloudsat_avhrr_line_time[match_cloudsat_points[0][time_match]]= cloudsat_avhrr_line[match_cloudsat_points[0][time_match]]
-        cloudsat_avhrr_pixel_time[match_cloudsat_points[0][time_match]] = cloudsat_avhrr_pixel[match_cloudsat_points[0][time_match]]
-        x=numpy.repeat(cloudsat_avhrr_line_time,numpy.not_equal(cloudsat_avhrr_line_time,-9)) 
-   
+#    max_time_diff_allowed = sec_timeThr
+#    time_match = numpy.where(abs(time_diff)<max_time_diff_allowed)
+#    if time_match[0].shape[0]==0:
+#        x=numpy.repeat(cloudsat_avhrr_line_time,numpy.not_equal(cloudsat_avhrr_line_time,-9))
+#    else:
+#        cloudsat_avhrr_line_time[match_cloudsat_points[0][time_match]]= cloudsat_avhrr_line[match_cloudsat_points[0][time_match]]
+#        cloudsat_avhrr_pixel_time[match_cloudsat_points[0][time_match]] = cloudsat_avhrr_pixel[match_cloudsat_points[0][time_match]]
+#        x=numpy.repeat(cloudsat_avhrr_line_time,numpy.not_equal(cloudsat_avhrr_line_time,-9)) 
     write_log("INFO","Number of matching points = ",x.shape[0])
     if x.shape[0] > 0:
         matchOk = 1
     else:
         matchOk = 0
-
-    return cloudsat_avhrr_line_time, cloudsat_avhrr_pixel_time, matchOk
+    pdb.set_trace()
+    return cloudsat_avhrr_line, cloudsat_avhrr_pixel, matchOk
 
 # -----------------------------------------------------
 def match_cloudsat_avhrr(ctypefile,cloudsatObj,avhrrGeoObj,avhrrObj,ctype,ctth,surft,avhrrAngObj):
@@ -434,10 +433,7 @@ def match_cloudsat_avhrr(ctypefile,cloudsatObj,avhrrGeoObj,avhrrObj,ctype,ctth,s
         
     timeCloudsat = cloudsatObj.sec1970.ravel()
     ndim = lonCloudsat.shape[0]
-# Add time
-    if avhrrGeoObj.sec1970_end<avhrrGeoObj.sec1970_start:
-        avhrr_sec1970_end = int(DSEC_PER_AVHRR_SCALINE*avhrrObj.num_of_lines+avhrrGeoObj.sec1970_start)
-        avhrrGeoObj.sec1970_end = avhrr_sec1970_end
+
     # --------------------------------------------------------------------
 
     cal,cap = get_cloudsat_avhrr_linpix(avhrrGeoObj,ctypefile,lonCloudsat,latCloudsat,timeCloudsat)
@@ -445,8 +441,8 @@ def match_cloudsat_avhrr(ctypefile,cloudsatObj,avhrrGeoObj,avhrrObj,ctype,ctth,s
     calnan = numpy.where(cal == NODATA, numpy.nan, cal)
     if (~numpy.isnan(calnan)).sum() == 0:
         raise MatchupError("No matches within region.")
-    avhrr_lines_sec_1970 = calnan * DSEC_PER_AVHRR_SCALINE + avhrrGeoObj.sec1970_start
-
+    avhrrGeoObj = createAvhrrTime(avhrrGeoObj, ctypefile)
+    avhrr_lines_sec_1970 = numpy.where(cal != NODATA, avhrrGeoObj.time[cal], numpy.nan)
     # Find all matching Cloudsat pixels within +/- sec_timeThr from the AVHRR data
     idx_match = elements_within_range(cloudsatObj.sec1970, avhrr_lines_sec_1970, sec_timeThr)
     #            numpy.logical_and(cloudsatObj.sec1970 > avhrr_lines_sec_1970 - sec_timeThr,
@@ -485,10 +481,10 @@ def match_cloudsat_avhrr(ctypefile,cloudsatObj,avhrrGeoObj,avhrrObj,ctype,ctth,s
         time.gmtime(retv.cloudsat.sec_1970[0])
     print "Cloudsat observation time of last cloudsat-avhrr match: ",\
         time.gmtime(retv.cloudsat.sec_1970[N-1])
-    retv.avhrr.sec_1970 = numpy.add(avhrrGeoObj.sec1970_start,
-                                      cal_on_avhrr * DSEC_PER_AVHRR_SCALINE)
-    
+    # Time
+    retv.avhrr.sec_1970 = avhrrGeoObj.time[cal_on_avhrr]    
     retv.diff_sec_1970 = retv.cloudsat.sec_1970 - retv.avhrr.sec_1970
+    
     min_diff = numpy.minimum.reduce(retv.diff_sec_1970)
     max_diff = numpy.maximum.reduce(retv.diff_sec_1970)
     print "Maximum and minimum time differences in sec (avhrr-cloudsat): ",\
@@ -612,16 +608,14 @@ def match_cloudsat_avhrr(ctypefile,cloudsatObj,avhrrGeoObj,avhrrObj,ctype,ctth,s
 
 #------------------------------------------------------------------------------------------
 
-def reshapeCloudsat(cloudsatfiles,avhrr):
+def reshapeCloudsat(cloudsatfiles, avhrr, avhrrfilename):
     import time
     import numpy
     import sys
     import inspect
     clsat = CloudsatObject()
-    if avhrr.sec1970_end<avhrr.sec1970_start:
-        avhrr_end = int(DSEC_PER_AVHRR_SCALINE*avhrr.num_of_lines+avhrr.sec1970_start)
-    else:
-        avhrr_end = avhrr.sec1970_end
+    avhrr = createAvhrrTime(avhrr, avhrrfilename)
+    avhrr_end = avhrr.sec1970_end
     avhrr_start = avhrr.sec1970_start
     
     dsec = time.mktime((1993,1,1,0,0,0,0,0,0)) - time.timezone

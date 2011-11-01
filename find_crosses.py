@@ -18,7 +18,6 @@ SNO_EXECUTABLE = os.environ.get('SNO_EXECUTABLE',
 SATELLITE_CROSS_RECEPTION_TIME_WINDOW = int(
             os.environ.get('SATELLITE_CROSS_RECEPTION_TIME_WINDOW', 60*60))
 
-
 class Cross:
     """A cross where two satellites (almost) meet."""
     def __init__(self, satellite1, satellite2, time1, time2, lon, lat, time_window=None):
@@ -173,7 +172,7 @@ def _daytime(cross):
     False
     
     """
-    import ephem
+    import ephem #@UnresolvedImport
     d2r = 3.141596 / 180 # Degrees to radians
     
     obs = ephem.Observer()

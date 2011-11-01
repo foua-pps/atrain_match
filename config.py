@@ -10,17 +10,22 @@ import os
 #: Resolution, in km, to use for data files. This setting is used throughout
 #: ``atrain_match`` to specify file names, sub-directories, and data handling.
 #: Currently, 1 or 5 is supported
-RESOLUTION = 1
-
+RESOLUTION = 5
+if RESOLUTION == 1:
+    AVHRR_SAT = 'Metop02'
+elif RESOLUTION == 5:
+    AVHRR_SAT = 'NOAA18'
+ 
 #: Base directory for ``atrain_match`` data
 SAT_DIR = os.environ.get('SAT_DIR',
-                         "/data/proj/safworks/jakob/data/atrain_validation")
+                         "/nobackup/smhid9/sm_erjoh/data")#/data/proj/saf/ejohansson/Projects/atrain_match")
+
 
 #: Don't know how this directory is used...
 MAIN_RUNDIR = os.getcwd()
 
 #: Base directory for validation results
-MAIN_DIR = os.environ.get('VALIDATION_RESULTS_DIR', "%s/results" % SAT_DIR)
+MAIN_DIR = os.environ.get('VALIDATION_RESULTS_DIR', "/nobackup/smhid9/sm_erjoh/atrain_match")
 
 #: Base directory where matchup files are stored. (TODO: Are these still used?)
 SUB_DIR = "%s/Matchups" %MAIN_DIR
@@ -38,14 +43,16 @@ PLOT_DIR = "%s/Plot" %MAIN_DIR
 RESULT_DIR = "%s/Results" %MAIN_DIR
 
 
-_satellite_data_dir = '/data/arkiv/proj/safworks/data'
+_satellite_data_dir = '/nobackup/smhid9/sm_erjoh/data'
 #: Base dir for PPS data
-PPS_DATA_DIR = os.environ.get('PPS_DATA_DIR', _satellite_data_dir + '/pps')
+# PPS_DATA_DIR = os.environ.get('PPS_DATA_DIR', _satellite_data_dir + '/pps')
+PPS_DATA_DIR = "%s/%s" % (SAT_DIR, AVHRR_SAT)
 
 #: Base dir for Cloudsat data
 CLOUDSAT_DIR = os.environ.get('CLOUDSAT_DIR', _satellite_data_dir + '/cloudsat')
 
 #: Cloudsat data type (currently 'GEOPROF' and 'CWC-RVOD' are supported)
+#CLOUDSAT_TYPE = 'CWC-RVOD'
 CLOUDSAT_TYPE = 'GEOPROF'
 
 #: Base dir for Calipso data
@@ -97,21 +104,24 @@ ALLOWED_MODES = ['BASIC',
              'SNOW_FREE_LAND',   # Restrict to snow-free land using NSIDC and IGBP data
              'COASTAL_ZONE']      # Restrict to coastal regions using NSIDC data (mixed microwave region)
              
+#: Threshold for optical thickness. If optical thickness is below this value it will be filtered out.
+MIN_OPTICAL_DEPTH = 0.5
+
 if RESOLUTION == 1:
     DSEC_PER_AVHRR_SCALINE = 0.1667 # Full scan period, i.e. the time interval between two consecutive lines (sec)
     SWATHWD=2048
     AREA = "arctic_super_5010"
 
+
 elif RESOLUTION == 5:
     DSEC_PER_AVHRR_SCALINE = 1.0/6*4 # A "work for the time being" solution.
     SWATHWD=409
-    AREA = "arctic_super_1002_5km"
-    ALLOWED_MODES.append('OPTICAL_DEPTH')      # Filter out cases with the thinnest topmost CALIPSO layers. Define MIN_OPTICAL_DEPTH below
+    AREA = "cea5km_test"#"arctic_super_1002_5km"
+    ALLOWED_MODES.append('OPTICAL_DEPTH')      # Filter out cases with the thinnest topmost CALIPSO layers. Define MIN_OPTICAL_DEPTH above
+#    ALLOWED_MODES.append('OPTICAL_DEPTH-%.1f' %MIN_OPTICAL_DEPTH)
 else:
     raise ValueError("RESOLUTION == %s not supported" % str(RESOLUTION))
 
-#: Threshold for optical thickness. If optical thickness is below this value it will be filtered out.
-MIN_OPTICAL_DEPTH = 1
 
 #: TODO: No description
 COMPRESS_LVL = 6
@@ -151,10 +161,10 @@ def subdir(self, date, *args, **kwargs):
     """
     
     # If default subdirs should be used, the following line should be uncommented
-    return self.__class__.subdir(self, date, *args, **kwargs)
+    #return self.__class__.subdir(self, date, *args, **kwargs)
     
     # Example of how to set non-default subdirs for PpsFileFinder instances:
-    from file_finders import PpsFileFinder
+    from file_finders import PpsFileFinder #@UnresolvedImport
     if self.__class__ is PpsFileFinder:
         ending = kwargs.get('ending', None)
         if ending is None:
@@ -171,14 +181,65 @@ def subdir(self, date, *args, **kwargs):
                 return os.path.join(dir, "export")
     else:
         return self.__class__.subdir(self, date, *args, **kwargs)
-
-
+"""
+from file_finders import PpsFileFinder
+++        if self.__class__ is PpsFileFinder:
+++            ending = kwargs.get('ending', None)
+++            if ending is None:
+++                ending = self.ending
+++            dir = "%dkm/%d/%02d" % (RESOLUTION, date.year, date.month)
+++            if 'avhrr' in ending:
+++                return os.path.join(dir,"import/PPS_data")                
+++            if 'sunsatangles' in ending:
+++                return os.path.join(dir, "import/ANC_data")
+++            if 'nwp' in ending:
+++                return os.path.join(dir,"import/NWP_data")
+++            for export_ending in ['cloudmask', 'cloudtype', 'ctth', 'precip']:
+++                if export_ending in ending:
+++                    return os.path.join(dir, "export")
+"""
 #========== Statistics setup ==========#
 #: List of dictionaries containing *satname*, *year*, and *month*, for which
 #: statistics should be summarized
-CASES = [{'satname': 'noaa18', 'year': 2009, 'month': 1},
+CASES = [{'satname': 'noaa18', 'year': 2006, 'month': 10},
+         {'satname': 'noaa18', 'year': 2006, 'month': 11},
+         {'satname': 'noaa18', 'year': 2006, 'month': 12},
+         {'satname': 'noaa18', 'year': 2007, 'month': 1},
+         {'satname': 'noaa18', 'year': 2007, 'month': 2},
+         {'satname': 'noaa18', 'year': 2007, 'month': 3},
+         {'satname': 'noaa18', 'year': 2007, 'month': 4},
+         {'satname': 'noaa18', 'year': 2007, 'month': 5},
+         {'satname': 'noaa18', 'year': 2007, 'month': 6},
+         {'satname': 'noaa18', 'year': 2007, 'month': 7},
+         {'satname': 'noaa18', 'year': 2007, 'month': 8},
+         {'satname': 'noaa18', 'year': 2007, 'month': 9},
+         {'satname': 'noaa18', 'year': 2007, 'month': 10},
+         {'satname': 'noaa18', 'year': 2007, 'month': 11},
+         {'satname': 'noaa18', 'year': 2007, 'month': 12},
+         {'satname': 'noaa18', 'year': 2008, 'month': 1},
+         {'satname': 'noaa18', 'year': 2008, 'month': 2},
+         {'satname': 'noaa18', 'year': 2008, 'month': 3},
+         {'satname': 'noaa18', 'year': 2008, 'month': 4},
+         {'satname': 'noaa18', 'year': 2008, 'month': 5},
+         {'satname': 'noaa18', 'year': 2008, 'month': 6},
+         {'satname': 'noaa18', 'year': 2008, 'month': 7},
+         {'satname': 'noaa18', 'year': 2008, 'month': 8},
+         {'satname': 'noaa18', 'year': 2008, 'month': 9},
+         {'satname': 'noaa18', 'year': 2008, 'month': 10},
+         {'satname': 'noaa18', 'year': 2008, 'month': 11},
+         {'satname': 'noaa18', 'year': 2008, 'month': 12},
+         {'satname': 'noaa18', 'year': 2009, 'month': 1},
+         {'satname': 'noaa18', 'year': 2009, 'month': 2},
+         {'satname': 'noaa18', 'year': 2009, 'month': 3},
+         {'satname': 'noaa18', 'year': 2009, 'month': 4},
+         {'satname': 'noaa18', 'year': 2009, 'month': 5},
+         {'satname': 'noaa18', 'year': 2009, 'month': 6},
          {'satname': 'noaa18', 'year': 2009, 'month': 7},
-         {'satname': 'noaa19', 'year': 2009, 'month': 7}]
+         {'satname': 'noaa18', 'year': 2009, 'month': 8},
+         {'satname': 'noaa18', 'year': 2009, 'month': 9},
+         {'satname': 'noaa18', 'year': 2009, 'month': 10},
+         {'satname': 'noaa18', 'year': 2009, 'month': 11},
+         {'satname': 'noaa18', 'year': 2009, 'month': 12}]
 
 #: PPS area definition (from ``acpg/cfg/region_config.cfg``) for which
 #: statistics should be summarized
@@ -194,6 +255,12 @@ COMPILED_STATS_FILENAME = '%s/Results/compiled_stats' %MAIN_DATADIR
 #: Surfaces for which statistics should be summarized
 SURFACES = ["ICE_COVER_SEA","ICE_FREE_SEA","SNOW_COVER_LAND","SNOW_FREE_LAND","COASTAL_ZONE"]
 
+#: Filter types for which statistics should be summerized
+FILTERTYPE = ['EMISSFILT']
+if RESOLUTION == 5:
+    FILTERTYPE.append('OPTICAL_DEPTH')
+#    FILTERTYPE.append('OPTICAL_DEPTH-%.1f' %MIN_OPTICAL_DEPTH)
+    
 # The following are used in the old-style script interface
 SATELLITE = ['noaa18', 'noaa19']
 STUDIED_YEAR = ["2009"]
