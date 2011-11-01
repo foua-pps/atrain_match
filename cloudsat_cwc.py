@@ -320,13 +320,11 @@ def select_cloudsatCwc_inside_avhrr(cloudsatObj,cal,sec1970_start_end,sec_timeTh
     
     # Select the points inside the avhrr swath:
     # Allowing for sec_timeThr seconds deviation:
-    idx_time_okay = numpy.logical_and(numpy.greater(\
-        cloudsatObj.sec1970,sec1970_start - sec_timeThr),
-                                   numpy.less(\
-        cloudsatObj.sec1970,sec1970_end + sec_timeThr))
+    idx_time_okay = ((cloudsatObj.sec1970 > sec1970_start - sec_timeThr) and
+                     (cloudsatObj.sec1970 < sec1970_end + sec_timeThr))
     
     #idx_match = numpy.not_equal(cal,NODATA)
-    idx_place_okay = numpy.where(numpy.not_equal(cal,NODATA),idx_time_okay,False)
+    idx_place_okay = numpy.where(cal != NODATA, idx_time_okay, False)
     idx_match = idx_place_okay
     return idx_match
 

@@ -9,12 +9,14 @@ time window.
 
 """
 
-from config import get_environ
+import os
 
 # SNO executable
-SNO_EXECUTABLE = get_environ('SNO_EXECUTABLE', "/data/proj/saf/ejohansson/SNO_tools/snotimes")
+SNO_EXECUTABLE = os.environ.get('SNO_EXECUTABLE',
+                                "/data/proj/saf/ejohansson/SNO_tools/snotimes")
 # Time window between satellite data reception time and sat1-sat2 crossing time, in seconds
-SATELLITE_CROSS_RECEPTION_TIME_WINDOW = int(get_environ('SATELLITE_CROSS_RECEPTION_TIME_WINDOW', 60*60))
+SATELLITE_CROSS_RECEPTION_TIME_WINDOW = int(
+            os.environ.get('SATELLITE_CROSS_RECEPTION_TIME_WINDOW', 60*60))
 
 
 class Cross:
@@ -83,12 +85,11 @@ def find_crosses(satellite1, start, end, satellite2='calipso', time_window=20, l
     CALIPSO's path within a time window *t_window*. Sort out any cross points
     which are outside *lon_range* and/or *lat_range*."""
     from subprocess import Popen, PIPE
-    import os
     
     wd = os.getcwd()
     os.chdir(os.path.dirname(SNO_EXECUTABLE))
     cmd = [os.path.abspath(os.path.basename(SNO_EXECUTABLE)), satellite1, satellite2, start, end, str(time_window)]
-    print(' '.join(cmd))
+    #print(' '.join(cmd))
     process = Popen(cmd, stdout=PIPE, stderr=PIPE)
     process.stderr.close()
     os.chdir(wd)
@@ -102,8 +103,8 @@ def parse_crosses_file(f, lon_range=None, lat_range=None):
     Examples
     --------
     
-    >>> crosses = parse_crosses_file(filename)
-    >>> print(crosses[0])
+    >>> crosses = parse_crosses_file(filename) # doctest: +SKIP
+    >>> print(crosses[0]) # doctest: +SKIP
     Cross(aqua x envisat: 2009-01-28 19:35:49 (+ 0:09:03), (-117.1,  72.9))
     
     """
@@ -146,9 +147,53 @@ def parse_crosses_file(f, lon_range=None, lat_range=None):
     return crosses
 
 
-def parse_range(range):
-    """Parse *range*, which should look like -35.7354:25.1. Return (lower, upper)."""
-    l = range.split(':')
+def _daytime(cross):
+    """
+    Returns True if *cross* is during day, False otherwise.
+    
+    Examples
+    --------
+    
+    >>> from datetime import datetime
+    >>> t = datetime(2010, 6, 21, 12, 0, 0) # noon
+    >>> cross = Cross('s1', 's2', t, t, 0, 0) # at equator
+    >>> _daytime(cross) # => daytime
+    True
+    
+    >>> cross.time1 = datetime(2010, 1, 1, 0, 0, 0) # midnight at equator
+    >>> _daytime(cross) # => night time
+    False
+    
+    >>> cross.lat = -89.9 # midnight at south pole, in antarctic summer
+    >>> _daytime(cross) # => daytime
+    True
+    
+    >>> cross.lat = 89.9 # midnight at north pole, in arctic winter
+    >>> _daytime(cross) # => night time
+    False
+    
+    """
+    import ephem
+    d2r = 3.141596 / 180 # Degrees to radians
+    
+    obs = ephem.Observer()
+    obs.lon, obs.lat = cross.lon * d2r, cross.lat * d2r
+    obs.date = cross.time1
+    
+    sun = ephem.Sun() #@UndefinedVariable
+    try:
+        day = obs.next_setting(sun) < obs.next_rising(sun)
+    except ephem.NeverUpError:
+        day = False
+    except ephem.AlwaysUpError:
+        day = True
+    
+    return day
+
+
+def parse_range(_range):
+    """Parse *_range*, which should look like -35.7354:25.1. Return (lower, upper)."""
+    l = _range.split(':')
     return (float(l[0]), float(l[1]))
 
 
@@ -157,14 +202,25 @@ if __name__ == '__main__':
     
     # Set up and handle command line arguments
     parser = OptionParser()
-    parser.set_usage("usage: %prog [options] <start YYMMDD> <end YYMMDD> satellite1 [satellite2 [...]]\n"
-                     "Find times and locations where Calipso and the specified satellites cross paths.")
+    parser.set_usage("usage: %prog [options] <start YYMMDD> <end YYMMDD> "
+                     "satellite1 [satellite2]\n"
+                     "Find times and locations where satellite1 and satellite2 "
+                     "(or calipso, default) cross paths.")
     parser.add_option('-t', '--time_window', type='int', default=20,
                       help="Time window for crossing. Default: 20 min.")
     parser.add_option('-x', '--longitudes', type='string',
                       help="Range of acceptable longitudes (e.g. -35.7:25.12).")
     parser.add_option('-y', '--latitudes', type='string',
                       help="Range of acceptable latitudes (e.g. -35.7:25.12).")
+    parser.add_option('-d', '--daytime', action='store_true',
+                      help="Only daytime crosses")
+    parser.add_option('-q', '--quiet', action='store_true',
+                      help="Don't print detailed information about crosses")
+    parser.add_option('-D', '--dates', action='store_true',
+                      help="Print dates of crosses found (formatted for "
+                      "easy use with ECMWF mars script for getting NWP files)")
+    parser.add_option('-T', '--datetimes', action='store_true',
+                      help="Print dates and times of crosses (YYYYMMDDhhmm)")
     
     (options, args) = parser.parse_args()
     if len(args) == 0:
@@ -188,11 +244,24 @@ if __name__ == '__main__':
     
     start = args[0]
     end = args[1]
+    satellite1 = args[2]
+    try:
+        satellite2 = args[3]
+    except IndexError:
+        satellite2 = 'calipso'
     
     crosses = set()
-    for satellite in args[2:]:
-        crosses.update(find_crosses(satellite, start, end, time_window=options.time_window,
-                                 lon_range=lon_range, lat_range=lat_range))
+    crosses.update(find_crosses(satellite1, start, end, satellite2=satellite2,
+                                time_window=options.time_window,
+                                lon_range=lon_range, lat_range=lat_range))
     
-    for cross in sorted(crosses):
-        print(cross)
+    if not options.quiet:
+        for cross in sorted(crosses):
+            if not options.daytime or _daytime(cross):
+                print(cross)
+    
+    if options.dates:
+        print('/'.join(c.time1.strftime('%Y%m%d') for c in sorted(crosses)))
+    
+    if options.datetimes:
+        print(' '.join(c.time1.strftime('%Y%m%d%H%M') for c in sorted(crosses)))

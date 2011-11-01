@@ -7,28 +7,20 @@ still be some modules which have internal constants defined.
 
 import os
 
-def get_environ(name, default=None):
-    """Get the environment variable *name*. If it is not defined, return 
-    *default*."""
-    try:
-        return os.environ[name]
-    except KeyError:
-        return default
-
-
 #: Resolution, in km, to use for data files. This setting is used throughout
 #: ``atrain_match`` to specify file names, sub-directories, and data handling.
 #: Currently, 1 or 5 is supported
 RESOLUTION = 1
 
 #: Base directory for ``atrain_match`` data
-SAT_DIR = get_environ('SAT_DIR', default="/data/proj/safworks/jakob/data/atrain_validation")
+SAT_DIR = os.environ.get('SAT_DIR',
+                         "/data/proj/safworks/jakob/data/atrain_validation")
 
 #: Don't know how this directory is used...
 MAIN_RUNDIR = os.getcwd()
 
 #: Base directory for validation results
-MAIN_DIR = get_environ('VALIDATION_RESULTS_DIR', "%s/results" % SAT_DIR)
+MAIN_DIR = os.environ.get('VALIDATION_RESULTS_DIR', "%s/results" % SAT_DIR)
 
 #: Base directory where matchup files are stored. (TODO: Are these still used?)
 SUB_DIR = "%s/Matchups" %MAIN_DIR
@@ -48,22 +40,22 @@ RESULT_DIR = "%s/Results" %MAIN_DIR
 
 _satellite_data_dir = '/data/arkiv/proj/safworks/data'
 #: Base dir for PPS data
-PPS_DATA_DIR = get_environ('PPS_DATA_DIR', _satellite_data_dir + '/pps')
+PPS_DATA_DIR = os.environ.get('PPS_DATA_DIR', _satellite_data_dir + '/pps')
 
 #: Base dir for Cloudsat data
-CLOUDSAT_DIR = get_environ('CLOUDSAT_DIR', _satellite_data_dir + '/cloudsat')
+CLOUDSAT_DIR = os.environ.get('CLOUDSAT_DIR', _satellite_data_dir + '/cloudsat')
 
 #: Cloudsat data type (currently 'GEOPROF' and 'CWC-RVOD' are supported)
 CLOUDSAT_TYPE = 'GEOPROF'
 
 #: Base dir for Calipso data
-CALIPSO_DIR = get_environ('CALIPSO_DIR', _satellite_data_dir + '/calipso')
+CALIPSO_DIR = os.environ.get('CALIPSO_DIR', _satellite_data_dir + '/calipso')
 
 #: Constant: Duration of a satellite orbit in seconds
 SAT_ORBIT_DURATION = 90*60
 
 #: CTTH file type to use in processing (One of 'ctth', 'ctth_opaque', and 'ctth_semitransparent')
-CTTH_FILE = get_environ('CTTH_FILE', 'ctth')
+CTTH_FILE = os.environ.get('CTTH_FILE', 'ctth')
 
 #: Allowed time deviation in seconds between AVHRR and CALIPSO/CloudSat matchup
 sec_timeThr = 60*20

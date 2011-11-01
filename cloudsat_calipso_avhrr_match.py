@@ -93,7 +93,6 @@ This is now made below /Erik
 """
 
 import sys
-import rpy
 import numpy
 from numpy import NaN
 import inspect
@@ -112,6 +111,7 @@ from cloudsat_calipso_avhrr_prepare import *
 
 from cloudsat_avhrr_matchup import *
 from calipso_avhrr_matchup import *
+from cloudsat5km_cwc import reshapeCloudsat5kmCwc
 #from cloudsat_avhrr_matchup5km import *
 #from calipso_avhrr_matchup5km import *
 test = 0
