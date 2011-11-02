@@ -107,7 +107,6 @@ from cloudsat_calipso_avhrr_statistics import *
 from trajectory_plot import * #@UnusedWildImport
 from cloudsat_calipso_avhrr_prepare import *
 
-from cloudsat5km_cwc import reshapeCloudsat5kmCwc
 from cloudsat import reshapeCloudsat, match_cloudsat_avhrr,\
     writeCloudsatAvhrrMatchObj, readCloudsatAvhrrMatchObj
 from calipso import reshapeCalipso, match_calipso_avhrr,\
@@ -190,7 +189,8 @@ def find_files_from_avhrr(avhrr_file):
     calipso_files = sorted(calipso_finder.find(datetime))
     if len(calipso_files) == 0:
         raise MatchupError("No calipso files found corresponding to %s." % avhrr_file)
-
+    # nedan kollar om filerna man hittar ar i hdf format eller h5 format. I fall
+    # de inte finns i h5 men i hdf sa converteras de till h5.
     calipso_h5_med_filendelse = []
     calipso_hdf_utan_filendelse = []
     calipso_h5_utan_filendelse = []
@@ -311,7 +311,7 @@ def get_matchups_from_data(cross):
     if isinstance(nwp_tsur_file, str) == True:
         write_log("INFO","Read NWP surface temperature")
         nwpinst = epshdf.read_nwpdata(nwp_tsur_file)
-        surft = nwpinst.gain*nwpinst.data.astype('d')+nwpinst.intercept
+        surft = nwpinst.gain*nwpinst.data.astype('d') + nwpinst.intercept
     else:
         write_log("INFO","NO NWP surface temperature File, Continue")
         surft = None
@@ -354,14 +354,14 @@ def get_matchups_from_data(cross):
     # Write cloudsat matchup
     try:
         cl_match_file = rematched_file_base.replace('atrain_datatype', 'cloudsat-%s' % config.CLOUDSAT_TYPE)
-        writeCloudsatAvhrrMatchObj(cl_match_file, cl_matchup, config.COMPRESS_LVL)
+        writeCloudsatAvhrrMatchObj(cl_match_file, cl_matchup)
     except NameError:
         cl_matchup = None
         cl_time_diff = None
         print('CloudSat is not defined. No CloudSat Match File created')
     # Write calipso matchup
     ca_match_file = rematched_file_base.replace('atrain_datatype', 'caliop')
-    writeCaliopAvhrrMatchObj(ca_match_file,ca_matchup,config.COMPRESS_LVL)
+    writeCaliopAvhrrMatchObj(ca_match_file,ca_matchup)
 
     return {'cloudsat': cl_matchup, 'cloudsat_time_diff': cl_time_diff,
             'calipso': ca_matchup, 'calipso_time_diff': ca_time_diff,
@@ -472,7 +472,6 @@ def run(cross, process_mode, reprocess=False):
         write_log("INFO","Define resolution")
         print("Program cloudsat_calipso_avhrr_match.py at line %i" %(inspect.currentframe().f_lineno+1))
         sys.exit(-9) 
-    
     ## Cloudsat ##
     if clsatObj != None:
         if cloudsat_type == 'GEOPROF':
@@ -529,7 +528,7 @@ def run(cross, process_mode, reprocess=False):
     calat = caObj.calipso.latitude.copy()
     avhrlon = caObj.avhrr.longitude.copy()
     avhrlat = caObj.avhrr.latitude.copy()
-        
+
     # First make sure that PPS cloud top heights are converted to height above sea level
     # just as CloudSat and CALIPSO heights are defined. Use corresponding DEM data.
     cal_elevation = numpy.where(numpy.less_equal(caObj.calipso.elevation,0),
