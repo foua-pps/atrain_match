@@ -10,12 +10,15 @@ from config import CASES, MAIN_DATADIR, MAP, RESOLUTION, COMPILED_STATS_FILENAME
 
 def compile_filtered_stats(results_files, filttype, write=False):
     """Run through all summary statistics."""
-    
+    from config import MIN_OPTICAL_DEPTH
     print("=========== Cloud fraction ============")
     import orrb_CFC_stat_emissfilt
     cfc_stats = orrb_CFC_stat_emissfilt.CloudFractionFilteredStats(results_files)
     if write:
-        cfc_stats.write(COMPILED_STATS_FILENAME + '_cfc_%s.txt' %filttype)
+        if filttype == 'OPTICAL_DEPTH':
+            cfc_stats.write(COMPILED_STATS_FILENAME + '_cfc_%s-%.1f.txt' %(filttype, MIN_OPTICAL_DEPTH))
+        else:
+            cfc_stats.write(COMPILED_STATS_FILENAME + '_cfc_%s.txt' %filttype)
     for l in cfc_stats.printout():
         print(l)
     
@@ -23,7 +26,10 @@ def compile_filtered_stats(results_files, filttype, write=False):
     import orrb_CTH_stat_emissfilt
     cth_stats = orrb_CTH_stat_emissfilt.CloudTopFilteredStats(results_files)
     if write:
-        cth_stats.write(COMPILED_STATS_FILENAME + '_cth_%s.txt' %filttype)
+        if filttype == 'OPTICAL_DEPTH':
+            cth_stats.write(COMPILED_STATS_FILENAME + '_cth_%s-%.1f.txt' %(filttype, MIN_OPTICAL_DEPTH))
+        else:
+            cth_stats.write(COMPILED_STATS_FILENAME + '_cth_%s.txt' %filttype)
     cth_stats.printout()
     for l in cth_stats.printout():
         print(l)
@@ -126,7 +132,7 @@ if __name__ == '__main__':
             cfc_stats, cth_stats = compile_surface_stats(results_files, surface, write=options.write)
         print('')
     if options.filter == True:
-        from config import FILTERTYPE
+        from config import FILTERTYPE, MIN_OPTICAL_DEPTH
         print('Calculate statistic for the different surfaces')
         for filttype in FILTERTYPE:
             results_files = []
@@ -134,6 +140,8 @@ if __name__ == '__main__':
                 print(RESOLUTION)
                 basic_indata_dir = "%s/Results/%s/%skm/%s/%02d/%s/%s" % \
                 (MAIN_DATADIR, case['satname'], RESOLUTION , case['year'], case['month'], MAP[0], filttype)
+                if filttype == 'OPTICAL_DEPTH':
+                    basic_indata_dir = "%s-%.1f" %(basic_indata_dir, MIN_OPTICAL_DEPTH)
                 print("-> " + basic_indata_dir)
                 results_files.extend(glob("%s/*.dat" % basic_indata_dir))
             cfc_stats, cth_stats = compile_filtered_stats(results_files, filttype, write=options.write)
