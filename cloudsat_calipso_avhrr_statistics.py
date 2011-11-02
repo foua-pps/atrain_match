@@ -4,29 +4,47 @@ import config
 def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
                         cal_vert_feature, avhrr_ctth_csat_ok, data_ok,
                         cal_data_ok, avhrr_ctth_cal_ok, caliop_max_height,
-                        process_calipso_ok):
+                        process_calipso_ok, dnt_flag='all'):
+    import sys
     import numpy
 #    import numpy.oldnumpy as Numeric
     import pdb #@UnusedImport
     # First prepare possible subsetting of CALIOP datasets according to NSIDC and IGBP surface types
-
     if mode == "EMISSFILT":
         emissfilt_calipso_ok = process_calipso_ok 
-
-    if mode is 'ICE_COVER_SEA':
+        cal_subset = emissfilt_calipso_ok
+    if mode == 'ICE_COVER_SEA':
 ##         cal_subset = numpy.logical_and(numpy.logical_and(numpy.less(caObj.calipso.nsidc,100),numpy.greater(caObj.calipso.nsidc,10)),numpy.equal(caObj.calipso.igbp,17))
         # Unfortunately, the above formulation used for ORR-B excluded the case when ice-cover was exactly 100 %!!! Very embarrassing!/KG
         cal_subset = numpy.logical_and(numpy.logical_and(numpy.less_equal(caObj.calipso.nsidc,100),numpy.greater(caObj.calipso.nsidc,10)),numpy.equal(caObj.calipso.igbp,17))
-    elif mode is 'ICE_FREE_SEA':
+    elif mode == 'ICE_FREE_SEA':
         cal_subset = numpy.logical_and(numpy.equal(caObj.calipso.nsidc,0),numpy.equal(caObj.calipso.igbp,17))
-    elif mode is 'SNOW_COVER_LAND':
+    elif mode == 'SNOW_COVER_LAND':
         cal_subset = numpy.logical_and(numpy.logical_and(numpy.less(caObj.calipso.nsidc,104),numpy.greater(caObj.calipso.nsidc,10)),numpy.not_equal(caObj.calipso.igbp,17))
         # Notice that some uncertainty remains about the meaning of IGBP category 15 = "snow and ice". Can this possibly include also the Arctic ice sheet? We hope that it is not!!! However, if it is, the whole classification here might be wrong since this will affect also the definition of IGBP category 17./KG 
-    elif mode is 'SNOW_FREE_LAND':
+    elif mode == 'SNOW_FREE_LAND':
         cal_subset = numpy.logical_and(numpy.equal(caObj.calipso.nsidc,0),numpy.not_equal(caObj.calipso.igbp,17))
-    elif mode is 'COASTAL_ZONE':
+    elif mode == 'COASTAL_ZONE':
         cal_subset = numpy.equal(caObj.calipso.nsidc,255)
-        
+    else:
+        cal_subset = numpy.bool_(numpy.ones(caObj.calipso.igbp.shape))
+    no_qflag = caObj.avhrr.cloudtype_qflag == 0
+    night_flag = (((caObj.avhrr.cloudtype_qflag>>2) & 1) == 1) & ~no_qflag
+    twilight_flag = (((caObj.avhrr.cloudtype_qflag>>3) & 1) == 1) & ~no_qflag
+    day_flag =  (((caObj.avhrr.cloudtype_qflag>>2) & 1) == 0) & (((caObj.avhrr.cloudtype_qflag>>3) & 1) == 0) & ~no_qflag
+    all_dnt_flag =  numpy.bool_(numpy.ones(caObj.avhrr.cloudtype_qflag.shape))
+    if (no_qflag.sum() + night_flag.sum() + twilight_flag.sum() + day_flag.sum()) != caObj.calipso.longitude.size:
+        print('something wrong with quality flags. It does not sum up. See beginning of statistic file')
+        sys.exit()
+    if dnt_flag == 'day':
+        cal_subset = numpy.logical_and(cal_subset, day_flag)
+    elif dnt_flag == 'night':
+        cal_subset = numpy.logical_and(cal_subset, night_flag)
+    elif dnt_flag == 'twilight':
+        cal_subset = numpy.logical_and(cal_subset, twilight_flag)
+    elif dnt_flag == 'all':
+        cal_subset = numpy.logical_and(cal_subset, all_dnt_flag)
+#    pdb.set_trace()
         
     # CLOUD MASK EVALUATION
     #=======================
@@ -149,43 +167,7 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
     
     # CORRELATION CLOUD MASK: CALIOP - AVHRR
 
-    if mode is 'EMISSFILT':
-        calipso_clear = numpy.logical_and(numpy.less(caObj.calipso.cloud_fraction,0.34),emissfilt_calipso_ok)
-        calipso_cloudy = numpy.logical_and(numpy.greater(caObj.calipso.cloud_fraction,0.66),emissfilt_calipso_ok)
-        pps_clear = numpy.logical_and(numpy.less_equal(caObj.avhrr.cloudtype,4),emissfilt_calipso_ok)
-        pps_cloudy = numpy.logical_and(numpy.greater(caObj.avhrr.cloudtype,4),emissfilt_calipso_ok)
-
-        #print "------------------------------------"
-        #print "STATISTICS CLOUD MASK: CALIOP - AVHRR - Emissivity filtered limit= ", EMISS_LIMIT
-    elif mode is 'ICE_COVER_SEA':
-        calipso_clear = numpy.logical_and(numpy.less(caObj.calipso.cloud_fraction,0.34),cal_subset)
-        calipso_cloudy = numpy.logical_and(numpy.greater(caObj.calipso.cloud_fraction,0.66),cal_subset)
-        pps_clear = numpy.logical_and(numpy.less_equal(caObj.avhrr.cloudtype,4),cal_subset)
-        pps_cloudy = numpy.logical_and(numpy.greater(caObj.avhrr.cloudtype,4),cal_subset)
-        #print "------------------------------------"
-        #print "STATISTICS CLOUD MASK: CALIOP - AVHRR - Exclusively over ocean ice:  "
-    elif mode is 'ICE_FREE_SEA':
-        calipso_clear = numpy.logical_and(numpy.less(caObj.calipso.cloud_fraction,0.34),cal_subset)
-        calipso_cloudy = numpy.logical_and(numpy.greater(caObj.calipso.cloud_fraction,0.66),cal_subset)
-        pps_clear = numpy.logical_and(numpy.less_equal(caObj.avhrr.cloudtype,4),cal_subset)
-        pps_cloudy = numpy.logical_and(numpy.greater(caObj.avhrr.cloudtype,4),cal_subset)
-        #print "------------------------------------"
-        #print "STATISTICS CLOUD MASK: CALIOP - AVHRR - Exclusively over ice-free ocean:  "
-    elif mode is 'SNOW_COVER_LAND':
-        calipso_clear = numpy.logical_and(numpy.less(caObj.calipso.cloud_fraction,0.34),cal_subset)
-        calipso_cloudy = numpy.logical_and(numpy.greater(caObj.calipso.cloud_fraction,0.66),cal_subset)
-        pps_clear = numpy.logical_and(numpy.less_equal(caObj.avhrr.cloudtype,4),cal_subset)
-        pps_cloudy = numpy.logical_and(numpy.greater(caObj.avhrr.cloudtype,4),cal_subset)
-        #print "------------------------------------"
-        #print "STATISTICS CLOUD MASK: CALIOP - AVHRR - Exclusively over snow-covered land:  "
-    elif mode is 'SNOW_FREE_LAND':
-        calipso_clear = numpy.logical_and(numpy.less(caObj.calipso.cloud_fraction,0.34),cal_subset)
-        calipso_cloudy = numpy.logical_and(numpy.greater(caObj.calipso.cloud_fraction,0.66),cal_subset)
-        pps_clear = numpy.logical_and(numpy.less_equal(caObj.avhrr.cloudtype,4),cal_subset)
-        pps_cloudy = numpy.logical_and(numpy.greater(caObj.avhrr.cloudtype,4),cal_subset)
-        #print "------------------------------------"
-        #print "STATISTICS CLOUD MASK: CALIOP - AVHRR - Exclusively over snow-free land:  "
-    elif mode is 'COASTAL_ZONE':
+    if mode in ['EMISSFILT', 'ICE_COVER_SEA', 'ICE_FREE_SEA', 'SNOW_COVER_LAND', 'SNOW_FREE_LAND', 'COASTAL_ZONE']:
         calipso_clear = numpy.logical_and(numpy.less(caObj.calipso.cloud_fraction,0.34),cal_subset)
         calipso_cloudy = numpy.logical_and(numpy.greater(caObj.calipso.cloud_fraction,0.66),cal_subset)
         pps_clear = numpy.logical_and(numpy.less_equal(caObj.avhrr.cloudtype,4),cal_subset)
@@ -193,13 +175,13 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
         #print "------------------------------------"
         #print "STATISTICS CLOUD MASK: CALIOP - AVHRR - Exclusively over coastal zone:  "
     else:
-        calipso_clear = numpy.less(caObj.calipso.cloud_fraction,0.34)
-        calipso_cloudy = numpy.greater(caObj.calipso.cloud_fraction,0.66)
-        pps_clear = numpy.logical_and(numpy.less_equal(caObj.avhrr.cloudtype,4),numpy.greater(caObj.avhrr.cloudtype,0))
-        pps_cloudy = numpy.logical_and(numpy.greater(caObj.avhrr.cloudtype,4),numpy.less(caObj.avhrr.cloudtype,20))
+        calipso_clear = numpy.logical_and(numpy.less(caObj.calipso.cloud_fraction,0.34),cal_subset)
+        calipso_cloudy = numpy.logical_and(numpy.greater(caObj.calipso.cloud_fraction,0.66),cal_subset)
+        pps_clear = numpy.logical_and(numpy.logical_and(numpy.less_equal(caObj.avhrr.cloudtype,4),numpy.greater(caObj.avhrr.cloudtype,0)),cal_subset)
+        pps_cloudy = numpy.logical_and(numpy.logical_and(numpy.greater(caObj.avhrr.cloudtype,4),numpy.less(caObj.avhrr.cloudtype,20)),cal_subset)
         #print "------------------------------------"
         #print "STATISTICS CLOUD MASK: CALIOP - AVHRR"
-
+    
     n_clear_clear = numpy.repeat(pps_clear,numpy.logical_and(calipso_clear,pps_clear)).shape[0]
     n_cloudy_cloudy = numpy.repeat(pps_cloudy,numpy.logical_and(calipso_cloudy,pps_cloudy)).shape[0]
     n_clear_cloudy = numpy.repeat(pps_cloudy,numpy.logical_and(calipso_clear,pps_cloudy)).shape[0]
@@ -241,78 +223,14 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
     statfile.write("CLOUD MASK CALIOP-PPS PROB: %f %f %f %f %f \n" % (pod_cloudy,pod_clear,far_cloudy,far_clear,bias))
 
     # CORRELATION CLOUD MASK: CALIOP - MODIS
+    calipso_clear = numpy.logical_and(numpy.less(caObj.calipso.cloud_fraction,0.34),cal_subset)
+    calipso_cloudy = numpy.logical_and(numpy.greater(caObj.calipso.cloud_fraction,0.66),cal_subset)
+    if cal_MODIS_cflag != None:
+        modis_clear = numpy.logical_and(numpy.logical_or(numpy.equal(cal_MODIS_cflag,1),
+                                            numpy.equal(cal_MODIS_cflag,0)),cal_subset)
+        modis_cloudy = numpy.logical_and(numpy.logical_or(numpy.equal(cal_MODIS_cflag,3),
+                                            numpy.equal(cal_MODIS_cflag,2)),cal_subset)
 
-    if mode is 'EMISSFILT':
-        calipso_clear = numpy.logical_and(numpy.less(caObj.calipso.cloud_fraction,0.34),emissfilt_calipso_ok)
-        calipso_cloudy = numpy.logical_and(numpy.greater(caObj.calipso.cloud_fraction,0.66),emissfilt_calipso_ok)
-        if cal_MODIS_cflag != None:
-            modis_clear = numpy.logical_and(numpy.logical_or(numpy.equal(cal_MODIS_cflag,1),
-                                                numpy.equal(cal_MODIS_cflag,0)),emissfilt_calipso_ok)
-            modis_cloudy = numpy.logical_and(numpy.logical_or(numpy.equal(cal_MODIS_cflag,3),
-                                                numpy.equal(cal_MODIS_cflag,2)),emissfilt_calipso_ok)
-
-        #print "------------------------------------"
-        #print "STATISTICS CLOUD MASK: CALIOP - MODIS - Emissivity filtered limit= ", EMISS_LIMIT
-    elif mode is 'ICE_COVER_SEA':
-        calipso_clear = numpy.logical_and(numpy.less(caObj.calipso.cloud_fraction,0.34),cal_subset)
-        calipso_cloudy = numpy.logical_and(numpy.greater(caObj.calipso.cloud_fraction,0.66),cal_subset)
-        if cal_MODIS_cflag != None:
-            modis_clear = numpy.logical_and(numpy.logical_or(numpy.equal(cal_MODIS_cflag,1),
-                                                numpy.equal(cal_MODIS_cflag,0)),cal_subset)
-            modis_cloudy = numpy.logical_and(numpy.logical_or(numpy.equal(cal_MODIS_cflag,3),
-                                                numpy.equal(cal_MODIS_cflag,2)),cal_subset)
-        #print "------------------------------------"
-        #print "STATISTICS CLOUD MASK: CALIOP - MODIS - Exclusively over ocean ice:  "
-    elif mode is 'ICE_FREE_SEA':
-        calipso_clear = numpy.logical_and(numpy.less(caObj.calipso.cloud_fraction,0.34),cal_subset)
-        calipso_cloudy = numpy.logical_and(numpy.greater(caObj.calipso.cloud_fraction,0.66),cal_subset)
-        if cal_MODIS_cflag != None:
-            modis_clear = numpy.logical_and(numpy.logical_or(numpy.equal(cal_MODIS_cflag,1),
-                                                numpy.equal(cal_MODIS_cflag,0)),cal_subset)
-            modis_cloudy = numpy.logical_and(numpy.logical_or(numpy.equal(cal_MODIS_cflag,3),
-                                                numpy.equal(cal_MODIS_cflag,2)),cal_subset)
-        #print "------------------------------------"
-        #print "STATISTICS CLOUD MASK: CALIOP - MODIS - Exclusively over ice-free ocean:  "
-    elif mode is 'SNOW_COVER_LAND':
-        calipso_clear = numpy.logical_and(numpy.less(caObj.calipso.cloud_fraction,0.34),cal_subset)
-        calipso_cloudy = numpy.logical_and(numpy.greater(caObj.calipso.cloud_fraction,0.66),cal_subset)
-        if cal_MODIS_cflag != None:
-            modis_clear = numpy.logical_and(numpy.logical_or(numpy.equal(cal_MODIS_cflag,1),
-                                                numpy.equal(cal_MODIS_cflag,0)),cal_subset)
-            modis_cloudy = numpy.logical_and(numpy.logical_or(numpy.equal(cal_MODIS_cflag,3),
-                                                numpy.equal(cal_MODIS_cflag,2)),cal_subset)
-        #print "------------------------------------"
-        #print "STATISTICS CLOUD MASK: CALIOP - MODIS - Exclusively over snow-covered land:  "
-    elif mode is 'SNOW_FREE_LAND':
-        calipso_clear = numpy.logical_and(numpy.less(caObj.calipso.cloud_fraction,0.34),cal_subset)
-        calipso_cloudy = numpy.logical_and(numpy.greater(caObj.calipso.cloud_fraction,0.66),cal_subset)
-        if cal_MODIS_cflag != None:
-            modis_clear = numpy.logical_and(numpy.logical_or(numpy.equal(cal_MODIS_cflag,1),
-                                                numpy.equal(cal_MODIS_cflag,0)),cal_subset)
-            modis_cloudy = numpy.logical_and(numpy.logical_or(numpy.equal(cal_MODIS_cflag,3),
-                                                numpy.equal(cal_MODIS_cflag,2)),cal_subset)
-        #print "------------------------------------"
-        #print "STATISTICS CLOUD MASK: CALIOP - MODIS - Exclusively over snow-free land:  "
-    elif mode is 'COASTAL_ZONE':
-        calipso_clear = numpy.logical_and(numpy.less(caObj.calipso.cloud_fraction,0.34),cal_subset)
-        calipso_cloudy = numpy.logical_and(numpy.greater(caObj.calipso.cloud_fraction,0.66),cal_subset)
-        if cal_MODIS_cflag != None:
-            modis_clear = numpy.logical_and(numpy.logical_or(numpy.equal(cal_MODIS_cflag,1),
-                                                numpy.equal(cal_MODIS_cflag,0)),cal_subset)
-            modis_cloudy = numpy.logical_and(numpy.logical_or(numpy.equal(cal_MODIS_cflag,3),
-                                                numpy.equal(cal_MODIS_cflag,2)),cal_subset)
-        #print "------------------------------------"
-        #print "STATISTICS CLOUD MASK: CALIOP - MODIS - Exclusively over coastal zone:  "
-    else:
-        calipso_clear = numpy.less(caObj.calipso.cloud_fraction,0.34)
-        calipso_cloudy = numpy.greater(caObj.calipso.cloud_fraction,0.66)
-        if cal_MODIS_cflag != None:            
-            modis_clear = numpy.logical_or(numpy.equal(cal_MODIS_cflag,1),
-                                                numpy.equal(cal_MODIS_cflag,0))
-            modis_cloudy = numpy.logical_or(numpy.equal(cal_MODIS_cflag,3),
-                                                numpy.equal(cal_MODIS_cflag,2))
-        #print "------------------------------------"
-        #print "STATISTICS CLOUD MASK: CALIOP - MODIS"
     if cal_MODIS_cflag != None:
         n_clear_clear = numpy.repeat(modis_clear,numpy.logical_and(calipso_clear,modis_clear)).shape[0]
         n_cloudy_cloudy = numpy.repeat(modis_cloudy,numpy.logical_and(calipso_cloudy,modis_cloudy)).shape[0]
@@ -360,91 +278,17 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
     # CLOUD TYPE EVALUATION - Based exclusively on CALIPSO data (Vertical Feature Mask)
     # =======================
 
-
-    if mode is 'EMISSFILT':
-        calipso_low = numpy.logical_and(numpy.logical_and(numpy.greater_equal(cal_vert_feature[::],0),numpy.less_equal(cal_vert_feature[::],3)),emissfilt_calipso_ok)
-        calipso_medium = numpy.logical_and(numpy.logical_and(numpy.greater(cal_vert_feature[::],3),numpy.less_equal(cal_vert_feature[::],5)),emissfilt_calipso_ok)
-        calipso_high = numpy.logical_and(numpy.logical_and(numpy.greater_equal(cal_vert_feature[::],5),numpy.less_equal(cal_vert_feature[::],7)),emissfilt_calipso_ok)
-        avhrr_low = numpy.logical_and(numpy.logical_and(numpy.greater_equal(caObj.avhrr.cloudtype,5),numpy.less_equal(caObj.avhrr.cloudtype,8)),emissfilt_calipso_ok)
-        avhrr_medium = numpy.logical_and(numpy.logical_and(numpy.greater_equal(caObj.avhrr.cloudtype,9),numpy.less_equal(caObj.avhrr.cloudtype,10)),emissfilt_calipso_ok)
-        avhrr_high = numpy.logical_and(numpy.logical_and(numpy.greater_equal(caObj.avhrr.cloudtype,11),numpy.less_equal(caObj.avhrr.cloudtype,18)),emissfilt_calipso_ok)
-        avhrr_frac = numpy.logical_and(numpy.logical_and(numpy.greater_equal(caObj.avhrr.cloudtype,19),numpy.less_equal(caObj.avhrr.cloudtype,19)),emissfilt_calipso_ok)
-        calipso_clear = numpy.logical_and(numpy.less(caObj.calipso.cloud_fraction,0.34),emissfilt_calipso_ok)
-        avhrr_clear = numpy.logical_and(numpy.logical_and(numpy.less_equal(caObj.avhrr.cloudtype,4),numpy.greater(caObj.avhrr.cloudtype,0)),emissfilt_calipso_ok)
-        #print "STATISTICS CLOUD TYPE: CALIOP - AVHRR - Emissivity filtered limit= ", EMISS_LIMIT
-    elif mode is 'ICE_COVER_SEA':
-        calipso_low = numpy.logical_and(numpy.logical_and(numpy.greater_equal(cal_vert_feature[::],0),numpy.less_equal(cal_vert_feature[::],3)),cal_subset)
-        calipso_medium = numpy.logical_and(numpy.logical_and(numpy.greater(cal_vert_feature[::],3),numpy.less_equal(cal_vert_feature[::],5)),cal_subset)
-        calipso_high = numpy.logical_and(numpy.logical_and(numpy.greater_equal(cal_vert_feature[::],5),numpy.less_equal(cal_vert_feature[::],7)),cal_subset)
-        avhrr_low = numpy.logical_and(numpy.logical_and(numpy.greater_equal(caObj.avhrr.cloudtype,5),numpy.less_equal(caObj.avhrr.cloudtype,8)),cal_subset)
-        avhrr_medium = numpy.logical_and(numpy.logical_and(numpy.greater_equal(caObj.avhrr.cloudtype,9),numpy.less_equal(caObj.avhrr.cloudtype,10)),cal_subset)
-        avhrr_high = numpy.logical_and(numpy.logical_and(numpy.greater_equal(caObj.avhrr.cloudtype,11),numpy.less_equal(caObj.avhrr.cloudtype,18)),cal_subset)
-        avhrr_frac = numpy.logical_and(numpy.logical_and(numpy.greater_equal(caObj.avhrr.cloudtype,19),numpy.less_equal(caObj.avhrr.cloudtype,19)),cal_subset)
-        calipso_clear = numpy.logical_and(numpy.less(caObj.calipso.cloud_fraction,0.34),cal_subset)
-        avhrr_clear = numpy.logical_and(numpy.logical_and(numpy.less_equal(caObj.avhrr.cloudtype,4),numpy.greater(caObj.avhrr.cloudtype,0)),cal_subset)
-        #print "------------------------------------"
-        #print "STATISTICS CLOUD TYPE: CALIOP - AVHRR - Exclusively over ocean ice:  "
-    elif mode is 'ICE_FREE_SEA':
-        calipso_low = numpy.logical_and(numpy.logical_and(numpy.greater_equal(cal_vert_feature[::],0),numpy.less_equal(cal_vert_feature[::],3)),cal_subset)
-        calipso_medium = numpy.logical_and(numpy.logical_and(numpy.greater(cal_vert_feature[::],3),numpy.less_equal(cal_vert_feature[::],5)),cal_subset)
-        calipso_high = numpy.logical_and(numpy.logical_and(numpy.greater_equal(cal_vert_feature[::],5),numpy.less_equal(cal_vert_feature[::],7)),cal_subset)
-        avhrr_low = numpy.logical_and(numpy.logical_and(numpy.greater_equal(caObj.avhrr.cloudtype,5),numpy.less_equal(caObj.avhrr.cloudtype,8)),cal_subset)
-        avhrr_medium = numpy.logical_and(numpy.logical_and(numpy.greater_equal(caObj.avhrr.cloudtype,9),numpy.less_equal(caObj.avhrr.cloudtype,10)),cal_subset)
-        avhrr_high = numpy.logical_and(numpy.logical_and(numpy.greater_equal(caObj.avhrr.cloudtype,11),numpy.less_equal(caObj.avhrr.cloudtype,18)),cal_subset)
-        avhrr_frac = numpy.logical_and(numpy.logical_and(numpy.greater_equal(caObj.avhrr.cloudtype,19),numpy.less_equal(caObj.avhrr.cloudtype,19)),cal_subset)
-        calipso_clear = numpy.logical_and(numpy.less(caObj.calipso.cloud_fraction,0.34),cal_subset)
-        avhrr_clear = numpy.logical_and(numpy.logical_and(numpy.less_equal(caObj.avhrr.cloudtype,4),numpy.greater(caObj.avhrr.cloudtype,0)),cal_subset)
-        #print "------------------------------------"
-        #print "STATISTICS CLOUD TYPE: CALIOP - AVHRR - Exclusively over ice-free ocean:  "
-    elif mode is 'SNOW_COVER_LAND':
-        calipso_low = numpy.logical_and(numpy.logical_and(numpy.greater_equal(cal_vert_feature[::],0),numpy.less_equal(cal_vert_feature[::],3)),cal_subset)
-        calipso_medium = numpy.logical_and(numpy.logical_and(numpy.greater(cal_vert_feature[::],3),numpy.less_equal(cal_vert_feature[::],5)),cal_subset)
-        calipso_high = numpy.logical_and(numpy.logical_and(numpy.greater_equal(cal_vert_feature[::],5),numpy.less_equal(cal_vert_feature[::],7)),cal_subset)
-        avhrr_low = numpy.logical_and(numpy.logical_and(numpy.greater_equal(caObj.avhrr.cloudtype,5),numpy.less_equal(caObj.avhrr.cloudtype,8)),cal_subset)
-        avhrr_medium = numpy.logical_and(numpy.logical_and(numpy.greater_equal(caObj.avhrr.cloudtype,9),numpy.less_equal(caObj.avhrr.cloudtype,10)),cal_subset)
-        avhrr_high = numpy.logical_and(numpy.logical_and(numpy.greater_equal(caObj.avhrr.cloudtype,11),numpy.less_equal(caObj.avhrr.cloudtype,18)),cal_subset)
-        avhrr_frac = numpy.logical_and(numpy.logical_and(numpy.greater_equal(caObj.avhrr.cloudtype,19),numpy.less_equal(caObj.avhrr.cloudtype,19)),cal_subset)
-        calipso_clear = numpy.logical_and(numpy.less(caObj.calipso.cloud_fraction,0.34),cal_subset)
-        avhrr_clear = numpy.logical_and(numpy.logical_and(numpy.less_equal(caObj.avhrr.cloudtype,4),numpy.greater(caObj.avhrr.cloudtype,0)),cal_subset)
-        #print "------------------------------------"
-        #print "STATISTICS CLOUD TYPE: CALIOP - AVHRR - Exclusively over snow-covered land:  "
-    elif mode is 'SNOW_FREE_LAND':
-        calipso_low = numpy.logical_and(numpy.logical_and(numpy.greater_equal(cal_vert_feature[::],0),numpy.less_equal(cal_vert_feature[::],3)),cal_subset)
-        calipso_medium = numpy.logical_and(numpy.logical_and(numpy.greater(cal_vert_feature[::],3),numpy.less_equal(cal_vert_feature[::],5)),cal_subset)
-        calipso_high = numpy.logical_and(numpy.logical_and(numpy.greater_equal(cal_vert_feature[::],5),numpy.less_equal(cal_vert_feature[::],7)),cal_subset)
-        avhrr_low = numpy.logical_and(numpy.logical_and(numpy.greater_equal(caObj.avhrr.cloudtype,5),numpy.less_equal(caObj.avhrr.cloudtype,8)),cal_subset)
-        avhrr_medium = numpy.logical_and(numpy.logical_and(numpy.greater_equal(caObj.avhrr.cloudtype,9),numpy.less_equal(caObj.avhrr.cloudtype,10)),cal_subset)
-        avhrr_high = numpy.logical_and(numpy.logical_and(numpy.greater_equal(caObj.avhrr.cloudtype,11),numpy.less_equal(caObj.avhrr.cloudtype,18)),cal_subset)
-        avhrr_frac = numpy.logical_and(numpy.logical_and(numpy.greater_equal(caObj.avhrr.cloudtype,19),numpy.less_equal(caObj.avhrr.cloudtype,19)),cal_subset)
-        calipso_clear = numpy.logical_and(numpy.less(caObj.calipso.cloud_fraction,0.34),cal_subset)
-        avhrr_clear = numpy.logical_and(numpy.logical_and(numpy.less_equal(caObj.avhrr.cloudtype,4),numpy.greater(caObj.avhrr.cloudtype,0)),cal_subset)
-        #print "------------------------------------"
-        #print "STATISTICS CLOUD TYPE: CALIOP - AVHRR - Exclusively over snow-free land:  "
-    elif mode is 'COASTAL_ZONE':
-        calipso_low = numpy.logical_and(numpy.logical_and(numpy.greater_equal(cal_vert_feature[::],0),numpy.less_equal(cal_vert_feature[::],3)),cal_subset)
-        calipso_medium = numpy.logical_and(numpy.logical_and(numpy.greater(cal_vert_feature[::],3),numpy.less_equal(cal_vert_feature[::],5)),cal_subset)
-        calipso_high = numpy.logical_and(numpy.logical_and(numpy.greater_equal(cal_vert_feature[::],5),numpy.less_equal(cal_vert_feature[::],7)),cal_subset)
-        avhrr_low = numpy.logical_and(numpy.logical_and(numpy.greater_equal(caObj.avhrr.cloudtype,5),numpy.less_equal(caObj.avhrr.cloudtype,8)),cal_subset)
-        avhrr_medium = numpy.logical_and(numpy.logical_and(numpy.greater_equal(caObj.avhrr.cloudtype,9),numpy.less_equal(caObj.avhrr.cloudtype,10)),cal_subset)
-        avhrr_high = numpy.logical_and(numpy.logical_and(numpy.greater_equal(caObj.avhrr.cloudtype,11),numpy.less_equal(caObj.avhrr.cloudtype,18)),cal_subset)
-        avhrr_frac = numpy.logical_and(numpy.logical_and(numpy.greater_equal(caObj.avhrr.cloudtype,19),numpy.less_equal(caObj.avhrr.cloudtype,19)),cal_subset)
-        calipso_clear = numpy.logical_and(numpy.less(caObj.calipso.cloud_fraction,0.34),cal_subset)
-        avhrr_clear = numpy.logical_and(numpy.logical_and(numpy.less_equal(caObj.avhrr.cloudtype,4),numpy.greater(caObj.avhrr.cloudtype,0)),cal_subset)
-        #print "------------------------------------"
-        #print "STATISTICS CLOUD TYPE: CALIOP - AVHRR - Exclusively over coastal zone:  "
-    else:       
-        calipso_low = numpy.logical_and(numpy.greater_equal(cal_vert_feature[::],0),numpy.less_equal(cal_vert_feature[::],3))
-        calipso_medium = numpy.logical_and(numpy.greater(cal_vert_feature[::],3),numpy.less_equal(cal_vert_feature[::],5))
-        calipso_high = numpy.logical_and(numpy.greater_equal(cal_vert_feature[::],5),numpy.less_equal(cal_vert_feature[::],7))
-        avhrr_low = numpy.logical_and(numpy.greater_equal(caObj.avhrr.cloudtype,5),numpy.less_equal(caObj.avhrr.cloudtype,8))
-        avhrr_medium = numpy.logical_and(numpy.greater_equal(caObj.avhrr.cloudtype,9),numpy.less_equal(caObj.avhrr.cloudtype,10))
-        avhrr_high = numpy.logical_and(numpy.greater_equal(caObj.avhrr.cloudtype,11),numpy.less_equal(caObj.avhrr.cloudtype,18))
-        avhrr_frac = numpy.logical_and(numpy.greater_equal(caObj.avhrr.cloudtype,19),numpy.less_equal(caObj.avhrr.cloudtype,19))
-        calipso_clear = numpy.less(caObj.calipso.cloud_fraction,0.34)
-        avhrr_clear = numpy.logical_and(numpy.less_equal(caObj.avhrr.cloudtype,4),numpy.greater(caObj.avhrr.cloudtype,0))
-
-        #print "STATISTICS CLOUD TYPE: CALIOP - AVHRR"
-
+    calipso_low = numpy.logical_and(numpy.logical_and(numpy.greater_equal(cal_vert_feature[::],0),numpy.less_equal(cal_vert_feature[::],3)),cal_subset)
+    calipso_medium = numpy.logical_and(numpy.logical_and(numpy.greater(cal_vert_feature[::],3),numpy.less_equal(cal_vert_feature[::],5)),cal_subset)
+    calipso_high = numpy.logical_and(numpy.logical_and(numpy.greater_equal(cal_vert_feature[::],5),numpy.less_equal(cal_vert_feature[::],7)),cal_subset)
+    avhrr_low = numpy.logical_and(numpy.logical_and(numpy.greater_equal(caObj.avhrr.cloudtype,5),numpy.less_equal(caObj.avhrr.cloudtype,8)),cal_subset)
+    avhrr_medium = numpy.logical_and(numpy.logical_and(numpy.greater_equal(caObj.avhrr.cloudtype,9),numpy.less_equal(caObj.avhrr.cloudtype,10)),cal_subset)
+    avhrr_high = numpy.logical_and(numpy.logical_and(numpy.greater_equal(caObj.avhrr.cloudtype,11),numpy.less_equal(caObj.avhrr.cloudtype,18)),cal_subset)
+    avhrr_frac = numpy.logical_and(numpy.logical_and(numpy.greater_equal(caObj.avhrr.cloudtype,19),numpy.less_equal(caObj.avhrr.cloudtype,19)),cal_subset)
+    calipso_clear = numpy.logical_and(numpy.less(caObj.calipso.cloud_fraction,0.34),cal_subset)
+    avhrr_clear = numpy.logical_and(numpy.logical_and(numpy.less_equal(caObj.avhrr.cloudtype,4),numpy.greater(caObj.avhrr.cloudtype,0)),cal_subset)
+    
+    
     # Notice that we have unfortunately changed order in notation compared to cloud mask
     # Here the PPS category is mentioned first and then the CALIOP category 
 
@@ -578,43 +422,9 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
     # CORRELATION: CALIOP - AVHRR HEIGHT
     # FIRST TOTAL FIGURES
 
-
-    if mode is 'EMISSFILT':
-        okcaliop = numpy.logical_and(cal_data_ok,
-                                        numpy.logical_and(numpy.greater(avhrr_ctth_cal_ok[::],0),emissfilt_calipso_ok))
-        #print "-----------------------------------------"
-        #print "STATISTICS CLOUD TOP HEIGHT: CALIOP - AVHRR - Emissivity filtered limit= ", EMISS_LIMIT
-    elif mode is 'ICE_COVER_SEA':
-        okcaliop = numpy.logical_and(cal_data_ok,
-                                        numpy.logical_and(numpy.greater(avhrr_ctth_cal_ok[::],0),cal_subset))
-        #print "------------------------------------"
-        #print "STATISTICS CLOUD TOP HEIGHT: CALIOP - AVHRR - Exclusively over ocean ice:  "
-    elif mode is 'ICE_FREE_SEA':
-        okcaliop = numpy.logical_and(cal_data_ok,
-                                        numpy.logical_and(numpy.greater(avhrr_ctth_cal_ok[::],0),cal_subset))
-        #print "------------------------------------"
-        #print "STATISTICS CLOUD TOP HEIGHT: CALIOP - AVHRR - Exclusively over ice-free ocean:  "
-    elif mode is 'SNOW_COVER_LAND':
-        okcaliop = numpy.logical_and(cal_data_ok,
-                                        numpy.logical_and(numpy.greater(avhrr_ctth_cal_ok[::],0),cal_subset))
-        #print "------------------------------------"
-        #print "STATISTICS CLOUD TOP HEIGHT: CALIOP - AVHRR - Exclusively over snow-covered land:  "
-    elif mode is 'SNOW_FREE_LAND':
-        okcaliop = numpy.logical_and(cal_data_ok,
-                                        numpy.logical_and(numpy.greater(avhrr_ctth_cal_ok[::],0),cal_subset))
-        #print "------------------------------------"
-        #print "STATISTICS CLOUD TOP HEIGHT: CALIOP - AVHRR - Exclusively over snow-free land:  "
-    elif mode is 'COASTAL_ZONE':
-        okcaliop = numpy.logical_and(cal_data_ok,
-                                        numpy.logical_and(numpy.greater(avhrr_ctth_cal_ok[::],0),cal_subset))
-        #print "------------------------------------"
-        #print "STATISTICS CLOUD TOP HEIGHT: CALIOP - AVHRR - Exclusively over coastal zone:  "
-    else:
-        okcaliop = numpy.logical_and(cal_data_ok,
-                                        numpy.greater(avhrr_ctth_cal_ok[::],0))
-        #print "-----------------------------------------"
-        #print "STATISTICS CLOUD TOP HEIGHT: CALIOP - AVHRR"
-
+    okcaliop = numpy.logical_and(cal_data_ok,
+                                    numpy.logical_and(numpy.greater(avhrr_ctth_cal_ok[::],0),cal_subset))
+    
     #print "ALL CLOUDS:"
     avhrr_height_work = numpy.repeat(avhrr_ctth_cal_ok[::],okcaliop)
     caliop_max_height_work = numpy.repeat(caliop_max_height[::],okcaliop)
