@@ -9,13 +9,16 @@
 #         changed start_sec1970 and end_sec1970 to rank0 array 
 #         by setting start_sec1970[0] and end_sec1970[0]
 
-
+import pdb
 from pps_basic_configure import *
 from pps_error_messages import * #@UnusedWildImport
 
-from calipso import * #@UnusedWildImport
-from config import AREA, SUB_DIR, DATA_DIR, sec_timeThr, CLOUDSAT_TYPE 
+#from calipso import * #@UnusedWildImport
+from config import AREA, SUB_DIR, DATA_DIR, sec_timeThr, RESOLUTION, \
+    NODATA, NLINES, SWATHWD, MAIN_DIR
 from common import MatchupError, elements_within_range
+from calipso import DataObject, ppsAvhrrObject, define_pcs, writeCoverage,\
+    createAvhrrTime, avhrr_track_from_matched
 
 COVERAGE_DIR = "%s/%skm/%s"%(SUB_DIR,RESOLUTION,AREA)
  
@@ -85,8 +88,7 @@ def duplicate_names(cloudsatObj):
 
 # ----------------------------------------
 def readCloudsatAvhrrMatchObj(filename):
-    import _pyhl
-    import h5py
+    import h5py #@UnresolvedImport
     
     retv = CloudsatAvhrrTrackObject()
     
@@ -107,51 +109,28 @@ def readCloudsatAvhrrMatchObj(filename):
 
 
 # ----------------------------------------
-def writeCloudsatAvhrrMatchObj(filename,ca_obj,compress_lvl):
-    import _pyhl
-    status = -1
-
-    typedict = {'float64': 'double', 'float32': 'float', 'int32': 'int', 'int16': 'short','uint8': 'uchar'}
+def writeCloudsatAvhrrMatchObj(filename,ca_obj):
+    import h5py #@UnresolvedImport
     
-    a=_pyhl.nodelist()
+    h5file = h5py.File(filename, 'w')
+    h5file.create_dataset("diff_sec_1970", data = ca_obj.diff_sec_1970)
     
-    shapediff = ca_obj.diff_sec_1970.shape
-    dtypediff = typedict[ca_obj.diff_sec_1970.dtype.name]    
-    b=_pyhl.node(_pyhl.DATASET_ID,"/diff_sec_1970")
-    b.setArrayValue(1,shapediff,ca_obj.diff_sec_1970,dtypediff,-1)
-    a.addNode(b)
+    h5file.create_group('cloudsat')
+    for arname, value in ca_obj.calipso.all_arrays.items():
+        if value == None or value == []:
+            continue
+        else:
+            h5file.create_dataset(('cloudsat' + '/' + arname), data = value)
     
-    # Cloudsat
-    # ====
-    b=_pyhl.node(_pyhl.GROUP_ID,"/cloudsat")
-    a.addNode(b)
-    # arname = array name from ca_obj.cloudsat
-    for arnamecl, valuecl in ca_obj.cloudsat.all_arrays.items(): 
-        if valuecl != None:
-            if valuecl.ndim == 0:
-                valuecl = valuecl.ravel()                            
-            shapecl = valuecl.shape
-            dtypecl = typedict[valuecl.dtype.name]
-            b=_pyhl.node(_pyhl.DATASET_ID,"/cloudsat/%s" %arnamecl)  
-            b.setArrayValue(1,shapecl,valuecl,dtypecl,-1)
-            a.addNode(b)
-    
-    # AVHRR
-    # ====
-    b=_pyhl.node(_pyhl.GROUP_ID,"/avhrr")
-    a.addNode(b)
-    # arnameav = array name from ca_obj_avhrr
-    for arnameav,valueav in ca_obj.avhrr.all_arrays.items():
-        if valueav != None:
-            if valueav.ndim == 0:
-                valueav = valueav.ravel()
-            shapeav = valueav.shape
-            dtypeav = typedict[valueav.dtype.name]
-            b=_pyhl.node(_pyhl.DATASET_ID,"/avhrr/%s" %arnameav)  
-            b.setArrayValue(1,shapeav,valueav,dtypeav,-1)
-            a.addNode(b)
-
-    status = a.write(filename,compress_lvl)
+    h5file.create_group('avhrr')
+    for arname, value in ca_obj.avhrr.all_arrays.items():
+        if value == None or value == []:
+            continue
+        else:
+            print(arname)
+            h5file.create_dataset(('avhrr' + '/' + arname), data = value)
+    h5file.close()
+    status = 1
 
     return status
 
@@ -176,7 +155,7 @@ def select_cloudsat_inside_avhrr(cloudsatObj,cal,sec1970_start_end,sec_timeThr):
 
 # -----------------------------------------------------
 def get_cloudsat(filename):
-    import _pypps_filters
+#    import _pypps_filters
     #import numpy
     import time
 
@@ -185,11 +164,11 @@ def get_cloudsat(filename):
 
     if RESOLUTION == 1:
         lonCloudsat = cloudsat.longitude.ravel()
-        latCloudsat = cloudsat.latitude.ravel()
+#        latCloudsat = cloudsat.latitude.ravel()
         timeCloudsat = cloudsat.Profile_time.ravel()
     elif RESOLUTION == 5:
         lonCloudsat = cloudsat.longitude[:,1].ravel()
-        latCloudsat = cloudsat.latitude[:,1].ravel()
+#        latCloudsat = cloudsat.latitude[:,1].ravel()
         timeCloudsat = cloudsat.Profile_time[:,1].ravel()
     ndim = lonCloudsat.shape[0]
 
@@ -207,15 +186,13 @@ def get_cloudsat(filename):
     print "GEOPROF Start and end times: ",start_time,end_time
     cloudsat.sec1970 = timeCloudsat + start_sec1970
 
-   # --------------------------------------------------------------------
+    # --------------------------------------------------------------------
 
     return cloudsat
 
 # -----------------------------------------------------
 def read_cloudsat(filename):
-    import _pyhl
-    import numpy
-    import h5py
+    import h5py #@UnresolvedImport
 
     def get_data(dataset):
         type_name = dataset.value.dtype.names
@@ -251,15 +228,15 @@ def read_cloudsat(filename):
 # --------------------------------------------
 def get_cloudsat_avhrr_linpix(avhrrIn,avhrrname,lon,lat,clTime):
     import numpy
-
+    import os
     tmppcs="tmpproj"
     define_pcs(tmppcs, "Plate Caree, central meridian at 15E",
                ['proj=eqc','ellps=bessel', 'lon_0=15'])
     orbittime =  os.path.basename(avhrrname).split("_")[1:3]
     
     startline=0
-    Inside=0
-    HasEncounteredMatch=0
+#    Inside=0
+#    HasEncounteredMatch=0
     i=0    
     if not os.path.exists(COVERAGE_DIR):
         os.makedirs(COVERAGE_DIR)
@@ -267,7 +244,7 @@ def get_cloudsat_avhrr_linpix(avhrrIn,avhrrname,lon,lat,clTime):
         
         write_log("INFO","Calling get_cloudsat_avhrr_linpix: start-line = ",startline)
         tmpaid = "tmparea_%d"%i
-        endline = startline+NLINES
+        endline = startline + NLINES
         coverage_filename = "%s/coverage_avhrr_cloudsat_matchup_%s_%s_%s_%.5d_%.5d_%s.h5"%\
                             (COVERAGE_DIR,avhrrIn.satellite,orbittime[0],orbittime[1],
                              startline,endline,tmpaid)
@@ -277,7 +254,7 @@ def get_cloudsat_avhrr_linpix(avhrrIn,avhrrname,lon,lat,clTime):
                                                       SWATHWD,tmppcs,tmpaid,
                                                       coverage_filename)
         if ok:
-            HasEncounteredMatch=1
+#            HasEncounteredMatch=1
             write_log("INFO","There was a match...")
 
         # Do not like this one /Erik    
@@ -303,7 +280,7 @@ def get_cloudsat_avhrr_linpix_segment(avhrrIn,lon,lat,cltime,lines,swath_width,t
                                       tmpaid,covfilename):
     import numpy
     import _satproj
-    import area,pcs
+    import area
     import pps_gisdata
     
     ndim = lon.shape[0]
@@ -358,12 +335,12 @@ def get_cloudsat_avhrr_linpix_segment(avhrrIn,lon,lat,cltime,lines,swath_width,t
     #    cov,info = readCoverage(covfilename)
     # Do like this instead
     write_log("INFO","Create Coverage map...")
-    cov = _satproj.create_coverage(areaObj,lonarr,latarr,1)
+    cov = _satproj.create_coverage(areaObj,lonarr,latarr,1) #@UndefinedVariable
     pdb.set_trace()
     print covfilename
     writeCoverage(cov,covfilename,"satproj",AREA)
-    mapped_line = _satproj.project(cov.coverage,cov.rowidx,cov.colidx,linearr,NODATA)
-    mapped_pixel = _satproj.project(cov.coverage,cov.rowidx,cov.colidx,pixelarr,NODATA)
+    mapped_line = _satproj.project(cov.coverage,cov.rowidx,cov.colidx,linearr,NODATA) #@UndefinedVariable
+    mapped_pixel = _satproj.project(cov.coverage,cov.rowidx,cov.colidx,pixelarr,NODATA) #@UndefinedVariable
     
     pdb.set_trace()
     write_log("INFO","Go through cloudsat track:")
@@ -418,9 +395,9 @@ def match_cloudsat_avhrr(ctypefile,cloudsatObj,avhrrGeoObj,avhrrObj,ctype,ctth,s
     import numpy
     import time
     import string
-    import sys
-    import inspect
-    
+#    import sys
+#    import inspect
+    import os
     retv = CloudsatAvhrrTrackObject()
 
     if RESOLUTION ==1:
@@ -498,85 +475,8 @@ def match_cloudsat_avhrr(ctypefile,cloudsatObj,avhrrGeoObj,avhrrObj,ctype,ctth,s
     # Make the latitude and pps cloudtype on the cloudsat track:
     # line and pixel arrays have equal dimensions
     print "Generate all datatypes (lat,lon,cty,ctth,surft) on the cloudsat track!"
-    ctype_track = []
-    ctth_height_track = []
-    ctth_pressure_track = []
-    ctth_temperature_track = []
-    lon_avhrr_track = []
-    lat_avhrr_track = []
-    surft_track = []
-    bt11micron_track = []
-    bt12micron_track = []
-    satz_track = []
-    """
-    def scale_value(arrayObj, nodata, missingdata):
-        bad_indices = ((arrayObj.data == nodata) + (arrayObj.data == missingdata)).nonzero()
-        scaled = arrayObj.data * arrayObj.gain + arrayObj.intercept
-        scaled[bad_indices] = -9
-        
-        return scaled
-    
-    param_deps = {'bt11micron': {'array': avhrrObj.channels[3], 'nodata': None, 'missingdata': None},
-                  'bt12micron': avhrrObj.channels[4],}
-    
-    for param, arr in param_deps.items():
-        retv.avhrr.__setattr__(param, scale_value(arr)[cal_on_avhrr,cap_on_avhrr])
-    
-    retv.avhrr.latitude = avhrrGeoObj.latitude[cal_on_avhrr,cap_on_avhrr]
-    """
-    # maby skould take consideration of missing data also, as for satz.
-    for i in range(cal_on_avhrr.shape[0]):
-        lat_avhrr_track.append(avhrrGeoObj.latitude[cal_on_avhrr[i],cap_on_avhrr[i]])
-        lon_avhrr_track.append(avhrrGeoObj.longitude[cal_on_avhrr[i],cap_on_avhrr[i]])
-        ctype_track.append(ctype.cloudtype[cal_on_avhrr[i],cap_on_avhrr[i]])
-        surft_track.append(surft[cal_on_avhrr[i],cap_on_avhrr[i]])
-        
-        
-        if avhrrObj.channels[3].data[cal_on_avhrr[i],cap_on_avhrr[i]] == avhrrObj.nodata:
-            b11 = -9.
-        else:
-            b11 = avhrrObj.channels[3].data[cal_on_avhrr[i],cap_on_avhrr[i]] * avhrrObj.channels[3].gain + avhrrObj.channels[3].intercept
-        bt11micron_track.append(b11)
-        if avhrrObj.channels[4].data[cal_on_avhrr[i],cap_on_avhrr[i]] == avhrrObj.nodata:
-            b12 = -9.
-        else:
-            b12 = avhrrObj.channels[4].data[cal_on_avhrr[i],cap_on_avhrr[i]] * avhrrObj.channels[4].gain + avhrrObj.channels[4].intercept
-        bt12micron_track.append(b12)
-        if avhrrAngObj.satz.data[cal_on_avhrr[i],cap_on_avhrr[i]] == avhrrAngObj.satz.no_data or avhrrAngObj.satz.data[cal_on_avhrr[i],cap_on_avhrr[i]] == avhrrAngObj.satz.missing_data:
-            ang = -9
-        else:
-            ang = avhrrAngObj.satz.data[cal_on_avhrr[i],cap_on_avhrr[i]] * avhrrAngObj.satz.gain + avhrrAngObj.satz.intercept
-        satz_track.append(ang)
-        if ctth == None:
-            continue
-        if ctth.height[cal_on_avhrr[i],cap_on_avhrr[i]] == ctth.h_nodata:
-            hh = -9.
-        else:
-            hh = ctth.height[cal_on_avhrr[i],cap_on_avhrr[i]] * ctth.h_gain + ctth.h_intercept
-        ctth_height_track.append(hh)
-        if ctth.temperature[cal_on_avhrr[i],cap_on_avhrr[i]] == ctth.t_nodata:
-            tt = -9.
-        else:
-            tt = ctth.temperature[cal_on_avhrr[i],cap_on_avhrr[i]] * ctth.t_gain + \
-                 ctth.t_intercept
-        ctth_temperature_track.append(tt)
-        if ctth.pressure[cal_on_avhrr[i],cap_on_avhrr[i]] == ctth.p_nodata:
-            pp = -9.
-        else:
-            pp = ctth.pressure[cal_on_avhrr[i],cap_on_avhrr[i]] * ctth.p_gain + ctth.p_intercept
-        ctth_pressure_track.append(pp)
-
-    retv.avhrr.latitude = numpy.array(lat_avhrr_track)
-    retv.avhrr.longitude = numpy.array(lon_avhrr_track)
-    retv.avhrr.cloudtype = numpy.array(ctype_track)
-    retv.avhrr.surftemp = numpy.array(surft_track)
-    retv.avhrr.bt11micron = numpy.array(bt11micron_track)
-    retv.avhrr.bt12micron = numpy.array(bt12micron_track)
-    retv.avhrr.satz = numpy.array(satz_track)
-    if ctth:
-        retv.avhrr.ctth_height = numpy.array(ctth_height_track)
-        retv.avhrr.ctth_pressure = numpy.array(ctth_pressure_track)
-        retv.avhrr.ctth_temperature = numpy.array(ctth_temperature_track)
+    retv = avhrr_track_from_matched(retv, avhrrGeoObj, avhrrObj, avhrrAngObj, \
+                                    surft, ctth, ctype, cal_on_avhrr, cap_on_avhrr)
 
     print "AVHRR-PPS Cloud Type,latitude: shapes = ",\
           retv.avhrr.cloudtype.shape,retv.avhrr.latitude.shape
@@ -609,7 +509,7 @@ def match_cloudsat_avhrr(ctypefile,cloudsatObj,avhrrGeoObj,avhrrObj,ctype,ctth,s
 #------------------------------------------------------------------------------------------
 
 def reshapeCloudsat(cloudsatfiles, avhrr, avhrrfilename):
-    import time
+#    import time
     import numpy
     import sys
     import inspect
@@ -618,7 +518,7 @@ def reshapeCloudsat(cloudsatfiles, avhrr, avhrrfilename):
     avhrr_end = avhrr.sec1970_end
     avhrr_start = avhrr.sec1970_start
     
-    dsec = time.mktime((1993,1,1,0,0,0,0,0,0)) - time.timezone
+#    dsec = time.mktime((1993,1,1,0,0,0,0,0,0)) - time.timezone
     
     startCloudsat = get_cloudsat(cloudsatfiles[0])
     startCloudsat.Profile_time = numpy.add(startCloudsat.Profile_time,startCloudsat.TAI_start)
@@ -676,12 +576,12 @@ def reshapeCloudsat(cloudsatfiles, avhrr, avhrrfilename):
 # -----------------------------------------------------
 if __name__ == "__main__":
     # Testing:
-    import string
-    import epshdf
-    import pps_io
+#    import string
+#    import epshdf
+#    import pps_io
     import numpy
     
-    CLOUDSAT_DIR = "%s/%s"%(MAIN_DIR,SUB_DIR)
+    CLOUDSAT_DIR = "%s/%s"%(MAIN_DIR, SUB_DIR)
 
     cloudsatfile = "%s/2007151082929_05796_CS_2B-GEOPROF_GRANULE_P_R04_E02.h5"%(CLOUDSAT_DIR)
 
