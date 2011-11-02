@@ -96,29 +96,54 @@ EMISS_MIN_HEIGHT = 2000.0
 EMISS_LIMIT = 0.2
 
 #: Processing modes which can be handled
-ALLOWED_MODES = ['BASIC',
-             'EMISSFILT',        # Filter out cases with the thinnest topmost CALIPSO layers
-             'ICE_COVER_SEA',    # Restrict to ice cover over sea using NSIDC and IGBP data
-             'ICE_FREE_SEA',     # Restrict to ice-free sea using NSIDC and IGBP data
-             'SNOW_COVER_LAND',  # Restrict to snow over land using NSIDC and IGBP data
-             'SNOW_FREE_LAND',   # Restrict to snow-free land using NSIDC and IGBP data
-             'COASTAL_ZONE']      # Restrict to coastal regions using NSIDC data (mixed microwave region)
+ALLOWED_MODES = ['BASIC', 
+                 'EMISSFILT',       # Filter out cases with the thinnest topmost CALIPSO layers
+                 'EMISSFILT',
+                 'EMISSFILT',
+                 'EMISSFILT',    
+                 'ICE_COVER_SEA',   # Restrict to ice cover over sea using NSIDC and IGBP data
+                 'ICE_COVER_SEA',    
+                 'ICE_COVER_SEA',    
+                 'ICE_COVER_SEA',    
+                 'ICE_FREE_SEA',    # Restrict to ice-free sea using NSIDC and IGBP data
+                 'ICE_FREE_SEA',     
+                 'ICE_FREE_SEA',     
+                 'ICE_FREE_SEA',    
+                 'ICE_FREE_SEA',  
+                 'SNOW_COVER_LAND', # Restrict to snow over land using NSIDC and IGBP data
+                 'SNOW_COVER_LAND',
+                 'SNOW_COVER_LAND', 
+                 'SNOW_COVER_LAND',
+                 'SNOW_COVER_LAND', 
+                 'SNOW_FREE_LAND',  # Restrict to snow-free land using NSIDC and IGBP data
+                 'SNOW_FREE_LAND',
+                 'SNOW_FREE_LAND',
+                 'SNOW_FREE_LAND',
+                 'SNOW_FREE_LAND',
+                 'COASTAL_ZONE',    # Restrict to coastal regions using NSIDC data (mixed microwave region)
+                 'COASTAL_ZONE',
+                 'COASTAL_ZONE',
+                 'COASTAL_ZONE',
+                 'TROPIC_ZONE',
+                 'TROPIC_ZONE',
+                 'TROPIC_ZONE',
+                 'TROPIC_ZONE']      # Restrict to tropical regions between +-10 -> +-45
+            
              
 #: Threshold for optical thickness. If optical thickness is below this value it will be filtered out.
-MIN_OPTICAL_DEPTH = 0.5
+MIN_OPTICAL_DEPTH = 0
 
 if RESOLUTION == 1:
-    DSEC_PER_AVHRR_SCALINE = 0.1667 # Full scan period, i.e. the time interval between two consecutive lines (sec)
+    DSEC_PER_AVHRR_SCALINE = 1.0/6. # Full scan period, i.e. the time interval between two consecutive lines (sec)
     SWATHWD=2048
     AREA = "arctic_super_5010"
 
 
 elif RESOLUTION == 5:
-    DSEC_PER_AVHRR_SCALINE = 1.0/6*4 # A "work for the time being" solution.
+    DSEC_PER_AVHRR_SCALINE = 1.0/6 * 4 # A "work for the time being" solution.
     SWATHWD=409
     AREA = "cea5km_test"#"arctic_super_1002_5km"
     ALLOWED_MODES.append('OPTICAL_DEPTH')      # Filter out cases with the thinnest topmost CALIPSO layers. Define MIN_OPTICAL_DEPTH above
-#    ALLOWED_MODES.append('OPTICAL_DEPTH-%.1f' %MIN_OPTICAL_DEPTH)
 else:
     raise ValueError("RESOLUTION == %s not supported" % str(RESOLUTION))
 

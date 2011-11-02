@@ -26,6 +26,8 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
         cal_subset = numpy.logical_and(numpy.equal(caObj.calipso.nsidc,0),numpy.not_equal(caObj.calipso.igbp,17))
     elif mode == 'COASTAL_ZONE':
         cal_subset = numpy.equal(caObj.calipso.nsidc,255)
+    elif mode == 'TROPIC_ZONE':
+        cal_subset = numpy.logical_and((numpy.abs(caObj.calipso.latitude) >= 10), (numpy.abs(caObj.calipso.latitude) <= 45))
     else:
         cal_subset = numpy.bool_(numpy.ones(caObj.calipso.igbp.shape))
     no_qflag = caObj.avhrr.cloudtype_qflag == 0
