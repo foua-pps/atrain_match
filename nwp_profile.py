@@ -34,6 +34,32 @@ def profile(field, y_coords, selection):
     return fig
 
 
+def write_profile(filename, fields, selection, y_coords=None, lonlat=None):
+    """
+    Write profiles *fields*, y coordinates *y_coords*, and (lon, lat) to HDF5
+    file *filename*. *selection* must be a 3-tuple, used to select (levels,
+    rows, cols) for writing.
+    
+    """
+    from pps_nwp.fields import from_array
+    for field in fields:
+        a = field[selection]
+        origin = dict(field=field.origin, n_selected=a.shape[1])
+        from_array(a, field, origin).write(filename, field.cfName)
+    
+    if y_coords is not None:
+        y = y_coords[selection]
+        origin = dict(field=y_coords.origin, n_selected=a.shape[1])
+        from_array(y, y_coords, origin).write(filename, 'y_coords')
+    
+    if lonlat is not None:
+        lon, lat = lonlat
+        import h5py
+        with h5py.File(filename, 'a') as f:
+            f.create_dataset('lon', data=lon[selection[1:]], compression=True)
+            f.create_dataset('lat', data=lat[selection[1:]], compression=True)
+
+
 def pressure_to_height(pressure):
     """
     Convert pressure field to height according to the following relationship,
@@ -60,18 +86,8 @@ def pressure_to_height(pressure):
     return from_array(h_array, pressure, origin, 'height_above_sea', 'm')
 
 
-if __name__ == '__main__':
-    from optparse import OptionParser
-    parser = OptionParser("Usage: %prog [options] GRIBFILE lons.txt lats.txt")
-    parser.add_option('-p', '--pressure', action='store_true',
-                      help="Plot pressure on y-axis (default geopotential height)")
-    parser.add_option('-l', '--level', type='int', help="top NWP level")
-    parser.add_option('-q', '--humidity', action='store_true',
-                      help="Plot specific humidity, in addition to temperature")
-    (options, arguments) = parser.parse_args()
-    
-    grib_name, lon_name, lat_name = arguments
-    
+def generate_profile(grib_name, lon_name, lat_name, pressure=False,
+                     level=None, humidity=False, out_filename=None):
     from numpy import loadtxt
     lons = loadtxt(lon_name).reshape((-1, 1)) # pps_nwp requires 2-d lon/lat
     lats = loadtxt(lat_name).reshape((-1, 1))
@@ -80,19 +96,54 @@ if __name__ == '__main__':
     gribfile = GRIBFile(grib_name, (lons, lats))
     
     t = gribfile.get_t_vertical()
-    if options.pressure:
+    if t.cfName == 'unknown':
+        t.cfName = 'air_temperature'
+    if humidity:
+        q = gribfile.get_q_vertical()
+        if q.cfName == 'unknown':
+            q.cfName = 'air_specific_humidity'
+    
+    if pressure:
         y_coords = gribfile.get_p_vertical()
     else:
         y_coords = gribfile.get_gh_vertical()
     
-    selection = (slice(options.level), slice(None), 0)
+    selection = (slice(level), slice(None), 0)
+    
+    if out_filename:
+        # Just write to file
+        fields = [t]
+        if humidity:
+            fields.append(q)
+        write_profile(out_filename, fields, selection, y_coords, (lons, lats))
+        return
+    
     fig = profile(t, y_coords, selection)
     fig.suptitle("Temperature profile from %r" % grib_name)
     
-    if options.humidity:
-        q = gribfile.get_q_vertical()
+    if humidity:
         fig_q = profile(q, y_coords, selection)
         fig_q.suptitle("Specific humidity profile from %r" % grib_name)
     
     from pylab import show
     show()
+
+
+if __name__ == '__main__':
+    from optparse import OptionParser
+    parser = OptionParser("Usage: %prog [options] GRIBFILE lons.txt lats.txt")
+    parser.add_option('-p', '--pressure', action='store_true',
+                      help="Plot pressure on y-axis (default geopotential height)")
+    parser.add_option('-l', '--level', type='int', help="top NWP level")
+    parser.add_option('-q', '--humidity', action='store_true',
+                      help="Plot specific humidity, in addition to temperature")
+    parser.add_option('-o', '--out', type='string', metavar='FILE',
+                      help="Write profile(s) to FILE")
+    (opts, args) = parser.parse_args()
+    
+    try:
+        grib_name, lon_name, lat_name = args
+    except ValueError:
+        parser.error("Wrong number of input arguments")
+    generate_profile(grib_name, lon_name, lat_name, opts.pressure, opts.level,
+                     opts.humidity, opts.out)
