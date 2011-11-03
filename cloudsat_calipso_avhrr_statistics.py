@@ -4,7 +4,7 @@ import config
 def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
                         cal_vert_feature, avhrr_ctth_csat_ok, data_ok,
                         cal_data_ok, avhrr_ctth_cal_ok, caliop_max_height,
-                        process_calipso_ok, dnt_flag='all'):
+                        process_calipso_ok, dnt_flag = None):
     import sys
     import numpy
 #    import numpy.oldnumpy as Numeric
@@ -38,15 +38,22 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
     if (no_qflag.sum() + night_flag.sum() + twilight_flag.sum() + day_flag.sum()) != caObj.calipso.longitude.size:
         print('something wrong with quality flags. It does not sum up. See beginning of statistic file')
         sys.exit()
-    if dnt_flag == 'day':
-        cal_subset = numpy.logical_and(cal_subset, day_flag)
-    elif dnt_flag == 'night':
-        cal_subset = numpy.logical_and(cal_subset, night_flag)
-    elif dnt_flag == 'twilight':
-        cal_subset = numpy.logical_and(cal_subset, twilight_flag)
-    elif dnt_flag == 'all':
+    if dnt_flag == None:
+        print('dnt_flag = %s' %'NO DNT FLAG -> ALL PIXELS')
         cal_subset = numpy.logical_and(cal_subset, all_dnt_flag)
-#    pdb.set_trace()
+    elif dnt_flag.upper() == 'DAY':
+        print('dnt_flag = %s' %dnt_flag.upper())
+        cal_subset = numpy.logical_and(cal_subset, day_flag)
+    elif dnt_flag.upper() == 'NIGHT':
+        print('dnt_flag = %s' %dnt_flag.upper())
+        cal_subset = numpy.logical_and(cal_subset, night_flag)
+    elif dnt_flag.upper() == 'TWILIGHT':
+        print('dnt_flag = %s' %dnt_flag.upper())
+        cal_subset = numpy.logical_and(cal_subset, twilight_flag)
+    else:
+        print('dnt_flag = %s' %dnt_flag.upper())
+        print('statistic calculation is not prepared for this dnt_flag')
+        sys.exit()
         
     # CLOUD MASK EVALUATION
     #=======================

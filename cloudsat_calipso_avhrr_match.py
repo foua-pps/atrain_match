@@ -425,16 +425,27 @@ def get_matchups(cross, reprocess=False):
         return {'calipso': caObj, 'cloudsat': clObj, 'basename': basename}
 
 
-def run(cross, process_mode, reprocess=False):
+def run(cross, process_mode_dnt, reprocess=False):
     """
     The main work horse.
     
     """
     
     write_log('INFO', "Case: %s" % str(cross))
-    write_log('INFO', "Process mode: %s" % process_mode)
+    write_log('INFO', "Process mode: %s" % process_mode_dnt)
     cloudsat_type = config.CLOUDSAT_TYPE
-    
+    # split process_mode_dnt into two parts. One with process_mode and one dnt_flag
+    mode_dnt = process_mode_dnt.split('_')
+    if len(mode_dnt) == 1:
+        process_mode = process_mode_dnt
+        dnt_flag = None
+    elif mode_dnt[-1] in ['DAY', 'NIGHT', 'TWILIGHT']:
+        process_mode = '_'.join(mode_dnt[0:-1])
+        dnt_flag = mode_dnt[-1]
+    else:
+        process_mode = process_mode_dnt
+        dnt_flag = None
+
     sno_satname = cross.satellite1.lower()
     if sno_satname in ['calipso', 'cloudsat']:
         sno_satname = cross.satellite2.lower()
@@ -746,7 +757,7 @@ def run(cross, process_mode, reprocess=False):
     #================================================================================================
     #Calculate Statistics
     if cloudsat_type=='GEOPROF':
-        if process_mode is 'EMISSFILT':
+        if process_mode == 'EMISSFILT':
             process_calipso_ok = emissfilt_calipso_ok
         else:
             process_calipso_ok = 0
@@ -754,4 +765,4 @@ def run(cross, process_mode, reprocess=False):
         CalculateStatistics(process_mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
                             cal_vert_feature, avhrr_ctth_csat_ok, data_ok,
                             cal_data_ok, avhrr_ctth_cal_ok, caliop_max_height,
-                            process_calipso_ok)
+                            process_calipso_ok, dnt_flag)
