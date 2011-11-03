@@ -131,7 +131,7 @@ ALLOWED_MODES = ['BASIC',
             
              
 #: Threshold for optical thickness. If optical thickness is below this value it will be filtered out.
-MIN_OPTICAL_DEPTH = 0
+MIN_OPTICAL_DEPTH = 0.5
 
 if RESOLUTION == 1:
     DSEC_PER_AVHRR_SCALINE = 1.0/6. # Full scan period, i.e. the time interval between two consecutive lines (sec)
@@ -144,6 +144,9 @@ elif RESOLUTION == 5:
     SWATHWD=409
     AREA = "cea5km_test"#"arctic_super_1002_5km"
     ALLOWED_MODES.append('OPTICAL_DEPTH')      # Filter out cases with the thinnest topmost CALIPSO layers. Define MIN_OPTICAL_DEPTH above
+    ALLOWED_MODES.append('OPTICAL_DEPTH_DAY')
+    ALLOWED_MODES.append('OPTICAL_DEPTH_NIGHT')
+    ALLOWED_MODES.append('OPTICAL_DEPTH_TWILIGHT')
 else:
     raise ValueError("RESOLUTION == %s not supported" % str(RESOLUTION))
 
@@ -278,13 +281,15 @@ MAIN_DATADIR = MAIN_DIR
 COMPILED_STATS_FILENAME = '%s/Results/compiled_stats' %MAIN_DATADIR
 
 #: Surfaces for which statistics should be summarized
-SURFACES = ["ICE_COVER_SEA","ICE_FREE_SEA","SNOW_COVER_LAND","SNOW_FREE_LAND","COASTAL_ZONE"]
+SURFACES = ["ICE_COVER_SEA", "ICE_FREE_SEA", "SNOW_COVER_LAND", "SNOW_FREE_LAND", \
+            "COASTAL_ZONE", "TROPIC_ZONE"]
 
 #: Filter types for which statistics should be summerized
 FILTERTYPE = ['EMISSFILT']
 if RESOLUTION == 5:
     FILTERTYPE.append('OPTICAL_DEPTH')
-#    FILTERTYPE.append('OPTICAL_DEPTH-%.1f' %MIN_OPTICAL_DEPTH)
+#: DAY NIGHT TWILIGHT FLAG that will be used
+DNT_FLAG = ['ALL', 'DAY', 'NIGHT', 'TWILIGHT']
     
 # The following are used in the old-style script interface
 SATELLITE = ['noaa18', 'noaa19']

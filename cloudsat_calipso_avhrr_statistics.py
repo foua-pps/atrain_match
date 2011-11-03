@@ -13,7 +13,7 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
     if mode == "EMISSFILT":
         emissfilt_calipso_ok = process_calipso_ok 
         cal_subset = emissfilt_calipso_ok
-    if mode == 'ICE_COVER_SEA':
+    elif mode == 'ICE_COVER_SEA':
 ##         cal_subset = numpy.logical_and(numpy.logical_and(numpy.less(caObj.calipso.nsidc,100),numpy.greater(caObj.calipso.nsidc,10)),numpy.equal(caObj.calipso.igbp,17))
         # Unfortunately, the above formulation used for ORR-B excluded the case when ice-cover was exactly 100 %!!! Very embarrassing!/KG
         cal_subset = numpy.logical_and(numpy.logical_and(numpy.less_equal(caObj.calipso.nsidc,100),numpy.greater(caObj.calipso.nsidc,10)),numpy.equal(caObj.calipso.igbp,17))
@@ -54,7 +54,6 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
         print('dnt_flag = %s' %dnt_flag.upper())
         print('statistic calculation is not prepared for this dnt_flag')
         sys.exit()
-        
     # CLOUD MASK EVALUATION
     #=======================
     

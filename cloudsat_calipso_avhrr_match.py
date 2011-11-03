@@ -557,9 +557,9 @@ def run(cross, process_mode_dnt, reprocess=False):
     # If everything is OK, now create filename for statistics output file and open it for writing.
     # Notice that more than one file
     # (but maximum 2) can be created for one particular noaa orbit.
-    resultpath = "%s/%s/%ikm/%s/%s/%s/%s" % (config.RESULT_DIR, base_sat,int(config.RESOLUTION), base_year, base_month, config.AREA, process_mode)
+    resultpath = "%s/%s/%ikm/%s/%s/%s/%s" % (config.RESULT_DIR, base_sat,int(config.RESOLUTION), base_year, base_month, config.AREA, process_mode_dnt)
     if process_mode == 'OPTICAL_DEPTH':
-        resultpath = "%s/%s/%ikm/%s/%s/%s/%s-%.1f" % (config.RESULT_DIR, base_sat,int(config.RESOLUTION), base_year, base_month,config.AREA, process_mode, config.MIN_OPTICAL_DEPTH)        
+        resultpath = "%s/%s/%ikm/%s/%s/%s/%s-%.1f" % (config.RESULT_DIR, base_sat,int(config.RESOLUTION), base_year, base_month,config.AREA, process_mode_dnt, config.MIN_OPTICAL_DEPTH)        
 
     if not os.path.exists(resultpath):
         os.makedirs(resultpath)
@@ -687,7 +687,6 @@ def run(cross, process_mode_dnt, reprocess=False):
         caliop_min_height_ok = numpy.greater(caliop_max_height, config.EMISS_MIN_HEIGHT)
         emissfilt_calipso_ok = numpy.logical_or(numpy.logical_and(numpy.greater(Ec, config.EMISS_LIMIT),caliop_min_height_ok),numpy.logical_or(numpy.equal(caliop_max_height,-9.),numpy.less_equal(caliop_max_height, config.EMISS_MIN_HEIGHT)))
     ##########################################################################################################################################
-    #pdb.set_trace()
     ### 1 KM DATA CWC-RVOD ###                       
     elif config.RESOLUTION == 1 and cloudsat_type == 'CWC-RVOD':
         elevationcwc = numpy.where(numpy.less_equal(clsatObj.cloudsatcwc.elevation,0),
@@ -703,9 +702,9 @@ def run(cross, process_mode_dnt, reprocess=False):
         data_okcwc = numpy.ones(clsatObj.cloudsat5kmcwc.elevation.shape,'b')   
     #==============================================================================================
     #Draw plot
-    if process_mode in ['No Plot']:
+    if process_mode_dnt in ['No Plot']:
 #    pdb.set_trace()
-#    if process_mode in config.PLOT_MODES:
+#    if process_mode_dnt in config.PLOT_MODES:
         plotpath = "%s/%s/%ikm/%s/%s/%s" %(config.PLOT_DIR, base_sat, config.RESOLUTION, base_year, base_month, config.AREA)
         if not os.path.exists(plotpath):
             os.makedirs(plotpath)
