@@ -15,18 +15,16 @@ if RESOLUTION == 1:
     AVHRR_SAT = 'Metop02'
 elif RESOLUTION == 5:
     AVHRR_SAT = 'NOAA18'
- 
 #: Base directory for ``atrain_match`` data
 SAT_DIR = os.environ.get('SAT_DIR',
-                         "/nobackup/smhid9/sm_erjoh/data")#/data/proj/saf/ejohansson/Projects/atrain_match")
-
-
+                         "/data/proj/safworks/jakob/data/atrain_validation")
+ 
 #: Don't know how this directory is used...
 MAIN_RUNDIR = os.getcwd()
-
+ 
 #: Base directory for validation results
-MAIN_DIR = os.environ.get('VALIDATION_RESULTS_DIR', "/nobackup/smhid9/sm_erjoh/atrain_match")
-
+MAIN_DIR = os.environ.get('VALIDATION_RESULTS_DIR', "%s/results" % SAT_DIR)
+ 
 #: Base directory where matchup files are stored. (TODO: Are these still used?)
 SUB_DIR = "%s/Matchups" %MAIN_DIR
 
@@ -42,12 +40,14 @@ PLOT_DIR = "%s/Plot" %MAIN_DIR
 #: Base directory for statistics results
 RESULT_DIR = "%s/Results" %MAIN_DIR
 
+_satellite_data_dir = '/data/arkiv/proj/safworks/data'
 
-_satellite_data_dir = '/nobackup/smhid9/sm_erjoh/data'
 #: Base dir for PPS data
+PPS_DATA_DIR = os.environ.get('PPS_DATA_DIR', _satellite_data_dir + '/pps')
+
 # PPS_DATA_DIR = os.environ.get('PPS_DATA_DIR', _satellite_data_dir + '/pps')
 PPS_DATA_DIR = "%s/%s" % (SAT_DIR, AVHRR_SAT)
-
+ 
 #: Base dir for Cloudsat data
 CLOUDSAT_DIR = os.environ.get('CLOUDSAT_DIR', _satellite_data_dir + '/cloudsat')
 
