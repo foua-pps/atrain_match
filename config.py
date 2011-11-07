@@ -71,8 +71,9 @@ sec_timeThr = 60*20
 #: this data set.
 CLOUDSAT_CLOUDY_THR = 30.0 
 
-#: TODO: This should be taken care of in plot function. See plot function for 1 km
-MAXHEIGHT = 25000.0
+#: MAXHEIGHT is used in the plotting. 
+#: If None the maxheight is calculated from the highest cloud
+MAXHEIGHT = None
 
 #: Range of allowed (AVHRR) satellite azimuth angles, in degrees
 AZIMUTH_RANGE = (0., 360.)
@@ -123,11 +124,31 @@ ALLOWED_MODES = ['BASIC',
                  'COASTAL_ZONE_DAY',
                  'COASTAL_ZONE_NIGHT',
                  'COASTAL_ZONE_TWILIGHT',
-                 'TROPIC_ZONE',
+                 'TROPIC_ZONE',     # Restrict to tropical regions lat <= +- 10
                  'TROPIC_ZONE_DAY',
                  'TROPIC_ZONE_NIGHT',
-                 'TROPIC_ZONE_TWILIGHT']      # Restrict to tropical regions between +-10 -> +-45
-            
+                 'TROPIC_ZONE_TWILIGHT',
+                 'SUB_TROPIC_ZONE',     # Restrict to sub tropical regions +-10 < lat <= +-45
+                 'SUB_TROPIC_ZONE_DAY', # Restrict to snow-free land using NSIDC and IGBP data
+                 'SUB_TROPIC_ZONE_NIGHT',
+                 'SUB_TROPIC_ZONE_TWILIGHT',
+                 'SUB_TROPIC_ZONE_SNOW_FREE_LAND',      # Restrict to tropical regions  +-10 < lat <= +-45
+                 'SUB_TROPIC_ZONE_SNOW_FREE_LAND_DAY',  # Restrict to snow-free land using NSIDC and IGBP data
+                 'SUB_TROPIC_ZONE_SNOW_FREE_LAND_NIGHT',
+                 'SUB_TROPIC_ZONE_SNOW_FREE_LAND_TWILIGHT',
+                 'SUB_TROPIC_ZONE_ICE_FREE_SEA',        # Restrict to tropical regions  +-10 < lat <= +-45
+                 'SUB_TROPIC_ZONE_ICE_FREE_SEA_DAY',    # Restrict to snow-free land using NSIDC and IGBP data
+                 'SUB_TROPIC_ZONE_ICE_FREE_SEA_NIGHT',
+                 'SUB_TROPIC_ZONE_ICE_FREE_SEA_TWILIGHT',
+                 'HIGH-LATITUDES',     # Restrict to tropical regions  +-10 < lat <= +-45
+                 'HIGH-LATITUDES_DAY',
+                 'HIGH-LATITUDES_NIGHT',
+                 'HIGH-LATITUDES_TWILIGHT',
+                 'POLAR',     # Restrict to tropical regions  +-10 < lat <= +-45
+                 'POLAR_DAY',
+                 'POLAR_NIGHT',
+                 'POLAR_TWILIGHT']
+
              
 #: Threshold for optical thickness. If optical thickness is below this value it will be filtered out.
 MIN_OPTICAL_DEPTH = 0.5

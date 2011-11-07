@@ -27,7 +27,21 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
     elif mode == 'COASTAL_ZONE':
         cal_subset = numpy.equal(caObj.calipso.nsidc,255)
     elif mode == 'TROPIC_ZONE':
-        cal_subset = numpy.logical_and((numpy.abs(caObj.calipso.latitude) >= 10), (numpy.abs(caObj.calipso.latitude) <= 45))
+        cal_subset = numpy.abs(caObj.calipso.latitude) <= 10
+    elif mode == 'SUB_TROPIC_ZONE':
+        cal_subset = numpy.logical_and((numpy.abs(caObj.calipso.latitude) > 10), (numpy.abs(caObj.calipso.latitude) <= 45))
+    elif mode == 'SUB_TROPIC_ZONE_SNOW_FREE_LAND':
+        cal_subset_lat = numpy.logical_and((numpy.abs(caObj.calipso.latitude) > 10), (numpy.abs(caObj.calipso.latitude) <= 45))
+        cal_subset_area = numpy.logical_and(numpy.equal(caObj.calipso.nsidc,0),numpy.not_equal(caObj.calipso.igbp,17))
+        cal_subset = numpy.logical_and(cal_subset_lat, cal_subset_area)
+    elif mode == 'SUB_TROPIC_ZONE_ICE_FREE_SEA':
+        cal_subset_lat = numpy.logical_and((numpy.abs(caObj.calipso.latitude) > 10), (numpy.abs(caObj.calipso.latitude) <= 45))
+        cal_subset_area = numpy.logical_and(numpy.equal(caObj.calipso.nsidc,0),numpy.equal(caObj.calipso.igbp,17))
+        cal_subset = numpy.logical_and(cal_subset_lat, cal_subset_area)
+    elif mode == 'HIGH-LATITUDES':
+        cal_subset = numpy.logical_and((numpy.abs(caObj.calipso.latitude) > 45), (numpy.abs(caObj.calipso.latitude) <= 75))
+    elif mode == 'POLAR':
+        cal_subset = numpy.abs(caObj.calipso.latitude) > 75
     else:
         cal_subset = numpy.bool_(numpy.ones(caObj.calipso.igbp.shape))
     no_qflag = caObj.avhrr.cloudtype_qflag == 0
@@ -175,20 +189,12 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
     
     # CORRELATION CLOUD MASK: CALIOP - AVHRR
 
-    if mode in ['EMISSFILT', 'ICE_COVER_SEA', 'ICE_FREE_SEA', 'SNOW_COVER_LAND', 'SNOW_FREE_LAND', 'COASTAL_ZONE']:
-        calipso_clear = numpy.logical_and(numpy.less(caObj.calipso.cloud_fraction,0.34),cal_subset)
-        calipso_cloudy = numpy.logical_and(numpy.greater(caObj.calipso.cloud_fraction,0.66),cal_subset)
-        pps_clear = numpy.logical_and(numpy.less_equal(caObj.avhrr.cloudtype,4),cal_subset)
-        pps_cloudy = numpy.logical_and(numpy.greater(caObj.avhrr.cloudtype,4),cal_subset)
-        #print "------------------------------------"
-        #print "STATISTICS CLOUD MASK: CALIOP - AVHRR - Exclusively over coastal zone:  "
-    else:
-        calipso_clear = numpy.logical_and(numpy.less(caObj.calipso.cloud_fraction,0.34),cal_subset)
-        calipso_cloudy = numpy.logical_and(numpy.greater(caObj.calipso.cloud_fraction,0.66),cal_subset)
-        pps_clear = numpy.logical_and(numpy.logical_and(numpy.less_equal(caObj.avhrr.cloudtype,4),numpy.greater(caObj.avhrr.cloudtype,0)),cal_subset)
-        pps_cloudy = numpy.logical_and(numpy.logical_and(numpy.greater(caObj.avhrr.cloudtype,4),numpy.less(caObj.avhrr.cloudtype,20)),cal_subset)
-        #print "------------------------------------"
-        #print "STATISTICS CLOUD MASK: CALIOP - AVHRR"
+    calipso_clear = numpy.logical_and(numpy.less(caObj.calipso.cloud_fraction,0.34),cal_subset)
+    calipso_cloudy = numpy.logical_and(numpy.greater(caObj.calipso.cloud_fraction,0.66),cal_subset)
+    pps_clear = numpy.logical_and(numpy.logical_and(numpy.less_equal(caObj.avhrr.cloudtype,4),numpy.greater(caObj.avhrr.cloudtype,0)),cal_subset)
+    pps_cloudy = numpy.logical_and(numpy.logical_and(numpy.greater(caObj.avhrr.cloudtype,4),numpy.less(caObj.avhrr.cloudtype,20)),cal_subset)
+    #print "------------------------------------"
+    #print "STATISTICS CLOUD MASK: CALIOP - AVHRR"
     
     n_clear_clear = numpy.repeat(pps_clear,numpy.logical_and(calipso_clear,pps_clear)).shape[0]
     n_cloudy_cloudy = numpy.repeat(pps_cloudy,numpy.logical_and(calipso_cloudy,pps_cloudy)).shape[0]
@@ -313,9 +319,9 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
     n_frac_medium = numpy.repeat(avhrr_frac,numpy.logical_and(calipso_medium,avhrr_frac)).shape[0]
     n_frac_high = numpy.repeat(avhrr_frac,numpy.logical_and(calipso_high,avhrr_frac)).shape[0]
 
-    nlow = numpy.repeat(calipso_low,calipso_low).shape[0]
-    nmedium = numpy.repeat(calipso_medium,calipso_medium).shape[0]
-    nhigh = numpy.repeat(calipso_high,calipso_high).shape[0]
+#    nlow = numpy.repeat(calipso_low,calipso_low).shape[0]
+#    nmedium = numpy.repeat(calipso_medium,calipso_medium).shape[0]
+#    nhigh = numpy.repeat(calipso_high,calipso_high).shape[0]
         
     n_clear_low = numpy.repeat(avhrr_clear,numpy.logical_and(calipso_low,avhrr_clear)).shape[0]
     n_clear_medium = numpy.repeat(avhrr_clear,numpy.logical_and(calipso_medium,avhrr_clear)).shape[0]
@@ -391,7 +397,7 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
                     #if height[idx] < 0 or height[idx] > MAXHEIGHT:
                     if height[idx] < 240*4: # or height[idx] > config.MAXHEIGHT:
                         continue
-                    base_height = height[idx]-120
+#                    base_height = height[idx]-120
                     top_height = height[idx]+120
                     if nidx >= int(config.CLOUDSAT_CLOUDY_THR):
     #                if nidx >= 20:
@@ -446,12 +452,12 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
         diff_squared = diff*diff
         RMS_difference = numpy.sqrt(numpy.mean(diff_squared))
         diff_squared_biascorr = (diff-bias)*(diff-bias)
-        RMS_difference_biascorr = numpy.sqrt(numpy.mean(diff_squared_biascorr))
+#        RMS_difference_biascorr = numpy.sqrt(numpy.mean(diff_squared_biascorr))
     else:
         corr_caliop_avhrr = -9.0
         bias = -9.0
         RMS_difference = -9.0
-        RMS_difference_biascorr = -9.0
+#        RMS_difference_biascorr = -9.0
         diff_squared_biascorr = numpy.array([-9.0])
         
     #print "Correlation: caliop-avhrr = ",corr_caliop_avhrr
@@ -477,12 +483,12 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
         diff_squared = diff*diff
         RMS_difference = numpy.sqrt(numpy.mean(diff_squared))
         diff_squared_biascorr = (diff-bias)*(diff-bias)
-        RMS_difference_biascorr = numpy.sqrt(numpy.mean(diff_squared_biascorr))
+#        RMS_difference_biascorr = numpy.sqrt(numpy.mean(diff_squared_biascorr))
     else:
         corr_caliop_avhrr = -9.0
         bias = -9.0
         RMS_difference = -9.0
-        RMS_difference_biascorr = -9.0
+#        RMS_difference_biascorr = -9.0
         diff_squared_biascorr = numpy.array([-9.0])
         
     #print "Correlation: caliop-avhrr = ",corr_caliop_avhrr
@@ -509,12 +515,12 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
         diff_squared = diff*diff
         RMS_difference = numpy.sqrt(numpy.mean(diff_squared))
         diff_squared_biascorr = (diff-bias)*(diff-bias)
-        RMS_difference_biascorr = numpy.sqrt(numpy.mean(diff_squared_biascorr))
+#        RMS_difference_biascorr = numpy.sqrt(numpy.mean(diff_squared_biascorr))
     else:
         corr_caliop_avhrr = -9.0
         bias = -9.0
         RMS_difference = -9.0
-        RMS_difference_biascorr = -9.0
+#        RMS_difference_biascorr = -9.0
         diff_squared_biascorr = numpy.array([-9.0])
         
     #print "Correlation: caliop-avhrr = ",corr_caliop_avhrr
@@ -541,12 +547,12 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
         diff_squared = diff*diff
         RMS_difference = numpy.sqrt(numpy.mean(diff_squared))
         diff_squared_biascorr = (diff-bias)*(diff-bias)
-        RMS_difference_biascorr = numpy.sqrt(numpy.mean(diff_squared_biascorr))
+#        RMS_difference_biascorr = numpy.sqrt(numpy.mean(diff_squared_biascorr))
     else:
         corr_caliop_avhrr = -9.0
         bias = -9.0
         RMS_difference = -9.0
-        RMS_difference_biascorr = -9.0
+#        RMS_difference_biascorr = -9.0
         diff_squared_biascorr = numpy.array([-9.0])
         
     #print "Correlation: caliop-avhrr = ",corr_caliop_avhrr
