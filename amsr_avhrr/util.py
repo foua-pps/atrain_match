@@ -10,6 +10,9 @@ import numpy as np
 from datetime import datetime
 TAI93 = datetime(1993, 1, 1)
 
+#: h5py compression settings (True, or an integer in range(10))
+_COMPRESSION = True
+
 
 def get_amsr_lonlat(filename):
     """
@@ -139,6 +142,22 @@ def get_diff_data(filenames, aux_fields=None):
         aux[name] = np.concatenate(aux[name])
     
     return [lwp_diff_array, restrictions] + [aux[name] for name in aux_fields]
+
+
+def write_data(data, name, filename, mode='a', attributes=None):
+    """
+    Write *data* and any *attributes* (dict) to dataset *name* in HDF5 file
+    *filename*. *mode* is the h5py file access mode (default 'a', for append).
+    
+    """
+    import h5py
+    with h5py.File(filename, mode) as f:
+        if hasattr(data, 'mask'):
+            data = data.compressed()
+        d = f.create_dataset(name, data=data, compression=_COMPRESSION)
+        if attributes:
+            for k, v in attributes.items():
+                d.attrs[k] = v
 
 
 def diff_file_stats(filename):

@@ -18,9 +18,6 @@ MATCH_DIR = os.environ.get('MATCH_DIR', '.')
 #: Radius of AMSR-E footprint (m)
 AMSR_RADIUS = 10e3
 
-#: h5py compression settings (True, or an integer in range(10))
-_COMPRESSION = True
-
 
 def process_noaa_scene(satname, orbit, amsr_filename=None, ctype=None,
                        reff_max=None, lwp_max=None, water=False,
@@ -109,23 +106,6 @@ def process_case(amsr_filename, avhrr_filename, cpp_filename,
         fig.set_size_inches(20, 12)
         fig.suptitle(_plot_title(amsr_filename, avhrr_filename))
         fig.savefig(fig_base + "time_diff.png")
-
-
-def write_data(data, name, filename, mode='a', attributes=None):
-    """
-    Write *data* and any *attributes* (dict) to dataset *name* in HDF5 file
-    *filename*. *mode* is the h5py file access mode (default 'a', for append).
-    
-    """
-    import h5py
-    with h5py.File(filename, mode) as f:
-        if hasattr(data, 'mask'):
-            data = data.compressed()
-        d = f.create_dataset(name, data=data, compression=_COMPRESSION)
-        if attributes:
-            for k, v in attributes.items():
-                d.attrs[k] = v
-
 
 
 def get_sea(mapper, physiography_filename):
@@ -220,6 +200,7 @@ def compare_lwps(mapper, amsr_filename, cpp_filename,
         logger.warning("No matches with restrictions: %s" %
                        '; '.join(restrictions))
     else:
+        from amsr_avhrr.util import write_data
         diff_file = (_fig_base(_match_file(amsr_filename, avhrr_filename)) +
                      'lwp_diff.h5')
         write_data(lwp_diff, 'lwp_diff', diff_file, mode='w',
