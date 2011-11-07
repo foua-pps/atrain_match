@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """
 Utilities
 
@@ -100,16 +102,25 @@ def get_cpp_product(filename, product):
     return cpp.products[product].array
 
 
-def get_diff_data(filenames):
+def get_diff_data(filenames, aux_fields=None):
     """
-    Read data from diff files *filenames* and return concatenated arrays
-    (lwp_diff, cwp, lwp).
+    Read data from diff files *filenames* and return concatenated lwp_diff.
+    
+    Dataset names in *aux_fields* will also be extracted, concatenated and
+    returned.
+    
+    Returns:
+    
+    (lwp_diff, restrictions, *aux_fields)
     
     """
     import h5py
     lwp_diffs = []
-    cwps = []
-    lwps = []
+    aux = {}
+    if aux_fields is not None:
+        for name in aux_fields:
+            aux[name] = []
+    
     for filename in filenames:
         with h5py.File(filename, 'r') as f:
             data = f['lwp_diff'][:]
@@ -119,19 +130,30 @@ def get_diff_data(filenames):
                     raise RuntimeError(
                         "Inconsistent restrictions: %r != %r" % (restrictions, lwp_diffs[-1][-1]))
             lwp_diffs.append((filename, data, restrictions))
-            if 'amsr_lwp' in f.keys():
-                lwps.append(f['amsr_lwp'][:])
-            if 'cpp_cwp' in f.keys():
-                cwps.append(f['cpp_cwp'][:])
+            for name in aux_fields:
+                aux[name].append(f[name][:])
     
     lwp_diff_array = np.concatenate([data for 
             (filename, data, restrictions) in lwp_diffs])
+    for name in aux_fields:
+        aux[name] = np.concatenate(aux[name])
     
-    if not 0 in (len(cwps), len(lwps)):
-        cwp_array = np.concatenate(cwps)
-        lwp_array = np.concatenate(lwps)
-    else:
-        cwp_array = None
-        lwp_array = None
+    return [lwp_diff_array, restrictions] + [aux[name] for name in aux_fields]
+
+
+def diff_file_stats(filename):
+    """
+    Print some statistics for diff file *filename*.
     
-    return lwp_diff_array, restrictions, cwp_array, lwp_array
+    """
+    from runutils import parse_scene
+    import sys
+    write = sys.stdout.write
+    write('Scene: %s %s %d' % parse_scene(filename.replace('match--', '')))
+    
+    lwp_diff, restrictions, lat = get_diff_data([filename], ['latitudes'])
+    
+    #print("Restrictions: %s" % '; '.join(restrictions))
+    write(' ¤ Valid pixels: % 6d' % lwp_diff.size)
+    write(' ¤ Latitudes: %5.2f - %5.2f' % (lat.min(), lat.max()))
+    print('')

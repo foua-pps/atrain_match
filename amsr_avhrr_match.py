@@ -111,7 +111,12 @@ def process_case(amsr_filename, avhrr_filename, cpp_filename,
         fig.savefig(fig_base + "time_diff.png")
 
 
-def write_data(data, name, filename, mode=None, attributes=None):
+def write_data(data, name, filename, mode='a', attributes=None):
+    """
+    Write *data* and any *attributes* (dict) to dataset *name* in HDF5 file
+    *filename*. *mode* is the h5py file access mode (default 'a', for append).
+    
+    """
     import h5py
     with h5py.File(filename, mode) as f:
         if hasattr(data, 'mask'):
@@ -183,7 +188,7 @@ def select_pixels(mapper, amsr_lwp, cpp_cwp, sea,
     return selection, restrictions
 
 def compare_lwps(mapper, amsr_filename, cpp_filename,
-                 physiography_filename, avhrr_filename=None, ctype=None,
+                 physiography_filename, avhrr_filename, ctype=None,
                  ctype_filename=None, reff_max=None, lwp_max=None,
                  water=False):
     """
@@ -219,12 +224,14 @@ def compare_lwps(mapper, amsr_filename, cpp_filename,
                      'lwp_diff.h5')
         write_data(lwp_diff, 'lwp_diff', diff_file, mode='w',
                    attributes={'restrictions': restrictions})
-        selection_2d = selection.all(axis=-1)
-        selection_2d.fill_value = False
-        write_data(cpp_cwp.mean(axis=-1)[selection_2d.filled()],
+        selection_2d = selection.all(axis=-1).filled(False)
+        write_data(cpp_cwp.mean(axis=-1)[selection_2d],
                    'cpp_cwp', diff_file, mode='a')
-        write_data(amsr_lwp[selection_2d.filled()], 'amsr_lwp', diff_file,
+        write_data(amsr_lwp[selection_2d], 'amsr_lwp', diff_file,
                    mode='a')
+        write_data(selection_2d, 'selection', diff_file, mode='a')
+        write_data(lon[selection_2d], 'longitudes', diff_file, mode='a')
+        write_data(lat[selection_2d], 'latitudes', diff_file, mode='a')
     
     if _PLOTTING:
         title = _plot_title(amsr_filename, avhrr_filename)
