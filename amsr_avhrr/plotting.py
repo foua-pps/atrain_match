@@ -288,8 +288,9 @@ def distribution_map(lon, lat):
     ax.set_xticks(meridians[::2])
     ax.set_yticks(parallels[::2])
     
-    H, LATS, LONS = np.histogram2d(lat, lon, bins=[np.arange(-90, 90, 1),
-                                                   np.arange(-180, 180, 1)])
+    H, LATS, LONS = np.histogram2d(lat.ravel(), lon.ravel(),
+                                   bins=[np.arange(-90, 90, 1),
+                                         np.arange(-180, 180, 1)])
     im = m.pcolor(LONS, LATS, np.ma.masked_equal(H, 0), edgecolors='none')
     cbar = fig.colorbar(im, orientation='horizontal')
     cbar.set_label('Frequency')
