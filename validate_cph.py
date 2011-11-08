@@ -52,8 +52,8 @@ CPP_PHASE_VALUES = dict(no_cloud=0,
 def get_calipso_lonlat(calipso_filename):
     import h5py
     with h5py.File(calipso_filename) as f:
-        lon = f['Longitude'][:]
-        lat = f['Latitude'][:]
+        lon = f['Longitude'][:].ravel()
+        lat = f['Latitude'][:].ravel()
     
     return lon, lat
 
@@ -240,7 +240,7 @@ def validate(cpp_phase, cal_phase, verbose=False):
 
 
 def process_case(calipso_filename, avhrr_filename, cpp_filename, verbose=False,
-                 max_layers=9, qual_min=CALIPSO_QUAL_VALUES['medium']):
+                 max_layers=9, qual_min=CALIPSO_QUAL_VALUES['none']):
     """
     This is the work horse.
     
@@ -255,29 +255,117 @@ def process_case(calipso_filename, avhrr_filename, cpp_filename, verbose=False,
     cal_phase = get_calipso_phase(calipso_filename, max_layers=max_layers,
                                   qual_min=qual_min)
     
+    selection = ~cpp_phase.mask & ~cal_phase.mask
+    import numpy as np
+    if np.ma.isMaskedArray(selection):
+        selection = selection.filled(False)
+    restrictions = {'max number of CALIOP layers': max_layers,
+                    'minimum quality': qual_min}
+    
     filename = _filename_base(avhrr_filename, calipso_filename) + '--values.h5'
-    write_matched_values(filename, cpp_phase, cal_phase)
+    from amsr_avhrr.util import write_data
+    write_data(cpp_phase[selection], 'cpp_phase', filename, mode='w',
+               attributes=restrictions)
+    write_data(cal_phase[selection], 'calipso_phase', filename,
+               attributes=restrictions)
+    lon, lat = get_calipso_lonlat(calipso_filename)
+    write_data(lon[selection], 'longitudes', filename, attributes=restrictions)
+    write_data(lat[selection], 'latitudes', filename, attributes=restrictions)
+    write_data(selection, 'selection', filename, attributes=restrictions)
     
     logger.debug("Validating")
-    validate(cpp_phase, cal_phase, verbose)
+    validate(cpp_phase[selection], cal_phase[selection], verbose)
 
 
-def validate_all(matched_values_files, verbose=False):
+def get_frac_of_land(match_file):
+    """
+    Given a *match_file*, return mapped fraction of land in range [0, 1].
+    
+    """
+    from amsr_avhrr.match import MatchMapper
+    mapper = MatchMapper.from_file(match_file)
+    
+    from runutils import parse_scene
+    scene = os.path.basename(match_file).replace('match--', '')
+    satname, _datetime, orbit = parse_scene(scene)
+    
+    from pps_runutil import get_ppsProductArguments
+    from pps_basic_configure import AUX_DIR
+    #argv = [sys.argv[0], 'satproj', satname, orbit]
+    # get_ppsProductArguments can't take non-string orbit
+    argv = ['', 'satproj', satname, str(orbit)]
+    ppsarg, arealist = get_ppsProductArguments(argv) #@UnusedVariable
+    physiography_filename = os.path.join(AUX_DIR, ppsarg.files.physiography)
+    from epshdf import read_physiography
+    phys = read_physiography(physiography_filename, 0, 1, 0)
+    fraction_of_land = phys.fraction_of_land / 255.
+    
+    return mapper(fraction_of_land).ravel()
+
+
+def get_land_sea_selection(landsea=None, match_file=None, lonlat=None):
+    if not landsea:
+        return None
+    
+    if landsea not in ['land', 'sea']:
+        raise ValueError("*landsea* must be either 'land' or 'sea'")
+    
+    if lonlat is not None:
+        lon, lat = lonlat
+        from ppsFracOfLandOnSatellite import doFracOfLand
+        frac_of_land = doFracOfLand(lon, lat)
+        fol = frac_of_land.data * float(frac_of_land.info.info['gain'])
+    elif match_file:
+        fol = get_frac_of_land(match_file)
+    else:
+        raise ValueError("Either *match_file* or *lonlat* must be provided")
+    
+    if landsea == 'land':
+        return fol > .9
+    else:
+        return fol < .1
+
+
+def validate_all(matched_values_files, verbose=False, landsea=None):
     """
     Read all *matched_values_files* and perform validation on the concatenated
     arrays.
+    
+    If *landsea* is 'land' ('sea'), only land (sea) pixels will be used.
     
     """
     import h5py
     import numpy as np
     cpp_phases = []
     cal_phases = []
+    lons = []
+    lats = []
     for filename in matched_values_files:
+        match_file = filename.replace('--values', '')
+        landsea_select = get_land_sea_selection(landsea, match_file=match_file)
         with h5py.File(filename, 'r') as f:
-            cpp_phases.append(f['cpp_phase'][:])
-            cal_phases.append(f['calipso_phase'][:])
+            if landsea is not None:
+                selection = f['selection'][:]
+                _slice = landsea_select[selection]
+            else:
+                _slice = slice(None)
+            cpp_phases.append(f['cpp_phase'][_slice])
+            cal_phases.append(f['calipso_phase'][_slice])
+            lons.append(f['longitudes'][_slice])
+            lats.append(f['latitudes'][_slice])
     
-    validate(np.concatenate(cpp_phases), np.concatenate(cal_phases), verbose)
+    cpp_phase = np.concatenate(cpp_phases)
+    cal_phase = np.concatenate(cal_phases)
+    lon = np.concatenate(lons)
+    lat = np.concatenate(lats)
+    
+    validate(cpp_phase, cal_phase, verbose)
+    
+    from amsr_avhrr.plotting import distribution_map
+    fig = distribution_map(lon, lat)
+    fig.suptitle("Distribution of valid pixels in cloud phase validation\n" +
+                  "Number of Pixels: %d" % lon.size)
+    fig.savefig('cph_distribution_all.pdf')
 
 
 if __name__ == '__main__':
