@@ -54,6 +54,7 @@ def process_matchups(matchups, run_modes, reprocess=False, debug=False):
         write_log('WARNING', "%d of %d cases had unknown problems:\n%s" % \
                   (len(problematic), len(matchups),
                    '\n'.join([str(m) for m in problematic])))
+    
 
 def main(args=None):
     """
@@ -96,7 +97,6 @@ def main(args=None):
         sno_output_files = config.match_files
     
     config.DEBUG = options.debug
-    
     matchups = []
     for sno_output_file in sno_output_files:
         found_matchups = find_crosses.parse_crosses_file(sno_output_file)

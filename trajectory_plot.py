@@ -21,9 +21,8 @@ def makesTheActuallyTrajectoryPlot(m,lon,lat):
 def plotSatelliteTrajectory(longitude,latitude,trajectoryname,fig_type='eps'):
     # TODO: This plotting function needs to be looked over...
     
-    from mpl_toolkits.basemap import Basemap
+    from mpl_toolkits.basemap import Basemap #@UnresolvedImport
     import pylab
-    import pdb
     import numpy
     
     m = Basemap(projection='cyl',llcrnrlat=-90,urcrnrlat=90,\
@@ -69,7 +68,7 @@ def plotSatelliteTrajectory(longitude,latitude,trajectoryname,fig_type='eps'):
 
     pylab.legend((m1),['CloudSat/Calipso'],loc=0)
     
-    figname = '%s.%s' %(trajectoryname, fig_type)    
+    figname = '%s.%s' %(trajectoryname, fig_type)
     pylab.savefig(figname)
     
 
