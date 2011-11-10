@@ -115,8 +115,7 @@ import inspect
 import numpy
 from cloudsat_calipso_avhrr_plot import drawCalClsatAvhrrPlotTimeDiff,\
     drawCalClsatGEOPROFAvhrrPlot, drawCalClsatAvhrrPlotSATZ,\
-    drawCalClsatCWCAvhrr1kmPlot, drawCalClsatCWCAvhrr5kmPlot #@UnresolvedImport
-import pdb
+    drawCalClsatCWCAvhrrPlot
 
 #from cloudsat_avhrr_matchup5km import *
 #from calipso_avhrr_matchup5km import *
@@ -702,9 +701,7 @@ def run(cross, process_mode_dnt, reprocess=False):
         data_okcwc = numpy.ones(clsatObj.cloudsat5kmcwc.elevation.shape,'b')   
     #==============================================================================================
     #Draw plot
-    if process_mode_dnt in ['No Plot']:
-#    pdb.set_trace()
-#    if process_mode_dnt in config.PLOT_MODES:
+    if process_mode_dnt in config.PLOT_MODES:
         plotpath = "%s/%s/%ikm/%s/%s/%s" %(config.PLOT_DIR, base_sat, config.RESOLUTION, base_year, base_month, config.AREA)
         if not os.path.exists(plotpath):
             os.makedirs(plotpath)
@@ -718,41 +715,35 @@ def run(cross, process_mode_dnt, reprocess=False):
         # in any processing mode:
         if 'emissfilt_calipso_ok' not in locals():
             emissfilt_calipso_ok = None
-        
         if clsatObj == None:
-            plotSatelliteTrajectory(calon,calat,trajectoryname,'eps')
-            plotSatelliteTrajectory(avhrlon,avhrlat,trajectoryname+'avhrr','eps')
-            pdb.set_trace()
-            drawCalClsatAvhrrPlotTimeDiff(calat, None, caObj.diff_sec_1970, plotpath, basename, config.RESOLUTION)
-            drawCalClsatGEOPROFAvhrrPlot(None, None, caObj.calipso, caObj.avhrr, elevation, data_ok,
-                                            CALIPSO_DISPLACED, caliop_base,
-                                            caliop_height, cal_data_ok,
-                                            avhrr_ctth_cal_ok, plotpath,
-                                            basename, process_mode, emissfilt_calipso_ok)
-            drawCalClsatAvhrrPlotSATZ(calat, None, caObj.avhrr.satz, plotpath, basename, config.RESOLUTION)
-        else:                    
-            if cloudsat_type=='GEOPROF': 
-                drawCalClsatAvhrrPlotSATZ(cllat, clsatObj.avhrr.satz, caObj.avhrr.satz, plotpath, basename, config.RESOLUTION)
-                drawCalClsatGEOPROFAvhrrPlot(clsatObj.cloudsat, clsatObj.avhrr, caObj.calipso, caObj.avhrr, elevation, data_ok,
-                                                CALIPSO_DISPLACED, caliop_base,
+            for file_type in ['eps', 'png']:
+                drawCalClsatAvhrrPlotTimeDiff(calat, None, caObj.diff_sec_1970, plotpath, basename, config.RESOLUTION, file_type)
+                drawCalClsatAvhrrPlotSATZ(calat, None, caObj.avhrr.satz, plotpath, basename, config.RESOLUTION, file_type)
+                plotSatelliteTrajectory(calon,calat,trajectoryname, file_type)
+                drawCalClsatGEOPROFAvhrrPlot(None, None, caObj.calipso, caObj.avhrr, None, data_ok,
+                                                None, caliop_base,
                                                 caliop_height, cal_data_ok,
                                                 avhrr_ctth_cal_ok, plotpath,
-                                                basename, process_mode, emissfilt_calipso_ok)
-                drawCalClsatAvhrrPlotTimeDiff(cllat, clsatObj.diff_sec_1970, caObj.diff_sec_1970, plotpath, basename, config.RESOLUTION)
-                plotSatelliteTrajectory(cllon,cllat,trajectoryname,'eps')
+                                                basename, process_mode, emissfilt_calipso_ok, file_type)
+        else:                    
+            if cloudsat_type=='GEOPROF':
+                for file_type in ['eps', 'png']:
+                    drawCalClsatAvhrrPlotSATZ(cllat, clsatObj.avhrr.satz, caObj.avhrr.satz, plotpath, basename, config.RESOLUTION, file_type)
+                    drawCalClsatGEOPROFAvhrrPlot(clsatObj.cloudsat, clsatObj.avhrr, caObj.calipso, caObj.avhrr, elevation, data_ok,
+                                                    CALIPSO_DISPLACED, caliop_base,
+                                                    caliop_height, cal_data_ok,
+                                                    avhrr_ctth_cal_ok, plotpath,
+                                                    basename, process_mode, emissfilt_calipso_ok, file_type)
+                    drawCalClsatAvhrrPlotTimeDiff(cllat, clsatObj.diff_sec_1970, caObj.diff_sec_1970, plotpath, basename, config.RESOLUTION, file_type)
+                    plotSatelliteTrajectory(cllon,cllat,trajectoryname, file_type)
                 
-            elif int(config.RESOLUTION)==1 and cloudsat_type=='CWC-RVOD':
+            elif cloudsat_type=='CWC-RVOD':
                 drawCalClsatAvhrrPlotTimeDiff(cllat, clsatObj.diff_sec_1970, caObj.diff_sec_1970, plotpath, basename, config.RESOLUTION)
                 phase='LW'  
-                drawCalClsatCWCAvhrr1kmPlot(clsatObj, elevationcwc, data_okcwc, plotpath, basename, phase) #caObj, CALIPSO_DISPLACED, caliop_base, caliop_height, cal_data_ok, avhrr_ctth_cal_ok)
+                drawCalClsatCWCAvhrrPlot(clsatObj, elevationcwc, data_okcwc, plotpath, basename, phase) #caObj, CALIPSO_DISPLACED, caliop_base, caliop_height, cal_data_ok, avhrr_ctth_cal_ok)
                 phase='IW'  
-                drawCalClsatCWCAvhrr1kmPlot(clsatObj, elevationcwc, data_okcwc, plotpath, basename, phase) #caObj, CALIPSO_DISPLACED, caliop_base, caliop_height, cal_data_ok, avhrr_ctth_cal_ok)
+                drawCalClsatCWCAvhrrPlot(clsatObj, elevationcwc, data_okcwc, plotpath, basename, phase) #caObj, CALIPSO_DISPLACED, caliop_base, caliop_height, cal_data_ok, avhrr_ctth_cal_ok)
                 
-            elif config.RESOLUTION == 5 and cloudsat_type == 'CWC-RVOD':
-                phase='LW'
-                drawCalClsatCWCAvhrr5kmPlot(clsatObj, elevationcwc, data_okcwc, plotpath, basename, phase)
-                phase='IW'
-                drawCalClsatCWCAvhrr5kmPlot(clsatObj, elevationcwc, data_okcwc, plotpath, basename, phase)
     #================================================================================================
     #Calculate Statistics
     if cloudsat_type=='GEOPROF':
