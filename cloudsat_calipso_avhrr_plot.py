@@ -151,14 +151,22 @@ def drawCalClsatGEOPROFAvhrrPlot(clsatObj_cloudsat, clsatObj_avhrr, caObj_calips
     #: Plot Avhrr   
     ax.plot(pixel_position_ok + calipso_displacement, avhrr_ctth_ok, 'b+')#\
             #color = "blue", linestyle = "+")#,cex=0.7)
-    filename = "%s/%skm_%s_cloudsat_calipso_avhrr_clouds.%s" \
-        %(plotpath, RESOLUTION, basename, file_type)
     ax.set_ylim(0, maxheight)
     ax.set_title(title)
     ax.set_xlabel("Track Position")
     ax.set_ylabel("Cloud Height")
-    fig.savefig(filename, format = file_type)
-
+    if isinstance(file_type, str) == True:
+        filename = "%s/%skm_%s_cloudsat_calipso_avhrr_clouds.%s" \
+            %(plotpath, RESOLUTION, basename, file_type)
+        fig.savefig(filename, format = file_type)
+    else:
+        for filetype in file_type:
+            filename = "%s/%skm_%s_cloudsat_calipso_avhrr_clouds.%s" \
+                %(plotpath, RESOLUTION, basename, filetype)
+            fig.savefig(filename, format = filetype)
+    ax.clear()
+    fig.clear()
+      
 # -----------------------------------------------------
 def drawCalClsatCWCAvhrrPlot(clsatObj, elevationcwc, data_okcwc, plotpath, basename, phase):#, caObj, CALIPSO_DISPLACED, caliop_base, caliop_height, cal_data_ok, avhrr_ctth_cal_ok):
     from matplotlib import pyplot as plt
@@ -204,6 +212,8 @@ def drawCalClsatCWCAvhrrPlot(clsatObj, elevationcwc, data_okcwc, plotpath, basen
     filename = "%s/%ikm_%s_calipso_%sP."%(plotpath, RESOLUTION, basename, phase)
     fig.savefig(filename + 'eps')
     fig.savefig(filename + 'png')
+    ax.clear()
+    fig.clear()
     # ----------------------------------------------------------------------------------------------------------------------------------
     
     #------------------------------------------------------------------------------ 
@@ -266,6 +276,8 @@ def drawCalClsatCWCAvhrrPlot(clsatObj, elevationcwc, data_okcwc, plotpath, basen
     ax1.set_ylim(0, maxheight)
     fig1.savefig(filename + 'eps')
     fig1.savefig(filename + 'png')
+    ax1.clear()
+    fig1.clear()
 # -----------------------------------------------------
 
 def drawCalClsatAvhrrPlotTimeDiff(latitude, clsat_diff_sec_1970, cal_diff_sec_1970, plotpath, basename, res, file_type='eps'):
@@ -310,8 +322,12 @@ def drawCalClsatAvhrrPlotTimeDiff(latitude, clsat_diff_sec_1970, cal_diff_sec_19
     ax.set_ylim(minvalue-10, maxvalue+10)
     ax.plot(cal_diff_sec_1970/60,"g+", label = "CALIPSO (max time diff %.2f min)" % round(biggest_Calipso_diff/60,2))
     ax.legend()
-    fig.savefig("%s/%skm_%s_time_diff.%s"%(plotpath,RESOLUTION,basename, file_type))
-    
+    if isinstance(file_type, str) == True:
+        fig.savefig("%s/%skm_%s_time_diff.%s"%(plotpath,RESOLUTION,basename, file_type))
+    else:
+        for filetype in file_type:
+            fig.savefig("%s/%skm_%s_time_diff.%s"%(plotpath,RESOLUTION,basename, filetype))
+            
 # -----------------------------------------------------   
 def drawCalClsatAvhrrPlotSATZ(latitude, AvhrrClsatSatz, AvhrrCalSatz, plotpath, basename, res, file_type='eps'):
     from matplotlib import pyplot as plt
@@ -348,6 +364,10 @@ def drawCalClsatAvhrrPlotSATZ(latitude, AvhrrClsatSatz, AvhrrCalSatz, plotpath, 
     ax.set_ylim(minvalue-10, maxvalue+10)
     ax.plot(AvhrrCalSatz,"g+", label = "CALIPSO")
     ax.legend()
-    fig.savefig("%s/%skm_%s_satz.%s"%(plotpath,RESOLUTION,basename, file_type))
+    if isinstance(file_type, str) == True:
+        fig.savefig("%s/%skm_%s_satz.%s"%(plotpath,RESOLUTION,basename, file_type))
+    else:
+        for filetype in file_type:
+            fig.savefig("%s/%skm_%s_satz.%s"%(plotpath,RESOLUTION,basename, filetype))
     ax.clear()
     fig.clear()

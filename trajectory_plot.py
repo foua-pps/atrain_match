@@ -68,9 +68,17 @@ def plotSatelliteTrajectory(longitude,latitude,trajectoryname,fig_type='eps'):
 
     pylab.legend((m1),['CloudSat/Calipso'],loc=0)
     
-    figname = '%s.%s' %(trajectoryname, fig_type)
-    pylab.savefig(figname)
+    if isinstance(fig_type, str) == True:
+        figname = '%s.%s' %(trajectoryname, fig_type)
+        pylab.savefig(figname)
+    else:
+        for figtype in fig_type:
+            figname = '%s.%s' %(trajectoryname, figtype)
+            pylab.savefig(figname)
     
+#if __name__=='__main__':
+    
+#    drawTrajectoryOfAllSNO(snofile, file_type)
 
 
 

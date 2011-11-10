@@ -716,26 +716,26 @@ def run(cross, process_mode_dnt, reprocess=False):
         if 'emissfilt_calipso_ok' not in locals():
             emissfilt_calipso_ok = None
         if clsatObj == None:
-            for file_type in ['eps', 'png']:
-                drawCalClsatAvhrrPlotTimeDiff(calat, None, caObj.diff_sec_1970, plotpath, basename, config.RESOLUTION, file_type)
-                drawCalClsatAvhrrPlotSATZ(calat, None, caObj.avhrr.satz, plotpath, basename, config.RESOLUTION, file_type)
-                plotSatelliteTrajectory(calon,calat,trajectoryname, file_type)
-                drawCalClsatGEOPROFAvhrrPlot(None, None, caObj.calipso, caObj.avhrr, None, data_ok,
-                                                None, caliop_base,
+            file_type = ['eps', 'png']
+            drawCalClsatAvhrrPlotTimeDiff(calat, None, caObj.diff_sec_1970, plotpath, basename, config.RESOLUTION, file_type)
+            drawCalClsatAvhrrPlotSATZ(calat, None, caObj.avhrr.satz, plotpath, basename, config.RESOLUTION, file_type)
+            plotSatelliteTrajectory(calon,calat,trajectoryname, file_type)
+            drawCalClsatGEOPROFAvhrrPlot(None, None, caObj.calipso, caObj.avhrr, None, data_ok,
+                                            None, caliop_base,
+                                            caliop_height, cal_data_ok,
+                                            avhrr_ctth_cal_ok, plotpath,
+                                            basename, process_mode, emissfilt_calipso_ok, file_type)
+        else:                    
+            if cloudsat_type=='GEOPROF':
+                file_type = ['eps', 'png']
+                drawCalClsatAvhrrPlotSATZ(cllat, clsatObj.avhrr.satz, caObj.avhrr.satz, plotpath, basename, config.RESOLUTION, file_type)
+                drawCalClsatGEOPROFAvhrrPlot(clsatObj.cloudsat, clsatObj.avhrr, caObj.calipso, caObj.avhrr, elevation, data_ok,
+                                                CALIPSO_DISPLACED, caliop_base,
                                                 caliop_height, cal_data_ok,
                                                 avhrr_ctth_cal_ok, plotpath,
                                                 basename, process_mode, emissfilt_calipso_ok, file_type)
-        else:                    
-            if cloudsat_type=='GEOPROF':
-                for file_type in ['eps', 'png']:
-                    drawCalClsatAvhrrPlotSATZ(cllat, clsatObj.avhrr.satz, caObj.avhrr.satz, plotpath, basename, config.RESOLUTION, file_type)
-                    drawCalClsatGEOPROFAvhrrPlot(clsatObj.cloudsat, clsatObj.avhrr, caObj.calipso, caObj.avhrr, elevation, data_ok,
-                                                    CALIPSO_DISPLACED, caliop_base,
-                                                    caliop_height, cal_data_ok,
-                                                    avhrr_ctth_cal_ok, plotpath,
-                                                    basename, process_mode, emissfilt_calipso_ok, file_type)
-                    drawCalClsatAvhrrPlotTimeDiff(cllat, clsatObj.diff_sec_1970, caObj.diff_sec_1970, plotpath, basename, config.RESOLUTION, file_type)
-                    plotSatelliteTrajectory(cllon,cllat,trajectoryname, file_type)
+                drawCalClsatAvhrrPlotTimeDiff(cllat, clsatObj.diff_sec_1970, caObj.diff_sec_1970, plotpath, basename, config.RESOLUTION, file_type)
+                plotSatelliteTrajectory(cllon,cllat,trajectoryname, file_type)
                 
             elif cloudsat_type=='CWC-RVOD':
                 drawCalClsatAvhrrPlotTimeDiff(cllat, clsatObj.diff_sec_1970, caObj.diff_sec_1970, plotpath, basename, config.RESOLUTION)
