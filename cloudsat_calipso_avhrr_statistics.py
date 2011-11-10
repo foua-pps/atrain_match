@@ -7,8 +7,7 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
                         process_calipso_ok, dnt_flag = None):
     import sys
     import numpy
-#    import numpy.oldnumpy as Numeric
-    import pdb #@UnusedImport
+
     # First prepare possible subsetting of CALIOP datasets according to NSIDC and IGBP surface types
     if mode == "EMISSFILT":
         emissfilt_calipso_ok = process_calipso_ok 
@@ -26,10 +25,20 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
         cal_subset = numpy.logical_and(numpy.equal(caObj.calipso.nsidc,0),numpy.not_equal(caObj.calipso.igbp,17))
     elif mode == 'COASTAL_ZONE':
         cal_subset = numpy.equal(caObj.calipso.nsidc,255)
+    
     elif mode == 'TROPIC_ZONE':
         cal_subset = numpy.abs(caObj.calipso.latitude) <= 10
+    elif mode == 'TROPIC_ZONE_SNOW_FREE_LAND':
+        cal_subset_lat = numpy.logical_and(numpy.equal(caObj.calipso.nsidc,0),numpy.not_equal(caObj.calipso.igbp,17))
+        cal_subset_area = numpy.abs(caObj.calipso.latitude) <= 10
+        cal_subset = numpy.logical_and(cal_subset_lat, cal_subset_area)
+    elif mode == 'TROPIC_ZONE_ICE_FREE_SEA':
+        cal_subset_lat = numpy.logical_and(numpy.equal(caObj.calipso.nsidc,0),numpy.equal(caObj.calipso.igbp,17))
+        cal_subset_area = numpy.abs(caObj.calipso.latitude) <= 10
+        cal_subset = numpy.logical_and(cal_subset_lat, cal_subset_area)
+    
     elif mode == 'SUB_TROPIC_ZONE':
-        cal_subset = numpy.logical_and((numpy.abs(caObj.calipso.latitude) > 10), (numpy.abs(caObj.calipso.latitude) <= 45))
+        cal_subset = numpy.logical_and((numpy.abs(caObj.calipso.latitude) > 10), (numpy.abs(caObj.calipso.latitude) <= 45))    
     elif mode == 'SUB_TROPIC_ZONE_SNOW_FREE_LAND':
         cal_subset_lat = numpy.logical_and((numpy.abs(caObj.calipso.latitude) > 10), (numpy.abs(caObj.calipso.latitude) <= 45))
         cal_subset_area = numpy.logical_and(numpy.equal(caObj.calipso.nsidc,0),numpy.not_equal(caObj.calipso.igbp,17))
@@ -38,12 +47,53 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
         cal_subset_lat = numpy.logical_and((numpy.abs(caObj.calipso.latitude) > 10), (numpy.abs(caObj.calipso.latitude) <= 45))
         cal_subset_area = numpy.logical_and(numpy.equal(caObj.calipso.nsidc,0),numpy.equal(caObj.calipso.igbp,17))
         cal_subset = numpy.logical_and(cal_subset_lat, cal_subset_area)
+    
     elif mode == 'HIGH-LATITUDES':
         cal_subset = numpy.logical_and((numpy.abs(caObj.calipso.latitude) > 45), (numpy.abs(caObj.calipso.latitude) <= 75))
+    elif mode == 'HIGH-LATITUDES_SNOW_FREE_LAND':
+        cal_subset_lat = numpy.logical_and(numpy.equal(caObj.calipso.nsidc,0),numpy.not_equal(caObj.calipso.igbp,17))
+        cal_subset_area = numpy.logical_and((numpy.abs(caObj.calipso.latitude) > 45), (numpy.abs(caObj.calipso.latitude) <= 75))
+        cal_subset = numpy.logical_and(cal_subset_lat, cal_subset_area)
+    elif mode == 'HIGH-LATITUDES_SNOW_COVER_LAND':
+        cal_subset_lat = numpy.logical_and(numpy.logical_and(numpy.less(caObj.calipso.nsidc,104),numpy.greater(caObj.calipso.nsidc,10)),numpy.not_equal(caObj.calipso.igbp,17))
+        cal_subset_area = numpy.logical_and((numpy.abs(caObj.calipso.latitude) > 45), (numpy.abs(caObj.calipso.latitude) <= 75))
+        cal_subset = numpy.logical_and(cal_subset_lat, cal_subset_area)
+    elif mode == 'HIGH-LATITUDES_ICE_FREE_SEA':
+        cal_subset_lat = numpy.logical_and(numpy.equal(caObj.calipso.nsidc,0),numpy.equal(caObj.calipso.igbp,17))
+        cal_subset_area = numpy.logical_and((numpy.abs(caObj.calipso.latitude) > 45), (numpy.abs(caObj.calipso.latitude) <= 75))
+        cal_subset = numpy.logical_and(cal_subset_lat, cal_subset_area)
+    elif mode == 'HIGH-LATITUDES_ICE_COVER_SEA':
+        cal_subset_lat = numpy.logical_and(numpy.logical_and(numpy.less_equal(caObj.calipso.nsidc,100),numpy.greater(caObj.calipso.nsidc,10)),numpy.equal(caObj.calipso.igbp,17))
+        cal_subset_area = numpy.logical_and((numpy.abs(caObj.calipso.latitude) > 45), (numpy.abs(caObj.calipso.latitude) <= 75))
+        cal_subset = numpy.logical_and(cal_subset_lat, cal_subset_area)
+    
+    
     elif mode == 'POLAR':
         cal_subset = numpy.abs(caObj.calipso.latitude) > 75
-    else:
+    elif mode == 'POLAR_SNOW_FREE_LAND':
+        cal_subset_lat = numpy.logical_and(numpy.equal(caObj.calipso.nsidc,0),numpy.not_equal(caObj.calipso.igbp,17))
+        cal_subset_area = numpy.abs(caObj.calipso.latitude) > 75
+        cal_subset = numpy.logical_and(cal_subset_lat, cal_subset_area)
+    elif mode == 'POLAR_SNOW_COVER_LAND':
+        cal_subset_lat = numpy.logical_and(numpy.logical_and(numpy.less(caObj.calipso.nsidc,104),numpy.greater(caObj.calipso.nsidc,10)),numpy.not_equal(caObj.calipso.igbp,17))
+        cal_subset_area = numpy.abs(caObj.calipso.latitude) > 75
+        cal_subset = numpy.logical_and(cal_subset_lat, cal_subset_area)
+    elif mode == 'POLAR_ICE_FREE_SEA':
+        cal_subset_lat = numpy.logical_and(numpy.equal(caObj.calipso.nsidc,0),numpy.equal(caObj.calipso.igbp,17))
+        cal_subset_area = numpy.abs(caObj.calipso.latitude) > 75
+        cal_subset = numpy.logical_and(cal_subset_lat, cal_subset_area)
+    elif mode == 'POLAR_ICE_COVER_SEA':
+        cal_subset_lat = numpy.logical_and(numpy.logical_and(numpy.less_equal(caObj.calipso.nsidc,100),numpy.greater(caObj.calipso.nsidc,10)),numpy.equal(caObj.calipso.igbp,17))
+        cal_subset_area = numpy.abs(caObj.calipso.latitude) > 75
+        cal_subset = numpy.logical_and(cal_subset_lat, cal_subset_area)
+    
+    elif mode == 'BASIC':
         cal_subset = numpy.bool_(numpy.ones(caObj.calipso.igbp.shape))
+    elif mode == 'OPTICAL_DEPTH':
+        cal_subset = numpy.bool_(numpy.ones(caObj.calipso.igbp.shape))
+    else:
+        print('The mode %s is not added in statistic file' %mode)
+        sys.exit()
     no_qflag = caObj.avhrr.cloudtype_qflag == 0
     night_flag = (((caObj.avhrr.cloudtype_qflag>>2) & 1) == 1) & ~no_qflag
     twilight_flag = (((caObj.avhrr.cloudtype_qflag>>3) & 1) == 1) & ~no_qflag

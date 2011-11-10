@@ -78,17 +78,6 @@ MAXHEIGHT = None
 #: Range of allowed (AVHRR) satellite azimuth angles, in degrees
 AZIMUTH_RANGE = (0., 360.)
 
-#: CloudSat sampling frequency in km (or rather the most likely
-#: resolution difference between CALIPSO 1 km datasets and
-#: the CloudSat 2B-GEOPROF dataset). Nominally CloudSat sampling
-#: rate is said to be 1.1 km but it seems as the CALIPSO sampling
-#: rate is not exactly 1 km but slightly above - as based on the
-#: optimised matching of plots of the two datasets.
-CLOUDSAT_TRACK_RESOLUTION = 1.076
-
-#: See :data:`CLOUDSAT_TRACK_RESOLUTION`
-CLOUDSAT5KM_TRACK_RESOLUTION = 1.076#*5.0
-
 #: TODO: No description...
 EMISS_MIN_HEIGHT = 2000.0
 
@@ -96,6 +85,7 @@ EMISS_MIN_HEIGHT = 2000.0
 EMISS_LIMIT = 0.2
 
 #: Processing modes which can be handled
+# TODO: Split into latitude dependent area, snow-ice-land-sea area and day-night-twilight
 ALLOWED_MODES = ['BASIC',
                  'BASIC_DAY',
                  'BASIC_NIGHT',
@@ -128,28 +118,68 @@ ALLOWED_MODES = ['BASIC',
                  'TROPIC_ZONE_DAY',
                  'TROPIC_ZONE_NIGHT',
                  'TROPIC_ZONE_TWILIGHT',
+                 'TROPIC_ZONE_SNOW_FREE_LAND',      # Restrict to tropical regions  +-10 < lat <= +-45
+                 'TROPIC_ZONE_SNOW_FREE_LAND_DAY',
+                 'TROPIC_ZONE_SNOW_FREE_LAND_NIGHT',
+                 'TROPIC_ZONE_SNOW_FREE_LAND_TWILIGHT',
+                 'TROPIC_ZONE_ICE_FREE_SEA',        # Restrict to tropical regions  +-10 < lat <= +-45
+                 'TROPIC_ZONE_ICE_FREE_SEA_DAY',
+                 'TROPIC_ZONE_ICE_FREE_SEA_NIGHT',
+                 'TROPIC_ZONE_ICE_FREE_SEA_TWILIGHT',
                  'SUB_TROPIC_ZONE',     # Restrict to sub tropical regions +-10 < lat <= +-45
-                 'SUB_TROPIC_ZONE_DAY', # Restrict to snow-free land using NSIDC and IGBP data
+                 'SUB_TROPIC_ZONE_DAY',
                  'SUB_TROPIC_ZONE_NIGHT',
                  'SUB_TROPIC_ZONE_TWILIGHT',
                  'SUB_TROPIC_ZONE_SNOW_FREE_LAND',      # Restrict to tropical regions  +-10 < lat <= +-45
-                 'SUB_TROPIC_ZONE_SNOW_FREE_LAND_DAY',  # Restrict to snow-free land using NSIDC and IGBP data
+                 'SUB_TROPIC_ZONE_SNOW_FREE_LAND_DAY',
                  'SUB_TROPIC_ZONE_SNOW_FREE_LAND_NIGHT',
                  'SUB_TROPIC_ZONE_SNOW_FREE_LAND_TWILIGHT',
                  'SUB_TROPIC_ZONE_ICE_FREE_SEA',        # Restrict to tropical regions  +-10 < lat <= +-45
-                 'SUB_TROPIC_ZONE_ICE_FREE_SEA_DAY',    # Restrict to snow-free land using NSIDC and IGBP data
+                 'SUB_TROPIC_ZONE_ICE_FREE_SEA_DAY',
                  'SUB_TROPIC_ZONE_ICE_FREE_SEA_NIGHT',
                  'SUB_TROPIC_ZONE_ICE_FREE_SEA_TWILIGHT',
-                 'HIGH-LATITUDES',     # Restrict to tropical regions  +-10 < lat <= +-45
+                 'HIGH-LATITUDES',     # Restrict to tropical regions  +-45 < lat <= +-75
                  'HIGH-LATITUDES_DAY',
                  'HIGH-LATITUDES_NIGHT',
                  'HIGH-LATITUDES_TWILIGHT',
-                 'POLAR',     # Restrict to tropical regions  +-10 < lat <= +-45
+                 'HIGH-LATITUDES_SNOW_FREE_LAND',      # Restrict to tropical regions  +-45 < lat <= +-75
+                 'HIGH-LATITUDES_SNOW_FREE_LAND_DAY',
+                 'HIGH-LATITUDES_SNOW_FREE_LAND_NIGHT',
+                 'HIGH-LATITUDES_SNOW_FREE_LAND_TWILIGHT',
+                 'HIGH-LATITUDES_ICE_FREE_SEA',        # Restrict to tropical regions  +-45 < lat <= +-75
+                 'HIGH-LATITUDES_ICE_FREE_SEA_DAY', 
+                 'HIGH-LATITUDES_ICE_FREE_SEA_NIGHT',
+                 'HIGH-LATITUDES_ICE_FREE_SEA_TWILIGHT',
+                 'HIGH-LATITUDES_SNOW_COVER_LAND',      # Restrict to tropical regions  +-45 < lat <= +-75
+                 'HIGH-LATITUDES_SNOW_COVER_LAND_DAY',
+                 'HIGH-LATITUDES_SNOW_COVER_LAND_NIGHT',
+                 'HIGH-LATITUDES_SNOW_COVER_LAND_TWILIGHT',
+                 'HIGH-LATITUDES_ICE_COVER_SEA',        # Restrict to tropical regions  +-45 < lat <= +-75
+                 'HIGH-LATITUDES_ICE_COVER_SEA_DAY',
+                 'HIGH-LATITUDES_ICE_COVER_SEA_NIGHT',
+                 'HIGH-LATITUDES_ICE_COVER_SEA_TWILIGHT',
+                 'POLAR',     # Restrict to tropical regions  +-75
                  'POLAR_DAY',
                  'POLAR_NIGHT',
-                 'POLAR_TWILIGHT']
+                 'POLAR_TWILIGHT', 
+                 'POLAR_SNOW_FREE_LAND',      # Restrict to tropical regions  +-75
+                 'POLAR_SNOW_FREE_LAND_DAY',
+                 'POLAR_SNOW_FREE_LAND_NIGHT',
+                 'POLAR_SNOW_FREE_LAND_TWILIGHT',
+                 'POLAR_ICE_FREE_SEA',        # Restrict to tropical regions  +-75
+                 'POLAR_ICE_FREE_SEA_DAY', 
+                 'POLAR_ICE_FREE_SEA_NIGHT',
+                 'POLAR_ICE_FREE_SEA_TWILIGHT',
+                 'POLAR_SNOW_COVER_LAND',      # Restrict to tropical regions  +-75
+                 'POLAR_SNOW_COVER_LAND_DAY',
+                 'POLAR_SNOW_COVER_LAND_NIGHT',
+                 'POLAR_SNOW_COVER_LAND_TWILIGHT',
+                 'POLAR_ICE_COVER_SEA',        # Restrict to tropical regions  +-75
+                 'POLAR_ICE_COVER_SEA_DAY',
+                 'POLAR_ICE_COVER_SEA_NIGHT',
+                 'POLAR_ICE_COVER_SEA_TWILIGHT']
 
-             
+
 #: Threshold for optical thickness. If optical thickness is below this value it will be filtered out.
 MIN_OPTICAL_DEPTH = 0.5
 
@@ -157,12 +187,25 @@ if RESOLUTION == 1:
     DSEC_PER_AVHRR_SCALINE = 1.0/6. # Full scan period, i.e. the time interval between two consecutive lines (sec)
     SWATHWD=2048
     AREA = "arctic_super_5010"
+    #: CloudSat sampling frequency in km (or rather the most likely
+    #: resolution difference between CALIPSO 1 km datasets and
+    #: the CloudSat 2B-GEOPROF dataset). Nominally CloudSat sampling
+    #: rate is said to be 1.1 km but it seems as the CALIPSO sampling
+    #: rate is not exactly 1 km but slightly above - as based on the
+    #: optimised matching of plots of the two datasets.
+    # TODO: Try too remove this one. Should be much better if it could be \
+    # calculated instead inside atrain_match sugestion: \
+    # cloudsat_track_resolution = len(calipso.longitude) / len(cloudsat.longitude)
+    CLOUDSAT_TRACK_RESOLUTION = 1.076
 
 
 elif RESOLUTION == 5:
     DSEC_PER_AVHRR_SCALINE = 1.0/6. * 4 # A "work for the time being" solution.
     SWATHWD=409
     AREA = "cea5km_test"#"arctic_super_1002_5km"
+    #: See :data:`CLOUDSAT_TRACK_RESOLUTION` in RESOLUTION = 1km
+    CLOUDSAT_TRACK_RESOLUTION = 1.076#*5.0
+    CLOUDSAT5KM_TRACK_RESOLUTION = CLOUDSAT_TRACK_RESOLUTION#*5.0
     ALLOWED_MODES.append('OPTICAL_DEPTH')      # Filter out cases with the thinnest topmost CALIPSO layers. Define MIN_OPTICAL_DEPTH above
     ALLOWED_MODES.append('OPTICAL_DEPTH_DAY')
     ALLOWED_MODES.append('OPTICAL_DEPTH_NIGHT')
@@ -182,6 +225,7 @@ NODATA=-9
 
 #: Processing modes for which plotting should also be performed
 PLOT_MODES = ['BASIC']
+#PLOT_MODES = ['No Plot']
 
 def subdir(self, date, *args, **kwargs):
     """
@@ -302,7 +346,12 @@ COMPILED_STATS_FILENAME = '%s/Results/compiled_stats' %MAIN_DATADIR
 
 #: Surfaces for which statistics should be summarized
 SURFACES = ["ICE_COVER_SEA", "ICE_FREE_SEA", "SNOW_COVER_LAND", "SNOW_FREE_LAND", \
-            "COASTAL_ZONE", "TROPIC_ZONE"]
+            "COASTAL_ZONE", "TROPIC_ZONE", "TROPIC_ZONE_SNOW_FREE_LAND", "TROPIC_ZONE_ICE_FREE_SEA", \
+            "SUB_TROPIC_ZONE", "SUB_TROPIC_ZONE_SNOW_FREE_LAND", "SUB_TROPIC_ZONE_ICE_FREE_SEA", \
+            "HIGH-LATITUDES", "HIGH-LATITUDES_SNOW_FREE_LAND", "HIGH-LATITUDES_ICE_FREE_SEA", \
+            "HIGH-LATITUDES_SNOW_COVER_LAND", "HIGH-LATITUDES_ICE_COVER_SEA", \
+            "POLAR", "POLAR_SNOW_FREE_LAND", "POLAR_ICE_FREE_SEA", \
+            "POLAR_SNOW_COVER_LAND", "POLAR_ICE_COVER_SEA"]
 
 #: Filter types for which statistics should be summerized
 FILTERTYPE = ['EMISSFILT']
