@@ -27,7 +27,7 @@ setup(name='atrain_match',
       provides=['atrain_match'],
       py_modules=['find_crosses', 'common', 'merge_tles', 'track_correlation',
                   'runutils', 'amsr_avhrr_match', 'amsr_avhrr_validate',
-                  'validate_cph'],
+                  'validate_cph', 'validate_cph_all'],
       packages=['amsr_avhrr'],
       install_requires=['pyephem', 'numpy', 'scipy'],
       zip_safe=False

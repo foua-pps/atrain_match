@@ -84,7 +84,9 @@ def validate_all(filenames):
     
     """
     from .util import get_diff_data
-    lwp_diff, restrictions, cwp, lwp = get_diff_data(filenames)
+    lwp_diff, restrictions, cwp, lwp, lon, lat = \
+        get_diff_data(filenames, ('cpp_cwp', 'amsr_lwp', 'longitudes',
+                                  'latitudes'))
     
     mean = lwp_diff.mean()
     median = np.median(lwp_diff)
@@ -96,7 +98,7 @@ def validate_all(filenames):
     print("Median: %.2f" % median)
     print("Standard deviation: %.2f" % std)
     
-    from .plotting import plot_hist, density
+    from .plotting import plot_hist, density, distribution_map
     hist_range = (np.percentile(lwp_diff, 1),
                   np.percentile(lwp_diff, 99))
     fig = plot_hist(lwp_diff, bins=500, range=hist_range)
@@ -104,13 +106,21 @@ def validate_all(filenames):
     fig.suptitle("CPP cwp - AMSR-E lwp\nRestrictions: %s\nPixels left: %d" %
                  ('; '.join(restrictions), lwp_diff.size))
     fig.savefig('validate_all.pdf')
-    if not None in (cwp, lwp):
-        fig2 = density(cwp, lwp,
-                       bins=xrange(0, 171))
-        fig2.axes[0].set_xlabel('CPP cwp (g m**-2)')
-        fig2.axes[0].set_ylabel('AMSR-E lwp (g m**-2)')
-        fig2.suptitle("Restrictions: %s\nNumber of pixels: %d" %
-                     ('; '.join(restrictions), lwp_diff.size))
-        fig2.savefig('density_all.pdf')
+    
+    # Density plot
+    fig2 = density(cwp, lwp,
+                   bins=xrange(0, 171))
+    fig2.axes[0].set_xlabel('CPP cwp (g m**-2)')
+    fig2.axes[0].set_ylabel('AMSR-E lwp (g m**-2)')
+    fig2.suptitle("Restrictions: %s\nNumber of pixels: %d" %
+                 ('; '.join(restrictions), cwp.size))
+    fig2.savefig('density_all.pdf')
+    
+    # Map of pixel distribution
+    fig3 = distribution_map(lon, lat)
+    fig3.suptitle("Distribution of valid pixels\n" +
+                  #("Restrictions: %s\n" % '; '.join(restrictions)) +
+                  "Number of Pixels: %d" % lon.size)
+    fig3.savefig('distribution_all.pdf')
     
     return mean, median, std, lwp_diff

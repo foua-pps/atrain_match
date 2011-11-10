@@ -18,9 +18,6 @@ MATCH_DIR = os.environ.get('MATCH_DIR', '.')
 #: Radius of AMSR-E footprint (m)
 AMSR_RADIUS = 10e3
 
-#: h5py compression settings (True, or an integer in range(10))
-_COMPRESSION = True
-
 
 def process_noaa_scene(satname, orbit, amsr_filename=None, ctype=None,
                        reff_max=None, lwp_max=None, water=False,
@@ -111,18 +108,6 @@ def process_case(amsr_filename, avhrr_filename, cpp_filename,
         fig.savefig(fig_base + "time_diff.png")
 
 
-def write_data(data, name, filename, mode=None, attributes=None):
-    import h5py
-    with h5py.File(filename, mode) as f:
-        if hasattr(data, 'mask'):
-            data = data.compressed()
-        d = f.create_dataset(name, data=data, compression=_COMPRESSION)
-        if attributes:
-            for k, v in attributes.items():
-                d.attrs[k] = v
-
-
-
 def get_sea(mapper, physiography_filename):
     """
     Get sea map from *physiography_filename*, mapped to *mapper*'s target.
@@ -183,7 +168,7 @@ def select_pixels(mapper, amsr_lwp, cpp_cwp, sea,
     return selection, restrictions
 
 def compare_lwps(mapper, amsr_filename, cpp_filename,
-                 physiography_filename, avhrr_filename=None, ctype=None,
+                 physiography_filename, avhrr_filename, ctype=None,
                  ctype_filename=None, reff_max=None, lwp_max=None,
                  water=False):
     """
@@ -215,16 +200,19 @@ def compare_lwps(mapper, amsr_filename, cpp_filename,
         logger.warning("No matches with restrictions: %s" %
                        '; '.join(restrictions))
     else:
+        from amsr_avhrr.util import write_data
         diff_file = (_fig_base(_match_file(amsr_filename, avhrr_filename)) +
                      'lwp_diff.h5')
         write_data(lwp_diff, 'lwp_diff', diff_file, mode='w',
                    attributes={'restrictions': restrictions})
-        selection_2d = selection.all(axis=-1)
-        selection_2d.fill_value = False
-        write_data(cpp_cwp.mean(axis=-1)[selection_2d.filled()],
+        selection_2d = selection.all(axis=-1).filled(False)
+        write_data(cpp_cwp.mean(axis=-1)[selection_2d],
                    'cpp_cwp', diff_file, mode='a')
-        write_data(amsr_lwp[selection_2d.filled()], 'amsr_lwp', diff_file,
+        write_data(amsr_lwp[selection_2d], 'amsr_lwp', diff_file,
                    mode='a')
+        write_data(selection_2d, 'selection', diff_file, mode='a')
+        write_data(lon[selection_2d], 'longitudes', diff_file, mode='a')
+        write_data(lat[selection_2d], 'latitudes', diff_file, mode='a')
     
     if _PLOTTING:
         title = _plot_title(amsr_filename, avhrr_filename)

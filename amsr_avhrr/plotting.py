@@ -268,6 +268,36 @@ def density(x, y, bins=None, log=True):
     return fig
 
 
+def distribution_map(lon, lat):
+    """
+    Create a plot of the distribution of pixels on a world map.
+    
+    """
+    from mpl_toolkits.basemap import Basemap
+    from matplotlib import pyplot as plt
+    
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    m = Basemap(projection='cyl', llcrnrlon=-180, llcrnrlat=-90,
+                urcrnrlon=180, urcrnrlat=90, resolution='c', ax=ax)
+    m.drawcoastlines(linewidth=.5, color='grey')
+    meridians = np.arange(-180, 181, 30)
+    parallels = np.arange(-90, 91, 30)
+    m.drawmeridians(meridians, linewidth=.5, color='grey')
+    m.drawparallels(parallels, linewidth=.5, color='grey')
+    ax.set_xticks(meridians[::2])
+    ax.set_yticks(parallels[::2])
+    
+    H, LATS, LONS = np.histogram2d(lat.ravel(), lon.ravel(),
+                                   bins=[np.arange(-90, 90, 1),
+                                         np.arange(-180, 180, 1)])
+    im = m.pcolor(LONS, LATS, np.ma.masked_equal(H, 0), edgecolors='none')
+    cbar = fig.colorbar(im, orientation='horizontal')
+    cbar.set_label('Frequency')
+    
+    return fig
+
+
 def basemap2area_def(m, x_size, y_size, **kwargs):
     """Get AreaDefinition instance from Basemap *m*
     
