@@ -121,7 +121,7 @@ def drawCalClsatGEOPROFAvhrrPlot(clsatObj_cloudsat, clsatObj_avhrr, caObj_calips
                     (abs(clsatObj_cloudsat.longitude[i] - caObj_calipso.longitude[0]) < 1.0):
                     calipso_displacement = int(i*CLOUDSAT_TRACK_RESOLUTION)
                     break
-        title = "AVHRR-CloudSat-Caliop Cloud Top Heights"
+        title = "AVHRR-CloudSat-CALIOP Cloud Top Heights"
     else:
         calipso_displacement = 0
 
@@ -131,7 +131,7 @@ def drawCalClsatGEOPROFAvhrrPlot(clsatObj_cloudsat, clsatObj_avhrr, caObj_calips
         for i in range(len(caObj_calipso.elevation)):
             if caObj_calipso.elevation[i] > 0:
                 ax.vlines(i, 0 ,caObj_calipso.elevation[i], 'k')
-        title = "AVHRR-Caliop Cloud Top Heights"
+        title = "AVHRR-CALIOP Cloud Top Heights"
     #: Plot Caliop 
     
     dummy = caObj_calipso.latitude.shape[0]
@@ -356,13 +356,13 @@ def drawCalClsatAvhrrPlotSATZ(latitude, AvhrrClsatSatz, AvhrrCalSatz, plotpath, 
         minvalue = numpy.min([numpy.nanmin(AvhrrClsatSatz), minvalue])
         title = format_title("AVHRR compared to CloudSat/CALIPSO")
 #        ax.plot(x, y, color="black", linestyle='solid', linewidth=0)
-        ax.plot(AvhrrClsatSatz_adjust, "r+", label = "CloudSat")   
+        ax.plot(AvhrrClsatSatz_adjust, "r+", label = "AVHRR - CloudSat")   
 
     ax.set_xlabel("Track Position")
     ax.set_ylabel("satellite zenith angle [deg]")
     ax.set_title(title)
     ax.set_ylim(minvalue-10, maxvalue+10)
-    ax.plot(AvhrrCalSatz,"g+", label = "CALIPSO")
+    ax.plot(AvhrrCalSatz,"g+", label = "AVHRR - CALIPSO")
     ax.legend()
     if isinstance(file_type, str) == True:
         fig.savefig("%s/%skm_%s_satz.%s"%(plotpath,RESOLUTION,basename, file_type))
