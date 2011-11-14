@@ -59,7 +59,7 @@ class MatchMapper(object):
                     (abs(self.time_diff) > self.time_threshold))
         return self._pixel_mask
     
-    def write(self, filename, compression=None):
+    def write(self, filename, compression=True):
         """
         Write mapper to hdf5 file *filename*.
         
