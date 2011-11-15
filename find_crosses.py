@@ -220,6 +220,8 @@ if __name__ == '__main__':
                       "easy use with ECMWF mars script for getting NWP files)")
     parser.add_option('-T', '--datetimes', action='store_true',
                       help="Print dates and times of crosses (YYYYMMDDhhmm)")
+    parser.add_option('-s', '--sno', action='store_true',
+                      help="Format output as snotimes would")
     
     (options, args) = parser.parse_args()
     if len(args) == 0:
@@ -255,9 +257,16 @@ if __name__ == '__main__':
                                 lon_range=lon_range, lat_range=lat_range))
     
     if not options.quiet:
+        if options.sno:
+            print("\n Satellites and Time Window: % 10s   % 10s % .2f min\n"
+                  % (satellite1, satellite2, options.time_window))
+        
         for cross in sorted(crosses):
             if not options.daytime or _daytime(cross):
-                print(cross)
+                if options.sno:
+                    print(cross.as_sno_line())
+                else:
+                    print(cross)
     
     if options.dates:
         print('/'.join(c.time1.strftime('%Y%m%d') for c in sorted(crosses)))
