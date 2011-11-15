@@ -14,6 +14,19 @@ dist_version = git_version.get_git_version()
 
 from setuptools import setup
 
+lib_modules = ['common', 'find_crosses', 'runutils', 'track_correlation',
+               'calipso',
+               'cloudsat_calipso_avhrr_match', 'cloudsat_calipso_avhrr_plot',
+               'cloudsat_calipso_avhrr_prepare', 'cloudsat_calipso_avhrr_statistics',
+               'cloudsat_calipso_process_master', 'cloudsat_cwc', 'cloudsat',
+               'cloudsat5km_cwc',
+               'common', 'config', 'runutils', 'track_correlation',
+               'filtfunc', 'radiance_tb_tables_kgtest', 'trajectory_plot']
+script_modules = ['merge_tles', 'amsr_avhrr_match', 'amsr_avhrr_validate',
+                  'validate_cph', 'validate_cph_all',
+                  'clean_sno_results', 'collect_last_day', 'fetch_nwp',
+                  'nwp_profile', 'process_master', 'run_aapp_on_ears']
+
 setup(name='atrain_match',
       description="Library modules used in matching satellite swaths",
       author=("Jakob Malm <jakob.malm@smhi.se>, "
@@ -25,9 +38,7 @@ setup(name='atrain_match',
       license='EUMETSAT NWCSAF license (?)',
       version=dist_version,
       provides=['atrain_match'],
-      py_modules=['find_crosses', 'common', 'merge_tles', 'track_correlation',
-                  'runutils', 'amsr_avhrr_match', 'amsr_avhrr_validate',
-                  'validate_cph', 'validate_cph_all'],
+      py_modules=lib_modules + script_modules,
       packages=['amsr_avhrr'],
       install_requires=['pyephem', 'numpy', 'scipy'],
       zip_safe=False
