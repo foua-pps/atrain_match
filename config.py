@@ -15,37 +15,29 @@ if RESOLUTION == 1:
     AVHRR_SAT = 'Metop02'
 elif RESOLUTION == 5:
     AVHRR_SAT = 'NOAA18'
-#: Base directory for ``atrain_match`` data
-SAT_DIR = os.environ.get('SAT_DIR',
-                         "/nobackup/smhid9/sm_erjoh/data")#/data/proj/saf/ejohansson/Projects/atrain_match")
-
-
-#: Don't know how this directory is used...
-MAIN_RUNDIR = os.getcwd()
 
 #: Base directory for validation results
-MAIN_DIR = os.environ.get('VALIDATION_RESULTS_DIR', "/nobackup/smhid9/sm_erjoh/atrain_match")
+_validation_results_dir = os.environ['VALIDATION_RESULTS_DIR']
 
 #: Base directory where matchup files are stored. (TODO: Are these still used?)
-SUB_DIR = "%s/Matchups" %MAIN_DIR
+SUB_DIR = "%s/Matchups" %_validation_results_dir
 
 #: Base directory for files containing matched data from PPS and Calipso/Cloudsat
-RESHAPE_DIR = "%s/Reshaped_Files" %MAIN_DIR
+RESHAPE_DIR = "%s/Reshaped_Files" %_validation_results_dir
 
 #: TODO: How is this directory used?
-DATA_DIR = "%s/Data" %MAIN_DIR
+DATA_DIR = "%s/Data" %_validation_results_dir
 
 #: Base directory for plots
-PLOT_DIR = "%s/Plot" %MAIN_DIR
+PLOT_DIR = "%s/Plot" %_validation_results_dir
 
 #: Base directory for statistics results
-RESULT_DIR = "%s/Results" %MAIN_DIR
+RESULT_DIR = "%s/Results" %_validation_results_dir
 
 
-_satellite_data_dir = '/nobackup/smhid9/sm_erjoh/data'
+_satellite_data_dir = '/data/arkiv/proj/safworks/data'
 #: Base dir for PPS data
-# PPS_DATA_DIR = os.environ.get('PPS_DATA_DIR', _satellite_data_dir + '/pps')
-PPS_DATA_DIR = "%s/%s" % (SAT_DIR, AVHRR_SAT)
+PPS_DATA_DIR = os.environ.get('PPS_DATA_DIR', _satellite_data_dir + '/pps')
 
 #: Base dir for Cloudsat data
 CLOUDSAT_DIR = os.environ.get('CLOUDSAT_DIR', _satellite_data_dir + '/cloudsat')
@@ -261,35 +253,19 @@ def subdir(self, date, *args, **kwargs):
         ending = kwargs.get('ending', None)
         if ending is None:
             ending = self.ending
-        dir = "%dkm/%d/%02d" % (RESOLUTION, date.year, date.month)
+        _dir = "%dkm/%d/%02d" % (RESOLUTION, date.year, date.month)
         if 'avhrr' in ending:
-            return os.path.join(dir,"import/PPS_data")                
+            return os.path.join(_dir,"import/PPS_data")                
         if 'sunsatangles' in ending:
-            return os.path.join(dir, "import/ANC_data")
+            return os.path.join(_dir, "import/ANC_data")
         if 'nwp' in ending:
-            return os.path.join(dir,"import/NWP_data")
+            return os.path.join(_dir,"import/NWP_data")
         for export_ending in ['cloudmask', 'cloudtype', 'ctth', 'precip']:
             if export_ending in ending:
-                return os.path.join(dir, "export")
+                return os.path.join(_dir, "export")
     else:
         return self.__class__.subdir(self, date, *args, **kwargs)
-"""
-from file_finders import PpsFileFinder
-++        if self.__class__ is PpsFileFinder:
-++            ending = kwargs.get('ending', None)
-++            if ending is None:
-++                ending = self.ending
-++            dir = "%dkm/%d/%02d" % (RESOLUTION, date.year, date.month)
-++            if 'avhrr' in ending:
-++                return os.path.join(dir,"import/PPS_data")                
-++            if 'sunsatangles' in ending:
-++                return os.path.join(dir, "import/ANC_data")
-++            if 'nwp' in ending:
-++                return os.path.join(dir,"import/NWP_data")
-++            for export_ending in ['cloudmask', 'cloudtype', 'ctth', 'precip']:
-++                if export_ending in ending:
-++                    return os.path.join(dir, "export")
-"""
+
 #========== Statistics setup ==========#
 #: List of dictionaries containing *satname*, *year*, and *month*, for which
 #: statistics should be summarized
@@ -339,7 +315,7 @@ MAP = [AREA]
 
 #: Base directory for ``atrain_match`` output to use when summarizing statistics.
 #: Should contain the ``Results`` directory
-MAIN_DATADIR = MAIN_DIR
+MAIN_DATADIR = _validation_results_dir
 
 #: TODO: No description yet...
 COMPILED_STATS_FILENAME = '%s/Results/compiled_stats' %MAIN_DATADIR

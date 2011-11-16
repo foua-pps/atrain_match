@@ -1,4 +1,7 @@
 """
+TODO: The following description needs updating. atrain_match is now run via
+process_master.py.
+
 Program cloudsat_calipso_avhrr_match.py
 
 This program is used to process and output statistics for the inter-comparison of AVHRR PPS

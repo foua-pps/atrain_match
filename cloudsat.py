@@ -10,12 +10,11 @@
 #         by setting start_sec1970[0] and end_sec1970[0]
 
 import pdb
-from pps_basic_configure import *
-from pps_error_messages import * #@UnusedWildImport
+from pps_error_messages import write_log
 
 #from calipso import * #@UnusedWildImport
 from config import AREA, SUB_DIR, DATA_DIR, sec_timeThr, RESOLUTION, \
-    NODATA, NLINES, SWATHWD, MAIN_DIR
+    NODATA, NLINES, SWATHWD
 from common import MatchupError, elements_within_range
 from calipso import DataObject, ppsAvhrrObject, define_pcs, writeCoverage,\
     createAvhrrTime, avhrr_track_from_matched
@@ -581,8 +580,7 @@ if __name__ == "__main__":
 #    import pps_io
     import numpy
     
-    CLOUDSAT_DIR = "%s/%s"%(MAIN_DIR, SUB_DIR)
-
+    from config import CLOUDSAT_DIR
     cloudsatfile = "%s/2007151082929_05796_CS_2B-GEOPROF_GRANULE_P_R04_E02.h5"%(CLOUDSAT_DIR)
 
     # --------------------------------------------------------------------
