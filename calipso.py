@@ -1012,7 +1012,9 @@ def get_calipso(filename):
         cloud_mask = numpy.reshape(cloud_mask,(winsz,ndim)).astype('d')
     
         calipso.cloud_fraction=numpy.zeros((winsz,ndim),'d')
-        _pypps_filters.texture(cloud_mask,calipso.cloud_fraction,winsz,"mean") #@UndefinedVariable
+        cloud_mask_nodata = 0
+        _pypps_filters.texture(cloud_mask, calipso.cloud_fraction, #@UndefinedVariable
+                               winsz, "mean", cloud_mask_nodata)
         calipso.cloud_fraction = calipso.cloud_fraction[winsz/2,::]
     
     elif RESOLUTION == 5:
