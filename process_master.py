@@ -37,7 +37,7 @@ def process_matchups(matchups, run_modes, reprocess=False, debug=False):
             try:
                 cloudsat_calipso_avhrr_match.run(match, mode, reprocess)
             except MatchupError, err:
-                write_log('WARNING', "Matchup problem: %s" % err.message)
+                write_log('WARNING', "Matchup problem: %s" % str(err))
                 no_matchup_files.append(match)
                 break
             except:
