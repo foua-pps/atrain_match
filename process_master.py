@@ -94,7 +94,7 @@ def main(args=None):
     if len(args) > 0:
         sno_output_files = args
     else:
-        sno_output_files = config.match_files
+        parser.error("No snotimes output files provided")
     
     config.DEBUG = options.debug
     matchups = []
