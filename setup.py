@@ -25,7 +25,8 @@ lib_modules = ['common', 'find_crosses', 'runutils', 'track_correlation',
 script_modules = ['merge_tles', 'amsr_avhrr_match', 'amsr_avhrr_validate',
                   'validate_cph', 'validate_cph_all',
                   'clean_sno_results', 'collect_last_day', 'fetch_nwp',
-                  'nwp_profile', 'process_master', 'run_aapp_on_ears']
+                  'nwp_profile', 'process_master', 'run_aapp_on_ears',
+                  'compile_stats']
 
 setup(name='atrain_match',
       description="Library modules used in matching satellite swaths",
@@ -39,7 +40,7 @@ setup(name='atrain_match',
       version=dist_version,
       provides=['atrain_match'],
       py_modules=lib_modules + script_modules,
-      packages=['amsr_avhrr'],
+      packages=['amsr_avhrr', 'statistics'],
       install_requires=['pyephem', 'numpy', 'scipy'],
       zip_safe=False
       )
