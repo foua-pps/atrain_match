@@ -13,6 +13,8 @@ class MatchMapper(object):
     """
     Map arrays from one swath to another.
     
+    Note that MatchMapper always works with an extra dimension: neighbour
+    
     """
     def __init__(self, rows, cols, pixel_mask, time_diff=None,
                  time_threshold=None):
