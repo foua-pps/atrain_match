@@ -97,6 +97,10 @@ def main(args=None):
         parser.error("No snotimes output files provided")
     
     config.DEBUG = options.debug
+    if options.debug:
+        import logging
+        logging.getLogger().setLevel(logging.DEBUG)
+    
     matchups = []
     for sno_output_file in sno_output_files:
         found_matchups = find_crosses.parse_crosses_file(sno_output_file)
@@ -104,7 +108,7 @@ def main(args=None):
         if len(found_matchups) == 0:
             write_log('WARNING', "No matchups found in SNO output file %s" % sno_output_file)
             if options.debug is True:
-                raise Warning
+                raise Warning()
             continue
         else:
             matchups.extend(found_matchups)
