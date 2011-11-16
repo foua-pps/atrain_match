@@ -108,29 +108,13 @@ def readCloudsatAvhrrMatchObj(filename):
 
 
 # ----------------------------------------
-def writeCloudsatAvhrrMatchObj(filename,ca_obj):
-    import h5py #@UnresolvedImport
+def writeCloudsatAvhrrMatchObj(filename,cl_obj):
+    from calipso import write_match_objects
+    groups = {'cloudsat': cl_obj.cloudsat.all_arrays,
+              'avhrr': cl_obj.avhrr.all_arrays}
+    write_match_objects(filename, cl_obj.diff_sec_1970, groups)
     
-    h5file = h5py.File(filename, 'w')
-    h5file.create_dataset("diff_sec_1970", data = ca_obj.diff_sec_1970)
-    
-    h5file.create_group('cloudsat')
-    for arname, value in ca_obj.calipso.all_arrays.items():
-        if value == None or value == []:
-            continue
-        else:
-            h5file.create_dataset(('cloudsat' + '/' + arname), data = value)
-    
-    h5file.create_group('avhrr')
-    for arname, value in ca_obj.avhrr.all_arrays.items():
-        if value == None or value == []:
-            continue
-        else:
-            print(arname)
-            h5file.create_dataset(('avhrr' + '/' + arname), data = value)
-    h5file.close()
     status = 1
-
     return status
 
 # -----------------------------------------------------

@@ -1,4 +1,3 @@
-
 #import pdb
 import inspect
 import os
@@ -83,6 +82,7 @@ class SatProjCov:
         self.coverage=None
         self.colidx=None
         self.rowidx=None 
+
 # ----------------------------------------
 def readCaliopAvhrrMatchObj(filename):
     import h5py #@UnresolvedImport
@@ -155,162 +155,82 @@ def readCaliopAvhrrMatchObj(filename):
 #        print("No surfttemp. Continue")
     return retv
 
+
+def write_match_objects(filename, diff_sec_1970, groups):
+    """
+    Write match objects to HDF5 file *filename*.
+    
+    Arguments:
+    
+        *diff_sec_1970*: `numpy.ndarray`
+            time diff between matched satellites
+        *groups*: dict
+            each key/value pair should hold a list of `numpy.ndarray` instances
+            to be written under HDF5 group with the same name as the key
+    
+    E.g. to write a calipso match:
+    
+    >>> groups = {'calipso': ca_obj.calipso.all_arrays,
+    ...           'avhrr': ca_obj.avhrr.all_arrays}
+    >>> write_match_objects('match.h5', ca_obj.diff_sec_1970, groups)
+    
+    The match object data can then be read using `read_match_objects`:
+    
+    >>> diff_sec_1970, groups = read_match_objects('match.h5')
+    
+    """
+    import h5py
+    with h5py.File(filename, 'w') as f:
+        f.create_dataset('diff_sec_1970', data=diff_sec_1970,
+                         compression=COMPRESS_LVL)
+        
+        for group_name, group_object in groups.items():
+            g = f.create_group(group_name)
+            for array_name, array in group_object.items():
+                if array is None:
+                    continue
+                try:
+                    if len(array) == 0:
+                        continue
+                except:
+                    # Scalar data can't be compressed
+                    # TODO: Write it as and attribute instead?
+                    g.create_dataset(array_name, data=array)
+                else:
+                    g.create_dataset(array_name, data=array,
+                                     compression=COMPRESS_LVL)
+
+
+def read_match_objects(filename):
+    """
+    Read match objects from HDF5 file *filename*. Returns a tuple
+    (diff_sec_1970, groups).
+    
+    """
+    import h5py
+    with h5py.File(filename, 'r') as f:
+        diff_sec_1970 = f['diff_sec_1970'][:]
+        groups = {}
+        for group_name in f.keys():
+            if group_name != 'diff_sec_1970':
+                g = f[group_name]
+                groups[group_name] = []
+                for dataset_name in g.keys():
+                    groups[group_name].append(g[dataset_name][:])
+    
+    return diff_sec_1970, groups
+
 # ----------------------------------------
 def writeCaliopAvhrrMatchObj(filename,ca_obj):
-
-    import h5py #@UnresolvedImport
-    h5file = h5py.File(filename, 'w')
-    h5file.create_dataset("diff_sec_1970", data = ca_obj.diff_sec_1970)
+    """
+    Write *ca_obj* to *filename*.
     
-    h5file.create_group('calipso')
-    for arname, value in ca_obj.calipso.all_arrays.items():
-        if value == None or value == []:
-            continue
-        else:
-            h5file.create_dataset(('calipso' + '/' + arname), data = value)
+    """
+    groups = {'calipso': ca_obj.calipso.all_arrays,
+              'avhrr': ca_obj.avhrr.all_arrays}
+    write_match_objects(filename, ca_obj.diff_sec_1970, groups)
     
-    h5file.create_group('avhrr')
-    for arname, value in ca_obj.avhrr.all_arrays.items():
-        if value == None or value == []:
-            continue
-        else:
-            print(arname)
-            h5file.create_dataset(('avhrr' + '/' + arname), data = value)
-    h5file.close()
     status = 1
-#    a=_pyhl.nodelist()
-#
-#    shape = [ca_obj.calipso.longitude.shape[0]]
-#
-#    # Match-Up - time difference:
-#    # ====
-#    b=_pyhl.node(_pyhl.DATASET_ID,"/diff_sec_1970")
-#    b.setArrayValue(1,shape,ca_obj.diff_sec_1970,"double",-1)
-#    a.addNode(b)
-#    
-#    # Calipso
-#    # ====
-#    b=_pyhl.node(_pyhl.GROUP_ID,"/calipso")
-#    a.addNode(b)
-#    b=_pyhl.node(_pyhl.DATASET_ID,"/calipso/longitude")
-#    b.setArrayValue(1,shape,ca_obj.calipso.longitude,"double",-1)
-#    a.addNode(b)
-#    b=_pyhl.node(_pyhl.DATASET_ID,"/calipso/latitude")
-#    b.setArrayValue(1,shape,ca_obj.calipso.latitude,"double",-1)
-#    a.addNode(b)
-#    b=_pyhl.node(_pyhl.DATASET_ID,"/calipso/avhrr_linnum")
-#    b.setArrayValue(1,shape,ca_obj.calipso.avhrr_linnum,"int",-1)
-#    a.addNode(b)
-#    b=_pyhl.node(_pyhl.DATASET_ID,"/calipso/avhrr_pixnum")
-#    b.setArrayValue(1,shape,ca_obj.calipso.avhrr_pixnum,"int",-1)
-#    a.addNode(b)
-#
-#    b=_pyhl.node(_pyhl.DATASET_ID,"/calipso/cloud_fraction")
-#    b.setArrayValue(1,shape,ca_obj.calipso.cloud_fraction,"double",-1)
-#    a.addNode(b)
-#
-#    shape2d = ca_obj.calipso.cloud_top_profile.shape
-#    b=_pyhl.node(_pyhl.DATASET_ID,"/calipso/cloud_top_profile")
-#    b.setArrayValue(1,shape2d,ca_obj.calipso.cloud_top_profile,"double",-1)
-#    a.addNode(b)
-#    b=_pyhl.node(_pyhl.DATASET_ID,"/calipso/cloud_base_profile")
-#    b.setArrayValue(1,shape2d,ca_obj.calipso.cloud_base_profile,"double",-1)
-#    a.addNode(b)
-#
-#    #b=_pyhl.node(_pyhl.DATASET_ID,"/calipso/cloud_mid_profile")
-#    #b.setArrayValue(1,shape2d,ca_obj.calipso.cloud_mid_profile,"double",-1)
-#    #a.addNode(b)
-#    b=_pyhl.node(_pyhl.DATASET_ID,"/calipso/cloud_mid_temperature")
-#    b.setArrayValue(1,shape2d,ca_obj.calipso.cloud_mid_temperature,"double",-1)
-#    a.addNode(b)
-#    b=_pyhl.node(_pyhl.DATASET_ID,"/calipso/number_of_layers_found")
-#    b.setArrayValue(1,shape,ca_obj.calipso.number_of_layers_found,"int",-1)
-#    a.addNode(b)    
-#    b=_pyhl.node(_pyhl.DATASET_ID,"/calipso/igbp")
-#    b.setArrayValue(1,shape,ca_obj.calipso.igbp,"uchar",-1)
-#    a.addNode(b)
-#    b=_pyhl.node(_pyhl.DATASET_ID,"/calipso/nsidc")
-#    b.setArrayValue(1,shape,ca_obj.calipso.nsidc,"uchar",-1)
-#    a.addNode(b)
-#    
-#    b=_pyhl.node(_pyhl.DATASET_ID,"/calipso/elevation")
-#    b.setArrayValue(1,shape,ca_obj.calipso.elevation,"double",-1)
-#    a.addNode(b)
-#    #b=_pyhl.node(_pyhl.DATASET_ID,"/calipso/time")
-#    #b.setArrayValue(1,shape,ca_obj.calipso.time,"double",-1)
-#    #a.addNode(b)
-#    #b=_pyhl.node(_pyhl.DATASET_ID,"/calipso/utc_time")
-#    #b.setArrayValue(1,shape,ca_obj.calipso.utc_time,"double",-1)
-#    #a.addNode(b)
-#    b=_pyhl.node(_pyhl.DATASET_ID,"/calipso/sec_1970")
-#    b.setArrayValue(1,shape,ca_obj.calipso.sec_1970,"double",-1)
-#    a.addNode(b)
-#    try:
-#        b=_pyhl.node(_pyhl.DATASET_ID,"/calipso/feature_classification_flags")
-#        print ca_obj.calipso.feature_classification_flags.shape
-#        #print ca_obj.calipso.feature_classification_flags.typecode()
-#        #print ca_obj.calipso.feature_classification_flags.itemsize()
-#        b.setArrayValue(1,shape2d,ca_obj.calipso.feature_classification_flags,"int",-1)
-#        a.addNode(b)
-#    except:
-#        pdb.set_trace()
-#        pass
-#    
-#    if RESOLUTION == 5:
-#        b=_pyhl.node(_pyhl.DATASET_ID,"/calipso/optical_depth")
-#        b.setArrayValue(1,shape2d,ca_obj.calipso.optical_depth,"double",-1)
-#        a.addNode(b)
-#        b=_pyhl.node(_pyhl.DATASET_ID,"/calipso/optical_depth_uncertainty")
-#        b.setArrayValue(1,shape2d,ca_obj.calipso.optical_depth_uncertainty,"double",-1)
-#        a.addNode(b) 
-#    # AVHRR
-#    # ====
-#    b=_pyhl.node(_pyhl.GROUP_ID,"/avhrr")
-#    a.addNode(b)
-#    b=_pyhl.node(_pyhl.DATASET_ID,"/avhrr/longitude")
-#    shape = ca_obj.avhrr.longitude.shape
-#    b.setArrayValue(1,shape,ca_obj.avhrr.longitude,"float",-1)
-#    a.addNode(b)
-#    b=_pyhl.node(_pyhl.DATASET_ID,"/avhrr/latitude")
-#    b.setArrayValue(1,shape,ca_obj.avhrr.latitude,"float",-1)
-#    a.addNode(b)
-#    b=_pyhl.node(_pyhl.DATASET_ID,"/avhrr/sec_1970")
-#    b.setArrayValue(1,shape,ca_obj.avhrr.sec_1970,"double",-1)
-#    a.addNode(b)
-#    b=_pyhl.node(_pyhl.DATASET_ID,"/avhrr/ctth_pressure")
-#    b.setArrayValue(1,shape,ca_obj.avhrr.ctth_pressure,"double",-1)
-#    a.addNode(b)
-#    b=_pyhl.node(_pyhl.DATASET_ID,"/avhrr/ctth_temperature")
-#    b.setArrayValue(1,shape,ca_obj.avhrr.ctth_temperature,"double",-1)
-#    a.addNode(b)
-#    b=_pyhl.node(_pyhl.DATASET_ID,"/avhrr/ctth_height")
-#    b.setArrayValue(1,shape,ca_obj.avhrr.ctth_height,"double",-1)
-#    a.addNode(b)
-#    b=_pyhl.node(_pyhl.DATASET_ID,"/avhrr/cloudtype")
-#    b.setArrayValue(1,shape,ca_obj.avhrr.cloudtype,"uchar",-1)
-#    a.addNode(b)
-#    b=_pyhl.node(_pyhl.DATASET_ID,"/avhrr/cloudtype_qflag")
-#    b.setArrayValue(1,shape,ca_obj.avhrr.cloudtype_qflag,"short",-1)
-#    a.addNode(b)
-#    
-#    b=_pyhl.node(_pyhl.DATASET_ID,"/avhrr/bt11micron")
-#    b.setArrayValue(1,shape,ca_obj.avhrr.bt11micron,"double",-1)
-#    a.addNode(b)
-#    b=_pyhl.node(_pyhl.DATASET_ID,"/avhrr/bt12micron")
-#    b.setArrayValue(1,shape,ca_obj.avhrr.bt12micron,"double",-1)
-#    a.addNode(b)
-#    try:        
-#        b=_pyhl.node(_pyhl.DATASET_ID,"/avhrr/surftemp")
-#        b.setArrayValue(1,shape,ca_obj.avhrr.surftemp,"double",-1)
-#        a.addNode(b)
-#    except AttributeError:
-#        print("No surftemp. Continue")
-#        
-#    b=_pyhl.node(_pyhl.DATASET_ID,"/avhrr/satz")
-#    b.setArrayValue(1,shape,ca_obj.avhrr.satz,"double",-1)
-#    a.addNode(b)
-#    status = a.write(filename,compress_lvl)
-
     return status
 
 # ------------------------------------------------------------------
@@ -706,7 +626,6 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj, surft, ctth, ctype, r
         ctype_track.append(ctype.cloudtype[row_matched[i],col_matched[i]])
         ctype_qflag_track.append(ctype.qualityflag[row_matched[i],col_matched[i]])
         if surft != None:
-            print("Surface temperatur")
             surft_track.append(surft[row_matched[i],col_matched[i]])        
         if dataObj.channels[3].data[row_matched[i],col_matched[i]] in \
                                 [dataObj.nodata, dataObj.missing_data]:
