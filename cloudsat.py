@@ -109,7 +109,7 @@ def readCloudsatAvhrrMatchObj(filename):
 
 # ----------------------------------------
 def writeCloudsatAvhrrMatchObj(filename,cl_obj):
-    from calipso import write_match_objects
+    from common import write_match_objects
     groups = {'cloudsat': cl_obj.cloudsat.all_arrays,
               'avhrr': cl_obj.avhrr.all_arrays}
     write_match_objects(filename, cl_obj.diff_sec_1970, groups)
@@ -398,7 +398,7 @@ def match_cloudsat_avhrr(ctypefile,cloudsatObj,avhrrGeoObj,avhrrObj,ctype,ctth,s
     # --------------------------------------------------------------------
 
     #cal,cap = get_cloudsat_avhrr_linpix(avhrrGeoObj,ctypefile,lonCloudsat,latCloudsat,timeCloudsat)
-    from calipso import map_avhrr
+    from common import map_avhrr
     cal, cap = map_avhrr(avhrrGeoObj, lonCloudsat, latCloudsat,
                          radius_of_influence=RESOLUTION * .7 * 1e3)
     
