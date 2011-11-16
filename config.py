@@ -10,7 +10,7 @@ import os
 #: Resolution, in km, to use for data files. This setting is used throughout
 #: ``atrain_match`` to specify file names, sub-directories, and data handling.
 #: Currently, 1 or 5 is supported
-RESOLUTION = 5
+RESOLUTION = int(os.environ.get('ATRAIN_RESOLUTION', 5))
 
 #: Base directory for validation results
 _validation_results_dir = os.environ['VALIDATION_RESULTS_DIR']
