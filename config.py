@@ -11,10 +11,6 @@ import os
 #: ``atrain_match`` to specify file names, sub-directories, and data handling.
 #: Currently, 1 or 5 is supported
 RESOLUTION = 5
-if RESOLUTION == 1:
-    AVHRR_SAT = 'Metop02'
-elif RESOLUTION == 5:
-    AVHRR_SAT = 'NOAA18'
 
 #: Base directory for validation results
 _validation_results_dir = os.environ['VALIDATION_RESULTS_DIR']
