@@ -412,7 +412,10 @@ def match_cloudsat_avhrr(ctypefile,cloudsatObj,avhrrGeoObj,avhrrObj,ctype,ctth,s
 
     # --------------------------------------------------------------------
 
-    cal,cap = get_cloudsat_avhrr_linpix(avhrrGeoObj,ctypefile,lonCloudsat,latCloudsat,timeCloudsat)
+    #cal,cap = get_cloudsat_avhrr_linpix(avhrrGeoObj,ctypefile,lonCloudsat,latCloudsat,timeCloudsat)
+    from calipso import map_avhrr
+    cal, cap = map_avhrr(avhrrGeoObj, lonCloudsat, latCloudsat,
+                         radius_of_influence=RESOLUTION * .7 * 1e3)
     
     calnan = numpy.where(cal == NODATA, numpy.nan, cal)
     if (~numpy.isnan(calnan)).sum() == 0:

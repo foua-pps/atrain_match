@@ -455,6 +455,22 @@ def getBoundingBox(lon,lat):
     return minlon,minlat,maxlon,maxlat
 
 # --------------------------------------------
+def map_avhrr(avhrr, lon, lat, radius_of_influence):
+    """
+    Map AVHRR object *avhrr* to (lon, lat).
+    
+    A better use of this function would be to return *mapper*! But the calling
+    functions would need some adjustment...
+    
+    """
+    from amsr_avhrr.match import match_lonlat
+    source = (avhrr.longitude, avhrr.latitude)
+    target = (lon, lat)
+    mapper = match_lonlat(source, target, radius_of_influence, n_neighbours=1)
+    
+    # Return the nearest (and the only calculated) neighbour
+    return mapper.rows.filled(NODATA)[:, 0], mapper.cols.filled(NODATA)[:, 0]
+
 def get_calipso_avhrr_linpix(avhrrIn,avhrrname,lon,lat,caTime):
     import numpy
 
@@ -772,7 +788,12 @@ def match_calipso_avhrr(ctypefile, calipsoObj, avhrrGeoObj, avhrrObj, ctype, ctt
     
     # --------------------------------------------------------------------
 
-    cal,cap = get_calipso_avhrr_linpix(avhrrGeoObj,ctypefile,lonCalipso,latCalipso,timeCalipso)
+    #cal,cap = get_calipso_avhrr_linpix(avhrrGeoObj,ctypefile,lonCalipso,latCalipso,timeCalipso)
+    # This function (match_calipso_avhrr) could use the MatchMapper object
+    # created in map_avhrr() to make things a lot simpler... See usage in
+    # amsr_avhrr_match.py
+    cal, cap = map_avhrr(avhrrGeoObj, lonCalipso.ravel(), latCalipso.ravel(),
+                         radius_of_influence=RESOLUTION * .7 * 1e3) # somewhat larger than radius...
     calnan = numpy.where(cal == NODATA, numpy.nan, cal)
     if (~numpy.isnan(calnan)).sum() == 0:
         raise MatchupError("No matches within region.")

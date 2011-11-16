@@ -174,7 +174,7 @@ MIN_OPTICAL_DEPTH = 0.5
 if RESOLUTION == 1:
     DSEC_PER_AVHRR_SCALINE = 1.0/6. # Full scan period, i.e. the time interval between two consecutive lines (sec)
     SWATHWD=2048
-    AREA = "arctic_super_5010"
+    AREA = 'no_area'
     #: CloudSat sampling frequency in km (or rather the most likely
     #: resolution difference between CALIPSO 1 km datasets and
     #: the CloudSat 2B-GEOPROF dataset). Nominally CloudSat sampling
