@@ -114,17 +114,25 @@ def parse_datetime_arg(s):
 
 
 def usage():
-    print("Usage: %s YYYYMMDDhhmm [...]" % sys.argv[0])
+    print("Usage: %s YYYYMMDDhhmm [...]\n"
+          "or     %s scene [...]" % sys.argv[0])
     sys.exit(-1)
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
         usage()
+    
     times = []
     for dt_string in sys.argv[1:]:
         try:
             times.append(parse_datetime_arg(dt_string))
         except ParseError, err:
-            print(err)
-            usage()
+            try:
+                from runutils import parse_scene
+                satname, _datetime, orbit = parse_scene(
+                                                    os.path.basename(dt_string))
+                times.append(_datetime)
+            except ValueError:
+                print(err)
+                usage()
     fetch_for_times(times)
