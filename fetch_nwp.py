@@ -28,15 +28,16 @@ def parse_nwp(filename):
     @param filename: filename to parse
     @type filename: string
     
-    @return: `datetime.datetime` object or None if *filename* couldn't be
-        parsed
+    @return: `datetime.datetime` object
+    
+    Raises :class:`ParseError` if *filename* can't be parsed
     
     """
     import re
     from datetime import timedelta
     match = re.match('(.*)_(\d{12})\+(\d{3})H(\d{2})M', filename)
     if not match:
-        return None
+        raise ParseError("Couldn't parse NWP filename %r" % filename)
     (name, #@UnusedVariable
      analysis_time, forecast_hours, forecast_minutes) = match.groups()
     base = parse_datetime_arg(analysis_time)
