@@ -178,11 +178,6 @@ def find_files_from_avhrr(avhrr_file):
     attach_subdir_from_config(cloudsat_finder)
     cloudsat_finder.set_time_window(config.SAT_ORBIT_DURATION + config.sec_timeThr)
     cloudsat_files = sorted(cloudsat_finder.find(datetime))
-    if len(cloudsat_files) == 0:
-        #TODO: Ordna det pa ett snyggare satt =)
-        pass
-#        raise MatchupError("No cloudsat-%s files found corresponding to %s." % \
-#                           (config.CLOUDSAT_TYPE, avhrr_file))
     
     calipso_finder = file_finders.CalipsoFileFinder(config.CALIPSO_DIR,
                                                     config.RESOLUTION)
@@ -225,9 +220,7 @@ def find_files_from_avhrr(avhrr_file):
     try:
         nwp_tsur_file = pps_finder.find(datetime, satname, ending='nwp_tsur.h5')[0]
     except IndexError:
-        #TODO: Fixa pa ett snyggare satt
-        nwp_tsur_file = []
-#        raise MatchupError("No nwp_tsur file found corresponding to %s." % avhrr_file)
+        nwp_tsur_file = None
     
     try:
         sunsatangles_file = pps_finder.find(datetime, satname, ending='sunsatangles.h5')[0]
@@ -310,7 +303,7 @@ def get_matchups_from_data(cross):
     except:
         ctth = None
 
-    if isinstance(nwp_tsur_file, str) == True:
+    if nwp_tsur_file is not None:
         write_log("INFO","Read NWP surface temperature")
         nwpinst = epshdf.read_nwpdata(nwp_tsur_file)
         surft = nwpinst.gain*nwpinst.data.astype('d') + nwpinst.intercept
@@ -318,13 +311,15 @@ def get_matchups_from_data(cross):
         write_log("INFO","NO NWP surface temperature File, Continue")
         surft = None
     
-    if isinstance(cloudsat_files, str) == True:
+    if len(cloudsat_files) > 0:
         write_log("INFO","Read CLOUDSAT %s data" % config.CLOUDSAT_TYPE)
         cl_matchup, cl_time_diff = get_cloudsat_matchups(cloudsat_files, cloudtype_file,
                                                          avhrrGeoObj, avhrrObj, ctype,
                                                          ctth, surft, avhrrAngObj)
     else:
-        write_log("INFO","NO CLOUDSAT File, Continue")
+        write_log("WARNING", "NO CLOUDSAT File, Continue")
+        cl_matchup = None
+        cl_time_diff = None
     
     write_log("INFO","Read CALIPSO data")
     ca_matchup, ca_time_diff = get_calipso_matchups(calipso_files, cloudtype_file,
@@ -354,20 +349,14 @@ def get_matchups_from_data(cross):
         os.makedirs(os.path.dirname(rematched_file_base))
     
     # Write cloudsat matchup
-    try:
+    if cl_matchup is not None:
         cl_match_file = rematched_file_base.replace('atrain_datatype', 'cloudsat-%s' % config.CLOUDSAT_TYPE)
         writeCloudsatAvhrrMatchObj(cl_match_file, cl_matchup)
-    except NameError:
-        cl_matchup = None
-        cl_time_diff = None
-        print('CloudSat is not defined. No CloudSat Match File created')
     # Write calipso matchup
     ca_match_file = rematched_file_base.replace('atrain_datatype', 'caliop')
     writeCaliopAvhrrMatchObj(ca_match_file,ca_matchup)
-
-    return {'cloudsat': cl_matchup, 'cloudsat_time_diff': cl_time_diff,
-            'calipso': ca_matchup, 'calipso_time_diff': ca_time_diff,
-            'basename': basename}
+    
+    return {'calipso': ca_matchup, 'cloudsat': cl_matchup, 'basename': basename}
 
 
 def get_matchups(cross, reprocess=False):
@@ -404,25 +393,25 @@ def get_matchups(cross, reprocess=False):
         attach_subdir_from_config(match_finder)
         try:
             cl_match_file = match_finder.find(datetime, satellite, atrain_datatype='cloudsat-%s' % config.CLOUDSAT_TYPE)[0]
+        except IndexError:
+            write_log('INFO', "No processed CloudSat match files found. Generating from source data.")
+            clObj = None
+        else:
             clObj = readCloudsatAvhrrMatchObj(cl_match_file) 
             basename = '_'.join(os.path.basename(cl_match_file).split('_')[1:5])
             write_log('INFO', "CloudSat Matchups read from previously processed data.")
-        except IndexError:
-            write_log('INFO', "No processed CloudSat match files found. Generating from source data.")
         try:
             ca_match_file = match_finder.find(datetime, satellite, atrain_datatype='caliop')[0]
+        except IndexError:
+            write_log('INFO', "No processed CALIPSO match files found. Generating from source data.")
+            caObj = None
+        else:
             caObj = readCaliopAvhrrMatchObj(ca_match_file)
             basename = '_'.join(os.path.basename(ca_match_file).split('_')[1:5])    
             write_log('INFO', "CALIPSO Matchups read from previously processed data.")
-        except IndexError:
-            write_log('INFO', "No processed CALIPSO match files found. Generating from source data.")
     #TODO: Fix a better solution for below so it can handle missing cloudsat better.
-    if None in [caObj] and None in [clObj]:
+    if caObj is None:
         return get_matchups_from_data(cross)
-    elif None in [caObj]:
-        return get_matchups_from_data(cross)
-    elif None in [clObj]:
-        return {'calipso': caObj, 'cloudsat': clObj, 'basename': basename}
     else:
         return {'calipso': caObj, 'cloudsat': clObj, 'basename': basename}
 
@@ -486,7 +475,7 @@ def run(cross, process_mode_dnt, reprocess=False):
         print("Program cloudsat_calipso_avhrr_match.py at line %i" %(inspect.currentframe().f_lineno+1))
         sys.exit(-9) 
     ## Cloudsat ##
-    if clsatObj != None:
+    if clsatObj is not None:
         if cloudsat_type == 'GEOPROF':
             clsatObj = CloudsatAvhrrSatz(clsatObj)
             cllon = clsatObj.cloudsat.longitude.copy()
@@ -568,18 +557,18 @@ def run(cross, process_mode_dnt, reprocess=False):
     statfilename = "%s/%ikm_%s_cloudsat_calipso_avhrr_stat.dat" % (resultpath,int(config.RESOLUTION),basename)
     statfile = open(statfilename,"w")
     if process_mode == "BASIC":
-        if clsatObj != None:
+        if clsatObj is not None:
             statfile.write("CloudSat min and max time diff: %f %f \n" %(clsat_min_diff,clsat_max_diff))
         else:
             statfile.write('No CloudSat \n')
         statfile.write("CALIPSO min and max time diff: %f %f \n" %(ca_min_diff,ca_max_diff))
     else:
-        if clsatObj != None:
+        if clsatObj is not None:
             statfile.write("CloudSat min and max time diff: See results for BASIC! \n")
         else:
             statfile.write('No CloudSat \n')
         statfile.write("CALIPSO min and max time diff: See results for BASIC! \n")
-    if clsatObj != None:
+    if clsatObj is not None:
         statfile.write("Start-Stop-Length Cloudsat: %f %f %f %f %s \n" %(clsatObj.cloudsat.latitude[0],clsatObj.cloudsat.longitude[0],clsatObj.cloudsat.latitude[len(clsatObj.cloudsat.latitude)-1],clsatObj.cloudsat.longitude[len(clsatObj.cloudsat.latitude)-1],len(data_ok)))
     else:
         statfile.write('No CloudSat \n')
@@ -643,7 +632,7 @@ def run(cross, process_mode_dnt, reprocess=False):
     if caObj.avhrr.surftemp != None:
         cal_surftemp_ok = numpy.repeat(caObj.avhrr.surftemp[::],cal_data_ok)
 
-    if clsatObj != None:
+    if clsatObj is not None:
         # Transfer CloudSat MODIS cloud flag to CALIPSO representation
         cal_MODIS_cflag = numpy.zeros(len(cal_data_ok),'b')
         for i in range(len(cal_data_ok)):
@@ -690,14 +679,14 @@ def run(cross, process_mode_dnt, reprocess=False):
         emissfilt_calipso_ok = numpy.logical_or(numpy.logical_and(numpy.greater(Ec, config.EMISS_LIMIT),caliop_min_height_ok),numpy.logical_or(numpy.equal(caliop_max_height,-9.),numpy.less_equal(caliop_max_height, config.EMISS_MIN_HEIGHT)))
     ##########################################################################################################################################
     ### 1 KM DATA CWC-RVOD ###                       
-    elif config.RESOLUTION == 1 and cloudsat_type == 'CWC-RVOD':
+    elif config.RESOLUTION == 1 and cloudsat_type == 'CWC-RVOD' and clsatObj is not None:
         elevationcwc = numpy.where(numpy.less_equal(clsatObj.cloudsatcwc.elevation,0),
                             -9, clsatObj.cloudsatcwc.elevation)
 
         data_okcwc = numpy.ones(clsatObj.cloudsatcwc.elevation.shape,'b')
                 
     ### 5 KM DATA CWC-RVOD ###                       
-    elif config.RESOLUTION == 5 and cloudsat_type == 'CWC-RVOD':   
+    elif config.RESOLUTION == 5 and cloudsat_type == 'CWC-RVOD' and clsatObj is not None:
         elevationcwc = numpy.where(numpy.less_equal(clsatObj.cloudsat5kmcwc.elevation,0),
                             -9, clsatObj.cloudsat5kmcwc.elevation,-9)
 
@@ -718,7 +707,7 @@ def run(cross, process_mode_dnt, reprocess=False):
         # in any processing mode:
         if 'emissfilt_calipso_ok' not in locals():
             emissfilt_calipso_ok = None
-        if clsatObj == None:
+        if clsatObj is None:
             file_type = ['eps', 'png']
             drawCalClsatAvhrrPlotTimeDiff(calat, None, caObj.diff_sec_1970, plotpath, basename, config.RESOLUTION, file_type)
             drawCalClsatAvhrrPlotSATZ(calat, None, caObj.avhrr.satz, plotpath, basename, config.RESOLUTION, file_type)
