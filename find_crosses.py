@@ -269,7 +269,8 @@ if __name__ == '__main__':
                     print(cross)
     
     if options.dates:
-        print('/'.join(c.time1.strftime('%Y%m%d') for c in sorted(crosses)))
+        unique_dates = set(c.time1.strftime('%Y%m%d') for c in sorted(crosses))
+        print('/'.join(sorted(unique_dates)))
     
     if options.datetimes:
         print(' '.join(c.time1.strftime('%Y%m%d%H%M') for c in sorted(crosses)))
