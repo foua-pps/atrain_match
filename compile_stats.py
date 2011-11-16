@@ -3,16 +3,13 @@ Created on Oct 13, 2010
 
 @author: a001696
 '''
-import pdb
-import sys
-sys.path.append('/home/sm_erjoh/Projects/atrain_match')
 from config import CASES, MAIN_DATADIR, MAP, RESOLUTION, COMPILED_STATS_FILENAME,\
     DNT_FLAG
 
 def compile_filtered_stats(results_files, filttype, write=False):
     """Run through all summary statistics."""
     print("=========== Cloud fraction ============")
-    import orrb_CFC_stat_emissfilt
+    from statistics import orrb_CFC_stat_emissfilt
     cfc_stats = orrb_CFC_stat_emissfilt.CloudFractionFilteredStats(results_files)
     if write:
         cfc_stats.write(COMPILED_STATS_FILENAME + '_cfc_%s.txt' %filttype)
@@ -20,7 +17,7 @@ def compile_filtered_stats(results_files, filttype, write=False):
         print(l)
     
     print("========== Cloud top height ===========")
-    import orrb_CTH_stat_emissfilt
+    from statistics import orrb_CTH_stat_emissfilt
     cth_stats = orrb_CTH_stat_emissfilt.CloudTopFilteredStats(results_files)
     if write:
         cth_stats.write(COMPILED_STATS_FILENAME + '_cth_%s.txt' %filttype)
@@ -33,7 +30,7 @@ def compile_surface_stats(results_files, surfacetype, write=False):
     """Run through all summary statistics."""
     
     print("=========== Cloud fraction ============")
-    import orrb_CFC_stat_surfaces
+    from statistics import orrb_CFC_stat_surfaces
     cfc_stats = orrb_CFC_stat_surfaces.CloudFractionSurfacesStats(results_files)
     if write:
         cfc_stats.write(COMPILED_STATS_FILENAME + '_cfc_%s.txt' %surfacetype)
@@ -41,7 +38,7 @@ def compile_surface_stats(results_files, surfacetype, write=False):
         print(l)
     
     print("========== Cloud top height ===========")
-    import orrb_CTH_stat_surfaces
+    from statistics import orrb_CTH_stat_surfaces
     cth_stats = orrb_CTH_stat_surfaces.CloudTopSurfacesStats(results_files)
     if write:
         cth_stats.write(COMPILED_STATS_FILENAME + '_cth_%s.txt' %surfacetype)
@@ -54,7 +51,7 @@ def compile_basic_stats(results_files, result_end, write=False):
     """Run through all summary statistics."""
     
     print("=========== Cloud fraction ============")
-    import orrb_CFC_stat
+    from statistics import orrb_CFC_stat
     cfc_stats = orrb_CFC_stat.CloudFractionStats(results_files)
     if write:
         cfc_stats.write(COMPILED_STATS_FILENAME + '_cfc_BASIC%s.txt' %result_end)
@@ -62,7 +59,7 @@ def compile_basic_stats(results_files, result_end, write=False):
         print(l)
     
     print("========== Cloud top height ===========")
-    import orrb_CTH_stat
+    from statistics import orrb_CTH_stat
     cth_stats = orrb_CTH_stat.CloudTopStats(results_files)
     if write:
         cth_stats.write(COMPILED_STATS_FILENAME + '_cth_BASIC%s.txt' %result_end)
@@ -71,7 +68,7 @@ def compile_basic_stats(results_files, result_end, write=False):
         print(l)
     
     print("============= Cloud type ==============")
-    import orrb_CTY_stat
+    from statistics import orrb_CTY_stat
     cty_stats = orrb_CTY_stat.CloudTypeStats(results_files, cfc_stats)
     if write:
         cty_stats.write(COMPILED_STATS_FILENAME + '_cty_BASIC%s.txt' %result_end)
@@ -161,5 +158,3 @@ if __name__ == '__main__':
                     results_files.extend(glob("%s/*.dat" % basic_indata_dir))
                 cfc_stats, cth_stats = compile_filtered_stats(results_files, result_end, write=options.write)
                 print('')
-    pdb.set_trace()
-
