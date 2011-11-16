@@ -176,6 +176,7 @@ def get_cloudsat(filename):
 # -----------------------------------------------------
 def read_cloudsat(filename):
     import h5py #@UnresolvedImport
+    from config import CLOUDSAT_TYPE
 
     def get_data(dataset):
         type_name = dataset.value.dtype.names
@@ -193,7 +194,7 @@ def read_cloudsat(filename):
 
     retv = CloudsatObject()
     h5file = h5py.File(filename, 'r')
-    root="/cloudsat"
+    root="2B-" + CLOUDSAT_TYPE
     for group in ['Geolocation Fields', 'Data Fields']:
         tempG = h5file["%s/%s" % (root, group)]
         for dataset in tempG.keys():
