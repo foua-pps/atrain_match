@@ -85,8 +85,8 @@ if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option('-w', '--write', action='store_true',
                       help="Write results to file")
-    parser.add_option('-b', '--basic', action='store_true',
-                      help='calculate the statistic for the mode BASIC')
+    parser.add_option('-b', '--no-basic', action='store_true',
+                      help="don't calculate the statistic for mode BASIC")
     parser.add_option('-s', '--surface', action='store_true',
                       help='calculate the statistic for the different surfaces')
     parser.add_option('-f', '--filter', action='store_true',
@@ -98,7 +98,7 @@ if __name__ == '__main__':
     results_files = []
     print("Gathering statistics from all validation results files in the "
           "following directories:")
-    if options.basic == True:
+    if not options.no_basic:
         print('Calculate statistic for mode BASIC')
         print(RESOLUTION)
         for dnt in DNT_FLAG:
