@@ -160,6 +160,31 @@ def find_avhrr_file(cross):
     return avhrr_file
 
 
+def require_h5(files):
+    """
+    Convert any '.hdf' files in *files* to '.h5'. Returns a list of '.h5' files.
+    
+    """
+    from config import H4H5_EXECUTABLE
+    
+    h5_files = []
+    for f in files:
+        if f.endswith('.h5'):
+            h5_files.append(f)
+        elif f.endswith('.hdf'):
+            h5_file = f.replace('.hdf', '.h5')
+            if not h5_file in files:
+                command = '%s %s' % (H4H5_EXECUTABLE, f)
+                write_log('INFO', "Converting %r to HDF5" % f)
+                if os.system(command):
+                    raise RuntimeError("Couldn't convert %r to HDF5" % f)
+                h5_files.append(h5_file)
+        else:
+            raise ValueError("File format of %r not recognized" % f)
+    
+    return h5_files
+
+
 def find_files_from_avhrr(avhrr_file):
     """
     Find all files needed to process matchup from source data files.
@@ -177,34 +202,16 @@ def find_files_from_avhrr(avhrr_file):
                                                       config.CLOUDSAT_TYPE)
     attach_subdir_from_config(cloudsat_finder)
     cloudsat_finder.set_time_window(config.SAT_ORBIT_DURATION + config.sec_timeThr)
-    cloudsat_files = sorted(cloudsat_finder.find(datetime))
+    cloudsat_files = sorted(require_h5(cloudsat_finder.find(datetime)))
     
     calipso_finder = file_finders.CalipsoFileFinder(config.CALIPSO_DIR,
                                                     config.RESOLUTION)
     attach_subdir_from_config(calipso_finder)
     calipso_finder.set_time_window(config.SAT_ORBIT_DURATION + config.sec_timeThr)
-    calipso_files = sorted(calipso_finder.find(datetime))
+    calipso_files = sorted(require_h5(calipso_finder.find(datetime)))
     if len(calipso_files) == 0:
         raise MatchupError("No calipso files found corresponding to %s." % avhrr_file)
-    # nedan kollar om filerna man hittar ar i hdf format eller h5 format. I fall
-    # de inte finns i h5 men i hdf sa converteras de till h5.
-    calipso_h5_med_filendelse = []
-    calipso_hdf_utan_filendelse = []
-    calipso_h5_utan_filendelse = []
-    for caFiles in calipso_files:
-        if caFiles.split('.')[-1] == 'hdf':
-            calipso_hdf_utan_filendelse.append('.'.join(caFiles.split('.')[:-1]))
-        elif caFiles.split('.')[-1] == 'h5':
-            calipso_h5_med_filendelse.append(caFiles)
-            calipso_h5_utan_filendelse.append('.'.join(caFiles.split('.')[:-1]))
     
-    for hdfU in calipso_hdf_utan_filendelse:
-        if hdfU not in calipso_h5_utan_filendelse:
-            cmdConv = '/home/pps/opt/H4H5/2.1.1/bin/h4toh5' + ' ' + hdfU + '.hdf'
-            print('.hdf file exist but not .h5. Therefore convert')
-            os.system(cmdConv)            
-            calipso_h5_med_filendelse.append(hdfU + '.h5')
-    calipso_files = sorted(calipso_h5_med_filendelse)
     try:
         cloudtype_file = pps_finder.find(datetime, satname, ending='cloudtype.h5')[0]
     except IndexError:

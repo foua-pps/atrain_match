@@ -337,3 +337,5 @@ SATELLITE = ['noaa18', 'noaa19']
 STUDIED_YEAR = ["2009"]
 STUDIED_MONTHS = ['01', '07']
 OUTPUT_DIR = "%s/Ackumulering_stat/Results/%s" % (MAIN_DATADIR, SATELLITE[0])
+
+H4H5_EXECUTABLE = '/data/proj/safworks/opt/linda3/H4H5/2_1_1/bin/h4toh5'
