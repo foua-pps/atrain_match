@@ -84,6 +84,9 @@ def main(args=None):
                       help="Disregard any previously generated Cloudsat- and "
                       "Calipso-AVHRR matchup files.")
     parser.add_option('-d', '--debug', action='store_true', default=False)
+    parser.add_option('-s', '--scenes', action='store_true',
+                      help="Interpret arguments as PPS scenes instead of "
+                      "sno_output_files (e.g. noaa19_20101201_1345_27891*)")
     (options, args) = parser.parse_args(args)
     
     if options.mode is not None:
@@ -102,16 +105,25 @@ def main(args=None):
         logging.getLogger().setLevel(logging.DEBUG)
     
     matchups = []
-    for sno_output_file in sno_output_files:
-        found_matchups = find_crosses.parse_crosses_file(sno_output_file)
-            
-        if len(found_matchups) == 0:
-            write_log('WARNING', "No matchups found in SNO output file %s" % sno_output_file)
-            if options.debug is True:
-                raise Warning()
-            continue
-        else:
-            matchups.extend(found_matchups)
+    if options.scenes:
+        # Simulate crosses from PPS scenes
+        from find_crosses import Cross
+        from runutils import parse_scene
+        for scene in args:
+            satname, time, orbit = parse_scene(scene) #@UnusedVariable
+            matchups.append(Cross(satname, '', time, time, -999, -999))
+    else:
+        for sno_output_file in sno_output_files:
+            found_matchups = find_crosses.parse_crosses_file(sno_output_file)
+                
+            if len(found_matchups) == 0:
+                write_log('WARNING', "No matchups found in SNO output file %s" %
+                          sno_output_file)
+                if options.debug is True:
+                    raise Warning()
+                continue
+            else:
+                matchups.extend(found_matchups)
     process_matchups(matchups, run_modes, options.reprocess, options.debug)
     
     return 0
