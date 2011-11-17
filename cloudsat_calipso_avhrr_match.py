@@ -261,7 +261,8 @@ def get_cloudsat_matchups(cloudsat_files, cloudtype_file, avhrrGeoObj, avhrrObj,
     return cl_matchup, (cl_min_diff, cl_max_diff)
 
 
-def get_calipso_matchups(calipso_files, cloudtype_file, avhrrGeoObj, avhrrObj, ctype, ctth, surft, avhrrAngObj):
+def get_calipso_matchups(calipso_files, cloudtype_file, avhrrGeoObj, avhrrObj,
+                         ctype, ctth, surft, avhrrAngObj, plot_file=None):
     """
     Read Calipso data and match with the given PPS data.
     """
@@ -269,6 +270,15 @@ def get_calipso_matchups(calipso_files, cloudtype_file, avhrrGeoObj, avhrrObj, c
     ca_matchup, ca_min_diff, ca_max_diff = match_calipso_avhrr(cloudtype_file, calipso,
                                                      avhrrGeoObj, avhrrObj, ctype,
                                                      ctth, surft, avhrrAngObj)
+    
+    if plot_file:
+        from cloudsat_calipso_avhrr_plot import map_avhrr_track
+        avhrr_lonlat = (avhrrGeoObj.longitude, avhrrGeoObj.latitude)
+        track_lonlat = (calipso.longitude, calipso.latitude)
+        fig = map_avhrr_track(avhrr_lonlat, track_lonlat)
+        if not os.path.exists(os.path.dirname(plot_file)):
+            os.makedirs(os.path.dirname(plot_file))
+        fig.savefig(plot_file)
     
     return ca_matchup, (ca_min_diff, ca_max_diff)
 
@@ -321,11 +331,6 @@ def get_matchups_from_data(cross):
         cl_matchup = None
         cl_time_diff = None
     
-    write_log("INFO","Read CALIPSO data")
-    ca_matchup, ca_time_diff = get_calipso_matchups(calipso_files, cloudtype_file,
-                                                    avhrrGeoObj, avhrrObj, ctype,
-                                                    ctth, surft, avhrrAngObj)
-    
     # Get satellite name, time, and orbit number from avhrr_file
     from file_finders import PpsFileFinder #@UnresolvedImport
     pps_finder = PpsFileFinder()
@@ -343,6 +348,13 @@ def get_matchups_from_data(cross):
                                        match_finder.subdir(datetime, satname=satellite),
                                        "%dkm_%s_atrain_datatype_avhrr_match.h5" % \
                                        (config.RESOLUTION, basename))
+    
+    write_log("INFO","Read CALIPSO data")
+    plot_file = rematched_file_base.replace('atrain_datatype', 'caliop').replace('h5', 'png')
+    ca_matchup, ca_time_diff = get_calipso_matchups(calipso_files, cloudtype_file,
+                                                    avhrrGeoObj, avhrrObj, ctype,
+                                                    ctth, surft, avhrrAngObj,
+                                                    plot_file=plot_file)
     
     # Create directories if they don't exist yet
     if not os.path.exists(os.path.dirname(rematched_file_base)):
@@ -694,6 +706,7 @@ def run(cross, process_mode_dnt, reprocess=False):
     #==============================================================================================
     #Draw plot
     if process_mode_dnt in config.PLOT_MODES:
+        write_log('INFO', "Plotting")
         plotpath = "%s/%s/%ikm/%s/%s/%s" %(config.PLOT_DIR, base_sat, config.RESOLUTION, base_year, base_month, config.AREA)
         if not os.path.exists(plotpath):
             os.makedirs(plotpath)
@@ -743,7 +756,8 @@ def run(cross, process_mode_dnt, reprocess=False):
             process_calipso_ok = emissfilt_calipso_ok
         else:
             process_calipso_ok = 0
-
+        
+        write_log('INFO', "Calculating statistics")
         CalculateStatistics(process_mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
                             cal_vert_feature, avhrr_ctth_csat_ok, data_ok,
                             cal_data_ok, avhrr_ctth_cal_ok, caliop_max_height,
