@@ -52,9 +52,15 @@ def parse_scene(filename):
     >>> parse_scene('noaa19_20100110_1045_04767.okay')
     ('noaa19', datetime.datetime(2010, 1, 10, 10, 45), 4767)
     
+    Leading directories are removed:
+    
+    >>> parse_scene('some/dir/noaa19_20100110_1045_04767')
+    ('noaa19', datetime.datetime(2010, 1, 10, 10, 45), 4767)
+    
     """
     from datetime import datetime
     import re
+    filename = os.path.basename(filename)
     match = re.match('(\w+)_([0-9]{8})_([0-9]{4})_([0-9]+)', filename)
     if not match:
         raise ValueError("Couldn't parse \"okay\" file %r" % filename)
