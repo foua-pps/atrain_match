@@ -330,13 +330,16 @@ def get_matchups_from_data(cross):
     
     if len(cloudsat_files) > 0:
         write_log("INFO","Read CLOUDSAT %s data" % config.CLOUDSAT_TYPE)
-        cl_matchup, cl_time_diff = get_cloudsat_matchups(cloudsat_files, cloudtype_file,
-                                                         avhrrGeoObj, avhrrObj, ctype,
-                                                         ctth, surft, avhrrAngObj)
+        try:
+            cl_matchup, cl_time_diff = get_cloudsat_matchups(cloudsat_files, cloudtype_file,
+                                                             avhrrGeoObj, avhrrObj, ctype,
+                                                             ctth, surft, avhrrAngObj)
+        except MatchupError, err:
+            write_log('WARNING', str(err))
+            cl_matchup = None
     else:
         write_log("WARNING", "NO CLOUDSAT File, Continue")
         cl_matchup = None
-        cl_time_diff = None
     
     # Get satellite name, time, and orbit number from avhrr_file
     from file_finders import PpsFileFinder #@UnresolvedImport
@@ -428,7 +431,7 @@ def get_matchups(cross, reprocess=False):
             caObj = readCaliopAvhrrMatchObj(ca_match_file)
             basename = '_'.join(os.path.basename(ca_match_file).split('_')[1:5])    
             write_log('INFO', "CALIPSO Matchups read from previously processed data.")
-    #TODO: Fix a better solution for below so it can handle missing cloudsat better.
+    
     if caObj is None:
         return get_matchups_from_data(cross)
     else:
