@@ -387,6 +387,6 @@ def map_avhrr_track(avhrr_lonlat, track_lonlat):
     _slice_2d = (slice(None, None, step),) * 2
     m.pcolormesh(avhrr_lonlat[0][_slice_2d], avhrr_lonlat[1][_slice_2d],
                  avhrr_lonlat[1][_slice_2d], alpha=.5)
-    m.plot(track_lonlat[0], track_lonlat[1], label='track')
+    m.plot(track_lonlat[0], track_lonlat[1], 'x', alpha=.2, label='track')
     
     return fig
