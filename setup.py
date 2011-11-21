@@ -20,8 +20,11 @@ lib_modules = ['common', 'find_crosses', 'runutils', 'track_correlation',
                'cloudsat_calipso_avhrr_prepare', 'cloudsat_calipso_avhrr_statistics',
                'cloudsat_calipso_process_master', 'cloudsat_cwc', 'cloudsat',
                'cloudsat5km_cwc',
-               'common', 'config', 'runutils', 'track_correlation',
-               'filtfunc', 'radiance_tb_tables_kgtest', 'trajectory_plot']
+               'common', 'runutils', 'track_correlation',
+               'filtfunc', 'radiance_tb_tables_kgtest', 'trajectory_plot',
+               #'config', # config should not be installed, but must be present
+               # on the PYTHONPATH at runtime.
+               ]
 script_modules = ['merge_tles', 'amsr_avhrr_match', 'amsr_avhrr_validate',
                   'validate_cph', 'validate_cph_all',
                   'clean_sno_results', 'collect_last_day', 'fetch_nwp',
