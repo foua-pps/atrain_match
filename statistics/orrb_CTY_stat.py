@@ -16,6 +16,8 @@ class CloudTypeStats(OrrbStats):
         OrrbStats.__init__(self, results_files)
     
     def do_stats(self):
+        OrrbStats.do_stats(self)
+        
         try:
             CFC_CALIOP = self.cfc_stats.mean_CFC_cal
             CFC_MEAN_ERROR = self.cfc_stats.bias_cal_perc

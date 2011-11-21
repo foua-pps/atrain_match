@@ -11,6 +11,8 @@ from orrb_stat_class import OrrbStats
 # -----------------------------------------------------
 class CloudFractionStats(OrrbStats):
     def do_stats(self):
+        OrrbStats.do_stats(self)
+        
         from numpy import divide
     
         scenes = len(self.results_files)

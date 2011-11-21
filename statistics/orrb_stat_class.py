@@ -15,9 +15,12 @@ class OrrbStats():
             self.do_stats()
     
     def do_stats(self):
-        """Calculate all statistics and put results in instance attributes (?)."""
-        raise NotImplementedError("The do_stats method should be implemented in"
-                                  " a subclass of OrrbStat.")
+        """
+        Calculate all statistics and put results in instance attributes (?).
+        
+        """
+        if not self.results_files:
+            raise RuntimeError("No results files")
     
     def printout(self):
         """Generate nice printout of the results."""
