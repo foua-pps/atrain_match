@@ -51,7 +51,7 @@ CPP_PHASE_VALUES = dict(no_cloud=0,
 
 def get_calipso_lonlat(calipso_filename):
     import h5py
-    with h5py.File(calipso_filename) as f:
+    with h5py.File(calipso_filename, 'r') as f:
         lon = f['Longitude'][:].ravel()
         lat = f['Latitude'][:].ravel()
     
