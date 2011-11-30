@@ -250,7 +250,7 @@ def process_case(calipso_filename, avhrr_filename, cpp_filename, verbose=False,
     
     logger.debug("Getting CPP water")
     cpp_phase = mapper(get_cpp_product(cpp_filename, 'cph'))
-    cpp_phase = cpp_phase[:, 0, 0] # mapper returns 3-d array (spatial + neighbours)
+    cpp_phase = cpp_phase[..., 0] # mapper returns extra neighbours dimension
     logger.debug("Getting Calipso water")
     cal_phase = get_calipso_phase(calipso_filename, max_layers=max_layers,
                                   qual_min=qual_min)
