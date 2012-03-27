@@ -19,7 +19,6 @@ from config import AREA, SUB_DIR, DATA_DIR, sec_timeThr, RESOLUTION, \
 from common import MatchupError, elements_within_range
 from calipso import DataObject, ppsAvhrrObject, define_pcs, writeCoverage,\
     createAvhrrTime, avhrr_track_from_matched
-
 COVERAGE_DIR = "%s/%skm/%s"%(SUB_DIR,RESOLUTION,AREA)
  
 class CloudsatObject(DataObject):

@@ -7,7 +7,7 @@ import pdb
 import sys
 sys.path.append('/home/sm_erjoh/Projects/atrain_match')
 from config import CASES, MAIN_DATADIR, MAP, RESOLUTION, COMPILED_STATS_FILENAME,\
-    DNT_FLAG
+    DNT_FLAG, CALIPSO_CLOUD_FRACTION
 
 def compile_filtered_stats(results_files, filttype, write=False):
     """Run through all summary statistics."""
@@ -115,7 +115,10 @@ if __name__ == '__main__':
                     basic_indata_dir = basic_indata_dir + '_' + dnt
                     result_end = '_%s' %dnt
                 print("-> " + basic_indata_dir)
-                results_files.extend(glob("%s/*.dat" % basic_indata_dir))
+                if CALIPSO_CLOUD_FRACTION == True:
+                    results_files.extend(glob("%s/CCF_%skm*.dat" %(basic_indata_dir, RESOLUTION)))
+                else:
+                    results_files.extend(glob("%s/%skm*.dat" %(basic_indata_dir, RESOLUTION)))
             cfc_stats, cth_stats, cty_stats = compile_basic_stats(results_files, result_end, write=options.write)
             print('')
             
@@ -135,7 +138,10 @@ if __name__ == '__main__':
                         basic_indata_dir = basic_indata_dir + '_' + dnt
                         result_end = '%s_%s' %(surface, dnt)
                     print("-> " + basic_indata_dir)
-                    results_files.extend(glob("%s/*.dat" % basic_indata_dir))
+                    if CALIPSO_CLOUD_FRACTION == True:
+                        results_files.extend(glob("%s/CCF_%skm*.dat" %(basic_indata_dir, RESOLUTION)))
+                    else:
+                        results_files.extend(glob("%s/%skm*.dat" %(basic_indata_dir, RESOLUTION)))
                 cfc_stats, cth_stats = compile_surface_stats(results_files, result_end, write=options.write)
                 print('')
     
@@ -158,7 +164,10 @@ if __name__ == '__main__':
                         basic_indata_dir = "%s-%.1f" %(basic_indata_dir, MIN_OPTICAL_DEPTH)
                         result_end = "%s-%.1f" %(result_end, MIN_OPTICAL_DEPTH)
                     print("-> " + basic_indata_dir)
-                    results_files.extend(glob("%s/*.dat" % basic_indata_dir))
+                    if CALIPSO_CLOUD_FRACTION == True:
+                        results_files.extend(glob("%s/CCF_%skm*.dat" %(basic_indata_dir, RESOLUTION)))
+                    else:
+                        results_files.extend(glob("%s/%skm*.dat" %(basic_indata_dir, RESOLUTION)))
                 cfc_stats, cth_stats = compile_filtered_stats(results_files, result_end, write=options.write)
                 print('')
     pdb.set_trace()

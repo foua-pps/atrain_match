@@ -84,6 +84,7 @@ EMISS_MIN_HEIGHT = 2000.0
 #: A value of 0.2-0.3 in cloud emissivity seems reasonable
 EMISS_LIMIT = 0.2
 
+CALIPSO_CLOUD_FRACTION = True
 #: Processing modes which can be handled
 # TODO: Split into latitude dependent area, snow-ice-land-sea area and day-night-twilight
 ALLOWED_MODES = ['BASIC',
@@ -178,7 +179,21 @@ ALLOWED_MODES = ['BASIC',
                  'POLAR_ICE_COVER_SEA_DAY',
                  'POLAR_ICE_COVER_SEA_NIGHT',
                  'POLAR_ICE_COVER_SEA_TWILIGHT']
-
+#latitude_filter = ['TROPICAL', 'SUB-TROPIC-ZONE', 'HIGH-LATITUDES', 'POLAR']
+#land_filter = ['SNOW-COVER-LAND', 'SNOW-FREE-LAND', 'ICE-FREE-SEA', 'ICE-COVER-SEA']
+#day_night_filter = ['DAY', 'NIGHT', 'TWILIGHT']
+#modes = set()
+#modes.add('BASIC') # no filtering
+#for lat in latitude_filter:
+#    modes.add(lat)
+#    for land in land_filter:
+#        modes.add('_'.join([lat, land]))
+#        modes.add(land)
+#        for day in day_night_filter:
+#            modes.add('_'.join([lat, land, day]))
+#            modes.add('_'.join([lat, day]))
+#            modes.add(day)
+    
 
 #: Threshold for optical thickness. If optical thickness is below this value it will be filtered out.
 MIN_OPTICAL_DEPTH = 0.5
@@ -342,8 +357,11 @@ MAP = [AREA]
 MAIN_DATADIR = MAIN_DIR
 
 #: TODO: No description yet...
-COMPILED_STATS_FILENAME = '%s/Results/compiled_stats' %MAIN_DATADIR
-
+if CALIPSO_CLOUD_FRACTION == True:
+    COMPILED_STATS_FILENAME = '%s/Results/compiled_stats_CCF' %MAIN_DATADIR
+else:
+    COMPILED_STATS_FILENAME = '%s/Results/compiled_stats' %MAIN_DATADIR
+    
 #: Surfaces for which statistics should be summarized
 SURFACES = ["ICE_COVER_SEA", "ICE_FREE_SEA", "SNOW_COVER_LAND", "SNOW_FREE_LAND", \
             "COASTAL_ZONE", "TROPIC_ZONE", "TROPIC_ZONE_SNOW_FREE_LAND", "TROPIC_ZONE_ICE_FREE_SEA", \
