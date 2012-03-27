@@ -28,12 +28,12 @@ def clean(crosses, file_finder=None):
     return cleaned
 
 
-def prepare_aapp(hrpt_filename, dir):
+def prepare_aapp(hrpt_filename, _dir):
     """Create symbolic link to *hrpt_filename* in *aapp_working_dir/incoming*,
     in preparation for running AAPP to create Level 1B AVHRR files, suitable for
     PPS processing."""
     import os
-    os.symlink(hrpt_filename, os.path.join(dir, os.path.basename(hrpt_filename)))
+    os.symlink(hrpt_filename, os.path.join(_dir, os.path.basename(hrpt_filename)))
 
 
 if __name__ == '__main__':

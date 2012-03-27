@@ -28,15 +28,16 @@ def parse_nwp(filename):
     @param filename: filename to parse
     @type filename: string
     
-    @return: `datetime.datetime` object or None if *filename* couldn't be
-        parsed
+    @return: `datetime.datetime` object
+    
+    Raises :class:`ParseError` if *filename* can't be parsed
     
     """
     import re
     from datetime import timedelta
     match = re.match('(.*)_(\d{12})\+(\d{3})H(\d{2})M', filename)
     if not match:
-        return None
+        raise ParseError("Couldn't parse NWP filename %r" % filename)
     (name, #@UnusedVariable
      analysis_time, forecast_hours, forecast_minutes) = match.groups()
     base = parse_datetime_arg(analysis_time)
@@ -114,17 +115,25 @@ def parse_datetime_arg(s):
 
 
 def usage():
-    print("Usage: %s YYYYMMDDhhmm [...]" % sys.argv[0])
+    print("Usage: %s YYYYMMDDhhmm [...]\n"
+          "or     %s scene [...]" % sys.argv[0])
     sys.exit(-1)
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
         usage()
+    
     times = []
     for dt_string in sys.argv[1:]:
         try:
             times.append(parse_datetime_arg(dt_string))
         except ParseError, err:
-            print(err)
-            usage()
+            try:
+                from runutils import parse_scene
+                satname, _datetime, orbit = parse_scene(
+                                                    os.path.basename(dt_string))
+                times.append(_datetime)
+            except ValueError:
+                print(err)
+                usage()
     fetch_for_times(times)

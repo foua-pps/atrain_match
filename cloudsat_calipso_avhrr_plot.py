@@ -164,8 +164,6 @@ def drawCalClsatGEOPROFAvhrrPlot(clsatObj_cloudsat, clsatObj_avhrr, caObj_calips
             filename = "%s/%skm_%s_cloudsat_calipso_avhrr_clouds.%s" \
                 %(plotpath, RESOLUTION, basename, filetype)
             fig.savefig(filename, format = filetype)
-    ax.clear()
-    fig.clear()
       
 # -----------------------------------------------------
 def drawCalClsatCWCAvhrrPlot(clsatObj, elevationcwc, data_okcwc, plotpath, basename, phase):#, caObj, CALIPSO_DISPLACED, caliop_base, caliop_height, cal_data_ok, avhrr_ctth_cal_ok):
@@ -212,8 +210,6 @@ def drawCalClsatCWCAvhrrPlot(clsatObj, elevationcwc, data_okcwc, plotpath, basen
     filename = "%s/%ikm_%s_calipso_%sP."%(plotpath, RESOLUTION, basename, phase)
     fig.savefig(filename + 'eps')
     fig.savefig(filename + 'png')
-    ax.clear()
-    fig.clear()
     # ----------------------------------------------------------------------------------------------------------------------------------
     
     #------------------------------------------------------------------------------ 
@@ -276,8 +272,6 @@ def drawCalClsatCWCAvhrrPlot(clsatObj, elevationcwc, data_okcwc, plotpath, basen
     ax1.set_ylim(0, maxheight)
     fig1.savefig(filename + 'eps')
     fig1.savefig(filename + 'png')
-    ax1.clear()
-    fig1.clear()
 # -----------------------------------------------------
 
 def drawCalClsatAvhrrPlotTimeDiff(latitude, clsat_diff_sec_1970, cal_diff_sec_1970, plotpath, basename, res, file_type='eps'):
@@ -369,5 +363,31 @@ def drawCalClsatAvhrrPlotSATZ(latitude, AvhrrClsatSatz, AvhrrCalSatz, plotpath, 
     else:
         for filetype in file_type:
             fig.savefig("%s/%skm_%s_satz.%s"%(plotpath,RESOLUTION,basename, filetype))
-    ax.clear()
-    fig.clear()
+
+
+def map_avhrr_track(avhrr_lonlat, track_lonlat):
+    """
+    Plot *avhrr_lonlat* and *track_lonlat* on global map and return the figure.
+    
+    """
+    from matplotlib.pyplot import figure
+    from mpl_toolkits.basemap import Basemap
+    
+    fig = figure()
+    ax = fig.add_subplot(111)
+    m = Basemap(projection='cyl', llcrnrlon=-180, llcrnrlat=-90,
+                urcrnrlon=180, urcrnrlat=90, resolution='l', ax=ax)
+    
+    m.drawcoastlines(linewidth=.5, color='grey')
+    
+    # Don't draw each pixel, or the machine will choke!
+    npixels = avhrr_lonlat[0].size
+    from math import sqrt
+    step = int(round(sqrt(npixels / 1e5))) # Will give a total of about 1e5 pixels
+    _slice_2d = (slice(None, None, step),) * 2
+    m.pcolormesh(avhrr_lonlat[0][_slice_2d], avhrr_lonlat[1][_slice_2d],
+                 avhrr_lonlat[1][_slice_2d], alpha=.5)
+    m.plot(track_lonlat[0], track_lonlat[1], 'o', markersize=1, alpha=.1,
+           label='track')
+    
+    return fig

@@ -5,14 +5,15 @@
 
 import string
 import math
-import pdb
 
 from orrb_stat_class import OrrbStats
 
 # -----------------------------------------------------
 class CloudFractionStats(OrrbStats):
     def do_stats(self):
-        from numpy import NaN, divide
+        OrrbStats.do_stats(self)
+        
+        from numpy import divide
     
         scenes = len(self.results_files)
         

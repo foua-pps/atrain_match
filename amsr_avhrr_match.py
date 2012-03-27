@@ -81,7 +81,7 @@ def process_case(amsr_filename, avhrr_filename, cpp_filename,
         mapper = match(amsr_filename, avhrr_filename,
                        radius_of_influence=AMSR_RADIUS,
                        n_neighbours=n_neighbours)
-        mapper.write(match_path, compression=_COMPRESSION)
+        mapper.write(match_path)
         logger.info("Match written to %r" % match_path)
     
     if False:

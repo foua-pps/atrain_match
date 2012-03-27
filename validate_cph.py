@@ -49,9 +49,17 @@ CPP_PHASE_VALUES = dict(no_cloud=0,
                         no_observation=-1)
 
 
+#: Cloud type phase value equivalents
+CTYPE_PHASE_BITS = {'Not processed or undefined': 1,
+                    'Water': 2,
+                    'Ice': 4,
+                    'Tb11 below 260K': 8}
+
+
+
 def get_calipso_lonlat(calipso_filename):
     import h5py
-    with h5py.File(calipso_filename) as f:
+    with h5py.File(calipso_filename, 'r') as f:
         lon = f['Longitude'][:].ravel()
         lat = f['Latitude'][:].ravel()
     
@@ -122,7 +130,7 @@ def find_calipso(avhrr_filename):
     return amsr_finder.find(parsed['datetime'])
 
 
-def process_noaa_scene(satname, orbit, **kwargs):
+def process_noaa_scene(satname, orbit, cloudtype=False, **kwargs):
     """
     Match this noaa scene with cloudsat scenes and process.
     
@@ -139,10 +147,40 @@ def process_noaa_scene(satname, orbit, **kwargs):
     calipso_filenames = find_calipso(avhrr_filename)
     logger.debug("Found Calipso files: %r" % calipso_filenames)
     
-    cpp_filename = os.path.join(OUTPUT_DIR, ppsarg.files.cpp)
+    if cloudtype:
+        cpp_filename = os.path.join(OUTPUT_DIR, ppsarg.files.pge02)
+        
+        # Replace get_cpp_product(), imported from amsr_avhrr.util with
+        # a function which reads cloud phase from the cloud type product
+        def get_ctype_phase(filename, *args, **kwargs):
+            from ppshdf_cloudproducts import read_cloudtype
+            # read_cloudtype has to have wtype=1, or it will segfault,
+            # at least with ACPG <= r2_46
+            cloudtype = read_cloudtype(filename, wtype=1, wqual=0, wphase=1)
+            # Initialize phase array to 'no_observation'
+            phase = cloudtype.phaseflag * 0 + CPP_PHASE_VALUES['no_observation']
+            phase[(cloudtype.phaseflag & CTYPE_PHASE_BITS['Water']) != 0] = \
+                CPP_PHASE_VALUES['liquid']
+            phase[(cloudtype.phaseflag & CTYPE_PHASE_BITS['Ice']) != 0] = \
+                CPP_PHASE_VALUES['ice']
+            phase[((cloudtype.phaseflag & CTYPE_PHASE_BITS['Water']) != 0) &
+                  ((cloudtype.phaseflag & CTYPE_PHASE_BITS['Ice']) != 0)] = \
+                CPP_PHASE_VALUES['mixed']
+            
+            return phase
+        
+        global get_cpp_product
+        _get_cpp_product_orig = get_cpp_product
+        get_cpp_product = get_ctype_phase
+    else:
+        cpp_filename = os.path.join(OUTPUT_DIR, ppsarg.files.cpp)
     
     for calipso_filename in calipso_filenames:
         process_case(calipso_filename, avhrr_filename, cpp_filename, **kwargs)
+    
+    if cloudtype:
+        # Restore get_cpp_product()
+        get_cpp_product = _get_cpp_product_orig
 
 
 def _filename_base(avhrr_filename, calipso_filename):
@@ -239,7 +277,8 @@ def validate(cpp_phase, cal_phase, verbose=False):
             print_values(cal_phase == CALIPSO_PHASE_VALUES[k], CPP_PHASE_VALUES.keys())
 
 
-def process_case(calipso_filename, avhrr_filename, cpp_filename, verbose=False,
+def process_case(calipso_filename, avhrr_filename, cpp_filename=None,
+                 ctype_filename=None, verbose=False,
                  max_layers=9, qual_min=CALIPSO_QUAL_VALUES['none']):
     """
     This is the work horse.
@@ -250,7 +289,7 @@ def process_case(calipso_filename, avhrr_filename, cpp_filename, verbose=False,
     
     logger.debug("Getting CPP water")
     cpp_phase = mapper(get_cpp_product(cpp_filename, 'cph'))
-    cpp_phase = cpp_phase[:, 0, 0] # mapper returns 3-d array (spatial + neighbours)
+    cpp_phase = cpp_phase[..., 0] # mapper returns extra neighbours dimension
     logger.debug("Getting Calipso water")
     cal_phase = get_calipso_phase(calipso_filename, max_layers=max_layers,
                                   qual_min=qual_min)
@@ -383,6 +422,9 @@ if __name__ == '__main__':
     parser.add_option('-q', '--quality', type='int',
                       help="Screen out pixels with lower quality than N. "
                       "N must be in 0..3 (default 2)")
+    parser.add_option('-t', '--cloudtype', action='store_true',
+                      help="Get cloud phase from the cloud type product rather "
+                      "than from CPP cloud phase")
     opts, args = parser.parse_args()
     
     if opts.verbose:
@@ -398,6 +440,8 @@ if __name__ == '__main__':
         processing_kwargs['max_layers'] = opts.max_layers
     if opts.quality is not None:
         processing_kwargs['qual_min'] = opts.quality
+    if opts.cloudtype is not None:
+        processing_kwargs['cloudtype'] = opts.cloudtype
     
     # Command line handling
     if args[0] == 'satproj':

@@ -6,6 +6,9 @@ Utilities
 """
 
 import numpy as np
+import logging
+logger = logging.getLogger(__name__)
+
 
 from datetime import datetime
 TAI93 = datetime(1993, 1, 1)
@@ -101,7 +104,12 @@ def get_cpp_product(filename, product):
     """Get *product* from CPP file *filename*."""
     from ppshdf_cloudproducts import CppProducts
     
-    cpp = CppProducts(filename=filename, product_names=[product])
+    try:
+        cpp = CppProducts.from_h5(filename, product_names=[product])
+    except TypeError:
+        logger.warning("Running with old ACPG (< r2_45) -- using old "
+                       "CppProducts interface")
+        cpp = CppProducts(filename=filename, product_names=[product])
     return cpp.products[product].array
 
 

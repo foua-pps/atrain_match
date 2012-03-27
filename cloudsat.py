@@ -10,12 +10,11 @@
 #         by setting start_sec1970[0] and end_sec1970[0]
 
 import pdb
-from pps_basic_configure import *
-from pps_error_messages import * #@UnusedWildImport
+from pps_error_messages import write_log
 
 #from calipso import * #@UnusedWildImport
 from config import AREA, SUB_DIR, DATA_DIR, sec_timeThr, RESOLUTION, \
-    NODATA, NLINES, SWATHWD, MAIN_DIR
+    NODATA, NLINES, SWATHWD
 from common import MatchupError, elements_within_range
 from calipso import DataObject, ppsAvhrrObject, define_pcs, writeCoverage,\
     createAvhrrTime, avhrr_track_from_matched
@@ -108,29 +107,13 @@ def readCloudsatAvhrrMatchObj(filename):
 
 
 # ----------------------------------------
-def writeCloudsatAvhrrMatchObj(filename,ca_obj):
-    import h5py #@UnresolvedImport
+def writeCloudsatAvhrrMatchObj(filename,cl_obj):
+    from common import write_match_objects
+    groups = {'cloudsat': cl_obj.cloudsat.all_arrays,
+              'avhrr': cl_obj.avhrr.all_arrays}
+    write_match_objects(filename, cl_obj.diff_sec_1970, groups)
     
-    h5file = h5py.File(filename, 'w')
-    h5file.create_dataset("diff_sec_1970", data = ca_obj.diff_sec_1970)
-    
-    h5file.create_group('cloudsat')
-    for arname, value in ca_obj.calipso.all_arrays.items():
-        if value == None or value == []:
-            continue
-        else:
-            h5file.create_dataset(('cloudsat' + '/' + arname), data = value)
-    
-    h5file.create_group('avhrr')
-    for arname, value in ca_obj.avhrr.all_arrays.items():
-        if value == None or value == []:
-            continue
-        else:
-            print(arname)
-            h5file.create_dataset(('avhrr' + '/' + arname), data = value)
-    h5file.close()
     status = 1
-
     return status
 
 # -----------------------------------------------------
@@ -192,6 +175,7 @@ def get_cloudsat(filename):
 # -----------------------------------------------------
 def read_cloudsat(filename):
     import h5py #@UnresolvedImport
+    from config import CLOUDSAT_TYPE
 
     def get_data(dataset):
         type_name = dataset.value.dtype.names
@@ -209,7 +193,7 @@ def read_cloudsat(filename):
 
     retv = CloudsatObject()
     h5file = h5py.File(filename, 'r')
-    root="/cloudsat"
+    root="2B-" + CLOUDSAT_TYPE
     for group in ['Geolocation Fields', 'Data Fields']:
         tempG = h5file["%s/%s" % (root, group)]
         for dataset in tempG.keys():
@@ -412,7 +396,10 @@ def match_cloudsat_avhrr(ctypefile,cloudsatObj,avhrrGeoObj,avhrrObj,ctype,ctth,s
 
     # --------------------------------------------------------------------
 
-    cal,cap = get_cloudsat_avhrr_linpix(avhrrGeoObj,ctypefile,lonCloudsat,latCloudsat,timeCloudsat)
+    #cal,cap = get_cloudsat_avhrr_linpix(avhrrGeoObj,ctypefile,lonCloudsat,latCloudsat,timeCloudsat)
+    from common import map_avhrr
+    cal, cap = map_avhrr(avhrrGeoObj, lonCloudsat, latCloudsat,
+                         radius_of_influence=RESOLUTION * .7 * 1e3)
     
     calnan = numpy.where(cal == NODATA, numpy.nan, cal)
     if (~numpy.isnan(calnan)).sum() == 0:
@@ -580,8 +567,7 @@ if __name__ == "__main__":
 #    import pps_io
     import numpy
     
-    CLOUDSAT_DIR = "%s/%s"%(MAIN_DIR, SUB_DIR)
-
+    from config import CLOUDSAT_DIR
     cloudsatfile = "%s/2007151082929_05796_CS_2B-GEOPROF_GRANULE_P_R04_E02.h5"%(CLOUDSAT_DIR)
 
     # --------------------------------------------------------------------

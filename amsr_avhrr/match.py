@@ -13,6 +13,8 @@ class MatchMapper(object):
     """
     Map arrays from one swath to another.
     
+    Note that MatchMapper always works with an extra dimension: neighbour
+    
     """
     def __init__(self, rows, cols, pixel_mask, time_diff=None,
                  time_threshold=None):
@@ -59,7 +61,7 @@ class MatchMapper(object):
                     (abs(self.time_diff) > self.time_threshold))
         return self._pixel_mask
     
-    def write(self, filename, compression=None):
+    def write(self, filename, compression=True):
         """
         Write mapper to hdf5 file *filename*.
         
