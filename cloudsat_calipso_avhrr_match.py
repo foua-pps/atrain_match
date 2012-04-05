@@ -124,6 +124,19 @@ from config import CALIPSO_CLOUD_FRACTION
 #from cloudsat_avhrr_matchup5km import *
 #from calipso_avhrr_matchup5km import *
 test = 0
+
+def readCpp(filename, type):
+    import h5py #@UnresolvedImport
+    h5file = h5py.File(filename, 'r')
+    if type in h5file.keys():
+        value = h5file[type].value
+        gain = h5file[type].attrs['gain']
+        intersec = h5file[type].attrs['intercept']
+        nodat = h5file[type].attrs['no_data_value']
+        product = numpy.where(value != nodat,value * gain + intersec, value)
+    
+    h5file.close()
+    return product
 # -----------------------------------------------------
 
 def find_avhrr_file(cross):
@@ -149,8 +162,7 @@ def find_avhrr_file(cross):
     try:
         try:            
             if config.DEBUG is True:
-                write_log('DEBUG', "Looking for avhrr file corresponding to %s: %s" % \
-                          (str(cross), avhrr_finder.pattern(cross_time, cross_satellite))) #@UndefinedVariable
+                write_log('DEBUG', "Looking for avhrr file corresponding to %s: %s" % (str(cross), avhrr_finder.pattern(cross_time, cross_satellite))) #@UndefinedVariable
         except:
             pass
 
@@ -164,7 +176,6 @@ def find_avhrr_file(cross):
             avhrr_file = avhrr_finder.find(cross_time, cross_satellite)[0]
         except IndexError:
             raise MatchupError("No avhrr file found for %s." % cross)
-
     return avhrr_file
 
 
@@ -173,7 +184,7 @@ def require_h5(files):
     Convert any '.hdf' files in *files* to '.h5'. Returns a list of '.h5' files.
     
     """
-    from config import H4H5_EXECUTABLE
+    from config import H4H5_EXECUTABLE #@UnresolvedImport
     
     h5_files = []
     for f in files:
@@ -183,7 +194,7 @@ def require_h5(files):
             h5_file = f.replace('.hdf', '.h5')
             if not h5_file in files:
                 command = '%s %s' % (H4H5_EXECUTABLE, f)
-                write_log('INFO', "Converting %r to HDF5" % f)
+                write_log('INFO', "Converting %r to HDF5" % f) #@UndefinedVariable
                 if os.system(command):
                     raise RuntimeError("Couldn't convert %r to HDF5" % f)
                 h5_files.append(h5_file)
@@ -211,15 +222,15 @@ def find_files_from_avhrr(avhrr_file):
     attach_subdir_from_config(cloudsat_finder)
     cloudsat_finder.set_time_window(config.SAT_ORBIT_DURATION + config.sec_timeThr)
     cloudsat_files = sorted(require_h5(cloudsat_finder.find(datetime)))
-    
+
     calipso_finder = file_finders.CalipsoFileFinder(config.CALIPSO_DIR,
                                                     config.RESOLUTION)
     attach_subdir_from_config(calipso_finder)
     calipso_finder.set_time_window(config.SAT_ORBIT_DURATION + config.sec_timeThr)
     calipso_files = sorted(require_h5(calipso_finder.find(datetime)))
-    if len(calipso_files) == 0:
-        raise MatchupError("No calipso files found corresponding to %s." % avhrr_file)
-    
+#    if len(calipso_files) == 0:
+#        raise MatchupError("No calipso files found corresponding to %s." % avhrr_file)
+
     try:
         cloudtype_file = pps_finder.find(datetime, satname, ending='cloudtype.h5')[0]
     except IndexError:
@@ -231,7 +242,7 @@ def find_files_from_avhrr(avhrr_file):
             cloudtype_file = pps_finder.find(datetime, satname, ending='cloudtype.h5')[0]
         except IndexError:
             raise MatchupError("No cloudtype file found corresponding to %s." % avhrr_file)
-    
+
     try:
         ctth_file = pps_finder.find(datetime, satname,
                                     ending='%s.h5' % config.CTTH_FILE)[0]
@@ -293,7 +304,7 @@ def _plot_avhrr_track(match_file, avhrr, track):
     fig.savefig(plot_file)
 
 def get_cloudsat_matchups(cloudsat_files, cloudtype_file, avhrrGeoObj, avhrrObj,
-                          ctype, ctth, surft, avhrrAngObj, plot_file):
+                          ctype, ctth, surft, avhrrAngObj, cppLwp, plot_file=None):
     """
     Read Cloudsat data and match with the given PPS data.
     """
@@ -316,11 +327,16 @@ def get_cloudsat_matchups(cloudsat_files, cloudtype_file, avhrrGeoObj, avhrrObj,
         reshape_fun = reshapeCloudsat
         match_fun = match_cloudsat_avhrr
     cloudsat = reshape_fun(cloudsat_files, avhrrGeoObj, cloudtype_file)
-    _plot_avhrr_track(plot_file, avhrrGeoObj, cloudsat)
+
+    if plot_file != None:
+        print("plot cloudsat - avhrr track")
+        _plot_avhrr_track(plot_file, avhrrGeoObj, cloudsat)
+    else:
+        print("No cloudsat plot-file")
     cl_matchup, cl_min_diff, cl_max_diff = match_fun(cloudtype_file, cloudsat,
                                                      avhrrGeoObj, avhrrObj, ctype,
-                                                     ctth, surft, avhrrAngObj)
-    
+                                                     ctth, surft, avhrrAngObj, cppLwp)
+
     return cl_matchup, (cl_min_diff, cl_max_diff)
 
 
@@ -352,7 +368,6 @@ def get_matchups_from_data(cross):
     import pps_io #@UnresolvedImport
     import epshdf #@UnresolvedImport
     import os #@Reimport
-    
     avhrr_file = find_avhrr_file(cross)
     
     cloudsat_files, calipso_files, cloudtype_file, ctth_file, nwp_tsur_file, \
@@ -366,6 +381,13 @@ def get_matchups_from_data(cross):
     
     write_log("INFO","Read AVHRR data") #@UndefinedVariable
     avhrrObj = pps_io.readAvhrrData(avhrr_file)
+    try:
+        cpp_file = avhrr_file.replace('/import/PPS_data/remapped/', '/').replace('_avhrr.h5', '_cpp.h5')
+        write_log("INFO","Read CPP data") #@UndefinedVariable
+        cppLwp = readCpp(cpp_file, 'lwp')
+    except:
+        pdb.set_trace()
+        cppLwp = None
 
     write_log("INFO","Read PPS Cloud Type") #@UndefinedVariable
     ctype = epshdf.read_cloudtype(cloudtype_file,1,1,0)
@@ -373,40 +395,49 @@ def get_matchups_from_data(cross):
         ctth = epshdf.read_cloudtop(ctth_file,1,1,1,0,1)
     except:
         ctth = None
-
-    if isinstance(nwp_tsur_file, str) == True:
-        write_log("INFO","Read NWP surface temperature") #@UndefinedVariable
-        nwpinst = epshdf.read_nwpdata(nwp_tsur_file)
-        surft = nwpinst.gain*nwpinst.data.astype('d') + nwpinst.intercept
+    
+    if isinstance(nwp_tsur_file, str) == True and config.CLOUDSAT_TYPE == "GEOPROF":
+        try:
+            nwpinst = epshdf.read_nwpdata(nwp_tsur_file)
+            write_log("INFO","Read NWP surface temperature") #@UndefinedVariable
+            surft = nwpinst.gain*nwpinst.data.astype('d') + nwpinst.intercept
+        except:
+            write_log("INFO","Corrupted NWP surface temperature File, Continue") #@UndefinedVariable
+            surft = None
     else:
         write_log("INFO","NO NWP surface temperature File, Continue") #@UndefinedVariable
         surft = None
-    
-    if isinstance(cloudsat_files, str) == True:
+    if isinstance(cloudsat_files, str) == True or (isinstance(cloudsat_files, list) and len(cloudsat_files) != 0):
         write_log("INFO","Read CLOUDSAT %s data" % config.CLOUDSAT_TYPE) #@UndefinedVariable
         cl_matchup, cl_time_diff = get_cloudsat_matchups(cloudsat_files, cloudtype_file,
                                                          avhrrGeoObj, avhrrObj, ctype,
-                                                         ctth, surft, avhrrAngObj)
+                                                         ctth, surft, avhrrAngObj, cppLwp)
     else:
         write_log("INFO","NO CLOUDSAT File, Continue") #@UndefinedVariable
-    
-    write_log("INFO","Read CALIPSO data") #@UndefinedVariable
-    if config.RESOLUTION == 5:
-        import glob
-        calipso1km = []
-        for file5km in calipso_files:
-            file1km = file5km.replace('/5km/', '/1km/').\
-                                        replace('05kmCLay', '01kmCLay').\
-                                        replace('-Prov-V3-01.', '*')
-            calipso1km.append(glob.glob(file1km)[0])
-        if len(calipso_files) != len(calipso1km):
-            pdb.set_trace()
-    ca_matchup, ca_time_diff = get_calipso_matchups(calipso_files, cloudtype_file,
-                                                    avhrrGeoObj, avhrrObj, ctype,
-                                                    ctth, surft, avhrrAngObj, calipso1km)
+
+    if isinstance(calipso_files, str) == True or (isinstance(calipso_files, list) and len(calipso_files) != 0):
+        write_log("INFO","Read CALIPSO data") #@UndefinedVariable
+        if config.RESOLUTION == 5:
+            if config.ALSO_USE_1KM_FILES == True:
+                import glob
+                calipso1km = []
+                for file5km in calipso_files:
+                    file1km = file5km.replace('/5km/', '/1km/').\
+                                                replace('05kmCLay', '01kmCLay').\
+                                                replace('-Prov-V3-01.', '*')
+                    calipso1km.append(glob.glob(file1km)[0])
+                if len(calipso_files) != len(calipso1km):
+                    pdb.set_trace()
+        else:
+            calipso1km = None
+        ca_matchup, ca_time_diff = get_calipso_matchups(calipso_files, cloudtype_file,
+                                                        avhrrGeoObj, avhrrObj, ctype,
+                                                        ctth, surft, avhrrAngObj, calipso1km)
+    else:
+        write_log("INFO","NO CALIPSO File, Continue") #@UndefinedVariable
 #    pdb.set_trace()
-    
-    # Get satellite name, time, and orbit number from avhrr_file
+
+# Get satellite name, time, and orbit number from avhrr_file
     from file_finders import PpsFileFinder #@UnresolvedImport
     pps_finder = PpsFileFinder()
     parsed = pps_finder.parse(avhrr_file)
@@ -428,34 +459,83 @@ def get_matchups_from_data(cross):
     if not os.path.exists(os.path.dirname(rematched_file_base)):
         os.makedirs(os.path.dirname(rematched_file_base))
     
-    if len(cloudsat_files) > 0:
-        write_log("INFO","Read CLOUDSAT %s data" % config.CLOUDSAT_TYPE)
-        cl_match_file = rematched_file_base.replace('atrain_datatype',
-                                        'cloudsat-%s' % config.CLOUDSAT_TYPE)
-        cl_plot_file = cl_match_file.replace('.h5', '.png')
+    # Write cloudsat matchup
+    if config.CLOUDSAT_TYPE == "GEOPROF":
         try:
-            cl_matchup, cl_time_diff = get_cloudsat_matchups(cloudsat_files, cloudtype_file,
-                                                             avhrrGeoObj, avhrrObj, ctype,
-                                                             ctth, surft, avhrrAngObj,
-                                                             plot_file=cl_plot_file)
+            cl_match_file = rematched_file_base.replace('atrain_datatype', 'cloudsat-%s' % config.CLOUDSAT_TYPE)
             writeCloudsatAvhrrMatchObj(cl_match_file, cl_matchup)
-        except MatchupError, err:
-            write_log('WARNING', str(err))
+        except NameError:
             cl_matchup = None
+            cl_time_diff = None
+            print('CloudSat is not defined. No CloudSat Match File created')
     else:
-        write_log("WARNING", "NO CLOUDSAT File, Continue")
-        cl_matchup = None
+        cl_match_file = rematched_file_base.replace('atrain_datatype', 'cloudsat-%s' % config.CLOUDSAT_TYPE)
+        writeCloudsatAvhrrMatchObj(cl_match_file, cl_matchup)
+    # Write calipso matchup
+    if config.CLOUDSAT_TYPE == "CWC-RVOD":
+        try:
+            ca_match_file = rematched_file_base.replace('atrain_datatype', 'caliop')
+            writeCaliopAvhrrMatchObj(ca_match_file,ca_matchup)
+        except NameError:
+            ca_matchup = None
+            ca_time_diff = None
+            print('Calipso is not defined. No Calipso Match File created')
+    else:
+        ca_match_file = rematched_file_base.replace('atrain_datatype', 'caliop')
+        writeCaliopAvhrrMatchObj(ca_match_file,ca_matchup) 
     
-    write_log("INFO","Read CALIPSO data")
-    ca_match_file = rematched_file_base.replace('atrain_datatype', 'caliop')
-    ca_plot_file = ca_match_file.replace('.h5', '.png')
-    ca_matchup, ca_time_diff = get_calipso_matchups(calipso_files, cloudtype_file,
-                                                    avhrrGeoObj, avhrrObj, ctype,
-                                                    ctth, surft, avhrrAngObj,
-                                                    plot_file=ca_plot_file)
-    writeCaliopAvhrrMatchObj(ca_match_file,ca_matchup)
+#    # Get satellite name, time, and orbit number from avhrr_file
+#    from file_finders import PpsFileFinder #@UnresolvedImport
+#    pps_finder = PpsFileFinder()
+#    parsed = pps_finder.parse(avhrr_file)
+#    satellite = parsed['satellite']
+#    datetime = parsed['datetime']
+#    basename = '_'.join(os.path.basename(avhrr_file).split('_')[:4])
+#    
+#    # Build base file name
+#    from file_finders import CloudsatCalipsoAvhrrMatchFileFinder #@UnresolvedImport
+#    match_finder = CloudsatCalipsoAvhrrMatchFileFinder(resolution=config.RESOLUTION,
+#                                                       region=config.AREA)
+#    attach_subdir_from_config(match_finder)
+#    rematched_file_base = os.path.join(config.RESHAPE_DIR,
+#                                       match_finder.subdir(datetime, satname=satellite),
+#                                       "%dkm_%s_atrain_datatype_avhrr_match.h5" % \
+#                                       (config.RESOLUTION, basename))
+#    
+#    # Create directories if they don't exist yet
+#    if not os.path.exists(os.path.dirname(rematched_file_base)):
+#        os.makedirs(os.path.dirname(rematched_file_base))
+#    
+#    if len(cloudsat_files) > 0:
+#        write_log("INFO","Read CLOUDSAT %s data" % config.CLOUDSAT_TYPE) #@UndefinedVariable
+#        cl_match_file = rematched_file_base.replace('atrain_datatype',
+#                                        'cloudsat-%s' % config.CLOUDSAT_TYPE)
+#        cl_plot_file = cl_match_file.replace('.h5', '.png')
+#        try:
+#            cl_matchup, cl_time_diff = get_cloudsat_matchups(cloudsat_files, cloudtype_file,
+#                                                             avhrrGeoObj, avhrrObj, ctype,
+#                                                             ctth, surft, avhrrAngObj,
+#                                                             plot_file=cl_plot_file)
+#            writeCloudsatAvhrrMatchObj(cl_match_file, cl_matchup)
+#        except MatchupError, err:
+#            write_log('WARNING', str(err)) #@UndefinedVariable
+#            cl_matchup = None
+#    else:
+#        write_log("WARNING", "NO CLOUDSAT File, Continue") #@UndefinedVariable
+#        cl_matchup = None
+#    
+#    write_log("INFO","Read CALIPSO data") #@UndefinedVariable
+#    ca_match_file = rematched_file_base.replace('atrain_datatype', 'caliop')
+#    ca_plot_file = ca_match_file.replace('.h5', '.png')
+#    ca_matchup, ca_time_diff = get_calipso_matchups(calipso_files, cloudtype_file,
+#                                                    avhrrGeoObj, avhrrObj, ctype,
+#                                                    ctth, surft, avhrrAngObj,
+#                                                    plot_file=ca_plot_file)
+#    writeCaliopAvhrrMatchObj(ca_match_file,ca_matchup)
     
-    return {'calipso': ca_matchup, 'cloudsat': cl_matchup, 'basename': basename}
+    return {'cloudsat': cl_matchup, 'cloudsat_time_diff': cl_time_diff,
+            'calipso': ca_matchup, 'calipso_time_diff': ca_time_diff,
+            'basename': basename}
 
 
 def get_matchups(cross, reprocess=False):
@@ -493,7 +573,7 @@ def get_matchups(cross, reprocess=False):
         try:
             cl_match_file = match_finder.find(datetime, satellite, atrain_datatype='cloudsat-%s' % config.CLOUDSAT_TYPE)[0]
         except IndexError:
-            write_log('INFO', "No processed CloudSat match files found. Generating from source data.")
+            write_log('INFO', "No processed CloudSat match files found. Generating from source data.") #@UndefinedVariable
             clObj = None
         else:
             clObj = readCloudsatAvhrrMatchObj(cl_match_file) 
@@ -503,7 +583,7 @@ def get_matchups(cross, reprocess=False):
         try:
             ca_match_file = match_finder.find(datetime, satellite, atrain_datatype='caliop')[0]
         except IndexError:
-            write_log('INFO', "No processed CALIPSO match files found. Generating from source data.")
+            write_log('INFO', "No processed CALIPSO match files found. Generating from source data.") #@UndefinedVariable
             caObj = None
         else:
             caObj = readCaliopAvhrrMatchObj(ca_match_file)
@@ -514,10 +594,9 @@ def get_matchups(cross, reprocess=False):
     #TODO: Fix a better solution for below so it can handle missing cloudsat better.
     if None in [caObj] and None in [clObj]:
         return get_matchups_from_data(cross)
-    elif None in [caObj]:
-        write_log('INFO', "CALIPSO Matchups read from previously processed data.")
-    
-    if caObj is None:
+    elif None in [clObj] and config.CLOUDSAT_TYPE == 'CWC-RVOD':
+        return get_matchups_from_data(cross)
+    elif caObj is None and config.CLOUDSAT_TYPE == 'GEOPROF':
         return get_matchups_from_data(cross)
     else:
         return {'calipso': caObj, 'cloudsat': clObj, 'basename': basename}
@@ -588,12 +667,14 @@ def run(cross, process_mode_dnt, reprocess=False):
             cllon = clsatObj.cloudsat.longitude.copy()
             cllat = clsatObj.cloudsat.latitude.copy()
         elif cloudsat_type == 'CWC-RVOD':
-            if config.RESOLUTION == 1:
-                cllon = clsatObj.cloudsatcwc.longitude.copy()
-                cllat = clsatObj.cloudsatcwc.latitude.copy()
-            elif config.RESOLUTION == 5:
-                cllon = clsatObj.cloudsat5kmcwc.longitude.copy()
-                cllat = clsatObj.cloudsat5kmcwc.latitude.copy()
+#            if config.RESOLUTION == 1:
+            cllon = clsatObj.cloudsat.longitude.copy()
+            cllat = clsatObj.cloudsat.latitude.copy()
+#            pdb.set_trace()
+            return
+#            elif config.RESOLUTION == 5:
+#                cllon = clsatObj.cloudsat5kmcwc.longitude.copy()
+#                cllat = clsatObj.cloudsat5kmcwc.latitude.copy()
         # Issue a warning if startpoint or endpoint latitude of CloudSat and CALIPSO differ by more than 0.1 degrees
         # Furthermore, if startpoint differs it means that CALIPSO data is not available for the first part of the matchup
         # cross section. This means that we must find the first corresponding CloudSat point to this CALIPSO start point
@@ -604,10 +685,8 @@ def run(cross, process_mode_dnt, reprocess=False):
         print "latdiff: ", latdiff
         if latdiff > 0.1:
             write_log('INFO', "CloudSat/CALIPSO startpoint differ by %f degrees." % latdiff) #@UndefinedVariable
-            write_log('INFO', "Cloudsat start lon, lat: %f, %f" % \
-                      (clsatObj.cloudsat.longitude[0], clsatObj.cloudsat.latitude[0])) #@UndefinedVariable
-            write_log('INFO', "CALIPSO start lon, lat: %f, %f" % \
-                      (caObj.calipso.longitude[0], caObj.calipso.latitude[0])) #@UndefinedVariable
+            write_log('INFO', "Cloudsat start lon, lat: %f, %f" % (clsatObj.cloudsat.longitude[0], clsatObj.cloudsat.latitude[0])) #@UndefinedVariable
+            write_log('INFO', "CALIPSO start lon, lat: %f, %f" % (caObj.calipso.longitude[0], caObj.calipso.latitude[0])) #@UndefinedVariable
             CALIPSO_DISPLACED = 1
             for j in range(clsatObj.cloudsat.latitude.shape[0]):
                 if (abs(clsatObj.cloudsat.latitude[j] - caObj.calipso.latitude[0]) < 0.05) and\
@@ -819,7 +898,7 @@ def run(cross, process_mode_dnt, reprocess=False):
 #    if pltttt == 1:
 #    if process_mode_dnt in config.PLOT_MODES:
     if process_mode_dnt in config.PLOT_MODES:
-        write_log('INFO', "Plotting")
+        write_log('INFO', "Plotting") #@UndefinedVariable
 
         plotpath = "%s/%s/%ikm/%s/%s/%s" %(config.PLOT_DIR, base_sat, config.RESOLUTION, base_year, base_month, config.AREA)
         if not os.path.exists(plotpath):
@@ -871,7 +950,7 @@ def run(cross, process_mode_dnt, reprocess=False):
         else:
             process_calipso_ok = 0
         
-        write_log('INFO', "Calculating statistics")
+        write_log('INFO', "Calculating statistics") #@UndefinedVariable
         CalculateStatistics(process_mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
                             cal_vert_feature, avhrr_ctth_csat_ok, data_ok,
                             cal_data_ok, avhrr_ctth_cal_ok, caliop_max_height,

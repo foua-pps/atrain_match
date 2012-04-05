@@ -44,6 +44,7 @@ class ppsAvhrrObject(DataObject):
             'bt12micron': None,
             'satz': None,
             'surftemp': None,
+            'lwp': None
             }
         
 class CalipsoObject(DataObject):
@@ -534,7 +535,7 @@ def createAvhrrTime(Obt, filename):
     return Obt
 
 #----------------------------------------------------------------------------------------------------
-def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj, surft, ctth, ctype, row_matched, col_matched):
+def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj, surft, ctth, ctype, row_matched, col_matched, avhrrLwp=None):
     ctype_track = []
     ctype_qflag_track = []
     ctth_height_track = []
@@ -546,6 +547,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj, surft, ctth, ctype, r
     bt11micron_track = []
     bt12micron_track = []
     satz_track = []
+    lwp_track = []
     
     for i in range(row_matched.shape[0]):
         lat_avhrr_track.append(GeoObj.latitude[row_matched[i],col_matched[i]])
@@ -594,6 +596,15 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj, surft, ctth, ctype, r
         else:
             pp = ctth.pressure[row_matched[i],col_matched[i]] * ctth.p_gain + ctth.p_intercept
         ctth_pressure_track.append(pp)
+        #: TODO Do not use fix value -1 but instead something.no_data
+        if avhrrLwp != None:
+            if avhrrLwp[row_matched[i],col_matched[i]] == -1:
+                lwp = -9
+            else:
+                lwp = avhrrLwp[row_matched[i],col_matched[i]]
+            lwp_track.append(lwp)
+        
+        
     obt.avhrr.latitude = numpy.array(lat_avhrr_track)
     obt.avhrr.longitude = numpy.array(lon_avhrr_track)
     obt.avhrr.cloudtype = numpy.array(ctype_track)
@@ -607,6 +618,8 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj, surft, ctth, ctype, r
         obt.avhrr.ctth_temperature = numpy.array(ctth_temperature_track)
     if surft != None:
         obt.avhrr.surftemp = numpy.array(surft_track)
+    if avhrrLwp != None:
+        obt.avhrr.lwp = numpy.array(lwp_track)
     return obt
 
 # ---------------------------------------------------------------------------------------------------

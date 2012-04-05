@@ -305,6 +305,7 @@ def get_cloudsat_avhrr_linpix_segment(avhrrIn,lon,lat,cltime,lines,swath_width,t
 
     areaObj = area.area(tmpaid)
     """
+
     areaObj = area.area(AREA)
 
     # Dont use thise one /Erik
@@ -318,14 +319,12 @@ def get_cloudsat_avhrr_linpix_segment(avhrrIn,lon,lat,cltime,lines,swath_width,t
     #    cov,info = readCoverage(covfilename)
     # Do like this instead
     write_log("INFO","Create Coverage map...")
-    cov = _satproj.create_coverage(areaObj,lonarr,latarr,1) #@UndefinedVariable
-    pdb.set_trace()
+    cov = _satproj.create_coverage(areaObj,lonarr,latarr,0) #@UndefinedVariable
     print covfilename
     writeCoverage(cov,covfilename,"satproj",AREA)
     mapped_line = _satproj.project(cov.coverage,cov.rowidx,cov.colidx,linearr,NODATA) #@UndefinedVariable
     mapped_pixel = _satproj.project(cov.coverage,cov.rowidx,cov.colidx,pixelarr,NODATA) #@UndefinedVariable
     
-    pdb.set_trace()
     write_log("INFO","Go through cloudsat track:")
     cloudsat_avhrr_line = []
     cloudsat_avhrr_pixel = []
@@ -370,11 +369,11 @@ def get_cloudsat_avhrr_linpix_segment(avhrrIn,lon,lat,cltime,lines,swath_width,t
         matchOk = 1
     else:
         matchOk = 0
-    pdb.set_trace()
+
     return cloudsat_avhrr_line, cloudsat_avhrr_pixel, matchOk
 
 # -----------------------------------------------------
-def match_cloudsat_avhrr(ctypefile,cloudsatObj,avhrrGeoObj,avhrrObj,ctype,ctth,surft,avhrrAngObj):
+def match_cloudsat_avhrr(ctypefile,cloudsatObj,avhrrGeoObj,avhrrObj,ctype,ctth,surft,avhrrAngObj, avhrrLwp):
     import numpy
     import time
     import string
@@ -396,11 +395,11 @@ def match_cloudsat_avhrr(ctypefile,cloudsatObj,avhrrGeoObj,avhrrObj,ctype,ctth,s
 
     # --------------------------------------------------------------------
 
-    #cal,cap = get_cloudsat_avhrr_linpix(avhrrGeoObj,ctypefile,lonCloudsat,latCloudsat,timeCloudsat)
-    from common import map_avhrr
-    cal, cap = map_avhrr(avhrrGeoObj, lonCloudsat, latCloudsat,
-                         radius_of_influence=RESOLUTION * .7 * 1e3)
-    
+    cal,cap = get_cloudsat_avhrr_linpix(avhrrGeoObj,ctypefile,lonCloudsat,latCloudsat,timeCloudsat)
+#    from common import map_avhrr
+#    cal, cap = map_avhrr(avhrrGeoObj, lonCloudsat, latCloudsat,
+#                         radius_of_influence=RESOLUTION * .7 * 1e3)
+
     calnan = numpy.where(cal == NODATA, numpy.nan, cal)
     if (~numpy.isnan(calnan)).sum() == 0:
         raise MatchupError("No matches within region.")
@@ -421,7 +420,8 @@ def match_cloudsat_avhrr(ctypefile,cloudsatObj,avhrrGeoObj,avhrrObj,ctype,ctth,s
             if value.ndim == 0:
                 retv.cloudsat.all_arrays[arnamecl] = value.copy()
             elif value.ndim == 1:
-                retv.cloudsat.all_arrays[arnamecl] = value.copy()[idx_match,:].astype('d')
+                if value.size != 1:
+                    retv.cloudsat.all_arrays[arnamecl] = value.copy()[idx_match,:].astype('d')
             elif value.ndim == 2:
                 temp = value.copy()[idx_match,:].astype('d')
                 if arnamecl == 'Radar_Reflectivity':
@@ -462,7 +462,7 @@ def match_cloudsat_avhrr(ctypefile,cloudsatObj,avhrrGeoObj,avhrrObj,ctype,ctth,s
     # line and pixel arrays have equal dimensions
     print "Generate all datatypes (lat,lon,cty,ctth,surft) on the cloudsat track!"
     retv = avhrr_track_from_matched(retv, avhrrGeoObj, avhrrObj, avhrrAngObj, \
-                                    surft, ctth, ctype, cal_on_avhrr, cap_on_avhrr)
+                                    surft, ctth, ctype, cal_on_avhrr, cap_on_avhrr, avhrrLwp)
 
     print "AVHRR-PPS Cloud Type,latitude: shapes = ",\
           retv.avhrr.cloudtype.shape,retv.avhrr.latitude.shape
