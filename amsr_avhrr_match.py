@@ -180,7 +180,11 @@ def compare_lwps(mapper, amsr_filename, cpp_filename,
     """
     
     from amsr_avhrr.util import get_cpp_product
-    cpp_cwp_avhrr_proj = get_cpp_product(cpp_filename, 'cwp')
+    #SHq: originally the program read cwp, but we should validate lwp.
+    #     They are treated the same way, so it is easy to change. The
+    #     variables in this program are still called cwp, anyway.
+    #cpp_cwp_avhrr_proj = get_cpp_product(cpp_filename, 'cwp')
+    cpp_cwp_avhrr_proj = get_cpp_product(cpp_filename, 'lwp')
     cpp_cwp = mapper(cpp_cwp_avhrr_proj)
     
     from amsr_avhrr.util import get_amsr_lwp, get_amsr_lonlat
@@ -231,7 +235,9 @@ def compare_lwps(mapper, amsr_filename, cpp_filename,
         from amsr_avhrr.util import get_avhrr_lonlat
         avhrr_lonlat = get_avhrr_lonlat(avhrr_filename)
         from amsr_avhrr.plotting import Field, plot_fields
-        fields = [Field(cpp_cwp_avhrr_proj, desc='CPP cwp', *avhrr_lonlat),
+        #SHQ change from cwp to lwp
+        #fields = [Field(cpp_cwp_avhrr_proj, desc='CPP cwp', *avhrr_lonlat),
+        fields = [Field(cpp_cwp_avhrr_proj, desc='CPP lwp', *avhrr_lonlat),
                   Field(amsr_lwp, lon, lat, desc='AMSR-E lwp')]
         fig = plot_fields(fields, break_value=lwp_max)
         fig.suptitle(title)
