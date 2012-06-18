@@ -28,13 +28,12 @@ AMSR_RADIUS = 10e3
 def process_noaa_scene(satname, orbit, amsr_filename=None, ctype=None,
                        reff_max=None, lwp_max=None, water=False,
                        n_neighbours=8):
-    from pps_runutil import get_ppsProductArguments
     from pps_basic_configure import AVHRR_DIR, OUTPUT_DIR, AUX_DIR
-    
-    #argv = [sys.argv[0], 'satproj', satname, orbit]
-    # get_ppsProductArguments can't take non-string orbit
-    argv = ['', 'satproj', satname, str(orbit)]
-    ppsarg, arealist = get_ppsProductArguments(argv) #@UnusedVariable
+
+    import pps_arguments 
+    ppsarg = pps_arguments.create_pps_argument(pps_arguments.USE_SUNSATANGLES_GLOB,
+                                               pps_arguments.SATELLITE_PROJ,
+                                               satname,orbit)
     avhrr_filename = os.path.join(AVHRR_DIR, ppsarg.files.avhrr)
     if amsr_filename:
         amsr_filenames = [amsr_filename]

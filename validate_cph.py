@@ -219,13 +219,12 @@ def process_noaa_scene(satname, orbit, cloudtype=False, **kwargs):
     Match this noaa scene with cloudsat scenes and process.
     
     """
-    from pps_runutil import get_ppsProductArguments
     from pps_basic_configure import AVHRR_DIR, OUTPUT_DIR
     
-    #argv = [sys.argv[0], 'satproj', satname, orbit]
-    # get_ppsProductArguments can't take non-string orbit
-    argv = ['', 'satproj', satname, str(orbit)]
-    ppsarg, arealist = get_ppsProductArguments(argv) #@UnusedVariable
+    import pps_arguments 
+    ppsarg = pps_arguments.create_pps_argument(pps_arguments.USE_SUNSATANGLES_GLOB,
+                                               pps_arguments.SATELLITE_PROJ,
+                                               satname,orbit)
     avhrr_filename = os.path.join(AVHRR_DIR, ppsarg.files.avhrr)
     
     calipso_filenames = find_calipso(avhrr_filename)
@@ -431,12 +430,11 @@ def get_frac_of_land(match_file):
     scene = os.path.basename(match_file).replace('match--', '')
     satname, _datetime, orbit = parse_scene(scene)
     
-    from pps_runutil import get_ppsProductArguments
     from pps_basic_configure import AUX_DIR
-    #argv = [sys.argv[0], 'satproj', satname, orbit]
-    # get_ppsProductArguments can't take non-string orbit
-    argv = ['', 'satproj', satname, str(orbit)]
-    ppsarg, arealist = get_ppsProductArguments(argv) #@UnusedVariable
+    import pps_arguments 
+    ppsarg = pps_arguments.create_pps_argument(pps_arguments.USE_SUNSATANGLES_GLOB,
+                                               pps_arguments.SATELLITE_PROJ,
+                                               satname,orbit)
     physiography_filename = os.path.join(AUX_DIR, ppsarg.files.physiography)
     from epshdf import read_physiography
     phys = read_physiography(physiography_filename, 0, 1, 0)
