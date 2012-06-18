@@ -15,8 +15,14 @@ _PLOTTING = False
 #: Directory for mapper files
 MATCH_DIR = os.environ.get('MATCH_DIR', '.')
 
+#Time threshold, i.e. max time diff to be considered as a match
+TIME_THR=600.0
+#NB! I'm not sure there really is a sorting due to TIME_THR. Do check in
+#    the time_diff dataset after running! /Sara Hornquist 2012-06-18
+
 #: Radius of AMSR-E footprint (m)
 AMSR_RADIUS = 10e3
+
 
 
 def process_noaa_scene(satname, orbit, amsr_filename=None, ctype=None,
@@ -43,7 +49,7 @@ def process_noaa_scene(satname, orbit, amsr_filename=None, ctype=None,
         ctype_filename = os.path.join(OUTPUT_DIR, ppsarg.files.pge02)
     else:
         ctype_filename = None
-    
+
     for amsr_filename in amsr_filenames:
         process_case(amsr_filename, avhrr_filename, cpp_filename,
                       physiography_filename, ctype, ctype_filename, reff_max,
@@ -80,6 +86,7 @@ def process_case(amsr_filename, avhrr_filename, cpp_filename,
         from amsr_avhrr.match import match
         mapper = match(amsr_filename, avhrr_filename,
                        radius_of_influence=AMSR_RADIUS,
+                       time_threshold=TIME_THR,
                        n_neighbours=n_neighbours)
         mapper.write(match_path)
         logger.info("Match written to %r" % match_path)
@@ -159,10 +166,11 @@ def select_pixels(mapper, amsr_lwp, cpp_cwp, sea,
     else:
         selection &= amsr_lwp_3d < lwp_max
         restrictions.append('0 <= AMSR-E lwp < %.2g' % lwp_max)
-    
+
     selection &= cpp_cwp >= 0 # Remove pixels with negative cwp (nodata)
     restrictions.append('CPP cwp >= 0')
-    
+
+
     selection.fill_value = False # masked values are never part of selection
     
     return selection, restrictions
@@ -178,17 +186,39 @@ def compare_lwps(mapper, amsr_filename, cpp_filename,
     If plotting is on, AVHRR lon/lat is read from *avhrr_filename*.
     
     """
-    
+    import numpy as np
     from amsr_avhrr.util import get_cpp_product
     cpp_cwp_avhrr_proj = get_cpp_product(cpp_filename, 'cwp')
     cpp_cwp = mapper(cpp_cwp_avhrr_proj)
-    
+
     from amsr_avhrr.util import get_amsr_lwp, get_amsr_lonlat
     amsr_lwp = get_amsr_lwp(amsr_filename)
     lon, lat = get_amsr_lonlat(amsr_filename) #@UnusedVariable
+
+    #Read time for amsr and avhrr, and create a time_diff
+    from amsr_avhrr.util import get_amsr_time, get_avhrr_time
+    avhrr_time = get_avhrr_time(avhrr_filename)
+    amsr_time = get_amsr_time(amsr_filename)
+
+    amsr_time_expanded=np.ones(amsr_lwp.shape)
+    for i in range(amsr_lwp.shape[0]):
+        amsr_time_expanded[i]=np.ones(amsr_lwp.shape[1])*amsr_time[i]
+    avhrr_time_expanded=np.ones(cpp_cwp_avhrr_proj.shape)
+    for i in range(cpp_cwp_avhrr_proj.shape[0]):
+        avhrr_time_expanded[i]=np.ones(cpp_cwp_avhrr_proj.shape[1])*avhrr_time[i]
+    avhrr_time_remapped = mapper(avhrr_time_expanded)
+    avhrr_time_remapped = avhrr_time_remapped.mean(axis=-1)
+
+    time_diff=avhrr_time_remapped-amsr_time_expanded
+    #for select_pixels we need an expanded timediff
+    time_diff_expanded=np.ones(cpp_cwp.shape)
+    for i in range(cpp_cwp.shape[0]):
+        for j in range(cpp_cwp.shape[1]):
+            time_diff_expanded[i][j]=np.ones(cpp_cwp.shape[2])*time_diff[i][j]
     
+        
     sea = get_sea(mapper, physiography_filename)
-    
+
     selection, restrictions = select_pixels(mapper, amsr_lwp, cpp_cwp, sea,
                                             lwp_max, ctype, ctype_filename,
                                             reff_max, cpp_filename, water)
@@ -210,6 +240,13 @@ def compare_lwps(mapper, amsr_filename, cpp_filename,
                    'cpp_cwp', diff_file, mode='a')
         write_data(amsr_lwp[selection_2d], 'amsr_lwp', diff_file,
                    mode='a')
+        write_data(amsr_time_expanded[selection_2d], 'amsr_time', diff_file,
+                   mode='a')
+        write_data(avhrr_time_remapped[selection_2d], 'avhrr_time', diff_file,
+                   mode='a')
+        write_data(time_diff[selection_2d], 'time_diff', diff_file,
+                   mode='a')
+        
         write_data(selection_2d, 'selection', diff_file, mode='a')
         write_data(lon[selection_2d], 'longitudes', diff_file, mode='a')
         write_data(lat[selection_2d], 'latitudes', diff_file, mode='a')

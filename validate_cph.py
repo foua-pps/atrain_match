@@ -11,9 +11,16 @@ from runutils import process_scenes
 import logging
 logger = logging.getLogger(__name__)
 
+from datetime import datetime
+TAI93 = datetime(1993, 1, 1)
 
 #: Directory for mapper files
 MATCH_DIR = os.environ.get('MATCH_DIR', '.')
+
+#Time threshold, i.e. max time diff to be considered as a match
+TIME_THR=600.0
+#NB! I'm not sure there really is a sorting due to TIME_THR. Do check in
+#    the time_diff dataset after running! /Sara Hornquist 2012-06-18
 
 #: h5py compression settings (True, or an integer in range(10))
 _COMPRESSION = True
@@ -65,6 +72,29 @@ def get_calipso_lonlat(calipso_filename):
     
     return lon, lat
 
+
+def get_calipso_time(filename):
+    """
+    Get time of each scanline in Calipso file *filename*.
+    
+    Note::
+    
+        Time is converted from seconds since 1993-01-01 to seconds since
+        1970-01-01.
+    
+    """
+    import numpy as np
+    import h5py
+    
+    with h5py.File(filename) as f:
+        sec1993 = f['Profile_Time'][:]
+    
+    from calendar import timegm
+    epoch_diff = timegm(TAI93.utctimetuple())
+    
+    sec1970 = sec1993.round().astype(np.int64) + epoch_diff
+    
+    return sec1970
 
 def get_bits(value, bits, shift=False):
     """
@@ -128,6 +158,60 @@ def find_calipso(avhrr_filename):
     # start of the AVHRR swath
     amsr_finder = CalipsoFileFinder(time_window=(-45 * 60, 20 * 60))
     return amsr_finder.find(parsed['datetime'])
+
+
+def match_with_calipso(calipso_filename, avhrr_filename, radius_of_influence=1e3,
+          time_threshold=None, n_neighbours=1):
+    """
+    Find matching indices in AVHRR array for each element in Calipso swath.
+    
+    Arguments:
+    
+        cal_filename: string
+            full path of Calipso HDF5 file
+        avhrr_filename: string
+            full path of AVHRR PPS HDF5 file
+        radius_of_influence: float
+            radius of influence in meters in pixel-pixel matching (default:
+            1000 m)
+        time_threshold: float
+            largest absolute time difference to include in match
+        n_neighbours: int
+            number of nearest AVHRR neighbours to use
+    
+    Returns:
+    
+        mapper: `MatchMapper` instance.
+    
+    """
+    import numpy as np
+    from amsr_avhrr.util import get_avhrr_lonlat
+    from amsr_avhrr.util import get_avhrr_time
+    #get_calipso_lonlat and get_calipso_time in this file!!
+
+    
+    logger.debug("Getting AVHRR lon/lat")
+    avhrr_lonlat = get_avhrr_lonlat(avhrr_filename)
+    logger.debug("Getting Calipso lon/lat")
+    calipso_lonlat = get_calipso_lonlat(calipso_filename)
+    logger.debug("Matching AVHRR to Calipso lon/lat")
+    mapper = match_lonlat(avhrr_lonlat, calipso_lonlat, n_neighbours=1)
+
+    #Also calculate the time diff 
+    avhrr_time = get_avhrr_time(avhrr_filename)
+    calipso_time = get_calipso_time(calipso_filename)
+
+    time_diff = np.abs(avhrr_time[mapper.rows] -
+                       calipso_time.reshape((calipso_time.size,1))).astype(np.float32)
+
+    mapper.time_diff = time_diff
+    mapper.time_threshold = time_threshold
+
+    logger.debug("Time diff (min, max): %r" % ((time_diff.min(),
+                                                time_diff.max()),))
+    
+    return mapper
+
 
 
 def process_noaa_scene(satname, orbit, cloudtype=False, **kwargs):
@@ -201,12 +285,9 @@ def get_mapper(avhrr_filename, calipso_filename):
         from amsr_avhrr.match import MatchMapper
         mapper = MatchMapper.from_file(match_path)
     else:
-        logger.debug("Getting AVHRR lon/lat")
-        avhrr_lonlat = get_avhrr_lonlat(avhrr_filename)
-        logger.debug("Getting Calipso lon/lat")
-        calipso_lonlat = get_calipso_lonlat(calipso_filename)
-        logger.debug("Matching AVHRR to Calipso lon/lat")
-        mapper = match_lonlat(avhrr_lonlat, calipso_lonlat, n_neighbours=1)
+        mapper = match_with_calipso(calipso_filename, avhrr_filename,
+                                    radius_of_influence=1e3,
+                                    time_threshold=TIME_THR,n_neighbours=1)
         mapper.write(match_path, compression=_COMPRESSION)
         logger.info("Match written to %r" % match_path)
     
@@ -284,8 +365,8 @@ def process_case(calipso_filename, avhrr_filename, cpp_filename=None,
     This is the work horse.
     
     """
-    
     mapper = get_mapper(avhrr_filename, calipso_filename)
+
     
     logger.debug("Getting CPP water")
     cpp_phase = mapper(get_cpp_product(cpp_filename, 'cph'))
@@ -295,11 +376,30 @@ def process_case(calipso_filename, avhrr_filename, cpp_filename=None,
                                   qual_min=qual_min)
     
     selection = ~cpp_phase.mask & ~cal_phase.mask
+
     import numpy as np
     if np.ma.isMaskedArray(selection):
         selection = selection.filled(False)
     restrictions = {'max number of CALIOP layers': max_layers,
                     'minimum quality': qual_min}
+
+    
+    from amsr_avhrr.util import get_avhrr_time
+    #get_calipso_lonlat and get_calipso_time in this file!
+    avhrr_time =  get_avhrr_time(avhrr_filename)
+    #expand avhrr_time to the same shape as input avhrr_cph
+    cph_tmp=get_cpp_product(cpp_filename, 'cph')
+    avhrr_time_expanded=np.ones(cph_tmp.shape)
+    for i in range(cph_tmp.shape[0]):
+        avhrr_time_expanded[i]=np.ones(cph_tmp.shape[1])*avhrr_time[i]
+        
+    calipso_time = get_calipso_time(calipso_filename)
+    avhrr_time_remapped=mapper(avhrr_time_expanded)
+
+    time_diff=avhrr_time_remapped - calipso_time
+    
+
+    
     
     filename = _filename_base(avhrr_filename, calipso_filename) + '--values.h5'
     from amsr_avhrr.util import write_data
@@ -307,6 +407,9 @@ def process_case(calipso_filename, avhrr_filename, cpp_filename=None,
                attributes=restrictions)
     write_data(cal_phase[selection], 'calipso_phase', filename,
                attributes=restrictions)
+    write_data(calipso_time[selection], 'calipso_time', filename)
+    write_data(avhrr_time_remapped[selection], 'avhrr_time', filename)
+    write_data(time_diff[selection], 'time_diff', filename)
     lon, lat = get_calipso_lonlat(calipso_filename)
     write_data(lon[selection], 'longitudes', filename, attributes=restrictions)
     write_data(lat[selection], 'latitudes', filename, attributes=restrictions)
