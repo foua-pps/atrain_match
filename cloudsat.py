@@ -67,7 +67,8 @@ class CloudsatObject(DataObject):
                             'LO_RVOD_liquid_water_content': None,
                             'LO_RVOD_liquid_water_content_uncertainty': None,
                             'IO_RVOD_ice_water_content': None,
-                            'IO_RVOD_ice_water_content_uncertainty': None
+                            'IO_RVOD_ice_water_content_uncertainty': None,
+                            'RVOD_CWC_status': None
                            }
 
 
