@@ -673,7 +673,6 @@ def run(cross, process_mode_dnt, reprocess=False):
 #            if config.RESOLUTION == 1:
             cllon = clsatObj.cloudsat.longitude.copy()
             cllat = clsatObj.cloudsat.latitude.copy()
-#            pdb.set_trace()
             return
 #            elif config.RESOLUTION == 5:
 #                cllon = clsatObj.cloudsat5kmcwc.longitude.copy()
