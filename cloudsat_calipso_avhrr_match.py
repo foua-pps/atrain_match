@@ -225,12 +225,15 @@ def find_files_from_avhrr(avhrr_file):
 
     calipso_finder = file_finders.CalipsoFileFinder(config.CALIPSO_DIR,
                                                     config.RESOLUTION)
-    attach_subdir_from_config(calipso_finder)
-    calipso_finder.set_time_window(config.SAT_ORBIT_DURATION + config.sec_timeThr)
-    calipso_files = sorted(require_h5(calipso_finder.find(datetime)))
+    if config.CLOUDSAT_TYPE == 'CWC-RVOD':
+        write_log("INFO","Do not use CALIPSO in CWC-RWOD mode, Continue") #@UndefinedVariable
+        calipso_files = []
+    else:
+        attach_subdir_from_config(calipso_finder)
+        calipso_finder.set_time_window(config.SAT_ORBIT_DURATION + config.sec_timeThr)
+        calipso_files = sorted(require_h5(calipso_finder.find(datetime)))
 #    if len(calipso_files) == 0:
 #        raise MatchupError("No calipso files found corresponding to %s." % avhrr_file)
-
     try:
         cloudtype_file = pps_finder.find(datetime, satname, ending='cloudtype.h5')[0]
     except IndexError:
@@ -473,13 +476,13 @@ def get_matchups_from_data(cross):
         writeCloudsatAvhrrMatchObj(cl_match_file, cl_matchup)
     # Write calipso matchup
     if config.CLOUDSAT_TYPE == "CWC-RVOD":
-        try:
-            ca_match_file = rematched_file_base.replace('atrain_datatype', 'caliop')
-            writeCaliopAvhrrMatchObj(ca_match_file,ca_matchup)
-        except NameError:
-            ca_matchup = None
-            ca_time_diff = None
-            print('Calipso is not defined. No Calipso Match File created')
+#        try:
+#            ca_match_file = rematched_file_base.replace('atrain_datatype', 'caliop')
+#            writeCaliopAvhrrMatchObj(ca_match_file,ca_matchup)
+#        except NameError:
+#            print('Calipso is not defined. No Calipso Match File created')
+        ca_matchup = None
+        ca_time_diff = None
     else:
         ca_match_file = rematched_file_base.replace('atrain_datatype', 'caliop')
         writeCaliopAvhrrMatchObj(ca_match_file,ca_matchup) 
