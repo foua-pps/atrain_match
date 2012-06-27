@@ -9,8 +9,8 @@
 #         changed start_sec1970 and end_sec1970 to rank0 array 
 #         by setting start_sec1970[0] and end_sec1970[0]
 
-import pdb
-from pps_error_messages import write_log
+import pdb #@UnusedImport
+from pps_error_messages import write_log #@UnresolvedImport
 
 #from calipso import * #@UnusedWildImport
 from config import AREA, SUB_DIR, DATA_DIR, sec_timeThr, RESOLUTION, \
@@ -263,9 +263,9 @@ def get_cloudsat_avhrr_linpix(avhrrIn,avhrrname,lon,lat,clTime):
 def get_cloudsat_avhrr_linpix_segment(avhrrIn,lon,lat,cltime,lines,swath_width,tmppcs,
                                       tmpaid,covfilename):
     import numpy
-    import _satproj
-    import area
-    import pps_gisdata
+    import _satproj #@UnresolvedImport
+    import area #@UnresolvedImport
+    import pps_gisdata #@UnresolvedImport
     
     ndim = lon.shape[0]
     
