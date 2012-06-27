@@ -646,13 +646,13 @@ def match_calipso_avhrr(ctypefile, calipsoObj, avhrrGeoObj, avhrrObj, ctype, ctt
     
     # --------------------------------------------------------------------
 
-    #cal,cap = get_calipso_avhrr_linpix(avhrrGeoObj,ctypefile,lonCalipso,latCalipso,timeCalipso)
+    cal,cap = get_calipso_avhrr_linpix(avhrrGeoObj,ctypefile,lonCalipso,latCalipso,timeCalipso)
     # This function (match_calipso_avhrr) could use the MatchMapper object
     # created in map_avhrr() to make things a lot simpler... See usage in
     # amsr_avhrr_match.py
-    from common import map_avhrr
-    cal, cap = map_avhrr(avhrrGeoObj, lonCalipso.ravel(), latCalipso.ravel(),
-                         radius_of_influence=res * .7 * 1e3) # somewhat larger than radius...
+#    from common import map_avhrr
+#    cal, cap = map_avhrr(avhrrGeoObj, lonCalipso.ravel(), latCalipso.ravel(),
+#                         radius_of_influence=res * .7 * 1e3) # somewhat larger than radius...
     calnan = numpy.where(cal == NODATA, numpy.nan, cal)
     if (~numpy.isnan(calnan)).sum() == 0:
         raise MatchupError("No matches within region.")
@@ -896,8 +896,9 @@ def get_calipso(filename, res):
     
         calipso.cloud_fraction=numpy.zeros((winsz,ndim),'d')
         cloud_mask_nodata = 0
-        _pypps_filters.texture(cloud_mask, calipso.cloud_fraction, #@UndefinedVariable
-                               winsz, "mean", cloud_mask_nodata)
+        # TODO Behovs nedanstaende?
+#        _pypps_filters.texture(cloud_mask, calipso.cloud_fraction, #@UndefinedVariable
+#                               winsz, "mean", cloud_mask_nodata)
         calipso.cloud_fraction = calipso.cloud_fraction[winsz/2,::]
     
     elif res == 5:
