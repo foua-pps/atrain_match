@@ -501,36 +501,56 @@ def get_calipso_avhrr_linpix_segment(avhrrIn,lon,lat,catime,lines,swath_width,tm
 def createAvhrrTime(Obt, filename):
     import os #@Reimport
     from config import DSEC_PER_AVHRR_SCALINE
-
+    import calendar
+    
     filename = os.path.basename(filename)
+    if filename.split('_')[0] == 'npp':
+        if Obt.sec1970_start < 0: #10800
+            viirsDate = filename.split('_')[1]
+            viirsHM = filename.split('_')[2]
+            viirsSH = filename.split('_')[3]
+            year = int(viirsDate[0:4])
+            mon = int(viirsDate[4:6])
+            day = int(viirsDate[6:])
+            hour = int(viirsHM[0:2])
+            min = int(viirsHM[2:])
+            sec = int(viirsSH[0:2])
+            hundredSec = float('0.' + viirsSH[2:])
+            Obt.sec1970_start = calendar.timegm((year, mon, day, hour, min, sec)) + hundredSec
+        num_of_scan = Obt.num_of_lines / 16.
+        if (Obt.sec1970_end - Obt.sec1970_start) / (num_of_scan) > 2:
+            pdb.set_trace()
+        linetime = numpy.linspace(Obt.sec1970_start, Obt.sec1970_end, num_of_scan)
+        Obt.time = numpy.apply_along_axis(numpy.multiply, 0, numpy.ones([num_of_scan, 16]), linetime).reshape(Obt.num_of_lines)
 
-    if Obt.sec1970_end < Obt.sec1970_start:
-        """
-        In some GAC edition the end time is negative. If so this if statement 
-        tries to estimate the endtime depending on the start time plus number of 
-        scanlines multiplied with the estimate scan time for the instrument. 
-        This estimation is not that correct but what to do?
-        """
-        Obt.sec1970_end = int(DSEC_PER_AVHRR_SCALINE * Obt.num_of_lines + Obt.sec1970_start)
-    
-    if filename.split('_')[-3] != '00000':
-        """
-        This if statement takes care of a bug in start and end time, 
-        that occurs when a file is cute at midnight
-        """
+    else:
+        if Obt.sec1970_end < Obt.sec1970_start:
+            """
+            In some GAC edition the end time is negative. If so this if statement 
+            tries to estimate the endtime depending on the start time plus number of 
+            scanlines multiplied with the estimate scan time for the instrument. 
+            This estimation is not that correct but what to do?
+            """
+            Obt.sec1970_end = int(DSEC_PER_AVHRR_SCALINE * Obt.num_of_lines + Obt.sec1970_start)
         
-        import calendar, time
-        timediff = Obt.sec1970_end - Obt.sec1970_start
-        old_start = time.gmtime(Obt.sec1970_start + (24 * 3600)) # Adds 24 h to get the next day in new start
-        new_start = calendar.timegm(time.strptime('%i %i %i' %(old_start.tm_year, \
-                                                               old_start.tm_mon, \
-                                                               old_start.tm_mday), \
-                                                               '%Y %m %d'))
-        Obt.sec1970_start = new_start
-        Obt.sec1970_end = new_start + timediff
-    
-    
-    Obt.time = numpy.linspace(Obt.sec1970_start, Obt.sec1970_end, Obt.num_of_lines)
+        if filename.split('_')[-3] != '00000':
+            """
+            This if statement takes care of a bug in start and end time, 
+            that occurs when a file is cute at midnight
+            """
+            
+            import calendar, time
+            timediff = Obt.sec1970_end - Obt.sec1970_start
+            old_start = time.gmtime(Obt.sec1970_start + (24 * 3600)) # Adds 24 h to get the next day in new start
+            new_start = calendar.timegm(time.strptime('%i %i %i' %(old_start.tm_year, \
+                                                                   old_start.tm_mon, \
+                                                                   old_start.tm_mday), \
+                                                                   '%Y %m %d'))
+            Obt.sec1970_start = new_start
+            Obt.sec1970_end = new_start + timediff
+        
+        
+        Obt.time = numpy.linspace(Obt.sec1970_start, Obt.sec1970_end, Obt.num_of_lines)
     
     return Obt
 
@@ -654,6 +674,10 @@ def match_calipso_avhrr(ctypefile, calipsoObj, avhrrGeoObj, avhrrObj, ctype, ctt
 #    cal, cap = map_avhrr(avhrrGeoObj, lonCalipso.ravel(), latCalipso.ravel(),
 #                         radius_of_influence=res * .7 * 1e3) # somewhat larger than radius...
     calnan = numpy.where(cal == NODATA, numpy.nan, cal)
+    from trajectory_plot import plotSatelliteTrajectory
+#    plotSatelliteTrajectory(lonCalipso,latCalipso,'calipso')
+#    plotSatelliteTrajectory(avhrrGeoObj.longitude[::,0], avhrrGeoObj.latitude[::,0],'avhrr')
+#    pdb.set_trace()
     if (~numpy.isnan(calnan)).sum() == 0:
         raise MatchupError("No matches within region.")
     avhrrGeoObj = createAvhrrTime(avhrrGeoObj, ctypefile)
@@ -661,6 +685,7 @@ def match_calipso_avhrr(ctypefile, calipsoObj, avhrrGeoObj, avhrrObj, ctype, ctt
     
 #    avhrr_lines_sec_1970 = calnan * DSEC_PER_AVHRR_SCALINE + avhrrGeoObj.sec1970_start
     # Find all matching Calipso pixels within +/- sec_timeThr from the AVHRR data
+#    pdb.set_trace()
     idx_match = elements_within_range(timeCalipso, avhrr_lines_sec_1970, sec_timeThr) 
 
     if idx_match.sum() == 0:
