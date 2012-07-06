@@ -36,7 +36,6 @@ def drawCalClsatGEOPROFAvhrrPlot(clsatObj_cloudsat, clsatObj_avhrr, caObj_calips
     pixel_position_ok = numpy.repeat(pixel_position[::],cal_plot_data_ok)
     avhrr_ctth_ok = numpy.repeat(avhrr_ctth_cal_ok[::],cal_plot_data_ok)    
     
-    
 #    # Calculates Hihest Cloud Top   
     if MAXHEIGHT == None:
         maxheight_calipso = numpy.nanmax(caliop_height)
