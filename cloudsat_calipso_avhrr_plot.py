@@ -271,6 +271,28 @@ def drawCalClsatCWCAvhrrPlot(clsatObj, elevationcwc, data_okcwc, plotpath, basen
     ax1.set_ylim(0, maxheight)
     fig1.savefig(filename + 'eps')
     fig1.savefig(filename + 'png')
+
+# -----------------------------------------------------
+
+def drawCalAvhrrTime(latitude, cal_sec_1970, avhrr_sec_1970):
+    from matplotlib import pyplot as plt
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    
+    maxvalue = numpy.nanmax([numpy.nanmax(cal_sec_1970), numpy.nanmax(avhrr_sec_1970)]) / 60.
+    minvalue = numpy.nanmin([numpy.nanmin(cal_sec_1970), numpy.nanmin(avhrr_sec_1970)]) / 60.
+    title = "Time since 1970"
+    
+    ax.set_title(title)
+    ax.set_xlabel("Track Position")
+    ax.set_ylabel("Time [min]")
+    ax.set_ylim(minvalue-10, maxvalue+10)
+    ax.plot(cal_sec_1970 / 60.,"g+", label = "CALIPSO")
+    ax.plot(avhrr_sec_1970 / 60.,"r+", label = "AVHRR")
+    ax.legend()
+    fig.show()
+
 # -----------------------------------------------------
 
 def drawCalClsatAvhrrPlotTimeDiff(latitude, clsat_diff_sec_1970, cal_diff_sec_1970, plotpath, basename, res, file_type='eps'):
@@ -289,7 +311,7 @@ def drawCalClsatAvhrrPlotTimeDiff(latitude, clsat_diff_sec_1970, cal_diff_sec_19
     time_diff_cloudsat=numpy.zeros((geometric_range_CloudSat),'d')
     maxvalue = numpy.nanmax(cal_diff_sec_1970)/60
     minvalue = numpy.nanmin(cal_diff_sec_1970)/60
-    title = "Time Difference Between AVHRR and CALIPSO"
+    title = "Time Difference CALIPSO - AVHRR"
     if clsat_diff_sec_1970 != None:
         for i in range(geometric_range_CloudSat): #Just extend original time_diff array
             elevation_index = int(i/CLOUDSAT_TRACK_RESOLUTION + 0.5)  
@@ -311,15 +333,17 @@ def drawCalClsatAvhrrPlotTimeDiff(latitude, clsat_diff_sec_1970, cal_diff_sec_19
     biggest_Calipso_diff = numpy.nanmax(numpy.abs(cal_diff_sec_1970))
     ax.set_title(title)    
     ax.set_xlabel("Track Position")
-    ax.set_ylabel("Time diff [min]")
+    ax.set_ylabel("Time diff (CALIPSO - AVHRR)[min]")
     ax.set_ylim(minvalue-10, maxvalue+10)
     ax.plot(cal_diff_sec_1970/60,"g+", label = "CALIPSO (max time diff %.2f min)" % round(biggest_Calipso_diff/60,2))
     ax.legend()
+    
     if isinstance(file_type, str) == True:
         fig.savefig("%s/%skm_%s_time_diff.%s"%(plotpath,RESOLUTION,basename, file_type))
     else:
         for filetype in file_type:
             fig.savefig("%s/%skm_%s_time_diff.%s"%(plotpath,RESOLUTION,basename, filetype))
+#    fig.show()
             
 # -----------------------------------------------------   
 def drawCalClsatAvhrrPlotSATZ(latitude, AvhrrClsatSatz, AvhrrCalSatz, plotpath, basename, res, file_type='eps'):
