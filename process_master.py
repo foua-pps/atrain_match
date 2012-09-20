@@ -109,13 +109,13 @@ def main(args=None):
         # Simulate crosses from PPS scenes
         from find_crosses import Cross
         from runutils import parse_scene
+
         for scene in args:
             satname, time, orbit = parse_scene(scene) #@UnusedVariable
             matchups.append(Cross(satname, '', time, time, -999, -999))
     else:
         for sno_output_file in sno_output_files:
             found_matchups = find_crosses.parse_crosses_file(sno_output_file)
-                
             if len(found_matchups) == 0:
                 write_log('WARNING', "No matchups found in SNO output file %s" %
                           sno_output_file)

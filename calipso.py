@@ -278,8 +278,8 @@ def avhrr_linepix_from_lonlat_aapp(lon,lat,avhrrObj,platform,norbit,yyyymmdd):
     import _py_linepix_lonlat #@UnresolvedImport
     
     ndim = lon.shape[0]
-    lin = numpy.zeros((ndim,),'d')
-    pix = numpy.zeros((ndim,),'d')
+    lin = numpy.zeros((ndim,), 'd')
+    pix = numpy.zeros((ndim,), 'd')
 
     if platform.find("metop") >= 0:
         file_satpos = "%s/satpos_M%.2d_%s.txt"%(SATPOS_DIR,string.atoi(platform.split("metop")[1]),yyyymmdd) #@UndefinedVariable
@@ -368,7 +368,6 @@ def get_calipso_avhrr_linpix(avhrrIn,avhrrname,lon,lat,caTime):
         #if not ok and HasEncounteredMatch:
         #    write_log("INFO","Data is now empty. Leave the loop...")
         #    break
-        
         if(startline==0):
             # First time:
             calipso_avhrr_line,calipso_avhrr_pixel = numpy.array(cal),numpy.array(cap)
@@ -379,7 +378,7 @@ def get_calipso_avhrr_linpix(avhrrIn,avhrrname,lon,lat,caTime):
 
         startline=startline+NLINES
         i=i+1
-        
+
     return calipso_avhrr_line,calipso_avhrr_pixel
 
 # --------------------------------------------
@@ -469,7 +468,6 @@ def get_calipso_avhrr_linpix_segment(avhrrIn,lon,lat,catime,lines,swath_width,tm
             calipso_avhrr_pixel.append(-9)
 #            calipso_avhrr_line_time.append(-9)
 #            calipso_avhrr_pixel_time.append(-9)
-
     calipso_avhrr_line = numpy.array(calipso_avhrr_line)
     calipso_avhrr_pixel = numpy.array(calipso_avhrr_pixel)
 #    calipso_avhrr_line_time = numpy.array(calipso_avhrr_line_time)
@@ -674,10 +672,6 @@ def match_calipso_avhrr(ctypefile, calipsoObj, avhrrGeoObj, avhrrObj, ctype, ctt
 #    cal, cap = map_avhrr(avhrrGeoObj, lonCalipso.ravel(), latCalipso.ravel(),
 #                         radius_of_influence=res * .7 * 1e3) # somewhat larger than radius...
     calnan = numpy.where(cal == NODATA, numpy.nan, cal)
-    from trajectory_plot import plotSatelliteTrajectory
-#    plotSatelliteTrajectory(lonCalipso,latCalipso,'calipso')
-#    plotSatelliteTrajectory(avhrrGeoObj.longitude[::,0], avhrrGeoObj.latitude[::,0],'avhrr')
-#    pdb.set_trace()
     if (~numpy.isnan(calnan)).sum() == 0:
         raise MatchupError("No matches within region.")
     avhrrGeoObj = createAvhrrTime(avhrrGeoObj, ctypefile)
@@ -939,11 +933,11 @@ def read_calipso(filename, res):
     import _pyhl #@UnresolvedImport
     import h5py #@UnresolvedImport
     
-    if res == 5:
-        h5file = h5py.File(filename, 'r')
-        pdb.set_trace()
-        h5file['Horizontal_Averaging']
-        h5file.close()
+#    if res == 5:
+#        h5file = h5py.File(filename, 'r')
+#        pdb.set_trace()
+#        h5file['Horizontal_Averaging']
+#        h5file.close()
     a=_pyhl.read_nodelist(filename)
 #    b=a.getNodeNames()
     a.selectAll()
@@ -1024,7 +1018,7 @@ def reshapeCalipso(calipsofiles, avhrr, avhrrfilename, timereshape = True, res=r
             if value != None:
                 if value.size != 1:
                     startCalipso.all_arrays[arname] = numpy.concatenate((value[0:cal_break,...],newCalipso.all_arrays[arname]))
-       
+
     # Finds Break point
     if res == 1:
         start_break = numpy.argmin((numpy.abs((startCalipso.time[:,0] + dsec) - (avhrr_start - sec_timeThr))))
@@ -1051,6 +1045,7 @@ def reshapeCalipso(calipsofiles, avhrr, avhrrfilename, timereshape = True, res=r
         print("No time match, please try with some other CloudSat files")
         print("Program calipso.py at line %i" %(inspect.currentframe().f_lineno+1))
         sys.exit(-9)
+
     return cal, start_break, end_break
 
 def add1kmTo5km(Obj1, Obj5, start_break, end_break):

@@ -278,7 +278,7 @@ def find_files_from_avhrr(avhrr_file):
             nwp_tsur_file = []
 #            raise MatchupError("No nwp_tsur file found corresponding to %s." % avhrr_file)
 #        nwp_tsur_file = None
-    
+
     try:
         sunsatangles_file = pps_finder.find(datetime, satname, ending='sunsatangles.h5')[0]
     except IndexError:
@@ -443,8 +443,8 @@ def get_matchups_from_data(cross):
                     calipso1km.append(glob.glob(file1km)[0])
                 if len(calipso_files) != len(calipso1km):
                     pdb.set_trace()
-        else:
-            calipso1km = None
+            else:
+                calipso1km = None
         ca_matchup, ca_time_diff = get_calipso_matchups(calipso_files, cloudtype_file,
                                                         avhrrGeoObj, avhrrObj, ctype,
                                                         ctth, surft, avhrrAngObj, calipso1km)
