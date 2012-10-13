@@ -31,7 +31,8 @@ PLOT_DIR = "%s/Plot" %_validation_results_dir
 RESULT_DIR = "%s/Results" %_validation_results_dir
 
 
-_satellite_data_dir = '/data/arkiv/proj/safworks/data'
+#_satellite_data_dir = '/data/arkiv/proj/safworks/data'
+_satellite_data_dir = '/local_disk/data/atrain_validation/data'
 #: Base dir for PPS data
 PPS_DATA_DIR = os.environ.get('PPS_DATA_DIR', _satellite_data_dir + '/pps')
 
@@ -270,7 +271,7 @@ def subdir(self, date, *args, **kwargs):
         if ending is None:
             ending = self.ending
         _dir = "%dkm/%d/%02d" % (RESOLUTION, date.year, date.month)
-        if 'avhrr' in ending:
+        if 'avhrr' in ending or 'viirs' in ending:
             return os.path.join(_dir,"import/PPS_data")                
         if 'sunsatangles' in ending:
             return os.path.join(_dir, "import/ANC_data")
