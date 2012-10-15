@@ -28,14 +28,22 @@ def process_matchups(matchups, run_modes, reprocess=False, debug=False):
     """
     import cloudsat_calipso_avhrr_match
     from common import MatchupError
-    
+    import os
+    import ConfigParser
+    CONFIG_PATH = os.environ.get('ATRAINMATCH_CONFIG_DIR', './etc')
+    CONF = ConfigParser.ConfigParser()
+    CONF.read(os.path.join(CONFIG_PATH, "atrain_match.cfg"))
+    OPTIONS = {}
+    for option, value in CONF.items('general', raw = True):
+        OPTIONS[option] = value
+
     problematic = set()
     no_matchup_files = []
     for match in sorted(matchups):
 #        match = matchups[i + 50]
         for mode in run_modes:
             try:
-                cloudsat_calipso_avhrr_match.run(match, mode, reprocess)
+                cloudsat_calipso_avhrr_match.run(match, mode, OPTIONS, reprocess)
             except MatchupError, err:
                 write_log('WARNING', "Matchup problem: %s" % str(err))
                 import traceback

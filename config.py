@@ -1,11 +1,15 @@
 """
-Configuration file for ``atrain_match``. Most configuration options and constants
-used in ``atrain_match`` are set in this file. However, there may
+Configuration file for ``atrain_match``. Most configuration options and
+constants used in ``atrain_match`` are set in this file. However, there may
 still be some modules which have internal constants defined.
 
 """
 
 import os
+
+# Imager Instrument on which PPS has been run (currently you can only run the
+# atrain match on either AVHRR data or VIIRS data, not both):
+IMAGER_INSTRUMENT = os.environ.get('IMAGER_INSTRUMENT', 'viirs')
 
 #: Resolution, in km, to use for data files. This setting is used throughout
 #: ``atrain_match`` to specify file names, sub-directories, and data handling.
@@ -73,7 +77,7 @@ EMISS_MIN_HEIGHT = 2000.0
 #: A value of 0.2-0.3 in cloud emissivity seems reasonable
 EMISS_LIMIT = 0.2
 
-CALIPSO_CLOUD_FRACTION = True
+CALIPSO_CLOUD_FRACTION = False
 #: Processing modes which can be handled
 # TODO: Split into latitude dependent area, snow-ice-land-sea area and day-night-twilight
 ALLOWED_MODES = ['BASIC',
@@ -184,18 +188,22 @@ ALLOWED_MODES = ['BASIC',
 #            modes.add(day)
     
 
-#: Threshold for optical thickness. If optical thickness is below this value it will be filtered out.
+#: Threshold for optical thickness. If optical thickness is below this value it
+# will be filtered out.
 MIN_OPTICAL_DEPTH = 0.5
 
+print "RESOLUTION=", RESOLUTION
 if RESOLUTION == 1:
-    if AVHRR_SAT == 'NPP':
+    if IMAGER_INSTRUMENT == 'viirs':
         DSEC_PER_AVHRR_SCALINE = 60 / 40.
         SWATHWD=3200
     else:
-        DSEC_PER_AVHRR_SCALINE = 1.0/6. # Full scan period, i.e. the time interval between two consecutive lines (sec)
+        DSEC_PER_AVHRR_SCALINE = 1.0/6. # Full scan period, i.e. the time
+                                        # interval between two consecutive
+                                        # lines (sec)
         SWATHWD=2048
-#    AREA = "arctic_super_5010"
-    AREA = "cea1km_test"
+    AREA = "arctic_super_5010"
+#    AREA = "cea1km_test"
     #: CloudSat sampling frequency in km (or rather the most likely
     #: resolution difference between CALIPSO 1 km datasets and
     #: the CloudSat 2B-GEOPROF dataset). Nominally CloudSat sampling
@@ -335,6 +343,8 @@ MAP = [AREA]
 MAIN_DATADIR = _validation_results_dir
 
 #: TODO: No description yet...
+# Seems like this can't be set to True if we run without Calipso 5km data!
+# ??? Adam 2012-10-14
 if CALIPSO_CLOUD_FRACTION == True:
     COMPILED_STATS_FILENAME = '%s/Results/compiled_stats_CCF' %MAIN_DATADIR
 else:
