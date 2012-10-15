@@ -2,14 +2,24 @@
 # python cloudsat_calipso_avhrr_prepare.py 
 
 
-def CalipsoCloudFraction(cloud_top, cloud_base, optical_depth, cloud_fraction, fcf, ssccf):
+def CalipsoCloudFraction(calipsoObj):
     import numpy as np
 
-    new_cloud_fraction = np.zeros(cloud_fraction.shape,'d')
+    new_cloud_fraction = np.zeros(calipsoObj.calipso.cloud_fraction.shape, 'd')
+
+    fcf = calipsoObj.calipso.feature_classification_flags
     new_fcf = np.ones(fcf.shape).astype(fcf.dtype)
-    new_cloud_top = np.ones(cloud_top.shape,'d')*np.min(cloud_top)
-    new_cloud_base = np.ones(cloud_base.shape,'d')*np.min(cloud_base)
-    new_optical_depth = np.ones(optical_depth.shape,'d')*np.min(optical_depth)
+
+    cloud_top = calipsoObj.calipso.cloud_top_profile
+    new_cloud_top = np.ones(cloud_top.shape, 'd')*np.min(cloud_top)
+
+    cloud_base = calipsoObj.calipso.cloud_base_profile
+    new_cloud_base = np.ones(cloud_base.shape, 'd')*np.min(cloud_base)
+
+    optical_depth = calipsoObj.calipso.optical_depth
+    new_optical_depth = np.ones(optical_depth.shape, 'd')*np.min(optical_depth)
+
+    ssccf = calipsoObj.calipso.single_shot_cloud_cleared_fraction
     new_ssccf = np.ones(ssccf.shape,'d')*np.min(ssccf)
     for i in range(ssccf.shape[1]):
         ind = ((ssccf[:,i]>=0) & (ssccf[:,i]<=0.5))
@@ -21,7 +31,6 @@ def CalipsoCloudFraction(cloud_top, cloud_base, optical_depth, cloud_fraction, f
             new_optical_depth[:,i] = optical_depth[:,i]
             new_ssccf[:,i] = ssccf[:,i]
         
-       
     return new_cloud_top, new_cloud_base, new_optical_depth, new_cloud_fraction, new_fcf, new_ssccf
 
 def CloudsatCloudOpticalDepth(cloud_top, cloud_base, optical_depth, cloud_fraction, fcf):
