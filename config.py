@@ -35,6 +35,10 @@ PLOT_DIR = "%s/Plot" %_validation_results_dir
 RESULT_DIR = "%s/Results" %_validation_results_dir
 
 
+# Region configuaration file with area definitons
+AREA_CONFIG_FILE = os.environ.get('AREA_CONFIG_FILE', './etc/areas.def')
+
+
 #_satellite_data_dir = '/data/arkiv/proj/safworks/data'
 _satellite_data_dir = '/local_disk/data/atrain_validation/data'
 #: Base dir for PPS data
@@ -50,8 +54,9 @@ CLOUDSAT_TYPE = 'GEOPROF'
 #: Base dir for Calipso data
 CALIPSO_DIR = os.environ.get('CALIPSO_DIR', _satellite_data_dir + '/calipso')
 
-#: Constant: Duration of a satellite orbit in seconds
+#: Constant: Approximate duration of a satellite orbit in seconds
 SAT_ORBIT_DURATION = 90*60
+#SAT_ORBIT_DURATION = 70*60
 
 #: CTTH file type to use in processing (One of 'ctth', 'ctth_opaque', and 'ctth_semitransparent')
 CTTH_FILE = os.environ.get('CTTH_FILE', 'ctth')
@@ -202,7 +207,8 @@ if RESOLUTION == 1:
                                         # interval between two consecutive
                                         # lines (sec)
         SWATHWD=2048
-    AREA = "arctic_super_5010"
+    AREA = "arctic_europe_1km"
+#    AREA = "arctic_super_5010"
 #    AREA = "cea1km_test"
     #: CloudSat sampling frequency in km (or rather the most likely
     #: resolution difference between CALIPSO 1 km datasets and
@@ -372,4 +378,4 @@ STUDIED_YEAR = ["2009"]
 STUDIED_MONTHS = ['01', '07']
 OUTPUT_DIR = "%s/Ackumulering_stat/Results/%s" % (MAIN_DATADIR, SATELLITE[0])
 
-H4H5_EXECUTABLE = '/data/proj/safworks/opt/linda3/H4H5/2_1_1/bin/h4toh5'
+H4H5_EXECUTABLE = '/local_disk/opt/h4h5tools-2.2.1-linux-x86_64-static/bin/h4toh5'
