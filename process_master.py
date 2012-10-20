@@ -40,7 +40,7 @@ def process_matchups(matchups, run_modes, reprocess=False, debug=False):
     problematic = set()
     no_matchup_files = []
     for match in sorted(matchups):
-#        match = matchups[i + 50]
+        write_log("DEBUG", "Match: %r" % match)
         for mode in run_modes:
             try:
                 cloudsat_calipso_avhrr_match.run(match, mode, OPTIONS, reprocess)
@@ -137,6 +137,7 @@ def main(args=None):
                 continue
             else:
                 matchups.extend(found_matchups)
+
     process_matchups(matchups, run_modes, options.reprocess, options.debug)
     
     return 0
