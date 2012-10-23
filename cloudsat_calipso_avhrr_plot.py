@@ -18,9 +18,7 @@ def format_title(title):
 
 # -----------------------------------------------------
 def drawCalClsatGEOPROFAvhrrPlot(clsatObj_cloudsat, 
-                                 clsatObj_avhrr, 
                                  caObj_calipso, 
-                                 caObj_avhrr, 
                                  elevation, data_ok,
                                  CALIPSO_DISPLACED, caliop_base,
                                  caliop_height, cal_data_ok,
@@ -58,12 +56,14 @@ def drawCalClsatGEOPROFAvhrrPlot(clsatObj_cloudsat,
                                                           numpy.nan))+120
             max_height_sat.append(maxheight_cloudsat)
         maxheight = numpy.nanmax(max_height_sat)
-        if maxheight < 12000.:
-            maxheight = 12000
-        elif maxheight < 25000.:
-            maxheight = 25000.
-        else:
-            maxheight = maxheight + 1000
+        # Why this!? AD, 2012-Oct
+        #if maxheight < 12000.:
+        #    maxheight = 12000
+        #elif maxheight < 25000.:
+        #    maxheight = 25000.
+        #else:
+        #    maxheight = maxheight + 1000
+        maxheight = maxheight + 1000
     else:
         maxheight = MAXHEIGHT
 
@@ -144,6 +144,7 @@ def drawCalClsatGEOPROFAvhrrPlot(clsatObj_cloudsat,
     
     dummy = caObj_calipso.latitude.shape[0]
     pixel_position = numpy.arange(dummy)
+    caliop_label_set = False
     for i in range(10):
         base_ok = caliop_base[i]
         top_ok = caliop_height[i]
@@ -151,18 +152,24 @@ def drawCalClsatGEOPROFAvhrrPlot(clsatObj_cloudsat,
             if cal_data_ok[idx]:
 #                if caObj_calipso.number_of_layers_found[idx] > i:
                 if base_ok[idx] != -9.0:
-                    ax.vlines(pixel_position[idx] + calipso_displacement ,base_ok[idx], top_ok[idx],
-                                color = "green", linestyle = 'solid', linewidth = 0.5)
-                
-    
+                    if not caliop_label_set:
+                        ax.vlines(pixel_position[idx] + calipso_displacement,
+                                  base_ok[idx], top_ok[idx],
+                                  color = "green", linestyle = 'solid', linewidth = 0.5,
+                                  label='caliop')
+                        caliop_label_set = True
+                    else:
+                        ax.vlines(pixel_position[idx] + calipso_displacement ,base_ok[idx], top_ok[idx],
+                                  color = "green", linestyle = 'solid', linewidth = 0.5)
     
     #: Plot Avhrr   
-    ax.plot(pixel_position_ok + calipso_displacement, avhrr_ctth_ok, 'b+')#\
-            #color = "blue", linestyle = "+")#,cex=0.7)
+    ax.plot(pixel_position_ok + calipso_displacement, avhrr_ctth_ok, 'b+', 
+            label=instrument.upper())
     ax.set_ylim(0, maxheight)
     ax.set_title(title)
     ax.set_xlabel("Track Position")
-    ax.set_ylabel("Cloud Height")
+    ax.set_ylabel("Cloud Height (meter)")
+    plt.legend(fancybox=True, loc=1)
     if isinstance(file_type, str) == True:
         filename = "%s/%skm_%s_cloudsat_calipso_%s_clouds.%s" \
             % (plotpath, RESOLUTION, basename, instrument, file_type)
@@ -287,7 +294,7 @@ def drawCalClsatCWCAvhrrPlot(clsatObj, elevationcwc, data_okcwc,
     return
 
 # -----------------------------------------------------
-def drawCalAvhrrTime(latitude, cal_sec_1970, avhrr_sec_1970, **options):
+def drawCalAvhrrTime(cal_sec_1970, avhrr_sec_1970, **options):
     from matplotlib import pyplot as plt
 
     if 'instrument' in options:
@@ -315,7 +322,8 @@ def drawCalAvhrrTime(latitude, cal_sec_1970, avhrr_sec_1970, **options):
 def drawCalClsatAvhrrPlotTimeDiff(latitude, 
                                   clsat_diff_sec_1970, 
                                   cal_diff_sec_1970, 
-                                  plotpath, basename, res, file_type='eps',
+                                  plotpath, basename, 
+                                  resolution, file_type='eps',
                                   **options):
     if 'instrument' in options:
         instrument = options['instrument']
@@ -358,11 +366,11 @@ def drawCalClsatAvhrrPlotTimeDiff(latitude,
     
     if isinstance(file_type, str) == True:
         fig.savefig("%s/%skm_%s_time_diff.%s" % (plotpath, 
-                                                 RESOLUTION,basename, file_type))
+                                                 resolution, basename, file_type))
     else:
         for filetype in file_type:
             fig.savefig("%s/%skm_%s_time_diff.%s" % (plotpath,
-                                                     RESOLUTION, basename, filetype))
+                                                     resolution, basename, filetype))
 
     return
             
@@ -371,7 +379,8 @@ def drawCalClsatAvhrrPlotSATZ(latitude,
                               AvhrrClsatSatz, 
                               AvhrrCalSatz, 
                               plotpath, basename, 
-                              res, file_type='eps', 
+                              resolution, 
+                              file_type='eps', 
                               **options):
 
     from matplotlib import pyplot as plt
@@ -411,10 +420,10 @@ def drawCalClsatAvhrrPlotSATZ(latitude,
     ax.plot(AvhrrCalSatz,"g+", label = "%s - CALIPSO" % instrument.upper())
     ax.legend()
     if isinstance(file_type, str) == True:
-        fig.savefig("%s/%skm_%s_satz.%s" % (plotpath,RESOLUTION, basename, file_type))
+        fig.savefig("%s/%skm_%s_satz.%s" % (plotpath, resolution, basename, file_type))
     else:
         for filetype in file_type:
-            fig.savefig("%s/%skm_%s_satz.%s" % (plotpath,RESOLUTION, basename, filetype))
+            fig.savefig("%s/%skm_%s_satz.%s" % (plotpath, resolution, basename, filetype))
 
     del ax
     del fig

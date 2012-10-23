@@ -4,9 +4,11 @@ import inspect #@UnusedImport
 import os #@UnusedImport
 import numpy as np
 from pps_basic_configure import *
-from pps_error_messages import * #@UnusedWildImport
+from pps_error_messages import write_log
 
-from config import AREA, SUB_DIR, DATA_DIR, sec_timeThr, COMPRESS_LVL, NLINES, SWATHWD, NODATA #@UnusedImport
+from config import (AREA, SUB_DIR, DATA_DIR, 
+                    sec_timeThr, COMPRESS_LVL, 
+                    NLINES, SWATHWD, NODATA) #@UnusedImport
 from common import MatchupError, elements_within_range #@UnusedImport
 from config import RESOLUTION as resolution
 COVERAGE_DIR = "%s/%ikm/%s"%(SUB_DIR,resolution,AREA)
@@ -43,7 +45,6 @@ class ppsAvhrrObject(DataObject):
             'bt11micron': None,
             'bt12micron': None,
             'satz': None,
-            'surftemp': None,
             'lwp': None
             }
         
@@ -110,7 +111,7 @@ def readCaliopAvhrrMatchObj(filename):
     return retv
 
 # ----------------------------------------
-def writeCaliopAvhrrMatchObj(filename,ca_obj):
+def writeCaliopAvhrrMatchObj(filename, ca_obj):
     """
     Write *ca_obj* to *filename*.
     
@@ -443,31 +444,30 @@ def get_calipso_avhrr_linpix_segment(avhrrIn,lon,lat,catime,lines,swath_width,tm
 
     return calipso_avhrr_line, calipso_avhrr_pixel, matchOk
 
-#----------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 def createAvhrrTime(Obt, filename):
     import os #@Reimport
     from config import DSEC_PER_AVHRR_SCALINE
-    import calendar
-    
+    import time
+    from datetime import datetime
+
     filename = os.path.basename(filename)
+    # Ex.: npp_20120827_2236_04321_satproj_00000_04607_cloudtype.h5
     if filename.split('_')[0] == 'npp':
         if Obt.sec1970_start < 0: #10800
-            viirsDate = filename.split('_')[1]
-            viirsHM = filename.split('_')[2]
-            viirsSH = filename.split('_')[3]
-            year = int(viirsDate[0:4])
-            mon = int(viirsDate[4:6])
-            day = int(viirsDate[6:])
-            hour = int(viirsHM[0:2])
-            min = int(viirsHM[2:])
-            sec = int(viirsSH[0:2])
-            hundredSec = float('0.' + viirsSH[2:])
-            Obt.sec1970_start = calendar.timegm((year, mon, day, hour, min, sec)) + hundredSec
+            write_log("WARNING", 
+                      "NPP start time negative! " + str(Obt.sec1970_start))
+            dtobj = datetime.strptime((filename.split('_')[1] + 
+                                       filename.split('_')[2]), '%Y%m%d%H%M')
+            Obt.sec1970_start = time.mktime(dtobj.timetuple()) - time.timezone
+
         num_of_scan = Obt.num_of_lines / 16.
-        if (Obt.sec1970_end - Obt.sec1970_start) / (num_of_scan) > 2:
-            pdb.set_trace()
+        #if (Obt.sec1970_end - Obt.sec1970_start) / (num_of_scan) > 2:
+        #    pdb.set_trace()
         linetime = np.linspace(Obt.sec1970_start, Obt.sec1970_end, num_of_scan)
-        Obt.time = np.apply_along_axis(np.multiply, 0, np.ones([num_of_scan, 16]), linetime).reshape(Obt.num_of_lines)
+        Obt.time = np.apply_along_axis(np.multiply, 
+                                       0, np.ones([num_of_scan, 16]), 
+                                       linetime).reshape(Obt.num_of_lines)
 
     else:
         if Obt.sec1970_end < Obt.sec1970_start:
@@ -482,7 +482,7 @@ def createAvhrrTime(Obt, filename):
         if filename.split('_')[-3] != '00000':
             """
             This if statement takes care of a bug in start and end time, 
-            that occurs when a file is cute at midnight
+            that occurs when a file is cut at midnight
             """
             
             import calendar, time
@@ -500,8 +500,10 @@ def createAvhrrTime(Obt, filename):
     
     return Obt
 
-#----------------------------------------------------------------------------------------------------
-def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj, surft, ctth, ctype, row_matched, col_matched, avhrrLwp=None):
+#---------------------------------------------------------------------------
+def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj, 
+                             surft, ctth, ctype, 
+                             row_matched, col_matched, avhrrLwp=None):
     ctype_track = []
     ctype_qflag_track = []
     ctth_height_track = []
@@ -586,12 +588,14 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj, surft, ctth, ctype, r
         obt.avhrr.surftemp = np.array(surft_track)
     if avhrrLwp != None:
         obt.avhrr.lwp = np.array(lwp_track)
+
     return obt
 
 # -----------------------------------------------------------------
 def match_calipso_avhrr(ctypefile, 
                         calipsoObj, imagerGeoObj, imagerObj, 
-                        ctype, ctth, surft, avhrrAngObj, res=resolution):
+                        ctype, ctth, surft, 
+                        avhrrAngObj, res=resolution):
 
     import time
     import string

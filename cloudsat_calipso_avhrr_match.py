@@ -558,7 +558,7 @@ def get_matchups_from_data(cross, config_options):
         write_log("INFO", "NO CALIPSO File, Continue")
 
 
-# Get satellite name, time, and orbit number from avhrr_file
+    # Get satellite name, time, and orbit number from avhrr_file
     from file_finders import PpsFileFinder #@UnresolvedImport
     pps_finder = PpsFileFinder()
     parsed = pps_finder.parse(avhrr_file)
@@ -588,7 +588,7 @@ def get_matchups_from_data(cross, config_options):
             writeCloudsatAvhrrMatchObj(cl_match_file, cl_matchup)
         except NameError:
             cl_matchup = None
-            cl_time_diff = None
+            cl_time_diff = NaN, NaN
             print('CloudSat is not defined. No CloudSat Match File created')
     else:
         cl_match_file = rematched_file_base.replace('atrain_datatype', 
@@ -601,7 +601,7 @@ def get_matchups_from_data(cross, config_options):
         ca_time_diff = None
     else:
         ca_match_file = rematched_file_base.replace('atrain_datatype', 'caliop')
-        writeCaliopAvhrrMatchObj(ca_match_file,ca_matchup) 
+        writeCaliopAvhrrMatchObj(ca_match_file, ca_matchup) 
     
     
     return {'cloudsat': cl_matchup, 'cloudsat_time_diff': cl_time_diff,
@@ -617,7 +617,8 @@ def get_matchups(cross, options, reprocess=False):
     """
     caObj = None
     clObj = None
-    
+    calipso_min_and_max_timediffs = NaN, NaN
+
     try:
         satellite = cross.satellite1.lower()
         date_time = cross.time1
@@ -665,7 +666,8 @@ def get_matchups(cross, options, reprocess=False):
             basename = '_'.join(os.path.basename(ca_match_file).split('_')[1:5])    
             write_log('INFO', 
                       "CALIPSO Matchups read from previously processed data.")
-
+            calipso_min_and_max_timediffs = (caObj.diff_sec_1970.min(), 
+                                             caObj.diff_sec_1970.max())
     #TODO: Fix a better solution for below so it can handle missing cloudsat better.
     if None in [caObj] and None in [clObj]:
         return get_matchups_from_data(cross, options)
@@ -673,8 +675,12 @@ def get_matchups(cross, options, reprocess=False):
         return get_matchups_from_data(cross, options)
     elif caObj is None and config.CLOUDSAT_TYPE == 'GEOPROF':
         return get_matchups_from_data(cross, options)
-    else:
-        return {'calipso': caObj, 'cloudsat': clObj, 'basename': basename}
+
+
+    return {'calipso': caObj, 'cloudsat': clObj, 
+            'basename': basename,
+            'calipso_time_diff': calipso_min_and_max_timediffs
+            }
 
 
 def get_cloud_emissivity(satellite, calipsoObj, calipso_okay, radtb_table_path=None):
@@ -712,7 +718,8 @@ def get_cloud_emissivity(satellite, calipsoObj, calipso_okay, radtb_table_path=N
 
     if radtbObj:
         for i in range(calipso_okay.shape[0]):
-            if calipso_okay[i]:                
+            if calipso_okay[i] and (calipsoObj.avhrr.surftemp[i] < 360. 
+                                    and calipsoObj.avhrr.surftemp[i] > 180.):                
                 radiance = radtbObj.get_radiance(calipsoObj.avhrr.bt11micron[i])
                 rad_clear = radtbObj.get_radiance(calipsoObj.avhrr.surftemp[i])
                 if radiance > rad_clear:
@@ -791,8 +798,8 @@ def run(cross, process_mode_dnt, config_options, reprocess=False):
     matchup_results = get_matchups(cross, config_options, reprocess)
     caObj = matchup_results['calipso']
     clsatObj = matchup_results['cloudsat']
-    clsat_min_diff, clsat_max_diff = matchup_results.get('cl_time_diff', (NaN, NaN))
-    ca_min_diff, ca_max_diff = matchup_results.get('ca_time_diff', (NaN, NaN))
+    clsat_min_diff, clsat_max_diff = matchup_results.get('cloudsat_time_diff', (NaN, NaN))
+    ca_min_diff, ca_max_diff = matchup_results.get('calipso_time_diff', (NaN, NaN))
     
     basename = matchup_results['basename']
     base_sat = basename.split('_')[0]
@@ -962,8 +969,9 @@ def run(cross, process_mode_dnt, config_options, reprocess=False):
                                         
         caliop_max_height = np.maximum(caliop_max_height,
                                        caObj.calipso.cloud_top_profile[i, ::] * 1000.)
-        # This is actually unnecessary - we know that layer 1 is always the highest layer!!
-        # However, arrays caliop_height and caliop_base are needed later for plotting/ KG
+        # This is actually unnecessary - we know that layer 1 is always the
+        # highest layer!!  However, arrays caliop_height and caliop_base are
+        # needed later for plotting/ KG
 
         caliop_height.append(hh)
         bb = np.where(np.greater(caObj.calipso.cloud_base_profile[i,::],-9),
@@ -1027,16 +1035,18 @@ def run(cross, process_mode_dnt, config_options, reprocess=False):
     # Draw plot
     if process_mode_dnt in config.PLOT_MODES:
         write_log('INFO', "Plotting")
-
-        plotpath = "%s/%s/%ikm/%s/%s/%s" %(config.PLOT_DIR, base_sat, config.RESOLUTION, base_year, base_month, config.AREA)
-        if not os.path.exists(plotpath):
-            os.makedirs(plotpath)
+        
+        plotpath = os.path.join(config.PLOT_DIR,
+                                base_sat, "%ikm" % config.RESOLUTION, 
+                                base_year, base_month, config.AREA)
             
-        #trajectorypath = "%s/trajectory_plot/%ikm/%s" %(MAIN_RUNDIR,int(config.RESOLUTION),AREA)         
-        trajectorypath = "%s/trajectory_plot" %(plotpath)
+        trajectorypath = os.path.join(plotpath, "trajectory_plot")
         if not os.path.exists(trajectorypath):
-                os.makedirs(trajectorypath)
-        trajectoryname = "%s/%skm_%s_trajectory" %(trajectorypath,int(config.RESOLUTION),basename)
+            os.makedirs(trajectorypath)
+
+        trajectoryname = os.path.join(trajectorypath, 
+                                      "%skm_%s_trajectory" % (int(config.RESOLUTION),
+                                                              basename))
         # To make it possible to use the same function call to drawCalClsatGEOPROFAvhrr*kmPlot
         # in any processing mode:
         if 'emissfilt_calipso_ok' not in locals():
@@ -1044,7 +1054,8 @@ def run(cross, process_mode_dnt, config_options, reprocess=False):
         if clsatObj is None:
             file_type = ['eps', 'png']
             if 'trajectory_plot_area' in config_options:
-                plotSatelliteTrajectory(calon,calat,trajectoryname, 
+                plotSatelliteTrajectory(calon, calat,
+                                        trajectoryname, 
                                         config.AREA_CONFIG_FILE, 
                                         file_type,
                                         area_id=config_options['trajectory_plot_area'])
@@ -1064,8 +1075,8 @@ def run(cross, process_mode_dnt, config_options, reprocess=False):
                                       plotpath, basename, 
                                       config.RESOLUTION, file_type,
                                       instrument=sensor)
-            drawCalClsatGEOPROFAvhrrPlot(None, None, 
-                                         caObj.calipso, caObj.avhrr, None, data_ok,
+            drawCalClsatGEOPROFAvhrrPlot(None, 
+                                         caObj.calipso, None, data_ok,
                                          None, caliop_base,
                                          caliop_height, cal_data_ok,
                                          avhrr_ctth_cal_ok, plotpath,

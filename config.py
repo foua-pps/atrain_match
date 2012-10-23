@@ -56,7 +56,6 @@ CALIPSO_DIR = os.environ.get('CALIPSO_DIR', _satellite_data_dir + '/calipso')
 
 #: Constant: Approximate duration of a satellite orbit in seconds
 SAT_ORBIT_DURATION = 90*60
-#SAT_ORBIT_DURATION = 70*60
 
 #: CTTH file type to use in processing (One of 'ctth', 'ctth_opaque', and 'ctth_semitransparent')
 CTTH_FILE = os.environ.get('CTTH_FILE', 'ctth')
@@ -71,7 +70,8 @@ CLOUDSAT_CLOUDY_THR = 30.0
 
 #: MAXHEIGHT is used in the plotting. 
 #: If None the maxheight is calculated from the highest cloud
-MAXHEIGHT = None
+#MAXHEIGHT = None
+MAXHEIGHT = 18000
 
 #: Range of allowed (AVHRR) satellite azimuth angles, in degrees
 AZIMUTH_RANGE = (0., 360.)
@@ -200,7 +200,11 @@ MIN_OPTICAL_DEPTH = 0.5
 print "RESOLUTION=", RESOLUTION
 if RESOLUTION == 1:
     if IMAGER_INSTRUMENT == 'viirs':
-        DSEC_PER_AVHRR_SCALINE = 60 / 40.
+        # VIIRS scan period is 1.7864 - see
+        # D34862-07-01_C_CDFCB-X_Volume_VII-Part_1_ECR1017D_PR.pdf
+        # Adam, 2012-10-21
+        DSEC_PER_AVHRR_SCALINE = 1.7864 / 16.
+        #DSEC_PER_AVHRR_SCALINE = 60 / 40. # ??? AD, 2012-Oct
         SWATHWD=3200
     else:
         DSEC_PER_AVHRR_SCALINE = 1.0/6. # Full scan period, i.e. the time
