@@ -39,6 +39,7 @@ class ppsAvhrrObject(DataObject):
             'ctth_height': None,
             'ctth_pressure': None,
             'ctth_temperature': None,
+            'ctth_opaque': None,  # True if opaque retrieval was applied
             'cloudtype': None,
             'cloudtype_qflag': None,
             'surftemp': None,
@@ -509,6 +510,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
     ctth_height_track = []
     ctth_pressure_track = []
     ctth_temperature_track = []
+    ctth_opaque_track = []
     lon_avhrr_track = []
     lat_avhrr_track = []
     surft_track = []
@@ -517,61 +519,72 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
     satz_track = []
     lwp_track = []
     
-    for i in range(row_matched.shape[0]):
-        lat_avhrr_track.append(GeoObj.latitude[row_matched[i],col_matched[i]])
-        lon_avhrr_track.append(GeoObj.longitude[row_matched[i],col_matched[i]])
-        ctype_track.append(ctype.cloudtype[row_matched[i],col_matched[i]])
-        ctype_qflag_track.append(ctype.qualityflag[row_matched[i],col_matched[i]])
+    for idx in range(row_matched.shape[0]):
+        lat_avhrr_track.append(GeoObj.latitude[row_matched[idx], 
+                                               col_matched[idx]])
+        lon_avhrr_track.append(GeoObj.longitude[row_matched[idx], 
+                                                col_matched[idx]])
+        ctype_track.append(ctype.cloudtype[row_matched[idx], 
+                                           col_matched[idx]])
+        ctype_qflag_track.append(ctype.qualityflag[row_matched[idx], 
+                                                   col_matched[idx]])
         if surft != None:
-            surft_track.append(surft[row_matched[i],col_matched[i]])        
-        if dataObj.channels[3].data[row_matched[i],col_matched[i]] in \
-                                [dataObj.nodata, dataObj.missing_data]:
+            surft_track.append(surft[row_matched[idx], col_matched[idx]])
+        if (dataObj.channels[3].data[row_matched[idx], col_matched[idx]] in 
+            [dataObj.nodata, dataObj.missing_data]):
             b11 = -9.
         else:
-            b11 = dataObj.channels[3].data[row_matched[i],col_matched[i]] * \
+            b11 = dataObj.channels[3].data[row_matched[idx],col_matched[idx]] * \
                 dataObj.channels[3].gain + dataObj.channels[3].intercept
         bt11micron_track.append(b11)
-        if dataObj.channels[4].data[row_matched[i],col_matched[i]] in \
+        if dataObj.channels[4].data[row_matched[idx],col_matched[idx]] in \
                                 [dataObj.nodata, dataObj.missing_data]:
             b12 = -9.
         else:
-            b12 = dataObj.channels[4].data[row_matched[i],col_matched[i]] * \
+            b12 = dataObj.channels[4].data[row_matched[idx],col_matched[idx]] * \
                 dataObj.channels[4].gain + dataObj.channels[4].intercept
         bt12micron_track.append(b12)
-        if AngObj.satz.data[row_matched[i],col_matched[i]] in \
+        if AngObj.satz.data[row_matched[idx],col_matched[idx]] in \
                 [AngObj.satz.no_data, AngObj.satz.missing_data]:
             ang = -9
         else:
-            ang = AngObj.satz.data[row_matched[i],col_matched[i]] * \
+            ang = AngObj.satz.data[row_matched[idx],col_matched[idx]] * \
                 AngObj.satz.gain + AngObj.satz.intercept
         satz_track.append(ang)
         
         if ctth == None:
             continue
-        if ctth.height[row_matched[i],col_matched[i]] == ctth.h_nodata:
+        if ctth.height[row_matched[idx],col_matched[idx]] == ctth.h_nodata:
             hh = -9.
         else:
-            hh = ctth.height[row_matched[i],col_matched[i]] * ctth.h_gain + ctth.h_intercept
+            hh = ctth.height[row_matched[idx],col_matched[idx]] * ctth.h_gain + ctth.h_intercept
         ctth_height_track.append(hh)
-        if ctth.temperature[row_matched[i],col_matched[i]] == ctth.t_nodata:
+        if ctth.temperature[row_matched[idx],col_matched[idx]] == ctth.t_nodata:
             tt = -9.
         else:
-            tt = ctth.temperature[row_matched[i],col_matched[i]] * ctth.t_gain + \
+            tt = ctth.temperature[row_matched[idx],col_matched[idx]] * ctth.t_gain + \
                  ctth.t_intercept
         ctth_temperature_track.append(tt)
-        if ctth.pressure[row_matched[i],col_matched[i]] == ctth.p_nodata:
-            pp = -9.
+        if ctth.pressure[row_matched[idx], col_matched[idx]] == ctth.p_nodata:
+            pp_ = -9.
         else:
-            pp = ctth.pressure[row_matched[i],col_matched[i]] * ctth.p_gain + ctth.p_intercept
-        ctth_pressure_track.append(pp)
+            pp_ = (ctth.pressure[row_matched[idx], col_matched[idx]] * 
+                   ctth.p_gain + ctth.p_intercept)
+        ctth_pressure_track.append(pp_)
+
+        # Add flag to tell if the ctth is opaque or not:
+        import numpy as np
+        is_opaque = np.bitwise_and(np.right_shift(ctth.processingflag, 3), 1)
+        ctth_opaque_track.append(is_opaque[row_matched[idx], col_matched[idx]])
+
         #: TODO Do not use fix value -1 but instead something.no_data
         if avhrrLwp != None:
-            if avhrrLwp[row_matched[i],col_matched[i]] == -1:
+            if avhrrLwp[row_matched[idx],col_matched[idx]] == -1:
                 lwp = -9
             else:
-                lwp = avhrrLwp[row_matched[i],col_matched[i]]
+                lwp = avhrrLwp[row_matched[idx],col_matched[idx]]
             lwp_track.append(lwp)
-        
+
         
     obt.avhrr.latitude = np.array(lat_avhrr_track)
     obt.avhrr.longitude = np.array(lon_avhrr_track)
@@ -584,6 +597,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
         obt.avhrr.ctth_height = np.array(ctth_height_track)
         obt.avhrr.ctth_pressure = np.array(ctth_pressure_track)
         obt.avhrr.ctth_temperature = np.array(ctth_temperature_track)
+        obt.avhrr.ctth_opaque = np.array(ctth_opaque_track)
     if surft != None:
         obt.avhrr.surftemp = np.array(surft_track)
     if avhrrLwp != None:
@@ -844,39 +858,38 @@ def match_calipso_avhrr(ctypefile,
 
 # -----------------------------------------------------
 def get_calipso(filename, res):
-    import _pypps_filters #@UnresolvedImport
+    import _pypps_filters
     # Read CALIPSO Lidar (CALIOP) data:
-    calipso = read_calipso(filename, res)
+    clobj = read_calipso(filename, res)
     if res == 1:
-        lonCalipso = calipso.longitude.ravel()
-        ndim = lonCalipso.shape[0]
+        lon = clobj.longitude.ravel()
+        ndim = lon.shape[0]
         # --------------------------------------------------------------------
         # Derive the calipso cloud fraction using the 
         # cloud height:       
-        winsz=3
-        caliop_max_height = np.ones(calipso.cloud_top_profile[::,0].shape)*-9
-        for i in range(calipso.cloud_top_profile.shape[1]):
-            caliop_max_height = np.maximum(caliop_max_height,
-                                                calipso.cloud_top_profile[::,i] * 1000.)
+        winsz = 3
+        max_height = np.ones(clobj.cloud_top_profile[::, 0].shape) * -9
+        for idx in range(clobj.cloud_top_profile.shape[1]):
+            max_height = np.maximum(max_height,
+                                    clobj.cloud_top_profile[::, idx] * 1000.)
     
-        #calipso_clmask = np.greater(calipso.cloud_base_profile[::,0],0).astype('d')
-        calipso_clmask = np.greater(caliop_max_height,0).astype('d')
-        cloud_mask = np.concatenate((calipso_clmask,calipso_clmask))
-        for idx in range(2,winsz): #@UnusedVariable
-            cloud_mask = np.concatenate((cloud_mask,calipso_clmask))
-        cloud_mask = np.reshape(cloud_mask,(winsz,ndim)).astype('d')
+        calipso_clmask = np.greater(max_height, 0).astype('d')
+        cloud_mask = np.vstack([ calipso_clmask for idx in range(winsz) ])
+        #cloud_mask = np.concatenate((calipso_clmask,calipso_clmask))
+        #for idx in range(2,winsz): #@UnusedVariable
+        #    cloud_mask = np.concatenate((cloud_mask,calipso_clmask))
+        #cloud_mask = np.reshape(cloud_mask,(winsz,ndim)).astype('d')
     
-        calipso.cloud_fraction=np.zeros((winsz,ndim),'d')
-        cloud_mask_nodata = 0
-        # TODO Behovs nedanstaende?
-#        _pypps_filters.texture(cloud_mask, calipso.cloud_fraction, #@UndefinedVariable
-#                               winsz, "mean", cloud_mask_nodata)
-        calipso.cloud_fraction = calipso.cloud_fraction[winsz/2,::]
+        clobj.cloud_fraction = np.zeros((winsz, ndim), 'd')
+        cloud_mask_nodata = -1
+        _pypps_filters.texture(cloud_mask, clobj.cloud_fraction,
+                               winsz, "mean", cloud_mask_nodata)
+        clobj.cloud_fraction = clobj.cloud_fraction[winsz/2, ::]
     
     elif res == 5:
-        calipso.cloud_fraction = np.where(calipso.cloud_top_profile[:,0] > 0, 1, 0).astype('d')
+        clobj.cloud_fraction = np.where(clobj.cloud_top_profile[:,0] > 0, 1, 0).astype('d')
     
-    return calipso
+    return clobj
 
 # -----------------------------------------------------
 def read_calipso(filename, res):
@@ -933,6 +946,7 @@ def read_calipso(filename, res):
         retv.optical_depth_uncertainty=c.data()
         c=a.getNode("/Single_Shot_Cloud_Cleared_Fraction")
         retv.single_shot_cloud_cleared_fraction=c.data()
+
     return retv
 
 # -----------------------------------------------------

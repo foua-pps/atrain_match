@@ -234,8 +234,8 @@ def find_avhrr_file(cross, options):
 
     ddt = timedelta(seconds=config.SAT_ORBIT_DURATION + cross.time_window)
     time_window = (ddt, ddt)
-    print time_window
-    print cross_time
+    print "Time window: ", time_window
+    print "Cross time: ", cross_time
 
     # Make list of file times to search from:
     tlist = []
@@ -249,12 +249,18 @@ def find_avhrr_file(cross, options):
         tlist.append(tobj2)
         tobj2 = tobj2 - delta_t
 
+    print "Radiance dir: ", options['radiance_dir']
+    found_dir = None
     for tobj in tlist:
         rad_dir = tobj.strftime(options['radiance_dir'])
         if os.path.exists(rad_dir):
             #print "Dir = " + str(rad_dir)
             found_dir = rad_dir
             break
+
+    if not found_dir:
+        raise MatchupError("No dir found with radiance data!\n" + 
+                           "Searching under %s" % options['radiance_dir'])
 
     for tobj in tlist:
         file_pattern = tobj.strftime(options['radiance_file']) % values
@@ -666,6 +672,7 @@ def get_matchups(cross, options, reprocess=False):
             basename = '_'.join(os.path.basename(ca_match_file).split('_')[1:5])    
             write_log('INFO', 
                       "CALIPSO Matchups read from previously processed data.")
+            write_log('INFO', 'Filename: ' + ca_match_file)
             calipso_min_and_max_timediffs = (caObj.diff_sec_1970.min(), 
                                              caObj.diff_sec_1970.max())
     #TODO: Fix a better solution for below so it can handle missing cloudsat better.
