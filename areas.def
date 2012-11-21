@@ -1,0 +1,72 @@
+REGION: pc_world {
+   NAME:    Plate Carree world map
+   PCS_ID:  pc_world
+   PCS_DEF: proj=eqc
+   XSIZE: 1800
+   YSIZE: 900
+   AREA_EXTENT:  (-20037508.34, -10018754.17, 20037508.34, 10018754.17)
+};
+
+REGION: worldeqc3km73 {
+        NAME:       World in 3km, platecarree
+        PCS_ID:     plate_carree
+        PCS_DEF:    units=m, proj=eqc, ellps=WGS84
+        XSIZE:      4096
+        YSIZE:      2048
+        AREA_EXTENT: (-20037508.3428, -8181982.573309999, 20037508.3428, 8181982.573309999)
+};
+
+REGION: worldeqc3km {
+        NAME:       World in 3km, platecarree
+        PCS_ID:     plate_carree
+        PCS_DEF:    units=m, proj=eqc, ellps=WGS84
+        XSIZE:      8192
+        YSIZE:      4096
+        AREA_EXTENT: (-20037508.3428, -10018754.1714, 20037508.3428, 10018754.1714)
+};
+
+REGION: arctic_europe_1km {
+        NAME:           Arctic and Europe
+        PCS_ID:         laea00e90n
+        PCS_DEF:        proj=laea,a=6371228.0,lon_0=0,lat_0=90
+        XSIZE:          9100
+        YSIZE:          9100
+        AREA_EXTENT:    (-3100000, -7100000, 6000000, 2000000)
+};
+
+REGION: arctic_europe_9km {
+        NAME:           Arctic and Europe
+        PCS_ID:         laea00e90n
+        PCS_DEF:        proj=laea,a=6371228.0,lon_0=0,lat_0=90
+        XSIZE:          1000
+        YSIZE:          1000
+        AREA_EXTENT:    (-3100000, -7100000, 6000000, 2000000)
+};
+
+REGION: arctic_super_5010 {
+        NAME:           CM_SAF arctic_super_5010
+        PCS_ID:         laea00e90n
+        PCS_DEF:        proj=laea,a=6370997.0,lon_0=0,lat_0=90
+        XSIZE:          5010
+        YSIZE:          5010
+        AREA_EXTENT:    (-2505000, -2505000, 2505000, 2505000)
+};
+
+REGION: cea1km_test {
+        NAME:           cylin_eq_area_test_1km_wgs84
+        PCS_ID:         cea1km
+        PCS_DEF:        proj=cea,ellps=WGS84,lat_ts=30.0,lon_0=0.0,x_0=0.0,y_0=0.0
+        XSIZE:          34705
+        YSIZE:          14696
+        AREA_EXTENT:    (-17352991.2533981,-7348381.81895882,17352991.2533981,7348381.81895882)
+};
+
+REGION: mill10km_test {
+        NAME:           mill_test_10km_wgs84
+        PCS_ID:         mill10km
+        PCS_DEF:        proj=mill,ellps=WGS84,lat_ts=30.0,lon_0=0.0,x_0=0.0,y_0=0.0
+        XSIZE:          3471
+        YSIZE:          2600
+        AREA_EXTENT:    (-17352991.2533981,-13000000.0,17352991.2533981,13000000.0)
+};
+
