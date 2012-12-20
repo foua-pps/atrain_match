@@ -6,7 +6,7 @@ still be some modules which have internal constants defined.
 """
 
 import os
-
+VAL_CPP = os.environ.get('VAL_CPP', False)
 # Imager Instrument on which PPS has been run (currently you can only run the
 # atrain match on either AVHRR data or VIIRS data, not both):
 IMAGER_INSTRUMENT = os.environ.get('IMAGER_INSTRUMENT', 'viirs')

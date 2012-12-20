@@ -113,6 +113,7 @@ import os
 import sys
 
 from numpy import NaN
+from config import VAL_CPP
 
 from radiance_tb_tables_kgtest import get_central_wavenumber
 # Just use the brightness temperature to
@@ -231,8 +232,12 @@ def find_avhrr_file(cross, options):
     values = {'satellite': cross_satellite, 
               #'orbit': orbit,
               'instrument': INSTRUMENT.get(cross_satellite, 'avhrr')}
-
-    ddt = timedelta(seconds=config.SAT_ORBIT_DURATION + cross.time_window)
+      #Nina +4rader -1 rad viktiga!!!
+    if cross.time_window is not None:
+        ddt = timedelta(seconds=config.SAT_ORBIT_DURATION + cross.time_window)
+    else:
+        ddt = timedelta(seconds=config.SAT_ORBIT_DURATION + config.sec_timeThr)
+    #ddt = timedelta(seconds=config.SAT_ORBIT_DURATION + cross.time_window)
     time_window = (ddt, ddt)
     print "Time window: ", time_window
     print "Cross time: ", cross_time
@@ -352,15 +357,17 @@ def find_files_from_avhrr(avhrr_file, options):
     except IndexError:
         raise MatchupError("No ctth file found corresponding to %s." % avhrr_file)
     write_log("INFO", "CTTH: " + ctth_file)
-
-    cpp_name = date_time.strftime(options['cpp_file']) % values
-    path = date_time.strftime(options['cpp_dir'])
-    try:
-        cpp_file = glob(os.path.join(path, cpp_name))[0]
-    except IndexError:
-        raise MatchupError("No cpp file found corresponding to %s." % avhrr_file)
-    write_log("INFO", "CPP: " + cpp_file)
-
+    if VAL_CPP: 
+        cpp_name = date_time.strftime(options['cpp_file']) % values
+        path = date_time.strftime(options['cpp_dir'])
+        try:
+            cpp_file = glob(os.path.join(path, cpp_name))[0]
+        except IndexError:
+            raise MatchupError("No cpp file found corresponding to %s." % avhrr_file)
+        write_log("INFO", "CPP: " + cpp_file)
+    else:     
+       write_log("INFO", "Not validation of CPP ")
+       cpp_file = None
     if not 'nwp_tsur_file' in options:
         write_log("WARNING", "No t-surface file searched for!")
     else:
@@ -494,17 +501,18 @@ def get_matchups_from_data(cross, config_options):
         avhrrObj = pps_io.readAvhrrData(avhrr_file)
     
 
-    write_log("INFO","Read CPP data")
-    try:
-        from ppshdf_cloudproducts import CppProducts #@UnresolvedImport
-        cpp = CppProducts.from_h5(pps_files.cpp, product_names=['chp','lwp'])        
-        cppLwp = cpp.products['lwp'].array
-        write_log("INFO", "CPP chp and lwp data read")
-    except KeyError:
+    if VAL_CPP:    
+        write_log("INFO","Read CPP data")
+        try:
+            from ppshdf_cloudproducts import CppProducts #@UnresolvedImport
+            cpp = CppProducts.from_h5(pps_files.cpp, product_names=['chp','lwp'])        
+            cppLwp = cpp.products['lwp'].array
+            write_log("INFO", "CPP chp and lwp data read")
+        except KeyError:
         #import traceback
         #traceback.print_exc()
-        cppLwp = readCpp(pps_files.cpp, 'lwp')
-        write_log("INFO", "CPP lwp data read")
+            cppLwp = readCpp(pps_files.cpp, 'lwp')
+            write_log("INFO", "CPP lwp data read")
 
     write_log("INFO","Read PPS Cloud Type")
     ctype = epshdf.read_cloudtype(pps_files.cloudtype, 1, 1, 0)
@@ -683,7 +691,7 @@ def get_matchups(cross, options, reprocess=False):
     elif caObj is None and config.CLOUDSAT_TYPE == 'GEOPROF':
         return get_matchups_from_data(cross, options)
 
-
+    print "nina caObj",dir(caObj)
     return {'calipso': caObj, 'cloudsat': clObj, 
             'basename': basename,
             'calipso_time_diff': calipso_min_and_max_timediffs

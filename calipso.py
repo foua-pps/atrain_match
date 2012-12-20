@@ -449,8 +449,9 @@ def get_calipso_avhrr_linpix_segment(avhrrIn,lon,lat,catime,lines,swath_width,tm
 def createAvhrrTime(Obt, filename):
     import os #@Reimport
     from config import DSEC_PER_AVHRR_SCALINE
-    import time
-    from datetime import datetime
+    #import time
+    #from datetime import datetime
+    import calendar
 
     filename = os.path.basename(filename)
     # Ex.: npp_20120827_2236_04321_satproj_00000_04607_cloudtype.h5
@@ -458,9 +459,23 @@ def createAvhrrTime(Obt, filename):
         if Obt.sec1970_start < 0: #10800
             write_log("WARNING", 
                       "NPP start time negative! " + str(Obt.sec1970_start))
-            dtobj = datetime.strptime((filename.split('_')[1] + 
-                                       filename.split('_')[2]), '%Y%m%d%H%M')
-            Obt.sec1970_start = time.mktime(dtobj.timetuple()) - time.timezone
+            viirsDate = filename.split('_')[1]
+            viirsHM = filename.split('_')[2]
+            viirsSH = filename.split('_')[3]
+            year = int(viirsDate[0:4])
+            mon = int(viirsDate[4:6])
+            day = int(viirsDate[6:])
+            hour = int(viirsHM[0:2])
+            mins = int(viirsHM[2:])
+            sec = int(viirsSH[0:2])
+            hundredSec = float('0.' + viirsSH[2:])
+            print "date", year, mon, day, hour, mins, sec
+            #struct time in UTC (but time of file is local! (?)) to seconds since epoch in UTC
+            Obt.sec1970_start = calendar.timegm((year, mon, day, hour, mins, sec)) + hundredSec
+
+            #dtobj = datetime.strptime((filename.split('_')[1] + 
+            #                           filename.split('_')[2]), '%Y%m%d%H%M')
+            #Obt.sec1970_start = time.mktime(dtobj.timetuple()) - time.timezone
 
         num_of_scan = Obt.num_of_lines / 16.
         #if (Obt.sec1970_end - Obt.sec1970_start) / (num_of_scan) > 2:
@@ -498,6 +513,7 @@ def createAvhrrTime(Obt, filename):
         
         
         Obt.time = np.linspace(Obt.sec1970_start, Obt.sec1970_end, Obt.num_of_lines)
+        print Obt.time
     
     return Obt
 
