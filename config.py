@@ -6,7 +6,10 @@ still be some modules which have internal constants defined.
 """
 
 import os
+H4H5_EXECUTABLE = os.environ.get('H4H5_EXECUTABLE','/local_disk/opt/h4h5tools-2.2.1-linux-x86_64-static/bin/h4toh5')
+
 VAL_CPP = os.environ.get('VAL_CPP', False)
+
 # Imager Instrument on which PPS has been run (currently you can only run the
 # atrain match on either AVHRR data or VIIRS data, not both):
 IMAGER_INSTRUMENT = os.environ.get('IMAGER_INSTRUMENT', 'viirs')
@@ -14,7 +17,7 @@ IMAGER_INSTRUMENT = os.environ.get('IMAGER_INSTRUMENT', 'viirs')
 #: Resolution, in km, to use for data files. This setting is used throughout
 #: ``atrain_match`` to specify file names, sub-directories, and data handling.
 #: Currently, 1 or 5 is supported
-RESOLUTION = int(os.environ.get('ATRAIN_RESOLUTION', 5))
+RESOLUTION = int(os.environ.get('ATRAIN_RESOLUTION', 1))
 
 #: Base directory for validation results
 _validation_results_dir = os.environ['VALIDATION_RESULTS_DIR']
@@ -34,10 +37,8 @@ PLOT_DIR = "%s/Plot" %_validation_results_dir
 #: Base directory for statistics results
 RESULT_DIR = "%s/Results" %_validation_results_dir
 
-
 # Region configuaration file with area definitons
 AREA_CONFIG_FILE = os.environ.get('AREA_CONFIG_FILE', './etc/areas.def')
-
 
 #_satellite_data_dir = '/data/arkiv/proj/safworks/data'
 _satellite_data_dir = '/local_disk/data/atrain_validation/data'
@@ -55,10 +56,11 @@ CLOUDSAT_TYPE = 'GEOPROF'
 CALIPSO_DIR = os.environ.get('CALIPSO_DIR', _satellite_data_dir + '/calipso')
 
 #: Constant: Approximate duration of a satellite orbit in seconds
-SAT_ORBIT_DURATION = 90*60
+SAT_ORBIT_DURATION = 30*60 #Not to large
+# If to large, cloudsat_calipso_avhrr_match.py takes wrong swath
+# sometimes when swaths are close in time
 
-#: CTTH file type to use in processing (One of 'ctth', 'ctth_opaque', and 'ctth_semitransparent')
-CTTH_FILE = os.environ.get('CTTH_FILE', 'ctth')
+
 
 #: Allowed time deviation in seconds between AVHRR and CALIPSO/CloudSat matchup
 sec_timeThr = 60*20
@@ -344,6 +346,12 @@ CASES = [{'satname': 'noaa18', 'year': 2006, 'month': 10},
          {'satname': 'noaa18', 'year': 2009, 'month': 11},
          {'satname': 'noaa18', 'year': 2009, 'month': 12}]
 
+CASES = [{'satname': 'npp', 'year': 2012, 'month': 6},
+         {'satname': 'npp', 'year': 2012, 'month': 7},
+         {'satname': 'npp', 'year': 2012, 'month': 8},
+         {'satname': 'npp', 'year': 2012, 'month': 9},
+         {'satname': 'npp', 'year': 2012, 'month': 10}]
+
 #: PPS area definition (from ``acpg/cfg/region_config.cfg``) for which
 #: statistics should be summarized
 MAP = [AREA]
@@ -382,4 +390,4 @@ STUDIED_YEAR = ["2009"]
 STUDIED_MONTHS = ['01', '07']
 OUTPUT_DIR = "%s/Ackumulering_stat/Results/%s" % (MAIN_DATADIR, SATELLITE[0])
 
-H4H5_EXECUTABLE = '/local_disk/opt/h4h5tools-2.2.1-linux-x86_64-static/bin/h4toh5'
+
