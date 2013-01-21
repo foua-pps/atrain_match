@@ -6,6 +6,9 @@ still be some modules which have internal constants defined.
 """
 
 import os
+#When using 1km data, use the 5km data to filterout clouds to thin for VIIRS/AVHRR to see.
+ALSO_USE_5KM_FILES = False
+OPTICAL_DETECTION_LIMIT = 0.3
 H4H5_EXECUTABLE = os.environ.get('H4H5_EXECUTABLE','/local_disk/opt/h4h5tools-2.2.1-linux-x86_64-static/bin/h4toh5')
 
 VAL_CPP = os.environ.get('VAL_CPP', False)
@@ -56,7 +59,7 @@ CLOUDSAT_TYPE = 'GEOPROF'
 CALIPSO_DIR = os.environ.get('CALIPSO_DIR', _satellite_data_dir + '/calipso')
 
 #: Constant: Approximate duration of a satellite orbit in seconds
-SAT_ORBIT_DURATION = 30*60 #Not to large
+SAT_ORBIT_DURATION = 60*60 #Not to large
 # If to large, cloudsat_calipso_avhrr_match.py takes wrong swath
 # sometimes when swaths are close in time
 

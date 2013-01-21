@@ -1,7 +1,6 @@
 # Program cloudsat_calipso_avhrr_prepare.py
 # python cloudsat_calipso_avhrr_prepare.py 
 
-
 def CalipsoCloudFraction(calipsoObj):
     import numpy as np
 
@@ -32,6 +31,14 @@ def CalipsoCloudFraction(calipsoObj):
             new_ssccf[:,i] = ssccf[:,i]
         
     return new_cloud_top, new_cloud_base, new_optical_depth, new_cloud_fraction, new_fcf, new_ssccf
+
+
+def NinaTestarMedelCloudBaseAndTop(cloud_top, cloud_base):
+    import numpy as np
+    #Maybe we should use middle of cloud as cloud top. To get better than nonsens comparison for high (optical thin) clouds. Take middel only for clouds the are certainly very thin, deeper than 1km!
+    new_cloud_top = np.where((cloud_top - cloud_base)>1, 0.5*(cloud_top + cloud_base), cloud_top)
+    return new_cloud_top
+
 
 def CloudsatCloudOpticalDepth(cloud_top, cloud_base, optical_depth, cloud_fraction, fcf):
     import numpy as np

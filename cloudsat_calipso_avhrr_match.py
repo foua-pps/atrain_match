@@ -135,7 +135,8 @@ from cloudsat import reshapeCloudsat, match_cloudsat_avhrr
 from cloudsat import writeCloudsatAvhrrMatchObj, readCloudsatAvhrrMatchObj
 from calipso import reshapeCalipso, match_calipso_avhrr
 from calipso import (writeCaliopAvhrrMatchObj, 
-                     readCaliopAvhrrMatchObj, 
+                     readCaliopAvhrrMatchObj,
+                     use5km_remove_thin_clouds_from_1km,
                      add1kmTo5km)
 import inspect
 import numpy as np
@@ -450,7 +451,7 @@ def get_cloudsat_matchups(cloudsat_files, cloudtype_file, avhrrGeoObj, avhrrObj,
 
 def get_calipso_matchups(calipso_files, cloudtype_file, 
                          avhrrGeoObj, avhrrObj, ctype, ctth, 
-                         surft, avhrrAngObj, cafiles1km=None):
+                         surft, avhrrAngObj, cafiles1km=None, cafiles5km=None):
     """
     Read Calipso data and match with the given PPS data.
     """
@@ -458,6 +459,12 @@ def get_calipso_matchups(calipso_files, cloudtype_file,
         calipso1km = reshapeCalipso(cafiles1km, avhrrGeoObj, cloudtype_file, False, 1)[0]
         calipso5km, startBreak, endBreak = reshapeCalipso(calipso_files,avhrrGeoObj, cloudtype_file, False)
         calipso = add1kmTo5km(calipso1km, calipso5km, startBreak, endBreak)
+        calipso1km = None
+        calipso5km = None
+    elif cafiles5km !=None:
+        calipso1km, startBreak, endBreak  = reshapeCalipso(calipso_files, avhrrGeoObj, cloudtype_file, False, 1)
+        calipso5km = reshapeCalipso(cafiles5km,avhrrGeoObj, cloudtype_file, False, 5)[0]
+        calipso = use5km_remove_thin_clouds_from_1km(calipso1km, calipso5km, startBreak, endBreak)
         calipso1km = None
         calipso5km = None
     else:
@@ -547,10 +554,12 @@ def get_matchups_from_data(cross, config_options):
 
     if (isinstance(calipso_files, str) == True or 
         (isinstance(calipso_files, list) and len(calipso_files) != 0)):
+        import glob
+        calipso5km = None
+        calipso1km = None
         write_log("INFO", "Read CALIPSO data")
         if config.RESOLUTION == 5:
             if config.ALSO_USE_1KM_FILES == True:
-                import glob
                 calipso1km = []
                 for file5km in calipso_files:
                     file1km = file5km.replace('/5km/', '/1km/').\
@@ -564,10 +573,32 @@ def get_matchups_from_data(cross, config_options):
             else:
                 calipso1km = None
 
+        if config.RESOLUTION == 1:
+            if config.ALSO_USE_5KM_FILES == True:
+                calipso5km = []
+                for file1km in calipso_files:
+                    file5km = file1km.replace('/1km/', '/5km/').\
+                                                replace('01kmCLay', '05kmCLay').\
+                                                replace('-ValStage1-V3-02.', '*')
+                    files_found = glob.glob(file5km)
+                    if len(files_found)==0:
+                        #didn't find h5 file, might be hdf file instead
+                        file5km = file5km.replace('.h5','.hdf')
+                        files_found = glob.glob(file5km)
+                    calipso5km.append(files_found[0])
+                if len(calipso_files) != len(calipso5km):
+                    raise MatchupError("Inconsistent number of calipso files...\n" + 
+                                       "\tlen(calipso_files) = %d\n" % len(calipso_files) + 
+                                       "\tlen(calipso1km) = %d" % len(calipso5km))
+                calipso5km = require_h5(calipso5km)
+            else:
+                calipso5km = None
+                
+      
         ca_matchup, ca_time_diff = get_calipso_matchups(calipso_files, 
                                                         pps_files.cloudtype,
                                                         avhrrGeoObj, avhrrObj, ctype,
-                                                        ctth, surft, avhrrAngObj)
+                                                        ctth, surft, avhrrAngObj, calipso1km, calipso5km)
     else:
         write_log("INFO", "NO CALIPSO File, Continue")
 
@@ -579,8 +610,8 @@ def get_matchups_from_data(cross, config_options):
     satellite = parsed['satellite']
     date_time = parsed['datetime']
     basename = '_'.join(os.path.basename(avhrr_file).split('_')[:4])
-    
-    # Build base file name
+
+    #Build base file name
     from file_finders import CloudsatCalipsoAvhrrMatchFileFinder #@UnresolvedImport
     match_finder = CloudsatCalipsoAvhrrMatchFileFinder(resolution=config.RESOLUTION,
                                                        region=config.AREA)
@@ -669,6 +700,7 @@ def get_matchups(cross, options, reprocess=False):
                       "processed data.")
 
         try:
+
             ca_match_file = match_finder.find(date_time, satellite, atrain_datatype='caliop')[0]
         except IndexError:
             write_log('INFO', 
@@ -677,7 +709,7 @@ def get_matchups(cross, options, reprocess=False):
             caObj = None
         else:
             caObj = readCaliopAvhrrMatchObj(ca_match_file)
-            basename = '_'.join(os.path.basename(ca_match_file).split('_')[1:5])    
+            basename = '_'.join(os.path.basename(ca_match_file).split('_')[1:5])
             write_log('INFO', 
                       "CALIPSO Matchups read from previously processed data.")
             write_log('INFO', 'Filename: ' + ca_match_file)
@@ -700,7 +732,6 @@ def get_matchups(cross, options, reprocess=False):
 
 def get_cloud_emissivity(satellite, calipsoObj, calipso_okay, radtb_table_path=None):
     """Derive the cloud emissivity for each Calipso matchup"""
-
     if satellite in ['noaa17', 'noaa18', 'noaa19']:
         platform = "noaa"
         satnumber = int(satellite[4:6])
@@ -959,6 +990,11 @@ def run(cross, process_mode_dnt, config_options, reprocess=False):
         caObj.calipso.cloud_base_profile = new_cloud_base
         caObj.calipso.cloud_fraction = new_cloud_fraction
         caObj.calipso.feature_classification_flags = new_fcf
+    NinaTestar = False    
+    if NinaTestar :   
+        new_cloud_top = NinaTestarMedelCloudBaseAndTop(caObj.calipso.cloud_top_profile, caObj.calipso.cloud_base_profile)
+        caObj.calipso.cloud_top_profile = new_cloud_top
+
 
     # Extract CALIOP Vertical Feature Classification (bits 10-12) from 16 bit
     # representation for topmost cloud layer
@@ -988,9 +1024,10 @@ def run(cross, process_mode_dnt, config_options, reprocess=False):
         # highest layer!!  However, arrays caliop_height and caliop_base are
         # needed later for plotting/ KG
 
-        caliop_height.append(hh)
         bb = np.where(np.greater(caObj.calipso.cloud_base_profile[i,::],-9),
                             caObj.calipso.cloud_base_profile[i,::] * 1000.,-9)
+        #if (hh>bb):
+        caliop_height.append(hh)
         caliop_base.append(bb)
         thickness = hh - bb
         
@@ -1024,7 +1061,7 @@ def run(cross, process_mode_dnt, config_options, reprocess=False):
                 
     if process_mode == 'EMISSFILT': # Apply only when cloud heights are above EMISS_MIN_HEIGHT
         # Now calculate cloud emissivity emiss_cloud for topmost CALIOP and CloudSat layer
-        config_path = os.environ.get('ATRAINMATCH_CONFIG_DIR', './etc')
+        config_path = os.environ.get('IMAGERRAD_HOME', './etc') + "/Tables"
         emiss_cloud = get_cloud_emissivity(sno_satname, caObj, cal_data_ok, config_path)
         print "Emissivity filtering applied!"
 

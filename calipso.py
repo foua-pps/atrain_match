@@ -11,6 +11,7 @@ from config import (AREA, SUB_DIR, DATA_DIR,
                     NLINES, SWATHWD, NODATA) #@UnusedImport
 from common import MatchupError, elements_within_range #@UnusedImport
 from config import RESOLUTION as resolution
+from config import OPTICAL_DETECTION_LIMIT 
 COVERAGE_DIR = "%s/%ikm/%s"%(SUB_DIR,resolution,AREA)
 class DataObject(object):
     """
@@ -1026,7 +1027,6 @@ def reshapeCalipso(calipsofiles, avhrr, avhrrfilename, timereshape = True, res=r
         print("No time match, please try with some other CloudSat files")
         print("Program calipso.py at line %i" %(inspect.currentframe().f_lineno+1))
         sys.exit(-9)
-
     return cal, start_break, end_break
 
 def add1kmTo5km(Obj1, Obj5, start_break, end_break):
@@ -1069,8 +1069,89 @@ def add1kmTo5km(Obj1, Obj5, start_break, end_break):
                 retv.all_arrays[arnameca] = valueca[start_break:end_break,...]
             else:
                 retv.all_arrays[arnameca] = valueca
-    return 
+    return retv
     
+def use5km_remove_thin_clouds_from_1km(Obj1, Obj5, start_break, end_break):
+    retv = CalipsoObject()
+    if (Obj5.utc_time[:,1] == Obj1.utc_time[2::5]).sum() != Obj5.utc_time.shape[0]:
+        print("length mismatch")
+        pdb.set_trace()
+    for pixel in range(Obj5.utc_time.shape[0]):    
+        cloud_max_top = np.max(Obj5.cloud_top_profile[pixel, 0:10])
+        if cloud_max_top ==-9999:
+            continue
+        else:
+            cloud_top_max = int(round(1000*cloud_max_top))
+        height_profile = 0.001*np.array(range(cloud_top_max, -1, -1))
+        #print  "heights", height_profile
+        optical_thickness = np.zeros(height_profile.shape)
+        for lay in range(Obj5.number_of_layers_found[pixel]): 
+            cloud_at_these_height_index = np.logical_and(
+                Obj5.cloud_top_profile[pixel, lay]> height_profile, 
+                height_profile>Obj5.cloud_base_profile[pixel, lay])
+            eye_this_cloud = np.where(cloud_at_these_height_index ,  1, 0)
+            number_of_cloud_boxes = sum(eye_this_cloud)         
+            if number_of_cloud_boxes == 0:
+                print "warning a problem cloud has no depth!!"
+             
+            optical_thickness_this_layer = (
+                eye_this_cloud*
+                Obj5.optical_depth[pixel, lay]*
+                1.0/number_of_cloud_boxes)             
+            if abs(np.sum(optical_thickness_this_layer) - 
+                   Obj5.optical_depth[pixel, lay])>0.001:
+                print ("warning the sum of the optical thickness profile is "
+                       "not the same as total optical thickness of the cloud!!")
+             
+            optical_thickness = optical_thickness + optical_thickness_this_layer
+
+        optical_thickness_profile = np.cumsum(optical_thickness)
+        #print optical_thickness_profile
+        ok_and_higher_heights = np.where(
+            optical_thickness_profile <= OPTICAL_DETECTION_LIMIT, 
+            height_profile, cloud_max_top)
+        height_limit1 = np.min(ok_and_higher_heights)
+        #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        ###Rolles suggestion, sort out pixels where the comparison is still bad
+        ### Tested, but not yet decided to use, set sort_put var to True to use
+        sort_out_pixels_that_we_have_no_good_truth_for = False
+        cloud_tops = []
+        for pixel_1km in range(pixel*5, pixel*5+5, 1):
+            cloud_top_max = np.max(Obj1.cloud_top_profile[pixel_1km, :])
+            if cloud_top_max > 0:
+                cloud_tops.append(cloud_top_max)
+        if len (cloud_tops)>0:
+            optical_depth_var_approx = max(cloud_tops)-min(cloud_tops)
+        else:
+            optical_depth_var_approx = -9
+        #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  
+        for pixel_1km in range(pixel*5, pixel*5+5, 1):                          
+            for lay in range(Obj1.number_of_layers_found[pixel_1km]-1, -1, -1):
+                #print optical_depth_var_approx
+                if  optical_depth_var_approx > 0.5 and sort_out_pixels_that_we_have_no_good_truth_for:
+                    #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                    Obj1.cloud_top_profile[pixel_1km, lay] = -9999 
+                    Obj1.cloud_top_profile[pixel_1km, lay] = -9999 
+                    #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                                   
+                elif height_limit1 < Obj1.cloud_top_profile[pixel_1km, lay]:
+                    #cut cloud at limit or at base of cloud
+                    Obj1.cloud_top_profile[pixel_1km, lay] =  max(
+                        height_limit1, 
+                        Obj1.cloud_base_profile[pixel_1km, lay]+0.1)
+                              
+
+
+#save removed clouds and heights so they can be plotted (yellow in figure as clouds calipso sees but npp can't see)
+
+    for arnameca, valueca in Obj1.all_arrays.items(): 
+        if valueca != None:
+            if valueca.size != 1:
+                retv.all_arrays[arnameca] = valueca[start_break:end_break,...]
+            else:
+                retv.all_arrays[arnameca] = valueca
+    return retv
     
 # -----------------------------------------------------
 if __name__ == "__main__":
