@@ -7,7 +7,7 @@ import os
 from amsr_avhrr.util import get_avhrr_lonlat, get_cpp_product
 from amsr_avhrr.match import match_lonlat
 from runutils import process_scenes
-
+from cloudsat_calipso_avhrr_match import find_calipso_files
 import logging
 logger = logging.getLogger(__name__)
 
@@ -18,10 +18,13 @@ TAI93 = datetime(1993, 1, 1)
 MATCH_DIR = os.environ.get('MATCH_DIR', '.')
 
 #Time threshold, i.e. max time diff to be considered as a match
-TIME_THR=600.0
+TIME_THR=1200.0
 #NB! I'm not sure there really is a sorting due to TIME_THR. Do check in
 #    the time_diff dataset after running! /Sara Hornquist 2012-06-18
-
+#NB! This should now be working, and time threshold should be used.
+# Data are still present in .h5 files but nog in .h5--values.h5 files.
+# The problem was in amsr_avhrr/match.py from_file method 
+# The saved time_threshold were never read again /Nina Hakansson 2013-02-06
 #: h5py compression settings (True, or an integer in range(10))
 _COMPRESSION = True
 
@@ -144,20 +147,22 @@ def get_calipso_phase(calipso_filename, qual_min=CALIPSO_QUAL_VALUES['medium'],
     return np.ma.array(phase, mask=qual < qual_min)
 
 
-def find_calipso(avhrr_filename):
+def find_calipso_files_from_avhrr_filename(avhrr_filename, options):
     """
     Find Calipso files matching *avhrr_filename*. Returns a list of file paths.
     
     """
-    from file_finders import CalipsoFileFinder, PpsFileFinder
-    pps_finder = PpsFileFinder()
-    parsed = pps_finder.parse(avhrr_filename)
-    
+    import config
+    sl_ = os.path.basename(avhrr_filename).split('_')
+    satname = sl_[0]
+    date_time = datetime.strptime(sl_[1] + sl_[2], '%Y%m%d%H%M')
+    return find_calipso_files(date_time, options)
+
     # Limit matching to AMSR-E files starting 45 min (duration of one half
     # orbit) before up to 20 min (duration of one EARS AVHRR swath) after the
     # start of the AVHRR swath
-    amsr_finder = CalipsoFileFinder(time_window=(-45 * 60, 20 * 60))
-    return amsr_finder.find(parsed['datetime'])
+    #amsr_finder = CalipsoFileFinder(time_window=(-45 * 60, 20 * 60))
+    #return amsr_finder.find(parsed['datetime'])
 
 
 def match_with_calipso(calipso_filename, avhrr_filename, radius_of_influence=1e3,
@@ -198,11 +203,12 @@ def match_with_calipso(calipso_filename, avhrr_filename, radius_of_influence=1e3
     mapper = match_lonlat(avhrr_lonlat, calipso_lonlat, n_neighbours=1)
 
     #Also calculate the time diff 
+
     avhrr_time = get_avhrr_time(avhrr_filename)
     calipso_time = get_calipso_time(calipso_filename)
-
     time_diff = np.abs(avhrr_time[mapper.rows] -
                        calipso_time.reshape((calipso_time.size,1))).astype(np.float32)
+    time_diff =np.where(mapper._pixel_mask, np.inf, time_diff) #Needed to avoid nonses values outside swath
 
     mapper.time_diff = time_diff
     mapper.time_threshold = time_threshold
@@ -214,22 +220,19 @@ def match_with_calipso(calipso_filename, avhrr_filename, radius_of_influence=1e3
 
 
 
-def process_noaa_scene(satname, orbit, cloudtype=False, **kwargs):
+def process_noaa_scene(satname, orbit, options, cloudtype=False, **kwargs):
     """
     Match this noaa scene with cloudsat scenes and process.
     
     """
     from pps_basic_configure import AVHRR_DIR, OUTPUT_DIR
-    
     import pps_arguments 
     ppsarg = pps_arguments.create_pps_argument(pps_arguments.USE_SUNSATANGLES_GLOB,
                                                pps_arguments.SATELLITE_PROJ,
                                                satname,orbit)
     avhrr_filename = os.path.join(AVHRR_DIR, ppsarg.files.avhrr)
-    
-    calipso_filenames = find_calipso(avhrr_filename)
+    calipso_filenames = find_calipso_files_from_avhrr_filename(avhrr_filename, options)
     logger.debug("Found Calipso files: %r" % calipso_filenames)
-    
     if cloudtype:
         cpp_filename = os.path.join(OUTPUT_DIR, ppsarg.files.pge02)
         
@@ -258,6 +261,8 @@ def process_noaa_scene(satname, orbit, cloudtype=False, **kwargs):
     else:
         cpp_filename = os.path.join(OUTPUT_DIR, ppsarg.files.cpp)
     
+    if len(calipso_filenames)==0:
+        raise ValueError("Found no matching calipso files to: %r"% avhrr_filename)
     for calipso_filename in calipso_filenames:
         process_case(calipso_filename, avhrr_filename, cpp_filename, **kwargs)
     
@@ -373,49 +378,52 @@ def process_case(calipso_filename, avhrr_filename, cpp_filename=None,
     logger.debug("Getting Calipso water")
     cal_phase = get_calipso_phase(calipso_filename, max_layers=max_layers,
                                   qual_min=qual_min)
-    
+
     selection = ~cpp_phase.mask & ~cal_phase.mask
 
-    import numpy as np
     if np.ma.isMaskedArray(selection):
         selection = selection.filled(False)
     restrictions = {'max number of CALIOP layers': max_layers,
                     'minimum quality': qual_min}
 
-    
+    import numpy as np
     from amsr_avhrr.util import get_avhrr_time
     #get_calipso_lonlat and get_calipso_time in this file!
     avhrr_time =  get_avhrr_time(avhrr_filename)
     #expand avhrr_time to the same shape as input avhrr_cph
-    cph_tmp=get_cpp_product(cpp_filename, 'cph')
-    avhrr_time_expanded=np.ones(cph_tmp.shape)
+    cph_tmp = get_cpp_product(cpp_filename, 'cph')
+    avhrr_time_expanded = np.ones(cph_tmp.shape)
     for i in range(cph_tmp.shape[0]):
-        avhrr_time_expanded[i]=np.ones(cph_tmp.shape[1])*avhrr_time[i]
+        avhrr_time_expanded[i] = np.ones(cph_tmp.shape[1])*avhrr_time[i]
         
     calipso_time = get_calipso_time(calipso_filename)
-    avhrr_time_remapped=mapper(avhrr_time_expanded)
+    avhrr_time_remapped = mapper(avhrr_time_expanded)
+    #time_diff = avhrr_time_remapped - calipso_time
+    #Whay the above, why not the smae:
+    time_diff = mapper.time_diff
+    time_diff = np.array(time_diff.ravel())
 
-    time_diff=avhrr_time_remapped - calipso_time
-    
 
+    if selection.any():
+        filename = _filename_base(avhrr_filename, calipso_filename) + '--values.h5'
+        from amsr_avhrr.util import write_data
+        write_data(cpp_phase[selection], 'cpp_phase', filename, mode='w',
+                   attributes=restrictions)
+        write_data(cal_phase[selection], 'calipso_phase', filename,
+                   attributes=restrictions)
+        write_data(calipso_time[selection], 'calipso_time', filename)
+        write_data(avhrr_time_remapped[selection], 'avhrr_time', filename)
+        write_data(time_diff[selection], 'time_diff', filename)
+        lon, lat = get_calipso_lonlat(calipso_filename)
+        write_data(lon[selection], 'longitudes', filename, attributes=restrictions)
+        write_data(lat[selection], 'latitudes', filename, attributes=restrictions)
+        write_data(selection, 'selection', filename, attributes=restrictions)
     
-    
-    filename = _filename_base(avhrr_filename, calipso_filename) + '--values.h5'
-    from amsr_avhrr.util import write_data
-    write_data(cpp_phase[selection], 'cpp_phase', filename, mode='w',
-               attributes=restrictions)
-    write_data(cal_phase[selection], 'calipso_phase', filename,
-               attributes=restrictions)
-    write_data(calipso_time[selection], 'calipso_time', filename)
-    write_data(avhrr_time_remapped[selection], 'avhrr_time', filename)
-    write_data(time_diff[selection], 'time_diff', filename)
-    lon, lat = get_calipso_lonlat(calipso_filename)
-    write_data(lon[selection], 'longitudes', filename, attributes=restrictions)
-    write_data(lat[selection], 'latitudes', filename, attributes=restrictions)
-    write_data(selection, 'selection', filename, attributes=restrictions)
-    
-    logger.debug("Validating")
-    validate(cpp_phase[selection], cal_phase[selection], verbose)
+        logger.info("Validating")
+        validate(cpp_phase[selection], cal_phase[selection], verbose)
+    else:
+        logger.info("No matchin points within time between %s and %s" %(
+                calipso_filename, avhrr_filename))
 
 
 def get_frac_of_land(match_file):
@@ -483,6 +491,7 @@ def validate_all(matched_values_files, verbose=False, landsea=None):
     for filename in matched_values_files:
         match_file = filename.replace('--values', '')
         landsea_select = get_land_sea_selection(landsea, match_file=match_file)
+        print filename
         with h5py.File(filename, 'r') as f:
             if landsea is not None:
                 selection = f['selection'][:]
@@ -509,6 +518,14 @@ def validate_all(matched_values_files, verbose=False, landsea=None):
 
 
 if __name__ == '__main__':
+    import ConfigParser
+    CONFIG_PATH = os.environ.get('ATRAINMATCH_CONFIG_DIR', './etc')
+    CONF = ConfigParser.ConfigParser()
+    CONF.read(os.path.join(CONFIG_PATH, "atrain_match.cfg"))
+    OPTIONS = {}
+    for option, value in CONF.items('general', raw = True):
+        OPTIONS[option] = value
+
     from optparse import OptionParser
     parser = OptionParser(usage="Usage: %prog [options] satproj "
                                 "<satname> <orbit> \n"
@@ -547,8 +564,8 @@ if __name__ == '__main__':
     # Command line handling
     if args[0] == 'satproj':
         satname, orbit = args[1:]
-        process_noaa_scene(satname, orbit, **processing_kwargs)
+        process_noaa_scene(satname, orbit, OPTIONS, **processing_kwargs)
     else:
-        process_scenes(args, process_noaa_scene, ignore_errors=not opts.debug,
+        process_scenes(args, process_noaa_scene, OPTIONS, ignore_errors=not opts.debug,
                        **processing_kwargs)
 

@@ -97,7 +97,10 @@ class MatchMapper(object):
                 time_diff = f['time_diff'][:]
                 if 'time_threshold' in f['time_diff'].attrs.keys():
                     time_threshold = f['time_diff'].attrs['time_threshold']
+                elif  'time_threshold' in f.attrs.keys():
+                    time_threshold = f.attrs['time_threshold']
                 else:
+                    print "Did not find time_threshold!"
                     time_threshold = None
             else:
                 time_diff = None

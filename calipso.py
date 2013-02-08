@@ -6,13 +6,13 @@ import numpy as np
 from pps_basic_configure import *
 from pps_error_messages import write_log
 
-from config import (AREA, SUB_DIR, DATA_DIR, 
-                    sec_timeThr, COMPRESS_LVL, 
+from config import (AREA, _validation_results_dir, 
+                    sec_timeThr, COMPRESS_LVL, RESOLUTION,
                     NLINES, SWATHWD, NODATA) #@UnusedImport
 from common import MatchupError, elements_within_range #@UnusedImport
 from config import RESOLUTION as resolution
 from config import OPTICAL_DETECTION_LIMIT 
-COVERAGE_DIR = "%s/%ikm/%s"%(SUB_DIR,resolution,AREA)
+
 class DataObject(object):
     """
     Class to handle data objects with several arrays.
@@ -215,13 +215,20 @@ def define_longlat_ll(id, name, pcs_id, ll_ll, size, scale):
 
 # -----------------------------------------------------
 def sec1970_to_julianday(sec1970):
-    import pps_time_util #@UnresolvedImport
-    import time
-    
-    year,month,day,hour,minutes,sec,dummy,dummy,dummy = time.gmtime(sec1970)
-    jday_1950 = int(pps_time_util.getJulianDay(year,month,day) - pps_time_util.getJulianDay(1950,1,1))
-    jday = jday_1950 + (hour+minutes/60.0+sec/3600)/24.0
-
+    #import pps_time_util #@UnresolvedImport
+    import time as tm
+    import datetime
+    year,month,day,hour,minutes,sec,tm_wday,tm_yday,tm_isdst = tm.gmtime(sec1970)
+    daysdelta=datetime.datetime(year,month,day,00,0) - datetime.datetime(1950,1,1,00,0)
+    jday50 = daysdelta.days
+    #jday50 is the same as jday_1950
+    #jday_1950 = int(pps_time_util.getJulianDay(year,month,day) - pps_time_util.getJulianDay(1950,1,1))
+    jday = jday50 + (hour+minutes/60.0+sec/3600)/24.0
+    if not jday==tm_yday:
+        print "Is this (%f) really the julian day wanted?"%(jday)
+        print "The day of the year is: (%d)"%(tm_yday)
+        print "And if it days since 1 januari 1950, i would suggest:( %d)"%(jday50)
+ 
     return jday
 
 # -----------------------------------------------------
@@ -275,7 +282,7 @@ def getBoundingBox(lon,lat):
 
 # --------------------------------------------
 
-def get_calipso_avhrr_linpix(avhrrIn,avhrrname,lon,lat,caTime):
+def get_calipso_avhrr_linpix(avhrrIn, avhrrname, lon, lat, caTime, options):
 
     tmppcs="tmpproj"
     define_pcs(tmppcs, "Plate Caree, central meridian at 15E",
@@ -296,18 +303,25 @@ def get_calipso_avhrr_linpix(avhrrIn,avhrrname,lon,lat,caTime):
     that.save("./yt_thumbnail.png")
     """
     orbittime =  os.path.basename(avhrrname).split("_")[1:3]
-#    Inside=0
-#    HasEncounteredMatch=0
+    coverage_dir  = options['coverage_dir'].format(resolution=str(RESOLUTION),
+                                                   area=AREA,
+                                                   val_dir=_validation_results_dir
+                                                   )
     i=0
-    if not os.path.exists(COVERAGE_DIR):
-        os.makedirs(COVERAGE_DIR)
+    if not os.path.exists(coverage_dir):
+        os.makedirs(coverage_dir)
     while startline < avhrrIn.longitude.shape[0]:
-        write_log("INFO","Calling get_calipso_avhrr_linpix: start-line = ",startline) #@UndefinedVariable
-        tmpaid = "tmparea_%d"%i
-        endline = startline+NLINES
-        coverage_filename = "%s/coverage_avhrr_caliop_matchup_%s_%s_%s_%.5d_%.5d_%s.h5"%\
-                            (COVERAGE_DIR,avhrrIn.satellite,orbittime[0],orbittime[1],
-                             startline,endline,tmpaid)
+        write_log("INFO","Calling get_calipso_avhrr_linpix: start-line = ",startline)
+        endline = startline + NLINES
+        tmpaid = "tmparea_%d" %(i)
+        coverage_filename =  options['coverage_filename'].format(satellite=avhrrIn.satellite,
+                                                                 tmpaid=tmpaid,
+                                                                 startline="%.5d"%(startline),
+                                                                 endline="%.5d" %(endline),
+                                                                 date=orbittime[0],
+                                                                 time=orbittime[1],
+                                                                 atrain_sat="calipso")
+
         write_log("INFO","Coverage filename = ",coverage_filename) #@UndefinedVariable
         cal,cap,ok = get_calipso_avhrr_linpix_segment(avhrrIn,lon,lat,caTime,
                                                       (startline,endline),
@@ -521,7 +535,7 @@ def createAvhrrTime(Obt, filename):
 #---------------------------------------------------------------------------
 def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj, 
                              surft, ctth, ctype, 
-                             row_matched, col_matched, avhrrLwp=None):
+                             row_matched, col_matched, avhrrLwp=None, avhrrCph=None):
     ctype_track = []
     ctype_qflag_track = []
     ctth_height_track = []
@@ -535,7 +549,8 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
     bt12micron_track = []
     satz_track = []
     lwp_track = []
-    
+    cph_track = []
+
     for idx in range(row_matched.shape[0]):
         lat_avhrr_track.append(GeoObj.latitude[row_matched[idx], 
                                                col_matched[idx]])
@@ -601,7 +616,12 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
             else:
                 lwp = avhrrLwp[row_matched[idx],col_matched[idx]]
             lwp_track.append(lwp)
-
+        if avhrrCph != None:
+            if avhrrCph[row_matched[idx],col_matched[idx]] == -1:
+                cph = -9
+            else:
+                cph = avhrrCph[row_matched[idx],col_matched[idx]]
+            cph_track.append(cph)
         
     obt.avhrr.latitude = np.array(lat_avhrr_track)
     obt.avhrr.longitude = np.array(lon_avhrr_track)
@@ -619,14 +639,15 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
         obt.avhrr.surftemp = np.array(surft_track)
     if avhrrLwp != None:
         obt.avhrr.lwp = np.array(lwp_track)
-
+    if avhrrCph != None:
+        obt.avhrr.cph = np.array(cph_track)
     return obt
 
 # -----------------------------------------------------------------
 def match_calipso_avhrr(ctypefile, 
                         calipsoObj, imagerGeoObj, imagerObj, 
-                        ctype, ctth, surft, 
-                        avhrrAngObj, res=resolution):
+                        ctype, ctth, cppCph, surft,
+                        avhrrAngObj, options, res=resolution):
 
     import time
     import string
@@ -649,7 +670,7 @@ def match_calipso_avhrr(ctypefile,
     
     # --------------------------------------------------------------------
 
-    cal,cap = get_calipso_avhrr_linpix(imagerGeoObj,ctypefile,lonCalipso,latCalipso,timeCalipso)
+    cal,cap = get_calipso_avhrr_linpix(imagerGeoObj,ctypefile,lonCalipso,latCalipso,timeCalipso, options)
     # This function (match_calipso_avhrr) could use the MatchMapper object
     # created in map_avhrr() to make things a lot simpler... See usage in
     # amsr_avhrr_match.py
@@ -779,8 +800,9 @@ def match_calipso_avhrr(ctypefile,
     
     # -------------------------------------------------------------------------
     # Pick out the data from the track from AVHRR
-    retv = avhrr_track_from_matched(retv, imagerGeoObj, imagerObj, avhrrAngObj, \
-                                    surft, ctth, ctype, cal_on_avhrr, cap_on_avhrr)
+    retv = avhrr_track_from_matched(retv, imagerGeoObj, imagerObj, avhrrAngObj, 
+                                    surft, ctth, ctype, cal_on_avhrr, 
+                                    cap_on_avhrr, avhrrCph=cppCph)
     # -------------------------------------------------------------------------    
 
 # for arname, value in retv1.avhrr.all_arrays.items():
@@ -804,35 +826,46 @@ def match_calipso_avhrr(ctypefile,
 #    print('all avhrr correct')
     print "AVHRR-PPS Cloud Type,latitude: shapes = ",\
           retv.avhrr.cloudtype.shape,retv.avhrr.latitude.shape
-
     ll = []
     for i in range(ndim):        
         #ll.append(("%7.3f  %7.3f  %d\n"%(lonCalipso[i],latCalipso[i],0)))
         ll.append(("%7.3f  %7.3f  %d\n"%(lonCalipso[i],latCalipso[i],idx_match[i])))
     basename = os.path.basename(ctypefile).split(".h5")[0]
-    base_sat = basename.split("_")[-8]
-    base_year = basename.split("_")[-7][0:4]
-    base_month = basename.split("_")[-7][4:6]
-    basename = string.join(basename.split("_")[0:4],"_")
-    datapath = "%s/%s/1km/%s/%s/%s" %(DATA_DIR, base_sat, base_year, base_month, AREA)
-    if not os.path.exists(datapath):
-        os.makedirs(datapath)
-        
-    fd = open("%s/%skm_%s_cloudtype_calipso_track2.txt"%(datapath,res,basename),"w")
+    values={"satellite":basename.split("_")[-8]}
+    values["year"] = str(basename.split("_")[-7][0:4])
+    values["month"] = str(basename.split("_")[-7][4:6])
+    values["basename"] = string.join(basename.split("_")[0:4],"_")
+    data_path = options['data_dir'].format(val_dir=_validation_results_dir, 
+                                           satellite=values["satellite"],
+                                           resolution=str(RESOLUTION),
+                                           year=values["year"],
+                                           month=values["month"],
+                                           area=AREA)                                            
+    if not os.path.exists(data_path):
+        print "Creating datadir: %s"%(data_path )
+        os.makedirs(data_path)
+    data_file = options['data_file'].format(resolution=str(RESOLUTION),
+                                            basename=values["basename"],
+                                            atrain_sat="calipso",
+                                            track="track2")
+    filename = data_path +  data_file        
+    fd = open(filename,"w")
     fd.writelines(ll)
     fd.close()
-
     ll = []
     for i in range(N_cmt):
         ll.append(("%7.3f  %7.3f  %d\n"%(lon_calipso[i],lat_calipso[i],0)))
-    fd = open("%s/%skm_%s_cloudtype_calipso_track_excl.txt"%(datapath,res,basename),"w")
+    data_file = options['data_file'].format(resolution=str(RESOLUTION),
+                                            basename=values["basename"],
+                                            atrain_sat="calipso",
+                                            track="track_excl")
+    filename = data_path + data_file 
+    fd = open(filename,"w")
     fd.writelines(ll)
-    fd.close()
-    
+    fd.close()    
     # CALIOP Maximum cloud top in km:
     max_cloud_top_calipso = np.maximum.reduce(retv.calipso.cloud_top_profile.ravel())
     print "max_cloud_top_calipso: ",max_cloud_top_calipso
-
     return retv,min_diff,max_diff
 
 #===============================================================================

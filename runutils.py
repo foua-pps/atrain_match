@@ -8,7 +8,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def process_scenes(scenes, fun, ignore_errors=True, *args, **kwargs):
+def process_scenes(scenes, fun, options, ignore_errors=True, *args, **kwargs):
     """
     For each string in *scenes*, process corresponding noaa scene, by calling
     function *fun* with arguments satname, orbit, as parsed from *scenes*. Each
@@ -23,10 +23,13 @@ def process_scenes(scenes, fun, ignore_errors=True, *args, **kwargs):
     """
     errors = []
     for _file in scenes:
+        print "we are here"
+        print _file, fun
         filename = os.path.basename(_file)
+        print filename, fun
         satname, _datetime, orbit = parse_scene(filename)
         try:
-            fun(satname, orbit, *args, **kwargs)
+            fun(satname, orbit, options, *args, **kwargs)
         except Exception, err:
             if ignore_errors:
                 errors.append((filename, err))
@@ -61,6 +64,10 @@ def parse_scene(filename):
     from datetime import datetime
     import re
     filename = os.path.basename(filename)
+    if not filename:
+        raise ValueError("No \"okay\" file %r" % filename)        
+    print "nina"
+    print filename
     match = re.match('(\w+)_([0-9]{8})_([0-9]{4})_([0-9]+)', filename)
     if not match:
         raise ValueError("Couldn't parse \"okay\" file %r" % filename)

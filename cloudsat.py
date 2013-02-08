@@ -13,13 +13,13 @@ import pdb #@UnusedImport
 from pps_error_messages import write_log #@UnresolvedImport
 
 #from calipso import * #@UnusedWildImport
-from config import AREA, SUB_DIR, DATA_DIR, sec_timeThr, RESOLUTION, \
-    NODATA, NLINES, SWATHWD
+from config import AREA, sec_timeThr, RESOLUTION, \
+    NODATA, NLINES, SWATHWD, _validation_results_dir
 from common import MatchupError, elements_within_range
 from calipso import DataObject, ppsAvhrrObject, define_pcs, writeCoverage,\
     createAvhrrTime, avhrr_track_from_matched
-COVERAGE_DIR = "%s/%skm/%s"%(SUB_DIR,RESOLUTION,AREA)
- 
+
+
 class CloudsatObject(DataObject):
     def __init__(self):
         DataObject.__init__(self)                            
@@ -210,7 +210,7 @@ def read_cloudsat(filename):
 
     return retv
 # --------------------------------------------
-def get_cloudsat_avhrr_linpix(avhrrIn,avhrrname,lon,lat,clTime):
+def get_cloudsat_avhrr_linpix(avhrrIn,avhrrname,lon,lat,clTime, options):
     import numpy
     import os
     tmppcs="tmpproj"
@@ -221,18 +221,24 @@ def get_cloudsat_avhrr_linpix(avhrrIn,avhrrname,lon,lat,clTime):
     startline=0
 #    Inside=0
 #    HasEncounteredMatch=0
+    coverage_dir  = options['coverage_dir'].format(resolution=str(RESOLUTION),
+                                                   area=AREA,
+                                                   val_dir=_validation_results_dir
+                                                   )
     i=0    
-    if not os.path.exists(COVERAGE_DIR):
-        os.makedirs(COVERAGE_DIR)
+    if not os.path.exists(coverage_dir):
+        os.makedirs(coverage_dir)
     while startline < avhrrIn.longitude.shape[0]:
         
-        write_log("INFO","Calling get_cloudsat_avhrr_linpix: start-line = ",startline)
-        tmpaid = "tmparea_%d"%i
-        endline = startline + NLINES
-        coverage_filename = "%s/coverage_avhrr_cloudsat_matchup_%s_%s_%s_%.5d_%.5d_%s.h5"%\
-                            (COVERAGE_DIR,avhrrIn.satellite,orbittime[0],orbittime[1],
-                             startline,endline,tmpaid)
-        write_log("INFO","Coverage filename = ",coverage_filename)
+        write_log("INFO","Calling get_cloudsat_avhrr_linpix: start-line = ", startline)
+        coverage_filename =  options['coverage_filename'].format(satellite=avhrrIn.satellite,
+                                                                 tmpaid=tmpaid,
+                                                                 startline="%.5d"%(startline),
+                                                                 endline="%.5d" %(endline),
+                                                                 date=orbittime[0],
+                                                                 time=orbittime[1],
+                                                                 atrain_sat="cloudsat")
+        write_log("INFO","Coverage filename = ", coverage_filename)
         cal,cap,ok = get_cloudsat_avhrr_linpix_segment(avhrrIn,lon,lat,clTime,
                                                       (startline,endline),
                                                       SWATHWD,tmppcs,tmpaid,
@@ -321,7 +327,6 @@ def get_cloudsat_avhrr_linpix_segment(avhrrIn,lon,lat,cltime,lines,swath_width,t
     # Do like this instead
     write_log("INFO","Create Coverage map...")
     cov = _satproj.create_coverage(areaObj,lonarr,latarr,0) #@UndefinedVariable
-    print covfilename
     writeCoverage(cov,covfilename,"satproj",AREA)
     mapped_line = _satproj.project(cov.coverage,cov.rowidx,cov.colidx,linearr,NODATA) #@UndefinedVariable
     mapped_pixel = _satproj.project(cov.coverage,cov.rowidx,cov.colidx,pixelarr,NODATA) #@UndefinedVariable
@@ -374,7 +379,7 @@ def get_cloudsat_avhrr_linpix_segment(avhrrIn,lon,lat,cltime,lines,swath_width,t
     return cloudsat_avhrr_line, cloudsat_avhrr_pixel, matchOk
 
 # -----------------------------------------------------
-def match_cloudsat_avhrr(ctypefile,cloudsatObj,avhrrGeoObj,avhrrObj,ctype,ctth,surft,avhrrAngObj, avhrrLwp):
+def match_cloudsat_avhrr(ctypefile,cloudsatObj,avhrrGeoObj,avhrrObj,ctype,ctth,surft,avhrrAngObj, avhrrLwp,options):
     import numpy
     import time
     import string
@@ -396,7 +401,7 @@ def match_cloudsat_avhrr(ctypefile,cloudsatObj,avhrrGeoObj,avhrrObj,ctype,ctth,s
 
     # --------------------------------------------------------------------
 
-    cal,cap = get_cloudsat_avhrr_linpix(avhrrGeoObj,ctypefile,lonCloudsat,latCloudsat,timeCloudsat)
+    cal,cap = get_cloudsat_avhrr_linpix(avhrrGeoObj,ctypefile,lonCloudsat,latCloudsat,timeCloudsat, options)
 #    from common import map_avhrr
 #    cal, cap = map_avhrr(avhrrGeoObj, lonCloudsat, latCloudsat,
 #                         radius_of_influence=RESOLUTION * .7 * 1e3)
@@ -473,21 +478,36 @@ def match_cloudsat_avhrr(ctypefile,cloudsatObj,avhrrGeoObj,avhrrObj,ctype,ctth,s
         #ll.append(("%7.3f  %7.3f  %d\n"%(lonCloudsat[i],latCloudsat[i],0)))
         ll.append(("%7.3f  %7.3f  %d\n"%(lonCloudsat[i],latCloudsat[i],idx_match[i])))
     basename = os.path.basename(ctypefile).split(".h5")[0]
-    base_sat = basename.split("_")[-8]
-    base_year = basename.split("_")[-7][0:4]
-    base_month = basename.split("_")[-7][4:6]
-    basename = string.join(basename.split("_")[0:4],"_")
-    
-    datapath = "%s/%s/%skm/%s/%s/%s" %(DATA_DIR, base_sat, RESOLUTION, base_year, base_month, AREA)
-    if not os.path.exists(datapath):
-        os.makedirs(datapath)   
-    fd = open("%s/%skm_%s_cloudtype_cloudsat-GEOPROF_track2.txt"%(datapath, RESOLUTION, basename),"w")
+    values={"satellite":basename.split("_")[-8]}
+    values["year"] = str(basename.split("_")[-7][0:4])
+    values["month"] = str(basename.split("_")[-7][4:6])
+    values["basename"] = string.join(basename.split("_")[0:4],"_")
+    data_path = options['data_dir'].format(val_dir=_validation_results_dir, 
+                                           satellite=values["satellite"],
+                                           resolution=str(RESOLUTION),
+                                           year=values["year"],
+                                           month=values["month"],
+                                           area=AREA)                                           
+    if not os.path.exists(data_path):
+        print "Creating datadir: %s"%(data_path )
+        os.makedirs(data_path)
+    data_file = options['data_file'].format(resolution=str(RESOLUTION),
+                                            basename=values["basename"],
+                                            atrain_sat="cloudsat-GEOPROF",
+                                            track="track2")
+    filename = data_path + data_file    
+    fd = open(filename,"w")
     fd.writelines(ll)
     fd.close()
     ll = []
     for i in range(N):
         ll.append(("%7.3f  %7.3f  %d\n"%(retv.cloudsat.longitude[i],retv.cloudsat.latitude[i],0)))
-    fd = open("%s/%skm_%s_cloudtype_cloudsat-GEOPROF_track_excl.txt"%(datapath, RESOLUTION, basename),"w")
+    data_file = options['data_file'].format(resolution=str(RESOLUTION),
+                                            basename=values["basename"],
+                                            atrain_sat="cloudsat-GEOPROF",
+                                            track="track_excl")
+    filename = data_path + data_file 
+    fd = open(filename,"w")
     fd.writelines(ll)
     fd.close()
 
