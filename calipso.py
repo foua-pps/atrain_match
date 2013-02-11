@@ -314,19 +314,21 @@ def get_calipso_avhrr_linpix(avhrrIn, avhrrname, lon, lat, caTime, options):
         write_log("INFO","Calling get_calipso_avhrr_linpix: start-line = ",startline)
         endline = startline + NLINES
         tmpaid = "tmparea_%d" %(i)
-        coverage_filename =  options['coverage_filename'].format(satellite=avhrrIn.satellite,
-                                                                 tmpaid=tmpaid,
-                                                                 startline="%.5d"%(startline),
-                                                                 endline="%.5d" %(endline),
-                                                                 date=orbittime[0],
-                                                                 time=orbittime[1],
-                                                                 atrain_sat="calipso")
+        coverage_filename =  options['coverage_filename'].format(
+            satellite=avhrrIn.satellite,
+            tmpaid=tmpaid,
+            startline="%.5d"%(startline),
+            endline="%.5d" %(endline),
+            date=orbittime[0],
+            time=orbittime[1],
+            atrain_sat="calipso")
 
         write_log("INFO","Coverage filename = ",coverage_filename) #@UndefinedVariable
+        coverage_file = coverage_dir + coverage_filename
         cal,cap,ok = get_calipso_avhrr_linpix_segment(avhrrIn,lon,lat,caTime,
                                                       (startline,endline),
                                                       SWATHWD,tmppcs,tmpaid,
-                                                      coverage_filename)
+                                                      coverage_file)
         if ok:
 #            HasEncounteredMatch=1
             write_log("INFO","There was a match...") #@UndefinedVariable

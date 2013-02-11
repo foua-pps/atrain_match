@@ -23,7 +23,6 @@ def process_scenes(scenes, fun, options, ignore_errors=True, *args, **kwargs):
     """
     errors = []
     for _file in scenes:
-        print "we are here"
         print _file, fun
         filename = os.path.basename(_file)
         print filename, fun
@@ -65,9 +64,7 @@ def parse_scene(filename):
     import re
     filename = os.path.basename(filename)
     if not filename:
-        raise ValueError("No \"okay\" file %r" % filename)        
-    print "nina"
-    print filename
+        raise ValueError("No file %r" % filename)        
     match = re.match('(\w+)_([0-9]{8})_([0-9]{4})_([0-9]+)', filename)
     if not match:
         raise ValueError("Couldn't parse \"okay\" file %r" % filename)

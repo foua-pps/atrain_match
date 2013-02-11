@@ -231,18 +231,20 @@ def get_cloudsat_avhrr_linpix(avhrrIn,avhrrname,lon,lat,clTime, options):
     while startline < avhrrIn.longitude.shape[0]:
         
         write_log("INFO","Calling get_cloudsat_avhrr_linpix: start-line = ", startline)
-        coverage_filename =  options['coverage_filename'].format(satellite=avhrrIn.satellite,
-                                                                 tmpaid=tmpaid,
-                                                                 startline="%.5d"%(startline),
-                                                                 endline="%.5d" %(endline),
-                                                                 date=orbittime[0],
-                                                                 time=orbittime[1],
-                                                                 atrain_sat="cloudsat")
+        coverage_filename =  options['coverage_filename'].format(
+            satellite=avhrrIn.satellite,
+            tmpaid=tmpaid,
+            startline="%.5d"%(startline),
+            endline="%.5d" %(endline),
+            date=orbittime[0],
+            time=orbittime[1],
+            atrain_sat="cloudsat")
         write_log("INFO","Coverage filename = ", coverage_filename)
+        coverage_file = coverage_dir + coverage_filename
         cal,cap,ok = get_cloudsat_avhrr_linpix_segment(avhrrIn,lon,lat,clTime,
                                                       (startline,endline),
                                                       SWATHWD,tmppcs,tmpaid,
-                                                      coverage_filename)
+                                                      coverage_file)
         if ok:
 #            HasEncounteredMatch=1
             write_log("INFO","There was a match...")

@@ -215,31 +215,41 @@ def find_calipso_files_inner(date_time, time_window, options):
     return flist
 
 def get_satid_datetime_orbit_from_fname(avhrr_filename):
-# Get satellite name, time, and orbit number from avhrr_file
+    import runutils
+    #satname, _datetime, orbit = runutils.parse_scene(avhrr_filename)
+    #returnd orbit as int, loosing leeding zeros, dont use here!
+    # Get satellite name, time, and orbit number from avhrr_file
     sl_ = os.path.basename(avhrr_filename).split('_')
-    values = {}
-    values["satellite"] = sl_[0]
-    values["date_time"] = datetime.strptime(sl_[1] + sl_[2], '%Y%m%d%H%M')
-    values["orbit"] = sl_[3] 
-    values["instrument"] = sl_[-1].split('.')[0]    
+    values= {"satellite": sl_[0],
+             "date_time": datetime.strptime(sl_[1] + sl_[2], '%Y%m%d%H%M'),
+             "orbit": sl_[3] }
     return values
 
 def insert_info_in_filename_or_path(file_or_name_path, values, datetime_obj=None):
     #file_or_name_path = file_or_name_path.format(**values)
-    file_or_name_path = file_or_name_path.format(satellite=values["satellite"],
-                                                 orbit=values["orbit"],
-                                                 instrument = values["instrument"])
+    file_or_name_path = file_or_name_path.format(
+        satellite=values["satellite"],
+        orbit=values.get("orbit","*"),
+        instrument = INSTRUMENT.get(values["satellite"],"avhrr"),
+        resolution=config.RESOLUTION,
+        area=config.AREA,
+        val_dir=config._validation_results_dir,
+        atrain_datatype=values.get("atrain_datatype","atrain_datatype"))
+
     if datetime_obj is None:
         return file_or_name_path
-    return datetime_obj.strftime(file_or_name_path)
+    name = datetime_obj.strftime(file_or_name_path)
+    return name
 
 def find_calipso_files(date_time, options):
     if config.CLOUDSAT_TYPE == 'CWC-RVOD':
         write_log("INFO", "Do not use CALIPSO in CWC-RWOD mode, Continue")
         calipso_files = []
     else:
+        #might need to geth this in before looking for matchups
         tdelta = timedelta(seconds = (config.SAT_ORBIT_DURATION + config.sec_timeThr))
         time_window = (tdelta, tdelta)
+        print "time_window", time_window 
         calipso_files = find_calipso_files_inner(date_time, time_window, options)
         if len(calipso_files) > 1:
             write_log("INFO", "More than one Calipso file found within time window!")
@@ -311,26 +321,28 @@ def find_avhrr_file(cross, filedir_pattern, filename_pattern, values={}):
     time_window=cross.time_window
     print "Time window: ", time_window
     print "Cross time: ", cross_time
-    values.update({"satellite":cross_satellite,
-              "orbit":"*",
-              "instrument":INSTRUMENT.get(cross_satellite, 'avhrr')})
+    values["satellite"] = cross_satellite
     found_dir = None
     for tobj in tlist:
-        rad_dir = insert_info_in_filename_or_path(filedir_pattern,
+        #print values
+        avhrr_dir = insert_info_in_filename_or_path(filedir_pattern,
                                                   values, datetime_obj=tobj)
-        if os.path.exists(rad_dir):
-            found_dir = rad_dir
+        if os.path.exists(avhrr_dir):
+            found_dir = avhrr_dir
+            print "Found directory {dirctory} ".format(dirctory=found_dir)
             break
     if not found_dir:
+        print "This directory does not exist, pattern: {directory}".format(directory=filedir_pattern)
         return None
     for tobj in tlist:
         file_pattern = insert_info_in_filename_or_path(filename_pattern,
-                                                       values, datetime_obj=tobj)
-        print file_pattern
+                                                       values, datetime_obj=tobj)       
         files = glob(os.path.join(found_dir, file_pattern))
         if len(files) > 0:
             print "Found files: " + str(files)
             return files[0]
+        else:
+            print "Found no files for pattern: {pattern}".format(pattern=file_pattern)  
     return None
 
 
@@ -649,7 +661,6 @@ def get_matchups_from_data(cross, config_options):
     values = get_satid_datetime_orbit_from_fname(avhrr_file)
     date_time = values["date_time"]
     basename = '_'.join(os.path.basename(avhrr_file).split('_')[:4])
-    print values
     rematched_path = date_time.strftime(config_options['reshape_dir'].format(
             val_dir=config._validation_results_dir,
             satellite=values["satellite"],
@@ -660,7 +671,8 @@ def get_matchups_from_data(cross, config_options):
             satellite=values["satellite"],
             orbit=values["orbit"],
             resolution=str(config.RESOLUTION),
-            instrument=INSTRUMENT.get(values["satellite"],'avhrr')
+            instrument=INSTRUMENT.get(values["satellite"],'avhrr'),
+            atrain_datatype="atrain_datatype"
             ))
 
     rematched_file_base = rematched_path + rematched_file
@@ -720,15 +732,12 @@ def get_matchups(cross, options, reprocess=False):
         date_time = cross.time2
         
     if reprocess is False:
-        values["resolution"] = config.RESOLUTION
-        values["area"] = config.RESOLUTION
+        #need to pyt in the info res, atrain data type before go inte find avhrr??
+        # or change read of files
         values["atrain_sat"] = "cloudsat-%s" % config.CLOUDSAT_TYPE[0]
-        values["orbit"]="*"
-        values["instrument"] = INSTRUMENT.get(platform, 'avhrr'),     
-        try:
-            values["atrain_sat"] = "cloudsat-%s" % config.CLOUDSAT_TYPE[0]
-            cl_match_file = find_avhrr_file(cross, options['reshape_dir'], options['reshape_file'], values=values)
-        except IndexError:
+        values["atrain_datatype"] = "cloudsat-%s" % config.CLOUDSAT_TYPE[0]
+        cl_match_file = find_avhrr_file(cross, options['reshape_dir'], options['reshape_file'], values=values)
+        if not cl_match_file:
             write_log('INFO', "No processed CloudSat match files found." + 
                       " Generating from source data.")
             clObj = None
@@ -737,16 +746,17 @@ def get_matchups(cross, options, reprocess=False):
             basename = '_'.join(os.path.basename(cl_match_file).split('_')[1:5])
             write_log('INFO', "CloudSat Matchups read from previously " + 
                       "processed data.")
-        try:
-            values["atrain_sat"] = "caliop" % config.CLOUDSAT_TYPE[0]
-            ca_match_file = find_avhrr_file(cross, options['reshape_dir'], options['reshape_file'], values=values)
-        except IndexError:
+        
+        values["atrain_sat"] = "caliop"
+        values["atrain_datatype"] = "caliop"
+        ca_match_file = find_avhrr_file(cross, options['reshape_dir'], options['reshape_file'], values=values)
+        if not  ca_match_file:
             write_log('INFO', 
                       ("No processed CALIPSO match files found. "+
                        "Generating from source data."))
             caObj = None
         else:
-            print ca_match_file
+            #print ca_match_file
             caObj = readCaliopAvhrrMatchObj(ca_match_file)
             basename = '_'.join(os.path.basename(ca_match_file).split('_')[1:5])
             write_log('INFO', 
