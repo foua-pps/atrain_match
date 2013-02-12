@@ -369,6 +369,7 @@ def process_case(calipso_filename, avhrr_filename, cpp_filename=None,
     This is the work horse.
     
     """
+    import numpy as np
     mapper = get_mapper(avhrr_filename, calipso_filename)
 
     
@@ -386,7 +387,7 @@ def process_case(calipso_filename, avhrr_filename, cpp_filename=None,
     restrictions = {'max number of CALIOP layers': max_layers,
                     'minimum quality': qual_min}
 
-    import numpy as np
+    
     from amsr_avhrr.util import get_avhrr_time
     #get_calipso_lonlat and get_calipso_time in this file!
     avhrr_time =  get_avhrr_time(avhrr_filename)
