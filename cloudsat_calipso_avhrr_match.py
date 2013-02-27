@@ -527,13 +527,14 @@ def get_calipso_matchups(calipso_files, cloudtype_file,
     elif cafiles5km !=None:
         calipso1km, startBreak, endBreak  = reshapeCalipso(calipso_files, avhrrGeoObj, cloudtype_file, False, 1)
         calipso5km = reshapeCalipso(cafiles5km,avhrrGeoObj, cloudtype_file, False, 5)[0]
+        write_log('INFO',"Cut optically thin clouds at selected optical depth, using 5km data")
         calipso = use5km_remove_thin_clouds_from_1km(calipso1km, calipso5km, startBreak, endBreak)
         calipso1km = None
         calipso5km = None
     else:
         calipso = reshapeCalipso(calipso_files, 
                                  avhrrGeoObj, cloudtype_file, True)[0]
-
+    write_log('INFO',"Matching with avhrr")
     tup = match_calipso_avhrr(cloudtype_file, calipso,
                               avhrrGeoObj, avhrrObj, ctype,
                               ctth, cppCph, surft, avhrrAngObj, options)
@@ -614,9 +615,10 @@ def get_matchups_from_data(cross, config_options):
         import glob
         calipso5km = None
         calipso1km = None
-        write_log("INFO", "Read CALIPSO data")
+        
         if config.RESOLUTION == 5:
             if config.ALSO_USE_1KM_FILES == True:
+                write_log("INFO", "Search for CALIPSO 1km data too")
                 calipso1km = []
                 for file5km in calipso_files:
                     file1km = file5km.replace('/5km/', '/1km/').\
@@ -632,6 +634,7 @@ def get_matchups_from_data(cross, config_options):
 
         if config.RESOLUTION == 1:
             if config.ALSO_USE_5KM_FILES == True:
+                write_log("INFO", "Search for CALIPSO 5km data too")
                 calipso5km = []
                 for file1km in calipso_files:
                     file5km = file1km.replace('/1km/', '/5km/').\
@@ -651,7 +654,7 @@ def get_matchups_from_data(cross, config_options):
             else:
                 calipso5km = None
                 
-      
+        write_log("INFO", "Read CALIPSO data")        
         ca_matchup, ca_time_diff = get_calipso_matchups(calipso_files, 
                                                         pps_files.cloudtype,
                                                         avhrrGeoObj, avhrrObj, ctype,
