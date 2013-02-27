@@ -537,6 +537,129 @@ def createAvhrrTime(Obt, filename):
 #---------------------------------------------------------------------------
 def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj, 
                              surft, ctth, ctype, 
+                             row_matched, col_matched, 
+                             avhrrLwp=None, avhrrCph=None):
+    ctype_track = []
+    ctype_qflag_track = []
+    ctth_height_track = []
+    ctth_pressure_track = []
+    ctth_temperature_track = []
+    ctth_opaque_track = []
+    lon_avhrr_track = []
+    lat_avhrr_track = []
+    surft_track = []
+    bt11micron_track = []
+    bt12micron_track = []
+    satz_track = []
+    lwp_track = []
+    cph_track = []
+
+    #idx = [x in range(row_matched.shape[0])]
+    lat_avhrr_track = [GeoObj.latitude[row_matched[idx], col_matched[idx]] 
+                     for idx in range(row_matched.shape[0])]
+    lon_avhrr_track = [GeoObj.longitude[row_matched[idx], col_matched[idx]]
+                     for idx in range(row_matched.shape[0])]
+    ctype_track = [ctype.cloudtype[row_matched[idx], col_matched[idx]]
+                 for idx in range(row_matched.shape[0])]
+    ctype_qflag_track = [ctype.qualityflag[row_matched[idx], col_matched[idx]]
+                        for idx in range(row_matched.shape[0])]
+    if surft != None:
+        surft_track = [surft[row_matched[idx], col_matched[idx]]
+                       for idx in range(row_matched.shape[0])]
+    #b11    
+    temp = [dataObj.channels[3].data[row_matched[idx], col_matched[idx]]
+            for idx in range(row_matched.shape[0])] 
+    b11_temp =  [(dataObj.channels[3].data[row_matched[idx], 
+                                           col_matched[idx]] * 
+                  dataObj.channels[3].gain + 
+                  dataObj.channels[3].intercept)       
+                 for idx in range(row_matched.shape[0])]
+    bt11micron_track = np.where(
+        np.logical_or(
+            np.equal(temp, dataObj.nodata),
+            np.equal(temp, dataObj.missing_data)),
+        -9, b11_temp)
+    #b12
+    temp = [dataObj.channels[4].data[row_matched[idx], col_matched[idx]]
+            for idx in range(row_matched.shape[0])]
+    b12_temp = [(dataObj.channels[4].data[row_matched[idx], col_matched[idx]] * 
+                 dataObj.channels[4].gain + 
+                 dataObj.channels[4].intercept)
+                for idx in range(row_matched.shape[0])]
+    bt12micron_track = np.where(
+        np.logical_or(
+            np.equal(temp, dataObj.nodata),
+            np.equal(temp, dataObj.missing_data)),
+        -9, b12_temp)
+    temp = [AngObj.satz.data[row_matched[idx], col_matched[idx]] 
+            for idx in range(row_matched.shape[0])]
+    sats_temp = [(AngObj.satz.data[row_matched[idx], col_matched[idx]] * 
+                  AngObj.satz.gain + AngObj.satz.intercept)
+                 for idx in range(row_matched.shape[0])]
+    satz_track = np.where(
+        np.logical_or(
+            np.equal(temp, AngObj.satz.no_data),
+            np.equal(temp, AngObj.satz.missing_data)),
+        -9, sats_temp)
+    if ctth == None:
+        pass
+    else:
+        temp = [ctth.height[row_matched[idx], col_matched[idx]]
+                for idx in range(row_matched.shape[0])]
+        hh_temp = [(ctth.height[row_matched[idx], col_matched[idx]] * 
+                    ctth.h_gain + ctth.h_intercept)
+                   for idx in range(row_matched.shape[0])]
+        ctth_height_track = np.where(np.equal(temp, ctth.h_nodata), 
+                                     -9, hh_temp)
+        temp = [ctth.temperature[row_matched[idx], col_matched[idx]]
+                for idx in range(row_matched.shape[0])]
+        tt_temp = [(ctth.temperature[row_matched[idx], col_matched[idx]] * 
+                    ctth.t_gain + ctth.t_intercept)
+                   for idx in range(row_matched.shape[0])]
+        ctth_temperature_track = np.where(np.equal(temp, ctth.t_nodata),
+                                          -9,tt_temp)
+        temp = [ctth.pressure[row_matched[idx], col_matched[idx]]
+                for idx in range(row_matched.shape[0])]
+        pp_temp = [(ctth.pressure[row_matched[idx], col_matched[idx]] * 
+                   ctth.p_gain + ctth.p_intercept)
+                   for idx in range(row_matched.shape[0])]
+        ctth_pressure_track = np.where(np.equal(temp, ctth.p_nodata), 
+                                      -9, pp_temp)
+        is_opaque = np.bitwise_and(np.right_shift(ctth.processingflag, 3), 1)
+        ctth_opaque_track = [is_opaque[row_matched[idx], col_matched[idx]]
+                             for idx in range(row_matched.shape[0])]
+    #: TODO Do not use fix value -1 but instead something.no_data
+    if avhrrLwp != None:
+        lwp_temp = [avhrrLwp[row_matched[idx], col_matched[idx]]
+                    for idx in range(row_matched.shape[0])]
+        lwp_track = np.where(np.equal(lwp_temp, -1), -9, lwp_temp)
+    if avhrrCph != None:
+        cph_temp = [avhrrCph[row_matched[idx], col_matched[idx]]
+                    for idx in range(row_matched.shape[0])]
+        cph_track = np.where(np.equal(cph_temp, -1), -9, cph_temp)
+
+
+    obt.avhrr.latitude = np.array(lat_avhrr_track)
+    obt.avhrr.longitude = np.array(lon_avhrr_track)
+    obt.avhrr.cloudtype = np.array(ctype_track)
+    obt.avhrr.cloudtype_qflag = np.array(ctype_qflag_track)
+    obt.avhrr.bt11micron = np.array(bt11micron_track)
+    obt.avhrr.bt12micron = np.array(bt12micron_track)
+    obt.avhrr.satz = np.array(satz_track)
+    if ctth:
+        obt.avhrr.ctth_height = np.array(ctth_height_track)
+        obt.avhrr.ctth_pressure = np.array(ctth_pressure_track)
+        obt.avhrr.ctth_temperature = np.array(ctth_temperature_track)
+        obt.avhrr.ctth_opaque = np.array(ctth_opaque_track)
+    if surft != None:
+        obt.avhrr.surftemp = np.array(surft_track)
+    if avhrrLwp != None:
+        obt.avhrr.lwp = np.array(lwp_track)
+    if avhrrCph != None:
+        obt.avhrr.cph = np.array(cph_track)
+    return obt
+def avhrr_track_from_matched_old(obt, GeoObj, dataObj, AngObj, 
+                             surft, ctth, ctype, 
                              row_matched, col_matched, avhrrLwp=None, avhrrCph=None):
     ctype_track = []
     ctype_qflag_track = []
@@ -607,7 +730,6 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
         ctth_pressure_track.append(pp_)
 
         # Add flag to tell if the ctth is opaque or not:
-        import numpy as np
         is_opaque = np.bitwise_and(np.right_shift(ctth.processingflag, 3), 1)
         ctth_opaque_track.append(is_opaque[row_matched[idx], col_matched[idx]])
 
@@ -699,7 +821,9 @@ def match_calipso_avhrr(ctypefile,
     cal_on_avhrr = np.repeat(cal, idx_match)
     cap_on_avhrr = np.repeat(cap, idx_match)
 
-    print "Start and end times: ",time.gmtime(timeCalipso[0]),time.gmtime(timeCalipso[ndim-1])
+    write_log('INFO', "Start and end times: ",
+              time.gmtime(timeCalipso[0]),
+              time.gmtime(timeCalipso[ndim-1]))
     
     retv.calipso.sec_1970 = np.repeat(timeCalipso,idx_match)
 
@@ -707,7 +831,7 @@ def match_calipso_avhrr(ctypefile,
     retv.calipso.latitude = np.repeat(latCalipso,idx_match)
     retv.calipso.longitude = np.repeat(lonCalipso,idx_match)
     
-    print "cap_on_avhrr.shape: ",cap_on_avhrr.shape
+    write_log('INFO',"cap_on_avhrr.shape: ",cap_on_avhrr.shape)
     retv.calipso.avhrr_linnum = cal_on_avhrr.astype('i')
     retv.calipso.avhrr_pixnum = cap_on_avhrr.astype('i')
     
@@ -717,7 +841,7 @@ def match_calipso_avhrr(ctypefile,
     #    x = np.concatenate((x,idx_match))
     #idx_match_2d = np.reshape(x,(ndim,10))
 
-    print "Make cloud top and base arrays..."
+    write_log('INFO', "Make cloud top and base arrays...")
 #    missing_data = -9.9
     #cloud_top = np.repeat(calipsoObj.cloud_top_profile.flat,idx_match_2d.flat)
     #cloud_top = np.where(np.less(cloud_top,0),missing_data,cloud_top)
@@ -788,17 +912,17 @@ def match_calipso_avhrr(ctypefile,
 
     min_diff = np.minimum.reduce(retv.diff_sec_1970)
     max_diff = np.maximum.reduce(retv.diff_sec_1970)
-    print "Maximum and minimum time differences in sec (avhrr-calipso): ",\
-          np.maximum.reduce(retv.diff_sec_1970),np.minimum.reduce(retv.diff_sec_1970)
+    write_log('INFO', "Maximum and minimum time differences in sec (avhrr-calipso): ",
+          np.maximum.reduce(retv.diff_sec_1970),np.minimum.reduce(retv.diff_sec_1970))
 
-    print "AVHRR observation time of first calipso-avhrr match: ",\
-          time.gmtime(retv.avhrr.sec_1970[0])
-    print "AVHRR observation time of last calipso-avhrr match: ",\
-          time.gmtime(retv.avhrr.sec_1970[N_cmt-1])
+    write_log('INFO', "AVHRR observation time of first calipso-avhrr match: ",
+          time.gmtime(retv.avhrr.sec_1970[0]))
+    write_log('INFO', "AVHRR observation time of last calipso-avhrr match: ",
+          time.gmtime(retv.avhrr.sec_1970[N_cmt-1]))
 
     # Make the latitude and pps cloudtype on the calipso track:
     # line and pixel arrays have equal dimensions
-    print "Generate the latitude,cloudtype tracks!"
+    write_log('INFO', "Generate the latitude,cloudtype tracks!")
     
     # -------------------------------------------------------------------------
     # Pick out the data from the track from AVHRR
@@ -826,8 +950,8 @@ def match_calipso_avhrr(ctypefile,
 #        if arname not in retv1.avhrr.all_arrays.keys():
 #            pdb.set_trace()
 #    print('all avhrr correct')
-    print "AVHRR-PPS Cloud Type,latitude: shapes = ",\
-          retv.avhrr.cloudtype.shape,retv.avhrr.latitude.shape
+    write_log('INFO', "AVHRR-PPS Cloud Type,latitude: shapes = ",
+          retv.avhrr.cloudtype.shape,retv.avhrr.latitude.shape)
     ll = []
     for i in range(ndim):        
         #ll.append(("%7.3f  %7.3f  %d\n"%(lonCalipso[i],latCalipso[i],0)))
@@ -844,7 +968,7 @@ def match_calipso_avhrr(ctypefile,
                                            month=values["month"],
                                            area=AREA)                                            
     if not os.path.exists(data_path):
-        print "Creating datadir: %s"%(data_path )
+        write_log('INFO', "Creating datadir: %s"%(data_path ))
         os.makedirs(data_path)
     data_file = options['data_file'].format(resolution=str(RESOLUTION),
                                             basename=values["basename"],
@@ -867,7 +991,7 @@ def match_calipso_avhrr(ctypefile,
     fd.close()    
     # CALIOP Maximum cloud top in km:
     max_cloud_top_calipso = np.maximum.reduce(retv.calipso.cloud_top_profile.ravel())
-    print "max_cloud_top_calipso: ",max_cloud_top_calipso
+    write_log('INFO', "max_cloud_top_calipso: ",max_cloud_top_calipso)
     return retv,min_diff,max_diff
 
 #===============================================================================
@@ -1024,7 +1148,7 @@ def reshapeCalipso(calipsofiles, avhrr, avhrrfilename, timereshape = True, res=r
             cal_new_all = newCalipso.time[:,1] + dsec
         
         if not cal_start_all[0] < cal_new_all[0]:
-            print "calipso files are in the wrong order"
+            write_log('INFO', "calipso files are in the wrong order")
             print("Program calipso.py at line %i" %(inspect.currentframe().f_lineno+1))
             sys.exit(-9)
             
@@ -1059,7 +1183,7 @@ def reshapeCalipso(calipsofiles, avhrr, avhrrfilename, timereshape = True, res=r
         cal = startCalipso
         
     if cal.time.shape[0] <= 0:
-        print("No time match, please try with some other CloudSat files")
+        write_log('INFO',("No time match, please try with some other CloudSat files"))
         print("Program calipso.py at line %i" %(inspect.currentframe().f_lineno+1))
         sys.exit(-9)
     return cal, start_break, end_break
@@ -1109,7 +1233,7 @@ def add1kmTo5km(Obj1, Obj5, start_break, end_break):
 def use5km_remove_thin_clouds_from_1km(Obj1, Obj5, start_break, end_break):
     retv = CalipsoObject()
     if (Obj5.utc_time[:,1] == Obj1.utc_time[2::5]).sum() != Obj5.utc_time.shape[0]:
-        print("length mismatch")
+        write_log('WARNING', "length mismatch")
         pdb.set_trace()
     for pixel in range(Obj5.utc_time.shape[0]):    
         cloud_max_top = np.max(Obj5.cloud_top_profile[pixel, 0:10])
@@ -1127,7 +1251,7 @@ def use5km_remove_thin_clouds_from_1km(Obj1, Obj5, start_break, end_break):
             eye_this_cloud = np.where(cloud_at_these_height_index ,  1, 0)
             number_of_cloud_boxes = sum(eye_this_cloud)         
             if number_of_cloud_boxes == 0:
-                print "warning a problem cloud has no depth!!"
+                write_log('WARNING', "cloud has no depth!!")
              
             optical_thickness_this_layer = (
                 eye_this_cloud*
@@ -1135,7 +1259,7 @@ def use5km_remove_thin_clouds_from_1km(Obj1, Obj5, start_break, end_break):
                 1.0/number_of_cloud_boxes)             
             if abs(np.sum(optical_thickness_this_layer) - 
                    Obj5.optical_depth[pixel, lay])>0.001:
-                print ("warning the sum of the optical thickness profile is "
+                write_log('WARNING', "The sum of the optical thickness profile is "
                        "not the same as total optical thickness of the cloud!!")
              
             optical_thickness = optical_thickness + optical_thickness_this_layer

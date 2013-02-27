@@ -191,7 +191,7 @@ def readCpp(filename, type):
 
 def get_time_list(cross_time, time_window, delta_t_in_seconds):
     tlist = []
-    delta_t = timedelta(seconds=delta_t_in_seconds) #search per minute!
+    delta_t = timedelta(seconds=delta_t_in_seconds) #search per minute!delta_t_in_seconds=60
     tobj1 = cross_time
     tobj2 = cross_time - delta_t
     while (tobj1 < cross_time + time_window[1] and 
@@ -210,7 +210,6 @@ def find_calipso_files_inner(date_time, time_window, options):
         calipso_dir = tobj.strftime(options['calipso_dir'])
         calipso_file_pattern = tobj.strftime(options['calipso_file'])
         tmplist = glob(os.path.join(calipso_dir, calipso_file_pattern))
-        print tobj, [ os.path.basename(s) for s in tmplist ]
         flist.extend([ s for s in tmplist if s not in flist ])   
     return flist
 
@@ -249,7 +248,6 @@ def find_calipso_files(date_time, options):
         #might need to geth this in before looking for matchups
         tdelta = timedelta(seconds = (config.SAT_ORBIT_DURATION + config.sec_timeThr))
         time_window = (tdelta, tdelta)
-        print "time_window", time_window 
         calipso_files = find_calipso_files_inner(date_time, time_window, options)
         if len(calipso_files) > 1:
             write_log("INFO", "More than one Calipso file found within time window!")
@@ -305,12 +303,14 @@ def find_avhrr_file_old(cross, options):
                                                        values,datetime_obj=tobj)
         radiance_files = glob(os.path.join(found_dir, file_pattern))
         if len(radiance_files) > 0:
-            print "Found files: " + str(radiance_files)
+            write_log('INFO',"Found files: " + str(radiance_files))
             return radiance_files[0]
     return None
 
 def find_radiance_file(cross, options):
-    found_files = find_avhrr_file(cross, options['radiance_dir'], options['radiance_file'])
+    found_files = find_avhrr_file(cross, 
+                                  options['radiance_dir'], 
+                                  options['radiance_file'])
     if not found_files:
         raise MatchupError("No dir or file found with radiance data!\n" + 
                            "Searching under %s" % options['radiance_dir'])
@@ -319,8 +319,8 @@ def find_radiance_file(cross, options):
 def find_avhrr_file(cross, filedir_pattern, filename_pattern, values={}):
     (tlist, cross_time, cross_satellite) = get_time_list_and_cross_time(cross)
     time_window=cross.time_window
-    print "Time window: ", time_window
-    print "Cross time: ", cross_time
+    write_log('INFO',"Time window: ", time_window)
+    write_log('INFO',"Cross time: {cross_time}".format(cross_time=cross_time))
     values["satellite"] = cross_satellite
     found_dir = None
     for tobj in tlist:
@@ -329,20 +329,25 @@ def find_avhrr_file(cross, filedir_pattern, filename_pattern, values={}):
                                                   values, datetime_obj=tobj)
         if os.path.exists(avhrr_dir):
             found_dir = avhrr_dir
-            print "Found directory {dirctory} ".format(dirctory=found_dir)
+            write_log('INFO',"Found directory "
+                      "{dirctory} ".format(dirctory=found_dir))
             break
     if not found_dir:
-        print "This directory does not exist, pattern: {directory}".format(directory=filedir_pattern)
+        write_log('INFO',"This directory does not exist, pattern:"
+                  " {directory}".format(directory=filedir_pattern))
         return None
+    no_files_found = True
     for tobj in tlist:
         file_pattern = insert_info_in_filename_or_path(filename_pattern,
                                                        values, datetime_obj=tobj)       
         files = glob(os.path.join(found_dir, file_pattern))
         if len(files) > 0:
-            print "Found files: " + str(files)
+            files_found = False
+            write_log('INFO',"Found files: " + str(files))
             return files[0]
-        else:
-            print "Found no files for pattern: {pattern}".format(pattern=file_pattern)  
+    if no_files_found:       
+         write_log('INFO', "Found no files for patterns of type:"
+                   " {pattern}".format(pattern=file_pattern)  )
     return None
 
 
@@ -379,7 +384,7 @@ def find_files_from_avhrr(avhrr_file, options):
 
     # Let's get the satellite and the date-time of the pps radiance
     # (avhrr/viirs) file:
-    write_log("INFO", "avhrr_file = %s" % avhrr_file)
+    write_log("INFO", "Avhrr or viirs file = %s" % avhrr_file)
     values = get_satid_datetime_orbit_from_fname(avhrr_file)
     date_time = values["date_time"]
     #TOTDO%%%%%%%%%%%%
@@ -496,10 +501,10 @@ def get_cloudsat_matchups(cloudsat_files, cloudtype_file, avhrrGeoObj, avhrrObj,
     cloudsat = reshape_fun(cloudsat_files, avhrrGeoObj, cloudtype_file)
 
     if plot_file != None:
-        print("plot cloudsat - avhrr track")
+        write_log('INFO',"plot cloudsat - avhrr track")
         _plot_avhrr_track(plot_file, avhrrGeoObj, cloudsat)
     else:
-        print("No cloudsat plot-file")
+        write_log('INFO',("No cloudsat plot-file"))
     cl_matchup, cl_min_diff, cl_max_diff = match_fun(cloudtype_file, cloudsat,
                                                      avhrrGeoObj, avhrrObj, ctype,
                                                      ctth, surft, avhrrAngObj, cppLwp)
@@ -679,7 +684,7 @@ def get_matchups_from_data(cross, config_options):
     
     # Create directories if they don't exist yet
     if not os.path.exists(os.path.dirname(rematched_path)):
-        print "Creating dir %s:"%(rematched_path)
+        write_log('INFO', "Creating dir %s:"%(rematched_path))
         os.makedirs(os.path.dirname(rematched_path))
     
     # Write cloudsat matchup
@@ -691,7 +696,7 @@ def get_matchups_from_data(cross, config_options):
         except NameError:
             cl_matchup = None
             cl_time_diff = NaN, NaN
-            print('CloudSat is not defined. No CloudSat Match File created')
+            write_log('INFO','CloudSat is not defined. No CloudSat Match File created')
     else:
         cl_match_file = rematched_file_base.replace(
             'atrain_datatype', 'cloudsat-%s' % config.CLOUDSAT_TYPE)
@@ -928,7 +933,7 @@ def run(cross, process_mode_dnt, config_options, reprocess=False):
 
         CALIPSO_DISPLACED = 0
         latdiff = abs(clsatObj.cloudsat.latitude[0] - caObj.calipso.latitude[0])
-        print "latdiff: ", latdiff
+        write_log('INFO',"latdiff: ", latdiff)
         if latdiff > 0.1:
             write_log('INFO', "CloudSat/CALIPSO startpoint differ by %f degrees." % latdiff)
             write_log('INFO', "Cloudsat start lon, lat: %f, %f" % (clsatObj.cloudsat.longitude[0], clsatObj.cloudsat.latitude[0]))
@@ -946,11 +951,11 @@ def run(cross, process_mode_dnt, config_options, reprocess=False):
         elevation = np.where(np.less_equal(clsatObj.cloudsat.elevation,0),\
                             -9,clsatObj.cloudsat.elevation)			# If clsatObj.cloudsat.elevation is <= 0 elevation(i,j)=-9, else the value = clsatObj.cloudsat.elevation(i,j)
         data_ok = np.ones(clsatObj.cloudsat.elevation.shape,'b')
-        print "Length of CLOUDSAT array: ", len(data_ok)
+        write_log('INFO', "Length of CLOUDSAT array: ", len(data_ok))
         avhrr_ctth_csat_ok = np.repeat(clsatObj.avhrr.ctth_height[::],data_ok)
         avhrr_ctth_csat_ok = np.where(np.greater(avhrr_ctth_csat_ok,0.0),avhrr_ctth_csat_ok[::]+elevation*1.0,avhrr_ctth_csat_ok)
         if len(data_ok) == 0:
-            print "Processing stopped: Zero lenght of matching arrays!"
+            write_log('INFO',"Processing stopped: Zero lenght of matching arrays!")
             print("Program cloudsat_calipso_avhrr_match.py at line %i" %(inspect.currentframe().f_lineno+1))
             sys.exit()
     else:
@@ -967,12 +972,12 @@ def run(cross, process_mode_dnt, config_options, reprocess=False):
     cal_elevation = np.where(np.less_equal(caObj.calipso.elevation,0),
                                 -9,caObj.calipso.elevation)
     cal_data_ok = np.ones(caObj.calipso.elevation.shape,'b')
-    print "Length of CALIOP array: ", len(cal_data_ok)
+    write_log('INFO', "Length of CALIOP array: ", len(cal_data_ok))
     avhrr_ctth_cal_ok = np.repeat(caObj.avhrr.ctth_height[::],cal_data_ok)
     avhrr_ctth_cal_ok = np.where(np.greater(avhrr_ctth_cal_ok,0.0),avhrr_ctth_cal_ok[::]+cal_elevation,avhrr_ctth_cal_ok)                    
 
     if (len(cal_data_ok) == 0):
-        print "Processing stopped: Zero lenght of matching arrays!"
+        write_log('INFO', "Processing stopped: Zero lenght of matching arrays!")
         print("Program cloudsat_calipso_avhrr_match.py at line %i" %(inspect.currentframe().f_lineno+1))
         sys.exit()
         
@@ -1112,7 +1117,7 @@ def run(cross, process_mode_dnt, config_options, reprocess=False):
         # Now calculate cloud emissivity emiss_cloud for topmost CALIOP and CloudSat layer
         config_path = os.environ.get('IMAGERRAD_HOME', './etc') + "/Tables"
         emiss_cloud = get_cloud_emissivity(sno_satname, caObj, cal_data_ok, config_path)
-        print "Emissivity filtering applied!"
+        write_log('INFO', "Emissivity filtering applied!")
 
         caliop_min_height_ok = np.greater(caliop_max_height, config.EMISS_MIN_HEIGHT)
         emissfilt_calipso_ok = np.logical_or(np.logical_and(np.greater(emiss_cloud, config.EMISS_LIMIT),caliop_min_height_ok),np.logical_or(np.equal(caliop_max_height,-9.),np.less_equal(caliop_max_height, config.EMISS_MIN_HEIGHT)))
