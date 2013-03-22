@@ -29,6 +29,8 @@ def process_scenes(scenes, fun, options, ignore_errors=True, *args, **kwargs):
         satname, _datetime, orbit = parse_scene(filename)
         try:
             fun(satname, orbit, options, *args, **kwargs)
+        except KeyboardInterrupt:
+                raise    
         except Exception, err:
             if ignore_errors:
                 errors.append((filename, err))
