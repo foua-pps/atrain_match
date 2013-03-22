@@ -7,8 +7,9 @@ still be some modules which have internal constants defined.
 
 import os
 #When using 1km data, use the 5km data to filterout clouds to thin for VIIRS/AVHRR to see.
-ALSO_USE_5KM_FILES = False
+ALSO_USE_5KM_FILES = True
 OPTICAL_DETECTION_LIMIT = 0.3
+EXCLUDE_CALIPSO_PIXEL_IF_TOTAL_OPTICAL_THICKNESS_TO_LOW = False
 H4H5_EXECUTABLE = os.environ.get('H4H5_EXECUTABLE','/local_disk/opt/h4h5tools-2.2.1-linux-x86_64-static/bin/h4toh5')
 
 VAL_CPP = os.environ.get('VAL_CPP', False)
@@ -217,7 +218,8 @@ if RESOLUTION == 1:
                                         # lines (sec)
         SWATHWD=2048
     AREA = "arctic_europe_1km"
-#    AREA = "arctic_super_5010"
+#    AREA = "npole"
+    #AREA = "arctic_super_5010"
 #    AREA = "cea1km_test"
     #: CloudSat sampling frequency in km (or rather the most likely
     #: resolution difference between CALIPSO 1 km datasets and
@@ -259,52 +261,7 @@ NODATA=-9
 PLOT_MODES = ['BASIC']
 #PLOT_MODES = ['No Plot']
 
-def subdir(self, date, *args, **kwargs):
-    """
-    This method is used in all ``file_finders`` instances created in 
-    :mod:`cloudsat_calipso_avhrr_match`, for finding the correct sub-directory.
-    
-    It is required to handle the listed arguments *self*, and *date*, as well as
-    any other arguments (:emphasis:`*args`) or keyword arguments 
-    (:emphasis:`**kwargs`) passed to it. It should return a string containing
-    the sub-directory where the file can be found.
-    
-    Note that :func:`subdir` is used in several different ``file_finders``
-    classes (sub-classes of :class:`file_finders.SatelliteDataFileFinder`).
-    ``self.__class__`` can be used to check for a particular ``file_finders``
-    class, e.g.::
-    
-        def subdir(self, date, *args, **kwargs):
-            from file_finders import PpsFileFinder
-            if self.__class__ is PpsFileFinder:
-                return "some/subdir/specific/to/your/pps/files"
-            else:
-                # Just use default subdir for the instance's class
-                return self.__class__.subdir(self, date, *args, **kwargs)
-    
-    """
-    
-    # If default subdirs should be used, the following line should be uncommented
-    return self.__class__.subdir(self, date, *args, **kwargs)
-    
-    # Example of how to set non-default subdirs for PpsFileFinder instances:
-    from file_finders import PpsFileFinder #@UnresolvedImport
-    if self.__class__ is PpsFileFinder:
-        ending = kwargs.get('ending', None)
-        if ending is None:
-            ending = self.ending
-        _dir = "%dkm/%d/%02d" % (RESOLUTION, date.year, date.month)
-        if 'avhrr' in ending or 'viirs' in ending:
-            return os.path.join(_dir,"import/PPS_data")                
-        if 'sunsatangles' in ending:
-            return os.path.join(_dir, "import/ANC_data")
-        if 'nwp' in ending:
-            return os.path.join(_dir,"import/NWP_data")
-        for export_ending in ['cloudmask', 'cloudtype', 'ctth', 'precip']:
-            if export_ending in ending:
-                return os.path.join(_dir, "export")
-    else:
-        return self.__class__.subdir(self, date, *args, **kwargs)
+
 
 #========== Statistics setup ==========#
 #: List of dictionaries containing *satname*, *year*, and *month*, for which

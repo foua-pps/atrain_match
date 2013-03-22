@@ -12,6 +12,7 @@ from config import (AREA, _validation_results_dir,
 from common import MatchupError, elements_within_range #@UnusedImport
 from config import RESOLUTION as resolution
 from config import OPTICAL_DETECTION_LIMIT 
+from config import EXCLUDE_CALIPSO_PIXEL_IF_TOTAL_OPTICAL_THICKNESS_TO_LOW
 
 class DataObject(object):
     """
@@ -1291,9 +1292,12 @@ def use5km_remove_thin_clouds_from_1km(Obj1, Obj5, start_break, end_break):
                 if  optical_depth_var_approx > 0.5 and sort_out_pixels_that_we_have_no_good_truth_for:
                     #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                     Obj1.cloud_top_profile[pixel_1km, lay] = -9999 
-                    Obj1.cloud_top_profile[pixel_1km, lay] = -9999 
+                    Obj1.cloud_base_profile[pixel_1km, lay] = -9999 
                     #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                                   
+                #Remove all layers of clouds if total optical thickness is to low:    
+                elif np.max(optical_thickness_profile)< OPTICAL_DETECTION_LIMIT and EXCLUDE_CALIPSO_PIXEL_IF_TOTAL_OPTICAL_THICKNESS_TO_LOW:
+                    Obj1.cloud_top_profile[pixel_1km, lay] = -9999 
+                    Obj1.cloud_base_profile[pixel_1km, lay] = -9999                                                        
                 elif height_limit1 < Obj1.cloud_top_profile[pixel_1km, lay]:
                     #cut cloud at limit or at base of cloud
                     Obj1.cloud_top_profile[pixel_1km, lay] =  max(
