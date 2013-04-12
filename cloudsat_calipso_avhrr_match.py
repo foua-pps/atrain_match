@@ -114,6 +114,7 @@ import sys
 
 from numpy import NaN
 from config import VAL_CPP
+from config import PLOT_ONLY_PNG
 
 from radiance_tb_tables_kgtest import get_central_wavenumber
 # Just use the brightness temperature to
@@ -1162,6 +1163,8 @@ def run(cross, process_mode_dnt, config_options, reprocess=False):
             emissfilt_calipso_ok = None
         if clsatObj is None:
             file_type = ['eps', 'png']
+            if PLOT_ONLY_PNG==True:
+                file_type = ['png']
             if 'trajectory_plot_area' in config_options:
                 plotSatelliteTrajectory(calon, calat,
                                         trajectoryname, 
