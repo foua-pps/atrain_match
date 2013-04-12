@@ -11,9 +11,11 @@ from config import (AREA, _validation_results_dir,
                     NLINES, SWATHWD, NODATA) #@UnusedImport
 from common import MatchupError, elements_within_range #@UnusedImport
 from config import RESOLUTION as resolution
-from config import OPTICAL_DETECTION_LIMIT 
-from config import EXCLUDE_CALIPSO_PIXEL_IF_TOTAL_OPTICAL_THICKNESS_TO_LOW
-
+from config import (OPTICAL_DETECTION_LIMIT,
+                    EXCLUDE_CALIPSO_PIXEL_IF_TOTAL_OPTICAL_THICKNESS_TO_LOW,
+                    EXCLUDE_ALL_MULTILAYER,
+                    EXCLUDE_MULTILAYER_IF_TOO_THIN_TOP_LAYER,
+                    EXCLUDE_GEOMETRICALLY_THICK )
 class DataObject(object):
     """
     Class to handle data objects with several arrays.
@@ -659,114 +661,6 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
     if avhrrCph != None:
         obt.avhrr.cph = np.array(cph_track)
     return obt
-def avhrr_track_from_matched_old(obt, GeoObj, dataObj, AngObj, 
-                             surft, ctth, ctype, 
-                             row_matched, col_matched, avhrrLwp=None, avhrrCph=None):
-    ctype_track = []
-    ctype_qflag_track = []
-    ctth_height_track = []
-    ctth_pressure_track = []
-    ctth_temperature_track = []
-    ctth_opaque_track = []
-    lon_avhrr_track = []
-    lat_avhrr_track = []
-    surft_track = []
-    bt11micron_track = []
-    bt12micron_track = []
-    satz_track = []
-    lwp_track = []
-    cph_track = []
-
-    for idx in range(row_matched.shape[0]):
-        lat_avhrr_track.append(GeoObj.latitude[row_matched[idx], 
-                                               col_matched[idx]])
-        lon_avhrr_track.append(GeoObj.longitude[row_matched[idx], 
-                                                col_matched[idx]])
-        ctype_track.append(ctype.cloudtype[row_matched[idx], 
-                                           col_matched[idx]])
-        ctype_qflag_track.append(ctype.qualityflag[row_matched[idx], 
-                                                   col_matched[idx]])
-        if surft != None:
-            surft_track.append(surft[row_matched[idx], col_matched[idx]])
-        if (dataObj.channels[3].data[row_matched[idx], col_matched[idx]] in 
-            [dataObj.nodata, dataObj.missing_data]):
-            b11 = -9.
-        else:
-            b11 = dataObj.channels[3].data[row_matched[idx],col_matched[idx]] * \
-                dataObj.channels[3].gain + dataObj.channels[3].intercept
-        bt11micron_track.append(b11)
-        if dataObj.channels[4].data[row_matched[idx],col_matched[idx]] in \
-                                [dataObj.nodata, dataObj.missing_data]:
-            b12 = -9.
-        else:
-            b12 = dataObj.channels[4].data[row_matched[idx],col_matched[idx]] * \
-                dataObj.channels[4].gain + dataObj.channels[4].intercept
-        bt12micron_track.append(b12)
-        if AngObj.satz.data[row_matched[idx],col_matched[idx]] in \
-                [AngObj.satz.no_data, AngObj.satz.missing_data]:
-            ang = -9
-        else:
-            ang = AngObj.satz.data[row_matched[idx],col_matched[idx]] * \
-                AngObj.satz.gain + AngObj.satz.intercept
-        satz_track.append(ang)
-        
-        if ctth == None:
-            continue
-        if ctth.height[row_matched[idx],col_matched[idx]] == ctth.h_nodata:
-            hh = -9.
-        else:
-            hh = ctth.height[row_matched[idx],col_matched[idx]] * ctth.h_gain + ctth.h_intercept
-        ctth_height_track.append(hh)
-        if ctth.temperature[row_matched[idx],col_matched[idx]] == ctth.t_nodata:
-            tt = -9.
-        else:
-            tt = ctth.temperature[row_matched[idx],col_matched[idx]] * ctth.t_gain + \
-                 ctth.t_intercept
-        ctth_temperature_track.append(tt)
-        if ctth.pressure[row_matched[idx], col_matched[idx]] == ctth.p_nodata:
-            pp_ = -9.
-        else:
-            pp_ = (ctth.pressure[row_matched[idx], col_matched[idx]] * 
-                   ctth.p_gain + ctth.p_intercept)
-        ctth_pressure_track.append(pp_)
-
-        # Add flag to tell if the ctth is opaque or not:
-        is_opaque = np.bitwise_and(np.right_shift(ctth.processingflag, 3), 1)
-        ctth_opaque_track.append(is_opaque[row_matched[idx], col_matched[idx]])
-
-        #: TODO Do not use fix value -1 but instead something.no_data
-        if avhrrLwp != None:
-            if avhrrLwp[row_matched[idx],col_matched[idx]] == -1:
-                lwp = -9
-            else:
-                lwp = avhrrLwp[row_matched[idx],col_matched[idx]]
-            lwp_track.append(lwp)
-        if avhrrCph != None:
-            if avhrrCph[row_matched[idx],col_matched[idx]] == -1:
-                cph = -9
-            else:
-                cph = avhrrCph[row_matched[idx],col_matched[idx]]
-            cph_track.append(cph)
-        
-    obt.avhrr.latitude = np.array(lat_avhrr_track)
-    obt.avhrr.longitude = np.array(lon_avhrr_track)
-    obt.avhrr.cloudtype = np.array(ctype_track)
-    obt.avhrr.cloudtype_qflag = np.array(ctype_qflag_track)
-    obt.avhrr.bt11micron = np.array(bt11micron_track)
-    obt.avhrr.bt12micron = np.array(bt12micron_track)
-    obt.avhrr.satz = np.array(satz_track)
-    if ctth:
-        obt.avhrr.ctth_height = np.array(ctth_height_track)
-        obt.avhrr.ctth_pressure = np.array(ctth_pressure_track)
-        obt.avhrr.ctth_temperature = np.array(ctth_temperature_track)
-        obt.avhrr.ctth_opaque = np.array(ctth_opaque_track)
-    if surft != None:
-        obt.avhrr.surftemp = np.array(surft_track)
-    if avhrrLwp != None:
-        obt.avhrr.lwp = np.array(lwp_track)
-    if avhrrCph != None:
-        obt.avhrr.cph = np.array(cph_track)
-    return obt
 
 # -----------------------------------------------------------------
 def match_calipso_avhrr(ctypefile, 
@@ -1247,8 +1141,8 @@ def use5km_remove_thin_clouds_from_1km(Obj1, Obj5, start_break, end_break):
         optical_thickness = np.zeros(height_profile.shape)
         for lay in range(Obj5.number_of_layers_found[pixel]): 
             cloud_at_these_height_index = np.logical_and(
-                Obj5.cloud_top_profile[pixel, lay]> height_profile, 
-                height_profile>Obj5.cloud_base_profile[pixel, lay])
+                Obj5.cloud_top_profile[pixel, lay]>= height_profile, 
+                height_profile>=Obj5.cloud_base_profile[pixel, lay])
             eye_this_cloud = np.where(cloud_at_these_height_index ,  1, 0)
             number_of_cloud_boxes = sum(eye_this_cloud)         
             if number_of_cloud_boxes == 0:
@@ -1295,9 +1189,25 @@ def use5km_remove_thin_clouds_from_1km(Obj1, Obj5, start_break, end_break):
                     Obj1.cloud_base_profile[pixel_1km, lay] = -9999 
                     #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                 #Remove all layers of clouds if total optical thickness is to low:    
-                elif np.max(optical_thickness_profile)< OPTICAL_DETECTION_LIMIT and EXCLUDE_CALIPSO_PIXEL_IF_TOTAL_OPTICAL_THICKNESS_TO_LOW:
+                elif (np.max(optical_thickness_profile)< OPTICAL_DETECTION_LIMIT and 
+                      EXCLUDE_CALIPSO_PIXEL_IF_TOTAL_OPTICAL_THICKNESS_TO_LOW):
                     Obj1.cloud_top_profile[pixel_1km, lay] = -9999 
-                    Obj1.cloud_base_profile[pixel_1km, lay] = -9999                                                        
+                    Obj1.cloud_base_profile[pixel_1km, lay] = -9999  
+                elif   (Obj5.optical_depth[pixel, 0]< OPTICAL_DETECTION_LIMIT and  #top layer very thin
+                        np.max(optical_thickness_profile)> Obj5.optical_depth[pixel, 0]  and #is multilayer
+                        EXCLUDE_MULTILAYER_IF_TOO_THIN_TOP_LAYER):
+                    #relative thin top layer, total optical thickness thicker than limit
+                    Obj1.cloud_top_profile[pixel_1km, lay] = -9999 
+                    Obj1.cloud_base_profile[pixel_1km, lay] = -9999   
+                elif   (np.max(optical_thickness_profile)> Obj5.optical_depth[pixel, 0]  and #is multilayer
+                        EXCLUDE_ALL_MULTILAYER):
+                    Obj1.cloud_top_profile[pixel_1km, lay] = -9999 
+                    Obj1.cloud_base_profile[pixel_1km, lay] = -9999   
+                elif   (Obj1.cloud_top_profile[pixel_1km, 0]-Obj1.cloud_base_profile[pixel_1km, 0]>1  and #is multilayer
+                        EXCLUDE_GEOMETRICALLY_THICK):
+                    #relative thin top layer, total optical thickness thicker than limit
+                    Obj1.cloud_top_profile[pixel_1km, lay] = -9999 
+                    Obj1.cloud_base_profile[pixel_1km, lay] = -9999       
                 elif height_limit1 < Obj1.cloud_top_profile[pixel_1km, lay]:
                     #cut cloud at limit or at base of cloud
                     Obj1.cloud_top_profile[pixel_1km, lay] =  max(
