@@ -112,6 +112,7 @@ replace area arctic_super_5010 with the desired area.  This is now made below
 import os
 import sys
 
+import numpy as np
 from numpy import NaN
 from config import VAL_CPP
 from config import PLOT_ONLY_PNG
@@ -1079,8 +1080,8 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
         
     # Extract CALIOP Vertical Feature Classification (bits 10-12) from 16 bit representation
     # for topmost cloud layer
-    cal_vert_feature = numpy.ones(caObj.calipso.cloud_top_profile[0,::].shape)*-9
-    feature_array = 4*numpy.bitwise_and(numpy.right_shift(caObj.calipso.feature_classification_flags[0,::],11),1) + 2*numpy.bitwise_and(numpy.right_shift(caObj.calipso.feature_classification_flags[0,::],10),1) + numpy.bitwise_and(numpy.right_shift(caObj.calipso.feature_classification_flags[0,::],9),1)
+    cal_vert_feature = np.ones(caObj.calipso.cloud_top_profile[0,::].shape)*-9
+    feature_array = 4*np.bitwise_and(np.right_shift(caObj.calipso.feature_classification_flags[0,::],11),1) + 2*np.bitwise_and(np.right_shift(caObj.calipso.feature_classification_flags[0,::],10),1) + np.bitwise_and(np.right_shift(caObj.calipso.feature_classification_flags[0,::],9),1)
     NinaTestar = False    
     if NinaTestar :   
         new_cloud_top = NinaTestarMedelCloudBaseAndTop(caObj.calipso.cloud_top_profile, caObj.calipso.cloud_base_profile)

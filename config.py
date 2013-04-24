@@ -7,12 +7,14 @@ still be some modules which have internal constants defined.
 
 import os
 #When using 1km data, use the 5km data to filterout clouds to thin for VIIRS/AVHRR to see.
-ALSO_USE_5KM_FILES = True
+#PARAMETERS FOR CHOOSING HOW TO FILTER DATA 1km RESOLUTION:
+ALSO_USE_5KM_FILES = False
 OPTICAL_DETECTION_LIMIT = 0.3
 EXCLUDE_CALIPSO_PIXEL_IF_TOTAL_OPTICAL_THICKNESS_TO_LOW = False
 EXCLUDE_ALL_MULTILAYER = False
 EXCLUDE_MULTILAYER_IF_TOO_THIN_TOP_LAYER = False
 EXCLUDE_GEOMETRICALLY_THICK = False
+
 H4H5_EXECUTABLE = os.environ.get('H4H5_EXECUTABLE','/local_disk/opt/h4h5tools-2.2.1-linux-x86_64-static/bin/h4toh5')
 PLOT_ONLY_PNG = True
 
@@ -29,12 +31,15 @@ RESOLUTION = int(os.environ.get('ATRAIN_RESOLUTION', 1))
 if RESOLUTION == 1:
     AVHRR_SAT = 'NPP' #'pps'
     CALIPSO_CLOUD_FRACTION = False
+    ALSO_USE_1KM_FILES = False
 elif RESOLUTION == 5:
     AVHRR_SAT = 'NOAA18'
     # CALIPSO_CLOUD_FRACTION = True   Introduced when the idea was to use single_shot_cloud_cleared_fraction, now abandoned!
     CALIPSO_CLOUD_FRACTION = True  #Notice that both these parameters must equal, i.e. set to either True or False!!!/KG
     ALSO_USE_1KM_FILES = True
-    
+
+#: Base directory for validation results
+_validation_results_dir = os.environ['VALIDATION_RESULTS_DIR']    
 
 #: Don't know how this directory is used...
 MAIN_RUNDIR = os.getcwd()
@@ -43,18 +48,18 @@ MAIN_RUNDIR = os.getcwd()
 #MAIN_DIR = os.environ.get('VALIDATION_RESULTS_DIR', "/nobackup/smhid9/sm_erjoh/atrain_match")
 MAIN_DIR = os.environ.get('VALIDATION_RESULTS_DIR', "/nobackup/smhid9/sm_kgkar/atrain_match_kg")
 #: Base directory where matchup files are stored. (TODO: Are these still used?)
-SUB_DIR = "%s/Matchups" %MAIN_DIR
+#SUB_DIR = "%s/Matchups" %MAIN_DIR
 #SUB_DIR = "%s/Matchups_prob" %MAIN_DIR #Used for reprocessed dataset for probmask studies
 
 #: Base directory for files containing matched data from PPS and Calipso/Cloudsat
-RESHAPE_DIR = "%s/Reshaped_Files" %MAIN_DIR
+#RESHAPE_DIR = "%s/Reshaped_Files" %MAIN_DIR
 #RESHAPE_DIR = "%s/Reshaped_Files_prob" %MAIN_DIR #Used for reprocessed dataset for probmask studies
 
 #: TODO: How is this directory used?
-DATA_DIR = "%s/Data" %MAIN_DIR
+#DATA_DIR = "%s/Data" %MAIN_DIR
 
 #: Base directory for plots
-PLOT_DIR = "%s/Plot" %MAIN_DIR
+#PLOT_DIR = "%s/Plot" %MAIN_DIR
 
 #: Base directory for statistics results
 #RESULT_DIR = "%s/Results_prob" %MAIN_DIR
@@ -69,7 +74,7 @@ _satellite_data_dir = '/local_disk/data/atrain_validation/data'
 
 #: Base dir for PPS data
 # PPS_DATA_DIR = os.environ.get('PPS_DATA_DIR', _satellite_data_dir + '/pps')
-PPS_DATA_DIR = "%s/%s" % (SAT_DIR, AVHRR_SAT)
+#PPS_DATA_DIR = "%s/%s" % (SAT_DIR, AVHRR_SAT)
 #PPS_DATA_DIR = "%s/%s_probmask" % (SAT_DIR, AVHRR_SAT) # Just to select reprocessed dataset for probmask
 
 #: Base dir for Cloudsat data

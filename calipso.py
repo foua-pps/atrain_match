@@ -961,7 +961,7 @@ def get_calipso(filename, res):
 
 #        lonCalipso = calipso.longitude[:,1].ravel()
 #        latCalipso = calipso.latitude[:,1].ravel()
-        calipso.cloud_fraction = numpy.where(calipso.cloud_top_profile[:,0] > 0, 1, 0).astype('d')
+        clobj.cloud_fraction = np.where(clobj.cloud_top_profile[:,0] > 0, 1, 0).astype('d')
         # Strange - this will give 0 cloud fraction in points with no data, wouldn't it????/KG
 
     
@@ -1164,8 +1164,8 @@ def add1kmTo5km(Obj1, Obj5, start_break, end_break):
             Obj5.optical_depth[i, 0] = 1.0 #Just put it safely away from the thinnest cloud layers - the best we can do!
             # Obj5.feature_classification_flags[i, 0] = 22218 if assuming like below:
             # cloud, low quality, water phase, low quality, low broken cumulus, confident, 1 km horizontal averaging)
-            feature_array = numpy.asarray(feature_array_list)
-            Obj5.feature_classification_flags[i, 0] = numpy.median(feature_array[:]) # However, let's take the median value
+            feature_array = np.asarray(feature_array_list)
+            Obj5.feature_classification_flags[i, 0] = np.median(feature_array[:]) # However, let's take the median value
             Obj5.single_shot_cloud_cleared_fraction[i] = 0.0 # Just put any value, we will not use it! 
             
         if Obj5.cloud_fraction[i] >= 0.0:
