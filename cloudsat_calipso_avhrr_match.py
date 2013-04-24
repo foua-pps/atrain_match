@@ -4,72 +4,84 @@ process_master.py.
 
 Program cloudsat_calipso_avhrr_match.py
 
-This program is used to process and output statistics for the inter-comparison of AVHRR PPS
-results and CloudSat/CALIPSO observations. It may be run
+This program is used to process and output statistics for the inter-comparison
+of AVHRR PPS results and CloudSat/CALIPSO observations. It may be run
 repeatedly and supervised by program cloudsat_calipso_process_master.py.
 
-This particular version of Adam's original CloudSat/CALIPSO matchup and analysis program has been complemented
-with the following:
+This particular version of Adam's original CloudSat/CALIPSO matchup and
+analysis program has been complemented with the following:
 
- * A method to calculate cloud emissivities for the uppermost CALIPSO cloud layer. With the
-   use of parameters EMISS_FILTERING, EMISS_MIN_HEIGHT and EMISS_LIMIT the thinnest uppermost
-   CALIPSO cloud layers can be analysed and the entire column can be disregarded if the
-   emissivity falls below the EMISS_LIMIT value.
-   Cloud emissivities Ec are calculated as follows:
+ * A method to calculate cloud emissivities for the uppermost CALIPSO cloud
+   layer. With the use of parameters EMISS_FILTERING, EMISS_MIN_HEIGHT and
+   EMISS_LIMIT the thinnest uppermost CALIPSO cloud layers can be analysed and
+   the entire column can be disregarded if the emissivity falls below the
+   EMISS_LIMIT value.  Cloud emissivities Ec are calculated as follows:
 
                     Ec = (I-Iclear)/(B(Tc)-Iclear)
    where
-       I = Measured radiance in AVHRR channel 4 (11 micron)
-           To be calculated as the Planck radiance for the associated brightness temperature
-       Iclear = Estimated radiance in cloud free situations
-                To be calculate as the Planck radiance for the NWP-analysed surface temperature
-                (i.e., neglecting further atmospheric contributions)
-       B(Tc) = Planck radiance for the uppermost cloud layer using CALIPSO mid-layer temperatures
 
- * Adjusted scales between CloudSat and CALIPSO datasets. The previous assumption that both datasets
-   had 1 km resolution resulted in that datasets went out of phase for distances longer than about
-   1000 km. An empirical scale factor (CLOUDSAT_TRACK_RESOLUTION) of 1.076 is used to get the most
+       I = Measured radiance in AVHRR channel 4 (11 micron) To be calculated as
+           the Planck radiance for the associated brightness temperature
+
+       Iclear = Estimated radiance in cloud free situations To be calculate as
+                the Planck radiance for the NWP-analysed surface temperature
+                (i.e., neglecting further atmospheric contributions)
+
+       B(Tc) = Planck radiance for the uppermost cloud layer using CALIPSO
+       mid-layer temperatures
+
+
+ * Adjusted scales between CloudSat and CALIPSO datasets. The previous
+   assumption that both datasets had 1 km resolution resulted in that datasets
+   went out of phase for distances longer than about 1000 km. An empirical
+   scale factor (CLOUDSAT_TRACK_RESOLUTION) of 1.076 is used to get the most
    optimal match.
 
- * AVHRR cloud top height datasets have been recalculated to heights above mean sea level using
-   CloudSat and CALIPSO elevation data
+ * AVHRR cloud top height datasets have been recalculated to heights above mean
+   sea level using CloudSat and CALIPSO elevation data
 
- * The MODIS cloud flag has been added to the extracted CALIPSO dataset. This enables direct
-   comparisons to the MODIS cloud mask! Consequently, corresponding MODIS Cloud Mask statistics
-   are calculated and printed.
+ * The MODIS cloud flag has been added to the extracted CALIPSO dataset. This
+   enables direct comparisons to the MODIS cloud mask! Consequently,
+   corresponding MODIS Cloud Mask statistics are calculated and printed.
 
- * The Vertical Feature Mask parameter in the CALIPSO dataset has been used to subdivide results
-   into three cloud groups: Low, Medium and High. This has enabled an evaluation of PPS Cloud Type
-   results and a further sub-division of Cloud Top Height results
+ * The Vertical Feature Mask parameter in the CALIPSO dataset has been used to
+   subdivide results into three cloud groups: Low, Medium and High. This has
+   enabled an evaluation of PPS Cloud Type results and a further sub-division
+   of Cloud Top Height results
 
- * The National Snow and Ice Data Center (NSIDC) ice and snow mapping results have been added
-   to the extracted Calipso parameters. Together with the IGBP land use classification it is then
-   possible to isolate the study to focus on one of the following categories:
+ * The National Snow and Ice Data Center (NSIDC) ice and snow mapping results
+   have been added to the extracted Calipso parameters. Together with the IGBP
+   land use classification it is then possible to isolate the study to focus on
+   one of the following categories:
 
        ICE_COVER_SEA, ICE_FREE_SEA, SNOW_COVER_LAND, SNOW_FREE_LAND or COASTAL_ZONE
 
 RUNNING INSTRUCTIONS
 --------------------
 
-The program is capable of running in a wide range of modes (according to description above). These
-various modes are selected by enabling (disabling) the following parameters:
+The program is capable of running in a wide range of modes (according to
+description above). These various modes are selected by enabling (disabling)
+the following parameters:
 
-PLOT_OPTION, EMISS_FILTERING, ICE_COVER_SEA, ICE_FREE_SEA, SNOW_COVER_LAND, SNOW_FREE_LAND, COASTAL_ZONE
+PLOT_OPTION, EMISS_FILTERING, ICE_COVER_SEA, ICE_FREE_SEA, SNOW_COVER_LAND,
+SNOW_FREE_LAND, COASTAL_ZONE
 
-However, notice that only one mode can be chosen for each run. The only exception is PLOT_OPTION
-(i.e., the generation of a PNG plot) which can be combined with EMISS_FILTERING. This also means
-that processing of individual surface categories only generates statistics and not any plots.
+However, notice that only one mode can be chosen for each run. The only
+exception is PLOT_OPTION (i.e., the generation of a PNG plot) which can be
+combined with EMISS_FILTERING. This also means that processing of individual
+surface categories only generates statistics and not any plots.
 
-Input data has to be supplied at directories defined by MAIN_DIR and SUB_DIR parameters below.
+Input data has to be supplied at directories defined by MAIN_DIR and SUB_DIR
+parameters below.
  
-Every exection of the program prints out statistics for PPS Cloud Mask, Cloud Type and Cloud Top Height
-directly on the screen.
+Every exection of the program prints out statistics for PPS Cloud Mask, Cloud
+Type and Cloud Top Height directly on the screen.
 
-Don't forget to set all parameters needed for standard ACPG/AHAMAP execution since the matchup
-software uses parts of the ACPG/AHAMAP software.
+Don't forget to set all parameters needed for standard ACPG/AHAMAP execution
+since the matchup software uses parts of the ACPG/AHAMAP software.
 
-Dependencies: For a successful run of the program the following supporting python modules must be
-              available in the default run directory:
+Dependencies: For a successful run of the program the following supporting
+              python modules must be available in the default run directory:
 
               cloudsat.py
               calipso.py
@@ -77,19 +89,22 @@ Dependencies: For a successful run of the program the following supporting pytho
               cloudsat_avhrr_matchup.py
               radiance_tb_tables_kgtest.py
 
-              For full consistency make sure that MAIN_DIR and SUB_DIR parameters are the same also
-              in modules cloudsat.py and calipso.py.
+              For full consistency make sure that MAIN_DIR and SUB_DIR
+              parameters are the same also in modules cloudsat.py and
+              calipso.py.
 
-Output data files: Main results are generally written in the directory MAIN_DIR/SUB_DIR but plotting
-                   results are stored at ./Plot and temporary results at ./Data directories. Thus,
-                   make sure that these directories exist as subdirectories at the default run directory.
-                  This is now made automatic /Erik
+Output data files: Main results are generally written in the directory
+                   MAIN_DIR/SUB_DIR but plotting results are stored at ./Plot
+                   and temporary results at ./Data directories. Thus, make sure
+                   that these directories exist as subdirectories at the
+                   default run directory.  This is now made automatic /Erik
 
-Finally, notice that the matching of the PPS, CloudSat and CALIPSO datasets have been calculated using the
-fix area arctic_super_5010 defined over the Arctic region in Lambert Azimuthal Equal Area projection. Thus,
-for matching data to other regions please modify modules calipso.py and cloudsat.py and replace area
-arctic_super_5010 with the desired area.
-This is now made below /Erik
+Finally, notice that the matching of the PPS, CloudSat and CALIPSO datasets
+have been calculated using the fix area arctic_super_5010 defined over the
+Arctic region in Lambert Azimuthal Equal Area projection. Thus, for matching
+data to other regions please modify modules calipso.py and cloudsat.py and
+replace area arctic_super_5010 with the desired area.  This is now made below
+/Erik
 
 /KG March 2010
 
@@ -110,19 +125,19 @@ from cloudsat_calipso_avhrr_statistics import *
 from trajectory_plot import * #@UnusedWildImport
 from cloudsat_calipso_avhrr_prepare import *
 
-from cloudsat import reshapeCloudsat, match_cloudsat_avhrr,\
-    writeCloudsatAvhrrMatchObj, readCloudsatAvhrrMatchObj
-from calipso import reshapeCalipso, match_calipso_avhrr,\
-    writeCaliopAvhrrMatchObj, readCaliopAvhrrMatchObj, add1kmTo5km
+from cloudsat import reshapeCloudsat, match_cloudsat_avhrr
+from cloudsat import writeCloudsatAvhrrMatchObj, readCloudsatAvhrrMatchObj
+from calipso import reshapeCalipso, match_calipso_avhrr
+from calipso import writeCaliopAvhrrMatchObj, readCaliopAvhrrMatchObj, add1kmTo5km
 import inspect
 import numpy
-from cloudsat_calipso_avhrr_plot import drawCalClsatAvhrrPlotTimeDiff,\
-    drawCalClsatGEOPROFAvhrrPlot, drawCalClsatAvhrrPlotSATZ,\
-    drawCalClsatCWCAvhrrPlot
+from cloudsat_calipso_avhrr_plot import (drawCalClsatAvhrrPlotTimeDiff,
+                                         drawCalClsatGEOPROFAvhrrPlot, 
+                                         drawCalClsatAvhrrPlotSATZ,
+                                         drawCalClsatCWCAvhrrPlot)
 import pdb #@UnusedImport
 from config import CALIPSO_CLOUD_FRACTION
-#from cloudsat_avhrr_matchup5km import *
-#from calipso_avhrr_matchup5km import *
+
 test = 0
 
 def readCpp(filename, type):
@@ -137,6 +152,7 @@ def readCpp(filename, type):
     
     h5file.close()
     return product
+
 # -----------------------------------------------------
 
 def find_avhrr_file(cross):
@@ -151,10 +167,8 @@ def find_avhrr_file(cross):
         cross_time = cross.time1
     
     from file_finders import PpsFileFinder #@UnresolvedImport
-    if cross_satellite == 'npp':
-        avhrr_finder = PpsFileFinder(config.PPS_DATA_DIR, 'viirs.h5')
-    else:
-        avhrr_finder = PpsFileFinder(config.PPS_DATA_DIR, 'avhrr.h5')
+    # file_finders updated to support viirs - AD, 2012-10-13
+    avhrr_finder = PpsFileFinder(config.PPS_DATA_DIR)
     attach_subdir_from_config(avhrr_finder)
     
     # Set time window
@@ -165,7 +179,10 @@ def find_avhrr_file(cross):
     try:
         try:            
             if config.DEBUG is True:
-                write_log('DEBUG', "Looking for avhrr file corresponding to %s: %s" % (str(cross), avhrr_finder.pattern(cross_time, cross_satellite))) #@UndefinedVariable
+                avhrrfile_name = avhrr_finder.pattern(cross_time, cross_satellite) #@UndefinedVariable
+                msg = ("Looking for avhrr file corresponding to " + 
+                       "%s: %s" % (str(cross), avhrrfile_name)) #@UndefinedVariable
+                write_log('DEBUG', msg) 
         except:
             pass
         avhrr_file = avhrr_finder.find(cross_time, cross_satellite)[0]
@@ -213,7 +230,7 @@ def find_files_from_avhrr(avhrr_file):
     Find all files needed to process matchup from source data files.
     """
     import file_finders #@UnresolvedImport
-    
+
     pps_finder = file_finders.PpsFileFinder(config.PPS_DATA_DIR, time_window=5*60)
     attach_subdir_from_config(pps_finder)
     parsed = pps_finder.parse(avhrr_file)
@@ -351,7 +368,9 @@ def get_cloudsat_matchups(cloudsat_files, cloudtype_file, avhrrGeoObj, avhrrObj,
     return cl_matchup, (cl_min_diff, cl_max_diff)
 
 
-def get_calipso_matchups(calipso_files, cloudtype_file, avhrrGeoObj, avhrrObj, ctype, ctth, surft, avhrrAngObj, cafiles1km=None):
+def get_calipso_matchups(calipso_files, cloudtype_file, 
+                         avhrrGeoObj, avhrrObj, ctype, ctth, 
+                         surft, avhrrAngObj, cafiles1km=None):
     """
     Read Calipso data and match with the given PPS data.
     """
@@ -417,9 +436,9 @@ def get_matchups_from_data(cross):
     except:
         cppLwp = None
     write_log("INFO","Read PPS Cloud Type") #@UndefinedVariable
-    ctype = epshdf.read_cloudtype(cloudtype_file,1,1,0)
+    ctype = epshdf.read_cloudtype(cloudtype_file, 1, 1, 0)
     try:
-        ctth = epshdf.read_cloudtop(ctth_file,1,1,1,0,1)
+        ctth = epshdf.read_cloudtop(ctth_file, 1, 1, 1, 0, 1)
     except:
         ctth = None
     
@@ -465,7 +484,7 @@ def get_matchups_from_data(cross):
             else:
                 calipso1km = None
 
-        #pdb.set_trace()
+
         ca_matchup, ca_time_diff = get_calipso_matchups(calipso_files, cloudtype_file,
                                                         avhrrGeoObj, avhrrObj, ctype,
                                                         ctth, surft, avhrrAngObj, calipso1km)
@@ -506,9 +525,10 @@ def get_matchups_from_data(cross):
             cl_time_diff = (NaN, NaN)
             print('CloudSat is not defined. No CloudSat Match File created')
     else:
-        cl_match_file = rematched_file_base.replace('atrain_datatype', 'cloudsat-%s' % config.CLOUDSAT_TYPE)
+        cl_match_file = rematched_file_base.replace('atrain_datatype', 
+                                                    'cloudsat-%s' % config.CLOUDSAT_TYPE)
         writeCloudsatAvhrrMatchObj(cl_match_file, cl_matchup)
-#    pdb.set_trace()
+
     # Write calipso matchup
     if config.CLOUDSAT_TYPE == "CWC-RVOD":
 #        try:
@@ -718,11 +738,16 @@ def run(cross, process_mode_dnt, min_optical_depth, reprocess=False):
 #            elif config.RESOLUTION == 5:
 #                cllon = clsatObj.cloudsat5kmcwc.longitude.copy()
 #                cllat = clsatObj.cloudsat5kmcwc.latitude.copy()
-        # Issue a warning if startpoint or endpoint latitude of CloudSat and CALIPSO differ by more than 0.1 degrees
-        # Furthermore, if startpoint differs it means that CALIPSO data is not available for the first part of the matchup
-        # cross section. This means that we must find the first corresponding CloudSat point to this CALIPSO start point
-        # before we can do the plotting (statistics calculations are not affected). Consequently, set the CALIPSO_DISPLACED
-        # flag and find correct startpoint just before starting the plotting of CALIPSO data!
+
+        # Issue a warning if startpoint or endpoint latitude of CloudSat and
+        # CALIPSO differ by more than 0.1 degrees Furthermore, if startpoint
+        # differs it means that CALIPSO data is not available for the first
+        # part of the matchup cross section. This means that we must find the
+        # first corresponding CloudSat point to this CALIPSO start point before
+        # we can do the plotting (statistics calculations are not
+        # affected). Consequently, set the CALIPSO_DISPLACED flag and find
+        # correct startpoint just before starting the plotting of CALIPSO data!
+
         CALIPSO_DISPLACED = 0
         latdiff = abs(clsatObj.cloudsat.latitude[0] - caObj.calipso.latitude[0])
         print "latdiff: ", latdiff
@@ -737,8 +762,9 @@ def run(cross, process_mode_dnt, min_optical_depth, reprocess=False):
                     calipso_displacement=int(j*config.CLOUDSAT_TRACK_RESOLUTION)
                     write_log('INFO', "CALIPSO_DISPLACEMENT: %d" % calipso_displacement) #@UndefinedVariable
                     break
-        # First make sure that PPS cloud top heights are converted to height above sea level
-        # just as CloudSat and CALIPSO heights are defined. Use corresponding DEM data.            
+        # First make sure that PPS cloud top heights are converted to height
+        # above sea level just as CloudSat and CALIPSO heights are defined. Use
+        # corresponding DEM data.
         elevation = numpy.where(numpy.less_equal(clsatObj.cloudsat.elevation,0),\
                             -9,clsatObj.cloudsat.elevation)			# If clsatObj.cloudsat.elevation is <= 0 elevation(i,j)=-9, else the value = clsatObj.cloudsat.elevation(i,j)
         data_ok = numpy.ones(clsatObj.cloudsat.elevation.shape,'b')
@@ -753,6 +779,7 @@ def run(cross, process_mode_dnt, min_optical_depth, reprocess=False):
     else:
         data_ok = None
         avhrr_ctth_csat_ok = None
+
     ## Calipso ##        
     caObj = CalipsoAvhrrSatz(caObj)
     calon = caObj.calipso.longitude.copy()

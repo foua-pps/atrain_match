@@ -53,8 +53,10 @@ PLOT_DIR = "%s/Plot" %MAIN_DIR
 RESULT_DIR = "%s/Results_cloudthreshold_0.3" %MAIN_DIR
 
 
-#_satellite_data_dir = '/nobackup/smhid9/sm_erjoh/data'
-_satellite_data_dir = '/nobackup/smhid9/sm_kgkar/atrain_match_kg/testdata'
+
+#_satellite_data_dir = '/data/arkiv/proj/safworks/data'
+_satellite_data_dir = '/local_disk/data/atrain_validation/data'
+
 #: Base dir for PPS data
 # PPS_DATA_DIR = os.environ.get('PPS_DATA_DIR', _satellite_data_dir + '/pps')
 PPS_DATA_DIR = "%s/%s" % (SAT_DIR, AVHRR_SAT)
@@ -306,17 +308,18 @@ def subdir(self, date, *args, **kwargs):
         ending = kwargs.get('ending', None)
         if ending is None:
             ending = self.ending
-        dir = "%dkm/%d/%02d" % (RESOLUTION, date.year, date.month)
+
+        _dir = "%dkm/%d/%02d" % (RESOLUTION, date.year, date.month)
         if 'avhrr' in ending or 'viirs' in ending:
-            return os.path.join(dir,"import/PPS_data")                
+            return os.path.join(_dir,"import/PPS_data")                
         if 'sunsatangles' in ending:
-            return os.path.join(dir, "import/ANC_data")
+            return os.path.join(_dir, "import/ANC_data")
         if 'nwp' in ending:
-            return os.path.join(dir,"import/NWP_data")
+            return os.path.join(_dir,"import/NWP_data")
             
         for export_ending in ['cloudmask', 'cloudtype', 'ctth', 'precip']:
             if export_ending in ending:
-                return os.path.join(dir, "export")
+                return os.path.join(_dir, "export")
     else:
         return self.__class__.subdir(self, date, *args, **kwargs)
 """

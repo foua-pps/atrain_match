@@ -26,13 +26,7 @@ def attach_subdir_from_config(finder):
     import config
     
     try:
-        # Set subdir from config
-        if finder.ending == 'viirs.h5':
-            def dpp_subdir(time, *args, **kwargs):
-                return "import/PPS_data/remapped"
-            subdir = dpp_subdir
-        else:
-            subdir = config.subdir
+        subdir = config.subdir
         finder.set_subdir_method(subdir)
     except AttributeError:
         pass

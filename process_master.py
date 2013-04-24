@@ -67,9 +67,13 @@ def process_matchups(matchups, run_modes, reprocess=False, debug=False):
                     cloudsat_calipso_avhrr_match.run(match, mode, min_optical_depth, reprocess)
                 except MatchupError, err:
                     write_log('WARNING', "Matchup problem: %s" % str(err))
+                    import traceback
+                    traceback.print_exc()
                     no_matchup_files.append(match)
                     break
                 except:
+                    import traceback
+                    traceback.print_exc()
                     problematic.add(match)
                     write_log('WARNING', "Couldn't run cloudsat_calipso_avhrr_match.")
                     if debug is True:
@@ -78,7 +82,8 @@ def process_matchups(matchups, run_modes, reprocess=False, debug=False):
 
                 
     if len(no_matchup_files) > 0:
-        write_log('WARNING', "%d of %d cases had no matchups in region, within the time window:\n%s" % \
+        write_log('WARNING', 
+                  "%d of %d cases had no matchups in region, within the time window:\n%s" % \
                   (len(no_matchup_files), len(matchups),
                    '\n'.join([str(m) for m in no_matchup_files])))
     if len(problematic) > 0:
@@ -159,6 +164,6 @@ def main(args=None):
     
     return 0
 
-#------------------------------------------------------------------------------------------------------------------  
+#------------------------------------------------------------------------------
 if __name__=='__main__':
     main()
