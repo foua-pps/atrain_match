@@ -10,30 +10,55 @@ import os
 #: Resolution, in km, to use for data files. This setting is used throughout
 #: ``atrain_match`` to specify file names, sub-directories, and data handling.
 #: Currently, 1 or 5 is supported
-RESOLUTION = int(os.environ.get('ATRAIN_RESOLUTION', 5))
+RESOLUTION = 5
+if RESOLUTION == 1:
+    AVHRR_SAT = 'NPP' #'pps'
+    CALIPSO_CLOUD_FRACTION = False
+elif RESOLUTION == 5:
+    AVHRR_SAT = 'NOAA18'
+    # CALIPSO_CLOUD_FRACTION = True   Introduced when the idea was to use single_shot_cloud_cleared_fraction, now abandoned!
+    CALIPSO_CLOUD_FRACTION = True  #Notice that both these parameters must equal, i.e. set to either True or False!!!/KG
+    ALSO_USE_1KM_FILES = True
+    
+#: Base directory for ``atrain_match`` data
+#SAT_DIR = os.environ.get('SAT_DIR',
+#                         "/nobackup/smhid9/sm_erjoh/data")#/data/proj/saf/ejohansson/Projects/atrain_match")
+# ...but for the reprocessed dataset for probmask studies be sure to use the NOAA18_probmask directory here!!!!/KG
+SAT_DIR = os.environ.get('SAT_DIR',
+                         "/nobackup/smhid9/sm_kgkar/atrain_match_kg/testdata")
+
+
+#: Don't know how this directory is used...
+MAIN_RUNDIR = os.getcwd()
 
 #: Base directory for validation results
-_validation_results_dir = os.environ['VALIDATION_RESULTS_DIR']
-
+#MAIN_DIR = os.environ.get('VALIDATION_RESULTS_DIR', "/nobackup/smhid9/sm_erjoh/atrain_match")
+MAIN_DIR = os.environ.get('VALIDATION_RESULTS_DIR', "/nobackup/smhid9/sm_kgkar/atrain_match_kg")
 #: Base directory where matchup files are stored. (TODO: Are these still used?)
-SUB_DIR = "%s/Matchups" %_validation_results_dir
+SUB_DIR = "%s/Matchups" %MAIN_DIR
+#SUB_DIR = "%s/Matchups_prob" %MAIN_DIR #Used for reprocessed dataset for probmask studies
 
 #: Base directory for files containing matched data from PPS and Calipso/Cloudsat
-RESHAPE_DIR = "%s/Reshaped_Files" %_validation_results_dir
+RESHAPE_DIR = "%s/Reshaped_Files" %MAIN_DIR
+#RESHAPE_DIR = "%s/Reshaped_Files_prob" %MAIN_DIR #Used for reprocessed dataset for probmask studies
 
 #: TODO: How is this directory used?
-DATA_DIR = "%s/Data" %_validation_results_dir
+DATA_DIR = "%s/Data" %MAIN_DIR
 
 #: Base directory for plots
-PLOT_DIR = "%s/Plot" %_validation_results_dir
+PLOT_DIR = "%s/Plot" %MAIN_DIR
 
 #: Base directory for statistics results
-RESULT_DIR = "%s/Results" %_validation_results_dir
+#RESULT_DIR = "%s/Results_prob" %MAIN_DIR
+RESULT_DIR = "%s/Results_cloudthreshold_0.3" %MAIN_DIR
 
 
-_satellite_data_dir = '/data/arkiv/proj/safworks/data'
+#_satellite_data_dir = '/nobackup/smhid9/sm_erjoh/data'
+_satellite_data_dir = '/nobackup/smhid9/sm_kgkar/atrain_match_kg/testdata'
 #: Base dir for PPS data
-PPS_DATA_DIR = os.environ.get('PPS_DATA_DIR', _satellite_data_dir + '/pps')
+# PPS_DATA_DIR = os.environ.get('PPS_DATA_DIR', _satellite_data_dir + '/pps')
+PPS_DATA_DIR = "%s/%s" % (SAT_DIR, AVHRR_SAT)
+#PPS_DATA_DIR = "%s/%s_probmask" % (SAT_DIR, AVHRR_SAT) # Just to select reprocessed dataset for probmask
 
 #: Base dir for Cloudsat data
 CLOUDSAT_DIR = os.environ.get('CLOUDSAT_DIR', _satellite_data_dir + '/cloudsat')
@@ -45,6 +70,10 @@ CLOUDSAT_TYPE = 'GEOPROF'
 #: Base dir for Calipso data
 CALIPSO_DIR = os.environ.get('CALIPSO_DIR', _satellite_data_dir + '/calipso')
 
+#: This one is used to convert .h4 to .h5
+H4H5_EXECUTABLE = '/software/apps/h4h5tools/2.2.1/i1214-hdf4-4.2.8-i1214-hdf5-1.8.9-i1214/bin/h4toh5'
+# /home/pps/opt/H4H5_2.2.1/bin/h4toh5
+
 #: Constant: Duration of a satellite orbit in seconds
 SAT_ORBIT_DURATION = 90*60
 
@@ -52,7 +81,7 @@ SAT_ORBIT_DURATION = 90*60
 CTTH_FILE = os.environ.get('CTTH_FILE', 'ctth')
 
 #: Allowed time deviation in seconds between AVHRR and CALIPSO/CloudSat matchup
-sec_timeThr = 60*20
+sec_timeThr = 60*10
 
 #: Recommended cloud threshold for the CloudSat cloud mask. In 5km data this
 #: threshold has already been applied, so there is no reason to change it for
@@ -72,17 +101,20 @@ EMISS_MIN_HEIGHT = 2000.0
 #: A value of 0.2-0.3 in cloud emissivity seems reasonable
 EMISS_LIMIT = 0.2
 
-CALIPSO_CLOUD_FRACTION = True
+
 #: Processing modes which can be handled
+#  OBS: I removed the 'EMISSFILT'-cases!The reason is to avoid the need to use any NWP-data
+#       (in this case surface temperature). Besides - we can now use optical thickness filtering
+#       which is much more reliable as concerns removal of contributions from thin clouds. /KG 120925
 # TODO: Split into latitude dependent area, snow-ice-land-sea area and day-night-twilight
 ALLOWED_MODES = ['BASIC',
                  'BASIC_DAY',
                  'BASIC_NIGHT',
                  'BASIC_TWILIGHT', 
-                 'EMISSFILT',       # Filter out cases with the thinnest topmost CALIPSO layers
-                 'EMISSFILT_DAY',
-                 'EMISSFILT_NIGHT',
-                 'EMISSFILT_TWILIGHT',    
+#                 'EMISSFILT',       # Filter out cases with the thinnest topmost CALIPSO layers
+#                 'EMISSFILT_DAY',
+#                 'EMISSFILT_NIGHT',
+#                 'EMISSFILT_TWILIGHT',    
                  'ICE_COVER_SEA',   # Restrict to ice cover over sea using NSIDC and IGBP data
                  'ICE_COVER_SEA_DAY',    
                  'ICE_COVER_SEA_NIGHT',    
@@ -184,7 +216,10 @@ ALLOWED_MODES = ['BASIC',
     
 
 #: Threshold for optical thickness. If optical thickness is below this value it will be filtered out.
-MIN_OPTICAL_DEPTH = 0.5
+
+#MIN_OPTICAL_DEPTH = 0.35 # Original formulation - only allowing one value
+#MIN_OPTICAL_DEPTH = [0.35] # New formulation - allowing a set of values
+MIN_OPTICAL_DEPTH = [0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.60, 0.70, 0.80, 0.90, 1.00]
 
 if RESOLUTION == 1:
     if AVHRR_SAT == 'NPP':
@@ -214,10 +249,12 @@ elif RESOLUTION == 5:
     #: See :data:`CLOUDSAT_TRACK_RESOLUTION` in RESOLUTION = 1km
     CLOUDSAT_TRACK_RESOLUTION = 1.076#*5.0
     CLOUDSAT5KM_TRACK_RESOLUTION = CLOUDSAT_TRACK_RESOLUTION#*5.0
+
+
     ALLOWED_MODES.append('OPTICAL_DEPTH')      # Filter out cases with the thinnest topmost CALIPSO layers. Define MIN_OPTICAL_DEPTH above
     ALLOWED_MODES.append('OPTICAL_DEPTH_DAY')
     ALLOWED_MODES.append('OPTICAL_DEPTH_NIGHT')
-    ALLOWED_MODES.append('OPTICAL_DEPTH_TWILIGHT')
+    ALLOWED_MODES.append('OPTICAL_DEPTH_TWILIGHT')   #Let's run these cases separately but comment them all out if you always want to do filtering/KG
 else:
     raise ValueError("RESOLUTION == %s not supported" % str(RESOLUTION))
 
@@ -232,8 +269,8 @@ NLINES=6000
 NODATA=-9
 
 #: Processing modes for which plotting should also be performed
-PLOT_MODES = ['BASIC']
-#PLOT_MODES = ['No Plot']
+#PLOT_MODES = ['BASIC']
+PLOT_MODES = ['No Plot']
 
 def subdir(self, date, *args, **kwargs):
     """
@@ -269,22 +306,40 @@ def subdir(self, date, *args, **kwargs):
         ending = kwargs.get('ending', None)
         if ending is None:
             ending = self.ending
-        _dir = "%dkm/%d/%02d" % (RESOLUTION, date.year, date.month)
-        if 'avhrr' in ending:
-            return os.path.join(_dir,"import/PPS_data")                
+        dir = "%dkm/%d/%02d" % (RESOLUTION, date.year, date.month)
+        if 'avhrr' in ending or 'viirs' in ending:
+            return os.path.join(dir,"import/PPS_data")                
         if 'sunsatangles' in ending:
-            return os.path.join(_dir, "import/ANC_data")
+            return os.path.join(dir, "import/ANC_data")
         if 'nwp' in ending:
-            return os.path.join(_dir,"import/NWP_data")
+            return os.path.join(dir,"import/NWP_data")
+            
         for export_ending in ['cloudmask', 'cloudtype', 'ctth', 'precip']:
             if export_ending in ending:
-                return os.path.join(_dir, "export")
+                return os.path.join(dir, "export")
     else:
         return self.__class__.subdir(self, date, *args, **kwargs)
-
+"""
+from file_finders import PpsFileFinder
+++        if self.__class__ is PpsFileFinder:
+++            ending = kwargs.get('ending', None)
+++            if ending is None:
+++                ending = self.ending
+++            dir = "%dkm/%d/%02d" % (RESOLUTION, date.year, date.month)
+++            if 'avhrr' in ending:
+++                return os.path.join(dir,"import/PPS_data")                
+++            if 'sunsatangles' in ending:
+++                return os.path.join(dir, "import/ANC_data")
+++            if 'nwp' in ending:
+++                return os.path.join(dir,"import/NWP_data")
+++            for export_ending in ['cloudmask', 'cloudtype', 'ctth', 'precip']:
+++                if export_ending in ending:
+++                    return os.path.join(dir, "export")
+"""
 #========== Statistics setup ==========#
 #: List of dictionaries containing *satname*, *year*, and *month*, for which
 #: statistics should be summarized
+#CASES = [{'satname': 'npp', 'year': 2012, 'month': 06}]
 CASES = [{'satname': 'noaa18', 'year': 2006, 'month': 10},
          {'satname': 'noaa18', 'year': 2006, 'month': 11},
          {'satname': 'noaa18', 'year': 2006, 'month': 12},
@@ -331,13 +386,15 @@ MAP = [AREA]
 
 #: Base directory for ``atrain_match`` output to use when summarizing statistics.
 #: Should contain the ``Results`` directory
-MAIN_DATADIR = _validation_results_dir
+MAIN_DATADIR = MAIN_DIR
 
 #: TODO: No description yet...
 if CALIPSO_CLOUD_FRACTION == True:
-    COMPILED_STATS_FILENAME = '%s/Results/compiled_stats_CCF' %MAIN_DATADIR
+    #COMPILED_STATS_FILENAME = '%s/Results_prob/compiled_stats_CCF' %MAIN_DATADIR
+    COMPILED_STATS_FILENAME = '%s/Results_cloudthreshold_0.3/compiled_stats_CCF' %MAIN_DATADIR
 else:
-    COMPILED_STATS_FILENAME = '%s/Results/compiled_stats' %MAIN_DATADIR
+    #COMPILED_STATS_FILENAME = '%s/Results_prob/compiled_stats' %MAIN_DATADIR
+    COMPILED_STATS_FILENAME = '%s/Results_cloudthreshold_0.3/compiled_stats' %MAIN_DATADIR
     
 #: Surfaces for which statistics should be summarized
 SURFACES = ["ICE_COVER_SEA", "ICE_FREE_SEA", "SNOW_COVER_LAND", "SNOW_FREE_LAND", \
@@ -351,8 +408,10 @@ SURFACES = ["ICE_COVER_SEA", "ICE_FREE_SEA", "SNOW_COVER_LAND", "SNOW_FREE_LAND"
 #: Filter types for which statistics should be summerized
 FILTERTYPE = ['EMISSFILT']
 if RESOLUTION == 5:
-    FILTERTYPE.append('OPTICAL_DEPTH')
+    #FILTERTYPE.append('OPTICAL_DEPTH')
+    FILTERTYPE = ['OPTICAL_DEPTH']
 #: DAY NIGHT TWILIGHT FLAG that will be used
+#DNT_FLAG = ['ALL']
 DNT_FLAG = ['ALL', 'DAY', 'NIGHT', 'TWILIGHT']
     
 # The following are used in the old-style script interface
@@ -360,5 +419,3 @@ SATELLITE = ['noaa18', 'noaa19']
 STUDIED_YEAR = ["2009"]
 STUDIED_MONTHS = ['01', '07']
 OUTPUT_DIR = "%s/Ackumulering_stat/Results/%s" % (MAIN_DATADIR, SATELLITE[0])
-
-H4H5_EXECUTABLE = '/data/proj/safworks/opt/linda3/H4H5/2_1_1/bin/h4toh5'

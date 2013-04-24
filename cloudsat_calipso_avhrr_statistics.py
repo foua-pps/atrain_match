@@ -239,8 +239,16 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
     
     # CORRELATION CLOUD MASK: CALIOP - AVHRR
 
-    calipso_clear = numpy.logical_and(numpy.less(caObj.calipso.cloud_fraction,0.34),cal_subset)
-    calipso_cloudy = numpy.logical_and(numpy.greater(caObj.calipso.cloud_fraction,0.66),cal_subset)
+    if config.ALSO_USE_1KM_FILES:
+        calipso_clear = numpy.logical_and(numpy.less(caObj.calipso.cloud_fraction,0.3),cal_subset)
+        calipso_cloudy = numpy.logical_and(numpy.greater(caObj.calipso.cloud_fraction,0.3),cal_subset)
+    else:
+        calipso_clear = numpy.logical_and(numpy.less(caObj.calipso.cloud_fraction,0.34),cal_subset)
+        calipso_cloudy = numpy.logical_and(numpy.greater(caObj.calipso.cloud_fraction,0.66),cal_subset)
+        
+    # For the combined 1km + 5km dataset cloud_fraction can only have values (0.0, 0.2, 0.4, 0.6, 0.8, 1.0). So the threshold should
+    # really be set to 0.4, i.e., at least two 1 km columns should be cloudy!. 
+    
     pps_clear = numpy.logical_and(numpy.logical_and(numpy.less_equal(caObj.avhrr.cloudtype,4),numpy.greater(caObj.avhrr.cloudtype,0)),cal_subset)
     pps_cloudy = numpy.logical_and(numpy.logical_and(numpy.greater(caObj.avhrr.cloudtype,4),numpy.less(caObj.avhrr.cloudtype,20)),cal_subset)
     #print "------------------------------------"
@@ -488,6 +496,17 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
 
     okcaliop = numpy.logical_and(cal_data_ok,
                                     numpy.logical_and(numpy.greater(avhrr_ctth_cal_ok[::],0),cal_subset))
+
+    # Now, don't forget to remove cases when calipso.cloud_fraction in 1 km (if used) is too low!!!/KG
+    # This depends on what thresholds which were set above in the evaluation of cloud fraction.
+
+    if config.ALSO_USE_1KM_FILES:
+        calipso_clear = numpy.logical_and(numpy.less(caObj.calipso.cloud_fraction,0.3),cal_subset)
+        calipso_cloudy = numpy.logical_and(numpy.greater(caObj.calipso.cloud_fraction,0.3),cal_subset)
+    else:
+        calipso_clear = numpy.logical_and(numpy.less(caObj.calipso.cloud_fraction,0.34),cal_subset)
+        calipso_cloudy = numpy.logical_and(numpy.greater(caObj.calipso.cloud_fraction,0.66),cal_subset)
+    okcaliop = numpy.logical_and(okcaliop,calipso_cloudy)
     
     #print "ALL CLOUDS:"
     avhrr_height_work = numpy.repeat(avhrr_ctth_cal_ok[::],okcaliop)

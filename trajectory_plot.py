@@ -22,13 +22,11 @@ def plotSatelliteTrajectory(longitude,latitude,trajectoryname,fig_type='eps'):
     # TODO: This plotting function needs to be looked over...
     
     from mpl_toolkits.basemap import Basemap #@UnresolvedImport
-    from matplotlib import pyplot as plt
+    import pylab
     import numpy
     
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
     m = Basemap(projection='cyl',llcrnrlat=-90,urcrnrlat=90,\
-                llcrnrlon=-180,urcrnrlon=180,resolution='c', ax=ax)
+                llcrnrlon=-180,urcrnrlon=180,resolution='c')
 
     m.drawmapboundary()
     m.drawcoastlines()
@@ -68,15 +66,15 @@ def plotSatelliteTrajectory(longitude,latitude,trajectoryname,fig_type='eps'):
         lat = latitude[lon_nanix[lon_ix_split[-1]+1:]]
         m = makesTheActuallyTrajectoryPlot(m,lon,lat)    
 
-    ax.legend((m1),['CloudSat/Calipso'],loc=0)
+    pylab.legend((m1),['CloudSat/Calipso'],loc=0)
     
     if isinstance(fig_type, str) == True:
         figname = '%s.%s' %(trajectoryname, fig_type)
-        fig.savefig(figname)
+        pylab.savefig(figname)
     else:
         for figtype in fig_type:
             figname = '%s.%s' %(trajectoryname, figtype)
-            fig.savefig(figname)
+            pylab.savefig(figname)
     
 def drawTrajectoryOfAllSNO(sno_output_file, file_type='eps'):
     """

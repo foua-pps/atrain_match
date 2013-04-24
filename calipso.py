@@ -930,6 +930,7 @@ def get_calipso(filename, res):
 #        lonCalipso = calipso.longitude[:,1].ravel()
 #        latCalipso = calipso.latitude[:,1].ravel()
         calipso.cloud_fraction = numpy.where(calipso.cloud_top_profile[:,0] > 0, 1, 0).astype('d')
+        # Strange - this will give 0 cloud fraction in points with no data, wouldn't it????/KG
     
     return calipso
 
@@ -939,11 +940,11 @@ def read_calipso(filename, res):
     import _pyhl #@UnresolvedImport
     import h5py #@UnresolvedImport
     
-    if res == 5:
-        h5file = h5py.File(filename, 'r')
-        pdb.set_trace()
-        h5file['Horizontal_Averaging']
-        h5file.close()
+    #if res == 5:
+        #h5file = h5py.File(filename, 'r')
+        #pdb.set_trace()
+        #h5file['Horizontal_Averaging']
+        #h5file.close()
     a=_pyhl.read_nodelist(filename)
 #    b=a.getNodeNames()
     a.selectAll()
@@ -1053,38 +1054,87 @@ def reshapeCalipso(calipsofiles, avhrr, avhrrfilename, timereshape = True, res=r
         sys.exit(-9)
     return cal, start_break, end_break
 
+#****************************************************
+
 def add1kmTo5km(Obj1, Obj5, start_break, end_break):
     retv = CalipsoObject()
+    # First check if length of 5 km and 1 km arrays correspond (i.e. 1 km array = 5 times longer array)
+    # Here we check the middle time (index 1) out of the three time values given (start, mid, end) for 5 km data
+    #pdb.set_trace()
     if (Obj5.utc_time[:,1] == Obj1.utc_time[2::5]).sum() != Obj5.utc_time.shape[0]:
+                              
         print("length mismatch")
         pdb.set_trace()
+
+    #First making a preliminary check of the differences in fraction of cloudy calipso columns in 1 km and 5 km data.
+
+    #pdb.set_trace()
+    cfc_5km = 0
+    cfc_1km = 0
+    len_5km = Obj5.utc_time.shape[0]
+    len_1km = Obj5.utc_time.shape[0]*5
+    for i in range(len_5km):
+        if Obj5.number_of_layers_found[i] > 0:
+            cfc_5km = cfc_5km + 1
+    for i in range(len_1km):
+        if Obj1.number_of_layers_found[i] > 0:
+            cfc_1km = cfc_1km + 1
+
+
+    print "*****CHECKING CLOUD FREQUENCY DIFFERENCES IN 1KM AND 5KM DATASETS:"
+    print " "
+    print "Number of 5 km FOVS: ", len_5km
+    print "Number of cloudy 5 km FOVS:", cfc_5km
+    print "Cloudy fraction 5 km: ", float(cfc_5km)/float(len_5km)
+    print "Number of 1 km FOVS: ", len_1km
+    print "Number of cloudy 1 km FOVS:", cfc_1km 
+    print "Cloudy fraction 1 km: ", float(cfc_1km)/float(len_1km)
+    print " "
+    #pdb.set_trace()    
+
+    # Now calculate the cloud fraction in 5 km data from 1 km data (discretized to 0.0, 0.2, 0.4, 0.6, 0.8 and 1.0).
     
+    # In addition, if there are cloud layers in 5 km data but nothing in 1 km data, set cloud fraction to 1.0.
+    # This latter case represents when very thin cloud layers are being detected over longer distances
+    
+    # Finally, if there are cloud layers in 1 km data but not in 5 km data, add a layer to 5 km data and set corresponding
+    # COT to 1.0. Cloud base and cloud top for this layer is calculated as averages from original levels (max height for
+    # top and min height for base if there are more than one layer).This is a pragmatic solution to take care of a
+    # weakness or bug in the CALIPSO retrieval of clouds below 4 km
+
+
     for i in range(Obj5.utc_time.shape[0]):
-        if numpy.max(Obj1.number_of_layers_found[i*5:i*5+5]) > Obj5.number_of_layers_found[i]:
-            mostlayer = numpy.argmax(Obj1.number_of_layers_found[i*5:i*5+5])
-            nrlayer = numpy.max(Obj1.number_of_layers_found[i*5+mostlayer])
-            for lay in range(Obj5.number_of_layers_found[i]):
-                if numpy.argmin(numpy.abs(Obj5.cloud_top_profile[i, lay]-Obj1.cloud_top_profile[(i*5)+mostlayer, 0:nrlayer])) != lay:
-                    print('not lowest layer differ')
-                    pdb.set_trace()
-                
+        cfc = 0.0
+        for j in range(5):
+            if Obj1.number_of_layers_found[i*5+j] > 0:
+                cfc = cfc + 0.2000
+        if ((Obj5.number_of_layers_found[i] > 0) and (cfc < 0.1)):
+            cfc = 1.0
+        if ((cfc > 0.1) and (Obj5.number_of_layers_found[i] == 0)): #Add missing layer due to CALIPSO processing bug
+            cloudtop_sum = 0.0
+            cloudbase_sum = 0.0
+            cloud_layers = 0
+            feature_array_list = []
+            for j in range(5):
+                if Obj1.number_of_layers_found[i*5+j] != 0:
+                    for k in range(Obj1.number_of_layers_found[i*5+j]):
+                        cloudtop_sum = cloudtop_sum + Obj1.cloud_top_profile[i,k]
+                        cloudbase_sum = cloudbase_sum + Obj1.cloud_base_profile[i,k]
+                        cloud_layers = cloud_layers + 1
+                        feature_array_list.append(Obj1.feature_classification_flags[i, k])
+            Obj5.number_of_layers_found[i] = 1
+            Obj5.cloud_top_profile[i, 0] = cloudtop_sum/cloud_layers
+            Obj5.cloud_base_profile[i, 0] = cloudbase_sum/cloud_layers
+            Obj5.optical_depth[i, 0] = 1.0 #Just put it safely away from the thinnest cloud layers - the best we can do!
+            # Obj5.feature_classification_flags[i, 0] = 22218 if assuming like below:
+            # cloud, low quality, water phase, low quality, low broken cumulus, confident, 1 km horizontal averaging)
+            feature_array = numpy.asarray(feature_array_list)
+            Obj5.feature_classification_flags[i, 0] = numpy.median(feature_array[:]) # However, let's take the median value
+            Obj5.single_shot_cloud_cleared_fraction[i] = 0.0 # Just put any value, we will not use it! 
             
-            
-            for j in range(9,-1, -1):
-                if Obj5.cloud_top_profile[i, j] ==  -9999 and ((Obj1.cloud_top_profile[(i*5):(i*5+5), j] == -9999).sum()) > 4:
-                    continue
-                elif Obj5.cloud_top_profile[i, j] ==  -9999:
-                    ind = numpy.where(Obj1.cloud_top_profile[(i*5):(i*5+5), j] != -9999)
-                    Obj5.cloud_top_profile[i, j] = numpy.mean(Obj1.cloud_top_profile[(i*5):(i*5+5), j][ind])
-                    Obj5.cloud_base_profile[i, j] = numpy.mean(Obj1.cloud_base_profile[(i*5):(i*5+5), j][ind])
-                    Obj5.optical_depth[i, j] = 100
-                    Obj5.cloud_fraction[i, j] = 1
-                    Obj5.feature_classification_flags[i, j] = numpy.median(Obj1.feature_classification_flags[i*5:i*5+5, j])
-                    
-                    pdb.set_trace()
-            
-#        Obj1.cloud_top_profile[(i*5):(i*5+5), :]
-#        Obj5.cloud_top_profile[i, :]
+        if Obj5.cloud_fraction[i] >= 0.0:
+            Obj5.cloud_fraction[i]=cfc
+
     # Cute the feature values
     #arnameca = array name from calipsoObj
     for arnameca, valueca in Obj5.all_arrays.items(): 
@@ -1093,7 +1143,7 @@ def add1kmTo5km(Obj1, Obj5, start_break, end_break):
                 retv.all_arrays[arnameca] = valueca[start_break:end_break,...]
             else:
                 retv.all_arrays[arnameca] = valueca
-    return 
+    return retv
     
     
 # -----------------------------------------------------

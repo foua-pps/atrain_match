@@ -177,6 +177,7 @@ def find_avhrr_file(cross):
         try:
             avhrr_file = avhrr_finder.find(cross_time, cross_satellite)[0]
         except IndexError:
+            pdb.set_trace()
             raise MatchupError("No avhrr file found for %s." % cross)
     return avhrr_file
 
@@ -194,6 +195,8 @@ def require_h5(files):
         elif f.endswith('.hdf'):
             h5_file = f.replace('.hdf', '.h5')
             if not h5_file in files:
+                print(f)
+                #sys.exit()
                 command = '%s %s' % (H4H5_EXECUTABLE, f)
                 write_log('INFO', "Converting %r to HDF5" % f) #@UndefinedVariable
                 if os.system(command):
@@ -231,7 +234,9 @@ def find_files_from_avhrr(avhrr_file):
         calipso_finder = file_finders.CalipsoFileFinder(config.CALIPSO_DIR,
                                                         config.RESOLUTION)
         attach_subdir_from_config(calipso_finder)
+
         calipso_finder.set_time_window(config.SAT_ORBIT_DURATION + config.sec_timeThr)
+
         calipso_files = sorted(require_h5(calipso_finder.find(datetime)))
         if len(calipso_files) == 0:
             calipso_files = [] #: TODO Change this
@@ -278,7 +283,7 @@ def find_files_from_avhrr(avhrr_file):
             nwp_tsur_file = []
 #            raise MatchupError("No nwp_tsur file found corresponding to %s." % avhrr_file)
 #        nwp_tsur_file = None
-    
+
     try:
         sunsatangles_file = pps_finder.find(datetime, satname, ending='sunsatangles.h5')[0]
     except IndexError:
@@ -351,6 +356,7 @@ def get_calipso_matchups(calipso_files, cloudtype_file, avhrrGeoObj, avhrrObj, c
     Read Calipso data and match with the given PPS data.
     """
     if cafiles1km != None:
+        #pdb.set_trace()
         calipso1km = reshapeCalipso(cafiles1km, avhrrGeoObj, cloudtype_file, False, 1)[0]
         calipso5km, startBreak, endBreak = reshapeCalipso(calipso_files,avhrrGeoObj, cloudtype_file, False)
         calipso = add1kmTo5km(calipso1km, calipso5km, startBreak, endBreak)
@@ -374,11 +380,18 @@ def get_matchups_from_data(cross):
     import pps_io #@UnresolvedImport
     import epshdf #@UnresolvedImport
     import os #@Reimport
+
     avhrr_file = find_avhrr_file(cross)
-    
+
     cloudsat_files, calipso_files, cloudtype_file, ctth_file, nwp_tsur_file, \
         sunsatangles_file = find_files_from_avhrr(avhrr_file)
-
+    
+    #    avhrr_file = '/nobackup/smhid9/sm_erjoh/data/NPP/import/PPS_data/remapped/npp_20120620_0648_03347_satproj_00000_05359_viirs.h5'
+#    cloudtype_file = '/nobackup/smhid9/sm_erjoh/data/NPP/npp_20120620_0648_03347_satproj_00000_05359_cloudtype.h5'
+#    ctth_file = '/nobackup/smhid9/sm_erjoh/data/NPP/npp_20120620_0648_03347_satproj_00000_05359_ctth.h5'
+#    nwp_tsur_file = '/nobackup/smhid9/sm_erjoh/data/NPP/npp_20120620_0648_03347_satproj_00000_05359_nwp_tsur.h5'
+#    sunsatangles_file = '/nobackup/smhid9/sm_erjoh/data/NPP/npp_20120620_0648_03347_satproj_00000_05359_sunsatangles.h5'
+    
     write_log("INFO","Read AVHRR geolocation data") #@UndefinedVariable
     avhrrGeoObj = pps_io.readAvhrrGeoData(avhrr_file)
     
@@ -439,15 +452,24 @@ def get_matchups_from_data(cross):
                 for file5km in calipso_files:
                     file1km = file5km.replace('/5km/', '/1km/').\
                                                 replace('05kmCLay', '01kmCLay').\
-                                                replace('-Prov-V3-01.', '*')
-                    calipso1km.append(glob.glob(file1km)[0])
+                                                replace('-Prov-V3-01.', '*').\
+                                                replace('.h5', '*')
+                    #calipso1km.append(glob.glob(file1km)[0]) #Wrong expression, gives not all realisations/KG
+                    selected_cases = glob.glob(file1km)       #New formulation 20130205/KG
+                    for case in selected_cases:
+                        calipso1km.append(case)
+                calipso1km = sorted(require_h5(calipso1km))
                 if len(calipso_files) != len(calipso1km):
                     pdb.set_trace()
-        else:
-            calipso1km = None
+                
+            else:
+                calipso1km = None
+
+        #pdb.set_trace()
         ca_matchup, ca_time_diff = get_calipso_matchups(calipso_files, cloudtype_file,
                                                         avhrrGeoObj, avhrrObj, ctype,
                                                         ctth, surft, avhrrAngObj, calipso1km)
+                       
     else:
         write_log("INFO","NO CALIPSO File, Continue") #@UndefinedVariable
 #    pdb.set_trace()
@@ -481,7 +503,7 @@ def get_matchups_from_data(cross):
             writeCloudsatAvhrrMatchObj(cl_match_file, cl_matchup)
         except NameError:
             cl_matchup = None
-            cl_time_diff = None
+            cl_time_diff = (NaN, NaN)
             print('CloudSat is not defined. No CloudSat Match File created')
     else:
         cl_match_file = rematched_file_base.replace('atrain_datatype', 'cloudsat-%s' % config.CLOUDSAT_TYPE)
@@ -495,7 +517,7 @@ def get_matchups_from_data(cross):
 #        except NameError:
 #            print('Calipso is not defined. No Calipso Match File created')
         ca_matchup = None
-        ca_time_diff = None
+        ca_time_diff = (NaN, NaN)
     else:
         ca_match_file = rematched_file_base.replace('atrain_datatype', 'caliop')
         writeCaliopAvhrrMatchObj(ca_match_file,ca_matchup) 
@@ -618,7 +640,7 @@ def get_matchups(cross, reprocess=False):
         return {'calipso': caObj, 'cloudsat': clObj, 'basename': basename}
 
 
-def run(cross, process_mode_dnt, reprocess=False):
+def run(cross, process_mode_dnt, min_optical_depth, reprocess=False):
     """
     The main work horse.
     
@@ -656,13 +678,17 @@ def run(cross, process_mode_dnt, reprocess=False):
     else:
         raise NotImplementedError("Support for satellite %s is not yet implemented." % sno_satname)
 
+    #pdb.set_trace()
+
+
     # Now fetch all the datasets for the section of the AREA where all
     # three datasets match. Also get maximum and minimum time differences to AVHRR (in seconds)
     matchup_results = get_matchups(cross, reprocess)
     caObj = matchup_results['calipso']
     clsatObj = matchup_results['cloudsat']
-    clsat_min_diff, clsat_max_diff = matchup_results.get('cl_time_diff', (NaN, NaN))
-    ca_min_diff, ca_max_diff = matchup_results.get('ca_time_diff', (NaN, NaN))
+    
+    clsat_min_diff, clsat_max_diff = matchup_results.get('cloudsat_time_diff', (NaN, NaN))
+    ca_min_diff, ca_max_diff = matchup_results.get('calipso_time_diff', (NaN, NaN))
     
     basename = matchup_results['basename']
     base_sat = basename.split('_')[0]
@@ -740,6 +766,7 @@ def run(cross, process_mode_dnt, reprocess=False):
                                 -9,caObj.calipso.elevation)
     cal_data_ok = numpy.ones(caObj.calipso.elevation.shape,'b')
     print "Length of CALIOP array: ", len(cal_data_ok)
+    #db.set_trace()
     avhrr_ctth_cal_ok = numpy.repeat(caObj.avhrr.ctth_height[::],cal_data_ok)
     avhrr_ctth_cal_ok = numpy.where(numpy.greater(avhrr_ctth_cal_ok,0.0),avhrr_ctth_cal_ok[::]+cal_elevation,avhrr_ctth_cal_ok)                    
 
@@ -753,7 +780,8 @@ def run(cross, process_mode_dnt, reprocess=False):
     # (but maximum 2) can be created for one particular noaa orbit.
     resultpath = "%s/%s/%ikm/%s/%s/%s/%s" % (config.RESULT_DIR, base_sat,int(config.RESOLUTION), base_year, base_month, config.AREA, process_mode_dnt)
     if process_mode == 'OPTICAL_DEPTH':
-        resultpath = "%s/%s/%ikm/%s/%s/%s/%s-%.1f" % (config.RESULT_DIR, base_sat,int(config.RESOLUTION), base_year, base_month,config.AREA, process_mode_dnt, config.MIN_OPTICAL_DEPTH)        
+        #resultpath = "%s/%s/%ikm/%s/%s/%s/%s-%.1f" % (config.RESULT_DIR, base_sat,int(config.RESOLUTION), base_year, base_month,config.AREA, process_mode_dnt, config.MIN_OPTICAL_DEPTH)
+        resultpath = "%s/%s/%ikm/%s/%s/%s/%s-%.2f" % (config.RESULT_DIR, base_sat,int(config.RESOLUTION), base_year, base_month,config.AREA, process_mode_dnt, min_optical_depth)        
 
     if not os.path.exists(resultpath):
         os.makedirs(resultpath)
@@ -778,30 +806,36 @@ def run(cross, process_mode_dnt, reprocess=False):
     else:
         statfile.write('No CloudSat \n')
     statfile.write("Start-Stop-Length CALIPSO: %f %f %f %f %s \n" %(caObj.calipso.latitude[0],caObj.calipso.longitude[0],caObj.calipso.latitude[len(caObj.calipso.latitude)-1],caObj.calipso.longitude[len(caObj.calipso.latitude)-1],len(cal_data_ok)))
+##    if CALIPSO_CLOUD_FRACTION == True: ==> Let's skip the use of ssccf for calculating cloud fraction, done in another way/KG
+####        (new_cloud_top, new_cloud_base, new_optical_depth, new_cloud_fraction, new_fcf, new_ssccf) = \
+##            CalipsoCloudFraction(caObj.calipso.cloud_top_profile, \
+##                                 caObj.calipso.cloud_base_profile, \
+##                                 caObj.calipso.optical_depth, \
+##                                 caObj.calipso.cloud_fraction, \
+##                                 caObj.calipso.feature_classification_flags, \
+##                                 caObj.calipso.single_shot_cloud_cleared_fraction)
+##        caObj.calipso.cloud_top_profile = new_cloud_top
+##        caObj.calipso.cloud_base_profile = new_cloud_base
+##        caObj.calipso.optical_depth = new_optical_depth
+##        caObj.calipso.cloud_fraction = new_cloud_fraction
+##        caObj.calipso.feature_classification_flags = new_fcf
+##        caObj.calipso.single_shot_cloud_cleared_fraction = new_ssccf
+
+
     
-    if CALIPSO_CLOUD_FRACTION == True:
-        (new_cloud_top, new_cloud_base, new_optical_depth, new_cloud_fraction, new_fcf, new_ssccf) = \
-            CalipsoCloudFraction(caObj.calipso.cloud_top_profile, \
-                                 caObj.calipso.cloud_base_profile, \
-                                 caObj.calipso.optical_depth, \
-                                 caObj.calipso.cloud_fraction, \
-                                 caObj.calipso.feature_classification_flags, \
-                                 caObj.calipso.single_shot_cloud_cleared_fraction)
-        caObj.calipso.cloud_top_profile = new_cloud_top
-        caObj.calipso.cloud_base_profile = new_cloud_base
-        caObj.calipso.optical_depth = new_optical_depth
-        caObj.calipso.cloud_fraction = new_cloud_fraction
-        caObj.calipso.feature_classification_flags = new_fcf
-        caObj.calipso.single_shot_cloud_cleared_fraction = new_ssccf
     "If mode = OPTICAL_DEPTH -> Change cloud -top and -base profile"
-    if process_mode == 'OPTICAL_DEPTH':
+
+#Temporarily we can do it generally, i.e. always apply filtering
+    
+    if process_mode == 'OPTICAL_DEPTH': #Remove this if-statement if you always want to do filtering!/KG
         (new_cloud_top, new_cloud_base, new_cloud_fraction, new_fcf) = \
-            CloudsatCloudOpticalDepth(caObj.calipso.cloud_top_profile, caObj.calipso.cloud_base_profile, \
-            caObj.calipso.optical_depth, caObj.calipso.cloud_fraction, caObj.calipso.feature_classification_flags)
+                        CloudsatCloudOpticalDepth(caObj.calipso.cloud_top_profile, caObj.calipso.cloud_base_profile, \
+                                                  caObj.calipso.optical_depth, caObj.calipso.cloud_fraction, caObj.calipso.feature_classification_flags, min_optical_depth)
         caObj.calipso.cloud_top_profile = new_cloud_top
         caObj.calipso.cloud_base_profile = new_cloud_base
         caObj.calipso.cloud_fraction = new_cloud_fraction
         caObj.calipso.feature_classification_flags = new_fcf
+        
     # Extract CALIOP Vertical Feature Classification (bits 10-12) from 16 bit representation
     # for topmost cloud layer
     cal_vert_feature = numpy.ones(caObj.calipso.cloud_top_profile[0,::].shape)*-9

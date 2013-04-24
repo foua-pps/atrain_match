@@ -15,6 +15,8 @@ through a set of SNO matchups.
 
 from pps_error_messages import write_log
 import config
+#print "config.SAT_DIR:", config.SAT_DIR
+#print "config.CALIPSO_DIR:", config.CALIPSO_DIR
 
 def process_matchups(matchups, run_modes, reprocess=False, debug=False):
     """
@@ -33,19 +35,48 @@ def process_matchups(matchups, run_modes, reprocess=False, debug=False):
     no_matchup_files = []
     for match in sorted(matchups):
 #        match = matchups[i + 50]
+#        import datetime
+#        if match.time1 < datetime.datetime(2008,01,01):
+#            continue
         for mode in run_modes:
-            try:
-                cloudsat_calipso_avhrr_match.run(match, mode, reprocess)
-            except MatchupError, err:
-                write_log('WARNING', "Matchup problem: %s" % str(err))
-                no_matchup_files.append(match)
-                break
-            except:
-                problematic.add(match)
-                write_log('WARNING', "Couldn't run cloudsat_calipso_avhrr_match.")
-                if debug is True:
-                    raise
-                break
+            print mode
+            #import pdb
+            #cloudsat_calipso_avhrr_match.run(match, mode, reprocess)
+            #pdb.set_trace()
+            if mode in ["OPTICAL_DEPTH","OPTICAL_DEPTH_DAY","OPTICAL_DEPTH_NIGHT","OPTICAL_DEPTH_TWILIGHT"]:
+                for num in range(len(config.MIN_OPTICAL_DEPTH)):
+                    min_optical_depth = config.MIN_OPTICAL_DEPTH[num]
+                    try:
+                        cloudsat_calipso_avhrr_match.run(match, mode, min_optical_depth, reprocess)
+                    except MatchupError, err:
+                        write_log('WARNING', "Matchup problem: %s" % str(err))
+                        no_matchup_files.append(match)
+                        break
+                    except:
+                        problematic.add(match)
+                        write_log('WARNING', "Couldn't run cloudsat_calipso_avhrr_match.")
+                        if debug is True:
+                            raise
+                        break
+            else:
+                min_optical_depth = None 
+                #min_optical_depth = 0.35 #Assuming this is the detection limit /KG 13/12 2012
+                                          #But you also need to modify basic python module and config.py
+                                          #if you want to filter for all cases!
+                try:
+                    cloudsat_calipso_avhrr_match.run(match, mode, min_optical_depth, reprocess)
+                except MatchupError, err:
+                    write_log('WARNING', "Matchup problem: %s" % str(err))
+                    no_matchup_files.append(match)
+                    break
+                except:
+                    problematic.add(match)
+                    write_log('WARNING', "Couldn't run cloudsat_calipso_avhrr_match.")
+                    if debug is True:
+                        raise
+                    break
+
+                
     if len(no_matchup_files) > 0:
         write_log('WARNING', "%d of %d cases had no matchups in region, within the time window:\n%s" % \
                   (len(no_matchup_files), len(matchups),
@@ -109,13 +140,13 @@ def main(args=None):
         # Simulate crosses from PPS scenes
         from find_crosses import Cross
         from runutils import parse_scene
+
         for scene in args:
             satname, time, orbit = parse_scene(scene) #@UnusedVariable
             matchups.append(Cross(satname, '', time, time, -999, -999))
     else:
         for sno_output_file in sno_output_files:
             found_matchups = find_crosses.parse_crosses_file(sno_output_file)
-                
             if len(found_matchups) == 0:
                 write_log('WARNING', "No matchups found in SNO output file %s" %
                           sno_output_file)
