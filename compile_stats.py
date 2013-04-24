@@ -13,8 +13,8 @@ def compile_filtered_stats(results_files, filttype, write=False):
     cfc_stats = orrb_CFC_stat_emissfilt.CloudFractionFilteredStats(results_files)
     if write:
         cfc_stats.write(COMPILED_STATS_FILENAME + '_cfc_%s.txt' %filttype)
-    for l in cfc_stats.printout():
-        print(l)
+    for l__ in cfc_stats.printout():
+        print(l__)
     
     print("========== Cloud top height ===========")
     from statistics import orrb_CTH_stat_emissfilt
@@ -22,8 +22,8 @@ def compile_filtered_stats(results_files, filttype, write=False):
     if write:
         cth_stats.write(COMPILED_STATS_FILENAME + '_cth_%s.txt' %filttype)
     cth_stats.printout()
-    for l in cth_stats.printout():
-        print(l)
+    for l__ in cth_stats.printout():
+        print(l__)
     return cfc_stats, cth_stats
 
 def compile_surface_stats(results_files, surfacetype, write=False):

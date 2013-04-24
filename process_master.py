@@ -30,10 +30,19 @@ def process_matchups(matchups, run_modes, reprocess=False, debug=False):
     """
     import cloudsat_calipso_avhrr_match
     from common import MatchupError
-    
+    import os
+    import ConfigParser
+    CONFIG_PATH = os.environ.get('ATRAINMATCH_CONFIG_DIR', './etc')
+    CONF = ConfigParser.ConfigParser()
+    CONF.read(os.path.join(CONFIG_PATH, "atrain_match.cfg"))
+    OPTIONS = {}
+    for option, value in CONF.items('general', raw = True):
+        OPTIONS[option] = value
+
     problematic = set()
     no_matchup_files = []
     for match in sorted(matchups):
+
 #        match = matchups[i + 50]
 #        import datetime
 #        if match.time1 < datetime.datetime(2008,01,01):
@@ -47,7 +56,7 @@ def process_matchups(matchups, run_modes, reprocess=False, debug=False):
                 for num in range(len(config.MIN_OPTICAL_DEPTH)):
                     min_optical_depth = config.MIN_OPTICAL_DEPTH[num]
                     try:
-                        cloudsat_calipso_avhrr_match.run(match, mode, min_optical_depth, reprocess)
+                        cloudsat_calipso_avhrr_match.run(match, mode,  OPTIONS, min_optical_depth, reprocess)
                     except MatchupError, err:
                         write_log('WARNING', "Matchup problem: %s" % str(err))
                         no_matchup_files.append(match)
@@ -64,7 +73,7 @@ def process_matchups(matchups, run_modes, reprocess=False, debug=False):
                                           #But you also need to modify basic python module and config.py
                                           #if you want to filter for all cases!
                 try:
-                    cloudsat_calipso_avhrr_match.run(match, mode, min_optical_depth, reprocess)
+                    cloudsat_calipso_avhrr_match.run(match, mode,  OPTIONS, min_optical_depth, reprocess)
                 except MatchupError, err:
                     write_log('WARNING', "Matchup problem: %s" % str(err))
                     import traceback
@@ -160,6 +169,7 @@ def main(args=None):
                 continue
             else:
                 matchups.extend(found_matchups)
+
     process_matchups(matchups, run_modes, options.reprocess, options.debug)
     
     return 0

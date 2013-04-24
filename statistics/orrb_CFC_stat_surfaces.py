@@ -4,6 +4,7 @@
 # each month
 
 from orrb_CFC_stat import CloudFractionStats
+
 # -----------------------------------------------------
 class CloudFractionSurfacesStats(CloudFractionStats):
     
@@ -16,6 +17,12 @@ class CloudFractionSurfacesStats(CloudFractionStats):
             lines.append("Mean CFC CALIOP: %f" % self.mean_CFC_cal)
             lines.append("Mean error: %f" % self.bias_cal_perc)
             lines.append("RMS error: %f" % self.rms_cal)
+            lines.append("POD cloudy: %f" % self.pod_cloudy_cal)
+            lines.append("POD clear: %f" % self.pod_clear_cal)
+            lines.append("FAR cloudy: %f" % self.far_cloudy_cal)
+            lines.append("FAR clear: %f" % self.far_clear_cal)
+            lines.append("Kuipers: %f" % self.kuipers)
+            lines.append("Hitrate: %f" % self.hitrate)
             lines.append("Mean error MODIS: %f" % self.bias_modis_perc)
             lines.append("RMS error MODIS: %f" % self.rms_modis)
             lines.append("")
@@ -27,7 +34,14 @@ class CloudFractionSurfacesStats(CloudFractionStats):
             lines.append("Mean CFC CALIOP: %f" % self.mean_CFC_cal)
             lines.append("Mean error: %f" % self.bias_cal_perc)
             lines.append("RMS error: %f" % self.rms_cal)
+            lines.append("POD cloudy: %f" % self.pod_cloudy_cal)
+            lines.append("POD clear: %f" % self.pod_clear_cal)
+            lines.append("FAR cloudy: %f" % self.far_cloudy_cal)
+            lines.append("FAR clear: %f" % self.far_clear_cal)
+            lines.append("Kuipers: %f" % self.kuipers)
+            lines.append("Hitrate: %f" % self.hitrate)
             lines.append("")
+
         return lines
 
 

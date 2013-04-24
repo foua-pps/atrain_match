@@ -2,18 +2,26 @@
 # python cloudsat_calipso_avhrr_prepare.py 
 
 
-def CalipsoCloudFraction(cloud_top, cloud_base, optical_depth, cloud_fraction, fcf, ssccf):
-    import numpy
-    import pdb
-
+def CalipsoCloudFraction(calipsoObj):
+    import numpy as np
     # This function is obsolete! Now we merge 1 km and 5 km data instead!!
     # Then we take cloud fraction from mainly 1 km, only from 5 km (=1.0) for thinnest clouds!/KG
+    new_cloud_fraction = np.zeros(calipsoObj.calipso.cloud_fraction.shape, 'd')
 
-    new_cloud_top = numpy.ones(cloud_top.shape,'d')*numpy.min(cloud_top)
-    new_cloud_base = numpy.ones(cloud_base.shape,'d')*numpy.min(cloud_base)
-    new_cloud_fraction = numpy.zeros(cloud_fraction.shape,'d')
-    new_fcf = numpy.ones(fcf.shape).astype(fcf.dtype)
-    new_ssccf = numpy.ones(ssccf.shape,'d')*numpy.min(ssccf)
+    fcf = calipsoObj.calipso.feature_classification_flags
+    new_fcf = np.ones(fcf.shape).astype(fcf.dtype)
+
+    cloud_top = calipsoObj.calipso.cloud_top_profile
+    new_cloud_top = np.ones(cloud_top.shape, 'd')*np.min(cloud_top)
+
+    cloud_base = calipsoObj.calipso.cloud_base_profile
+    new_cloud_base = np.ones(cloud_base.shape, 'd')*np.min(cloud_base)
+
+    optical_depth = calipsoObj.calipso.optical_depth
+    new_optical_depth = np.ones(optical_depth.shape, 'd')*np.min(optical_depth)
+
+    ssccf = calipsoObj.calipso.single_shot_cloud_cleared_fraction
+    new_ssccf = np.ones(ssccf.shape,'d')*np.min(ssccf)
     for i in range(ssccf.shape[1]):
         ind = ((ssccf[:,i]>=0) & (ssccf[:,i]<=0.5))
         
@@ -23,13 +31,25 @@ def CalipsoCloudFraction(cloud_top, cloud_base, optical_depth, cloud_fraction, f
         new_ssccf[:,i] = numpy.where(ind, ssccf[:,i], new_ssccf[:,i])
         if ind.any():
             new_cloud_fraction[i] = cloud_fraction[i]
-       
+            new_fcf[:,i] = fcf[:,i]
+            new_cloud_top[:,i] = cloud_top[:,i]
+            new_cloud_base[:,i] = cloud_base[:,i]
+            new_optical_depth[:,i] = optical_depth[:,i]
+            new_ssccf[:,i] = ssccf[:,i]
+        
     return new_cloud_top, new_cloud_base, new_optical_depth, new_cloud_fraction, new_fcf, new_ssccf
 
-def CloudsatCloudOpticalDepth(cloud_top, cloud_base, optical_depth, cloud_fraction, fcf, min_optical_depth):
-    import numpy
-    import pdb
-    # from config import MIN_OPTICAL_DEPTH
+
+def NinaTestarMedelCloudBaseAndTop(cloud_top, cloud_base):
+    import numpy as np
+    #Maybe we should use middle of cloud as cloud top. To get better than nonsens comparison for high (optical thin) clouds. Take middel only for clouds the are certainly very thin, deeper than 1km!
+    new_cloud_top = np.where((cloud_top - cloud_base)>1, 0.5*(cloud_top + cloud_base), cloud_top)
+    return new_cloud_top
+
+
+def CloudsatCloudOpticalDepth(cloud_top, cloud_base, optical_depth, cloud_fraction, fcf):
+    import numpy as np
+    from config import MIN_OPTICAL_DEPTH
 
     new_cloud_top = numpy.ones(cloud_top.shape,'d')*numpy.min(cloud_top)
     new_cloud_base = numpy.ones(cloud_base.shape,'d')*numpy.min(cloud_base)

@@ -1,16 +1,31 @@
 """
-Configuration file for ``atrain_match``. Most configuration options and constants
-used in ``atrain_match`` are set in this file. However, there may
+Configuration file for ``atrain_match``. Most configuration options and
+constants used in ``atrain_match`` are set in this file. However, there may
 still be some modules which have internal constants defined.
 
 """
 
 import os
+#When using 1km data, use the 5km data to filterout clouds to thin for VIIRS/AVHRR to see.
+ALSO_USE_5KM_FILES = True
+OPTICAL_DETECTION_LIMIT = 0.3
+EXCLUDE_CALIPSO_PIXEL_IF_TOTAL_OPTICAL_THICKNESS_TO_LOW = False
+EXCLUDE_ALL_MULTILAYER = False
+EXCLUDE_MULTILAYER_IF_TOO_THIN_TOP_LAYER = False
+EXCLUDE_GEOMETRICALLY_THICK = False
+H4H5_EXECUTABLE = os.environ.get('H4H5_EXECUTABLE','/local_disk/opt/h4h5tools-2.2.1-linux-x86_64-static/bin/h4toh5')
+PLOT_ONLY_PNG = True
+
+VAL_CPP = os.environ.get('VAL_CPP', False)
+
+# Imager Instrument on which PPS has been run (currently you can only run the
+# atrain match on either AVHRR data or VIIRS data, not both):
+IMAGER_INSTRUMENT = os.environ.get('IMAGER_INSTRUMENT', 'viirs')
 
 #: Resolution, in km, to use for data files. This setting is used throughout
 #: ``atrain_match`` to specify file names, sub-directories, and data handling.
 #: Currently, 1 or 5 is supported
-RESOLUTION = 5
+RESOLUTION = int(os.environ.get('ATRAIN_RESOLUTION', 1))
 if RESOLUTION == 1:
     AVHRR_SAT = 'NPP' #'pps'
     CALIPSO_CLOUD_FRACTION = False
@@ -20,13 +35,6 @@ elif RESOLUTION == 5:
     CALIPSO_CLOUD_FRACTION = True  #Notice that both these parameters must equal, i.e. set to either True or False!!!/KG
     ALSO_USE_1KM_FILES = True
     
-#: Base directory for ``atrain_match`` data
-#SAT_DIR = os.environ.get('SAT_DIR',
-#                         "/nobackup/smhid9/sm_erjoh/data")#/data/proj/saf/ejohansson/Projects/atrain_match")
-# ...but for the reprocessed dataset for probmask studies be sure to use the NOAA18_probmask directory here!!!!/KG
-SAT_DIR = os.environ.get('SAT_DIR',
-                         "/nobackup/smhid9/sm_kgkar/atrain_match_kg/testdata")
-
 
 #: Don't know how this directory is used...
 MAIN_RUNDIR = os.getcwd()
@@ -53,6 +61,8 @@ PLOT_DIR = "%s/Plot" %MAIN_DIR
 RESULT_DIR = "%s/Results_cloudthreshold_0.3" %MAIN_DIR
 
 
+# Region configuaration file with area definitons
+AREA_CONFIG_FILE = os.environ.get('AREA_CONFIG_FILE', './etc/areas.def')
 
 #_satellite_data_dir = '/data/arkiv/proj/safworks/data'
 _satellite_data_dir = '/local_disk/data/atrain_validation/data'
@@ -72,15 +82,15 @@ CLOUDSAT_TYPE = 'GEOPROF'
 #: Base dir for Calipso data
 CALIPSO_DIR = os.environ.get('CALIPSO_DIR', _satellite_data_dir + '/calipso')
 
-#: This one is used to convert .h4 to .h5
-H4H5_EXECUTABLE = '/software/apps/h4h5tools/2.2.1/i1214-hdf4-4.2.8-i1214-hdf5-1.8.9-i1214/bin/h4toh5'
-# /home/pps/opt/H4H5_2.2.1/bin/h4toh5
 
-#: Constant: Duration of a satellite orbit in seconds
-SAT_ORBIT_DURATION = 90*60
 
-#: CTTH file type to use in processing (One of 'ctth', 'ctth_opaque', and 'ctth_semitransparent')
-CTTH_FILE = os.environ.get('CTTH_FILE', 'ctth')
+#: Constant: Approximate duration of a satellite orbit in seconds
+SAT_ORBIT_DURATION = 60*60 #Not to large
+# If to large, cloudsat_calipso_avhrr_match.py takes wrong swath
+# sometimes when swaths are close in time
+
+
+
 
 #: Allowed time deviation in seconds between AVHRR and CALIPSO/CloudSat matchup
 sec_timeThr = 60*10
@@ -92,7 +102,8 @@ CLOUDSAT_CLOUDY_THR = 30.0
 
 #: MAXHEIGHT is used in the plotting. 
 #: If None the maxheight is calculated from the highest cloud
-MAXHEIGHT = None
+#MAXHEIGHT = None
+MAXHEIGHT = 18000
 
 #: Range of allowed (AVHRR) satellite azimuth angles, in degrees
 AZIMUTH_RANGE = (0., 360.)
@@ -217,21 +228,31 @@ ALLOWED_MODES = ['BASIC',
 #            modes.add(day)
     
 
-#: Threshold for optical thickness. If optical thickness is below this value it will be filtered out.
 
+#: Threshold for optical thickness. If optical thickness is below this value it will be filtered out.
 #MIN_OPTICAL_DEPTH = 0.35 # Original formulation - only allowing one value
 #MIN_OPTICAL_DEPTH = [0.35] # New formulation - allowing a set of values
 MIN_OPTICAL_DEPTH = [0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.60, 0.70, 0.80, 0.90, 1.00]
 
+
+print "RESOLUTION=", RESOLUTION
 if RESOLUTION == 1:
-    if AVHRR_SAT == 'NPP':
-        DSEC_PER_AVHRR_SCALINE = 60 / 40.
+    if IMAGER_INSTRUMENT == 'viirs':
+        # VIIRS scan period is 1.7864 - see
+        # D34862-07-01_C_CDFCB-X_Volume_VII-Part_1_ECR1017D_PR.pdf
+        # Adam, 2012-10-21
+        DSEC_PER_AVHRR_SCALINE = 1.7864 / 16.
+        #DSEC_PER_AVHRR_SCALINE = 60 / 40. # ??? AD, 2012-Oct
         SWATHWD=3200
     else:
-        DSEC_PER_AVHRR_SCALINE = 1.0/6. # Full scan period, i.e. the time interval between two consecutive lines (sec)
+        DSEC_PER_AVHRR_SCALINE = 1.0/6. # Full scan period, i.e. the time
+                                        # interval between two consecutive
+                                        # lines (sec)
         SWATHWD=2048
-#    AREA = "arctic_super_5010"
-    AREA = "cea1km_test"
+    AREA = "arctic_europe_1km"
+#    AREA = "npole"
+    #AREA = "arctic_super_5010"
+#    AREA = "cea1km_test"
     #: CloudSat sampling frequency in km (or rather the most likely
     #: resolution difference between CALIPSO 1 km datasets and
     #: the CloudSat 2B-GEOPROF dataset). Nominally CloudSat sampling
@@ -273,6 +294,7 @@ NODATA=-9
 #: Processing modes for which plotting should also be performed
 #PLOT_MODES = ['BASIC']
 PLOT_MODES = ['No Plot']
+
 
 def subdir(self, date, *args, **kwargs):
     """
@@ -322,23 +344,7 @@ def subdir(self, date, *args, **kwargs):
                 return os.path.join(_dir, "export")
     else:
         return self.__class__.subdir(self, date, *args, **kwargs)
-"""
-from file_finders import PpsFileFinder
-++        if self.__class__ is PpsFileFinder:
-++            ending = kwargs.get('ending', None)
-++            if ending is None:
-++                ending = self.ending
-++            dir = "%dkm/%d/%02d" % (RESOLUTION, date.year, date.month)
-++            if 'avhrr' in ending:
-++                return os.path.join(dir,"import/PPS_data")                
-++            if 'sunsatangles' in ending:
-++                return os.path.join(dir, "import/ANC_data")
-++            if 'nwp' in ending:
-++                return os.path.join(dir,"import/NWP_data")
-++            for export_ending in ['cloudmask', 'cloudtype', 'ctth', 'precip']:
-++                if export_ending in ending:
-++                    return os.path.join(dir, "export")
-"""
+
 #========== Statistics setup ==========#
 #: List of dictionaries containing *satname*, *year*, and *month*, for which
 #: statistics should be summarized
@@ -383,6 +389,12 @@ CASES = [{'satname': 'noaa18', 'year': 2006, 'month': 10},
          {'satname': 'noaa18', 'year': 2009, 'month': 11},
          {'satname': 'noaa18', 'year': 2009, 'month': 12}]
 
+CASES = [{'satname': 'npp', 'year': 2012, 'month': 6},
+         {'satname': 'npp', 'year': 2012, 'month': 7},
+         {'satname': 'npp', 'year': 2012, 'month': 8},
+         {'satname': 'npp', 'year': 2012, 'month': 9},
+         {'satname': 'npp', 'year': 2012, 'month': 10}]
+
 #: PPS area definition (from ``acpg/cfg/region_config.cfg``) for which
 #: statistics should be summarized
 MAP = [AREA]
@@ -392,6 +404,8 @@ MAP = [AREA]
 MAIN_DATADIR = MAIN_DIR
 
 #: TODO: No description yet...
+# Seems like this can't be set to True if we run without Calipso 5km data!
+# ??? Adam 2012-10-14
 if CALIPSO_CLOUD_FRACTION == True:
     #COMPILED_STATS_FILENAME = '%s/Results_prob/compiled_stats_CCF' %MAIN_DATADIR
     COMPILED_STATS_FILENAME = '%s/Results_cloudthreshold_0.3/compiled_stats_CCF' %MAIN_DATADIR
@@ -422,3 +436,4 @@ SATELLITE = ['noaa18', 'noaa19']
 STUDIED_YEAR = ["2009"]
 STUDIED_MONTHS = ['01', '07']
 OUTPUT_DIR = "%s/Ackumulering_stat/Results/%s" % (MAIN_DATADIR, SATELLITE[0])
+

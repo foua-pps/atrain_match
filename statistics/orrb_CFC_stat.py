@@ -33,7 +33,7 @@ class CloudFractionStats(OrrbStats):
             current_datafile = open(datafile, "r")
             datalist = current_datafile.readlines()
             current_datafile.close()
-            print "Datafile: ", datafile
+            #print "Datafile: ", datafile
             csa_data = string.split(datalist[4])
             cal_data = string.split(datalist[8])
             modis_data = string.split(datalist[10])
