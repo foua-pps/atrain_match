@@ -437,6 +437,7 @@ def find_files_from_avhrr(avhrr_file, options):
        cpp_file = None
     if not 'nwp_tsur_file' in options:
         write_log("WARNING", "No t-surface file searched for!")
+        nwp_tsur_file=None
     else:
         nwp_tsur_name = insert_info_in_filename_or_path(options['nwp_tsur_file'],
                                                         values, datetime_obj=date_time)
@@ -597,7 +598,7 @@ def get_matchups_from_data(cross, config_options):
         ctth = epshdf.read_cloudtop(pps_files.ctth, 1, 1, 1, 0, 1)
     except:
         ctth = None    
-    if isinstance(pps_files.nwp_tsur, str) == True: # and config.CLOUDSAT_TYPE == "GEOPROF":
+    if pps_files.nwp_tsur is not None : # and config.CLOUDSAT_TYPE == "GEOPROF":
         if 1:
             nwpinst = epshdf.read_nwpdata(pps_files.nwp_tsur)
             write_log("INFO", "Read NWP surface temperature")

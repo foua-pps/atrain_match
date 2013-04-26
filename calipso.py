@@ -1018,6 +1018,7 @@ def read_calipso(filename, res):
     c=a.getNode("/NSIDC_Surface_Type")
     retv.nsidc=c.data()
     if res == 5:
+        write_log('INFO', "calipso-file %s" % filename)
         c=a.getNode("/Feature_Optical_Depth_532")
         retv.optical_depth=c.data()
         c=a.getNode("/Feature_Optical_Depth_Uncertainty_532")
