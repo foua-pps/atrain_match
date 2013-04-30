@@ -15,7 +15,9 @@ from config import (OPTICAL_DETECTION_LIMIT,
                     EXCLUDE_CALIPSO_PIXEL_IF_TOTAL_OPTICAL_THICKNESS_TO_LOW,
                     EXCLUDE_ALL_MULTILAYER,
                     EXCLUDE_MULTILAYER_IF_TOO_THIN_TOP_LAYER,
-                    EXCLUDE_GEOMETRICALLY_THICK )
+                    EXCLUDE_GEOMETRICALLY_THICK,
+                    PPS_VALIDATION,
+                    IMAGER_INSTRUMENT)
 class DataObject(object):
     """
     Class to handle data objects with several arrays.
@@ -285,7 +287,7 @@ def getBoundingBox(lon,lat):
 
 # --------------------------------------------
 
-def get_calipso_avhrr_linpix(avhrrIn, avhrrname, lon, lat, caTime, options):
+def get_calipso_avhrr_linpix(avhrrIn, values, lon, lat, caTime, options):
 
     tmppcs="tmpproj"
     define_pcs(tmppcs, "Plate Caree, central meridian at 15E",
@@ -305,7 +307,7 @@ def get_calipso_avhrr_linpix(avhrrIn, avhrrname, lon, lat, caTime, options):
     that.thumbnail((dimx/8,dimy/8))
     that.save("./yt_thumbnail.png")
     """
-    orbittime =  os.path.basename(avhrrname).split("_")[1:3]
+    #orbittime =  os.path.basename(avhrrname).split("_")[1:3]
     coverage_dir  = options['coverage_dir'].format(resolution=str(RESOLUTION),
                                                    area=AREA,
                                                    val_dir=_validation_results_dir
@@ -322,8 +324,8 @@ def get_calipso_avhrr_linpix(avhrrIn, avhrrname, lon, lat, caTime, options):
             tmpaid=tmpaid,
             startline="%.5d"%(startline),
             endline="%.5d" %(endline),
-            date=orbittime[0],
-            time=orbittime[1],
+            date=values["date"],#orbittime[0],
+            time=values["time"],#orbittime[1],
             atrain_sat="calipso")
 
         write_log("INFO","Coverage filename = ",coverage_filename) #@UndefinedVariable
@@ -466,37 +468,23 @@ def get_calipso_avhrr_linpix_segment(avhrrIn,lon,lat,catime,lines,swath_width,tm
     return calipso_avhrr_line, calipso_avhrr_pixel, matchOk
 
 #-----------------------------------------------------------------------------
-def createAvhrrTime(Obt, filename):
+def createAvhrrTime(Obt, values):
     import os #@Reimport
     from config import DSEC_PER_AVHRR_SCALINE
     #import time
     #from datetime import datetime
     import calendar
 
-    filename = os.path.basename(filename)
+    #filename = os.path.basename(filename)
     # Ex.: npp_20120827_2236_04321_satproj_00000_04607_cloudtype.h5
-    if filename.split('_')[0] == 'npp':
+    if IMAGER_INSTRUMENT == 'npp':
+    #if filename.split('_')[0] == 'npp':
         if Obt.sec1970_start < 0: #10800
             write_log("WARNING", 
                       "NPP start time negative! " + str(Obt.sec1970_start))
-            viirsDate = filename.split('_')[1]
-            viirsHM = filename.split('_')[2]
-            viirsSH = filename.split('_')[3]
-            year = int(viirsDate[0:4])
-            mon = int(viirsDate[4:6])
-            day = int(viirsDate[6:])
-            hour = int(viirsHM[0:2])
-            mins = int(viirsHM[2:])
-            sec = int(viirsSH[0:2])
-            hundredSec = float('0.' + viirsSH[2:])
-            print "date", year, mon, day, hour, mins, sec
-            #struct time in UTC (but time of file is local! (?)) to seconds since epoch in UTC
-            Obt.sec1970_start = calendar.timegm((year, mon, day, hour, mins, sec)) + hundredSec
-
-            #dtobj = datetime.strptime((filename.split('_')[1] + 
-            #                           filename.split('_')[2]), '%Y%m%d%H%M')
-            #Obt.sec1970_start = time.mktime(dtobj.timetuple()) - time.timezone
-
+            datetime=values["date_time"]
+            Obt.sec1970_start = calendar.timegm(datetime.timetuple())
+            #Obt.sec1970_start = calendar.timegm((year, mon, day, hour, mins, sec)) + hundredSec
         num_of_scan = Obt.num_of_lines / 16.
         #if (Obt.sec1970_end - Obt.sec1970_start) / (num_of_scan) > 2:
         #    pdb.set_trace()
@@ -515,7 +503,7 @@ def createAvhrrTime(Obt, filename):
             """
             Obt.sec1970_end = int(DSEC_PER_AVHRR_SCALINE * Obt.num_of_lines + Obt.sec1970_start)
         
-        if filename.split('_')[-3] != '00000':
+        if values["ppsfilename"].split('_')[-3] != '00000':
             """
             This if statement takes care of a bug in start and end time, 
             that occurs when a file is cut at midnight
@@ -663,7 +651,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
     return obt
 
 # -----------------------------------------------------------------
-def match_calipso_avhrr(ctypefile, 
+def match_calipso_avhrr(values, 
                         calipsoObj, imagerGeoObj, imagerObj, 
                         ctype, ctth, cppCph, surft,
                         avhrrAngObj, options, res=resolution):
@@ -689,7 +677,7 @@ def match_calipso_avhrr(ctypefile,
     
     # --------------------------------------------------------------------
 
-    cal,cap = get_calipso_avhrr_linpix(imagerGeoObj,ctypefile,lonCalipso,latCalipso,timeCalipso, options)
+    cal,cap = get_calipso_avhrr_linpix(imagerGeoObj,values,lonCalipso,latCalipso,timeCalipso, options)
     # This function (match_calipso_avhrr) could use the MatchMapper object
     # created in map_avhrr() to make things a lot simpler... See usage in
     # amsr_avhrr_match.py
@@ -699,7 +687,9 @@ def match_calipso_avhrr(ctypefile,
     calnan = np.where(cal == NODATA, np.nan, cal)
     if (~np.isnan(calnan)).sum() == 0:
         raise MatchupError("No matches within region.")
-    imagerGeoObj = createAvhrrTime(imagerGeoObj, ctypefile)
+    if (PPS_VALIDATION):
+        #CCIcloud already have time as arry.
+        imagerGeoObj = createAvhrrTime(imagerGeoObj, values)
     avhrr_lines_sec_1970 = np.where(cal != NODATA, imagerGeoObj.time[cal], np.nan)
     
 #    avhrr_lines_sec_1970 = calnan * DSEC_PER_AVHRR_SCALINE + imagerGeoObj.sec1970_start
@@ -851,11 +841,11 @@ def match_calipso_avhrr(ctypefile,
     for i in range(ndim):        
         #ll.append(("%7.3f  %7.3f  %d\n"%(lonCalipso[i],latCalipso[i],0)))
         ll.append(("%7.3f  %7.3f  %d\n"%(lonCalipso[i],latCalipso[i],idx_match[i])))
-    basename = os.path.basename(ctypefile).split(".h5")[0]
-    values={"satellite":basename.split("_")[-8]}
-    values["year"] = str(basename.split("_")[-7][0:4])
-    values["month"] = str(basename.split("_")[-7][4:6])
-    values["basename"] = string.join(basename.split("_")[0:4],"_")
+    #basename = os.path.basename(ctypefile).split(".h5")[0]
+    #values={"satellite":basename.split("_")[-8]}
+    #values["year"] = str(basename.split("_")[-7][0:4])
+    #values["month"] = str(basename.split("_")[-7][4:6])
+    #values["basename"] = string.join(basename.split("_")[0:4],"_")
     data_path = options['data_dir'].format(val_dir=_validation_results_dir, 
                                            satellite=values["satellite"],
                                            resolution=str(RESOLUTION),
@@ -1029,14 +1019,15 @@ def read_calipso(filename, res):
     return retv
 
 # -----------------------------------------------------
-def reshapeCalipso(calipsofiles, avhrr, avhrrfilename, timereshape = True, res=resolution):
+def reshapeCalipso(calipsofiles, avhrr, values, timereshape = True, res=resolution):
     import time
     import sys
     
     cal= CalipsoObject()
-    avhrr = createAvhrrTime(avhrr, avhrrfilename)
-    avhrr_end = avhrr.sec1970_end
-    avhrr_start = avhrr.sec1970_start
+    if (PPS_VALIDATION):
+        avhrr = createAvhrrTime(avhrr, values)
+        avhrr_end = avhrr.sec1970_end
+        avhrr_start = avhrr.sec1970_start
     
     dsec = time.mktime((1993,1,1,0,0,0,0,0,0)) - time.timezone
     startCalipso = get_calipso(calipsofiles[0], res)

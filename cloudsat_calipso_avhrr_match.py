@@ -194,6 +194,7 @@ def readCpp(filename, type):
     h5file.close()
     return product
 
+
 def get_time_list(cross_time, time_window, delta_t_in_seconds):
     tlist = []
     delta_t = timedelta(seconds=delta_t_in_seconds) #search per minute!delta_t_in_seconds=60
@@ -224,9 +225,16 @@ def get_satid_datetime_orbit_from_fname(avhrr_filename):
     #returnd orbit as int, loosing leeding zeros, dont use here!
     # Get satellite name, time, and orbit number from avhrr_file
     sl_ = os.path.basename(avhrr_filename).split('_')
+    date_time= datetime.strptime(sl_[1] + sl_[2], '%Y%m%d%H%M')
     values= {"satellite": sl_[0],
-             "date_time": datetime.strptime(sl_[1] + sl_[2], '%Y%m%d%H%M'),
-             "orbit": sl_[3] }
+             "date_time": date_time,
+             "orbit": sl_[3],
+             "date":sl_[1],
+             "year":date_time.year,
+             "month":date_time.month,    
+             "time":sl_[2],
+            "basename":sl_[1] + sl_[2]+ sl_[3],
+             "ppsfilename":avhrr_filename}
     return values
 
 def insert_info_in_filename_or_path(file_or_name_path, values, datetime_obj=None):
@@ -388,18 +396,11 @@ def require_h5(files):
     
     return h5_files
 
-
-def find_files_from_avhrr(avhrr_file, options):
+def find_cloudsat_files(date_time, options):
     """
-    Find all files needed to process matchup from source data files.
+    Find calipso and cloudsat files closest to date_time.
     """
 
-
-    # Let's get the satellite and the date-time of the pps radiance
-    # (avhrr/viirs) file:
-    write_log("INFO", "Avhrr or viirs file = %s" % avhrr_file)
-    values = get_satid_datetime_orbit_from_fname(avhrr_file)
-    date_time = values["date_time"]
     #TOTDO%%%%%%%%%%%%
     import file_finders
     cloudsat_finder = file_finders.CloudsatFileFinder(config.CLOUDSAT_DIR,
@@ -409,8 +410,18 @@ def find_files_from_avhrr(avhrr_file, options):
     cloudsat_finder.set_time_window(config.SAT_ORBIT_DURATION + config.sec_timeThr)
 
     cloudsat_files = sorted(require_h5(cloudsat_finder.find(date_time)))
-    calipso_files = find_calipso_files(date_time, options)
+    return cloudsat_files
     #%%%%%%%%%%%%5
+
+def find_files_from_avhrr(avhrr_file, options):
+    """
+    Find all files needed to process matchup from source data files.
+    """
+    # Let's get the satellite and the date-time of the pps radiance
+    # (avhrr/viirs) file:
+    write_log("INFO", "Avhrr or viirs file = %s" % avhrr_file)
+    values = get_satid_datetime_orbit_from_fname(avhrr_file)
+    date_time = values["date_time"]
     cloudtype_name = insert_info_in_filename_or_path(options['cloudtype_file'], 
                                                      values, datetime_obj=date_time)                        
     path = insert_info_in_filename_or_path(options['cloudtype_dir'], 
@@ -473,7 +484,7 @@ def find_files_from_avhrr(avhrr_file, options):
                         nwp_tsur=nwp_tsur_file,
                         sunsatangles=sunsatangles_file)
 
-    return (cloudsat_files, calipso_files, ppsfiles)
+    return  ppsfiles
 
 
 def _plot_avhrr_track(match_file, avhrr, track):
@@ -527,7 +538,7 @@ def get_cloudsat_matchups(cloudsat_files, cloudtype_file, avhrrGeoObj, avhrrObj,
     return cl_matchup, (cl_min_diff, cl_max_diff)
 
 
-def get_calipso_matchups(calipso_files, cloudtype_file, 
+def get_calipso_matchups(calipso_files, values, 
                          avhrrGeoObj, avhrrObj, ctype, ctth, 
                          surft, avhrrAngObj, options, cppCph=None, cafiles1km=None, cafiles5km=None):
     """
@@ -535,23 +546,23 @@ def get_calipso_matchups(calipso_files, cloudtype_file,
     """
     if cafiles1km != None:
         #pdb.set_trace()
-        calipso1km = reshapeCalipso(cafiles1km, avhrrGeoObj, cloudtype_file, False, 1)[0]
-        calipso5km, startBreak, endBreak = reshapeCalipso(calipso_files,avhrrGeoObj, cloudtype_file, False)
+        calipso1km = reshapeCalipso(cafiles1km, avhrrGeoObj, values, False, 1)[0]
+        calipso5km, startBreak, endBreak = reshapeCalipso(calipso_files,avhrrGeoObj, values, False)
         calipso = add1kmTo5km(calipso1km, calipso5km, startBreak, endBreak)
         calipso1km = None
         calipso5km = None
     elif cafiles5km !=None:
-        calipso1km, startBreak, endBreak  = reshapeCalipso(calipso_files, avhrrGeoObj, cloudtype_file, False, 1)
-        calipso5km = reshapeCalipso(cafiles5km,avhrrGeoObj, cloudtype_file, False, 5)[0]
+        calipso1km, startBreak, endBreak  = reshapeCalipso(calipso_files, avhrrGeoObj, values, False, 1)
+        calipso5km = reshapeCalipso(cafiles5km,avhrrGeoObj, values, False, 5)[0]
         write_log('INFO',"Cut optically thin clouds at selected optical depth, using 5km data")
         calipso = use5km_remove_thin_clouds_from_1km(calipso1km, calipso5km, startBreak, endBreak)
         calipso1km = None
         calipso5km = None
     else:
         calipso = reshapeCalipso(calipso_files, 
-                                 avhrrGeoObj, cloudtype_file, True)[0]
+                                 avhrrGeoObj, values, True)[0]
     write_log('INFO',"Matching with avhrr")
-    tup = match_calipso_avhrr(cloudtype_file, calipso,
+    tup = match_calipso_avhrr(values, calipso,
                               avhrrGeoObj, avhrrObj, ctype,
                               ctth, cppCph, surft, avhrrAngObj, options)
     ca_matchup, ca_min_diff, ca_max_diff = tup
@@ -619,22 +630,31 @@ def get_matchups_from_data(cross, config_options):
     import os #@Reimport
     if (PPS_VALIDATION):
         avhrr_file = find_radiance_file(cross, config_options)
+        values = get_satid_datetime_orbit_from_fname(avhrr_file)
         if not avhrr_file:
             raise MatchupError("No avhrr file found!\ncross = " + str(cross))
-        cloudsat_files, calipso_files, pps_files = find_files_from_avhrr(avhrr_file, config_options)   
+        pps_files = find_files_from_avhrr(avhrr_file, config_options)   
         avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, surft, cppLwp, cppCph =read_pps_data(pps_files, avhrr_file, cross)
     if (CCI_CLOUD_VALIDATION):
         avhrrAngObj, ctth,avhrrGeoObj,ctype, avhrrObj =read_cloud_cci(cross, config_options)
+    
+    date_time = values["date_time"]
+    cloudsat_files = find_cloudsat_files(date_time, config_options)
+    calipso_files = find_calipso_files(date_time, config_options)
 
-    if (isinstance(cloudsat_files, str) == True or 
-        (isinstance(cloudsat_files, list) and len(cloudsat_files) != 0)):
-        write_log("INFO","Read CLOUDSAT %s data" % config.CLOUDSAT_TYPE)
-        cl_matchup, cl_time_diff = get_cloudsat_matchups(cloudsat_files, 
-                                                         pps_files.cloudtype,
-                                                         avhrrGeoObj, avhrrObj, ctype,
-                                                         ctth, surft, avhrrAngObj, cppLwp, config_options)
+    if (PPS_VALIDATION):
+        if (isinstance(cloudsat_files, str) == True or 
+            (isinstance(cloudsat_files, list) and len(cloudsat_files) != 0)):
+            write_log("INFO","Read CLOUDSAT %s data" % config.CLOUDSAT_TYPE)
+            cl_matchup, cl_time_diff = get_cloudsat_matchups(cloudsat_files, 
+                                                             pps_files.cloudtype,
+                                                             avhrrGeoObj, avhrrObj, ctype,
+                                                             ctth, surft, avhrrAngObj, cppLwp, config_options)
+        else:
+            write_log("INFO", "NO CLOUDSAT File, Continue")
     else:
-        write_log("INFO", "NO CLOUDSAT File, Continue")
+        write_log("INFO", "NO CLOUDSAT File,"
+                  "CCI-cloud validation only for calipso, Continue")
 
     if (isinstance(calipso_files, str) == True or 
         (isinstance(calipso_files, list) and len(calipso_files) != 0)):
@@ -688,7 +708,7 @@ def get_matchups_from_data(cross, config_options):
                 
         write_log("INFO", "Read CALIPSO data")        
         ca_matchup, ca_time_diff = get_calipso_matchups(calipso_files, 
-                                                        pps_files.cloudtype,
+                                                        values,
                                                         avhrrGeoObj, avhrrObj, ctype,
                                                         ctth, surft, avhrrAngObj, 
                                                         config_options, cppCph,  
@@ -699,7 +719,6 @@ def get_matchups_from_data(cross, config_options):
 
 
     # Get satellite name, time, and orbit number from avhrr_file
-    values = get_satid_datetime_orbit_from_fname(avhrr_file)
     date_time = values["date_time"]
     basename = '_'.join(os.path.basename(avhrr_file).split('_')[:4])
     rematched_path = date_time.strftime(config_options['reshape_dir'].format(
