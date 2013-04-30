@@ -8,6 +8,9 @@ still be some modules which have internal constants defined.
 import os
 #When using 1km data, use the 5km data to filterout clouds to thin for VIIRS/AVHRR to see.
 #PARAMETERS FOR CHOOSING HOW TO FILTER DATA 1km RESOLUTION:
+PPS_VALIDATION = True
+CCI_CLOUD_VALIDATION = False
+
 ALSO_USE_5KM_FILES = False
 OPTICAL_DETECTION_LIMIT = 0.3
 EXCLUDE_CALIPSO_PIXEL_IF_TOTAL_OPTICAL_THICKNESS_TO_LOW = False
@@ -15,19 +18,20 @@ EXCLUDE_ALL_MULTILAYER = False
 EXCLUDE_MULTILAYER_IF_TOO_THIN_TOP_LAYER = False
 EXCLUDE_GEOMETRICALLY_THICK = False
 
-H4H5_EXECUTABLE = os.environ.get('H4H5_EXECUTABLE','/local_disk/opt/h4h5tools-2.2.1-linux-x86_64-static/bin/h4toh5')
+#H4H5_EXECUTABLE = os.environ.get('H4H5_EXECUTABLE','/local_disk/opt/h4h5tools-2.2.1-linux-x86_64-static/bin/h4toh5')
+H4H5_EXECUTABLE = '/software/apps/h4h5tools/2.2.1/i1214-hdf4-4.2.8-i1214-hdf5-1.8.9-i1214/bin/h4toh5'
 PLOT_ONLY_PNG = True
 
 VAL_CPP = os.environ.get('VAL_CPP', False)
 
 # Imager Instrument on which PPS has been run (currently you can only run the
 # atrain match on either AVHRR data or VIIRS data, not both):
-IMAGER_INSTRUMENT = os.environ.get('IMAGER_INSTRUMENT', 'viirs')
+IMAGER_INSTRUMENT = os.environ.get('IMAGER_INSTRUMENT', 'avhrr')
 
 #: Resolution, in km, to use for data files. This setting is used throughout
 #: ``atrain_match`` to specify file names, sub-directories, and data handling.
 #: Currently, 1 or 5 is supported
-RESOLUTION = int(os.environ.get('ATRAIN_RESOLUTION', 1))
+RESOLUTION = int(os.environ.get('ATRAIN_RESOLUTION', 5))
 if RESOLUTION == 1:
     AVHRR_SAT = 'NPP' #'pps'
     CALIPSO_CLOUD_FRACTION = False
@@ -39,20 +43,22 @@ elif RESOLUTION == 5:
     ALSO_USE_1KM_FILES = True
 
 #: Base directory for validation results
-_validation_results_dir = os.environ['VALIDATION_RESULTS_DIR']    
+#_validation_results_dir = os.environ['VALIDATION_RESULTS_DIR']    
+_validation_results_dir = os.environ.get('VALIDATION_RESULTS_DIR', "/nobackup/smhid9/sm_kgkar/atrain_match_2013")
+#Not really used????/KG
 
 #: Don't know how this directory is used...
 MAIN_RUNDIR = os.getcwd()
 
 #: Base directory for validation results
 #MAIN_DIR = os.environ.get('VALIDATION_RESULTS_DIR', "/nobackup/smhid9/sm_erjoh/atrain_match")
-MAIN_DIR = os.environ.get('VALIDATION_RESULTS_DIR', "/nobackup/smhid9/sm_kgkar/atrain_match_kg")
+MAIN_DIR = os.environ.get('VALIDATION_RESULTS_DIR', "/nobackup/smhid9/sm_kgkar/atrain_match_2013")
 #: Base directory where matchup files are stored. (TODO: Are these still used?)
 #SUB_DIR = "%s/Matchups" %MAIN_DIR
 #SUB_DIR = "%s/Matchups_prob" %MAIN_DIR #Used for reprocessed dataset for probmask studies
 
 #: Base directory for files containing matched data from PPS and Calipso/Cloudsat
-#RESHAPE_DIR = "%s/Reshaped_Files" %MAIN_DIR
+RESHAPE_DIR = "%s/Reshaped_Files" %MAIN_DIR
 #RESHAPE_DIR = "%s/Reshaped_Files_prob" %MAIN_DIR #Used for reprocessed dataset for probmask studies
 
 #: TODO: How is this directory used?
@@ -63,14 +69,14 @@ MAIN_DIR = os.environ.get('VALIDATION_RESULTS_DIR', "/nobackup/smhid9/sm_kgkar/a
 
 #: Base directory for statistics results
 #RESULT_DIR = "%s/Results_prob" %MAIN_DIR
-RESULT_DIR = "%s/Results_cloudthreshold_0.3" %MAIN_DIR
+RESULT_DIR = "%s/Results_initial_tests" %MAIN_DIR
 
 
 # Region configuaration file with area definitons
 AREA_CONFIG_FILE = os.environ.get('AREA_CONFIG_FILE', './etc/areas.def')
 
 #_satellite_data_dir = '/data/arkiv/proj/safworks/data'
-_satellite_data_dir = '/local_disk/data/atrain_validation/data'
+_satellite_data_dir = '/nobackup/smhid9/sm_kgkar/atrain_match_2013/testdata'
 
 #: Base dir for PPS data
 # PPS_DATA_DIR = os.environ.get('PPS_DATA_DIR', _satellite_data_dir + '/pps')
@@ -90,10 +96,9 @@ CALIPSO_DIR = os.environ.get('CALIPSO_DIR', _satellite_data_dir + '/calipso')
 
 
 #: Constant: Approximate duration of a satellite orbit in seconds
-SAT_ORBIT_DURATION = 60*60 #Not to large
+SAT_ORBIT_DURATION = 110*60 #Not to large
 # If to large, cloudsat_calipso_avhrr_match.py takes wrong swath
 # sometimes when swaths are close in time
-
 
 
 

@@ -114,8 +114,10 @@ import sys
 
 import numpy as np
 from numpy import NaN
-from config import VAL_CPP
-from config import PLOT_ONLY_PNG
+from config import (VAL_CPP,
+                    PLOT_ONLY_PNG,
+                    CCI_CLOUD_VALIDATION,
+                    PPS_VALIDATION)
 
 from radiance_tb_tables_kgtest import get_central_wavenumber
 # Just use the brightness temperature to
@@ -551,20 +553,9 @@ def get_calipso_matchups(calipso_files, cloudtype_file,
     
     return ca_matchup, (ca_min_diff, ca_max_diff)
 
-
-def get_matchups_from_data(cross, config_options):
-    """
-    Retrieve Cloudsat- and Calipso-AVHRR matchups from Cloudsat, Calipso, and
-    PPS files.
-    """
+def read_pps_data(pps_files, avhrr_file, cross):
     import pps_io #@UnresolvedImport
     import epshdf #@UnresolvedImport
-    import os #@Reimport
-
-    avhrr_file = find_radiance_file(cross, config_options)
-    if not avhrr_file:
-        raise MatchupError("No avhrr file found!\ncross = " + str(cross))
-    cloudsat_files, calipso_files, pps_files = find_files_from_avhrr(avhrr_file, config_options)   
     write_log("INFO","Read AVHRR geolocation data")
     avhrrGeoObj = pps_io.readAvhrrGeoData(avhrr_file)    
     write_log("INFO","Read AVHRR Sun -and Satellites Angles data")
@@ -607,9 +598,29 @@ def get_matchups_from_data(cross, config_options):
         #    write_log("INFO", 
         #              "Corrupted NWP surface temperature File, Continue")
         #    surft = None
-    else:
-        write_log("INFO","NO NWP surface temperature File, Continue")
-        surft = None
+        else:
+            write_log("INFO","NO NWP surface temperature File, Continue")
+            surft = None
+    return avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, surft, cppLwp, cppCph 
+
+def read_cloud_cci(cross, config_options):
+    return avhrrAngObj, ctth,avhrrGeoObj,ctype, avhrrObj
+
+def get_matchups_from_data(cross, config_options):
+    """
+    Retrieve Cloudsat- and Calipso-AVHRR matchups from Cloudsat, Calipso, and
+    PPS files.
+    """
+    import os #@Reimport
+    if (PPS_VALIDATION):
+        avhrr_file = find_radiance_file(cross, config_options)
+        if not avhrr_file:
+            raise MatchupError("No avhrr file found!\ncross = " + str(cross))
+        cloudsat_files, calipso_files, pps_files = find_files_from_avhrr(avhrr_file, config_options)   
+        avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, surft, cppLwp, cppCph =read_pps_data(pps_files, avhrr_file, cross)
+    if (CCI_CLOUD_VALIDATION):
+        avhrrAngObj, ctth,avhrrGeoObj,ctype, avhrrObj =read_cloud_cci(cross, config_options)
+
     if (isinstance(cloudsat_files, str) == True or 
         (isinstance(cloudsat_files, list) and len(cloudsat_files) != 0)):
         write_log("INFO","Read CLOUDSAT %s data" % config.CLOUDSAT_TYPE)
@@ -953,7 +964,7 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
         # CALIPSO differ by more than 0.1 degrees Furthermore, if startpoint
         # differs it means that CALIPSO data is not available for the first
         # part of the matchup cross section. This means that we must find the
-        # first corresponding CloudSat point to this CALIPSO start point before
+        # first corresponding CloudSat point to this CALIPSO start point before 
         # we can do the plotting (statistics calculations are not
         # affected). Consequently, set the CALIPSO_DISPLACED flag and find
         # correct startpoint just before starting the plotting of CALIPSO data!
