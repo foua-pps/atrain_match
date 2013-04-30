@@ -117,7 +117,8 @@ from numpy import NaN
 from config import (VAL_CPP,
                     PLOT_ONLY_PNG,
                     CCI_CLOUD_VALIDATION,
-                    PPS_VALIDATION)
+                    PPS_VALIDATION,
+                    ALWAYS_USE_AVHRR_ORBIT_THAT_STARTS_BEFORE_CROSS)
 
 from radiance_tb_tables_kgtest import get_central_wavenumber
 # Just use the brightness temperature to
@@ -198,7 +199,7 @@ def get_time_list(cross_time, time_window, delta_t_in_seconds):
     delta_t = timedelta(seconds=delta_t_in_seconds) #search per minute!delta_t_in_seconds=60
     tobj1 = cross_time
     tobj2 = cross_time - delta_t
-    while (tobj1 < cross_time + time_window[1] and 
+    while (tobj1 < cross_time + time_window[1] or 
            tobj2 > cross_time - time_window[0]):
         tlist.append(tobj1)
         tobj1 = tobj1 + delta_t
@@ -275,13 +276,17 @@ def get_time_list_and_cross_time(cross):
         cross_satellite = cross.satellite1.lower()
         cross_time = cross.time1   
       #Nina +4rader -1 rad viktiga!!!
+    print cross.time_window    
     if cross.time_window is not None:
         ddt = timedelta(seconds=config.SAT_ORBIT_DURATION + cross.time_window)
     else:
-
         ddt = timedelta(seconds=config.SAT_ORBIT_DURATION + config.sec_timeThr)
     #ddt = timedelta(seconds=config.SAT_ORBIT_DURATION + cross.time_window)
-    time_window = (ddt, ddt)
+    if ALWAYS_USE_AVHRR_ORBIT_THAT_STARTS_BEFORE_CROSS:
+        ddt2=timedelta(seconds=0)
+    else:
+        ddt2=ddt
+    time_window = (ddt, ddt2)
     # Make list of file times to search from:
     tlist = get_time_list(cross_time, time_window, delta_t_in_seconds=60)
     return tlist, cross_time, cross_satellite

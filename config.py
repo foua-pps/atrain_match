@@ -6,11 +6,15 @@ still be some modules which have internal constants defined.
 """
 
 import os
-#When using 1km data, use the 5km data to filterout clouds to thin for VIIRS/AVHRR to see.
-#PARAMETERS FOR CHOOSING HOW TO FILTER DATA 1km RESOLUTION:
+#Set to true if you always want an avhrr orbit that starts before the cross
+ALWAYS_USE_AVHRR_ORBIT_THAT_STARTS_BEFORE_CROSS = True
+
+#Choose one to validate
 PPS_VALIDATION = True
 CCI_CLOUD_VALIDATION = False
 
+#When using 1km data, use the 5km data to filterout clouds to thin for VIIRS/AVHRR to see.
+#PARAMETERS FOR CHOOSING HOW TO FILTER DATA 1km RESOLUTION:
 ALSO_USE_5KM_FILES = False
 OPTICAL_DETECTION_LIMIT = 0.3
 EXCLUDE_CALIPSO_PIXEL_IF_TOTAL_OPTICAL_THICKNESS_TO_LOW = False
