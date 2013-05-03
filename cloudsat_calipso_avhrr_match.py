@@ -202,21 +202,28 @@ def get_time_list(cross_time, time_window, delta_t_in_seconds):
     tobj2 = cross_time - delta_t
     while (tobj1 < cross_time + time_window[1] or 
            tobj2 > cross_time - time_window[0]):
-        tlist.append(tobj1)
-        tobj1 = tobj1 + delta_t
-        tlist.append(tobj2)
-        tobj2 = tobj2 - delta_t  
+        if tobj1 < cross_time + time_window[1]:
+            tlist.append(tobj1)
+            tobj1 = tobj1 + delta_t
+        if   tobj2 > cross_time - time_window[0]:   
+            tlist.append(tobj2)
+            tobj2 = tobj2 - delta_t  
     return tlist 
 
-def find_calipso_files_inner(date_time, time_window, options):
+def find_calipso_files_inner(date_time, time_window, options, values):
     """Find the matching Calipso file"""
     tlist = get_time_list(date_time, time_window, 600)
     flist = []
-    for tobj in tlist:     
-        calipso_dir = tobj.strftime(options['calipso_dir'])
-        calipso_file_pattern = tobj.strftime(options['calipso_file'])
+    for tobj in tlist:    
+        calipso_dir = insert_info_in_filename_or_path(
+            options['calipso_dir'],
+            values, datetime_obj=tobj)
+        calipso_file_pattern = insert_info_in_filename_or_path(
+            options['calipso_file'],
+            values, 
+            datetime_obj=tobj)
         tmplist = glob(os.path.join(calipso_dir, calipso_file_pattern))
-        flist.extend([ s for s in tmplist if s not in flist ])   
+        flist.extend([ s for s in tmplist if s not in flist ])      
     return flist
 
 def get_satid_datetime_orbit_from_fname(avhrr_filename):
@@ -233,7 +240,7 @@ def get_satid_datetime_orbit_from_fname(avhrr_filename):
              "year":date_time.year,
              "month":date_time.month,    
              "time":sl_[2],
-            "basename":sl_[1] + sl_[2]+ sl_[3],
+             "basename":sl_[1] + sl_[2]+ sl_[3],
              "ppsfilename":avhrr_filename}
     return values
 
@@ -253,7 +260,7 @@ def insert_info_in_filename_or_path(file_or_name_path, values, datetime_obj=None
     name = datetime_obj.strftime(file_or_name_path)
     return name
 
-def find_calipso_files(date_time, options):
+def find_calipso_files(date_time, options, values):
     if config.CLOUDSAT_TYPE == 'CWC-RVOD':
         write_log("INFO", "Do not use CALIPSO in CWC-RWOD mode, Continue")
         calipso_files = []
@@ -261,7 +268,7 @@ def find_calipso_files(date_time, options):
         #might need to geth this in before looking for matchups
         tdelta = timedelta(seconds = (config.SAT_ORBIT_DURATION + config.sec_timeThr))
         time_window = (tdelta, tdelta)
-        calipso_files = find_calipso_files_inner(date_time, time_window, options)
+        calipso_files = find_calipso_files_inner(date_time, time_window, options, values)
         if len(calipso_files) > 1:
             write_log("INFO", "More than one Calipso file found within time window!")
         elif len(calipso_files) == 0:
@@ -283,17 +290,15 @@ def get_time_list_and_cross_time(cross):
     else:
         cross_satellite = cross.satellite1.lower()
         cross_time = cross.time1   
-      #Nina +4rader -1 rad viktiga!!!
-    print cross.time_window    
-    if cross.time_window is not None:
-        ddt = timedelta(seconds=config.SAT_ORBIT_DURATION + cross.time_window)
-    else:
-        ddt = timedelta(seconds=config.SAT_ORBIT_DURATION + config.sec_timeThr)
-    #ddt = timedelta(seconds=config.SAT_ORBIT_DURATION + cross.time_window)
+    ddt = timedelta(seconds=config.SAT_ORBIT_DURATION + config.sec_timeThr)
     if ALWAYS_USE_AVHRR_ORBIT_THAT_STARTS_BEFORE_CROSS:
         ddt2=timedelta(seconds=0)
     else:
         ddt2=ddt
+    time_low = cross_time-ddt
+    time_high = cross_time -ddt2
+    write_log("INFO", "Searching for avhrr/viirs file with start time  between" 
+              ": %s and %s  "%(time_low.strftime("%d %H:%M"),time_high.strftime("%d %H:%M"))) 
     time_window = (ddt, ddt2)
     # Make list of file times to search from:
     tlist = get_time_list(cross_time, time_window, delta_t_in_seconds=60)
@@ -361,14 +366,12 @@ def find_avhrr_file(cross, filedir_pattern, filename_pattern, values={}):
         files = glob(os.path.join(found_dir, file_pattern))
         if len(files) > 0:
             files_found = False
-            write_log('INFO',"Found files: " + str(files))
+            write_log('INFO',"Found files: " + os.path.basename(str(files[0])))
             return files[0]
     if no_files_found:       
          write_log('INFO', "Found no files for patterns of type:"
                    " {pattern}".format(pattern=file_pattern)  )
     return None
-
-
 
 
 def require_h5(files):
@@ -619,8 +622,9 @@ def read_pps_data(pps_files, avhrr_file, cross):
             surft = None
     return avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, surft, cppLwp, cppCph 
 
-def read_cloud_cci(cross, config_options):
-    return avhrrAngObj, ctth,avhrrGeoObj,ctype, avhrrObj
+def read_cloud_cci(avhrr_file):
+    from MakeCloudTopPPSObjFromCLoudCSINetcdf4file import cci_read_ctth
+    return cci_read_ctth(avhrr_file)
 
 def get_matchups_from_data(cross, config_options):
     """
@@ -635,14 +639,28 @@ def get_matchups_from_data(cross, config_options):
             raise MatchupError("No avhrr file found!\ncross = " + str(cross))
         pps_files = find_files_from_avhrr(avhrr_file, config_options)   
         avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, surft, cppLwp, cppCph =read_pps_data(pps_files, avhrr_file, cross)
+        date_time = values["date_time"]
     if (CCI_CLOUD_VALIDATION):
-        avhrrAngObj, ctth,avhrrGeoObj,ctype, avhrrObj =read_cloud_cci(cross, config_options)
+        avhrr_file = "20080613002200-ESACCI-L2_CLOUD-CLD_PRODUCTS-AVHRRGAC-NOAA18-fv1.0.nc"
+        avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, surft, cppLwp, cppCph =read_cloud_cci(avhrr_file)
+        date_time=datetime.strptime("200806130022", '%Y%m%d%H%M')
+        values= {"satellite": "noaa18",
+                 "date_time": date_time,
+                 "orbit": "9999",
+                 "date":"20080613",
+                 "year":date_time.year,
+                 "month":date_time.month,    
+                 "time":"0022",
+                 "basename":"20080613002200-ESACCI",
+                 "ccifilename":avhrr_file,
+                 "ppsfilename":"noaa18_20080613_0022_99999_satproj_00000_13793_cloudtype.h5"}
+       
     
-    date_time = values["date_time"]
-    cloudsat_files = find_cloudsat_files(date_time, config_options)
-    calipso_files = find_calipso_files(date_time, config_options)
+
+    calipso_files = find_calipso_files(date_time, config_options, values)
 
     if (PPS_VALIDATION):
+        cloudsat_files = find_cloudsat_files(date_time, config_options)
         if (isinstance(cloudsat_files, str) == True or 
             (isinstance(cloudsat_files, list) and len(cloudsat_files) != 0)):
             write_log("INFO","Read CLOUDSAT %s data" % config.CLOUDSAT_TYPE)
@@ -666,18 +684,26 @@ def get_matchups_from_data(cross, config_options):
             if config.ALSO_USE_1KM_FILES == True:
                 write_log("INFO", "Search for CALIPSO 1km data too")
                 calipso1km = []
+                calipso5km = []
                 for file5km in calipso_files:
                     file1km = file5km.replace('/5km/', '/1km/').\
                                                 replace('05kmCLay', '01kmCLay').\
                                                 replace('-Prov-V3-01.', '*').\
-                                                replace('.h5', '*')
-                    #calipso1km.append(glob.glob(file1km)[0]) #Wrong expression, gives not all realisations/KG
-                    selected_cases = glob.glob(file1km)       #New formulation 20130205/KG
-                    for case in selected_cases:
-                        calipso1km.append(case)
+                                                replace('.hdf', '.h5')
+                    files_found = glob.glob(file1km)
+                    if len(files_found)==0:
+                         #didn't find h5 file, might be hdf file instead
+                        file1km = file1km.replace('.h5','.hdf')
+                        files_found = glob.glob(file1km)
+                    if len(files_found)>0:    
+                        calipso1km.append(files_found[0])
+                        calipso5km.append(file5km)
                 calipso1km = sorted(require_h5(calipso1km))
-                if len(calipso_files) != len(calipso1km):
+                calipso_files = sorted(calipso5km)
+                if len(calipso_files) == 0:
+                    raise MatchupError("Did not find any matching 5km and 1km calipso files")
 
+                if len(calipso_files) != len(calipso1km):
                     raise MatchupError("Inconsistent number of calipso files...\n" + 
                                        "\tlen(calipso_files) = %d\n" % len(calipso_files) + 
                                        "\tlen(calipso1km) = %d" % len(calipso1km))
@@ -688,6 +714,7 @@ def get_matchups_from_data(cross, config_options):
             if config.ALSO_USE_5KM_FILES == True:
                 write_log("INFO", "Search for CALIPSO 5km data too")
                 calipso5km = []
+                calipso1km = []
                 for file1km in calipso_files:
                     file5km = file1km.replace('/1km/', '/5km/').\
                                                 replace('01kmCLay', '05kmCLay').\
@@ -697,12 +724,18 @@ def get_matchups_from_data(cross, config_options):
                         #didn't find h5 file, might be hdf file instead
                         file5km = file5km.replace('.h5','.hdf')
                         files_found = glob.glob(file5km)
-                    calipso5km.append(files_found[0])
+                    if len(files_found)>0: 
+                        calipso5km.append(files_found[0])
+                        calipso1km.append(file1km)
+                calipso5km = sorted(require_h5(calipso5km))
+                calipso_files = sorted(calipso1km)
+
+                if len(calipso_files) == 0:
+                    raise MatchupError("Did not find any matching 5km and 1km calipso files")
                 if len(calipso_files) != len(calipso5km):
                     raise MatchupError("Inconsistent number of calipso files...\n" + 
                                        "\tlen(calipso_files) = %d\n" % len(calipso_files) + 
                                        "\tlen(calipso1km) = %d" % len(calipso5km))
-                calipso5km = require_h5(calipso5km)
             else:
                 calipso5km = None
                 
