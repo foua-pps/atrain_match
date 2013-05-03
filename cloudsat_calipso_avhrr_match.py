@@ -151,8 +151,8 @@ from cloudsat_calipso_avhrr_plot import (drawCalClsatAvhrrPlotTimeDiff,
                                          drawCalClsatCWCAvhrrPlot)
 from config import CALIPSO_CLOUD_FRACTION
 
-INSTRUMENT = {'npp': 'viirs'}
-
+INSTRUMENT = {'npp': 'viirs',
+              'noaa18': 'avhrr'}
 from datetime import datetime, timedelta
 from glob import glob
 
@@ -200,12 +200,12 @@ def get_time_list(cross_time, time_window, delta_t_in_seconds):
     delta_t = timedelta(seconds=delta_t_in_seconds) #search per minute!delta_t_in_seconds=60
     tobj1 = cross_time
     tobj2 = cross_time - delta_t
-    while (tobj1 < cross_time + time_window[1] or 
-           tobj2 > cross_time - time_window[0]):
-        if tobj1 < cross_time + time_window[1]:
+    while (tobj1 <= cross_time + time_window[1] or 
+           tobj2 >= cross_time - time_window[0]):
+        if tobj1 <= cross_time + time_window[1]:
             tlist.append(tobj1)
             tobj1 = tobj1 + delta_t
-        if   tobj2 > cross_time - time_window[0]:   
+        if   tobj2 >= cross_time - time_window[0]:   
             tlist.append(tobj2)
             tobj2 = tobj2 - delta_t  
     return tlist 
@@ -362,10 +362,10 @@ def find_avhrr_file(cross, filedir_pattern, filename_pattern, values={}):
     no_files_found = True
     for tobj in tlist:
         file_pattern = insert_info_in_filename_or_path(filename_pattern,
-                                                       values, datetime_obj=tobj)       
+                                                       values, datetime_obj=tobj)  
         files = glob(os.path.join(found_dir, file_pattern))
         if len(files) > 0:
-            files_found = False
+            no_files_found = False
             write_log('INFO',"Found files: " + os.path.basename(str(files[0])))
             return files[0]
     if no_files_found:       
@@ -607,7 +607,8 @@ def read_pps_data(pps_files, avhrr_file, cross):
     try:
         ctth = epshdf.read_cloudtop(pps_files.ctth, 1, 1, 1, 0, 1)
     except:
-        ctth = None    
+        ctth = None  
+    surft = None
     if pps_files.nwp_tsur is not None : # and config.CLOUDSAT_TYPE == "GEOPROF":
         if 1:
             nwpinst = epshdf.read_nwpdata(pps_files.nwp_tsur)
@@ -632,7 +633,7 @@ def get_matchups_from_data(cross, config_options):
     PPS files.
     """
     import os #@Reimport
-    if (PPS_VALIDATION):
+    if (PPS_VALIDATION ):
         avhrr_file = find_radiance_file(cross, config_options)
         values = get_satid_datetime_orbit_from_fname(avhrr_file)
         if not avhrr_file:
@@ -654,8 +655,7 @@ def get_matchups_from_data(cross, config_options):
                  "basename":"20080613002200-ESACCI",
                  "ccifilename":avhrr_file,
                  "ppsfilename":"noaa18_20080613_0022_99999_satproj_00000_13793_cloudtype.h5"}
-       
-    
+
 
     calipso_files = find_calipso_files(date_time, config_options, values)
 
