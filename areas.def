@@ -70,3 +70,11 @@ REGION: mill10km_test {
         AREA_EXTENT:    (-17352991.2533981,-13000000.0,17352991.2533981,13000000.0)
 };
 
+REGION: cea5km_test {
+        NAME:           cylin_eq_area_test_5km_wgs84
+        PCS_ID:         cea5km
+        PCS_DEF:        proj=cea,ellps=WGS84,lat_ts=30.0,lon_0=0.0,x_0=0.0,y_0=0.0
+        XSIZE:          6935
+        YSIZE:          2945
+        AREA_EXTENT:    (-17352991.2533981,-7348381.81895882,17352991.2533981,7348381.81895882)
+};
