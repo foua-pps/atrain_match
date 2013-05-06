@@ -229,7 +229,7 @@ def find_calipso_files_inner(date_time, time_window, options, values):
 def get_satid_datetime_orbit_from_fname(avhrr_filename):
     import runutils
     #satname, _datetime, orbit = runutils.parse_scene(avhrr_filename)
-    #returnd orbit as int, loosing leeding zeros, dont use here!
+    #returnd orbit as int, loosing leeding zeros, use %05d to get it right.
     # Get satellite name, time, and orbit number from avhrr_file
     sl_ = os.path.basename(avhrr_filename).split('_')
     date_time= datetime.strptime(sl_[1] + sl_[2], '%Y%m%d%H%M')
@@ -253,6 +253,10 @@ def insert_info_in_filename_or_path(file_or_name_path, values, datetime_obj=None
         resolution=config.RESOLUTION,
         area=config.AREA,
         val_dir=config._validation_results_dir,
+        year=values.get('year',"unknown"),
+        month=values.get('month',"unknown"),
+        mode=values.get('mode',"unknown"),
+        min_opt_depth=('min_opt_depth',"unknown"),
         atrain_datatype=values.get("atrain_datatype","atrain_datatype"))
 
     if datetime_obj is None:
@@ -331,13 +335,13 @@ def find_avhrr_file_old(cross, options):
     return None
 
 def find_radiance_file(cross, options):
-    found_files = find_avhrr_file(cross, 
-                                  options['radiance_dir'], 
-                                  options['radiance_file'])
-    if not found_files:
+    found_file, tobj= find_avhrr_file(cross, 
+                                      options['radiance_dir'], 
+                                      options['radiance_file'])
+    if not found_file:
         raise MatchupError("No dir or file found with radiance data!\n" + 
                            "Searching under %s" % options['radiance_dir'])
-    return found_files
+    return found_file, tobj
 
 def find_avhrr_file(cross, filedir_pattern, filename_pattern, values={}):
     (tlist, cross_time, cross_satellite) = get_time_list_and_cross_time(cross)
@@ -358,7 +362,7 @@ def find_avhrr_file(cross, filedir_pattern, filename_pattern, values={}):
     if not found_dir:
         write_log('INFO',"This directory does not exist, pattern:"
                   " {directory}".format(directory=filedir_pattern))
-        return None
+        return None, None
     no_files_found = True
     for tobj in tlist:
         file_pattern = insert_info_in_filename_or_path(filename_pattern,
@@ -367,11 +371,11 @@ def find_avhrr_file(cross, filedir_pattern, filename_pattern, values={}):
         if len(files) > 0:
             no_files_found = False
             write_log('INFO',"Found files: " + os.path.basename(str(files[0])))
-            return files[0]
+            return files[0], tobj
     if no_files_found:       
          write_log('INFO', "Found no files for patterns of type:"
                    " {pattern}".format(pattern=file_pattern)  )
-    return None
+    return None, None
 
 
 def require_h5(files):
@@ -634,7 +638,7 @@ def get_matchups_from_data(cross, config_options):
     """
     import os #@Reimport
     if (PPS_VALIDATION ):
-        avhrr_file = find_radiance_file(cross, config_options)
+        avhrr_file, tobj = find_radiance_file(cross, config_options)
         values = get_satid_datetime_orbit_from_fname(avhrr_file)
         if not avhrr_file:
             raise MatchupError("No avhrr file found!\ncross = " + str(cross))
@@ -802,7 +806,7 @@ def get_matchups_from_data(cross, config_options):
     
     return {'cloudsat': cl_matchup, 'cloudsat_time_diff': cl_time_diff,
             'calipso': ca_matchup, 'calipso_time_diff': ca_time_diff,
-            'basename': basename}
+            'basename': basename, 'values':values}
 
 
 def get_matchups(cross, options, reprocess=False):
@@ -830,12 +834,13 @@ def get_matchups(cross, options, reprocess=False):
         # or change read of files
         values["atrain_sat"] = "cloudsat-%s" % config.CLOUDSAT_TYPE[0]
         values["atrain_datatype"] = "cloudsat-%s" % config.CLOUDSAT_TYPE[0]
-        cl_match_file = find_avhrr_file(cross, options['reshape_dir'], options['reshape_file'], values=values)
+        cl_match_file, tobj = find_avhrr_file(cross, options['reshape_dir'], options['reshape_file'], values=values)
         if not cl_match_file:
             write_log('INFO', "No processed CloudSat match files found." + 
                       " Generating from source data.")
             clObj = None
         else:
+            date_time=tobj
             clObj = readCloudsatAvhrrMatchObj(cl_match_file) 
             basename = '_'.join(os.path.basename(cl_match_file).split('_')[1:5])
             write_log('INFO', "CloudSat Matchups read from previously " + 
@@ -843,7 +848,7 @@ def get_matchups(cross, options, reprocess=False):
         
         values["atrain_sat"] = "caliop"
         values["atrain_datatype"] = "caliop"
-        ca_match_file = find_avhrr_file(cross, options['reshape_dir'], options['reshape_file'], values=values)
+        ca_match_file, tobj = find_avhrr_file(cross, options['reshape_dir'], options['reshape_file'], values=values)
         if not  ca_match_file:
             write_log('INFO', 
                       ("No processed CALIPSO match files found. "+
@@ -851,6 +856,7 @@ def get_matchups(cross, options, reprocess=False):
             caObj = None
         else:
             #print ca_match_file
+            date_time=tobj
             caObj = readCaliopAvhrrMatchObj(ca_match_file)
             basename = '_'.join(os.path.basename(ca_match_file).split('_')[1:5])
             write_log('INFO', 
@@ -858,6 +864,14 @@ def get_matchups(cross, options, reprocess=False):
             write_log('INFO', 'Filename: ' + ca_match_file)
             calipso_min_and_max_timediffs = (caObj.diff_sec_1970.min(), 
                                              caObj.diff_sec_1970.max())
+        if None in [caObj] and None in [clObj]:
+            pass
+        else:
+            values['date_time'] = date_time
+            values['year'] = tobj.year
+            values['basename'] = basename
+            values['month']="%02d"%(tobj.month)
+
     #TODO: Fix a better solution for below so it can handle missing cloudsat better.
     if None in [caObj] and None in [clObj]:
         return get_matchups_from_data(cross, options)
@@ -869,7 +883,8 @@ def get_matchups(cross, options, reprocess=False):
 
     return {'calipso': caObj, 'cloudsat': clObj, 
             'basename': basename,
-            'calipso_time_diff': calipso_min_and_max_timediffs
+            'calipso_time_diff': calipso_min_and_max_timediffs,
+            'values':values
             }
 
 
@@ -992,6 +1007,8 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     matchup_results = get_matchups(cross, config_options, reprocess)
     caObj = matchup_results['calipso']
     clsatObj = matchup_results['cloudsat']
+    values = matchup_results['values']
+    print values
     #import pdb;pdb.set_trace()
 
     clsat_min_diff, clsat_max_diff = matchup_results.get('cloudsat_time_diff', (NaN, NaN))
@@ -1081,25 +1098,45 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     # If everything is OK, now create filename for statistics output file and
     # open it for writing.  Notice that more than one file (but maximum 2) can
     # be created for one particular noaa orbit.
-    resultpath = "%s/%s/%ikm/%s/%s/%s/%s" % (config.RESULT_DIR, 
-                                             base_sat,
-                                             int(config.RESOLUTION), 
-                                             base_year, base_month, 
-                                             config.AREA, process_mode_dnt)
+
+    #resultpath = "%s/%s/%ikm/%s/%s/%s/%s" % (config.RESULT_DIR, 
+    #                                         base_sat,
+    #                                         int(config.RESOLUTION), 
+    #                                         base_year, base_month, 
+    #                                         config.AREA, process_mode_dnt)
+    min_depth_to_file_name=""
     if process_mode == 'OPTICAL_DEPTH':
+        min_depth_to_file_name="-%.1f"%(min_optical_depth)
+        #resultpath = "%s/%s/%ikm/%s/%s/%s/%s-%.1f" % (config.RESULT_DIR, 
+        #                                              base_sat,
+        #                                              int(config.RESOLUTION), 
+        #                                              base_year, base_month,
+        #                                              config.AREA, process_mode_dnt, 
+        #                                              min_optical_depth)      
+    #result_dir = {val_dir}/Results/{satellite}/{resolution}km/{year}/{month}/{area}/{mode}-{min_opt_depth}/
+    values['mode']= process_mode_dnt
+    values['min_opt_depth']=min_depth_to_file_name
+    result_path = insert_info_in_filename_or_path(config_options['result_dir'], values, datetime_obj=values['date_time'])
+    #result_path = config_options['result_dir'].format(
+    #        val_dir=config._validation_results_dir,
+    #        satellite=values["satellite"],
+    #        resolution=str(config.RESOLUTION),
+    #        area=config.AREA,
+    #        month=values["month"],
+    #        year=values["year"],
+    #        mode=process_mode_dnt,
+    #        min_opt_depth=min_depth_to_file_name
+    #        )
+    if not os.path.exists(result_path):
+        os.makedirs(result_path)
 
-        resultpath = "%s/%s/%ikm/%s/%s/%s/%s-%.1f" % (config.RESULT_DIR, 
-                                                      base_sat,
-                                                      int(config.RESOLUTION), 
-                                                      base_year, base_month,
-                                                      config.AREA, process_mode_dnt, 
-                                                      min_optical_depth)        
-    if not os.path.exists(resultpath):
-        os.makedirs(resultpath)
+    #statname = "%ikm_%s_cloudsat_calipso_avhrr_stat.dat" % (int(config.RESOLUTION),
+    #                                                        basename)
+    result_file = config_options['result_file'].format(
+            resolution=str(config.RESOLUTION),
+            basename=values['basename'] )
 
-    statname = "%ikm_%s_cloudsat_calipso_avhrr_stat.dat" % (int(config.RESOLUTION),
-                                                            basename)
-    statfilename = os.path.join(resultpath, statname)
+    statfilename = os.path.join(result_path, result_file)
 
     if CALIPSO_CLOUD_FRACTION == True:
         statfilename = "%s/CCF_%ikm_%s_cloudsat_calipso_avhrr_stat.dat" % (resultpath,int(config.RESOLUTION),basename)        
@@ -1250,10 +1287,13 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     # Draw plot
     if process_mode_dnt in config.PLOT_MODES:
         write_log('INFO', "Plotting")
-        
-        plotpath = os.path.join(config.PLOT_DIR,
-                                base_sat, "%ikm" % config.RESOLUTION, 
-                                base_year, base_month, config.AREA)
+
+        #plot_dir = {val_dir}/Plot/{satellite}/{resolution}km/%Y/%m/{area}/  
+        plotpath = insert_info_in_filename_or_path(config_options['plot_dir'], values, datetime_obj=values['date_time'])      
+        #print plotpath
+        #plotpath = os.path.join(config.PLOT_DIR,
+        #                        base_sat, "%ikm" % config.RESOLUTION, 
+        #                        base_year, base_month, config.AREA)
             
         trajectorypath = os.path.join(plotpath, "trajectory_plot")
         if not os.path.exists(trajectorypath):
@@ -1261,7 +1301,7 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
 
         trajectoryname = os.path.join(trajectorypath, 
                                       "%skm_%s_trajectory" % (int(config.RESOLUTION),
-                                                              basename))
+                                                              values['basename']))
         # To make it possible to use the same function call to drawCalClsatGEOPROFAvhrr*kmPlot
         # in any processing mode:
         if 'emissfilt_calipso_ok' not in locals():
