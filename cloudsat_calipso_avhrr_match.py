@@ -238,7 +238,7 @@ def get_satid_datetime_orbit_from_fname(avhrr_filename):
              "orbit": sl_[3],
              "date":sl_[1],
              "year":date_time.year,
-             "month":date_time.month,    
+             "month":"%02d"%(date_time.month),    
              "time":sl_[2],
              "basename":sl_[1] + sl_[2]+ sl_[3],
              "ppsfilename":avhrr_filename}
@@ -569,7 +569,7 @@ def get_calipso_matchups(calipso_files, values,
                               avhrrGeoObj, avhrrObj, ctype,
                               ctth, cppCph, surft, avhrrAngObj, options)
     ca_matchup, ca_min_diff, ca_max_diff = tup
-    
+    #import pdb; pdb.set_trace()
     return ca_matchup, (ca_min_diff, ca_max_diff)
 
 def read_pps_data(pps_files, avhrr_file, cross):
@@ -650,13 +650,13 @@ def get_matchups_from_data(cross, config_options):
                  "orbit": "9999",
                  "date":"20080613",
                  "year":date_time.year,
-                 "month":date_time.month,    
+                 "month":"%02d"%(date_time.month),    
                  "time":"0022",
                  "basename":"20080613002200-ESACCI",
                  "ccifilename":avhrr_file,
                  "ppsfilename":"noaa18_20080613_0022_99999_satproj_00000_13793_cloudtype.h5"}
 
-
+        avhrrGeoObj.satellite = "noaa18";
     calipso_files = find_calipso_files(date_time, config_options, values)
 
     if (PPS_VALIDATION):
@@ -749,7 +749,7 @@ def get_matchups_from_data(cross, config_options):
 
     else:
         write_log("INFO", "NO CALIPSO File, Continue")
-
+    #import pdb; pdb.set_trace()
 
     # Get satellite name, time, and orbit number from avhrr_file
     date_time = values["date_time"]
@@ -992,6 +992,7 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     matchup_results = get_matchups(cross, config_options, reprocess)
     caObj = matchup_results['calipso']
     clsatObj = matchup_results['cloudsat']
+    #import pdb;pdb.set_trace()
 
     clsat_min_diff, clsat_max_diff = matchup_results.get('cloudsat_time_diff', (NaN, NaN))
     ca_min_diff, ca_max_diff = matchup_results.get('calipso_time_diff', (NaN, NaN))
@@ -1059,6 +1060,7 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
 
     ## Calipso ##        
     caObj = CalipsoAvhrrSatz(caObj)
+    #import pdb;pdb.set_trace()
     calon = caObj.calipso.longitude.copy()
     calat = caObj.calipso.latitude.copy()
 
@@ -1362,8 +1364,8 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
         else:
             process_calipso_ok = 0
         
-        write_log('INFO', "Calculating statistics")
-        CalculateStatistics(process_mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
-                            cal_vert_feature, avhrr_ctth_csat_ok, data_ok,
-                            cal_data_ok, avhrr_ctth_cal_ok, caliop_max_height,
-                            process_calipso_ok, dnt_flag)
+    write_log('INFO', "Calculating statistics")
+    CalculateStatistics(process_mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
+                        cal_vert_feature, avhrr_ctth_csat_ok, data_ok,
+                        cal_data_ok, avhrr_ctth_cal_ok, caliop_max_height,
+                        process_calipso_ok, dnt_flag)
