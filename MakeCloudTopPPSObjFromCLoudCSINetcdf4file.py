@@ -26,7 +26,7 @@ def daysafter4713bc_to_sec1970(bcdate_array):
 
 filename="20080613002200-ESACCI-L2_CLOUD-CLD_PRODUCTS-AVHRRGAC-NOAA18-fv1.0.nc"
 def cci_read_ctth(filename):
-    filename="20080613002200-ESACCI-L2_CLOUD-CLD_PRODUCTS-AVHRRGAC-NOAA18-fv1.0.nc"
+    #filename="20080613002200-ESACCI-L2_CLOUD-CLD_PRODUCTS-AVHRRGAC-NOAA18-fv1.0.nc"
     #filename_pps="noaa18_20080613_0022_99999_satproj_00000_13793_cloudtype.h5"
     #ct=h5py.File(filename_pps)
     #ct.attrs['sec_1970']

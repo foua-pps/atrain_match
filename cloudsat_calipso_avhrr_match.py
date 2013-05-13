@@ -343,6 +343,15 @@ def find_radiance_file(cross, options):
                            "Searching under %s" % options['radiance_dir'])
     return found_file, tobj
 
+def find_cci_cloud_file(cross, options):
+    found_file, tobj= find_avhrr_file(cross, 
+                                      options['cci_dir'], 
+                                      options['cci_file'])
+    if not found_file:
+        raise MatchupError("No dir or file found with cci cloud data!\n" + 
+                           "Searching under %s" % options['cci_dir'])
+    return found_file, tobj
+
 def find_avhrr_file(cross, filedir_pattern, filename_pattern, values={}):
     (tlist, cross_time, cross_satellite) = get_time_list_and_cross_time(cross)
     time_window=cross.time_window
@@ -646,7 +655,8 @@ def get_matchups_from_data(cross, config_options):
         avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, surft, cppLwp, cppCph =read_pps_data(pps_files, avhrr_file, cross)
         date_time = values["date_time"]
     if (CCI_CLOUD_VALIDATION):
-        avhrr_file = "20080613002200-ESACCI-L2_CLOUD-CLD_PRODUCTS-AVHRRGAC-NOAA18-fv1.0.nc"
+        avhrr_file, tobj = find_cci_cloud_file(cross, config_options)
+        #avhrr_file = "20080613002200-ESACCI-L2_CLOUD-CLD_PRODUCTS-AVHRRGAC-NOAA18-fv1.0.nc"
         avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, surft, cppLwp, cppCph =read_cloud_cci(avhrr_file)
         date_time=datetime.strptime("200806130022", '%Y%m%d%H%M')
         values= {"satellite": "noaa18",
