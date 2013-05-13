@@ -1,17 +1,21 @@
 import ppshdf_cloudproducts
 import ppshdf_helpers
-from epshdf import *
+from epshdf import (SafRegion, 
+                    CloudType, 
+                    SunSatAngleData)
 import netCDF4	
-#from mpop.satin.nwcsaf_pps import NwcSafPpsChannel
 import numpy as np
-#import h5py
 import pps_io
 import calendar
 import datetime
+from pps_error_messages import write_log
+import time
+#import h5py
+#from mpop.satin.nwcsaf_pps import NwcSafPpsChannel
 
 def daysafter4713bc_to_sec1970(bcdate_array):
     #import pps_time_util #@UnresolvedImport
-    import datetime
+    
     bcdate=np.min(bcdate_array)
     ddays=np.floor(bcdate)
     dseconds=np.floor(24*60*60*(bcdate-ddays))
@@ -23,8 +27,6 @@ def daysafter4713bc_to_sec1970(bcdate_array):
     sec_1970_array = 24*60*60*(bcdate_array - bcdate) + sec_1970
     return sec_1970_array
 
-
-filename="20080613002200-ESACCI-L2_CLOUD-CLD_PRODUCTS-AVHRRGAC-NOAA18-fv1.0.nc"
 def cci_read_ctth(filename):
     #filename="20080613002200-ESACCI-L2_CLOUD-CLD_PRODUCTS-AVHRRGAC-NOAA18-fv1.0.nc"
     #filename_pps="noaa18_20080613_0022_99999_satproj_00000_13793_cloudtype.h5"
@@ -37,21 +39,24 @@ def cci_read_ctth(filename):
     #cci_nc.variables['cth'].add_offset
     #cci_nc.variables['cth'][:] 
     #cci_nc.variables['cth'].scale_factor
-
+    write_log("INFO", "Opening file %s"%(filename))
     cci_nc = netCDF4.Dataset(filename, 'r', format='NETCDF4')
+    write_log("INFO", "Reading ctth ...")
     ctth = read_cci_ctth(cci_nc)
+    write_log("INFO", "Reading cloud type ...")
     ctype = read_cci_ctype(cci_nc)
+    write_log("INFO", "Reading longitude, latitude and time ...")
     avhrrGeoObj = read_cci_geoobj(cci_nc)
+    write_log("INFO", "Reading angles ...")
     avhrrAngObj = read_cci_angobj(cci_nc)
+    write_log("INFO", "Not reading surface temperature")
     surft = None
+    write_log("INFO", "Not reading cloud liquid water path")
     cppLwp = None
+    write_log("INFO", "Not reading cloud phase")
     cppCph = None
-    avhrrObj = None
-    print ctth
-    print ctype
-    print avhrrGeoObj
-    print avhrrAngObj
-    
+    write_log("INFO", "Not reading channel data")
+    avhrrObj = None    
     return avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, surft, cppLwp, cppCph
 
 def read_cci_ctype(cci_nc):
@@ -68,7 +73,6 @@ def read_cci_ctype(cci_nc):
     ctype.phaseflag_des="This is the phaseflag description"
     ctype.sec_1970="???"
     ctype.satellite_id="????"
-
 
     ctype.cloudtype_lut.append("This is the first cloudtype lut")
     ctype.cloudtype_lut.append("This is the second cloudtype lut")
@@ -116,9 +120,9 @@ def read_cci_geoobj(cci_nc):
     avhrrGeoObj.sec1970_start = np.min(avhrrGeoObj.time)  
     avhrrGeoObj.sec1970_end = np.max(avhrrGeoObj.time)
 
-    import time
-    print time.gmtime(avhrrGeoObj.sec1970_start)
-    print time.gmtime(avhrrGeoObj.sec1970_end)
+    tim1=time.strftime("%Y %m %d %H:%M", time.gmtime(avhrrGeoObj.sec1970_start))
+    tim2=time.strftime("%Y %m %d %H:%M", time.gmtime(avhrrGeoObj.sec1970_end))
+    write_log("INFO", "Starttime: %s, end time: %s"%(tim1,tim2))
     #t=datetime.datetime(2008,06,13,00,22)
     #avhrrGeoObj.sec1970_start=calendar.timegm(t.timetuple())
     #avhrrGeoObj.sec1970_end=avhrrGeoObj.sec1970_start+110*60
