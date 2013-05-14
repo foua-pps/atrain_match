@@ -479,7 +479,7 @@ def createAvhrrTime(Obt, values):
 
     #filename = os.path.basename(filename)
     # Ex.: npp_20120827_2236_04321_satproj_00000_04607_cloudtype.h5
-    if IMAGER_INSTRUMENT == 'npp':
+    if IMAGER_INSTRUMENT == 'viirs':
     #if filename.split('_')[0] == 'npp':
         if Obt.sec1970_start < 0: #10800
             write_log("WARNING", 
@@ -494,7 +494,7 @@ def createAvhrrTime(Obt, values):
        #test = np.apply_along_axis(np.multiply,  0, np.ones([20, 16]), linetime).reshape(30)        
         linetime = np.linspace(Obt.sec1970_start, Obt.sec1970_end, num_of_scan)
         Obt.time = np.apply_along_axis(np.multiply,  0, np.ones([num_of_scan, 16]), linetime).reshape(Obt.num_of_lines)
-        Obt.time = linetime
+ 
 
     else:
         if Obt.sec1970_end < Obt.sec1970_start:
