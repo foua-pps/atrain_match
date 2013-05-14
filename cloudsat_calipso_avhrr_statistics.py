@@ -7,7 +7,7 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
                         process_calipso_ok, dnt_flag = None):
     import sys
     import numpy as np
-
+    #import pdb; pdb.set_trace()
     # First prepare possible subsetting of CALIOP datasets according to NSIDC
     # and IGBP surface types
     if mode == "EMISSFILT":
@@ -356,6 +356,7 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
 
     calipso_low = np.logical_and(np.logical_and(np.greater_equal(cal_vert_feature[::],0),np.less_equal(cal_vert_feature[::],3)),cal_subset)
     calipso_medium = np.logical_and(np.logical_and(np.greater(cal_vert_feature[::],3),np.less_equal(cal_vert_feature[::],5)),cal_subset)
+    #Nina ska det inte vara ???calipso_high = np.logical_and(np.logical_and(np.greater(cal_vert_feature[::],5),np.less_equal(cal_vert_feature[::],7)),cal_subset)
     calipso_high = np.logical_and(np.logical_and(np.greater_equal(cal_vert_feature[::],5),np.less_equal(cal_vert_feature[::],7)),cal_subset)
     avhrr_low = np.logical_and(np.logical_and(np.greater_equal(caObj.avhrr.cloudtype,5),np.less_equal(caObj.avhrr.cloudtype,8)),cal_subset)
     avhrr_medium = np.logical_and(np.logical_and(np.greater_equal(caObj.avhrr.cloudtype,9),np.less_equal(caObj.avhrr.cloudtype,10)),cal_subset)

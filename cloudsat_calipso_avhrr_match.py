@@ -240,7 +240,7 @@ def get_satid_datetime_orbit_from_fname(avhrr_filename):
              "year":date_time.year,
              "month":"%02d"%(date_time.month),    
              "time":sl_[2],
-             "basename":sl_[1] + sl_[2]+ sl_[3],
+             "basename":sl_[1] + " " + sl_[2] + " " + sl_[3],
              "ppsfilename":avhrr_filename}
     return values
 
@@ -256,7 +256,8 @@ def insert_info_in_filename_or_path(file_or_name_path, values, datetime_obj=None
         year=values.get('year',"unknown"),
         month=values.get('month',"unknown"),
         mode=values.get('mode',"unknown"),
-        min_opt_depth=('min_opt_depth',"unknown"),
+        min_opt_depth=values.get('min_opt_depth',""),
+        result_dir = config.RESULT_DIR,
         atrain_datatype=values.get("atrain_datatype","atrain_datatype"))
 
     if datetime_obj is None:
