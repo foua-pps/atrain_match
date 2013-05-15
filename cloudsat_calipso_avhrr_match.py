@@ -1158,7 +1158,7 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     statfilename = os.path.join(result_path, result_file)
 
     if CALIPSO_CLOUD_FRACTION == True:
-        statfilename = "%s/CCF_%ikm_%s_cloudsat_calipso_avhrr_stat.dat" % (resultpath,int(config.RESOLUTION),basename)        
+        statfilename = os.path.join(result_path, "CCF_" + result_file)      
     statfile = open(statfilename,"w")
     if process_mode == "BASIC":
         if clsatObj is not None:
