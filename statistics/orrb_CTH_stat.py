@@ -6,11 +6,16 @@
 import string
 import math
 import pdb
-
+import config
 from orrb_stat_class import OrrbStats
 
 # -----------------------------------------------------
 class CloudTopStats(OrrbStats):
+
+    def __init__(self, results_files=None, cal_ctth_rows=None):
+        self.cal_ctth_rows = cal_ctth_rows
+        OrrbStats.__init__(self, results_files)
+
     def do_stats(self):
         OrrbStats.do_stats(self)
         
@@ -40,11 +45,10 @@ class CloudTopStats(OrrbStats):
             current_datafile.close()
 
             csa_data = string.split(datalist[15])
-            cal_all_data = string.split(datalist[16])
-            cal_low_data = string.split(datalist[17])
-            cal_medium_data = string.split(datalist[18])
-            cal_high_data = string.split(datalist[19])
-            
+            cal_all_data = string.split(datalist[self.cal_ctth_rows[0]])#16])
+            cal_low_data = string.split(datalist[self.cal_ctth_rows[1]])#17])
+            cal_medium_data = string.split(datalist[self.cal_ctth_rows[2]])#18])
+            cal_high_data = string.split(datalist[self.cal_ctth_rows[3]])#19])
             if ' '.join(csa_data) != "No CloudSat":
                 # Accumulate CloudSat statistics
                 csa_samples += int(csa_data[6])

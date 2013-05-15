@@ -118,7 +118,8 @@ from config import (VAL_CPP,
                     PLOT_ONLY_PNG,
                     CCI_CLOUD_VALIDATION,
                     PPS_VALIDATION,
-                    ALWAYS_USE_AVHRR_ORBIT_THAT_STARTS_BEFORE_CROSS)
+                    ALWAYS_USE_AVHRR_ORBIT_THAT_STARTS_BEFORE_CROSS,
+                    USE_5KM_FILES_TO_FILTER_CALIPSO_DATA)
 
 from radiance_tb_tables_kgtest import get_central_wavenumber
 # Just use the brightness temperature to
@@ -240,7 +241,7 @@ def get_satid_datetime_orbit_from_fname(avhrr_filename):
              "year":date_time.year,
              "month":"%02d"%(date_time.month),    
              "time":sl_[2],
-             "basename":sl_[1] + sl_[2]+ sl_[3],
+             "basename":sl_[1] + "_" +sl_[2] +"_"+ sl_[3],
              "ppsfilename":avhrr_filename}
     return values
 
@@ -256,7 +257,7 @@ def insert_info_in_filename_or_path(file_or_name_path, values, datetime_obj=None
         year=values.get('year',"unknown"),
         month=values.get('month',"unknown"),
         mode=values.get('mode',"unknown"),
-        min_opt_depth=('min_opt_depth',"unknown"),
+        min_opt_depth=values.get('min_opt_depth',""),
         atrain_datatype=values.get("atrain_datatype","atrain_datatype"))
 
     if datetime_obj is None:
@@ -299,8 +300,8 @@ def get_time_list_and_cross_time(cross):
         ddt2=timedelta(seconds=0)
     else:
         ddt2=ddt
-    time_low = cross_time-ddt
-    time_high = cross_time -ddt2
+    time_low = cross_time - ddt
+    time_high = cross_time + ddt2
     write_log("INFO", "Searching for avhrr/viirs file with start time  between" 
               ": %s and %s  "%(time_low.strftime("%d %H:%M"),time_high.strftime("%d %H:%M"))) 
     time_window = (ddt, ddt2)
@@ -570,8 +571,21 @@ def get_calipso_matchups(calipso_files, values,
     elif cafiles5km !=None:
         calipso1km, startBreak, endBreak  = reshapeCalipso(calipso_files, avhrrGeoObj, values, False, 1)
         calipso5km = reshapeCalipso(cafiles5km,avhrrGeoObj, values, False, 5)[0]
-        write_log('INFO',"Cut optically thin clouds at selected optical depth, using 5km data")
-        calipso = use5km_remove_thin_clouds_from_1km(calipso1km, calipso5km, startBreak, endBreak)
+        # add possibility to group results regarding opticaldepth of top layer
+        calipso1km.optical_depth=0*calipso1km.cloud_top_profile[:,0]-9
+        for pixel in range(calipso5km.utc_time.shape[0]): 
+            for pixel_1km in range(pixel*5, pixel*5+5, 1):
+                if calipso5km.number_of_layers_found[pixel]>0:
+                    calipso1km.optical_depth[pixel_1km] = calipso5km.optical_depth[pixel, 0]     
+        calipso = calipso1km            
+        if USE_5KM_FILES_TO_FILTER_CALIPSO_DATA:
+            write_log('INFO',"Cut optically thin clouds at selected optical depth"
+                      ", using 5km data")
+            calipso = use5km_remove_thin_clouds_from_1km(calipso1km, 
+                                                         calipso5km, 
+                                                         startBreak, 
+                                                         endBreak)
+            
         calipso1km = None
         calipso5km = None
     else:
@@ -714,6 +728,7 @@ def get_matchups_from_data(cross, config_options):
                         calipso5km.append(file5km)
                 calipso1km = sorted(require_h5(calipso1km))
                 calipso_files = sorted(calipso5km)
+                calipso5km=None
                 if len(calipso_files) == 0:
                     raise MatchupError("Did not find any matching 5km and 1km calipso files")
 
@@ -743,6 +758,7 @@ def get_matchups_from_data(cross, config_options):
                         calipso1km.append(file1km)
                 calipso5km = sorted(require_h5(calipso5km))
                 calipso_files = sorted(calipso1km)
+                calipso1km=None
 
                 if len(calipso_files) == 0:
                     raise MatchupError("Did not find any matching 5km and 1km calipso files")

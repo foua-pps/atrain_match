@@ -7,23 +7,34 @@ still be some modules which have internal constants defined.
 
 import os
 #Set to true if you always want an avhrr orbit that starts before the cross
-ALWAYS_USE_AVHRR_ORBIT_THAT_STARTS_BEFORE_CROSS = True
+ALWAYS_USE_AVHRR_ORBIT_THAT_STARTS_BEFORE_CROSS = False
 
 #Choose one to validate
 PPS_VALIDATION = True
 CCI_CLOUD_VALIDATION = False
 
+
+COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC = True
+OPTICAL_DETECTION_LIMIT = 0.3
+ALSO_USE_5KM_FILES = True #5km data is needed to split result on optical depth of top layer.
+
 #When using 1km data, use the 5km data to filterout clouds to thin for VIIRS/AVHRR to see.
 #PARAMETERS FOR CHOOSING HOW TO FILTER DATA 1km RESOLUTION:
-ALSO_USE_5KM_FILES = False
-OPTICAL_DETECTION_LIMIT = 0.3
+#If USE_5KM_FILES_TO_FILTER_CALIPSO_DATA is True, we take the cloud top to
+# be OPTICAL_LIMIT_CLOUD_TOP down in the cloud. For clouds thinner than
+# OPTICAL_LIMIT_CLOUD_TOP we use the cloud base as cloud top.
+USE_5KM_FILES_TO_FILTER_CALIPSO_DATA = False
+OPTICAL_LIMIT_CLOUD_TOP = 0.6
+if USE_5KM_FILES_TO_FILTER_CALIPSO_DATA:
+    ALSO_USE_5KM_FILES = True
+ 
 EXCLUDE_CALIPSO_PIXEL_IF_TOTAL_OPTICAL_THICKNESS_TO_LOW = False
 EXCLUDE_ALL_MULTILAYER = False
 EXCLUDE_MULTILAYER_IF_TOO_THIN_TOP_LAYER = False
 EXCLUDE_GEOMETRICALLY_THICK = False
 
-#H4H5_EXECUTABLE = os.environ.get('H4H5_EXECUTABLE','/local_disk/opt/h4h5tools-2.2.1-linux-x86_64-static/bin/h4toh5')
-H4H5_EXECUTABLE = '/software/apps/h4h5tools/2.2.1/i1214-hdf4-4.2.8-i1214-hdf5-1.8.9-i1214/bin/h4toh5'
+H4H5_EXECUTABLE = os.environ.get('H4H5_EXECUTABLE','/local_disk/opt/h4h5tools-2.2.1-linux-x86_64-static/bin/h4toh5')
+#H4H5_EXECUTABLE = '/software/apps/h4h5tools/2.2.1/i1214-hdf4-4.2.8-i1214-hdf5-1.8.9-i1214/bin/h4toh5'
 PLOT_ONLY_PNG = True
 
 VAL_CPP = os.environ.get('VAL_CPP', False)
@@ -107,7 +118,7 @@ SAT_ORBIT_DURATION = 110*60 #Not to large
 
 
 #: Allowed time deviation in seconds between AVHRR and CALIPSO/CloudSat matchup
-sec_timeThr = 60*10
+sec_timeThr = 60*20
 
 #: Recommended cloud threshold for the CloudSat cloud mask. In 5km data this
 #: threshold has already been applied, so there is no reason to change it for
@@ -277,8 +288,11 @@ if RESOLUTION == 1:
     # calculated instead inside atrain_match sugestion: \
     # cloudsat_track_resolution = len(calipso.longitude) / len(cloudsat.longitude)
     CLOUDSAT_TRACK_RESOLUTION = 1.076
-
-
+    if USE_5KM_FILES_TO_FILTER_CALIPSO_DATA:
+        ALLOWED_MODES.append('OPTICAL_DEPTH')      # Filter out cases with the thinnest topmost CALIPSO layers. Define MIN_OPTICAL_DEPTH above
+        ALLOWED_MODES.append('OPTICAL_DEPTH_DAY')
+        ALLOWED_MODES.append('OPTICAL_DEPTH_NIGHT')
+        ALLOWED_MODES.append('OPTICAL_DEPTH_TWILIGHT')
 elif RESOLUTION == 5:
     DSEC_PER_AVHRR_SCALINE = 1.0/6. * 4 # A "work for the time being" solution.
     SWATHWD=409
@@ -306,8 +320,8 @@ NLINES=6000
 NODATA=-9
 
 #: Processing modes for which plotting should also be performed
-#PLOT_MODES = ['BASIC']
-PLOT_MODES = ['No Plot']
+PLOT_MODES = ['BASIC']
+#PLOT_MODES = ['No Plot']
 
 
 def subdir(self, date, *args, **kwargs):
@@ -437,7 +451,8 @@ SURFACES = ["ICE_COVER_SEA", "ICE_FREE_SEA", "SNOW_COVER_LAND", "SNOW_FREE_LAND"
             "POLAR_SNOW_COVER_LAND", "POLAR_ICE_COVER_SEA"]
 
 #: Filter types for which statistics should be summerized
-FILTERTYPE = ['EMISSFILT']
+#FILTERTYPE = ['EMISSFILT']
+FILTERTYPE = ['OPTICAL_DEPTH']
 if RESOLUTION == 5:
     #FILTERTYPE.append('OPTICAL_DEPTH')
     FILTERTYPE = ['OPTICAL_DEPTH']

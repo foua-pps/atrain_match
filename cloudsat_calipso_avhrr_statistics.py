@@ -1,12 +1,36 @@
 #Program cloudsat_calipso_avhrr_statistics.py
 import config
+import numpy as np
+
+def calculate_ctth_stats(okcaliop, avhrr_ctth_cal_ok,caliop_max_height):
+    avhrr_height_work = np.repeat(avhrr_ctth_cal_ok[::],okcaliop)
+    caliop_max_height_work = np.repeat(caliop_max_height[::],okcaliop)
+    if len(caliop_max_height_work) > 0:
+        if len(avhrr_height_work) > 20:
+            corr_caliop_avhrr = np.corrcoef(caliop_max_height_work,avhrr_height_work)[0,1]
+        else:
+            corr_caliop_avhrr = -99.0
+        diff = avhrr_height_work-caliop_max_height_work
+        bias = np.mean(diff)
+        diff_squared = diff*diff
+        RMS_difference = np.sqrt(np.mean(diff_squared))
+        diff_squared_biascorr = (diff-bias)*(diff-bias)
+#        RMS_difference_biascorr = np.sqrt(np.mean(diff_squared_biascorr))
+    else:
+        corr_caliop_avhrr = -9.0
+        bias = -9.0
+        RMS_difference = -9.0
+#        RMS_difference_biascorr = -9.0
+        diff_squared_biascorr = np.array([-9.0])
+    #return (corr_caliop_avhrr,bias,RMS_difference,avhrr_height_work,diff_squared_biascorr)
+    return "%f %f %f %s %f "%(corr_caliop_avhrr,bias,RMS_difference,len(avhrr_height_work),sum(diff_squared_biascorr))
 
 def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
                         cal_vert_feature, avhrr_ctth_csat_ok, data_ok,
                         cal_data_ok, avhrr_ctth_cal_ok, caliop_max_height,
                         process_calipso_ok, dnt_flag = None):
     import sys
-    import numpy as np
+ 
 
     # First prepare possible subsetting of CALIOP datasets according to NSIDC
     # and IGBP surface types
@@ -494,149 +518,115 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
             statfile.write("CLOUD HEIGHT CLOUDSAT: -9.0 -9.0 -9.0 0 -9.0 \n")
     else:
         statfile.write('No CloudSat \n')
-                    
+
     # CORRELATION: CALIOP - AVHRR HEIGHT
     # FIRST TOTAL FIGURES
 
-
     okcaliop = np.logical_and(cal_data_ok,
-                                    np.logical_and(np.greater(avhrr_ctth_cal_ok[::],0),cal_subset))
+                              np.logical_and(np.greater(avhrr_ctth_cal_ok[::],0),cal_subset))
+    #print "ALL CLOUDS:" 
+    out_stats = calculate_ctth_stats(okcaliop,avhrr_ctth_cal_ok,caliop_max_height)
+    statfile.write("CLOUD HEIGHT CALIOP ALL: %s\n" %(out_stats))
+#    statfile.write("CLOUD HEIGHT CALIOP ALL: %f %f %f %s %f \n" % (corr_caliop_avhrr,bias,RMS_difference,len(avhrr_height_work),sum(diff_squared_biascorr)))
+  
+   
 
-    # Now, don't forget to remove cases when calipso.cloud_fraction in 1 km (if used) is too low!!!/KG
-    # This depends on what thresholds which were set above in the evaluation of cloud fraction.
-
-    if config.ALSO_USE_1KM_FILES:
-        calipso_clear = np.logical_and(np.less(caObj.calipso.cloud_fraction,0.3),cal_subset)
-        calipso_cloudy = np.logical_and(np.greater(caObj.calipso.cloud_fraction,0.3),cal_subset)
-    else:
-        calipso_clear = np.logical_and(np.less(caObj.calipso.cloud_fraction,0.34),cal_subset)
-        calipso_cloudy = np.logical_and(np.greater(caObj.calipso.cloud_fraction,0.66),cal_subset)
-    okcaliop = np.logical_and(okcaliop,calipso_cloudy)
-
-    
-    #print "ALL CLOUDS:"
-    avhrr_height_work = np.repeat(avhrr_ctth_cal_ok[::],okcaliop)
-    caliop_max_height_work = np.repeat(caliop_max_height[::],okcaliop)
-    if len(caliop_max_height_work) > 0:
-        if len(avhrr_height_work) > 20:
-            corr_caliop_avhrr = np.corrcoef(caliop_max_height_work,avhrr_height_work)[0,1]
-        else:
-            corr_caliop_avhrr = -99.0
-        diff = avhrr_height_work-caliop_max_height_work
-        bias = np.mean(diff)
-        diff_squared = diff*diff
-        RMS_difference = np.sqrt(np.mean(diff_squared))
-        diff_squared_biascorr = (diff-bias)*(diff-bias)
-#        RMS_difference_biascorr = np.sqrt(np.mean(diff_squared_biascorr))
-    else:
-        corr_caliop_avhrr = -9.0
-        bias = -9.0
-        RMS_difference = -9.0
-#        RMS_difference_biascorr = -9.0
-        diff_squared_biascorr = np.array([-9.0])
-        
-    #print "Correlation: caliop-avhrr = ",corr_caliop_avhrr
-    #print "Mean difference caliop-avhrr = ", bias
-    #print "RMS difference caliop-avhrr = ",RMS_difference
-    #print "Bias-corrected RMS difference caliop-avhrr = ",RMS_difference_biascorr
-    #print "Number of matchups: ", len(avhrr_height_work)
-    #print "Number of failing PPS CTTHs: ", len(np.repeat(caObj.avhrr.cloudtype[::],np.greater(caObj.avhrr.cloudtype,4)))-len(avhrr_height_work)
-    statfile.write("CLOUD HEIGHT CALIOP ALL: %f %f %f %s %f \n" % (corr_caliop_avhrr,bias,RMS_difference,len(avhrr_height_work),sum(diff_squared_biascorr)))
     # THEN FOR LOW CLOUDS (VERTICAL FEATURE MASK CATEGORIES 0-3)
     cal_low_ok = np.logical_and(np.greater_equal(cal_vert_feature[::],0),np.less_equal(cal_vert_feature[::],3))
-    cal_low_ok = np.logical_and(cal_low_ok,okcaliop)
-    avhrr_height_work = np.repeat(avhrr_ctth_cal_ok[::],cal_low_ok)
-    caliop_max_height_work = np.repeat(caliop_max_height[::],cal_low_ok)
-    #print "LOW CLOUDS ( >680 hPa):"
-    if len(caliop_max_height_work) > 0:
-        if len(avhrr_height_work) > 20:
-            corr_caliop_avhrr = np.corrcoef(caliop_max_height_work,avhrr_height_work)[0,1]
-        else:
-            corr_caliop_avhrr = -99.0
-        diff = avhrr_height_work-caliop_max_height_work
-        bias = np.mean(diff)
-        diff_squared = diff*diff
-        RMS_difference = np.sqrt(np.mean(diff_squared))
-        diff_squared_biascorr = (diff-bias)*(diff-bias)
-#        RMS_difference_biascorr = np.sqrt(np.mean(diff_squared_biascorr))
-    else:
-        corr_caliop_avhrr = -9.0
-        bias = -9.0
-        RMS_difference = -9.0
-#        RMS_difference_biascorr = -9.0
-        diff_squared_biascorr = np.array([-9.0])
-        
-    #print "Correlation: caliop-avhrr = ",corr_caliop_avhrr
-    #print "Mean difference caliop-avhrr = ", bias
-    #print "RMS difference caliop-avhrr = ",RMS_difference
-    #print "Bias-corrected RMS difference caliop-avhrr = ",RMS_difference_biascorr
-    #print "Number of matchups: ", len(avhrr_height_work)
-    #print "Number of failing PPS CTTHs: ", len(np.repeat(caObj.avhrr.cloudtype[::],np.greater(caObj.avhrr.cloudtype,4)))-len(avhrr_height_work)
-    statfile.write("CLOUD HEIGHT CALIOP LOW: %f %f %f %s %f \n" % (corr_caliop_avhrr,bias,RMS_difference,len(avhrr_height_work),sum(diff_squared_biascorr)))
+    cal_low_ok = np.logical_and(cal_low_ok,okcaliop) 
+    out_stats =calculate_ctth_stats(cal_low_ok,avhrr_ctth_cal_ok,caliop_max_height)   
+    statfile.write("CLOUD HEIGHT CALIOP LOW: %s \n" % (out_stats))
         
     # THEN FOR MEDIUM CLOUDS (VERTICAL FEATURE MASK CATEGORIES 4-5)
     cal_mid_ok = np.logical_and(np.greater(cal_vert_feature[::],3),np.less_equal(cal_vert_feature[::],5))
     cal_mid_ok = np.logical_and(cal_mid_ok,okcaliop)
-    avhrr_height_work = np.repeat(avhrr_ctth_cal_ok[::],cal_mid_ok)
-    caliop_max_height_work = np.repeat(caliop_max_height[::],cal_mid_ok)
-    #print "MEDIUM CLOUDS ( 440-680 hPa):"
-    if len(caliop_max_height_work) > 0:
-        if len(avhrr_height_work) > 20:
-            corr_caliop_avhrr = np.corrcoef(caliop_max_height_work,avhrr_height_work)[0,1]
-        else:
-            corr_caliop_avhrr = -99.0
-        diff = avhrr_height_work-caliop_max_height_work
-        bias = np.mean(diff)
-        diff_squared = diff*diff
-        RMS_difference = np.sqrt(np.mean(diff_squared))
-        diff_squared_biascorr = (diff-bias)*(diff-bias)
-#        RMS_difference_biascorr = np.sqrt(np.mean(diff_squared_biascorr))
-    else:
-        corr_caliop_avhrr = -9.0
-        bias = -9.0
-        RMS_difference = -9.0
-#        RMS_difference_biascorr = -9.0
-        diff_squared_biascorr = np.array([-9.0])
-        
-    #print "Correlation: caliop-avhrr = ",corr_caliop_avhrr
-    #print "Mean difference caliop-avhrr = ", bias
-    #print "RMS difference caliop-avhrr = ",RMS_difference
-    #print "Bias-corrected RMS difference caliop-avhrr = ",RMS_difference_biascorr
-    #print "Number of matchups: ", len(avhrr_height_work)
-    #print "Number of failing PPS CTTHs: ", len(np.repeat(caObj.avhrr.cloudtype[::],np.greater(caObj.avhrr.cloudtype,4)))-len(avhrr_height_work)
-    statfile.write("CLOUD HEIGHT CALIOP MEDIUM: %f %f %f %s %f \n" % (corr_caliop_avhrr,bias,RMS_difference,len(avhrr_height_work),sum(diff_squared_biascorr)))
+    out_stats = calculate_ctth_stats(cal_mid_ok,avhrr_ctth_cal_ok,caliop_max_height)   
+    statfile.write("CLOUD HEIGHT CALIOP MEDIUM: %s \n" % (out_stats))
             
     # FINALLY FOR HIGH CLOUDS (VERTICAL FEATURE MASK CATEGORIES 6-7)
     cal_high_ok = np.logical_and(np.greater(cal_vert_feature[::],5),np.less_equal(cal_vert_feature[::],7))
     cal_high_ok = np.logical_and(cal_high_ok,okcaliop)
-    avhrr_height_work = np.repeat(avhrr_ctth_cal_ok[::],cal_high_ok)
-    caliop_max_height_work = np.repeat(caliop_max_height[::],cal_high_ok)
-    #print "HIGH CLOUDS ( <440 hPa):"
-    if len(caliop_max_height_work) > 0:
-        if len(avhrr_height_work) > 20:
-            corr_caliop_avhrr = np.corrcoef(caliop_max_height_work,avhrr_height_work)[0,1]
-        else:
-            corr_caliop_avhrr = -99.0
-        diff = avhrr_height_work-caliop_max_height_work
-        bias = np.mean(diff)
-        diff_squared = diff*diff
-        RMS_difference = np.sqrt(np.mean(diff_squared))
-        diff_squared_biascorr = (diff-bias)*(diff-bias)
-#        RMS_difference_biascorr = np.sqrt(np.mean(diff_squared_biascorr))
-    else:
-        corr_caliop_avhrr = -9.0
-        bias = -9.0
-        RMS_difference = -9.0
-#        RMS_difference_biascorr = -9.0
-        diff_squared_biascorr = np.array([-9.0])
+    out_stats = calculate_ctth_stats(cal_high_ok,avhrr_ctth_cal_ok,caliop_max_height) 
+    statfile.write("CLOUD HEIGHT CALIOP HIGH: %s \n" % (out_stats))
+
+    if config.COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC:
+        statfile.write("CLOUD HEIGHT SINGLE-LAYER\n")
+        okcaliop_single = np.logical_and(okcaliop, np.equal(caObj.calipso.number_of_layers_found,1))
+    #print "ALL CLOUDS:"
+        out_stats = calculate_ctth_stats(okcaliop_single,avhrr_ctth_cal_ok,caliop_max_height)   
+        statfile.write("CLOUD HEIGHT CALIOP-SINGLE-LAYER ALL: %s \n" % (out_stats))
+
+        okcaliop_single_low = np.logical_and(cal_low_ok, np.equal(caObj.calipso.number_of_layers_found,1))
+        out_stats = calculate_ctth_stats(okcaliop_single_low,avhrr_ctth_cal_ok,caliop_max_height)   
+        statfile.write("CLOUD HEIGHT CALIOP-SINGLE-LAYER LOW: %s \n" % (out_stats))
+ 
+        okcaliop_single_mid = np.logical_and(cal_mid_ok, np.equal(caObj.calipso.number_of_layers_found,1))
+        out_stats = calculate_ctth_stats(okcaliop_single_mid,avhrr_ctth_cal_ok,caliop_max_height)   
+        statfile.write("CLOUD HEIGHT CALIOP-SINGLE-LAYER MEDIUM: %s \n" % (out_stats))
+
+        okcaliop_single_high = np.logical_and(cal_high_ok, np.equal(caObj.calipso.number_of_layers_found,1))
+        out_stats = calculate_ctth_stats(okcaliop_single_high,avhrr_ctth_cal_ok,caliop_max_height)   
+        statfile.write("CLOUD HEIGHT CALIOP-SINGLE-LAYER HIGH: %s \n" % (out_stats))
+
+    if (config.COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC and
+        (config.ALSO_USE_5KM_FILES or config.RESOLUTION==5)): 
+        statfile.write("CLOUD HEIGHT SINGLE-LAYER, NOT VERY THIN\n")
+        lim=2*config.OPTICAL_DETECTION_LIMIT
+        okcaliop_single_not_thinnest = np.logical_and(okcaliop_single, np.greater_equal(caObj.calipso.optical_depth_top_layer,lim))
+    #print "ALL CLOUDS:"
+        out_stats = calculate_ctth_stats(okcaliop_single_not_thinnest,avhrr_ctth_cal_ok,caliop_max_height)   
+        statfile.write("CLOUD HEIGHT CALIOP-SINGLE-LAYER>%f ALL: %s \n" % (lim,out_stats))
         
-    #print "Correlation: caliop-avhrr = ",corr_caliop_avhrr
-    #print "Mean difference caliop-avhrr = ", bias
-    #print "RMS difference caliop-avhrr = ",RMS_difference
-    #print "Bias-corrected RMS difference caliop-avhrr = ",RMS_difference_biascorr
-    #print "Number of matchups: ", len(avhrr_height_work)
-    #print "Number of failing PPS CTTHs: ", len(np.repeat(caObj.avhrr.cloudtype[::],np.greater(caObj.avhrr.cloudtype,4)))-len(avhrr_height_work)
-    statfile.write("CLOUD HEIGHT CALIOP HIGH: %f %f %f %s %f \n" % (corr_caliop_avhrr,bias,RMS_difference,len(avhrr_height_work),sum(diff_squared_biascorr)))
+        okcaliop_single_not_thinnest_low = np.logical_and(okcaliop_single_low, np.greater_equal(caObj.calipso.optical_depth_top_layer,lim))
+        out_stats = calculate_ctth_stats(okcaliop_single_not_thinnest_low,avhrr_ctth_cal_ok,caliop_max_height)   
+        statfile.write("CLOUD HEIGHT CALIOP-SINGLE-LAYER>%f LOW: %s \n" % (lim,out_stats))
+
+        okcaliop_single_not_thinnest_mid = np.logical_and(okcaliop_single_mid, np.greater_equal(caObj.calipso.optical_depth_top_layer,lim))
+        out_stats = calculate_ctth_stats(okcaliop_single_not_thinnest_mid,avhrr_ctth_cal_ok,caliop_max_height)   
+        statfile.write("CLOUD HEIGHT CALIOP-SINGLE-LAYER>%f MEDIUM: %s \n" % (lim,out_stats))
+        
+        okcaliop_single_not_thinnest_high = np.logical_and(okcaliop_single_high, np.greater_equal(caObj.calipso.optical_depth_top_layer,lim))
+        out_stats = calculate_ctth_stats(okcaliop_single_not_thinnest_high,avhrr_ctth_cal_ok,caliop_max_height)   
+        statfile.write("CLOUD HEIGHT CALIOP-SINGLE-LAYER>%f HIGH: %s \n" % (lim,out_stats))
+        
+        
+        statfile.write("CLOUD HEIGHT NOT THIN TOP LAYER\n")
+        lim=2*config.OPTICAL_DETECTION_LIMIT
+        okcaliop_not_thinnest_top_layer = np.logical_and(okcaliop, np.greater_equal(caObj.calipso.optical_depth_top_layer,lim))
+    #print "ALL CLOUDS:"
+        out_stats = calculate_ctth_stats(okcaliop_not_thinnest_top_layer,avhrr_ctth_cal_ok,caliop_max_height)   
+        statfile.write("CLOUD HEIGHT CALIOP-TOP-LAYER>%f ALL: %s \n" % (lim,out_stats))
+        
+        okcaliop_not_thinnest_top_layer_low = np.logical_and(cal_low_ok, np.greater_equal(caObj.calipso.optical_depth_top_layer,lim))
+        out_stats = calculate_ctth_stats(okcaliop_not_thinnest_top_layer_low,avhrr_ctth_cal_ok,caliop_max_height)   
+        statfile.write("CLOUD HEIGHT CALIOP-TOP-LAYER>%f LOW: %s \n" % (lim,out_stats))
+
+        okcaliop_not_thinnest_top_layer_mid = np.logical_and(cal_mid_ok, np.greater_equal(caObj.calipso.optical_depth_top_layer,lim))
+        out_stats = calculate_ctth_stats(okcaliop_not_thinnest_top_layer_mid,avhrr_ctth_cal_ok,caliop_max_height)   
+        statfile.write("CLOUD HEIGHT CALIOP-TOP-LAYER>%f MEDIUM: %s \n" % (lim,out_stats))
+
+        okcaliop_not_thinnest_top_layer_high = np.logical_and(cal_high_ok, np.greater_equal(caObj.calipso.optical_depth_top_layer,lim))
+        out_stats = calculate_ctth_stats(okcaliop_not_thinnest_top_layer_high,avhrr_ctth_cal_ok,caliop_max_height)   
+        statfile.write("CLOUD HEIGHT CALIOP-TOP-LAYER>%f HIGH: %s \n" % (lim,out_stats))
+
+        lim=config.OPTICAL_DETECTION_LIMIT
+        statfile.write("CLOUD HEIGHT VERY THIN TOP LAYER\n")
+        okcaliop_not_thinnest_top_layer = np.logical_and(okcaliop, np.less_equal(caObj.calipso.optical_depth_top_layer,lim))
+    #print "ALL CLOUDS:"
+        out_stats = calculate_ctth_stats(okcaliop_not_thinnest_top_layer,avhrr_ctth_cal_ok,caliop_max_height)   
+        statfile.write("CLOUD HEIGHT CALIOP-TOP-LAYER<%f ALL: %s \n" % (lim,out_stats))
+
+        okcaliop_not_thinnest_top_layer_low = np.logical_and(cal_low_ok, np.less_equal(caObj.calipso.optical_depth_top_layer,lim))
+        out_stats = calculate_ctth_stats(okcaliop_not_thinnest_top_layer_low,avhrr_ctth_cal_ok,caliop_max_height)   
+        statfile.write("CLOUD HEIGHT CALIOP-TOP-LAYER<%f LOW: %s \n" % (lim,out_stats))
+
+        okcaliop_not_thinnest_top_layer_mid = np.logical_and(cal_mid_ok, np.less_equal(caObj.calipso.optical_depth_top_layer,lim))
+        out_stats = calculate_ctth_stats(okcaliop_not_thinnest_top_layer_mid,avhrr_ctth_cal_ok,caliop_max_height)   
+        statfile.write("CLOUD HEIGHT CALIOP-TOP-LAYER<%f MEDIUM: %s \n" % (lim,out_stats))
+
+        okcaliop_not_thinnest_top_layer_high = np.logical_and(cal_high_ok, np.less_equal(caObj.calipso.optical_depth_top_layer,lim))
+        out_stats = calculate_ctth_stats(okcaliop_not_thinnest_top_layer_high,avhrr_ctth_cal_ok,caliop_max_height)   
+        statfile.write("CLOUD HEIGHT CALIOP-TOP-LAYER<%f HIGH: %s \n" % (lim,out_stats))
 
     statfile.close()
     

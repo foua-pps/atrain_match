@@ -4,7 +4,8 @@ Created on Oct 13, 2010
 @author: a001696
 '''
 from config import CASES, MAIN_DATADIR, MAP, RESOLUTION, COMPILED_STATS_FILENAME,\
-    DNT_FLAG, CALIPSO_CLOUD_FRACTION
+    DNT_FLAG, CALIPSO_CLOUD_FRACTION,COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC,\
+    ALSO_USE_5KM_FILES
 
 def compile_filtered_stats(results_files, filttype, write=False):
     """Run through all summary statistics."""
@@ -60,12 +61,56 @@ def compile_basic_stats(results_files, result_end, write=False):
     
     print("========== Cloud top height ===========")
     from statistics import orrb_CTH_stat
-    cth_stats = orrb_CTH_stat.CloudTopStats(results_files)
+    cth_stats = orrb_CTH_stat.CloudTopStats(results_files, [16,17,18,19])
     if write:
         cth_stats.write(COMPILED_STATS_FILENAME + '_cth_BASIC%s.txt' %result_end)
     cth_stats.printout()
     for l in cth_stats.printout():
         print(l)
+
+    if COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC:
+            print("========== Cloud top height ===========")
+            print("========== Single Layer     ===========")
+            from statistics import orrb_CTH_stat
+            cth_stats = orrb_CTH_stat.CloudTopStats(results_files, [21,22,23,24])
+            if write:
+                cth_stats.write(COMPILED_STATS_FILENAME + '_cth_BASIC%s.txt' %result_end)
+            cth_stats.printout()
+            for l in cth_stats.printout():
+                print(l)
+
+    if (COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC and
+        (ALSO_USE_5KM_FILES or RESOLUTION==5)): 
+            print("========== Cloud top height ===========")
+            print("=== Single Layer, Not optically thin ==")
+            print("========== Expect good results here! ==")
+            from statistics import orrb_CTH_stat
+            cth_stats = orrb_CTH_stat.CloudTopStats(results_files, [26,27,28,29])
+            if write:
+                cth_stats.write(COMPILED_STATS_FILENAME + '_cth_BASIC%s.txt' %result_end)
+            cth_stats.printout()
+            for l in cth_stats.printout():
+                print(l)
+            print("========== Cloud top height ===========")
+            print("===== Top Layer, Not optically thin ===")
+            from statistics import orrb_CTH_stat
+            cth_stats = orrb_CTH_stat.CloudTopStats(results_files, [31,32,33,34])
+            if write:
+                cth_stats.write(COMPILED_STATS_FILENAME + '_cth_BASIC%s.txt' %result_end)
+            cth_stats.printout()
+            for l in cth_stats.printout():
+                print(l)
+            print("========== Cloud top height ===========")
+            print("==== Top Layer, Optically very thin ===")
+            print("========== Expect bad results here! ===")
+            from statistics import orrb_CTH_stat
+            cth_stats = orrb_CTH_stat.CloudTopStats(results_files, [36,37,38,39])
+            if write:
+                cth_stats.write(COMPILED_STATS_FILENAME + '_cth_BASIC%s.txt' %result_end)
+            cth_stats.printout()
+            for l in cth_stats.printout():
+                print(l)
+
     
     print("============= Cloud type ==============")
     from statistics import orrb_CTY_stat
