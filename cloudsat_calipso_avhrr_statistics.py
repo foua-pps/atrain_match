@@ -7,7 +7,7 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
                         process_calipso_ok, dnt_flag = None):
     import sys
     import numpy as np
-    #import pdb; pdb.set_trace()
+
     # First prepare possible subsetting of CALIOP datasets according to NSIDC
     # and IGBP surface types
     if mode == "EMISSFILT":
@@ -155,6 +155,8 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
         
         nclear = np.repeat(cloudsat_clear,cloudsat_clear).shape[0]
         ncloudy = np.repeat(cloudsat_cloudy,cloudsat_cloudy).shape[0]
+        ncloudy_pps = n_cloudy_cloudy+n_clear_cloudy
+        nclear_pps = n_cloudy_clear+n_clear_clear
     
         #print "Number of clear points (CLOUDSAT): ",nclear
         #print "Number of cloudy points (CLOUDSAT): ",ncloudy
@@ -163,14 +165,14 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
     
         if ncloudy > 0:
             pod_cloudy = float(n_cloudy_cloudy)/ncloudy
-            far_cloudy = float(n_cloudy_clear)/ncloudy     #Actually not correct computation of FAR!
-                                                            #Should be divided by number of PPS cloudy!!!
+            far_cloudy = float(n_clear_cloudy)/ncloudy_pps     
+                                                            
         else:
             pod_cloudy = -9.0
             far_cloudy = -9.0
         if nclear > 0:
             pod_clear = float(n_clear_clear)/nclear
-            far_clear = float(n_clear_cloudy)/nclear
+            far_clear = float(n_cloudy_clear)/nclear_pps
         else:
             pod_clear = -9.0
             far_clear = -9.0
@@ -206,6 +208,8 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
         
         nclear = np.repeat(cloudsat_clear,cloudsat_clear).shape[0]
         ncloudy = np.repeat(cloudsat_cloudy,cloudsat_cloudy).shape[0]
+        ncloudy_modis = n_cloudy_cloudy+n_clear_cloudy
+        nclear_modis = n_cloudy_clear+n_clear_clear
         
         #print "Number of clear points (CLOUDSAT): ",nclear
         #print "Number of cloudy points (CLOUDSAT): ",ncloudy
@@ -214,13 +218,13 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
         
         if ncloudy > 0:
             pod_cloudy = float(n_cloudy_cloudy)/ncloudy
-            far_cloudy = float(n_cloudy_clear)/ncloudy
+            far_cloudy = float(n_clear_cloudy)/ncloudy_modis
         else:
             pod_cloudy = -9.0
             far_cloudy = -9.0
         if nclear > 0:
             pod_clear = float(n_clear_clear)/nclear
-            far_clear = float(n_clear_cloudy)/nclear
+            far_clear = float(n_cloudy_clear)/nclear_modis
         else:
             pod_clear = -9.0
             far_clear = -9.0
@@ -243,8 +247,8 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
 
 
     if config.ALSO_USE_1KM_FILES:
-        calipso_clear = np.logical_and(np.less(caObj.calipso.cloud_fraction,0.3),cal_subset)
-        calipso_cloudy = np.logical_and(np.greater(caObj.calipso.cloud_fraction,0.3),cal_subset)
+        calipso_clear = np.logical_and(np.less(caObj.calipso.cloud_fraction,0.5),cal_subset)
+        calipso_cloudy = np.logical_and(np.greater(caObj.calipso.cloud_fraction,0.5),cal_subset)
     else:
         calipso_clear = np.logical_and(np.less(caObj.calipso.cloud_fraction,0.34),cal_subset)
         calipso_cloudy = np.logical_and(np.greater(caObj.calipso.cloud_fraction,0.66),cal_subset)
@@ -264,6 +268,8 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
     n_cloudy_clear = np.repeat(pps_clear,np.logical_and(calipso_cloudy,pps_clear)).shape[0]
     nclear = np.repeat(calipso_clear,calipso_clear).shape[0]
     ncloudy = np.repeat(calipso_cloudy,calipso_cloudy).shape[0]
+    ncloudy_pps = n_cloudy_cloudy+n_clear_cloudy
+    nclear_pps = n_cloudy_clear+n_clear_clear
     
     
     #print "Number of clear points (CALIPSO): ",nclear
@@ -273,13 +279,13 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
     
     if ncloudy > 0:
         pod_cloudy = float(n_cloudy_cloudy)/ncloudy
-        far_cloudy = float(n_cloudy_clear)/ncloudy
+        far_cloudy = float(n_clear_cloudy)/ncloudy_pps
     else:
         pod_cloudy = -9.0
         far_cloudy = -9.0
     if nclear > 0:
         pod_clear = float(n_clear_clear)/nclear
-        far_clear = float(n_clear_cloudy)/nclear
+        far_clear = float(n_cloudy_clear)/nclear_pps
     else:
         pod_clear = -9.0
         far_clear = -9.0
@@ -314,6 +320,8 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
         n_cloudy_clear = np.repeat(modis_clear,np.logical_and(calipso_cloudy,modis_clear)).shape[0]
         nclear = np.repeat(calipso_clear,calipso_clear).shape[0]
         ncloudy = np.repeat(calipso_cloudy,calipso_cloudy).shape[0]
+        ncloudy_modis = n_cloudy_cloudy+n_clear_cloudy
+        nclear_modis = n_cloudy_clear+n_clear_clear
             
         #print "Number of clear points (CALIPSO): ",nclear
         #print "Number of cloudy points (CALIPSO): ",ncloudy
@@ -322,13 +330,13 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
         
         if ncloudy > 0:
             pod_cloudy = float(n_cloudy_cloudy)/ncloudy
-            far_cloudy = float(n_cloudy_clear)/ncloudy
+            far_cloudy = float(n_clear_cloudy)/ncloudy_modis
         else:
             pod_cloudy = -9.0
             far_cloudy = -9.0
         if nclear > 0:
             pod_clear = float(n_clear_clear)/nclear
-            far_clear = float(n_clear_cloudy)/nclear
+            far_clear = float(n_cloudy_clear)/nclear_modis
         else:
             pod_clear = -9.0
             far_clear = -9.0
@@ -356,8 +364,7 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
 
     calipso_low = np.logical_and(np.logical_and(np.greater_equal(cal_vert_feature[::],0),np.less_equal(cal_vert_feature[::],3)),cal_subset)
     calipso_medium = np.logical_and(np.logical_and(np.greater(cal_vert_feature[::],3),np.less_equal(cal_vert_feature[::],5)),cal_subset)
-    #Nina ska det inte vara ???calipso_high = np.logical_and(np.logical_and(np.greater(cal_vert_feature[::],5),np.less_equal(cal_vert_feature[::],7)),cal_subset)
-    calipso_high = np.logical_and(np.logical_and(np.greater_equal(cal_vert_feature[::],5),np.less_equal(cal_vert_feature[::],7)),cal_subset)
+    calipso_high = np.logical_and(np.logical_and(np.greater(cal_vert_feature[::],5),np.less_equal(cal_vert_feature[::],7)),cal_subset)
     avhrr_low = np.logical_and(np.logical_and(np.greater_equal(caObj.avhrr.cloudtype,5),np.less_equal(caObj.avhrr.cloudtype,8)),cal_subset)
     avhrr_medium = np.logical_and(np.logical_and(np.greater_equal(caObj.avhrr.cloudtype,9),np.less_equal(caObj.avhrr.cloudtype,10)),cal_subset)
     avhrr_high = np.logical_and(np.logical_and(np.greater_equal(caObj.avhrr.cloudtype,11),np.less_equal(caObj.avhrr.cloudtype,18)),cal_subset)
