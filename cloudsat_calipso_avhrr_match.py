@@ -243,20 +243,21 @@ def get_satid_datetime_orbit_from_fname(avhrr_filename):
                  "year":date_time.year,
                  "month":"%02d"%(date_time.month),    
                  "time":sl_[2],
-                 "basename":sl_[1] + " " + sl_[2] + " " + sl_[3],
+                 "basename":sl_[0] + "_" + sl_[1] + "_" + sl_[2] + "_" + sl_[3],
                  "ppsfilename":avhrr_filename}
     if CCI_CLOUD_VALIDATION:
          #avhrr_file = "20080613002200-ESACCI-L2_CLOUD-CLD_PRODUCTS-AVHRRGAC-NOAA18-fv1.0.nc"
         sl_ = os.path.basename(avhrr_filename).split('-')
         date_time = datetime.strptime(sl_[0], '%Y%m%d%H%M%S')
-        values= {"satellite": "noaa18",#sl_[5]_lower,
+        sat_id="noaa18"#sl_[5]_lower,
+        values= {"satellite": sat_id,
                  "date_time": date_time,
                  "orbit": "99999",
                  "date":date_time.strftime("%Y%m%d"),
                  "year":date_time.year,
                  "month":"%02d"%(date_time.month),    
                  "time":date_time.strftime("%H%m"),
-                 "basename":date_time.strftime("%Y%m%d_%H%m_99999"),#"20080613002200-ESACCI",
+                 "basename":sat_id + "_" + date_time.strftime("%Y%m%d_%H%m_99999"),#"20080613002200-ESACCI",
                  "ccifilename":avhrr_filename,
                  "ppsfilename":None}
 
@@ -856,16 +857,27 @@ def get_matchups(cross, options, reprocess=False):
     values = {}
     try:
         values["satellite"] = cross.satellite1.lower()
-        date_time = cross.time1
+        date_time_cross = cross.time1
     except AttributeError:
         raise ValueError('cross is not a valid SNO cross. (cross: %s)' % cross)
     
     if values["satellite"] in ['calipso', 'cloudsat']:
         values["satellite"] = cross.satellite2.lower()
-        date_time = cross.time2
+        date_time_cross = cross.time2
         
     if reprocess is False:
-        #need to pyt in the info res, atrain data type before go inte find avhrr??
+        import os #@Reimport
+        diff_avhrr=None
+        if (PPS_VALIDATION ):
+            avhrr_file, tobj = find_radiance_file(cross, options)
+            values_avhrr = get_satid_datetime_orbit_from_fname(avhrr_file)
+        if (CCI_CLOUD_VALIDATION):
+            avhrr_file, tobj = find_cci_cloud_file(cross, options)
+        if avhrr_file:
+            values_avhrr = get_satid_datetime_orbit_from_fname(avhrr_file)
+            date_time_avhrr = values_avhrr["date_time"]
+            diff_avhrr = date_time_avhrr-date_time_cross
+        #need to pUt in the info res, atrain data type before go inte find avhrr??
         # or change read of files
         values["atrain_sat"] = "cloudsat-%s" % config.CLOUDSAT_TYPE[0]
         values["atrain_datatype"] = "cloudsat-%s" % config.CLOUDSAT_TYPE[0]
@@ -874,13 +886,23 @@ def get_matchups(cross, options, reprocess=False):
             write_log('INFO', "No processed CloudSat match files found." + 
                       " Generating from source data.")
             clObj = None
+            date_time=date_time_cross
         else:
             date_time=tobj
+            matchup_diff = tobj - date_time_cross
             clObj = readCloudsatAvhrrMatchObj(cl_match_file) 
             basename = '_'.join(os.path.basename(cl_match_file).split('_')[1:5])
-            write_log('INFO', "CloudSat Matchups read from previously " + 
-                      "processed data.")
-        
+            if diff_avhrr is None or matchup_diff.seconds<=diff_avhrr.seconds:
+                write_log('INFO', "CloudSat Matchups read from previously " + 
+                          "processed data.")
+                date_time=tobj
+            else:
+                write_log('INFO', "CloudSat Matchups will be processed for better match" + 
+                          " %s."%values_avhrr["basename"]) 
+                write_log('INFO', "CloudSat Matchups not read from previously " + 
+                          "processed data %s."%basename)  
+                clObj = None
+                
         values["atrain_sat"] = "caliop"
         values["atrain_datatype"] = "caliop"
         ca_match_file, tobj = find_avhrr_file(cross, options['reshape_dir'], options['reshape_file'], values=values)
@@ -889,16 +911,25 @@ def get_matchups(cross, options, reprocess=False):
                       ("No processed CALIPSO match files found. "+
                        "Generating from source data."))
             caObj = None
+            date_time=date_time_cross
         else:
             #print ca_match_file
             date_time=tobj
+            matchup_diff = tobj - date_time_cross
             caObj = readCaliopAvhrrMatchObj(ca_match_file)
             basename = '_'.join(os.path.basename(ca_match_file).split('_')[1:5])
-            write_log('INFO', 
-                      "CALIPSO Matchups read from previously processed data.")
-            write_log('INFO', 'Filename: ' + ca_match_file)
-            calipso_min_and_max_timediffs = (caObj.diff_sec_1970.min(), 
-                                             caObj.diff_sec_1970.max())
+            if diff_avhrr is None or matchup_diff.seconds<=diff_avhrr.seconds:
+                write_log('INFO', 
+                          "CALIPSO Matchups read from previously processed data.")
+                write_log('INFO', 'Filename: ' + ca_match_file)
+                calipso_min_and_max_timediffs = (caObj.diff_sec_1970.min(), 
+                                                 caObj.diff_sec_1970.max())
+            else:
+                write_log('INFO', "Calipso Matchups will be processed for better match" + 
+                           " %s."%values_avhrr["basename"]) 
+                write_log('INFO', "CloudSat Matchups not read from previously " + 
+                           "processed data %s."%basename)  
+                caObj = None
         if None in [caObj] and None in [clObj]:
             pass
         else:
