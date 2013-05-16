@@ -5,7 +5,7 @@ Created on Oct 13, 2010
 '''
 from config import CASES, MAIN_DATADIR, MAP, RESOLUTION, COMPILED_STATS_FILENAME,\
     DNT_FLAG, CALIPSO_CLOUD_FRACTION,COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC,\
-    ALSO_USE_5KM_FILES
+    ALSO_USE_5KM_FILES, RESULT_DIR
 
 def compile_filtered_stats(results_files, filttype, write=False):
     """Run through all summary statistics."""
@@ -149,8 +149,8 @@ if __name__ == '__main__':
         for dnt in DNT_FLAG:
             results_files = []
             for case in CASES:
-                basic_indata_dir = "%s/Results/%s/%skm/%s/%02d/%s/BASIC" % \
-                    (MAIN_DATADIR, case['satname'], RESOLUTION , case['year'], case['month'], MAP[0])
+                basic_indata_dir = "%s/%s/%s/%skm/%s/%02d/%s/BASIC" % \
+                    (MAIN_DATADIR, RESULT_DIR, case['satname'],  RESOLUTION , case['year'], case['month'], MAP[0])
                 if dnt in [None, 'ALL', 'all']:
                     result_end = ''
                 else:
@@ -172,8 +172,8 @@ if __name__ == '__main__':
                 results_files = []
                 for case in CASES:
                     print(RESOLUTION)
-                    basic_indata_dir = "%s/Results/%s/%skm/%s/%02d/%s/%s" % \
-                    (MAIN_DATADIR, case['satname'], RESOLUTION , case['year'], case['month'], MAP[0], surface)
+                    basic_indata_dir = "%s/%s/%s/%skm/%s/%02d/%s/%s" % \
+                    (MAIN_DATADIR, RESULT_DIR, case['satname'], RESOLUTION , case['year'], case['month'], MAP[0], surface)
                     if dnt in [None, 'ALL', 'all']:
                         result_end = surface
                     else:
@@ -195,8 +195,8 @@ if __name__ == '__main__':
                 results_files = []
                 for case in CASES:
                     print(RESOLUTION)
-                    basic_indata_dir = "%s/Results/%s/%skm/%s/%02d/%s/%s" % \
-                    (MAIN_DATADIR, case['satname'], RESOLUTION , case['year'], case['month'], MAP[0], filttype)
+                    basic_indata_dir = "%s/%s/%s/%skm/%s/%02d/%s/%s" % \
+                    (MAIN_DATADIR, RESULT_DIR, case['satname'],  RESOLUTION , case['year'], case['month'], MAP[0], filttype)
                     if dnt in [None, 'ALL', 'all']:
                         result_end = filttype
                     else:
