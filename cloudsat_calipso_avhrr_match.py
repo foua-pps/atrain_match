@@ -231,6 +231,7 @@ def get_satid_datetime_orbit_from_fname(avhrr_filename):
     #satname, _datetime, orbit = runutils.parse_scene(avhrr_filename)
     #returnd orbit as int, loosing leeding zeros, use %05d to get it right.
     # Get satellite name, time, and orbit number from avhrr_file
+
     if PPS_VALIDATION:
         sl_ = os.path.basename(avhrr_filename).split('_')
         date_time= datetime.strptime(sl_[1] + sl_[2], '%Y%m%d%H%M')
@@ -241,25 +242,26 @@ def get_satid_datetime_orbit_from_fname(avhrr_filename):
                  "year":date_time.year,
                  "month":"%02d"%(date_time.month),    
                  "time":sl_[2],
-                 "basename":sl_[1] + " " + sl_[2] + " " + sl_[3],
+                 "basename":sl_[0] + "_" + sl_[1] + "_" + sl_[2] + "_" + sl_[3],
                  "ppsfilename":avhrr_filename}
     if CCI_CLOUD_VALIDATION:
          #avhrr_file = "20080613002200-ESACCI-L2_CLOUD-CLD_PRODUCTS-AVHRRGAC-NOAA18-fv1.0.nc"
         sl_ = os.path.basename(avhrr_filename).split('-')
         date_time = datetime.strptime(sl_[0], '%Y%m%d%H%M%S')
-        values= {"satellite": "noaa18",#sl_[5]_lower,
+        sat_id="noaa18",#sl_[5]_lower,
+        values= {"satellite": sat_id,
                  "date_time": date_time,
                  "orbit": "99999",
                  "date":date_time.strftime("%Y%m%d"),
                  "year":date_time.year,
                  "month":"%02d"%(date_time.month),    
                  "time":date_time.strftime("%H%m"),
-                 "basename":date_time.strftime("%Y%m%d_%H%m_99999"),#"20080613002200-ESACCI",
+                 "basename":sat_id + "_" + date_time.strftime("%Y%m%d_%H%m_99999"),#"20080613002200-ESACCI",
                  "ccifilename":avhrr_filename,
                  "ppsfilename":None}
 
-
     return values
+
 
 def insert_info_in_filename_or_path(file_or_name_path, values, datetime_obj=None):
     #file_or_name_path = file_or_name_path.format(**values)

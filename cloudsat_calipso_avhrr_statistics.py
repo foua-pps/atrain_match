@@ -1,6 +1,6 @@
 #Program cloudsat_calipso_avhrr_statistics.py
 import config
-
+from pps_error_messages import write_log
 def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
                         cal_vert_feature, avhrr_ctth_csat_ok, data_ok,
                         cal_data_ok, avhrr_ctth_cal_ok, caliop_max_height,
@@ -96,6 +96,8 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
     else:
         print('The mode %s is not added in statistic file' %mode)
         sys.exit()
+    write_log("WARNING", "Assuming cloudtype flags structure from pps "
+              "v2012 or erlier")
     no_qflag = caObj.avhrr.cloudtype_qflag == 0
     night_flag = (((caObj.avhrr.cloudtype_qflag>>2) & 1) == 1) & ~no_qflag
     twilight_flag = (((caObj.avhrr.cloudtype_qflag>>3) & 1) == 1) & ~no_qflag
@@ -279,15 +281,19 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
     
     if ncloudy > 0:
         pod_cloudy = float(n_cloudy_cloudy)/ncloudy
-        far_cloudy = float(n_clear_cloudy)/ncloudy_pps
     else:
         pod_cloudy = -9.0
+    if ncloudy_pps > 0:
+        far_cloudy = float(n_clear_cloudy)/ncloudy_pps
+    else:
         far_cloudy = -9.0
     if nclear > 0:
         pod_clear = float(n_clear_clear)/nclear
-        far_clear = float(n_cloudy_clear)/nclear_pps
     else:
         pod_clear = -9.0
+    if nclear_pps > 0:
+        far_clear = float(n_cloudy_clear)/nclear_pps
+    else:
         far_clear = -9.0
     
     #print "POD-Cloudy: ",pod_cloudy
