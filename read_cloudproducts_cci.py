@@ -93,12 +93,10 @@ def read_cci_ctype(cci_nc):
 def read_cci_angobj(cci_nc):
     #pps_io.readSunSatAngles(pps_files.sunsatangles) 
     avhrrAngObj = SunSatAngleData()
-    avhrrAngObj.satz.data=(
-        cci_nc.variables['satellite_zenith_view_no1'][::] 
-        - avhrrAngObj.satz.intercept )/avhrrAngObj.satz.gain
-    avhrrAngObj.sunz.data=(
-        cci_nc.variables['solar_zenith_view_no1'][::]
-        -avhrrAngObj.sunz.intercept )/avhrrAngObj.sunz.gain
+    avhrrAngObj.satz.data= cci_nc.variables['satellite_zenith_view_no1'][::] 
+        #- avhrrAngObj.satz.intercept )/avhrrAngObj.satz.gain
+    avhrrAngObj.sunz.data= cci_nc.variables['solar_zenith_view_no1'][::]
+        #-avhrrAngObj.sunz.intercept )/avhrrAngObj.sunz.gain
     avhrrAngObj.azidiff= None #cci_nc.variables['rel_azimuth_view_no1'][:]-AngObj.satz.gain 
     return avhrrAngObj
 
