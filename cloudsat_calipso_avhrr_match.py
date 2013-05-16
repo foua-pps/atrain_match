@@ -256,7 +256,7 @@ def get_satid_datetime_orbit_from_fname(avhrr_filename):
                  "year":date_time.year,
                  "month":"%02d"%(date_time.month),    
                  "time":date_time.strftime("%H%m"),
-                 "basename":sat_id + "_" + date_time.strftime("%Y%m%d_%H%m_99999"),#"20080613002200-ESACCI",
+                 "basename":sat_id + "_" + date_time.strftime("%Y%m%d_%H%M_99999"),#"20080613002200-ESACCI",
                  "ccifilename":avhrr_filename,
                  "ppsfilename":None}
 
@@ -1087,7 +1087,12 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
         data_ok = np.ones(clsatObj.cloudsat.elevation.shape,'b')
         write_log('INFO', "Length of CLOUDSAT array: ", len(data_ok))
         avhrr_ctth_csat_ok = np.repeat(clsatObj.avhrr.ctth_height[::],data_ok)
-        avhrr_ctth_csat_ok = np.where(np.greater(avhrr_ctth_csat_ok,0.0),avhrr_ctth_csat_ok[::]+elevation*1.0,avhrr_ctth_csat_ok)
+
+        if CCI_CLOUD_VALIDATION: #ctth relative mean sea level
+            avhrr_ctth_csat_ok = np.where(np.greater(avhrr_ctth_csat_ok,0.0),avhrr_ctth_csat_ok[::],avhrr_ctth_csat_ok)
+        else: #ctth relative topography
+            avhrr_ctth_csat_ok = np.where(np.greater(avhrr_ctth_csat_ok,0.0),avhrr_ctth_csat_ok[::]+elevation*1.0,avhrr_ctth_csat_ok)
+
         if len(data_ok) == 0:
             write_log('INFO',"Processing stopped: Zero lenght of matching arrays!")
             print("Program cloudsat_calipso_avhrr_match.py at line %i" %(inspect.currentframe().f_lineno+1))
@@ -1109,8 +1114,12 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     cal_data_ok = np.ones(caObj.calipso.elevation.shape,'b')
     write_log('INFO', "Length of CALIOP array: ", len(cal_data_ok))
     avhrr_ctth_cal_ok = np.repeat(caObj.avhrr.ctth_height[::],cal_data_ok)
-    avhrr_ctth_cal_ok = np.where(np.greater(avhrr_ctth_cal_ok,0.0),avhrr_ctth_cal_ok[::]+cal_elevation,avhrr_ctth_cal_ok)                    
 
+    if CCI_CLOUD_VALIDATION: #ctth relative mean sea level
+        avhrr_ctth_cal_ok = np.where(np.greater(avhrr_ctth_cal_ok,0.0),avhrr_ctth_cal_ok[::],avhrr_ctth_cal_ok)
+    else: #ctth relative topography
+        avhrr_ctth_cal_ok = np.where(np.greater(avhrr_ctth_cal_ok,0.0),avhrr_ctth_cal_ok[::]+cal_elevation,avhrr_ctth_cal_ok)
+        
     if (len(cal_data_ok) == 0):
         write_log('INFO', "Processing stopped: Zero lenght of matching arrays!")
         print("Program cloudsat_calipso_avhrr_match.py at line %i" %(inspect.currentframe().f_lineno+1))

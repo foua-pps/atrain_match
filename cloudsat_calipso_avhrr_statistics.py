@@ -167,16 +167,20 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
     
         if ncloudy > 0:
             pod_cloudy = float(n_cloudy_cloudy)/ncloudy
-            far_cloudy = float(n_clear_cloudy)/ncloudy_pps     
-                                                            
         else:
             pod_cloudy = -9.0
+        if ncloudy_pps > 0:
+            far_cloudy = float(n_clear_cloudy)/ncloudy_pps
+        else:
             far_cloudy = -9.0
+
         if nclear > 0:
             pod_clear = float(n_clear_clear)/nclear
-            far_clear = float(n_cloudy_clear)/nclear_pps
         else:
             pod_clear = -9.0
+        if nclear_pps > 0:
+            far_clear = float(n_cloudy_clear)/nclear_pps
+        else:
             far_clear = -9.0
     
         #print "POD-Cloudy: ",pod_cloudy
@@ -220,15 +224,20 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
         
         if ncloudy > 0:
             pod_cloudy = float(n_cloudy_cloudy)/ncloudy
-            far_cloudy = float(n_clear_cloudy)/ncloudy_modis
         else:
             pod_cloudy = -9.0
+        if ncloudy_modis > 0:
+            far_cloudy = float(n_clear_cloudy)/ncloudy_modis
+        else:
             far_cloudy = -9.0
+
         if nclear > 0:
             pod_clear = float(n_clear_clear)/nclear
-            far_clear = float(n_cloudy_clear)/nclear_modis
         else:
             pod_clear = -9.0
+        if nclear_modis > 0:
+            far_clear = float(n_cloudy_clear)/nclear_modis
+        else:
             far_clear = -9.0
         
         #print "POD-Cloudy: ",pod_cloudy
@@ -336,15 +345,20 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
         
         if ncloudy > 0:
             pod_cloudy = float(n_cloudy_cloudy)/ncloudy
-            far_cloudy = float(n_clear_cloudy)/ncloudy_modis
         else:
             pod_cloudy = -9.0
+        if ncloudy_modis > 0:
+            far_cloudy = float(n_clear_cloudy)/ncloudy_modis
+        else:
             far_cloudy = -9.0
+
         if nclear > 0:
             pod_clear = float(n_clear_clear)/nclear
-            far_clear = float(n_cloudy_clear)/nclear_modis
         else:
             pod_clear = -9.0
+        if nclear_modis > 0:
+            far_clear = float(n_cloudy_clear)/nclear_modis
+        else:
             far_clear = -9.0
         
         #print "POD-Cloudy: ",pod_cloudy
