@@ -10,8 +10,8 @@ import os
 ALWAYS_USE_AVHRR_ORBIT_THAT_STARTS_BEFORE_CROSS = False
 
 #Choose one to validate
-PPS_VALIDATION = True
-CCI_CLOUD_VALIDATION = False
+PPS_VALIDATION = False
+CCI_CLOUD_VALIDATION = True
 
 
 COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC = True
@@ -54,8 +54,8 @@ if RESOLUTION == 1:
 elif RESOLUTION == 5:
     AVHRR_SAT = 'NOAA18'
     # CALIPSO_CLOUD_FRACTION = True   Introduced when the idea was to use single_shot_cloud_cleared_fraction, now abandoned!
-    CALIPSO_CLOUD_FRACTION = True  #Notice that both these parameters must equal, i.e. set to either True or False!!!/KG
-    ALSO_USE_1KM_FILES = True
+    CALIPSO_CLOUD_FRACTION = False  #Notice that both these parameters must equal, i.e. set to either True or False!!!/KG
+    ALSO_USE_1KM_FILES = False
 
 #: Base directory for validation results
 #_validation_results_dir = os.environ['VALIDATION_RESULTS_DIR']    
@@ -80,11 +80,11 @@ RESHAPE_DIR = "%s/Reshaped_Files" %MAIN_DIR
 #DATA_DIR = "%s/Data" %MAIN_DIR
 
 #: Base directory for plots
-#PLOT_DIR = "%s/Plot" %MAIN_DIR
+PLOT_DIR = "%s/Plot" %MAIN_DIR
 
 #: Base directory for statistics results
 #RESULT_DIR = "%s/Results_prob" %MAIN_DIR
-RESULT_DIR = "%s/Results_initial_tests" %MAIN_DIR
+RESULT_DIR = "Results_initial_tests" 
 
 
 # Region configuaration file with area definitons
@@ -119,6 +119,7 @@ SAT_ORBIT_DURATION = 110*60 #Not to large
 
 #: Allowed time deviation in seconds between AVHRR and CALIPSO/CloudSat matchup
 sec_timeThr = 60*20
+
 
 #: Recommended cloud threshold for the CloudSat cloud mask. In 5km data this
 #: threshold has already been applied, so there is no reason to change it for

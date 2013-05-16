@@ -497,9 +497,11 @@ def createAvhrrTime(Obt, values):
        #test = np.apply_along_axis(np.multiply,  0, np.ones([20, 16]), linetime).reshape(30)        
         linetime = np.linspace(Obt.sec1970_start, Obt.sec1970_end, num_of_scan)
         Obt.time = np.apply_along_axis(np.multiply,  0, np.ones([num_of_scan, 16]), linetime).reshape(Obt.num_of_lines)
-        #Obt.time = linetime
+
         write_log("INFO", "NPP start time:  ", time.gmtime(Obt.sec1970_start))
         write_log("INFO", "NPP end time: ", time.gmtime(Obt.sec1970_end))
+
+ 
     else:
         if Obt.sec1970_end < Obt.sec1970_start:
             """

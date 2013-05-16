@@ -232,17 +232,34 @@ def get_satid_datetime_orbit_from_fname(avhrr_filename):
     #satname, _datetime, orbit = runutils.parse_scene(avhrr_filename)
     #returnd orbit as int, loosing leeding zeros, use %05d to get it right.
     # Get satellite name, time, and orbit number from avhrr_file
-    sl_ = os.path.basename(avhrr_filename).split('_')
-    date_time= datetime.strptime(sl_[1] + sl_[2], '%Y%m%d%H%M')
-    values= {"satellite": sl_[0],
-             "date_time": date_time,
-             "orbit": sl_[3],
-             "date":sl_[1],
-             "year":date_time.year,
-             "month":"%02d"%(date_time.month),    
-             "time":sl_[2],
-             "basename":sl_[1] + "_" +sl_[2] +"_"+ sl_[3],
-             "ppsfilename":avhrr_filename}
+
+    if PPS_VALIDATION:
+        sl_ = os.path.basename(avhrr_filename).split('_')
+        date_time= datetime.strptime(sl_[1] + sl_[2], '%Y%m%d%H%M')
+        values= {"satellite": sl_[0],
+                 "date_time": date_time,
+                 "orbit": sl_[3],
+                 "date":sl_[1],
+                 "year":date_time.year,
+                 "month":"%02d"%(date_time.month),    
+                 "time":sl_[2],
+                 "basename":sl_[1] + " " + sl_[2] + " " + sl_[3],
+                 "ppsfilename":avhrr_filename}
+    if CCI_CLOUD_VALIDATION:
+         #avhrr_file = "20080613002200-ESACCI-L2_CLOUD-CLD_PRODUCTS-AVHRRGAC-NOAA18-fv1.0.nc"
+        sl_ = os.path.basename(avhrr_filename).split('-')
+        date_time = datetime.strptime(sl_[0], '%Y%m%d%H%M%S')
+        values= {"satellite": "noaa18",#sl_[5]_lower,
+                 "date_time": date_time,
+                 "orbit": "99999",
+                 "date":date_time.strftime("%Y%m%d"),
+                 "year":date_time.year,
+                 "month":"%02d"%(date_time.month),    
+                 "time":date_time.strftime("%H%m"),
+                 "basename":date_time.strftime("%Y%m%d_%H%m_99999"),#"20080613002200-ESACCI",
+                 "ccifilename":avhrr_filename,
+                 "ppsfilename":None}
+
     return values
 
 def insert_info_in_filename_or_path(file_or_name_path, values, datetime_obj=None):
@@ -258,6 +275,7 @@ def insert_info_in_filename_or_path(file_or_name_path, values, datetime_obj=None
         month=values.get('month',"unknown"),
         mode=values.get('mode',"unknown"),
         min_opt_depth=values.get('min_opt_depth',""),
+        result_dir = config.RESULT_DIR,
         atrain_datatype=values.get("atrain_datatype","atrain_datatype"))
 
     if datetime_obj is None:
@@ -671,20 +689,11 @@ def get_matchups_from_data(cross, config_options):
     if (CCI_CLOUD_VALIDATION):
         avhrr_file, tobj = find_cci_cloud_file(cross, config_options)
         #avhrr_file = "20080613002200-ESACCI-L2_CLOUD-CLD_PRODUCTS-AVHRRGAC-NOAA18-fv1.0.nc"
+        values = get_satid_datetime_orbit_from_fname(avhrr_file)
         avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, surft, cppLwp, cppCph =read_cloud_cci(avhrr_file)
-        date_time=datetime.strptime("200806130022", '%Y%m%d%H%M')
-        values= {"satellite": "noaa18",
-                 "date_time": date_time,
-                 "orbit": "9999",
-                 "date":"20080613",
-                 "year":date_time.year,
-                 "month":"%02d"%(date_time.month),    
-                 "time":"0022",
-                 "basename":"20080613002200-ESACCI",
-                 "ccifilename":avhrr_file,
-                 "ppsfilename":"noaa18_20080613_0022_99999_satproj_00000_13793_cloudtype.h5"}
+        avhrrGeoObj.satellite = values["satellite"];
+        date_time = values["date_time"]
 
-        avhrrGeoObj.satellite = "noaa18";
     calipso_files = find_calipso_files(date_time, config_options, values)
 
     if (PPS_VALIDATION):
@@ -1165,7 +1174,7 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     statfilename = os.path.join(result_path, result_file)
 
     if CALIPSO_CLOUD_FRACTION == True:
-        statfilename = "%s/CCF_%ikm_%s_cloudsat_calipso_avhrr_stat.dat" % (resultpath,int(config.RESOLUTION),basename)        
+        statfilename = os.path.join(result_path, "CCF_" + result_file)      
     statfile = open(statfilename,"w")
     if process_mode == "BASIC":
         if clsatObj is not None:
