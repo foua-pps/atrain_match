@@ -100,7 +100,7 @@ def read_cci_ctype(cci_nc,avhrrAngObj):
         #np.equal(cci_nc.variables['illum'][::],2),#Twilight
         ctype.qualityflag+8,#Twilight
         ctype.qualityflag)
-    ctype.cloudtype = np.where(
+    ctype.qualityflag = np.where(
             np.greater_equal(avhrrAngObj.sunz.data,95),
             #np.equal(cci_nc.variables['illum'][::],3),#Night
             ctype.qualityflag+4,#Night
