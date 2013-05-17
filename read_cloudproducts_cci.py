@@ -128,14 +128,29 @@ def read_cci_geoobj(cci_nc):
     """
     #avhrrGeoObj = pps_io.readAvhrrGeoData(avhrr_file)
     avhrrGeoObj = pps_io.GeoLocationData()
+    write_log("INFO", "Min lon: %s, max lon: %d"%(
+            np.min(cci_nc.variables['lon'][::]),np.max(cci_nc.variables['lon'][::])))
     #cci_nc.variables['lon'].add_offset
-    avhrrGeoObj.longitude = cci_nc.variables['lon'][::] 
+    #avhrrGeoObj.longitude = cci_nc.variables['lon'][::]
+    avhrrGeoObj.longitude = np.where(
+        np.logical_and(
+            np.greater_equal(cci_nc.variables['lon'][::] ,cci_nc.variables['lon'].valid_min),
+            np.less_equal(cci_nc.variables['lon'][::] ,cci_nc.variables['lon'].valid_max)),
+        cci_nc.variables['lon'][::],
+        avhrrGeoObj.nodata)
+    #avhrrGeoObj.latitude = cci_nc.variables['lat'][::] 
+    avhrrGeoObj.latitude = np.where(
+        np.logical_and(
+            np.greater_equal(cci_nc.variables['lat'][::] ,cci_nc.variables['lat'].valid_min),
+            np.less_equal(cci_nc.variables['lat'][::] ,cci_nc.variables['lat'].valid_max)),
+        cci_nc.variables['lat'][::],
+        avhrrGeoObj.nodata)
     #cci_nc.variables['lon'].scale_factor
     #cci_nc.variables['lat'].add_offset
-    avhrrGeoObj.latitude = cci_nc.variables['lat'][::] 
+
     #cci_nc.variables['lat'].scale_factor
     #for pps these are calculated in calipso.py, but better read them
-    # from file because time are already available on arrays in teh netcdf files
+    # from file because time are already available on arrays in the netcdf files
     #dsec = calendar.timegm((1993,1,1,0,0,0,0,0,0)) #TAI to UTC
     time_temp = daysafter4713bc_to_sec1970(cci_nc.variables['time'][::])
     avhrrGeoObj.time = time_temp[::]#[:,0] #time_temp[:,0]
@@ -148,6 +163,15 @@ def read_cci_geoobj(cci_nc):
     tim2 = time.strftime("%Y%m%d %H:%M", 
                          time.gmtime(avhrrGeoObj.sec1970_end))
     write_log("INFO", "Starttime: %s, end time: %s"%(tim1, tim2))
+    write_log("INFO", "Min lon: %f, max lon: %d"%(
+            np.min(np.where(
+                    np.equal(avhrrGeoObj.longitude, avhrrGeoObj.nodata),
+                    99999,
+                    avhrrGeoObj.longitude)),
+            np.max(avhrrGeoObj.longitude)))
+    write_log("INFO", "Min lat: %d, max lat: %d"%(
+            np.min(avhrrGeoObj.latitude),np.max(avhrrGeoObj.latitude)))
+
     return  avhrrGeoObj
 
 def read_cci_ctth(cci_nc):
@@ -158,8 +182,10 @@ def read_cci_ctth(cci_nc):
     #ctth.region.xsize=10
     #ctth.region.ysize=10
     cth = cci_nc.variables['cth'][::]
-    cth_data = np.where(cth.mask, -999, cth.data)
-    #*cci_nc.variables['cth'].scale_factor+cci_nc.variables['cth'].add_offset)
+    if hasattr(cth, 'mask'):
+        cth_data = np.where(cth.mask, -999, cth.data)
+    else:
+        cth_data = cth.data   #*cci_nc.variables['cth'].scale_factor+cci_nc.variables['cth'].add_offset)
     
     ctth.h_gain = 200.0
     ctth.h_intercept = 0.0
@@ -171,7 +197,10 @@ def read_cci_ctth(cci_nc):
     
     
     ctt = cci_nc.variables['ctt'][::]
-    ctt_data = np.where(ctt.mask, -999, ctt.data)
+    if hasattr(ctt, 'mask'):
+        ctt_data = np.where(ctt.mask, -999, ctt.data)
+    else:
+        ctt_data = ctt.data
     #*cci_nc.variables['cth'].scale_factor+cci_nc.variables['cth'].add_offset)
     ctth.t_gain = 1.0
     ctth.t_intercept = 100
@@ -181,8 +210,12 @@ def read_cci_ctth(cci_nc):
     data = (1/ctth.t_gain)*(ctt_data-ctth.t_intercept)
     ctth.temperature = np.where(ctt.mask, ctth.t_nodata, data)
     
+
     ctp = cci_nc.variables['ctp'][::]
-    ctp_data = np.where(ctp.mask, -999, ctp.data)#Upscaled
+    if hasattr(ctp, 'mask'):
+        ctp_data = np.where(ctp.mask, -999, ctp.data)#Upscaled
+    else:
+        ctp_data = ctp.data
     #*cci_nc.variables['cth'].scale_factor+cci_nc.variables['cth'].add_offset)
     ctth.p_gain = 25.0
     ctth.p_intercept = 0.0
