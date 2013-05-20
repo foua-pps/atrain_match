@@ -379,6 +379,7 @@ def find_avhrr_file(cross, filedir_pattern, filename_pattern, values={}):
     write_log('INFO',"Cross time: {cross_time}".format(cross_time=cross_time))
     values["satellite"] = cross_satellite
     found_dir = None
+    no_files_found = True
     for tobj in tlist:
         #print values
         avhrr_dir = insert_info_in_filename_or_path(filedir_pattern,
@@ -387,13 +388,10 @@ def find_avhrr_file(cross, filedir_pattern, filename_pattern, values={}):
             found_dir = avhrr_dir
             write_log('INFO',"Found directory "
                       "{dirctory} ".format(dirctory=found_dir))
-            break
-    if not found_dir:
-        write_log('INFO',"This directory does not exist, pattern:"
-                  " {directory}".format(directory=filedir_pattern))
-        return None, None
-    no_files_found = True
-    for tobj in tlist:
+        if not found_dir:
+            write_log('INFO',"This directory does not exist, pattern:"
+                      " {directory}".format(directory=filedir_pattern))
+    
         file_pattern = insert_info_in_filename_or_path(filename_pattern,
                                                        values, datetime_obj=tobj)  
         files = glob(os.path.join(found_dir, file_pattern))
