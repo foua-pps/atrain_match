@@ -10,8 +10,8 @@ import os
 ALWAYS_USE_AVHRR_ORBIT_THAT_STARTS_BEFORE_CROSS = True
 
 #Choose one to validate
-PPS_VALIDATION = False
-CCI_CLOUD_VALIDATION = True
+PPS_VALIDATION = True
+CCI_CLOUD_VALIDATION = False
 
 #When using 1km data, use the 5km data to filterout clouds to thin for VIIRS/AVHRR to see.
 #PARAMETERS FOR CHOOSING HOW TO FILTER DATA 1km RESOLUTION:
@@ -78,7 +78,7 @@ RESULT_DIR = "Results_initial_tests"
 
 
 # Region configuaration file with area definitons
-AREA_CONFIG_FILE = os.environ.get('AREA_CONFIG_FILE', './etc/areas.def')
+AREA_CONFIG_FILE = os.environ.get('AREA_CONFIG_FILE', './areas.def')
 
 #_satellite_data_dir = '/data/arkiv/proj/safworks/data'
 _satellite_data_dir = '/nobackup/smhid9/sm_kgkar/atrain_match_2013/testdata'
