@@ -240,7 +240,8 @@ def get_satid_datetime_orbit_from_fname(avhrr_filename):
                  "orbit": sl_[3],
                  "date":sl_[1],
                  "year":date_time.year,
-                 "month":"%02d"%(date_time.month),    
+                 "month":"%02d"%(date_time.month),  
+                 "lines_lines": sl_[5] + "_" + sl_[6],
                  "time":sl_[2],
                  "basename":sl_[0] + "_" + sl_[1] + "_" + sl_[2] + "_" + sl_[3],
                  "ppsfilename":avhrr_filename}
@@ -271,6 +272,7 @@ def insert_info_in_filename_or_path(file_or_name_path, values, datetime_obj=None
         instrument = INSTRUMENT.get(values["satellite"],"avhrr"),
         resolution=config.RESOLUTION,
         area=config.AREA,
+        lines_lines=values.get("lines_lines", "*"),
         val_dir=config._validation_results_dir,
         year=values.get('year',"unknown"),
         month=values.get('month',"unknown"),
@@ -380,17 +382,24 @@ def find_avhrr_file(cross, filedir_pattern, filename_pattern, values={}):
     values["satellite"] = cross_satellite
     found_dir = None
     no_files_found = True
+    checked_dir = {}
     for tobj in tlist:
         #print values
         avhrr_dir = insert_info_in_filename_or_path(filedir_pattern,
                                                   values, datetime_obj=tobj)
         if os.path.exists(avhrr_dir):
             found_dir = avhrr_dir
-            write_log('INFO',"Found directory "
-                      "{dirctory} ".format(dirctory=found_dir))
-        if not found_dir:
-            write_log('INFO',"This directory does not exist, pattern:"
-                      " {directory}".format(directory=filedir_pattern))
+            if avhrr_dir not in checked_dir.keys():
+                checked_dir[avhrr_dir] = 1
+                write_log('INFO',"Found directory "
+                          "{dirctory} ".format(dirctory=found_dir))
+        else:
+            if not found_dir and avhrr_dir not in checked_dir.keys():
+                checked_dir[avhrr_dir] = 1
+                write_log('INFO',"This directory does not exist, pattern:"
+                          " {directory}".format(directory=filedir_pattern))
+            continue
+
     
         file_pattern = insert_info_in_filename_or_path(filename_pattern,
                                                        values, datetime_obj=tobj)  
@@ -399,6 +408,8 @@ def find_avhrr_file(cross, filedir_pattern, filename_pattern, values={}):
             no_files_found = False
             write_log('INFO',"Found files: " + os.path.basename(str(files[0])))
             return files[0], tobj
+    if not found_dir:       
+        return None, None
     if no_files_found:       
          write_log('INFO', "Found no files for patterns of type:"
                    " {pattern}".format(pattern=file_pattern)  )
@@ -1027,7 +1038,6 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     caObj = matchup_results['calipso']
     clsatObj = matchup_results['cloudsat']
     values = matchup_results['values']
-    print values
     #import pdb;pdb.set_trace()
 
     clsat_min_diff, clsat_max_diff = matchup_results.get('cloudsat_time_diff', (NaN, NaN))

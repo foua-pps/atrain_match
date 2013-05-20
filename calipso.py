@@ -521,8 +521,6 @@ def createAvhrrTime(Obt, values):
                                                                    '%Y %m %d'))
             Obt.sec1970_start = new_start
             Obt.sec1970_end = new_start + timediff
-        
-        
         Obt.time = np.linspace(Obt.sec1970_start, Obt.sec1970_end, Obt.num_of_lines)
     
     return Obt
