@@ -1144,7 +1144,7 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     #                                         config.AREA, process_mode_dnt)
     min_depth_to_file_name=""
     if process_mode == 'OPTICAL_DEPTH':
-        min_depth_to_file_name="-%.1f"%(min_optical_depth)
+        min_depth_to_file_name="-%.2f"%(min_optical_depth)
         #resultpath = "%s/%s/%ikm/%s/%s/%s/%s-%.1f" % (config.RESULT_DIR, 
         #                                              base_sat,
         #                                              int(config.RESOLUTION), 
@@ -1175,7 +1175,6 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
             basename=values['basename'] )
 
     statfilename = os.path.join(result_path, result_file)
-
     if CALIPSO_CLOUD_FRACTION == True:
         statfilename = os.path.join(result_path, "CCF_" + result_file)      
     statfile = open(statfilename,"w")
