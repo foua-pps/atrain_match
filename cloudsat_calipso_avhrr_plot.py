@@ -169,7 +169,7 @@ def drawCalClsatGEOPROFAvhrrPlot(clsatObj_cloudsat,
     ax.set_title(title)
     ax.set_xlabel("Track Position")
     ax.set_ylabel("Cloud Height (meter)")
-    plt.legend(fancybox=True, loc=1)
+    plt.legend(fancybox=True, loc=1,  numpoints=4)
     if isinstance(file_type, str) == True:
         filename = "%s/%skm_%s_cloudsat_calipso_%s_clouds.%s" \
             % (plotpath, RESOLUTION, basename, instrument, file_type)
