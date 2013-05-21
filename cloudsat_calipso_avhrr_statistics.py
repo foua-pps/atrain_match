@@ -534,8 +534,8 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
     # This depends on what thresholds which were set above in the evaluation of cloud fraction.
 
     if config.ALSO_USE_1KM_FILES:
-        calipso_clear = np.logical_and(np.less(caObj.calipso.cloud_fraction,0.3),cal_subset)
-        calipso_cloudy = np.logical_and(np.greater(caObj.calipso.cloud_fraction,0.3),cal_subset)
+        calipso_clear = np.logical_and(np.less(caObj.calipso.cloud_fraction,0.5),cal_subset)
+        calipso_cloudy = np.logical_and(np.greater(caObj.calipso.cloud_fraction,0.5),cal_subset)
     else:
         calipso_clear = np.logical_and(np.less(caObj.calipso.cloud_fraction,0.34),cal_subset)
         calipso_cloudy = np.logical_and(np.greater(caObj.calipso.cloud_fraction,0.66),cal_subset)
