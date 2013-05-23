@@ -1,3 +1,7 @@
+"""
+  Use this module to read cci cloudproducts
+  2013 SMHI, N.Hakansson a001865
+"""
 import ppshdf_cloudproducts
 import ppshdf_helpers
 from epshdf import (SafRegion, 
