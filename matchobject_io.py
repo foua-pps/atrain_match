@@ -29,7 +29,6 @@ TESTFILE = os.path.join(TESTDIR,
                         "1km_npp_20121012_1246_04968_caliop_viirs_match.h5")
 
 
-
 class DataObject(object):
     """
     Class to handle data objects with several arrays.
@@ -61,6 +60,9 @@ class ppsAvhrrObject(DataObject):
             'cloudtype': None,
             'cloudtype_qflag': None,
             'surftemp': None,
+            'r06micron': None,
+            'r09micron': None,
+            'bt37micron': None,
             'bt11micron': None,
             'bt12micron': None,
             'satz': None,
