@@ -12,12 +12,17 @@
 import pdb #@UnusedImport
 from pps_error_messages import write_log #@UnresolvedImport
 
+from matchobject_io import (DataObject,
+                            ppsAvhrrObject)                            
+
 #from calipso import * #@UnusedWildImport
-from config import AREA, sec_timeThr, RESOLUTION, \
-    NODATA, NLINES, SWATHWD, _validation_results_dir
-from common import MatchupError, elements_within_range
-from calipso import DataObject, ppsAvhrrObject, define_pcs, writeCoverage,\
-    createAvhrrTime, avhrr_track_from_matched
+from config import (AREA, sec_timeThr, RESOLUTION,
+                    NODATA, NLINES, SWATHWD, 
+                    _validation_results_dir)
+from common import (MatchupError, 
+                    elements_within_range)
+from calipso import (define_pcs, writeCoverage,
+                     createAvhrrTime, avhrr_track_from_matched)
 
 
 class CloudsatObject(DataObject):

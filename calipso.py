@@ -20,74 +20,10 @@ from config import (OPTICAL_DETECTION_LIMIT,
                     IMAGER_INSTRUMENT)
 import time as tm
 
-class DataObject(object):
-    """
-    Class to handle data objects with several arrays.
-    
-    """
-    def __getattr__(self, name):
-        try:
-            return self.all_arrays[name]
-        except KeyError:
-            raise AttributeError("%s instance has no attribute '%s'" % (self.__class__.__name__, name))
-    
-    def __setattr__(self, name, value):
-        if name == 'all_arrays':
-            object.__setattr__(self, name, value)
-        else:
-            self.all_arrays[name] = value
-            
-class ppsAvhrrObject(DataObject):
-    def __init__(self):
-        DataObject.__init__(self)                            
-        self.all_arrays = {
-            'longitude': None,
-            'latitude': None,
-            'sec_1970': None,
-            'ctth_height': None,
-            'ctth_pressure': None,
-            'ctth_temperature': None,
-            'ctth_opaque': None,  # True if opaque retrieval was applied
-            'cloudtype': None,
-            'cloudtype_qflag': None,
-            'surftemp': None,
-            'bt11micron': None,
-            'bt12micron': None,
-            'satz': None,
-            'lwp': None
-            }
-        
-class CalipsoObject(DataObject):
-    def __init__(self):
-        DataObject.__init__(self)                            
-        self.all_arrays = {
-            'longitude': None,
-            'latitude': None,
-            'avhrr_linnum': None,
-            'avhrr_pixnum': None,
-            'cloud_fraction': None,
-            'cloud_top_profile': None,
-            'cloud_base_profile': None,
-            'cloud_mid_temperature': None,
-            'number_of_layers_found': None,
-            'igbp': None,
-            'nsidc': None,
-            'elevation': None,
-            'time': None,
-            'utc_time': None, 
-            'sec_1970': None,
-            'feature_classification_flags': None,
-            'day_night_flag': None,
-            'optical_depth': None,
-            'optical_depth_uncertainty': None,
-            'single_shot_cloud_cleared_fraction': None,
-            'Horizontal_Averaging': None
-            }
-class CalipsoAvhrrTrackObject:
-    def __init__(self):
-        self.avhrr=ppsAvhrrObject()
-        self.calipso=CalipsoObject()
-        self.diff_sec_1970=None
+
+from matchobject_io import (CalipsoAvhrrTrackObject,
+                            CalipsoObject)
+
 
 class area_interface:
     pass
@@ -97,49 +33,6 @@ class SatProjCov:
         self.coverage=None
         self.colidx=None
         self.rowidx=None 
-
-# ----------------------------------------
-def readCaliopAvhrrMatchObj(filename):
-    import h5py #@UnresolvedImport
-    
-    retv = CalipsoAvhrrTrackObject()
-    
-    h5file = h5py.File(filename, 'r')
-    for group, data_obj in [(h5file['/calipso'], retv.calipso),
-                            (h5file['/avhrr'], retv.avhrr)]:
-        for dataset in group.keys():        
-            if dataset in data_obj.all_arrays.keys():
-                data_obj.all_arrays[dataset] = group[dataset].value
-
-#    duplicate_names(retv.calipso)
-    
-    retv.diff_sec_1970 = h5file['diff_sec_1970'].value
-
-    h5file.close()
-
-    return retv
-
-# ----------------------------------------
-def writeCaliopAvhrrMatchObj(filename, ca_obj):
-    """
-    Write *ca_obj* to *filename*.
-    
-    """
-    from common import write_match_objects
-    groups = {'calipso': ca_obj.calipso.all_arrays,
-              'avhrr': ca_obj.avhrr.all_arrays}
-    write_match_objects(filename, ca_obj.diff_sec_1970, groups)
-    
-#    h5file.create_group('avhrr')
-#    for arname, value in ca_obj.avhrr.all_arrays.items():
-#        if value == None or value == []:
-#            continue
-#        else:
-#            h5file.create_dataset(('avhrr' + '/' + arname), data = value)
-#    h5file.close()
-
-    status = 1
-    return status
 
 # ------------------------------------------------------------------
 def writeCoverage(covIn,filename,inAid,outAid):
@@ -525,6 +418,31 @@ def createAvhrrTime(Obt, values):
     
     return Obt
 
+def get_channel_data_from_object(dataObj, chnum, matched, nodata=-9):
+    """Get the AVHRR/VIIRS channel data on the track
+
+    matched: dict of matched indices (row, col)
+
+    """
+
+    temp = [dataObj.channels[chnum].data[matched['row'][idx], 
+                                         matched['col'][idx]]
+            for idx in range(matched['row'].shape[0])] 
+
+    chdata = [(dataObj.channels[chnum].data[matched['row'][idx], 
+                                            matched['col'][idx]] * 
+               dataObj.channels[chnum].gain + 
+               dataObj.channels[chnum].intercept)       
+              for idx in range(matched['row'].shape[0])]
+
+    chdata_on_track = np.where(
+        np.logical_or(
+            np.equal(temp, dataObj.nodata),
+            np.equal(temp, dataObj.missing_data)),
+        nodata, chdata)
+
+    return chdata_on_track
+
 #---------------------------------------------------------------------------
 def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj, 
                              surft, ctth, ctype, 
@@ -539,11 +457,17 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
     lon_avhrr_track = []
     lat_avhrr_track = []
     surft_track = []
+    bt06micron_track = []
+    bt08micron_track = []
+    bt16micron_track = []
+    bt37micron_track = []
     bt11micron_track = []
     bt12micron_track = []
     satz_track = []
     lwp_track = []
     cph_track = []
+
+    row_col = {'row': row_matched, 'col': col_matched} 
 
     #idx = [x in range(row_matched.shape[0])]
     lat_avhrr_track = [GeoObj.latitude[row_matched[idx], col_matched[idx]] 
@@ -557,33 +481,20 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
     if surft != None:
         surft_track = [surft[row_matched[idx], col_matched[idx]]
                        for idx in range(row_matched.shape[0])]
-    #b11   
+
     if dataObj != None:
-        temp = [dataObj.channels[3].data[row_matched[idx], col_matched[idx]]
-                for idx in range(row_matched.shape[0])] 
-        b11_temp =  [(dataObj.channels[3].data[row_matched[idx], 
-                                               col_matched[idx]] * 
-                      dataObj.channels[3].gain + 
-                      dataObj.channels[3].intercept)       
-                     for idx in range(row_matched.shape[0])]
-        bt11micron_track = np.where(
-            np.logical_or(
-                np.equal(temp, dataObj.nodata),
-                np.equal(temp, dataObj.missing_data)),
-            -9, b11_temp)
-    #b12
-        temp = [dataObj.channels[4].data[row_matched[idx], col_matched[idx]]
-                for idx in range(row_matched.shape[0])]
-        b12_temp = [(dataObj.channels[4].data[row_matched[idx], 
-                                              col_matched[idx]] * 
-                     dataObj.channels[4].gain + 
-                     dataObj.channels[4].intercept)
-                    for idx in range(row_matched.shape[0])]
-        bt12micron_track = np.where(
-            np.logical_or(
-                np.equal(temp, dataObj.nodata),
-                np.equal(temp, dataObj.missing_data)),
-            -9, b12_temp)
+        # r06   
+        # Should nodata be set to something different from defailt (-9)?
+        # FIXME!
+        r06micron_track = get_channel_data_from_object(dataObj, 0, row_col)
+        # r09   
+        r09micron_track = get_channel_data_from_object(dataObj, 1, row_col)
+        # bt37   
+        bt37micron_track = get_channel_data_from_object(dataObj, 2, row_col)
+        # b11
+        bt12micron_track = get_channel_data_from_object(dataObj, 3, row_col)
+        # b12
+        bt12micron_track = get_channel_data_from_object(dataObj, 4, row_col)
 
     temp = [AngObj.satz.data[row_matched[idx], col_matched[idx]] 
             for idx in range(row_matched.shape[0])]
@@ -597,7 +508,6 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
         -9, sats_temp)
     if ctth == None:
         write_log('INFO', "Not extracting ctth")
-        pass
     else:
         write_log('INFO', "Extracting ctth along track ")
         temp = [ctth.height[row_matched[idx], col_matched[idx]]
@@ -641,6 +551,9 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
     obt.avhrr.cloudtype = np.array(ctype_track)
     obt.avhrr.cloudtype_qflag = np.array(ctype_qflag_track)
     if dataObj !=None:
+        obt.avhrr.r06micron = np.array(r06micron_track)
+        obt.avhrr.r09micron = np.array(r09micron_track)
+        obt.avhrr.bt37micron = np.array(bt37micron_track)
         obt.avhrr.bt11micron = np.array(bt11micron_track)
         obt.avhrr.bt12micron = np.array(bt12micron_track)
     obt.avhrr.satz = np.array(satz_track)
