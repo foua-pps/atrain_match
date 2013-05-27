@@ -27,7 +27,10 @@ TESTDIR = "/local_disk/laptop/NowcastingSaf/FA/cloud_week_2013may/atrain_matchda
 import os.path
 TESTFILE = os.path.join(TESTDIR, 
                         "1km_npp_20121012_1246_04968_caliop_viirs_match.h5")
+TESTFILE2 = os.path.join(TESTDIR,
+                         "1km_npp_20121004_0700_04851_caliop_viirs_match.h5")
 
+import numpy as np
 
 class DataObject(object):
     """
@@ -69,6 +72,31 @@ class ppsAvhrrObject(DataObject):
             'lwp': None
             }
         
+    def __add__(self, other):
+        """Adding two objects together"""
+        # for key in self.all_arrays:
+        #     if (self.all_arrays[key] and 
+        #         other.all_arrays[key]):
+        #         self.all_arrays[key] = np.concatenate([self.all_arrays[key],
+        #                                                other.all_arrays[key]])
+        #     elif ((self.all_arrays[key] and 
+        #           other.all_arrays[key] is None) or 
+        #           (self.all_arrays[key] is None and 
+        #            other.all_arrays[key])):
+        #         raise AttributeError('One item is None and' + 
+        #                              ' the other contains data!')
+            
+        for key in self.all_arrays:
+            try:
+                self.all_arrays[key] = np.concatenate([self.all_arrays[key],
+                                                       other.all_arrays[key]])
+            except ValueError, e:
+                print "Don't concatenate member " + key + "... " + str(e)
+                self.all_arrays[key] = other.all_arrays[key]
+
+        return self
+
+        
 class CalipsoObject(DataObject):
     def __init__(self):
         DataObject.__init__(self)                            
@@ -95,11 +123,39 @@ class CalipsoObject(DataObject):
             'single_shot_cloud_cleared_fraction': None,
             'Horizontal_Averaging': None
             }
+
+    def __add__(self, other):
+        """Adding two objects together"""
+        for key in self.all_arrays:
+            try:
+                self.all_arrays[key] = np.concatenate([self.all_arrays[key],
+                                                       other.all_arrays[key]])
+            except ValueError, e:
+                print "Don't concatenate member " + key + "... " + str(e)
+                self.all_arrays[key] = other.all_arrays[key]
+            
+        return self
+
+
 class CalipsoAvhrrTrackObject:
     def __init__(self):
-        self.avhrr=ppsAvhrrObject()
-        self.calipso=CalipsoObject()
-        self.diff_sec_1970=None
+        self.avhrr = ppsAvhrrObject()
+        self.calipso = CalipsoObject()
+        self.diff_sec_1970 = None
+    
+    def __add__(self, other):
+        """Concatenating two objects together"""
+        self.avhrr = self.avhrr + other.avhrr
+        self.calipso = self.calipso + other.calipso
+        try:
+            self.diff_sec_1970 = np.concatenate([self.diff_sec_1970,
+                                                 other.diff_sec_1970])
+        except ValueError, e:
+            print "Don't concatenate member diff_sec_1970... " + str(e)
+            self.diff_sec_1970 = other.diff_sec_1970
+
+        return self
+
 
 # ----------------------------------------
 def readCaliopAvhrrMatchObj(filename):
@@ -138,4 +194,6 @@ def writeCaliopAvhrrMatchObj(filename, ca_obj):
 if __name__ == "__main__":
 
     caObj = readCaliopAvhrrMatchObj(TESTFILE)
+    caObj2 = readCaliopAvhrrMatchObj(TESTFILE2)
 
+    caObj = caObj + caObj2
