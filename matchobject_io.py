@@ -48,6 +48,33 @@ class DataObject(object):
             object.__setattr__(self, name, value)
         else:
             self.all_arrays[name] = value
+
+    def __add__(self, other):
+        """Adding two objects together"""
+        for key in self.all_arrays:
+            try:
+                if self.all_arrays[key].ndim != self.all_arrays[key].ndim:
+                    raise ValueError("Can't concatenate arrays " + 
+                                     "of different dimensions!")
+            except AttributeError, e:
+                print "Don't concatenate member " + key + "... " + str(e)
+                self.all_arrays[key] = other.all_arrays[key]
+                continue
+
+            try:
+                if self.all_arrays[key].ndim == 1:  
+                    self.all_arrays[key] = np.concatenate([self.all_arrays[key],
+                                                           other.all_arrays[key]])
+                elif self.all_arrays[key].ndim == 2: 
+                    self.all_arrays[key] = np.concatenate([self.all_arrays[key],
+                                                           other.all_arrays[key]], 1)
+                        
+            except ValueError, e:
+                print "Don't concatenate member " + key + "... " + str(e)
+                self.all_arrays[key] = other.all_arrays[key]
+            
+        return self
+
             
 class ppsAvhrrObject(DataObject):
     def __init__(self):
@@ -72,30 +99,6 @@ class ppsAvhrrObject(DataObject):
             'lwp': None
             }
         
-    def __add__(self, other):
-        """Adding two objects together"""
-        # for key in self.all_arrays:
-        #     if (self.all_arrays[key] and 
-        #         other.all_arrays[key]):
-        #         self.all_arrays[key] = np.concatenate([self.all_arrays[key],
-        #                                                other.all_arrays[key]])
-        #     elif ((self.all_arrays[key] and 
-        #           other.all_arrays[key] is None) or 
-        #           (self.all_arrays[key] is None and 
-        #            other.all_arrays[key])):
-        #         raise AttributeError('One item is None and' + 
-        #                              ' the other contains data!')
-            
-        for key in self.all_arrays:
-            try:
-                self.all_arrays[key] = np.concatenate([self.all_arrays[key],
-                                                       other.all_arrays[key]])
-            except ValueError, e:
-                print "Don't concatenate member " + key + "... " + str(e)
-                self.all_arrays[key] = other.all_arrays[key]
-
-        return self
-
         
 class CalipsoObject(DataObject):
     def __init__(self):
@@ -124,17 +127,6 @@ class CalipsoObject(DataObject):
             'Horizontal_Averaging': None
             }
 
-    def __add__(self, other):
-        """Adding two objects together"""
-        for key in self.all_arrays:
-            try:
-                self.all_arrays[key] = np.concatenate([self.all_arrays[key],
-                                                       other.all_arrays[key]])
-            except ValueError, e:
-                print "Don't concatenate member " + key + "... " + str(e)
-                self.all_arrays[key] = other.all_arrays[key]
-            
-        return self
 
 
 class CalipsoAvhrrTrackObject:
