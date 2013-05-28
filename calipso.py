@@ -12,6 +12,7 @@ from config import (AREA, _validation_results_dir,
 from common import MatchupError, elements_within_range #@UnusedImport
 from config import RESOLUTION as resolution
 from config import (OPTICAL_DETECTION_LIMIT,
+                    OPTICAL_LIMIT_CLOUD_TOP,
                     EXCLUDE_CALIPSO_PIXEL_IF_TOTAL_OPTICAL_THICKNESS_TO_LOW,
                     EXCLUDE_ALL_MULTILAYER,
                     EXCLUDE_MULTILAYER_IF_TOO_THIN_TOP_LAYER,
@@ -19,6 +20,7 @@ from config import (OPTICAL_DETECTION_LIMIT,
                     PPS_VALIDATION,
                     IMAGER_INSTRUMENT)
 import time as tm
+
 
 
 from matchobject_io import (CalipsoAvhrrTrackObject,
@@ -369,7 +371,7 @@ def createAvhrrTime(Obt, values):
     #import time
     #from datetime import datetime
     import calendar
-
+    import time
     #filename = os.path.basename(filename)
     # Ex.: npp_20120827_2236_04321_satproj_00000_04607_cloudtype.h5
     if IMAGER_INSTRUMENT == 'viirs':
@@ -387,8 +389,11 @@ def createAvhrrTime(Obt, values):
        #test = np.apply_along_axis(np.multiply,  0, np.ones([20, 16]), linetime).reshape(30)        
         linetime = np.linspace(Obt.sec1970_start, Obt.sec1970_end, num_of_scan)
         Obt.time = np.apply_along_axis(np.multiply,  0, np.ones([num_of_scan, 16]), linetime).reshape(Obt.num_of_lines)
- 
 
+        write_log("INFO", "NPP start time:  ", time.gmtime(Obt.sec1970_start))
+        write_log("INFO", "NPP end time: ", time.gmtime(Obt.sec1970_end))
+
+ 
     else:
         if Obt.sec1970_end < Obt.sec1970_start:
             """
@@ -704,6 +709,11 @@ def match_calipso_avhrr(values,
         retv.calipso.optical_depth_uncertainty = np.reshape(x_odu,(col_dim,N_odu)).astype('d')
         N_ss = x_ss.shape[0]/col_dim
         retv.calipso.single_shot_cloud_cleared_fraction = np.reshape(x_ss,(col_dim,N_ss)).astype('d')
+        retv.calipso.optical_depth_top_layer = np.repeat(\
+            calipsoObj.optical_depth[:,0].ravel(),idx_match.ravel()).astype('d') 
+    if res == 1:
+        retv.calipso.optical_depth_top_layer = np.repeat(\
+            calipsoObj.optical_depth.ravel(),idx_match.ravel()).astype('d')
     #cloud_mid_temp = np.repeat(calipsoObj.cloud_mid_temperature.flat,idx_match_2d.flat)
     #cloud_mid_temp = np.where(np.less(cloud_mid_temp,0),missing_data,cloud_mid_temp)
     #cloud_mid_temp = np.reshape(cloud_mid_temp,(N,10))
@@ -1121,28 +1131,46 @@ def use5km_remove_thin_clouds_from_1km(Obj1, Obj5, start_break, end_break):
         height_profile = 0.001*np.array(range(cloud_top_max, -1, -1))
         optical_thickness = np.zeros(height_profile.shape)
         for lay in range(Obj5.number_of_layers_found[pixel]): 
-            cloud_at_these_height_index = np.logical_and(
-                Obj5.cloud_top_profile[pixel, lay]>= height_profile, 
-                height_profile>=Obj5.cloud_base_profile[pixel, lay])
-            eye_this_cloud = np.where(cloud_at_these_height_index ,  1, 0)
-            number_of_cloud_boxes = sum(eye_this_cloud)         
-            if number_of_cloud_boxes == 0:
-                write_log('WARNING', "cloud has no depth!!")
+            #dont use layers with negative top or base value
+            if (Obj5.cloud_top_profile[pixel, lay]>0 and 
+                Obj5.cloud_base_profile[pixel, lay]>0):
+                cloud_at_these_height_index = np.logical_and(
+                    Obj5.cloud_top_profile[pixel, lay]>= height_profile, 
+                    height_profile>=Obj5.cloud_base_profile[pixel, lay])
+                eye_this_cloud = np.where(cloud_at_these_height_index ,  1, 0)
+                number_of_cloud_boxes = sum(eye_this_cloud)         
+                if number_of_cloud_boxes == 0 and Obj5.cloud_top_profile[pixel, lay]>0:
+                    cloud_at_these_height_index = np.logical_and(
+                        np.logical_and(
+                            Obj5.cloud_top_profile[pixel, lay]>= height_profile-0.01, 
+                            Obj5.cloud_base_profile[pixel, lay]>=height_profile-0.01),
+                        np.logical_and(
+                            Obj5.cloud_top_profile[pixel, lay]<= height_profile+0.01, 
+                            Obj5.cloud_base_profile[pixel, lay]<=height_profile+0.01))
+                    write_log('INFO',"Cloud top %.2f base: %.2f "%(
+                            Obj5.cloud_top_profile[pixel, lay],
+                            Obj5.cloud_base_profile[pixel, lay] ))
+                    write_log('INFO'," Using height_profile %2.f %2.f"%(
+                            np.min(height_profile[cloud_at_these_height_index]),np.max(height_profile[cloud_at_these_height_index])))
+                eye_this_cloud = np.where(cloud_at_these_height_index ,  1, 0)
+                number_of_cloud_boxes = sum(eye_this_cloud)         
+                if number_of_cloud_boxes == 0:
+                    write_log('WARNING', "cloud has no depth!!")
              
-            optical_thickness_this_layer = (
-                eye_this_cloud*
-                Obj5.optical_depth[pixel, lay]*
-                1.0/number_of_cloud_boxes)             
-            if abs(np.sum(optical_thickness_this_layer) - 
-                   Obj5.optical_depth[pixel, lay])>0.001:
-                write_log('WARNING', "The sum of the optical thickness profile is "
+                optical_thickness_this_layer = (
+                    eye_this_cloud*
+                    Obj5.optical_depth[pixel, lay]*
+                    1.0/number_of_cloud_boxes)             
+                if abs(np.sum(optical_thickness_this_layer) - 
+                       Obj5.optical_depth[pixel, lay])>0.001:
+                    write_log('WARNING', "The sum of the optical thickness profile is "
                        "not the same as total optical thickness of the cloud!!")
              
-            optical_thickness = optical_thickness + optical_thickness_this_layer
+                optical_thickness = optical_thickness + optical_thickness_this_layer
 
         optical_thickness_profile = np.cumsum(optical_thickness)
         ok_and_higher_heights = np.where(
-            optical_thickness_profile <= OPTICAL_DETECTION_LIMIT, 
+            optical_thickness_profile <= OPTICAL_LIMIT_CLOUD_TOP, 
             height_profile, cloud_max_top)
         height_limit1 = np.min(ok_and_higher_heights)
         #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1160,7 +1188,8 @@ def use5km_remove_thin_clouds_from_1km(Obj1, Obj5, start_break, end_break):
             optical_depth_var_approx = -9
         #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   
-        for pixel_1km in range(pixel*5, pixel*5+5, 1):                          
+        for pixel_1km in range(pixel*5, pixel*5+5, 1): 
+            #Obj1.detection_height[pixel_1km] = height_limit1
             for lay in range(Obj1.number_of_layers_found[pixel_1km]-1, -1, -1):
                 #print optical_depth_var_approx
                 if  optical_depth_var_approx > 0.5 and sort_out_pixels_that_we_have_no_good_truth_for:

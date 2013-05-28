@@ -4,7 +4,10 @@ Created on Oct 13, 2010
 @author: a001696
 '''
 from config import CASES, MAIN_DATADIR, MAP, RESOLUTION, COMPILED_STATS_FILENAME,\
-    DNT_FLAG, CALIPSO_CLOUD_FRACTION, MIN_OPTICAL_DEPTH, CCI_CLOUD_VALIDATION
+    MIN_OPTICAL_DEPTH, CCI_CLOUD_VALIDATION,\
+    DNT_FLAG, CALIPSO_CLOUD_FRACTION,COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC,\
+    ALSO_USE_5KM_FILES, RESULT_DIR
+
 
 def compile_filtered_stats(results_files, filttype, write=False):
     """Run through all summary statistics."""
@@ -60,12 +63,56 @@ def compile_basic_stats(results_files, result_end, write=False):
     
     print("========== Cloud top height ===========")
     from statistics import orrb_CTH_stat
-    cth_stats = orrb_CTH_stat.CloudTopStats(results_files)
+    cth_stats = orrb_CTH_stat.CloudTopStats(results_files, [16,17,18,19])
     if write:
         cth_stats.write(COMPILED_STATS_FILENAME + '_cth_BASIC%s.txt' %result_end)
     cth_stats.printout()
     for l in cth_stats.printout():
         print(l)
+
+    if COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC:
+            print("========== Cloud top height ===========")
+            print("========== Single Layer     ===========")
+            from statistics import orrb_CTH_stat
+            cth_stats = orrb_CTH_stat.CloudTopStats(results_files, [21,22,23,24])
+            if write:
+                cth_stats.write(COMPILED_STATS_FILENAME + '_cth_BASIC%s.txt' %result_end)
+            cth_stats.printout()
+            for l in cth_stats.printout():
+                print(l)
+
+    if (COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC and
+        (ALSO_USE_5KM_FILES or RESOLUTION==5)): 
+            print("========== Cloud top height ===========")
+            print("=== Single Layer, Not optically thin ==")
+            print("========== Expect good results here! ==")
+            from statistics import orrb_CTH_stat
+            cth_stats = orrb_CTH_stat.CloudTopStats(results_files, [26,27,28,29])
+            if write:
+                cth_stats.write(COMPILED_STATS_FILENAME + '_cth_BASIC%s.txt' %result_end)
+            cth_stats.printout()
+            for l in cth_stats.printout():
+                print(l)
+            print("========== Cloud top height ===========")
+            print("===== Top Layer, Not optically thin ===")
+            from statistics import orrb_CTH_stat
+            cth_stats = orrb_CTH_stat.CloudTopStats(results_files, [31,32,33,34])
+            if write:
+                cth_stats.write(COMPILED_STATS_FILENAME + '_cth_BASIC%s.txt' %result_end)
+            cth_stats.printout()
+            for l in cth_stats.printout():
+                print(l)
+            print("========== Cloud top height ===========")
+            print("==== Top Layer, Optically very thin ===")
+            print("========== Expect bad results here! ===")
+            from statistics import orrb_CTH_stat
+            cth_stats = orrb_CTH_stat.CloudTopStats(results_files, [36,37,38,39])
+            if write:
+                cth_stats.write(COMPILED_STATS_FILENAME + '_cth_BASIC%s.txt' %result_end)
+            cth_stats.printout()
+            for l in cth_stats.printout():
+                print(l)
+
     
     if not CCI_CLOUD_VALIDATION:
         print("============= Cloud type ==============")
@@ -146,8 +193,8 @@ if __name__ == '__main__':
         for dnt in DNT_FLAG:
             results_files = []
             for case in CASES:
-                basic_indata_dir = "%s/Results_CCI_2007-2009/%s/%skm/%s/%02d/%s/BASIC" % \
-                    (MAIN_DATADIR, case['satname'], RESOLUTION , case['year'], case['month'], MAP[0])
+                basic_indata_dir = "%s/%s/%s/%skm/%s/%02d/%s/BASIC" % \
+                    (MAIN_DATADIR, RESULT_DIR, case['satname'],  RESOLUTION , case['year'], case['month'], MAP[0])
                 if dnt in [None, 'ALL', 'all']:
                     result_end = ''
                 else:
@@ -172,8 +219,8 @@ if __name__ == '__main__':
                 results_files = []
                 for case in CASES:
                     print(RESOLUTION)
-                    basic_indata_dir = "%s/Results_CCI_2007-2009/%s/%skm/%s/%02d/%s/%s" % \
-                    (MAIN_DATADIR, case['satname'], RESOLUTION , case['year'], case['month'], MAP[0], surface)
+                    basic_indata_dir = "%s/%s/%s/%skm/%s/%02d/%s/%s" % \
+                    (MAIN_DATADIR, RESULT_DIR, case['satname'], RESOLUTION , case['year'], case['month'], MAP[0], surface)
                     if dnt in [None, 'ALL', 'all']:
                         result_end = surface
                     else:
@@ -195,8 +242,8 @@ if __name__ == '__main__':
                 results_files = []
                 for case in CASES:
                     print(RESOLUTION)
-                    basic_indata_dir = "%s/Results_CCI_2007-2009/%s/%skm/%s/%02d/%s/%s" % \
-                    (MAIN_DATADIR, case['satname'], RESOLUTION , case['year'], case['month'], MAP[0], filttype)
+                    basic_indata_dir = "%s/%s/%s/%skm/%s/%02d/%s/%s" % \
+                    (MAIN_DATADIR, RESULT_DIR, case['satname'],  RESOLUTION , case['year'], case['month'], MAP[0], filttype)
                     if dnt in [None, 'ALL', 'all']:
                         result_end = filttype
                     else:
@@ -224,13 +271,13 @@ if __name__ == '__main__':
             for cot in MIN_OPTICAL_DEPTH:
                 results_files = []
                 for case in CASES:
-                    basic_indata_dir = "%s/Results_CCI_2007-2009/%s/%skm/%s/%02d/%s/OPTICAL_DEPTH-%0.2f" % \
-                    (MAIN_DATADIR, case['satname'], RESOLUTION , case['year'], case['month'], MAP[0], cot)
+                    basic_indata_dir = "%s/%s/%s/%skm/%s/%02d/%s/OPTICAL_DEPTH-%0.2f" % \
+                    (MAIN_DATADIR, RESULT_DIR, case['satname'], RESOLUTION , case['year'], case['month'], MAP[0], cot)
                     if dnt in [None, 'ALL', 'all']:
                         result_end = '_%0.2f' % cot
                     else:
-                        basic_indata_dir = "%s/Results_CCI_2007-2009/%s/%skm/%s/%02d/%s/OPTICAL_DEPTH_%s-%0.2f" % \
-                                           (MAIN_DATADIR, case['satname'], RESOLUTION , case['year'], case['month'], MAP[0], dnt,cot)
+                        basic_indata_dir = "%s/%s/%s/%skm/%s/%02d/%s/OPTICAL_DEPTH_%s-%0.2f" % \
+                                           (MAIN_DATADIR, RESULT_DIR, case['satname'], RESOLUTION , case['year'], case['month'], MAP[0], dnt,cot)
                         #basic_indata_dir = basic_indata_dir + '_' + dnt
                         result_end = '_%s_%0.2f' % (dnt,cot)
                     print("-> " + basic_indata_dir)
