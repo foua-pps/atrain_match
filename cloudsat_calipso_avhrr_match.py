@@ -139,10 +139,9 @@ from cloudsat_calipso_avhrr_prepare import *
 from cloudsat import reshapeCloudsat, match_cloudsat_avhrr
 from cloudsat import writeCloudsatAvhrrMatchObj, readCloudsatAvhrrMatchObj
 from calipso import reshapeCalipso, match_calipso_avhrr
-from calipso import (writeCaliopAvhrrMatchObj, 
-                     readCaliopAvhrrMatchObj,
-                     use5km_remove_thin_clouds_from_1km,
-                     add1kmTo5km)
+from matchobject_io import (writeCaliopAvhrrMatchObj, 
+                            readCaliopAvhrrMatchObj)
+from calipso import  (use5km_remove_thin_clouds_from_1km, add1kmTo5km)
 import inspect
 import numpy as np
 from cloudsat_calipso_avhrr_plot import (drawCalClsatAvhrrPlotTimeDiff,
@@ -734,6 +733,7 @@ def get_matchups_from_data(cross, config_options):
                         calipso5km.append(file5km)
                 calipso1km = sorted(require_h5(calipso1km))
                 calipso_files = sorted(calipso5km)
+                calipso5km = None
                 if len(calipso_files) == 0:
                     raise MatchupError("Did not find any matching 5km and 1km calipso files")
 
@@ -763,7 +763,7 @@ def get_matchups_from_data(cross, config_options):
                         calipso1km.append(file1km)
                 calipso5km = sorted(require_h5(calipso5km))
                 calipso_files = sorted(calipso1km)
-
+                calipso1km = None
                 if len(calipso_files) == 0:
                     raise MatchupError("Did not find any matching 5km and 1km calipso files")
                 if len(calipso_files) != len(calipso5km):

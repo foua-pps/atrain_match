@@ -424,7 +424,6 @@ def get_channel_data_from_object(dataObj, chnum, matched, nodata=-9):
     matched: dict of matched indices (row, col)
 
     """
-
     temp = [dataObj.channels[chnum].data[matched['row'][idx], 
                                          matched['col'][idx]]
             for idx in range(matched['row'].shape[0])] 
@@ -484,7 +483,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
 
     if dataObj != None:
         # r06   
-        # Should nodata be set to something different from defailt (-9)?
+        # Should nodata be set to something different from default (-9)?
         # FIXME!
         r06micron_track = get_channel_data_from_object(dataObj, 0, row_col)
         # r09   
@@ -492,7 +491,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
         # bt37   
         bt37micron_track = get_channel_data_from_object(dataObj, 2, row_col)
         # b11
-        bt12micron_track = get_channel_data_from_object(dataObj, 3, row_col)
+        bt11micron_track = get_channel_data_from_object(dataObj, 3, row_col)
         # b12
         bt12micron_track = get_channel_data_from_object(dataObj, 4, row_col)
 
@@ -550,11 +549,12 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
     obt.avhrr.longitude = np.array(lon_avhrr_track)
     obt.avhrr.cloudtype = np.array(ctype_track)
     obt.avhrr.cloudtype_qflag = np.array(ctype_qflag_track)
-    if dataObj !=None:
+    if dataObj != None:
         obt.avhrr.r06micron = np.array(r06micron_track)
         obt.avhrr.r09micron = np.array(r09micron_track)
         obt.avhrr.bt37micron = np.array(bt37micron_track)
         obt.avhrr.bt11micron = np.array(bt11micron_track)
+        print obt.avhrr.bt11micron.shape
         obt.avhrr.bt12micron = np.array(bt12micron_track)
     obt.avhrr.satz = np.array(satz_track)
     if ctth:
