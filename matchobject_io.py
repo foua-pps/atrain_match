@@ -96,6 +96,8 @@ class ppsAvhrrObject(DataObject):
             'bt11micron': None,
             'bt12micron': None,
             'bt86micron': None,
+            'bt22micron': None,
+            'bt13micron': None,
             'r16micron': None,
             'satz': None,
             'sunz': None,

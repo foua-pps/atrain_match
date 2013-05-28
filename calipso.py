@@ -447,10 +447,13 @@ def get_channel_data_from_object(dataObj, chn_des, matched, nodata=-9):
                                          "MODIS 32",
                                          "VIIRS M16",
                                          "Avhrr channel channel5."],
-                                  '06': [ "VIIRS M05"],
-                                  '09': [ "VIIRS M07"],
-                                  '16': [ "VIIRS M10"],
-                                  '37': [ "VIIRS M12"],
+                                   '06': [ "VIIRS M05"],
+                                   '09': [ "VIIRS M07"],
+                                   '16': [ "VIIRS M10"],
+                                   '37': [ "VIIRS M12"],
+                                   '22': [ "VIIRS M11"],   
+                                   '13': [ "VIIRS M09"],
+
                                   '86': [ "VIIRS M14"]}
     CHANNEL_MICRON_AVHRR_PPS = {'11': 3,
                                 '12': 4,
@@ -547,6 +550,10 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
         bt86micron_track = get_channel_data_from_object(dataObj, '86', row_col)
         # b16
         r16micron_track = get_channel_data_from_object(dataObj, '16', row_col)
+        # b22
+        b22micron_track = get_channel_data_from_object(dataObj, '22', row_col)
+        #b13
+        b13micron_track = get_channel_data_from_object(dataObj, '13', row_col)
     temp = [AngObj.satz.data[row_matched[idx], col_matched[idx]] 
             for idx in range(row_matched.shape[0])]
     sats_temp = [(AngObj.satz.data[row_matched[idx], col_matched[idx]] * 
@@ -631,6 +638,10 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
             obt.avhrr.bt86micron = np.array(bt86micron_track)
         if r16micron_track != None:
             obt.avhrr.r16micron = np.array(r16micron_track)
+        if b13micron_track != None:
+            obt.avhrr.b13micron = np.array(b13micron_track)
+        if b22micron_track != None:
+            obt.avhrr.b22micron = np.array(b22micron_track)
     obt.avhrr.satz = np.array(satz_track)
     obt.avhrr.sunz = np.array(sunz_track)
     obt.avhrr.azidiff = np.array(azidiff_track)
