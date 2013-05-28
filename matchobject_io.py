@@ -95,7 +95,11 @@ class ppsAvhrrObject(DataObject):
             'bt37micron': None,
             'bt11micron': None,
             'bt12micron': None,
+            'bt86micron': None,
+            'r16micron': None,
             'satz': None,
+            'sunz': None,
+            'azidiff': None,
             'lwp': None
             }
         
@@ -124,7 +128,8 @@ class CalipsoObject(DataObject):
             'optical_depth': None,
             'optical_depth_uncertainty': None,
             'single_shot_cloud_cleared_fraction': None,
-            'Horizontal_Averaging': None
+            'Horizontal_Averaging': None,
+            'optical_depth_top_layer': None
             }
 
 

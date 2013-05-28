@@ -423,12 +423,55 @@ def createAvhrrTime(Obt, values):
     
     return Obt
 
-def get_channel_data_from_object(dataObj, chnum, matched, nodata=-9):
+def get_channel_data_from_object(dataObj, chn_des, matched, nodata=-9):
     """Get the AVHRR/VIIRS channel data on the track
 
     matched: dict of matched indices (row, col)
 
     """
+    CHANNEL_MICRON_DESCRIPTIONS = {'11': ["avhrr channel 4 - 11um",
+                                         "Avhrr channel channel4.",
+                                         "AVHRR ch4",
+                                         "AVHRR ch 4",
+                                         "channel4",
+                                         "AVHRR 4",
+                                         "MODIS 31",
+                                         "VIIRS M15",
+                                         "Avhrr channel channel4."],
+                                  '12': ["avhrr channel 5 - 12um",
+                                         "Avhrr channel channel5.",
+                                         "AVHRR ch5",
+                                         "AVHRR ch 5",
+                                         "channel5",
+                                         "AVHRR 5",
+                                         "MODIS 32",
+                                         "VIIRS M16",
+                                         "Avhrr channel channel5."],
+                                  '06': [ "VIIRS M05"],
+                                  '09': [ "VIIRS M07"],
+                                  '16': [ "VIIRS M10"],
+                                  '37': [ "VIIRS M12"],
+                                  '86': [ "VIIRS M14"]}
+    CHANNEL_MICRON_AVHRR_PPS = {'11': 3,
+                                '12': 4,
+                                '06': 0,
+                                '09': 1,
+                                '37': 2}   
+
+    numOfChannels = len(dataObj.channels)
+    chnum=-1
+    for ich in range(numOfChannels):
+        if dataObj.channels[ich].des in CHANNEL_MICRON_DESCRIPTIONS[chn_des]:
+            chnum = ich
+    if chnum ==-1:
+        for ich in range(numOfChannels):
+            if dataObj.channels[ich].des in CHANNEL_MICRON_AVHRR_PPS[chn_des]:
+                write_log('WARNING',  "Using pps channel numbers to find "
+                          "corresponding avhrr channel")
+                chnum = ich
+    if chnum ==-1:
+        return None
+        
     temp = [dataObj.channels[chnum].data[matched['row'][idx], 
                                          matched['col'][idx]]
             for idx in range(matched['row'].shape[0])] 
@@ -461,9 +504,10 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
     lon_avhrr_track = []
     lat_avhrr_track = []
     surft_track = []
-    bt06micron_track = []
-    bt08micron_track = []
-    bt16micron_track = []
+    r06micron_track = []
+    r09micron_track = []
+    r16micron_track = []
+    bt86micron_track = []
     bt37micron_track = []
     bt11micron_track = []
     bt12micron_track = []
@@ -490,16 +534,19 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
         # r06   
         # Should nodata be set to something different from default (-9)?
         # FIXME!
-        r06micron_track = get_channel_data_from_object(dataObj, 0, row_col)
+        r06micron_track = get_channel_data_from_object(dataObj, '06', row_col)
         # r09   
-        r09micron_track = get_channel_data_from_object(dataObj, 1, row_col)
+        r09micron_track = get_channel_data_from_object(dataObj, '09', row_col)
         # bt37   
-        bt37micron_track = get_channel_data_from_object(dataObj, 2, row_col)
+        bt37micron_track = get_channel_data_from_object(dataObj, '37', row_col)
         # b11
-        bt11micron_track = get_channel_data_from_object(dataObj, 3, row_col)
+        bt11micron_track = get_channel_data_from_object(dataObj, '11', row_col)
         # b12
-        bt12micron_track = get_channel_data_from_object(dataObj, 4, row_col)
-
+        bt12micron_track = get_channel_data_from_object(dataObj, '12', row_col)
+        # b86
+        bt86micron_track = get_channel_data_from_object(dataObj, '86', row_col)
+        # b16
+        r16micron_track = get_channel_data_from_object(dataObj, '16', row_col)
     temp = [AngObj.satz.data[row_matched[idx], col_matched[idx]] 
             for idx in range(row_matched.shape[0])]
     sats_temp = [(AngObj.satz.data[row_matched[idx], col_matched[idx]] * 
@@ -510,6 +557,26 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
             np.equal(temp, AngObj.satz.no_data),
             np.equal(temp, AngObj.satz.missing_data)),
         -9, sats_temp)
+    temp = [AngObj.sunz.data[row_matched[idx], col_matched[idx]] 
+            for idx in range(row_matched.shape[0])]
+    sunz_temp = [(AngObj.sunz.data[row_matched[idx], col_matched[idx]] * 
+                  AngObj.sunz.gain + AngObj.sunz.intercept)
+                 for idx in range(row_matched.shape[0])]
+    sunz_track = np.where(
+        np.logical_or(
+            np.equal(temp, AngObj.sunz.no_data),
+            np.equal(temp, AngObj.sunz.missing_data)),
+        -9, sunz_temp)
+    temp = [AngObj.azidiff.data[row_matched[idx], col_matched[idx]] 
+            for idx in range(row_matched.shape[0])]
+    azidiff_temp = [(AngObj.azidiff.data[row_matched[idx], col_matched[idx]] * 
+                  AngObj.azidiff.gain + AngObj.azidiff.intercept)
+                 for idx in range(row_matched.shape[0])]
+    azidiff_track = np.where(
+        np.logical_or(
+            np.equal(temp, AngObj.azidiff.no_data),
+            np.equal(temp, AngObj.azidiff.missing_data)),
+        -9, azidiff_temp)
     if ctth == None:
         write_log('INFO', "Not extracting ctth")
     else:
@@ -559,9 +626,14 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
         obt.avhrr.r09micron = np.array(r09micron_track)
         obt.avhrr.bt37micron = np.array(bt37micron_track)
         obt.avhrr.bt11micron = np.array(bt11micron_track)
-        print obt.avhrr.bt11micron.shape
         obt.avhrr.bt12micron = np.array(bt12micron_track)
+        if bt86micron_track != None:
+            obt.avhrr.bt86micron = np.array(bt86micron_track)
+        if r16micron_track != None:
+            obt.avhrr.r16micron = np.array(r16micron_track)
     obt.avhrr.satz = np.array(satz_track)
+    obt.avhrr.sunz = np.array(sunz_track)
+    obt.avhrr.azidiff = np.array(azidiff_track)
     if ctth:
         obt.avhrr.ctth_height = np.array(ctth_height_track)
         obt.avhrr.ctth_pressure = np.array(ctth_pressure_track)
