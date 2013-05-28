@@ -10,8 +10,8 @@ import os
 ALWAYS_USE_AVHRR_ORBIT_THAT_STARTS_BEFORE_CROSS = False
 
 #Choose one to validate
-PPS_VALIDATION = False
-CCI_CLOUD_VALIDATION = True
+PPS_VALIDATION = True
+CCI_CLOUD_VALIDATION = False
 
 
 COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC = True
@@ -23,7 +23,7 @@ ALSO_USE_5KM_FILES = True #5km data is needed to split result on optical depth o
 #If USE_5KM_FILES_TO_FILTER_CALIPSO_DATA is True, we take the cloud top to
 # be OPTICAL_LIMIT_CLOUD_TOP down in the cloud. For clouds thinner than
 # OPTICAL_LIMIT_CLOUD_TOP we use the cloud base as cloud top.
-USE_5KM_FILES_TO_FILTER_CALIPSO_DATA = False
+USE_5KM_FILES_TO_FILTER_CALIPSO_DATA = True
 OPTICAL_LIMIT_CLOUD_TOP = 0.6
 if USE_5KM_FILES_TO_FILTER_CALIPSO_DATA:
     ALSO_USE_5KM_FILES = True
@@ -41,12 +41,12 @@ VAL_CPP = os.environ.get('VAL_CPP', False)
 
 # Imager Instrument on which PPS has been run (currently you can only run the
 # atrain match on either AVHRR data or VIIRS data, not both):
-IMAGER_INSTRUMENT = os.environ.get('IMAGER_INSTRUMENT', 'avhrr')
+IMAGER_INSTRUMENT = os.environ.get('IMAGER_INSTRUMENT', 'viirs')
 
 #: Resolution, in km, to use for data files. This setting is used throughout
 #: ``atrain_match`` to specify file names, sub-directories, and data handling.
 #: Currently, 1 or 5 is supported
-RESOLUTION = int(os.environ.get('ATRAIN_RESOLUTION', 5))
+RESOLUTION = int(os.environ.get('ATRAIN_RESOLUTION', 1))
 if RESOLUTION == 1:
     AVHRR_SAT = 'NPP' #'pps'
     CALIPSO_CLOUD_FRACTION = False
@@ -84,11 +84,11 @@ PLOT_DIR = "%s/Plot" %MAIN_DIR
 
 #: Base directory for statistics results
 #RESULT_DIR = "%s/Results_prob" %MAIN_DIR
-RESULT_DIR = "Results_initial_tests" 
+RESULT_DIR = "Results" 
 
 
 # Region configuaration file with area definitons
-AREA_CONFIG_FILE = os.environ.get('AREA_CONFIG_FILE', './etc/areas.def')
+AREA_CONFIG_FILE = os.environ.get('AREA_CONFIG_FILE', './areas.def')
 
 #_satellite_data_dir = '/data/arkiv/proj/safworks/data'
 _satellite_data_dir = '/nobackup/smhid9/sm_kgkar/atrain_match_2013/testdata'
@@ -129,7 +129,7 @@ CLOUDSAT_CLOUDY_THR = 30.0
 #: MAXHEIGHT is used in the plotting. 
 #: If None the maxheight is calculated from the highest cloud
 #MAXHEIGHT = None
-MAXHEIGHT = 18000
+MAXHEIGHT = None
 
 #: Range of allowed (AVHRR) satellite azimuth angles, in degrees
 AZIMUTH_RANGE = (0., 360.)
