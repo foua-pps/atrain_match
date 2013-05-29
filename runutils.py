@@ -27,6 +27,7 @@ def process_scenes(scenes, fun, options, ignore_errors=True, *args, **kwargs):
         filename = os.path.basename(_file)
         print filename, fun
         satname, _datetime, orbit = parse_scene(filename)
+        logger.info("Orbit : %d"%( orbit))
         try:
             fun(satname, orbit, options, *args, **kwargs)
         except KeyboardInterrupt:

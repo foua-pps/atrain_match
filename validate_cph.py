@@ -9,13 +9,17 @@ from amsr_avhrr.match import match_lonlat
 from runutils import process_scenes
 from cloudsat_calipso_avhrr_match import find_calipso_files
 import logging
+from config import _validation_results_dir
 logger = logging.getLogger(__name__)
 
 from datetime import datetime
 TAI93 = datetime(1993, 1, 1)
 
 #: Directory for mapper files
-MATCH_DIR = os.environ.get('MATCH_DIR', '.')
+MATCH_DIR = os.environ.get('MATCH_DIR', _validation_results_dir+'/CPP_MATCH_DIR')
+if not os.path.exists(MATCH_DIR):
+        logger.info("Creating cpp match dir: %s"%(MATCH_DIR ))
+        os.makedirs(MATCH_DIR)
 
 #Time threshold, i.e. max time diff to be considered as a match
 TIME_THR=1200.0
@@ -156,7 +160,7 @@ def find_calipso_files_from_avhrr_filename(avhrr_filename, options):
     sl_ = os.path.basename(avhrr_filename).split('_')
     satname = sl_[0]
     date_time = datetime.strptime(sl_[1] + sl_[2], '%Y%m%d%H%M')
-    return find_calipso_files(date_time, options)
+    return find_calipso_files(date_time, options, values={})
 
     # Limit matching to AMSR-E files starting 45 min (duration of one half
     # orbit) before up to 20 min (duration of one EARS AVHRR swath) after the

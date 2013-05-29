@@ -266,10 +266,11 @@ def get_satid_datetime_orbit_from_fname(avhrr_filename):
 
 def insert_info_in_filename_or_path(file_or_name_path, values, datetime_obj=None):
     #file_or_name_path = file_or_name_path.format(**values)
+    satellite=values.get("satellite","*"),
     file_or_name_path = file_or_name_path.format(
-        satellite=values["satellite"],
+        satellite=satellite,
         orbit=values.get("orbit","*"),
-        instrument = INSTRUMENT.get(values["satellite"],"avhrr"),
+        instrument = INSTRUMENT.get(satellite,"avhrr"),
         resolution=config.RESOLUTION,
         area=config.AREA,
         lines_lines=values.get("lines_lines", "*"),
