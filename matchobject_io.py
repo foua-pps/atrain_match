@@ -23,13 +23,6 @@
 """Read Calipso/VIIRS/AVHRR matchup data object from hdf5 file
 """
 
-TESTDIR = "/local_disk/laptop/NowcastingSaf/FA/cloud_week_2013may/atrain_matchdata/2012/10/arctic_europe_1km"
-import os.path
-TESTFILE = os.path.join(TESTDIR, 
-                        "1km_npp_20121012_1246_04968_caliop_viirs_match.h5")
-TESTFILE2 = os.path.join(TESTDIR,
-                         "1km_npp_20121004_0700_04851_caliop_viirs_match.h5")
-
 import numpy as np
 
 class DataObject(object):
@@ -203,6 +196,13 @@ def writeCaliopAvhrrMatchObj(filename, ca_obj):
 # ----------------------------------------
 if __name__ == "__main__":
 
+    import os.path
+    TESTDIR = ("/local_disk/laptop/NowcastingSaf/FA/cloud_week_2013may" + 
+               "/atrain_matchdata/2012/10/arctic_europe_1km")
+    TESTFILE = os.path.join(TESTDIR, 
+                            "1km_npp_20121012_1246_04968_caliop_viirs_match.h5")
+    TESTFILE2 = os.path.join(TESTDIR,
+                             "1km_npp_20121004_0700_04851_caliop_viirs_match.h5")
     caObj = readCaliopAvhrrMatchObj(TESTFILE)
     caObj2 = readCaliopAvhrrMatchObj(TESTFILE2)
 
