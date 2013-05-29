@@ -459,21 +459,25 @@ def get_channel_data_from_object(dataObj, chn_des, matched, nodata=-9):
                                 '12': 4,
                                 '06': 0,
                                 '09': 1,
-                                '37': 2}   
-
+                                '37': 2,
+                                '86': -1,               
+                                '16': -1,
+                                '22': -1,
+                                '13': -1}   
+    
     numOfChannels = len(dataObj.channels)
     chnum=-1
     for ich in range(numOfChannels):
         if dataObj.channels[ich].des in CHANNEL_MICRON_DESCRIPTIONS[chn_des]:
             chnum = ich
     if chnum ==-1:
-        for ich in range(numOfChannels):
-            if dataObj.channels[ich].des in CHANNEL_MICRON_AVHRR_PPS[chn_des]:
-                write_log('WARNING',  "Using pps channel numbers to find "
-                          "corresponding avhrr channel")
-                chnum = ich
-    if chnum ==-1:
-        return None
+        chnum = CHANNEL_MICRON_AVHRR_PPS[chn_des]
+        if chnum ==-1:
+            return None
+        write_log('WARNING',  "Using pps channel numbers to find "
+              "corresponding avhrr channel")
+              
+
         
     temp = [dataObj.channels[chnum].data[matched['row'][idx], 
                                          matched['col'][idx]]
@@ -495,7 +499,7 @@ def get_channel_data_from_object(dataObj, chn_des, matched, nodata=-9):
 
 #---------------------------------------------------------------------------
 def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj, 
-                             surft, ctth, ctype, 
+                             nwp_obj, ctth, ctype, 
                              row_matched, col_matched, 
                              avhrrLwp=None, avhrrCph=None):
     ctype_track = []
@@ -507,6 +511,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
     lon_avhrr_track = []
     lat_avhrr_track = []
     surft_track = []
+    ciwv_track = []
     r06micron_track = []
     r09micron_track = []
     r16micron_track = []
@@ -517,6 +522,16 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
     satz_track = []
     lwp_track = []
     cph_track = []
+    text_r06_track = []
+    text_t11_track = []
+    thr_t11ts_inv_track = []
+    thr_t11t37_inv_track = []
+    thr_t37t12_inv_track = []
+    thr_t11t12_inv_track = []
+    thr_t11ts_track = []
+    thr_t11t37_track = []
+    thr_t37t12_track = []
+    thr_t11t12_track = []
 
     row_col = {'row': row_matched, 'col': col_matched} 
 
@@ -529,9 +544,51 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
                  for idx in range(row_matched.shape[0])]
     ctype_qflag_track = [ctype.qualityflag[row_matched[idx], col_matched[idx]]
                         for idx in range(row_matched.shape[0])]
-    if surft != None:
-        surft_track = [surft[row_matched[idx], col_matched[idx]]
+    if nwp_obj.surft != None:
+        surft_track = [nwp_obj.surft[row_matched[idx], col_matched[idx]]
                        for idx in range(row_matched.shape[0])]
+    if nwp_obj.ciwv != None:
+        ciwv_track = [nwp_obj.ciwv[row_matched[idx], col_matched[idx]]
+                       for idx in range(row_matched.shape[0])]
+    #Thresholds:    
+    if nwp_obj.text_r06 != None:
+        text_r06_track = [nwp_obj.text_r06[row_matched[idx], col_matched[idx]]
+                          for idx in range(row_matched.shape[0])]
+    if nwp_obj.text_t11 != None:
+        text_t11_track = [nwp_obj.text_t11[row_matched[idx], col_matched[idx]]
+                          for idx in range(row_matched.shape[0])]
+    if nwp_obj.thr_t11ts_inv != None:
+        thr_t11ts_inv_track = [
+            nwp_obj.thr_t11ts_inv[row_matched[idx], col_matched[idx]]
+            for idx in range(row_matched.shape[0])] 
+    if nwp_obj.thr_t11t37_inv != None:
+        thr_t11t37_inv_track = [
+            nwp_obj.thr_t11t37_inv[row_matched[idx], col_matched[idx]]
+            for idx in range(row_matched.shape[0])] 
+    if nwp_obj.thr_t37t12_inv != None:
+        thr_t37t12_inv_track = [
+            nwp_obj.thr_t37t12_inv[row_matched[idx], col_matched[idx]]
+            for idx in range(row_matched.shape[0])] 
+    if nwp_obj.thr_t11t12_inv != None:
+        thr_t11t12_inv_track = [
+            nwp_obj.thr_t11t12_inv[row_matched[idx], col_matched[idx]]
+            for idx in range(row_matched.shape[0])] 
+    if nwp_obj.thr_t11ts != None:
+        thr_t11ts_track = [
+            nwp_obj.thr_t11ts[row_matched[idx], col_matched[idx]]
+            for idx in range(row_matched.shape[0])] 
+    if nwp_obj.thr_t11t37 != None:
+        thr_t11t37_track = [
+            nwp_obj.thr_t11t37[row_matched[idx], col_matched[idx]]
+            for idx in range(row_matched.shape[0])] 
+    if nwp_obj.thr_t37t12 != None:
+        thr_t37t12_track = [
+            nwp_obj.thr_t37t12[row_matched[idx], col_matched[idx]]
+            for idx in range(row_matched.shape[0])] 
+    if nwp_obj.thr_t11t12 != None:
+        thr_t11t12_track = [
+            nwp_obj.thr_t11t12[row_matched[idx], col_matched[idx]]
+            for idx in range(row_matched.shape[0])] 
 
     if dataObj != None:
         # r06   
@@ -554,6 +611,10 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
         b22micron_track = get_channel_data_from_object(dataObj, '22', row_col)
         #b13
         b13micron_track = get_channel_data_from_object(dataObj, '13', row_col)
+
+
+
+
     temp = [AngObj.satz.data[row_matched[idx], col_matched[idx]] 
             for idx in range(row_matched.shape[0])]
     sats_temp = [(AngObj.satz.data[row_matched[idx], col_matched[idx]] * 
@@ -651,8 +712,31 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
         obt.avhrr.ctth_temperature = np.array(ctth_temperature_track)
         if (PPS_VALIDATION):
             obt.avhrr.ctth_opaque = np.array(ctth_opaque_track)
-    if surft != None:
+    if nwp_obj.surft != None:
         obt.avhrr.surftemp = np.array(surft_track)
+    if nwp_obj.ciwv != None:
+        obt.avhrr.ciwv = np.array(ciwv_track)
+    if nwp_obj.text_r06 != None:
+        obt.avhrr.text_r06 = np.array(text_r06_track)
+    if nwp_obj.text_t11 != None:
+        obt.avhrr.text_t11 = np.array(text_t11_track)
+    if nwp_obj.thr_t11ts_inv != None:
+        obt.avhrr.thr_t11ts_inv = np.array(thr_t11ts_inv_track)
+    if nwp_obj.thr_t11t37_inv != None:
+        obt.avhrr.thr_t11t37_inv = np.array(thr_t11t37_inv_track)
+    if nwp_obj.thr_t37t12_inv != None:
+        obt.avhrr.thr_t37t12_inv = np.array(thr_t37t12_inv_track)
+    if nwp_obj.thr_t11t12_inv != None:
+        obt.avhrr.thr_t11t12_inv = np.array(thr_t11t12_inv_track)
+    if nwp_obj.thr_t11ts != None:
+        obt.avhrr.thr_t11ts = np.array(thr_t11ts_track)
+    if nwp_obj.thr_t11t37 != None:
+        obt.avhrr.thr_t11t37 = np.array(thr_t11t37_track)
+    if nwp_obj.thr_t37t12 != None:
+        obt.avhrr.thr_t37t12 = np.array(thr_t37t12_track)
+    if nwp_obj.thr_t11t12 != None:
+        obt.avhrr.thr_t11t12 = np.array(thr_t11t12_track)
+
     if avhrrLwp != None:
         obt.avhrr.lwp = np.array(lwp_track)
     if avhrrCph != None:
@@ -662,7 +746,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
 # -----------------------------------------------------------------
 def match_calipso_avhrr(values, 
                         calipsoObj, imagerGeoObj, imagerObj, 
-                        ctype, ctth, cppCph, surft,
+                        ctype, ctth, cppCph, nwp_obj,
                         avhrrAngObj, options, res=resolution):
 
     import time
@@ -839,7 +923,7 @@ def match_calipso_avhrr(values,
     # -------------------------------------------------------------------------
     # Pick out the data from the track from AVHRR
     retv = avhrr_track_from_matched(retv, imagerGeoObj, imagerObj, avhrrAngObj, 
-                                    surft, ctth, ctype, cal_on_avhrr, 
+                                    nwp_obj, ctth, ctype, cal_on_avhrr, 
                                     cap_on_avhrr, avhrrCph=cppCph)
     # -------------------------------------------------------------------------    
 

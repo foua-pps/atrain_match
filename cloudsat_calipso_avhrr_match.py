@@ -157,39 +157,51 @@ from datetime import datetime, timedelta
 from glob import glob
 
 class ppsFiles(object):
-    def __init__(self, **kwargs):
-        if 'cloudtype' in kwargs:
-            self.cloudtype = kwargs['cloudtype']
-        else:
-            self.cloudtype = None
-        if 'ctth' in kwargs:
-            self.ctth = kwargs['ctth']
-        else:
-            self.ctth = None
-        if 'cpp' in kwargs:
-            self.cpp = kwargs['cpp']
-        else:
-            self.cpp = None
-        if 'sunsatangles' in kwargs:
-            self.sunsatangles = kwargs['sunsatangles']
-        else:
-            self.sunsatangles = None
-        if 'nwp_tsur' in kwargs:
-            self.nwp_tsur = kwargs['nwp_tsur']
-        else:
-            self.nwp_tsur = None
-    
+    def __init__(self, file_name_dict):
+        self.cloudtype = None
+        self.ctth = None
+        self.cpp = None
+        self.sunsatangles = None
+        self.nwp_tsur = None
+        self.nwp_ciwv = None
+        self.text_r06 = None
+        self.text_t11 = None
+        self.thr_t11ts_inv = None
+        self.thr_t11t37_inv = None
+        self.thr_t37t12_inv = None
+        self.thr_t11t12_inv = None
+        self.thr_t11ts = None
+        self.thr_t11t37 = None
+        self.thr_t37t12 = None
+        self.thr_t11t12 = None
+        self.__dict__.update(file_name_dict)    
+
+class NWPObj(object):
+    def __init__(self, array_dict):
+        self.nwp_tsur = None
+        self.nwp_ciwv = None
+        self.text_r06 = None
+        self.text_t11 = None
+        self.thr_t11ts_inv = None
+        self.thr_t11t37_inv = None
+        self.thr_t37t12_inv = None
+        self.thr_t11t12_inv = None
+        self.thr_t11ts = None
+        self.thr_t11t37 = None
+        self.thr_t37t12 = None
+        self.thr_t11t12 = None
+        self.__dict__.update(array_dict) 
 
 test = 0
 
-def readCpp(filename, type):
+def readCpp(filename, cpp_type):
     import h5py #@UnresolvedImport
     h5file = h5py.File(filename, 'r')
-    if type in h5file.keys():
-        value = h5file[type].value
-        gain = h5file[type].attrs['gain']
-        intersec = h5file[type].attrs['intercept']
-        nodat = h5file[type].attrs['no_data_value']
+    if cpp_type in h5file.keys():
+        value = h5file[cpp_type].value
+        gain = h5file[cpp_type].attrs['gain']
+        intersec = h5file[cpp_type].attrs['intercept']
+        nodat = h5file[cpp_type].attrs['no_data_value']
         product = np.where(value != nodat,value * gain + intersec, value)   
     h5file.close()
     return product
@@ -459,6 +471,23 @@ def find_cloudsat_files(date_time, options):
     return cloudsat_files
     #%%%%%%%%%%%%5
 
+def get_pps_file(avhrr_file, options, values, type_of_file, file_dir):
+    if not type_of_file in options:
+        write_log("INFO", "No %s file in cfg-file!"%(type_of_file))
+        return None
+    date_time = values["date_time"]
+    cloudtype_name = insert_info_in_filename_or_path(options[type_of_file], 
+                                                     values, datetime_obj=date_time)                        
+    path = insert_info_in_filename_or_path(options[file_dir], 
+                                           values, datetime_obj=date_time)  
+    try:
+        file_name = glob(os.path.join(path, cloudtype_name))[0]
+        write_log("INFO", type_of_file +": ", file_name)
+        return file_name
+    except IndexError:
+        write_log("INFO","No %s file found corresponding to %s." %( type_of_file, avhrr_file))
+        return None
+
 def find_files_from_avhrr(avhrr_file, options):
     """
     Find all files needed to process matchup from source data files.
@@ -468,6 +497,7 @@ def find_files_from_avhrr(avhrr_file, options):
     write_log("INFO", "Avhrr or viirs file = %s" % avhrr_file)
     values = get_satid_datetime_orbit_from_fname(avhrr_file)
     date_time = values["date_time"]
+
     cloudtype_name = insert_info_in_filename_or_path(options['cloudtype_file'], 
                                                      values, datetime_obj=date_time)                        
     path = insert_info_in_filename_or_path(options['cloudtype_dir'], 
@@ -499,6 +529,17 @@ def find_files_from_avhrr(avhrr_file, options):
     else:     
        write_log("INFO", "Not validation of CPP ")
        cpp_file = None
+    sunsatangles_name = insert_info_in_filename_or_path(options['sunsatangles_file'],
+                                                        values, datetime_obj=date_time)
+    path =insert_info_in_filename_or_path(options['sunsatangles_dir'], 
+                                          values, datetime_obj=date_time)
+    try:
+        sunsatangles_file = glob(os.path.join(path, sunsatangles_name))[0]
+    except IndexError:
+        sunsatangles_file = None
+        raise MatchupError("No sunsatangles file found corresponding to %s." % avhrr_file)
+    write_log("INFO", "SUNSATANGLES: " + sunsatangles_file)
+
     if not 'nwp_tsur_file' in options:
         write_log("WARNING", "No t-surface file searched for!")
         nwp_tsur_file=None
@@ -512,24 +553,35 @@ def find_files_from_avhrr(avhrr_file, options):
         except IndexError:
             raise MatchupError("No nwp_tsur file found corresponding to %s." % avhrr_file)
         write_log("INFO", "NWP_TSUR: " + nwp_tsur_file)
-        
-    sunsatangles_name = insert_info_in_filename_or_path(options['sunsatangles_file'],
-                                                        values, datetime_obj=date_time)
-    path =insert_info_in_filename_or_path(options['sunsatangles_dir'], 
-                                          values, datetime_obj=date_time)
-    try:
-        sunsatangles_file = glob(os.path.join(path, sunsatangles_name))[0]
-    except IndexError:
-        sunsatangles_file = None
-        raise MatchupError("No sunsatangles file found corresponding to %s." % avhrr_file)
-    write_log("INFO", "SUNSATANGLES: " + sunsatangles_file)
 
-    ppsfiles = ppsFiles(cloudtype=cloudtype_file,
-                        ctth=ctth_file,
-                        cpp=cpp_file,
-                        nwp_tsur=nwp_tsur_file,
-                        sunsatangles=sunsatangles_file)
+    file_name_dict={}
+    for nwp_file in ['nwp_tsur', 'nwp_ciwv']:   
+        file_name_dict[nwp_file] = get_pps_file(avhrr_file, options, values, 
+                                                 nwp_file+'_file', nwp_file+'_dir')
 
+
+    for text_file in ['text_r06', 'text_t11']:
+        file_name_dict[text_file] = get_pps_file(avhrr_file, options, values, 
+                                                 text_file+'_file', 'text_dir')
+
+    for thr_file in ['thr_t11ts_inv', 'thr_t11t37_inv', 
+                     'thr_t37t12_inv', 'thr_t11t12_inv', 
+                     'thr_t11ts', 'thr_t11t37', 'thr_t37t12', 'thr_t11t12']:
+        file_name_dict[thr_file] = get_pps_file(avhrr_file, options, values, 
+                                                thr_file+'_file', 'thr_dir')
+ 
+    file_name_dict.update({'cloudtype': cloudtype_file,
+                      'ctth': ctth_file,
+                      'cpp': cpp_file,
+                      'nwp_tsur': nwp_tsur_file,
+                      'sunsatangles': sunsatangles_file})
+
+    ppsfiles = ppsFiles(file_name_dict)
+                        #cloudtype=cloudtype_file,
+                        #ctth=ctth_file,
+                        #cpp=cpp_file,
+                        #nwp_tsur=nwp_tsur_file,
+                        #sunsatangles=sunsatangles_file)
     return  ppsfiles
 
 
@@ -548,7 +600,7 @@ def _plot_avhrr_track(match_file, avhrr, track):
     fig.savefig(plot_file)
 
 def get_cloudsat_matchups(cloudsat_files, cloudtype_file, avhrrGeoObj, avhrrObj,
-                          ctype, ctth, surft, avhrrAngObj, cppLwp, plot_file=None):
+                          ctype, ctth, nwp_obj, avhrrAngObj, cppLwp, plot_file=None):
     """
     Read Cloudsat data and match with the given PPS data.
     """
@@ -579,17 +631,18 @@ def get_cloudsat_matchups(cloudsat_files, cloudtype_file, avhrrGeoObj, avhrrObj,
         write_log('INFO',("No cloudsat plot-file"))
     cl_matchup, cl_min_diff, cl_max_diff = match_fun(cloudtype_file, cloudsat,
                                                      avhrrGeoObj, avhrrObj, ctype,
-                                                     ctth, surft, avhrrAngObj, cppLwp)
+                                                     ctth, nwp_obj.surft, avhrrAngObj, cppLwp)
 
     return cl_matchup, (cl_min_diff, cl_max_diff)
 
 
 def get_calipso_matchups(calipso_files, values, 
                          avhrrGeoObj, avhrrObj, ctype, ctth, 
-                         surft, avhrrAngObj, options, cppCph=None, cafiles1km=None, cafiles5km=None):
+                         nwp_obj, avhrrAngObj, options, cppCph=None, cafiles1km=None, cafiles5km=None):
     """
     Read Calipso data and match with the given PPS data.
     """
+    surft = nwp_obj.surft
     if cafiles1km != None:
         #pdb.set_trace()
         calipso1km = reshapeCalipso(cafiles1km, avhrrGeoObj, values, False, 1)[0]
@@ -623,10 +676,38 @@ def get_calipso_matchups(calipso_files, values,
     write_log('INFO',"Matching with avhrr")
     tup = match_calipso_avhrr(values, calipso,
                               avhrrGeoObj, avhrrObj, ctype,
-                              ctth, cppCph, surft, avhrrAngObj, options)
+                              ctth, cppCph, nwp_obj, avhrrAngObj, options)
     ca_matchup, ca_min_diff, ca_max_diff = tup
     #import pdb; pdb.set_trace()
     return ca_matchup, (ca_min_diff, ca_max_diff)
+
+def read_nwp(file_name, type_of_nwp):
+    import epshdf #@UnresolvedImport
+    if file_name is not None : # and config.CLOUDSAT_TYPE == "GEOPROF":
+        nwpinst = epshdf.read_nwpdata(file_name)
+        write_log("INFO", "Read NWP %s"%(type_of_nwp))
+        return nwpinst.gain*nwpinst.data.astype('d') + nwpinst.intercept
+    else:
+        write_log("INFO","NO NWP %s File, Continue"%(type_of_nwp))
+        return None
+
+def read_thr(filename, h5_obj_type, thr_type):
+    import h5py #@UnresolvedImport
+    product = None
+    if filename is not None: 
+        h5file = h5py.File(filename, 'r')
+        if h5_obj_type in h5file.keys():
+            value = h5file[h5_obj_type].value
+            gain = h5file[h5_obj_type].attrs['gain']
+            intersec = h5file[h5_obj_type].attrs['intercept']
+            product = value * gain + intersec
+            write_log("INFO", "Read THR: %s"%(thr_type))
+        else:
+            write_log("ERROR","Could not read %s File, Continue"%(thr_type))
+        h5file.close()   
+    else:
+        write_log("INFO","NO THR %s File, Continue"%(thr_type))
+    return product
 
 def read_pps_data(pps_files, avhrr_file, cross):
     import pps_io #@UnresolvedImport
@@ -663,21 +744,25 @@ def read_pps_data(pps_files, avhrr_file, cross):
     try:
         ctth = epshdf.read_cloudtop(pps_files.ctth, 1, 1, 1, 0, 1)
     except:
-        ctth = None  
-    surft = None
-    if pps_files.nwp_tsur is not None : # and config.CLOUDSAT_TYPE == "GEOPROF":
-        if 1:
-            nwpinst = epshdf.read_nwpdata(pps_files.nwp_tsur)
-            write_log("INFO", "Read NWP surface temperature")
-            surft = nwpinst.gain*nwpinst.data.astype('d') + nwpinst.intercept
-        #except:
-        #    write_log("INFO", 
-        #              "Corrupted NWP surface temperature File, Continue")
-        #    surft = None
-        else:
-            write_log("INFO","NO NWP surface temperature File, Continue")
-            surft = None
-    return avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, surft, cppLwp, cppCph 
+        ctth = None
+   
+    nwp_dict={}
+    nwp_dict['surft'] = read_nwp(pps_files.nwp_tsur, "surface temperature")
+    nwp_dict['ciwv'] = read_nwp(pps_files.nwp_ciwv,  "atmosphere_water_vapor_content")
+
+
+    for ttype in ['r06', 't11']:
+        h5_obj_type = ttype +'_text'
+        text_type = 'text_' + ttype
+        nwp_dict[text_type] = read_thr(getattr(pps_files,text_type), h5_obj_type,text_type)
+    for h5_obj_type in ['t11ts_inv', 't11t37_inv', 't37t12_inv', 't11t12_inv', 
+                     't11ts', 't11t37', 't37t12', 't11t12']:
+        thr_type = 'thr_' + h5_obj_type
+        nwp_dict[thr_type] = read_thr(getattr(pps_files,thr_type), h5_obj_type, thr_type)
+
+
+    nwp_obj = NWPObj(nwp_dict)
+    return avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, nwp_obj, cppLwp, cppCph 
 
 def read_cloud_cci(avhrr_file):
     from read_cloudproducts_cci import cci_read_ctth
@@ -695,13 +780,15 @@ def get_matchups_from_data(cross, config_options):
         if not avhrr_file:
             raise MatchupError("No avhrr file found!\ncross = " + str(cross))
         pps_files = find_files_from_avhrr(avhrr_file, config_options)   
-        avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, surft, cppLwp, cppCph =read_pps_data(pps_files, avhrr_file, cross)
+        avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, nwp_obj, cppLwp, cppCph =read_pps_data(pps_files, avhrr_file, cross)
         date_time = values["date_time"]
     if (CCI_CLOUD_VALIDATION):
         avhrr_file, tobj = find_cci_cloud_file(cross, config_options)
         #avhrr_file = "20080613002200-ESACCI-L2_CLOUD-CLD_PRODUCTS-AVHRRGAC-NOAA18-fv1.0.nc"
         values = get_satid_datetime_orbit_from_fname(avhrr_file)
         avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, surft, cppLwp, cppCph =read_cloud_cci(avhrr_file)
+        nwp_obj = NWPObj({'surft':surft})
+        
         avhrrGeoObj.satellite = values["satellite"];
         date_time = values["date_time"]
 
@@ -715,7 +802,7 @@ def get_matchups_from_data(cross, config_options):
             cl_matchup, cl_time_diff = get_cloudsat_matchups(cloudsat_files, 
                                                              pps_files.cloudtype,
                                                              avhrrGeoObj, avhrrObj, ctype,
-                                                             ctth, surft, avhrrAngObj, cppLwp, config_options)
+                                                             ctth, nwp_obj, avhrrAngObj, cppLwp, config_options)
         else:
             write_log("INFO", "NO CLOUDSAT File, Continue")
     else:
@@ -793,7 +880,7 @@ def get_matchups_from_data(cross, config_options):
         ca_matchup, ca_time_diff = get_calipso_matchups(calipso_files, 
                                                         values,
                                                         avhrrGeoObj, avhrrObj, ctype,
-                                                        ctth, surft, avhrrAngObj, 
+                                                        ctth, nwp_obj, avhrrAngObj, 
                                                         config_options, cppCph,  
                                                         calipso1km, calipso5km)
 
