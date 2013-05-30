@@ -16,7 +16,7 @@ from datetime import datetime
 TAI93 = datetime(1993, 1, 1)
 
 #: Directory for mapper files
-MATCH_DIR = os.environ.get('MATCH_DIR', _validation_results_dir+'/CPP_MATCH_DIR')
+MATCH_DIR = os.environ.get('MATCH_DIR', _validation_results_dir+'/CPP_MATCH_DIR_CT')
 if not os.path.exists(MATCH_DIR):
         logger.info("Creating cpp match dir: %s"%(MATCH_DIR ))
         os.makedirs(MATCH_DIR)
@@ -59,6 +59,8 @@ CPP_PHASE_VALUES = dict(no_cloud=0,
                         liquid=1,
                         ice=2,
                         mixed=3,
+                        non_opice=4,
+                        non_opwater=5,
                         uncertain=6,
                         no_observation=-1)
 
@@ -326,7 +328,7 @@ def validate(cpp_phase, cal_phase, verbose=False):
     else:
         n_pixels = cpp_phase.size
         print("Number of matching pixels: %d" % n_pixels)
-    cpp_keys = ['liquid', 'ice', 'mixed', 'uncertain']
+    cpp_keys = ['liquid', 'ice', 'mixed', 'uncertain', 'non_opice', 'non_opwater']
     
     cal_name_len = 40
     cpp_name_len = 15
