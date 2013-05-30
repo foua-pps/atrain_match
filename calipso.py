@@ -524,6 +524,8 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
     cph_track = []
     text_r06_track = []
     text_t11_track = []
+    text_t37t12_track = []
+    text_t37_track = []
     thr_t11ts_inv_track = []
     thr_t11t37_inv_track = []
     thr_t37t12_inv_track = []
@@ -532,6 +534,8 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
     thr_t11t37_track = []
     thr_t37t12_track = []
     thr_t11t12_track = []
+    thr_r09_track = []
+    thr_r06_track = []
 
     row_col = {'row': row_matched, 'col': col_matched} 
 
@@ -556,6 +560,9 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
                           for idx in range(row_matched.shape[0])]
     if nwp_obj.text_t11 != None:
         text_t11_track = [nwp_obj.text_t11[row_matched[idx], col_matched[idx]]
+                          for idx in range(row_matched.shape[0])]
+    if nwp_obj.text_t37t12 != None:
+        text_t37t12_track = [nwp_obj.text_t37t12[row_matched[idx], col_matched[idx]]
                           for idx in range(row_matched.shape[0])]
     if nwp_obj.thr_t11ts_inv != None:
         thr_t11ts_inv_track = [
@@ -589,6 +596,14 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
         thr_t11t12_track = [
             nwp_obj.thr_t11t12[row_matched[idx], col_matched[idx]]
             for idx in range(row_matched.shape[0])] 
+    if nwp_obj.thr_r09 != None:
+        thr_r09_track = [
+            nwp_obj.thr_r09[row_matched[idx], col_matched[idx]]
+            for idx in range(row_matched.shape[0])]
+    if nwp_obj.thr_r06 != None:
+        thr_r06_track = [
+            nwp_obj.thr_r06[row_matched[idx], col_matched[idx]]
+            for idx in range(row_matched.shape[0])]
 
     if dataObj != None:
         # r06   
@@ -720,6 +735,10 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
         obt.avhrr.text_r06 = np.array(text_r06_track)
     if nwp_obj.text_t11 != None:
         obt.avhrr.text_t11 = np.array(text_t11_track)
+    if nwp_obj.text_t37t12 != None:
+        obt.avhrr.text_t37t12 = np.array(text_t37t12_track)
+    if nwp_obj.text_t37 != None:
+        obt.avhrr.text_t37 = np.array(text_t37_track)
     if nwp_obj.thr_t11ts_inv != None:
         obt.avhrr.thr_t11ts_inv = np.array(thr_t11ts_inv_track)
     if nwp_obj.thr_t11t37_inv != None:
@@ -736,7 +755,10 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
         obt.avhrr.thr_t37t12 = np.array(thr_t37t12_track)
     if nwp_obj.thr_t11t12 != None:
         obt.avhrr.thr_t11t12 = np.array(thr_t11t12_track)
-
+    if nwp_obj.thr_r06 != None:
+        obt.avhrr.thr_r06 = np.array(thr_r06_track)
+    if nwp_obj.thr_r09 != None:
+        obt.avhrr.thr_r09 = np.array(thr_r09_track)
     if avhrrLwp != None:
         obt.avhrr.lwp = np.array(lwp_track)
     if avhrrCph != None:
