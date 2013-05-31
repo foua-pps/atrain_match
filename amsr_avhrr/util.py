@@ -27,7 +27,8 @@ def get_amsr_lonlat(filename):
     with h5py.File(filename, 'r') as f:
         lon = f['Swath1/Geolocation Fields/Longitude'][:]
         lat = f['Swath1/Geolocation Fields/Latitude'][:]
-    
+        if lon.shape[1]>0:
+            print "Warning, expected 1D vectors"
     return lon, lat
 
 
