@@ -33,7 +33,7 @@ def daysafter4713bc_to_sec1970(bcdate_array):
     sec_1970_array = 24*60*60*(bcdate_array - bcdate) + sec_1970
     return sec_1970_array
 
-def cci_read_ctth(filename):
+def cci_read_all(filename):
     """Read geolocation, angles info, ctth, and cloudtype
     """
     #cci_nc = netCDF4.Dataset(filename, 'r', format='NETCDF4')
@@ -42,6 +42,7 @@ def cci_read_ctth(filename):
     #cci_nc.variables['cth'].add_offset
     #cci_nc.variables['cth'][:] 
     #cci_nc.variables['cth'].scale_factor
+    print filename
     write_log("INFO", "Opening file %s"%(filename))
     cci_nc = netCDF4.Dataset(filename, 'r', format='NETCDF4')
     write_log("INFO", "Reading ctth ...")
@@ -56,11 +57,43 @@ def cci_read_ctth(filename):
     surft = None
     write_log("INFO", "Not reading cloud liquid water path")
     cppLwp = None
-    write_log("INFO", "Not reading cloud phase")
-    cppCph = None
+    write_log("INFO", "Reading cloud phase")
+    cppCph = read_cci_phase(cci_nc)
     write_log("INFO", "Not reading channel data")
     avhrrObj = None    
     return avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, surft, cppLwp, cppCph
+
+def cci_read_prod(filename, prod_type='ctth'):
+    """Read geolocation, angles info, ctth, and cloudtype
+    """
+    #cci_nc = netCDF4.Dataset(filename, 'r', format='NETCDF4')
+    #dir(cci_nc)
+    #cci_nc.variables
+    #cci_nc.variables['cth'].add_offset
+    #cci_nc.variables['cth'][:] 
+    #cci_nc.variables['cth'].scale_factor
+    print filename
+    write_log("INFO", "Opening file %s"%(filename))
+    cci_nc = netCDF4.Dataset(filename, 'r', format='NETCDF4')
+    if prod_type == 'ctth':
+        write_log("INFO", "Reading ctth ...")
+        return read_cci_ctth(cci_nc)
+
+    if prod_type == 'ang':
+        write_log("INFO", "Reading angles ...")
+        return read_cci_angobj(cci_nc)
+    if prod_type == 'ctype': 
+        write_log("INFO", "Reading angles ...")
+        avhrrAngObj =  read_cci_angobj(cci_nc)
+        write_log("INFO", "Reading cloud type ...")
+        return  read_cci_ctype(cci_nc, avhrrAngObj)
+    if prod_type == 'geotime':      
+        write_log("INFO", "Reading longitude, latitude and time ...")
+        return read_cci_geoobj(cci_nc)
+    if prod_type == 'cwp':  
+        write_log("INFO", "Reading cloud phase")
+        return read_cci_phase(cci_nc)
+    return None
 
 def read_cci_ctype(cci_nc,avhrrAngObj):
     """Read cloudtype and flag info from filename
@@ -126,6 +159,17 @@ def read_cci_angobj(cci_nc):
     avhrrAngObj.sunz.data = cci_nc.variables['solar_zenith_view_no1'][::]
     avhrrAngObj.azidiff = None #cci_nc.variables['rel_azimuth_view_no1']??
     return avhrrAngObj
+def read_cci_phase(cci_nc):
+    """Read angles info from filename
+    """
+    #pps_io.readSunSatAngles(pps_files.sunsatangles) 
+    phase = cci_nc.variables['phase'][::] 
+    #if hasattr(phase, 'mask'):
+    #    phase_out = np.where(phase.mask, -999, phase.data)
+    #else:
+    #    phase_out = phase.data
+    #print phase    
+    return phase
 
 def read_cci_geoobj(cci_nc):
     """Read geolocation and time info from filename

@@ -667,8 +667,8 @@ def read_pps_data(pps_files, avhrr_file, cross):
     return avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, surft, cppLwp, cppCph 
 
 def read_cloud_cci(avhrr_file):
-    from read_cloudproducts_cci import cci_read_ctth
-    return cci_read_ctth(avhrr_file)
+    from read_cloudproducts_cci import cci_read_all
+    return cci_read_all(avhrr_file)
 
 def get_matchups_from_data(cross, config_options):
     """

@@ -8,7 +8,7 @@ Utilities
 import numpy as np
 import logging
 logger = logging.getLogger(__name__)
-
+from read_cloudproducts_cci import cci_read_prod
 
 from datetime import datetime
 TAI93 = datetime(1993, 1, 1)
@@ -42,6 +42,17 @@ def get_avhrr_lonlat(filename):
     geo = pps_io.readAvhrrGeoData(filename)
     
     return geo.longitude, geo.latitude
+
+def get_avhrr_lonlat_and_time_cci(filename):
+    """
+    Get (lon, lat) from CCI AVHRR file .
+    
+    """    
+
+    geo = cci_read_prod(filename, 'geotime')
+    n_scanlines = geo.longitude.shape[0]
+    sec1970 = np.linspace(geo.sec1970_start, geo.sec1970_end, n_scanlines)
+    return (geo.longitude, geo.latitude), sec1970
 
 
 def get_amsr_time(filename):
@@ -113,6 +124,10 @@ def get_cpp_product(filename, product):
         cpp = CppProducts(filename=filename, product_names=[product])
     return cpp.products[product].array
 
+def get_cpp_product_cci(filename, product):
+    """Get *product* from CPP file *filename*."""
+    cpp_cph = cci_read_prod(filename, 'cwp')
+    return cpp_cph
 
 def get_diff_data(filenames, aux_fields=None):
     """
@@ -167,6 +182,7 @@ def write_data(data, name, filename, mode='a', attributes=None):
         if attributes:
             for k, v in attributes.items():
                 d.attrs[k] = v
+        f.close()           
 
 
 def diff_file_stats(filename):
