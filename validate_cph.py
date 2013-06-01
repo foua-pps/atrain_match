@@ -11,13 +11,17 @@ from cloudsat_calipso_avhrr_match import (find_calipso_files,
                                           find_files_from_avhrr,
                                           get_satid_datetime_orbit_from_fname)
 
+import numpy as np
+from amsr_avhrr.util import get_avhrr_lonlat
+from amsr_avhrr.util import get_avhrr_time
 from read_cloudproducts_cci import cci_read_prod
 import time
-
-import logging
 import h5py
+import numpy as np
+import logging
 from config import _validation_results_dir
 from config import RESOLUTION, PPS_VALIDATION, CCI_CLOUD_VALIDATION
+from amsr_avhrr.util import write_data, write_data_to_open_file
 logger = logging.getLogger(__name__)
 
 from datetime import datetime
@@ -26,8 +30,8 @@ TAI93 = datetime(1993, 1, 1)
 #: Directory for mapper files
 MATCH_DIR = os.environ.get('MATCH_DIR', _validation_results_dir+'/CPP_MATCH_DIR_CT')
 if not os.path.exists(MATCH_DIR):
-        logger.info("Creating cpp match dir: %s"%(MATCH_DIR ))
-        os.makedirs(MATCH_DIR)
+    logger.info("Creating cpp match dir: %s"%(MATCH_DIR ))
+    os.makedirs(MATCH_DIR)
 
 #Time threshold, i.e. max time diff to be considered as a match
 TIME_THR=60*60.0
@@ -82,14 +86,16 @@ CTYPE_PHASE_BITS = {'Not processed or undefined': 1,
 
 
 def get_calipso_lonlat(calipso_filename):
-    print calipso_filename
     with h5py.File(calipso_filename, 'r') as f:
         if RESOLUTION==1:    
-                lon = f['Longitude'][:].ravel()
-                lat = f['Latitude'][:].ravel()
-        if RESOLUTION==5:    
-                lon = f['Longitude'][:,1].ravel()
-                lat = f['Latitude'][:,1].ravel()
+            lon = f['Longitude'][:].ravel()
+            lat = f['Latitude'][:].ravel()
+        if RESOLUTION==5:
+            lon = f['Longitude'][:,1].ravel()
+            lat = f['Latitude'][:,1].ravel()
+    if f:
+        logger.info("Closing file %s"%calipso_filename)
+        f.close()        
     return lon, lat
 
 
@@ -103,14 +109,14 @@ def get_calipso_time(filename):
         1970-01-01.
     
     """
-    import numpy as np
-    import h5py
-    
-    with h5py.File(filename) as f:
-            if RESOLUTION==1: 
-                    sec1993 = f['Profile_Time'][:]
-            if RESOLUTION==5:   
-                    sec1993 = f['Profile_Time'][:,1]
+    with h5py.File(filename, 'r') as f:
+        if RESOLUTION==1: 
+            sec1993 = f['Profile_Time'][:]
+        if RESOLUTION==5:   
+            sec1993 = f['Profile_Time'][:,1]
+    if f:
+        logger.info("Closing file %s"%filename)
+        f.close()
     from calendar import timegm
     epoch_diff = timegm(TAI93.utctimetuple())
     
@@ -151,11 +157,10 @@ def get_calipso_phase(calipso_filename, qual_min=CALIPSO_QUAL_VALUES['medium'],
     Screen out pixels with more than *max_layers* layers.
     
     """
-    import numpy as np
-    import h5py
-    with h5py.File(calipso_filename) as f:
+    with h5py.File(calipso_filename,'r') as f:
         features = f['Feature_Classification_Flags'][:]
-    
+    if f:
+        f.close()
     # Reduce to single layer, masking any multilayer pixels
     features = np.ma.array(features[:, 0],
                            mask=(features[:, max_layers:] > 1).any(axis=-1))
@@ -170,11 +175,11 @@ def get_calipso_igbp(calipso_filename):
     Returns Calipso igbp.
     
     """
-    import numpy as np
-    import h5py
-    with h5py.File(calipso_filename) as f:
+    with h5py.File(calipso_filename,'r') as f:
         igbp = f['IGBP_Surface_Type'][:]
-    return igbp
+    if f:
+        f.close()
+    return igbp.ravel()
 
 def find_calipso_files_from_avhrr_filename(avhrr_filename, options):
     """
@@ -218,9 +223,7 @@ def match_with_calipso(calipso_filename, avhrr_filename, sunsat_filename, radius
         mapper: `MatchMapper` instance.
     
     """
-    import numpy as np
-    from amsr_avhrr.util import get_avhrr_lonlat
-    from amsr_avhrr.util import get_avhrr_time
+
     #get_calipso_lonlat and get_calipso_time in this file!!
     logger.debug("Getting AVHRR lon/lat")
     if PPS_VALIDATION:
@@ -229,13 +232,14 @@ def match_with_calipso(calipso_filename, avhrr_filename, sunsat_filename, radius
     if CCI_CLOUD_VALIDATION:
         avhrr_lonlat, avhrr_time  = get_avhrr_lonlat_and_time_cci(avhrr_filename)    
     logger.debug("Getting Calipso lon/lat")
+    logger.info("Get caliop lonlat:") 
     calipso_lonlat = get_calipso_lonlat(calipso_filename)         
     logger.debug("Matching AVHRR to Calipso lon/lat")
     mapper = match_lonlat(avhrr_lonlat, calipso_lonlat, n_neighbours=1)
 
     #Also calculate the time diff 
 
-
+    logger.info("Get caliop time:") 
     calipso_time = get_calipso_time(calipso_filename)
 
     tim1 = time.strftime("%Y%m%d %H:%M", 
@@ -269,6 +273,7 @@ def process_noaa_scene(avhrr_file, options, cloudtype=False, **kwargs):
     #                                           pps_arguments.SATELLITE_PROJ,
     #                                           satname,orbit)
     #avhrr_filename = os.path.join(AVHRR_DIR, ppsarg.files.avhrr)
+    logger.info("Processing file: %s"%avhrr_file)    
     if (PPS_VALIDATION):
             pps_files = find_files_from_avhrr(avhrr_file, options)
             sunsat_filename  = pps_files.sunsatangles
@@ -314,8 +319,7 @@ def process_noaa_scene(avhrr_file, options, cloudtype=False, **kwargs):
     
     if len(calipso_filenames)==0:
         raise ValueError("Found no matching calipso files to: %r"% avhrr_file)
-    for calipso_filename in calipso_filenames:
-        print "the file", avhrr_file    
+    for calipso_filename in calipso_filenames:       
         process_case(calipso_filename, avhrr_file, sunsat_filename, cpp_filename, **kwargs)
     
     if cloudtype and PPS_VALIDATION:
@@ -344,6 +348,7 @@ def get_mapper(avhrr_filename, calipso_filename, sunsat_filename):
         mapper = match_with_calipso(calipso_filename, avhrr_filename,sunsat_filename,
                                     radius_of_influence=1e3,
                                     time_threshold=TIME_THR,n_neighbours=1)
+        logger.info("Got mapper")  
         mapper.write(match_path, compression=_COMPRESSION)
         logger.info("Match written to %r" % match_path)
     
@@ -423,16 +428,28 @@ def process_case(calipso_filename, avhrr_filename,sunsat_filename, cpp_filename=
     This is the work horse.
     
     """
-    import numpy as np
-    mapper = get_mapper(avhrr_filename, calipso_filename, sunsat_filename)
     #mapper = get_mapper(avhrr_filename, calipso_filename, sunsat_filename)
-    
+    #if mapper goes here, program crashes because of some h5py bug. Nina 2013-06-01
+    mapper = get_mapper(avhrr_filename, calipso_filename, sunsat_filename) 
+    logger.info("Get caliop time:")
+    calipso_time = get_calipso_time(calipso_filename)
+
+    tim1 = time.strftime("%Y%m%d %H:%M", 
+                         time.gmtime(np.min(calipso_time)))
+    tim2 = time.strftime("%Y%m%d %H:%M", 
+                         time.gmtime(np.max(calipso_time)))
+    logger.info("Starttime caliop: %s, end time: %s"%(tim1, tim2))
+    logger.info("Get caliop lonlat: ") 
+    lon, lat = get_calipso_lonlat(calipso_filename)  
+
+    #mapper = get_mapper(avhrr_filename, calipso_filename, sunsat_filename)    
+    #mapper = get_mapper(avhrr_filename, calipso_filename, sunsat_filename) 
     logger.debug("Getting CPP water")
     if PPS_VALIDATION:
-            cpp_phase = mapper(get_cpp_product(cpp_filename, 'cph'))
+        cpp_phase = mapper(get_cpp_product(cpp_filename, 'cph'))
     if CCI_CLOUD_VALIDATION:
-            cpp_cci_phase = get_cpp_product_cci(avhrr_filename, 'cph') 
-            cpp_phase = mapper(cpp_cci_phase)
+        cpp_cci_phase = get_cpp_product_cci(avhrr_filename, 'cph') 
+        cpp_phase = mapper(cpp_cci_phase)
     cpp_phase = cpp_phase[..., 0] # mapper returns extra neighbours dimension
     #print cpp_phase
     logger.debug("Getting Calipso water")
@@ -444,59 +461,61 @@ def process_case(calipso_filename, avhrr_filename,sunsat_filename, cpp_filename=
 
     if np.ma.isMaskedArray(selection):
         selection = selection.filled(False)
-    restrictions = {'max number of CALIOP layers': max_layers,
-                    'minimum quality': qual_min}
-
-    
-    from amsr_avhrr.util import get_avhrr_time
+    restrictions = {'max number of CALIOP layers': str(max_layers),
+                    'minimum quality': str(qual_min)}
  
     if PPS_VALIDATION:
-            #get_calipso_lonlat and get_calipso_time in this file!
-            avhrr_time =  get_avhrr_time(sunsat_filename)
-            #expand avhrr_time to the same shape as input avhrr_cph
-            cph_tmp = get_cpp_product(cpp_filename, 'cph')
+        avhrr_time =  get_avhrr_time(sunsat_filename)
+        cph_tmp = get_cpp_product(cpp_filename, 'cph')
     if CCI_CLOUD_VALIDATION:
-            print avhrr_filename
-            avhrr_lonlat,avhrr_time  = get_avhrr_lonlat_and_time_cci(avhrr_filename) 
-            cph_tmp = get_cpp_product_cci(avhrr_filename, 'cph') 
+        avhrr_lonlat,avhrr_time  = get_avhrr_lonlat_and_time_cci(avhrr_filename) 
+        cph_tmp = get_cpp_product_cci(avhrr_filename, 'cph')
+    #expand avhrr_time to the same shape as input avhrr_cph
     avhrr_time_expanded = np.ones(cph_tmp.shape)
     for i in range(cph_tmp.shape[0]):
         avhrr_time_expanded[i] = np.ones(cph_tmp.shape[1])*avhrr_time[i]
-        
-    calipso_time = get_calipso_time(calipso_filename)
 
-    tim1 = time.strftime("%Y%m%d %H:%M", 
-                         time.gmtime(np.min(calipso_time)))
-    tim2 = time.strftime("%Y%m%d %H:%M", 
-                         time.gmtime(np.max(calipso_time)))
-    logger.info("Starttime caliop: %s, end time: %s"%(tim1, tim2))
+
     avhrr_time_remapped = mapper(avhrr_time_expanded)
     #time_diff = avhrr_time_remapped - calipso_time
-    #Whay the above, why not the smae:
+    #Why the above, why not the same:
     time_diff = mapper.time_diff
     time_diff = np.array(time_diff.ravel())
 
 
     if selection.any():
-        filename = _filename_base(avhrr_filename, calipso_filename) + '--values.h5'
-        print "thefilename", filename
-        from amsr_avhrr.util import write_data
-        print "cal_file_name", calipso_filename
  
-        write_data(cpp_phase[selection], 'cpp_phase', filename, mode='w',
+        filename = os.path.join(MATCH_DIR,_filename_base(avhrr_filename, calipso_filename) + '--values.h5')
+        logger.info("Writing values to file %s"%filename)
+        with h5py.File(filename, 'w') as f:
+            write_data_to_open_file(np.array(cpp_phase[selection].ravel()), 'cpp_phase', f,
+                                    attributes=restrictions)
+            write_data_to_open_file(np.array(cal_phase[selection].ravel()), 'calipso_phase', f,
+                       attributes=restrictions)
+            write_data_to_open_file(np.array(cal_igbp[selection].ravel()), 'calipso_igbp', f,
+                       attributes=restrictions)
+            write_data_to_open_file(np.array(calipso_time[selection].ravel()), 'calipso_time', f)
+            write_data_to_open_file(np.array(avhrr_time_remapped[selection].ravel()), 'avhrr_time', f,
                    attributes=restrictions)
-        write_data(cal_phase[selection], 'calipso_phase', filename,
-                   attributes=restrictions)
-        write_data(cal_igbp[selection], 'calipso_igbp', filename,
-                   attributes=restrictions)
-        write_data(calipso_time[selection], 'calipso_time', filename)
-        write_data(avhrr_time_remapped[selection], 'avhrr_time', filename)
-        write_data(time_diff[selection], 'time_diff', filename)
-        lon, lat = get_calipso_lonlat(calipso_filename)
-        print type(lon[selection])
-        write_data(lon[selection], 'longitudes', filename)#, attributes=restrictions)
-        write_data(lat[selection], 'latitudes', filename)#, attributes=restrictions)
-        write_data(selection, 'selection', filename)#), attributes=restrictions)
+            write_data_to_open_file(np.array(time_diff[selection].ravel()), 'time_diff', f)
+            write_data_to_open_file(np.array(lon[selection].ravel()), 'longitudes', f)#, attributes=restrictions)
+            write_data_to_open_file(np.array(lat[selection].ravel()), 'latitudes', f)#, attributes=restrictions)
+            write_data_to_open_file(np.array(selection.ravel()), 'selection', f)#), attributes=restrictions)
+        if f:
+            f.close()
+        #write_data(np.array(cpp_phase[selection].ravel()), 'cpp_phase', filename, mode='w',
+        #           attributes=restrictions)
+        #write_data(np.array(cal_phase[selection].ravel()), 'calipso_phase', filename,
+        #           attributes=restrictions)
+        #write_data(np.array(cal_igbp[selection].ravel()), 'calipso_igbp', filename,
+        #           attributes=restrictions)
+        #write_data(np.array(calipso_time[selection].ravel()), 'calipso_time', filename)
+        #write_data(np.array(avhrr_time_remapped[selection].ravel()), 'avhrr_time', filename,
+        #           attributes=restrictions)
+        #write_data(np.array(time_diff[selection].ravel()), 'time_diff', filename)
+        #write_data(np.array(lon[selection].ravel()), 'longitudes', filename)#, attributes=restrictions)
+        #write_data(np.array(lat[selection].ravel()), 'latitudes', filename)#, attributes=restrictions)
+        #write_data(np.array(selection.ravel()), 'selection', filename)#), attributes=restrictions)
     
         logger.info("Validating")
         validate(cpp_phase[selection], cal_phase[selection], verbose)
@@ -564,19 +583,17 @@ def validate_all(matched_values_files, verbose=False, landsea=None):
     If *landsea* is 'land' ('sea'), only land (sea) pixels will be used.
     
     """
-    import h5py
-    import numpy as np
     cpp_phases = []
     cal_phases = []
     lons = []
     lats = []
     for filename in matched_values_files:
         match_file = filename.replace('--values', '')
-        land_sea_cal = f['calipso_igbd'][:]
-        landsea_select = get_land_sea_selection_cal(landsea, land_sea_cal)
         #landsea_select = get_land_sea_selection(landsea, match_file=match_file)
-        print filename
+        logger.info("File: filename")
         with h5py.File(filename, 'r') as f:
+            land_sea_cal = f['calipso_igbp'][:]
+            landsea_select = get_land_sea_selection_cal(landsea, land_sea_cal)
             if landsea is not None:
                 selection = f['selection'][:]
                 _slice = landsea_select#??
@@ -587,7 +604,8 @@ def validate_all(matched_values_files, verbose=False, landsea=None):
             cal_phases.append(f['calipso_phase'][_slice])
             lons.append(f['longitudes'][_slice])
             lats.append(f['latitudes'][_slice])
-    
+        if f:
+            f.close()
     cpp_phase = np.concatenate(cpp_phases)
     cal_phase = np.concatenate(cal_phases)
     lon = np.concatenate(lons)

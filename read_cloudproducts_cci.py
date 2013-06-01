@@ -42,7 +42,6 @@ def cci_read_all(filename):
     #cci_nc.variables['cth'].add_offset
     #cci_nc.variables['cth'][:] 
     #cci_nc.variables['cth'].scale_factor
-    print filename
     write_log("INFO", "Opening file %s"%(filename))
     cci_nc = netCDF4.Dataset(filename, 'r', format='NETCDF4')
     write_log("INFO", "Reading ctth ...")
@@ -60,7 +59,9 @@ def cci_read_all(filename):
     write_log("INFO", "Reading cloud phase")
     cppCph = read_cci_phase(cci_nc)
     write_log("INFO", "Not reading channel data")
-    avhrrObj = None    
+    avhrrObj = None  
+    if cci_nc:
+        cci_nc.close()
     return avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, surft, cppLwp, cppCph
 
 def cci_read_prod(filename, prod_type='ctth'):
@@ -72,27 +73,40 @@ def cci_read_prod(filename, prod_type='ctth'):
     #cci_nc.variables['cth'].add_offset
     #cci_nc.variables['cth'][:] 
     #cci_nc.variables['cth'].scale_factor
-    print filename
     write_log("INFO", "Opening file %s"%(filename))
     cci_nc = netCDF4.Dataset(filename, 'r', format='NETCDF4')
     if prod_type == 'ctth':
         write_log("INFO", "Reading ctth ...")
-        return read_cci_ctth(cci_nc)
-
+        retv = read_cci_ctth(cci_nc)
+        if cci_nc:
+            cci_nc.close()
+        return retv
     if prod_type == 'ang':
         write_log("INFO", "Reading angles ...")
-        return read_cci_angobj(cci_nc)
+        retv =  read_cci_angobj(cci_nc)
+        if cci_nc:
+            cci_nc.close()
+        return retv    
     if prod_type == 'ctype': 
         write_log("INFO", "Reading angles ...")
         avhrrAngObj =  read_cci_angobj(cci_nc)
         write_log("INFO", "Reading cloud type ...")
-        return  read_cci_ctype(cci_nc, avhrrAngObj)
+        retv = read_cci_ctype(cci_nc, avhrrAngObj)
+        if cci_nc:
+            cci_nc.close()
+        return  retv
     if prod_type == 'geotime':      
         write_log("INFO", "Reading longitude, latitude and time ...")
-        return read_cci_geoobj(cci_nc)
-    if prod_type == 'cwp':  
+        retv = read_cci_geoobj(cci_nc)
+        if cci_nc:
+            cci_nc.close()
+        return retv
+    if prod_type == 'phase':  
         write_log("INFO", "Reading cloud phase")
-        return read_cci_phase(cci_nc)
+        retv = read_cci_phase(cci_nc)
+        if cci_nc:
+            cci_nc.close()
+        return retv    
     return None
 
 def read_cci_ctype(cci_nc,avhrrAngObj):

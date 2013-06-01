@@ -29,7 +29,7 @@ def process_scenes(scenes, fun, options, ignore_errors=True, *args, **kwargs):
         #satname, _datetime, orbit = parse_scene(filename)
         logger.info("File : %s"%( filename))
         try:
-            fun(filename, options, *args, **kwargs)
+            fun(_file, options, *args, **kwargs)
         except KeyboardInterrupt:
                 raise    
         except Exception, err:
