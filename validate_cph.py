@@ -590,7 +590,7 @@ def validate_all(matched_values_files, verbose=False, landsea=None):
     for filename in matched_values_files:
         match_file = filename.replace('--values', '')
         #landsea_select = get_land_sea_selection(landsea, match_file=match_file)
-        logger.info("File: filename")
+        logger.info("File: %s"%filename)
         with h5py.File(filename, 'r') as f:
             land_sea_cal = f['calipso_igbp'][:]
             landsea_select = get_land_sea_selection_cal(landsea, land_sea_cal)
