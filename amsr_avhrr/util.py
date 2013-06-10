@@ -82,12 +82,23 @@ def get_avhrr_time(filename):
     
     """
     import pps_io
-    
+    from calipso import createAvhrrTime
+    from cloudsat_calipso_avhrr_match import (
+        get_satid_datetime_orbit_from_fname)
+    import time
     geo = pps_io.readAvhrrGeoData(filename)
-    
+    values = get_satid_datetime_orbit_from_fname(filename)
+    #datetime=values["date_time"]
+    geo_ok = createAvhrrTime(geo, values)
+
     n_scanlines = geo.longitude.shape[0]
-    sec1970 = np.linspace(geo.sec1970_start, geo.sec1970_end, n_scanlines)
-    
+    sec1970 = np.linspace(geo_ok.sec1970_start, geo_ok.sec1970_end, n_scanlines)
+    tim1 = time.strftime("%Y%m%d %H:%M", 
+                         time.gmtime(geo_ok.sec1970_start))
+    tim2 = time.strftime("%Y%m%d %H:%M", 
+                         time.gmtime(geo_ok.sec1970_end))
+
+    logger.info("Starttime avhrr/viirs: %s, end time: %s"%(tim1, tim2))
     return sec1970
 
 
