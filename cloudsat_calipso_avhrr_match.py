@@ -227,11 +227,10 @@ def find_calipso_files_inner(date_time, time_window, options, values):
     return flist
 
 def get_satid_datetime_orbit_from_fname(avhrr_filename):
-    import runutils
+    #import runutils
     #satname, _datetime, orbit = runutils.parse_scene(avhrr_filename)
     #returnd orbit as int, loosing leeding zeros, use %05d to get it right.
     # Get satellite name, time, and orbit number from avhrr_file
-
     if PPS_VALIDATION:
         sl_ = os.path.basename(avhrr_filename).split('_')
         date_time= datetime.strptime(sl_[1] + sl_[2], '%Y%m%d%H%M')

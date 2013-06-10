@@ -7,6 +7,7 @@ from __future__ import with_statement
 import numpy as np
 import logging
 import h5py
+from config import RESOLUTION
 logger = logging.getLogger(__name__)
 
 
@@ -111,7 +112,9 @@ class MatchMapper(object):
                    time_diff=time_diff, time_threshold=time_threshold)
 
 
-def match_lonlat(source, target, radius_of_influence=1e3, n_neighbours=1):
+def match_lonlat(source, target, 
+                 radius_of_influence=RESOLUTION*1000.0, 
+                 n_neighbours=1):
     """
     Produce a masked array of the same shape as the arrays in *target*, with
     indices of nearest neighbours in *source*. *source* and *target* should be

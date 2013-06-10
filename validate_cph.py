@@ -27,7 +27,8 @@ logger = logging.getLogger(__name__)
 from datetime import datetime
 TAI93 = datetime(1993, 1, 1)
 from config import VALIDATE_FOR_CPP_PIXELS
-if VALIDATE_FOR_CPP_PIXELS:
+ADD_DIR=""
+if VALIDATE_FOR_CPP_PIXELS and PPS_VALIDATION:
     ADD_DIR="_ONLY_WHERE_CPP_RESULTS_ICE_OR_WATER"
 
 #: Directory for mapper files
@@ -251,6 +252,11 @@ def match_with_calipso(calipso_filename, avhrr_filename, sunsat_filename, radius
     tim2 = time.strftime("%Y%m%d %H:%M", 
                          time.gmtime(np.max(calipso_time)))
     logger.info("Starttime caliop: %s, end time: %s"%(tim1, tim2))
+    tim1 = time.strftime("%Y%m%d %H:%M", 
+                         time.gmtime(np.min(avhrr_time)))
+    tim2 = time.strftime("%Y%m%d %H:%M", 
+                         time.gmtime(np.max(avhrr_time)))
+    logger.info("Starttime avhrr/viirs: %s, end time: %s"%(tim1, tim2))
 
     time_diff = np.abs(avhrr_time[mapper.rows] -
                        calipso_time.reshape((calipso_time.size,1))).astype(np.float32)
@@ -288,10 +294,13 @@ def process_noaa_scene(avhrr_file, options, cloudtype=False, **kwargs):
         values = get_satid_datetime_orbit_from_fname(avhrr_file)
         date_time = values["date_time"]
         calipso_filenames = find_calipso_files(date_time, options, values)
-        phase_filename = None#avhrr_filename
+        phase_filename = avhrr_file #None#avhrr_filename
         sunsat_filename = None
+        cpp_filename = None
 
     logger.debug("Found Calipso files: %r" % calipso_filenames)
+    global get_cpp_product_cpp
+    get_cpp_product_cpp = get_cpp_product
     if cloudtype and PPS_VALIDATION:
         phase_filename = os.path.join(OUTPUT_DIR, pps_files.cloudtype)
         
@@ -315,8 +324,6 @@ def process_noaa_scene(avhrr_file, options, cloudtype=False, **kwargs):
             return phase
         
         global get_cpp_product
-        global get_cpp_product_cpp
-        get_cpp_product_cpp = get_cpp_product
         _get_cpp_product_orig = get_cpp_product
         get_cpp_product = get_ctype_phase
     elif PPS_VALIDATION:
@@ -460,7 +467,7 @@ def process_case(calipso_filename, avhrr_filename, sunsat_filename,
         logger.info("Remapping phase from %s"%(phase_filename))   
         cpp_phase = mapper(phase_temp)
         logger.info("Remapping done for phase %s"%(phase_filename))      
-        if VALIDATE_FOR_CPP_PIXELS:
+        if VALIDATE_FOR_CPP_PIXELS and PPS_VALIDATION:
             logger.info("Getting phase from %s"%(cpp_filename))
             cpp_phase_cpp = mapper(get_cpp_product_cpp(cpp_filename, 'cph'))
             cpp_phase_cpp = cpp_phase_cpp[..., 0] # mapper returns extra neighbours dimension
@@ -480,7 +487,7 @@ def process_case(calipso_filename, avhrr_filename, sunsat_filename,
     cal_igbp = get_calipso_igbp(calipso_filename)
 
     selection = ~cpp_phase.mask & ~cal_phase.mask
-    if VALIDATE_FOR_CPP_PIXELS:
+    if VALIDATE_FOR_CPP_PIXELS and PPS_VALIDATION:
         selection = ~cpp_phase.mask & (~cal_phase.mask & ~cpp_phase_cpp.mask )
         cpp_is_liquid_or_ice=np.logical_or(np.equal(cpp_phase_cpp.data,CPP_PHASE_VALUES['liquid']),
                                            np.equal(cpp_phase_cpp.data,CPP_PHASE_VALUES['ice']))

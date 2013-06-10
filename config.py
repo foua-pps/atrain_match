@@ -10,8 +10,9 @@ import os
 ALWAYS_USE_AVHRR_ORBIT_THAT_STARTS_BEFORE_CROSS = True
 
 #Choose one to validate
-PPS_VALIDATION = os.environ.get('VAL_PPS', True)
-CCI_CLOUD_VALIDATION = os.environ.get('VAL_CCI', False)
+PPS_VALIDATION = False
+print "PPS_VALIDATION", PPS_VALIDATION
+CCI_CLOUD_VALIDATION = True 
 
 #When using 1km data, use the 5km data to filterout clouds to thin for VIIRS/AVHRR to see.
 #PARAMETERS FOR CHOOSING HOW TO FILTER DATA 1km RESOLUTION:
@@ -110,7 +111,7 @@ SAT_ORBIT_DURATION = 110*60 #Not to large
 
 
 #: Allowed time deviation in seconds between AVHRR and CALIPSO/CloudSat matchup
-sec_timeThr = 60*20
+sec_timeThr = 60*20*6
 
 #: Recommended cloud threshold for the CloudSat cloud mask. In 5km data this
 #: threshold has already been applied, so there is no reason to change it for
