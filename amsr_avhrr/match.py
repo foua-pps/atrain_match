@@ -6,6 +6,8 @@ Match AMSR and AVHRR data
 from __future__ import with_statement
 import numpy as np
 import logging
+import h5py
+from config import RESOLUTION
 logger = logging.getLogger(__name__)
 
 
@@ -66,8 +68,6 @@ class MatchMapper(object):
         Write mapper to hdf5 file *filename*.
         
         """
-        import h5py
-        
         with h5py.File(filename, 'w') as f:
             f.create_dataset('rows', data=self.rows.filled(),
                              compression=compression)
@@ -80,6 +80,8 @@ class MatchMapper(object):
                                  compression=compression)
             if self.time_threshold is not None:
                 f.attrs['time_threshold'] = self.time_threshold
+        if f:
+            f.close()
     
     @classmethod
     def from_file(cls, filename):
@@ -87,8 +89,6 @@ class MatchMapper(object):
         Create a mapper from contents of *filename*.
         
         """
-        import h5py
-        
         with h5py.File(filename, 'r') as f:
             rows = f['rows'][:]
             cols = f['cols'][:]
@@ -105,12 +105,16 @@ class MatchMapper(object):
             else:
                 time_diff = None
                 time_threshold = None
+        if f:
+            f.close()
         
         return cls(rows=rows, cols=cols, pixel_mask=pixel_mask,
                    time_diff=time_diff, time_threshold=time_threshold)
 
 
-def match_lonlat(source, target, radius_of_influence=1e3, n_neighbours=1):
+def match_lonlat(source, target, 
+                 radius_of_influence=RESOLUTION*1000.0, 
+                 n_neighbours=1):
     """
     Produce a masked array of the same shape as the arrays in *target*, with
     indices of nearest neighbours in *source*. *source* and *target* should be
@@ -149,65 +153,66 @@ def match_lonlat(source, target, radius_of_influence=1e3, n_neighbours=1):
     return MatchMapper(rows, cols, mask)
 
 
-def match(amsr_filename, avhrr_filename, radius_of_influence=1e3,
-          time_threshold=None, n_neighbours=8):
-    """
-    Find matching indices in AVHRR array for each element in AMSR swath.
-    
-    Arguments:
-    
-        amsr_filename: string
-            full path of AMSR-E HDF5 file
-        avhrr_filename: string
-            full path of AVHRR PPS HDF5 file
-        radius_of_influence: float
-            radius of influence in meters in pixel-pixel matching (default:
-            1000 m)
-        time_threshold: float
-            largest absolute time difference to include in match
-        n_neighbours: int
-            number of nearest AVHRR neighbours to use
-    
-    Returns:
-    
-        mapper: `MatchMapper` instance.
-    
-    """
-    from .util import get_amsr_lonlat, get_avhrr_lonlat
-    from .util import get_amsr_time, get_avhrr_time
-    
-    avhrr_lonlat = get_avhrr_lonlat(avhrr_filename)
-    amsr_lonlat = get_amsr_lonlat(amsr_filename)
-    
-    mapper = match_lonlat(avhrr_lonlat, amsr_lonlat, radius_of_influence,
-                          n_neighbours=n_neighbours)
-    
-    avhrr_time = get_avhrr_time(avhrr_filename)
-    amsr_time = get_amsr_time(amsr_filename)
-    
-    time_diff = np.abs(avhrr_time[mapper.rows] -
-                       amsr_time.reshape((amsr_time.size, 1, 1))).astype(np.float32)
-    
-    mapper.time_diff = time_diff
-    mapper.time_threshold = time_threshold
-    
-    logger.debug("Time diff (min, max): %r" % ((time_diff.min(),
-                                                time_diff.max()),))
-    
-    return mapper
+#def match(amsr_filename, avhrr_filename, radius_of_influence=1e3,
+#          time_threshold=None, n_neighbours=8):
+#    """
+#    Find matching indices in AVHRR array for each element in AMSR swath.
+#    
+#    Arguments:
+#    
+#        amsr_filename: string
+#            full path of AMSR-E HDF5 file
+#        avhrr_filename: string
+#            full path of AVHRR PPS HDF5 file
+#        radius_of_influence: float
+#            radius of influence in meters in pixel-pixel matching (default:
+#            1000 m)
+#        time_threshold: float
+#            largest absolute time difference to include in match
+#        n_neighbours: int
+#            number of nearest AVHRR neighbours to use
+#    
+#    Returns:
+#    
+#        mapper: `MatchMapper` instance.
+#    
+#    """
+#    from .util import get_amsr_lonlat, get_avhrr_lonlat
+#    from .util import get_amsr_time, get_avhrr_time
+#    
+#    avhrr_lonlat = get_avhrr_lonlat(avhrr_filename)
+#    amsr_lonlat = get_amsr_lonlat(amsr_filename)
+#    
+#    mapper = match_lonlat(avhrr_lonlat, amsr_lonlat, radius_of_influence,
+#                          n_neighbours=n_neighbours)
+#    
+#    avhrr_time = get_avhrr_time(avhrr_filename)
+#    amsr_time = get_amsr_time(amsr_filename)
+#    
+#    time_diff = np.abs(avhrr_time[mapper.rows] -
+#                       amsr_time.reshape((amsr_time.size, 1, 1))).astype(np.float32)
+#    
+#    mapper.time_diff = time_diff
+#    mapper.time_threshold = time_threshold
+#    
+#    logger.debug("Time diff (min, max): %r" % ((time_diff.min(),
+#                                                time_diff.max()),))
+#    
+#    return mapper
 
 
-def find_amsr(avhrr_filename):
-    """
-    Find AMSR-E files matching *avhrr_filename*. Returns a list of file paths.
-    
-    """
-    from file_finders import AmsrFileFinder, PpsFileFinder
-    pps_finder = PpsFileFinder()
-    parsed = pps_finder.parse(avhrr_filename)
-    
-    # Limit matching to AMSR-E files starting 45 min (duration of one half
-    # orbit) before up to 20 min (duration of one EARS AVHRR swath) after the
-    # start of the AVHRR swath
-    amsr_finder = AmsrFileFinder(time_window=(-45 * 60, 20 * 60))
-    return amsr_finder.find(parsed['datetime'])
+#def find_amsr(avhrr_filename):
+#    """
+#    Find AMSR-E files matching *avhrr_filename*. Returns a list of file paths.
+#    
+#    """
+#    from file_finders import AmsrFileFinder, PpsFileFinder
+#    pps_finder = PpsFileFinder()
+#    parsed = pps_finder.parse(avhrr_filename)
+#    
+#    # Limit matching to AMSR-E files starting 45 min (duration of one half
+#    # orbit) before up to 20 min (duration of one EARS AVHRR swath) after the
+#    # start of the AVHRR swath
+#    amsr_finder = AmsrFileFinder(time_window=(-45 * 60, 20 * 60))
+#    return amsr_finder.find(parsed['datetime'])
+#

@@ -8,8 +8,8 @@ Utilities
 import numpy as np
 import logging
 logger = logging.getLogger(__name__)
-
-
+from read_cloudproducts_cci import cci_read_prod
+import h5py
 from datetime import datetime
 TAI93 = datetime(1993, 1, 1)
 
@@ -22,12 +22,14 @@ def get_amsr_lonlat(filename):
     Get (lon, lat) from AMSR file *filename*.
     
     """
-    import h5py
     
     with h5py.File(filename, 'r') as f:
         lon = f['Swath1/Geolocation Fields/Longitude'][:]
         lat = f['Swath1/Geolocation Fields/Latitude'][:]
-    
+        if lon.shape[1]>0:
+            print "Warning, expected 1D vectors"
+    if f:
+        f.close()
     return lon, lat
 
 
@@ -42,6 +44,16 @@ def get_avhrr_lonlat(filename):
     
     return geo.longitude, geo.latitude
 
+def get_avhrr_lonlat_and_time_cci(filename):
+    """
+    Get (lon, lat) from CCI AVHRR file .
+    
+    """    
+    geo = cci_read_prod(filename, 'geotime')
+    n_scanlines = geo.longitude.shape[0]
+    sec1970 = np.linspace(geo.sec1970_start, geo.sec1970_end, n_scanlines)
+    return (geo.longitude, geo.latitude), sec1970
+
 
 def get_amsr_time(filename):
     """
@@ -53,11 +65,10 @@ def get_amsr_time(filename):
         1970-01-01.
     
     """
-    import h5py
-    
-    with h5py.File(filename) as f:
+    with h5py.File(filename, 'r') as f:
         sec1993 = f['Swath1/Geolocation Fields/Time']['Time'][:]
-    
+    if f:
+        f.close()
     from calendar import timegm
     epoch_diff = timegm(TAI93.utctimetuple())
     
@@ -71,12 +82,23 @@ def get_avhrr_time(filename):
     
     """
     import pps_io
-    
+    from calipso import createAvhrrTime
+    from cloudsat_calipso_avhrr_match import (
+        get_satid_datetime_orbit_from_fname)
+    import time
     geo = pps_io.readAvhrrGeoData(filename)
-    
+    values = get_satid_datetime_orbit_from_fname(filename)
+    #datetime=values["date_time"]
+    geo_ok = createAvhrrTime(geo, values)
+
     n_scanlines = geo.longitude.shape[0]
-    sec1970 = np.linspace(geo.sec1970_start, geo.sec1970_end, n_scanlines)
-    
+    sec1970 = np.linspace(geo_ok.sec1970_start, geo_ok.sec1970_end, n_scanlines)
+    tim1 = time.strftime("%Y%m%d %H:%M", 
+                         time.gmtime(geo_ok.sec1970_start))
+    tim2 = time.strftime("%Y%m%d %H:%M", 
+                         time.gmtime(geo_ok.sec1970_end))
+
+    logger.info("Starttime avhrr/viirs: %s, end time: %s"%(tim1, tim2))
     return sec1970
 
 
@@ -87,7 +109,6 @@ def get_amsr_lwp(filename):
     
     """
     from ppshdf_cloudproducts import PpsProduct
-    import h5py
     
     with h5py.File(filename, 'r') as f:
         lwp_mm = PpsProduct(f['Swath1/Data Fields/High_res_cloud'][:],
@@ -95,6 +116,8 @@ def get_amsr_lwp(filename):
                             gain=f['Swath1/Data Fields/'
                                    'High_res_cloud'].attrs['Scale'],
                             nodata=-9990, scale_up=True)
+    if f:
+        f.close()
     
     density = 1e3 # Density of water [kg m**-3]
     return lwp_mm.array * density # [mm * kg m**-3 = g m**-2]
@@ -112,6 +135,10 @@ def get_cpp_product(filename, product):
         cpp = CppProducts(filename=filename, product_names=[product])
     return cpp.products[product].array
 
+def get_cpp_product_cci(filename, product):
+    """Get *product* from CPP file *filename*."""
+    cpp_cph = cci_read_prod(filename, 'phase')
+    return cpp_cph
 
 def get_diff_data(filenames, aux_fields=None):
     """
@@ -125,7 +152,6 @@ def get_diff_data(filenames, aux_fields=None):
     (lwp_diff, restrictions, *aux_fields)
     
     """
-    import h5py
     lwp_diffs = []
     aux = {}
     if aux_fields is not None:
@@ -143,6 +169,10 @@ def get_diff_data(filenames, aux_fields=None):
             lwp_diffs.append((filename, data, restrictions))
             for name in aux_fields:
                 aux[name].append(f[name][:])
+        if f:
+            f.close()
+
+
     
     lwp_diff_array = np.concatenate([data for 
             (filename, data, restrictions) in lwp_diffs])
@@ -158,7 +188,6 @@ def write_data(data, name, filename, mode='a', attributes=None):
     *filename*. *mode* is the h5py file access mode (default 'a', for append).
     
     """
-    import h5py
     with h5py.File(filename, mode) as f:
         if hasattr(data, 'mask'):
             data = data.compressed()
@@ -166,6 +195,21 @@ def write_data(data, name, filename, mode='a', attributes=None):
         if attributes:
             for k, v in attributes.items():
                 d.attrs[k] = v
+    #if f:
+    #    f.close()
+
+def write_data_to_open_file(data, name, filehandle,  attributes=None):
+    """
+    Write *data* and any *attributes* (dict) to dataset *name* in HDF5 file
+    *filename*. *mode* is the h5py file access mode (default 'a', for append).
+    
+    """
+    if hasattr(data, 'mask'):
+        data = data.compressed()
+    d = filehandle.create_dataset(name, data=data, compression=_COMPRESSION)
+    if attributes:
+        for k, v in attributes.items():
+            d.attrs[k] = v
 
 
 def diff_file_stats(filename):

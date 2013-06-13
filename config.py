@@ -10,8 +10,9 @@ import os
 ALWAYS_USE_AVHRR_ORBIT_THAT_STARTS_BEFORE_CROSS = False
 
 #Choose one to validate
-PPS_VALIDATION = True
-CCI_CLOUD_VALIDATION = False
+PPS_VALIDATION = False
+print "PPS_VALIDATION", PPS_VALIDATION
+CCI_CLOUD_VALIDATION = True 
 
 
 
@@ -39,7 +40,9 @@ H4H5_EXECUTABLE = os.environ.get('H4H5_EXECUTABLE','/local_disk/opt/h4h5tools-2.
 #H4H5_EXECUTABLE = '/software/apps/h4h5tools/2.2.1/i1214-hdf4-4.2.8-i1214-hdf5-1.8.9-i1214/bin/h4toh5'
 PLOT_ONLY_PNG = True
 
-VAL_CPP = os.environ.get('VAL_CPP', False)
+#important for cph_validate.py
+VAL_CPP = os.environ.get('VAL_CPP', True)
+VALIDATE_FOR_CPP_PIXELS = True #means validating for cloudtype only for pixels where we also got cpp.cph values 
 
 # Imager Instrument on which PPS has been run (currently you can only run the
 # atrain match on either AVHRR data or VIIRS data, not both):
@@ -120,7 +123,9 @@ SAT_ORBIT_DURATION = 110*60 #Not to large
 
 
 #: Allowed time deviation in seconds between AVHRR and CALIPSO/CloudSat matchup
+
 sec_timeThr = 60*20
+
 
 
 #: Recommended cloud threshold for the CloudSat cloud mask. In 5km data this

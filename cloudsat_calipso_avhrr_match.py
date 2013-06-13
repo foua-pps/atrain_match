@@ -247,11 +247,10 @@ def find_calipso_files_inner(date_time, time_window, options, values):
     return flist
 
 def get_satid_datetime_orbit_from_fname(avhrr_filename):
-    import runutils
+    #import runutils
     #satname, _datetime, orbit = runutils.parse_scene(avhrr_filename)
     #returnd orbit as int, loosing leeding zeros, use %05d to get it right.
     # Get satellite name, time, and orbit number from avhrr_file
-
     if PPS_VALIDATION:
         sl_ = os.path.basename(avhrr_filename).split('_')
         date_time= datetime.strptime(sl_[1] + sl_[2], '%Y%m%d%H%M')
@@ -287,10 +286,11 @@ def get_satid_datetime_orbit_from_fname(avhrr_filename):
 
 def insert_info_in_filename_or_path(file_or_name_path, values, datetime_obj=None):
     #file_or_name_path = file_or_name_path.format(**values)
+    satellite=values.get("satellite","*")
     file_or_name_path = file_or_name_path.format(
-        satellite=values["satellite"],
+        satellite=satellite,
         orbit=values.get("orbit","*"),
-        instrument = INSTRUMENT.get(values["satellite"],"avhrr"),
+        instrument = INSTRUMENT.get(satellite,"avhrr"),
         resolution=config.RESOLUTION,
         area=config.AREA,
         lines_lines=values.get("lines_lines", "*"),
@@ -775,8 +775,8 @@ def read_pps_data(pps_files, avhrr_file, cross):
     return avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, nwp_obj, cppLwp, cppCph 
 
 def read_cloud_cci(avhrr_file):
-    from read_cloudproducts_cci import cci_read_ctth
-    return cci_read_ctth(avhrr_file)
+    from read_cloudproducts_cci import cci_read_all
+    return cci_read_all(avhrr_file)
 
 def get_matchups_from_data(cross, config_options):
     """
