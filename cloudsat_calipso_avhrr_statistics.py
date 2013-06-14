@@ -29,6 +29,26 @@ def calculate_ctth_stats(okcaliop, avhrr_ctth_cal_ok,caliop_max_height):
     return "%f %f %f %s %f "%(corr_caliop_avhrr,bias,RMS_difference,len(avhrr_height_work),sum(diff_squared_biascorr))
 
 
+def get_day_night_twilight_info_pps2014(cloudtype_conditions):
+    write_log("INFO", "Assuming cloudtype flags structure from pps v2014")
+    daynight_val = (cloudtype_conditions>>0 & 1) + (cloudtype_conditions>>1 & 1)*2
+    print daynight_val
+    no_qflag = daynight_val == 0
+    night_flag =  daynight_val == 1
+    twilight_flag =  daynight_val == 3
+    day_flag =   daynight_val == 2
+    all_dnt_flag =  np.bool_(np.ones(cloudtype_conditions.shape))
+    return (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag)
+
+def get_day_night_twilight_info_pps2012(cloudtype_qflag): 
+    write_log("INFO", "Assuming cloudtype flags structure from pps v2012")
+    no_qflag = cloudtype_qflag == 0
+    night_flag = (((cloudtype_qflag>>2) & 1) == 1) & ~no_qflag
+    twilight_flag = (((cloudtype_qflag>>3) & 1) == 1) & ~no_qflag
+    day_flag =  (((cloudtype_qflag>>2) & 1) == 0) & (((cloudtype_qflag>>3) & 1) == 0) & ~no_qflag
+    all_dnt_flag =  np.bool_(np.ones(cloudtype_qflag.shape))
+    return (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag)
+
 def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
                         cal_vert_feature, avhrr_ctth_csat_ok, data_ok,
                         cal_data_ok, avhrr_ctth_cal_ok, caliop_max_height,
@@ -124,13 +144,15 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
     else:
         print('The mode %s is not added in statistic file' %mode)
         sys.exit()
-    write_log("WARNING", "Assuming cloudtype flags structure from pps "
-              "v2012 or erlier")
-    no_qflag = caObj.avhrr.cloudtype_qflag == 0
-    night_flag = (((caObj.avhrr.cloudtype_qflag>>2) & 1) == 1) & ~no_qflag
-    twilight_flag = (((caObj.avhrr.cloudtype_qflag>>3) & 1) == 1) & ~no_qflag
-    day_flag =  (((caObj.avhrr.cloudtype_qflag>>2) & 1) == 0) & (((caObj.avhrr.cloudtype_qflag>>3) & 1) == 0) & ~no_qflag
-    all_dnt_flag =  np.bool_(np.ones(caObj.avhrr.cloudtype_qflag.shape))
+ 
+    if hasattr(caObj.avhrr, 'cloudtype_qflag'):
+        if caObj.avhrr.cloudtype_qflag is not None:
+            daynight_flags = get_day_night_twilight_info_pps2012(
+                caObj.avhrr.cloudtype_qflag)
+    if hasattr(caObj.avhrr, 'cloudtype_conditions'):
+        daynight_flags = get_day_night_twilight_info_pps2014(
+            caObj.avhrr.cloudtype_conditions)       
+    (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag) = daynight_flags
     if (no_qflag.sum() + night_flag.sum() + twilight_flag.sum() + day_flag.sum()) != caObj.calipso.longitude.size:
         print('something wrong with quality flags. It does not sum up. See beginning of statistic file')
         sys.exit()

@@ -119,7 +119,8 @@ from config import (VAL_CPP,
                     CCI_CLOUD_VALIDATION,
                     PPS_VALIDATION,
                     ALWAYS_USE_AVHRR_ORBIT_THAT_STARTS_BEFORE_CROSS,
-                    USE_5KM_FILES_TO_FILTER_CALIPSO_DATA)
+                    USE_5KM_FILES_TO_FILTER_CALIPSO_DATA,
+                    PPS_FORMAT_2012_OR_ERLIER)
 
 from radiance_tb_tables_kgtest import get_central_wavenumber
 # Just use the brightness temperature to
@@ -141,7 +142,8 @@ from cloudsat import reshapeCloudsat, match_cloudsat_avhrr
 from cloudsat import writeCloudsatAvhrrMatchObj, readCloudsatAvhrrMatchObj
 from calipso import reshapeCalipso, match_calipso_avhrr
 from matchobject_io import (writeCaliopAvhrrMatchObj, 
-                            readCaliopAvhrrMatchObj)
+                            readCaliopAvhrrMatchObj,
+                            DataObject)
 from calipso import  (use5km_remove_thin_clouds_from_1km, add1kmTo5km)
 import inspect
 import numpy as np
@@ -251,7 +253,21 @@ def get_satid_datetime_orbit_from_fname(avhrr_filename):
     #satname, _datetime, orbit = runutils.parse_scene(avhrr_filename)
     #returnd orbit as int, loosing leeding zeros, use %05d to get it right.
     # Get satellite name, time, and orbit number from avhrr_file
-    if PPS_VALIDATION:
+    if PPS_VALIDATION and not PPS_FORMAT_2012_OR_ERLIER:
+        sl_ = os.path.basename(avhrr_filename).split('_')
+        date_time= datetime.strptime(sl_[5], '%Y%m%dT%H%M%S%fZ')
+        values= {"satellite": sl_[3],
+                 "date_time": date_time,
+                 "orbit": sl_[4],
+                 #"date":"%04d%02d%02d"%(date_time.year,dat_time.month, date_time.day),
+                 "date": date_time.strftime("%Y%m%d"),
+                 "year":date_time.year,
+                 "month":"%02d"%(date_time.month),  
+                 "lines_lines": "*",
+                 "time":date_time.strftime("%H%M"),
+                 "ppsfilename":avhrr_filename}
+        values['basename'] = values["satellite"] + "_" + values["date"] + "_" + values["time"] + "_" + values["orbit"]
+    if PPS_VALIDATION  and PPS_FORMAT_2012_OR_ERLIER:
         sl_ = os.path.basename(avhrr_filename).split('_')
         date_time= datetime.strptime(sl_[1] + sl_[2], '%Y%m%d%H%M')
         values= {"satellite": sl_[0],
@@ -262,8 +278,8 @@ def get_satid_datetime_orbit_from_fname(avhrr_filename):
                  "month":"%02d"%(date_time.month),  
                  "lines_lines": sl_[5] + "_" + sl_[6],
                  "time":sl_[2],
-                 "basename":sl_[0] + "_" + sl_[1] + "_" + sl_[2] + "_" + sl_[3],
                  "ppsfilename":avhrr_filename}
+        values['basename'] = values["satellite"] + "_" + values["date"] + "_" + values["time"] + "_" + values["orbit"]
     if CCI_CLOUD_VALIDATION:
          #avhrr_file = "20080613002200-ESACCI-L2_CLOUD-CLD_PRODUCTS-AVHRRGAC-NOAA18-fv1.0.nc"
         sl_ = os.path.basename(avhrr_filename).split('-')
@@ -277,9 +293,11 @@ def get_satid_datetime_orbit_from_fname(avhrr_filename):
                  "year":date_time.year,
                  "month":"%02d"%(date_time.month),    
                  "time":date_time.strftime("%H%m"),
-                 "basename":sat_id + "_" + date_time.strftime("%Y%m%d_%H%M_99999"),#"20080613002200-ESACCI",
+                 #"basename":sat_id + "_" + date_time.strftime("%Y%m%d_%H%M_99999"),#"20080613002200-ESACCI",
                  "ccifilename":avhrr_filename,
                  "ppsfilename":None}
+        values['basename'] = values["satellite"] + "_" + values["date"] + "_" + values["time"] + "_" + values["orbit"]
+
 
     return values
 
@@ -423,7 +441,7 @@ def find_avhrr_file(cross, filedir_pattern, filename_pattern, values={}):
 
     
         file_pattern = insert_info_in_filename_or_path(filename_pattern,
-                                                       values, datetime_obj=tobj)  
+                                                       values, datetime_obj=tobj)
         files = glob(os.path.join(found_dir, file_pattern))
         if len(files) > 0:
             no_files_found = False
@@ -511,6 +529,7 @@ def find_files_from_avhrr(avhrr_file, options):
     path = insert_info_in_filename_or_path(options['cloudtype_dir'], 
                                            values, datetime_obj=date_time)  
     try:
+        print os.path.join(path, cloudtype_name)
         cloudtype_file = glob(os.path.join(path, cloudtype_name))[0]
     except IndexError:
         raise MatchupError("No cloudtype file found corresponding to %s." % avhrr_file)
@@ -748,11 +767,35 @@ def read_pps_data(pps_files, avhrr_file, cross):
             cppCph = readCpp(pps_files.cpp, 'cph')
             write_log("INFO", "CPP lwp, cph data read")
     write_log("INFO","Read PPS Cloud Type")
-    ctype = epshdf.read_cloudtype(pps_files.cloudtype, 1, 1, 0)
+    try:
+        ctype = epshdf.read_cloudtype(pps_files.cloudtype, 1, 1, 0)  
+    except:
+        write_log("INFO","Could not use pps program to read, use mpop instead")    
+        #read with mpop instead
+        from mpop.satin.nwcsaf_pps import NwcSafPpsChannel
+        ctype_mpop = NwcSafPpsChannel()
+        print ctype_mpop
+        ctype_mpop.read(pps_files.cloudtype)
+        write_log("INFO","Done reading cloudtype") 
+        print vars(ctype_mpop).keys()
+        for varname in vars(ctype_mpop).keys():
+            write_log("INFO",varname) 
+        write_log("INFO","Done reading cloudtype") 
+        #need to make empty ctype object here
+        ctype_mpop.ct_quality.data
+        #ctype=ctype_mpop
+        ctype.cloudtype = ctype_mpop.cloudtype.data
+        ctype.quality_flag = ctype_mpop.ct_quality.data
+        ctype.conditions_flag = ctype_mpop.ct_conditions.data
+        #print ctype_mpop.ct_quality
+        
+
+
     write_log("INFO","Read PPS CTTH")
     try:
         ctth = epshdf.read_cloudtop(pps_files.ctth, 1, 1, 1, 0, 1)
     except:
+        write_log("INFO","No CTTH")
         ctth = None
    
     nwp_dict={}

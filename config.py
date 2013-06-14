@@ -6,13 +6,15 @@ still be some modules which have internal constants defined.
 """
 
 import os
+PPS_FORMAT_2012_OR_ERLIER = False
+
 #Set to true if you always want an avhrr orbit that starts before the cross
 ALWAYS_USE_AVHRR_ORBIT_THAT_STARTS_BEFORE_CROSS = False
 
 #Choose one to validate
-PPS_VALIDATION = False
+PPS_VALIDATION = True
 print "PPS_VALIDATION", PPS_VALIDATION
-CCI_CLOUD_VALIDATION = True 
+CCI_CLOUD_VALIDATION = False
 
 
 
@@ -26,7 +28,7 @@ ALSO_USE_5KM_FILES = True #5km data is needed to split result on optical depth o
 #If USE_5KM_FILES_TO_FILTER_CALIPSO_DATA is True, we take the cloud top to
 # be OPTICAL_LIMIT_CLOUD_TOP down in the cloud. For clouds thinner than
 # OPTICAL_LIMIT_CLOUD_TOP we use the cloud base as cloud top.
-USE_5KM_FILES_TO_FILTER_CALIPSO_DATA = True
+USE_5KM_FILES_TO_FILTER_CALIPSO_DATA = False
 OPTICAL_LIMIT_CLOUD_TOP = 0.6
 if USE_5KM_FILES_TO_FILTER_CALIPSO_DATA:
     ALSO_USE_5KM_FILES = True
@@ -41,7 +43,7 @@ H4H5_EXECUTABLE = os.environ.get('H4H5_EXECUTABLE','/local_disk/opt/h4h5tools-2.
 PLOT_ONLY_PNG = True
 
 #important for cph_validate.py
-VAL_CPP = os.environ.get('VAL_CPP', True)
+VAL_CPP = os.environ.get('VAL_CPP', False)
 VALIDATE_FOR_CPP_PIXELS = True #means validating for cloudtype only for pixels where we also got cpp.cph values 
 
 # Imager Instrument on which PPS has been run (currently you can only run the
@@ -136,7 +138,7 @@ CLOUDSAT_CLOUDY_THR = 30.0
 #: MAXHEIGHT is used in the plotting. 
 #: If None the maxheight is calculated from the highest cloud
 #MAXHEIGHT = None
-MAXHEIGHT = None
+MAXHEIGHT = 18000
 
 #: Range of allowed (AVHRR) satellite azimuth angles, in degrees
 AZIMUTH_RANGE = (0., 360.)

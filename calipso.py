@@ -503,11 +503,13 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
                              row_matched, col_matched, 
                              avhrrLwp=None, avhrrCph=None):
     ctype_track = []
-    ctype_qflag_track = []
+    ctype_qflag_track = None
+    ctype_ct_qualityflag_track = None
+    ctype_ct_conditionsflag_track = None
     ctth_height_track = []
     ctth_pressure_track = []
     ctth_temperature_track = []
-    ctth_opaque_track = []
+    ctth_opaque_track = None
     lon_avhrr_track = []
     lat_avhrr_track = []
     surft_track = []
@@ -546,8 +548,15 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
                      for idx in range(row_matched.shape[0])]
     ctype_track = [ctype.cloudtype[row_matched[idx], col_matched[idx]]
                  for idx in range(row_matched.shape[0])]
-    ctype_qflag_track = [ctype.qualityflag[row_matched[idx], col_matched[idx]]
-                        for idx in range(row_matched.shape[0])]
+    if hasattr(ctype, 'ct_quality'):
+        ctype_ct_qualityflag_track = [ctype.ct_quality[row_matched[idx], col_matched[idx]]
+                             for idx in range(row_matched.shape[0])]
+    if hasattr(ctype, 'ct_conditions'):
+        ctype_ct_conditionsflag_track = [ctype.ct_conditions[row_matched[idx], col_matched[idx]]
+                             for idx in range(row_matched.shape[0])]
+    if hasattr(ctype, 'qualityflag'):
+        ctype_qflag_track = [ctype.qualityflag[row_matched[idx], col_matched[idx]]
+                             for idx in range(row_matched.shape[0])]
     if nwp_obj.surft != None:
         surft_track = [nwp_obj.surft[row_matched[idx], col_matched[idx]]
                        for idx in range(row_matched.shape[0])]
@@ -685,7 +694,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
                    for idx in range(row_matched.shape[0])]
         ctth_pressure_track = np.where(np.equal(temp, ctth.p_nodata), 
                                       -9, pp_temp)
-        if (PPS_VALIDATION ):
+        if (PPS_VALIDATION and hasattr(ctth,'processingflag')):
             is_opaque = np.bitwise_and(np.right_shift(ctth.processingflag, 3), 1)
             ctth_opaque_track = [is_opaque[row_matched[idx], col_matched[idx]]
                                  for idx in range(row_matched.shape[0])]
@@ -703,7 +712,12 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
     obt.avhrr.latitude = np.array(lat_avhrr_track)
     obt.avhrr.longitude = np.array(lon_avhrr_track)
     obt.avhrr.cloudtype = np.array(ctype_track)
-    obt.avhrr.cloudtype_qflag = np.array(ctype_qflag_track)
+    if ctype_qflag_track is not None:
+        obt.avhrr.cloudtype_qflag = np.array(ctype_qflag_track)
+    if ctype_ct_qualityflag_track is not None:
+        obt.avhrr.cloudtype_quality = np.array(ctype_ct_qualityflag_track)
+    if ctype_ct_conditionsflag_track is not None:
+        obt.avhrr.cloudtype_conditions = np.array(ctype_ct_conditionsflag_track)
     if dataObj != None:
         obt.avhrr.r06micron = np.array(r06micron_track)
         obt.avhrr.r09micron = np.array(r09micron_track)
@@ -725,7 +739,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
         obt.avhrr.ctth_height = np.array(ctth_height_track)
         obt.avhrr.ctth_pressure = np.array(ctth_pressure_track)
         obt.avhrr.ctth_temperature = np.array(ctth_temperature_track)
-        if (PPS_VALIDATION):
+        if ctth_opaque_track is not None:
             obt.avhrr.ctth_opaque = np.array(ctth_opaque_track)
     if nwp_obj.surft != None:
         obt.avhrr.surftemp = np.array(surft_track)
