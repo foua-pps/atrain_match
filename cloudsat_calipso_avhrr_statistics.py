@@ -629,59 +629,59 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
         (config.ALSO_USE_5KM_FILES or config.RESOLUTION==5)): 
         statfile.write("CLOUD HEIGHT SINGLE-LAYER, NOT THIN\n")
         lim=2*config.OPTICAL_DETECTION_LIMIT
-        okcaliop_single_not_thinnest = np.logical_and(okcaliop_single, np.greater_equal(caObj.calipso.optical_depth_top_layer,lim))
+        okcaliop_single_not_thinnest = np.logical_and(okcaliop_single, np.greater_equal(caObj.calipso.optical_depth_top_layer5km,lim))
     #print "ALL CLOUDS:"
         out_stats = calculate_ctth_stats(okcaliop_single_not_thinnest,avhrr_ctth_cal_ok,caliop_max_height)   
         statfile.write("CLOUD HEIGHT CALIOP-SINGLE-LAYER>%f ALL: %s \n" % (lim,out_stats))
         
-        okcaliop_single_not_thinnest_low = np.logical_and(okcaliop_single_low, np.greater_equal(caObj.calipso.optical_depth_top_layer,lim))
+        okcaliop_single_not_thinnest_low = np.logical_and(okcaliop_single_low, np.greater_equal(caObj.calipso.optical_depth_top_layer5km,lim))
         out_stats = calculate_ctth_stats(okcaliop_single_not_thinnest_low,avhrr_ctth_cal_ok,caliop_max_height)   
         statfile.write("CLOUD HEIGHT CALIOP-SINGLE-LAYER>%f LOW: %s \n" % (lim,out_stats))
 
-        okcaliop_single_not_thinnest_mid = np.logical_and(okcaliop_single_mid, np.greater_equal(caObj.calipso.optical_depth_top_layer,lim))
+        okcaliop_single_not_thinnest_mid = np.logical_and(okcaliop_single_mid, np.greater_equal(caObj.calipso.optical_depth_top_layer5km,lim))
         out_stats = calculate_ctth_stats(okcaliop_single_not_thinnest_mid,avhrr_ctth_cal_ok,caliop_max_height)   
         statfile.write("CLOUD HEIGHT CALIOP-SINGLE-LAYER>%f MEDIUM: %s \n" % (lim,out_stats))
         
-        okcaliop_single_not_thinnest_high = np.logical_and(okcaliop_single_high, np.greater_equal(caObj.calipso.optical_depth_top_layer,lim))
+        okcaliop_single_not_thinnest_high = np.logical_and(okcaliop_single_high, np.greater_equal(caObj.calipso.optical_depth_top_layer5km,lim))
         out_stats = calculate_ctth_stats(okcaliop_single_not_thinnest_high,avhrr_ctth_cal_ok,caliop_max_height)   
         statfile.write("CLOUD HEIGHT CALIOP-SINGLE-LAYER>%f HIGH: %s \n" % (lim,out_stats))
         
         
         statfile.write("CLOUD HEIGHT NOT VERY THIN TOP LAYER\n")
         lim=config.OPTICAL_DETECTION_LIMIT
-        okcaliop_not_thinnest_top_layer = np.logical_and(okcaliop, np.greater_equal(caObj.calipso.optical_depth_top_layer,lim))
+        okcaliop_not_thinnest_top_layer = np.logical_and(okcaliop, np.greater_equal(caObj.calipso.optical_depth_top_layer5km,lim))
     #print "ALL CLOUDS:"
         out_stats = calculate_ctth_stats(okcaliop_not_thinnest_top_layer,avhrr_ctth_cal_ok,caliop_max_height)   
         statfile.write("CLOUD HEIGHT CALIOP-TOP-LAYER>%f ALL: %s \n" % (lim,out_stats))
         
-        okcaliop_not_thinnest_top_layer_low = np.logical_and(cal_low_ok, np.greater_equal(caObj.calipso.optical_depth_top_layer,lim))
+        okcaliop_not_thinnest_top_layer_low = np.logical_and(cal_low_ok, np.greater_equal(caObj.calipso.optical_depth_top_layer5km,lim))
         out_stats = calculate_ctth_stats(okcaliop_not_thinnest_top_layer_low,avhrr_ctth_cal_ok,caliop_max_height)   
         statfile.write("CLOUD HEIGHT CALIOP-TOP-LAYER>%f LOW: %s \n" % (lim,out_stats))
 
-        okcaliop_not_thinnest_top_layer_mid = np.logical_and(cal_mid_ok, np.greater_equal(caObj.calipso.optical_depth_top_layer,lim))
+        okcaliop_not_thinnest_top_layer_mid = np.logical_and(cal_mid_ok, np.greater_equal(caObj.calipso.optical_depth_top_layer5km,lim))
         out_stats = calculate_ctth_stats(okcaliop_not_thinnest_top_layer_mid,avhrr_ctth_cal_ok,caliop_max_height)   
         statfile.write("CLOUD HEIGHT CALIOP-TOP-LAYER>%f MEDIUM: %s \n" % (lim,out_stats))
 
-        okcaliop_not_thinnest_top_layer_high = np.logical_and(cal_high_ok, np.greater_equal(caObj.calipso.optical_depth_top_layer,lim))
+        okcaliop_not_thinnest_top_layer_high = np.logical_and(cal_high_ok, np.greater_equal(caObj.calipso.optical_depth_top_layer5km,lim))
         out_stats = calculate_ctth_stats(okcaliop_not_thinnest_top_layer_high,avhrr_ctth_cal_ok,caliop_max_height)   
         statfile.write("CLOUD HEIGHT CALIOP-TOP-LAYER>%f HIGH: %s \n" % (lim,out_stats))
 
         lim=config.OPTICAL_DETECTION_LIMIT
         statfile.write("CLOUD HEIGHT VERY THIN TOP LAYER\n")
-        okcaliop_not_thinnest_top_layer = np.logical_and(okcaliop, np.less_equal(caObj.calipso.optical_depth_top_layer,lim))
+        okcaliop_not_thinnest_top_layer = np.logical_and(okcaliop, np.less_equal(caObj.calipso.optical_depth_top_layer5km,lim))
     #print "ALL CLOUDS:"
         out_stats = calculate_ctth_stats(okcaliop_not_thinnest_top_layer,avhrr_ctth_cal_ok,caliop_max_height)   
         statfile.write("CLOUD HEIGHT CALIOP-TOP-LAYER<%f ALL: %s \n" % (lim,out_stats))
 
-        okcaliop_not_thinnest_top_layer_low = np.logical_and(cal_low_ok, np.less_equal(caObj.calipso.optical_depth_top_layer,lim))
+        okcaliop_not_thinnest_top_layer_low = np.logical_and(cal_low_ok, np.less_equal(caObj.calipso.optical_depth_top_layer5km,lim))
         out_stats = calculate_ctth_stats(okcaliop_not_thinnest_top_layer_low,avhrr_ctth_cal_ok,caliop_max_height)   
         statfile.write("CLOUD HEIGHT CALIOP-TOP-LAYER<%f LOW: %s \n" % (lim,out_stats))
 
-        okcaliop_not_thinnest_top_layer_mid = np.logical_and(cal_mid_ok, np.less_equal(caObj.calipso.optical_depth_top_layer,lim))
+        okcaliop_not_thinnest_top_layer_mid = np.logical_and(cal_mid_ok, np.less_equal(caObj.calipso.optical_depth_top_layer5km,lim))
         out_stats = calculate_ctth_stats(okcaliop_not_thinnest_top_layer_mid,avhrr_ctth_cal_ok,caliop_max_height)   
         statfile.write("CLOUD HEIGHT CALIOP-TOP-LAYER<%f MEDIUM: %s \n" % (lim,out_stats))
 
-        okcaliop_not_thinnest_top_layer_high = np.logical_and(cal_high_ok, np.less_equal(caObj.calipso.optical_depth_top_layer,lim))
+        okcaliop_not_thinnest_top_layer_high = np.logical_and(cal_high_ok, np.less_equal(caObj.calipso.optical_depth_top_layer5km,lim))
         out_stats = calculate_ctth_stats(okcaliop_not_thinnest_top_layer_high,avhrr_ctth_cal_ok,caliop_max_height)   
         statfile.write("CLOUD HEIGHT CALIOP-TOP-LAYER<%f HIGH: %s \n" % (lim,out_stats))
 

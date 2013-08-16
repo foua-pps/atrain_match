@@ -684,11 +684,11 @@ def get_calipso_matchups(calipso_files, values,
         calipso1km, startBreak, endBreak  = reshapeCalipso(calipso_files, avhrrGeoObj, values, False, 1)
         calipso5km = reshapeCalipso(cafiles5km,avhrrGeoObj, values, False, 5)[0]
         # add possibility to group results regarding opticaldepth of top layer
-        calipso1km.optical_depth=0*calipso1km.cloud_top_profile[:,0]-9
+        calipso1km.optical_depth_top_layer5km=0*calipso1km.cloud_top_profile[:,0]-9
         for pixel in range(calipso5km.utc_time.shape[0]): 
             for pixel_1km in range(pixel*5, pixel*5+5, 1):
                 if calipso5km.number_of_layers_found[pixel]>0:
-                    calipso1km.optical_depth[pixel_1km] = calipso5km.optical_depth[pixel, 0]     
+                    calipso1km.optical_depth_top_layer5km[pixel_1km] = calipso5km.optical_depth[pixel, 0]     
         calipso = calipso1km            
         if USE_5KM_FILES_TO_FILTER_CALIPSO_DATA:
             write_log('INFO',"Cut optically thin clouds at selected optical depth"

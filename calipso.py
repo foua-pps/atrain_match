@@ -895,10 +895,23 @@ def match_calipso_avhrr(values,
     retv.calipso.cloud_base_profile = np.reshape(x_cbp,(col_dim,N_cbp)).astype('d')
     N_cmt = x_cmt.shape[0]/col_dim
     retv.calipso.cloud_mid_temperature = np.reshape(x_cmt,(col_dim,N_cmt)).astype('d')
+
+    x_lse = np.repeat(calipsoObj.lidar_surface_elevation[::,0],idx_match)
+    col_dim = calipsoObj.lidar_surface_elevation.shape[1]
+    for i in range(1,col_dim):
+        x_lse = np.concatenate(\
+            (x_lse,np.repeat(calipsoObj.lidar_surface_elevation[::,i],idx_match)))
+    N_lse = x_lse.shape[0]/col_dim
+    retv.calipso.lidar_surface_elevation = np.reshape(x_lse,(col_dim,N_lse)).astype('d')
+
     if res == 5:
         x_od = np.repeat(calipsoObj.optical_depth[::,0],idx_match)
         x_odu = np.repeat(calipsoObj.optical_depth_uncertainty[::,0],idx_match)
         x_ss = np.repeat(calipsoObj.single_shot_cloud_cleared_fraction[::,0],idx_match)
+        x_ha = np.repeat(calipsoObj.horizontal_averaging5km[::,0],idx_match)
+        x_op = np.repeat(calipsoObj.opacity5km[::,0],idx_match)
+        x_iwp = np.repeat(calipsoObj.ice_water_path5km[::,0],idx_match)
+        x_iwpu = np.repeat(calipsoObj.ice_water_path_uncertainty5km[::,0],idx_match)
         for i in range(1, col_dim):
             x_od = np.concatenate(\
                 (x_od,np.repeat(calipsoObj.optical_depth[::,i],idx_match)))
@@ -906,17 +919,34 @@ def match_calipso_avhrr(values,
                 (x_odu,np.repeat(calipsoObj.optical_depth_uncertainty[::,i],idx_match)))
             x_ss = np.concatenate(\
                 (x_ss,np.repeat(calipsoObj.single_shot_cloud_cleared_fraction[::,i],idx_match)))
+            x_ha = np.concatenate(\
+                (x_ha,np.repeat(calipsoObj.horizontal_averaging5km[::,i],idx_match)))
+            x_op = np.concatenate(\
+                (x_op,np.repeat(calipsoObj.opacity5km[::,i],idx_match)))
+            x_iwp = np.concatenate(\
+                (x_iwp,np.repeat(calipsoObj.ice_water_path[::,i],idx_match)))
+            x_iwpu = np.concatenate(\
+                (x_iwpu,np.repeat(calipsoObj.ice_water_path_uncertainty[::,i],idx_match)))
         N_od = x_od.shape[0]/col_dim
         retv.calipso.optical_depth = np.reshape(x_od,(col_dim,N_od)).astype('d')
         N_odu = x_odu.shape[0]/col_dim
         retv.calipso.optical_depth_uncertainty = np.reshape(x_odu,(col_dim,N_odu)).astype('d')
         N_ss = x_ss.shape[0]/col_dim
         retv.calipso.single_shot_cloud_cleared_fraction = np.reshape(x_ss,(col_dim,N_ss)).astype('d')
+        N_ha = x_ha.shape[0]/col_dim
+        retv.calipso.horizontal_averaging5km = np.reshape(x_ha,(col_dim,N_ha)).astype('d')
+        N_op = x_op.shape[0]/col_dim
+        retv.calipso.opacity5km = np.reshape(x_op,(col_dim,N_op)).astype('d')
+        N_iwp = x_iwp.shape[0]/col_dim
+        retv.calipso.ice_water_path5km = np.reshape(x_iwp,(col_dim,N_iwp)).astype('d')
+        N_iwpu = x_iwpu.shape[0]/col_dim
+        retv.calipso.ice_water_path_uncertainty5km = np.reshape(x_iwpu,(col_dim,N_iwpu)).astype('d')
         retv.calipso.optical_depth_top_layer = np.repeat(\
             calipsoObj.optical_depth[:,0].ravel(),idx_match.ravel()).astype('d') 
+
     if res == 1:
-        retv.calipso.optical_depth_top_layer = np.repeat(\
-            calipsoObj.optical_depth.ravel(),idx_match.ravel()).astype('d')
+        retv.calipso.optical_depth_top_layer5km = np.repeat(\
+            calipsoObj.optical_depth_top_layer5km.ravel(),idx_match.ravel()).astype('d')
     #cloud_mid_temp = np.repeat(calipsoObj.cloud_mid_temperature.flat,idx_match_2d.flat)
     #cloud_mid_temp = np.where(np.less(cloud_mid_temp,0),missing_data,cloud_mid_temp)
     #cloud_mid_temp = np.reshape(cloud_mid_temp,(N,10))
@@ -1154,6 +1184,8 @@ def read_calipso(filename, res):
     retv.igbp=c.data()
     c=a.getNode("/NSIDC_Surface_Type")
     retv.nsidc=c.data()
+    c=a.getNode("/Lidar_Surface_Elevation")
+    retv.lidar_surface_elevation=c.data()
     if res == 5:
         write_log('INFO', "calipso-file %s" % filename)
         c=a.getNode("/Feature_Optical_Depth_532")
@@ -1163,6 +1195,14 @@ def read_calipso(filename, res):
         c=a.getNode("/Single_Shot_Cloud_Cleared_Fraction")
         retv.single_shot_cloud_cleared_fraction=c.data()
 
+        c=a.getNode("/Horizontal_Averaging")
+        retv.horizontal_averaging5km=c.data()
+        c=a.getNode("/Opacity_Flag")
+        retv.opacity5km=c.data()
+        c=a.getNode("/Ice_Water_Path")
+        retv.ice_water_path5km=c.data()
+        c=a.getNode("/Ice_Water_Path_Uncertainty")
+        retv.ice_water_path_uncertainty5km=c.data()
     return retv
 
 # -----------------------------------------------------
@@ -1273,7 +1313,7 @@ def add1kmTo5km(Obj1, Obj5, start_break, end_break):
     # This latter case represents when very thin cloud layers are being detected over longer distances
     
     # Finally, if there are cloud layers in 1 km data but not in 5 km data, add a layer to 5 km data and set corresponding
-    # COT to 1.0. Cloud base and cloud top for this layer is calculated as averages from original levels (max height for
+    # COT to 1.0. Cloud base and cloud tp for this layer is calculated as averages from original levels (max height for
     # top and min height for base if there are more than one layer).This is a pragmatic solution to take care of a
     # weakness or bug in the CALIPSO retrieval of clouds below 4 km
 
