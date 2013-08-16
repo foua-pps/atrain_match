@@ -150,8 +150,9 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
             daynight_flags = get_day_night_twilight_info_pps2012(
                 caObj.avhrr.cloudtype_qflag)
     if hasattr(caObj.avhrr, 'cloudtype_conditions'):
-        daynight_flags = get_day_night_twilight_info_pps2014(
-            caObj.avhrr.cloudtype_conditions)       
+        if caObj.avhrr.cloudtype_conditions is not None:
+            daynight_flags = get_day_night_twilight_info_pps2014(
+                caObj.avhrr.cloudtype_conditions)       
     (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag) = daynight_flags
     if (no_qflag.sum() + night_flag.sum() + twilight_flag.sum() + day_flag.sum()) != caObj.calipso.longitude.size:
         print('something wrong with quality flags. It does not sum up. See beginning of statistic file')

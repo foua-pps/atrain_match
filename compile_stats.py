@@ -94,7 +94,7 @@ def compile_basic_stats(results_files, result_end, write=False):
             for l in cth_stats.printout():
                 print(l)
             print("========== Cloud top height ===========")
-            print("===== Top Layer, Not optically thin ===")
+            print("===== Top Layer, Not optically very thin ===")
             from statistics import orrb_CTH_stat
             cth_stats = orrb_CTH_stat.CloudTopStats(results_files, [31,32,33,34])
             if write:
@@ -169,8 +169,8 @@ if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option('-w', '--write', action='store_true',
                       help="Write results to file")
-##     parser.add_option('-b', '--no-basic', action='store_true',
-##                       help="don't calculate the statistic for mode BASIC")
+##    parser.add_option('-b', '--no-basic', action='store_true',
+##                      help="don't calculate the statistic for mode BASIC")
     parser.add_option('-b', '--basic', action='store_true',  # I prefer this one!/KG
                       help="Calculate the statistic for mode BASIC")
     parser.add_option('-s', '--surface', action='store_true',

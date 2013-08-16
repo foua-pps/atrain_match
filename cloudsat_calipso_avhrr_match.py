@@ -380,6 +380,7 @@ def find_avhrr_file_old(cross, options):
     for tobj in tlist:
         rad_dir = insert_info_in_filename_or_path(options['radiance_dir'],
                                                   values, datetime_obj=tobj)
+        print rad_dir
         if os.path.exists(rad_dir):
             found_dir = rad_dir
             break
@@ -426,6 +427,7 @@ def find_avhrr_file(cross, filedir_pattern, filename_pattern, values={}):
         #print values
         avhrr_dir = insert_info_in_filename_or_path(filedir_pattern,
                                                   values, datetime_obj=tobj)
+        #print avhrr_dir
         if os.path.exists(avhrr_dir):
             found_dir = avhrr_dir
             if avhrr_dir not in checked_dir.keys():
@@ -436,7 +438,7 @@ def find_avhrr_file(cross, filedir_pattern, filename_pattern, values={}):
             if not found_dir and avhrr_dir not in checked_dir.keys():
                 checked_dir[avhrr_dir] = 1
                 write_log('INFO',"This directory does not exist, pattern:"
-                          " {directory}".format(directory=filedir_pattern))
+                          " {directory}".format(directory=avhrr_dir))
             continue
 
     
@@ -908,7 +910,9 @@ def get_matchups_from_data(cross, config_options):
                 for file1km in calipso_files:
                     file5km = file1km.replace('/1km/', '/5km/').\
                                                 replace('01kmCLay', '05kmCLay').\
+                                                replace('-ValStage1-V3-30.', '*').\
                                                 replace('-ValStage1-V3-02.', '*')
+
                     files_found = glob.glob(file5km)
                     if len(files_found)==0:
                         #didn't find h5 file, might be hdf file instead
