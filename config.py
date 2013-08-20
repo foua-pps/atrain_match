@@ -6,7 +6,7 @@ still be some modules which have internal constants defined.
 """
 
 import os
-PPS_FORMAT_2012_OR_ERLIER = False
+PPS_FORMAT_2012_OR_ERLIER = True
 
 #Set to true if you always want an avhrr orbit that starts before the cross
 ALWAYS_USE_AVHRR_ORBIT_THAT_STARTS_BEFORE_CROSS = False
@@ -28,8 +28,8 @@ ALSO_USE_5KM_FILES = True #5km data is needed to split result on optical depth o
 #If USE_5KM_FILES_TO_FILTER_CALIPSO_DATA is True, we take the cloud top to
 # be OPTICAL_LIMIT_CLOUD_TOP down in the cloud. For clouds thinner than
 # OPTICAL_LIMIT_CLOUD_TOP we use the cloud base as cloud top.
-USE_5KM_FILES_TO_FILTER_CALIPSO_DATA = False
-OPTICAL_LIMIT_CLOUD_TOP = 0.6
+USE_5KM_FILES_TO_FILTER_CALIPSO_DATA = True
+OPTICAL_LIMIT_CLOUD_TOP = 0.3
 if USE_5KM_FILES_TO_FILTER_CALIPSO_DATA:
     ALSO_USE_5KM_FILES = True
  
@@ -330,8 +330,8 @@ NLINES=6000
 NODATA=-9
 
 #: Processing modes for which plotting should also be performed
-PLOT_MODES = ['BASIC']
-#PLOT_MODES = ['No Plot']
+#PLOT_MODES = ['BASIC']
+PLOT_MODES = ['No Plot']
 
 
 def subdir(self, date, *args, **kwargs):
@@ -431,7 +431,14 @@ CASES = [{'satname': 'npp', 'year': 2012, 'month': 6},
          {'satname': 'npp', 'year': 2012, 'month': 7},
          {'satname': 'npp', 'year': 2012, 'month': 8},
          {'satname': 'npp', 'year': 2012, 'month': 9},
-         {'satname': 'npp', 'year': 2012, 'month': 10}]
+         {'satname': 'npp', 'year': 2012, 'month': 10},
+         {'satname': 'npp', 'year': 2012, 'month': 11},
+         {'satname': 'npp', 'year': 2012, 'month': 12},
+         {'satname': 'npp', 'year': 2013, 'month': 01},
+         {'satname': 'npp', 'year': 2013, 'month': 02},
+         {'satname': 'npp', 'year': 2013, 'month': 03},
+         {'satname': 'npp', 'year': 2013, 'month': 04},
+         {'satname': 'npp', 'year': 2013, 'month': 05}]
 
 #: PPS area definition (from ``acpg/cfg/region_config.cfg``) for which
 #: statistics should be summarized
@@ -462,7 +469,7 @@ SURFACES = ["ICE_COVER_SEA", "ICE_FREE_SEA", "SNOW_COVER_LAND", "SNOW_FREE_LAND"
 
 #: Filter types for which statistics should be summerized
 #FILTERTYPE = ['EMISSFILT']
-FILTERTYPE = ['OPTICAL_DEPTH']
+FILTERTYPE = []#'OPTICAL_DEPTH']
 if RESOLUTION == 5:
     #FILTERTYPE.append('OPTICAL_DEPTH')
     FILTERTYPE = ['OPTICAL_DEPTH']

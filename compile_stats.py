@@ -31,7 +31,7 @@ def compile_filtered_stats(results_files, filttype, write=False):
 
 def compile_surface_stats(results_files, surfacetype, write=False):
     """Run through all summary statistics."""
-    
+
     print("=========== Cloud fraction ============")
     from statistics import orrb_CFC_stat_surfaces
     cfc_stats = orrb_CFC_stat_surfaces.CloudFractionSurfacesStats(results_files)
@@ -175,6 +175,8 @@ if __name__ == '__main__':
                       help="Calculate the statistic for mode BASIC")
     parser.add_option('-s', '--surface', action='store_true',
                       help='calculate the statistic for the different surfaces')
+    parser.add_option('-n', '--surface_new_way', action='store_true',
+                      help='calculate the statistic for the different surfaces with basic method')
     parser.add_option('-f', '--filter', action='store_true',
                       help='calculate the statistic for the different filters')
     parser.add_option('-c', '--cotfilter', action='store_true', # Added for handling a list of cot values/KG
@@ -210,6 +212,32 @@ if __name__ == '__main__':
             else:
                 cfc_stats, cth_stats = compile_basic_stats(results_files, result_end, write=options.write)        
             print('')
+
+    if options.surface_new_way == True:
+        from config import SURFACES
+        print('Calculate statistic for the different surfaces with basic method')
+        for surface in SURFACES:
+            for dnt in DNT_FLAG:
+                results_files = []
+                for case in CASES:
+                    print(RESOLUTION)
+                    basic_indata_dir = "%s/%s/%s/%skm/%s/%02d/%s/%s" % \
+                    (MAIN_DATADIR, RESULT_DIR, case['satname'], RESOLUTION , case['year'], case['month'], MAP[0], surface)
+                    if dnt in [None, 'ALL', 'all']:
+                        result_end = surface
+                    else:
+                        basic_indata_dir = basic_indata_dir + '_' + dnt
+                        result_end = '%s_%s' %(surface, dnt)
+                    print("-> " + basic_indata_dir)
+                    if CALIPSO_CLOUD_FRACTION == True:
+                        results_files.extend(glob("%s/CCF_%skm*.dat" %(basic_indata_dir, RESOLUTION)))
+                    else:
+                        results_files.extend(glob("%s/%skm*.dat" %(basic_indata_dir, RESOLUTION)))
+                if not CCI_CLOUD_VALIDATION:
+                    cfc_stats, cth_stats, cty_stats = compile_basic_stats(results_files, result_end, write=options.write)
+                else:
+                    cfc_stats, cth_stats = compile_basic_stats(results_files, result_end, write=options.write) 
+                print('')
             
     if options.surface == True:
         from config import SURFACES
