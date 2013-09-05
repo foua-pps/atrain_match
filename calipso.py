@@ -13,12 +13,10 @@ from common import MatchupError, elements_within_range #@UnusedImport
 from config import RESOLUTION as resolution
 from config import (OPTICAL_DETECTION_LIMIT,
                     OPTICAL_LIMIT_CLOUD_TOP,
-                    EXCLUDE_CALIPSO_PIXEL_IF_TOTAL_OPTICAL_THICKNESS_TO_LOW,
-                    EXCLUDE_ALL_MULTILAYER,
-                    EXCLUDE_MULTILAYER_IF_TOO_THIN_TOP_LAYER,
-                    EXCLUDE_GEOMETRICALLY_THICK,
+                    SET_TO_CLEAR_CALIPSO_PIXEL_IF_TOTAL_OPTICAL_THICKNESS_TO_LOW,
                     PPS_VALIDATION,
                     IMAGER_INSTRUMENT)
+EXCLUDE_GEOMETRICALLY_THICK = False
 import time as tm
 
 
@@ -947,6 +945,10 @@ def match_calipso_avhrr(values,
     if res == 1:
         retv.calipso.optical_depth_top_layer5km = np.repeat(\
             calipsoObj.optical_depth_top_layer5km.ravel(),idx_match.ravel()).astype('d')
+        retv.calipso.total_optical_depth_5km = np.repeat(\
+            calipsoObj.total_optical_depth_5km.ravel(),idx_match.ravel()).astype('d')
+        retv.calipso.detection_height_5km = np.repeat(\
+            calipsoObj.detection_height_5km.ravel(),idx_match.ravel()).astype('d')
     #cloud_mid_temp = np.repeat(calipsoObj.cloud_mid_temperature.flat,idx_match_2d.flat)
     #cloud_mid_temp = np.where(np.less(cloud_mid_temp,0),missing_data,cloud_mid_temp)
     #cloud_mid_temp = np.reshape(cloud_mid_temp,(N,10))
@@ -1442,22 +1444,11 @@ def use5km_remove_thin_clouds_from_1km(Obj1, Obj5, start_break, end_break):
                     #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                 #Remove all layers of clouds if total optical thickness is to low:    
                 elif (np.max(optical_thickness_profile)< OPTICAL_DETECTION_LIMIT and 
-                      EXCLUDE_CALIPSO_PIXEL_IF_TOTAL_OPTICAL_THICKNESS_TO_LOW):
+                      SET_TO_CLEAR_CALIPSO_PIXEL_IF_TOTAL_OPTICAL_THICKNESS_TO_LOW):
                     Obj1.cloud_top_profile[pixel_1km, lay] = -9999 
-                    Obj1.cloud_base_profile[pixel_1km, lay] = -9999  
-                elif   (Obj5.optical_depth[pixel, 0]< OPTICAL_DETECTION_LIMIT and  #top layer very thin
-                        np.max(optical_thickness_profile)> Obj5.optical_depth[pixel, 0]  and #is multilayer
-                        EXCLUDE_MULTILAYER_IF_TOO_THIN_TOP_LAYER):
-                    #relative thin top layer, total optical thickness thicker than limit
-                    Obj1.cloud_top_profile[pixel_1km, lay] = -9999 
-                    Obj1.cloud_base_profile[pixel_1km, lay] = -9999   
-                elif   (np.max(optical_thickness_profile)> Obj5.optical_depth[pixel, 0]  and #is multilayer
-                        EXCLUDE_ALL_MULTILAYER):
-                    Obj1.cloud_top_profile[pixel_1km, lay] = -9999 
-                    Obj1.cloud_base_profile[pixel_1km, lay] = -9999   
+                    Obj1.cloud_base_profile[pixel_1km, lay] = -9999    
                 elif   (Obj1.cloud_top_profile[pixel_1km, 0]-Obj1.cloud_base_profile[pixel_1km, 0]>1  and #is multilayer
                         EXCLUDE_GEOMETRICALLY_THICK):
-                    #relative thin top layer, total optical thickness thicker than limit
                     Obj1.cloud_top_profile[pixel_1km, lay] = -9999 
                     Obj1.cloud_base_profile[pixel_1km, lay] = -9999       
                 elif height_limit1 < Obj1.cloud_top_profile[pixel_1km, lay]:
@@ -1466,10 +1457,7 @@ def use5km_remove_thin_clouds_from_1km(Obj1, Obj5, start_break, end_break):
                         height_limit1, 
                         Obj1.cloud_base_profile[pixel_1km, lay]+0.1)
                               
-
-
 #save removed clouds and heights so they can be plotted (yellow in figure as clouds calipso sees but npp can't see)
-
     for arnameca, valueca in Obj1.all_arrays.items(): 
         if valueca != None:
             if valueca.size != 1:
@@ -1478,6 +1466,78 @@ def use5km_remove_thin_clouds_from_1km(Obj1, Obj5, start_break, end_break):
                 retv.all_arrays[arnameca] = valueca
     return retv
     
+
+
+def use5km_find_detection_height_and_total_optical_thickness(Obj1, Obj5, start_break, end_break):
+    retv = CalipsoObject()
+    if (Obj5.utc_time[:,1] == Obj1.utc_time[2::5]).sum() != Obj5.utc_time.shape[0]:
+        write_log('WARNING', "length mismatch")
+        pdb.set_trace()
+    Obj1.detection_height_5km = np.ones(Obj1.number_of_layers_found.shape)*-9                 
+    Obj1.total_optical_depth_5km = np.ones(Obj1.number_of_layers_found.shape)*-9 ;
+    for pixel in range(Obj5.utc_time.shape[0]):    
+        cloud_max_top = np.max(Obj5.cloud_top_profile[pixel, 0:10])
+        if cloud_max_top ==-9999:
+            continue
+        else:
+            cloud_top_max = int(round(1000*cloud_max_top))
+        height_profile = 0.001*np.array(range(cloud_top_max, -1, -1))
+        optical_thickness = np.zeros(height_profile.shape)
+        for lay in range(Obj5.number_of_layers_found[pixel]): 
+            #dont use layers with negative top or base value
+            if (Obj5.cloud_top_profile[pixel, lay]>0 and 
+                Obj5.cloud_base_profile[pixel, lay]>0):
+                cloud_at_these_height_index = np.logical_and(
+                    Obj5.cloud_top_profile[pixel, lay]>= height_profile, 
+                    height_profile>=Obj5.cloud_base_profile[pixel, lay])
+                eye_this_cloud = np.where(cloud_at_these_height_index ,  1, 0)
+                number_of_cloud_boxes = sum(eye_this_cloud)         
+                if number_of_cloud_boxes == 0 and Obj5.cloud_top_profile[pixel, lay]>0:
+                    cloud_at_these_height_index = np.logical_and(
+                        np.logical_and(
+                            Obj5.cloud_top_profile[pixel, lay]>= height_profile-0.01, 
+                            Obj5.cloud_base_profile[pixel, lay]>=height_profile-0.01),
+                        np.logical_and(
+                            Obj5.cloud_top_profile[pixel, lay]<= height_profile+0.01, 
+                            Obj5.cloud_base_profile[pixel, lay]<=height_profile+0.01))
+                    write_log('INFO',"Cloud top %.2f base: %.2f "%(
+                            Obj5.cloud_top_profile[pixel, lay],
+                            Obj5.cloud_base_profile[pixel, lay] ))
+                    write_log('INFO'," Using height_profile %2.f %2.f"%(
+                            np.min(height_profile[cloud_at_these_height_index]),np.max(height_profile[cloud_at_these_height_index])))
+                eye_this_cloud = np.where(cloud_at_these_height_index ,  1, 0)
+                number_of_cloud_boxes = sum(eye_this_cloud)         
+                if number_of_cloud_boxes == 0:
+                    write_log('WARNING', "cloud has no depth!!")
+             
+                optical_thickness_this_layer = (
+                    eye_this_cloud*
+                    Obj5.optical_depth[pixel, lay]*
+                    1.0/number_of_cloud_boxes)             
+                if abs(np.sum(optical_thickness_this_layer) - 
+                       Obj5.optical_depth[pixel, lay])>0.001:
+                    write_log('WARNING', "The sum of the optical thickness profile is "
+                       "not the same as total optical thickness of the cloud!!")
+             
+                optical_thickness = optical_thickness + optical_thickness_this_layer
+
+        optical_thickness_profile = np.cumsum(optical_thickness)
+        ok_and_higher_heights = np.where(
+            optical_thickness_profile <= OPTICAL_LIMIT_CLOUD_TOP, 
+            height_profile, cloud_max_top)
+        height_limit1 = np.min(ok_and_higher_heights)
+  
+        for pixel_1km in range(pixel*5, pixel*5+5, 1):     
+            Obj1.detection_height_5km[pixel_1km] = height_limit1                 
+            Obj1.total_optical_depth_5km[pixel_1km] =  max(optical_thickness_profile)
+
+    for arnameca, valueca in Obj1.all_arrays.items(): 
+        if valueca != None:
+            if valueca.size != 1:
+                retv.all_arrays[arnameca] = valueca[start_break:end_break,...]
+            else:
+                retv.all_arrays[arnameca] = valueca
+    return retv
 # -----------------------------------------------------
 if __name__ == "__main__":
     # Testing:

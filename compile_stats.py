@@ -173,6 +173,10 @@ if __name__ == '__main__':
 ##                      help="don't calculate the statistic for mode BASIC")
     parser.add_option('-b', '--basic', action='store_true',  # I prefer this one!/KG
                       help="Calculate the statistic for mode BASIC")
+    parser.add_option('-t', '--standard', action='store_true',  
+                      help="Calculate the statistic for mode STANDARD")
+    parser.add_option('-o', '--odticfilter', action='store_true',  
+                      help="Calculate the statistic for mode OPTICAL_DEPTH_THIN_IS_CLEAR")
     parser.add_option('-s', '--surface', action='store_true',
                       help='calculate the statistic for the different surfaces')
     parser.add_option('-n', '--surface_new_way', action='store_true',
@@ -196,6 +200,54 @@ if __name__ == '__main__':
             results_files = []
             for case in CASES:
                 basic_indata_dir = "%s/%s/%s/%skm/%s/%02d/%s/BASIC" % \
+                    (MAIN_DATADIR, RESULT_DIR, case['satname'],  RESOLUTION , case['year'], case['month'], MAP[0])
+                if dnt in [None, 'ALL', 'all']:
+                    result_end = ''
+                else:
+                    basic_indata_dir = basic_indata_dir + '_' + dnt
+                    result_end = '_%s' %dnt
+                print("-> " + basic_indata_dir)
+                if CALIPSO_CLOUD_FRACTION == True:
+                    results_files.extend(glob("%s/CCF_%skm*.dat" %(basic_indata_dir, RESOLUTION)))
+                else:
+                    results_files.extend(glob("%s/%skm*.dat" %(basic_indata_dir, RESOLUTION)))
+            if not CCI_CLOUD_VALIDATION:
+                cfc_stats, cth_stats, cty_stats = compile_basic_stats(results_files, result_end, write=options.write)
+            else:
+                cfc_stats, cth_stats = compile_basic_stats(results_files, result_end, write=options.write)        
+            print('')
+
+    if options.standard == True: # I prefer this one! /KG
+        print('Calculate statistic for mode STANDARD')
+        print(RESOLUTION)
+        for dnt in DNT_FLAG:
+            results_files = []
+            for case in CASES:
+                basic_indata_dir = "%s/%s/%s/%skm/%s/%02d/%s/STANDARD" % \
+                    (MAIN_DATADIR, RESULT_DIR, case['satname'],  RESOLUTION , case['year'], case['month'], MAP[0])
+                if dnt in [None, 'ALL', 'all']:
+                    result_end = ''
+                else:
+                    basic_indata_dir = basic_indata_dir + '_' + dnt
+                    result_end = '_%s' %dnt
+                print("-> " + basic_indata_dir)
+                if CALIPSO_CLOUD_FRACTION == True:
+                    results_files.extend(glob("%s/CCF_%skm*.dat" %(basic_indata_dir, RESOLUTION)))
+                else:
+                    results_files.extend(glob("%s/%skm*.dat" %(basic_indata_dir, RESOLUTION)))
+            if not CCI_CLOUD_VALIDATION:
+                cfc_stats, cth_stats, cty_stats = compile_basic_stats(results_files, result_end, write=options.write)
+            else:
+                cfc_stats, cth_stats = compile_basic_stats(results_files, result_end, write=options.write)        
+            print('')
+
+    if options.odticfilter == True: # I prefer this one! /KG
+        print('Calculate statistic for mode OPTICAL_DEPTH_THIN_IS_CLEAR')
+        print(RESOLUTION)
+        for dnt in DNT_FLAG:
+            results_files = []
+            for case in CASES:
+                basic_indata_dir = "%s/%s/%s/%skm/%s/%02d/%s/OPTICAL_DEPTH_THIN_IS_CLEAR" % \
                     (MAIN_DATADIR, RESULT_DIR, case['satname'],  RESOLUTION , case['year'], case['month'], MAP[0])
                 if dnt in [None, 'ALL', 'all']:
                     result_end = ''

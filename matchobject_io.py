@@ -150,6 +150,8 @@ class CalipsoObject(DataObject):
             'opacity5km': None,
             'ice_water_path5km': None,
             'ice_water_path_uncertainty5km': None,
+            'detection_height_5km': None,
+            'total_optical_depth_5km': None
             }
 
 

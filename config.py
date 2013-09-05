@@ -6,7 +6,7 @@ still be some modules which have internal constants defined.
 """
 
 import os
-PPS_FORMAT_2012_OR_ERLIER = True
+PPS_FORMAT_2012_OR_ERLIER = False
 
 #Set to true if you always want an avhrr orbit that starts before the cross
 ALWAYS_USE_AVHRR_ORBIT_THAT_STARTS_BEFORE_CROSS = False
@@ -20,23 +20,30 @@ CCI_CLOUD_VALIDATION = False
 
 COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC = True
 OPTICAL_DETECTION_LIMIT = 0.3
-ALSO_USE_5KM_FILES = True #5km data is needed to split result on optical depth of top layer.
+if COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC:
+    ALSO_USE_5KM_FILES = True #5km data is needed to split result on optical depth of top layer.
 
-
-#When using 1km data, use the 5km data to filterout clouds to thin for VIIRS/AVHRR to see.
-#PARAMETERS FOR CHOOSING HOW TO FILTER DATA 1km RESOLUTION:
-#If USE_5KM_FILES_TO_FILTER_CALIPSO_DATA is True, we take the cloud top to
-# be OPTICAL_LIMIT_CLOUD_TOP down in the cloud. For clouds thinner than
+#This is only for 1km RESOULTION:
+#In the modes STANDARD: the 1km calipso data will be filtered 
+#using info from 5km data.
+#Data devided on surfaces POLAR and so on will also be filtered.
+#Results in BASIC are always unfiltered.
+#If 5km data is used, results for surfaces will be based on the 
+#STANDARD filtered results.
+#If 5km data is not to filter data, results for surfaces will be 
+#based on the BASIC unfiltered results.
+#If USE_5KM_FILES_TO_FILTER_CALIPSO_DATA is True use 5km data to 
+#filter fluffy clouds
+# We consider the cloud top to be OPTICAL_LIMIT_CLOUD_TOP down 
+#in the cloud. For clouds thinner than
 # OPTICAL_LIMIT_CLOUD_TOP we use the cloud base as cloud top.
 USE_5KM_FILES_TO_FILTER_CALIPSO_DATA = True
-OPTICAL_LIMIT_CLOUD_TOP = 0.3
+OPTICAL_LIMIT_CLOUD_TOP = 1.0 #also used by xxx in EUMETSAT
 if USE_5KM_FILES_TO_FILTER_CALIPSO_DATA:
     ALSO_USE_5KM_FILES = True
- 
-EXCLUDE_CALIPSO_PIXEL_IF_TOTAL_OPTICAL_THICKNESS_TO_LOW = False
-EXCLUDE_ALL_MULTILAYER = False
-EXCLUDE_MULTILAYER_IF_TOO_THIN_TOP_LAYER = False
-EXCLUDE_GEOMETRICALLY_THICK = False
+
+
+SET_TO_CLEAR_CALIPSO_PIXEL_IF_TOTAL_OPTICAL_THICKNESS_TO_LOW = False #Remove when filtering is moved to prepare
 
 H4H5_EXECUTABLE = os.environ.get('H4H5_EXECUTABLE','/local_disk/opt/h4h5tools-2.2.1-linux-x86_64-static/bin/h4toh5')
 #H4H5_EXECUTABLE = '/software/apps/h4h5tools/2.2.1/i1214-hdf4-4.2.8-i1214-hdf5-1.8.9-i1214/bin/h4toh5'
@@ -299,10 +306,15 @@ if RESOLUTION == 1:
     # cloudsat_track_resolution = len(calipso.longitude) / len(cloudsat.longitude)
     CLOUDSAT_TRACK_RESOLUTION = 1.076
     if USE_5KM_FILES_TO_FILTER_CALIPSO_DATA:
-        ALLOWED_MODES.append('OPTICAL_DEPTH')      # Filter out cases with the thinnest topmost CALIPSO layers. Define MIN_OPTICAL_DEPTH above
-        ALLOWED_MODES.append('OPTICAL_DEPTH_DAY')
-        ALLOWED_MODES.append('OPTICAL_DEPTH_NIGHT')
-        ALLOWED_MODES.append('OPTICAL_DEPTH_TWILIGHT')
+         ALLOWED_MODES.append('OPTICAL_DEPTH_THIN_IS_CLEAR')      # Filter out cases with the thinnest topmost CALIPSO layers. Define MIN_OPTICAL_DEPTH above
+         ALLOWED_MODES.append('OPTICAL_DEPTH_THIN_IS_CLEAR_DAY')
+         ALLOWED_MODES.append('OPTICAL_DEPTH_THIN_IS_CLEAR_NIGHT')
+         ALLOWED_MODES.append('OPTICAL_DEPTH_THIN_IS_CLEAR_TWILIGHT')
+         ALLOWED_MODES.append('STANDARD')      # Filter out cases with the thinnest topmost CALIPSO layers. Define MIN_OPTICAL_DEPTH above
+         ALLOWED_MODES.append('STANDARD_DAY')
+         ALLOWED_MODES.append('STANDARD_NIGHT')
+         ALLOWED_MODES.append('STANDARD_TWILIGHT')
+
 elif RESOLUTION == 5:
     DSEC_PER_AVHRR_SCALINE = 1.0/6. * 4 # A "work for the time being" solution.
     SWATHWD=409

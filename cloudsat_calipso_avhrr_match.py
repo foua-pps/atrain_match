@@ -120,7 +120,8 @@ from config import (VAL_CPP,
                     PPS_VALIDATION,
                     ALWAYS_USE_AVHRR_ORBIT_THAT_STARTS_BEFORE_CROSS,
                     USE_5KM_FILES_TO_FILTER_CALIPSO_DATA,
-                    PPS_FORMAT_2012_OR_ERLIER)
+                    PPS_FORMAT_2012_OR_ERLIER,
+                    RESOLUTION)
 
 from radiance_tb_tables_kgtest import get_central_wavenumber
 # Just use the brightness temperature to
@@ -144,7 +145,9 @@ from calipso import reshapeCalipso, match_calipso_avhrr
 from matchobject_io import (writeCaliopAvhrrMatchObj, 
                             readCaliopAvhrrMatchObj,
                             DataObject)
-from calipso import  (use5km_remove_thin_clouds_from_1km, add1kmTo5km)
+from calipso import  (use5km_remove_thin_clouds_from_1km, 
+                      use5km_find_detection_height_and_total_optical_thickness, 
+                      add1kmTo5km)
 import inspect
 import numpy as np
 from cloudsat_calipso_avhrr_plot import (drawCalClsatAvhrrPlotTimeDiff,
@@ -380,6 +383,7 @@ def find_avhrr_file_old(cross, options):
     for tobj in tlist:
         rad_dir = insert_info_in_filename_or_path(options['radiance_dir'],
                                                   values, datetime_obj=tobj)
+
         print rad_dir
         if os.path.exists(rad_dir):
             found_dir = rad_dir
@@ -691,12 +695,17 @@ def get_calipso_matchups(calipso_files, values,
                     calipso1km.optical_depth_top_layer5km[pixel_1km] = calipso5km.optical_depth[pixel, 0]     
         calipso = calipso1km            
         if USE_5KM_FILES_TO_FILTER_CALIPSO_DATA:
-            write_log('INFO',"Cut optically thin clouds at selected optical depth"
+            write_log('INFO',"Find detection height and total optical thickness"
                       ", using 5km data")
-            calipso = use5km_remove_thin_clouds_from_1km(calipso1km, 
-                                                         calipso5km, 
-                                                         startBreak, 
-                                                         endBreak)
+            calipso = use5km_find_detection_height_and_total_optical_thickness(
+                calipso1km, 
+                calipso5km, 
+                startBreak, 
+                endBreak)
+            #calipso = use5km_remove_thin_clouds_from_1km(calipso1km, 
+            #                                             calipso5km, 
+            #                                             startBreak, 
+            #                                             endBreak)
             
         calipso1km = None
         calipso5km = None
@@ -1022,15 +1031,20 @@ def get_matchups(cross, options, reprocess=False):
     if reprocess is False:
         import os #@Reimport
         diff_avhrr=None
+        avhrr_file=None
         if (PPS_VALIDATION ):
             avhrr_file, tobj = find_radiance_file(cross, options)
             values_avhrr = get_satid_datetime_orbit_from_fname(avhrr_file)
         if (CCI_CLOUD_VALIDATION):
             avhrr_file, tobj = find_cci_cloud_file(cross, options)
-        if avhrr_file:
+        if avhrr_file is not None:
             values_avhrr = get_satid_datetime_orbit_from_fname(avhrr_file)
             date_time_avhrr = values_avhrr["date_time"]
-            diff_avhrr = date_time_avhrr-date_time_cross
+            if date_time_avhrr>date_time_cross:
+                diff_avhrr = date_time_avhrr-date_time_cross
+            else:
+                 diff_avhrr = date_time_cross-date_time_avhrr
+
         #need to pUt in the info res, atrain data type before go inte find avhrr??
         # or change read of files
         values["atrain_sat"] = "cloudsat-%s" % config.CLOUDSAT_TYPE[0]
@@ -1043,9 +1057,13 @@ def get_matchups(cross, options, reprocess=False):
             date_time=date_time_cross
         else:
             date_time=tobj
-            matchup_diff = tobj - date_time_cross
+            if tobj> date_time_cross:
+                matchup_diff = tobj- date_time_cross
+            else:
+                matchup_diff = date_time_cross - tobj
             clObj = readCloudsatAvhrrMatchObj(cl_match_file) 
             basename = '_'.join(os.path.basename(cl_match_file).split('_')[1:5])
+            print diff_avhrr.seconds, matchup_diff.seconds
             if diff_avhrr is None or matchup_diff.seconds<=diff_avhrr.seconds:
                 write_log('INFO', "CloudSat Matchups read from previously " + 
                           "processed data.")
@@ -1072,6 +1090,7 @@ def get_matchups(cross, options, reprocess=False):
             matchup_diff = tobj - date_time_cross
             caObj = readCaliopAvhrrMatchObj(ca_match_file)
             basename = '_'.join(os.path.basename(ca_match_file).split('_')[1:5])
+            print diff_avhrr.seconds, matchup_diff.seconds
             if diff_avhrr is None or matchup_diff.seconds<=diff_avhrr.seconds:
                 write_log('INFO', 
                           "CALIPSO Matchups read from previously processed data.")
@@ -1406,12 +1425,21 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     # If mode = OPTICAL_DEPTH -> Change cloud -top and -base profile
     if process_mode == 'OPTICAL_DEPTH':#Remove this if-statement if you always want to do filtering!/KG
         (new_cloud_top, new_cloud_base, new_cloud_fraction, new_fcf) = \
-                        CloudsatCloudOpticalDepth(caObj.calipso.cloud_top_profile, caObj.calipso.cloud_base_profile, \
-                                                  caObj.calipso.optical_depth, caObj.calipso.cloud_fraction, caObj.calipso.feature_classification_flags, min_optical_depth)
+                        CloudsatCloudOpticalDepth(caObj.calipso.cloud_top_profile, 
+                                                  caObj.calipso.cloud_base_profile, \
+                                                  caObj.calipso.optical_depth, 
+                                                  caObj.calipso.cloud_fraction, 
+                                                  caObj.calipso.feature_classification_flags, 
+                                                  min_optical_depth)
         caObj.calipso.cloud_top_profile = new_cloud_top
         caObj.calipso.cloud_base_profile = new_cloud_base
         caObj.calipso.cloud_fraction = new_cloud_fraction
         caObj.calipso.feature_classification_flags = new_fcf
+
+    if process_mode != 'BASIC' and RESOLUTION==1:
+        caObj = CloudsatOpticalDepthHeightFiltering1km(caObj)
+    if process_mode == 'OPTICAL_DEPTH_THIN_IS_CLEAR' and RESOLUTION==1:
+        caObj = CalipsoOpticalDepthSeToClearFiltering1km(caObj)
         
     # Extract CALIOP Vertical Feature Classification (bits 10-12) from 16 bit representation
     # for topmost cloud layer

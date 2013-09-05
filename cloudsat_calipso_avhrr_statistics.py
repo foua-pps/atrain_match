@@ -31,7 +31,7 @@ def calculate_ctth_stats(okcaliop, avhrr_ctth_cal_ok,caliop_max_height):
 
 def get_day_night_twilight_info_pps2014(cloudtype_conditions):
     write_log("INFO", "Assuming cloudtype flags structure from pps v2014")
-    daynight_val = (cloudtype_conditions>>0 & 1) + (cloudtype_conditions>>1 & 1)*2
+    daynight_val = (cloudtype_conditions>>1 & 1) + (cloudtype_conditions>>2 & 1)*2
     print daynight_val
     no_qflag = daynight_val == 0
     night_flag =  daynight_val == 1
@@ -141,6 +141,10 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
         cal_subset = np.bool_(np.ones(caObj.calipso.igbp.shape))
     elif mode == 'OPTICAL_DEPTH':
         cal_subset = np.bool_(np.ones(caObj.calipso.igbp.shape))
+    elif mode == 'STANDARD':
+        cal_subset = np.bool_(np.ones(caObj.calipso.igbp.shape))
+    elif mode == 'OPTICAL_DEPTH_THIN_IS_CLEAR':
+        cal_subset = np.bool_(np.ones(caObj.calipso.igbp.shape))
     else:
         print('The mode %s is not added in statistic file' %mode)
         sys.exit()
@@ -152,9 +156,12 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
     if hasattr(caObj.avhrr, 'cloudtype_conditions'):
         if caObj.avhrr.cloudtype_conditions is not None:
             daynight_flags = get_day_night_twilight_info_pps2014(
-                caObj.avhrr.cloudtype_conditions)       
+                caObj.avhrr.cloudtype_conditions) 
+    print  daynight_flags       
     (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag) = daynight_flags
+    print no_qflag.sum(), night_flag.sum(),  twilight_flag.sum(), day_flag.sum(), caObj.calipso.longitude.size
     if (no_qflag.sum() + night_flag.sum() + twilight_flag.sum() + day_flag.sum()) != caObj.calipso.longitude.size:
+          
         print('something wrong with quality flags. It does not sum up. See beginning of statistic file')
         sys.exit()
     if dnt_flag == None:
