@@ -1063,8 +1063,9 @@ def get_matchups(cross, options, reprocess=False):
                 matchup_diff = date_time_cross - tobj
             clObj = readCloudsatAvhrrMatchObj(cl_match_file) 
             basename = '_'.join(os.path.basename(cl_match_file).split('_')[1:5])
-            print diff_avhrr.seconds, matchup_diff.seconds
-            if diff_avhrr is None or matchup_diff.seconds<=diff_avhrr.seconds:
+            if diff_avhrr is None or (
+                matchup_diff.seconds<=diff_avhrr.seconds or 
+                matchup_diff.seconds<120):
                 write_log('INFO', "CloudSat Matchups read from previously " + 
                           "processed data.")
                 date_time=tobj
@@ -1087,11 +1088,15 @@ def get_matchups(cross, options, reprocess=False):
         else:
             #print ca_match_file
             date_time=tobj
-            matchup_diff = tobj - date_time_cross
+            if tobj> date_time_cross:
+                matchup_diff = tobj- date_time_cross
+            else:
+                matchup_diff = date_time_cross - tobj
             caObj = readCaliopAvhrrMatchObj(ca_match_file)
             basename = '_'.join(os.path.basename(ca_match_file).split('_')[1:5])
-            print diff_avhrr.seconds, matchup_diff.seconds
-            if diff_avhrr is None or matchup_diff.seconds<=diff_avhrr.seconds:
+            if diff_avhrr is None or (
+                matchup_diff.seconds<=diff_avhrr.seconds 
+                or matchup_diff.seconds<120):
                 write_log('INFO', 
                           "CALIPSO Matchups read from previously processed data.")
                 write_log('INFO', 'Filename: ' + ca_match_file)
