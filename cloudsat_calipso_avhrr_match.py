@@ -956,7 +956,9 @@ def get_matchups_from_data(cross, config_options):
 
     # Get satellite name, time, and orbit number from avhrr_file
     date_time = values["date_time"]
-    basename = '_'.join(os.path.basename(avhrr_file).split('_')[:4])
+    #basename = '_'.join(os.path.basename(avhrr_file).split('_')[:4])
+    values = get_satid_datetime_orbit_from_fname(avhrr_file)
+    basename = values["basename"]
     rematched_path = date_time.strftime(config_options['reshape_dir'].format(
             val_dir=config._validation_results_dir,
             satellite=values["satellite"],
@@ -1040,9 +1042,8 @@ def get_matchups(cross, options, reprocess=False):
         if avhrr_file is not None:
             values_avhrr = get_satid_datetime_orbit_from_fname(avhrr_file)
             date_time_avhrr = values_avhrr["date_time"]
-            if date_time_avhrr>date_time_cross:
-                diff_avhrr = date_time_avhrr-date_time_cross
-            else:
+            diff_avhrr = date_time_avhrr-date_time_cross
+            if diff_avhrr.days>0:
                  diff_avhrr = date_time_cross-date_time_avhrr
 
         #need to pUt in the info res, atrain data type before go inte find avhrr??
@@ -1057,9 +1058,8 @@ def get_matchups(cross, options, reprocess=False):
             date_time=date_time_cross
         else:
             date_time=tobj
-            if tobj> date_time_cross:
-                matchup_diff = tobj- date_time_cross
-            else:
+            matchup_diff = tobj- date_time_cross
+            if matchuo_diff.days<0:
                 matchup_diff = date_time_cross - tobj
             clObj = readCloudsatAvhrrMatchObj(cl_match_file) 
             basename = '_'.join(os.path.basename(cl_match_file).split('_')[1:5])
@@ -1088,12 +1088,15 @@ def get_matchups(cross, options, reprocess=False):
         else:
             #print ca_match_file
             date_time=tobj
-            if tobj> date_time_cross:
-                matchup_diff = tobj- date_time_cross
-            else:
+            #print date_time
+            #print tobj
+            
+            matchup_diff = tobj- date_time_cross
+            if matchup_diff.days<0:
                 matchup_diff = date_time_cross - tobj
             caObj = readCaliopAvhrrMatchObj(ca_match_file)
             basename = '_'.join(os.path.basename(ca_match_file).split('_')[1:5])
+            print matchup_diff.seconds, diff_avhrr.seconds
             if diff_avhrr is None or (
                 matchup_diff.seconds<=diff_avhrr.seconds 
                 or matchup_diff.seconds<120):
