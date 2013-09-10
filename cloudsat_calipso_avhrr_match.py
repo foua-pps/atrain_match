@@ -851,8 +851,7 @@ def get_matchups_from_data(cross, config_options):
         #avhrr_file = "20080613002200-ESACCI-L2_CLOUD-CLD_PRODUCTS-AVHRRGAC-NOAA18-fv1.0.nc"
         values = get_satid_datetime_orbit_from_fname(avhrr_file)
         avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, surft, cppLwp, cppCph =read_cloud_cci(avhrr_file)
-        nwp_obj = NWPObj({'surft':surft})
-        
+        nwp_obj = NWPObj({'surft':surft})        
         avhrrGeoObj.satellite = values["satellite"];
         date_time = values["date_time"]
 
@@ -1043,7 +1042,7 @@ def get_matchups(cross, options, reprocess=False):
             values_avhrr = get_satid_datetime_orbit_from_fname(avhrr_file)
             date_time_avhrr = values_avhrr["date_time"]
             diff_avhrr = date_time_avhrr-date_time_cross
-            if diff_avhrr.days>0:
+            if diff_avhrr.days<0:
                  diff_avhrr = date_time_cross-date_time_avhrr
 
         #need to pUt in the info res, atrain data type before go inte find avhrr??
