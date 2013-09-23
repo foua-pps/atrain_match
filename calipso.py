@@ -14,6 +14,7 @@ from config import RESOLUTION as resolution
 from config import (OPTICAL_DETECTION_LIMIT,
                     OPTICAL_LIMIT_CLOUD_TOP,
                     SET_TO_CLEAR_CALIPSO_PIXEL_IF_TOTAL_OPTICAL_THICKNESS_TO_LOW,
+                    USE_5KM_FILES_TO_FILTER_CALIPSO_DATA,
                     PPS_VALIDATION,
                     IMAGER_INSTRUMENT)
 EXCLUDE_GEOMETRICALLY_THICK = False
@@ -942,13 +943,14 @@ def match_calipso_avhrr(values,
         retv.calipso.optical_depth_top_layer = np.repeat(\
             calipsoObj.optical_depth[:,0].ravel(),idx_match.ravel()).astype('d') 
 
-    if res == 1:
+    if res == 1 :
         retv.calipso.optical_depth_top_layer5km = np.repeat(\
             calipsoObj.optical_depth_top_layer5km.ravel(),idx_match.ravel()).astype('d')
-        retv.calipso.total_optical_depth_5km = np.repeat(\
-            calipsoObj.total_optical_depth_5km.ravel(),idx_match.ravel()).astype('d')
-        retv.calipso.detection_height_5km = np.repeat(\
-            calipsoObj.detection_height_5km.ravel(),idx_match.ravel()).astype('d')
+        if USE_5KM_FILES_TO_FILTER_CALIPSO_DATA:
+            retv.calipso.detection_height_5km = np.repeat(\
+                calipsoObj.detection_height_5km.ravel(),idx_match.ravel()).astype('d')
+            retv.calipso.total_optical_depth_5km = np.repeat(\
+                calipsoObj.total_optical_depth_5km.ravel(),idx_match.ravel()).astype('d')
     #cloud_mid_temp = np.repeat(calipsoObj.cloud_mid_temperature.flat,idx_match_2d.flat)
     #cloud_mid_temp = np.where(np.less(cloud_mid_temp,0),missing_data,cloud_mid_temp)
     #cloud_mid_temp = np.reshape(cloud_mid_temp,(N,10))
