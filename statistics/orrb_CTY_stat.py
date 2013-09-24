@@ -170,46 +170,46 @@ class CloudTypeStats(OrrbStats):
         
         #POD,FAR,HR and KSS calculations =============================================================
         
-        pod_low = 100.0*divide(n_low_yes_yes,samples_low_cal )
-        pod_medium = 100.0*divide(n_medium_yes_yes,samples_medium_cal )
-        pod_high = 100.0*divide(n_high_yes_yes,samples_high_cal )
+        pod_low = divide(100.0*n_low_yes_yes,samples_low_cal )
+        pod_medium = divide(100.0*n_medium_yes_yes,samples_medium_cal )
+        pod_high = divide(100.0*n_high_yes_yes,samples_high_cal )
     
-        far_low = 100.0*divide((n_low_yes_no),(n_low_yes_yes+n_low_yes_no) )
-        far_medium = 100.0*divide((n_medium_yes_no),(n_medium_yes_yes+n_medium_yes_no) )
-        far_high = 100.0*divide((n_high_yes_no),(n_high_yes_yes+n_high_yes_no) )
+        far_low = divide(100.0*(n_low_yes_no),(n_low_yes_yes+n_low_yes_no) )
+        far_medium = divide(100.0*(n_medium_yes_no),(n_medium_yes_yes+n_medium_yes_no) )
+        far_high = divide(100.0*(n_high_yes_no),(n_high_yes_yes+n_high_yes_no) )
     
-        hitrate_low = 1.0*divide((n_low_yes_yes+n_low_no_no),Totpix )
-        hitrate_medium = 1.0*divide((n_medium_yes_yes+n_low_no_no),Totpix )
-        hitrate_high = 1.0*divide((n_high_yes_yes+n_high_no_no),Totpix )
+        hitrate_low = divide(1.0*(n_low_yes_yes+n_low_no_no),Totpix )
+        hitrate_medium = divide(1.0*(n_medium_yes_yes+n_low_no_no),Totpix )
+        hitrate_high = divide(1.0*(n_high_yes_yes+n_high_no_no),Totpix )
     
-        kuipers_low = 1.0*divide((n_low_no_no*n_low_yes_yes-n_low_yes_no*n_low_no_yes), \
+        kuipers_low = divide(1.0*(n_low_no_no*n_low_yes_yes-n_low_yes_no*n_low_no_yes), \
                         ((n_low_no_no+n_low_no_yes)*(n_low_yes_no+n_low_yes_yes)) )
-        kuipers_medium = 1.0*divide((n_medium_no_no*n_medium_yes_yes-n_medium_yes_no*n_medium_no_yes), \
+        kuipers_medium = divide(1.0*(n_medium_no_no*n_medium_yes_yes-n_medium_yes_no*n_medium_no_yes), \
                         ((n_medium_no_no+n_medium_no_yes)*(n_medium_yes_no+n_medium_yes_yes)) )
-        kuipers_high = 1.0*divide((n_high_no_no*n_high_yes_yes-n_high_yes_no*n_high_no_yes), \
+        kuipers_high = divide(1.0*(n_high_no_no*n_high_yes_yes-n_high_yes_no*n_high_no_yes), \
                         ((n_high_no_no+n_high_no_yes)*(n_high_yes_no+n_high_yes_yes)) )
     
         #=============================================================================================
         
         #Finally, calculate distribution of CALIOP categories among the PPS Fractional category
     
-        cal_low_fractional = 100.0*divide(n_frac_low,(n_frac_low+n_frac_medium+n_frac_high) )
-        cal_medium_fractional = 100.0*divide(n_frac_medium,(n_frac_low+n_frac_medium+n_frac_high) )
-        cal_high_fractional = 100.0*divide(n_frac_high,(n_frac_low+n_frac_medium+n_frac_high) )
+        cal_low_fractional = divide(100.0*n_frac_low,(n_frac_low+n_frac_medium+n_frac_high) )
+        cal_medium_fractional = divide(100.0*n_frac_medium,(n_frac_low+n_frac_medium+n_frac_high) )
+        cal_high_fractional = divide(100.0*n_frac_high,(n_frac_low+n_frac_medium+n_frac_high) )
         
         #=============================================================================================
         
         #Special analysis: Check composition of false alarm categories for medium and high clouds
     
         n_medium_yes_no = n_medium_low+n_medium_high+n_medium_clear
-        far_medium_low = 100.0*divide(n_medium_low,n_medium_yes_no )
-        far_medium_high = 100.0*divide(n_medium_high,n_medium_yes_no )
-        far_medium_clear = 100.0*divide(n_medium_clear,n_medium_yes_no )
+        far_medium_low = divide(100.0*n_medium_low,n_medium_yes_no )
+        far_medium_high = divide(100.0*n_medium_high,n_medium_yes_no )
+        far_medium_clear = divide(100.0*n_medium_clear,n_medium_yes_no )
     
         n_high_yes_no = n_high_low+n_high_medium+n_high_clear
-        far_high_low = 100.0*divide(n_high_low,n_high_yes_no )
-        far_high_medium = 100.0*divide(n_high_medium,n_high_yes_no )
-        far_high_clear = 100.0*divide(n_high_clear,n_high_yes_no  )       
+        far_high_low = divide(100.0*n_high_low,n_high_yes_no )
+        far_high_medium = divide(100.0*n_high_medium,n_high_yes_no )
+        far_high_clear = divide(100.0*n_high_clear,n_high_yes_no  )       
     
         self.Totpix = Totpix
         self.common_cloud_free = common_cloud_free
