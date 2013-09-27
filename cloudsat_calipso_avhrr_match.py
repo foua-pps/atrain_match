@@ -1031,7 +1031,7 @@ def get_matchups(cross, options, reprocess=False):
         
     if reprocess is False:
         import os #@Reimport
-        diff_avhrr=None
+        diff_avhrr_seconds=None
         avhrr_file=None
         if (PPS_VALIDATION ):
             avhrr_file, tobj = find_radiance_file(cross, options)
@@ -1041,9 +1041,9 @@ def get_matchups(cross, options, reprocess=False):
         if avhrr_file is not None:
             values_avhrr = get_satid_datetime_orbit_from_fname(avhrr_file)
             date_time_avhrr = values_avhrr["date_time"]
-            diff_avhrr = date_time_avhrr-date_time_cross
-            if diff_avhrr.days<0:
-                 diff_avhrr = date_time_cross-date_time_avhrr
+            td = date_time_avhrr-date_time_cross
+            diff_avhrr_seconds=(td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
+
 
         #need to pUt in the info res, atrain data type before go inte find avhrr??
         # or change read of files
@@ -1057,14 +1057,13 @@ def get_matchups(cross, options, reprocess=False):
             date_time=date_time_cross
         else:
             date_time=tobj
-            matchup_diff = tobj- date_time_cross
-            if matchuo_diff.days<0:
-                matchup_diff = date_time_cross - tobj
+            td = tobj- date_time_cross
+            matchup_diff_seconds=(td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
             clObj = readCloudsatAvhrrMatchObj(cl_match_file) 
             basename = '_'.join(os.path.basename(cl_match_file).split('_')[1:5])
             if diff_avhrr is None or (
-                matchup_diff.seconds<=diff_avhrr.seconds or 
-                matchup_diff.seconds<120):
+                matchup_diff_seconds<=diff_avhrr_seconds or 
+                matchup_diff_seconds<300):
                 write_log('INFO', "CloudSat Matchups read from previously " + 
                           "processed data.")
                 date_time=tobj
@@ -1089,16 +1088,14 @@ def get_matchups(cross, options, reprocess=False):
             date_time=tobj
             #print date_time
             #print tobj
-            
-            matchup_diff = tobj- date_time_cross
-            if matchup_diff.days<0:
-                matchup_diff = date_time_cross - tobj
+            td = tobj- date_time_cross
+            matchup_diff_seconds=(td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
             caObj = readCaliopAvhrrMatchObj(ca_match_file)
             basename = '_'.join(os.path.basename(ca_match_file).split('_')[1:5])
-            print matchup_diff.seconds, diff_avhrr.seconds
-            if diff_avhrr is None or (
-                matchup_diff.seconds<=diff_avhrr.seconds 
-                or matchup_diff.seconds<120):
+            print matchup_diff_seconds, diff_avhrr_seconds
+            if diff_avhrr_seconds is None or (
+                matchup_diff_seconds<=diff_avhrr_seconds 
+                or matchup_diff_seconds<300):
                 write_log('INFO', 
                           "CALIPSO Matchups read from previously processed data.")
                 write_log('INFO', 'Filename: ' + ca_match_file)
