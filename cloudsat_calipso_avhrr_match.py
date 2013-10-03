@@ -168,6 +168,10 @@ class ppsFiles(object):
         self.cpp = None
         self.sunsatangles = None
         self.nwp_tsur = None
+        self.nwp_t500 = None
+        self.nwp_t700 = None
+        self.nwp_t850 = None
+        self.nwp_t950 = None
         self.nwp_ciwv = None
         self.text_r06 = None
         self.text_t11 = None
@@ -188,6 +192,10 @@ class ppsFiles(object):
 class NWPObj(object):
     def __init__(self, array_dict):
         self.nwp_tsur = None
+        self.nwp_t500 = None
+        self.nwp_t700 = None
+        self.nwp_t850 = None
+        self.nwp_t950 = None
         self.nwp_ciwv = None
         self.text_r06 = None
         self.text_t11 = None
@@ -579,7 +587,7 @@ def find_files_from_avhrr(avhrr_file, options):
     else:
         nwp_tsur_name = insert_info_in_filename_or_path(options['nwp_tsur_file'],
                                                         values, datetime_obj=date_time)
-        path = insert_info_in_filename_or_path(options['nwp_tsur_dir'],
+        path = insert_info_in_filename_or_path(options['nwp_nwp_dir'],
                                                values, datetime_obj=date_time)
         try:
             nwp_tsur_file = glob(os.path.join(path, nwp_tsur_name))[0]
@@ -588,9 +596,10 @@ def find_files_from_avhrr(avhrr_file, options):
         write_log("INFO", "NWP_TSUR: " + nwp_tsur_file)
 
     file_name_dict={}
-    for nwp_file in ['nwp_tsur', 'nwp_ciwv']:   
+    for nwp_file in ['nwp_tsur','nwp_t500','nwp_t700',
+                     'nwp_t850','nwp_t950', 'nwp_ciwv']:   
         file_name_dict[nwp_file] = get_pps_file(avhrr_file, options, values, 
-                                                 nwp_file+'_file', nwp_file+'_dir')
+                                                 nwp_file+'_file', 'nwp_nwp_dir')
 
 
     for text_file in ['text_r06', 'text_t11', 'text_t37t12', 'text_t37']:
@@ -798,6 +807,7 @@ def read_pps_data(pps_files, avhrr_file, cross):
         ctype.cloudtype = ctype_mpop.cloudtype.data
         ctype.quality_flag = ctype_mpop.ct_quality.data
         ctype.conditions_flag = ctype_mpop.ct_conditions.data
+        ctype.status_flag = ctype_mpop.ct_statusflag.data
         #print ctype_mpop.ct_quality
         
 
@@ -811,6 +821,10 @@ def read_pps_data(pps_files, avhrr_file, cross):
    
     nwp_dict={}
     nwp_dict['surft'] = read_nwp(pps_files.nwp_tsur, "surface temperature")
+    nwp_dict['t500'] = read_nwp(pps_files.nwp_tsur, "temperature 500hPa")
+    nwp_dict['t700'] = read_nwp(pps_files.nwp_tsur, "temperature 700HPa")
+    nwp_dict['t850'] = read_nwp(pps_files.nwp_tsur, "temperature 850hPa")
+    nwp_dict['t950'] = read_nwp(pps_files.nwp_tsur, "temperature 950hPa")
     nwp_dict['ciwv'] = read_nwp(pps_files.nwp_ciwv,  "atmosphere_water_vapor_content")
 
 

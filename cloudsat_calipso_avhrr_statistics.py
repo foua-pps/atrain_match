@@ -28,14 +28,30 @@ def calculate_ctth_stats(okcaliop, avhrr_ctth_cal_ok,caliop_max_height):
     #return (corr_caliop_avhrr,bias,RMS_difference,avhrr_height_work,diff_squared_biascorr)
     return "%f %f %f %s %f "%(corr_caliop_avhrr,bias,RMS_difference,len(avhrr_height_work),sum(diff_squared_biascorr))
 
+def get_land_coast_sea_info_pps2014(cloudtype_conditions):
+    write_log("INFO", "Assuming cloudtype flags structure from pps v2014")
+    sealand_val = (cloudtype_conditions>>4 & 1) + (cloudtype_conditions>>5 & 1)*2
+    no_qflag = sealand_val == 0
+    land_flag =  sealand_val == 1
+    sea_flag =  sealand_val == 2
+    coast_flag =   sealand_val == 3
+    all_lsc_flag =  np.bool_(np.ones(cloudtype_conditions.shape))
+    return (no_qflag, land_flag, sea_flag, coast_flag, all_lsc_flag)
+ 
+def get_ice_info_pps2014(cloudtype_status):
+    print cloudtype_status
+    write_log("INFO", "Assuming cloudtype flags structure from pps v2014")
+    ice_flag = (cloudtype_status>>8 & 1)+0 ==1 
+  
+    return ice_flag
 
 def get_day_night_twilight_info_pps2014(cloudtype_conditions):
     write_log("INFO", "Assuming cloudtype flags structure from pps v2014")
     daynight_val = (cloudtype_conditions>>1 & 1) + (cloudtype_conditions>>2 & 1)*2
     no_qflag = daynight_val == 0
     night_flag =  daynight_val == 1
-    twilight_flag =  daynight_val == 3
     day_flag =   daynight_val == 2
+    twilight_flag =  daynight_val == 3
     all_dnt_flag =  np.bool_(np.ones(cloudtype_conditions.shape))
     return (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag)
 

@@ -505,6 +505,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
     ctype_qflag_track = None
     ctype_ct_qualityflag_track = None
     ctype_ct_conditionsflag_track = None
+    ctype_ct_statusflag_track = None
     ctth_height_track = []
     ctth_pressure_track = []
     ctth_temperature_track = []
@@ -512,6 +513,10 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
     lon_avhrr_track = []
     lat_avhrr_track = []
     surft_track = []
+    t500_track = []
+    t700_track = []
+    t85_track0 = []
+    t950_track = []
     ciwv_track = []
     r06micron_track = []
     r09micron_track = []
@@ -553,11 +558,26 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
     if hasattr(ctype, 'ct_conditions'):
         ctype_ct_conditionsflag_track = [ctype.ct_conditions[row_matched[idx], col_matched[idx]]
                              for idx in range(row_matched.shape[0])]
+    if hasattr(ctype, 'ct_statusflag'):
+        ctype_ct_statusflag_track = [ctype.ct_statusflag[row_matched[idx], col_matched[idx]]
+                             for idx in range(row_matched.shape[0])]
     if hasattr(ctype, 'qualityflag'):
         ctype_qflag_track = [ctype.qualityflag[row_matched[idx], col_matched[idx]]
                              for idx in range(row_matched.shape[0])]
     if nwp_obj.surft != None:
         surft_track = [nwp_obj.surft[row_matched[idx], col_matched[idx]]
+                       for idx in range(row_matched.shape[0])]
+    if nwp_obj.t500 != None:
+        t500_track = [nwp_obj.t500[row_matched[idx], col_matched[idx]]
+                       for idx in range(row_matched.shape[0])]
+    if nwp_obj.t700 != None:
+        t700_track = [nwp_obj.t700[row_matched[idx], col_matched[idx]]
+                       for idx in range(row_matched.shape[0])]
+    if nwp_obj.t850 != None:
+        t850_track = [nwp_obj.t850[row_matched[idx], col_matched[idx]]
+                       for idx in range(row_matched.shape[0])]
+    if nwp_obj.t950 != None:
+        t950_track = [nwp_obj.t950[row_matched[idx], col_matched[idx]]
                        for idx in range(row_matched.shape[0])]
     if nwp_obj.ciwv != None:
         ciwv_track = [nwp_obj.ciwv[row_matched[idx], col_matched[idx]]
@@ -717,6 +737,8 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
         obt.avhrr.cloudtype_quality = np.array(ctype_ct_qualityflag_track)
     if ctype_ct_conditionsflag_track is not None:
         obt.avhrr.cloudtype_conditions = np.array(ctype_ct_conditionsflag_track)
+    if ctype_ct_statusflag_track is not None:
+        obt.avhrr.cloudtype_status = np.array(ctype_ct_statusflag_track)
     if dataObj != None:
         obt.avhrr.r06micron = np.array(r06micron_track)
         obt.avhrr.r09micron = np.array(r09micron_track)
@@ -742,6 +764,14 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
             obt.avhrr.ctth_opaque = np.array(ctth_opaque_track)
     if nwp_obj.surft != None:
         obt.avhrr.surftemp = np.array(surft_track)
+    if nwp_obj.t500 != None:
+        obt.avhrr.t500 = np.array(t500_track)
+    if nwp_obj.t700 != None:
+        obt.avhrr.t700 = np.array(t700_track)
+    if nwp_obj.t850 != None:
+        obt.avhrr.t850 = np.array(t850_track)
+    if nwp_obj.t950 != None:
+        obt.avhrr.t950 = np.array(t950_track)
     if nwp_obj.ciwv != None:
         obt.avhrr.ciwv = np.array(ciwv_track)
     if nwp_obj.text_r06 != None:

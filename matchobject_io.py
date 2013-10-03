@@ -50,7 +50,7 @@ class DataObject(object):
                     raise ValueError("Can't concatenate arrays " + 
                                      "of different dimensions!")
             except AttributeError, e:
-                print "Don't concatenate member " + key + "... " + str(e)
+                #print "Don't concatenate member " + key + "... " + str(e)
                 self.all_arrays[key] = other.all_arrays[key]
                 continue
 
@@ -63,7 +63,7 @@ class DataObject(object):
                                                            other.all_arrays[key]], 1)
                         
             except ValueError, e:
-                print "Don't concatenate member " + key + "... " + str(e)
+                #print "Don't concatenate member " + key + "... " + str(e)
                 self.all_arrays[key] = other.all_arrays[key]
             
         return self
@@ -84,7 +84,12 @@ class ppsAvhrrObject(DataObject):
             'cloudtype_qflag': None,
             'cloudtype_quality': None,
             'cloudtype_conditions': None,
+            'cloudtype_status': None,
             'surftemp': None,
+            't500': None,
+            't700': None,
+            't850': None,
+            't950': None,
             'ciwv': None,
             'r06micron': None,
             'r09micron': None,
@@ -170,7 +175,7 @@ class CalipsoAvhrrTrackObject:
             self.diff_sec_1970 = np.concatenate([self.diff_sec_1970,
                                                  other.diff_sec_1970])
         except ValueError, e:
-            print "Don't concatenate member diff_sec_1970... " + str(e)
+            #print "Don't concatenate member diff_sec_1970... " + str(e)
             self.diff_sec_1970 = other.diff_sec_1970
 
         return self
