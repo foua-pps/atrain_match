@@ -41,8 +41,8 @@ def get_land_coast_sea_info_pps2014(cloudtype_conditions):
 def get_ice_info_pps2014(cloudtype_status):
     print cloudtype_status
     write_log("INFO", "Assuming cloudtype flags structure from pps v2014")
-    ice_flag = (cloudtype_status>>8 & 1)+0 ==1 
-  
+    ice_flag_temp = (cloudtype_status>>3 & 1)+0  
+    ice_flag = ice_flag_temp ==1
     return ice_flag
 
 def get_day_night_twilight_info_pps2014(cloudtype_conditions):
