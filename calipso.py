@@ -953,9 +953,9 @@ def match_calipso_avhrr(values,
             x_op = np.concatenate(\
                 (x_op,np.repeat(calipsoObj.opacity5km[::,i],idx_match)))
             x_iwp = np.concatenate(\
-                (x_iwp,np.repeat(calipsoObj.ice_water_path[::,i],idx_match)))
+                (x_iwp,np.repeat(calipsoObj.ice_water_path5km[::,i],idx_match)))
             x_iwpu = np.concatenate(\
-                (x_iwpu,np.repeat(calipsoObj.ice_water_path_uncertainty[::,i],idx_match)))
+                (x_iwpu,np.repeat(calipsoObj.ice_water_path_uncertainty5km[::,i],idx_match)))
         N_od = x_od.shape[0]/col_dim
         retv.calipso.optical_depth = np.reshape(x_od,(col_dim,N_od)).astype('d')
         N_odu = x_odu.shape[0]/col_dim
