@@ -82,6 +82,7 @@ class ppsAvhrrObject(DataObject):
             'ctth_opaque': None,  # True if opaque retrieval was applied
             'cloudtype': None,
             'cloudtype_qflag': None,
+            'cloudtype_phaseflag': None,
             'cloudtype_quality': None,
             'cloudtype_conditions': None,
             'cloudtype_status': None,

@@ -503,6 +503,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
                              avhrrLwp=None, avhrrCph=None):
     ctype_track = []
     ctype_qflag_track = None
+    ctype_pflag_track = None
     ctype_ct_qualityflag_track = None
     ctype_ct_conditionsflag_track = None
     ctype_ct_statusflag_track = None
@@ -563,6 +564,9 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
                              for idx in range(row_matched.shape[0])]
     if hasattr(ctype, 'qualityflag'):
         ctype_qflag_track = [ctype.qualityflag[row_matched[idx], col_matched[idx]]
+                             for idx in range(row_matched.shape[0])]
+    if hasattr(ctype, 'phaseflag'):
+        ctype_pflag_track = [ctype.phaseflag[row_matched[idx], col_matched[idx]]
                              for idx in range(row_matched.shape[0])]
     if nwp_obj.surft != None:
         surft_track = [nwp_obj.surft[row_matched[idx], col_matched[idx]]
@@ -733,6 +737,8 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
     obt.avhrr.cloudtype = np.array(ctype_track)
     if ctype_qflag_track is not None:
         obt.avhrr.cloudtype_qflag = np.array(ctype_qflag_track)
+    if ctype_pflag_track is not None:
+        obt.avhrr.cloudtype_pflag = np.array(ctype_pflag_track)
     if ctype_ct_qualityflag_track is not None:
         obt.avhrr.cloudtype_quality = np.array(ctype_ct_qualityflag_track)
     if ctype_ct_conditionsflag_track is not None:

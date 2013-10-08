@@ -788,7 +788,7 @@ def read_pps_data(pps_files, avhrr_file, cross):
             write_log("INFO", "CPP lwp, cph data read")
     write_log("INFO","Read PPS Cloud Type")
     try:
-        ctype = epshdf.read_cloudtype(pps_files.cloudtype, 1, 1, 0)  
+        ctype = epshdf.read_cloudtype(pps_files.cloudtype, 1, 1, 1)  
     except:
         write_log("INFO","Could not use pps program to read, use mpop instead")    
         #read with mpop instead
