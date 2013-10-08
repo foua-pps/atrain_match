@@ -821,10 +821,10 @@ def read_pps_data(pps_files, avhrr_file, cross):
    
     nwp_dict={}
     nwp_dict['surft'] = read_nwp(pps_files.nwp_tsur, "surface temperature")
-    nwp_dict['t500'] = read_nwp(pps_files.nwp_tsur, "temperature 500hPa")
-    nwp_dict['t700'] = read_nwp(pps_files.nwp_tsur, "temperature 700HPa")
-    nwp_dict['t850'] = read_nwp(pps_files.nwp_tsur, "temperature 850hPa")
-    nwp_dict['t950'] = read_nwp(pps_files.nwp_tsur, "temperature 950hPa")
+    nwp_dict['t500'] = read_nwp(pps_files.nwp_t500, "temperature 500hPa")
+    nwp_dict['t700'] = read_nwp(pps_files.nwp_t700, "temperature 700HPa")
+    nwp_dict['t850'] = read_nwp(pps_files.nwp_t850, "temperature 850hPa")
+    nwp_dict['t950'] = read_nwp(pps_files.nwp_t950, "temperature 950hPa")
     nwp_dict['ciwv'] = read_nwp(pps_files.nwp_ciwv,  "atmosphere_water_vapor_content")
 
 
