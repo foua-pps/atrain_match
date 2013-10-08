@@ -37,11 +37,27 @@ def get_land_coast_sea_info_pps2014(cloudtype_conditions):
     coast_flag =   sealand_val == 3
     all_lsc_flag =  np.bool_(np.ones(cloudtype_conditions.shape))
     return (no_qflag, land_flag, sea_flag, coast_flag, all_lsc_flag)
- 
+
+def get_land_coast_sea_info_pps2012(cloudtype_qflag):
+    write_log("INFO", "Assuming cloudtype flags structure from pps v2012")
+    land_sea_val = (cloudtype_qflag>>0 & 1)
+    coast_val = (cloudtype_qflag>>1 & 1)
+    no_qflag = None
+    land_flag =  land_sea_val == 1
+    sea_flag =  land_sea_val == 0
+    coast_flag =   np.logical_and(land_sea_val == 0, coast_val==1)
+    all_lsc_flag =  np.bool_(np.ones(cloudtype_qflag.shape))
+    return (no_qflag, land_flag, sea_flag, coast_flag, all_lsc_flag)
+  
 def get_ice_info_pps2014(cloudtype_status):
-    print cloudtype_status
     write_log("INFO", "Assuming cloudtype flags structure from pps v2014")
     ice_flag_temp = (cloudtype_status>>3 & 1)+0  
+    ice_flag = ice_flag_temp ==1
+    return ice_flag
+
+def get_ice_info_pps2012(cloudtype_qflag):
+    write_log("INFO", "Assuming cloudtype flags structure from pps v2012")
+    ice_flag_temp = (cloudtype_qflag>>15 & 1)+0  
     ice_flag = ice_flag_temp ==1
     return ice_flag
 
