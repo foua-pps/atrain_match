@@ -565,7 +565,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
     if hasattr(ctype, 'qualityflag'):
         ctype_qflag_track = [ctype.qualityflag[row_matched[idx], col_matched[idx]]
                              for idx in range(row_matched.shape[0])]
-    if hasattr(ctype, 'phaseflag'):
+    if  ctype.phaseflag != None:
         ctype_pflag_track = [ctype.phaseflag[row_matched[idx], col_matched[idx]]
                              for idx in range(row_matched.shape[0])]
     if nwp_obj.surft != None:
@@ -595,6 +595,9 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
                           for idx in range(row_matched.shape[0])]
     if nwp_obj.text_t37t12 != None:
         text_t37t12_track = [nwp_obj.text_t37t12[row_matched[idx], col_matched[idx]]
+                          for idx in range(row_matched.shape[0])]
+    if nwp_obj.text_t37 != None:
+        text_t37_track = [nwp_obj.text_t37[row_matched[idx], col_matched[idx]]
                           for idx in range(row_matched.shape[0])]
     if nwp_obj.thr_t11ts_inv != None:
         thr_t11ts_inv_track = [
@@ -909,6 +912,7 @@ def match_calipso_avhrr(values,
     
     x_fcf = np.repeat(calipsoObj.feature_classification_flags[::,0],idx_match)
     x_ctp = np.repeat(calipsoObj.cloud_top_profile[::,0],idx_match)
+    x_ctpp = np.repeat(calipsoObj.cloud_top_profile_pressure[::,0],idx_match)
     x_cbp = np.repeat(calipsoObj.cloud_base_profile[::,0],idx_match)
     x_cmt = np.repeat(calipsoObj.cloud_mid_temperature[::,0],idx_match)
     
@@ -918,6 +922,8 @@ def match_calipso_avhrr(values,
             (x_fcf,np.repeat(calipsoObj.feature_classification_flags[::,i],idx_match)))
         x_ctp = np.concatenate(\
             (x_ctp,np.repeat(calipsoObj.cloud_top_profile[::,i],idx_match)))
+        x_ctpp = np.concatenate(\
+            (x_ctpp,np.repeat(calipsoObj.cloud_top_profile_pressure[::,i],idx_match)))
         x_cbp = np.concatenate(\
             (x_cbp,np.repeat(calipsoObj.cloud_base_profile[::,i],idx_match)))
         x_cmt = np.concatenate(\
@@ -926,6 +932,8 @@ def match_calipso_avhrr(values,
     retv.calipso.feature_classification_flags = np.reshape(x_fcf,(col_dim,N_fcf)).astype('i')
     N_ctp = x_ctp.shape[0]/col_dim
     retv.calipso.cloud_top_profile = np.reshape(x_ctp,(col_dim,N_ctp)).astype('d')
+    N_ctpp = x_ctp.shape[0]/col_dim
+    retv.calipso.cloud_top_profile_pressure = np.reshape(x_ctpp,(col_dim,N_ctpp)).astype('d')
     N_cbp = x_cbp.shape[0]/col_dim
     retv.calipso.cloud_base_profile = np.reshape(x_cbp,(col_dim,N_cbp)).astype('d')
     N_cmt = x_cmt.shape[0]/col_dim
@@ -1207,6 +1215,8 @@ def read_calipso(filename, res):
     retv.feature_classification_flags=c.data().astype('uint16')
     c=a.getNode("/Layer_Top_Altitude")
     retv.cloud_top_profile=c.data()
+    c=a.getNode("/Layer_Top_Pressure")
+    retv.cloud_top_profile_pressure=c.data()
     c=a.getNode("/Layer_Base_Altitude")
     retv.cloud_base_profile=c.data()
     c=a.getNode("/Number_Layers_Found")

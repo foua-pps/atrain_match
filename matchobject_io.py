@@ -132,6 +132,7 @@ class CalipsoObject(DataObject):
             'avhrr_pixnum': None,
             'cloud_fraction': None,
             'cloud_top_profile': None,
+            'cloud_top_pressure': None,
             'cloud_base_profile': None,
             'cloud_mid_temperature': None,
             'number_of_layers_found': None,
