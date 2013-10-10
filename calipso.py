@@ -3,7 +3,7 @@ import pdb #@UnusedImport
 import inspect #@UnusedImport
 import os #@UnusedImport
 import numpy as np
-from pps_basic_configure import *
+from pps_basic_configure import * 
 from pps_error_messages import write_log
 
 from config import (AREA, _validation_results_dir, 
@@ -16,7 +16,8 @@ from config import (OPTICAL_DETECTION_LIMIT,
                     SET_TO_CLEAR_CALIPSO_PIXEL_IF_TOTAL_OPTICAL_THICKNESS_TO_LOW,
                     USE_5KM_FILES_TO_FILTER_CALIPSO_DATA,
                     PPS_VALIDATION,
-                    IMAGER_INSTRUMENT)
+                    IMAGER_INSTRUMENT,
+                    PPS_FORMAT_2012_OR_ERLIER)
 EXCLUDE_GEOMETRICALLY_THICK = False
 import time as tm
 
@@ -403,7 +404,8 @@ def createAvhrrTime(Obt, values):
             """
             Obt.sec1970_end = int(DSEC_PER_AVHRR_SCALINE * Obt.num_of_lines + Obt.sec1970_start)
         
-        if values["ppsfilename"].split('_')[-3] != '00000':
+        if ((values["ppsfilename"].split('_')[-3] != '00000' and PPS_FORMAT_2012_OR_ERLIER) or
+            (values["ppsfilename"].split('_')[-2] != '00000' and not PPS_FORMAT_2012_OR_ERLIER)):
             """
             This if statement takes care of a bug in start and end time, 
             that occurs when a file is cut at midnight
