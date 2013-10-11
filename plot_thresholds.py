@@ -216,18 +216,26 @@ def plot_inner(args,isCloudy, isClear, TestOk, THRESHOLD):
     #pixels inlcuded in plot and ok test and pps cloudy.
     isPPSCloudyForTestOk = np.logical_and(TestOk,
                                           np.logical_or(isCloudy,isClear))
-    POD_cloudy=len(xvector[isDetectedByThisTest==True])*1.0/len(xvector[isCloudy==True])
-    FAR_cloudy=np.divide(len(xvector[isMissclassifiedByThisTest==True])*1.0,len(xvector[isPPSCloudyForTestOk==True]))
-    POD_cloudy_missed = len(isNotDetectedByThisTest[isNotDetectedByThisTest == True])*1.0/len(xvector[isCloudy==True])
-    if len(isNotDetectedByThisTest[isNotDetectedByThisTest == True]) !=0:
-        print "warning missed %d"%(len(isNotDetectedByThisTest[isNotDetectedByThisTest == True]))
-    POD_FAR_INFO =  ("Number of cloudy pixels considered %d \n"%(len(xvector[isCloudy==True]))+
-                     "Number of clouds detected by this test %d \n"%(len(xvector[isDetectedByThisTest==True]))+
-                     "Number of clouds misclassified by this test %d \n"%(len(xvector[isMissclassifiedByThisTest==True]))+
-                     "Number of cloudy pixels could be detected by this test %d \n"%(len(xvector[isNotDetectedByThisTest==True]))+
-                     "POD cloudy by this test %2.1f\n"%(POD_cloudy*100)+
-                     "FAR cloudy %2.1f\n"%(FAR_cloudy*100)+
-                     "POD cloudy missed %2.1f"%(POD_cloudy_missed*100))
+    POD_cloudy=np.divide(len(xvector[isDetectedByThisTest==True])*1.0,
+                         len(xvector[isCloudy==True]))
+    FAR_cloudy=np.divide(len(xvector[isMissclassifiedByThisTest==True])*1.0,
+                         len(xvector[isPPSCloudyForTestOk==True]))
+    POD_cloudy_missed = np.divide(len(xvector[isNotDetectedByThisTest==True]),
+                                  1.0*len(xvector[isCloudy==True]))
+    if len(xvector[isNotDetectedByThisTest == True]) !=0:
+        print "warning missed %d"%(len(xvector[isNotDetectedByThisTest == True]))
+    POD_FAR_INFO =  (
+        "Number of cloudy pixels considered %d \n"%(
+            len(xvector[isCloudy==True]))+
+        "Number of clouds detected by this test %d \n"%(
+            len(xvector[isDetectedByThisTest==True]))+
+        "Number of clouds misclassified by this test %d \n"%(
+            len(xvector[isMissclassifiedByThisTest==True]))+
+        "Number of cloudy pixels could be detected by this test %d \n"%(
+            len(xvector[isNotDetectedByThisTest==True]))+
+        "POD cloudy by this test %2.1f\n"%(POD_cloudy*100)+
+        "FAR cloudy %2.1f\n"%(FAR_cloudy*100)+
+        "POD cloudy missed %2.1f"%(POD_cloudy_missed*100))
     print "-Test stat---------"
     print args['title']
     print POD_FAR_INFO
@@ -238,9 +246,12 @@ def plot_inner(args,isCloudy, isClear, TestOk, THRESHOLD):
     #cloudy_percentiles = np.percentile(
     #    yvector[np.logical_and(isCloudy,yvector.mask==False)==True],
     #    [01, 10, 25, 50, 75, 90, 99])isCloudyPPSCorrectAll
-    plt.plot(xvector[isCloudy == True], yvector[isCloudy == True], 'r.')
-    plt.plot(xvector[isCloudyPPSClear == True], yvector[isCloudyPPSClear == True], 'y.')
-    plt.plot(xvector[isClear == True], yvector[isClear == True], 'bx')
+    plt.plot(xvector[isCloudy == True], 
+             yvector[isCloudy == True], 'r.')
+    plt.plot(xvector[isCloudyPPSClear == True], 
+             yvector[isCloudyPPSClear == True], 'y.')
+    plt.plot(xvector[isClear == True], 
+             yvector[isClear == True], 'bx')
     plt.plot(xvector[isDetectedByThisTest == True], 
              yvector[isDetectedByThisTest == True], 'm.')
     plt.plot(xvector[isMissclassifiedByThisTest == True], 
@@ -257,10 +268,12 @@ def plot_inner(args,isCloudy, isClear, TestOk, THRESHOLD):
     ax.set_xlabel(args['xlable'])
     limits = ax.axis()
     ax.set_ylim(1.2*limits[2]-0.2*limits[3],limits[3])
-    plt.text(0.9*limits[0]+0.1*limits[1],1.15*limits[2]-0.15*limits[3], POD_FAR_INFO, backgroundcolor='w')
+    plt.text(0.9*limits[0]+0.1*limits[1],1.15*limits[2]-0.15*limits[3], 
+             POD_FAR_INFO, backgroundcolor='w')
     fig_title= (" %s \n"%(args['title'])+
-              "blue-cyan: clear (calipso), red-manga: cloudy (clipso)\n"+
-              "manga: detected cloudy by this test, cyan: missclassifed by this test)")
+                "blue-cyan: clear (calipso), red-manga: cloudy (clipso)\n"+
+                "manga: detected cloudy by this test, " +
+                "cyan: missclassifed by this test)")
     ax.set_title(fig_title)
     #filename=args['title']+"_"+SATELLITE+'.png'
     #plt.savefig('/local_disk/nina_pps/'+ filename)
@@ -274,7 +287,8 @@ def plot_test(args,isCloudy, isClear, TestOk, THRESHOLD, show=False):
         plt.show()
     plt.close()
 
-def plot_test_2_lim(args,isCloudy, isClear, TestOk, THRESHOLD1, THRESHOLD2, show=False):
+def plot_test_2_lim(args,isCloudy, isClear, TestOk, 
+                    THRESHOLD1, THRESHOLD2, show=False):
     plot_inner(args,isCloudy, isClear, TestOk, THRESHOLD1)
     #Add some vertical lines with threshold and clear percentiles.
     xvector = args['xvector']
@@ -298,33 +312,46 @@ def plot_test_2_lim(args,isCloudy, isClear, TestOk, THRESHOLD1, THRESHOLD2, show
 
 
 
-def print_stats(cloudtype,isCloudyStats,isClearStats,isCloudyPPS,TestOkAll=None):
+def print_stats(cloudtype, isCloudyStats, isClearStats, 
+                isCloudyPPS, TestOkAll=None):
     print "*********************************"
     print "*** stats so far ****"
     print "Number of cloudy pixels %d"%(
         len(cloudtype[isCloudyStats==True]))
     print "Number of clear pixels  %d"%(
         len(cloudtype[isClearStats==True]))
-    print "Part of clouds sea night detected %f"%(sum(np.logical_and(isCloudyStats,isCloudyPPS))*1.0/len(cloudtype[isCloudyStats==True]))
-    print "Part of clear sea night missclassified %f"%(sum(np.logical_and(isClearStats,isCloudyPPS))*1.0/len(cloudtype[isCloudyStats==True]))
+    print "Part of clouds sea night detected %f"%(
+        np.divide(sum(np.logical_and(isCloudyStats,isCloudyPPS))*1.0,
+                  len(cloudtype[isCloudyStats==True])))
+    print "Part of clear sea night missclassified %f"%(np.divide(
+                sum(np.logical_and(isClearStats,isCloudyPPS))*1.0,
+                len(cloudtype[isCloudyStats==True])))
     if TestOkAll is not None:
         detected_so_far=np.logical_and(TestOkAll, np.logical_and(
                 isCloudyStats,isCloudyPPS))
-        would_have_been_detected_so_far = np.logical_and(TestOkAll, np.logical_and(
-                isCloudyStats,isPPSCloudyOrClear))
-        would_have_been_missclassed_so_far = np.logical_and(TestOkAll, np.logical_and(
-                isClearStats,isPPSCloudyOrClear))
-        false_so_far=np.logical_and(TestOkAll, np.logical_and(isClearStats,isCloudyPPS))
+        would_have_been_detected_so_far = np.logical_and(
+            TestOkAll, 
+            np.logical_and(isCloudyStats,isPPSCloudyOrClear))
+        would_have_been_missclassed_so_far = np.logical_and(
+            TestOkAll, 
+            np.logical_and(isClearStats,isPPSCloudyOrClear))
+        false_so_far=np.logical_and(
+            TestOkAll, 
+            np.logical_and(isClearStats,isCloudyPPS))
         print "POD cloudy  detected so far %f"%(
             len(cloudtype[detected_so_far==True])*1.0/
             len(cloudtype[isCloudyStats==True]))
-        print "FAR cloudy so far %f"%(
-            len(cloudtype[false_so_far==True])*1.0/(len(cloudtype[false_so_far==True])+len(cloudtype[detected_so_far==True])))
-        print "POD cloudy  detected so far including extra test and new thresholds%f"%(
-            len(cloudtype[would_have_been_detected_so_far==True])*1.0/
-        len(cloudtype[isCloudyStats==True]))
-        print "FAR cloudy so far including extra test and new thresholds %f"%(
-            len(cloudtype[would_have_been_missclassed_so_far==True])*1.0/(len(cloudtype[would_have_been_detected_so_far==True])+len(cloudtype[would_have_been_missclassed_so_far==True])))
+        print "FAR cloudy so far %f"%(np.divide(
+                len(cloudtype[false_so_far==True])*1.0,
+                (len(cloudtype[false_so_far==True])+
+                 len(cloudtype[detected_so_far==True]))))
+        print "POD cloudy  detected so far including cahnges%f"%(
+            np.divide(len(cloudtype[would_have_been_detected_so_far==True])*1.0,
+            len(cloudtype[isCloudyStats==True])))
+        print "FAR cloudy so far including changes %f"%(np.divide(
+                len(cloudtype[would_have_been_missclassed_so_far==True])*1.0,
+                (len(cloudtype[would_have_been_detected_so_far==True])+
+                 len(cloudtype[would_have_been_missclassed_so_far==True]))))
     print "*********************************"
 
 ####################################
@@ -348,10 +375,13 @@ THRESHOLD1 = OFFSETS['T11_OFFSET_SEA_NIGHT']+ -1*OFFSETS['QUALITY_MARGIN_T11TSUR
 if RunWithOutMargins:
     THRESHOLD2 = 0.0
     THRESHOLD1 = OFFSETS['T11_OFFSET_SEA_NIGHT']
-TestOk = np.logical_and(t11_t37_minus_threshold>THRESHOLD2,t11_ts_minus_threshold<THRESHOLD1)
+TestOk = np.logical_and(t11_t37_minus_threshold>THRESHOLD2,
+                        t11_ts_minus_threshold<THRESHOLD1)
 TestOkAll=TestOk
-plot_test_2_lim(args,isCloudyWaterNight,isClearWaterNight, TestOk, THRESHOLD1, THRESHOLD2)
-print_stats(cloudtype,isCloudyWaterNight,isClearWaterNight,isCloudyPPS,TestOkAll)
+plot_test_2_lim(args,isCloudyWaterNight,isClearWaterNight, TestOk, 
+                THRESHOLD1, THRESHOLD2)
+print_stats(cloudtype,isCloudyWaterNight,isClearWaterNight,
+            isCloudyPPS,TestOkAll)
 
 
 #----------------------------------
@@ -1126,7 +1156,7 @@ args = {'title': "non_existingT11T37test_All_SeaDayNoIce_lat",
 THRESHOLD = 0.0
 TestOk = t11_t37_minus_threshold>THRESHOLD
 TestOkAll=np.logical_or(TestOk,TestOkAll)
-plot_test(args,isCloudyWaterDay,isClearWaterDay,TestOk,THRESHOLD, show=True)
+plot_test(args,isCloudyWaterDay,isClearWaterDay,TestOk,THRESHOLD)
 print_stats(cloudtype,isCloudyWaterDay,isClearWaterDay,isCloudyPPS,TestOkAll)
 
 
@@ -1140,7 +1170,7 @@ plt.plot(surftemp[isCloudyWaterDay == True],
          ciwv[isCloudyWaterDay == True],
          t37_t12_minus_threshold[isCloudyWaterDay == True], 'r.')
 
-ax.legend()
+#ax.legend()
 #ax.set_xlim3d(0, 1)
 #ax.set_ylim3d(0, 1)
 #ax.set_zlim3d(-3, 10)
