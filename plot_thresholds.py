@@ -33,16 +33,23 @@ OFFSET_DIR=os.environ.get('SM_CFG_DIR')
 OFFSET_FILE=os.environ.get('SM_THROFFSETS_NAME')         
 OFFESET_FILE = os.path.join(OFFSET_DIR,OFFSET_FILE)
 isNPP = False
+isGAC_v2012 = False
+RunWithOutMargins=True
 if isNPP:
     isACPGv2012=False
     ROOT_DIR = "/local_disk/nina_pps/data_validation_ctth_patch_nov2012/VALIDATION_20130908_TEST1B_2/Reshaped_Files/npp/1km/"
     files = glob(ROOT_DIR + "/????/??/*/*h5")
     SATELLITE='npp'
-else:
+elif isGAC_v2012:
     isACPGv2012=True
     ROOT_DIR = "/local_disk/nina_pps/data_validation_ctth_patch_nov2012/VALIDATION_GAC_2012_el2010/Reshaped_Files/noaa18/5km/"
     files = glob(ROOT_DIR + "/????/??/cea*/*noaa18*h5")
     SATELLITE='avhrr18'
+else:
+    isACPGv2012=False
+    ROOT_DIR = "/local_disk/nina_pps/data_validation_ctth_patch_nov2012/VALIDATION_GAC_2014/Reshaped_Files/noaa18/5km/"
+    files = glob(ROOT_DIR + "/????/??/cea*/*noaa18*h5")
+    SATELLITE='avhrr18_v2014'
 
 print OFFESET_FILE 
 
@@ -263,9 +270,9 @@ def plot_test(args,isCloudy, isClear, TestOk, THRESHOLD, show=False):
     plot_inner(args,isCloudy, isClear, TestOk, THRESHOLD)
     filename=args['title']+"_"+SATELLITE+'.png'
     plt.savefig('/local_disk/nina_pps/threshold_plots/' + filename)
-    plt.close()
     if show:
         plt.show()
+    plt.close()
 
 def plot_test_2_lim(args,isCloudy, isClear, TestOk, THRESHOLD1, THRESHOLD2, show=False):
     plot_inner(args,isCloudy, isClear, TestOk, THRESHOLD1)
@@ -282,9 +289,10 @@ def plot_test_2_lim(args,isCloudy, isClear, TestOk, THRESHOLD1, THRESHOLD2, show
     plt.axvline(x = THRESHOLD2, color = 'k',linewidth = 2)
     filename=args['title']+"_"+SATELLITE+'.png'
     plt.savefig('/local_disk/nina_pps/threshold_plots/' + filename)
-    plt.close()
+ 
     if show:
         plt.show()
+    plt.close()
 
 
 
@@ -335,8 +343,11 @@ args = {'title': "coldwaterCloudTest_All_SeaNightNoIce",
       'isCloudyPPS': isCloudyPPS,
       'isClearPPS': isClearPPS,   
 }
-THRESHOLD2 = 0.0+OFFSETS['QUALITY_MARGIN_T11T37']#0.0+0.5
+THRESHOLD2 = 0.0 +OFFSETS['QUALITY_MARGIN_T11T37']#0.0+0.5
 THRESHOLD1 = OFFSETS['T11_OFFSET_SEA_NIGHT']+ -1*OFFSETS['QUALITY_MARGIN_T11TSUR']#-7.0-1.0
+if RunWithOutMargins:
+    THRESHOLD2 = 0.0
+    THRESHOLD1 = OFFSETS['T11_OFFSET_SEA_NIGHT']
 TestOk = np.logical_and(t11_t37_minus_threshold>THRESHOLD2,t11_ts_minus_threshold<THRESHOLD1)
 TestOkAll=TestOk
 plot_test_2_lim(args,isCloudyWaterNight,isClearWaterNight, TestOk, THRESHOLD1, THRESHOLD2)
@@ -363,6 +374,7 @@ print "thinCirrusPrimarytest cirrus night sea"
 args['title']= "thinCirrusPrimaryTest_ThinCirrus_SeaNightNoIce"
 plot_test(args,isCloudyCirrusWaterNight,isClearWaterNight,TestOk,THRESHOLD)
 print_stats(cloudtype,isCloudyWaterNight,isClearWaterNight,isCloudyPPS,TestOkAll)
+print ciwv
 args = {'title': "thinCirrusPrimaryTest_All_SeaNightNoIce_ciwv",
         'xlable': 'Ciwv',
         'ylable': 'T37-T12 minus dynamic threshold',
@@ -391,6 +403,9 @@ args = {'title': "testThinCirrusPrimaryTest_All_SeaNightNoIce_abslat_linearthres
 }
 THRESHOLD = OFFSETS['T37T12_OFFSET_SEA_NIGHT']+OFFSETS['QUALITY_MARGIN_T37T12']#2.0+0.3
 THRESHOLD_V=abs(latitude)*(THRESHOLD+1.0)/40-1.0
+if RunWithOutMargins:
+    THRESHOLD = OFFSETS['T37T12_OFFSET_SEA_NIGHT']
+    THRESHOLD_V=abs(latitude)*(THRESHOLD+1.0)/40-1.0
 TestOk = args['yvector']>THRESHOLD_V
 TestOkAll=np.logical_or(TestOk,TestOkAll)
 plot_test(args,isCloudyCirrusWaterNight,isClearWaterNight,TestOk,THRESHOLD)
@@ -404,9 +419,11 @@ args = {'title':  "testThinCirrusPrimaryTest_ThinCirrus_SeaNightNoIce_lat_modifi
         'isClearPPS': isClearPPS,   
 }
 THRESHOLD = OFFSETS['T37T12_OFFSET_SEA_NIGHT']+3**OFFSETS['QUALITY_MARGIN_T37T12']#2.0+0.3
+if RunWithOutMargins:
+    OFFSETS['T37T12_OFFSET_SEA_NIGHT']
 TestOk = args['yvector']>THRESHOLD 
 #TestOkAll=np.logical_or(TestOk,TestOkAll)
-plot_test(args,isCloudyCirrusWaterNight, isClearWaterNight, TestOk, THRESHOLD, show=False)
+plot_test(args,isCloudyCirrusWaterNight, isClearWaterNight, TestOk, THRESHOLD)
 
 #----------------------------------
 #textureNightTest sea night 
@@ -422,7 +439,9 @@ args = {'title': "texturNightTest_All_SeaNightNoIce",
 }
 THRESHOLD2 = OFFSETS['T11TEXT_OFFSET_SEA_NIGHT'] + OFFSETS['QUALITY_MARGIN_T11TEXT']#0.85+0.15
 THRESHOLD1 = OFFSETS['T37T12TEXT_OFFSET_SEA_NIGHT'] + OFFSETS['QUALITY_MARGIN_T37T12TEXT']#0.75+0.15
-print THRESHOLD1, THRESHOLD2
+if RunWithOutMargins:
+    THRESHOLD2 = OFFSETS['T11TEXT_OFFSET_SEA_NIGHT']
+    THRESHOLD1 = OFFSETS['T37T12TEXT_OFFSET_SEA_NIGHT']
 TestOk = np.logical_and(t11text>THRESHOLD2, t37t12text>THRESHOLD1)
 TestOkAll=np.logical_or(TestOk,TestOkAll)
 plot_test_2_lim(args,isCloudyWaterNight, isClearWaterNight, TestOk, THRESHOLD1, THRESHOLD2)
@@ -439,7 +458,10 @@ args = {'title': "testtexturNightTest_All_SeaNightNoIce",
 }
 THRESHOLD2 = 0#OFFSETS['T11TEXT_OFFSET_SEA_NIGHT'] + OFFSETS['QUALITY_MARGIN_T11TEXT']#0.85+0.15
 THRESHOLD1 = OFFSETS['T37T12TEXT_OFFSET_SEA_NIGHT'] + OFFSETS['QUALITY_MARGIN_T37T12TEXT']#0.75+0.15
-print THRESHOLD1, THRESHOLD2
+if RunWithOutMargins:
+    THRESHOLD2 = 0.0
+    THRESHOLD1 = OFFSETS['T37T12TEXT_OFFSET_SEA_NIGHT']
+
 TestOk = np.logical_and(t11text>THRESHOLD2, t37t12text>THRESHOLD1)
 TestOkAll=np.logical_or(TestOk,TestOkAll)
 plot_test_2_lim(args,isCloudyWaterNight, isClearWaterNight, TestOk, THRESHOLD1, THRESHOLD2)
@@ -477,6 +499,9 @@ args = {'title': "coldCloudTest_All_SeaNightNoIce_with_Tsur_limit",
 }
 THRESHOLD = OFFSETS['T11_OFFSET_SEA_NIGHT'] #+ OFFSETS[] # -7.0-1.0
 TSUR_THRESHOLD = OFFSETS['COLDEST_SEASURFACE_TEMP'] + OFFSETS['QUALITY_MARGIN_TSUR']#
+if RunWithOutMargins:
+    THRESHOLD = OFFSETS['T11_OFFSET_SEA_NIGHT'] 
+    TSUR_THRESHOLD = OFFSETS['COLDEST_SEASURFACE_TEMP'] 
 TestOk = np.logical_and(t11_ts_minus_threshold<THRESHOLD,surftemp>TSUR_THRESHOLD)
 TestOkAll=np.logical_or(TestOk,TestOkAll)
 plot_test(args,isCloudyWaterNight,isClearWaterNight,TestOk,THRESHOLD)
@@ -513,6 +538,9 @@ args = {'title': "waterCloudTest_All_SeaNightNoIce",
       'isClearPPS': isClearPPS,   
 }
 THRESHOLD = 0.0 + OFFSETS['QUALITY_MARGIN_T11T37']#0.0+0.3
+if RunWithOutMargins:
+    THRESHOLD = 0.0
+
 TestOk = t11_t37_minus_threshold>THRESHOLD
 TestOkAll=np.logical_or(TestOk,TestOkAll)
 plot_test(args,isCloudyWaterNight,isClearWaterNight,TestOk,THRESHOLD)
@@ -550,6 +578,8 @@ args = {'title': "coldCloudTest_All_SeaNightNoIce_without_Tsur_limit",
 }
 THRESHOLD = OFFSETS['T11_OFFSET_SEA_NIGHT_OPAQUE'] + -1*OFFSETS['QUALITY_MARGIN_T11TSUR'] #-15.0-1.0
 TSUR_THRESHOLD = 0.0
+if RunWithOutMargins:
+    THRESHOLD = OFFSETS['T11_OFFSET_SEA_NIGHT_OPAQUE']
 TestOk = np.logical_and(t11_ts_minus_threshold<THRESHOLD,surftemp>TSUR_THRESHOLD)
 TestOkAll=np.logical_or(TestOk,TestOkAll)
 plot_test(args,isCloudyWaterNight,isClearWaterNight,TestOk,THRESHOLD)
@@ -579,7 +609,9 @@ args = {'title': "arcticWaterCloudTest_All_SeaNightIce",
 }
 THRESHOLD1 = 0.0 + OFFSETS['QUALITY_MARGIN_T11T37_ARCTIC']
 THRESHOLD2 = OFFSETS['T37T12TEXT_OFFSET_SEA_NIGHT_ARCTIC']  + OFFSETS['QUALITY_MARGIN_T37T12TEXT']
-TSUR_THRESHOLD = 0.0
+if RunWithOutMargins:
+    THRESHOLD1 = 0.0
+    THRESHOLD2 = OFFSETS['T37T12TEXT_OFFSET_SEA_NIGHT_ARCTIC']
 TestOk = np.logical_and(t11_t37_minus_threshold>THRESHOLD1,t37t12text<THRESHOLD2)
 #TestOkAll=TestOk
 plot_test_2_lim(args,isCloudyIceNight, isClearIceNight, TestOk, THRESHOLD1, THRESHOLD2)
@@ -596,7 +628,9 @@ args = {'title': "testarcticWaterCloudTest_All_SeaNightIce",
 }
 THRESHOLD1 = 0.0 + OFFSETS['QUALITY_MARGIN_T11T37_ARCTIC']+0.3
 THRESHOLD2 = OFFSETS['T37T12TEXT_OFFSET_SEA_NIGHT_ARCTIC']  + OFFSETS['QUALITY_MARGIN_T37T12TEXT']+0.3
-TSUR_THRESHOLD = 0.0
+if RunWithOutMargins:
+    THRESHOLD1 = 0.3
+    THRESHOLD2 = OFFSETS['T37T12TEXT_OFFSET_SEA_NIGHT_ARCTIC']#MARGIN are offset 
 TestOk = np.logical_and(t11_t37_minus_threshold>THRESHOLD1,t37t12text<THRESHOLD2)
 TestOkAll=TestOk
 plot_test_2_lim(args,isCloudyIceNight, isClearIceNight, TestOk, THRESHOLD1, THRESHOLD2)
@@ -615,6 +649,8 @@ args = {'title': "coldCloudTest_All_SeaNightIce_without_Tsur_limit",
       'isClearPPS': isClearPPS,   
 }
 THRESHOLD = 0.0 -1*OFFSETS['QUALITY_MARGIN_T11TSUR_ARCTIC'] #-15.0-1.0
+if RunWithOutMargins:
+    THRESHOLD = -1*OFFSETS['QUALITY_MARGIN_T11TSUR_ARCTIC']# MARGIN are offset 
 TSUR_THRESHOLD = 0.0
 TestOk = np.logical_and(t11_ts_minus_threshold<THRESHOLD,surftemp>TSUR_THRESHOLD)
 #TestOkAll=np.logical_or(TestOk,TestOkAll)
@@ -630,8 +666,10 @@ args = {'title': "testcoldCloudTest_All_SeaNightIce_without_Tsur_limit",
       'isCloudyPPS': isCloudyPPS,
       'isClearPPS': isClearPPS,   
 }
-THRESHOLD = 0.0 -1*OFFSETS['QUALITY_MARGIN_T11TSUR_ARCTIC'] +2.0 #-15.0-1.0
+THRESHOLD = 0.0 -1*OFFSETS['QUALITY_MARGIN_T11TSUR_ARCTIC'] +2.0 
 TSUR_THRESHOLD = 0.0
+if RunWithOutMargins:
+    THRESHOLD = -1*OFFSETS['QUALITY_MARGIN_T11TSUR_ARCTIC'] + 4.0# MARGIN are offset 
 TestOk = np.logical_and(t11_ts_minus_threshold<THRESHOLD,surftemp>TSUR_THRESHOLD)
 TestOkAll=np.logical_or(TestOk,TestOkAll)
 plot_test(args,isCloudyIceNight,isClearIceNight,TestOk,THRESHOLD)
@@ -652,6 +690,9 @@ args = {'title': "arcticThinCirrusPrimaryTest_All_SeaNightIce",
 }
 THRESHOLD2 = OFFSETS['T37TEXT_OFFSET_SEA_NIGHT_ARCTIC']+OFFSETS['QUALITY_MARGIN_T37TEXT']#2.0+0.3
 THRESHOLD1 = OFFSETS['QUALITY_MARGIN_T37T12_ARCTIC']
+if RunWithOutMargins:
+    THRESHOLD2 = OFFSETS['T37TEXT_OFFSET_SEA_NIGHT_ARCTIC']
+    THRESHOLD1 = 0.0#OFFSETS['QUALITY_MARGIN_T37T12_ARCTIC'] #MARGIN are offset??
 TestOk = np.logical_and(t37_t12_minus_threshold>THRESHOLD1, t37text<THRESHOLD2)
 #TestOkAll=np.logical_or(TestOk,TestOkAll)
 plot_test_2_lim(args,isCloudyIceNight,isClearIceNight,TestOk,THRESHOLD1, THRESHOLD2)
@@ -669,8 +710,12 @@ args = {'title': "testarcticThinCirrusPrimaryTest_All_SeaNightIce",
         'isCloudyPPS': isCloudyPPS,
         'isClearPPS': isClearPPS,   
 }
-THRESHOLD1 = 0.3#OFFSETS['QUALITY_MARGIN_T37T12_ARCTIC']
-THRESHOLD2 = OFFSETS['T37TEXT_OFFSET_SEA_NIGHT_ARCTIC']+OFFSETS['QUALITY_MARGIN_T37TEXT']#2.0+0.3
+THRESHOLD1 = 0.3
+THRESHOLD2 = OFFSETS['T37TEXT_OFFSET_SEA_NIGHT_ARCTIC']+OFFSETS['QUALITY_MARGIN_T37TEXT']
+if RunWithOutMargins:
+    THRESHOLD1 = 0.3
+    THRESHOLD2 = 16#OFFSETS['T37TEXT_OFFSET_SEA_NIGHT_ARCTIC']
+
 TestOk = np.logical_and(t37_t12_minus_threshold>THRESHOLD1, t37text<THRESHOLD2)
 TestOkAll=np.logical_or(TestOk,TestOkAll)
 plot_test_2_lim(args,isCloudyIceNight,isClearIceNight,TestOk,THRESHOLD1, THRESHOLD2)
@@ -693,6 +738,10 @@ args = {'title': "arcticThinWaterCloudTest_All_SeaNightIce",
 }
 THRESHOLD2 = OFFSETS['T37T12TEXT_OFFSET_SEA_NIGHT_ARCTIC']+OFFSETS['QUALITY_MARGIN_T37T12TEXT']#2.0+0.3
 THRESHOLD1 = OFFSETS['QUALITY_MARGIN_T37T12_ARCTIC_INV']
+if RunWithOutMargins:
+    THRESHOLD2 = OFFSETS['T37T12TEXT_OFFSET_SEA_NIGHT_ARCTIC'] 
+    THRESHOLD1 = OFFSETS['QUALITY_MARGIN_T37T12_ARCTIC_INV'] #MARGIN are offset
+
 TestOk = np.logical_and(t37_t12_minus_threshold_inv<THRESHOLD1, t37t12text<THRESHOLD2)
 TestOkAll=np.logical_or(TestOk,TestOkAll)
 plot_test_2_lim(args,isCloudyIceNight,isClearIceNight,TestOk, THRESHOLD1, THRESHOLD2)
@@ -712,6 +761,9 @@ args = {'title': "arcticWarmCloudTest_All_SeaNightIce",
 }
 THRESHOLD1 = 0.0 -1*OFFSETS['QUALITY_MARGIN_T11TSUR_ARCTIC_INV']
 THRESHOLD2 = OFFSETS['T37TEXT_OFFSET_SEA_NIGHT_ARCTIC']  + OFFSETS['QUALITY_MARGIN_T37TEXT']
+if RunWithOutMargins:
+    THRESHOLD1 = 0.0 -1*OFFSETS['QUALITY_MARGIN_T11TSUR_ARCTIC_INV'] #MARGIN are offset
+    THRESHOLD2 = OFFSETS['T37TEXT_OFFSET_SEA_NIGHT_ARCTIC'] 
 TSUR_THRESHOLD = 0.0
 TestOk = np.logical_and(t11_ts_minus_threshold_inv>THRESHOLD1,t37text<THRESHOLD2)
 #TestOkAll=np.logical_or(TestOk,TestOkAll)
@@ -798,6 +850,8 @@ args = {'title': "arcticWarmCirrusSecondaryTest_All_SeaNightIce_tsur",
 }
 
 THRESHOLD = 0.0 + OFFSETS['QUALITY_MARGIN_T11T12_ARCTIC_INV']
+if RunWithOutMargins:
+    THRESHOLD = 0.0 + OFFSETS['QUALITY_MARGIN_T11T12_ARCTIC_INV'] #MARGIN are offset
 TestOk = t11_t12_minus_threshold_inv<THRESHOLD
 TestOkAll=np.logical_or(TestOk,TestOkAll)
 plot_test(args,isCloudyIceNight, isClearIceNight, TestOk, THRESHOLD)
@@ -817,6 +871,9 @@ args = {'title': "arcticthinCirrusSecondaryTest_All_SeaNightIce",
 }
 THRESHOLD2 = OFFSETS['T37TEXT_OFFSET_SEA_NIGHT_ARCTIC']+OFFSETS['QUALITY_MARGIN_T37TEXT']#2.0+0.3
 THRESHOLD1 = OFFSETS['QUALITY_MARGIN_T11T12_ARCTIC']
+if RunWithOutMargins:
+    THRESHOLD2 = OFFSETS['T37TEXT_OFFSET_SEA_NIGHT_ARCTIC']
+    THRESHOLD1 = OFFSETS['QUALITY_MARGIN_T11T12_ARCTIC']#MARGIN are offset
 TestOk = np.logical_and(t11_t12_minus_threshold>THRESHOLD1, t37text<THRESHOLD2)
 #TestOkAll=np.logical_or(TestOk,TestOkAll)
 TestOkAll=np.logical_or(TestOk,TestOkAll)
@@ -836,11 +893,14 @@ args = {'title': "testarcticthinCirrusSecondaryTest_All_SeaNightIce",
         'isClearPPS': isClearPPS,   
 }
 THRESHOLD2 = OFFSETS['T37TEXT_OFFSET_SEA_NIGHT_ARCTIC']+OFFSETS['QUALITY_MARGIN_T37TEXT']#2.0+0.3
-THRESHOLD1 = OFFSETS['QUALITY_MARGIN_T11T12_ARCTIC']-0.3
+THRESHOLD1 = OFFSETS['QUALITY_MARGIN_T11T12_ARCTIC']
+if RunWithOutMargins:
+    THRESHOLD2 = OFFSETS['T37TEXT_OFFSET_SEA_NIGHT_ARCTIC']
+    THRESHOLD1 = 0.4# OFFSETS['QUALITY_MARGIN_T11T12_ARCTIC']-0.3#MARGIN are offset
 TestOk = np.logical_and(t11_t12_minus_threshold>THRESHOLD1, t37text<THRESHOLD2)
 plot_test_2_lim(args,isCloudyIceNight, isClearIceNight, TestOk, THRESHOLD1, THRESHOLD2)
 print "thinCirrusSecondarytest cirrus night sea ice"
-args['title']= "arcticthinCirrusSecondaryTest_ThinCirrus_SeaNightIce"
+args['title']= "testarcticthinCirrusSecondaryTest_ThinCirrus_SeaNightIce"
 plot_test_2_lim(args,isCloudyCirrusIceNight, isClearIceNight, TestOk, THRESHOLD1, THRESHOLD2)
 print_stats(cloudtype,isCloudyIceNight,isClearIceNight,isCloudyPPS,TestOkAll)
 
@@ -857,8 +917,10 @@ args = {'title': "waterCloudTest_All_SeaNightIce_tsur",
       'isClearPPS': isClearPPS,   
 }
 THRESHOLD = 0.0 + OFFSETS['QUALITY_MARGIN_T11T37_ARCTIC_EXTRA']
+if RunWithOutMargins:
+    THRESHOLD = 0.0
 TestOk = t11_t37_minus_threshold>THRESHOLD
-TestOkAll=np.logical_or(TestOk,TestOkAll)
+#TestOkAll=np.logical_or(TestOk,TestOkAll)
 plot_test(args,isCloudyIceNight, isClearIceNight, TestOk, THRESHOLD)
 print_stats(cloudtype,isCloudyIceNight,isClearIceNight,isCloudyPPS,TestOkAll)
 
@@ -885,12 +947,19 @@ args = {'title': "coldCloudTest_All_SeaDayNoIce",
 }
 THRESHOLD = OFFSETS['T11_OFFSET_SEA_DAY'] + -1*OFFSETS['QUALITY_MARGIN_T11TSUR']#-7.0-1.0
 TSUR_THRESHOLD = OFFSETS['COLDEST_SEASURFACE_TEMP'] + OFFSETS['QUALITY_MARGIN_TSUR']#
+if RunWithOutMargins:
+    THRESHOLD = OFFSETS['T11_OFFSET_SEA_DAY'] 
+    TSUR_THRESHOLD = OFFSETS['COLDEST_SEASURFACE_TEMP'] 
+
 TestOk = np.logical_and(t11_ts_minus_threshold<THRESHOLD,surftemp>TSUR_THRESHOLD)
 TestOkAll=TestOk
 plot_test(args,isCloudyWaterDay,isClearWaterDay,TestOk,THRESHOLD)
 args['title'] = "coldCloudTest_All_SeaDayNoIce_without_Tsur_limit"
 THRESHOLD = OFFSETS['T11_OFFSET_SEA_DAY_OPAQUE'] + OFFSETS['QUALITY_MARGIN_T11TSUR']#-13.0-1.0
 TSUR_THRESHOLD=0.0
+if RunWithOutMargins:
+    THRESHOLD = OFFSETS['T11_OFFSET_SEA_DAY_OPAQUE'] 
+    TSUR_THRESHOLD=0.0
 TestOk = np.logical_and(t11_ts_minus_threshold<THRESHOLD,surftemp>TSUR_THRESHOLD)
 TestOkAll=np.logical_or(TestOk,TestOkAll)
 plot_test(args,isCloudyWaterDay,isClearWaterDay,TestOk,THRESHOLD)
@@ -923,6 +992,10 @@ TSUR_THRESHOLD = OFFSETS['COLDEST_SEASURFACE_TEMP'] + OFFSETS['QUALITY_MARGIN_TS
 #/* The satellite reflectances are given in percent. Thus
 #   multiply tabulated reflectances by 100.0!	*/
 THRESHOLD2 = OFFSETS['R06_OFFSET_SEA_OPAQUE'] + OFFSETS['QUALITY_MARGIN_R06']
+if RunWithOutMargins:
+    HRESHOLD1 = OFFSETS['T11_OFFSET_SEA_DAY'] 
+    TSUR_THRESHOLD = OFFSETS['COLDEST_SEASURFACE_TEMP']
+    THRESHOLD2 = OFFSETS['R06_OFFSET_SEA_OPAQUE']
 TestOk = np.logical_and(np.logical_and(t11_ts_minus_threshold<THRESHOLD1,
                                        surftemp>TSUR_THRESHOLD),
                         r06_minus_threshold_opaque>THRESHOLD2)                        
@@ -947,6 +1020,7 @@ args = {'title': "testcoldBrightCloudTest_All_SeaDayNoIce",
 }
 THRESHOLD1 = OFFSETS['T11_OFFSET_SEA_DAY'] + -1*OFFSETS['QUALITY_MARGIN_T11TSUR']#-7.0-1.0
 TSUR_THRESHOLD = OFFSETS['COLDEST_SEASURFACE_TEMP'] + OFFSETS['QUALITY_MARGIN_TSUR']#
+
 #100.0*threshold->r06*throff->sm_acmg_r06_gain_sea_opaque +
 #      throff->sm_acmg_r06_offset_sea_opaque;
 #100.0*threshold->r06*throff->sm_acmg_r06_gain_sea_opaque +
@@ -954,6 +1028,10 @@ TSUR_THRESHOLD = OFFSETS['COLDEST_SEASURFACE_TEMP'] + OFFSETS['QUALITY_MARGIN_TS
 #/* The satellite reflectances are given in percent. Thus
 #   multiply tabulated reflectances by 100.0!	*/
 THRESHOLD2 = OFFSETS['R06_OFFSET_SEA_OPAQUE'] + OFFSETS['QUALITY_MARGIN_R06']
+if RunWithOutMargins:
+    THRESHOLD1 = OFFSETS['T11_OFFSET_SEA_DAY'] 
+    TSUR_THRESHOLD = OFFSETS['COLDEST_SEASURFACE_TEMP'] 
+    THRESHOLD2 = OFFSETS['R06_OFFSET_SEA_OPAQUE']
 TestOk = np.logical_and(t11_ts_minus_threshold<THRESHOLD1,
                         r06_minus_threshold_opaque>THRESHOLD2)                        
 TestOkAll=np.logical_or(TestOk,TestOkAll)
@@ -973,6 +1051,8 @@ args = {'title': "thinCirrusSecondaryTest_All_SeaDayNoIce_lat",
         'isClearPPS': isClearPPS,   
 }
 THRESHOLD = OFFSETS['T11T12_OFFSET_SEA_DAY'] + OFFSETS['QUALITY_MARGIN_T11T12']#-7.0-1.0
+if RunWithOutMargins:
+    THRESHOLD = OFFSETS['T11T12_OFFSET_SEA_DAY'] 
 TestOk = t11_t12_minus_threshold>THRESHOLD                        
 plot_test(args,isCloudyWaterDay, isClearWaterDay, TestOk, THRESHOLD)
 print_stats(cloudtype,isCloudyWaterDay,isClearWaterDay,isCloudyPPS,TestOkAll)
@@ -993,6 +1073,8 @@ args = {'title': "testThinCirrusPrimaryTest_All_SeaDayNoIce_lat_linearthreshold"
         'isClearPPS': isClearPPS,   
 }
 THRESHOLD = OFFSETS['T11T12_OFFSET_SEA_DAY']+OFFSETS['QUALITY_MARGIN_T11T12']#2.0+0.3
+if RunWithOutMargins:
+    THRESHOLD = OFFSETS['T11T12_OFFSET_SEA_DAY']
 THRESHOLD_V=THRESHOLD + (surftemp<305)*(surftemp>280)*(surftemp-280)*(THRESHOLD-1.5)/(305-280)+(surftemp>305)*(-1.5)
 TestOk = args['yvector']>THRESHOLD_V
 TestOkAll=np.logical_or(TestOk,TestOkAll)
@@ -1008,12 +1090,16 @@ args = {'title': "testThinCirrusPrimaryTest_All_SeaDayNoIce_lat_linearthreshold_
         'isClearPPS': isClearPPS,   
 }
 THRESHOLD = OFFSETS['T11T12_OFFSET_SEA_DAY']+OFFSETS['QUALITY_MARGIN_T11T12']#2.0+0.3
+if RunWithOutMargins:
+    THRESHOLD = OFFSETS['T11T12_OFFSET_SEA_DAY']
 THRESHOLD_V=THRESHOLD + (surftemp<305)*(surftemp>280)*(surftemp-280)*(THRESHOLD-1.0)/(305-280)+(surftemp>305)*(-1.0)
 TestOk = args['yvector']>THRESHOLD_V
 plot_test(args,isCloudyCirrusWaterDay,isClearWaterDay,TestOk,THRESHOLD)
 args['title'] = "testThinCirrusSecondaryTest_All_SeaDayNoIce_lat_linearthreshold_10_margin02"
-THRESHOLD = OFFSETS['T11T12_OFFSET_SEA_DAY']+0.2#OFFSETS['QUALITY_MARGIN_T11T12']#2.0+0.3
-THRESHOLD_V=THRESHOLD + (surftemp>280)*(surftemp-280)*(THRESHOLD-1.0)/(305-280)+(surftemp>305)*(-1.0)
+THRESHOLD = OFFSETS['T11T12_OFFSET_SEA_DAY']+0.2
+if RunWithOutMargins:
+    THRESHOLD = OFFSETS['T11T12_OFFSET_SEA_DAY']
+THRESHOLD_V=THRESHOLD + (surftemp<305)*(surftemp>280)*(surftemp-280)*(THRESHOLD-1.0)/(305-280)+(surftemp>305)*(-1.0)
 TestOk = args['yvector']>THRESHOLD_V
 plot_test(args,isCloudyCirrusWaterDay,isClearWaterDay,TestOk,THRESHOLD)
 
@@ -1040,7 +1126,7 @@ args = {'title': "non_existingT11T37test_All_SeaDayNoIce_lat",
 THRESHOLD = 0.0
 TestOk = t11_t37_minus_threshold>THRESHOLD
 TestOkAll=np.logical_or(TestOk,TestOkAll)
-plot_test(args,isCloudyWaterDay,isClearWaterDay,TestOk,THRESHOLD, show=False)
+plot_test(args,isCloudyWaterDay,isClearWaterDay,TestOk,THRESHOLD, show=True)
 print_stats(cloudtype,isCloudyWaterDay,isClearWaterDay,isCloudyPPS,TestOkAll)
 
 
