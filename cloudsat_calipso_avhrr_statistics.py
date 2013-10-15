@@ -28,6 +28,24 @@ def calculate_ctth_stats(okcaliop, avhrr_ctth_cal_ok,caliop_max_height):
     #return (corr_caliop_avhrr,bias,RMS_difference,avhrr_height_work,diff_squared_biascorr)
     return "%f %f %f %s %f "%(corr_caliop_avhrr,bias,RMS_difference,len(avhrr_height_work),sum(diff_squared_biascorr))
 
+def get_sunglint_info_pps2014(cloudtype_conditions):
+    write_log("INFO", "Assuming cloudtype flags structure from pps v2014")
+    temp_val = (cloudtype_conditions>>3 & 1)
+    sunglint_flag = temp_val == 1
+    return  sunglint_flag
+
+def get_mountin_info_pps2014(cloudtype_conditions):
+    write_log("INFO", "Assuming cloudtype flags structure from pps v2014")
+    temp_val = (cloudtype_conditions>>6 & 1)
+    mountin_flag = temp_val == 1
+    return  mountin_flag
+
+def get_inversion_info_pps2014(cloudtype_status):
+    write_log("INFO", "Assuming cloudtype flags structure from pps v2014")
+    flag_temp = (cloudtype_status>>0 & 1)+0  
+    inversion_flag = flag_temp ==1
+    return inversion_flag
+
 def get_land_coast_sea_info_pps2014(cloudtype_conditions):
     write_log("INFO", "Assuming cloudtype flags structure from pps v2014")
     sealand_val = (cloudtype_conditions>>4 & 1) + (cloudtype_conditions>>5 & 1)*2
