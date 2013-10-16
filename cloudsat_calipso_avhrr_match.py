@@ -1077,7 +1077,7 @@ def get_matchups(cross, options, reprocess=False):
             basename = '_'.join(os.path.basename(cl_match_file).split('_')[1:5])
             if diff_avhrr is None or (
                 matchup_diff_seconds<=diff_avhrr_seconds or 
-                matchup_diff_seconds<300):
+                abs(matchup_diff_seconds-diff_avhrr_seconds) <300):
                 write_log('INFO', "CloudSat Matchups read from previously " + 
                           "processed data.")
                 date_time=tobj
