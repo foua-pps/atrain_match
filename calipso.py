@@ -949,6 +949,7 @@ def match_calipso_avhrr(values,
     N_lse = x_lse.shape[0]/col_dim
     retv.calipso.lidar_surface_elevation = np.reshape(x_lse,(col_dim,N_lse)).astype('d')
 
+    col_dim = calipsoObj.cloud_mid_temperature.shape[1]
     if res == 5:
         x_od = np.repeat(calipsoObj.optical_depth[::,0],idx_match)
         x_odu = np.repeat(calipsoObj.optical_depth_uncertainty[::,0],idx_match)
@@ -986,7 +987,7 @@ def match_calipso_avhrr(values,
         retv.calipso.ice_water_path5km = np.reshape(x_iwp,(col_dim,N_iwp)).astype('d')
         N_iwpu = x_iwpu.shape[0]/col_dim
         retv.calipso.ice_water_path_uncertainty5km = np.reshape(x_iwpu,(col_dim,N_iwpu)).astype('d')
-        retv.calipso.optical_depth_top_layer = np.repeat(\
+        retv.calipso.optical_depth_top_layer5km = np.repeat(\
             calipsoObj.optical_depth[:,0].ravel(),idx_match.ravel()).astype('d') 
 
     if res == 1 :
