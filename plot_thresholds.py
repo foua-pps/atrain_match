@@ -32,6 +32,7 @@ import re
 OFFSET_DIR=os.environ.get('SM_CFG_DIR')
 OFFSET_FILE=os.environ.get('SM_THROFFSETS_NAME')         
 OFFESET_FILE = os.path.join(OFFSET_DIR,OFFSET_FILE)
+#OFFESET_FILE="threshold_offsets.cfg"
 isNPP = True
 isGAC_v2012 = False
 RunWithOutMargins=True
@@ -50,9 +51,9 @@ if isNPP:
         
         ROOT_DIR = "/local_disk/nina_pps/data_validation_ctth_patch_nov2012/VALIDATION_20131014_Test_CM_6_nightlandinv_landnightmount_2/Reshaped_Files/npp/1km/"
         #ROOT_DIR ="/local_disk/nina_pps/data_validation_ctth_patch_nov2012/VALIDATION_20131014_Test_CM_6_nightlandinv_landnightmount_and_night_ice_2/Reshaped_Files/npp/1km/"
-        ROOT_DIR ="/local_disk/nina_pps/data_validation_ctth_patch_nov2012/VALIDATION_20131014_Test_CM_6_nightlandinv_landnightmount_and_night_ice_2/Reshaped_Files/npp/1km/"
-
-    
+        #ROOT_DIR ="/local_disk/nina_pps/data_validation_ctth_patch_nov2012/VALIDATION_20131014_Test_CM_6_nightlandinv_landnightmount_and_night_ice_2/Reshaped_Files/npp/1km/"
+	ROOT_DIR = "/local_disk/nina_pps/data_validation_ctth_patch_nov2012/VALIDATION_20131014_Test_CM_6_nightlandinv_landnightmount_and_night_ice_and_twilight_sea_ice_and_no_ice_and_night_coast_inv/Reshaped_Files/npp/1km/"
+    	#ROOT_DIR ="Reshaped_Files_2014/Reshaped_Files/npp/1km/"
         SATELLITE='npp_cm_edited'
 
     files = glob(ROOT_DIR + "/????/??/*/*h5")
@@ -73,10 +74,10 @@ else:
 print OFFESET_FILE 
 
 
-  #print "hi", filename
 offset_file = open(OFFESET_FILE, 'r')  
 re_offset  = re.compile(r"^SM_ACMG_(\w+)[:=]\s*(-*\d+\.*\d*)\D")
 OFFSETS={}
+OFFSETS['MAX_SUNZEN_DAY'] = 8.0
 for line in offset_file:
     match_offset = re_offset.match(line)
     if match_offset:
@@ -439,14 +440,10 @@ def plot_test_2_lim(args,isCloudy, isClear, TestOk,
     plt.axvline(x = clfree_percentiles_vert[6], color = 'b',ls = '--')
     plt.axvline(x = THRESHOLD2, color = 'k',linewidth = 2)
     filename=args['title']+"_"+SATELLITE+'.png'
-    plt.savefig('/local_disk/nina_pps/threshold_plots/' + filename)
- 
+    plt.savefig('/local_disk/nina_pps/threshold_plots/' + filename) 
     if show:
         plt.show()
     plt.close()
-
-
-
 
 
 def print_stats(cloudtype, isCloudyStats, isClearStats, 
@@ -459,6 +456,8 @@ def print_stats(cloudtype, isCloudyStats, isClearStats,
         len(cloudtype[isClearStats==True]))
     print "Number of clear pixels miss classed  %d"%(
         len(cloudtype[np.logical_and(isClearStats,isCloudyPPS)==True]))
+    print "Number of cloudy pixels miss classed  %d"%(
+         len(cloudtype[isCloudyStats==True])-len(cloudtype[np.logical_and(isCloudyStats,isCloudyPPS)==True]))
     print "POD cloudy %f"%(
         np.divide(len(cloudtype[np.logical_and(isCloudyStats,isCloudyPPS)==True])*1.0,
                   len(cloudtype[isCloudyStats==True])))
@@ -489,7 +488,7 @@ def print_stats(cloudtype, isCloudyStats, isClearStats,
                 len(cloudtype[false_so_far==True])*1.0,
                 (len(cloudtype[false_so_far==True])+
                  len(cloudtype[detected_so_far==True]))))
-        print "POD cloudy  detected so far including cahnges%f"%(
+        print "POD cloudy  detected so far including changes%f"%(
             np.divide(len(cloudtype[would_have_been_detected_so_far==True])*1.0,
             len(cloudtype[isCloudyStats==True])))
         print "FAR cloudy so far including changes %f"%(np.divide(
@@ -562,6 +561,9 @@ TestOkAll = None
 for key in cloudy_dict.keys():
     print key
     print_stats(cloudtype, cloudy_dict[key], clear_dict[key], isCloudyPPS)
+
+
+
 ####################################
 # NIGHT LAND MOUNTAIN
 ####################################
@@ -583,12 +585,11 @@ TestOk = t11_t37_minus_threshold>THRESHOLD
 TestOkAll=TestOk
 plot_test(args,isCloudyLandNightMount,isClearLandNightMount,TestOk,THRESHOLD)
 print_stats(cloudtype,isCloudyLandNightMount,isClearLandNightMount,isCloudyPPS,TestOkAll)
-
+#----------------------------------
 THRESHOLD = 0.0
 TestOk = t11_t37_minus_threshold>THRESHOLD
-args['title']= "waterCloudTest_All_LandNightMount_removed"
+args['title']= "removed_waterCloudTest_All_LandNightMount"
 plot_test(args,isCloudyLandNightMount,isClearLandNightMount,TestOk,THRESHOLD)
-
 #----------------------------------
 #ColdWaterCloudTest land night mountaion
 #----------------------------------
@@ -600,8 +601,8 @@ args = {'title': "coldwaterCloudTest_All_LandNightMount",
       'isCloudyPPS': isCloudyPPS,
       'isClearPPS': isClearPPS,   
 }
-THRESHOLD2 = 0.0 +OFFSETS['QUALITY_MARGIN_T11T37']#0.0+0.5
-THRESHOLD1 = OFFSETS['T11_OFFSET_MOUNTAIN_NIGHT']+ -1*OFFSETS['QUALITY_MARGIN_T11TSUR']#-7.0-1.0
+THRESHOLD2 = 0.0 +OFFSETS['QUALITY_MARGIN_T11T37']
+THRESHOLD1 = OFFSETS['T11_OFFSET_MOUNTAIN_NIGHT']+ -1*OFFSETS['QUALITY_MARGIN_T11TSUR']
 TSUR_THRESHOLD = 230
 if RunWithOutMargins:
     THRESHOLD2 = 0.0
@@ -628,7 +629,6 @@ THRESHOLD = OFFSETS['T11_OFFSET_MOUNTAIN_NIGHT'] + OFFSETS['QUALITY_MARGIN_T11TS
 TSUR_THRESHOLD = 230
 if RunWithOutMargins:
     THRESHOLD = OFFSETS['T11_OFFSET_MOUNTAIN_NIGHT'] 
- 
 TestOk = np.logical_and(t11_ts_minus_threshold<THRESHOLD,surftemp>TSUR_THRESHOLD)
 TestOkAll = keep_combined_ok(TestOk,TestOkAll)
 plot_test(args,isCloudyLandNightMount,isClearLandNightMount,TestOk,THRESHOLD)
@@ -647,13 +647,11 @@ args = {'title': "nonexisting_coldCloudTest_All_LandNightMount_without_tsur_thre
 THRESHOLD = OFFSETS['T11_OFFSET_MOUNTAIN_NIGHT'] + OFFSETS['QUALITY_MARGIN_T11TSUR'] # -7.0-1.0
 TSUR_THRESHOLD = 230
 if RunWithOutMargins:
-    THRESHOLD = OFFSETS['T11_OFFSET_MOUNTAIN_NIGHT'] 
- 
+    THRESHOLD = OFFSETS['T11_OFFSET_MOUNTAIN_NIGHT']  
 TestOk = np.logical_and(t11_ts_minus_threshold<THRESHOLD,surftemp>TSUR_THRESHOLD)
 TestOkAll = keep_combined_ok(TestOk,TestOkAll)
 plot_test(args,isCloudyLandNightMount,isClearLandNightMount,TestOk,THRESHOLD)
 print_stats(cloudtype,isCloudyLandNightMount,isClearLandNightMount,isCloudyPPS,TestOkAll)
-
 #----------------------------------
 #ThinCirrusPrimaryTest land night mountain
 #----------------------------------
@@ -765,10 +763,10 @@ args = {'title': "coldCloudTest_All_CoastNightInv_without_tsur_threshold",
       'isCloudyPPS': isCloudyPPS,
       'isClearPPS': isClearPPS,   
 }
-THRESHOLD = OFFSETS['T11_OFFSET_INVERSION_WEAK'] + OFFSETS['QUALITY_MARGIN_T11TSUR'] # -7.0-1.0
+THRESHOLD = OFFSETS['T11_OFFSET_INVERSION_WEAK'] + OFFSETS['QUALITY_MARGIN_T11TSUR'] 
 if RunWithOutMargins:
     THRESHOLD = OFFSETS['T11_OFFSET_INVERSION_WEAK'] 
-TestOk = np.logical_and(t11_ts_minus_threshold<THRESHOLD,surftemp>0)#TSUR_THRESHOLD)
+TestOk = np.logical_and(t11_ts_minus_threshold<THRESHOLD,surftemp>0)
 TestOkAll = keep_combined_ok(TestOk,TestOkAll)
 plot_test(args,isCloudyCoastNightInv,isClearCoastNightInv,TestOk,THRESHOLD)
 print_stats(cloudtype,isCloudyCoastNightInv,isClearCoastNightInv,isCloudyPPS,TestOkAll)
@@ -788,7 +786,7 @@ args = {'title': "waterCloudTest_All_LandNightInv",
       'isCloudyPPS': isCloudyPPS,
       'isClearPPS': isClearPPS,   
 }
-THRESHOLD = OFFSETS['T11T37_WATERCLOUD_SECURITY_OFFSET'] + OFFSETS['QUALITY_MARGIN_T11T37']#0.0+0.3
+THRESHOLD = OFFSETS['T11T37_WATERCLOUD_SECURITY_OFFSET'] + OFFSETS['QUALITY_MARGIN_T11T37']#
 if RunWithOutMargins:
     THRESHOLD = OFFSETS['T11T37_WATERCLOUD_SECURITY_OFFSET'] + 2.0 
 TestOk = t11_t37_minus_threshold>THRESHOLD
@@ -817,7 +815,6 @@ TestOkAll = keep_combined_ok(TestOk,TestOkAll)
 plot_test_2_lim(args,isCloudyLandNightInv,isClearLandNightInv, TestOk, 
                 THRESHOLD1, THRESHOLD2)
 print_stats(cloudtype,isCloudyLandNightInv,isClearLandNightInv,isCloudyPPS,TestOkAll)
-
 #----------------------------------
 #ThinCirrusPrimaryTest land night inv
 #----------------------------------
@@ -847,12 +844,10 @@ args = {'title': "coldCloudTest_All_LandNightInv_without_tsur_threshold",
       'isCloudyPPS': isCloudyPPS,
       'isClearPPS': isClearPPS,   
 }
-THRESHOLD = OFFSETS['T11_OFFSET_INVERSION_WEAK'] + OFFSETS['QUALITY_MARGIN_T11TSUR'] # -7.0-1.0
-#TSUR_THRESHOLD = 
+THRESHOLD = OFFSETS['T11_OFFSET_INVERSION_WEAK'] + OFFSETS['QUALITY_MARGIN_T11TSUR']
 if RunWithOutMargins:
     THRESHOLD = OFFSETS['T11_OFFSET_INVERSION_WEAK'] 
-    #TSUR_THRESHOLD = 
-TestOk = np.logical_and(t11_ts_minus_threshold<THRESHOLD,surftemp>0)#TSUR_THRESHOLD)
+TestOk = np.logical_and(t11_ts_minus_threshold<THRESHOLD,surftemp>0)
 TestOkAll = keep_combined_ok(TestOk,TestOkAll)
 plot_test(args,isCloudyLandNightInv,isClearLandNightInv,TestOk,THRESHOLD)
 print_stats(cloudtype,isCloudyLandNightInv,isClearLandNightInv,isCloudyPPS,TestOkAll)
@@ -868,7 +863,7 @@ args = {'title': "thinCirrusSecondaryTest_All_LandNightInv_lat",
         'isCloudyPPS': isCloudyPPS,
         'isClearPPS': isClearPPS,   
 }
-THRESHOLD = OFFSETS['T11T12_OFFSET_LAND_NIGHT'] + OFFSETS['QUALITY_MARGIN_T11T12']#-7.0-1.0
+THRESHOLD = OFFSETS['T11T12_OFFSET_LAND_NIGHT'] + OFFSETS['QUALITY_MARGIN_T11T12']
 if RunWithOutMargins:
     THRESHOLD = OFFSETS['T11T12_OFFSET_LAND_NIGHT'] 
 TestOk = t11_t12_minus_threshold>THRESHOLD 
@@ -882,34 +877,47 @@ print_stats(cloudtype,isCloudyLandNightInv,isClearLandNightInv,isCloudyPPS,TestO
 ####################################
 print_stats(cloudtype,isCloudyWaterNight,isClearWaterNight,isCloudyPPS)
 #----------------------------------
-#ColdWaterCloudTest sea night 
+#watercloudtest sea night 
 #----------------------------------
-args = {'title': "coldwaterCloudTest_All_SeaNightNoIce",
-      'xlable': 'T11-T37 minus dynamic threshold',
-      'ylable': 'T11-Ts minus dynamic threshold',
-      'xvector': t11_t37_minus_threshold,
-      'yvector': t11_ts_minus_threshold,
+print "watercloudtest sea night "
+args = {'title': "waterCloudTest_All_SeaNightNoIce",
+      'xlable': 'Tsur',
+      'ylable': 'T11-T37 minus dynamic threshold',
+      'xvector': surftemp,
+      'yvector': t11_t37_minus_threshold,
       'isCloudyPPS': isCloudyPPS,
       'isClearPPS': isClearPPS,   
 }
-THRESHOLD2 = 0.0 +OFFSETS['QUALITY_MARGIN_T11T37']#0.0+0.5
-THRESHOLD1 = OFFSETS['T11_OFFSET_SEA_NIGHT']+ -1*OFFSETS['QUALITY_MARGIN_T11TSUR']#-7.0-1.0
+THRESHOLD = 0.0 + OFFSETS['QUALITY_MARGIN_T11T37']#0.0+0.3
 if RunWithOutMargins:
-    THRESHOLD2 = 0.0
-    THRESHOLD1 = OFFSETS['T11_OFFSET_SEA_NIGHT']
-TestOk = np.logical_and(t11_t37_minus_threshold>THRESHOLD2,
-                        t11_ts_minus_threshold<THRESHOLD1)
-TestOkAll=TestOk
-plot_test_2_lim(args,isCloudyWaterNight,isClearWaterNight, TestOk, 
-                THRESHOLD1, THRESHOLD2)
-print_stats(cloudtype,isCloudyWaterNight,isClearWaterNight,
-            isCloudyPPS,TestOkAll)
-
-
+    THRESHOLD = 0.0
+TestOk = t11_t37_minus_threshold>THRESHOLD
+TestOkAll = TestOk
+plot_test(args,isCloudyWaterNight,isClearWaterNight,TestOk,THRESHOLD)
+print_stats(cloudtype,isCloudyWaterNight,isClearWaterNight,isCloudyPPS,TestOkAll)
+#----------------------------------
+args = {'title': "waterCloudTest_All_SeaNightNoIce_lat",
+      'xlable': 'Latitude',
+      'ylable': 'T11-T37 minus dynamic threshold',
+      'xvector': latitude,
+      'yvector': t11_t37_minus_threshold,
+      'isCloudyPPS': isCloudyPPS,
+      'isClearPPS': isClearPPS,   
+}
+plot_test(args,isCloudyWaterNight,isClearWaterNight,TestOk,THRESHOLD)
+#----------------------------------
+args = {'title': "waterCloudTest_All_SeaNightNoIce_ciwv",
+      'xlable': 'Ciwv',
+      'ylable': 'T11-T37 minus dynamic threshold',
+      'xvector': ciwv,
+      'yvector': t11_t37_minus_threshold,
+      'isCloudyPPS': isCloudyPPS,
+      'isClearPPS': isClearPPS,   
+}
+plot_test(args,isCloudyWaterNight,isClearWaterNight,TestOk,THRESHOLD)
 #----------------------------------
 #ThinCirrusPrimaryTest sea night 
 #----------------------------------
-print "thinCirrusPrimarytest all"
 args = {'title': "thinCirrusPrimaryTest_All_SeaNightNoIce",
         'xlable': 'Tsur',
         'ylable': 'T37-T12 minus dynamic threshold',
@@ -922,12 +930,13 @@ THRESHOLD = OFFSETS['T37T12_OFFSET_SEA_NIGHT']+OFFSETS['QUALITY_MARGIN_T37T12']#
 if RunWithOutMargins:
     THRESHOLD = OFFSETS['T37T12_OFFSET_SEA_NIGHT']
 TestOk = t37_t12_minus_threshold>THRESHOLD
+TestOkAll = keep_combined_ok(TestOk,TestOkAll)
 plot_test(args,isCloudyWaterNight,isClearWaterNight,TestOk,THRESHOLD)
-print "thinCirrusPrimarytest cirrus night sea"
+print_stats(cloudtype,isCloudyWaterNight,isClearWaterNight,isCloudyPPS,TestOkAll)
+#----------------------------------
 args['title']= "thinCirrusPrimaryTest_ThinCirrus_SeaNightNoIce"
 plot_test(args,isCloudyCirrusWaterNight,isClearWaterNight,TestOk,THRESHOLD)
-print_stats(cloudtype,isCloudyWaterNight,isClearWaterNight,isCloudyPPS,TestOkAll)
-print ciwv
+#----------------------------------
 args = {'title': "thinCirrusPrimaryTest_All_SeaNightNoIce_ciwv",
         'xlable': 'Ciwv',
         'ylable': 'T37-T12 minus dynamic threshold',
@@ -937,7 +946,8 @@ args = {'title': "thinCirrusPrimaryTest_All_SeaNightNoIce_ciwv",
         'isClearPPS': isClearPPS,   
 }
 plot_test(args,isCloudyCirrusWaterNight,isClearWaterNight,TestOk,THRESHOLD)
-args = {'title': "thinCirrusPrimaryTest_All_SeaNightNoIce_lat",
+#----------------------------------
+args = {'title': "thinCirrusPrimaryTest_Cirrus_SeaNightNoIce_lat",
         'xlable': 'Latitude',
         'ylable': 'T37-T12 minus dynamic threshold',
         'xvector': latitude,
@@ -946,6 +956,7 @@ args = {'title': "thinCirrusPrimaryTest_All_SeaNightNoIce_lat",
         'isClearPPS': isClearPPS,   
 }
 plot_test(args,isCloudyCirrusWaterNight,isClearWaterNight,TestOk,THRESHOLD)
+#----------------------------------
 args = {'title': "testThinCirrusPrimaryTest_All_SeaNightNoIce_abslat_linearthreshold",
         'xlable': 'abs Latitude',
         'ylable': 'T37-T12 minus dynamic threshold',
@@ -960,9 +971,8 @@ if RunWithOutMargins:
     THRESHOLD = OFFSETS['T37T12_OFFSET_SEA_NIGHT']
     THRESHOLD_V=abs(latitude)*(THRESHOLD+1.0)/40-1.0
 TestOk = args['yvector']>THRESHOLD_V
-TestOkAll = keep_combined_ok(TestOk,TestOkAll)
 plot_test(args,isCloudyCirrusWaterNight,isClearWaterNight,TestOk,THRESHOLD)
-
+#----------------------------------
 args = {'title':  "testThinCirrusPrimaryTest_ThinCirrus_SeaNightNoIce_lat_modified_thr",
         'xlable': 'Latitude',
         'ylable': 'T37-T12 minus 0.5*dynamic threshold',
@@ -976,7 +986,6 @@ if RunWithOutMargins:
     OFFSETS['T37T12_OFFSET_SEA_NIGHT']
 TestOk = args['yvector']>THRESHOLD 
 plot_test(args,isCloudyCirrusWaterNight, isClearWaterNight, TestOk, THRESHOLD)
-
 #----------------------------------
 #textureNightTest sea night 
 #----------------------------------
@@ -998,6 +1007,7 @@ TestOk = np.logical_and(t11text>THRESHOLD2, t37t12text>THRESHOLD1)
 TestOkAll = keep_combined_ok(TestOk,TestOkAll)
 plot_test_2_lim(args,isCloudyWaterNight, isClearWaterNight, TestOk, THRESHOLD1, THRESHOLD2)
 print_stats(cloudtype,isCloudyWaterNight,isClearWaterNight,isCloudyPPS,TestOkAll)
+#----------------------------------
 args = {'title': "testtexturNightTest_All_SeaNightNoIce",
         'xlable': 'T37-T12text minus dynamic threshold',
         'ylable': 'T11text minus dynamic threshold',
@@ -1016,6 +1026,88 @@ TestOk = np.logical_and(t11text>THRESHOLD2, t37t12text>THRESHOLD1)
 TestOkAll = keep_combined_ok(TestOk,TestOkAll)
 plot_test_2_lim(args,isCloudyWaterNight, isClearWaterNight, TestOk, THRESHOLD1, THRESHOLD2)
 print_stats(cloudtype,isCloudyWaterNight,isClearWaterNight,isCloudyPPS,TestOkAll)
+#----------------------------------
+#coldcloudtest sea night without tsur limit
+#----------------------------------
+args = {'title': "coldCloudTest_All_SeaNightNoIce_without_Tsur_limit",
+      'xlable': 'Tsur',
+      'ylable': 'T11-Ts minus dynamic threshold',
+      'xvector': surftemp,
+      'yvector': t11_ts_minus_threshold,
+      'isCloudyPPS': isCloudyPPS,
+      'isClearPPS': isClearPPS,   
+}
+THRESHOLD = OFFSETS['T11_OFFSET_SEA_NIGHT_OPAQUE'] + -1*OFFSETS['QUALITY_MARGIN_T11TSUR'] #-15.0-1.0
+TSUR_THRESHOLD = 0.0
+if RunWithOutMargins:
+    THRESHOLD = OFFSETS['T11_OFFSET_SEA_NIGHT_OPAQUE']
+TestOk = np.logical_and(t11_ts_minus_threshold<THRESHOLD,surftemp>TSUR_THRESHOLD)
+TestOkAll = keep_combined_ok(TestOk,TestOkAll)
+plot_test(args,isCloudyWaterNight,isClearWaterNight,TestOk,THRESHOLD)
+print_stats(cloudtype,isCloudyWaterNight,isClearWaterNight,isCloudyPPS,TestOkAll)
+#----------------------------------
+#ColdWaterCloudTest sea night 
+#----------------------------------
+args = {'title': "coldwaterCloudTest_All_SeaNightNoIce",
+      'xlable': 'T11-T37 minus dynamic threshold',
+      'ylable': 'T11-Ts minus dynamic threshold',
+      'xvector': t11_t37_minus_threshold,
+      'yvector': t11_ts_minus_threshold,
+      'isCloudyPPS': isCloudyPPS,
+      'isClearPPS': isClearPPS,   
+}
+THRESHOLD2 = 0.0 +OFFSETS['QUALITY_MARGIN_T11T37']#0.0+0.5
+THRESHOLD1 = OFFSETS['T11_OFFSET_SEA_NIGHT']+ -1*OFFSETS['QUALITY_MARGIN_T11TSUR']#-7.0-1.0
+if RunWithOutMargins:
+    THRESHOLD2 = 0.0
+    THRESHOLD1 = OFFSETS['T11_OFFSET_SEA_NIGHT']
+TestOk = np.logical_and(t11_t37_minus_threshold>THRESHOLD2,
+                        t11_ts_minus_threshold<THRESHOLD1)
+TestOkAll=keep_combined_ok(TestOk,TestOkAll)
+plot_test_2_lim(args,isCloudyWaterNight,isClearWaterNight, TestOk, 
+                THRESHOLD1, THRESHOLD2)
+print_stats(cloudtype,isCloudyWaterNight,isClearWaterNight,
+            isCloudyPPS,TestOkAll)
+#----------------------------------
+#coldcloudtest sea night 
+#----------------------------------
+args = {'title': "coldCloudTest_All_SeaNightNoIce_with_Tsur_limit",
+      'xlable': 'Tsur',
+      'ylable': 'T11-Ts minus dynamic threshold',
+      'xvector': surftemp,
+      'yvector': t11_ts_minus_threshold,
+      'isCloudyPPS': isCloudyPPS,
+      'isClearPPS': isClearPPS,   
+}
+THRESHOLD = OFFSETS['T11_OFFSET_SEA_NIGHT'] 
+TSUR_THRESHOLD = OFFSETS['COLDEST_SEASURFACE_TEMP'] + OFFSETS['QUALITY_MARGIN_TSUR']#
+if RunWithOutMargins:
+    THRESHOLD = OFFSETS['T11_OFFSET_SEA_NIGHT'] 
+    TSUR_THRESHOLD = OFFSETS['COLDEST_SEASURFACE_TEMP'] 
+TestOk = np.logical_and(t11_ts_minus_threshold<THRESHOLD,surftemp>TSUR_THRESHOLD)
+TestOkAll = keep_combined_ok(TestOk,TestOkAll)
+plot_test(args,isCloudyWaterNight,isClearWaterNight,TestOk,THRESHOLD)
+print_stats(cloudtype,isCloudyWaterNight,isClearWaterNight,isCloudyPPS,TestOkAll)
+#----------------------------------
+args = {'title': "coldCloudTest_All_SeaNightNoIce_with_Tsur_limit_lat",
+      'xlable': 'Latitude',
+      'ylable': 'T11-Ts minus dynamic threshold',
+      'xvector': latitude,
+      'yvector': t11_ts_minus_threshold,
+      'isCloudyPPS': isCloudyPPS,
+      'isClearPPS': isClearPPS,   
+}
+plot_test(args,isCloudyWaterNight,isClearWaterNight,TestOk,THRESHOLD)
+#----------------------------------
+args = {'title': "coldCloudTest_All_SeaNightNoIce_with_Tsur_limit_ciwv",
+      'xlable': 'Ciwv',
+      'ylable': 'T11-Ts minus dynamic threshold',
+      'xvector': ciwv,
+      'yvector': t11_ts_minus_threshold,
+      'isCloudyPPS': isCloudyPPS,
+      'isClearPPS': isClearPPS,   
+}
+plot_test(args,isCloudyWaterNight,isClearWaterNight,TestOk,THRESHOLD)
 
 #----------------------------------
 #notexistingCirrustest sea night 
@@ -1035,115 +1127,217 @@ TestOkAll = keep_combined_ok(TestOk,TestOkAll)
 plot_test(args,isCloudyWaterNight,isClearWaterNight,TestOk,THRESHOLD)
 print_stats(cloudtype,isCloudyWaterNight,isClearWaterNight,isCloudyPPS,TestOkAll)
 
-#----------------------------------
-#coldcloudtest sea night 
-#----------------------------------
-args = {'title': "coldCloudTest_All_SeaNightNoIce_with_Tsur_limit",
-      'xlable': 'Tsur',
-      'ylable': 'T11-Ts minus dynamic threshold',
-      'xvector': surftemp,
-      'yvector': t11_ts_minus_threshold,
-      'isCloudyPPS': isCloudyPPS,
-      'isClearPPS': isClearPPS,   
-}
-THRESHOLD = OFFSETS['T11_OFFSET_SEA_NIGHT'] #+ OFFSETS[] # -7.0-1.0
-TSUR_THRESHOLD = OFFSETS['COLDEST_SEASURFACE_TEMP'] + OFFSETS['QUALITY_MARGIN_TSUR']#
-if RunWithOutMargins:
-    THRESHOLD = OFFSETS['T11_OFFSET_SEA_NIGHT'] 
-    TSUR_THRESHOLD = OFFSETS['COLDEST_SEASURFACE_TEMP'] 
-TestOk = np.logical_and(t11_ts_minus_threshold<THRESHOLD,surftemp>TSUR_THRESHOLD)
-TestOkAll = keep_combined_ok(TestOk,TestOkAll)
-plot_test(args,isCloudyWaterNight,isClearWaterNight,TestOk,THRESHOLD)
-print_stats(cloudtype,isCloudyWaterNight,isClearWaterNight,isCloudyPPS,TestOkAll)
-args = {'title': "coldCloudTest_All_SeaNightNoIce_with_Tsur_limit_lat",
-      'xlable': 'Latitude',
-      'ylable': 'T11-Ts minus dynamic threshold',
-      'xvector': latitude,
-      'yvector': t11_ts_minus_threshold,
-      'isCloudyPPS': isCloudyPPS,
-      'isClearPPS': isClearPPS,   
-}
-plot_test(args,isCloudyWaterNight,isClearWaterNight,TestOk,THRESHOLD)
-args = {'title': "coldCloudTest_All_SeaNightNoIce_with_Tsur_limit_ciwv",
-      'xlable': 'Ciwv',
-      'ylable': 'T11-Ts minus dynamic threshold',
-      'xvector': ciwv,
-      'yvector': t11_ts_minus_threshold,
-      'isCloudyPPS': isCloudyPPS,
-      'isClearPPS': isClearPPS,   
-}
-plot_test(args,isCloudyWaterNight,isClearWaterNight,TestOk,THRESHOLD)
-
-#----------------------------------
-#watercloudtest sea night 
-#----------------------------------
-print "watercloudtest sea night "
-args = {'title': "waterCloudTest_All_SeaNightNoIce",
-      'xlable': 'Tsur',
-      'ylable': 'T11-T37 minus dynamic threshold',
-      'xvector': surftemp,
-      'yvector': t11_t37_minus_threshold,
-      'isCloudyPPS': isCloudyPPS,
-      'isClearPPS': isClearPPS,   
-}
-THRESHOLD = 0.0 + OFFSETS['QUALITY_MARGIN_T11T37']#0.0+0.3
-if RunWithOutMargins:
-    THRESHOLD = 0.0
-TestOk = t11_t37_minus_threshold>THRESHOLD
-TestOkAll = keep_combined_ok(TestOk,TestOkAll)
-plot_test(args,isCloudyWaterNight,isClearWaterNight,TestOk,THRESHOLD)
-print_stats(cloudtype,isCloudyWaterNight,isClearWaterNight,isCloudyPPS,TestOkAll)
-args = {'title': "waterCloudTest_All_SeaNightNoIce_lat",
-      'xlable': 'Latitude',
-      'ylable': 'T11-T37 minus dynamic threshold',
-      'xvector': latitude,
-      'yvector': t11_t37_minus_threshold,
-      'isCloudyPPS': isCloudyPPS,
-      'isClearPPS': isClearPPS,   
-}
-plot_test(args,isCloudyWaterNight,isClearWaterNight,TestOk,THRESHOLD)
-args = {'title': "waterCloudTest_All_SeaNightNoIce_ciwv",
-      'xlable': 'Ciwv',
-      'ylable': 'T11-T37 minus dynamic threshold',
-      'xvector': ciwv,
-      'yvector': t11_t37_minus_threshold,
-      'isCloudyPPS': isCloudyPPS,
-      'isClearPPS': isClearPPS,   
-}
-print_stats(cloudtype,isCloudyWaterNight,isClearWaterNight,isCloudyPPS,TestOkAll)
-
-#----------------------------------
-#coldcloudtest sea night without tsur limit
-#----------------------------------
-print "coldcloudtest sea night"
-args = {'title': "coldCloudTest_All_SeaNightNoIce_without_Tsur_limit",
-      'xlable': 'Tsur',
-      'ylable': 'T11-Ts minus dynamic threshold',
-      'xvector': surftemp,
-      'yvector': t11_ts_minus_threshold,
-      'isCloudyPPS': isCloudyPPS,
-      'isClearPPS': isClearPPS,   
-}
-THRESHOLD = OFFSETS['T11_OFFSET_SEA_NIGHT_OPAQUE'] + -1*OFFSETS['QUALITY_MARGIN_T11TSUR'] #-15.0-1.0
-TSUR_THRESHOLD = 0.0
-if RunWithOutMargins:
-    THRESHOLD = OFFSETS['T11_OFFSET_SEA_NIGHT_OPAQUE']
-TestOk = np.logical_and(t11_ts_minus_threshold<THRESHOLD,surftemp>TSUR_THRESHOLD)
-TestOkAll = keep_combined_ok(TestOk,TestOkAll)
-plot_test(args,isCloudyWaterNight,isClearWaterNight,TestOk,THRESHOLD)
-print_stats(cloudtype,isCloudyWaterNight,isClearWaterNight,isCloudyPPS,TestOkAll)
-
-
 print "WatercloudTestt85t11sea"
 print      "**not done yet**"
 print "watercloudOverWaterTest"
 print "*** need warmest neighbour to plot this test***"
 ####################################
+# TWILIGHT LAND
+####################################
+print_stats(cloudtype,isCloudyLandTwilight,isClearLandTwilight,isCloudyPPS, TestOkAll)
+isCloudyLandTwilight = np.logical_and(isCloudyLandTwilight, np.not_equal(cloudtype,4))
+isClearLandTwilight = np.logical_and(isClearLandTwilight, np.not_equal(cloudtype,4))
+print "***snow test, not implemented, remove snow/ice pixels***"
+print_stats(cloudtype,isCloudyLandTwilight,isClearLandTwilight,isCloudyPPS, TestOkAll)
+#----------------------------------
+#coldcloudtest land twilight
+#----------------------------------
+args = {'title': "coldCloudTest_All_LandTwilight_without_Tsur_limit",
+      'xlable': 'Tsur',
+      'ylable': 'T11-Ts minus dynamic threshold',
+      'xvector': surftemp,
+      'yvector': t11_ts_minus_threshold,
+      'isCloudyPPS': isCloudyPPS,
+      'isClearPPS': isClearPPS,   
+}
+tmp_thr = 0.5*(OFFSETS['T11_OFFSET_SEA_DAY_OPAQUE']+ OFFSETS['T11_OFFSET_SEA_NIGHT_OPAQUE'])
+THRESHOLD = tmp_thr -1*OFFSETS['QUALITY_MARGIN_T11TSUR'] #-15.0-1.0
+if RunWithOutMargins:
+    THRESHOLD = tmp_thr
+TestOk = t11_ts_minus_threshold<THRESHOLD
+TestOkAll = keep_combined_ok(TestOk,TestOkAll)
+plot_test(args,isCloudyLandTwilight,isClearLandTwilight,TestOk,THRESHOLD, show=True)
+print_stats(cloudtype,isCloudyLandTwilight,isClearLandTwilight,isCloudyPPS,TestOkAll)
+#----------------------------------
+#reflectingCloudTest land twilight
+#----------------------------------
+args = {'title': "reflectingCloudTest_All_LandTwilight",
+      'xlable': 'r06 not scaled',
+      'ylable': 'T37-T2 minus dynamic threshold',
+      'xvector': pseudor06_not_scaled,
+      'yvector': t37_t12_minus_threshold,
+      'isCloudyPPS': isCloudyPPS,
+      'isClearPPS': isClearPPS,   
+}
+vis_static = np.where(
+      sunz>=90.0,
+      OFFSETS['VIS_STATIC_LAND_OFFSET'],
+      OFFSETS['VIS_STATIC_LAND_GAIN']*(90.0-sunz) + OFFSETS['VIS_STATIC_LAND_OFFSET'])
+c = 1.0/(90.0-OFFSETS['MAX_SUNZEN_DAY'])
+intercept =((1-c*90.0)*OFFSETS['T37T12_OFFSET_LAND_NIGHT'] +
+	       c*90.0*OFFSETS['T37T12_OFFSET_LAND_DAY'])
+slope = c*(OFFSETS['T37T12_OFFSET_LAND_NIGHT'] -
+		       OFFSETS['T37T12_OFFSET_LAND_DAY'])
+tmp_thr =np.where(
+    sunz>=90.0,
+    OFFSETS['T37T12_OFFSET_LAND_NIGHT'],
+    slope * sunz + intercept)
+
+THRESHOLD2 = vis_static +OFFSETS['QUALITY_MARGIN_VIS_STATIC']
+THRESHOLD1 = tmp_thr +1*OFFSETS['QUALITY_MARGIN_T37T12']
+TSUR_THRESHOLD = 0.0
+if RunWithOutMargins:
+    THRESHOLD2 = vis_static
+    THRESHOLD1 = tmp_thr 
+TestOk = np.logical_and(2>0,
+                        np.logical_and(t37_t12_minus_threshold>THRESHOLD1,
+                                       pseudor06_not_scaled>THRESHOLD2))
+TestOkAll = keep_combined_ok(TestOk,TestOkAll)
+plot_test_2_lim(args,isCloudyLandTwilight,isClearLandTwilight, TestOk, 
+                np.min(THRESHOLD1), np.min(THRESHOLD2), show=True)
+print_stats(cloudtype,isCloudyLandTwilight,isClearLandTwilight,isCloudyPPS, TestOkAll)
+#----------------------------------
+#pseudo06CloudTest3A land twilight 
+#----------------------------------
+args = {'title': "pseudo06CloudTest3A_All_LandTwilight",
+      'xlable': 'r06 not scaled',
+      'ylable': 'qr16r06',
+      'xvector': pseudor06_not_scaled,
+      'yvector': qr16r06,
+      'isCloudyPPS': isCloudyPPS,
+      'isClearPPS': isClearPPS,   
+}
+vis_static = np.where(
+    sunz>=90.0,
+    OFFSETS['VIS_STATIC_LAND_OFFSET'],
+    OFFSETS['VIS_STATIC_LAND_GAIN']*(90.0-sunz) + OFFSETS['VIS_STATIC_LAND_OFFSET'])
+THRESHOLD2 = vis_static +OFFSETS['QUALITY_MARGIN_VIS_STATIC']
+THRESHOLD1 = OFFSETS['R06_R16_THR_LOWSUN'] + 1*OFFSETS['QUALITY_MARGIN_QR16R06']
+TSUR_THRESHOLD = 0.0
+if RunWithOutMargins:
+    THRESHOLD2 = vis_static
+    THRESHOLD1 = OFFSETS['R06_R16_THR_LOWSUN']
+TestOk = np.logical_and(2>0,
+                        np.logical_and(qr16r06>THRESHOLD1,
+                                       pseudor06_not_scaled>THRESHOLD2))
+TestOkAll = keep_combined_ok(TestOk,TestOkAll)
+plot_test_2_lim(args,isCloudyLandTwilight,isClearLandTwilight, TestOk, 
+                THRESHOLD1, np.mean(THRESHOLD2), show=True)
+print_stats(cloudtype,isCloudyLandTwilight,isClearLandTwilight,isCloudyPPS,TestOkAll)
+#----------------------------------
+#ColdWaterCloudTest land twilight 
+#----------------------------------
+args = {'title': "coldwaterCloudTest_All_SeaTwilight",
+      'xlable': 'T11-T37 minus dynamic threshold',
+      'ylable': 'T11-Ts minus dynamic threshold',
+      'xvector': t11_t37_minus_threshold,
+      'yvector': t11_ts_minus_threshold,
+      'isCloudyPPS': isCloudyPPS,
+      'isClearPPS': isClearPPS,   
+}
+tmp_thr = np.min([OFFSETS['T11_OFFSET_LAND_NIGHT'], OFFSETS['T11_OFFSET_LAND_DAY']])
+THRESHOLD2 = 0.0 +OFFSETS['QUALITY_MARGIN_T11T37']#
+THRESHOLD1 = tmp_thr -1*OFFSETS['QUALITY_MARGIN_T11TSUR']#
+TSUR_THRESHOLD = 0.0
+if RunWithOutMargins:
+    THRESHOLD2 = 0.0
+    THRESHOLD1 = tmp_thr 
+TestOk = np.logical_and(surftemp>TSUR_THRESHOLD,
+                        np.logical_and(t11_t37_minus_threshold>THRESHOLD2,
+                                       t11_ts_minus_threshold<THRESHOLD1))
+TestOkAll = keep_combined_ok(TestOk,TestOkAll)
+plot_test_2_lim(args,isCloudyLandTwilight,isClearLandTwilight, TestOk, 
+                THRESHOLD1, THRESHOLD2, show=True)
+print_stats(cloudtype,isCloudyLandTwilight,isClearLandTwilight,isCloudyPPS,TestOkAll)
+#----------------------------------
+#watercloudtest land twilight 
+#----------------------------------
+args = {'title': "waterCloudTest_All_LandTwilight",
+      'xlable': 'Tsur',
+      'ylable': 'T11-T37 minus dynamic threshold',
+      'xvector': surftemp,
+      'yvector': t11_t37_minus_threshold,
+      'isCloudyPPS': isCloudyPPS,
+      'isClearPPS': isClearPPS,   
+}
+THRESHOLD = 0.0 + OFFSETS['QUALITY_MARGIN_T11T37']
+if RunWithOutMargins:
+    THRESHOLD = 0.0
+TestOk = t11_t37_minus_threshold>THRESHOLD
+TestOkAll = keep_combined_ok(TestOk,TestOkAll)
+plot_test(args,isCloudyLandTwilight,isClearLandTwilight,TestOk,THRESHOLD, show=True)
+print_stats(cloudtype,isCloudyLandTwilight,isClearLandTwilight,isCloudyPPS,TestOkAll)
+#----------------------------------
+#coldcloudtest land twilight
+#----------------------------------
+args = {'title': "coldCloudTest_All_LandTwilight_without_Tsur_limit_should_perhaps_be_with",
+      'xlable': 'Tsur',
+      'ylable': 'T11-Ts minus dynamic threshold',
+      'xvector': surftemp,
+      'yvector': t11_ts_minus_threshold,
+      'isCloudyPPS': isCloudyPPS,
+      'isClearPPS': isClearPPS,   
+}
+tmp_thr = np.min([OFFSETS['T11_OFFSET_SEA_DAY_OPAQUE'], OFFSETS['T11_OFFSET_SEA_NIGHT_OPAQUE']])
+THRESHOLD = tmp_thr -1*OFFSETS['QUALITY_MARGIN_T11TSUR'] #-15.0-1.0
+if RunWithOutMargins:
+    THRESHOLD = tmp_thr
+TestOk = t11_ts_minus_threshold<THRESHOLD
+TestOkAll = keep_combined_ok(TestOk,TestOkAll)
+plot_test(args,isCloudyLandTwilight,isClearLandTwilight,TestOk,THRESHOLD, show=True)
+print_stats(cloudtype,isCloudyLandTwilight,isClearLandTwilight,isCloudyPPS,TestOkAll)
+#----------------------------------
+#thinCirrusSecondaryTest land twilight 
+#----------------------------------
+args = {'title': "thinCirrusSecondaryTest_All_LandTwilight_lat",
+        'xlable': 'Latitude',
+        'ylable': 'T11-T12 minus dynamic threshold',
+        'xvector': latitude,
+        'yvector': t11_t12_minus_threshold,
+        'isCloudyPPS': isCloudyPPS,
+        'isClearPPS': isClearPPS,   
+}
+tmp_thr =np.where(
+    sunz>=90.0,
+    0.5*(OFFSETS['T11T12_OFFSET_SEA_NIGHT'] + OFFSETS['T11T12_OFFSET_SEA_DAY']),
+    OFFSETS['T11T12_OFFSET_SEA_DAY'])
+THRESHOLD =tmp_thr  + OFFSETS['QUALITY_MARGIN_T11T12']#-7.0-1.0
+if RunWithOutMargins:
+    THRESHOLD = tmp_thr 
+TestOk = t11_t12_minus_threshold>THRESHOLD 
+TestOkAll = TestOk
+plot_test(args,isCloudyLandTwilight, isClearLandTwilight, TestOk, np.min(THRESHOLD), show=False)
+print_stats(cloudtype,isCloudyLandTwilight,isClearLandTwilight,isCloudyPPS, TestOkAll)
+#----------------------------------
+#ThinCirrusPrimaryTest land twilight
+#----------------------------------
+args = {'title': "thinCirrusPrimaryTest_All_LandTwilight",
+        'xlable': 'Tsur',
+        'ylable': 'T37-T12 minus dynamic threshold',
+        'xvector': surftemp,
+        'yvector': t37_t12_minus_threshold,
+        'isCloudyPPS': isCloudyPPS,
+        'isClearPPS': isClearPPS,   
+}
+tmp_thr =np.where(
+    sunz>=90.0,
+    0.5*(OFFSETS['T37T12_OFFSET_LAND_NIGHT']+OFFSETS['T37T12_OFFSET_LAND_DAY']),
+    OFFSETS['T37T12_OFFSET_LAND_DAY'])
+THRESHOLD = tmp_thr+OFFSETS['QUALITY_MARGIN_T37T12']#2.0+0.3
+if RunWithOutMargins:
+    THRESHOLD = tmp_thr
+TestOk = t37_t12_minus_threshold>THRESHOLD
+TestOkAll = np.logical_and(TestOk,TestOkAll)
+plot_test(args,isCloudyLandTwilight,isClearLandTwilight,TestOk,np.min(THRESHOLD))
+print_stats(cloudtype,isCloudyLandTwilight,isClearLandTwilight,isCloudyPPS,TestOkAll)
+####################################
 # TWILIGHT ICE
 ####################################
+print_stats(cloudtype,isCloudyIceTwilight,isClearIceTwilight,isCloudyPPS, TestOkAll)
 isCloudyIceTwilight = np.logical_and(isCloudyIceTwilight, np.not_equal(cloudtype,4))
 isClearIceTwilight = np.logical_and(isClearIceTwilight, np.not_equal(cloudtype,4))
-print "***snow test, not implemented***"
+print "***snow test, not implemented, remove snow/ice pixels***"
+print_stats(cloudtype,isCloudyIceTwilight,isClearIceTwilight,isCloudyPPS, TestOkAll)
 #----------------------------------
 #thinCirrusSecondaryTest sea twilight ice
 #----------------------------------
@@ -1262,7 +1456,6 @@ TestOkAll = keep_combined_ok(TestOk,TestOkAll)
 plot_test_2_lim(args,isCloudyIceTwilight,isClearIceTwilight, TestOk, 
                 THRESHOLD1, np.mean(THRESHOLD2), show=False)
 print_stats(cloudtype,isCloudyIceTwilight,isClearIceTwilight,isCloudyPPS, TestOkAll)
-
 #----------------------------------
 #pseudo06CloudTest3A sea twilight ice
 #----------------------------------
@@ -1293,7 +1486,6 @@ plot_test_2_lim(args,isCloudy,isClear, TestOk,
 plot_test_2_lim(args,isCloudyIceTwilight,isClearIceTwilight, TestOk, 
                 THRESHOLD1, np.mean(THRESHOLD2), show=False)
 print_stats(cloudtype,isCloudyIceTwilight,isClearIceTwilight,isCloudyPPS,TestOkAll)
-
 #----------------------------------
 #ColdWaterCloudTest sea twilight ice
 #----------------------------------
@@ -1388,7 +1580,9 @@ plot_test_2_lim(args,isCloudy,isClear, TestOk,
 plot_test_2_lim(args,isCloudyIceTwilight,isClearIceTwilight, TestOk, 
                 THRESHOLD1, np.mean(THRESHOLD2), show=False)
 print_stats(cloudtype,isCloudyIceTwilight,isClearIceTwilight,isCloudyPPS,TestOkAll)
-
+#----------------------------------
+# "T12T37_T11TS_All sea twilight ice
+#----------------------------------
 args = {'title': "T12T37_T11TS_All_SeaTwilightIce",
       'ylable': 'T12-Ts minus dynamic threshold',
       'xlable': 'T11-T37 minus dynamic threshold',
@@ -1418,7 +1612,7 @@ args = {'title': "thinCirrusSecondaryTest_All_SeaTwilightNoIce_lat",
         'isClearPPS': isClearPPS,   
 }
 tmp_thr = 0.5*(OFFSETS['T11T12_OFFSET_SEA_NIGHT'] + OFFSETS['T11T12_OFFSET_SEA_DAY'])
-THRESHOLD =tmp_thr  + OFFSETS['QUALITY_MARGIN_T11T12']#-7.0-1.0
+THRESHOLD =tmp_thr  + OFFSETS['QUALITY_MARGIN_T11T12']
 if RunWithOutMargins:
     THRESHOLD = tmp_thr
 TestOk = t11_t12_minus_threshold>THRESHOLD 
@@ -1463,8 +1657,8 @@ args = {'title': "texturNightTest_All_SeaTwilightNoIce",
         'isCloudyPPS': isCloudyPPS,
         'isClearPPS': isClearPPS,   
 }
-THRESHOLD2 = OFFSETS['T11TEXT_OFFSET_SEA_DAY'] + OFFSETS['QUALITY_MARGIN_T11TEXT']#0.85+0.15
-THRESHOLD1 = OFFSETS['T37T12TEXT_OFFSET_SEA_DAY'] + OFFSETS['QUALITY_MARGIN_T37T12TEXT']#0.75+0.15
+THRESHOLD2 = OFFSETS['T11TEXT_OFFSET_SEA_DAY'] + OFFSETS['QUALITY_MARGIN_T11TEXT']
+THRESHOLD1 = OFFSETS['T37T12TEXT_OFFSET_SEA_DAY'] + OFFSETS['QUALITY_MARGIN_T37T12TEXT']
 TSUR_THRESHOLD = OFFSETS['COLDEST_SEASURFACE_TEMP']
 if RunWithOutMargins:
     THRESHOLD2 = OFFSETS['T11TEXT_OFFSET_SEA_DAY']
@@ -1487,7 +1681,7 @@ args = {'title': "coldCloudTest_All_SeaTwilightNoIce_without_Tsur_limit",
       'isCloudyPPS': isCloudyPPS,
       'isClearPPS': isClearPPS,   
 }
-THRESHOLD = OFFSETS['T11_OFFSET_SEA_DAY_OPAQUE'] -1*OFFSETS['QUALITY_MARGIN_T11TSUR'] #-15.0-1.0
+THRESHOLD = OFFSETS['T11_OFFSET_SEA_DAY_OPAQUE'] -1*OFFSETS['QUALITY_MARGIN_T11TSUR'] 
 if RunWithOutMargins:
     THRESHOLD =  OFFSETS['T11_OFFSET_SEA_DAY_OPAQUE']
 TSUR_THRESHOLD=0.0
@@ -1555,9 +1749,8 @@ plot_test_2_lim(args,isCloudy,isClear, TestOk,
 plot_test_2_lim(args,isCloudyWaterTwilight,isClearWaterTwilight, TestOk, 
                 THRESHOLD1, np.mean(THRESHOLD2), show=True)
 print_stats(cloudtype,isCloudyWaterTwilight,isClearWaterTwilight,isCloudyPPS,TestOkAll)
-
 #----------------------------------
-#ColdWaterCloudTest sea twilightno ice
+#ColdWaterCloudTest sea twilight no ice
 #----------------------------------
 args = {'title': "coldwaterCloudTest_All_SeaTwilightNoIce",
       'xlable': 'T11-T37 minus dynamic threshold',
@@ -1582,7 +1775,7 @@ plot_test_2_lim(args,isCloudyWaterTwilight,isClearWaterTwilight, TestOk,
                 THRESHOLD1, THRESHOLD2, show=True)
 print_stats(cloudtype,isCloudyWaterTwilight,isClearWaterTwilight,isCloudyPPS,TestOkAll)
 #----------------------------------
-#watercloudtest sea twilightno ice
+#watercloudtest sea twilight no ice
 #----------------------------------
 args = {'title': "waterCloudTest_All_SeaTwilightNoIce",
       'xlable': 'Latitude',
@@ -1600,7 +1793,7 @@ TestOkAll = keep_combined_ok(TestOk,TestOkAll)
 plot_test(args,isCloudyWaterTwilight,isClearWaterTwilight,TestOk,THRESHOLD, show=True)
 print_stats(cloudtype,isCloudyWaterTwilight,isClearWaterTwilight,isCloudyPPS,TestOkAll)
 #----------------------------------
-#coldcloudtest sea twilightno ice
+#coldcloudtest sea twilight no ice
 #----------------------------------
 args = {'title': "coldCloudTest_All_SeaTwilightNoIce_with_tsur_limit",
       'xlable': 'Tsur',
@@ -1621,7 +1814,7 @@ TestOkAll = keep_combined_ok(TestOk,TestOkAll)
 plot_test(args,isCloudyWaterTwilight,isClearWaterTwilight,TestOk,THRESHOLD, show=True)
 print_stats(cloudtype,isCloudyWaterTwilight,isClearWaterTwilight,isCloudyPPS,TestOkAll)
 #----------------------------------
-#reflectingCloudTest sea twilightno ice
+#reflectingCloudTest sea twilight no ice
 #----------------------------------
 args = {'title': "reflectingCloudTestSea_All_SeaTwilightNoIce",
       'xlable': 'r06 not scaled',
@@ -1644,7 +1837,6 @@ if RunWithOutMargins:
 TestOk = np.logical_and(2>0,
                         np.logical_and(t11<THRESHOLD1,
                                        pseudor06_not_scaled>THRESHOLD2))
-
 TestOkAll = keep_combined_ok(TestOk,TestOkAll)
 plot_test_2_lim(args,isCloudy,isClear, TestOk, 
                 THRESHOLD1, np.mean(THRESHOLD2), show=True)
@@ -1690,7 +1882,6 @@ TestOk = np.logical_and(t11_t37_minus_threshold>THRESHOLD1,t37t12text<THRESHOLD2
 TestOkAll=TestOk
 plot_test_2_lim(args,isCloudyIceNight, isClearIceNight, TestOk, THRESHOLD1, THRESHOLD2, show=True)
 print_stats(cloudtype,isCloudyIceNight,isClearIceNight,isCloudyPPS,TestOkAll)
-
 #----------------------------------
 #coldcloudtest sea night ice
 #----------------------------------
@@ -1710,7 +1901,6 @@ TestOk = np.logical_and(t11_ts_minus_threshold<THRESHOLD,surftemp>TSUR_THRESHOLD
 TestOkAll = keep_combined_ok(TestOk,TestOkAll)
 plot_test(args,isCloudyIceNight,isClearIceNight,TestOk,THRESHOLD)
 print_stats(cloudtype,isCloudyIceNight,isClearIceNight,isCloudyPPS,TestOkAll)
-
 #----------------------------------
 #arcticThinCirrusPrimaryTest sea night ice
 #----------------------------------
@@ -1734,7 +1924,6 @@ print "arcticthinCirrusPrimarytest cirrus night sea ice"
 args['title']= "arcticthinCirrusPrimaryTest_ThinCirrus_SeaNightIce"
 plot_test_2_lim(args,isCloudyCirrusIceNight, isClearIceNight, TestOk, THRESHOLD1, THRESHOLD2)
 print_stats(cloudtype,isCloudyIceNight,isClearIceNight,isCloudyPPS,TestOkAll)
-
 #----------------------------------
 #arcticThinWaterCloudTest sea night ice
 #----------------------------------
@@ -1757,7 +1946,6 @@ TestOk = np.logical_and(t37_t12_minus_threshold_inv<THRESHOLD1, t37t12text<THRES
 TestOkAll = keep_combined_ok(TestOk,TestOkAll)
 plot_test_2_lim(args,isCloudyIceNight,isClearIceNight,TestOk, THRESHOLD1, THRESHOLD2)
 print_stats(cloudtype,isCloudyIceNight,isClearIceNight,isCloudyPPS,TestOkAll)
-
 #----------------------------------
 #arcticWarmcloudtest sea night ice
 #----------------------------------
@@ -1775,7 +1963,6 @@ THRESHOLD2 = 1.5 + 0.5#OFFSETS['T37TEXT_OFFSET_SEA_NIGHT_ARCTIC']  + OFFSETS['QU
 TestOk = np.logical_and(t11_ts_minus_threshold_inv>THRESHOLD1,t37text<THRESHOLD2)
 plot_test_2_lim(args,isCloudyIceNight, isClearIceNight, TestOk, THRESHOLD1, THRESHOLD2)
 print_stats(cloudtype,isCloudyIceNight,isClearIceNight,isCloudyPPS,TestOkAll)
-
 #----------------------------------
 #arcticWarmcloudtest Salomons sea night ice
 #----------------------------------
@@ -1798,7 +1985,6 @@ TestOk = np.logical_and(np.logical_and(t11_ts_minus_threshold_inv>THRESHOLD1,
 TestOkAll = keep_combined_ok(TestOk,TestOkAll)
 plot_test_2_lim(args,isCloudyIceNight, isClearIceNight, TestOk, THRESHOLD1, THRESHOLD3)
 print_stats(cloudtype,isCloudyIceNight,isClearIceNight,isCloudyPPS,TestOkAll)
-
 #----------------------------------
 #arcticWarmCirrusSecondaryTest sea night
 #----------------------------------
@@ -1820,7 +2006,6 @@ TestOk = t11_t12_minus_threshold_inv<THRESHOLD
 TestOkAll = keep_combined_ok(TestOk,TestOkAll)
 plot_test(args,isCloudyIceNight, isClearIceNight, TestOk, THRESHOLD)
 print_stats(cloudtype,isCloudyIceNight,isClearIceNight,isCloudyPPS,TestOkAll)
-
 #----------------------------------
 #arcticThinCirrusSecondaryTest sea night ice
 #----------------------------------
@@ -1846,7 +2031,6 @@ print "thinCirrusSecondarytest cirrus night sea ice"
 args['title']= "arcticthinCirrusSecondaryTest_ThinCirrus_SeaNightIce"
 plot_test_2_lim(args,isCloudyCirrusIceNight, isClearIceNight, TestOk, THRESHOLD1, THRESHOLD2)
 print_stats(cloudtype,isCloudyIceNight,isClearIceNight,isCloudyPPS,TestOkAll)
-
 #----------------------------------
 #extra waterCloudTest sea night
 #----------------------------------
@@ -1984,7 +2168,6 @@ print_stats(cloudtype,isCloudyWaterDay,isClearWaterDay,isCloudyPPS,TestOkAll)
 #----------------------------------
 #thinCirrusSecondaryTest sea day
 #----------------------------------
-print "thinCirrusSecondaryTest sea day no ice"
 args = {'title': "thinCirrusSecondaryTest_All_SeaDayNoIce_lat",
         'xlable': 'Latitude',
         'ylable': 'T11-T12 minus dynamic threshold',
@@ -2007,7 +2190,7 @@ args['xvector'] = surftemp
 args['title'] = "thinCirrusSecondaryTest_ThinCirrus_SeaDayNoIce_tsur"
 plot_test(args,isCloudyCirrusWaterDay, isClearWaterDay, TestOk, THRESHOLD)
 #linear tsur dep threshold
-args = {'title': "testThinCirrusPrimaryTest_All_SeaDayNoIce_lat_linearthreshold",
+args = {'title': "testThinCirrusSecondaryTest_All_SeaDayNoIce_lat_linearthreshold",
         'xlable': 'Latitude',
         'ylable': 'T11-T12 minus dynamic threshold',
         'xvector': latitude,
@@ -2024,7 +2207,7 @@ TestOkAll = keep_combined_ok(TestOk,TestOkAll)
 plot_test(args,isCloudyCirrusWaterDay,isClearWaterDay,TestOk,THRESHOLD)
 args['title'] = "testThinCirrusSecondaryTest_All_SeaDayNoIce_lat_linearthreshold_1p5"
 plot_test(args,isCloudyWaterDay,isClearWaterDay,TestOk,THRESHOLD)
-args = {'title': "testThinCirrusPrimaryTest_All_SeaDayNoIce_lat_linearthreshold_1.0",
+args = {'title': "testThinCirrusSecondaryTest_All_SeaDayNoIce_lat_linearthreshold_1.0",
         'xlable': 'Latitude',
         'ylable': 'T11-T12 minus dynamic threshold',
         'xvector': latitude,
