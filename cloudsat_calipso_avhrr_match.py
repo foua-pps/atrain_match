@@ -181,10 +181,12 @@ class ppsFiles(object):
         self.thr_t11t37_inv = None
         self.thr_t37t12_inv = None
         self.thr_t11t12_inv = None
+        self.thr_t85t11_inv = None
         self.thr_t11ts = None
         self.thr_t11t37 = None
         self.thr_t37t12 = None
         self.thr_t11t12 = None
+        self.thr_t85t11 = None
         self.thr_r06 = None
         self.thr_r09 = None
         self.__dict__.update(file_name_dict)    
@@ -205,10 +207,12 @@ class NWPObj(object):
         self.thr_t11t37_inv = None
         self.thr_t37t12_inv = None
         self.thr_t11t12_inv = None
+        self.thr_t85t11_inv = None
         self.thr_t11ts = None
         self.thr_t11t37 = None
         self.thr_t37t12 = None
         self.thr_t11t12 = None
+        self.thr_t85t11 = None
         self.thr_r06 = None
         self.thr_r09 = None
         self.__dict__.update(array_dict) 
@@ -609,7 +613,8 @@ def find_files_from_avhrr(avhrr_file, options):
     for thr_file in ['thr_t11ts_inv', 'thr_t11t37_inv', 
                      'thr_t37t12_inv', 'thr_t11t12_inv', 
                      'thr_t11ts', 'thr_t11t37', 'thr_t37t12', 'thr_t11t12',
-                     'thr_r09', 'thr_r06']:
+                     'thr_r09', 'thr_r06',
+                     'thr_t85t11_inv', 'thr_t85t11']:
         file_name_dict[thr_file] = get_pps_file(avhrr_file, options, values, 
                                                 thr_file+'_file', 'thr_dir')
  
@@ -834,7 +839,7 @@ def read_pps_data(pps_files, avhrr_file, cross):
         nwp_dict[text_type] = read_thr(getattr(pps_files,text_type), h5_obj_type,text_type)
     for h5_obj_type in ['t11ts_inv', 't11t37_inv', 't37t12_inv', 't11t12_inv', 
                         't11ts', 't11t37', 't37t12', 't11t12',
-                        'r09', 'r06']:
+                        'r09', 'r06', 't85t11_inv', 't85t11']:
         thr_type = 'thr_' + h5_obj_type
         nwp_dict[thr_type] = read_thr(getattr(pps_files,thr_type), h5_obj_type, thr_type)
 

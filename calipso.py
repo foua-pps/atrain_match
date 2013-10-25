@@ -539,10 +539,12 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
     thr_t11t37_inv_track = []
     thr_t37t12_inv_track = []
     thr_t11t12_inv_track = []
+    thr_t85t11_inv_track = []
     thr_t11ts_track = []
     thr_t11t37_track = []
     thr_t37t12_track = []
     thr_t11t12_track = []
+    thr_t85t11_track = []
     thr_r09_track = []
     thr_r06_track = []
 
@@ -601,6 +603,10 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
     if nwp_obj.text_t37 != None:
         text_t37_track = [nwp_obj.text_t37[row_matched[idx], col_matched[idx]]
                           for idx in range(row_matched.shape[0])]
+    if nwp_obj.thr_t85t11_inv != None:
+        thr_t85t11_inv_track = [
+            nwp_obj.thr_t85t11_inv[row_matched[idx], col_matched[idx]]
+            for idx in range(row_matched.shape[0])]
     if nwp_obj.thr_t11ts_inv != None:
         thr_t11ts_inv_track = [
             nwp_obj.thr_t11ts_inv[row_matched[idx], col_matched[idx]]
@@ -616,6 +622,10 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
     if nwp_obj.thr_t11t12_inv != None:
         thr_t11t12_inv_track = [
             nwp_obj.thr_t11t12_inv[row_matched[idx], col_matched[idx]]
+            for idx in range(row_matched.shape[0])]
+    if nwp_obj.thr_t85t11 != None:
+        thr_t85t11_track = [
+            nwp_obj.thr_t85t11[row_matched[idx], col_matched[idx]]
             for idx in range(row_matched.shape[0])] 
     if nwp_obj.thr_t11ts != None:
         thr_t11ts_track = [
@@ -795,12 +805,16 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
         obt.avhrr.text_t37 = np.array(text_t37_track)
     if nwp_obj.thr_t11ts_inv != None:
         obt.avhrr.thr_t11ts_inv = np.array(thr_t11ts_inv_track)
+    if nwp_obj.thr_t85t11_inv != None:
+        obt.avhrr.thr_t85t11_inv = np.array(thr_t85t11_inv_track)
     if nwp_obj.thr_t11t37_inv != None:
         obt.avhrr.thr_t11t37_inv = np.array(thr_t11t37_inv_track)
     if nwp_obj.thr_t37t12_inv != None:
         obt.avhrr.thr_t37t12_inv = np.array(thr_t37t12_inv_track)
     if nwp_obj.thr_t11t12_inv != None:
         obt.avhrr.thr_t11t12_inv = np.array(thr_t11t12_inv_track)
+    if nwp_obj.thr_t85t11 != None:
+        obt.avhrr.thr_t85t11 = np.array(thr_t85t11_track)
     if nwp_obj.thr_t11ts != None:
         obt.avhrr.thr_t11ts = np.array(thr_t11ts_track)
     if nwp_obj.thr_t11t37 != None:
