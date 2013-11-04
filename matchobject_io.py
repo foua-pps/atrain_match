@@ -65,9 +65,15 @@ class DataObject(object):
             except ValueError, e:
                 #print "Don't concatenate member " + key + "... " + str(e)
                 self.all_arrays[key] = other.all_arrays[key]
-            
         return self
 
+    def mask_nodata(self, nodata):
+        for key in self.all_arrays:
+            try:
+                self.all_arrays[key] = np.ma.array(self.all_arrays[key], mask = self.all_arrays[key]<=nodata)
+            except:
+                print "cloud not mask %s"%(key)
+            
             
 class ppsAvhrrObject(DataObject):
     def __init__(self):
