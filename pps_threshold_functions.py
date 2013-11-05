@@ -243,8 +243,8 @@ def print_stats_snow(Scheme,caobj, cloudObj, args):
     isCloudyStats = cloudObj.isCloudy.all_arrays[Scheme]
     isPPSCloudyOrClear = cloudObj.isPpsProcessed
 
-    TestOk = np.logical_and(np.equal(cloudObj.isPpsCloudtypeSnow,False),
-                            np.equal(cloudObj.isPpsCloudtypeIce,False))
+    TestOk = np.logical_or(cloudObj.isPpsCloudtypeSnow,
+                           cloudObj.isPpsCloudtypeIce)
 
     isDetectedByThisTest = np.logical_and(np.logical_and(isClearStats,isClearPPS),
                                           TestOk)
@@ -275,7 +275,6 @@ def print_stats_snow(Scheme,caobj, cloudObj, args):
         "PART of all cloudy mis-classed %2.1f"%(PART_cloudy_missclassed*100))
     print POD_FAR_INFO 
     print "*********************************"
-    print TestOk
     return TestOk
 
 def print_stats(Scheme,caobj, cloudObj, args=None, TestOkAll=None):
