@@ -390,7 +390,7 @@ def get_clear_and_cloudy_vectors(caObj, isACPGv2012, isGAC):
     SeesThrough = caObj.calipso.all_arrays['lidar_surface_elevation'][0] >-999
     isHigh = caObj.calipso.all_arrays['cloud_top_profile'][0] >5.0
     if isGAC:
-        isOpticallyThinTop = caObj.calipso.all_arrays['optical_depth'][0]<1.0
+        isOpticallyThinTopLay = caObj.calipso.all_arrays['optical_depth'][0]<1.0
         notVeryThinTopLay = caObj.calipso.all_arrays['optical_depth'][0]>0.2
         #isOpticallyThin = caObj.calipso.all_arrays['optical_depth'][0]<1.0
         #notVeryThin = caObj.calipso.all_arrays['optical_depth'][0]>0.2
@@ -398,12 +398,12 @@ def get_clear_and_cloudy_vectors(caObj, isACPGv2012, isGAC):
         isOpticallyThinTopLay = caObj.calipso.all_arrays['optical_depth_top_layer5km']<5.0
         notVeryThinTopLay = caObj.calipso.all_arrays['optical_depth_top_layer5km']>0.2
 #isTooThin = caObj.calipso.all_arrays['total_optical_depth5km']<0.2
-        isCloudyPPS = np.logical_and(caObj.avhrr.all_arrays['cloudtype']>4,
-                                     caObj.avhrr.all_arrays['cloudtype']<21)
-        isClearPPS = np.logical_and(caObj.avhrr.all_arrays['cloudtype']>0,
-                                    caObj.avhrr.all_arrays['cloudtype']<5)
-        isPPSCloudyOrClear = np.logical_and(caObj.avhrr.all_arrays['cloudtype']>0,
-                                            caObj.avhrr.all_arrays['cloudtype']<21)
+    isCloudyPPS = np.logical_and(caObj.avhrr.all_arrays['cloudtype']>4,
+                                 caObj.avhrr.all_arrays['cloudtype']<21)
+    isClearPPS = np.logical_and(caObj.avhrr.all_arrays['cloudtype']>0,
+                                caObj.avhrr.all_arrays['cloudtype']<5)
+    isPPSCloudyOrClear = np.logical_and(caObj.avhrr.all_arrays['cloudtype']>0,
+                                        caObj.avhrr.all_arrays['cloudtype']<21)
 
     cloudtype_conditions = caObj.avhrr.all_arrays['cloudtype_conditions']
     cloudtype_status = caObj.avhrr.all_arrays['cloudtype_status']

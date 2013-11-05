@@ -27,11 +27,11 @@ from cloudsat_calipso_avhrr_statistics import (
     get_sunglint_info_pps2014,
     get_mountin_info_pps2014)
 
-isNPP = True
+isNPP = False
+isACPGv2012=False
 isGAC_v2012 = False
 RunWithOutMargins=True
-RunEdited= False
-isACPGv2012=False
+RunEdited= True
 if isNPP and isACPGv2012:
     isACPGv2012=True
     isGAC=False
@@ -58,9 +58,8 @@ elif isNPP and  not isACPGv2012:
         ROOT_DIR = "/local_disk/nina_pps/data_validation_ctth_patch_nov2012/VALIDATION_20131014_Test_CM_12_and_half_shemes/Reshaped_Files/npp/1km/"
         ROOT_DIR = "/local_disk/nina_pps/data_validation_ctth_patch_nov2012/VALIDATION_20131014_Test_CM_12_and_half_shemes_18v2014coldtestsadded/Reshaped_Files/npp/1km/"
         ROOT_DIR = "/local_disk/nina_pps/data_validation_ctth_patch_nov2012/VALIDATION_20131014_Test_CM_12_and_half_shemes_18v2014coldtestsadded_sunz_thr_on_snow_tests_texture_and_ice_thr/Reshaped_Files/npp/1km/"
-        ROOT_DIR = "/local_disk/nina_pps/data_validation_ctth_patch_nov2012/VALIDATION_20131014_Test_CM_12_and_half_shemes_18v2014coldtestsadded_sunz_thr_on_snow_tests_texture_and_ice_thr_all/Reshaped_Files/npp/1km/"
-
-
+        #ROOT_DIR = "/local_disk/nina_pps/data_validation_ctth_patch_nov2012/VALIDATION_20131014_Test_CM_12_and_half_shemes_18v2014coldtestsadded_sunz_thr_on_snow_tests_texture_and_ice_thr_all/Reshaped_Files/npp/1km/"
+        ROOT_DIR = "/local_disk/nina_pps/data_validation_ctth_patch_nov2012/VALIDATION_20131014_Test_CM_including_new_sst_2/Reshaped_Files/npp/1km/"
     	#ROOT_DIR ="Reshaped_Files_2014/Reshaped_Files/npp6sh85/1km/"
         SATELLITE = 'npp_cm_edited'
     files = glob(ROOT_DIR + "/????/??/*/*h5")
