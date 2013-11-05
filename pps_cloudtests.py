@@ -30,7 +30,7 @@ def coldCloudTest_v2014(SchemeName, caobj, cloudObj, thr, OFFSETS, args,  info="
         'SunglintTwilight': 100, 
         'WaterDay': 100, 
         'WaterNight': -7, 
-        'WaterTwilight': 100 
+        'WaterTwilight': -4 
         }
     OFFSETS_coldCloudTest_v2014['tsur_threshold'] = {  
         'All': 0,
@@ -455,7 +455,8 @@ def thinCirrusSecondaryTest(SchemeName, caobj, cloudObj, thr, OFFSETS, args,
         'SunglintTwilight': 100, 
         'WaterDay': 100, 
         'WaterNight': 100, 
-        'WaterTwilight': 100 
+        'WaterTwilight': 0.5*(OFFSETS['T11T12_OFFSET_SEA_NIGHT'] + 
+                              OFFSETS['T11T12_OFFSET_SEA_DAY'])
         } 
     if onlyCirrus:
         title =info+"thinCirrusSecondaryTest_Cirrus_"+ SchemeName
@@ -639,9 +640,9 @@ def textureNightTest(SchemeName, caobj, cloudObj, thr, OFFSETS, args,
         'IceTwilight': 100,  
         'SunglintDay': 100, 
         'SunglintTwilight': 100, 
-        'WaterDay': 100, 
+        'WaterDay': OFFSETS['T11TEXT_OFFSET_SEA_DAY'], 
         'WaterNight': OFFSETS['T11TEXT_OFFSET_SEA_NIGHT'], 
-        'WaterTwilight': 100 
+        'WaterTwilight': OFFSETS['T11TEXT_OFFSET_SEA_DAY'] 
         }
     OFFSETS_textureNight['t37t12text_OFFSETS'] = {         
         'IceDay': 100, 
@@ -649,9 +650,19 @@ def textureNightTest(SchemeName, caobj, cloudObj, thr, OFFSETS, args,
         'IceTwilight': 100,  
         'SunglintDay': 100, 
         'SunglintTwilight': 100, 
-        'WaterDay': 100, 
+        'WaterDay': OFFSETS['T37T12TEXT_OFFSET_SEA_DAY'], 
         'WaterNight': OFFSETS['T37T12TEXT_OFFSET_SEA_NIGHT'], 
-        'WaterTwilight': 100 
+        'WaterTwilight': OFFSETS['T37T12TEXT_OFFSET_SEA_DAY']
+        }
+    OFFSETS_textureNight['tsur_threshold'] = {         
+        'IceDay': 100, 
+        'IceNight': 100, 
+        'IceTwilight': 100,  
+        'SunglintDay': 100, 
+        'SunglintTwilight': 100, 
+        'WaterDay': OFFSETS['TSUR_THR_SNOW_MAX'], 
+        'WaterNight': 0,
+        'WaterTwilight':OFFSETS['COLDEST_SEASURFACE_TEMP'], 
         }
     if onlyCirrus:
         title =info+"textureNight_Cirrus_"+ SchemeName
@@ -1477,6 +1488,96 @@ def reflectingCloudTest(SchemeName, caobj, cloudObj, thr, OFFSETS, args,
                     np.mean(THRESHOLD1), np.mean(THRESHOLD2), onlyCirrus=onlyCirrus, 
                     show=show)
     return TestOk
+def reflectingCloudTestSea(SchemeName, caobj, cloudObj, thr, OFFSETS, args,   
+                    info="",  NEW_T11_THR=None, onlyCirrus=False, ExtraCond=None, show=False):
+    OFFSETS_reflectingCloudTestSea = {}  
+    OFFSETS_reflectingCloudTest['t11_OFFSETS'] = { 
+        'CoastDay': 100, 
+        'CoastDayMount': 100,  
+        'CoastTwilight': 100, 
+        'CoastTwilightInv': 100, 
+        'IceDay': 100,  
+        'IceTwilight': 100, 
+        'LandDay': 100,
+        'LandDayMount': 100,
+        'LandTwilight': 100,
+        'LandTwilightInv': 100, 
+        'LandTwilightMount': 100, 
+        'SunglintDay': 100, 
+        'SunglintTwilight': 100, 
+        'WaterDay': 100, 
+        'WaterTwilight': OFFSETS['T11_SEA_MIN'] -3.0
+        }          
+    OFFSETS_reflectingCloudTestSea['vis_gain_OFFSETS'] = { 
+        'CoastDay': 100, 
+        'CoastDayMount': 100, 
+        'CoastTwilight': 100, 
+        'CoastTwilightInv': 100, 
+        'IceDay': 100, 
+        'IceTwilight': 100, 
+        'LandDay': 100,
+        'LandDayMount': 100,
+        'LandTwilight': 100,
+        'LandTwilightInv': 100, 
+        'LandTwilightMount': 100, 
+        'SunglintDay': 100, 
+        'SunglintTwilight': 100, 
+        'WaterDay': 100, 
+        'WaterTwilight': OFFSETS['VIS_STATIC_SEA_GAIN'] 
+        } 
+    OFFSETS_reflectingCloudTestSea['vis_offset_OFFSETS'] = { 
+        'CoastDay': 100, 
+        'CoastDayMount': 100,  
+        'CoastTwilight': 100, 
+        'CoastTwilightInv': 100, 
+        'IceDay': 100, 
+        'IceTwilight': 100, 
+        'LandDay': 100,
+        'LandDayMount': 100,
+        'LandTwilight': 100,
+        'LandTwilightInv': 100, 
+        'LandTwilightMount': 100, 
+        'SunglintDay': 100, 
+        'SunglintTwilight': 100, 
+        'WaterDay': 100, 
+        'WaterTwilight': OFFSETS['VIS_STATIC_SEA_OFFSET'] 
+        } 
+
+    VIS_OFFSET = OFFSETS_reflectingCloudTestSea['vis_offset_OFFSETS'][SchemeName]
+    VIS_GAIN = OFFSETS_reflectingCloudTestSea['vis_gain_OFFSETS'][SchemeName]
+    vis_static = np.where(
+        thr.sunz>=90.0,
+        VIS_OFFSET,
+        VIS_GAIN*(90.0-thr.sunz) + VIS_OFFSET)
+
+    if onlyCirrus:
+        title =info+"reflectingCloudTestSea_Cirrus_"+ SchemeName
+    else:
+        title =info+"reflectingCloudTestSea_All_ "+ SchemeName
+    args_test = {'title': title,
+                 'xlable': 't11',
+                 'ylable': 'T37-T2 minus dynamic threshold',
+                 'xvector': thr.pseudor06,
+                 'yvector': caobj.avhrr.all_arrays['bt11micron'],
+            }
+    THRESHOLD2 = vis_static
+    THRESHOLD1 = OFFSETS_reflectingCloudTestSea['t11_OFFSETS'][SchemeName]
+    if NEW_T11_THR is not None:
+        THRESHOLD1 = NEW_T11_THR
+    if  args['USE_MARGINS']:
+        THRESHOLD2 += OFFSETS['QUALITY_MARGIN_VIS_STATIC']
+        THRESHOLD1 -= OFFSETS['QUALITY_MARGIN_T11']
+
+    TestOk = np.logical_and(caobj.avhrr.all_arrays['bt11micron']<THRESHOLD1,
+                            thr.pseudor06>THRESHOLD2)
+
+    if ExtraCond is not None:
+        TestOk=np.logical_and(ExtraCond, TestOk)
+    plot_test_2_lim(SchemeName, args_test, args, cloudObj, TestOk, 
+                    np.mean(THRESHOLD1), np.mean(THRESHOLD2), onlyCirrus=onlyCirrus, 
+                    show=show)
+    return TestOk
+
 
 def pseudo06CloudTest3A(SchemeName, caobj, cloudObj, thr, OFFSETS, args,   
                     info="",  onlyCirrus=False, ExtraCond=None, show=False):

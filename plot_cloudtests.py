@@ -29,6 +29,7 @@ from pps_cloudtests import(coldCloudTest_v2014,
                            thincoldCirrusTest,
                            coldWatercloudTestDay,
                            reflectingCloudTest,
+                           reflectingCloudTestSea,
                            pseudo06CloudTest3A,
                            textureIrVisTest)
 
@@ -137,7 +138,7 @@ args={'PLOT_DIR': PLOT_DIR,
 EnoughLight = fthr.sunz<OFFSETS['MAX_SUNZEN_TWILIGHT_VIS']
 TempAbove230 = fthr.surftemp>230
 NoChannel3_7 = caobj.avhrr.all_arrays['bt37micron']<=-9
-
+TempAboveColdestSea = fthr.surftemp>TSUR_THRESHOLD = OFFSETS['COLDEST_SEASURFACE_TEMP']
 ###################################
 #ALL CLOUDS
 ###################################
@@ -149,6 +150,73 @@ print_stats(SchemeName, caobj, cloudObj, args, TestOkAll)
 TestOk = thincoldCirrusTest_v2014(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=True)
 print_stats(SchemeName, caobj, cloudObj, args, TestOkAll)
 
+###################################
+# TWILIGHT SEA NO ICE 
+####################################
+SchemeName = 'WaterTwilight'
+TestOkAll=None
+print_stats(SchemeName,caobj, cloudObj, args, TestOkAll)
+TestOkSnow = print_stats_snow(SchemeName,caobj, cloudObj, args)
+cloudObj.isClear.WaterTwilight = np.logical_and(cloudObj.isClear.WaterTwilight,
+                                          np.equal(TestOkSnow,False))
+cloudObj.isCloudy.WaterTwilight = np.logical_and(cloudObj.isCloudy.WaterTwilight,
+                                           np.equal(TestOkSnow,False))
+print "***snow test, not implemented as figure, remove snow/ice pixels***"
+print_stats(SchemeName,caobj, cloudObj, args, TestOkAll) 
+TestOk =  coldCloudTest_v2014(SchemeName, caobj, cloudObj, fthr, OFFSETS, 
+                              args, show=True)
+TestOkAll = keep_combined_ok(TestOk,TestOkAll)
+print_stats(SchemeName,caobj, cloudObj, args, TestOkAll)
+TestOk = thinCirrusSecondaryTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, 
+                                 info="strange_dynamic_thr", show=True)
+TestOkAll = keep_combined_ok(TestOk,TestOkAll)
+print_stats(SchemeName,caobj, cloudObj, args, TestOkAll)
+TestOk = textureIrVisTest(SchemeName, caobj, cloudObj, thr, OFFSETS, args,   
+                          show=True)
+TestOkAll = keep_combined_ok(TestOk,TestOkAll)
+print_stats(SchemeName,caobj, cloudObj, args, TestOkAll)
+TestOk = textureNightTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,   
+                          show=True)
+TestOkAll = keep_combined_ok(TestOk,TestOkAll)
+print_stats(SchemeName,caobj, cloudObj, args, TestOkAll)
+TestOk = coldCloudTest_no_tsurf_lim(SchemeName, caobj, cloudObj, fthr, OFFSETS, 
+                                    args, show=True)                                       
+TestOkAll = keep_combined_ok(TestOk,TestOkAll)
+print_stats(SchemeName,caobj, cloudObj, args, TestOkAll)
+TestOk = reflectingCloudTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=True)
+TestOkAll = keep_combined_ok(TestOk,TestOkAll)
+print_stats(SchemeName,caobj, cloudObj, args, TestOkAll)
+if fthr.qr16r06 is not None:
+     TestOk = pseudo06CloudTest3A(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,   
+                                  info="notudedif37_", ExtraCond=NoChannel3_7, show=True)
+     pseudo06CloudTest3A(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,   
+                         info="maybe_use_alsoif37_", ExtraCond=NoChannel3_7, show=True)
+     TestOkAll = keep_combined_ok(TestOk,TestOkAll)
+     print_stats(SchemeName,caobj, cloudObj, args, TestOkAll)
+TestOk = coldWatercloudTestDay(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,  
+                       show=True)
+TestOkAll = keep_combined_ok(TestOk,TestOkAll)
+print_stats(SchemeName,caobj, cloudObj, args, TestOkAll)
+TestOk = watercloudTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, 
+                        info="added_security_offset_",show=True)
+watercloudTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, 
+                        info="original_added_security_offset_",NEW_THRESHOLD=0,show=True)
+TestOkAll = keep_combined_ok(TestOk,TestOkAll)
+print_stats(SchemeName,caobj, cloudObj, args, TestOkAll)
+TestOk = coldCloudTest_tsurf_lim(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,
+                                 show=True)  
+TestOkAll = keep_combined_ok(TestOk,TestOkAll)
+print_stats(SchemeName,caobj, cloudObj, args, TestOkAll)
+TestOk = reflectingCloudTestSea(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,   
+                                info="less_generous_", show=True)
+TestOkAll = keep_combined_ok(TestOk,TestOkAll)
+print_stats(SchemeName,caobj, cloudObj, args, TestOkAll)
+#add original reflectingCloudTestSea
+if fthr.t85_t11_minus_threshold is not None:
+     TestOk = HighcloudTestt85t11Sea(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,   
+                                     show=True)
+     TestOkAll = keep_combined_ok(TestOk,TestOkAll)
+     print_stats(SchemeName,caobj, cloudObj, args, TestOkAll)
 ####################################
 # TWILIGHT LAND
 ####################################
@@ -180,7 +248,7 @@ if fthr.qr16r06 is not None:
                          info="maybe_use_alsoif37_", ExtraCond=NoChannel3_7, show=True)
      TestOkAll = keep_combined_ok(TestOk,TestOkAll)
      print_stats(SchemeName,caobj, cloudObj, args, TestOkAll)
-coldWatercloudTestDay(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,  
+TestOk = coldWatercloudTestDay(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,  
                        show=True)
 TestOkAll = keep_combined_ok(TestOk,TestOkAll)
 print_stats(SchemeName,caobj, cloudObj, args, TestOkAll)
