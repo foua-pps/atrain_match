@@ -27,7 +27,10 @@ from pps_cloudtests import(coldCloudTest_v2014,
                            coldBrightCloudTest37,
                            coldBrightCloudTest,
                            thincoldCirrusTest,
-                           coldWatercloudTestDay)
+                           coldWatercloudTestDay,
+                           reflectingCloudTest,
+                           pseudo06CloudTest3A,
+                           textureIrVisTest)
 
 """Read all matched data and make some plotting of thresholds
 """
@@ -131,8 +134,10 @@ args={'PLOT_DIR': PLOT_DIR,
       'SATELLITE': SATELLITE,
       'USE_MARGINS':False
       }
-EnoughLight=fthr.sunz<OFFSETS['MAX_SUNZEN_TWILIGHT_VIS']
+EnoughLight = fthr.sunz<OFFSETS['MAX_SUNZEN_TWILIGHT_VIS']
 TempAbove230 = fthr.surftemp>230
+NoChannel3_7 = caobj.avhrr.all_arrays['bt37micron']<=-9
+
 ###################################
 #ALL CLOUDS
 ###################################
@@ -144,6 +149,67 @@ print_stats(SchemeName, caobj, cloudObj, args, TestOkAll)
 TestOk = thincoldCirrusTest_v2014(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=True)
 print_stats(SchemeName, caobj, cloudObj, args, TestOkAll)
 
+####################################
+# TWILIGHT LAND
+####################################
+SchemeName = 'LandTwilight'
+TestOkAll=None
+print_stats(SchemeName,caobj, cloudObj, args, TestOkAll)
+TestOkSnow = print_stats_snow(SchemeName,caobj, cloudObj, args)
+cloudObj.isClear.LandTwilight = np.logical_and(cloudObj.isClear.LandTwilight,
+                                          np.equal(TestOkSnow,False))
+cloudObj.isCloudy.LandTwilight = np.logical_and(cloudObj.isCloudy.LandTwilight,
+                                           np.equal(TestOkSnow,False))
+print "***snow test, not implemented as figure, remove snow/ice pixels***"
+print_stats(SchemeName,caobj, cloudObj, args, TestOkAll) 
+TestOk =  coldCloudTest_v2014(SchemeName, caobj, cloudObj, fthr, OFFSETS, 
+                              args, show=True)
+TestOkAll = keep_combined_ok(TestOk,TestOkAll)
+print_stats(SchemeName,caobj, cloudObj, args, TestOkAll)
+TestOk = coldCloudTest_no_tsurf_lim(SchemeName, caobj, cloudObj, fthr, OFFSETS, 
+                                    args, show=True)                                       
+TestOkAll = keep_combined_ok(TestOk,TestOkAll)
+print_stats(SchemeName,caobj, cloudObj, args, TestOkAll)
+TestOk = reflectingCloudTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=True)
+TestOkAll = keep_combined_ok(TestOk,TestOkAll)
+print_stats(SchemeName,caobj, cloudObj, args, TestOkAll)
+if fthr.qr16r06 is not None:
+     TestOk = pseudo06CloudTest3A(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,   
+                                  info="notudedif37_", ExtraCond=NoChannel3_7, show=True)
+     pseudo06CloudTest3A(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,   
+                         info="maybe_use_alsoif37_", ExtraCond=NoChannel3_7, show=True)
+     TestOkAll = keep_combined_ok(TestOk,TestOkAll)
+     print_stats(SchemeName,caobj, cloudObj, args, TestOkAll)
+coldWatercloudTestDay(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,  
+                       show=True)
+TestOkAll = keep_combined_ok(TestOk,TestOkAll)
+print_stats(SchemeName,caobj, cloudObj, args, TestOkAll)
+TestOk = watercloudTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=True)
+TestOkAll = keep_combined_ok(TestOk,TestOkAll)
+print_stats(SchemeName,caobj, cloudObj, args, TestOkAll)
+TestOk = coldCloudTest_tsurf_lim(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, 
+                                 info="maybe_add_tsur_limit_less_generous_also", 
+                                  show=True)        
+tmpthr=np.min([OFFSETS['T11_OFFSET_LAND_DAY'], 
+               OFFSETS['T11_OFFSET_LAND_NIGHT']])
+coldCloudTest_tsurf_lim(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,
+                                 info="original_less_generous_also", 
+                                  NEW_THRESHOLD=tmpthr, show=True)
+TestOkAll = keep_combined_ok(TestOk,TestOkAll)
+print_stats(SchemeName,caobj, cloudObj, args, TestOkAll)
+TestOk = thinCirrusSecondaryTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, 
+                                 info="maybe_offset_slope_",  show=True)
+TestOkAll = keep_combined_ok(TestOk,TestOkAll)
+print_stats(SchemeName,caobj, cloudObj, args, TestOkAll)
+TestOk = thinCirrusPrimaryTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, 
+                               info="maybe_offset_slope_",  show=True)
+TestOkAll = keep_combined_ok(TestOk,TestOkAll)
+print_stats(SchemeName,caobj, cloudObj, args, TestOkAll)
+if fthr.t85_t11_minus_threshold is not None:
+     TestOk = HighcloudTestt85t11land(SchemeName, caobj, cloudObj, fthr, 
+                                      OFFSETS, args, show=True)
+     TestOkAll = keep_combined_ok(TestOk,TestOkAll)
+     print_stats(SchemeName,caobj, cloudObj, args, TestOkAll)
 ###################################
 # DAY LAND 
 ####################################
@@ -321,8 +387,8 @@ SchemeName = 'LandNight'
 TestOkAll=None
 TestOkAll =  coldCloudTest_v2014(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=True)
 print_stats(SchemeName,caobj, cloudObj, args, TestOkAll)
-TestOk = coldCloudTest_no_tsurf_lim(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=True)  
-                                     
+TestOk = coldCloudTest_no_tsurf_lim(SchemeName, caobj, cloudObj, fthr, OFFSETS, 
+                                    args, show=True)                                       
 TestOkAll = keep_combined_ok(TestOk,TestOkAll)
 print_stats(SchemeName,caobj, cloudObj, args, TestOkAll)
 #TestOkAll = coldCloudTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,  show=True)  
@@ -540,7 +606,6 @@ TestOk =brightCloudTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, info="
 TestOkAll = keep_combined_ok(TestOk,TestOkAll)
 print_stats(SchemeName,caobj, cloudObj, args, TestOkAll)
 if fthr.qr16r06 is not None:
-     NoChannel3_7= caobj.avhrr.all_arrays['bt37micron']<=-9
      TestOk = brightCloudTestNoSunglint3A(SchemeName, caobj, cloudObj, fthr, 
                                  OFFSETS, args, info="notusedif37_",  
                                  ExtraCond=NoChannel3_7, show=True)
