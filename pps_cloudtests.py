@@ -65,7 +65,7 @@ def coldCloudTest_v2014(SchemeName, caobj, cloudObj, thr, OFFSETS, args,  info="
         'SunglintTwilight': 0, 
         'WaterDay': 0, 
         'WaterNight': OFFSETS['COLDEST_SEASURFACE_TEMP'], 
-        'WaterTwilight': 0        }
+        'WaterTwilight': 0 }
     if onlyCirrus:
         title =info+"coldCloudTest_v2014_Cirrus_"+ SchemeName
     else:
@@ -879,7 +879,7 @@ def brightCloudTestNoSunglint3A(SchemeName, caobj, cloudObj, thr, OFFSETS, args,
     OFFSETS_brightCloudTestNoSunglint3A = {}
     OFFSETS_brightCloudTestNoSunglint3A['r06r16_OFFSETS'] = { 
         'CoastDay': OFFSETS['R06_R16_THR_SNOW'], #non-exist
-        'CoastDayMount': 100,  
+        'CoastDayMount': OFFSETS['R06_R16_THR_SNOW'], #non-exist 
         'CoastTwilight': 100, 
         'CoastTwilightInv': 100, 
         'IceDay': 100, 
@@ -896,8 +896,8 @@ def brightCloudTestNoSunglint3A(SchemeName, caobj, cloudObj, thr, OFFSETS, args,
         }     
      
     OFFSETS_brightCloudTestNoSunglint3A['r06gain_OFFSETS'] = { 
-        'CoastDay': OFFSETS['R06_GAIN_LAND'], 
-        'CoastDayMount': 100, 
+        'CoastDay': 0.5*(OFFSETS['R06_GAIN_LAND']+OFFSETS['R06_GAIN_SEA']), 
+        'CoastDayMount': 0.5*(OFFSETS['R06_GAIN_LAND']+OFFSETS['R06_GAIN_SEA']), 
         'CoastTwilight': 100, 
         'CoastTwilightInv': 100, 
         'IceDay': 100, 
@@ -913,8 +913,8 @@ def brightCloudTestNoSunglint3A(SchemeName, caobj, cloudObj, thr, OFFSETS, args,
         'WaterTwilight': 100 
         } 
     OFFSETS_brightCloudTestNoSunglint3A['r06offset_OFFSETS'] = { 
-        'CoastDay': OFFSETS['R06_OFFSET_LAND'], 
-        'CoastDayMount': 100,  
+        'CoastDay': 0.5*(OFFSETS['R06_OFFSET_LAND']+OFFSETS['R06_OFFSET_SEA']), 
+        'CoastDayMount': 0.5*(OFFSETS['R06_OFFSET_LAND']+OFFSETS['R06_OFFSET_SEA']),  
         'CoastTwilight': 100, 
         'CoastTwilightInv': 100, 
         'IceDay': 100, 
