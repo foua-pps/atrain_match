@@ -153,9 +153,9 @@ def plot_inner(SchemeName, args_test, cloudobj, TestOk, THRESHOLD, onlyCirrus=No
             len(xvector[isMissclassifiedByThisTestWhereOk==True]))+
         "Number of cloudy pixels could be detected by this test %d \n"%(
             len(xvector[isNotDetectedByThisTest==True]))+
-        "POD cloudy by this test %2.1f\n"%(POD_cloudy*100)+
-        "FAR cloudy %2.1f\n"%(FAR_cloudy*100)+
-        "POD cloudy missed %2.1f"%(POD_cloudy_missed*100))
+        "POD cloudy by this test %2.1f + %2.1f\n"%(POD_cloudy*100, POD_cloudy_missed*100)+
+        "FAR cloudy %2.1f\n"%(FAR_cloudy*100))
+        #"POD cloudy missed %2.1f"%(POD_cloudy_missed*100))
     print "-Test stat---------"
     print args_test['title']
     print POD_FAR_INFO
@@ -349,6 +349,8 @@ class ppsSchemesObject(DataObject):
             'CoastTwilight': None,
             'CoastTwilightInv': None,
             'Ice': None,
+            'IceCoast': None,
+            'IceCoastNight': None,
             'IceDay': None,
             'IceNight': None,
             'IceTwilight': None,
@@ -457,6 +459,8 @@ def get_clear_and_cloudy_vectors(caObj, isACPGv2012, isGAC):
     isWaterNight = np.logical_and(isWater,isPPSNight)
     isWaterDay = np.logical_and(np.logical_and(isWater,isPPSDay),np.equal(isSunglintDay,False))
     isWaterTwilight = np.logical_and(np.logical_and(isWater,isPPSTwilight),np.equal(isSunglintTwilight,False))
+    isIceCoast = np.logical_and(isPPSIce,isPPSCoast)
+    isIceCoastNight = np.logical_and(isPPSNight,isIceCoast)
     isIceNight = np.logical_and(isIce,isPPSNight)
     isIceDay = np.logical_and(isIce,isPPSDay)
     isIceTwilight = np.logical_and(isIce,isPPSTwilight)
@@ -501,6 +505,10 @@ def get_clear_and_cloudy_vectors(caObj, isACPGv2012, isGAC):
     isCloudyLand =   np.logical_and(isCloudy, isPPSLand)
     isClearCoast =   np.logical_and(isClear, isPPSCoast)
     isCloudyCoast =   np.logical_and(isCloudy, isPPSCoast)
+    isClearIceCoast = np.logical_and(isClear, isIceCoast)
+    isCloudyIceCoast = np.logical_and(isCloudy, isIceCoast)
+    isClearIceCoastNight = np.logical_and(isClear, isIceCoastNight)
+    isCloudyIceCoastNight = np.logical_and(isCloudy, isIceCoastNight)
     isClearIceNight = np.logical_and(isClear, isIceNight)
     isCloudyIceNight = np.logical_and(isCloudy, isIceNight)
     isCloudyCirrusIceNight = np.logical_and(isThinCirrus, isIceNight)
@@ -581,6 +589,8 @@ def get_clear_and_cloudy_vectors(caObj, isACPGv2012, isGAC):
     cloudObj.isClear.CoastTwilight =  isClearCoastTwilight
     cloudObj.isClear.CoastTwilightInv =  isClearCoastTwilightInv
     cloudObj.isClear.Ice = isClearIce
+    cloudObj.isClear.IceCoast = isClearIceCoast
+    cloudObj.isClear.IceCoastNight = isClearIceCoastNight
     cloudObj.isClear.IceDay =  isClearIceDay
     cloudObj.isClear.IceNight = isClearIceNight
     cloudObj.isClear.IceTwilight =  isClearIceTwilight
@@ -599,7 +609,7 @@ def get_clear_and_cloudy_vectors(caObj, isACPGv2012, isGAC):
     cloudObj.isClear.WaterDay = isClearWaterDay 
     cloudObj.isClear.WaterNight =  isClearWaterNight
     cloudObj.isClear.WaterTwilight =  isClearWaterTwilight
-    cloudObj.isCloudy.All =isCloudy
+    cloudObj.isCloudy.All = isCloudy
     cloudObj.isCloudy.Coast =isCloudyCoast
     cloudObj.isCloudy.CoastDay =isCloudyCoastDay 
     cloudObj.isCloudy.CoastDayMount =isCloudyCoastDayMount
@@ -608,6 +618,8 @@ def get_clear_and_cloudy_vectors(caObj, isACPGv2012, isGAC):
     cloudObj.isCloudy.CoastTwilight = isCloudyCoastTwilight
     cloudObj.isCloudy.CoastTwilightInv = isCloudyCoastTwilightInv
     cloudObj.isCloudy.Ice = isCloudyIce
+    cloudObj.isCloudy.IceCoast = isCloudyIceCoast
+    cloudObj.isCloudy.IceCoastNight = isCloudyIceCoastNight
     cloudObj.isCloudy.IceDay = isCloudyIceDay
     cloudObj.isCloudy.IceNight = isCloudyIceNight
     cloudObj.isCloudy.IceTwilight = isCloudyIceTwilight

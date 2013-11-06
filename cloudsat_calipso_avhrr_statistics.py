@@ -37,6 +37,7 @@ def get_sunglint_info_pps2014(cloudtype_conditions):
 def get_mountin_info_pps2014(cloudtype_conditions):
     write_log("INFO", "Assuming cloudtype flags structure from pps v2014")
     temp_val = (cloudtype_conditions>>6 & 1)
+    #temp_val = (cloudtype_conditions>>7 & 1)
     mountin_flag = temp_val == 1
     return  mountin_flag
 
@@ -53,6 +54,10 @@ def get_land_coast_sea_info_pps2014(cloudtype_conditions):
     land_flag =  sealand_val == 1
     sea_flag =  sealand_val == 2
     coast_flag =   sealand_val == 3
+    land_or_sea=np.logical_or(land_flag,sea_flag)
+    true_coast=np.logical_and(coast_flag, np.equal(land_or_sea,False))
+    print "number coast", len(cloudtype_conditions[coast_flag==True])
+    print "number true coast", len(cloudtype_conditions[true_coast==True])
     all_lsc_flag =  np.bool_(np.ones(cloudtype_conditions.shape))
     return (no_qflag, land_flag, sea_flag, coast_flag, all_lsc_flag)
 
@@ -64,6 +69,10 @@ def get_land_coast_sea_info_pps2012(cloudtype_qflag):
     land_flag =  np.logical_and(land_sea_val == 1,coast_val==0) 
     sea_flag =  np.logical_and(land_sea_val == 0, coast_val==0)
     coast_flag = coast_val==1
+    land_or_sea=np.logical_or(land_flag,sea_flag)
+    true_coast=np.logical_and(coast_flag, np.equal(land_or_sea,False))
+    print "number coast", len(cloudtype_qflag[coast_flag==True])
+    print "number true coast", len(cloudtype_qflag[true_coast==True])
     all_lsc_flag =  np.bool_(np.ones(cloudtype_qflag.shape))
     return (no_qflag, land_flag, sea_flag, coast_flag, all_lsc_flag)
   
@@ -86,6 +95,9 @@ def get_day_night_twilight_info_pps2014(cloudtype_conditions):
     night_flag =  daynight_val == 1
     day_flag =   daynight_val == 2
     twilight_flag =  daynight_val == 3
+    print "number of day", len(cloudtype_conditions[day_flag==True])
+    print "number of night", len(cloudtype_conditions[night_flag==True]) 
+    print "number of twilight", len(cloudtype_conditions[twilight_flag==True])
     all_dnt_flag =  np.bool_(np.ones(cloudtype_conditions.shape))
     return (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag)
 
@@ -95,6 +107,9 @@ def get_day_night_twilight_info_pps2012(cloudtype_qflag):
     night_flag = (((cloudtype_qflag>>2) & 1) == 1) & ~no_qflag
     twilight_flag = (((cloudtype_qflag>>3) & 1) == 1) & ~no_qflag
     day_flag =  (((cloudtype_qflag>>2) & 1) == 0) & (((cloudtype_qflag>>3) & 1) == 0) & ~no_qflag
+    print "number of day", len(cloudtype_qflag[day_flag==True])
+    print "number of night", len(cloudtype_qflag[night_flag==True]) 
+    print "number of twilight", len(cloudtype_qflag[twilight_flag==True])
     all_dnt_flag =  np.bool_(np.ones(cloudtype_qflag.shape))
     return (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag)
 
