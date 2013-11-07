@@ -34,11 +34,18 @@ def get_sunglint_info_pps2014(cloudtype_conditions):
     sunglint_flag = temp_val == 1
     return  sunglint_flag
 
-def get_mountin_info_pps2014(cloudtype_conditions):
+def get_high_terrain_info_pps2014(cloudtype_conditions):
     write_log("INFO", "Assuming cloudtype flags structure from pps v2014")
     temp_val = (cloudtype_conditions>>6 & 1)
-    #temp_val = (cloudtype_conditions>>7 & 1)
     mountin_flag = temp_val == 1
+    print "number of mountain %d"%(len(cloudtype_conditions[mountin_flag==True]))
+    return  mountin_flag
+
+def get_mountin_info_pps2014(cloudtype_conditions):
+    write_log("INFO", "Assuming cloudtype flags structure from pps v2014")
+    temp_val = (cloudtype_conditions>>7 & 1)
+    mountin_flag = temp_val == 1
+    print "number of mountain %d"%(len(cloudtype_conditions[mountin_flag==True]))
     return  mountin_flag
 
 def get_inversion_info_pps2014(cloudtype_status):

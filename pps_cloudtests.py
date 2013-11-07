@@ -60,7 +60,7 @@ def coldCloudTest_v2014(SchemeName, caobj, cloudObj, thr, OFFSETS, args,  info="
         'LandNightMount': 0, 
         'LandTwilight': 0, 
         'LandTwilightInv': 0, 
-        'LandTwilightMount': 0, 
+        'LandTwilightMount': 230.0, 
         'SunglintDay': 0, 
         'SunglintTwilight': 0, 
         'WaterDay': 0, 

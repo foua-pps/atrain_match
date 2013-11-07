@@ -12,7 +12,8 @@ from cloudsat_calipso_avhrr_statistics import (
     get_ice_info_pps2012,
     get_inversion_info_pps2014,
     get_sunglint_info_pps2014,
-    get_mountin_info_pps2014)
+    get_mountin_info_pps2014,
+    get_high_terrain_info_pps2014)
 
 def keep_combined_ok(TestOk,TestOkAll):
     if hasattr(TestOk,'mask') and hasattr(TestOkAll,'mask'):               
@@ -284,7 +285,10 @@ def print_stats(Scheme,caobj, cloudObj, args=None, TestOkAll=None):
     isClearStats = cloudObj.isClear.all_arrays[Scheme]
     isCloudyStats = cloudObj.isCloudy.all_arrays[Scheme]
     isPPSCloudyOrClear = cloudObj.isPpsProcessed
-
+    
+    isSnowIce = np.logical_or(cloudObj.isPpsCloudtypeSnow,
+                              cloudObj.isPpsCloudtypeIce)
+    isSnowIceAndCalipsoCloudy = np.logical_and(isSnowIce, isCloudyStats)
     print "*********************************"
     print "*** stats so far ****"
     num_cloudy =len(cloudtype[isCloudyStats==True])
@@ -293,6 +297,8 @@ def print_stats(Scheme,caobj, cloudObj, args=None, TestOkAll=None):
             np.logical_and(isClearStats,isCloudyPPS)==True])
     num_cloudy_miscl = len(cloudtype[
             np.logical_and(isCloudyStats,isClearPPS)==True])
+    num_cloudy_miscl_snowice = len(
+       cloudtype[isSnowIceAndCalipsoCloudy==True])
     num_cloudy_ok = len(cloudtype[
             np.logical_and(isCloudyStats,isCloudyPPS)==True])
     print "Number of cloudy pixels %d"%(num_cloudy)
@@ -303,6 +309,8 @@ def print_stats(Scheme,caobj, cloudObj, args=None, TestOkAll=None):
     print "FAR cloudy %f"%(np.divide(num_clear_miscl*1.0,
                                       num_cloudy_ok+num_clear_miscl))
     print "Part clear missclassed %f"%(np.divide(num_clear_miscl*1.0,num_clear))
+    print "Part cloudy missclassed as snow/ice %f "%(
+        np.divide(num_cloudy_miscl_snowice*1.0,num_cloudy))
     if TestOkAll is not None:
         detected_so_far=np.logical_and(TestOkAll, np.logical_and(
                 isCloudyStats,isCloudyPPS))
@@ -430,7 +438,8 @@ def get_clear_and_cloudy_vectors(caObj, isACPGv2012, isGAC):
         isPPSInversion = get_inversion_info_pps2014(cloudtype_status)
         isPPSSunglint = get_sunglint_info_pps2014(cloudtype_conditions)
         isPPSMountain = get_mountin_info_pps2014(cloudtype_conditions)
-
+        if isPPSMountain.all()==False:
+            isPPSMountain = get_high_terrain_info_pps2014(cloudtype_conditions)
 
     isClear = np.logical_and(isClear,isPPSCloudyOrClear)
     isCloudy = np.logical_and(isCloudy,isPPSCloudyOrClear)
@@ -556,8 +565,8 @@ def get_clear_and_cloudy_vectors(caObj, isACPGv2012, isGAC):
     isCloudyCoastTwilightInv = np.logical_and(isCloudy, isCoastTwilightInv)
     isClearCoastTwilight =  np.logical_and(isClear,isCoastTwilight) 
     isCloudyCoastTwilight = np.logical_and(isCloudy, isCoastTwilight)
-    isPpsCloudtypeSnow =np.equal(cloudtype,4)
-    isPpsCloudtypeIce = np.equal(cloudtype,3)
+    isPpsCloudtypeIce =np.equal(cloudtype,4)
+    isPpsCloudtypeSnow = np.equal(cloudtype,3)
 
     isBadShemesCloudy=np.logical_or(isCloudyLandNightInv,np.logical_or(isCloudyLandNightMount,isCloudyLandTwilight))
     isBadShemesClear=np.logical_or(isClearLandNightInv,np.logical_or(isClearLandNightMount,isClearLandTwilight))
@@ -568,8 +577,8 @@ def get_clear_and_cloudy_vectors(caObj, isACPGv2012, isGAC):
     
     cloudObj=cloudClearInfo()
     
-    cloudObj.isPppsCloudtypeSnow = isPpsCloudtypeSnow 
-    cloudObj.isPpsCloudtypeIce = isPpsCloudtypeIce
+    cloudObj.isPpsCloudtypeSnow = isPpsCloudtypeSnow 
+    cloudObj.isPpsCloudtypeIce =   isPpsCloudtypeIce
     cloudObj.isPpsProcessed = isPPSCloudyOrClear
     cloudObj.isCirrus = isThinCirrus
     cloudObj.isPpsClear =  isClearPPS
