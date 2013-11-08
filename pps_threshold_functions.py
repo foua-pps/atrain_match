@@ -17,11 +17,18 @@ from cloudsat_calipso_avhrr_statistics import (
 
 def keep_combined_ok(TestOk,TestOkAll):
     if hasattr(TestOk,'mask') and hasattr(TestOkAll,'mask'):               
-        return np.logical_or(TestOk.data, TestOkAll.data)
+        return np.logical_or(np.logical_and(TestOk.data, 
+                                            np.equal(TestOk.mask, False)), 
+                             np.logical_and(TestOkAll.data, 
+                                            np.equal(TestOkAll.mask, False)))
     elif hasattr(TestOkAll,'mask'):               
-        return np.logical_or(TestOk, TestOkAll.data)
+        return np.logical_or(TestOk, 
+                             np.logical_and(TestOkAll.data, 
+                                            np.equal(TestOkAll.mask, False)))
     elif hasattr(TestOk,'mask'):
-        return np.logical_or(TestOk.data, TestOkAll)
+        return np.logical_or(np.logical_and(TestOk.data, 
+                                            np.equal(TestOk.mask, False)), 
+                             TestOkAll)
     else:
         return np.logical_or(TestOk, TestOkAll)
 
@@ -438,7 +445,10 @@ def get_clear_and_cloudy_vectors(caObj, isACPGv2012, isGAC):
         isPPSInversion = get_inversion_info_pps2014(cloudtype_status)
         isPPSSunglint = get_sunglint_info_pps2014(cloudtype_conditions)
         isPPSMountain = get_mountin_info_pps2014(cloudtype_conditions)
-        if isPPSMountain.all()==False:
+        if (isPPSMountain==False).all():
+            print ("No pixel are rough terrain, assuming data from before"
+                   " introduction of rough terrain. "
+                   "Using high terrain for mountain")
             isPPSMountain = get_high_terrain_info_pps2014(cloudtype_conditions)
 
     isClear = np.logical_and(isClear,isPPSCloudyOrClear)
