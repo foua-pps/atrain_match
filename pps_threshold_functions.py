@@ -195,7 +195,7 @@ def plot_inner(SchemeName, args_test, cloudobj, TestOk, THRESHOLD, onlyCirrus=No
     ax.set_ylabel(args_test['ylable'])
     ax.set_xlabel(args_test['xlable'])
     limits = ax.axis()
-    ax.set_ylim(1.3*limits[2]-0.3*limits[3],limits[3])
+    ax.set_ylim(1.3*limits[2]-0.3*limits[3],limits[3]-3)
     plt.text(0.9*limits[0]+0.1*limits[1],1.25*limits[2]-0.25*limits[3], 
              POD_FAR_INFO, backgroundcolor='w')
     fig_title= (" %s \n"%(args_test['title'])+

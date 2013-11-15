@@ -69,10 +69,13 @@ class DataObject(object):
 
     def mask_nodata(self, nodata):
         for key in self.all_arrays:
-            try:
-                self.all_arrays[key] = np.ma.array(self.all_arrays[key], mask = self.all_arrays[key]<=nodata)
-            except:
-                print "cloud not mask %s"%(key)
+            if key in ['latitude']:
+                pass
+            else:
+                try:
+                    self.all_arrays[key] = np.ma.array(self.all_arrays[key], mask = self.all_arrays[key]<=nodata)
+                except:
+                    print "cloud not mask %s"%(key)
             
             
 class ppsAvhrrObject(DataObject):
