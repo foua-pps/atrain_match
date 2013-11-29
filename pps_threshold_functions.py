@@ -75,11 +75,12 @@ def plot_inner_clear(SchemeName, args_test, cloudobj, TestOk, THRESHOLD):
             len(xvector[isNotDetectedByThisTest==True]))+
         "POD clear by this test %2.1f\n"%(POD_clear*100)+
         "FAR clear %2.1f\n"%(FAR_clear*100)+
-        "POD clear missed %2.1f"%(POD_clear_missed*100))
-    print "-Test stat---------"
+        "PART clear missed %2.1f"%(POD_clear_missed*100))
+    print "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
     print args_test['title']
     print POD_FAR_INFO
     print "-------------------"
+    print "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
     clfree_percentiles = np.percentile(
         yvector[ np.logical_and(isClear,yvector.mask==False)==True],
         [01, 10, 25, 50, 75, 90, 99])
@@ -146,6 +147,8 @@ def plot_inner(SchemeName, args_test, cloudobj, TestOk, THRESHOLD, onlyCirrus=No
                          len(xvector[isPPSCloudyForTestOk==True]))
     POD_cloudy_missed = np.divide(len(xvector[isNotDetectedByThisTest==True]),
                                   1.0*len(xvector[isCloudy==True]))
+    POD_clear_diff = np.divide(len(xvector[isMissclassifiedByThisTest==True])*1.0,   
+                               len(xvector[isClear==True]))
     if len(xvector[isNotDetectedByThisTest == True]) !=0:
         print "warning missed %d"%(len(xvector[isNotDetectedByThisTest == True]))
     POD_FAR_INFO =  (
@@ -155,19 +158,21 @@ def plot_inner(SchemeName, args_test, cloudobj, TestOk, THRESHOLD, onlyCirrus=No
             len(xvector[isClear==True]))+
         "Number of clouds detected by this test %d \n"%(
             len(xvector[isDetectedByThisTest==True]))+
-        "Number of clouds misclassified by this test %d \n"%(
+        "Number of clear misclassified by this test %d \n"%(
             len(xvector[isMissclassifiedByThisTest==True]))+
-        "Number of clouds misclassified by this and clear in pps %d \n"%(
+        "Number of clear misclassified by this and clear in pps %d \n"%(
             len(xvector[isMissclassifiedByThisTestWhereOk==True]))+
         "Number of cloudy pixels could be detected by this test %d \n"%(
             len(xvector[isNotDetectedByThisTest==True]))+
         "POD cloudy by this test %2.1f + %2.1f\n"%(POD_cloudy*100, POD_cloudy_missed*100)+
-        "FAR cloudy %2.1f\n"%(FAR_cloudy*100))
+        "FAR cloudy %2.1f\n"%(FAR_cloudy*100) +
+        "Effect on POD clear - %2.1f"%(POD_clear_diff*100) )
         #"POD cloudy missed %2.1f"%(POD_cloudy_missed*100))
+    print "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
     print "-Test stat---------"
     print args_test['title']
     print POD_FAR_INFO
-    print "-------------------"
+    print "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
     clfree_percentiles = np.percentile(
         yvector[ np.logical_and(isClear,yvector.mask==False)==True],
         [01, 10, 25, 50, 75, 90, 99])
@@ -195,8 +200,8 @@ def plot_inner(SchemeName, args_test, cloudobj, TestOk, THRESHOLD, onlyCirrus=No
     ax.set_ylabel(args_test['ylable'])
     ax.set_xlabel(args_test['xlable'])
     limits = ax.axis()
-    ax.set_ylim(1.3*limits[2]-0.3*limits[3],limits[3]-3)
-    plt.text(0.9*limits[0]+0.1*limits[1],1.25*limits[2]-0.25*limits[3], 
+    ax.set_ylim(1.5*limits[2]-0.5*limits[3],limits[3])
+    plt.text(0.9*limits[0]+0.1*limits[1],1.48*limits[2]-0.48*limits[3], 
              POD_FAR_INFO, backgroundcolor='w')
     fig_title= (" %s \n"%(args_test['title'])+
                 "blue-cyan: clear (calipso), red-manga: cloudy (clipso)\n"+
@@ -297,7 +302,7 @@ def print_stats(Scheme,caobj, cloudObj, args=None, TestOkAll=None):
                               cloudObj.isPpsCloudtypeIce)
     isSnowIceAndCalipsoCloudy = np.logical_and(isSnowIce, isCloudyStats)
     print "*********************************"
-    print "*** stats so far ****"
+    print "*** %s stats so far ****"%(Scheme)
     num_cloudy =len(cloudtype[isCloudyStats==True])
     num_clear = len(cloudtype[isClearStats==True])
     num_clear_miscl = len(cloudtype[
