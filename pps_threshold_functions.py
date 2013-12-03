@@ -67,9 +67,9 @@ def plot_inner_clear(SchemeName, args_test, cloudobj, TestOk, THRESHOLD):
             len(xvector[isClear==True]))+
         "Number of clear detected by this test %d \n"%(
             len(xvector[isDetectedByThisTest==True]))+
-        "Number of clear misclassified by this test %d \n"%(
+        "Number of cloudy misclassified by this test %d \n"%(
             len(xvector[isMissclassifiedByThisTest==True]))+
-        "Number of clear misclassified by this and cloudy in pps %d \n"%(
+        "Number of cloudy misclassified by this and cloudy in pps %d \n"%(
             len(xvector[isMissclassifiedByThisTestWhereOk==True]))+
         "Number of clear pixels could be detected by this test %d \n"%(
             len(xvector[isNotDetectedByThisTest==True]))+
@@ -191,7 +191,7 @@ def plot_inner(SchemeName, args_test, cloudobj, TestOk, THRESHOLD, onlyCirrus=No
              yvector[isMissclassifiedByThisTest == True], 'cx')
     plt.plot(xvector[isNotDetectedByThisTest == True], 
              yvector[isNotDetectedByThisTest == True], 'g.')
-    plt.axhline(y = THRESHOLD, color = 'k',linewidth = 2)
+    #plt.axhline(y = THRESHOLD, color = 'k',linewidth = 2)
     plt.axhline(y = clfree_percentiles[0], color = 'b',ls = '--')
     plt.axhline(y = clfree_percentiles[1], color = 'b',ls = '--')
     plt.axhline(y = clfree_percentiles[3], color = 'b',linewidth = 2)
@@ -241,7 +241,7 @@ def plot_test_2_lim(SchemeName, args_test, args, cloudobj, TestOk,
     plt.axvline(x = clfree_percentiles_vert[3], color = 'b',linewidth = 2)
     plt.axvline(x = clfree_percentiles_vert[5], color = 'b',ls = '--')
     plt.axvline(x = clfree_percentiles_vert[6], color = 'b',ls = '--')
-    plt.axvline(x = THRESHOLD2, color = 'k',linewidth = 2)
+    #plt.axvline(x = THRESHOLD2, color = 'k',linewidth = 2)
     filename=args_test['title']+"_" +args['SATELLITE']+'.png'
     plt.savefig(args['PLOT_DIR'] + filename) 
     if show:
@@ -359,7 +359,8 @@ class ppsSchemesObject(DataObject):
         DataObject.__init__(self)                            
         self.all_arrays = {
             'All': None,
-            'BadShemes': None,
+            'BadShemesA': None,
+            'BadShemesB': None,
             'GoodShemes': None,
             'Coast': None,
             'CoastDay': None,
@@ -583,12 +584,16 @@ def get_clear_and_cloudy_vectors(caObj, isACPGv2012, isGAC):
     isPpsCloudtypeIce =np.equal(cloudtype,4)
     isPpsCloudtypeSnow = np.equal(cloudtype,3)
 
-    isBadShemesCloudy=np.logical_or(isCloudyLandNightInv,np.logical_or(isCloudyLandNightMount,isCloudyLandTwilight))
-    isBadShemesClear=np.logical_or(isClearLandNightInv,np.logical_or(isClearLandNightMount,isClearLandTwilight))
+    isBadShemesACloudy=np.logical_or(isCloudyWaterDay,np.logical_or(isCloudyLandDayMount,isCloudyIceDay))
+    isBadShemesAClear=np.logical_or(isClearWaterDay,np.logical_or(isClearLandDayMount,isClearIceDay))
+    isBadShemesBCloudy=np.logical_or(isCloudyLandNightInv,isCloudyIceTwilight)
+    isBadShemesBClear=np.logical_or(isClearLandNightInv,isClearIceTwilight)
     isGoodShemesCloudy=np.logical_and(np.logical_and(isPPSCloudyOrClear,isCloudy),
-                                          np.equal(isBadShemesCloudy, False))
+                                     np.logical_and(np.equal(isBadShemesACloudy, False),
+                                                    np.equal(isBadShemesBCloudy, False)))
     isGoodShemesClear=np.logical_and(np.logical_and(isPPSCloudyOrClear,isClear),
-                                     np.equal(isBadShemesClear, False))
+                                     np.logical_and(np.equal(isBadShemesAClear, False),
+                                                    np.equal(isBadShemesBClear, False)))
     
     cloudObj=cloudClearInfo()
     
@@ -599,8 +604,11 @@ def get_clear_and_cloudy_vectors(caObj, isACPGv2012, isGAC):
     cloudObj.isPpsClear =  isClearPPS
     cloudObj.isPpsCloudy = isCloudyPPS
 
-    cloudObj.isClear.BadShemes = isBadShemesClear
-    cloudObj.isCloudy.BadShemes = isBadShemesCloudy
+    cloudObj.isClear.BadShemesA = isBadShemesAClear
+    cloudObj.isCloudy.BadShemesA = isBadShemesACloudy
+    cloudObj.isClear.BadShemesB = isBadShemesBClear
+    cloudObj.isCloudy.BadShemesB = isBadShemesBCloudy
+
     cloudObj.isClear.GoodShemes = isGoodShemesClear
     cloudObj.isCloudy.GoodShemes = isGoodShemesCloudy
                     
