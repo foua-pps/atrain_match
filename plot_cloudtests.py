@@ -26,6 +26,7 @@ from pps_cloudtests import(coldCloudTest_v2014,
                            brightCloudTest3A,
                            brightCloudTestSea,
                            brightCloudTestNoSunglint3A,
+                           brightCloudTestNoSunglint3ALand,
                            sunglintTest3A,
                            coldBrightCloudTest3A,
                            coldBrightCloudTest37,
@@ -42,7 +43,9 @@ from pps_cloudtests import(coldCloudTest_v2014,
                            arcticWarmCirrusSecondaryTest,
                            arcticThinCirrusSecondaryTest,
                            arcticThinCirrusPrimaryTest,
-                           DriedOutLakesAndRiversTest)
+                           DriedOutLakesAndRiversTest,
+                           aerosol_test,
+                           clear_test)
 
 """Read all matched data and make some plotting of thresholds
 """
@@ -105,7 +108,8 @@ elif isNPP and  not isACPGv2012:
         #ROOT_DIR = "/local_disk/nina_pps/data_validation_ctth_patch_nov2012/VALIDATION_20131014_Test_CM_including_new_sst_newlogic_t11ts_errcorr_5/Reshaped_Files/npp/1km/"
         #ROOT_DIR = "/local_disk/nina_pps/data_validation_ctth_patch_nov2012/VALIDATION_20131014_Test_CM_npp_as_metop/Reshaped_Files/npp/1km/"
         ROOT_DIR = "/local_disk/nina_pps/data_validation_ctth_patch_nov2012/VALIDATION_20131014_Test_CM_ice_coast_int_ice_scheme_extratests_2/Reshaped_Files/npp/1km/"
-        ROOT_DIR = "/local_disk/nina_pps/data_validation_ctth_patch_nov2012/VALIDATION_20131014_Test_CM_ice_coast_int_ice_scheme_extratests_2_new_emiss_4/Reshaped_Files/npp/1km/"
+        ROOT_DIR = "/local_disk/nina_pps/data_validation_ctth_patch_nov2012/VALIDATION_20131014_Test_CM_ice_coast_int_ice_scheme_extratests_2_new_emiss_4_tuning_more_remove_one_seadaytest/Reshaped_Files/npp/1km/"
+        ROOT_DIR = "/local_disk/nina_pps/data_validation_ctth_patch_nov2012/VALIDATION_20131014_Test_CM_ice_coast_int_ice_scheme_extratests_2_new_emiss_4_tuning_more_remove_one_seadaytest_second_3/Reshaped_Files/npp/1km/"
         SATELLITE = 'npp_cm_edited'
     files = glob(ROOT_DIR + "/????/??/*/*h5")
 
@@ -122,8 +126,6 @@ elif not isNPP and not isACPGv2012:
     #ROOT_DIR ="Reshaped_Files_2014/Reshaped_Files/noaa18/5km/"
     files = glob(ROOT_DIR + "/????/??/cea*/*noaa18*h5")
     SATELLITE='avhrr18_v2014'
-
-
 
 
 offset_file = open(OFFSET_FILE, 'r')  
@@ -184,6 +186,7 @@ TempBelowMinus5 = fthr.surftemp<268.15
 TempBelow10C = fthr.surftemp<283.15
 TempBelow20C = fthr.surftemp<293.15
 TempBelow30C = fthr.surftemp<303.15
+CiwvAbove20 = fthr.ciwv>20
 NoChannel3_7 = caobj.avhrr.all_arrays['bt37micron']<=-9
 TempAboveColdestSea = fthr.surftemp>OFFSETS['COLDEST_SEASURFACE_TEMP']
 DiffT1137Above1K = np.logical_or(fthr.t11_t37_minus_threshold_inv<-1.0,
@@ -201,19 +204,20 @@ TestOk = coldWatercloudTest_v2014(SchemeName, caobj, cloudObj, fthr, OFFSETS, ar
 print_stats(SchemeName, caobj, cloudObj, args, TestOkAll)
 TestOk = thincoldCirrusTest_v2014(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=False, TestOkAll=TestOkAll)
 print_stats(SchemeName, caobj, cloudObj, args, TestOkAll)
-TestOkClear = DriedOutLakesAndRiversTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, info="",show=True)
-if fthr.qr16r06 is not None:
-     TestOkClear = newClearWaterBodiesTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=True)
+TestOkClear = DriedOutLakesAndRiversTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, info="",show=False)
+TestOkClear = newClearWaterBodiesTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=False)
+TestOkClear = clear_test(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=True)
+TestOkClear = aerosol_test('LandDay', caobj, cloudObj, fthr, OFFSETS, args, show=True)
 ###################################################
 #Testing stuff
 ###################################################
 if fthr.qr16r06 is not None:
      coldBrightCloudTest3A('LandDay', caobj, cloudObj, fthr, OFFSETS, args,   
                            info="extra_",   show=False, TestOkAll=TestOkAll)
-     brightCloudTestNoSunglint3A('LandDay', caobj, cloudObj, fthr, OFFSETS, args,   
-                                 info="extra_",  show=True, TestOkAll=TestOkAll)
+     brightCloudTestNoSunglint3ALand('LandDay', caobj, cloudObj, fthr, OFFSETS, args,   
+                                 info="extra_",  show=False, TestOkAll=TestOkAll)
      brightCloudTest3A('LandDay', caobj, cloudObj, fthr, OFFSETS, args,   
-                       info="extra_",   ExtraCond=TempBelow30C, show=True, TestOkAll=TestOkAll)
+                       info="extra_",   ExtraCond=TempBelow30C, show=False, TestOkAll=TestOkAll)
 if fthr.qr16r06 is not None:
      TestOkAll = sunglintTest3A('CoastDay', caobj, cloudObj, fthr, 
                                 OFFSETS, args,  info="",   show=False, TestOkAll=TestOkAll)
@@ -221,6 +225,7 @@ if fthr.qr16r06 is not None:
                                 OFFSETS, args,  info="",   show=False, TestOkAll=TestOkAll)
      TestOkAll = sunglintTest3A('CoastTwilightInv', caobj, cloudObj, fthr, 
                                 OFFSETS, args,  info="",   show=False, TestOkAll=TestOkAll)
+brightCloudTest('LandDay', caobj, cloudObj, fthr, OFFSETS, args, info="",  show=True, TestOkAll=TestOkAll)#, ExtraCond=np.logical_or(TempBelow10C,CiwvAbove20))
 brightCloudTest('CoastDay', caobj, cloudObj, fthr, OFFSETS, args, info="",  show=False, TestOkAll=TestOkAll)
 brightCloudTest('WaterDay', caobj, cloudObj, fthr, OFFSETS, args, info="",  show=False, TestOkAll=TestOkAll)
 brightCloudTest('IceDay', caobj, cloudObj, fthr, OFFSETS, args, info="",  show=False, TestOkAll=TestOkAll)
@@ -270,7 +275,7 @@ if fthr.qr16r06 is not None:
      TestOk = pseudo06CloudTest3A('LandDay', caobj, cloudObj, fthr, OFFSETS, args,   
                                   info="non_existing_", show=False, TestOkAll=TestOkAll)
 
-TestOkClear = DriedOutLakesAndRiversTest('LandDay', caobj, cloudObj, fthr, OFFSETS, args, info="",show=True)
+TestOkClear = DriedOutLakesAndRiversTest('LandDay', caobj, cloudObj, fthr, OFFSETS, args, info="",show=False)
 
 ####################################
 # DAY COAST MOUNTAIN
@@ -284,33 +289,32 @@ cloudObj.isClear.CoastDayMount = np.logical_and(cloudObj.isClear.CoastDayMount,
 cloudObj.isCloudy.CoastDayMount = np.logical_and(cloudObj.isCloudy.CoastDayMount,
                                                  np.equal(TestOkSnow,False))
 print "***snow test, not implemented as figure, remove snow/ice pixels***"
-TestOkClear = DriedOutLakesAndRiversTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, info="",show=True)
+TestOkClear = DriedOutLakesAndRiversTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, info="",show=False)
 cloudObj.isClear.CoastDayMount = np.logical_and(cloudObj.isClear.CoastDayMount,
                                                 np.equal(TestOkClear,False))
 cloudObj.isCloudy.CoastDayMount = np.logical_and(cloudObj.isCloudy.CoastDayMount,
                                                  np.equal(TestOkClear,False))
-if fthr.qr16r06 is not None:
-     TestOkClear = newClearWaterBodiesTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=True)
-     cloudObj.isClear.CoastDayMount = np.logical_and(cloudObj.isClear.CoastDayMount,
-                                                     np.equal(TestOkClear,False))
-     cloudObj.isCloudy.CoastDayMount = np.logical_and(cloudObj.isCloudy.CoastDayMount,
-                                                      np.equal(TestOkClear,False))
+TestOkClear = newClearWaterBodiesTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=False)
+cloudObj.isClear.CoastDayMount = np.logical_and(cloudObj.isClear.CoastDayMount,
+                                                np.equal(TestOkClear,False))
+cloudObj.isCloudy.CoastDayMount = np.logical_and(cloudObj.isCloudy.CoastDayMount,
+                                                 np.equal(TestOkClear,False))
 
 print_stats(SchemeName,caobj, cloudObj, args, TestOkAll)
-TestOkAll =  coldCloudTest_v2014(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=True, TestOkAll=TestOkAll)
-TestOkAll = coldBrightCloudTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, info="",  show=True, TestOkAll=TestOkAll)
-TestOkAll = coldWatercloudTestDay(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,   show=True, TestOkAll=TestOkAll)
-TestOkAll = brightCloudTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, info="",  show=True, TestOkAll=TestOkAll)
+TestOkAll =  coldCloudTest_v2014(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=False, TestOkAll=TestOkAll)
+TestOkAll = coldBrightCloudTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, info="",  show=False, TestOkAll=TestOkAll)
+TestOkAll = coldWatercloudTestDay(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,   show=False, TestOkAll=TestOkAll)
+TestOkAll = brightCloudTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, info="",  show=False, TestOkAll=TestOkAll)
 if fthr.qr16r06 is not None:
-     DontUse = brightCloudTest3A(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, info="",  show=True, TestOkAll=TestOkAll)
+     DontUse = brightCloudTest3A(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, info="",  show=False, TestOkAll=TestOkAll)
 if fthr.qr16r06 is not None:
-     DontUse = brightCloudTestNoSunglint3A(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, ADD_TO_ROG_THR=10.0, info="non_existing_", show=True, TestOkAll=TestOkAll)
-TestOkAll = coldBrightCloudTest37(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,  info="",   show=True, TestOkAll=TestOkAll)
-TestOkAll = thincoldCirrusTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=True, TestOkAll=TestOkAll)
-print "not implemented coldclouds in sunglint yet  cloudsInSunglint"
+     DontUse = brightCloudTestNoSunglint3A(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, ADD_TO_ROG_THR=10.0, info="non_existing_", show=False, TestOkAll=TestOkAll)
+TestOkAll = coldBrightCloudTest37(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,  info="",   show=False, TestOkAll=TestOkAll)
+TestOkAll = thincoldCirrusTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=False, TestOkAll=TestOkAll)
+print "not implemented coldcloudsInSunglint yet  cloudsInSunglint"
 if fthr.t85_t11_minus_threshold is not None:
      TestOkAll = HighcloudTestt85t11land(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,   
-                                  info="", NEW_THRESHOLD=None, onlyCirrus=False, show=True, TestOkAll=TestOkAll)
+                                  info="", NEW_THRESHOLD=None, onlyCirrus=False, show=False, TestOkAll=TestOkAll)
 
 
 ####################################
@@ -325,18 +329,13 @@ cloudObj.isClear.WaterDay = np.logical_and(cloudObj.isClear.WaterDay,
 cloudObj.isCloudy.WaterDay = np.logical_and(cloudObj.isCloudy.WaterDay,
                                                 np.equal(TestOkSnow, False))
 print "***snow test, not implemented as figure, remove snow/ice pixels***"
-TestOkClear = DriedOutLakesAndRiversTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, info="",show=True, ExtraCond=None)#cloudObj.isPpsClear)
-
+TestOkClear = DriedOutLakesAndRiversTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, info="",show=False)
+TestOkClear=np.logical_and(cloudObj.isPpsClear,TestOkClear)
 cloudObj.isClear.WaterDay = np.logical_and(cloudObj.isClear.WaterDay,
                                                np.equal(TestOkClear, False))
 cloudObj.isCloudy.WaterDay = np.logical_and(cloudObj.isCloudy.WaterDay,
                                                 np.equal(TestOkClear, False))
-if fthr.qr16r06 is not None:
-     TestOkClear = newClearWaterBodiesTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=True)
-     cloudObj.isClear.WaterDay = np.logical_and(cloudObj.isClear.WaterDay,
-                                               np.equal(TestOkClear, False))
-     cloudObj.isCloudy.WaterDay = np.logical_and(cloudObj.isCloudy.WaterDay,
-                                                np.equal(TestOkClear, False))
+TestOkClear = newClearWaterBodiesTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, info="non_existing_", show=False)
 print_stats(SchemeName,caobj, cloudObj, args, TestOkAll) 
 coldCloudTest_v2014(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, info="non_exisitng_", show=False, TestOkAll=TestOkAll)#, ExtraCond=DiffT1137Above1K)
 TestOkAll = coldCloudTest_no_tsurf_lim(SchemeName, caobj, cloudObj, fthr, OFFSETS, 
@@ -351,15 +350,12 @@ DontUseIt = coldWatercloudTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,
 TestOkAll = coldWatercloudTestDay(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, 
                                info="add_non_existing", show=False, TestOkAll=TestOkAll)
 if fthr.qr16r06 is not None:
-     TestOkAll = brightCloudTest3A('WaterDay', caobj, cloudObj, fthr, OFFSETS, args,   
-                                   info="extra_",  show=False, ExtraCond=NoChannel3_7, TestOkAll=TestOkAll)
+     Dontuse = brightCloudTest3A(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,   
+                                   info="notusedif37_",  show=False, TestOkAll=TestOkAll)
 if fthr.qr16r06 is not None:
      TestOkAll = brightCloudTestNoSunglint3A(SchemeName, caobj, cloudObj, fthr, 
                                  OFFSETS, args, info="notusedif37_",  
-                                 ExtraCond=NoChannel3_7, show=False, TestOkAll=TestOkAll)
-     DontUseIt = brightCloudTestNoSunglint3A(SchemeName, caobj, cloudObj, fthr, 
-                                 OFFSETS, args,   
-                                 info="maybe_use_notusedif37_",  show=False, TestOkAll=TestOkAll)
+                                  show=False, TestOkAll=TestOkAll)
 TestOkAll = thinCirrusSecondaryTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=False, TestOkAll=TestOkAll)
 TestOkAll = textureIrVisTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,   
                           info="less_generous_and_maybe_seasurftemp_thr_", show=False, TestOkAll=TestOkAll)
@@ -402,7 +398,7 @@ cloudObj.isCloudy.WaterTwilight = np.logical_and(cloudObj.isCloudy.WaterTwilight
 print "***snow test, not implemented as figure, remove snow/ice pixels***"
 print_stats(SchemeName,caobj, cloudObj, args, TestOkAll) 
 TestOkAll =  coldCloudTest_v2014(SchemeName, caobj, cloudObj, fthr, OFFSETS, 
-                              args, show=True, TestOkAll=TestOkAll)#, ExtraCond=DiffT1137Above1K)
+                              args, show=False, TestOkAll=TestOkAll)#, ExtraCond=DiffT1137Above1K)
 TestOkAll = thinCirrusSecondaryTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, 
                                  info="strange_dynamic_thr_add_slope_nina_", show=False, TestOkAll=TestOkAll)
 TestOkAll = textureIrVisTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,   
@@ -416,9 +412,7 @@ TestOkAll = reflectingCloudTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args
                              info="offset_slope_", show=False, TestOkAll=TestOkAll)
 if fthr.qr16r06 is not None:
      DontUseIt = pseudo06CloudTest3A(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,   
-                                  info="notudedif37_", ExtraCond=NoChannel3_7, show=False, TestOkAll=TestOkAll)
-     TestOkAll = pseudo06CloudTest3A(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,   
-                         info="maybe_use_alsoif37_", show=False, TestOkAll=TestOkAll)
+                                  info="notudedif37_", show=False, TestOkAll=TestOkAll)
 TestOkAll = coldWatercloudTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,  
                        show=False, TestOkAll=TestOkAll)
 TestOkAll = watercloudTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, 
@@ -450,22 +444,30 @@ cloudObj.isCloudy.CoastDay = np.logical_and(cloudObj.isCloudy.CoastDay,
                                             np.equal(TestOkSnow,False))
 print "***snow test, not implemented as figure, remove snow/ice pixels***"
 print_stats(SchemeName,caobj, cloudObj, args, TestOkAll) 
-if fthr.qr16r06 is not None:
-     TestOkClear = newClearWaterBodiesTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=True)
+TestOkClear = DriedOutLakesAndRiversTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, info="",show=False)
+cloudObj.isClear.CoastDay = np.logical_and(cloudObj.isClear.CoastDay,
+                                                np.equal(TestOkClear,False))
+cloudObj.isCloudy.CoastDay = np.logical_and(cloudObj.isCloudy.CoastDay,
+                                                 np.equal(TestOkClear,False))
+TestOkClear = newClearWaterBodiesTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=False)
+cloudObj.isClear.CoastDay = np.logical_and(cloudObj.isClear.CoastDay,
+                                                np.equal(TestOkClear,False))
+cloudObj.isCloudy.CoastDay = np.logical_and(cloudObj.isCloudy.CoastDay,
+                                                 np.equal(TestOkClear,False))
 TestOkAll =  coldCloudTest_v2014(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=False, TestOkAll=TestOkAll)
 TestOkAll = coldWatercloudTestDay(SchemeName, caobj, cloudObj, fthr, OFFSETS, 
                                args,   show=False, TestOkAll=TestOkAll)
 TestOkAll = brightCloudTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, info="",  show=False, TestOkAll=TestOkAll)
 if fthr.qr16r06 is not None:
      DontUse = brightCloudTest3A(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, info="",  show=False, TestOkAll=TestOkAll)
-     TestOkAll = brightCloudTestNoSunglint3A(SchemeName, caobj, cloudObj, fthr, 
+     DontUse = brightCloudTestNoSunglint3A(SchemeName, caobj, cloudObj, fthr, 
                                  OFFSETS, args, ADD_TO_ROG_THR=10.0, info="non_existing_",  
                                  show=False, TestOkAll=TestOkAll)
 TestOkAll = coldBrightCloudTest37(SchemeName, caobj, cloudObj, fthr, 
                                OFFSETS, args,  info="",   show=False, TestOkAll=TestOkAll)
 TestOkAll = thincoldCirrusTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,  
                    show=False, TestOkAll=TestOkAll)
-print "***coldCloudsInSunglint, cloudsInSunglint3A***"
+print "***coldCloudsInSunglint, cloudsInSunglint3A, cloudsInSunglint***"
 TestOkAll = coldBrightCloudTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,   
                     info="nonexisting", show=False, TestOkAll=TestOkAll)
 if fthr.qr16r06 is not None:
@@ -474,6 +476,42 @@ if fthr.qr16r06 is not None:
 if fthr.t85_t11_minus_threshold is not None:
      TestOkAll = HighcloudTestt85t11land(SchemeName, caobj, cloudObj, fthr, 
                                       OFFSETS, args, show=False, TestOkAll=TestOkAll)
+####################################
+# TWILIGHT LAND INVERSION
+####################################
+SchemeName = 'LandTwilightInv'
+TestOkAll=None
+print_stats(SchemeName,caobj, cloudObj, args, TestOkAll)
+TestOkSnow = print_stats_snow(SchemeName,caobj, cloudObj, args)
+cloudObj.isClear.LandTwilightInv = np.logical_and(cloudObj.isClear.LandTwilightInv,
+                                          np.equal(TestOkSnow,False))
+cloudObj.isCloudy.LandTwilighInvt = np.logical_and(cloudObj.isCloudy.LandTwilightInv,
+                                           np.equal(TestOkSnow,False))
+print "***snow test, not implemented as figure, remove snow/ice pixels***"
+print_stats(SchemeName,caobj, cloudObj, args, TestOkAll) 
+TestOkAll = reflectingCloudTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=False, TestOkAll=TestOkAll)
+if fthr.qr16r06 is not None:
+     DontUse = pseudo06CloudTest3A(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,   
+                                  info="notudedif37_",  show=False, TestOkAll=TestOkAll)
+TestOkAll = thincoldCirrusTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,  
+                   info="non_exisiting_", show=False, TestOkAll=TestOkAll)
+TestOkAll = watercloudTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=False, TestOkAll=TestOkAll)
+TestOkAll = thinCirrusSecondaryTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, 
+                                 info="maybe_offset_slope_",  show=False, TestOkAll=TestOkAll)
+TestOkAll = thinCirrusPrimaryTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, 
+                               info="maybe_offset_slope_",  show=False, TestOkAll=TestOkAll)
+TestOkAll = coldCloudTest_no_tsurf_lim(SchemeName, caobj, cloudObj, fthr, OFFSETS, 
+                                    args, show=False, TestOkAll=TestOkAll)                                       
+TestOkAll =  coldCloudTest_v2014(SchemeName, caobj, cloudObj, fthr, OFFSETS, 
+                              args, show=False, TestOkAll=TestOkAll)
+if fthr.t85_t11_minus_threshold is not None:
+     TestOkAll = HighcloudTestt85t11land(SchemeName, caobj, cloudObj, fthr, 
+                                      OFFSETS, args, show=False, TestOkAll=TestOkAll)
+
+TestOkAll = coldWatercloudTestDay(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,  
+                       show=False, TestOkAll=TestOkAll)
+
+
 ####################################
 # TWILIGHT LAND
 ####################################
@@ -515,6 +553,43 @@ TestOkAll = thinCirrusPrimaryTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, ar
 if fthr.t85_t11_minus_threshold is not None:
      TestOkAll = HighcloudTestt85t11land(SchemeName, caobj, cloudObj, fthr, 
                                       OFFSETS, args, show=False, TestOkAll=TestOkAll)
+####################################
+# TWILIGHT LAND MOUNTAIN 
+####################################
+SchemeName = 'LandTwilightMount'
+TestOkAll=None
+print_stats(SchemeName,caobj, cloudObj, args, TestOkAll)
+TestOkSnow = print_stats_snow(SchemeName,caobj, cloudObj, args)
+cloudObj.isClear.LandTwilightMount = np.logical_and(cloudObj.isClear.LandTwilightMount,
+                                                    np.equal(TestOkSnow,False))
+cloudObj.isCloudy.LandTwilightMount = np.logical_and(cloudObj.isCloudy.LandTwilightMount,
+                                                     np.equal(TestOkSnow,False))
+print "***snow test, not implemented as figure, remove snow/ice pixels***"
+print_stats(SchemeName,caobj, cloudObj, args, TestOkAll) 
+TestOkAll = coldCloudTest_v2014(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=False, TestOkAll=TestOkAll)
+TestOkAll = thincoldCirrusTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,  
+                   info="non_exisiting_", show=False, TestOkAll=TestOkAll)
+if fthr.qr16r06 is not None:
+     brightCloudTest3A(SchemeName, caobj, cloudObj, fthr, 
+                                 OFFSETS, args,
+                                 info="notusedif37_",  show=False, TestOkAll=TestOkAll)
+TestOkAll = coldBrightCloudTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,
+                    ExtraCond=EnoughLight, info="double", show=False, TestOkAll=TestOkAll)
+TestOkAll = coldWatercloudTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,  
+                                  show=False, TestOkAll=TestOkAll)
+TestOkAll = coldCloudTest_no_tsurf_lim(SchemeName, caobj, cloudObj, fthr, OFFSETS, 
+                                    args, show=False, TestOkAll=TestOkAll)  
+TestOkAll = coldCloudTest_tsurf_lim(SchemeName, caobj, cloudObj, fthr, OFFSETS, 
+                                    args, show=False, TestOkAll=TestOkAll)  
+TestOkAll = watercloudTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, 
+                        show=False, TestOkAll=TestOkAll)
+TestOkAll = thinCirrusSecondaryTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,   show=False, TestOkAll=TestOkAll)
+TestOkAll = thinCirrusPrimaryTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, info="offset_slope_",  show=False, TestOkAll=TestOkAll)
+
+
+if fthr.t85_t11_minus_threshold is not None:
+     TestOkAll = HighcloudTestt85t11land(SchemeName, caobj, cloudObj, fthr, 
+                                      OFFSETS, args, show=False, TestOkAll=TestOkAll)
 ###################################
 # DAY LAND 
 ####################################
@@ -528,23 +603,35 @@ cloudObj.isCloudy.LandDay = np.logical_and(cloudObj.isCloudy.LandDay,
                                            np.equal(TestOkSnow,False))
 print "***snow test, not implemented as figure, remove snow/ice pixels***"
 print_stats(SchemeName,caobj, cloudObj, args, TestOkAll) 
-if fthr.qr16r06 is not None:
-     TestOkClear = newClearWaterBodiesTest(SchemeName, caobj, cloudObj, fthr, 
-                                           OFFSETS, args, show=False)
-     cloudObj.isClear.LandDay = np.logical_and(cloudObj.isClear.LandDay,
-                                               np.equal(TestOkClear,False))
-     cloudObj.isCloudy.LandDay = np.logical_and(cloudObj.isCloudy.LandDay,
-                                                np.equal(TestOkClear,False))
-     print_stats(SchemeName,caobj, cloudObj, args, TestOkAll) 
+TestOkSnow2 = aerosol_test(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=True)
+print TestOkSnow2
+cloudObj.isClear.LandDay = np.logical_and(cloudObj.isClear.LandDay,
+                                          np.not_equal(TestOkSnow2.data,True))
+cloudObj.isCloudy.LandDay = np.logical_and(cloudObj.isCloudy.LandDay,
+                                           np.not_equal(TestOkSnow2.data,True))
+
+print_stats(SchemeName,caobj, cloudObj, args, TestOkAll) 
+
+TestOkClear = newClearWaterBodiesTest(SchemeName, caobj, cloudObj, fthr, 
+                                      OFFSETS, args, show=False)
+cloudObj.isClear.LandDay = np.logical_and(cloudObj.isClear.LandDay,
+                                          np.equal(TestOkClear,False))
+cloudObj.isCloudy.LandDay = np.logical_and(cloudObj.isCloudy.LandDay,
+                                           np.equal(TestOkClear,False))
+print_stats(SchemeName,caobj, cloudObj, args, TestOkAll) 
 TestOkAll = brightCloudTest(SchemeName, caobj, cloudObj, fthr, 
-                        OFFSETS, args, info="",  show=False, TestOkAll=TestOkAll)
+                        OFFSETS, args, info="",  show=True, TestOkAll=TestOkAll)
 if fthr.qr16r06 is not None:
-     TestOkAll = brightCloudTestNoSunglint3A(SchemeName, caobj, cloudObj, fthr, 
+     DontUse = brightCloudTestNoSunglint3ALand(SchemeName, caobj, cloudObj, fthr, 
                                  OFFSETS, args, info="notusedif37_",  
-                                 ExtraCond=NoChannel3_7, show=False, TestOkAll=TestOkAll)
+                                  show=False, TestOkAll=TestOkAll)
      brightCloudTestNoSunglint3A(SchemeName, caobj, cloudObj, fthr, 
-                                 OFFSETS, args,# ADD_TO_ROG_THR=10,   
+                                 OFFSETS, args,  
                                  info="usealsoif37_notusedif37_",  show=False, TestOkAll=TestOkAll)
+     print "less secure for metop"
+     brightCloudTest3A(SchemeName, caobj, cloudObj, fthr, 
+                                 OFFSETS, args,
+                                 info="usealsoif37_",  show=False, TestOkAll=TestOkAll)
 TestOkAll = coldBrightCloudTest37(SchemeName, caobj, cloudObj, fthr, 
                                OFFSETS, args,  info="",   show=False, TestOkAll=TestOkAll)
 TestOkAll = coldWatercloudTestDay(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,  
@@ -553,6 +640,7 @@ TestOkAll = coldBrightCloudTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args
                     ExtraCond=EnoughLight, show=False, TestOkAll=TestOkAll)
 TestOkAll = thincoldCirrusTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,  
                    show=False, TestOkAll=TestOkAll)
+print "not implemented SpatialCloudTestLand"
 if fthr.t85_t11_minus_threshold is not None:
      TestOkAll = HighcloudTestt85t11land(SchemeName, caobj, cloudObj, fthr, 
                                       OFFSETS, args, show=False, TestOkAll=TestOkAll)
@@ -609,35 +697,13 @@ TestOkAll = thincoldCirrusTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,
 TestOkAll = thinCirrusPrimaryTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, info="offset_slope_",  show=False, TestOkAll=TestOkAll)
 TestOkAll = thinCirrusSecondaryTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, info="offset_slope_",  show=False, TestOkAll=TestOkAll)
 
-####################################
-# TWILIGHT LAND MOUNTAIN 
-####################################
-SchemeName = 'LandTwilightMount'
-TestOkAll=None
-print_stats(SchemeName,caobj, cloudObj, args, TestOkAll)
-TestOkSnow = print_stats_snow(SchemeName,caobj, cloudObj, args)
-cloudObj.isClear.LandTwilightMount = np.logical_and(cloudObj.isClear.LandTwilightMount,
-                                                    np.equal(TestOkSnow,False))
-cloudObj.isCloudy.LandTwilightMount = np.logical_and(cloudObj.isCloudy.LandTwilightMount,
-                                                     np.equal(TestOkSnow,False))
-print "***snow test, not implemented as figure, remove snow/ice pixels***"
-print_stats(SchemeName,caobj, cloudObj, args, TestOkAll) 
-TestOkAll = coldCloudTest_v2014(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=False, TestOkAll=TestOkAll)
-TestOkAll = thincoldCirrusTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,  
-                   info="non_exisiting_", show=False, TestOkAll=TestOkAll)
-####################################
-# NIGHT COAST
-####################################
-SchemeName = 'CoastNight'
-TestOkAll=None
-TestOkAll =  coldCloudTest_v2014(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=False, TestOkAll=TestOkAll)
-TestOkAll = watercloudTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=False, TestOkAll=TestOkAll)
+
 ####################################
 # NIGHT LAND 
 ####################################
 SchemeName = 'LandNight'
 TestOkAll=None
-TestOkAll =  coldCloudTest_v2014(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=False, TestOkAll=TestOkAll)
+TestOkAll = coldCloudTest_v2014(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=False, TestOkAll=TestOkAll)
 TestOkAll = coldCloudTest_no_tsurf_lim(SchemeName, caobj, cloudObj, fthr, OFFSETS, 
                                     args, show=False, TestOkAll=TestOkAll)                                       
 #TestOkAll = coldCloudTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,  show=False, TestOkAll=TestOkAll)  
@@ -691,6 +757,19 @@ TestOkAll = thinCirrusSecondaryTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, 
                                info="desert_only_",  show=False, TestOkAll=TestOkAll)
 TestOkAll =  coldCloudTest_v2014(SchemeName, caobj, cloudObj, fthr, OFFSETS, 
                               args, show=False, TestOkAll=TestOkAll)
+if fthr.t85_t11_minus_threshold is not None:
+     TestOkAll = HighcloudTestt85t11land(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,   
+                                  ExtraCond=TempAbove230, show=False, TestOkAll=TestOkAll)
+###################################
+# NIGHT COAST
+####################################
+SchemeName = 'CoastNight'
+TestOkAll=None
+TestOkAll =  coldCloudTest_v2014(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=False, TestOkAll=TestOkAll)
+TestOkAll = coldCloudTest_tsurf_lim(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=False, TestOkAll=TestOkAll)
+TestOkAll = coldWatercloudTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=False, TestOkAll=TestOkAll)
+TestOkAll = watercloudTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=False, TestOkAll=TestOkAll)
+TestOkAll = thinCirrusPrimaryTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=False, TestOkAll=TestOkAll)
 if fthr.t85_t11_minus_threshold is not None:
      TestOkAll = HighcloudTestt85t11land(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,   
                                   ExtraCond=TempAbove230, show=False, TestOkAll=TestOkAll)
@@ -783,22 +862,21 @@ cloudObj.isCloudy.LandDayMount = np.logical_and(cloudObj.isCloudy.LandDayMount,
                                                 np.equal(TestOkSnow,False))
 print "***snow test, not implemented as figure, remove snow/ice pixels***"
 print_stats(SchemeName,caobj, cloudObj, args, TestOkAll) 
-if fthr.qr16r06 is not None:
-     TestOkClear = newClearWaterBodiesTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=False)
-     cloudObj.isClear.LandDayMount = np.logical_and(cloudObj.isClear.LandDayMount,
-                                                    np.equal(TestOkClear,False))
-     cloudObj.isCloudy.LandDayMount = np.logical_and(cloudObj.isCloudy.LandDayMount,
-                                                     np.equal(TestOkClear,False))
-     print_stats(SchemeName,caobj, cloudObj, args, TestOkAll)  
+TestOkClear = DriedOutLakesAndRiversTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, info="",show=False)
+
+TestOkClear = newClearWaterBodiesTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=False)
+cloudObj.isClear.LandDayMount = np.logical_and(cloudObj.isClear.LandDayMount,
+                                               np.equal(TestOkClear,False))
+cloudObj.isCloudy.LandDayMount = np.logical_and(cloudObj.isCloudy.LandDayMount,
+                                                np.equal(TestOkClear,False))
+print_stats(SchemeName,caobj, cloudObj, args, TestOkAll)  
 TestOkAll = coldCloudTest_v2014(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=False, TestOkAll=TestOkAll)
 TestOkAll = brightCloudTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, info="",  show=False, TestOkAll=TestOkAll)
 if fthr.qr16r06 is not None:
-     TestOkAll = brightCloudTestNoSunglint3A(SchemeName, caobj, cloudObj, fthr, 
+     DontUse = brightCloudTestNoSunglint3ALand(SchemeName, caobj, cloudObj, fthr, 
                                  OFFSETS, args, info="notusedif37_",  
-                                 ExtraCond=NoChannel3_7, show=False, TestOkAll=TestOkAll)
-     brightCloudTestNoSunglint3A(SchemeName, caobj, cloudObj, fthr, 
-                                 OFFSETS, args,   
-                                 info="dont_notusedif37_",  show=False, TestOkAll=TestOkAll)
+                                  show=False, TestOkAll=TestOkAll)
+
 TestOkAll = coldBrightCloudTest37(SchemeName, caobj, cloudObj, fthr, 
                                OFFSETS, args,  info="",   show=False, TestOkAll=TestOkAll)
 TestOkAll = coldBrightCloudTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,   
@@ -823,34 +901,31 @@ cloudObj.isClear.IceDay = np.logical_and(cloudObj.isClear.IceDay,
 cloudObj.isCloudy.IceDay = np.logical_and(cloudObj.isCloudy.IceDay,
                                                 np.equal(TestOkSnow, False))
 print "***snow test, not implemented as figure, remove snow/ice pixels***"
-TestOkAll = coldCloudTest_no_tsurf_lim(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=True, TestOkAll=TestOkAll) 
-TestOkAll = coldBrightCloudTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=True, TestOkAll=TestOkAll)
-TestOkAll = brightCloudTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, info="use_opaquer06_thr_",  show=True, TestOkAll=TestOkAll)
-TestOkAll = coldWatercloudTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=True, TestOkAll=TestOkAll)
+TestOkAll = coldCloudTest_no_tsurf_lim(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=False, TestOkAll=TestOkAll) 
+TestOkAll = coldBrightCloudTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=False, TestOkAll=TestOkAll)
+TestOkAll = brightCloudTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, info="use_opaquer06_thr_",  show=False, TestOkAll=TestOkAll)
+TestOkAll = coldWatercloudTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=False, TestOkAll=TestOkAll)
 if fthr.qr16r06 is not None:
      TestOkAll = brightCloudTestNoSunglint3A(SchemeName, caobj, cloudObj, fthr, 
                                  OFFSETS, args, info="notusedif37_",  
-                                 ExtraCond=NoChannel3_7, show=True, TestOkAll=TestOkAll)
+                                 ExtraCond=NoChannel3_7, show=False, TestOkAll=TestOkAll)
      DontUseIt = brightCloudTestNoSunglint3A(SchemeName, caobj, cloudObj, fthr, 
                                  OFFSETS, args,   
-                                 info="maybe_use_notusedif37_",  show=True, TestOkAll=TestOkAll)
-TestOkAll = coldCloudTest_tsurf_lim(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=True, TestOkAll=TestOkAll) 
-TestOkAll = thinCirrusSecondaryTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,  show=True, TestOkAll=TestOkAll)
-TestOkAll = brightCloudTestSea(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,  show=True, TestOkAll=TestOkAll)
-
-TestOkAll = textureIrVisTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=True, TestOkAll=TestOkAll, ExtraCond=np.logical_and(EnoughLight,TempAboveIce))
-TestOkAll = thinCirrusPrimaryTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=True, TestOkAll=TestOkAll)
-TestOkAll =coldCloudTest_v2014(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,  show=True, TestOkAll=TestOkAll)
+                                 info="maybe_use_notusedif37_",  show=False, TestOkAll=TestOkAll)
+TestOkAll = coldCloudTest_tsurf_lim(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=False, TestOkAll=TestOkAll) 
+TestOkAll = thinCirrusSecondaryTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,  show=False, TestOkAll=TestOkAll)
+TestOkAll = brightCloudTestSea(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,  show=False, TestOkAll=TestOkAll)
+#TestOkAll = thinCirrusPrimaryTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, info="non_existing_", args, show=False, TestOkAll=TestOkAll)
+TestOkAll =coldCloudTest_v2014(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,  show=False, TestOkAll=TestOkAll)
 
  
-TestOkAll = reflectingCloudTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args,  show=True, TestOkAll=TestOkAll)
+Try = reflectingCloudTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, info="non_existing_",  show=False, TestOkAll=TestOkAll)
 if fthr.qr16r06 is not None:
-     DontUseIt = pseudo06CloudTest3A(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, ExtraCond=NoChannel3_7, show=True, TestOkAll=TestOkAll)
-     pseudo06CloudTest3A(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, info="also_for37_", show=True, TestOkAll=TestOkAll)
+     pseudo06CloudTest3A(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, info="non_existing_",  show=False, TestOkAll=TestOkAll)
 
-TestOkAll = watercloudTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, show=True, TestOkAll=TestOkAll)
+Try = watercloudTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, info="non_existing_", show=False, TestOkAll=TestOkAll)
 
-TestOkAll = arcticThinCirrusPrimaryTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, info="extra_", show=True, TestOkAll=TestOkAll)
+Try = arcticThinCirrusPrimaryTest(SchemeName, caobj, cloudObj, fthr, OFFSETS, args, info="non_existing_", show=False, TestOkAll=TestOkAll)
 
 
 ####################################
