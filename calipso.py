@@ -518,7 +518,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
     surft_track = []
     t500_track = []
     t700_track = []
-    t85_track0 = []
+    t850_track = []
     t950_track = []
     ciwv_track = []
     r06micron_track = []

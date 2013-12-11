@@ -191,7 +191,7 @@ def plot_inner(SchemeName, args_test, cloudobj, TestOk, THRESHOLD, onlyCirrus=No
              yvector[isMissclassifiedByThisTest == True], 'cx')
     plt.plot(xvector[isNotDetectedByThisTest == True], 
              yvector[isNotDetectedByThisTest == True], 'g.')
-    #plt.axhline(y = THRESHOLD, color = 'k',linewidth = 2)
+    plt.axhline(y = THRESHOLD, color = 'k',linewidth = 2)
     plt.axhline(y = clfree_percentiles[0], color = 'b',ls = '--')
     plt.axhline(y = clfree_percentiles[1], color = 'b',ls = '--')
     plt.axhline(y = clfree_percentiles[3], color = 'b',linewidth = 2)
@@ -463,7 +463,6 @@ def get_clear_and_cloudy_vectors(caObj, isACPGv2012, isGAC):
             np.logical_and(SeesThrough,isHigh),
             np.logical_and(isOpticallyThinTopLay, isSingleLayerCloud)))
     isThinCirrus = np.logical_and(isThinCirrus, notVeryThinTopLay)
-#isCloudy = isThinCirrus
 # nsidc 
 # 255 = Coast
 # 1-100 = Sea ice concentration %
@@ -477,8 +476,8 @@ def get_clear_and_cloudy_vectors(caObj, isACPGv2012, isGAC):
     isSea = isSea#np.logical_and(isSea,isPPSSea)
     isWater = np.logical_and(isPPSSea, isPPSSeaNotIce)
 #isIce = np.logical_and(isCalipsoIce, isPPSIce)
-    isIce = np.logical_and(isPPSSea, isPPSIce)
-
+    isIce = np.logical_and(np.logical_or(isPPSSea,isPPSCoast), isPPSIce)
+    isPPSCoast= np.logical_and(isPPSCoast, np.equal(isPPSIce, False))
     isSunglintDay = np.logical_and(np.logical_and(isPPSDay, isPPSSunglint), isPPSSea)
     isSunglintTwilight = np.logical_and(np.logical_and(isPPSTwilight, isPPSSunglint), isPPSSea)
     isWaterNight = np.logical_and(isWater,isPPSNight)
@@ -703,7 +702,9 @@ class ppsTestFeature(DataObject):
             'ciwv': None,
             'latitude': None,
             't11t37': None,
-            't37t12': None
+            't37t12': None,
+            'thr_t37t12': None,
+            'thr_t37t12_inv': None
           }
 
 def get_feature_values_and_thresholds(caObj):
@@ -717,7 +718,7 @@ def get_feature_values_and_thresholds(caObj):
     feature_minus_thr.ciwv = caObj.avhrr.all_arrays['ciwv']
 
     feature_minus_thr.thr_r06 = caObj.avhrr.all_arrays['thr_r06']
-
+    
     #thresholds
     thr_t11t12 = caObj.avhrr.thr_t11t12
     thr_t11t12 = caObj.avhrr.thr_t11t12
@@ -730,6 +731,8 @@ def get_feature_values_and_thresholds(caObj):
     thr_t37t12_inv = caObj.avhrr.thr_t37t12_inv
     thr_t11t37_inv = caObj.avhrr.thr_t11t37_inv
     thr_t85t11_inv = caObj.avhrr.thr_t85t11_inv
+    feature_minus_thr.thr_t37t12 = thr_t37t12
+    feature_minus_thr.thr_t37t12_inv = thr_t37t12_inv
     #brightness temperature
     t11 = caObj.avhrr.all_arrays['bt11micron']
     t85 = caObj.avhrr.all_arrays['bt86micron']
@@ -745,6 +748,9 @@ def get_feature_values_and_thresholds(caObj):
     feature_minus_thr.t37t12text = caObj.avhrr.all_arrays['text_t37t12']
     feature_minus_thr.t37text = caObj.avhrr.all_arrays['text_t37']
 
+    nodata = thr_t37t12==-9
+    thr_t37t12 = np.ma.array(thr_t37t12, mask = nodata)
+    #thr_t37t12 = np.where(thr_t37t12==-9, 50,thr_t37t12) 
     #feature_diff
     nodata = np.logical_or(t12<= -9, t37<= -9)
     t37t12 = np.ma.array(t37-t12, mask = nodata)
@@ -756,7 +762,7 @@ def get_feature_values_and_thresholds(caObj):
         nodata = np.logical_or(t11<= -9, t85<= -9)
         t85t11 = np.ma.array(t85-t11, mask = nodata)
     except:
-        t85t11=None
+        t85t11= None
     nodata = np.logical_or(t11<= -9, surftemp<= -9)
     t11ts = np.ma.array(t11-surftemp, mask = nodata)
     nodata = np.logical_or(t11<= -9, t12<= -9)
@@ -774,7 +780,7 @@ def get_feature_values_and_thresholds(caObj):
     try:
         feature_minus_thr.qr09r06 = np.ma.array(r09/r06,  mask = nodata)
     except:
-        feature_minus_thr.qr09r06 = None
+        feature_minus_thr.qr09r06 = None    
     nodata = np.logical_or(r16<=-9,np.logical_or(r06<=-0.9, r06==0))
     try:
         feature_minus_thr.qr16r06 = np.ma.array(r16/r06,  mask = nodata)
