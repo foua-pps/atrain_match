@@ -6,7 +6,7 @@ still be some modules which have internal constants defined.
 """
 
 import os
-PPS_FORMAT_2012_OR_ERLIER = False
+PPS_FORMAT_2012_OR_EARLIER = False
 
 #Set to true if you always want an avhrr orbit that starts before the cross
 ALWAYS_USE_AVHRR_ORBIT_THAT_STARTS_BEFORE_CROSS = False

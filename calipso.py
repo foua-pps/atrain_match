@@ -17,7 +17,7 @@ from config import (OPTICAL_DETECTION_LIMIT,
                     USE_5KM_FILES_TO_FILTER_CALIPSO_DATA,
                     PPS_VALIDATION,
                     IMAGER_INSTRUMENT,
-                    PPS_FORMAT_2012_OR_ERLIER)
+                    PPS_FORMAT_2012_OR_EARLIER)
 EXCLUDE_GEOMETRICALLY_THICK = False
 import time as tm
 
@@ -404,8 +404,8 @@ def createAvhrrTime(Obt, values):
             """
             Obt.sec1970_end = int(DSEC_PER_AVHRR_SCALINE * Obt.num_of_lines + Obt.sec1970_start)
         
-        if ((values["ppsfilename"].split('_')[-3] != '00000' and PPS_FORMAT_2012_OR_ERLIER) or
-            (values["ppsfilename"].split('_')[-2] != '00000' and not PPS_FORMAT_2012_OR_ERLIER)):
+        if ((values["ppsfilename"].split('_')[-3] != '00000' and PPS_FORMAT_2012_OR_EARLIER) or
+            (values["ppsfilename"].split('_')[-2] != '00000' and not PPS_FORMAT_2012_OR_EARLIER)):
             """
             This if statement takes care of a bug in start and end time, 
             that occurs when a file is cut at midnight

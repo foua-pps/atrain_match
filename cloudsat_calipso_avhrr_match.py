@@ -120,7 +120,7 @@ from config import (VAL_CPP,
                     PPS_VALIDATION,
                     ALWAYS_USE_AVHRR_ORBIT_THAT_STARTS_BEFORE_CROSS,
                     USE_5KM_FILES_TO_FILTER_CALIPSO_DATA,
-                    PPS_FORMAT_2012_OR_ERLIER,
+                    PPS_FORMAT_2012_OR_EARLIER,
                     RESOLUTION)
 
 from radiance_tb_tables_kgtest import get_central_wavenumber
@@ -268,7 +268,7 @@ def get_satid_datetime_orbit_from_fname(avhrr_filename):
     #satname, _datetime, orbit = runutils.parse_scene(avhrr_filename)
     #returnd orbit as int, loosing leeding zeros, use %05d to get it right.
     # Get satellite name, time, and orbit number from avhrr_file
-    if PPS_VALIDATION and not PPS_FORMAT_2012_OR_ERLIER:
+    if PPS_VALIDATION and not PPS_FORMAT_2012_OR_EARLIER:
         sl_ = os.path.basename(avhrr_filename).split('_')
         date_time= datetime.strptime(sl_[5], '%Y%m%dT%H%M%S%fZ')
         values= {"satellite": sl_[3],
@@ -282,7 +282,7 @@ def get_satid_datetime_orbit_from_fname(avhrr_filename):
                  "time":date_time.strftime("%H%M"),
                  "ppsfilename":avhrr_filename}
         values['basename'] = values["satellite"] + "_" + values["date"] + "_" + values["time"] + "_" + values["orbit"]
-    if PPS_VALIDATION  and PPS_FORMAT_2012_OR_ERLIER:
+    if PPS_VALIDATION  and PPS_FORMAT_2012_OR_EARLIER:
         sl_ = os.path.basename(avhrr_filename).split('_')
         date_time= datetime.strptime(sl_[1] + sl_[2], '%Y%m%d%H%M')
         values= {"satellite": sl_[0],
