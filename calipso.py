@@ -713,23 +713,26 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
         write_log('INFO', "Extracting ctth along track ")
         temp = [ctth.height[row_matched[idx], col_matched[idx]]
                 for idx in range(row_matched.shape[0])]
-        hh_temp = [(ctth.height[row_matched[idx], col_matched[idx]] * 
-                    ctth.h_gain + ctth.h_intercept)
-                   for idx in range(row_matched.shape[0])]
+        hh_temp = np.int32([(ctth.height[row_matched[idx], col_matched[idx]] * 
+                             ctth.h_gain + ctth.h_intercept)
+                            for idx in range(row_matched.shape[0])])
         ctth_height_track = np.where(np.equal(temp, ctth.h_nodata), 
                                      -9, hh_temp)
+        print type(ctth_height_track[0])
+        print temp[922],temp[923], temp[924]
+        print ctth_height_track[922],ctth_height_track[923], ctth_height_track[924]
         temp = [ctth.temperature[row_matched[idx], col_matched[idx]]
                 for idx in range(row_matched.shape[0])]
-        tt_temp = [(ctth.temperature[row_matched[idx], col_matched[idx]] * 
-                    ctth.t_gain + ctth.t_intercept)
-                   for idx in range(row_matched.shape[0])]
+        tt_temp = np.int32([(ctth.temperature[row_matched[idx], col_matched[idx]] * 
+                             ctth.t_gain + ctth.t_intercept)
+                            for idx in range(row_matched.shape[0])])
         ctth_temperature_track = np.where(np.equal(temp, ctth.t_nodata),
                                           -9,tt_temp)
         temp = [ctth.pressure[row_matched[idx], col_matched[idx]]
                 for idx in range(row_matched.shape[0])]
-        pp_temp = [(ctth.pressure[row_matched[idx], col_matched[idx]] * 
-                   ctth.p_gain + ctth.p_intercept)
-                   for idx in range(row_matched.shape[0])]
+        pp_temp = np.int32([(ctth.pressure[row_matched[idx], col_matched[idx]] * 
+                             ctth.p_gain + ctth.p_intercept)
+                            for idx in range(row_matched.shape[0])])
         ctth_pressure_track = np.where(np.equal(temp, ctth.p_nodata), 
                                       -9, pp_temp)
         if (PPS_VALIDATION and hasattr(ctth,'processingflag')):
