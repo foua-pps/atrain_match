@@ -9,7 +9,7 @@ from pps_error_messages import write_log
 from config import (AREA, _validation_results_dir, 
                     sec_timeThr, COMPRESS_LVL, RESOLUTION,
                     NLINES, SWATHWD, NODATA) #@UnusedImport
-from common import MatchupError, elements_within_range #@UnusedImport
+from common import MatchupError, TimeMatchError, elements_within_range #@UnusedImport
 from config import RESOLUTION as resolution
 from config import (OPTICAL_DETECTION_LIMIT,
                     OPTICAL_LIMIT_CLOUD_TOP,
@@ -390,8 +390,8 @@ def createAvhrrTime(Obt, values):
         linetime = np.linspace(Obt.sec1970_start, Obt.sec1970_end, num_of_scan)
         Obt.time = np.apply_along_axis(np.multiply,  0, np.ones([num_of_scan, 16]), linetime).reshape(Obt.num_of_lines)
 
-        write_log("INFO", "NPP start time:  ", time.gmtime(Obt.sec1970_start))
-        write_log("INFO", "NPP end time: ", time.gmtime(Obt.sec1970_end))
+        write_log("INFO", "NPP start time :  ", time.gmtime(Obt.sec1970_start))
+        write_log("INFO", "NPP end time : ", time.gmtime(Obt.sec1970_end))
 
  
     else:
@@ -403,14 +403,24 @@ def createAvhrrTime(Obt, values):
             This estimation is not that correct but what to do?
             """
             Obt.sec1970_end = int(DSEC_PER_AVHRR_SCALINE * Obt.num_of_lines + Obt.sec1970_start)
-        
-        if ((values["ppsfilename"].split('_')[-3] != '00000' and PPS_FORMAT_2012_OR_EARLIER) or
-            (values["ppsfilename"].split('_')[-2] != '00000' and not PPS_FORMAT_2012_OR_EARLIER)):
+
+        datetime=values["date_time"]
+        sec1970_start_filename = calendar.timegm(datetime.timetuple())
+        diff_filename_infile_time = sec1970_start_filename-Obt.sec1970_start
+        diff_hours= abs( diff_filename_infile_time/3600.0  )
+        if (diff_hours<13):
+            write_log("INFO", "Time in file and filename do agree. Difference  %d hours.", diff_hours)
+        if (diff_hours>13):
             """
             This if statement takes care of a bug in start and end time, 
             that occurs when a file is cut at midnight
+            Former condition needed line number in file name:
+            if ((values["ppsfilename"].split('_')[-3] != '00000' and PPS_FORMAT_2012_OR_EARLIER) or
+            (values["ppsfilename"].split('_')[-2] != '00000' and not PPS_FORMAT_2012_OR_EARLIER)):
+            Now instead check if we aer more than 13 hours off. 
+            If we are this is probably the problem, do the check and make sure results are fine afterwards.
             """
-            
+            write_log("WARNING", "Time in file and filename do not agree! Difference  %d hours.", diff_hours)
             import calendar, time
             timediff = Obt.sec1970_end - Obt.sec1970_start
             old_start = time.gmtime(Obt.sec1970_start + (24 * 3600)) # Adds 24 h to get the next day in new start
@@ -420,7 +430,11 @@ def createAvhrrTime(Obt, values):
                                                                    '%Y %m %d'))
             Obt.sec1970_start = new_start
             Obt.sec1970_end = new_start + timediff
-        Obt.time = np.linspace(Obt.sec1970_start, Obt.sec1970_end, Obt.num_of_lines)
+            diff_filename_infile_time = sec1970_start_filename-Obt.sec1970_start
+            diff_hours= abs( diff_filename_infile_time/3600.0)
+            if (diff_hours>20):
+                write_log("ERROR", "Time in file and filename do not agree! Difference  %d hours.", diff_hours)
+                raise TimeMatchError("Time in file and filename do not agree.")        
     
     return Obt
 
@@ -718,9 +732,6 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
                             for idx in range(row_matched.shape[0])])
         ctth_height_track = np.where(np.equal(temp, ctth.h_nodata), 
                                      -9, hh_temp)
-        print type(ctth_height_track[0])
-        print temp[922],temp[923], temp[924]
-        print ctth_height_track[922],ctth_height_track[923], ctth_height_track[924]
         temp = [ctth.temperature[row_matched[idx], col_matched[idx]]
                 for idx in range(row_matched.shape[0])]
         tt_temp = np.int32([(ctth.temperature[row_matched[idx], col_matched[idx]] * 
