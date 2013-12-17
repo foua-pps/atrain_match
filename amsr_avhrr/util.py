@@ -127,12 +127,7 @@ def get_cpp_product(filename, product):
     """Get *product* from CPP file *filename*."""
     from ppshdf_cloudproducts import CppProducts
     
-    try:
-        cpp = CppProducts.from_h5(filename, product_names=[product])
-    except TypeError:
-        logger.warning("Running with old ACPG (< r2_45) -- using old "
-                       "CppProducts interface")
-        cpp = CppProducts(filename=filename, product_names=[product])
+    cpp = CppProducts.from_h5(filename, product_names=[product])
     return cpp.products[product].array
 
 def get_cpp_product_cci(filename, product):

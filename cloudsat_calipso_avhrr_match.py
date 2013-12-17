@@ -263,12 +263,12 @@ def find_calipso_files_inner(date_time, time_window, options, values):
         flist.extend([ s for s in tmplist if s not in flist ])      
     return flist
 
-def get_satid_datetime_orbit_from_fname(avhrr_filename):
+def get_satid_datetime_orbit_from_fname(avhrr_filename,as_oldstyle=False):
     #import runutils
     #satname, _datetime, orbit = runutils.parse_scene(avhrr_filename)
     #returnd orbit as int, loosing leeding zeros, use %05d to get it right.
     # Get satellite name, time, and orbit number from avhrr_file
-    if PPS_VALIDATION and not PPS_FORMAT_2012_OR_EARLIER:
+    if PPS_VALIDATION  and not PPS_FORMAT_2012_OR_EARLIER and not as_oldstyle:
         sl_ = os.path.basename(avhrr_filename).split('_')
         date_time= datetime.strptime(sl_[5], '%Y%m%dT%H%M%S%fZ')
         values= {"satellite": sl_[3],
@@ -282,16 +282,17 @@ def get_satid_datetime_orbit_from_fname(avhrr_filename):
                  "time":date_time.strftime("%H%M"),
                  "ppsfilename":avhrr_filename}
         values['basename'] = values["satellite"] + "_" + values["date"] + "_" + values["time"] + "_" + values["orbit"]
-    if PPS_VALIDATION  and PPS_FORMAT_2012_OR_EARLIER:
+    if PPS_VALIDATION and (PPS_FORMAT_2012_OR_EARLIER or as_oldstyle):
         sl_ = os.path.basename(avhrr_filename).split('_')
         date_time= datetime.strptime(sl_[1] + sl_[2], '%Y%m%d%H%M')
         values= {"satellite": sl_[0],
                  "date_time": date_time,
-                 "orbit": sl_[3],
+                 "orbit": sl_[3].split('.')[0],
                  "date":sl_[1],
                  "year":date_time.year,
                  "month":"%02d"%(date_time.month),  
-                 "lines_lines": sl_[5] + "_" + sl_[6],
+                 #"lines_lines": sl_[5] + "_" + sl_[6],
+                 "lines_lines": "*",
                  "time":sl_[2],
                  "ppsfilename":avhrr_filename}
         values['basename'] = values["satellite"] + "_" + values["date"] + "_" + values["time"] + "_" + values["orbit"]
@@ -418,7 +419,7 @@ def find_radiance_file(cross, options):
                                       options['radiance_file'])
     if not found_file:
         raise MatchupError("No dir or file found with radiance data!\n" + 
-                           "Searching under %s" % options['radiance_dir'])
+                           "Searching for %s %s" % (options['radiance_dir'],options['radiance_file']))
     return found_file, tobj
 
 def find_cci_cloud_file(cross, options):
@@ -526,7 +527,7 @@ def get_pps_file(avhrr_file, options, values, type_of_file, file_dir):
                                            values, datetime_obj=date_time)  
     try:
         file_name = glob(os.path.join(path, cloudtype_name))[0]
-        write_log("INFO", type_of_file +": ", file_name)
+        #write_log("DEBUG", type_of_file +": ", file_name)
         return file_name
     except IndexError:
         write_log("INFO","No %s file found corresponding to %s." %( type_of_file, avhrr_file))
@@ -539,13 +540,13 @@ def find_files_from_avhrr(avhrr_file, options):
     # Let's get the satellite and the date-time of the pps radiance
     # (avhrr/viirs) file:
     write_log("INFO", "Avhrr or viirs file = %s" % avhrr_file)
-    values = get_satid_datetime_orbit_from_fname(avhrr_file)
+    values = get_satid_datetime_orbit_from_fname(avhrr_file, as_oldstyle=True)
     date_time = values["date_time"]
 
     cloudtype_name = insert_info_in_filename_or_path(options['cloudtype_file'], 
-                                                     values, datetime_obj=date_time)                        
+                                                     values, datetime_obj=date_time)
     path = insert_info_in_filename_or_path(options['cloudtype_dir'], 
-                                           values, datetime_obj=date_time)  
+                                           values, datetime_obj=date_time)
     try:
         print os.path.join(path, cloudtype_name)
         cloudtype_file = glob(os.path.join(path, cloudtype_name))[0]
@@ -553,7 +554,7 @@ def find_files_from_avhrr(avhrr_file, options):
         raise MatchupError("No cloudtype file found corresponding to %s." % avhrr_file)
     write_log("INFO", "CLOUDTYPE: " + cloudtype_file)
     ctth_name = insert_info_in_filename_or_path(options['ctth_file'], 
-                                                values, datetime_obj=date_time) 
+                                                values, datetime_obj=date_time)
     path =  insert_info_in_filename_or_path(options['ctth_dir'], 
                                                 values, datetime_obj=date_time)  
     try:
@@ -585,6 +586,17 @@ def find_files_from_avhrr(avhrr_file, options):
         raise MatchupError("No sunsatangles file found corresponding to %s." % avhrr_file)
     write_log("INFO", "SUNSATANGLES: " + sunsatangles_file)
 
+    physiography_name = insert_info_in_filename_or_path(options['physiography_file'],
+                                                        values, datetime_obj=date_time)
+    path =insert_info_in_filename_or_path(options['physiography_dir'], 
+                                          values, datetime_obj=date_time)
+    try:
+        physiography_file = glob(os.path.join(path, physiography_name))[0]
+    except IndexError:
+        physiography_file = None
+        raise MatchupError("No physiography file found corresponding to %s." % avhrr_file)
+    write_log("INFO", "PHYSIOGRAPHY: " + physiography_file)
+
     if not 'nwp_tsur_file' in options:
         write_log("WARNING", "No t-surface file searched for!")
         nwp_tsur_file=None
@@ -613,16 +625,21 @@ def find_files_from_avhrr(avhrr_file, options):
     for thr_file in ['thr_t11ts_inv', 'thr_t11t37_inv', 
                      'thr_t37t12_inv', 'thr_t11t12_inv', 
                      'thr_t11ts', 'thr_t11t37', 'thr_t37t12', 'thr_t11t12',
-                     'thr_r09', 'thr_r06',
-                     'thr_t85t11_inv', 'thr_t85t11']:
+                     'thr_r09', 'thr_r06']:
         file_name_dict[thr_file] = get_pps_file(avhrr_file, options, values, 
                                                 thr_file+'_file', 'thr_dir')
+    if (values['satellite'] in ('npp', 'eos1', 'eos2')):
+        for thr_file in ['thr_t85t11_inv', 'thr_t85t11']:
+            file_name_dict[thr_file] = get_pps_file(avhrr_file, options,
+                                                    values, 
+                                                    thr_file+'_file', 'thr_dir')
  
     file_name_dict.update({'cloudtype': cloudtype_file,
-                      'ctth': ctth_file,
-                      'cpp': cpp_file,
-                      'nwp_tsur': nwp_tsur_file,
-                      'sunsatangles': sunsatangles_file})
+                           'ctth': ctth_file,
+                           'cpp': cpp_file,
+                           'nwp_tsur': nwp_tsur_file,
+                           'sunsatangles': sunsatangles_file,
+                           'physiography': physiography_file})
 
     ppsfiles = ppsFiles(file_name_dict)
                         #cloudtype=cloudtype_file,
@@ -779,18 +796,28 @@ def read_pps_data(pps_files, avhrr_file, cross):
     cppCph = None
     if VAL_CPP:    
         write_log("INFO","Read CPP data")
-        try:
-            from ppshdf_cloudproducts import CppProducts #@UnresolvedImport
-            cpp = CppProducts.from_h5(pps_files.cpp, product_names=['cph','lwp'])        
-            cppLwp = cpp.products['lwp'].array
-            cppCph = cpp.products['cph'].array
-            write_log("INFO", "CPP chp and lwp data read")
-        except KeyError:
-        #import traceback
-        #traceback.print_exc()
-            cppLwp = readCpp(pps_files.cpp, 'lwp')
-            cppCph = readCpp(pps_files.cpp, 'cph')
-            write_log("INFO", "CPP lwp, cph data read")
+        from ppshdf_cloudproducts import CppProducts #@UnresolvedImport
+        if PPS_FORMAT_2012_OR_EARLIER:
+            try:
+                cpp = CppProducts.from_h5(pps_files.cpp,
+                                          product_names=['cph','lwp'])
+                cppLwp = cpp.products['lwp'].array
+                cppCph = cpp.products['cph'].array
+                write_log("INFO", "CPP chp and lwp data read")
+            except KeyError:
+                #import traceback
+                #traceback.print_exc()
+                cppLwp = readCpp(pps_files.cpp, 'lwp')
+                cppCph = readCpp(pps_files.cpp, 'cph')
+                write_log("INFO", "CPP lwp, cph data read")
+        else:
+            cpp = CppProducts.from_h5(pps_files.cpp,
+                                      product_names=['cpp_phase','cpp_lwp'],
+                                      scale_up=True)
+            # LWP convert from kg/m2 to g/m2
+            cppLwp = 1000. * cpp.products['cpp_lwp'].array
+            cppCph = cpp.products['cpp_phase'].array
+            
     write_log("INFO","Read PPS Cloud Type")
     try:
         ctype = epshdf.read_cloudtype(pps_files.cloudtype, 1, 1, 1)  
