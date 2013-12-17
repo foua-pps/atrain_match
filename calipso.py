@@ -435,7 +435,7 @@ def createAvhrrTime(Obt, values):
             if (diff_hours>20):
                 write_log("ERROR", "Time in file and filename do not agree! Difference  %d hours.", diff_hours)
                 raise TimeMatchError("Time in file and filename do not agree.")        
-    
+        Obt.time = np.linspace(Obt.sec1970_start, Obt.sec1970_end, Obt.num_of_lines)
     return Obt
 
 def get_channel_data_from_object(dataObj, chn_des, matched, nodata=-9):
