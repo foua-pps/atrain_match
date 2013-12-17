@@ -512,10 +512,26 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
     calipso_low = np.logical_and(np.logical_and(np.greater_equal(cal_vert_feature[::],0),np.less_equal(cal_vert_feature[::],3)),cal_subset)
     calipso_medium = np.logical_and(np.logical_and(np.greater(cal_vert_feature[::],3),np.less_equal(cal_vert_feature[::],5)),cal_subset)
     calipso_high = np.logical_and(np.logical_and(np.greater(cal_vert_feature[::],5),np.less_equal(cal_vert_feature[::],7)),cal_subset)
-    avhrr_low = np.logical_and(np.logical_and(np.greater_equal(caObj.avhrr.cloudtype,5),np.less_equal(caObj.avhrr.cloudtype,8)),cal_subset)
-    avhrr_medium = np.logical_and(np.logical_and(np.greater_equal(caObj.avhrr.cloudtype,9),np.less_equal(caObj.avhrr.cloudtype,10)),cal_subset)
-    avhrr_high = np.logical_and(np.logical_and(np.greater_equal(caObj.avhrr.cloudtype,11),np.less_equal(caObj.avhrr.cloudtype,18)),cal_subset)
-    avhrr_frac = np.logical_and(np.logical_and(np.greater_equal(caObj.avhrr.cloudtype,19),np.less_equal(caObj.avhrr.cloudtype,19)),cal_subset)
+
+    if hasattr(caObj.avhrr, 'cloudtype_conditions'):
+        write_log("INFO", "Assuming cloudtype structure from pps v2014")
+        avhrr_low = np.logical_and(np.logical_and(np.greater_equal(caObj.avhrr.cloudtype,5),np.less_equal(caObj.avhrr.cloudtype,6)),cal_subset)
+        avhrr_medium = np.logical_and(np.equal(caObj.avhrr.cloudtype,7), cal_subset)
+        avhrr_high_op = np.logical_and(np.logical_and(np.greater_equal(caObj.avhrr.cloudtype,8),np.less_equal(caObj.avhrr.cloudtype,9)),cal_subset)
+        avhrr_high_semi = np.logical_and(np.logical_and(np.greater_equal(caObj.avhrr.cloudtype,11),np.less_equal(caObj.avhrr.cloudtype,15)),cal_subset)
+        avhrr_high = np.logical_or(avhrr_high_op,avhrr_high_semi)
+        avhrr_frac = np.logical_and(np.equal(caObj.avhrr.cloudtype,10), cal_subset)
+
+    else:
+        write_log("INFO", "Assuming cloudtype structure from pps v2012")
+        avhrr_low = np.logical_and(np.logical_and(np.greater_equal(caObj.avhrr.cloudtype,5),np.less_equal(caObj.avhrr.cloudtype,8)),cal_subset)
+        avhrr_medium = np.logical_and(np.logical_and(np.greater_equal(caObj.avhrr.cloudtype,9),np.less_equal(caObj.avhrr.cloudtype,10)),cal_subset)
+        avhrr_high = np.logical_and(np.logical_and(np.greater_equal(caObj.avhrr.cloudtype,11),np.less_equal(caObj.avhrr.cloudtype,18)),cal_subset)
+        avhrr_frac = np.logical_and(np.logical_and(np.greater_equal(caObj.avhrr.cloudtype,19),np.less_equal(caObj.avhrr.cloudtype,19)),cal_subset)
+
+
+
+
     calipso_clear = np.logical_and(np.less(caObj.calipso.cloud_fraction,0.34),cal_subset)
     avhrr_clear = np.logical_and(np.logical_and(np.less_equal(caObj.avhrr.cloudtype,4),np.greater(caObj.avhrr.cloudtype,0)),cal_subset)
     

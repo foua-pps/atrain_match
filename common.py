@@ -8,6 +8,11 @@ class MatchupError(Exception):
     Cloudsat / CALIPSO data has occured."""
     pass
 
+class TimeMatchError(Exception):
+    """This exception is used when the time in a file is not 
+    the same as the time in the filename."""
+    pass
+
 
 def elements_within_range(compare, base, _range):
     """Compare arrays *compare* and *base*, elementwise. Returns an array with
