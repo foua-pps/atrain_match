@@ -533,14 +533,15 @@ def get_pps_file(avhrr_file, options, values, type_of_file, file_dir):
         write_log("INFO","No %s file found corresponding to %s." %( type_of_file, avhrr_file))
         return None
 
-def find_files_from_avhrr(avhrr_file, options):
+def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
     """
     Find all files needed to process matchup from source data files.
     """
     # Let's get the satellite and the date-time of the pps radiance
     # (avhrr/viirs) file:
     write_log("INFO", "Avhrr or viirs file = %s" % avhrr_file)
-    values = get_satid_datetime_orbit_from_fname(avhrr_file, as_oldstyle=True)
+    values = get_satid_datetime_orbit_from_fname(avhrr_file,
+                                                 as_oldstyle=as_oldstyle)
     date_time = values["date_time"]
 
     cloudtype_name = insert_info_in_filename_or_path(options['cloudtype_file'], 

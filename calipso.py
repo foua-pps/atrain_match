@@ -14,6 +14,7 @@ from config import RESOLUTION as resolution
 from config import (OPTICAL_DETECTION_LIMIT,
                     OPTICAL_LIMIT_CLOUD_TOP,
                     SET_TO_CLEAR_CALIPSO_PIXEL_IF_TOTAL_OPTICAL_THICKNESS_TO_LOW,
+                    ALSO_USE_5KM_FILES,
                     USE_5KM_FILES_TO_FILTER_CALIPSO_DATA,
                     PPS_VALIDATION,
                     IMAGER_INSTRUMENT,

@@ -296,7 +296,8 @@ def process_noaa_scene(avhrr_file, options, cloudtype=False, **kwargs):
     logger.info("Processing file: %s"%avhrr_file)    
     if (PPS_VALIDATION):
         try:
-            pps_files = find_files_from_avhrr(avhrr_file, options)
+            pps_files = find_files_from_avhrr(avhrr_file, options,
+                                              as_oldstyle=True)
         except MatchupError:
             #Stop this case, but allow other cases to go on
             logger.warning("Can not find required PPS files for case %s" % \

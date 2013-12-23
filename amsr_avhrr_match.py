@@ -49,7 +49,8 @@ def process_noaa_scene(avhrr_filename, options, amsr_filename=None, ctype=None,
         logger.debug("Found AMSR-E files: %r" % amsr_filenames)
 
     try:
-        pps_files = find_files_from_avhrr(avhrr_filename, options)
+        pps_files = find_files_from_avhrr(avhrr_filename, options,
+                                          as_oldstyle=True)
     except MatchupError:
         #Stop this case, but allow other cases to go on
         logger.warning("Can not find required PPS files for case %s" % \
