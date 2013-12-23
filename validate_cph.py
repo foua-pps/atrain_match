@@ -22,6 +22,7 @@ import logging
 from config import _validation_results_dir
 from config import RESOLUTION, PPS_VALIDATION, CCI_CLOUD_VALIDATION, \
      PPS_FORMAT_2012_OR_EARLIER
+from common import MatchupError
 from amsr_avhrr.util import write_data, write_data_to_open_file
 logger = logging.getLogger(__name__)
 
@@ -200,7 +201,11 @@ def find_calipso_files_from_avhrr_filename(avhrr_filename, options):
     sl_ = os.path.basename(avhrr_filename).split('_')
     satname = sl_[0]
     date_time = datetime.strptime(sl_[1] + sl_[2], '%Y%m%d%H%M')
-    return find_calipso_files(date_time, options, values={})
+    try:
+        calipso_files = find_calipso_files(date_time, options, values={})
+    except MatchupError:
+        raise MatchupError("Couldn't find calipso matchup!")
+    return calipso_files
 
     # Limit matching to AMSR-E files starting 45 min (duration of one half
     # orbit) before up to 20 min (duration of one EARS AVHRR swath) after the
@@ -290,10 +295,34 @@ def process_noaa_scene(avhrr_file, options, cloudtype=False, **kwargs):
     #avhrr_filename = os.path.join(AVHRR_DIR, ppsarg.files.avhrr)
     logger.info("Processing file: %s"%avhrr_file)    
     if (PPS_VALIDATION):
+        try:
             pps_files = find_files_from_avhrr(avhrr_file, options)
-            sunsat_filename  = pps_files.sunsatangles
-            calipso_filenames = find_calipso_files_from_avhrr_filename(avhrr_file, options)
-            cpp_filename = pps_files.cpp
+        except MatchupError:
+            #Stop this case, but allow other cases to go on
+            logger.warning("Can not find required PPS files for case %s" % \
+                           os.path.basename(avhrr_file))
+            tmp_file = os.path.join(MATCH_DIR,
+                                    "WARNING_missing_PPSfile_for_%s" % \
+                                    (os.path.basename(avhrr_file)))
+            cmdstr = "touch %s"%(tmp_file)
+            os.system(cmdstr)
+            return
+            
+        sunsat_filename  = pps_files.sunsatangles
+        try:
+            calipso_filenames = find_calipso_files_from_avhrr_filename(\
+                avhrr_file, options)                
+        except MatchupError:
+            #Stop this case, but allow other cases to go on
+            logger.warning("Can not find calipso match for case %s" % \
+                           os.path.basename(avhrr_file))
+            tmp_file = os.path.join(MATCH_DIR,
+                                    "WARNING_missing_calipso_for_%s" % \
+                                    (os.path.basename(avhrr_file)))
+            cmdstr = "touch %s"%(tmp_file)
+            os.system(cmdstr)
+            return
+        cpp_filename = pps_files.cpp
     if (CCI_CLOUD_VALIDATION):
         #avhrr_file = "20080613002200-ESACCI-L2_CLOUD-CLD_PRODUCTS-AVHRRGAC-NOAA18-fv1.0.nc"
         values = get_satid_datetime_orbit_from_fname(avhrr_file)

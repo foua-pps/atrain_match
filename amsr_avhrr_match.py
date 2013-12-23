@@ -10,6 +10,7 @@ from runutils import process_scenes
 from validate_cph import CPP_PHASE_VALUES_v2012, CPP_PHASE_VALUES
 from cloudsat_calipso_avhrr_match import find_files_from_avhrr
 from config import PPS_FORMAT_2012_OR_EARLIER
+from common import MatchupError
 
 
 #: Should results be plotted?
@@ -47,7 +48,19 @@ def process_noaa_scene(avhrr_filename, options, amsr_filename=None, ctype=None,
         amsr_filenames = find_amsr(avhrr_filename)
         logger.debug("Found AMSR-E files: %r" % amsr_filenames)
 
-    pps_files = find_files_from_avhrr(avhrr_filename, options)
+    try:
+        pps_files = find_files_from_avhrr(avhrr_filename, options)
+    except MatchupError:
+        #Stop this case, but allow other cases to go on
+        logger.warning("Can not find required PPS files for case %s" % \
+                       os.path.basename(avhrr_filename))
+        tmp_file = os.path.join(MATCH_DIR,
+                                "WARNING_missing_PPSfile_for_%s" % \
+                                (os.path.basename(avhrr_filename)))
+        cmdstr = "touch %s"%(tmp_file)
+        os.system(cmdstr)
+        return
+    
     physiography_filename  = pps_files.physiography
     sunsat_filename  = pps_files.sunsatangles
     cpp_filename = pps_files.cpp    

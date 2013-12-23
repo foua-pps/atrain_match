@@ -409,7 +409,7 @@ def createAvhrrTime(Obt, values):
         diff_filename_infile_time = sec1970_start_filename-Obt.sec1970_start
         diff_hours= abs( diff_filename_infile_time/3600.0  )
         if (diff_hours<13):
-            write_log("INFO", "Time in file and filename do agree. Difference  %d hours.", diff_hours)
+            write_log("INFO", "Time in file and filename do agree. Difference  %d hours."%diff_hours)
         if (diff_hours>13):
             """
             This if statement takes care of a bug in start and end time, 
