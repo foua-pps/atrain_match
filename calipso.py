@@ -1026,6 +1026,8 @@ def match_calipso_avhrr(values,
                 calipsoObj.detection_height_5km.ravel(),idx_match.ravel()).astype('d')
             retv.calipso.total_optical_depth_5km = np.repeat(\
                 calipsoObj.total_optical_depth_5km.ravel(),idx_match.ravel()).astype('d')
+
+        
     #cloud_mid_temp = np.repeat(calipsoObj.cloud_mid_temperature.flat,idx_match_2d.flat)
     #cloud_mid_temp = np.where(np.less(cloud_mid_temp,0),missing_data,cloud_mid_temp)
     #cloud_mid_temp = np.reshape(cloud_mid_temp,(N,10))
@@ -1441,174 +1443,85 @@ def add1kmTo5km(Obj1, Obj5, start_break, end_break):
                 retv.all_arrays[arnameca] = valueca
     return retv
     
-def use5km_remove_thin_clouds_from_1km(Obj1, Obj5, start_break, end_break):
-    retv = CalipsoObject()
-    if (Obj5.utc_time[:,1] == Obj1.utc_time[2::5]).sum() != Obj5.utc_time.shape[0]:
-        write_log('WARNING', "length mismatch")
-        pdb.set_trace()
-    for pixel in range(Obj5.utc_time.shape[0]):    
-        cloud_max_top = np.max(Obj5.cloud_top_profile[pixel, 0:10])
-        if cloud_max_top ==-9999:
-            continue
-        else:
-            cloud_top_max = int(round(1000*cloud_max_top))
-        height_profile = 0.001*np.array(range(cloud_top_max, -1, -1))
-        optical_thickness = np.zeros(height_profile.shape)
-        for lay in range(Obj5.number_of_layers_found[pixel]): 
-            #dont use layers with negative top or base value
-            if (Obj5.cloud_top_profile[pixel, lay]>0 and 
-                Obj5.cloud_base_profile[pixel, lay]>0):
-                cloud_at_these_height_index = np.logical_and(
-                    Obj5.cloud_top_profile[pixel, lay]>= height_profile, 
-                    height_profile>=Obj5.cloud_base_profile[pixel, lay])
-                eye_this_cloud = np.where(cloud_at_these_height_index ,  1, 0)
-                number_of_cloud_boxes = sum(eye_this_cloud)         
-                if number_of_cloud_boxes == 0 and Obj5.cloud_top_profile[pixel, lay]>0:
-                    cloud_at_these_height_index = np.logical_and(
-                        np.logical_and(
-                            Obj5.cloud_top_profile[pixel, lay]>= height_profile-0.01, 
-                            Obj5.cloud_base_profile[pixel, lay]>=height_profile-0.01),
-                        np.logical_and(
-                            Obj5.cloud_top_profile[pixel, lay]<= height_profile+0.01, 
-                            Obj5.cloud_base_profile[pixel, lay]<=height_profile+0.01))
-                    write_log('INFO',"Cloud top %.2f base: %.2f "%(
-                            Obj5.cloud_top_profile[pixel, lay],
-                            Obj5.cloud_base_profile[pixel, lay] ))
-                    write_log('INFO'," Using height_profile %2.f %2.f"%(
-                            np.min(height_profile[cloud_at_these_height_index]),np.max(height_profile[cloud_at_these_height_index])))
-                eye_this_cloud = np.where(cloud_at_these_height_index ,  1, 0)
-                number_of_cloud_boxes = sum(eye_this_cloud)         
-                if number_of_cloud_boxes == 0:
-                    write_log('WARNING', "cloud has no depth!!")
-             
-                optical_thickness_this_layer = (
-                    eye_this_cloud*
-                    Obj5.optical_depth[pixel, lay]*
-                    1.0/number_of_cloud_boxes)             
-                if abs(np.sum(optical_thickness_this_layer) - 
-                       Obj5.optical_depth[pixel, lay])>0.001:
-                    write_log('WARNING', "The sum of the optical thickness profile is "
-                       "not the same as total optical thickness of the cloud!!")
-             
-                optical_thickness = optical_thickness + optical_thickness_this_layer
 
-        optical_thickness_profile = np.cumsum(optical_thickness)
-        ok_and_higher_heights = np.where(
-            optical_thickness_profile <= OPTICAL_LIMIT_CLOUD_TOP, 
-            height_profile, cloud_max_top)
-        height_limit1 = np.min(ok_and_higher_heights)
-        #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        ###Rolles suggestion, sort out pixels where the comparison is still bad
-        ### Tested, but not yet decided to use, set sort_put var to True to use
-        sort_out_pixels_that_we_have_no_good_truth_for = False
-        cloud_tops = []
-        for pixel_1km in range(pixel*5, pixel*5+5, 1):
-            cloud_top_max = np.max(Obj1.cloud_top_profile[pixel_1km, :])
-            if cloud_top_max > 0:
-                cloud_tops.append(cloud_top_max)
-        if len (cloud_tops)>0:
-            optical_depth_var_approx = max(cloud_tops)-min(cloud_tops)
-        else:
-            optical_depth_var_approx = -9
-        #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  
-        for pixel_1km in range(pixel*5, pixel*5+5, 1): 
-            #Obj1.detection_height[pixel_1km] = height_limit1
-            for lay in range(Obj1.number_of_layers_found[pixel_1km]-1, -1, -1):
-                #print optical_depth_var_approx
-                if  optical_depth_var_approx > 0.5 and sort_out_pixels_that_we_have_no_good_truth_for:
-                    #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                    Obj1.cloud_top_profile[pixel_1km, lay] = -9999 
-                    Obj1.cloud_base_profile[pixel_1km, lay] = -9999 
-                    #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                #Remove all layers of clouds if total optical thickness is to low:    
-                elif (np.max(optical_thickness_profile)< OPTICAL_DETECTION_LIMIT and 
-                      SET_TO_CLEAR_CALIPSO_PIXEL_IF_TOTAL_OPTICAL_THICKNESS_TO_LOW):
-                    Obj1.cloud_top_profile[pixel_1km, lay] = -9999 
-                    Obj1.cloud_base_profile[pixel_1km, lay] = -9999    
-                elif   (Obj1.cloud_top_profile[pixel_1km, 0]-Obj1.cloud_base_profile[pixel_1km, 0]>1  and #is multilayer
-                        EXCLUDE_GEOMETRICALLY_THICK):
-                    Obj1.cloud_top_profile[pixel_1km, lay] = -9999 
-                    Obj1.cloud_base_profile[pixel_1km, lay] = -9999       
-                elif height_limit1 < Obj1.cloud_top_profile[pixel_1km, lay]:
-                    #cut cloud at limit or at base of cloud
-                    Obj1.cloud_top_profile[pixel_1km, lay] =  max(
-                        height_limit1, 
-                        Obj1.cloud_base_profile[pixel_1km, lay]+0.1)
-                              
-#save removed clouds and heights so they can be plotted (yellow in figure as clouds calipso sees but npp can't see)
-    for arnameca, valueca in Obj1.all_arrays.items(): 
-        if valueca != None:
-            if valueca.size != 1:
-                retv.all_arrays[arnameca] = valueca[start_break:end_break,...]
-            else:
-                retv.all_arrays[arnameca] = valueca
-    return retv
-    
-
-
-def use5km_find_detection_height_and_total_optical_thickness(Obj1, Obj5, start_break, end_break):
+def use5km_find_detection_height_and_total_optical_thickness_faster(Obj1, Obj5, start_break, end_break):
     retv = CalipsoObject()
     if (Obj5.utc_time[:,1] == Obj1.utc_time[2::5]).sum() != Obj5.utc_time.shape[0]:
         write_log('WARNING', "length mismatch")
         pdb.set_trace()
     Obj1.detection_height_5km = np.ones(Obj1.number_of_layers_found.shape)*-9                 
-    Obj1.total_optical_depth_5km = np.ones(Obj1.number_of_layers_found.shape)*-9 ;
-    for pixel in range(Obj5.utc_time.shape[0]):    
-        cloud_max_top = np.max(Obj5.cloud_top_profile[pixel, 0:10])
-        if cloud_max_top ==-9999:
-            continue
-        else:
-            cloud_top_max = int(round(1000*cloud_max_top))
-        height_profile = 0.001*np.array(range(cloud_top_max, -1, -1))
-        optical_thickness = np.zeros(height_profile.shape)
-        for lay in range(Obj5.number_of_layers_found[pixel]): 
-            #dont use layers with negative top or base value
-            if (Obj5.cloud_top_profile[pixel, lay]>0 and 
-                Obj5.cloud_base_profile[pixel, lay]>0):
-                cloud_at_these_height_index = np.logical_and(
-                    Obj5.cloud_top_profile[pixel, lay]>= height_profile, 
-                    height_profile>=Obj5.cloud_base_profile[pixel, lay])
-                eye_this_cloud = np.where(cloud_at_these_height_index ,  1, 0)
-                number_of_cloud_boxes = sum(eye_this_cloud)         
-                if number_of_cloud_boxes == 0 and Obj5.cloud_top_profile[pixel, lay]>0:
-                    cloud_at_these_height_index = np.logical_and(
-                        np.logical_and(
-                            Obj5.cloud_top_profile[pixel, lay]>= height_profile-0.01, 
-                            Obj5.cloud_base_profile[pixel, lay]>=height_profile-0.01),
-                        np.logical_and(
-                            Obj5.cloud_top_profile[pixel, lay]<= height_profile+0.01, 
-                            Obj5.cloud_base_profile[pixel, lay]<=height_profile+0.01))
-                    write_log('INFO',"Cloud top %.2f base: %.2f "%(
-                            Obj5.cloud_top_profile[pixel, lay],
-                            Obj5.cloud_base_profile[pixel, lay] ))
-                    write_log('INFO'," Using height_profile %2.f %2.f"%(
-                            np.min(height_profile[cloud_at_these_height_index]),np.max(height_profile[cloud_at_these_height_index])))
-                eye_this_cloud = np.where(cloud_at_these_height_index ,  1, 0)
-                number_of_cloud_boxes = sum(eye_this_cloud)         
-                if number_of_cloud_boxes == 0:
-                    write_log('WARNING', "cloud has no depth!!")
-             
-                optical_thickness_this_layer = (
-                    eye_this_cloud*
-                    Obj5.optical_depth[pixel, lay]*
-                    1.0/number_of_cloud_boxes)             
-                if abs(np.sum(optical_thickness_this_layer) - 
-                       Obj5.optical_depth[pixel, lay])>0.001:
-                    write_log('WARNING', "The sum of the optical thickness profile is "
-                       "not the same as total optical thickness of the cloud!!")
-             
-                optical_thickness = optical_thickness + optical_thickness_this_layer
+    for pixel in range(Obj5.utc_time.shape[0]):
+        top = Obj5.cloud_top_profile[pixel, 0]
+        base = Obj5.cloud_base_profile[pixel, 0]
+        opt_th = Obj5.optical_depth[pixel, 0]        
+        if base==-9999 or top==-9999 or opt_th==-9999: 
+            #can not calculate detection height without data!
+            continue            
+        pixel_1km_first = 5*pixel
+        need_only_to_use_one_layer = False
+        if (Obj5.number_of_layers_found[pixel]==1 or
+            (base>=np.max(Obj5.cloud_top_profile[pixel, 1:10])) and
+            opt_th>=OPTICAL_LIMIT_CLOUD_TOP):
+            need_only_to_use_one_layer = True
+        if  need_only_to_use_one_layer:
+            #only have one layer or top layer is completely above other layers and thick
+            if opt_th <= OPTICAL_LIMIT_CLOUD_TOP:
+                #top layer too thin use base of it             
+                Obj1.detection_height_5km[pixel_1km_first:pixel_1km_first+5] = base
+            else:     
+                # filter top layer
+                Obj1.detection_height_5km[pixel_1km_first:pixel_1km_first+5] = base + (top-base)*(opt_th - OPTICAL_LIMIT_CLOUD_TOP)*1.0/opt_th    
+        elif   Obj1.total_optical_depth_5km[pixel_1km_first]<0 <= OPTICAL_LIMIT_CLOUD_TOP:
+            bases = Obj5.cloud_base_profile[pixel, 0:10]
+            min_base = np.min(bases[bases!=-9999])
+            Obj1.detection_height_5km[pixel_1km_first:pixel_1km_first+5] = min_base
+        else: 
+            cloud_max_top = np.max(Obj5.cloud_top_profile[pixel, 0:10])
+            cloud_top_max = int(round(1000*cloud_max_top))          
+            height_profile = 0.001*np.array(range(cloud_top_max, -1, -1))
+            optical_thickness = np.zeros(height_profile.shape)
+            for lay in range(Obj5.number_of_layers_found[pixel]): 
+            #dont use layers with negative top or base or optical_thickness values
+                top = Obj5.cloud_top_profile[pixel, lay]
+                base = Obj5.cloud_base_profile[pixel, lay]
+                opt_th = Obj5.optical_depth[pixel, lay]    
 
-        optical_thickness_profile = np.cumsum(optical_thickness)
-        ok_and_higher_heights = np.where(
-            optical_thickness_profile <= OPTICAL_LIMIT_CLOUD_TOP, 
-            height_profile, cloud_max_top)
-        height_limit1 = np.min(ok_and_higher_heights)
-  
-        for pixel_1km in range(pixel*5, pixel*5+5, 1):     
-            Obj1.detection_height_5km[pixel_1km] = height_limit1                 
-            Obj1.total_optical_depth_5km[pixel_1km] =  max(optical_thickness_profile)
+                if (top!=-9999 and base!=-9999 and opt_th!=-9999):
+                    cloud_at_these_height_index = np.logical_and(
+                        top >= height_profile, 
+                        height_profile>=base)
+                    eye_this_cloud = np.where(cloud_at_these_height_index ,  1, 0)
+                    number_of_cloud_boxes = sum(eye_this_cloud)         
+                    if number_of_cloud_boxes == 0 and top>0:
+                        cloud_at_these_height_index = np.logical_and(
+                            np.logical_and(
+                                top  >= height_profile-0.01, 
+                                base >=height_profile-0.01),
+                            np.logical_and(
+                                top  <= height_profile+0.01, 
+                                base <= height_profile+0.01))
+                        write_log('INFO',"Cloud top %.2f base: %.2f "%(top, base))
+                        write_log('INFO'," Using height_profile %2.f %2.f"%(
+                                np.min(height_profile[cloud_at_these_height_index]),np.max(height_profile[cloud_at_these_height_index])))
+                        eye_this_cloud = np.where(cloud_at_these_height_index ,  1, 0)
+                        number_of_cloud_boxes = sum(eye_this_cloud)         
+                    if number_of_cloud_boxes == 0:
+                        write_log('WARNING', "cloud has no depth!!")
+             
+                    optical_thickness_this_layer = (
+                        eye_this_cloud*opt_th*1.0/number_of_cloud_boxes)             
+                    if abs(np.sum(optical_thickness_this_layer) - opt_th)>0.001:
+                        write_log('WARNING', "The sum of the optical thickness profile is "
+                                  "not the same as total optical thickness of the cloud!!")             
+                        optical_thickness = optical_thickness + optical_thickness_this_layer
+
+            optical_thickness_profile = np.cumsum(optical_thickness)
+            ok_and_higher_heights = np.where(
+                optical_thickness_profile <= OPTICAL_LIMIT_CLOUD_TOP, 
+                height_profile, cloud_max_top)
+            height_limit1 = np.min(ok_and_higher_heights)  
+            Obj1.detection_height_5km[pixel_1km_first:pixel_1km_first+5] = height_limit1                 
+
 
     for arnameca, valueca in Obj1.all_arrays.items(): 
         if valueca != None:
@@ -1616,7 +1529,10 @@ def use5km_find_detection_height_and_total_optical_thickness(Obj1, Obj5, start_b
                 retv.all_arrays[arnameca] = valueca[start_break:end_break,...]
             else:
                 retv.all_arrays[arnameca] = valueca
-    return retv
+    return retv    
+
+
+
 # -----------------------------------------------------
 if __name__ == "__main__":
     # Testing:

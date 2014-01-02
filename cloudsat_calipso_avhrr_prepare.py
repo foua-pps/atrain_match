@@ -91,8 +91,10 @@ def CloudsatOpticalDepthHeightFiltering1km(CaObj):
         CaObj.calipso.cloud_base_profile[0,:]>CaObj.calipso.detection_height_5km,
         CaObj.calipso.cloud_base_profile[0,:]+0.1,
         CaObj.calipso.detection_height_5km)
+    clouds_to_update = np.logical_and(CaObj.calipso.cloud_top_profile[0,:]>CaObj.calipso.detection_height_5km,
+                                      np.not_equal(CaObj.calipso.detection_height_5km,-9))
     CaObj.calipso.cloud_top_profile[0,:] = np.where(
-        CaObj.calipso.cloud_top_profile[0,:]>CaObj.calipso.detection_height_5km,
+        clouds_to_update,
         new_cloud_tops,
         CaObj.calipso.cloud_top_profile[0,:])
     #print CaObj.calipso.cloud_top_profile[1,:]
@@ -101,27 +103,27 @@ def CloudsatOpticalDepthHeightFiltering1km(CaObj):
     return CaObj
 
 def CalipsoOpticalDepthSeToClearFiltering1km(CaObj):
-    thin_clouds = np.where(CaObj.calipso.total_optical_depth_5km < OPTICAL_DETECTION_LIMIT,1,0) 
-    set_to_clear = np.where(
-        np.logical_and(
-            CaObj.calipso.number_of_layers_found>0,
-            CaObj.calipso.total_optical_depth_5km < OPTICAL_DETECTION_LIMIT),
-        1,0)
+    isThin_clouds = np.logical_and(CaObj.calipso.total_optical_depth_5km < OPTICAL_DETECTION_LIMIT,
+                                   np.not_equal(CaObj.calipso.total_optical_depth_5km,-9))
+    #>0.0 important. Some clouds are missing in 5km data set but present in 1km data set!
+    set_to_clear = np.logical_and(
+        CaObj.calipso.number_of_layers_found>0,
+        isThin_clouds)
     #print set_to_clear.shape
     for lay in xrange(CaObj.calipso.cloud_base_profile.shape[0]):
         #print lay
         CaObj.calipso.cloud_top_profile[lay,:] = np.where(
-            set_to_clear==1,
+            set_to_clear,
             -9999,
             CaObj.calipso.cloud_top_profile[lay,:])
-        CaObj.calipso.cloud_base_profile[lay:] = np.where(
-            set_to_clear==1,
-            -9999,
-            CaObj.calipso.cloud_base_profile[lay:])
-        CaObj.calipso.cloud_fraction = np.where(
+        CaObj.calipso.cloud_base_profile[lay,:] = np.where(
             set_to_clear,
-            0.1,
-            CaObj.calipso.cloud_fraction)
+            -9999,
+            CaObj.calipso.cloud_base_profile[lay,:])
+    CaObj.calipso.cloud_fraction = np.where(
+        set_to_clear,
+        0.1,
+        CaObj.calipso.cloud_fraction)
 
     #print CaObj.calipso.cloud_base_profile.shape      
     return CaObj

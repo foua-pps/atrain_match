@@ -145,8 +145,7 @@ from calipso import reshapeCalipso, match_calipso_avhrr
 from matchobject_io import (writeCaliopAvhrrMatchObj, 
                             readCaliopAvhrrMatchObj,
                             DataObject)
-from calipso import  (use5km_remove_thin_clouds_from_1km, 
-                      use5km_find_detection_height_and_total_optical_thickness, 
+from calipso import  (use5km_find_detection_height_and_total_optical_thickness_faster, 
                       add1kmTo5km)
 import inspect
 import numpy as np
@@ -703,29 +702,32 @@ def get_calipso_matchups(calipso_files, values,
         calipso5km = reshapeCalipso(cafiles5km,avhrrGeoObj, values, False, 5)[0]
         # add possibility to group results regarding opticaldepth of top layer
         calipso1km.optical_depth_top_layer5km=0*calipso1km.cloud_top_profile[:,0]-9
+        calipso1km.total_optical_depth_5km = np.ones(calipso1km.number_of_layers_found.shape)*-9
         for pixel in range(calipso5km.utc_time.shape[0]): 
-            for pixel_1km in range(pixel*5, pixel*5+5, 1):
-                if calipso5km.number_of_layers_found[pixel]>0:
-                    calipso1km.optical_depth_top_layer5km[pixel_1km] = calipso5km.optical_depth[pixel, 0]     
+            if calipso5km.number_of_layers_found[pixel]>0 and calipso5km.optical_depth[pixel, 0]>=0:
+                calipso1km.optical_depth_top_layer5km[pixel*5:pixel*5+5] = calipso5km.optical_depth[pixel, 0] 
+                calipso1km.total_optical_depth_5km[pixel*5:pixel*5+5] =  calipso5km.optical_depth[pixel, 0]
+                for lay in range(1,calipso5km.number_of_layers_found[pixel],1):  
+                    if calipso5km.optical_depth[pixel, lay]>=0:
+                        calipso1km.total_optical_depth_5km[pixel*5:pixel*5+5] +=  calipso5km.optical_depth[pixel, lay]
+
         calipso = calipso1km            
         if USE_5KM_FILES_TO_FILTER_CALIPSO_DATA:
             write_log('INFO',"Find detection height and total optical thickness"
                       ", using 5km data")
-            calipso = use5km_find_detection_height_and_total_optical_thickness(
+            calipso = use5km_find_detection_height_and_total_optical_thickness_faster(
                 calipso1km, 
                 calipso5km, 
                 startBreak, 
                 endBreak)
-            #calipso = use5km_remove_thin_clouds_from_1km(calipso1km, 
-            #                                             calipso5km, 
-            #                                             startBreak, 
-            #                                             endBreak)
+                                    
             
         calipso1km = None
         calipso5km = None
     else:
         calipso = reshapeCalipso(calipso_files, 
                                  avhrrGeoObj, values, True)[0]
+        
     write_log('INFO',"Matching with avhrr")
     tup = match_calipso_avhrr(values, calipso,
                               avhrrGeoObj, avhrrObj, ctype,
@@ -1459,11 +1461,31 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
         caObj.calipso.cloud_fraction = new_cloud_fraction
         caObj.calipso.feature_classification_flags = new_fcf
 
+    if (caObj.calipso.total_optical_depth_5km < caObj.calipso.optical_depth_top_layer5km).any():
+        badPix=np.less(caObj.calipso.total_optical_depth_5km+0.001, caObj.calipso.optical_depth_top_layer5km)
+        diff=caObj.calipso.total_optical_depth_5km- caObj.calipso.optical_depth_top_layer5km
+        print "warning", len(caObj.calipso.total_optical_depth_5km), "\n", len(caObj.calipso.total_optical_depth_5km[badPix]),"\n", caObj.calipso.total_optical_depth_5km[badPix],"\n", caObj.calipso.optical_depth_top_layer5km[badPix],"\n", diff[badPix],"\n", caObj.calipso.number_of_layers_found[badPix],"\n", caObj.calipso.detection_height_5km[badPix],"\n", np.where(badPix),"\n",caObj.calipso.cloud_top_profile[0,badPix],"\n",caObj.calipso.cloud_base_profile[0,badPix]
+
+
     if process_mode != 'BASIC' and RESOLUTION==1:
         caObj = CloudsatOpticalDepthHeightFiltering1km(caObj)
+
+    if (caObj.calipso.total_optical_depth_5km < caObj.calipso.optical_depth_top_layer5km).any():
+        badPix=np.less(caObj.calipso.total_optical_depth_5km+0.001, caObj.calipso.optical_depth_top_layer5km)
+        diff=caObj.calipso.total_optical_depth_5km- caObj.calipso.optical_depth_top_layer5km
+        print "warning", len(caObj.calipso.total_optical_depth_5km), "\n", len(caObj.calipso.total_optical_depth_5km[badPix]),"\n", caObj.calipso.total_optical_depth_5km[badPix],"\n", caObj.calipso.optical_depth_top_layer5km[badPix],"\n", diff[badPix],"\n", caObj.calipso.number_of_layers_found[badPix],"\n", caObj.calipso.detection_height_5km[badPix],"\n", np.where(badPix),"\n",caObj.calipso.cloud_top_profile[0,badPix],"\n",caObj.calipso.cloud_base_profile[0,badPix]
+
+
     if process_mode == 'OPTICAL_DEPTH_THIN_IS_CLEAR' and RESOLUTION==1:
+        write_log('INFO',"Setting thin clouds to clear"
+                  ", using 5km data in mode OPTICAL_DEPTH_THIN_IS_CLEAR")
         caObj = CalipsoOpticalDepthSeToClearFiltering1km(caObj)
-        
+        if (caObj.calipso.total_optical_depth_5km < caObj.calipso.optical_depth_top_layer5km).any():
+            badPix=np.less(caObj.calipso.total_optical_depth_5km+0.001, caObj.calipso.optical_depth_top_layer5km)
+            diff=caObj.calipso.total_optical_depth_5km- caObj.calipso.optical_depth_top_layer5km
+            print "warning", len(caObj.calipso.total_optical_depth_5km), "\n", len(caObj.calipso.total_optical_depth_5km[badPix]),"\n", caObj.calipso.total_optical_depth_5km[badPix],"\n", caObj.calipso.optical_depth_top_layer5km[badPix],"\n", diff[badPix],"\n", caObj.calipso.number_of_layers_found[badPix],"\n", caObj.calipso.detection_height_5km[badPix],"\n", np.where(badPix),"\n",caObj.calipso.cloud_top_profile[0,badPix],"\n",caObj.calipso.cloud_base_profile[0,badPix]
+
+      
     # Extract CALIOP Vertical Feature Classification (bits 10-12) from 16 bit representation
     # for topmost cloud layer
     cal_vert_feature = np.ones(caObj.calipso.cloud_top_profile[0,::].shape)*-9
