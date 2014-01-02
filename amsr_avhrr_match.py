@@ -7,6 +7,10 @@ import os
 import logging
 logger = logging.getLogger(__name__)
 from runutils import process_scenes
+from validate_cph import CPP_PHASE_VALUES_v2012, CPP_PHASE_VALUES
+from cloudsat_calipso_avhrr_match import find_files_from_avhrr
+from config import PPS_FORMAT_2012_OR_EARLIER
+from common import MatchupError
 
 
 #: Should results be plotted?
@@ -23,34 +27,54 @@ TIME_THR=600.0
 #: Radius of AMSR-E footprint (m)
 AMSR_RADIUS = 10e3
 
+#No-data value for lwp and reff
+NODATA_CPP = 65535
 
 
-def process_noaa_scene(satname, orbit, amsr_filename=None, ctype=None,
+def process_noaa_scene(avhrr_filename, options, amsr_filename=None, ctype=None,
                        reff_max=None, lwp_max=None, water=False,
                        n_neighbours=8):
     from pps_basic_configure import AVHRR_DIR, OUTPUT_DIR, AUX_DIR
 
     import pps_arguments 
-    ppsarg = pps_arguments.create_pps_argument(pps_arguments.USE_SUNSATANGLES_GLOB,
-                                               pps_arguments.SATELLITE_PROJ,
-                                               satname,orbit)
-    avhrr_filename = os.path.join(AVHRR_DIR, ppsarg.files.avhrr)
+    #ppsarg = pps_arguments.create_pps_argument(pps_arguments.USE_SUNSATANGLES_GLOB,
+    #                                           pps_arguments.SATELLITE_PROJ,
+    #                                           satname,orbit)
+    #avhrr_filename = os.path.join(AVHRR_DIR, ppsarg.files.avhrr)
     if amsr_filename:
         amsr_filenames = [amsr_filename]
     else:
         from amsr_avhrr.match import find_amsr
         amsr_filenames = find_amsr(avhrr_filename)
         logger.debug("Found AMSR-E files: %r" % amsr_filenames)
+
+    try:
+        pps_files = find_files_from_avhrr(avhrr_filename, options,
+                                          as_oldstyle=True)
+    except MatchupError:
+        #Stop this case, but allow other cases to go on
+        logger.warning("Can not find required PPS files for case %s" % \
+                       os.path.basename(avhrr_filename))
+        tmp_file = os.path.join(MATCH_DIR,
+                                "WARNING_missing_PPSfile_for_%s" % \
+                                (os.path.basename(avhrr_filename)))
+        cmdstr = "touch %s"%(tmp_file)
+        os.system(cmdstr)
+        return
     
-    cpp_filename = os.path.join(OUTPUT_DIR, ppsarg.files.cpp)
-    physiography_filename = os.path.join(AUX_DIR, ppsarg.files.physiography)
+    physiography_filename  = pps_files.physiography
+    sunsat_filename  = pps_files.sunsatangles
+    cpp_filename = pps_files.cpp    
+    #cpp_filename = os.path.join(OUTPUT_DIR, ppsarg.files.cpp)
+    #physiography_filename = os.path.join(AUX_DIR, ppsarg.files.physiography)
     if ctype is not None:
-        ctype_filename = os.path.join(OUTPUT_DIR, ppsarg.files.pge02)
+        #ctype_filename = os.path.join(OUTPUT_DIR, ppsarg.files.pge02)
+        ctype_filename = pps_files.cloudtype
     else:
         ctype_filename = None
 
     for amsr_filename in amsr_filenames:
-        process_case(amsr_filename, avhrr_filename, cpp_filename,
+        process_case(amsr_filename, avhrr_filename, cpp_filename, sunsat_filename,
                       physiography_filename, ctype, ctype_filename, reff_max,
                       lwp_max, water, n_neighbours)
 
@@ -67,7 +91,7 @@ def _plot_title(amsr_filename, avhrr_filename):
                               os.path.basename(amsr_filename))
 
 
-def process_case(amsr_filename, avhrr_filename, cpp_filename,
+def process_case(amsr_filename, avhrr_filename, cpp_filename, sunsat_filename,
                   physiography_filename, ctype=None, ctype_filename=None,
                   reff_max=None, lwp_max=None, water=False, n_neighbours=8):
     """
@@ -83,7 +107,7 @@ def process_case(amsr_filename, avhrr_filename, cpp_filename,
     else:
         logger.info("Matching AMSR-E and AVHRR swaths")
         from amsr_avhrr.match import match
-        mapper = match(amsr_filename, avhrr_filename,
+        mapper = match(amsr_filename, avhrr_filename, sunsat_filename,
                        radius_of_influence=AMSR_RADIUS,
                        time_threshold=TIME_THR,
                        n_neighbours=n_neighbours)
@@ -95,7 +119,7 @@ def process_case(amsr_filename, avhrr_filename, cpp_filename,
                        "due to a bug in CPP.")
         cpp_filename = '.hdf'.join(cpp_filename.rsplit('.h5', 1)) # last '.h5'
     if os.path.exists(cpp_filename):
-        compare_lwps(mapper, amsr_filename, cpp_filename,
+        compare_lwps(mapper, amsr_filename, cpp_filename, sunsat_filename,
                      physiography_filename, avhrr_filename, ctype,
                      ctype_filename, reff_max, lwp_max, water)
     else:
@@ -108,7 +132,7 @@ def process_case(amsr_filename, avhrr_filename, cpp_filename,
         from amsr_avhrr.plotting import plot_array
         fig = plot_array(lon, lat, mapper.time_diff,
                          legend="time difference (s)")
-        fig_base = _fig_base(match_file)
+        fig_base = _fig_base(match_path)
         fig.set_size_inches(20, 12)
         fig.suptitle(_plot_title(amsr_filename, avhrr_filename))
         fig.savefig(fig_base + "time_diff.png")
@@ -149,13 +173,24 @@ def select_pixels(mapper, amsr_lwp, cpp_cwp, sea,
         restrictions.append('cloud type == %d' % ctype)
     
     if reff_max is not None:
-        reff = get_cpp_product(cpp_filename, 'reff')
+        if PPS_FORMAT_2012_OR_EARLIER:
+            reff = get_cpp_product(cpp_filename, 'reff')
+        else:
+            # Convert from m to mu
+            reff_tmp = get_cpp_product(cpp_filename, 'cpp_reff')
+            reff = np.where((reff_tmp == NODATA_CPP),
+                            NODATA_CPP,
+                            1000000.0 * reff_tmp)
         selection &= mapper(reff < reff_max)
         restrictions.append('effective radius < %.2g' % reff_max)
     
     if water:
-        phase = get_cpp_product(cpp_filename, 'cph')
-        selection &= mapper(phase == 1)
+        if PPS_FORMAT_2012_OR_EARLIER:
+            phase = get_cpp_product(cpp_filename, 'cph')
+            selection &= mapper(phase == CPP_PHASE_VALUES_v2012['liquid'])
+        else:
+            phase = get_cpp_product(cpp_filename, 'cpp_phase')
+            selection &= mapper(phase == CPP_PHASE_VALUES['liquid'])
         restrictions.append('CPP phase is water')
     
     amsr_lwp_3d = amsr_lwp.reshape(amsr_lwp.shape[0], amsr_lwp.shape[1], 1)
@@ -167,6 +202,7 @@ def select_pixels(mapper, amsr_lwp, cpp_cwp, sea,
         restrictions.append('0 <= AMSR-E lwp < %.2g' % lwp_max)
 
     selection &= cpp_cwp >= 0 # Remove pixels with negative cwp (nodata)
+    selection &= cpp_cwp != NODATA_CPP # Remove pixels with cwp==nodata
     restrictions.append('CPP cwp >= 0')
 
 
@@ -174,7 +210,7 @@ def select_pixels(mapper, amsr_lwp, cpp_cwp, sea,
     
     return selection, restrictions
 
-def compare_lwps(mapper, amsr_filename, cpp_filename,
+def compare_lwps(mapper, amsr_filename, cpp_filename, sunsat_filename,
                  physiography_filename, avhrr_filename, ctype=None,
                  ctype_filename=None, reff_max=None, lwp_max=None,
                  water=False):
@@ -191,7 +227,14 @@ def compare_lwps(mapper, amsr_filename, cpp_filename,
     #     They are treated the same way, so it is easy to change. The
     #     variables in this program are still called cwp, anyway.
     #cpp_cwp_avhrr_proj = get_cpp_product(cpp_filename, 'cwp')
-    cpp_cwp_avhrr_proj = get_cpp_product(cpp_filename, 'lwp')
+    if PPS_FORMAT_2012_OR_EARLIER:
+        cpp_cwp_avhrr_proj = get_cpp_product(cpp_filename, 'lwp')
+    else:
+        cwp_tmp = get_cpp_product(cpp_filename, 'cpp_lwp')
+        #Convert from kg/m2 to g/m2
+        cpp_cwp_avhrr_proj = np.where((cwp_tmp == NODATA_CPP),
+                                      NODATA_CPP,
+                                      1000.0 * cwp_tmp)
     cpp_cwp = mapper(cpp_cwp_avhrr_proj)
 
     from amsr_avhrr.util import get_amsr_lwp, get_amsr_lonlat
@@ -200,7 +243,7 @@ def compare_lwps(mapper, amsr_filename, cpp_filename,
 
     #Read time for amsr and avhrr, and create a time_diff
     from amsr_avhrr.util import get_amsr_time, get_avhrr_time
-    avhrr_time = get_avhrr_time(avhrr_filename)
+    avhrr_time = get_avhrr_time(sunsat_filename)
     amsr_time = get_amsr_time(amsr_filename)
 
     amsr_time_expanded=np.ones(amsr_lwp.shape)
@@ -234,8 +277,10 @@ def compare_lwps(mapper, amsr_filename, cpp_filename,
                        '; '.join(restrictions))
     else:
         from amsr_avhrr.util import write_data
-        diff_file = (_fig_base(_match_file(amsr_filename, avhrr_filename)) +
-                     'lwp_diff.h5')
+        diff_file = os.path.join(MATCH_DIR,
+                                 (_fig_base(_match_file(amsr_filename,
+                                                        avhrr_filename)) +
+                                  'lwp_diff.h5'))
         write_data(lwp_diff, 'lwp_diff', diff_file, mode='w',
                    attributes={'restrictions': restrictions})
         selection_2d = selection.all(axis=-1).filled(False)
@@ -256,7 +301,9 @@ def compare_lwps(mapper, amsr_filename, cpp_filename,
     
     if _PLOTTING:
         title = _plot_title(amsr_filename, avhrr_filename)
-        fig_base = _fig_base(_match_file(amsr_filename, avhrr_filename))
+        fig_base = os.path.join(MATCH_DIR,
+                                _fig_base(_match_file(amsr_filename,
+                                                      avhrr_filename)))
         
         logger.debug("Plotting lwp arrays")
         from amsr_avhrr.plotting import imshow_lwps
@@ -269,7 +316,7 @@ def compare_lwps(mapper, amsr_filename, cpp_filename,
         
         logger.debug("Plotting lwp swaths")
         from amsr_avhrr.util import get_avhrr_lonlat
-        avhrr_lonlat = get_avhrr_lonlat(avhrr_filename)
+        avhrr_lonlat = get_avhrr_lonlat(sunsat_filename)
         from amsr_avhrr.plotting import Field, plot_fields
         #SHQ change from cwp to lwp
         #fields = [Field(cpp_cwp_avhrr_proj, desc='CPP cwp', *avhrr_lonlat),
@@ -282,6 +329,15 @@ def compare_lwps(mapper, amsr_filename, cpp_filename,
 
 
 if __name__ == '__main__':
+    
+    import ConfigParser
+    CONFIG_PATH = os.environ.get('ATRAINMATCH_CONFIG_DIR', './etc')
+    CONF = ConfigParser.ConfigParser()
+    CONF.read(os.path.join(CONFIG_PATH, "atrain_match.cfg"))
+    OPTIONS = {}
+    for option, value in CONF.items('general', raw = True):
+        OPTIONS[option] = value
+        
     from optparse import OptionParser
     parser = OptionParser(usage="Usage: %prog [options] satproj "
                                 "<satname> <orbit> \n"
@@ -328,8 +384,10 @@ if __name__ == '__main__':
     
     # Command line handling
     if args[0] == 'satproj':
-        satname, orbit = args[1:]
-        process_noaa_scene(satname, orbit, **processing_kwargs)
+        #satname, orbit = args[1:]
+        #satname = args[1]
+        #orbit = int(args[2])
+        process_noaa_scene(filename, orbit, **processing_kwargs)
     else:
-        process_scenes(args, process_noaa_scene, ignore_errors=not opts.debug,
+        process_scenes(args, process_noaa_scene, OPTIONS, ignore_errors=not opts.debug,
                        **processing_kwargs)

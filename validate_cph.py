@@ -20,7 +20,9 @@ import h5py
 import numpy as np
 import logging
 from config import _validation_results_dir
-from config import RESOLUTION, PPS_VALIDATION, CCI_CLOUD_VALIDATION
+from config import RESOLUTION, PPS_VALIDATION, CCI_CLOUD_VALIDATION, \
+     PPS_FORMAT_2012_OR_EARLIER
+from common import MatchupError
 from amsr_avhrr.util import write_data, write_data_to_open_file
 logger = logging.getLogger(__name__)
 
@@ -71,8 +73,12 @@ CALIPSO_QUAL_VALUES = dict(none=0,
                            high=3)
 
 
-#: CPP cph value meanings
-CPP_PHASE_VALUES = dict(no_cloud=0,
+#: CPP cph value meanings, from v2014
+CPP_PHASE_VALUES = dict(liquid=1,
+                        ice=2,
+                        no_data=255)
+#: CPP cph value meanings, in v2012
+CPP_PHASE_VALUES_v2012 = dict(no_cloud=0,
                         liquid=1,
                         ice=2,
                         mixed=3,
@@ -195,7 +201,11 @@ def find_calipso_files_from_avhrr_filename(avhrr_filename, options):
     sl_ = os.path.basename(avhrr_filename).split('_')
     satname = sl_[0]
     date_time = datetime.strptime(sl_[1] + sl_[2], '%Y%m%d%H%M')
-    return find_calipso_files(date_time, options, values={})
+    try:
+        calipso_files = find_calipso_files(date_time, options, values={})
+    except MatchupError:
+        raise MatchupError("Couldn't find calipso matchup!")
+    return calipso_files
 
     # Limit matching to AMSR-E files starting 45 min (duration of one half
     # orbit) before up to 20 min (duration of one EARS AVHRR swath) after the
@@ -238,7 +248,7 @@ def match_with_calipso(calipso_filename, avhrr_filename, sunsat_filename, radius
         avhrr_lonlat, avhrr_time  = get_avhrr_lonlat_and_time_cci(avhrr_filename)    
     logger.debug("Getting Calipso lon/lat")
     logger.info("Get caliop lonlat:") 
-    calipso_lonlat = get_calipso_lonlat(calipso_filename)         
+    calipso_lonlat = get_calipso_lonlat(calipso_filename)
     logger.debug("Matching AVHRR to Calipso lon/lat")
     mapper = match_lonlat(avhrr_lonlat, calipso_lonlat, n_neighbours=1)
 
@@ -285,10 +295,35 @@ def process_noaa_scene(avhrr_file, options, cloudtype=False, **kwargs):
     #avhrr_filename = os.path.join(AVHRR_DIR, ppsarg.files.avhrr)
     logger.info("Processing file: %s"%avhrr_file)    
     if (PPS_VALIDATION):
-            pps_files = find_files_from_avhrr(avhrr_file, options)
-            sunsat_filename  = pps_files.sunsatangles
-            calipso_filenames = find_calipso_files_from_avhrr_filename(avhrr_file, options)
-            cpp_filename = pps_files.cpp
+        try:
+            pps_files = find_files_from_avhrr(avhrr_file, options,
+                                              as_oldstyle=True)
+        except MatchupError:
+            #Stop this case, but allow other cases to go on
+            logger.warning("Can not find required PPS files for case %s" % \
+                           os.path.basename(avhrr_file))
+            tmp_file = os.path.join(MATCH_DIR,
+                                    "WARNING_missing_PPSfile_for_%s" % \
+                                    (os.path.basename(avhrr_file)))
+            cmdstr = "touch %s"%(tmp_file)
+            os.system(cmdstr)
+            return
+            
+        sunsat_filename  = pps_files.sunsatangles
+        try:
+            calipso_filenames = find_calipso_files_from_avhrr_filename(\
+                avhrr_file, options)                
+        except MatchupError:
+            #Stop this case, but allow other cases to go on
+            logger.warning("Can not find calipso match for case %s" % \
+                           os.path.basename(avhrr_file))
+            tmp_file = os.path.join(MATCH_DIR,
+                                    "WARNING_missing_calipso_for_%s" % \
+                                    (os.path.basename(avhrr_file)))
+            cmdstr = "touch %s"%(tmp_file)
+            os.system(cmdstr)
+            return
+        cpp_filename = pps_files.cpp
     if (CCI_CLOUD_VALIDATION):
         #avhrr_file = "20080613002200-ESACCI-L2_CLOUD-CLD_PRODUCTS-AVHRRGAC-NOAA18-fv1.0.nc"
         values = get_satid_datetime_orbit_from_fname(avhrr_file)
@@ -311,15 +346,31 @@ def process_noaa_scene(avhrr_file, options, cloudtype=False, **kwargs):
             # read_cloudtype has to have wtype=1, or it will segfault,
             # at least with ACPG <= r2_46
             cloudtype = read_cloudtype(filename, wtype=1, wqual=0, wphase=1)
-            # Initialize phase array to 'no_observation'
-            phase = cloudtype.phaseflag * 0 + CPP_PHASE_VALUES['no_observation']
-            phase[(cloudtype.phaseflag & CTYPE_PHASE_BITS['Water']) != 0] = \
-                CPP_PHASE_VALUES['liquid']
-            phase[(cloudtype.phaseflag & CTYPE_PHASE_BITS['Ice']) != 0] = \
-                CPP_PHASE_VALUES['ice']
-            phase[((cloudtype.phaseflag & CTYPE_PHASE_BITS['Water']) != 0) &
-                  ((cloudtype.phaseflag & CTYPE_PHASE_BITS['Ice']) != 0)] = \
-                CPP_PHASE_VALUES['mixed']
+
+            if PPS_FORMAT_2012_OR_EARLIER:
+                # Initialize phase array to 'no_observation'
+                phase = cloudtype.phaseflag * 0 + \
+                        CPP_PHASE_VALUES_v2012['no_observation']
+                phase[(cloudtype.phaseflag &
+                       CTYPE_PHASE_BITS['Water']) != 0] = \
+                       CPP_PHASE_VALUES_v2012['liquid']
+                phase[(cloudtype.phaseflag &
+                       CTYPE_PHASE_BITS['Ice']) != 0] = \
+                       CPP_PHASE_VALUES_v2012['ice']
+                phase[((cloudtype.phaseflag &
+                        CTYPE_PHASE_BITS['Water']) != 0) &
+                      ((cloudtype.phaseflag &
+                        CTYPE_PHASE_BITS['Ice']) != 0)] = \
+                      CPP_PHASE_VALUES_v2012['mixed']
+            else:
+                # Initialize phase array to 'no_data'
+                phase = cloudtype.phaseflag * 0 + CPP_PHASE_VALUES['no_data']
+                phase[(cloudtype.phaseflag &
+                       CTYPE_PHASE_BITS['Water']) != 0] = \
+                       CPP_PHASE_VALUES['liquid']
+                phase[(cloudtype.phaseflag &
+                       CTYPE_PHASE_BITS['Ice']) != 0] = \
+                       CPP_PHASE_VALUES['ice']
             
             return phase
         
@@ -395,7 +446,10 @@ def validate(cpp_phase, cal_phase, verbose=False):
     else:
         n_pixels = cpp_phase.size
         print("Number of matching pixels: %d" % n_pixels)
-    cpp_keys = ['liquid', 'ice', 'mixed', 'uncertain', 'non_opice', 'non_opwater']
+    if PPS_FORMAT_2012_OR_EARLIER:
+        cpp_keys = ['liquid', 'ice', 'mixed', 'uncertain', 'non_opice', 'non_opwater']
+    else:
+        cpp_keys = ['liquid', 'ice']
     
     cal_name_len = 40
     cpp_name_len = 15
@@ -463,13 +517,21 @@ def process_case(calipso_filename, avhrr_filename, sunsat_filename,
     logger.info("Getting Phase")
     if PPS_VALIDATION:
         logger.info("Getting phase from %s"%(phase_filename))
-        phase_temp=get_cpp_product(phase_filename, 'cph')
+        if PPS_FORMAT_2012_OR_EARLIER:
+            phase_temp=get_cpp_product(phase_filename, 'cph')
+        else:
+            phase_temp=get_cpp_product(phase_filename, 'cpp_phase')
         logger.info("Remapping phase from %s"%(phase_filename))   
         cpp_phase = mapper(phase_temp)
         logger.info("Remapping done for phase %s"%(phase_filename))      
         if VALIDATE_FOR_CPP_PIXELS and PPS_VALIDATION:
             logger.info("Getting phase from %s"%(cpp_filename))
-            cpp_phase_cpp = mapper(get_cpp_product_cpp(cpp_filename, 'cph'))
+            if PPS_FORMAT_2012_OR_EARLIER:
+                cpp_phase_cpp = mapper(get_cpp_product_cpp(cpp_filename,
+                                                           'cph'))
+            else:
+                cpp_phase_cpp = mapper(get_cpp_product_cpp(cpp_filename,
+                                                           'cpp_phase'))
             cpp_phase_cpp = cpp_phase_cpp[..., 0] # mapper returns extra neighbours dimension
     if CCI_CLOUD_VALIDATION:
         logger.info("Getting phase from %s"%(avhrr_filename))
@@ -489,8 +551,16 @@ def process_case(calipso_filename, avhrr_filename, sunsat_filename,
     selection = ~cpp_phase.mask & ~cal_phase.mask
     if VALIDATE_FOR_CPP_PIXELS and PPS_VALIDATION:
         selection = ~cpp_phase.mask & (~cal_phase.mask & ~cpp_phase_cpp.mask )
-        cpp_is_liquid_or_ice=np.logical_or(np.equal(cpp_phase_cpp.data,CPP_PHASE_VALUES['liquid']),
-                                           np.equal(cpp_phase_cpp.data,CPP_PHASE_VALUES['ice']))
+        if PPS_FORMAT_2012_OR_EARLIER:
+            cpp_is_liquid_or_ice=np.logical_or(np.equal(cpp_phase_cpp.data,
+                                                        CPP_PHASE_VALUES_v2012['liquid']),
+                                               np.equal(cpp_phase_cpp.data,
+                                                        CPP_PHASE_VALUES_v2012['ice']))
+        else:
+            cpp_is_liquid_or_ice=np.logical_or(np.equal(cpp_phase_cpp.data,
+                                                        CPP_PHASE_VALUES['liquid']),
+                                               np.equal(cpp_phase_cpp.data,
+                                                        CPP_PHASE_VALUES['ice']))
     
         selection = (~cpp_phase.mask & ~cal_phase.mask) & (~cpp_phase_cpp.mask & cpp_is_liquid_or_ice)
     if np.ma.isMaskedArray(selection):
@@ -500,7 +570,10 @@ def process_case(calipso_filename, avhrr_filename, sunsat_filename,
  
     if PPS_VALIDATION:
         avhrr_time =  get_avhrr_time(sunsat_filename)
-        cph_tmp = get_cpp_product(phase_filename, 'cph')
+        if PPS_FORMAT_2012_OR_EARLIER:
+            cph_tmp = get_cpp_product(phase_filename, 'cph')
+        else:
+            cph_tmp = get_cpp_product(phase_filename, 'cpp_phase')
     if CCI_CLOUD_VALIDATION:
         avhrr_lonlat,avhrr_time  = get_avhrr_lonlat_and_time_cci(avhrr_filename) 
         cph_tmp = get_cpp_product_cci(avhrr_filename, 'cph')

@@ -14,6 +14,7 @@ from config import RESOLUTION as resolution
 from config import (OPTICAL_DETECTION_LIMIT,
                     OPTICAL_LIMIT_CLOUD_TOP,
                     SET_TO_CLEAR_CALIPSO_PIXEL_IF_TOTAL_OPTICAL_THICKNESS_TO_LOW,
+                    ALSO_USE_5KM_FILES,
                     USE_5KM_FILES_TO_FILTER_CALIPSO_DATA,
                     PPS_VALIDATION,
                     IMAGER_INSTRUMENT,
@@ -409,7 +410,7 @@ def createAvhrrTime(Obt, values):
         diff_filename_infile_time = sec1970_start_filename-Obt.sec1970_start
         diff_hours= abs( diff_filename_infile_time/3600.0  )
         if (diff_hours<13):
-            write_log("INFO", "Time in file and filename do agree. Difference  %d hours.", diff_hours)
+            write_log("INFO", "Time in file and filename do agree. Difference  %d hours."%diff_hours)
         if (diff_hours>13):
             """
             This if statement takes care of a bug in start and end time, 
@@ -437,6 +438,7 @@ def createAvhrrTime(Obt, values):
                 raise TimeMatchError("Time in file and filename do not agree.")        
         Obt.time = np.linspace(Obt.sec1970_start, Obt.sec1970_end, Obt.num_of_lines)
     return Obt
+
 
 def get_channel_data_from_object(dataObj, chn_des, matched, nodata=-9):
     """Get the AVHRR/VIIRS channel data on the track
@@ -750,15 +752,23 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
             is_opaque = np.bitwise_and(np.right_shift(ctth.processingflag, 3), 1)
             ctth_opaque_track = [is_opaque[row_matched[idx], col_matched[idx]]
                                  for idx in range(row_matched.shape[0])]
-    #: TODO Do not use fix value -1 but instead something.no_data
+    #: TODO Do not use fix nodata-values but instead something.no_data
     if avhrrLwp != None:
+        if PPS_FORMAT_2012_OR_EARLIER:
+            nodata_temp = -1
+        else:
+            nodata_temp = 65535
         lwp_temp = [avhrrLwp[row_matched[idx], col_matched[idx]]
                     for idx in range(row_matched.shape[0])]
-        lwp_track = np.where(np.equal(lwp_temp, -1), -9, lwp_temp)
+        lwp_track = np.where(np.equal(lwp_temp, nodata_temp), -9, lwp_temp)
     if avhrrCph != None:
+        if PPS_FORMAT_2012_OR_EARLIER:
+            nodata_temp = -1
+        else:
+            nodata_temp = 255
         cph_temp = [avhrrCph[row_matched[idx], col_matched[idx]]
                     for idx in range(row_matched.shape[0])]
-        cph_track = np.where(np.equal(cph_temp, -1), -9, cph_temp)
+        cph_track = np.where(np.equal(cph_temp, nodata_temp), -9, cph_temp)
 
 
     obt.avhrr.latitude = np.array(lat_avhrr_track)
@@ -1019,8 +1029,9 @@ def match_calipso_avhrr(values,
             calipsoObj.optical_depth[:,0].ravel(),idx_match.ravel()).astype('d') 
 
     if res == 1 :
-        retv.calipso.optical_depth_top_layer5km = np.repeat(\
-            calipsoObj.optical_depth_top_layer5km.ravel(),idx_match.ravel()).astype('d')
+        if ALSO_USE_5KM_FILES:
+            retv.calipso.optical_depth_top_layer5km = np.repeat(\
+                calipsoObj.optical_depth_top_layer5km.ravel(),idx_match.ravel()).astype('d')
         if USE_5KM_FILES_TO_FILTER_CALIPSO_DATA:
             retv.calipso.detection_height_5km = np.repeat(\
                 calipsoObj.detection_height_5km.ravel(),idx_match.ravel()).astype('d')
