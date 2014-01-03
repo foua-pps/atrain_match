@@ -122,7 +122,7 @@ def CalipsoOpticalDepthSeToClearFiltering1km(CaObj):
             CaObj.calipso.cloud_base_profile[lay,:])
     CaObj.calipso.cloud_fraction = np.where(
         set_to_clear,
-        0.1,
+        0.5,
         CaObj.calipso.cloud_fraction)
 
     #print CaObj.calipso.cloud_base_profile.shape      
