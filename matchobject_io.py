@@ -95,6 +95,7 @@ class ppsAvhrrObject(DataObject):
             'cloudtype_quality': None,
             'cloudtype_conditions': None,
             'cloudtype_status': None,
+            'ctth_status': None,
             'surftemp': None,
             't500': None,
             't700': None,

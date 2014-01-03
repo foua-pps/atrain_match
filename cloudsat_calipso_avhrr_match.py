@@ -731,8 +731,7 @@ def get_calipso_matchups(calipso_files, values,
 
         calipso = calipso1km            
         if USE_5KM_FILES_TO_FILTER_CALIPSO_DATA:
-            write_log('INFO',"Find detection height and total optical thickness"
-                      ", using 5km data")
+            write_log('INFO',"Find detection height  using 5km data")
             calipso = use5km_find_detection_height_and_total_optical_thickness_faster(
                 calipso1km, 
                 calipso5km, 

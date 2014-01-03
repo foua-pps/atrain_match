@@ -525,6 +525,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
     ctype_ct_qualityflag_track = None
     ctype_ct_conditionsflag_track = None
     ctype_ct_statusflag_track = None
+    ctype_ctth_statusflag_track = None
     ctth_height_track = []
     ctth_pressure_track = []
     ctth_temperature_track = []
@@ -582,6 +583,9 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
     if hasattr(ctype, 'ct_statusflag'):
         ctype_ct_statusflag_track = [ctype.ct_statusflag[row_matched[idx], col_matched[idx]]
                              for idx in range(row_matched.shape[0])]
+    if hasattr(ctth, 'ctth_statusflag'):
+        ctype_ctth_statusflag_track = [ctth.ctth_statusflag[row_matched[idx], col_matched[idx]]
+                                       for idx in range(row_matched.shape[0])]
     if hasattr(ctype, 'qualityflag'):
         ctype_qflag_track = [ctype.qualityflag[row_matched[idx], col_matched[idx]]
                              for idx in range(row_matched.shape[0])]
@@ -784,6 +788,8 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
         obt.avhrr.cloudtype_conditions = np.array(ctype_ct_conditionsflag_track)
     if ctype_ct_statusflag_track is not None:
         obt.avhrr.cloudtype_status = np.array(ctype_ct_statusflag_track)
+    if ctype_ctth_statusflag_track is not None:
+        obt.avhrr.ctth_status = np.array(ctype_ctth_statusflag_track)
     if dataObj != None:
         obt.avhrr.r06micron = np.array(r06micron_track)
         obt.avhrr.r09micron = np.array(r09micron_track)
@@ -1032,11 +1038,12 @@ def match_calipso_avhrr(values,
         if ALSO_USE_5KM_FILES:
             retv.calipso.optical_depth_top_layer5km = np.repeat(\
                 calipsoObj.optical_depth_top_layer5km.ravel(),idx_match.ravel()).astype('d')
+            retv.calipso.total_optical_depth_5km = np.repeat(\
+                calipsoObj.total_optical_depth_5km.ravel(),idx_match.ravel()).astype('d')
         if USE_5KM_FILES_TO_FILTER_CALIPSO_DATA:
             retv.calipso.detection_height_5km = np.repeat(\
                 calipsoObj.detection_height_5km.ravel(),idx_match.ravel()).astype('d')
-            retv.calipso.total_optical_depth_5km = np.repeat(\
-                calipsoObj.total_optical_depth_5km.ravel(),idx_match.ravel()).astype('d')
+ 
 
         
     #cloud_mid_temp = np.repeat(calipsoObj.cloud_mid_temperature.flat,idx_match_2d.flat)

@@ -2,7 +2,7 @@
 Configuration file for ``atrain_match``. Most configuration options and
 constants used in ``atrain_match`` are set in this file. However, there may
 still be some modules which have internal constants defined.
-
+ 
 """
 
 import os
@@ -17,9 +17,10 @@ print "PPS_VALIDATION", PPS_VALIDATION
 CCI_CLOUD_VALIDATION = False
 
 
-ALSO_USE_5KM_FILES = False
+ALSO_USE_5KM_FILES = True
 COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC = True
-OPTICAL_DETECTION_LIMIT = 0.3
+COMPILE_RESULTS_SEPARATELY_FOR_SEMI_AND_OPAQUE = True
+OPTICAL_DETECTION_LIMIT = 0.2
 if COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC:
     ALSO_USE_5KM_FILES = True #5km data is needed to split result on optical depth of top layer.
 
@@ -37,13 +38,13 @@ if COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC:
 # We consider the cloud top to be OPTICAL_LIMIT_CLOUD_TOP down 
 #in the cloud. For clouds thinner than
 # OPTICAL_LIMIT_CLOUD_TOP we use the cloud base as cloud top.
-USE_5KM_FILES_TO_FILTER_CALIPSO_DATA = True
+USE_5KM_FILES_TO_FILTER_CALIPSO_DATA = False # to get filtered cloudheight results in mode STANDARD and all modes that is not BASIC 
 OPTICAL_LIMIT_CLOUD_TOP = 1.0 #also used by xxx in EUMETSAT
 if USE_5KM_FILES_TO_FILTER_CALIPSO_DATA:
     ALSO_USE_5KM_FILES = True
 
 
-SET_TO_CLEAR_CALIPSO_PIXEL_IF_TOTAL_OPTICAL_THICKNESS_TO_LOW = False #Remove when filtering is moved to prepare
+SET_TO_CLEAR_CALIPSO_PIXEL_IF_TOTAL_OPTICAL_THICKNESS_TO_LOW = True #Remove when filtering is moved to prepare
 
 H4H5_EXECUTABLE = os.environ.get('H4H5_EXECUTABLE','/local_disk/opt/h4h5tools-2.2.1-linux-x86_64-static/bin/h4toh5')
 #H4H5_EXECUTABLE = '/software/apps/h4h5tools/2.2.1/i1214-hdf4-4.2.8-i1214-hdf5-1.8.9-i1214/bin/h4toh5'
@@ -55,7 +56,7 @@ VALIDATE_FOR_CPP_PIXELS = True #means validating for cloudtype only for pixels w
 
 # Imager Instrument on which PPS has been run (currently you can only run the
 # atrain match on either AVHRR data or VIIRS data, not both):
-IMAGER_INSTRUMENT = os.environ.get('IMAGER_INSTRUMENT', 'viirs')
+IMAGER_INSTRUMENT = os.environ.get('IMAGER_INSTRUMENT', 'avhrr')
 
 #: Resolution, in km, to use for data files. This setting is used throughout
 #: ``atrain_match`` to specify file names, sub-directories, and data handling.
@@ -103,6 +104,7 @@ RESULT_DIR = "Results"
 
 # Region configuaration file with area definitons
 AREA_CONFIG_FILE = os.environ.get('AREA_CONFIG_FILE', './areas.def')
+
 
 #_satellite_data_dir = '/data/arkiv/proj/safworks/data'
 _satellite_data_dir = '/nobackup/smhid9/sm_kgkar/atrain_match_2013/testdata'
@@ -399,21 +401,31 @@ def subdir(self, date, *args, **kwargs):
 #: List of dictionaries containing *satname*, *year*, and *month*, for which
 #: statistics should be summarized
 #CASES = [{'satname': 'npp', 'year': 2012, 'month': 06}]
-CASES = [{'satname': 'noaa18', 'year': 2006, 'month': 10},
-         {'satname': 'noaa18', 'year': 2006, 'month': 11},
-         {'satname': 'noaa18', 'year': 2006, 'month': 12},
-         {'satname': 'noaa18', 'year': 2007, 'month': 1},
-         {'satname': 'noaa18', 'year': 2007, 'month': 2},
-         {'satname': 'noaa18', 'year': 2007, 'month': 3},
-         {'satname': 'noaa18', 'year': 2007, 'month': 4},
-         {'satname': 'noaa18', 'year': 2007, 'month': 5},
-         {'satname': 'noaa18', 'year': 2007, 'month': 6},
-         {'satname': 'noaa18', 'year': 2007, 'month': 7},
-         {'satname': 'noaa18', 'year': 2007, 'month': 8},
-         {'satname': 'noaa18', 'year': 2007, 'month': 9},
-         {'satname': 'noaa18', 'year': 2007, 'month': 10},
-         {'satname': 'noaa18', 'year': 2007, 'month': 11},
-         {'satname': 'noaa18', 'year': 2007, 'month': 12},
+
+CASES_noaaa = [{'satname': 'noaa18', 'year': 2013, 'month': 3},
+               {'satname': 'noaa18', 'year': 2013, 'month': 4},
+               {'satname': 'noaa18', 'year': 2013, 'month': 5},
+               {'satname': 'noaa18', 'year': 2013, 'month': 6},
+               {'satname': 'noaa18', 'year': 2013, 'month': 7},
+               {'satname': 'noaa18', 'year': 2013, 'month': 8},
+               {'satname': 'noaa18', 'year': 2013, 'month': 9},
+               {'satname': 'noaa18', 'year': 2013, 'month': 10},
+               {'satname': 'noaa19', 'year': 2013, 'month': 3},
+               {'satname': 'noaa19', 'year': 2013, 'month': 4},
+               {'satname': 'noaa19', 'year': 2013, 'month': 5},
+               {'satname': 'noaa19', 'year': 2013, 'month': 6},
+               {'satname': 'noaa19', 'year': 2013, 'month': 7},
+               {'satname': 'noaa19', 'year': 2013, 'month': 8},
+               {'satname': 'noaa19', 'year': 2013, 'month': 9},
+               {'satname': 'noaa19', 'year': 2013, 'month': 10}]
+
+CASES = [ {'satname': 'noaa18', 'year': 2013, 'month': 6},
+         {'satname': 'noaa18', 'year': 2013, 'month': 7},
+         {'satname': 'noaa18', 'year': 2013, 'month': 8},
+         {'satname': 'noaa18', 'year': 2013, 'month': 9},
+         {'satname': 'noaa18', 'year': 2013, 'month': 10},
+         {'satname': 'noaa18', 'year': 2013, 'month': 11},
+         {'satname': 'noaa18', 'year': 2013, 'month': 12},
          {'satname': 'noaa18', 'year': 2008, 'month': 1},
          {'satname': 'noaa18', 'year': 2008, 'month': 2},
          {'satname': 'noaa18', 'year': 2008, 'month': 3},
@@ -439,18 +451,20 @@ CASES = [{'satname': 'noaa18', 'year': 2006, 'month': 10},
          {'satname': 'noaa18', 'year': 2009, 'month': 11},
          {'satname': 'noaa18', 'year': 2009, 'month': 12}]
 
-CASES = [{'satname': 'npp', 'year': 2012, 'month': 6},
-         {'satname': 'npp', 'year': 2012, 'month': 7},
-         {'satname': 'npp', 'year': 2012, 'month': 8},
-         {'satname': 'npp', 'year': 2012, 'month': 9},
-         {'satname': 'npp', 'year': 2012, 'month': 10},
-         {'satname': 'npp', 'year': 2012, 'month': 11},
-         {'satname': 'npp', 'year': 2012, 'month': 12},
-         {'satname': 'npp', 'year': 2013, 'month': 01},
-         {'satname': 'npp', 'year': 2013, 'month': 02},
-         {'satname': 'npp', 'year': 2013, 'month': 03},
-         {'satname': 'npp', 'year': 2013, 'month': 04},
-         {'satname': 'npp', 'year': 2013, 'month': 05}]
+CASES = CASES_noaaa+ [{'satname': 'npp', 'year': 2012, 'month': 6},
+                       {'satname': 'npp', 'year': 2012, 'month': 7},
+                       {'satname': 'npp', 'year': 2012, 'month': 8},
+                       {'satname': 'npp', 'year': 2012, 'month': 9},
+                       {'satname': 'npp', 'year': 2012, 'month': 10},
+                       {'satname': 'npp', 'year': 2012, 'month': 11},
+                       {'satname': 'npp', 'year': 2012, 'month': 12},
+                       {'satname': 'npp', 'year': 2013, 'month': 01},
+                       {'satname': 'npp', 'year': 2013, 'month': 02},
+                       {'satname': 'npp', 'year': 2013, 'month': 03},
+                       {'satname': 'npp', 'year': 2013, 'month': 04},
+                       {'satname': 'npp', 'year': 2013, 'month': 05}]
+
+
 
 #: PPS area definition (from ``acpg/cfg/region_config.cfg``) for which
 #: statistics should be summarized
