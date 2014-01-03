@@ -27,19 +27,19 @@ from cloudsat_calipso_avhrr_statistics import (
     get_sunglint_info_pps2014,
     get_mountin_info_pps2014)
 
-isNPP = True
+isLocalReception = True
 isACPGv2012=False
 isGAC_v2012 = False
 RunWithOutMargins=True
 RunEdited= True
-if isNPP and isACPGv2012:
+if isLocalReception and isACPGv2012:
     isACPGv2012=True
     isGAC=False
     ROOT_DIR = "/local_disk/nina_pps/data_validation_ctth_patch_nov2012/VALIDATION_20130911_2012_test2/Reshaped_Files/npp/1km/"
     
     SATELLITE='npp_2012'
     files = glob(ROOT_DIR + "/????/??/*/*h5")
-elif isNPP and  not isACPGv2012:
+elif isLocalReception and  not isACPGv2012:
     isACPGv2012=False
     isGAC=False
     ROOT_DIR = "/local_disk/nina_pps/data_validation_ctth_patch_nov2012/VALIDATION_20130908_TEST1B_2/Reshaped_Files/npp/1km/"
@@ -65,7 +65,10 @@ elif isNPP and  not isACPGv2012:
         ROOT_DIR = "/local_disk/nina_pps/data_validation_ctth_patch_nov2012/VALIDATION_20131014_Test_CM_including_new_sst_coastalzone0percent_4/Reshaped_Files/npp/1km/"
         ROOT_DIR = "/local_disk/nina_pps/data_validation_ctth_patch_nov2012/VALIDATION_20131014_Test_CM_including_new_sst_coastalzone0percent_4_37cond_test_newlogic_day_Sea_tohre_rogh_limit/Reshaped_Files/npp/1km/"
         ROOT_DIR = "/local_disk/nina_pps/data_validation_ctth_patch_nov2012/VALIDATION_20131014_Test_CM_including_new_sst_coastalzone0percent_4_37cond_test_newlogic_day_Sea_tohre_rogh_limit_tuning4shcemes_4/Reshaped_Files/npp/1km/"
+        ROOT_DIR = "/local_disk/nina_pps/data_validation_ctth_patch_nov2012/VALIDATION_20131014_Test_CM_ice_coast_int_ice_scheme_extratests_2_new_emiss_4_tuning_more_remove_one_seadaytest_second_3/Reshaped_Files/npp/1km/"
+        #ROOT_DIR = "/local_disk/nina_pps/data_validation_ctth_patch_nov2012/VALIDATION_early_val_final_tag_test1fgit_new_emisstiles/Reshaped_Files/npp/1km/"
     	#ROOT_DIR ="Reshaped_Files_2014/Reshaped_Files/npp6sh85/1km/"
+        ROOT_DIR ="/local_disk/nina_pps/data_validation_ctth_patch_nov2012/VALIDATION_early_val_gittest1e/Reshaped_Files/*/1km/"
 
         SATELLITE = 'npp_cm_edited'
     files = glob(ROOT_DIR + "/????/??/*/*h5")
@@ -76,10 +79,10 @@ elif isGAC_v2012:
     ROOT_DIR = "/local_disk/nina_pps/data_validation_ctth_patch_nov2012/VALIDATION_GAC_2012_el2010/Reshaped_Files/noaa18/5km/"
     files = glob(ROOT_DIR + "/????/??/cea*/*noaa18*h5")
     SATELLITE='avhrr18'
-elif not isNPP and not isACPGv2012:
+elif not isLocalReception and not isACPGv2012:
     isGAC=True
     isACPGv2012=False
-    ROOT_DIR = "/local_disk/nina_pps/data_validation_ctth_patch_nov2012/VALIDATION_GAC_2014/Reshaped_Files/noaa18/5km/"
+    ROOT_DIR = "/local_disk/nina_pps/data_validation_ctth_patch_nov2012/VALIDATION_GAC_test1f/Reshaped_Files/noaa18/5km/"
     #ROOT_DIR ="Reshaped_Files_2014/Reshaped_Files/noaa18/5km/"
     files = glob(ROOT_DIR + "/????/??/cea*/*noaa18*h5")
     SATELLITE='avhrr18_v2014'

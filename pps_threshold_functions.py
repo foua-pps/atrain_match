@@ -409,7 +409,10 @@ def get_clear_and_cloudy_vectors(caObj, isACPGv2012, isGAC):
     isClear = caObj.calipso.all_arrays['number_of_layers_found'] == 0
     isCloudy = caObj.calipso.all_arrays['number_of_layers_found'] >0
     isSingleLayerCloud = caObj.calipso.all_arrays['number_of_layers_found'] == 1
-    SeesThrough = caObj.calipso.all_arrays['lidar_surface_elevation'][0] >-999
+    try:
+        SeesThrough = caObj.calipso.all_arrays['lidar_surface_elevation'][0] >-999
+    except:
+        SeesThrough = False
     isHigh = caObj.calipso.all_arrays['cloud_top_profile'][0] >5.0
     if isGAC:
         isOpticallyThinTopLay = caObj.calipso.all_arrays['optical_depth'][0]<1.0
@@ -703,6 +706,8 @@ class ppsTestFeature(DataObject):
             'latitude': None,
             't11t37': None,
             't37t12': None,
+            't11t12': None,
+            'thr_t11t12': None,
             'thr_t37t12': None,
             'thr_t37t12_inv': None
           }
@@ -732,6 +737,7 @@ def get_feature_values_and_thresholds(caObj):
     thr_t11t37_inv = caObj.avhrr.thr_t11t37_inv
     thr_t85t11_inv = caObj.avhrr.thr_t85t11_inv
     feature_minus_thr.thr_t37t12 = thr_t37t12
+    feature_minus_thr.thr_t11t12 = thr_t11t12
     feature_minus_thr.thr_t37t12_inv = thr_t37t12_inv
     #brightness temperature
     t11 = caObj.avhrr.all_arrays['bt11micron']
@@ -767,7 +773,7 @@ def get_feature_values_and_thresholds(caObj):
     t11ts = np.ma.array(t11-surftemp, mask = nodata)
     nodata = np.logical_or(t11<= -9, t12<= -9)
     t11t12 = np.ma.array(t11-t12, mask = nodata)
-
+    feature_minus_thr.t11t12 = t11t12
     #scale radiances
     feature_minus_thr.pseudor06 = r06
     feature_minus_thr.r06=r06/np.cos(np.radians(sunz))
