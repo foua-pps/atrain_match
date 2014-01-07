@@ -36,7 +36,7 @@ def get_semi_opaque_info_pps2014(ctth_status):
     return  semi_flag, opaque_flag
 
 def get_semi_opaque_info_pps2012(ctth_opaque):
-    write_log("INFO", "Assuming cloudtype flags structure from pps v2012")
+    write_log("INFO", "Assuming  pps v2012")
     semi_flag = ctth_opaque == 0
     opaque_flag = ctth_opaque == 1
     return  semi_flag, opaque_flag
@@ -241,7 +241,7 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
         if caObj.avhrr.cloudtype_qflag is not None:
             daynight_flags = get_day_night_twilight_info_pps2012(
                 caObj.avhrr.cloudtype_qflag)
-        if hasattr(caObj.avhrr, 'ctth_opaque'):
+        if caObj.avhrr.ctth_opaque is not None:
             semi_flag, opaque_flag = get_semi_opaque_info_pps2012(caObj.avhrr.ctth_opaque) 
     if hasattr(caObj.avhrr, 'cloudtype_conditions'):
         if caObj.avhrr.cloudtype_conditions is not None:
