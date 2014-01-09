@@ -132,6 +132,42 @@ def compile_basic_stats(results_files, result_end, write=False, name_in_file='BA
             cth_stats.printout()
             for l in cth_stats.printout():
                 print(l)
+            print("========== Cloud top height ===========")
+            print("========== Opaque Not tHin top layer     ===========")
+            from statistics import orrb_CTH_stat
+            cth_stats = orrb_CTH_stat.CloudTopStats(results_files, [51,52,53,54])
+            if write:
+                cth_stats.write(COMPILED_STATS_FILENAME + '_cth_%s%s.txt' %(name_in_file,result_end))
+            cth_stats.printout()
+            for l in cth_stats.printout():
+                print(l)
+            print("========== Cloud top height ===========")
+            print("========== Semi-transparent Not thin top layer ===========")
+            from statistics import orrb_CTH_stat
+            cth_stats = orrb_CTH_stat.CloudTopStats(results_files, [56,57,58,59])
+            if write:
+                cth_stats.write(COMPILED_STATS_FILENAME + '_cth_%s%s.txt' %(name_in_file,result_end))
+            cth_stats.printout()
+            for l in cth_stats.printout():
+                print(l)
+            print("========== Cloud top height ===========")
+            print("========== Opaque Thin top layer     ===========")
+            from statistics import orrb_CTH_stat
+            cth_stats = orrb_CTH_stat.CloudTopStats(results_files, [61,62,63,64])
+            if write:
+                cth_stats.write(COMPILED_STATS_FILENAME + '_cth_%s%s.txt' %(name_in_file,result_end))
+            cth_stats.printout()
+            for l in cth_stats.printout():
+                print(l)
+            print("========== Cloud top height ===========")
+            print("========== Semi-transparent Thin top layer ===========")
+            from statistics import orrb_CTH_stat
+            cth_stats = orrb_CTH_stat.CloudTopStats(results_files, [66,67,68,69])
+            if write:
+                cth_stats.write(COMPILED_STATS_FILENAME + '_cth_%s%s.txt' %(name_in_file,result_end))
+            cth_stats.printout()
+            for l in cth_stats.printout():
+                print(l)
 
 
     

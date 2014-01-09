@@ -837,6 +837,101 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
         out_stats = calculate_ctth_stats(okcaliop_semi_pps_high,avhrr_ctth_cal_ok,caliop_max_height)   
         statfile.write("CLOUD HEIGHT CALIOP-SEMI HIGH: %s \n" % (out_stats))
 
+    if config.COMPILE_RESULTS_SEPARATELY_FOR_SEMI_AND_OPAQUE and semi_flag is not None and opaque_flag is not None:
+            
+        #Opaque stats
+        statfile.write("CLOUD HEIGHT OPAQUE TOP LAYER VERY NOT-THIN\n")
+        okcaliop_opaque_pps_not_thin = np.logical_and(np.logical_and(okcaliop, opaque_flag),
+                                             np.greater_equal(caObj.calipso.optical_depth_top_layer5km,lim))
+        out_stats = calculate_ctth_stats(okcaliop_opaque_pps_not_thin,avhrr_ctth_cal_ok,caliop_max_height)   
+        statfile.write("CLOUD HEIGHT CALIOP-OPAQUE-NOT-THIN ALL: %s \n" % (out_stats))
+    
+        okcaliop_opaque_pps_not_thin_low = np.logical_and(np.logical_and(cal_low_ok, opaque_flag),
+                                             np.greater_equal(caObj.calipso.optical_depth_top_layer5km,lim))
+        out_stats = calculate_ctth_stats(okcaliop_opaque_pps_not_thin_low,avhrr_ctth_cal_ok,caliop_max_height)   
+        statfile.write("CLOUD HEIGHT CALIOP-OPAQUE-NOT-THIN LOW: %s \n" % (out_stats))
+    
+        okcaliop_opaque_pps_not_thin_mid = np.logical_and(np.logical_and(cal_mid_ok, opaque_flag),
+                                             np.greater_equal(caObj.calipso.optical_depth_top_layer5km,lim))
+        out_stats = calculate_ctth_stats(okcaliop_opaque_pps_not_thin_mid,avhrr_ctth_cal_ok,caliop_max_height)   
+        statfile.write("CLOUD HEIGHT CALIOP-OPAQUE-NOT-THIN MEDIUM: %s \n" % (out_stats))
+    
+        okcaliop_opaque_pps_not_thin_high = np.logical_and(np.logical_and(cal_high_ok, opaque_flag),
+                                             np.greater_equal(caObj.calipso.optical_depth_top_layer5km,lim))
+        out_stats = calculate_ctth_stats(okcaliop_opaque_pps_not_thin_high,avhrr_ctth_cal_ok,caliop_max_height)   
+        statfile.write("CLOUD HEIGHT CALIOP-OPAQUE-NOT-THIN HIGH: %s \n" % (out_stats))
+
+        #Semi-transparent stats
+        statfile.write("CLOUD HEIGHT SEMI TOP LAYER VERY NOT-THIN\n")
+        okcaliop_semi_pps_not_thin = np.logical_and(np.logical_and(okcaliop, semi_flag),
+                                             np.greater_equal(caObj.calipso.optical_depth_top_layer5km,lim))
+
+        out_stats = calculate_ctth_stats(okcaliop_semi_pps_not_thin,avhrr_ctth_cal_ok,caliop_max_height)   
+        statfile.write("CLOUD HEIGHT CALIOP-SEMI-NOT-THIN ALL: %s \n" % (out_stats))
+    
+        okcaliop_semi_pps_not_thin_low = np.logical_and(np.logical_and(cal_low_ok, semi_flag),
+                                             np.greater_equal(caObj.calipso.optical_depth_top_layer5km,lim))
+        out_stats = calculate_ctth_stats(okcaliop_semi_pps_not_thin_low,avhrr_ctth_cal_ok,caliop_max_height)   
+        statfile.write("CLOUD HEIGHT CALIOP-SEM-NOT-THINI LOW: %s \n" % (out_stats))
+    
+        okcaliop_semi_pps_not_thin_mid = np.logical_and(np.logical_and(cal_mid_ok, semi_flag),
+                                             np.greater_equal(caObj.calipso.optical_depth_top_layer5km,lim))
+        out_stats = calculate_ctth_stats(okcaliop_semi_pps_not_thin_mid,avhrr_ctth_cal_ok,caliop_max_height)   
+        statfile.write("CLOUD HEIGHT CALIOP-SEMI-NOT-THIN MEDIUM: %s \n" % (out_stats))
+    
+        okcaliop_semi_pps_not_thin_high = np.logical_and(np.logical_and(cal_high_ok, semi_flag),
+                                             np.greater_equal(caObj.calipso.optical_depth_top_layer5km,lim))
+        out_stats = calculate_ctth_stats(okcaliop_semi_pps_not_thin_high,avhrr_ctth_cal_ok,caliop_max_height)   
+        statfile.write("CLOUD HEIGHT CALIOP-SEMI-NOT-THIN HIGH: %s \n" % (out_stats))
+
+
+    if config.COMPILE_RESULTS_SEPARATELY_FOR_SEMI_AND_OPAQUE and semi_flag is not None and opaque_flag is not None:
+            
+        #Opaque stats
+        statfile.write("CLOUD HEIGHT OPAQUE TOP LAYER VERY THIN\n")
+        okcaliop_opaque_pps_thin = np.logical_and(np.logical_and(okcaliop, opaque_flag),
+                                             np.less(caObj.calipso.optical_depth_top_layer5km,lim))
+        out_stats = calculate_ctth_stats(okcaliop_opaque_pps_thin,avhrr_ctth_cal_ok,caliop_max_height)   
+        statfile.write("CLOUD HEIGHT CALIOP-OPAQUE-THIN ALL: %s \n" % (out_stats))
+    
+        okcaliop_opaque_pps_thin_low = np.logical_and(np.logical_and(cal_low_ok, opaque_flag),
+                                             np.less(caObj.calipso.optical_depth_top_layer5km,lim))
+        out_stats = calculate_ctth_stats(okcaliop_opaque_pps_thin_low,avhrr_ctth_cal_ok,caliop_max_height)   
+        statfile.write("CLOUD HEIGHT CALIOP-OPAQUE-THIN LOW: %s \n" % (out_stats))
+    
+        okcaliop_opaque_pps_thin_mid = np.logical_and(np.logical_and(cal_mid_ok, opaque_flag),
+                                             np.less(caObj.calipso.optical_depth_top_layer5km,lim))
+        out_stats = calculate_ctth_stats(okcaliop_opaque_pps_thin_mid,avhrr_ctth_cal_ok,caliop_max_height)   
+        statfile.write("CLOUD HEIGHT CALIOP-OPAQUE-THIN MEDIUM: %s \n" % (out_stats))
+    
+        okcaliop_opaque_pps_thin_high = np.logical_and(np.logical_and(cal_high_ok, opaque_flag),
+                                             np.less(caObj.calipso.optical_depth_top_layer5km,lim))
+        out_stats = calculate_ctth_stats(okcaliop_opaque_pps_thin_high,avhrr_ctth_cal_ok,caliop_max_height)   
+        statfile.write("CLOUD HEIGHT CALIOP-OPAQUE-THIN HIGH: %s \n" % (out_stats))
+
+        #Semi-transparent stats
+        statfile.write("CLOUD HEIGHT SEMI TOP LAYER VERY THIN\n")
+        okcaliop_semi_pps_thin = np.logical_and(np.logical_and(okcaliop, semi_flag),
+                                             np.less(caObj.calipso.optical_depth_top_layer5km,lim))
+
+        out_stats = calculate_ctth_stats(okcaliop_semi_pps_thin,avhrr_ctth_cal_ok,caliop_max_height)   
+        statfile.write("CLOUD HEIGHT CALIOP-SEMI-THIN ALL: %s \n" % (out_stats))
+    
+        okcaliop_semi_pps_thin_low = np.logical_and(np.logical_and(cal_low_ok, semi_flag),
+                                             np.less(caObj.calipso.optical_depth_top_layer5km,lim))
+        out_stats = calculate_ctth_stats(okcaliop_semi_pps_thin_low,avhrr_ctth_cal_ok,caliop_max_height)   
+        statfile.write("CLOUD HEIGHT CALIOP-SEM-THINI LOW: %s \n" % (out_stats))
+    
+        okcaliop_semi_pps_thin_mid = np.logical_and(np.logical_and(cal_mid_ok, semi_flag),
+                                             np.less(caObj.calipso.optical_depth_top_layer5km,lim))
+        out_stats = calculate_ctth_stats(okcaliop_semi_pps_thin_mid,avhrr_ctth_cal_ok,caliop_max_height)   
+        statfile.write("CLOUD HEIGHT CALIOP-SEMI-THIN MEDIUM: %s \n" % (out_stats))
+    
+        okcaliop_semi_pps_thin_high = np.logical_and(np.logical_and(cal_high_ok, semi_flag),
+                                             np.less(caObj.calipso.optical_depth_top_layer5km,lim))
+        out_stats = calculate_ctth_stats(okcaliop_semi_pps_thin_high,avhrr_ctth_cal_ok,caliop_max_height)   
+        statfile.write("CLOUD HEIGHT CALIOP-SEMI-THIN HIGH: %s \n" % (out_stats))
+
 
 
     statfile.close()
