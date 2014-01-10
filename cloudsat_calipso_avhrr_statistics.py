@@ -536,7 +536,7 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
     calipso_medium = np.logical_and(np.logical_and(np.greater(cal_vert_feature[::],3),np.less_equal(cal_vert_feature[::],5)),cal_subset)
     calipso_high = np.logical_and(np.logical_and(np.greater(cal_vert_feature[::],5),np.less_equal(cal_vert_feature[::],7)),cal_subset)
 
-    if hasattr(caObj.avhrr, 'cloudtype_conditions'):
+    if caObj.avhrr.cloudtype_conditions is not None:
         write_log("INFO", "Assuming cloudtype structure from pps v2014")
         avhrr_low = np.logical_and(np.logical_and(np.greater_equal(caObj.avhrr.cloudtype,5),np.less_equal(caObj.avhrr.cloudtype,6)),cal_subset)
         avhrr_medium = np.logical_and(np.equal(caObj.avhrr.cloudtype,7), cal_subset)
