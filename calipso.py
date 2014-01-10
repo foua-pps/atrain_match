@@ -752,7 +752,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
         ctth_pressure_track = np.where(np.equal(temp, ctth.p_nodata), 
                                       -9, pp_temp)
         if (PPS_VALIDATION and hasattr(ctth,'processingflag')):
-            is_opaque = np.bitwise_and(np.right_shift(ctth.processingflag, 3), 1)
+            is_opaque = np.bitwise_and(np.right_shift(ctth.processingflag, 2), 1)
             ctth_opaque_track = [is_opaque[row_matched[idx], col_matched[idx]]
                                  for idx in range(row_matched.shape[0])]
     #: TODO Do not use fix nodata-values but instead something.no_data
