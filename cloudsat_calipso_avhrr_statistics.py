@@ -247,7 +247,7 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
         if caObj.avhrr.cloudtype_conditions is not None:
             daynight_flags = get_day_night_twilight_info_pps2014(
                 caObj.avhrr.cloudtype_conditions) 
-        if hasattr(caObj.avhrr, 'ctth_status'):
+        if caObj.avhrr.ctth_status is not None:
             semi_flag, opaque_flag = get_semi_opaque_info_pps2014(caObj.avhrr.ctth_status)
     (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag) = daynight_flags
     if (no_qflag.sum() + night_flag.sum() + twilight_flag.sum() + day_flag.sum()) != caObj.calipso.longitude.size:          
