@@ -159,25 +159,36 @@ def get_bits(value, bits, shift=False):
 
 
 def get_calipso_phase(calipso_filename, qual_min=CALIPSO_QUAL_VALUES['medium'],
-                      max_layers=1):
+                      max_layers=1, same_phase_in_top_three_lay=True):
     """
-    Returns Calipso cloud phase.
-    
-    Pixels with quality lower than *qual_min* are masked out.
-    
-    Screen out pixels with more than *max_layers* layers.
-    
+    Returns Calipso cloud phase.    
+    Pixels with quality lower than *qual_min* are masked out.    
+    Screen out pixels with more than *max_layers* layers.    
     """
     with h5py.File(calipso_filename,'r') as f:
         features = f['Feature_Classification_Flags'][:]
     if f:
         f.close()
+    if same_phase_in_top_three_lay:
+        phase1 = get_bits(features[:,0], CALIPSO_PHASE_BITS, shift=True)
+        phase2 = get_bits(features[:,1], CALIPSO_PHASE_BITS, shift=True)
+        phase3 = get_bits(features[:,2], CALIPSO_PHASE_BITS, shift=True)
+        two_layer_pixels = features[:, 2] >1
+        three_layer_pixels = features[:, 3] >1
+        lay1_lay2_differ = np.logical_and(two_layer_pixels,
+                                          np.not_equal(phase1, phase2))
+        lay2_lay3_differ = np.logical_and(three_layer_pixels,
+                                          np.not_equal(phase2, phase3))
+        varying_phases_in_top_3lay = np.logical_or(lay1_lay2_differ,
+                                                      lay2_lay3_differ)
     # Reduce to single layer, masking any multilayer pixels
     features = np.ma.array(features[:, 0],
                            mask=(features[:, max_layers:] > 1).any(axis=-1))
-    
+    if same_phase_in_top_three_lay:
+        features = np.ma.array(features,                               
+                                mask = varying_phases_in_top_3lay)
     phase = get_bits(features, CALIPSO_PHASE_BITS, shift=True)
-    qual = get_bits(features, CALIPSO_QUAL_BITS, shift=True)
+    qual = get_bits(features, CALIPSO_QUAL_BITS, shift=True)    
     # Don't care about pixels with lower than *qual_min* quality
     return np.ma.array(phase, mask=qual < qual_min)
 
