@@ -13,7 +13,10 @@ from cloudsat_calipso_avhrr_statistics import (
     get_inversion_info_pps2014,
     get_sunglint_info_pps2014,
     get_mountin_info_pps2014,
-    get_high_terrain_info_pps2014)
+    get_high_terrain_info_pps2014,
+    get_inversion_info_pps2012,
+    get_sunglint_info_pps2012,
+    get_mountin_info_pps2012)
 
 def keep_combined_ok(TestOk,TestOkAll):
     if hasattr(TestOk,'mask') and hasattr(TestOkAll,'mask'):               
@@ -442,9 +445,9 @@ def get_clear_and_cloudy_vectors(caObj, isACPGv2012, isGAC):
         lt_flag = get_land_coast_sea_info_pps2012(cloudtype_qflag)
         (no_qflag, isPPSLand, isPPSSea, isPPSCoast, all_lsc_flag) = lt_flag
         isPPSIce = get_ice_info_pps2012(cloudtype_qflag)
-        isPPSInversion = False#= get_inversion_info_pps2012(cloudtype_qflag)
-        isPPSSunglint = False#= get_sunglint_info_pps2012(cloudtype_qflag)
-        isPPSMountain = False#= get_mountin_info_pps2012(cloudtype_qflag)
+        isPPSInversion =  get_inversion_info_pps2012(cloudtype_qflag)
+        isPPSSunglint = get_sunglint_info_pps2012(cloudtype_qflag)
+        isPPSMountain = get_mountin_info_pps2012(cloudtype_qflag)
     else:
         i_flags = get_day_night_twilight_info_pps2014(cloudtype_conditions)
         (no_qflag, isPPSNight, isPPSTwilight, isPPSDay, all_dnt_flag) = i_flags
@@ -590,6 +593,17 @@ def get_clear_and_cloudy_vectors(caObj, isACPGv2012, isGAC):
     isBadShemesAClear=np.logical_or(isClearWaterDay,np.logical_or(isClearLandDayMount,isClearIceDay))
     isBadShemesBCloudy=np.logical_or(isCloudyLandNightInv,isCloudyIceTwilight)
     isBadShemesBClear=np.logical_or(isClearLandNightInv,isClearIceTwilight)
+
+    isBadShemesACloudy=np.logical_or(np.logical_or(isCloudyLandNightInv,isCloudyLandTwilightInv),
+                                     np.logical_or(isCloudyCoastTwilightInv,isCloudyCoastNightInv))
+    isBadShemesAClear=np.logical_or(np.logical_or(isClearLandNightInv,isClearLandTwilightInv),
+                                     np.logical_or(isClearCoastTwilightInv,isClearCoastNightInv))
+
+    isBadShemesBCloudy=np.logical_or(np.logical_or(isCloudyLandNight,isCloudyLandTwilight),
+                                     np.logical_or(isCloudyCoastTwilight,isCloudyCoastNight))
+    isBadShemesBClear=np.logical_or(np.logical_or(isClearLandNight,isClearLandTwilight),
+                                     np.logical_or(isClearCoastTwilight,isClearCoastNight))
+
     isGoodShemesCloudy=np.logical_and(np.logical_and(isPPSCloudyOrClear,isCloudy),
                                      np.logical_and(np.equal(isBadShemesACloudy, False),
                                                     np.equal(isBadShemesBCloudy, False)))

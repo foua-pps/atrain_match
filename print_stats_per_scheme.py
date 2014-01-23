@@ -16,18 +16,8 @@ from pps_threshold_functions import (print_stats,
                                  get_clear_and_cloudy_vectors)
 from matchobject_io import (readCaliopAvhrrMatchObj,
                             CalipsoAvhrrTrackObject)
-from cloudsat_calipso_avhrr_statistics import (
-    get_day_night_twilight_info_pps2014,
-    get_land_coast_sea_info_pps2014,
-    get_ice_info_pps2014,
-    get_day_night_twilight_info_pps2012,    
-    get_land_coast_sea_info_pps2012,
-    get_ice_info_pps2012,
-    get_inversion_info_pps2014,
-    get_sunglint_info_pps2014,
-    get_mountin_info_pps2014)
 
-isLocalReception = True
+isLocalReception  = True
 isACPGv2012=False
 isGAC_v2012 = False
 RunWithOutMargins=True
@@ -36,9 +26,9 @@ if isLocalReception and isACPGv2012:
     isACPGv2012=True
     isGAC=False
     ROOT_DIR = "/local_disk/nina_pps/data_validation_ctth_patch_nov2012/VALIDATION_20130911_2012_test2/Reshaped_Files/npp/1km/"
-    
+    ROOT_DIR ="/local_disk/nina_pps/data_validation_ctth_patch_nov2012/VALIDATION_20140103_v2012/Reshaped_Files/*/1km/"
     SATELLITE='npp_2012'
-    files = glob(ROOT_DIR + "/????/??/*/*h5")
+    files = glob(ROOT_DIR + "/????/??/arc*/*h5")
 elif isLocalReception and  not isACPGv2012:
     isACPGv2012=False
     isGAC=False
@@ -68,10 +58,10 @@ elif isLocalReception and  not isACPGv2012:
         ROOT_DIR = "/local_disk/nina_pps/data_validation_ctth_patch_nov2012/VALIDATION_20131014_Test_CM_ice_coast_int_ice_scheme_extratests_2_new_emiss_4_tuning_more_remove_one_seadaytest_second_3/Reshaped_Files/npp/1km/"
         #ROOT_DIR = "/local_disk/nina_pps/data_validation_ctth_patch_nov2012/VALIDATION_early_val_final_tag_test1fgit_new_emisstiles/Reshaped_Files/npp/1km/"
     	#ROOT_DIR ="Reshaped_Files_2014/Reshaped_Files/npp6sh85/1km/"
-        ROOT_DIR ="/local_disk/nina_pps/data_validation_ctth_patch_nov2012/VALIDATION_early_val_gittest1e/Reshaped_Files/*/1km/"
+        ROOT_DIR ="/local_disk/nina_pps/data_validation_ctth_patch_nov2012/VALIDATION_20140116/Reshaped_Files/*/1km/"
 
         SATELLITE = 'npp_cm_edited'
-    files = glob(ROOT_DIR + "/????/??/*/*h5")
+    files = glob(ROOT_DIR + "/????/??/arc*/*h5")
 
 elif isGAC_v2012:
     isGAC=True
