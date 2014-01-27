@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Copyright (c) 2013 Adam.Dybbroe
+# Copyright (c) 2013, 2014 Adam.Dybbroe
 
 # Author(s):
 
@@ -180,6 +180,13 @@ class CalipsoAvhrrTrackObject:
         self.avhrr = ppsAvhrrObject()
         self.calipso = CalipsoObject()
         self.diff_sec_1970 = None
+
+        self.make_nsidc_texture()
+
+    def make_nsidc_texture(self, kernel_sz = 51):
+        """Derive the stdv of the ice dataset"""
+
+        self.calipso.all_arrays['nsidc'] = sliding_std(self.calipso.all_arrays['nsidc'], kernel_sz)
     
     def __add__(self, other):
         """Concatenating two objects together"""
@@ -227,6 +234,16 @@ def writeCaliopAvhrrMatchObj(filename, ca_obj):
 
     status = 1
     return status
+
+
+def sliding_std(x, size=5):
+    """derive a sliding standard deviation of a data array"""
+    from scipy.ndimage.filters import uniform_filter
+    c1 = uniform_filter(x.astype('float'), size=size)
+    c2 = uniform_filter(x.astype('float')*x.astype('float'), size=size)
+    return abs(c2 - c1*c1)**.5
+
+
 
 # ----------------------------------------
 if __name__ == "__main__":
