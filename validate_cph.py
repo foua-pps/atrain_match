@@ -4,7 +4,8 @@ Use this script to validate the CPP cloud phase (cph) product
 """
 
 import os
-from amsr_avhrr.util import get_avhrr_lonlat, get_cpp_product, get_avhrr_lonlat_and_time_cci,  get_cpp_product_cci
+from amsr_avhrr.util import get_avhrr_lonlat, get_cpp_product, \
+     get_avhrr_lonlat_and_time_cci,  get_cpp_product_cci, reduce_cpp_cph_data
 from amsr_avhrr.match import match_lonlat
 from runutils import process_scenes
 from cloudsat_calipso_avhrr_match import (find_calipso_files,
@@ -21,7 +22,7 @@ import numpy as np
 import logging
 from config import _validation_results_dir
 from config import RESOLUTION, PPS_VALIDATION, CCI_CLOUD_VALIDATION, \
-     PPS_FORMAT_2012_OR_EARLIER
+     PPS_FORMAT_2012_OR_EARLIER, CPP_REDUCE_PIXELS
 from common import MatchupError
 from amsr_avhrr.util import write_data, write_data_to_open_file
 logger = logging.getLogger(__name__)
@@ -530,19 +531,35 @@ def process_case(calipso_filename, avhrr_filename, sunsat_filename,
         logger.info("Getting phase from %s"%(phase_filename))
         if PPS_FORMAT_2012_OR_EARLIER:
             phase_temp=get_cpp_product(phase_filename, 'cph')
+            if CPP_REDUCE_PIXELS:
+                phase_temp=reduce_cpp_cph_data(phase_temp, sunsat_filename,
+                                               None)
         else:
             phase_temp=get_cpp_product(phase_filename, 'cpp_phase')
+            if CPP_REDUCE_PIXELS:
+                dcwp = get_cpp_product(phase_filename, 'cpp_dcwp')
+                cond_flag = get_cpp_product(phase_filename, 'cpp_conditions')
+                phase_temp=reduce_cpp_cph_data(phase_temp, sunsat_filename,
+                                               dcwp, flag=cond_flag)
         logger.info("Remapping phase from %s"%(phase_filename))   
         cpp_phase = mapper(phase_temp)
         logger.info("Remapping done for phase %s"%(phase_filename))      
         if VALIDATE_FOR_CPP_PIXELS and PPS_VALIDATION:
             logger.info("Getting phase from %s"%(cpp_filename))
             if PPS_FORMAT_2012_OR_EARLIER:
-                cpp_phase_cpp = mapper(get_cpp_product_cpp(cpp_filename,
-                                                           'cph'))
+                cpp_tmp = get_cpp_product_cpp(cpp_filename, 'cph')
+                if CPP_REDUCE_PIXELS:
+                    cpp_tmp = reduce_cpp_cph_data(cpp_tmp, sunsat_filename,
+                                                  None)
+                cpp_phase_cpp = mapper(cpp_tmp)
             else:
-                cpp_phase_cpp = mapper(get_cpp_product_cpp(cpp_filename,
-                                                           'cpp_phase'))
+                cpp_tmp = get_cpp_product_cpp(cpp_filename, 'cpp_phase')
+                if CPP_REDUCE_PIXELS:
+                    dcwp = get_cpp_product(cpp_filename, 'cpp_dcwp')
+                    cond_flag = get_cpp_product(cpp_filename, 'cpp_conditions')
+                    cpp_tmp = reduce_cpp_cph_data(cpp_tmp, sunsat_filename,
+                                                  dcwp, flag=cond_flag)
+                cpp_phase_cpp = mapper(cpp_tmp)
             cpp_phase_cpp = cpp_phase_cpp[..., 0] # mapper returns extra neighbours dimension
     if CCI_CLOUD_VALIDATION:
         logger.info("Getting phase from %s"%(avhrr_filename))
@@ -583,8 +600,15 @@ def process_case(calipso_filename, avhrr_filename, sunsat_filename,
         avhrr_time =  get_avhrr_time(sunsat_filename)
         if PPS_FORMAT_2012_OR_EARLIER:
             cph_tmp = get_cpp_product(phase_filename, 'cph')
+            if CPP_REDUCE_PIXELS:
+                cph_tmp = reduce_cpp_cph_data(cph_tmp, sunsat_filename, None)
         else:
             cph_tmp = get_cpp_product(phase_filename, 'cpp_phase')
+            if CPP_REDUCE_PIXELS:
+                dcwp = get_cpp_product(phase_filename, 'cpp_dcwp')
+                cond_flag = get_cpp_product(phase_filename, 'cpp_conditions')
+                cph_tmp = reduce_cpp_cph_data(cph_tmp, sunsat_filename, dcwp,
+                                              flag=cond_flag)
     if CCI_CLOUD_VALIDATION:
         avhrr_lonlat,avhrr_time  = get_avhrr_lonlat_and_time_cci(avhrr_filename) 
         cph_tmp = get_cpp_product_cci(avhrr_filename, 'cph')

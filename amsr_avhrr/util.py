@@ -44,6 +44,26 @@ def get_avhrr_lonlat(filename):
     
     return geo.longitude, geo.latitude
 
+
+def get_avhrr_sunsat(filename):
+    """
+    Get (sunz, satz) from AVHRR file *filename* (remapped by PPS).
+    
+    """
+    import pps_io
+    sunsat = pps_io.readSunSatAngles(filename)
+    sunz = np.where(np.logical_or(sunsat.sunz.data == sunsat.sunz.no_data,
+                                  sunsat.sunz.data == sunsat.sunz.missing_data),
+                    sunsat.sunz.no_data,
+                    sunsat.sunz.data * sunsat.sunz.gain +
+                    sunsat.sunz.intercept)
+    satz = np.where(np.logical_or(sunsat.satz.data == sunsat.satz.no_data,
+                                  sunsat.satz.data == sunsat.satz.missing_data),
+                    sunsat.satz.no_data,
+                    sunsat.satz.data * sunsat.satz.gain +
+                    sunsat.satz.intercept)
+    return sunz, satz
+
 def get_avhrr_lonlat_and_time_cci(filename):
     """
     Get (lon, lat) from CCI AVHRR file .
@@ -134,6 +154,99 @@ def get_cpp_product_cci(filename, product):
     """Get *product* from CPP file *filename*."""
     cpp_cph = cci_read_prod(filename, 'phase')
     return cpp_cph
+
+def reduce_cpp_lwp_data(lwp, sunsat_filename, dcwp, flag=None):
+    """Validate for a sub-set of lwp-data"""
+    from config import PPS_FORMAT_2012_OR_EARLIER
+    from amsr_avhrr_match import NODATA_CPP, NODATA_CPP_v2012
+    
+    if PPS_FORMAT_2012_OR_EARLIER:
+        nodata = NODATA_CPP_v2012
+    else:
+        nodata = NODATA_CPP
+    return reduce_cpp_data(lwp, nodata, sunsat_filename, dcwp, flag=flag)
+   
+def reduce_cpp_cph_data(cph, sunsat_filename, dcwp, flag=None):
+    """Validate for a sub-set of cph-data"""
+    from config import PPS_FORMAT_2012_OR_EARLIER
+    from validate_cph import CPP_PHASE_VALUES, CPP_PHASE_VALUES_v2012
+    
+    if PPS_FORMAT_2012_OR_EARLIER:
+        nodata = CPP_PHASE_VALUES_v2012['no_observation']
+    else:
+        nodata = CPP_PHASE_VALUES['no_data']
+    return reduce_cpp_data(cph, nodata, sunsat_filename, dcwp, flag=flag)
+
+
+def reduce_cpp_data(arr, nodata, sunsat_filename, dcwp, flag=None):
+    """
+    Validate for a sub-set of the pixels for lwp- or cph-data. Configure
+    inside this function which limitations to do, any of:
+        sun/satellite angles max and/or min
+        remove sunglint
+        remove pixels where dcwp is over a limit
+        """
+        
+    from amsr_avhrr_match import NODATA_CPP
+
+    print "Make reduction:"
+    #Configure which type of reductions to do
+    #  'None' means that do not make a reduction on that quantity
+    #   example values: min_angle=72, max_angle=78 (or use just one of them)
+    #                   dcwp_limit=2 (it is in kg/m2), no_sunglint=1
+    max_angle = None
+    min_angle = 72
+    dcwp_limit = None
+    no_sunglint = None
+
+
+    #Filter out sunglint, if configured for
+    if ((no_sunglint is not None) and (int(no_sunglint) == 1)):
+        if (flag is None):
+            print "no sunglint flag available, can not filter out those"
+        else:
+            print "Reduction: sunglint removal"
+            from pps_basic_util import evaluate_bit
+            from pps_common import SM_FLAG_BIT_SUNGLINT
+
+            arr = np.where(
+                evaluate_bit(flag.astype('uint16'), SM_FLAG_BIT_SUNGLINT),
+                nodata,
+                arr)
+    
+    #If there is a dcwp-limit, use that one
+    if (dcwp_limit is not None):
+        if (dcwp == None):
+            print "no dcwp data available, can not filter on dcwp"
+        else:
+            print "Reduction: remove dcwp >= ", dcwp_limit
+            dcwp_limit = float(dcwp_limit)
+            arr = np.where(np.logical_and(dcwp != NODATA_CPP,
+                                          dcwp >= dcwp_limit),
+                           nodata,
+                           arr)
+
+    #Check for reductions in angles (can be both or either of max/min)
+    if ((max_angle is None) and (min_angle is None)):
+        #No configuration set to reduce arr due to angles
+        return arr
+
+    sunz, satz = get_avhrr_sunsat(sunsat_filename)
+    if (max_angle is not None):
+        print "Reduction: remove sunsat >= ", max_angle
+        max_angle = float(max_angle)
+        arr = np.where(np.logical_or(sunz >= max_angle,
+                                     satz >= max_angle),
+                       nodata,
+                       arr)
+    if (min_angle is not None):
+        print "Reduction: remove sunsat < ", min_angle
+        min_angle = float(min_angle)
+        arr = np.where(np.logical_and(sunz < min_angle,
+                                      satz < min_angle),
+                       nodata,
+                       arr)
+    return arr
 
 def get_diff_data(filenames, aux_fields=None):
     """

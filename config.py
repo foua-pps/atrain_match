@@ -50,7 +50,8 @@ PLOT_ONLY_PNG = True
 
 #important for cph_validate.py
 VAL_CPP = os.environ.get('VAL_CPP', False)
-VALIDATE_FOR_CPP_PIXELS = True #means validating for cloudtype only for pixels where we also got cpp.cph values 
+VALIDATE_FOR_CPP_PIXELS = True #means validating for cloudtype only for pixels where we also got cpp.cph values
+CPP_REDUCE_PIXELS = os.environ.get('CPP_REDUCE_PIXELS', False) #Validate on a sub-set of the pixels, according to settings in util.py/reduce_cpp_data
 
 # Imager Instrument on which PPS has been run (currently you can only run the
 # atrain match on either AVHRR data or VIIRS data, not both):
