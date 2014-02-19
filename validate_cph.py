@@ -531,12 +531,12 @@ def process_case(calipso_filename, avhrr_filename, sunsat_filename,
         logger.info("Getting phase from %s"%(phase_filename))
         if PPS_FORMAT_2012_OR_EARLIER:
             phase_temp=get_cpp_product(phase_filename, 'cph')
-            if CPP_REDUCE_PIXELS:
+            if CPP_REDUCE_PIXELS==1:
                 phase_temp=reduce_cpp_cph_data(phase_temp, sunsat_filename,
                                                None)
         else:
             phase_temp=get_cpp_product(phase_filename, 'cpp_phase')
-            if CPP_REDUCE_PIXELS:
+            if CPP_REDUCE_PIXELS==1:
                 dcwp = get_cpp_product(phase_filename, 'cpp_dcwp')
                 cond_flag = get_cpp_product(phase_filename, 'cpp_conditions')
                 phase_temp=reduce_cpp_cph_data(phase_temp, sunsat_filename,
@@ -548,13 +548,13 @@ def process_case(calipso_filename, avhrr_filename, sunsat_filename,
             logger.info("Getting phase from %s"%(cpp_filename))
             if PPS_FORMAT_2012_OR_EARLIER:
                 cpp_tmp = get_cpp_product_cpp(cpp_filename, 'cph')
-                if CPP_REDUCE_PIXELS:
+                if CPP_REDUCE_PIXELS==1:
                     cpp_tmp = reduce_cpp_cph_data(cpp_tmp, sunsat_filename,
                                                   None)
                 cpp_phase_cpp = mapper(cpp_tmp)
             else:
                 cpp_tmp = get_cpp_product_cpp(cpp_filename, 'cpp_phase')
-                if CPP_REDUCE_PIXELS:
+                if CPP_REDUCE_PIXELS==1:
                     dcwp = get_cpp_product(cpp_filename, 'cpp_dcwp')
                     cond_flag = get_cpp_product(cpp_filename, 'cpp_conditions')
                     cpp_tmp = reduce_cpp_cph_data(cpp_tmp, sunsat_filename,
@@ -600,11 +600,11 @@ def process_case(calipso_filename, avhrr_filename, sunsat_filename,
         avhrr_time =  get_avhrr_time(sunsat_filename)
         if PPS_FORMAT_2012_OR_EARLIER:
             cph_tmp = get_cpp_product(phase_filename, 'cph')
-            if CPP_REDUCE_PIXELS:
+            if CPP_REDUCE_PIXELS==1:
                 cph_tmp = reduce_cpp_cph_data(cph_tmp, sunsat_filename, None)
         else:
             cph_tmp = get_cpp_product(phase_filename, 'cpp_phase')
-            if CPP_REDUCE_PIXELS:
+            if CPP_REDUCE_PIXELS==1:
                 dcwp = get_cpp_product(phase_filename, 'cpp_dcwp')
                 cond_flag = get_cpp_product(phase_filename, 'cpp_conditions')
                 cph_tmp = reduce_cpp_cph_data(cph_tmp, sunsat_filename, dcwp,

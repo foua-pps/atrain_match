@@ -231,12 +231,12 @@ def compare_lwps(mapper, amsr_filename, cpp_filename, sunsat_filename,
     #cpp_cwp_avhrr_proj = get_cpp_product(cpp_filename, 'cwp')
     if PPS_FORMAT_2012_OR_EARLIER:
         cpp_cwp_avhrr_proj = get_cpp_product(cpp_filename, 'lwp')
-        if CPP_REDUCE_PIXELS:
+        if CPP_REDUCE_PIXELS == 1:
             cpp_cwp_avhrr_proj = reduce_cpp_lwp_data(cpp_cwp_avhrr_proj,
                                                      sunsat_filename, None)
     else:
         cwp_tmp = get_cpp_product(cpp_filename, 'cpp_lwp')
-        if CPP_REDUCE_PIXELS:
+        if CPP_REDUCE_PIXELS == 1:
             dcwp = get_cpp_product(cpp_filename, 'cpp_dcwp')
             cond_flag = get_cpp_product(cpp_filename, 'cpp_conditions')
             cwp_tmp = reduce_cpp_lwp_data(cwp_tmp,sunsat_filename, dcwp,

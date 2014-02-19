@@ -192,12 +192,14 @@ def reduce_cpp_data(arr, nodata, sunsat_filename, dcwp, flag=None):
     print "Make reduction:"
     #Configure which type of reductions to do
     #  'None' means that do not make a reduction on that quantity
-    #   example values: min_angle=72, max_angle=78 (or use just one of them)
-    #                   dcwp_limit=2 (it is in kg/m2), no_sunglint=1
-    max_angle = None
-    min_angle = 72
+    #   example values: min_angle=72, max_angle=78 (use one or both of them)
+    #                   dcwp_limit=2 (it is in kg/m2)
+    #                   no_sunglint=0/1, only_sunglint=0/1 (not both)
+    max_angle = 72
+    min_angle = None
     dcwp_limit = None
     no_sunglint = None
+    only_sunglint = None
 
 
     #Filter out sunglint, if configured for
@@ -213,6 +215,20 @@ def reduce_cpp_data(arr, nodata, sunsat_filename, dcwp, flag=None):
                 evaluate_bit(flag.astype('uint16'), SM_FLAG_BIT_SUNGLINT),
                 nodata,
                 arr)
+            
+    #Use only sunglint, if configured for
+    if ((only_sunglint is not None) and (int(only_sunglint) == 1)):
+        if (flag is None):
+            print "no sunglint flag available, can not filter for those"
+        else:
+            print "Reduction: remove everything but sunglint"
+            from pps_basic_util import evaluate_bit
+            from pps_common import SM_FLAG_BIT_SUNGLINT
+
+            arr = np.where(
+                evaluate_bit(flag.astype('uint16'), SM_FLAG_BIT_SUNGLINT),
+                arr,
+                nodata)
     
     #If there is a dcwp-limit, use that one
     if (dcwp_limit is not None):
