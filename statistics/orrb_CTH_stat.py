@@ -109,7 +109,7 @@ class CloudTopStats(OrrbStats):
             lines.append("Total number of matched scenes is: %s" % self.scenes)
             lines.append("Total number of Cloudsat matched cloudtops: %d " % self.csa_samples)
             lines.append("Mean error: %f" % self.bias_csa)
-            lines.append("Weighted RMS error: %f" % self.rms_csa)
+            lines.append("RMS error: %f" % self.rms_csa)
             #lines.append("RMS error: %f" % self.rms_csa)
             lines.append("")
             lines.append("Total number of CALIOP matched cloudtops: %d" % self.cal_all_samples)
@@ -120,10 +120,10 @@ class CloudTopStats(OrrbStats):
             lines.append("Mean error low-level cases: %f" % self.bias_cal_low)
             lines.append("Mean error medium-level cases: %f" % self.bias_cal_medium)
             lines.append("Mean error high-level cases: %f" % self.bias_cal_high)
-            lines.append("Weighted RMS error total cases: %f" % self.rms_cal_all)
-            lines.append("Weighted RMS error low-level cases: %f" % self.rms_cal_low)
-            lines.append("Weighted RMS error medium-level cases: %f" % self.rms_cal_medium)
-            lines.append("Weighted RMS error high-level cases: %f" % self.rms_cal_high)
+            lines.append("RMS error total cases: %f" % self.rms_cal_all)
+            lines.append("RMS error low-level cases: %f" % self.rms_cal_low)
+            lines.append("RMS error medium-level cases: %f" % self.rms_cal_medium)
+            lines.append("RMS error high-level cases: %f" % self.rms_cal_high)
             lines.append("")
         except AttributeError:
             lines = []
@@ -138,10 +138,10 @@ class CloudTopStats(OrrbStats):
             lines.append("Mean error low-level cases: %f" % self.bias_cal_low)
             lines.append("Mean error medium-level cases: %f" % self.bias_cal_medium)
             lines.append("Mean error high-level cases: %f" % self.bias_cal_high)
-            lines.append("Weighted RMS error total cases: %f" % self.rms_cal_all)
-            lines.append("Weighted RMS error low-level cases: %f" % self.rms_cal_low)
-            lines.append("Weighted RMS error medium-level cases: %f" % self.rms_cal_medium)
-            lines.append("Weighted RMS error high-level cases: %f" % self.rms_cal_high)
+            lines.append("RMS error total cases: %f" % self.rms_cal_all)
+            lines.append("RMS error low-level cases: %f" % self.rms_cal_low)
+            lines.append("RMS error medium-level cases: %f" % self.rms_cal_medium)
+            lines.append("RMS error high-level cases: %f" % self.rms_cal_high)
             lines.append("")
         return lines
 
