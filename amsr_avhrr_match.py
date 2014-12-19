@@ -9,7 +9,8 @@ logger = logging.getLogger(__name__)
 from runutils import process_scenes
 from validate_cph import CPP_PHASE_VALUES_v2012, CPP_PHASE_VALUES
 from cloudsat_calipso_avhrr_match import find_files_from_avhrr
-from config import PPS_FORMAT_2012_OR_EARLIER
+from amsr_avhrr.util import reduce_cpp_lwp_data
+from config import PPS_FORMAT_2012_OR_EARLIER, CPP_REDUCE_PIXELS
 from common import MatchupError
 
 
@@ -29,6 +30,7 @@ AMSR_RADIUS = 10e3
 
 #No-data value for lwp and reff
 NODATA_CPP = 65535
+NODATA_CPP_v2012 = -1
 
 
 def process_noaa_scene(avhrr_filename, options, amsr_filename=None, ctype=None,
@@ -222,15 +224,23 @@ def compare_lwps(mapper, amsr_filename, cpp_filename, sunsat_filename,
     
     """
     import numpy as np
-    from amsr_avhrr.util import get_cpp_product
+    from amsr_avhrr.util import get_cpp_product    
     #SHq: originally the program read cwp, but we should validate lwp.
     #     They are treated the same way, so it is easy to change. The
     #     variables in this program are still called cwp, anyway.
     #cpp_cwp_avhrr_proj = get_cpp_product(cpp_filename, 'cwp')
     if PPS_FORMAT_2012_OR_EARLIER:
         cpp_cwp_avhrr_proj = get_cpp_product(cpp_filename, 'lwp')
+        if CPP_REDUCE_PIXELS == 1:
+            cpp_cwp_avhrr_proj = reduce_cpp_lwp_data(cpp_cwp_avhrr_proj,
+                                                     sunsat_filename, None)
     else:
         cwp_tmp = get_cpp_product(cpp_filename, 'cpp_lwp')
+        if CPP_REDUCE_PIXELS == 1:
+            dcwp = get_cpp_product(cpp_filename, 'cpp_dcwp')
+            cond_flag = get_cpp_product(cpp_filename, 'cpp_conditions')
+            cwp_tmp = reduce_cpp_lwp_data(cwp_tmp,sunsat_filename, dcwp,
+                                          flag=cond_flag)
         #Convert from kg/m2 to g/m2
         cpp_cwp_avhrr_proj = np.where((cwp_tmp == NODATA_CPP),
                                       NODATA_CPP,
