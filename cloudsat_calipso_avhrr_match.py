@@ -171,6 +171,7 @@ class ppsFiles(object):
         self.nwp_t700 = None
         self.nwp_t850 = None
         self.nwp_t950 = None
+        self.nwp_ttro = None
         self.nwp_ciwv = None
         self.text_r06 = None
         self.text_t11 = None
@@ -197,6 +198,7 @@ class NWPObj(object):
         self.nwp_t700 = None
         self.nwp_t850 = None
         self.nwp_t950 = None
+        self.nwp_ttro = None
         self.nwp_ciwv = None
         self.text_r06 = None
         self.text_t11 = None
@@ -214,6 +216,9 @@ class NWPObj(object):
         self.thr_t85t11 = None
         self.thr_r06 = None
         self.thr_r09 = None
+        self.emis1 = None
+        self.emis8 = None
+        self.emis9 = None
         self.__dict__.update(array_dict) 
 
 test = 0
@@ -613,11 +618,14 @@ def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
 
     file_name_dict={}
     for nwp_file in ['nwp_tsur','nwp_t500','nwp_t700',
-                     'nwp_t850','nwp_t950', 'nwp_ciwv']:   
+                     'nwp_t850','nwp_t950', 'nwp_ciwv', 'nwp_ttro']:   
         file_name_dict[nwp_file] = get_pps_file(avhrr_file, options, values, 
                                                  nwp_file+'_file', 'nwp_nwp_dir')
 
-
+    emis_file = get_pps_file(avhrr_file, options, values, 
+                                           'emis_file', 'emis_dir')
+    file_name_dict['emis'] = emis_file
+    write_log("INFO", "EMIS: " + emis_file)
     for text_file in ['text_r06', 'text_t11', 'text_t37t12', 'text_t37']:
         file_name_dict[text_file] = get_pps_file(avhrr_file, options, values, 
                                                  text_file+'_file', 'text_dir')
@@ -766,6 +774,22 @@ def read_nwp(file_name, type_of_nwp):
 def read_thr(filename, h5_obj_type, thr_type):
     import h5py #@UnresolvedImport
     product = None
+    print thr_type
+    if thr_type in ["emis1", "emis8", "emis9"]:
+        if filename is not None: 
+            h5file = h5py.File(filename, 'r')
+            if 1==1:#h5_obj_type in h5file.keys():
+                value = h5file[h5_obj_type].value
+                gain = h5file.attrs['gain']
+                intersec = h5file.attrs['intercept']
+                product = value * gain + intersec
+                write_log("INFO", "Read EMIS: %s"%(thr_type))
+            else:
+                write_log("ERROR","Could not read %s File, Continue"%(thr_type))
+            h5file.close()   
+        else:
+            write_log("INFO","NO THR %s File, Continue"%(thr_type))
+        return product  
     if filename is not None: 
         h5file = h5py.File(filename, 'r')
         if h5_obj_type in h5file.keys():
@@ -859,6 +883,7 @@ def read_pps_data(pps_files, avhrr_file, cross):
     nwp_dict['t700'] = read_nwp(pps_files.nwp_t700, "temperature 700HPa")
     nwp_dict['t850'] = read_nwp(pps_files.nwp_t850, "temperature 850hPa")
     nwp_dict['t950'] = read_nwp(pps_files.nwp_t950, "temperature 950hPa")
+    nwp_dict['ttro'] = read_nwp(pps_files.nwp_ttro, "tropopause temperature")
     nwp_dict['ciwv'] = read_nwp(pps_files.nwp_ciwv,  "atmosphere_water_vapor_content")
 
 
@@ -871,6 +896,9 @@ def read_pps_data(pps_files, avhrr_file, cross):
                         'r09', 'r06', 't85t11_inv', 't85t11']:
         thr_type = 'thr_' + h5_obj_type
         nwp_dict[thr_type] = read_thr(getattr(pps_files,thr_type), h5_obj_type, thr_type)
+    for h5_obj_type in ['emis1', 'emis8','emis9']:
+        thr_type = h5_obj_type
+        nwp_dict[thr_type] = read_thr(getattr(pps_files,"emis"), h5_obj_type, thr_type)
 
 
     nwp_obj = NWPObj(nwp_dict)
@@ -1513,10 +1541,7 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
             print "warning", len(caObj.calipso.total_optical_depth_5km), "\n", len(caObj.calipso.total_optical_depth_5km[badPix]),"\n", caObj.calipso.total_optical_depth_5km[badPix],"\n", caObj.calipso.optical_depth_top_layer5km[badPix],"\n", diff[badPix],"\n", caObj.calipso.number_of_layers_found[badPix],"\n", caObj.calipso.detection_height_5km[badPix],"\n", np.where(badPix),"\n",caObj.calipso.cloud_top_profile[0,badPix],"\n",caObj.calipso.cloud_base_profile[0,badPix]
 
       
-    # Extract CALIOP Vertical Feature Classification (bits 10-12) from 16 bit representation
-    # for topmost cloud layer
-    cal_vert_feature = np.ones(caObj.calipso.cloud_top_profile[0,::].shape)*-9
-    feature_array = 4*np.bitwise_and(np.right_shift(caObj.calipso.feature_classification_flags[0,::],11),1) + 2*np.bitwise_and(np.right_shift(caObj.calipso.feature_classification_flags[0,::],10),1) + np.bitwise_and(np.right_shift(caObj.calipso.feature_classification_flags[0,::],9),1)
+
     NinaTestar = False    
     if NinaTestar :   
         new_cloud_top = NinaTestarMedelCloudBaseAndTop(caObj.calipso.cloud_top_profile, caObj.calipso.cloud_base_profile)
@@ -1524,11 +1549,13 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
 
 
     # Extract CALIOP Vertical Feature Classification (bits 10-12) from 16 bit
-    # representation for topmost cloud layer
+    # representation for topmost cloud layer #Nina 20140120 this is cloud type nit vert feature !!
     cal_vert_feature = np.ones(caObj.calipso.cloud_top_profile[0,::].shape)*-9
     feature_array = 4*np.bitwise_and(np.right_shift(caObj.calipso.feature_classification_flags[0,::],11),1) + 2*np.bitwise_and(np.right_shift(caObj.calipso.feature_classification_flags[0,::],10),1) + np.bitwise_and(np.right_shift(caObj.calipso.feature_classification_flags[0,::],9),1)
+    cal_vert_feature = np.where(np.not_equal(caObj.calipso.feature_classification_flags[0,::],1),feature_array[::],cal_vert_feature[::])  
+    #feature_array = 2*np.bitwise_and(np.right_shift(caObj.calipso.feature_classification_flags[0,::],4),1) + np.bitwise_and(np.right_shift(caObj.calipso.feature_classification_flags[0,::],3),1)
 
-    cal_vert_feature = np.where(np.not_equal(caObj.calipso.feature_classification_flags[0,::],1),feature_array[::],cal_vert_feature[::])   
+
     # Prepare for plotting, cloud emissivity and statistics calculations
     
     caliop_toplay_thickness = np.ones(caObj.calipso.cloud_top_profile[0,::].shape)*-9

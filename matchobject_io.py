@@ -101,6 +101,7 @@ class ppsAvhrrObject(DataObject):
             't700': None,
             't850': None,
             't950': None,
+            'ttro': None,
             'ciwv': None,
             'r06micron': None,
             'r09micron': None,
@@ -130,7 +131,10 @@ class ppsAvhrrObject(DataObject):
             'satz': None,
             'sunz': None,
             'azidiff': None,
-            'lwp': None
+            'lwp': None,
+            'emis1': None,
+            'emis8': None,
+            'emis9': None,
             }
         
         
