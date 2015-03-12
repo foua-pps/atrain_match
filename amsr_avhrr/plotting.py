@@ -24,6 +24,14 @@ def imshow_lwps(amsr_lwp, cpp_lwp, time_diff, sea, title=None, lwp_max=None):
     
     from utility_functions import broken_cmap_r
     from matplotlib.colors import ListedColormap
+
+    #Comment: utility_functions is a separate package, created by J.Malm,
+    #but which we can not find. If we want to run this part of the code, it
+    #might be changed to something from matplotlib instead.
+    #By calling amsr_avhrr_match without '-p', this part of the code is not
+    #executed.
+    #Sara Hornquist 2015-03-12
+
     
     # Use average of all AVHRR pixels in AMSR footprint
     if len(cpp_lwp) == 3:
@@ -171,6 +179,15 @@ def plot_fields(fields, break_value=None):
     from mpl_toolkits.basemap import Basemap
     from matplotlib import pyplot as pl
     from utility_functions import broken_cmap_r
+    
+    #Comment: utility_functions is a separate package, created by J.Malm,
+    #but which we can not find. If we want to run this part of the code, it
+    #might be changed to something from matplotlib instead.
+    #broken_cmap_r is supposed to create a colormap with a gradient on one side
+    #of a threshold, and another gradient on the other side, and a unique
+    #colour on the theshold it self.
+    #Sara Hornquist 2015-03-12
+
     
     lon_0 = fields[0].lon.mean()
     lat_0 = fields[0].lat.mean()
