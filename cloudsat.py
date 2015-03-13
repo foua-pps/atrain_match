@@ -21,7 +21,7 @@ from config import (AREA, sec_timeThr, RESOLUTION,
                     _validation_results_dir)
 from common import (MatchupError, 
                     elements_within_range)
-from calipso import (define_pcs, writeCoverage,
+from calipso import (writeCoverage,
                      createAvhrrTime, avhrr_track_from_matched)
 
 
@@ -214,176 +214,6 @@ def read_cloudsat(filename):
     h5file.close()
 
     return retv
-# --------------------------------------------
-def get_cloudsat_avhrr_linpix(avhrrIn,avhrrname,lon,lat,clTime, options):
-    import numpy
-    import os
-    tmppcs="tmpproj"
-    define_pcs(tmppcs, "Plate Caree, central meridian at 15E",
-               ['proj=eqc','ellps=bessel', 'lon_0=15'])
-    orbittime =  os.path.basename(avhrrname).split("_")[1:3]
-    
-    startline=0
-#    Inside=0
-#    HasEncounteredMatch=0
-    coverage_dir  = options['coverage_dir'].format(resolution=str(RESOLUTION),
-                                                   area=AREA,
-                                                   val_dir=_validation_results_dir
-                                                   )
-    i=0    
-    if not os.path.exists(coverage_dir):
-        os.makedirs(coverage_dir)
-    while startline < avhrrIn.longitude.shape[0]:
-        
-        write_log("INFO","Calling get_cloudsat_avhrr_linpix: start-line = ", startline)
-        coverage_filename =  options['coverage_filename'].format(
-            satellite=avhrrIn.satellite,
-            tmpaid=tmpaid,
-            startline="%.5d"%(startline),
-            endline="%.5d" %(endline),
-            date=orbittime[0],
-            time=orbittime[1],
-            atrain_sat="cloudsat")
-        write_log("INFO","Coverage filename = ", coverage_filename)
-        coverage_file = coverage_dir + coverage_filename
-        cal,cap,ok = get_cloudsat_avhrr_linpix_segment(avhrrIn,lon,lat,clTime,
-                                                      (startline,endline),
-                                                      SWATHWD,tmppcs,tmpaid,
-                                                      coverage_file)
-        if ok:
-#            HasEncounteredMatch=1
-            write_log("INFO","There was a match...")
-
-        # Do not like this one /Erik    
-        #if not ok and HasEncounteredMatch:
-        #    write_log("INFO","Data is now empty. Leave the loop...")
-        #    break
-        
-        if(startline==0):
-            # First time:
-            cloudsat_avhrr_line,cloudsat_avhrr_pixel = numpy.array(cal),numpy.array(cap)
-        else:
-            # Merge:
-            cloudsat_avhrr_line = numpy.where(numpy.equal(cloudsat_avhrr_line,-9),cal,cloudsat_avhrr_line)
-            cloudsat_avhrr_pixel = numpy.where(numpy.equal(cloudsat_avhrr_pixel,-9),cap,cloudsat_avhrr_pixel)
-
-        startline=startline+NLINES
-        i=i+1
-
-    return cloudsat_avhrr_line,cloudsat_avhrr_pixel
-
-# --------------------------------------------
-def get_cloudsat_avhrr_linpix_segment(avhrrIn,lon,lat,cltime,lines,swath_width,tmppcs,
-                                      tmpaid,covfilename):
-    import numpy
-    import _satproj #@UnresolvedImport
-    import area #@UnresolvedImport
-    import pps_gisdata #@UnresolvedImport
-    
-    ndim = lon.shape[0]
-    
-    if avhrrIn.longitude.shape[0] > lines[1]:
-        lines_end = lines[1]
-    else:
-        lines_end = avhrrIn.longitude.shape[0]
-    lines_start = lines[0]
-    # TODO: Do not use swath_with. Use Shape[1] instead. /Erik
-    write_log("INFO","lines_start,lines_end: ",lines_start,lines_end)
-    nlines = lines_end - lines_start
-    lonarr = avhrrIn.longitude[lines_start:lines_end,::]
-    latarr = avhrrIn.latitude[lines_start:lines_end,::]
-    
-    idx_start = lines_start*swath_width
-    idx_end   = lines_end*swath_width
-    idx = numpy.arange(idx_start,idx_end)
-    
-    linearr = numpy.divide(idx,swath_width)
-    write_log("INFO","Start and end line numbers: ",linearr[0],linearr[idx.shape[0]-1])
-    
-    linearr = numpy.reshape(linearr,(nlines,swath_width))
-    pixelarr = numpy.fmod(idx,swath_width).astype('l')
-    pixelarr = numpy.reshape(pixelarr,(nlines,swath_width))
-    
-    """
-    write_log("INFO","Get bounding box...")
-    bounds = getBoundingBox(lonarr,latarr)
-    write_log("INFO","Bounding box (lon,lat): ",bounds)
-    
-    area_x_tup = pps_gisdata.c2s([(bounds[0],bounds[1]),(bounds[2],bounds[3])],tmppcs)
-    dimx = int((area_x_tup[1][0] - area_x_tup[0][0])/1000.0 + 1.0)
-    dimy = int((area_x_tup[1][1] - area_x_tup[0][1])/1000.0 + 1.0)
-    write_log("INFO","X,Y dims: ",dimx,dimy)
-    define_longlat_ll(tmpaid, "Temp area def", tmppcs,
-                      pcs.d2r((bounds[0],bounds[1])), # lower left corner (lon, lat)
-                      (dimx,dimy), 1000)
-
-    areaObj = area.area(tmpaid)
-    """
-
-    areaObj = area.area(AREA)
-
-    # Dont use thise one /Erik
-    #if not os.path.exists(covfilename):
-    #    write_log("INFO","Create Coverage map...")
-    #    cov = _satproj.create_coverage(areaObj,lonarr,latarr,1)
-    #    print covfilename
-    #    writeCoverage(cov,covfilename,"satproj",AREA1KM)
-    #else:
-    #    write_log("INFO","Read the AVHRR-CLOUDSAT matchup coverage from file...")
-    #    cov,info = readCoverage(covfilename)
-    # Do like this instead
-    write_log("INFO","Create Coverage map...")
-    cov = _satproj.create_coverage(areaObj,lonarr,latarr,0) #@UndefinedVariable
-    writeCoverage(cov,covfilename,"satproj",AREA)
-    mapped_line = _satproj.project(cov.coverage,cov.rowidx,cov.colidx,linearr,NODATA) #@UndefinedVariable
-    mapped_pixel = _satproj.project(cov.coverage,cov.rowidx,cov.colidx,pixelarr,NODATA) #@UndefinedVariable
-    
-    write_log("INFO","Go through cloudsat track:")
-    cloudsat_avhrr_line = []
-    cloudsat_avhrr_pixel = []
-#    cloudsat_avhrr_line_time = []
-#    cloudsat_avhrr_pixel_time = []
-    for i in range(ndim):
-        xy_tup=pps_gisdata.lonlat2xy(AREA,lon[i],lat[i])
-        x,y=int(xy_tup[0]+0.5),int(xy_tup[1]+0.5)
-        dimx=mapped_line.shape[1]#1002#5010
-        dimy=mapped_line.shape[0]#1002#5010
-        if(x < dimx and x >= 0 and y >= 0 and y < dimy):
-            cloudsat_avhrr_line.append(mapped_line[y,x])
-            cloudsat_avhrr_pixel.append(mapped_pixel[y,x])
-#            cloudsat_avhrr_line_time.append(-9)
-#            cloudsat_avhrr_pixel_time.append(-9)
-        else:
-            cloudsat_avhrr_line.append(-9)
-            cloudsat_avhrr_pixel.append(-9)
-#            cloudsat_avhrr_line_time.append(-9)
-#            cloudsat_avhrr_pixel_time.append(-9)
-    cloudsat_avhrr_line = numpy.array(cloudsat_avhrr_line)
-    cloudsat_avhrr_pixel = numpy.array(cloudsat_avhrr_pixel)
-    x=numpy.repeat(cloudsat_avhrr_line, numpy.not_equal(cloudsat_avhrr_line,-9))
-#    cloudsat_avhrr_line_time = numpy.array(cloudsat_avhrr_line_time)
-#    cloudsat_avhrr_pixel_time = numpy.array(cloudsat_avhrr_pixel_time)
-    # Control the time diference
-#    match_cloudsat_points = numpy.where(numpy.not_equal(cloudsat_avhrr_line,-9))
-#    avhrr_time = (cloudsat_avhrr_line[match_cloudsat_points] * DSEC_PER_AVHRR_SCALINE) + avhrrIn.sec1970_start
-#    cl_time = cltime[match_cloudsat_points]
-#    time_diff = avhrr_time-cl_time
-    #max_time_diff_allowed = 50*60 #Based on that a lap is 102 min
-#    max_time_diff_allowed = sec_timeThr
-#    time_match = numpy.where(abs(time_diff)<max_time_diff_allowed)
-#    if time_match[0].shape[0]==0:
-#        x=numpy.repeat(cloudsat_avhrr_line_time,numpy.not_equal(cloudsat_avhrr_line_time,-9))
-#    else:
-#        cloudsat_avhrr_line_time[match_cloudsat_points[0][time_match]]= cloudsat_avhrr_line[match_cloudsat_points[0][time_match]]
-#        cloudsat_avhrr_pixel_time[match_cloudsat_points[0][time_match]] = cloudsat_avhrr_pixel[match_cloudsat_points[0][time_match]]
-#        x=numpy.repeat(cloudsat_avhrr_line_time,numpy.not_equal(cloudsat_avhrr_line_time,-9)) 
-    write_log("INFO","Number of matching points = ",x.shape[0])
-    if x.shape[0] > 0:
-        matchOk = 1
-    else:
-        matchOk = 0
-
-    return cloudsat_avhrr_line, cloudsat_avhrr_pixel, matchOk
 
 # -----------------------------------------------------
 def match_cloudsat_avhrr(ctypefile,cloudsatObj,avhrrGeoObj,avhrrObj,ctype,ctth,surft,avhrrAngObj, avhrrLwp,options):
@@ -408,10 +238,15 @@ def match_cloudsat_avhrr(ctypefile,cloudsatObj,avhrrGeoObj,avhrrObj,ctype,ctth,s
 
     # --------------------------------------------------------------------
 
-    cal,cap = get_cloudsat_avhrr_linpix(avhrrGeoObj,ctypefile,lonCloudsat,latCloudsat,timeCloudsat, options)
-#    from common import map_avhrr
-#    cal, cap = map_avhrr(avhrrGeoObj, lonCloudsat, latCloudsat,
-#                         radius_of_influence=RESOLUTION * .7 * 1e3)
+    #cal,cap = get_cloudsat_avhrr_linpix(avhrrGeoObj,ctypefile,lonCloudsat,latCloudsat,timeCloudsat, options)
+
+    # This function (match_calipso_avhrr) could use the MatchMapper object
+    # created in map_avhrr() to make things a lot simpler... See usage in
+    # amsr_avhrr_match.py
+    #Nina 20150313 Swithcing to mapping without area as in cpp. Following suggestion from Jakob
+    from common import map_avhrr
+    cal, cap = map_avhrr(imagerGeoObj, lonCalipso.ravel(), latCalipso.ravel(),
+                         radius_of_influence=RESOLUTION*0.7*1000.0) # somewhat larger than radius...
 
     calnan = numpy.where(cal == NODATA, numpy.nan, cal)
     if (~numpy.isnan(calnan)).sum() == 0:

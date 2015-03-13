@@ -96,26 +96,6 @@ def readCoverage(filename):
     return retv,info
 
 # -----------------------------------------------------
-def define_pcs(id,name,definition):
-    import pcs #@UnresolvedImport
-    p = pcs.usgs(name,definition)
-    pcs.register(id,p)
-
-# -----------------------------------------------------
-def define_longlat_ll(id, name, pcs_id, ll_ll, size, scale):
-    import pcs #@UnresolvedImport
-    import area #@UnresolvedImport
-    a = area_interface()
-    a.name = name
-    a.pcs = pcs.pcs(pcs_id)
-    x, y = a.pcs.proj(ll_ll)
-    a.extent = (x, y, x + scale * size[0], y + scale * size[1])
-    a.xsize = size[0]
-    a.ysize = size[1]
-    area.register(id, a)
-
-
-# -----------------------------------------------------
 
 def sec1970_to_julianday(sec1970):
     #import pps_time_util #@UnresolvedImport
@@ -135,44 +115,7 @@ def sec1970_to_julianday(sec1970):
     return jday
 
 # -----------------------------------------------------
-def avhrr_linepix_from_lonlat_aapp(lon,lat,avhrrObj,platform,norbit,yyyymmdd):
-    import CreateAngles #@UnresolvedImport
-    import _py_linepix_lonlat #@UnresolvedImport
-    
-    ndim = lon.shape[0]
-    lin = np.zeros((ndim,), 'd')
-    pix = np.zeros((ndim,), 'd')
-
-    if platform.find("metop") >= 0:
-        file_satpos = "%s/satpos_M%.2d_%s.txt"%(SATPOS_DIR,string.atoi(platform.split("metop")[1]),yyyymmdd) #@UndefinedVariable
-    else:
-        file_satpos = "%s/satpos_%s_%s.txt"%(SATPOS_DIR,platform,yyyymmdd) #@UndefinedVariable
-
-    file_ephe = "%s/ephe_%s.txt"%(EPHE_DIR,yyyymmdd) #@UndefinedVariable
-    
-    start_jday, end_jday, sec1970_start, sec1970_end = CreateAngles.get_acqtime(file_ephe,norbit)
-    write_log("INFO","From ephemeris file: platform,norbit,start_jday,end_jday = ",platform,norbit,start_jday,end_jday) #@UndefinedVariable
-
-    start_jday = sec1970_to_julianday(avhrrObj.sec1970_start)
-    end_jday   = sec1970_to_julianday(avhrrObj.sec1970_end)
-    write_log("INFO","From AVHRR file: platform,norbit,start_jday,end_jday = ",platform,norbit,start_jday,end_jday) #@UndefinedVariable
-
-    #attitude = CreateAngles.get_attitude(platform,norbit,"tle")
-    #attitude = avhrrObj.attitude_error["yaw"],avhrrObj.attitude_error["roll"],avhrrObj.attitude_error["pitch"]
-    attitude = (0.,0.,0.)
-    write_log("INFO","YAW,ROLL,PITCH:",attitude[0],attitude[1],attitude[2]) #@UndefinedVariable
-
-    start_end_times = (start_jday,end_jday)
-
-    # Get the avhrr line,pixel arrays matching input lon,lat.
-    # Those points where the time of the avhrr pixel is too far away from the time of the lon,lat arrays
-    # will be set to NODATA (line=-1,pixel=-1):
-    # (Not yet implemented the time constraints)
-    this = _py_linepix_lonlat.getLinePixFromLonLat(platform,file_satpos,lon,lat,lin,pix,
-                                                   attitude,start_end_times)
-
-    return lin,pix
-
+"""
 # --------------------------------------------
 def getBoundingBox(lon,lat):
     maxlon = np.maximum.reduce(lon.ravel())
@@ -183,186 +126,7 @@ def getBoundingBox(lon,lat):
     return minlon,minlat,maxlon,maxlat
 
 # --------------------------------------------
-
-def get_calipso_avhrr_linpix(avhrrIn, values, lon, lat, caTime, options):
-
-    tmppcs="tmpproj"
-    define_pcs(tmppcs, "Plate Caree, central meridian at 15E",
-               ['proj=eqc','ellps=bessel', 'lon_0=15'])
-
-
-    startline=0
-
-    """
-    # Test code:
-    tmpaid="tmparea"
-    mask = get_calipso_avhrr_linpix(avhrr,lon,lat,(startline,startline+NLINES),SWATHWD,tmppcs,tmpaid)
-    import Image
-    dimy,dimx = mask.shape
-    that = Image.fromstring("L",(dimx,dimy),mask.tostring())
-    that.save("./yt.png")
-    that.thumbnail((dimx/8,dimy/8))
-    that.save("./yt_thumbnail.png")
-    """
-    #orbittime =  os.path.basename(avhrrname).split("_")[1:3]
-    coverage_dir  = options['coverage_dir'].format(resolution=str(RESOLUTION),
-                                                   area=AREA,
-                                                   val_dir=_validation_results_dir
-                                                   )
-    i=0
-    if not os.path.exists(coverage_dir):
-        os.makedirs(coverage_dir)
-    while startline < avhrrIn.longitude.shape[0]:
-        write_log("INFO","Calling get_calipso_avhrr_linpix start-line = ",startline)
-        endline = startline + NLINES
-        tmpaid = "tmparea_%d" %(i)
-        coverage_filename =  options['coverage_filename'].format(
-            satellite=avhrrIn.satellite,
-            tmpaid=tmpaid,
-            startline="%.5d"%(startline),
-            endline="%.5d" %(endline),
-            date=values["date"],#orbittime[0],
-            time=values["time"],#orbittime[1],
-            atrain_sat="calipso")
-
-        write_log("INFO","Coverage filename = ",coverage_filename) #@UndefinedVariable
-        coverage_file = os.path.join(coverage_dir, coverage_filename)
-        cal,cap,ok = get_calipso_avhrr_linpix_segment(avhrrIn,lon,lat,caTime,
-                                                      (startline,endline),
-                                                      SWATHWD,tmppcs,tmpaid,
-                                                      coverage_file)
-        if ok:
-#            HasEncounteredMatch=1
-            write_log("INFO","There was a match...") #@UndefinedVariable
-        # Do not like this one /Erik    
-        #if not ok and HasEncounteredMatch:
-        #    write_log("INFO","Data is now empty. Leave the loop...")
-        #    break
-        if(startline==0):
-            # First time:
-            calipso_avhrr_line,calipso_avhrr_pixel = np.array(cal),np.array(cap)
-        else:
-            # Merge:
-            calipso_avhrr_line = np.where(np.equal(calipso_avhrr_line,-9),cal,calipso_avhrr_line)
-            calipso_avhrr_pixel = np.where(np.equal(calipso_avhrr_pixel,-9),cap,calipso_avhrr_pixel)
-
-        startline=startline+NLINES
-        i=i+1
-
-    return calipso_avhrr_line,calipso_avhrr_pixel
-
-# --------------------------------------------
-def get_calipso_avhrr_linpix_segment(avhrrIn,lon,lat,catime,lines,swath_width,tmppcs,
-                                     tmpaid,covfilename):
-    import _satproj #@UnresolvedImport
-    import area #@UnresolvedImport
-    import pps_gisdata #@UnresolvedImport
-
-    ndim = lon.shape[0]
-
-    if avhrrIn.longitude.shape[0] > lines[1]:
-        lines_end = lines[1]
-    else:
-        lines_end = avhrrIn.longitude.shape[0]
-    lines_start = lines[0]
-    
-    write_log("INFO","lines_start,lines_end: ",lines_start,lines_end) #@UndefinedVariable
-    nlines = lines_end - lines_start
-    lonarr = avhrrIn.longitude[lines_start:lines_end,::]
-    latarr = avhrrIn.latitude[lines_start:lines_end,::]
-
-    idx_start = lines_start*swath_width
-    idx_end   = lines_end*swath_width
-    idx = np.arange(idx_start,idx_end)
-    
-    linearr = np.divide(idx,swath_width)
-    write_log("INFO","Start and end line numbers: ",linearr[0],linearr[idx.shape[0]-1]) #@UndefinedVariable
-    
-    linearr = np.reshape(linearr,(nlines,swath_width))
-    pixelarr = np.fmod(idx,swath_width).astype('l')
-    pixelarr = np.reshape(pixelarr,(nlines,swath_width))
-
-    """
-    
-    write_log("INFO","Get bounding box...")
-    bounds = getBoundingBox(lonarr,latarr)
-    write_log("INFO","Bounding box (lon,lat): ",bounds)
-    
-    area_x_tup = pps_gisdata.c2s([(bounds[0],bounds[1]),(bounds[2],bounds[3])],tmppcs)
-    dimx = int((area_x_tup[1][0] - area_x_tup[0][0])/1000.0 + 1.0)
-    dimy = int((area_x_tup[1][1] - area_x_tup[0][1])/1000.0 + 1.0)
-    write_log("INFO","X,Y dims: ",dimx,dimy)
-    define_longlat_ll(tmpaid, "Temp area def", tmppcs,
-                      pcs.d2r((bounds[0],bounds[1])), # lower left corner (lon, lat)
-                      (dimx,dimy), 1000)
-    """
-    areaObj = area.area(AREA)
-    # Should this one be used? /Erik
-#    if not os.path.exists(covfilename):
-#        write_log("INFO","Create Coverage map...")
-#        cov = _satproj.create_coverage(areaObj,lonarr,latarr,1)
-#        writeCoverage(cov,covfilename,"satproj",AREA)
-#    else:
-#        write_log("INFO","Read the AVHRR-CALIOP matchup coverage from file...")
-#        cov,info = readCoverage(covfilename)
-    # Do like this instead /Erik
-    write_log("INFO","Create Coverage map...") #@UndefinedVariable
-    lonarr = lonarr.astype('float64')
-    latarr = latarr.astype('float64')
-    
-    cov = _satproj.create_coverage(areaObj,lonarr,latarr,0) #@UndefinedVariable
-    writeCoverage(cov,covfilename,"satproj",AREA)
-
-    mapped_line = _satproj.project(cov.coverage,cov.rowidx,cov.colidx,linearr,NODATA) #@UndefinedVariable
-    mapped_pixel = _satproj.project(cov.coverage,cov.rowidx,cov.colidx,pixelarr,NODATA) #@UndefinedVariable
-
-    write_log("INFO","Go through calipso track:") #@UndefinedVariable
-    calipso_avhrr_line = []
-    calipso_avhrr_pixel = []
-#    calipso_avhrr_line_time = []
-#    calipso_avhrr_pixel_time = []
-    for i in range(ndim):
-        xy_tup=pps_gisdata.lonlat2xy(AREA,lon[i],lat[i])
-        x,y=int(xy_tup[0]+0.5),int(xy_tup[1]+0.5)
-##        if(x < 4500 and x >= 0 and y >= 0 and y < 4500): Should be 5010!!!/KG
-        dimx=mapped_line.shape[1]#1002#5010
-        dimy=mapped_line.shape[0]#1002#5010
-        if(x < dimx and x >= 0 and y >= 0 and y < dimy):
-            calipso_avhrr_line.append(mapped_line[y,x])
-            calipso_avhrr_pixel.append(mapped_pixel[y,x])
-#            calipso_avhrr_line_time.append(-9)
-#            calipso_avhrr_pixel_time.append(-9)
-        else:
-            calipso_avhrr_line.append(-9)
-            calipso_avhrr_pixel.append(-9)
-#            calipso_avhrr_line_time.append(-9)
-#            calipso_avhrr_pixel_time.append(-9)
-    calipso_avhrr_line = np.array(calipso_avhrr_line)
-    calipso_avhrr_pixel = np.array(calipso_avhrr_pixel)
-#    calipso_avhrr_line_time = np.array(calipso_avhrr_line_time)
-#    calipso_avhrr_pixel_time = np.array(calipso_avhrr_pixel_time)
-    # Control the time diference
-#    match_calipso_points = np.where(np.not_equal(calipso_avhrr_line,-9))
-#    avhrr_time = (calipso_avhrr_line[match_calipso_points] * DSEC_PER_AVHRR_SCALINE) + avhrrIn.sec1970_start
-#    cal_time = catime[match_calipso_points]
-#    time_diff = avhrr_time-cal_time
-    #max_time_diff_allowed = 50*60 #Based on that a lap is 102 min
-#    max_time_diff_allowed = sec_timeThr
-#    time_match = np.where(abs(time_diff)<max_time_diff_allowed)
-#    if time_match[0].shape[0]==0:             
-#        x=np.repeat(calipso_avhrr_line_time,np.not_equal(calipso_avhrr_line_time,-9))
-#    else:
-#        calipso_avhrr_line_time[match_calipso_points[0][time_match]] = calipso_avhrr_line[match_calipso_points[0][time_match]]
-#        calipso_avhrr_pixel_time[match_calipso_points[0][time_match]] = calipso_avhrr_pixel[match_calipso_points[0][time_match]]
-#        x=np.repeat(calipso_avhrr_line_time,np.not_equal(calipso_avhrr_line_time,-9))
-    x = np.repeat(calipso_avhrr_line, np.not_equal(calipso_avhrr_line, -9))
-    write_log("INFO","Number of matching points = ",x.shape[0]) #@UndefinedVariable
-    if x.shape[0] > 0:
-        matchOk = 1
-    else:
-        matchOk = 0
-
-    return calipso_avhrr_line, calipso_avhrr_pixel, matchOk
+"""
 
 #-----------------------------------------------------------------------------
 def createAvhrrTime(Obt, values):
@@ -915,13 +679,14 @@ def match_calipso_avhrr(values,
     ndim = lonCalipso.shape[0]
     
     # --------------------------------------------------------------------
-    cal,cap = get_calipso_avhrr_linpix(imagerGeoObj,values,lonCalipso,latCalipso,timeCalipso, options)
+    #cal,cap = get_calipso_avhrr_linpix(imagerGeoObj,values,lonCalipso,latCalipso,timeCalipso, options)
     # This function (match_calipso_avhrr) could use the MatchMapper object
     # created in map_avhrr() to make things a lot simpler... See usage in
     # amsr_avhrr_match.py
-    #from common import map_avhrr
-    #cal, cap = map_avhrr(imagerGeoObj, lonCalipso.ravel(), latCalipso.ravel(),
-    #                     radius_of_influence=res * .7 * 1e3) # somewhat larger than radius...
+    #Nina 20150313 Swithcing to mapping without area as in cpp. Following suggestion from Jakob
+    from common import map_avhrr
+    cal, cap = map_avhrr(imagerGeoObj, lonCalipso.ravel(), latCalipso.ravel(),
+                         radius_of_influence=RESOLUTION*0.7*1000.0) # somewhat larger than radius...
     calnan = np.where(cal == NODATA, np.nan, cal)
     if (~np.isnan(calnan)).sum() == 0:
         raise MatchupError("No matches within region.")
