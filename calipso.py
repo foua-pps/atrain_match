@@ -1221,7 +1221,7 @@ def match_calipso_avhrr(values,
 
 # -----------------------------------------------------
 def get_calipso(filename, res):
-    import _pypps_filters
+    from scipy import ndimage
     # Read CALIPSO Lidar (CALIOP) data:
     clobj = read_calipso(filename, res)
     if res == 1:
@@ -1230,24 +1230,27 @@ def get_calipso(filename, res):
         # --------------------------------------------------------------------
         # Derive the calipso cloud fraction using the 
         # cloud height:       
-        winsz = 3
+        winsz = 5 #Means a winsz x sinsz KERNEL is used.
         max_height = np.ones(clobj.cloud_top_profile[::, 0].shape) * -9
         for idx in range(clobj.cloud_top_profile.shape[1]):
             max_height = np.maximum(max_height,
                                     clobj.cloud_top_profile[::, idx] * 1000.)
     
         calipso_clmask = np.greater(max_height, 0).astype('d')
-        cloud_mask = np.vstack([ calipso_clmask for idx in range(winsz) ])
-        #cloud_mask = np.concatenate((calipso_clmask,calipso_clmask))
-        #for idx in range(2,winsz): #@UnusedVariable
-        #    cloud_mask = np.concatenate((cloud_mask,calipso_clmask))
-        #cloud_mask = np.reshape(cloud_mask,(winsz,ndim)).astype('d')
-    
-        clobj.cloud_fraction = np.zeros((winsz, ndim), 'd')
-        cloud_mask_nodata = -1
-        _pypps_filters.texture(cloud_mask, clobj.cloud_fraction,
-                               winsz, "mean", cloud_mask_nodata)
-        clobj.cloud_fraction = clobj.cloud_fraction[winsz/2, ::]
+        clobj.cloud_fraction = calipso_clmask 
+        ##############################################################
+        # Replace _pypps_filter (mean over array) with function from scipy.
+        # This filtering of single clear/cloud pixels is questionable.
+        # Minor investigation (45 scenes npp), shows small decrease in results if removed.
+        cloud_fraction_temp =  ndimage.filters.uniform_filter1d(calipso_clmask, size=winsz)
+        clobj.cloud_fraction = np.where(np.logical_and(clobj.cloud_fraction>1,
+                                                       cloud_fraction_temp<0.3),
+                                        0,clobj.cloud_fraction)
+        clobj.cloud_fraction = np.where(np.logical_and(clobj.cloud_fraction<0,
+                                                       cloud_fraction_temp>0.7),
+                                        1,clobj.cloud_fraction)
+       ##############################################################
+      
     
     elif res == 5:
 
