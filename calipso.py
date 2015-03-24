@@ -1230,7 +1230,7 @@ def get_calipso(filename, res):
         # --------------------------------------------------------------------
         # Derive the calipso cloud fraction using the 
         # cloud height:       
-        winsz = 5 #Means a winsz x sinsz KERNEL is used.
+        winsz = 3 #Means a winsz x sinsz KERNEL is used.
         max_height = np.ones(clobj.cloud_top_profile[::, 0].shape) * -9
         for idx in range(clobj.cloud_top_profile.shape[1]):
             max_height = np.maximum(max_height,
