@@ -445,6 +445,10 @@ def get_channel_data_from_object(dataObj, chn_des, matched, nodata=-9):
     matched: dict of matched indices (row, col)
 
     """
+    try:
+        channels = dataObj.channels
+    except:
+        channels = dataObj.channel
     CHANNEL_MICRON_DESCRIPTIONS = {'11': ["avhrr channel 4 - 11um",
                                          "Avhrr channel channel4.",
                                          "AVHRR ch4",
@@ -481,10 +485,10 @@ def get_channel_data_from_object(dataObj, chn_des, matched, nodata=-9):
                                 '22': -1,
                                 '13': -1}   
     
-    numOfChannels = len(dataObj.channels)
+    numOfChannels = len(channels)
     chnum=-1
     for ich in range(numOfChannels):
-        if dataObj.channels[ich].des in CHANNEL_MICRON_DESCRIPTIONS[chn_des]:
+        if channels[ich].des in CHANNEL_MICRON_DESCRIPTIONS[chn_des]:
             chnum = ich
     if chnum ==-1:
         chnum = CHANNEL_MICRON_AVHRR_PPS[chn_des]
@@ -495,14 +499,14 @@ def get_channel_data_from_object(dataObj, chn_des, matched, nodata=-9):
               
 
         
-    temp = [dataObj.channels[chnum].data[matched['row'][idx], 
+    temp = [channels[chnum].data[matched['row'][idx], 
                                          matched['col'][idx]]
             for idx in range(matched['row'].shape[0])] 
 
-    chdata = [(dataObj.channels[chnum].data[matched['row'][idx], 
+    chdata = [(channels[chnum].data[matched['row'][idx], 
                                             matched['col'][idx]] * 
-               dataObj.channels[chnum].gain + 
-               dataObj.channels[chnum].intercept)       
+               channels[chnum].gain + 
+               channels[chnum].intercept)       
               for idx in range(matched['row'].shape[0])]
 
     chdata_on_track = np.where(
