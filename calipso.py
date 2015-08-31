@@ -8,7 +8,8 @@ from pps_error_messages import write_log
 
 from config import (AREA, _validation_results_dir, 
                     sec_timeThr, COMPRESS_LVL, RESOLUTION,
-                    NLINES, SWATHWD, NODATA) #@UnusedImport
+                    NLINES, SWATHWD, NODATA,
+                    DO_WRITE_COVERAGE, DO_WRITE_DATA) #@UnusedImport
 from common import MatchupError, TimeMatchError, elements_within_range #@UnusedImport
 from config import RESOLUTION as resolution
 from config import (OPTICAL_DETECTION_LIMIT,
@@ -210,8 +211,9 @@ def get_calipso_avhrr_linpix(avhrrIn, values, lon, lat, caTime, options):
                                                    val_dir=_validation_results_dir
                                                    )
     i=0
-    if not os.path.exists(coverage_dir):
-        os.makedirs(coverage_dir)
+    if DO_WRITE_COVERAGE:
+        if not os.path.exists(coverage_dir):
+            os.makedirs(coverage_dir)
     while startline < avhrrIn.longitude.shape[0]:
         write_log("INFO","Calling get_calipso_avhrr_linpix start-line = ",startline)
         endline = startline + NLINES
@@ -297,21 +299,14 @@ def get_calipso_avhrr_linpix_segment(avhrrIn,lon,lat,catime,lines,swath_width,tm
                       (dimx,dimy), 1000)
     """
     areaObj = area.area(AREA)
-    # Should this one be used? /Erik
-#    if not os.path.exists(covfilename):
-#        write_log("INFO","Create Coverage map...")
-#        cov = _satproj.create_coverage(areaObj,lonarr,latarr,1)
-#        writeCoverage(cov,covfilename,"satproj",AREA)
-#    else:
-#        write_log("INFO","Read the AVHRR-CALIOP matchup coverage from file...")
-#        cov,info = readCoverage(covfilename)
-    # Do like this instead /Erik
     write_log("INFO","Create Coverage map...") #@UndefinedVariable
     lonarr = lonarr.astype('float64')
     latarr = latarr.astype('float64')
     
     cov = _satproj.create_coverage(areaObj,lonarr,latarr,0) #@UndefinedVariable
-    writeCoverage(cov,covfilename,"satproj",AREA)
+    #Write to file if requested
+    if DO_WRITE_COVERAGE:
+        writeCoverage(cov,covfilename,"satproj",AREA)
 
     mapped_line = _satproj.project(cov.coverage,cov.rowidx,cov.colidx,linearr,NODATA) #@UndefinedVariable
     mapped_pixel = _satproj.project(cov.coverage,cov.rowidx,cov.colidx,pixelarr,NODATA) #@UndefinedVariable
@@ -1157,30 +1152,33 @@ def match_calipso_avhrr(values,
                                            resolution=str(RESOLUTION),
                                            year=values["year"],
                                            month=values["month"],
-                                           area=AREA)                                            
-    if not os.path.exists(data_path):
-        write_log('INFO', "Creating datadir: %s"%(data_path ))
-        os.makedirs(data_path)
-    data_file = options['data_file'].format(resolution=str(RESOLUTION),
-                                            basename=values["basename"],
-                                            atrain_sat="calipso",
-                                            track="track2")
-    filename = data_path +  data_file        
-    fd = open(filename,"w")
-    fd.writelines(ll)
-    fd.close()
-    ll = []
-    for i in range(N_cmt):
-        ll.append(("%7.3f  %7.3f  %d\n"%(lon_calipso[i],lat_calipso[i],0)))
-    data_file = options['data_file'].format(resolution=str(RESOLUTION),
-                                            basename=values["basename"],
-                                            atrain_sat="calipso",
-                                            track="track_excl")
-    filename = data_path + data_file 
-    fd = open(filename,"w")
-    fd.writelines(ll)
-    fd.close()    
-    # CALIOP Maximum cloud top in km:
+                                           area=AREA) 
+    #This is not used I think, Nina 2015-08-31
+    if DO_WRITE_DATA:
+        if not os.path.exists(data_path):
+            write_log('INFO', "Creating datadir: %s"%(data_path ))
+            os.makedirs(data_path)
+        data_file = options['data_file'].format(resolution=str(RESOLUTION),
+                                                basename=values["basename"],
+                                                atrain_sat="calipso",
+                                                track="track2")
+        filename = data_path +  data_file 
+        fd = open(filename,"w")
+        fd.writelines(ll)
+        fd.close()
+        ll = []
+        for i in range(N_cmt):
+            ll.append(("%7.3f  %7.3f  %d\n"%(lon_calipso[i],lat_calipso[i],0)))
+            data_file = options['data_file'].format(resolution=str(RESOLUTION),
+                                                    basename=values["basename"],
+                                                    atrain_sat="calipso",
+                                                    track="track_excl")
+            filename = data_path + data_file 
+            fd = open(filename,"w")
+            fd.writelines(ll)
+            fd.close()    
+            # CALIOP Maximum cloud top in km:
+
     max_cloud_top_calipso = np.maximum.reduce(retv.calipso.cloud_top_profile.ravel())
     write_log('INFO', "max_cloud_top_calipso: ",max_cloud_top_calipso)
     return retv,min_diff,max_diff

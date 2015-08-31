@@ -47,7 +47,10 @@ if USE_5KM_FILES_TO_FILTER_CALIPSO_DATA:
 H4H5_EXECUTABLE = os.environ.get('H4H5_EXECUTABLE','/local_disk/opt/h4h5tools-2.2.1-linux-x86_64-static/bin/h4toh5')
 #H4H5_EXECUTABLE = '/software/apps/h4h5tools/2.2.1/i1214-hdf4-4.2.8-i1214-hdf5-1.8.9-i1214/bin/h4toh5'
 PLOT_ONLY_PNG = True
-
+#Nina 20150831 I have never needed the files printed here:
+#They need lot of space, lets make it optional to have them!
+DO_WRITE_COVERAGE = False 
+DO_WRITE_DATA = False
 #important for cph_validate.py
 VAL_CPP = os.environ.get('VAL_CPP', False)
 VALIDATE_FOR_CPP_PIXELS = True #means validating for cloudtype only for pixels where we also got cpp.cph values
