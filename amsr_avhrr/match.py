@@ -113,7 +113,7 @@ class MatchMapper(object):
 
 
 def match_lonlat(source, target, 
-                 radius_of_influence=RESOLUTION*1000.0, 
+                 radius_of_influence=0.7*RESOLUTION*1000.0, 
                  n_neighbours=1):
     """
     Produce a masked array of the same shape as the arrays in *target*, with
@@ -131,8 +131,16 @@ def match_lonlat(source, target,
     from pyresample.geometry import SwathDefinition
     from pyresample.kd_tree import get_neighbour_info
     
-    source_def = SwathDefinition(*source)
+    lon, lat = source
+    mask_out_lat = np.logical_or(lat<-90, lat>90)
+    mask_out_lon = np.logical_or(lon>180, lat<-180)
+    mask_out = np.logical_or(mask_out_lat, mask_out_lon)
+    lat = np.ma.masked_array(lat, mask_out)
+    lon = np.ma.masked_array(lon, mask_out)
+
+    source_def = SwathDefinition(*(lon,lat))
     target_def = SwathDefinition(*target)
+
     
     logger.debug("Matching %d nearest neighbours" % n_neighbours)
     valid_in, valid_out, indices, distances = get_neighbour_info( #@UnusedVariable

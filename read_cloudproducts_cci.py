@@ -5,8 +5,7 @@
 import ppshdf_cloudproducts
 import ppshdf_helpers
 from epshdf import (SafRegion, 
-                    CloudType, 
-                    SunSatAngleData)
+                    CloudType)
 import netCDF4	
 import numpy as np
 import pps_io
