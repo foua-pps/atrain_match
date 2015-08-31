@@ -8,7 +8,8 @@ from pps_error_messages import write_log
 
 from config import (AREA, _validation_results_dir, 
                     sec_timeThr, COMPRESS_LVL, RESOLUTION,
-                    NLINES, SWATHWD, NODATA) #@UnusedImport
+                    NLINES, SWATHWD, NODATA,
+                    DO_WRITE_COVERAGE, DO_WRITE_DATA) #@UnusedImport
 from common import MatchupError, TimeMatchError, elements_within_range #@UnusedImport
 from config import RESOLUTION as resolution
 from config import (OPTICAL_DETECTION_LIMIT,
@@ -128,6 +129,7 @@ def getBoundingBox(lon,lat):
 # --------------------------------------------
 """
 
+
 #-----------------------------------------------------------------------------
 def createAvhrrTime(Obt, values):
     import os #@Reimport
@@ -209,6 +211,10 @@ def get_channel_data_from_object(dataObj, chn_des, matched, nodata=-9):
     matched: dict of matched indices (row, col)
 
     """
+    try:
+        channels = dataObj.channels
+    except:
+        channels = dataObj.channel
     CHANNEL_MICRON_DESCRIPTIONS = {'11': ["avhrr channel 4 - 11um",
                                          "Avhrr channel channel4.",
                                          "AVHRR ch4",
@@ -245,10 +251,10 @@ def get_channel_data_from_object(dataObj, chn_des, matched, nodata=-9):
                                 '22': -1,
                                 '13': -1}   
     
-    numOfChannels = len(dataObj.channels)
+    numOfChannels = len(channels)
     chnum=-1
     for ich in range(numOfChannels):
-        if dataObj.channels[ich].des in CHANNEL_MICRON_DESCRIPTIONS[chn_des]:
+        if channels[ich].des in CHANNEL_MICRON_DESCRIPTIONS[chn_des]:
             chnum = ich
     if chnum ==-1:
         chnum = CHANNEL_MICRON_AVHRR_PPS[chn_des]
@@ -259,14 +265,14 @@ def get_channel_data_from_object(dataObj, chn_des, matched, nodata=-9):
               
 
         
-    temp = [dataObj.channels[chnum].data[matched['row'][idx], 
+    temp = [channels[chnum].data[matched['row'][idx], 
                                          matched['col'][idx]]
             for idx in range(matched['row'].shape[0])] 
 
-    chdata = [(dataObj.channels[chnum].data[matched['row'][idx], 
+    chdata = [(channels[chnum].data[matched['row'][idx], 
                                             matched['col'][idx]] * 
-               dataObj.channels[chnum].gain + 
-               dataObj.channels[chnum].intercept)       
+               channels[chnum].gain + 
+               channels[chnum].intercept)       
               for idx in range(matched['row'].shape[0])]
 
     chdata_on_track = np.where(
@@ -918,71 +924,36 @@ def match_calipso_avhrr(values,
                                            resolution=str(RESOLUTION),
                                            year=values["year"],
                                            month=values["month"],
-                                           area=AREA)                                            
-    if not os.path.exists(data_path):
-        write_log('INFO', "Creating datadir: %s"%(data_path ))
-        os.makedirs(data_path)
-    data_file = options['data_file'].format(resolution=str(RESOLUTION),
-                                            basename=values["basename"],
-                                            atrain_sat="calipso",
-                                            track="track2")
-    filename = data_path +  data_file        
-    fd = open(filename,"w")
-    fd.writelines(ll)
-    fd.close()
-    ll = []
-    for i in range(N_cmt):
-        ll.append(("%7.3f  %7.3f  %d\n"%(lon_calipso[i],lat_calipso[i],0)))
-    data_file = options['data_file'].format(resolution=str(RESOLUTION),
-                                            basename=values["basename"],
-                                            atrain_sat="calipso",
-                                            track="track_excl")
-    filename = data_path + data_file 
-    fd = open(filename,"w")
-    fd.writelines(ll)
-    fd.close()    
-    # CALIOP Maximum cloud top in km:
+                                           area=AREA) 
+    #This is not used I think, Nina 2015-08-31
+    if DO_WRITE_DATA:
+        if not os.path.exists(data_path):
+            write_log('INFO', "Creating datadir: %s"%(data_path ))
+            os.makedirs(data_path)
+        data_file = options['data_file'].format(resolution=str(RESOLUTION),
+                                                basename=values["basename"],
+                                                atrain_sat="calipso",
+                                                track="track2")
+        filename = data_path +  data_file 
+        fd = open(filename,"w")
+        fd.writelines(ll)
+        fd.close()
+        ll = []
+        for i in range(N_cmt):
+            ll.append(("%7.3f  %7.3f  %d\n"%(lon_calipso[i],lat_calipso[i],0)))
+            data_file = options['data_file'].format(resolution=str(RESOLUTION),
+                                                    basename=values["basename"],
+                                                    atrain_sat="calipso",
+                                                    track="track_excl")
+            filename = data_path + data_file 
+            fd = open(filename,"w")
+            fd.writelines(ll)
+            fd.close()    
+            # CALIOP Maximum cloud top in km:
+
     max_cloud_top_calipso = np.maximum.reduce(retv.calipso.cloud_top_profile.ravel())
     write_log('INFO', "max_cloud_top_calipso: ",max_cloud_top_calipso)
     return retv,min_diff,max_diff
-
-#===============================================================================
-# # -----------------------------------------------------
-# def select_calipso_inside_avhrr(calipsoObj,cal,dsec,sec1970_start_end,sec_timeThr):
-#    import numpy as np
-# 
-#    sec1970_start,sec1970_end = sec1970_start_end
-#    
-#    # Select the points inside the avhrr swath:
-#    # Allowing for sec_timeThr seconds deviation:
-#    if RESOLUTION == 1:
-#        idx_time_okay = np.logical_and(np.greater(\
-#            calipsoObj.time[:,0],sec1970_start - dsec - sec_timeThr),
-#                                   np.less(\
-#            calipsoObj.time[:,0],sec1970_end - dsec   + sec_timeThr))
-#    elif RESOLUTION == 5:
-#        idx_time_okay = np.logical_and(np.greater(\
-#            calipsoObj.time[:,1],sec1970_start - dsec - sec_timeThr),
-#                                   np.less(\
-#            calipsoObj.time[:,1],sec1970_end - dsec   + sec_timeThr)) ##########################################################################################################################################   
-#    #pdb.set_trace()
-#    #idx_match = np.not_equal(cal,NODATA)        
-#    idx_place_okay = np.where(np.not_equal(cal,NODATA),idx_time_okay,False)
-#    idx_match = idx_place_okay
-#    
-#    #idx_match = np.logical_and(np.greater(lin,0),idx_okay[::,0])
-#    #idx_match = np.logical_and(idx_match,np.logical_and(np.greater(pix,0),np.less_equal(pix,2048)))
-#    #print "Number of matches: ",np.repeat(idx_match,idx_match).shape[0]
-# 
-#    # Get the PPS Cloud Types matching CALIPSO:
-#    #line = np.repeat(lin,idx_match)
-#    #line = np.floor(line+0.5).astype('i')
-#    #pixel = np.repeat(pix,idx_match)
-#    #pixel = np.floor(pixel+0.5).astype('i')
-#    #print "Number of matches: ",line.shape[0]
-# 
-#    return idx_match
-#===============================================================================
 
 # -----------------------------------------------------
 def get_calipso(filename, res):
@@ -995,7 +966,7 @@ def get_calipso(filename, res):
         # --------------------------------------------------------------------
         # Derive the calipso cloud fraction using the 
         # cloud height:       
-        winsz = 5 #Means a winsz x sinsz KERNEL is used.
+        winsz = 3 #Means a winsz x sinsz KERNEL is used.
         max_height = np.ones(clobj.cloud_top_profile[::, 0].shape) * -9
         for idx in range(clobj.cloud_top_profile.shape[1]):
             max_height = np.maximum(max_height,
@@ -1008,12 +979,15 @@ def get_calipso(filename, res):
         # This filtering of single clear/cloud pixels is questionable.
         # Minor investigation (45 scenes npp), shows small decrease in results if removed.
         cloud_fraction_temp =  ndimage.filters.uniform_filter1d(calipso_clmask, size=winsz)
-        clobj.cloud_fraction = np.where(np.logical_and(clobj.cloud_fraction>1,
-                                                       cloud_fraction_temp<1.5/winsz),
-                                        0,clobj.cloud_fraction)
-        clobj.cloud_fraction = np.where(np.logical_and(clobj.cloud_fraction<0,
-                                                       cloud_fraction_temp>((winsz-1.5)/winsz)),
-                                        1,clobj.cloud_fraction)
+        clobj.cloud_fraction = np.where(
+            np.logical_and(clobj.cloud_fraction>1,
+                           cloud_fraction_temp<1.5/winsz),
+            0,clobj.cloud_fraction)
+        clobj.cloud_fraction = np.where(
+            np.logical_and(clobj.cloud_fraction<0,
+                           cloud_fraction_temp>((winsz-1.5)/winsz)),
+            
+            1,clobj.cloud_fraction)
        ##############################################################
       
     
