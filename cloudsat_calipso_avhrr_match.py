@@ -591,16 +591,20 @@ def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
         raise MatchupError("No sunsatangles file found corresponding to %s." % avhrr_file)
     write_log("INFO", "SUNSATANGLES: " + sunsatangles_file)
 
-    physiography_name = insert_info_in_filename_or_path(options['physiography_file'],
-                                                        values, datetime_obj=date_time)
-    path =insert_info_in_filename_or_path(options['physiography_dir'], 
-                                          values, datetime_obj=date_time)
-    try:
-        physiography_file = glob(os.path.join(path, physiography_name))[0]
-    except IndexError:
+    if not 'physiography_file' in options:
+        write_log("WARNING", "No physiography file searched for!")
         physiography_file = None
-        raise MatchupError("No physiography file found corresponding to %s." % avhrr_file)
-    write_log("INFO", "PHYSIOGRAPHY: " + physiography_file)
+    else:
+        physiography_name = insert_info_in_filename_or_path(options['physiography_file'],
+                                                            values, datetime_obj=date_time)
+        path =insert_info_in_filename_or_path(options['physiography_dir'], 
+                                              values, datetime_obj=date_time)
+        try:
+            physiography_file = glob(os.path.join(path, physiography_name))[0]
+        except IndexError:
+            physiography_file = None
+            raise MatchupError("No physiography file found corresponding to %s." % avhrr_file)
+        write_log("INFO", "PHYSIOGRAPHY: " + physiography_file)
 
     if not 'nwp_tsur_file' in options:
         write_log("WARNING", "No t-surface file searched for!")
@@ -625,7 +629,7 @@ def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
     emis_file = get_pps_file(avhrr_file, options, values, 
                                            'emis_file', 'emis_dir')
     file_name_dict['emis'] = emis_file
-    write_log("INFO", "EMIS: " + emis_file)
+
     for text_file in ['text_r06', 'text_t11', 'text_t37t12', 'text_t37']:
         file_name_dict[text_file] = get_pps_file(avhrr_file, options, values, 
                                                  text_file+'_file', 'text_dir')
