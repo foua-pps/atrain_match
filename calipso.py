@@ -831,12 +831,14 @@ def match_calipso_avhrr(values,
         retv.calipso.optical_depth_top_layer5km = np.repeat(\
             calipsoObj.optical_depth[:,0].ravel(),idx_match.ravel()).astype('d') 
 
+    #This option is possible both with 5km and 1km resolution
+    if ALSO_USE_5KM_FILES or res ==5:
+        write_log('INFO', "Adding optical_depth_top_layer5km")
+        retv.calipso.optical_depth_top_layer5km = np.repeat(
+            calipsoObj.optical_depth_top_layer5km.ravel(),idx_match.ravel()).astype('d')
+        retv.calipso.total_optical_depth_5km = np.repeat(
+            calipsoObj.total_optical_depth_5km.ravel(),idx_match.ravel()).astype('d')
     if res == 1 :
-        if ALSO_USE_5KM_FILES:
-            retv.calipso.optical_depth_top_layer5km = np.repeat(\
-                calipsoObj.optical_depth_top_layer5km.ravel(),idx_match.ravel()).astype('d')
-            retv.calipso.total_optical_depth_5km = np.repeat(\
-                calipsoObj.total_optical_depth_5km.ravel(),idx_match.ravel()).astype('d')
         if USE_5KM_FILES_TO_FILTER_CALIPSO_DATA:
             retv.calipso.detection_height_5km = np.repeat(\
                 calipsoObj.detection_height_5km.ravel(),idx_match.ravel()).astype('d')
