@@ -1161,8 +1161,9 @@ def get_matchups(cross, options, reprocess=False):
             matchup_diff_seconds=abs(td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
             clObj = readCloudsatAvhrrMatchObj(cl_match_file) 
             basename = '_'.join(os.path.basename(cl_match_file).split('_')[1:5])
-            if diff_avhrr is None or (
+            if (diff_avhrr is None or 
                 matchup_diff_seconds<=diff_avhrr_seconds or 
+                abs(matchup_diff_seconds-diff_avhrr_seconds)<300 or
                 abs(matchup_diff_seconds-diff_avhrr_seconds) <300):
                 write_log('INFO', "CloudSat Matchups read from previously " + 
                           "processed data.")
@@ -1193,9 +1194,10 @@ def get_matchups(cross, options, reprocess=False):
             caObj = readCaliopAvhrrMatchObj(ca_match_file)
             basename = '_'.join(os.path.basename(ca_match_file).split('_')[1:5])
             print matchup_diff_seconds, diff_avhrr_seconds
-            if diff_avhrr_seconds is None or (
-                matchup_diff_seconds<=diff_avhrr_seconds 
-                or matchup_diff_seconds<300):
+            if (diff_avhrr_seconds is None or 
+                matchup_diff_seconds<=diff_avhrr_seconds or 
+                abs(matchup_diff_seconds-diff_avhrr_seconds)<300 or
+                matchup_diff_seconds<300):
                 write_log('INFO', 
                           "CALIPSO Matchups read from previously processed data.")
                 write_log('INFO', 'Filename: ' + ca_match_file)
