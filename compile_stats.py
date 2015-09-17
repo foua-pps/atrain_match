@@ -3,55 +3,17 @@ Created on Oct 13, 2010
 
 @author: a001696
 '''
-from config import CASES, MAIN_DATADIR, MAP, RESOLUTION, COMPILED_STATS_FILENAME,\
-    MIN_OPTICAL_DEPTH, CCI_CLOUD_VALIDATION,\
-    DNT_FLAG, CALIPSO_CLOUD_FRACTION,COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC,\
-    COMPILE_RESULTS_SEPARATELY_FOR_SEMI_AND_OPAQUE,\
-    ALSO_USE_5KM_FILES, RESULT_DIR
+from config import (CASES, MAIN_DATADIR, MAP, RESOLUTION, 
+                    COMPILED_STATS_FILENAME,
+                    MIN_OPTICAL_DEPTH, CCI_CLOUD_VALIDATION,
+                    DNT_FLAG, CALIPSO_CLOUD_FRACTION,
+                    COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC,
+                    COMPILE_RESULTS_SEPARATELY_FOR_SEMI_AND_OPAQUE,
+                    ALSO_USE_5KM_FILES, RESULT_DIR)
 
 
-def compile_filtered_stats(results_files, filttype, write=False):
-    """Run through all summary statistics."""
-    print("=========== Cloud fraction ============")
-    from statistics import orrb_CFC_stat_emissfilt
-    cfc_stats = orrb_CFC_stat_emissfilt.CloudFractionFilteredStats(results_files)
-    if write:
-        cfc_stats.write(COMPILED_STATS_FILENAME + '_cfc_%s.txt' %filttype)
-    for l__ in cfc_stats.printout():
-        print(l__)
-    
-    print("========== Cloud top height ===========")
-    from statistics import orrb_CTH_stat_emissfilt
-    cth_stats = orrb_CTH_stat_emissfilt.CloudTopFilteredStats(results_files)
-    if write:
-        cth_stats.write(COMPILED_STATS_FILENAME + '_cth_%s.txt' %filttype)
-    cth_stats.printout()
-    for l__ in cth_stats.printout():
-        print(l__)
-    return cfc_stats, cth_stats
 
-def compile_surface_stats(results_files, surfacetype, write=False):
-    """Run through all summary statistics."""
-
-    print("=========== Cloud fraction ============")
-    from statistics import orrb_CFC_stat_surfaces
-    cfc_stats = orrb_CFC_stat_surfaces.CloudFractionSurfacesStats(results_files)
-    if write:
-        cfc_stats.write(COMPILED_STATS_FILENAME + '_cfc_%s.txt' %surfacetype)
-    for l in cfc_stats.printout():
-        print(l)
-    
-    print("========== Cloud top height ===========")
-    from statistics import orrb_CTH_stat_surfaces
-    cth_stats = orrb_CTH_stat_surfaces.CloudTopSurfacesStats(results_files)
-    if write:
-        cth_stats.write(COMPILED_STATS_FILENAME + '_cth_%s.txt' %surfacetype)
-    cth_stats.printout()
-    for l in cth_stats.printout():
-        print(l)
-    return cfc_stats, cth_stats
-
-def compile_basic_stats(results_files, result_end, write=False, name_in_file='BASIC'):
+def compile_stats(results_files, result_end, write=False, name_in_file='BASIC'):
     """Run through all summary statistics."""
     
     print("=========== Cloud fraction ============")
@@ -75,9 +37,11 @@ def compile_basic_stats(results_files, result_end, write=False, name_in_file='BA
             print("========== Cloud top height ===========")
             print("========== Single Layer     ===========")
             from statistics import orrb_CTH_stat
-            cth_stats = orrb_CTH_stat.CloudTopStats(results_files, [21,22,23,24])
+            cth_stats = orrb_CTH_stat.CloudTopStats(results_files, 
+                                                    [21,22,23,24])
             if write:
-                cth_stats.write(COMPILED_STATS_FILENAME + '_cth_%s%s.txt' %(name_in_file,result_end))
+                cth_stats.write(COMPILED_STATS_FILENAME + '_cth_%s%s.txt' %(
+                    name_in_file,result_end))
             cth_stats.printout()
             for l in cth_stats.printout():
                 print(l)
@@ -88,18 +52,22 @@ def compile_basic_stats(results_files, result_end, write=False, name_in_file='BA
             print("=== Single Layer, Not optically thin ==")
             print("========== Expect good results here! ==")
             from statistics import orrb_CTH_stat
-            cth_stats = orrb_CTH_stat.CloudTopStats(results_files, [26,27,28,29])
+            cth_stats = orrb_CTH_stat.CloudTopStats(results_files, 
+                                                    [26,27,28,29])
             if write:
-                cth_stats.write(COMPILED_STATS_FILENAME + '_cth_%s%s.txt' %(name_in_file,result_end))
+                cth_stats.write(COMPILED_STATS_FILENAME + '_cth_%s%s.txt' %(
+                    name_in_file,result_end))
             cth_stats.printout()
             for l in cth_stats.printout():
                 print(l)
             print("========== Cloud top height ===========")
             print("===== Top Layer, Not optically very thin ===")
             from statistics import orrb_CTH_stat
-            cth_stats = orrb_CTH_stat.CloudTopStats(results_files, [31,32,33,34])
+            cth_stats = orrb_CTH_stat.CloudTopStats(results_files, 
+                                                    [31,32,33,34])
             if write:
-                cth_stats.write(COMPILED_STATS_FILENAME + '_cth_%s%s.txt' %(name_in_file,result_end))
+                cth_stats.write(COMPILED_STATS_FILENAME + '_cth_%s%s.txt' %(
+                    name_in_file,result_end))
             cth_stats.printout()
             for l in cth_stats.printout():
                 print(l)
@@ -107,9 +75,11 @@ def compile_basic_stats(results_files, result_end, write=False, name_in_file='BA
             print("==== Top Layer, Optically very thin ===")
             print("========== Expect bad results here! ===")
             from statistics import orrb_CTH_stat
-            cth_stats = orrb_CTH_stat.CloudTopStats(results_files, [36,37,38,39])
+            cth_stats = orrb_CTH_stat.CloudTopStats(results_files, 
+                                                    [36,37,38,39])
             if write:
-                cth_stats.write(COMPILED_STATS_FILENAME + '_cth_%s%s.txt' %(name_in_file,result_end))
+                cth_stats.write(COMPILED_STATS_FILENAME + '_cth_%s%s.txt' %(
+                    name_in_file,result_end))
             cth_stats.printout()
             for l in cth_stats.printout():
                 print(l)
@@ -117,54 +87,66 @@ def compile_basic_stats(results_files, result_end, write=False, name_in_file='BA
             print("========== Cloud top height ===========")
             print("========== Opaque All     ===========")
             from statistics import orrb_CTH_stat
-            cth_stats = orrb_CTH_stat.CloudTopStats(results_files, [41,42,43,44])
+            cth_stats = orrb_CTH_stat.CloudTopStats(results_files, 
+                                                    [41,42,43,44])
             if write:
-                cth_stats.write(COMPILED_STATS_FILENAME + '_cth_%s%s.txt' %(name_in_file,result_end))
+                cth_stats.write(COMPILED_STATS_FILENAME + '_cth_%s%s.txt' %(
+                    name_in_file,result_end))
             cth_stats.printout()
             for l in cth_stats.printout():
                 print(l)
             print("========== Cloud top height ===========")
             print("========== Semi-transparent All ===========")
             from statistics import orrb_CTH_stat
-            cth_stats = orrb_CTH_stat.CloudTopStats(results_files, [46,47,48,49])
+            cth_stats = orrb_CTH_stat.CloudTopStats(results_files, 
+                                                    [46,47,48,49])
             if write:
-                cth_stats.write(COMPILED_STATS_FILENAME + '_cth_%s%s.txt' %(name_in_file,result_end))
+                cth_stats.write(COMPILED_STATS_FILENAME + '_cth_%s%s.txt' %(
+                    name_in_file,result_end))
             cth_stats.printout()
             for l in cth_stats.printout():
                 print(l)
             print("========== Cloud top height ===========")
             print("========== Opaque Not tHin top layer     ===========")
             from statistics import orrb_CTH_stat
-            cth_stats = orrb_CTH_stat.CloudTopStats(results_files, [51,52,53,54])
+            cth_stats = orrb_CTH_stat.CloudTopStats(results_files, 
+                                                    [51,52,53,54])
             if write:
-                cth_stats.write(COMPILED_STATS_FILENAME + '_cth_%s%s.txt' %(name_in_file,result_end))
+                cth_stats.write(COMPILED_STATS_FILENAME + '_cth_%s%s.txt' %(
+                    name_in_file,result_end))
             cth_stats.printout()
             for l in cth_stats.printout():
                 print(l)
             print("========== Cloud top height ===========")
             print("========== Semi-transparent Not thin top layer ===========")
             from statistics import orrb_CTH_stat
-            cth_stats = orrb_CTH_stat.CloudTopStats(results_files, [56,57,58,59])
+            cth_stats = orrb_CTH_stat.CloudTopStats(results_files, 
+                                                    [56,57,58,59])
             if write:
-                cth_stats.write(COMPILED_STATS_FILENAME + '_cth_%s%s.txt' %(name_in_file,result_end))
+                cth_stats.write(COMPILED_STATS_FILENAME + '_cth_%s%s.txt' %(
+                    name_in_file,result_end))
             cth_stats.printout()
             for l in cth_stats.printout():
                 print(l)
             print("========== Cloud top height ===========")
             print("========== Opaque Thin top layer     ===========")
             from statistics import orrb_CTH_stat
-            cth_stats = orrb_CTH_stat.CloudTopStats(results_files, [61,62,63,64])
+            cth_stats = orrb_CTH_stat.CloudTopStats(results_files, 
+                                                    [61,62,63,64])
             if write:
-                cth_stats.write(COMPILED_STATS_FILENAME + '_cth_%s%s.txt' %(name_in_file,result_end))
+                cth_stats.write(COMPILED_STATS_FILENAME + '_cth_%s%s.txt' %(
+                    name_in_file,result_end))
             cth_stats.printout()
             for l in cth_stats.printout():
                 print(l)
             print("========== Cloud top height ===========")
             print("========== Semi-transparent Thin top layer ===========")
             from statistics import orrb_CTH_stat
-            cth_stats = orrb_CTH_stat.CloudTopStats(results_files, [66,67,68,69])
+            cth_stats = orrb_CTH_stat.CloudTopStats(results_files, 
+                                                    [66,67,68,69])
             if write:
-                cth_stats.write(COMPILED_STATS_FILENAME + '_cth_%s%s.txt' %(name_in_file,result_end))
+                cth_stats.write(COMPILED_STATS_FILENAME + '_cth_%s%s.txt' %(
+                    name_in_file,result_end))
             cth_stats.printout()
             for l in cth_stats.printout():
                 print(l)
@@ -176,7 +158,8 @@ def compile_basic_stats(results_files, result_end, write=False, name_in_file='BA
         from statistics import orrb_CTY_stat
         cty_stats = orrb_CTY_stat.CloudTypeStats(results_files, cfc_stats)
         if write:
-            cty_stats.write(COMPILED_STATS_FILENAME + '_cty_%s%s.txt' %(name_in_file,result_end))
+            cty_stats.write(COMPILED_STATS_FILENAME + '_cty_%s%s.txt' %(
+                name_in_file,result_end))
         cty_stats.printout()
         for l in cty_stats.printout():
             print(l)
@@ -184,40 +167,6 @@ def compile_basic_stats(results_files, result_end, write=False, name_in_file='BA
     else:
         return cfc_stats, cth_stats
 
-def compile_cotfilter_stats(results_files, result_end, write=False):
-    """Run through all summary statistics."""
-    
-    print("=========== Cloud fraction ============")
-    from statistics import orrb_CFC_stat
-    #import orrb_CFC_stat_ignore_misclass
-    cfc_stats = orrb_CFC_stat.CloudFractionStats(results_files)
-    #cfc_stats = orrb_CFC_stat_ignore_misclass.CloudFractionStats(dnt,results_files)
-    cfc_stats.write(COMPILED_STATS_FILENAME + '_cfc_cotfilter%s.txt' %result_end)
-
-    for l in cfc_stats.printout():
-        print(l)
-    
-    print("========== Cloud top height ===========")
-    from statistics import orrb_CTH_stat
-    cth_stats = orrb_CTH_stat.CloudTopStats(results_files)
-    if write:
-        cth_stats.write(COMPILED_STATS_FILENAME + '_cth_cotfilter%s.txt' %result_end)
-    cth_stats.printout()
-    for l in cth_stats.printout():
-        print(l)
-    
-    if not CCI_CLOUD_VALIDATION:
-        print("============= Cloud type ==============")
-        from statistics import orrb_CTY_stat
-        cty_stats = orrb_CTY_stat.CloudTypeStats(results_files, cfc_stats)
-        if write:
-            cty_stats.write(COMPILED_STATS_FILENAME + '_cty_cotfilter%s.txt' %result_end)
-        cty_stats.printout()
-        for l in cty_stats.printout():
-            print(l)
-        return cfc_stats, cth_stats, cty_stats
-    else:
-        return cfc_stats, cth_stats
 
 
 if __name__ == '__main__':
@@ -226,20 +175,14 @@ if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option('-w', '--write', action='store_true',
                       help="Write results to file")
-##    parser.add_option('-b', '--no-basic', action='store_true',
-##                      help="don't calculate the statistic for mode BASIC")
-    parser.add_option('-b', '--basic', action='store_true',  # I prefer this one!/KG
+    parser.add_option('-b', '--basic', action='store_true',  
                       help="Calculate the statistic for mode BASIC")
     parser.add_option('-t', '--standard', action='store_true',  
                       help="Calculate the statistic for mode STANDARD")
     parser.add_option('-o', '--odticfilter', action='store_true',  
                       help="Calculate the statistic for mode OPTICAL_DEPTH_THIN_IS_CLEAR")
-    parser.add_option('-s', '--surface', action='store_true',
-                      help='calculate the statistic for the different surfaces')
     parser.add_option('-n', '--surface_new_way', action='store_true',
                       help='calculate the statistic for the different surfaces with basic method')
-    parser.add_option('-f', '--filter', action='store_true',
-                      help='calculate the statistic for the different filters')
     parser.add_option('-c', '--cotfilter', action='store_true', # Added for handling a list of cot values/KG
                       help='calculate the statistic for the optical thickness filters')
     
@@ -257,7 +200,8 @@ if __name__ == '__main__':
             results_files = []
             for case in CASES:
                 basic_indata_dir = "%s/%s/%s/%skm/%s/%02d/%s/BASIC" % \
-                    (MAIN_DATADIR, RESULT_DIR, case['satname'],  RESOLUTION , case['year'], case['month'], MAP[0])
+                    (MAIN_DATADIR, RESULT_DIR, case['satname'],  RESOLUTION , 
+                     case['year'], case['month'], MAP[0])
                 if dnt in [None, 'ALL', 'all']:
                     result_end = ''
                 else:
@@ -269,9 +213,11 @@ if __name__ == '__main__':
                 else:
                     results_files.extend(glob("%s/%skm*.dat" %(basic_indata_dir, RESOLUTION)))
             if not CCI_CLOUD_VALIDATION:
-                cfc_stats, cth_stats, cty_stats = compile_basic_stats(results_files, result_end, write=options.write)
+                cfc_stats, cth_stats, cty_stats = compile_stats(results_files, 
+                                                                      result_end, 
+                                                                      write=options.write)
             else:
-                cfc_stats, cth_stats = compile_basic_stats(results_files, result_end, write=options.write)        
+                cfc_stats, cth_stats = compile_stats(results_files, result_end, write=options.write)
             print('')
 
     if options.standard == True: # I prefer this one! /KG
@@ -293,9 +239,15 @@ if __name__ == '__main__':
                 else:
                     results_files.extend(glob("%s/%skm*.dat" %(basic_indata_dir, RESOLUTION)))
             if not CCI_CLOUD_VALIDATION:
-                cfc_stats, cth_stats, cty_stats = compile_basic_stats(results_files, result_end, write=options.write, name_in_file='STANDARD')
+                cfc_stats, cth_stats, cty_stats = compile_stats(results_files, 
+                                                                      result_end, 
+                                                                      write=options.write, 
+                                                                      name_in_file='STANDARD')
             else:
-                cfc_stats, cth_stats = compile_basic_stats(results_files, result_end, write=options.write, name_in_file='STANDARD')        
+                cfc_stats, cth_stats = compile_stats(results_files, 
+                                                           result_end, 
+                                                           write=options.write, 
+                                                           name_in_file='STANDARD')        
             print('')
 
     if options.odticfilter == True: # I prefer this one! /KG
@@ -305,7 +257,8 @@ if __name__ == '__main__':
             results_files = []
             for case in CASES:
                 basic_indata_dir = "%s/%s/%s/%skm/%s/%02d/%s/OPTICAL_DEPTH_THIN_IS_CLEAR" % \
-                    (MAIN_DATADIR, RESULT_DIR, case['satname'],  RESOLUTION , case['year'], case['month'], MAP[0])
+                    (MAIN_DATADIR, RESULT_DIR, case['satname'],  RESOLUTION , 
+                     case['year'], case['month'], MAP[0])
                 if dnt in [None, 'ALL', 'all']:
                     result_end = ''
                 else:
@@ -317,11 +270,11 @@ if __name__ == '__main__':
                 else:
                     results_files.extend(glob("%s/%skm*.dat" %(basic_indata_dir, RESOLUTION)))
             if not CCI_CLOUD_VALIDATION:
-                cfc_stats, cth_stats, cty_stats = compile_basic_stats(
+                cfc_stats, cth_stats, cty_stats = compile_stats(
                     results_files, result_end, 
                     write=options.write, name_in_file='OPTICAL_DEPTH_THIN_IS_CLEAR')
             else:
-                cfc_stats, cth_stats = compile_basic_stats(
+                cfc_stats, cth_stats = compile_stats(
                     results_files, result_end, 
                     write=options.write, name_in_file='OPTICAL_DEPTH_THIN_IS_CLEAR')        
             print('')
@@ -335,7 +288,8 @@ if __name__ == '__main__':
                 for case in CASES:
                     print(RESOLUTION)
                     basic_indata_dir = "%s/%s/%s/%skm/%s/%02d/%s/%s" % \
-                    (MAIN_DATADIR, RESULT_DIR, case['satname'], RESOLUTION , case['year'], case['month'], MAP[0], surface)
+                    (MAIN_DATADIR, RESULT_DIR, case['satname'], RESOLUTION , 
+                     case['year'], case['month'], MAP[0], surface)
                     if dnt in [None, 'ALL', 'all']:
                         result_end = surface
                     else:
@@ -347,63 +301,15 @@ if __name__ == '__main__':
                     else:
                         results_files.extend(glob("%s/%skm*.dat" %(basic_indata_dir, RESOLUTION)))
                 if not CCI_CLOUD_VALIDATION:
-                    cfc_stats, cth_stats, cty_stats = compile_basic_stats(
+                    cfc_stats, cth_stats, cty_stats = compile_stats(
                         results_files, result_end, 
                         write=options.write, name_in_file=surface)
                 else:
-                    cfc_stats, cth_stats = compile_basic_stats(
+                    cfc_stats, cth_stats = compile_stats(
                         results_files, result_end, write=options.write, 
                         name_in_file=surface) 
-                print('')
-            
-    if options.surface == True:
-        from config import SURFACES
-        print('Calculate statistic for the different surfaces')
-        for surface in SURFACES:
-            for dnt in DNT_FLAG:
-                results_files = []
-                for case in CASES:
-                    print(RESOLUTION)
-                    basic_indata_dir = "%s/%s/%s/%skm/%s/%02d/%s/%s" % \
-                    (MAIN_DATADIR, RESULT_DIR, case['satname'], RESOLUTION , case['year'], case['month'], MAP[0], surface)
-                    if dnt in [None, 'ALL', 'all']:
-                        result_end = surface
-                    else:
-                        basic_indata_dir = basic_indata_dir + '_' + dnt
-                        result_end = '%s_%s' %(surface, dnt)
-                    print("-> " + basic_indata_dir)
-                    if CALIPSO_CLOUD_FRACTION == True:
-                        results_files.extend(glob("%s/CCF_%skm*.dat" %(basic_indata_dir, RESOLUTION)))
-                    else:
-                        results_files.extend(glob("%s/%skm*.dat" %(basic_indata_dir, RESOLUTION)))
-                cfc_stats, cth_stats = compile_surface_stats(results_files, result_end, write=options.write)
-                print('')
+                print('')            
     
-    if options.filter == True:
-        from config import FILTERTYPE
-        print('Calculate statistic for the different surfaces')
-        for filttype in FILTERTYPE:
-            for dnt in DNT_FLAG:
-                results_files = []
-                for case in CASES:
-                    print(RESOLUTION)
-                    basic_indata_dir = "%s/%s/%s/%skm/%s/%02d/%s/%s" % \
-                    (MAIN_DATADIR, RESULT_DIR, case['satname'],  RESOLUTION , case['year'], case['month'], MAP[0], filttype)
-                    if dnt in [None, 'ALL', 'all']:
-                        result_end = filttype
-                    else:
-                        basic_indata_dir = basic_indata_dir + '_' + dnt
-                        result_end = '%s_%s' %(filttype, dnt)
-                    if filttype == 'OPTICAL_DEPTH':
-                        basic_indata_dir = "%s-%.2f" %(basic_indata_dir, MIN_OPTICAL_DEPTH)
-                        result_end = "%s-%.2f" %(result_end, MIN_OPTICAL_DEPTH)
-                    print("-> " + basic_indata_dir)
-                    if CALIPSO_CLOUD_FRACTION == True:
-                        results_files.extend(glob("%s/CCF_%skm*.dat" %(basic_indata_dir, RESOLUTION)))
-                    else:
-                        results_files.extend(glob("%s/%skm*.dat" %(basic_indata_dir, RESOLUTION)))
-                cfc_stats, cth_stats = compile_filtered_stats(results_files, result_end, write=options.write)
-                print('')
 
     if options.cotfilter == True:
         print('Calculate statistic for mode COT-filter')
@@ -417,12 +323,14 @@ if __name__ == '__main__':
                 results_files = []
                 for case in CASES:
                     basic_indata_dir = "%s/%s/%s/%skm/%s/%02d/%s/OPTICAL_DEPTH-%0.2f" % \
-                    (MAIN_DATADIR, RESULT_DIR, case['satname'], RESOLUTION , case['year'], case['month'], MAP[0], cot)
+                    (MAIN_DATADIR, RESULT_DIR, case['satname'], RESOLUTION , 
+                     case['year'], case['month'], MAP[0], cot)
                     if dnt in [None, 'ALL', 'all']:
                         result_end = '_%0.2f' % cot
                     else:
                         basic_indata_dir = "%s/%s/%s/%skm/%s/%02d/%s/OPTICAL_DEPTH_%s-%0.2f" % \
-                                           (MAIN_DATADIR, RESULT_DIR, case['satname'], RESOLUTION , case['year'], case['month'], MAP[0], dnt,cot)
+                                           (MAIN_DATADIR, RESULT_DIR, case['satname'], 
+                                            RESOLUTION , case['year'], case['month'], MAP[0], dnt,cot)
                         #basic_indata_dir = basic_indata_dir + '_' + dnt
                         result_end = '_%s_%0.2f' % (dnt,cot)
                     print("-> " + basic_indata_dir)
@@ -430,14 +338,20 @@ if __name__ == '__main__':
                         results_files.extend(glob("%s/CCF_%skm*.dat" %(basic_indata_dir, RESOLUTION)))
                         print "Length of result file list: ",len(results_files)
                     else:
-                        results_files.extend(glob("%s/%skm*.dat" %(basic_indata_dir, RESOLUTION)))
-
+                        results_files.extend(glob("%s/CCF_%skm*.dat" %(basic_indata_dir, RESOLUTION)))
+                        print "Length of result file list: ",len(results_files)
                 if not CCI_CLOUD_VALIDATION:
-                    cfc_stats, cth_stats, cty_stats = compile_cotfilter_stats(results_files, result_end, write=options.write)
+                    cfc_stats, cth_stats, cty_stats = compile_stats(results_files, 
+                                                                    result_end, 
+                                                                    write=options.write, 
+                                                                    name_in_file='cotfilter')
                 else:
-                    cfc_stats, cth_stats = compile_cotfilter_stats(results_files, result_end, write=options.write)        
+                    cfc_stats, cth_stats = compile_stats(results_files, 
+                                                                   result_end, 
+                                                                   write=options.write, 
+                                                                   name_in_file='cotfilter')        
                 print('')
                         
-                #cfc_stats, cth_stats, cty_stats = compile_cotfilter_stats(results_files, result_end, dnt, write=options.write)
+             
             print('')
             
