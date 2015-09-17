@@ -1542,7 +1542,16 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
         caObj.calipso.cloud_fraction = new_cloud_fraction
         caObj.calipso.feature_classification_flags = new_fcf
 
-    if  (caObj.calipso.total_optical_depth_5km < caObj.calipso.optical_depth_top_layer5km).any():
+    if (config.COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC and
+        (config.ALSO_USE_5KM_FILES or config.RESOLUTION==5) and 
+        caObj.calipso.total_optical_depth_5km is None):
+        print "WARNING:", "rematched_file is missing total_optical_depth_5km field"
+        print "INFO:", "consider reprocessing with "
+        print "COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC=True"
+        print "ALSO_USE_5KM_FILES=True or RESOLUTION==5"
+
+    if  (caObj.calipso.total_optical_depth_5km is not None and 
+         (caObj.calipso.total_optical_depth_5km < caObj.calipso.optical_depth_top_layer5km).any()):
         badPix=np.less(caObj.calipso.total_optical_depth_5km+0.001, caObj.calipso.optical_depth_top_layer5km)
         diff=caObj.calipso.total_optical_depth_5km- caObj.calipso.optical_depth_top_layer5km
         print "warning", len(caObj.calipso.total_optical_depth_5km), "\n", len(caObj.calipso.total_optical_depth_5km[badPix]),"\n", caObj.calipso.total_optical_depth_5km[badPix],"\n", caObj.calipso.optical_depth_top_layer5km[badPix],"\n", diff[badPix],"\n", caObj.calipso.number_of_layers_found[badPix],"\n", caObj.calipso.detection_height_5km[badPix],"\n", np.where(badPix),"\n",caObj.calipso.cloud_top_profile[0,badPix],"\n",caObj.calipso.cloud_base_profile[0,badPix]
