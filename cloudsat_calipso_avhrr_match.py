@@ -254,7 +254,6 @@ def get_time_list(cross_time, time_window, delta_t_in_seconds):
 def find_calipso_files_inner(date_time, time_window, options, values):
     """Find the matching Calipso file"""
     tlist = get_time_list(date_time, time_window, 600)
-    print tlist
     flist = []
     for tobj in tlist:    
         calipso_dir = insert_info_in_filename_or_path(
@@ -265,6 +264,22 @@ def find_calipso_files_inner(date_time, time_window, options, values):
             values, 
             datetime_obj=tobj)
         tmplist = glob(os.path.join(calipso_dir, calipso_file_pattern))
+        flist.extend([ s for s in tmplist if s not in flist ])      
+    return flist
+
+def find_cloudsat_files_inner(date_time, time_window, options, values):
+    """Find the matching Cloudsat file"""
+    tlist = get_time_list(date_time, time_window, 600)
+    flist = []
+    for tobj in tlist:    
+        cloudsat_dir = insert_info_in_filename_or_path(
+            options['cloudsat_dir'],
+            values, datetime_obj=tobj)
+        cloudsat_file_pattern = insert_info_in_filename_or_path(
+            options['cloudsat_file'],
+            values, 
+            datetime_obj=tobj)
+        tmplist = glob(os.path.join(cloudsat_dir, cloudsat_file_pattern))
         flist.extend([ s for s in tmplist if s not in flist ])      
     return flist
 
@@ -364,6 +379,20 @@ def find_calipso_files(date_time, options, values):
         write_log("INFO", "Calipso files: " + str(calipso_basenames))
         return calipso_files
 
+def find_cloudsat_files(date_time, options, values):
+    #might need to geth this in before looking for matchups
+    tdelta = timedelta(seconds = (config.SAT_ORBIT_DURATION + config.sec_timeThr))
+    time_window = (tdelta, tdelta)
+    cloudsat_files = find_cloudsat_files_inner(date_time, time_window, options, values)
+    if len(cloudsat_files) > 1:
+        write_log("INFO", "More than one Cloudsat file found within time window!")
+    elif len(cloudsat_files) == 0:
+        write_log("INFO", "No Cloudsat file found within time window!")
+        #raise MatchupError("Couldn't find cloudsat matchup!")
+    cloudsat_files = sorted(require_h5(cloudsat_files))
+    cloudsat_basenames = [ os.path.basename(s) for s in cloudsat_files ]
+    write_log("INFO", "Cloudsat files: " + str(cloudsat_basenames))
+    return cloudsat_files
    
 # -----------------------------------------------------
 def get_time_list_and_cross_time(cross):
@@ -503,23 +532,6 @@ def require_h5(files):
             raise ValueError("File format of %r not recognized" % f)
     
     return h5_files
-
-def find_cloudsat_files(date_time, options):
-    """
-    Find calipso and cloudsat files closest to date_time.
-    """
-
-    #TOTDO%%%%%%%%%%%%
-    import file_finders
-    cloudsat_finder = file_finders.CloudsatFileFinder(config.CLOUDSAT_DIR,
-                                                      config.RESOLUTION,
-                                                      config.CLOUDSAT_TYPE)
-    attach_subdir_from_config(cloudsat_finder)
-    cloudsat_finder.set_time_window(config.SAT_ORBIT_DURATION + config.sec_timeThr)
-
-    cloudsat_files = sorted(require_h5(cloudsat_finder.find(date_time)))
-    return cloudsat_files
-    #%%%%%%%%%%%%5
 
 def get_pps_file(avhrr_file, options, values, type_of_file, file_dir):
     if not type_of_file in options:
@@ -958,7 +970,8 @@ def get_matchups_from_data(cross, config_options):
     calipso_files = find_calipso_files(date_time, config_options, values)
 
     if (PPS_VALIDATION):
-        cloudsat_files = find_cloudsat_files(date_time, config_options)
+        cloudsat_files = find_cloudsat_files(date_time, config_options, values)
+        print cloudsat_files
         if (isinstance(cloudsat_files, str) == True or 
             (isinstance(cloudsat_files, list) and len(cloudsat_files) != 0)):
             write_log("INFO","Read CLOUDSAT %s data" % config.CLOUDSAT_TYPE)
