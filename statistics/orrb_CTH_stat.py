@@ -148,4 +148,4 @@ class CloudTopStats(OrrbStats):
 
 if __name__ == "__main__":
     stats = CloudTopStats()
-    stats.old_interface(modes=['BASIC'], output_file_desc="cth_results_summary")
+

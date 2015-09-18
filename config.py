@@ -74,7 +74,7 @@ elif RESOLUTION == 5:
     AVHRR_SAT = 'NOAA18'
     # CALIPSO_CLOUD_FRACTION = True   Introduced when the idea was to use single_shot_cloud_cleared_fraction, now abandoned!
     CALIPSO_CLOUD_FRACTION = False  #Notice that both these parameters must equal, i.e. set to either True or False!!!/KG
-    ALSO_USE_1KM_FILES = False
+    ALSO_USE_1KM_FILES = True
 
 #: Base directory for validation results
 #_validation_results_dir = os.environ['VALIDATION_RESULTS_DIR']    
@@ -510,9 +510,5 @@ if RESOLUTION == 5:
 #DNT_FLAG = ['ALL']
 DNT_FLAG = ['ALL', 'DAY', 'NIGHT', 'TWILIGHT']
     
-# The following are used in the old-style script interface
-SATELLITE = ['noaa18', 'noaa19']
-STUDIED_YEAR = ["2009"]
-STUDIED_MONTHS = ['01', '07']
-OUTPUT_DIR = "%s/Ackumulering_stat/Results/%s" % (MAIN_DATADIR, SATELLITE[0])
+
 

@@ -187,4 +187,4 @@ class CloudFractionStats(OrrbStats):
 
 if __name__ == "__main__":
     stats = CloudFractionStats()
-    stats.old_interface(modes=['BASIC'], output_file_desc="cfc_results_summary")
+
