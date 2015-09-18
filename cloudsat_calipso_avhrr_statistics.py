@@ -157,7 +157,7 @@ def get_inversion_info_pps2012(cloudtype_qflag):
     inversion_flag = (((cloudtype_qflag>>6) & 1) == 1) & ~no_qflag
     return inversion_flag
 
-def get_subset_for_mode(mode):
+def get_subset_for_mode(caObj, mode):
   # First prepare possible subsetting of CALIOP datasets according to NSIDC
     # and IGBP surface types
     if mode == "EMISSFILT":
@@ -279,7 +279,7 @@ def get_day_semi_opaque_info(caObj):
     return semi_flag, opaque_flag
 
 
-def print_cloudsat_stats():
+def print_cloudsat_stats(clsatObj, statfile):
     if clsatObj != None:
         dummy=clsatObj.cloudsat.latitude.shape[0]
         pixel_position=np.arange(dummy)
@@ -347,7 +347,7 @@ def print_cloudsat_stats():
         statfile.write('No CloudSat \n')
         statfile.write('No CloudSat \n')
 
-def print_cloudsat_modis_stats():
+def print_cloudsat_modis_stats(clsatObj, statfile):
     if clsatObj != None:
         # CORRELATION CLOUD MASK: CLOUDSAT - MODIS
     
@@ -406,6 +406,8 @@ def print_cloudsat_modis_stats():
         statfile.write('No CloudSat \n')
         statfile.write('No CloudSat \n') 
 
+
+def print_calipso_cmask_stats(caObj, statfile, cal_subset):
     # CLOUD MASK EVALUATION
     #=======================
     
@@ -414,8 +416,7 @@ def print_cloudsat_modis_stats():
     #print "------------------------------------"
     #print "STATISTICS CLOUD MASK: CLOUDSAT - AVHRR" 
     
-   
-    
+       
     # CORRELATION CLOUD MASK: CALIOP - AVHRR
 
 
@@ -482,7 +483,7 @@ def print_cloudsat_modis_stats():
     statfile.write("CLOUD MASK CALIOP-PPS PROB: %f %f %f %f %f \n" % (pod_cloudy,pod_clear,far_cloudy,far_clear,bias))
 
 
-def print_calipso_modis_stats():    
+def print_calipso_modis_stats(caObj, statfile, cal_subset, cal_MODIS_cflag):    
     # CORRELATION CLOUD MASK: CALIOP - MODIS
     calipso_clear = np.logical_and(np.less(caObj.calipso.cloud_fraction,0.34),cal_subset)
     calipso_cloudy = np.logical_and(np.greater(caObj.calipso.cloud_fraction,0.66),cal_subset)
@@ -542,7 +543,7 @@ def print_calipso_modis_stats():
         statfile.write("No CloudSat \n")
         statfile.write("No CloudSat \n")
     
-def print_calipso_stats_ctype():
+def print_calipso_stats_ctype(caObj, statfile, cal_subset, cal_vert_feature):
 
     # CLOUD TYPE EVALUATION - Based exclusively on CALIPSO data (Vertical Feature Mask)
     # =======================
@@ -640,7 +641,7 @@ def print_calipso_stats_ctype():
     statfile.write("CLOUD TYPE CALIOP-PPS TABLE MISSED: %s %s %s %s %s %s %s \n" % (n_clear_low,n_clear_medium,n_clear_high,n_low_clear,n_medium_clear,n_high_clear,n_frac_clear))
             
 
-def print_cloudsat_stats_ctop():
+def print_cloudsat_stats_ctop(clsatObj, statfile):
 
     # CLOUD TOP EVALUATION
     #=======================
@@ -706,58 +707,59 @@ def print_cloudsat_stats_ctop():
         statfile.write('No CloudSat \n')
 
 
-def print_height_all_low_medium_high():
+def print_height_all_low_medium_high(NAME, okcaliop,  statfile, cal_vert_feature, avhrr_ctth_cal_ok, caliop_max_height):
     out_stats = calculate_ctth_stats(okcaliop,avhrr_ctth_cal_ok,caliop_max_height)
-    statfile.write("CLOUD HEIGHT CALIOP ALL: %s\n" %(out_stats))
-#    statfile.write("CLOUD HEIGHT CALIOP ALL: %f %f %f %s %f \n" % (corr_caliop_avhrr,bias,RMS_difference,len(avhrr_height_work),sum(diff_squared_biascorr)))  
+    statfile.write("CLOUD HEIGHT %s ALL: %s\n" %(NAME, out_stats))
+#    statfile.write("CLOUD HEIGHT CALIOP ALL: 
 
     # THEN FOR LOW CLOUDS (VERTICAL FEATURE MASK CATEGORIES 0-3)
     cal_low_ok = np.logical_and(np.greater_equal(cal_vert_feature[::],0),np.less_equal(cal_vert_feature[::],3))
     cal_low_ok = np.logical_and(cal_low_ok, okcaliop) 
     out_stats =calculate_ctth_stats(cal_low_ok,avhrr_ctth_cal_ok,caliop_max_height)   
-    statfile.write("CLOUD HEIGHT CALIOP LOW: %s \n" % (out_stats))
+    statfile.write("CLOUD HEIGHT %s LOW: %s \n" % (NAME, out_stats))
         
     # THEN FOR MEDIUM CLOUDS (VERTICAL FEATURE MASK CATEGORIES 4-5)
     cal_mid_ok = np.logical_and(np.greater(cal_vert_feature[::],3),np.less_equal(cal_vert_feature[::],5))
     cal_mid_ok = np.logical_and(cal_mid_ok,okcaliop)
     out_stats = calculate_ctth_stats(cal_mid_ok,avhrr_ctth_cal_ok,caliop_max_height)   
-    statfile.write("CLOUD HEIGHT CALIOP MEDIUM: %s \n" % (out_stats))
+    statfile.write("CLOUD HEIGHT %s MEDIUM: %s \n" % (NAME, out_stats))
             
     # FINALLY FOR HIGH CLOUDS (VERTICAL FEATURE MASK CATEGORIES 6-7)
     cal_high_ok = np.logical_and(np.greater(cal_vert_feature[::],5),np.less_equal(cal_vert_feature[::],7))
     cal_high_ok = np.logical_and(cal_high_ok,okcaliop)
     out_stats = calculate_ctth_stats(cal_high_ok,avhrr_ctth_cal_ok,caliop_max_height) 
-    statfile.write("CLOUD HEIGHT CALIOP HIGH: %s \n" % (out_stats))
+    statfile.write("CLOUD HEIGHT %s HIGH: %s \n" % (NAME, out_stats))
 
-def print_calipso_stats_ctop():
+def print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature, cal_data_ok, avhrr_ctth_cal_ok, semi_flag, opaque_flag, caliop_max_height ):
     # CORRELATION: CALIOP - AVHRR HEIGHT
     # FIRST TOTAL FIGURES
     okcaliop = np.logical_and(cal_data_ok,
                               np.logical_and(np.greater(avhrr_ctth_cal_ok[::],0),cal_subset))
     #print "ALL CLOUDS:" 
-    print_height_all_low_medium_high("CALIOP", okcaliop)
+    print_height_all_low_medium_high("CALIOP", okcaliop, statfile, cal_vert_feature, avhrr_ctth_cal_ok, caliop_max_height)
     
 
     if config.COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC:
+        statfile.write("CLOUD HEIGHT SINGLE-LAYER\n")
         okcaliop_single = np.logical_and(okcaliop, np.equal(caObj.calipso.number_of_layers_found,1)) 
-        print_height_all_low_medium_high("CALIOP-SINGLE-LAYER", okcaliop_single)
+        print_height_all_low_medium_high("CALIOP-SINGLE-LAYER", okcaliop_single,  statfile, cal_vert_feature, avhrr_ctth_cal_ok, caliop_max_height)
 
     if (config.COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC and
         (config.ALSO_USE_5KM_FILES or config.RESOLUTION==5)): 
         statfile.write("CLOUD HEIGHT SINGLE-LAYER, NOT THIN\n")
         lim=2*config.OPTICAL_DETECTION_LIMIT
         okcaliop_single_not_thinnest = np.logical_and(okcaliop_single, np.greater_equal(caObj.calipso.optical_depth_top_layer5km,lim))
-        print_height_all_low_medium_high("CALIOP-SINGLE-LAYER>%f"%(lim), okcaliop_single)
+        print_height_all_low_medium_high("CALIOP-SINGLE-LAYER>%f"%(lim), okcaliop_single_not_thinnest,  statfile, cal_vert_feature, avhrr_ctth_cal_ok, caliop_max_height)
         
         statfile.write("CLOUD HEIGHT NOT VERY THIN TOP LAYER\n")
         lim=config.OPTICAL_DETECTION_LIMIT
         okcaliop_not_thinnest_top_layer = np.logical_and(okcaliop, np.greater_equal(caObj.calipso.optical_depth_top_layer5km,lim))
-        print_height_all_low_medium_high("CALIOP-TOP-LAYER>%f"%(lim), okcaliop_single)
+        print_height_all_low_medium_high("CALIOP-TOP-LAYER>%f"%(lim), okcaliop_not_thinnest_top_layer,  statfile, cal_vert_feature, avhrr_ctth_cal_ok, caliop_max_height)
 
         lim=config.OPTICAL_DETECTION_LIMIT
         statfile.write("CLOUD HEIGHT VERY THIN TOP LAYER\n")
-        okcaliop_not_thinnest_top_layer = np.logical_and(okcaliop, np.less_equal(caObj.calipso.optical_depth_top_layer5km,lim))
-        print_height_all_low_medium_high("CALIOP-TOP-LAYER<=%f"%(lim), okcaliop_single)
+        okcaliop_thinnest_top_layer = np.logical_and(okcaliop, np.less_equal(caObj.calipso.optical_depth_top_layer5km,lim))
+        print_height_all_low_medium_high("CALIOP-TOP-LAYER<=%f"%(lim), okcaliop_thinnest_top_layer,  statfile, cal_vert_feature, avhrr_ctth_cal_ok, caliop_max_height)
         
 
     if config.COMPILE_RESULTS_SEPARATELY_FOR_SEMI_AND_OPAQUE and semi_flag is not None and opaque_flag is not None:
@@ -765,12 +767,12 @@ def print_calipso_stats_ctop():
         #Opaque stats
         statfile.write("CLOUD HEIGHT OPAQUE\n")
         okcaliop_opaque_pps = np.logical_and(okcaliop, opaque_flag)
-        print_height_all_low_medium_high("CALIOP-OPAQUE", okcaliop)
+        print_height_all_low_medium_high("CALIOP-OPAQUE", okcaliop_opaque_pps,  statfile, cal_vert_feature, avhrr_ctth_cal_ok, caliop_max_height)
 
         #Semi-transparent stats
         statfile.write("CLOUD HEIGHT SEMI\n")
         okcaliop_semi_pps = np.logical_and(okcaliop, semi_flag)
-        print_height_all_low_medium_high("CALIOP-SEMI", okcaliop)
+        print_height_all_low_medium_high("CALIOP-SEMI", okcaliop_semi_pps,  statfile, cal_vert_feature, avhrr_ctth_cal_ok, caliop_max_height)
 
 
     if config.COMPILE_RESULTS_SEPARATELY_FOR_SEMI_AND_OPAQUE and semi_flag is not None and opaque_flag is not None:
@@ -781,26 +783,26 @@ def print_calipso_stats_ctop():
         statfile.write("CLOUD HEIGHT OPAQUE TOP LAYER VERY NOT-THIN\n")
         okcaliop_opaque_pps_not_thin = np.logical_and(np.logical_and(okcaliop, opaque_flag),
                                              np.greater(caObj.calipso.optical_depth_top_layer5km,lim))
-        print_height_all_low_medium_high("CALIOP-OPAQUE-TOP-LAYER>%f"%(lim), okcaliop_opaque_pps_not_thin)
+        print_height_all_low_medium_high("CALIOP-OPAQUE-TOP-LAYER>%f"%(lim), okcaliop_opaque_pps_not_thin,  statfile, cal_vert_feature, avhrr_ctth_cal_ok, caliop_max_height)
         #Semi-transparent stats
         statfile.write("CLOUD HEIGHT SEMI TOP LAYER VERY NOT-THIN\n")
         okcaliop_semi_pps_not_thin = np.logical_and(np.logical_and(okcaliop, semi_flag),
                                              np.greater(caObj.calipso.optical_depth_top_layer5km,lim))
-        print_height_all_low_medium_high("CALIOP-SEMI-TOP-LAYER>%f"%(lim), okcaliop_opaque_pps_not_thin)
+        print_height_all_low_medium_high("CALIOP-SEMI-TOP-LAYER>%f"%(lim), okcaliop_semi_pps_not_thin,  statfile, cal_vert_feature, avhrr_ctth_cal_ok, caliop_max_height)
 
         #Not thin top layer
         #Opaque stats
         lim=config.OPTICAL_DETECTION_LIMIT
         statfile.write("CLOUD HEIGHT OPAQUE TOP LAYER VERY THIN\n")
-        okcaliop_opaque_pps_not_thin = np.logical_and(np.logical_and(okcaliop, opaque_flag),
+        okcaliop_opaque_pps_thin = np.logical_and(np.logical_and(okcaliop, opaque_flag),
                                              np.less_equal(caObj.calipso.optical_depth_top_layer5km,lim))
-        print_height_all_low_medium_high("CALIOP-OPAQUE-TOP-LAYER<=%f"%(lim), okcaliop_opaque_pps_not_thin)
+        print_height_all_low_medium_high("CALIOP-OPAQUE-TOP-LAYER<=%f"%(lim), okcaliop_opaque_pps_thin,  statfile, cal_vert_feature, caliop_max_height)
 
         #Semi-transparent stats
         statfile.write("CLOUD HEIGHT SEMI TOP LAYER VERY THIN\n")
-        okcaliop_semi_pps_not_thin = np.logical_and(np.logical_and(okcaliop, semi_flag),
+        okcaliop_semi_pps_thin = np.logical_and(np.logical_and(okcaliop, semi_flag),
                                              np._less_equal(caObj.calipso.optical_depth_top_layer5km,lim))
-        print_height_all_low_medium_high("CALIOP-SEMI-TOP-LAYER<=%f"%(lim), okcaliop_opaque_pps_not_thin)
+        print_height_all_low_medium_high("CALIOP-SEMI-TOP-LAYER<=%f"%(lim), okcaliop_opaque_pps_thin,  statfile, cal_vert_feature, caliop_max_height)
 
 
 
@@ -834,12 +836,13 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
         print('statistic calculation is not prepared for this dnt_flag')
         sys.exit()
 
-    print_cloudsat_stats()
-    print_cloudsat_modis_stats()
-    print_calipso_modis_stats()
-    print_calipso_stats_ctype()
-    print_cloudsat_stats_ctop()
-    print_calipso_stats_ctop()
+    print_cloudsat_stats(clsatObj, statfile)
+    print_cloudsat_modis_stats(clsatObj, statfile)
+    print_calipso_cmask_stats(caObj, statfile, cal_subset)
+    print_calipso_modis_stats(caObj, statfile, cal_subset, cal_MODIS_cflag)
+    print_calipso_stats_ctype(caObj, statfile, cal_subset, cal_vert_feature)
+    print_cloudsat_stats_ctop(clsatObj, statfile)
+    print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature, cal_data_ok, avhrr_ctth_cal_ok,  semi_flag, opaque_flag, caliop_max_height)
    
 
 
