@@ -10,7 +10,8 @@ def calculate_ctth_stats(okcaliop, avhrr_ctth_cal_ok,caliop_max_height):
     caliop_max_height_work = np.repeat(caliop_max_height[::],okcaliop)
     if len(caliop_max_height_work) > 0:
         if len(avhrr_height_work) > 20:
-            corr_caliop_avhrr = np.corrcoef(caliop_max_height_work,avhrr_height_work)[0,1]
+            corr_caliop_avhrr = np.corrcoef(caliop_max_height_work,
+                                            avhrr_height_work)[0,1]
         else:
             corr_caliop_avhrr = -99.0
         diff = avhrr_height_work-caliop_max_height_work
@@ -167,75 +168,109 @@ def get_subset_for_mode(caObj, mode):
 ##         cal_subset = np.logical_and(np.logical_and(np.less(caObj.calipso.nsidc,100),np.greater(caObj.calipso.nsidc,10)),np.equal(caObj.calipso.igbp,17))
         # Unfortunately, the above formulation used for ORR-B excluded the case
         # when ice-cover was exactly 100 %!!! Very embarrassing!/KG
-        cal_subset = np.logical_and(np.logical_and(np.less_equal(caObj.calipso.nsidc,100),np.greater(caObj.calipso.nsidc,10)),np.equal(caObj.calipso.igbp,17))
+        cal_subset = np.logical_and(
+            np.logical_and(np.less_equal(caObj.calipso.nsidc,100),
+                           np.greater(caObj.calipso.nsidc,10)),
+            np.equal(caObj.calipso.igbp,17))
     elif mode == 'ICE_FREE_SEA':
         cal_subset = np.logical_and(np.equal(caObj.calipso.nsidc,0),np.equal(caObj.calipso.igbp,17))
     elif mode == 'SNOW_COVER_LAND':
-        cal_subset = np.logical_and(np.logical_and(np.less(caObj.calipso.nsidc,104),np.greater(caObj.calipso.nsidc,10)),np.not_equal(caObj.calipso.igbp,17))
+        cal_subset = np.logical_and(
+            np.logical_and(np.less(caObj.calipso.nsidc,104),
+                           np.greater(caObj.calipso.nsidc,10)),
+            np.not_equal(caObj.calipso.igbp,17))
         # Notice that some uncertainty remains about the meaning of IGBP category 15 = "snow and ice". Can this possibly include also the Arctic ice sheet? We hope that it is not!!! However, if it is, the whole classification here might be wrong since this will affect also the definition of IGBP category 17./KG 
     elif mode == 'SNOW_FREE_LAND':
-        cal_subset = np.logical_and(np.equal(caObj.calipso.nsidc,0),np.not_equal(caObj.calipso.igbp,17))
+        cal_subset = np.logical_and(np.equal(caObj.calipso.nsidc,0),
+                                    np.not_equal(caObj.calipso.igbp,17))
     elif mode == 'COASTAL_ZONE':
         cal_subset = np.equal(caObj.calipso.nsidc,255)
     
     elif mode == 'TROPIC_ZONE':
         cal_subset = np.abs(caObj.calipso.latitude) <= 10
     elif mode == 'TROPIC_ZONE_SNOW_FREE_LAND':
-        cal_subset_lat = np.logical_and(np.equal(caObj.calipso.nsidc,0),np.not_equal(caObj.calipso.igbp,17))
+        cal_subset_lat = np.logical_and(np.equal(caObj.calipso.nsidc,0),
+                                        np.not_equal(caObj.calipso.igbp,17))
         cal_subset_area = np.abs(caObj.calipso.latitude) <= 10
         cal_subset = np.logical_and(cal_subset_lat, cal_subset_area)
     elif mode == 'TROPIC_ZONE_ICE_FREE_SEA':
-        cal_subset_lat = np.logical_and(np.equal(caObj.calipso.nsidc,0),np.equal(caObj.calipso.igbp,17))
+        cal_subset_lat = np.logical_and(np.equal(caObj.calipso.nsidc,0),
+                                        np.equal(caObj.calipso.igbp,17))
         cal_subset_area = np.abs(caObj.calipso.latitude) <= 10
         cal_subset = np.logical_and(cal_subset_lat, cal_subset_area)
     
     elif mode == 'SUB_TROPIC_ZONE':
-        cal_subset = np.logical_and((np.abs(caObj.calipso.latitude) > 10), (np.abs(caObj.calipso.latitude) <= 45))    
+        cal_subset = np.logical_and((np.abs(caObj.calipso.latitude) > 10), 
+                                    (np.abs(caObj.calipso.latitude) <= 45))    
     elif mode == 'SUB_TROPIC_ZONE_SNOW_FREE_LAND':
-        cal_subset_lat = np.logical_and((np.abs(caObj.calipso.latitude) > 10), (np.abs(caObj.calipso.latitude) <= 45))
-        cal_subset_area = np.logical_and(np.equal(caObj.calipso.nsidc,0),np.not_equal(caObj.calipso.igbp,17))
+        cal_subset_lat = np.logical_and((np.abs(caObj.calipso.latitude) > 10), 
+                                        (np.abs(caObj.calipso.latitude) <= 45))
+        cal_subset_area = np.logical_and(np.equal(caObj.calipso.nsidc,0),
+                                         np.not_equal(caObj.calipso.igbp,17))
         cal_subset = np.logical_and(cal_subset_lat, cal_subset_area)
     elif mode == 'SUB_TROPIC_ZONE_ICE_FREE_SEA':
-        cal_subset_lat = np.logical_and((np.abs(caObj.calipso.latitude) > 10), (np.abs(caObj.calipso.latitude) <= 45))
-        cal_subset_area = np.logical_and(np.equal(caObj.calipso.nsidc,0),np.equal(caObj.calipso.igbp,17))
+        cal_subset_lat = np.logical_and((np.abs(caObj.calipso.latitude) > 10), 
+                                        (np.abs(caObj.calipso.latitude) <= 45))
+        cal_subset_area = np.logical_and(np.equal(caObj.calipso.nsidc,0),
+                                         np.equal(caObj.calipso.igbp,17))
         cal_subset = np.logical_and(cal_subset_lat, cal_subset_area)
     
     elif mode == 'HIGH-LATITUDES':
-        cal_subset = np.logical_and((np.abs(caObj.calipso.latitude) > 45), (np.abs(caObj.calipso.latitude) <= 75))
+        cal_subset = np.logical_and((np.abs(caObj.calipso.latitude) > 45), 
+                                    (np.abs(caObj.calipso.latitude) <= 75))
     elif mode == 'HIGH-LATITUDES_SNOW_FREE_LAND':
-        cal_subset_lat = np.logical_and(np.equal(caObj.calipso.nsidc,0),np.not_equal(caObj.calipso.igbp,17))
-        cal_subset_area = np.logical_and((np.abs(caObj.calipso.latitude) > 45), (np.abs(caObj.calipso.latitude) <= 75))
+        cal_subset_lat = np.logical_and(np.equal(caObj.calipso.nsidc,0),
+                                        np.not_equal(caObj.calipso.igbp,17))
+        cal_subset_area = np.logical_and((np.abs(caObj.calipso.latitude) > 45), 
+                                         (np.abs(caObj.calipso.latitude) <= 75))
         cal_subset = np.logical_and(cal_subset_lat, cal_subset_area)
     elif mode == 'HIGH-LATITUDES_SNOW_COVER_LAND':
-        cal_subset_lat = np.logical_and(np.logical_and(np.less(caObj.calipso.nsidc,104),np.greater(caObj.calipso.nsidc,10)),np.not_equal(caObj.calipso.igbp,17))
+        cal_subset_lat = np.logical_and(
+            np.logical_and(np.less(caObj.calipso.nsidc,104),
+                           np.greater(caObj.calipso.nsidc,10)),
+            np.not_equal(caObj.calipso.igbp,17))
         cal_subset_area = np.logical_and((np.abs(caObj.calipso.latitude) > 45), (np.abs(caObj.calipso.latitude) <= 75))
         cal_subset = np.logical_and(cal_subset_lat, cal_subset_area)
     elif mode == 'HIGH-LATITUDES_ICE_FREE_SEA':
-        cal_subset_lat = np.logical_and(np.equal(caObj.calipso.nsidc,0),np.equal(caObj.calipso.igbp,17))
-        cal_subset_area = np.logical_and((np.abs(caObj.calipso.latitude) > 45), (np.abs(caObj.calipso.latitude) <= 75))
+        cal_subset_lat = np.logical_and(np.equal(caObj.calipso.nsidc,0),
+                                        np.equal(caObj.calipso.igbp,17))
+        cal_subset_area = np.logical_and((np.abs(caObj.calipso.latitude) > 45), 
+                                         (np.abs(caObj.calipso.latitude) <= 75))
         cal_subset = np.logical_and(cal_subset_lat, cal_subset_area)
     elif mode == 'HIGH-LATITUDES_ICE_COVER_SEA':
-        cal_subset_lat = np.logical_and(np.logical_and(np.less_equal(caObj.calipso.nsidc,100),np.greater(caObj.calipso.nsidc,10)),np.equal(caObj.calipso.igbp,17))
-        cal_subset_area = np.logical_and((np.abs(caObj.calipso.latitude) > 45), (np.abs(caObj.calipso.latitude) <= 75))
+        cal_subset_lat = np.logical_and(
+            np.logical_and(np.less_equal(caObj.calipso.nsidc,100),
+                           np.greater(caObj.calipso.nsidc,10)),
+            np.equal(caObj.calipso.igbp,17))
+        cal_subset_area = np.logical_and((np.abs(caObj.calipso.latitude) > 45), 
+                                         (np.abs(caObj.calipso.latitude) <= 75))
         cal_subset = np.logical_and(cal_subset_lat, cal_subset_area)
     
     
     elif mode == 'POLAR':
         cal_subset = np.abs(caObj.calipso.latitude) > 75
     elif mode == 'POLAR_SNOW_FREE_LAND':
-        cal_subset_lat = np.logical_and(np.equal(caObj.calipso.nsidc,0),np.not_equal(caObj.calipso.igbp,17))
+        cal_subset_lat = np.logical_and(np.equal(caObj.calipso.nsidc,0),
+                                        np.not_equal(caObj.calipso.igbp,17))
         cal_subset_area = np.abs(caObj.calipso.latitude) > 75
         cal_subset = np.logical_and(cal_subset_lat, cal_subset_area)
     elif mode == 'POLAR_SNOW_COVER_LAND':
-        cal_subset_lat = np.logical_and(np.logical_and(np.less(caObj.calipso.nsidc,104),np.greater(caObj.calipso.nsidc,10)),np.not_equal(caObj.calipso.igbp,17))
+        cal_subset_lat = np.logical_and(
+            np.logical_and(np.less(caObj.calipso.nsidc,104),
+                           np.greater(caObj.calipso.nsidc,10)),
+            np.not_equal(caObj.calipso.igbp,17))
         cal_subset_area = np.abs(caObj.calipso.latitude) > 75
         cal_subset = np.logical_and(cal_subset_lat, cal_subset_area)
     elif mode == 'POLAR_ICE_FREE_SEA':
-        cal_subset_lat = np.logical_and(np.equal(caObj.calipso.nsidc,0),np.equal(caObj.calipso.igbp,17))
+        cal_subset_lat = np.logical_and(
+            np.equal(caObj.calipso.nsidc,0),np.equal(caObj.calipso.igbp,17))
         cal_subset_area = np.abs(caObj.calipso.latitude) > 75
         cal_subset = np.logical_and(cal_subset_lat, cal_subset_area)
     elif mode == 'POLAR_ICE_COVER_SEA':
-        cal_subset_lat = np.logical_and(np.logical_and(np.less_equal(caObj.calipso.nsidc,100),np.greater(caObj.calipso.nsidc,10)),np.equal(caObj.calipso.igbp,17))
+        cal_subset_lat = np.logical_and(
+            np.logical_and(np.less_equal(caObj.calipso.nsidc,100),
+                           np.greater(caObj.calipso.nsidc,10)),
+            np.equal(caObj.calipso.igbp,17))
         cal_subset_area = np.abs(caObj.calipso.latitude) > 75
         cal_subset = np.logical_and(cal_subset_lat, cal_subset_area)
     
@@ -272,10 +307,12 @@ def get_day_semi_opaque_info(caObj):
     opaque_flag = None
     if hasattr(caObj.avhrr, 'cloudtype_qflag'):
         if caObj.avhrr.ctth_opaque is not None:
-            semi_flag, opaque_flag = get_semi_opaque_info_pps2012(caObj.avhrr.ctth_opaque) 
+            semi_flag, opaque_flag = get_semi_opaque_info_pps2012(
+                caObj.avhrr.ctth_opaque) 
     if hasattr(caObj.avhrr, 'cloudtype_conditions'):
         if caObj.avhrr.ctth_status is not None:
-            semi_flag, opaque_flag = get_semi_opaque_info_pps2014(caObj.avhrr.ctth_status)
+            semi_flag, opaque_flag = get_semi_opaque_info_pps2014(
+                caObj.avhrr.ctth_status)
     return semi_flag, opaque_flag
 
 
@@ -284,7 +321,8 @@ def print_cloudsat_stats(clsatObj, statfile):
         dummy=clsatObj.cloudsat.latitude.shape[0]
         pixel_position=np.arange(dummy)
         cloudsat_cloud_mask=clsatObj.cloudsat.cloud_mask
-        cloudsat_cloud_mask=np.greater_equal(cloudsat_cloud_mask, config.CLOUDSAT_CLOUDY_THR)
+        cloudsat_cloud_mask=np.greater_equal(cloudsat_cloud_mask, 
+                                             config.CLOUDSAT_CLOUDY_THR)
         
         cloudsat_cloud_fraction=np.zeros(len(pixel_position))
     
@@ -294,16 +332,22 @@ def print_cloudsat_stats(clsatObj, statfile):
         for idx in range (len(pixel_position)):
             if sum_cloudsat_cloud_mask[idx] > 2: # requires at least two cloudy bins
                 cloudsat_cloud_fraction[idx]=1
-                                        
+        print "Warning what version of pps cloudtype is this!!"        
         cloudsat_clear =  np.less(cloudsat_cloud_fraction,1)
         cloudsat_cloudy = np.greater_equal(cloudsat_cloud_fraction,1)
-        pps_clear = np.logical_and(np.less_equal(clsatObj.avhrr.cloudtype,4),np.greater(clsatObj.avhrr.cloudtype,0))
-        pps_cloudy = np.logical_and(np.greater(clsatObj.avhrr.cloudtype,4),np.less(clsatObj.avhrr.cloudtype,20))
+        pps_clear = np.logical_and(np.less_equal(clsatObj.avhrr.cloudtype,4),
+                                   np.greater(clsatObj.avhrr.cloudtype,0))
+        pps_cloudy = np.logical_and(np.greater(clsatObj.avhrr.cloudtype,4),
+                                    np.less(clsatObj.avhrr.cloudtype,20))
 
-        n_clear_clear = np.repeat(pps_clear,np.logical_and(cloudsat_clear,pps_clear)).shape[0]
-        n_cloudy_cloudy = np.repeat(pps_cloudy,np.logical_and(cloudsat_cloudy,pps_cloudy)).shape[0]
-        n_clear_cloudy = np.repeat(pps_cloudy,np.logical_and(cloudsat_clear,pps_cloudy)).shape[0]
-        n_cloudy_clear = np.repeat(pps_clear,np.logical_and(cloudsat_cloudy,pps_clear)).shape[0]
+        n_clear_clear = np.repeat(
+            pps_clear, np.logical_and(cloudsat_clear,pps_clear)).shape[0]
+        n_cloudy_cloudy = np.repeat(
+            pps_cloudy,np.logical_and(cloudsat_cloudy,pps_cloudy)).shape[0]
+        n_clear_cloudy = np.repeat(
+            pps_cloudy,np.logical_and(cloudsat_clear,pps_cloudy)).shape[0]
+        n_cloudy_clear = np.repeat(
+            pps_clear,np.logical_and(cloudsat_cloudy,pps_clear)).shape[0]
         
         nclear = np.repeat(cloudsat_clear,cloudsat_clear).shape[0]
         ncloudy = np.repeat(cloudsat_cloudy,cloudsat_cloudy).shape[0]
@@ -354,15 +398,21 @@ def print_cloudsat_modis_stats(clsatObj, statfile):
         #print "------------------------------------"
         #print "STATISTICS CLOUD MASK: CLOUDSAT - MODIS" 
     
-        modis_clear = np.logical_or(np.equal(clsatObj.cloudsat.MODIS_cloud_flag,1),
-                                            np.equal(clsatObj.cloudsat.MODIS_cloud_flag,0))
-        modis_cloudy = np.logical_or(np.equal(clsatObj.cloudsat.MODIS_cloud_flag,3),
-                                            np.equal(clsatObj.cloudsat.MODIS_cloud_flag,2))
+        modis_clear = np.logical_or(
+            np.equal(clsatObj.cloudsat.MODIS_cloud_flag,1),
+            np.equal(clsatObj.cloudsat.MODIS_cloud_flag,0))
+        modis_cloudy = np.logical_or(
+            np.equal(clsatObj.cloudsat.MODIS_cloud_flag,3),
+            np.equal(clsatObj.cloudsat.MODIS_cloud_flag,2))
     
-        n_clear_clear = np.repeat(modis_clear,np.logical_and(cloudsat_clear,modis_clear)).shape[0]
-        n_cloudy_cloudy = np.repeat(modis_cloudy,np.logical_and(cloudsat_cloudy,modis_cloudy)).shape[0]
-        n_clear_cloudy = np.repeat(modis_cloudy,np.logical_and(cloudsat_clear,modis_cloudy)).shape[0]
-        n_cloudy_clear = np.repeat(modis_clear,np.logical_and(cloudsat_cloudy,modis_clear)).shape[0]
+        n_clear_clear = np.repeat(
+            modis_clear, np.logical_and(cloudsat_clear,modis_clear)).shape[0]
+        n_cloudy_cloudy = np.repeat(
+            modis_cloudy, np.logical_and(cloudsat_cloudy,modis_cloudy)).shape[0]
+        n_clear_cloudy = np.repeat(
+            modis_cloudy, np.logical_and(cloudsat_clear,modis_cloudy)).shape[0]
+        n_cloudy_clear = np.repeat(
+            modis_clear, np.logical_and(cloudsat_cloudy,modis_clear)).shape[0]
         
         nclear = np.repeat(cloudsat_clear,cloudsat_clear).shape[0]
         ncloudy = np.repeat(cloudsat_cloudy,cloudsat_cloudy).shape[0]
@@ -421,11 +471,15 @@ def print_calipso_cmask_stats(caObj, statfile, cal_subset):
 
 
     if config.ALSO_USE_1KM_FILES:
-        calipso_clear = np.logical_and(np.less(caObj.calipso.cloud_fraction,0.5),cal_subset)
-        calipso_cloudy = np.logical_and(np.greater(caObj.calipso.cloud_fraction,0.5),cal_subset)
+        calipso_clear = np.logical_and(
+            np.less(caObj.calipso.cloud_fraction,0.5),cal_subset)
+        calipso_cloudy = np.logical_and(
+            np.greater(caObj.calipso.cloud_fraction,0.5),cal_subset)
     else:
-        calipso_clear = np.logical_and(np.less(caObj.calipso.cloud_fraction,0.34),cal_subset)
-        calipso_cloudy = np.logical_and(np.greater(caObj.calipso.cloud_fraction,0.66),cal_subset)
+        calipso_clear = np.logical_and(
+            np.less(caObj.calipso.cloud_fraction,0.34),cal_subset)
+        calipso_cloudy = np.logical_and(
+            np.greater(caObj.calipso.cloud_fraction,0.66),cal_subset)
         
     # For the combined 1km + 5km dataset cloud_fraction can only have values (0.0, 0.2, 0.4, 0.6, 0.8, 1.0). So the threshold should
     # really be set to 0.4, i.e., at least two 1 km columns should be cloudy!. 
@@ -436,10 +490,14 @@ def print_calipso_cmask_stats(caObj, statfile, cal_subset):
     #print "------------------------------------"
     #print "STATISTICS CLOUD MASK: CALIOP - AVHRR"
     
-    n_clear_clear = np.repeat(pps_clear,np.logical_and(calipso_clear,pps_clear)).shape[0]
-    n_cloudy_cloudy = np.repeat(pps_cloudy,np.logical_and(calipso_cloudy,pps_cloudy)).shape[0]
-    n_clear_cloudy = np.repeat(pps_cloudy,np.logical_and(calipso_clear,pps_cloudy)).shape[0]
-    n_cloudy_clear = np.repeat(pps_clear,np.logical_and(calipso_cloudy,pps_clear)).shape[0]
+    n_clear_clear = np.repeat(
+        pps_clear,np.logical_and(calipso_clear,pps_clear)).shape[0]
+    n_cloudy_cloudy = np.repeat(
+        pps_cloudy,np.logical_and(calipso_cloudy,pps_cloudy)).shape[0]
+    n_clear_cloudy = np.repeat(
+        pps_cloudy,np.logical_and(calipso_clear,pps_cloudy)).shape[0]
+    n_cloudy_clear = np.repeat(
+        pps_clear,np.logical_and(calipso_cloudy,pps_clear)).shape[0]
     nclear = np.repeat(calipso_clear,calipso_clear).shape[0]
     ncloudy = np.repeat(calipso_cloudy,calipso_cloudy).shape[0]
     ncloudy_pps = n_cloudy_cloudy+n_clear_cloudy
@@ -485,19 +543,31 @@ def print_calipso_cmask_stats(caObj, statfile, cal_subset):
 
 def print_calipso_modis_stats(caObj, statfile, cal_subset, cal_MODIS_cflag):    
     # CORRELATION CLOUD MASK: CALIOP - MODIS
-    calipso_clear = np.logical_and(np.less(caObj.calipso.cloud_fraction,0.34),cal_subset)
-    calipso_cloudy = np.logical_and(np.greater(caObj.calipso.cloud_fraction,0.66),cal_subset)
+    calipso_clear = np.logical_and(np.less(caObj.calipso.cloud_fraction,0.34),
+                                   cal_subset)
+    calipso_cloudy = np.logical_and(
+        np.greater(caObj.calipso.cloud_fraction,0.66),cal_subset)
     if cal_MODIS_cflag != None:
-        modis_clear = np.logical_and(np.logical_or(np.equal(cal_MODIS_cflag,1),
-                                            np.equal(cal_MODIS_cflag,0)),cal_subset)
-        modis_cloudy = np.logical_and(np.logical_or(np.equal(cal_MODIS_cflag,3),
-                                            np.equal(cal_MODIS_cflag,2)),cal_subset)
+        modis_clear = np.logical_and(
+            np.logical_or(np.equal(cal_MODIS_cflag,1),
+                          np.equal(cal_MODIS_cflag,0)),cal_subset)
+        modis_cloudy = np.logical_and(
+            np.logical_or(np.equal(cal_MODIS_cflag,3),
+                          np.equal(cal_MODIS_cflag,2)),cal_subset)
 
     if cal_MODIS_cflag != None:
-        n_clear_clear = np.repeat(modis_clear,np.logical_and(calipso_clear,modis_clear)).shape[0]
-        n_cloudy_cloudy = np.repeat(modis_cloudy,np.logical_and(calipso_cloudy,modis_cloudy)).shape[0]
-        n_clear_cloudy = np.repeat(modis_cloudy,np.logical_and(calipso_clear,modis_cloudy)).shape[0]
-        n_cloudy_clear = np.repeat(modis_clear,np.logical_and(calipso_cloudy,modis_clear)).shape[0]
+        n_clear_clear = np.repeat(
+            modis_clear,
+            np.logical_and(calipso_clear,modis_clear)).shape[0]
+        n_cloudy_cloudy = np.repeat(
+            modis_cloudy,
+            np.logical_and(calipso_cloudy,modis_cloudy)).shape[0]
+        n_clear_cloudy = np.repeat(
+            modis_cloudy,
+            np.logical_and(calipso_clear,modis_cloudy)).shape[0]
+        n_cloudy_clear = np.repeat(
+            modis_clear,
+            np.logical_and(calipso_cloudy,modis_clear)).shape[0]
         nclear = np.repeat(calipso_clear,calipso_clear).shape[0]
         ncloudy = np.repeat(calipso_cloudy,calipso_cloudy).shape[0]
         ncloudy_modis = n_cloudy_cloudy+n_clear_cloudy
@@ -547,60 +617,135 @@ def print_calipso_stats_ctype(caObj, statfile, cal_subset, cal_vert_feature):
 
     # CLOUD TYPE EVALUATION - Based exclusively on CALIPSO data (Vertical Feature Mask)
     # =======================
-    calipso_low = np.logical_and(np.logical_and(np.greater_equal(cal_vert_feature[::],0),np.less_equal(cal_vert_feature[::],3)),cal_subset)
-    calipso_medium = np.logical_and(np.logical_and(np.greater(cal_vert_feature[::],3),np.less_equal(cal_vert_feature[::],5)),cal_subset)
-    calipso_high = np.logical_and(np.logical_and(np.greater(cal_vert_feature[::],5),np.less_equal(cal_vert_feature[::],7)),cal_subset)
+    calipso_low = np.logical_and(
+        np.logical_and(np.greater_equal(cal_vert_feature[::],0),
+                       np.less_equal(cal_vert_feature[::],3)),
+        cal_subset)
+    calipso_medium = np.logical_and(
+        np.logical_and(np.greater(cal_vert_feature[::],3),
+                       np.less_equal(cal_vert_feature[::],5)),
+        cal_subset)
+    calipso_high = np.logical_and(
+        np.logical_and(np.greater(cal_vert_feature[::],5),
+                       np.less_equal(cal_vert_feature[::],7)),
+        cal_subset)
     if caObj.avhrr.cloudtype_conditions is not None:
         write_log("INFO", "Assuming cloudtype structure from pps v2014")
-        avhrr_low = np.logical_and(np.logical_and(np.greater_equal(caObj.avhrr.cloudtype,5),np.less_equal(caObj.avhrr.cloudtype,6)),cal_subset)
-        avhrr_medium = np.logical_and(np.equal(caObj.avhrr.cloudtype,7), cal_subset)
-        avhrr_high_op = np.logical_and(np.logical_and(np.greater_equal(caObj.avhrr.cloudtype,8),np.less_equal(caObj.avhrr.cloudtype,9)),cal_subset)
-        avhrr_high_semi = np.logical_and(np.logical_and(np.greater_equal(caObj.avhrr.cloudtype,11),np.less_equal(caObj.avhrr.cloudtype,15)),cal_subset)
+        avhrr_low = np.logical_and(
+            np.logical_and(np.greater_equal(caObj.avhrr.cloudtype,5),
+                           np.less_equal(caObj.avhrr.cloudtype,6)),
+            cal_subset)
+        avhrr_medium = np.logical_and(
+            np.equal(caObj.avhrr.cloudtype,7), cal_subset)
+        avhrr_high_op = np.logical_and(
+            np.logical_and(np.greater_equal(caObj.avhrr.cloudtype,8),
+                           np.less_equal(caObj.avhrr.cloudtype,9)),
+            cal_subset)
+        avhrr_high_semi = np.logical_and(
+            np.logical_and(np.greater_equal(caObj.avhrr.cloudtype,11),
+                           np.less_equal(caObj.avhrr.cloudtype,15)),
+            cal_subset)
         avhrr_high = np.logical_or(avhrr_high_op,avhrr_high_semi)
-        avhrr_frac = np.logical_and(np.equal(caObj.avhrr.cloudtype,10), cal_subset)
+        avhrr_frac = np.logical_and(np.equal(caObj.avhrr.cloudtype,10), 
+                                    cal_subset)
 
     else:
         write_log("INFO", "Assuming cloudtype structure from pps v2012")
-        avhrr_low = np.logical_and(np.logical_and(np.greater_equal(caObj.avhrr.cloudtype,5),np.less_equal(caObj.avhrr.cloudtype,8)),cal_subset)
-        avhrr_medium = np.logical_and(np.logical_and(np.greater_equal(caObj.avhrr.cloudtype,9),np.less_equal(caObj.avhrr.cloudtype,10)),cal_subset)
-        avhrr_high = np.logical_and(np.logical_and(np.greater_equal(caObj.avhrr.cloudtype,11),np.less_equal(caObj.avhrr.cloudtype,18)),cal_subset)
-        avhrr_frac = np.logical_and(np.logical_and(np.greater_equal(caObj.avhrr.cloudtype,19),np.less_equal(caObj.avhrr.cloudtype,19)),cal_subset)
+        avhrr_low = np.logical_and(
+            np.logical_and(np.greater_equal(caObj.avhrr.cloudtype,5),
+                           np.less_equal(caObj.avhrr.cloudtype,8)),
+            cal_subset)
+        avhrr_medium = np.logical_and(
+            np.logical_and(np.greater_equal(caObj.avhrr.cloudtype,9),
+                           np.less_equal(caObj.avhrr.cloudtype,10)),
+            cal_subset)
+        avhrr_high = np.logical_and(
+            np.logical_and(np.greater_equal(caObj.avhrr.cloudtype,11),
+                           np.less_equal(caObj.avhrr.cloudtype,18)),
+            cal_subset)
+        avhrr_frac = np.logical_and(
+            np.logical_and(np.greater_equal(caObj.avhrr.cloudtype,19),
+                           np.less_equal(caObj.avhrr.cloudtype,19)),
+            cal_subset)
 
 
 
 
-    calipso_clear = np.logical_and(np.less(caObj.calipso.cloud_fraction,0.34),cal_subset)
-    calipso_cloudy = np.logical_and(np.greater(caObj.calipso.cloud_fraction,0.66),cal_subset)
-    avhrr_clear = np.logical_and(np.logical_and(np.less_equal(caObj.avhrr.cloudtype,4),np.greater(caObj.avhrr.cloudtype,0)),cal_subset)
+    calipso_clear = np.logical_and(
+        np.less(caObj.calipso.cloud_fraction,0.34),cal_subset)
+    calipso_cloudy = np.logical_and(
+        np.greater(caObj.calipso.cloud_fraction,0.66),cal_subset)
+    avhrr_clear = np.logical_and(
+        np.logical_and(np.less_equal(caObj.avhrr.cloudtype,4),
+                       np.greater(caObj.avhrr.cloudtype,0)),
+        cal_subset)
     
     
     # Notice that we have unfortunately changed order in notation compared to cloud mask
     # Here the PPS category is mentioned first and then the CALIOP category 
 
-    n_low_low = np.repeat(avhrr_low,np.logical_and(calipso_low,avhrr_low)).shape[0]
-    n_low_medium = np.repeat(avhrr_low,np.logical_and(calipso_medium,avhrr_low)).shape[0]
-    n_low_high = np.repeat(avhrr_low,np.logical_and(calipso_high,avhrr_low)).shape[0]
-    n_medium_low = np.repeat(avhrr_medium,np.logical_and(calipso_low,avhrr_medium)).shape[0]
-    n_medium_medium = np.repeat(avhrr_medium,np.logical_and(calipso_medium,avhrr_medium)).shape[0]
-    n_medium_high = np.repeat(avhrr_medium,np.logical_and(calipso_high,avhrr_medium)).shape[0]
-    n_high_low = np.repeat(avhrr_high,np.logical_and(calipso_low,avhrr_high)).shape[0]
-    n_high_medium = np.repeat(avhrr_high,np.logical_and(calipso_medium,avhrr_high)).shape[0]
-    n_high_high = np.repeat(avhrr_high,np.logical_and(calipso_high,avhrr_high)).shape[0]
-    n_frac_low = np.repeat(avhrr_frac,np.logical_and(calipso_low,avhrr_frac)).shape[0]
-    n_frac_medium = np.repeat(avhrr_frac,np.logical_and(calipso_medium,avhrr_frac)).shape[0]
-    n_frac_high = np.repeat(avhrr_frac,np.logical_and(calipso_high,avhrr_frac)).shape[0]
+    n_low_low = np.repeat(
+        avhrr_low,
+        np.logical_and(calipso_low,avhrr_low)).shape[0]
+    n_low_medium = np.repeat(
+        avhrr_low,
+        np.logical_and(calipso_medium,avhrr_low)).shape[0]
+    n_low_high = np.repeat(
+        avhrr_low,
+        np.logical_and(calipso_high,avhrr_low)).shape[0]
+    n_medium_low = np.repeat(
+        avhrr_medium,
+        np.logical_and(calipso_low,avhrr_medium)).shape[0]
+    n_medium_medium = np.repeat(
+        avhrr_medium,
+        np.logical_and(calipso_medium,avhrr_medium)).shape[0]
+    n_medium_high = np.repeat(
+        avhrr_medium,
+        np.logical_and(calipso_high,avhrr_medium)).shape[0]
+    n_high_low = np.repeat(
+        avhrr_high, 
+        np.logical_and(calipso_low,avhrr_high)).shape[0]
+    n_high_medium = np.repeat(
+        avhrr_high,
+        np.logical_and(calipso_medium,avhrr_high)).shape[0]
+    n_high_high = np.repeat(
+        avhrr_high,
+        np.logical_and(calipso_high,avhrr_high)).shape[0]
+    n_frac_low = np.repeat(
+        avhrr_frac,
+        np.logical_and(calipso_low,avhrr_frac)).shape[0]
+    n_frac_medium = np.repeat(
+        avhrr_frac,
+        np.logical_and(calipso_medium,avhrr_frac)).shape[0]
+    n_frac_high = np.repeat(
+        avhrr_frac,
+        np.logical_and(calipso_high,avhrr_frac)).shape[0]
 
 #    nlow = np.repeat(calipso_low,calipso_low).shape[0]
 #    nmedium = np.repeat(calipso_medium,calipso_medium).shape[0]
 #    nhigh = np.repeat(calipso_high,calipso_high).shape[0]
         
-    n_clear_low = np.repeat(avhrr_clear,np.logical_and(calipso_low,avhrr_clear)).shape[0]
-    n_clear_medium = np.repeat(avhrr_clear,np.logical_and(calipso_medium,avhrr_clear)).shape[0]
-    n_clear_high = np.repeat(avhrr_clear,np.logical_and(calipso_high,avhrr_clear)).shape[0]
-    n_low_clear = np.repeat(avhrr_low,np.logical_and(calipso_clear,avhrr_low)).shape[0]
-    n_medium_clear = np.repeat(avhrr_medium,np.logical_and(calipso_clear,avhrr_medium)).shape[0]
-    n_high_clear = np.repeat(avhrr_high,np.logical_and(calipso_clear,avhrr_high)).shape[0]
-    n_frac_clear = np.repeat(avhrr_frac,np.logical_and(calipso_clear,avhrr_frac)).shape[0]
+    n_clear_low = np.repeat(
+        avhrr_clear,
+        np.logical_and(calipso_low,avhrr_clear)).shape[0]
+    n_clear_medium = np.repeat(
+        avhrr_clear,
+        np.logical_and(calipso_medium,avhrr_clear)).shape[0]
+    n_clear_high = np.repeat(
+        avhrr_clear,
+        np.logical_and(calipso_high,avhrr_clear)).shape[0]
+    n_low_clear = np.repeat(
+        avhrr_low,
+        np.logical_and(calipso_clear,avhrr_low)).shape[0]
+    n_medium_clear = np.repeat(
+        avhrr_medium,
+        np.logical_and(calipso_clear,avhrr_medium)).shape[0]
+    n_high_clear = np.repeat(
+        avhrr_high,
+        np.logical_and(calipso_clear,avhrr_high)).shape[0]
+    n_frac_clear = np.repeat(
+        avhrr_frac,
+        np.logical_and(calipso_clear,avhrr_frac)).shape[0]
     
     #print "Number of points with low clouds (CALIPSO): ",nlow
     #print "Number of points with medium clouds (CALIPSO): ",nmedium
@@ -707,107 +852,164 @@ def print_cloudsat_stats_ctop(clsatObj, statfile):
         statfile.write('No CloudSat \n')
 
 
-def print_height_all_low_medium_high(NAME, okcaliop,  statfile, cal_vert_feature, avhrr_ctth_cal_ok, caliop_max_height):
-    out_stats = calculate_ctth_stats(okcaliop,avhrr_ctth_cal_ok,caliop_max_height)
+def print_height_all_low_medium_high(NAME, okcaliop,  statfile, 
+                                     cal_vert_feature, avhrr_ctth_cal_ok,
+                                     caliop_max_height):
+    out_stats = calculate_ctth_stats(okcaliop,avhrr_ctth_cal_ok,
+                                     caliop_max_height)
     statfile.write("CLOUD HEIGHT %s ALL: %s\n" %(NAME, out_stats))
 #    statfile.write("CLOUD HEIGHT CALIOP ALL: 
 
     # THEN FOR LOW CLOUDS (VERTICAL FEATURE MASK CATEGORIES 0-3)
-    cal_low_ok = np.logical_and(np.greater_equal(cal_vert_feature[::],0),np.less_equal(cal_vert_feature[::],3))
+    cal_low_ok = np.logical_and(np.greater_equal(cal_vert_feature[::],0),
+                                np.less_equal(cal_vert_feature[::],3))
     cal_low_ok = np.logical_and(cal_low_ok, okcaliop) 
-    out_stats =calculate_ctth_stats(cal_low_ok,avhrr_ctth_cal_ok,caliop_max_height)   
+    out_stats =calculate_ctth_stats(cal_low_ok,avhrr_ctth_cal_ok,
+                                    caliop_max_height)   
     statfile.write("CLOUD HEIGHT %s LOW: %s \n" % (NAME, out_stats))
         
     # THEN FOR MEDIUM CLOUDS (VERTICAL FEATURE MASK CATEGORIES 4-5)
-    cal_mid_ok = np.logical_and(np.greater(cal_vert_feature[::],3),np.less_equal(cal_vert_feature[::],5))
+    cal_mid_ok = np.logical_and(np.greater(cal_vert_feature[::],3),
+                                np.less_equal(cal_vert_feature[::],5))
     cal_mid_ok = np.logical_and(cal_mid_ok,okcaliop)
-    out_stats = calculate_ctth_stats(cal_mid_ok,avhrr_ctth_cal_ok,caliop_max_height)   
+    out_stats = calculate_ctth_stats(cal_mid_ok, avhrr_ctth_cal_ok,
+                                     caliop_max_height)   
     statfile.write("CLOUD HEIGHT %s MEDIUM: %s \n" % (NAME, out_stats))
             
     # FINALLY FOR HIGH CLOUDS (VERTICAL FEATURE MASK CATEGORIES 6-7)
-    cal_high_ok = np.logical_and(np.greater(cal_vert_feature[::],5),np.less_equal(cal_vert_feature[::],7))
+    cal_high_ok = np.logical_and(np.greater(cal_vert_feature[::],5),
+                                 np.less_equal(cal_vert_feature[::],7))
     cal_high_ok = np.logical_and(cal_high_ok,okcaliop)
-    out_stats = calculate_ctth_stats(cal_high_ok,avhrr_ctth_cal_ok,caliop_max_height) 
+    out_stats = calculate_ctth_stats(cal_high_ok, avhrr_ctth_cal_ok,
+                                     caliop_max_height) 
     statfile.write("CLOUD HEIGHT %s HIGH: %s \n" % (NAME, out_stats))
 
 def print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature, cal_data_ok, avhrr_ctth_cal_ok, semi_flag, opaque_flag, caliop_max_height ):
     # CORRELATION: CALIOP - AVHRR HEIGHT
     # FIRST TOTAL FIGURES
-    okcaliop = np.logical_and(cal_data_ok,
-                              np.logical_and(np.greater(avhrr_ctth_cal_ok[::],0),cal_subset))
+    okcaliop = np.logical_and(
+        cal_data_ok, 
+        np.logical_and(np.greater(avhrr_ctth_cal_ok[::],0),cal_subset))
     #print "ALL CLOUDS:" 
-    print_height_all_low_medium_high("CALIOP", okcaliop, statfile, cal_vert_feature, avhrr_ctth_cal_ok, caliop_max_height)
+    print_height_all_low_medium_high("CALIOP", 
+                                     okcaliop, 
+                                     statfile, cal_vert_feature, 
+                                     avhrr_ctth_cal_ok, caliop_max_height)
     
 
     if config.COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC:
         statfile.write("CLOUD HEIGHT SINGLE-LAYER\n")
-        okcaliop_single = np.logical_and(okcaliop, np.equal(caObj.calipso.number_of_layers_found,1)) 
-        print_height_all_low_medium_high("CALIOP-SINGLE-LAYER", okcaliop_single,  statfile, cal_vert_feature, avhrr_ctth_cal_ok, caliop_max_height)
+        okcaliop_single = np.logical_and(
+            okcaliop, 
+            np.equal(caObj.calipso.number_of_layers_found,1)) 
+        print_height_all_low_medium_high("CALIOP-SINGLE-LAYER", 
+                                         okcaliop_single,
+                                         statfile, cal_vert_feature, 
+                                         avhrr_ctth_cal_ok, caliop_max_height)
 
     if (config.COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC and
         (config.ALSO_USE_5KM_FILES or config.RESOLUTION==5)): 
         statfile.write("CLOUD HEIGHT SINGLE-LAYER, NOT THIN\n")
         lim=2*config.OPTICAL_DETECTION_LIMIT
-        okcaliop_single_not_thinnest = np.logical_and(okcaliop_single, np.greater_equal(caObj.calipso.optical_depth_top_layer5km,lim))
-        print_height_all_low_medium_high("CALIOP-SINGLE-LAYER>%f"%(lim), okcaliop_single_not_thinnest,  statfile, cal_vert_feature, avhrr_ctth_cal_ok, caliop_max_height)
+        okcaliop_single_not_thinnest = np.logical_and(
+            okcaliop_single, 
+            np.greater_equal(caObj.calipso.optical_depth_top_layer5km,lim))
+        print_height_all_low_medium_high("CALIOP-SINGLE-LAYER>%f"%(lim), 
+                                         okcaliop_single_not_thinnest,  
+                                         statfile, cal_vert_feature, 
+                                         avhrr_ctth_cal_ok, caliop_max_height)
         
         statfile.write("CLOUD HEIGHT NOT VERY THIN TOP LAYER\n")
         lim=config.OPTICAL_DETECTION_LIMIT
-        okcaliop_not_thinnest_top_layer = np.logical_and(okcaliop, np.greater_equal(caObj.calipso.optical_depth_top_layer5km,lim))
-        print_height_all_low_medium_high("CALIOP-TOP-LAYER>%f"%(lim), okcaliop_not_thinnest_top_layer,  statfile, cal_vert_feature, avhrr_ctth_cal_ok, caliop_max_height)
+        okcaliop_not_thinnest_top_layer = np.logical_and(
+            okcaliop, 
+            np.greater_equal(caObj.calipso.optical_depth_top_layer5km,lim))
+        print_height_all_low_medium_high("CALIOP-TOP-LAYER>%f"%(lim), 
+                                         okcaliop_not_thinnest_top_layer,  
+                                         statfile, cal_vert_feature, 
+                                         avhrr_ctth_cal_ok, caliop_max_height)
 
         lim=config.OPTICAL_DETECTION_LIMIT
         statfile.write("CLOUD HEIGHT VERY THIN TOP LAYER\n")
-        okcaliop_thinnest_top_layer = np.logical_and(okcaliop, np.less_equal(caObj.calipso.optical_depth_top_layer5km,lim))
-        print_height_all_low_medium_high("CALIOP-TOP-LAYER<=%f"%(lim), okcaliop_thinnest_top_layer,  statfile, cal_vert_feature, avhrr_ctth_cal_ok, caliop_max_height)
+        okcaliop_thinnest_top_layer = np.logical_and(
+            okcaliop, 
+            np.less_equal(caObj.calipso.optical_depth_top_layer5km,lim))
+        print_height_all_low_medium_high("CALIOP-TOP-LAYER<=%f"%(lim), 
+                                         okcaliop_thinnest_top_layer,  
+                                         statfile, cal_vert_feature, 
+                                         avhrr_ctth_cal_ok, caliop_max_height)
         
 
-    if config.COMPILE_RESULTS_SEPARATELY_FOR_SEMI_AND_OPAQUE and semi_flag is not None and opaque_flag is not None:
+    if (config.COMPILE_RESULTS_SEPARATELY_FOR_SEMI_AND_OPAQUE and 
+        semi_flag is not None and 
+        opaque_flag is not None):
             
         #Opaque stats
         statfile.write("CLOUD HEIGHT OPAQUE\n")
         okcaliop_opaque_pps = np.logical_and(okcaliop, opaque_flag)
-        print_height_all_low_medium_high("CALIOP-OPAQUE", okcaliop_opaque_pps,  statfile, cal_vert_feature, avhrr_ctth_cal_ok, caliop_max_height)
+        print_height_all_low_medium_high("CALIOP-OPAQUE", 
+                                         okcaliop_opaque_pps,  
+                                         statfile, cal_vert_feature, 
+                                         avhrr_ctth_cal_ok, caliop_max_height)
 
         #Semi-transparent stats
         statfile.write("CLOUD HEIGHT SEMI\n")
         okcaliop_semi_pps = np.logical_and(okcaliop, semi_flag)
-        print_height_all_low_medium_high("CALIOP-SEMI", okcaliop_semi_pps,  statfile, cal_vert_feature, avhrr_ctth_cal_ok, caliop_max_height)
+        print_height_all_low_medium_high("CALIOP-SEMI", 
+                                         okcaliop_semi_pps,  
+                                         statfile, cal_vert_feature, 
+                                         avhrr_ctth_cal_ok, caliop_max_height)
 
 
-    if config.COMPILE_RESULTS_SEPARATELY_FOR_SEMI_AND_OPAQUE and semi_flag is not None and opaque_flag is not None:
+    if (config.COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC and
+        (config.ALSO_USE_5KM_FILES or config.RESOLUTION==5) and
+        config.COMPILE_RESULTS_SEPARATELY_FOR_SEMI_AND_OPAQUE and 
+        semi_flag is not None and 
+        opaque_flag is not None):
             
         #Thin top layer
         #Opaque stats
         lim=config.OPTICAL_DETECTION_LIMIT
         statfile.write("CLOUD HEIGHT OPAQUE TOP LAYER VERY NOT-THIN\n")
-        okcaliop_opaque_pps_not_thin = np.logical_and(np.logical_and(okcaliop, opaque_flag),
-                                             np.greater(caObj.calipso.optical_depth_top_layer5km,lim))
-        print_height_all_low_medium_high("CALIOP-OPAQUE-TOP-LAYER>%f"%(lim), okcaliop_opaque_pps_not_thin,  statfile, cal_vert_feature, avhrr_ctth_cal_ok, caliop_max_height)
+        okcaliop_opaque_pps_not_thin = np.logical_and(
+            np.logical_and(okcaliop, opaque_flag),
+            np.greater(caObj.calipso.optical_depth_top_layer5km,lim))
+        print_height_all_low_medium_high("CALIOP-OPAQUE-TOP-LAYER>%f"%(lim), 
+                                         okcaliop_opaque_pps_not_thin,  
+                                         statfile, cal_vert_feature, 
+                                         avhrr_ctth_cal_ok, caliop_max_height)
         #Semi-transparent stats
         statfile.write("CLOUD HEIGHT SEMI TOP LAYER VERY NOT-THIN\n")
-        okcaliop_semi_pps_not_thin = np.logical_and(np.logical_and(okcaliop, semi_flag),
-                                             np.greater(caObj.calipso.optical_depth_top_layer5km,lim))
-        print_height_all_low_medium_high("CALIOP-SEMI-TOP-LAYER>%f"%(lim), okcaliop_semi_pps_not_thin,  statfile, cal_vert_feature, avhrr_ctth_cal_ok, caliop_max_height)
+        okcaliop_semi_pps_not_thin = np.logical_and(
+            np.logical_and(okcaliop, semi_flag),
+            np.greater(caObj.calipso.optical_depth_top_layer5km,lim))
+        print_height_all_low_medium_high("CALIOP-SEMI-TOP-LAYER>%f"%(lim), 
+                                         okcaliop_semi_pps_not_thin,  
+                                         statfile, cal_vert_feature, 
+                                         avhrr_ctth_cal_ok, caliop_max_height)
 
         #Not thin top layer
         #Opaque stats
         lim=config.OPTICAL_DETECTION_LIMIT
         statfile.write("CLOUD HEIGHT OPAQUE TOP LAYER VERY THIN\n")
-        okcaliop_opaque_pps_thin = np.logical_and(np.logical_and(okcaliop, opaque_flag),
-                                             np.less_equal(caObj.calipso.optical_depth_top_layer5km,lim))
-        print_height_all_low_medium_high("CALIOP-OPAQUE-TOP-LAYER<=%f"%(lim), okcaliop_opaque_pps_thin,  statfile, cal_vert_feature, caliop_max_height)
+        okcaliop_opaque_pps_thin = np.logical_and(
+            np.logical_and(okcaliop, opaque_flag),
+            np.less_equal(caObj.calipso.optical_depth_top_layer5km,lim))
+        print_height_all_low_medium_high("CALIOP-OPAQUE-TOP-LAYER<=%f"%(lim), 
+                                         okcaliop_opaque_pps_thin,  
+                                         statfile, cal_vert_feature, 
+                                         avhrr_ctth_cal_ok, caliop_max_height)
 
         #Semi-transparent stats
         statfile.write("CLOUD HEIGHT SEMI TOP LAYER VERY THIN\n")
-        okcaliop_semi_pps_thin = np.logical_and(np.logical_and(okcaliop, semi_flag),
-                                             np._less_equal(caObj.calipso.optical_depth_top_layer5km,lim))
-        print_height_all_low_medium_high("CALIOP-SEMI-TOP-LAYER<=%f"%(lim), okcaliop_opaque_pps_thin,  statfile, cal_vert_feature, caliop_max_height)
+        okcaliop_semi_pps_thin = np.logical_and(
+            np.logical_and(okcaliop, semi_flag),
+            np._less_equal(caObj.calipso.optical_depth_top_layer5km,lim))
+        print_height_all_low_medium_high("CALIOP-SEMI-TOP-LAYER<=%f"%(lim), 
+                                         okcaliop_opaque_pps_thin,  
+                                         statfile, cal_vert_feature, 
+                                         avhrr_ctth_cal_ok, caliop_max_height)
 
-
-
-     
-    
 
 def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
                         cal_vert_feature, avhrr_ctth_csat_ok, data_ok,
