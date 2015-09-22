@@ -3,6 +3,8 @@ Created on Oct 19, 2010
 
 @author: a001696
 '''
+import numpy as np
+
 class MatchupError(Exception):
     """This exception is used when a problem matching AVHRR data with 
     Cloudsat / CALIPSO data has occured."""
