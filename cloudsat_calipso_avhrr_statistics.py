@@ -1010,7 +1010,7 @@ def print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature,
             np.logical_and(okcaliop, semi_flag),
             np.less_equal(caObj.calipso.optical_depth_top_layer5km,lim))
         print_height_all_low_medium_high("CALIOP-SEMI-TOP-LAYER<=%f"%(lim), 
-                                         okcaliop_opaque_pps_thin,  
+                                         okcaliop_semi_pps_thin,  
                                          statfile, cal_vert_feature, 
                                          avhrr_ctth_cal_ok, caliop_max_height)
 
