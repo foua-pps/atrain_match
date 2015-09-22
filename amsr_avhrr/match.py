@@ -7,7 +7,7 @@ from __future__ import with_statement
 import numpy as np
 import logging
 import h5py
-from config import RESOLUTION
+from config import RESOLUTION, NODATA
 logger = logging.getLogger(__name__)
 
 
@@ -35,13 +35,16 @@ class MatchMapper(object):
     
     @property
     def rows(self):
-        return np.ma.array(self._rows, mask=self.mask, fill_value=-1,
+        #self._rows = np.array(self._rows, dtype=np.int64)
+        return np.ma.array(self._rows, mask=self.mask, fill_value=NODATA,
                            hard_mask=True)
     
     @property
     def cols(self):
-        return np.ma.array(self._cols, mask=self.mask, fill_value=-1,
-                           hard_mask=True)
+
+        #self._cols = np.array(self._cols, dtype=np.int64)
+        return  np.ma.array(self._cols, mask=self.mask, fill_value=-NODATA,
+                            hard_mask=True)
     
     @property
     def time_diff(self):
@@ -143,21 +146,25 @@ def match_lonlat(source, target,
 
     
     logger.debug("Matching %d nearest neighbours" % n_neighbours)
+    print target_def.dtype, source_def.dtype, type(radius_of_influence)
     valid_in, valid_out, indices, distances = get_neighbour_info( #@UnusedVariable
         source_def, target_def, radius_of_influence, neighbours=n_neighbours)
+    if indices.dtype in ['uint32']:
+        #With pykdtree installed get_neighbour_info returns indices as type uint32
+        #This does not combine well with a nodata value of -9.
+        indices = np.array(indices,dtype=np.int64)
     
     shape = list(target_def.shape)
     shape.append(n_neighbours)
     indices.shape = shape
     distances.shape = shape
-    
+
     rows = indices // source_def.shape[1]
     cols = indices % source_def.shape[1]
     # Make sure all indices are valid
-    rows[rows >= source_def.shape[0]] = -1
-    cols[cols >= source_def.shape[1]] = -1
+    rows[rows >= source_def.shape[0]] = NODATA
+    cols[cols >= source_def.shape[1]] = NODATA
     mask = distances > radius_of_influence
-    
     return MatchMapper(rows, cols, mask)
 
 def match(amsr_filename, avhrr_filename, sunsat_filename, radius_of_influence=1e3,
