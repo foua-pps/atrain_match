@@ -356,9 +356,9 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
     if hasattr(ctype, 'ct_statusflag'):
         ctype_ct_statusflag_track = [ctype.ct_statusflag[row_matched[idx], col_matched[idx]]
                              for idx in range(row_matched.shape[0])]
-    #if hasattr(ctth, 'ctth_statusflag'):
-    #    ctype_ctth_statusflag_track = [ctth.ctth_statusflag[row_matched[idx], col_matched[idx]]
-    #                                   for idx in range(row_matched.shape[0])]
+    if hasattr(ctth, 'ctth_statusflag'):
+        ctype_ctth_statusflag_track = [ctth.ctth_statusflag[row_matched[idx], col_matched[idx]]
+                                       for idx in range(row_matched.shape[0])]
     if hasattr(ctype, 'qualityflag'):
         ctype_qflag_track = [ctype.qualityflag[row_matched[idx], col_matched[idx]]
                              for idx in range(row_matched.shape[0])]

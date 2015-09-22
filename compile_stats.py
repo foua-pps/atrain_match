@@ -84,6 +84,7 @@ def compile_stats(results_files, result_end, write=False, name_in_file='BASIC'):
             for l in cth_stats.printout():
                 print(l)
     if COMPILE_RESULTS_SEPARATELY_FOR_SEMI_AND_OPAQUE:
+        try:
             print("========== Cloud top height ===========")
             print("========== Opaque All     ===========")
             from statistics import orrb_CTH_stat
@@ -95,6 +96,13 @@ def compile_stats(results_files, result_end, write=False, name_in_file='BASIC'):
             cth_stats.printout()
             for l in cth_stats.printout():
                 print(l)
+            DID_FIND_SEMI_OPAQUE_RESULTS = True     
+        except IndexError:
+            DID_FIND_SEMI_OPAQUE_RESULTS = False
+            print "Can not find opaque/semi ctth results"
+
+        if (COMPILE_RESULTS_SEPARATELY_FOR_SEMI_AND_OPAQUE and
+            DID_FIND_SEMI_OPAQUE_RESULTS):          
             print("========== Cloud top height ===========")
             print("========== Semi-transparent All ===========")
             from statistics import orrb_CTH_stat

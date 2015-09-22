@@ -302,15 +302,17 @@ def get_day_night_info(caObj):
         sys.exit()
     return daynight_flags
     
-def get_day_semi_opaque_info(caObj):
+def get_semi_opaque_info(caObj):
     semi_flag = None    
     opaque_flag = None
     if hasattr(caObj.avhrr, 'cloudtype_qflag'):
+        print caObj.avhrr.ctth_opaque
         if caObj.avhrr.ctth_opaque is not None:
             semi_flag, opaque_flag = get_semi_opaque_info_pps2012(
                 caObj.avhrr.ctth_opaque) 
     if hasattr(caObj.avhrr, 'cloudtype_conditions'):
         if caObj.avhrr.ctth_status is not None:
+            print caObj.avhrr.ctth_status
             semi_flag, opaque_flag = get_semi_opaque_info_pps2014(
                 caObj.avhrr.ctth_status)
     return semi_flag, opaque_flag
@@ -884,7 +886,10 @@ def print_height_all_low_medium_high(NAME, okcaliop,  statfile,
                                      caliop_max_height) 
     statfile.write("CLOUD HEIGHT %s HIGH: %s \n" % (NAME, out_stats))
 
-def print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature, cal_data_ok, avhrr_ctth_cal_ok, semi_flag, opaque_flag, caliop_max_height ):
+def print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature, 
+                             cal_data_ok, avhrr_ctth_cal_ok, 
+                             semi_flag, opaque_flag, 
+                             caliop_max_height ):
     # CORRELATION: CALIOP - AVHRR HEIGHT
     # FIRST TOTAL FIGURES
     okcaliop = np.logical_and(
@@ -938,10 +943,9 @@ def print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature, cal_
                                          okcaliop_thinnest_top_layer,  
                                          statfile, cal_vert_feature, 
                                          avhrr_ctth_cal_ok, caliop_max_height)
-        
-
+           
     if (config.COMPILE_RESULTS_SEPARATELY_FOR_SEMI_AND_OPAQUE and 
-        semi_flag is not None and 
+        semi_flag is not None or
         opaque_flag is not None):
             
         #Opaque stats
@@ -964,7 +968,7 @@ def print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature, cal_
     if (config.COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC and
         (config.ALSO_USE_5KM_FILES or config.RESOLUTION==5) and
         config.COMPILE_RESULTS_SEPARATELY_FOR_SEMI_AND_OPAQUE and 
-        semi_flag is not None and 
+        semi_flag is not None or
         opaque_flag is not None):
             
         #Thin top layer
@@ -1004,7 +1008,7 @@ def print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature, cal_
         statfile.write("CLOUD HEIGHT SEMI TOP LAYER VERY THIN\n")
         okcaliop_semi_pps_thin = np.logical_and(
             np.logical_and(okcaliop, semi_flag),
-            np._less_equal(caObj.calipso.optical_depth_top_layer5km,lim))
+            np.less_equal(caObj.calipso.optical_depth_top_layer5km,lim))
         print_height_all_low_medium_high("CALIOP-SEMI-TOP-LAYER<=%f"%(lim), 
                                          okcaliop_opaque_pps_thin,  
                                          statfile, cal_vert_feature, 
@@ -1018,7 +1022,7 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
     import sys
  
     cal_subset = get_subset_for_mode(caObj, mode)
-    semi_flag, opaque_flag = get_day_semi_opaque_info(caObj)
+    semi_flag, opaque_flag = get_semi_opaque_info(caObj)
     (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag) = get_day_night_info(caObj)
 
     if dnt_flag == None:
@@ -1044,7 +1048,10 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
     print_calipso_modis_stats(caObj, statfile, cal_subset, cal_MODIS_cflag)
     print_calipso_stats_ctype(caObj, statfile, cal_subset, cal_vert_feature)
     print_cloudsat_stats_ctop(clsatObj, statfile)
-    print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature, cal_data_ok, avhrr_ctth_cal_ok,  semi_flag, opaque_flag, caliop_max_height)
+    print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature, 
+                             cal_data_ok, avhrr_ctth_cal_ok,  
+                             semi_flag, opaque_flag, 
+                             caliop_max_height)
    
 
 
