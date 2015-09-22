@@ -346,7 +346,7 @@ if __name__ == '__main__':
                         results_files.extend(glob("%s/CCF_%skm*.dat" %(basic_indata_dir, RESOLUTION)))
                         print "Length of result file list: ",len(results_files)
                     else:
-                        results_files.extend(glob("%s/CCF_%skm*.dat" %(basic_indata_dir, RESOLUTION)))
+                        results_files.extend(glob("%s/%skm*.dat" %(basic_indata_dir, RESOLUTION)))
                         print "Length of result file list: ",len(results_files)
                 if not CCI_CLOUD_VALIDATION:
                     cfc_stats, cth_stats, cty_stats = compile_stats(results_files, 
