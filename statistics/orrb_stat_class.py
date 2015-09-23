@@ -27,9 +27,9 @@ class OrrbStats():
         raise NotImplementedError("The printout method should be implemented in"
                                   " a subclass of OrrbStat.")
     
-    def write(self, filename):
+    def write(self, filename, mode='w'):
         """Write printout to a file."""
-        f = open(filename, 'a')
+        f = open(filename, mode)
         for l in self.printout():
             f.write(l + '\n')
         f.close()

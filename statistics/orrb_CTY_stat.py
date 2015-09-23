@@ -279,43 +279,43 @@ class CloudTypeStats(OrrbStats):
         lines.append("Total number of matched scenes is: %s" % self.scenes)
         lines.append("Total number of matched cloud types: %s" % self.samples_tot)
         lines.append("")
-        lines.append("Probability of detecting LOW, MEDIUM and HIGH: %f %f %f" % \
+        lines.append("Probability of detecting LOW, MEDIUM and HIGH: %.2f %.2f %.2f" % \
                      (self.pod_low, self.pod_medium, self.pod_high))
-        lines.append("False alarm rate LOW, MEDIUM and HIGH: %f %f %f" % \
+        lines.append("False alarm rate LOW, MEDIUM and HIGH: %.2f %.2f %.2f" % \
                      (self.far_low, self.far_medium, self.far_high))
-        lines.append("Rel. Fraction LOW for PPS and for CALIOP: %f %f" % \
+        lines.append("Rel. Fraction LOW for PPS and for CALIOP: %.2f %.2f" % \
                      (self.low_fraction_pps_rel, self.low_fraction_cal_rel))
-        lines.append("Rel. Fraction MEDIUM for PPS and for CALIOP: %f %f" % \
+        lines.append("Rel. Fraction MEDIUM for PPS and for CALIOP: %.2f %.2f" % \
                      (self.medium_fraction_pps_rel, self.medium_fraction_cal_rel))
-        lines.append("Rel. Fraction HIGH for PPS and for CALIOP: %f %f" % \
+        lines.append("Rel. Fraction HIGH for PPS and for CALIOP: %.2f %.2f" % \
                      (self.high_fraction_pps_rel, self.high_fraction_cal_rel))
-        lines.append("Rel. Fraction FRACTIONAL for PPS: %f" % self.frac_fraction_pps_rel)
-        lines.append("Abs. Fraction LOW for PPS and for CALIOP: %f %f" % \
+        lines.append("Rel. Fraction FRACTIONAL for PPS: %.2f" % self.frac_fraction_pps_rel)
+        lines.append("Abs. Fraction LOW for PPS and for CALIOP: %.2f %.2f" % \
                      (self.low_fraction_pps_abs, self.low_fraction_cal_abs))
-        lines.append("Abs. Fraction MEDIUM for PPS and for CALIOP: %f %f" % \
+        lines.append("Abs. Fraction MEDIUM for PPS and for CALIOP: %.2f %.2f" % \
                      (self.medium_fraction_pps_abs, self.medium_fraction_cal_abs))
-        lines.append("Abs. Fraction HIGH for PPS and for CALIOP: %f %f" % \
+        lines.append("Abs. Fraction HIGH for PPS and for CALIOP: %.2f %.2f" % \
                      (self.high_fraction_pps_abs, self.high_fraction_cal_abs))
-        lines.append("Abs. Fraction FRACTIONAL for PPS: %f" % self.frac_fraction_pps_abs)
-        lines.append("Bias Low: %f" % self.bias_low)
-        lines.append("Bias Medium: %f" % self.bias_medium)
-        lines.append("Bias High: %f" % self.bias_high)
-        lines.append("Bc-RMS Low: %f" % self.rms_low)
-        lines.append("Bc-RMS Medium: %f" % self.rms_medium)
-        lines.append("Bc_RMS High: %f" % self.rms_high)
-        lines.append("POD (Low,Medium,High): %f %f %f" % \
+        lines.append("Abs. Fraction FRACTIONAL for PPS: %.2f" % self.frac_fraction_pps_abs)
+        lines.append("Bias Low: %.2f" % self.bias_low)
+        lines.append("Bias Medium: %.2f" % self.bias_medium)
+        lines.append("Bias High: %.2f" % self.bias_high)
+        lines.append("Bc-RMS Low: %.2f" % self.rms_low)
+        lines.append("Bc-RMS Medium: %.2f" % self.rms_medium)
+        lines.append("Bc_RMS High: %.2f" % self.rms_high)
+        lines.append("POD (Low,Medium,High): %.2f %.2f %.2f" % \
                      (self.pod_low, self.pod_medium, self.pod_high))
-        lines.append("FAR (Low,Medium,High): %f %f %f" % \
+        lines.append("FAR (Low,Medium,High): %.2f %.2f %.2f" % \
                      (self.far_low, self.far_medium, self.far_high))
-        lines.append("FAR Medium fraction Low,High,Clear: %f %f %f" % \
+        lines.append("FAR Medium fraction Low,High,Clear: %.2f %.2f %.2f" % \
                      (self.far_medium_low, self.far_medium_high, self.far_medium_clear))
-        lines.append("FAR High fraction Low,Medium,Clear: %f %f %f" % \
+        lines.append("FAR High fraction Low,Medium,Clear: %.2f %.2f %.2f" % \
                      (self.far_high_low, self.far_high_medium, self.far_high_clear) )
-        lines.append("HR (Low,Medium,High): %f %f %f" % \
+        lines.append("HR (Low,Medium,High): %.3f %.3f %.3f" % \
                      (self.hitrate_low, self.hitrate_medium, self.hitrate_high))
-        lines.append("KSS (Low,Medium,High): %f %f %f" % \
+        lines.append("KSS (Low,Medium,High): %.3f %.3f %.3f" % \
                      (self.kuipers_low, self.kuipers_medium, self.kuipers_high))
-        lines.append("CALIOP parts of Fractional (Low, Medium, High): %f %f %f" % \
+        lines.append("CALIOP parts of Fractional (Low, Medium, High): %.2f %.2f %.2f" % \
                      (self.cal_low_fractional, self.cal_medium_fractional, self.cal_high_fractional))
         lines.append("Missclassified clear: %d (low:%d, medium:%d, high:%d)" % \
                      (self.samples_pps_missed, self.samples_pps_missed_low,
