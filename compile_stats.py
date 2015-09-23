@@ -40,7 +40,7 @@ def compile_stats(results_files, result_end, write=False, name_in_file='BASIC'):
             cth_stats = orrb_CTH_stat.CloudTopStats(results_files, 
                                                     [21,22,23,24], note)
             if write:
-                cth_stats.write(compiled_cth_file_name)
+                cth_stats.write(compiled_cth_file_name, mode='a')
             cth_stats.printout()
             for l in cth_stats.printout():
                 print(l)
@@ -53,7 +53,7 @@ def compile_stats(results_files, result_end, write=False, name_in_file='BASIC'):
             cth_stats = orrb_CTH_stat.CloudTopStats(results_files, 
                                                     [26,27,28,29], note)
             if write:
-                cth_stats.write(compiled_cth_file_name)
+                cth_stats.write(compiled_cth_file_name, mode='a')
             cth_stats.printout()
             for l in cth_stats.printout():
                 print(l)
@@ -62,7 +62,7 @@ def compile_stats(results_files, result_end, write=False, name_in_file='BASIC'):
             cth_stats = orrb_CTH_stat.CloudTopStats(results_files, 
                                                     [31,32,33,34], note)
             if write:
-                cth_stats.write(compiled_cth_file_name)
+                cth_stats.write(compiled_cth_file_name, mode='a')
             cth_stats.printout()
             for l in cth_stats.printout():
                 print(l)
@@ -72,7 +72,7 @@ def compile_stats(results_files, result_end, write=False, name_in_file='BASIC'):
             cth_stats = orrb_CTH_stat.CloudTopStats(results_files, 
                                                     [36,37,38,39], note)
             if write:
-                cth_stats.write(compiled_cth_file_name)
+                cth_stats.write(compiled_cth_file_name, mode='a')
             cth_stats.printout()
             for l in cth_stats.printout():
                 print(l)
@@ -83,7 +83,7 @@ def compile_stats(results_files, result_end, write=False, name_in_file='BASIC'):
             cth_stats = orrb_CTH_stat.CloudTopStats(results_files, 
                                                     [41,42,43,44], note)
             if write:
-                cth_stats.write(compiled_cth_file_name)
+                cth_stats.write(compiled_cth_file_name, mode='a')
             cth_stats.printout()
             for l in cth_stats.printout():
                 print(l)
@@ -99,7 +99,7 @@ def compile_stats(results_files, result_end, write=False, name_in_file='BASIC'):
             cth_stats = orrb_CTH_stat.CloudTopStats(results_files, 
                                                     [46,47,48,49], note)
             if write:
-                cth_stats.write(compiled_cth_file_name)
+                cth_stats.write(compiled_cth_file_name, mode='a')
             cth_stats.printout()
             for l in cth_stats.printout():
                 print(l)
@@ -108,7 +108,7 @@ def compile_stats(results_files, result_end, write=False, name_in_file='BASIC'):
             cth_stats = orrb_CTH_stat.CloudTopStats(results_files, 
                                                     [51,52,53,54], note)
             if write:
-                cth_stats.write(compiled_cth_file_name)
+                cth_stats.write(compiled_cth_file_name, mode='a')
             cth_stats.printout()
             for l in cth_stats.printout():
                 print(l)
@@ -117,7 +117,7 @@ def compile_stats(results_files, result_end, write=False, name_in_file='BASIC'):
             cth_stats = orrb_CTH_stat.CloudTopStats(results_files, 
                                                     [56,57,58,59], note)
             if write:
-                cth_stats.write(compiled_cth_file_name)
+                cth_stats.write(compiled_cth_file_name, mode='a')
             cth_stats.printout()
             for l in cth_stats.printout():
                 print(l)
@@ -126,7 +126,7 @@ def compile_stats(results_files, result_end, write=False, name_in_file='BASIC'):
             cth_stats = orrb_CTH_stat.CloudTopStats(results_files, 
                                                     [61,62,63,64], note)
             if write:
-                cth_stats.write(compiled_cth_file_name)
+                cth_stats.write(compiled_cth_file_name, mode='a')
             cth_stats.printout()
             for l in cth_stats.printout():
                 print(l)
@@ -135,7 +135,7 @@ def compile_stats(results_files, result_end, write=False, name_in_file='BASIC'):
             cth_stats = orrb_CTH_stat.CloudTopStats(results_files, 
                                                     [66,67,68,69], note)
             if write:
-                cth_stats.write(compiled_cth_file_name)
+                cth_stats.write(compiled_cth_file_name, mode='a')
             cth_stats.printout()
             for l in cth_stats.printout():
                 print(l)
