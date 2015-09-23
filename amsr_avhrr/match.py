@@ -146,11 +146,11 @@ def match_lonlat(source, target,
 
     
     logger.debug("Matching %d nearest neighbours" % n_neighbours)
-    print target_def.dtype, source_def.dtype, type(radius_of_influence)
     valid_in, valid_out, indices, distances = get_neighbour_info( #@UnusedVariable
         source_def, target_def, radius_of_influence, neighbours=n_neighbours)
     if indices.dtype in ['uint32']:
-        #With pykdtree installed get_neighbour_info returns indices as type uint32
+        #With pykdtree installed get_neighbour_info returns indices 
+        # as type uint32
         #This does not combine well with a nodata value of -9.
         indices = np.array(indices,dtype=np.int64)
     

@@ -29,7 +29,7 @@ class OrrbStats():
     
     def write(self, filename):
         """Write printout to a file."""
-        f = open(filename, 'w')
+        f = open(filename, 'a')
         for l in self.printout():
             f.write(l + '\n')
         f.close()

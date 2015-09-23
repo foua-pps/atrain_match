@@ -8,12 +8,24 @@ import math
 import pdb
 import config
 from orrb_stat_class import OrrbStats
-
+import numpy as np
 # -----------------------------------------------------
+
+def bias_corrected_rms(rms, bias, N):
+    # ie formula should be bcRMS= sqrt(RMS^2-c*bias^2), 
+    # where c=N/(N-1). However our Ns are usually large
+    if N < 2:
+        print "Warning too few elements to calculate bc-RMS"
+        return -9
+    cnn1 = N/(N-1)
+    return np.sqrt(rms*rms-cnn1*bias*bias)
+    
+
 class CloudTopStats(OrrbStats):
 
-    def __init__(self, results_files=None, cal_ctth_rows=None):
+    def __init__(self, results_files=None, cal_ctth_rows=None, note=None):
         self.cal_ctth_rows = cal_ctth_rows
+        self.note = note
         OrrbStats.__init__(self, results_files)
 
     def do_stats(self):
@@ -83,7 +95,11 @@ class CloudTopStats(OrrbStats):
         rms_cal_low = math.sqrt(divide(1.*rms_error_cal_low_sum, cal_low_samples))
         rms_cal_medium = math.sqrt(divide(1.*rms_error_cal_medium_sum, cal_medium_samples))
         rms_cal_high = math.sqrt(divide(1.*rms_error_cal_high_sum, cal_high_samples))
-        
+
+        bc_rms_cal_all = bias_corrected_rms(rms_cal_all, bias_cal_all, cal_all_samples)
+        bc_rms_cal_low = bias_corrected_rms(rms_cal_low, bias_cal_low, cal_low_samples)
+        bc_rms_cal_medium = bias_corrected_rms(rms_cal_medium, bias_cal_medium, cal_medium_samples)
+        bc_rms_cal_high = bias_corrected_rms(rms_cal_high, bias_cal_high, cal_high_samples)
         self.scenes = scenes
         if ' '.join(csa_data) != "No CloudSat":
             self.csa_samples = csa_samples
@@ -101,11 +117,16 @@ class CloudTopStats(OrrbStats):
         self.rms_cal_low = rms_cal_low
         self.rms_cal_medium = rms_cal_medium
         self.rms_cal_high = rms_cal_high
-    
+        self.bcrms_cal_all = bc_rms_cal_all
+        self.bcrms_cal_low = bc_rms_cal_low
+        self.bcrms_cal_medium = bc_rms_cal_medium
+        self.bcrms_cal_high = bc_rms_cal_high
     
     def printout(self):
         try:
             lines = []
+            if self.note is not None:
+                lines.append(self.note)
             lines.append("Total number of matched scenes is: %s" % self.scenes)
             lines.append("Total number of Cloudsat matched cloudtops: %d " % self.csa_samples)
             lines.append("Mean error: %f" % self.bias_csa)
@@ -124,9 +145,15 @@ class CloudTopStats(OrrbStats):
             lines.append("RMS error low-level cases: %f" % self.rms_cal_low)
             lines.append("RMS error medium-level cases: %f" % self.rms_cal_medium)
             lines.append("RMS error high-level cases: %f" % self.rms_cal_high)
+            lines.append("bc-RMS error total cases: %f" % self.bcrms_cal_all)
+            lines.append("bc-RMS error low-level cases: %f" % self.bcrms_cal_low)
+            lines.append("bc-RMS error medium-level cases: %f" % self.bcrms_cal_medium)
+            lines.append("bc-RMS error high-level cases: %f" % self.bcrms_cal_high)
             lines.append("")
         except AttributeError:
             lines = []
+            if self.note is not None:
+                lines.append(self.note)
             lines.append("Total number of matched scenes is: %s" % self.scenes)
             #lines.append("RMS error: %f" % self.rms_csa)
             lines.append("")
@@ -142,6 +169,10 @@ class CloudTopStats(OrrbStats):
             lines.append("RMS error low-level cases: %f" % self.rms_cal_low)
             lines.append("RMS error medium-level cases: %f" % self.rms_cal_medium)
             lines.append("RMS error high-level cases: %f" % self.rms_cal_high)
+            lines.append("bc-RMS error total cases: %f" % self.bcrms_cal_all)
+            lines.append("bc-RMS error low-level cases: %f" % self.bcrms_cal_low)
+            lines.append("bc-RMS error medium-level cases: %f" % self.bcrms_cal_medium)
+            lines.append("bc-RMS error high-level cases: %f" % self.bcrms_cal_high)
             lines.append("")
         return lines
 
