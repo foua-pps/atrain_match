@@ -6,30 +6,10 @@ Program cloudsat_calipso_avhrr_match.py
 
 This program is used to process and output statistics for the inter-comparison
 of AVHRR PPS results and CloudSat/CALIPSO observations. It may be run
-repeatedly and supervised by program cloudsat_calipso_process_master.py.
+repeatedly and supervised by program process_master.py.
 
 This particular version of Adam's original CloudSat/CALIPSO matchup and
 analysis program has been complemented with the following:
-
- * A method to calculate cloud emissivities for the uppermost CALIPSO cloud
-   layer. With the use of parameters EMISS_FILTERING, EMISS_MIN_HEIGHT and
-   EMISS_LIMIT the thinnest uppermost CALIPSO cloud layers can be analysed and
-   the entire column can be disregarded if the emissivity falls below the
-   EMISS_LIMIT value.  Cloud emissivities Ec are calculated as follows:
-
-                    Ec = (I-Iclear)/(B(Tc)-Iclear)
-   where
-
-       I = Measured radiance in AVHRR channel 4 (11 micron) To be calculated as
-           the Planck radiance for the associated brightness temperature
-
-       Iclear = Estimated radiance in cloud free situations To be calculate as
-                the Planck radiance for the NWP-analysed surface temperature
-                (i.e., neglecting further atmospheric contributions)
-
-       B(Tc) = Planck radiance for the uppermost cloud layer using CALIPSO
-       mid-layer temperatures
-
 
  * Adjusted scales between CloudSat and CALIPSO datasets. The previous
    assumption that both datasets had 1 km resolution resulted in that datasets
@@ -59,17 +39,8 @@ analysis program has been complemented with the following:
 RUNNING INSTRUCTIONS
 --------------------
 
-The program is capable of running in a wide range of modes (according to
-description above). These various modes are selected by enabling (disabling)
-the following parameters:
+The program is capable of running in a wide range of modes. 
 
-PLOT_OPTION, EMISS_FILTERING, ICE_COVER_SEA, ICE_FREE_SEA, SNOW_COVER_LAND,
-SNOW_FREE_LAND, COASTAL_ZONE
-
-However, notice that only one mode can be chosen for each run. The only
-exception is PLOT_OPTION (i.e., the generation of a PNG plot) which can be
-combined with EMISS_FILTERING. This also means that processing of individual
-surface categories only generates statistics and not any plots.
 
 Input data has to be supplied at directories defined by MAIN_DIR and SUB_DIR
 parameters below.
@@ -85,30 +56,14 @@ Dependencies: For a successful run of the program the following supporting
 
               cloudsat.py
               calipso.py
-              calipso_avhrr_matchup.py
-              cloudsat_avhrr_matchup.py
-              radiance_tb_tables_kgtest.py
+              cloudsat_calipso_avhrr_matchup.py
+Updated 20150930 
+Nina och KG
 
-              For full consistency make sure that MAIN_DIR and SUB_DIR
-              parameters are the same also in modules cloudsat.py and
-              calipso.py.
-
-Output data files: Main results are generally written in the directory
-                   MAIN_DIR/SUB_DIR but plotting results are stored at ./Plot
-                   and temporary results at ./Data directories. Thus, make sure
-                   that these directories exist as subdirectories at the
-                   default run directory.  This is now made automatic /Erik
-
-Finally, notice that the matching of the PPS, CloudSat and CALIPSO datasets
-have been calculated using the fix area arctic_super_5010 defined over the
-Arctic region in Lambert Azimuthal Equal Area projection. Thus, for matching
-data to other regions please modify modules calipso.py and cloudsat.py and
-replace area arctic_super_5010 with the desired area.  This is now made below
-/Erik
-
-/KG March 2010
 
 """
+
+#change log i found in git
 import os
 import sys
 
@@ -122,10 +77,6 @@ from config import (VAL_CPP,
                     USE_5KM_FILES_TO_FILTER_CALIPSO_DATA,
                     PPS_FORMAT_2012_OR_EARLIER,
                     RESOLUTION)
-
-from radiance_tb_tables_kgtest import get_central_wavenumber
-# Just use the brightness temperature to
-# radiance conversion/KG
 
 
 from pps_basic_configure import *
@@ -1243,88 +1194,6 @@ def get_matchups(cross, options, reprocess=False):
             'values':values
             }
 
-
-def get_cloud_emissivity(satellite, calipsoObj, calipso_okay, radtb_table_path=None):
-    """Derive the cloud emissivity for each Calipso matchup"""
-    if satellite in ['noaa17', 'noaa18', 'noaa19']:
-        platform = "noaa"
-        satnumber = int(satellite[4:6])
-    elif satellite in ['metop02', 'metop01', 'metop03']:
-        platform = "metop"
-        satnumber = int(satellite[5:7])
-    elif satellite in ['npp']:
-        platform = 'npp'
-        satnumber = 1
-    else:
-        raise NotImplementedError("Support for satellite %s is not yet implemented." % satellite)
-
-    cloud_e = np.zeros(calipso_okay.shape[0], 'd')
-    radtbObj = None
-    if radtb_table_path:
-        from rad_tb_tables import radtbTable
-        radtbObj = radtbTable(platform, satnumber, 
-                              INSTRUMENT.get(platform, 'avhrr'), 
-                              path=radtb_table_path, channel='M15',
-                              detector_number=1)
-        radtbObj.read()
-
-    elif platform not in ["noaa"]:
-        raise NotImplementedError("Support for platform " + 
-                                  "%s is not yet implemented." % platform)
-
-    midlayer_temp_kelvin = calipsoObj.calipso.cloud_mid_temperature + 273.15
-    caliop_max_height_midlaytemp = np.where(np.greater(calipsoObj.calipso.cloud_top_profile[0, ::], -9), 
-                                            midlayer_temp_kelvin[0, ::], -9)
-
-    if radtbObj:
-        for i in range(calipso_okay.shape[0]):
-            if calipso_okay[i] and (calipsoObj.avhrr.surftemp[i] < 360. 
-                                    and calipsoObj.avhrr.surftemp[i] > 180.):                
-                radiance = radtbObj.get_radiance(calipsoObj.avhrr.bt11micron[i])
-                rad_clear = radtbObj.get_radiance(calipsoObj.avhrr.surftemp[i])
-                if radiance > rad_clear:
-                    rad_clear = radiance   # Just avoiding too much mismatch
-                                           # between forecasted and real
-                                           # surface temps
-                btc = radtbObj.get_radiance(caliop_max_height_midlaytemp[i])
-                
-                if btc < rad_clear:
-                    cloud_e[i] = (radiance - rad_clear)/(btc - rad_clear)
-                else:
-                    cloud_e[i]=-9.0 # Give up on all temperature inversion cases!
-            else:
-                cloud_e[i]=-9.0
-
-        return cloud_e
-
-    dum1, cwnum, dum2 = get_central_wavenumber(satnumber, 273.15)
-    if calipsoObj.avhrr.surftemp != None:
-        for i in range(calipso_okay.shape[0]):
-            if calipso_okay[i]:
-                radiance = tb2radiance_using_central_wavenumber_klm(cwnum, 
-                                                                    calipsoObj.avhrr.bt11micron[i], 
-                                                                    satnumber,'4')
-                rad_clear = tb2radiance_using_central_wavenumber_klm(cwnum,
-                                                                     calipsoObj.avhrr.surftemp[i],
-                                                                     satnumber,'4')
-                if radiance > rad_clear:
-                    rad_clear = radiance   # Just avoiding too much mismatch
-                                           # between forecasted and real
-                                           # surface temps
-                btc = tb2radiance_using_central_wavenumber_klm(cwnum,
-                                                               caliop_max_height_midlaytemp[i],
-                                                               satnumber,'4')
-                if btc < rad_clear:
-                    cloud_e[i] = (radiance - rad_clear)/(btc - rad_clear)
-                else:
-                    cloud_e[i]=-9.0 # Give up on all temperature inversion cases!
-            else:
-                cloud_e[i]=-9.0
-
-    return cloud_e
-
-
-
 def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=False):
 
     """
@@ -1635,18 +1504,9 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     else:
         cal_MODIS_cflag = None
                 
-    if process_mode == 'EMISSFILT': # Apply only when cloud heights are above EMISS_MIN_HEIGHT
-        # Now calculate cloud emissivity emiss_cloud for topmost CALIOP and CloudSat layer
-        config_path = os.environ.get('IMAGERRAD_HOME', './etc') + "/Tables"
-        emiss_cloud = get_cloud_emissivity(sno_satname, caObj, cal_data_ok, config_path)
-        write_log('INFO', "Emissivity filtering applied!")
-
-        caliop_min_height_ok = np.greater(caliop_max_height, config.EMISS_MIN_HEIGHT)
-        emissfilt_calipso_ok = np.logical_or(np.logical_and(np.greater(emiss_cloud, config.EMISS_LIMIT),caliop_min_height_ok),np.logical_or(np.equal(caliop_max_height,-9.),np.less_equal(caliop_max_height, config.EMISS_MIN_HEIGHT)))
-
     ##########################
     ### 1 KM DATA CWC-RVOD ###                       
-    elif config.RESOLUTION == 1 and cloudsat_type == 'CWC-RVOD' and clsatObj is not None:
+    if config.RESOLUTION == 1 and cloudsat_type == 'CWC-RVOD' and clsatObj is not None:
         elevationcwc = np.where(np.less_equal(clsatObj.cloudsatcwc.elevation,0),
                             -9, clsatObj.cloudsatcwc.elevation)
 
@@ -1775,10 +1635,7 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     #==============================================================
     #Calculate Statistics
     if cloudsat_type == 'GEOPROF':
-        if process_mode == 'EMISSFILT':
-            process_calipso_ok = emissfilt_calipso_ok
-        else:
-            process_calipso_ok = 0
+        process_calipso_ok = 0
         
     write_log('INFO', "Calculating statistics")
     CalculateStatistics(process_mode, clsatObj, statfile, caObj, cal_MODIS_cflag,

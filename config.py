@@ -100,8 +100,6 @@ SAT_ORBIT_DURATION = 110*60 #Not to large
 #: Allowed time deviation in seconds between AVHRR and CALIPSO/CloudSat matchup
 sec_timeThr = 60*20
 
-
-
 #: Recommended cloud threshold for the CloudSat cloud mask. In 5km data this
 #: threshold has already been applied, so there is no reason to change it for
 #: this data set.
@@ -115,26 +113,12 @@ MAXHEIGHT = 18000
 #: Range of allowed (AVHRR) satellite azimuth angles, in degrees
 AZIMUTH_RANGE = (0., 360.)
 
-#: TODO: No description...
-EMISS_MIN_HEIGHT = 2000.0
-
-#: A value of 0.2-0.3 in cloud emissivity seems reasonable
-EMISS_LIMIT = 0.2
-
-
 #: Processing modes which can be handled
-#  OBS: I removed the 'EMISSFILT'-cases!The reason is to avoid the need to use any NWP-data
-#       (in this case surface temperature). Besides - we can now use optical thickness filtering
-#       which is much more reliable as concerns removal of contributions from thin clouds. /KG 120925
 # TODO: Split into latitude dependent area, snow-ice-land-sea area and day-night-twilight
 ALLOWED_MODES = ['BASIC',
                  'BASIC_DAY',
                  'BASIC_NIGHT',
-                 'BASIC_TWILIGHT', 
-#                 'EMISSFILT',       # Filter out cases with the thinnest topmost CALIPSO layers
-#                 'EMISSFILT_DAY',
-#                 'EMISSFILT_NIGHT',
-#                 'EMISSFILT_TWILIGHT',    
+                 'BASIC_TWILIGHT',    
                  'ICE_COVER_SEA',   # Restrict to ice cover over sea using NSIDC and IGBP data
                  'ICE_COVER_SEA_DAY',    
                  'ICE_COVER_SEA_NIGHT',    
@@ -256,11 +240,10 @@ if RESOLUTION == 1:
                                         # interval between two consecutive
                                         # lines (sec)
         SWATHWD=2048
-    AREA = "arctic_europe_1km"
-#    AREA = "npole"
-    #AREA = "arctic_super_5010"
+    AREA = "no_area"
+    #AREA = "npole"
     #AREA = "europa"
-#    AREA = "cea1km_test"
+    #AREA = "cea1km_test"
     #: CloudSat sampling frequency in km (or rather the most likely
     #: resolution difference between CALIPSO 1 km datasets and
     #: the CloudSat 2B-GEOPROF dataset). Nominally CloudSat sampling
@@ -284,7 +267,8 @@ if RESOLUTION == 1:
 elif RESOLUTION == 5:
     DSEC_PER_AVHRR_SCALINE = 1.0/6. * 4 # A "work for the time being" solution.
     SWATHWD=409
-    AREA = "cea5km_test"#"arctic_super_1002_5km"
+    AREA = "no_area"
+    #AREA = "cea5km_test"#"arctic_super_1002_5km"
     #: See :data:`CLOUDSAT_TRACK_RESOLUTION` in RESOLUTION = 1km
     CLOUDSAT_TRACK_RESOLUTION = 1.076#*5.0
     CLOUDSAT5KM_TRACK_RESOLUTION = CLOUDSAT_TRACK_RESOLUTION#*5.0
@@ -419,7 +403,6 @@ SURFACES = ["ICE_COVER_SEA", "ICE_FREE_SEA", "SNOW_COVER_LAND", "SNOW_FREE_LAND"
             "POLAR_SNOW_COVER_LAND", "POLAR_ICE_COVER_SEA"]
 
 #: Filter types for which statistics should be summerized
-#FILTERTYPE = ['EMISSFILT']
 FILTERTYPE = []#'OPTICAL_DEPTH']
 if RESOLUTION == 5:
     #FILTERTYPE.append('OPTICAL_DEPTH')
