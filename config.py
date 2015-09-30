@@ -76,66 +76,28 @@ elif RESOLUTION == 5:
 #: Base directory for validation results
 #_validation_results_dir = os.environ['VALIDATION_RESULTS_DIR']    
 _validation_results_dir = os.environ.get('VALIDATION_RESULTS_DIR', "/nobackup/smhid9/sm_kgkar/atrain_match_2013")
-#Not really used????/KG
 
 #: Don't know how this directory is used...
 MAIN_RUNDIR = os.getcwd()
 
 #: Base directory for validation results
 #MAIN_DIR = os.environ.get('VALIDATION_RESULTS_DIR', "/nobackup/smhid9/sm_erjoh/atrain_match")
+#TODO: remove MAINDIR
 MAIN_DIR = os.environ.get('VALIDATION_RESULTS_DIR', "/nobackup/smhid9/sm_kgkar/atrain_match_2013")
-#: Base directory where matchup files are stored. (TODO: Are these still used?)
-#SUB_DIR = "%s/Matchups" %MAIN_DIR
-#SUB_DIR = "%s/Matchups_prob" %MAIN_DIR #Used for reprocessed dataset for probmask studies
-
-#: Base directory for files containing matched data from PPS and Calipso/Cloudsat
-RESHAPE_DIR = "%s/Reshaped_Files" %MAIN_DIR
-#RESHAPE_DIR = "%s/Reshaped_Files_prob" %MAIN_DIR #Used for reprocessed dataset for probmask studies
-
-#: TODO: How is this directory used?
-#DATA_DIR = "%s/Data" %MAIN_DIR
-
-#: Base directory for plots
-PLOT_DIR = "%s/Plot" %MAIN_DIR
-
-#: Base directory for statistics results
-#RESULT_DIR = "%s/Results_prob" %MAIN_DIR
-RESULT_DIR = "Results" 
-
 
 # Region configuaration file with area definitons
 AREA_CONFIG_FILE = os.environ.get('AREA_CONFIG_FILE', './areas.def')
 
-
-#_satellite_data_dir = '/data/arkiv/proj/safworks/data'
-_satellite_data_dir = '/nobackup/smhid9/sm_kgkar/atrain_match_2013/testdata'
-
-#: Base dir for PPS data
-# PPS_DATA_DIR = os.environ.get('PPS_DATA_DIR', _satellite_data_dir + '/pps')
-#PPS_DATA_DIR = "%s/%s" % (SAT_DIR, AVHRR_SAT)
-#PPS_DATA_DIR = "%s/%s_probmask" % (SAT_DIR, AVHRR_SAT) # Just to select reprocessed dataset for probmask
-
-#: Base dir for Cloudsat data
-CLOUDSAT_DIR = os.environ.get('CLOUDSAT_DIR', _satellite_data_dir + '/cloudsat')
-
 #: Cloudsat data type (currently 'GEOPROF' and 'CWC-RVOD' are supported)
 #CLOUDSAT_TYPE = 'CWC-RVOD'
 CLOUDSAT_TYPE = 'GEOPROF'
-
-#: Base dir for Calipso data
-CALIPSO_DIR = os.environ.get('CALIPSO_DIR', _satellite_data_dir + '/calipso')
-
-
 
 #: Constant: Approximate duration of a satellite orbit in seconds
 SAT_ORBIT_DURATION = 110*60 #Not to large
 # If to large, cloudsat_calipso_avhrr_match.py takes wrong swath
 # sometimes when swaths are close in time
 
-
-
 #: Allowed time deviation in seconds between AVHRR and CALIPSO/CloudSat matchup
-
 sec_timeThr = 60*20
 
 
@@ -353,6 +315,7 @@ PLOT_MODES = ['No Plot']
 #: List of dictionaries containing *satname*, *year*, and *month*, for which
 #: statistics should be summarized
 #CASES = [{'satname': 'npp', 'year': 2012, 'month': 06}]
+
 
 CASES_noaaa = [{'satname': 'noaa18', 'year': 2013, 'month': 3},
                {'satname': 'noaa18', 'year': 2013, 'month': 4},
