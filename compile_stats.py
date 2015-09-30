@@ -6,7 +6,7 @@ Created on Oct 13, 2010
 from config import (CASES, MAIN_DATADIR, MAP, RESOLUTION, 
                     COMPILED_STATS_FILENAME,
                     MIN_OPTICAL_DEPTH, CCI_CLOUD_VALIDATION,
-                    DNT_FLAG, CALIPSO_CLOUD_FRACTION,
+                    DNT_FLAG, 
                     COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC,
                     COMPILE_RESULTS_SEPARATELY_FOR_SEMI_AND_OPAQUE,
                     ALSO_USE_5KM_FILES, RESULT_DIR)
@@ -197,10 +197,7 @@ if __name__ == '__main__':
                     basic_indata_dir = basic_indata_dir + '_' + dnt
                     result_end = '_%s' %dnt
                 print("-> " + basic_indata_dir)
-                if CALIPSO_CLOUD_FRACTION == True:
-                    results_files.extend(glob("%s/CCF_%skm*.dat" %(basic_indata_dir, RESOLUTION)))
-                else:
-                    results_files.extend(glob("%s/%skm*.dat" %(basic_indata_dir, RESOLUTION)))
+                results_files.extend(glob("%s/%skm*.dat" %(basic_indata_dir, RESOLUTION)))
             if not CCI_CLOUD_VALIDATION:
                 cfc_stats, cth_stats, cty_stats = compile_stats(results_files, 
                                                                       result_end, 
@@ -223,10 +220,7 @@ if __name__ == '__main__':
                     basic_indata_dir = basic_indata_dir + '_' + dnt
                     result_end = '_%s' %dnt
                 print("-> " + basic_indata_dir)
-                if CALIPSO_CLOUD_FRACTION == True:
-                    results_files.extend(glob("%s/CCF_%skm*.dat" %(basic_indata_dir, RESOLUTION)))
-                else:
-                    results_files.extend(glob("%s/%skm*.dat" %(basic_indata_dir, RESOLUTION)))
+                results_files.extend(glob("%s/%skm*.dat" %(basic_indata_dir, RESOLUTION)))
             if not CCI_CLOUD_VALIDATION:
                 cfc_stats, cth_stats, cty_stats = compile_stats(results_files, 
                                                                       result_end, 
@@ -253,11 +247,8 @@ if __name__ == '__main__':
                 else:
                     basic_indata_dir = basic_indata_dir + '_' + dnt
                     result_end = '_%s' %dnt
-                print("-> " + basic_indata_dir)
-                if CALIPSO_CLOUD_FRACTION == True:
-                    results_files.extend(glob("%s/CCF_%skm*.dat" %(basic_indata_dir, RESOLUTION)))
-                else:
-                    results_files.extend(glob("%s/%skm*.dat" %(basic_indata_dir, RESOLUTION)))
+                print("-> " + basic_indata_dir)            
+                results_files.extend(glob("%s/%skm*.dat" %(basic_indata_dir, RESOLUTION)))
             if not CCI_CLOUD_VALIDATION:
                 cfc_stats, cth_stats, cty_stats = compile_stats(
                     results_files, result_end, 
@@ -285,10 +276,7 @@ if __name__ == '__main__':
                         basic_indata_dir = basic_indata_dir + '_' + dnt
                         result_end = '%s_%s' %(surface, dnt)
                     print("-> " + basic_indata_dir)
-                    if CALIPSO_CLOUD_FRACTION == True:
-                        results_files.extend(glob("%s/CCF_%skm*.dat" %(basic_indata_dir, RESOLUTION)))
-                    else:
-                        results_files.extend(glob("%s/%skm*.dat" %(basic_indata_dir, RESOLUTION)))
+                    results_files.extend(glob("%s/%skm*.dat" %(basic_indata_dir, RESOLUTION)))
                 if not CCI_CLOUD_VALIDATION:
                     cfc_stats, cth_stats, cty_stats = compile_stats(
                         results_files, result_end, 
@@ -323,12 +311,8 @@ if __name__ == '__main__':
                         #basic_indata_dir = basic_indata_dir + '_' + dnt
                         result_end = '_%s_%0.2f' % (dnt,cot)
                     print("-> " + basic_indata_dir)
-                    if CALIPSO_CLOUD_FRACTION == True:
-                        results_files.extend(glob("%s/CCF_%skm*.dat" %(basic_indata_dir, RESOLUTION)))
-                        print "Length of result file list: ",len(results_files)
-                    else:
-                        results_files.extend(glob("%s/%skm*.dat" %(basic_indata_dir, RESOLUTION)))
-                        print "Length of result file list: ",len(results_files)
+                    results_files.extend(glob("%s/%skm*.dat" %(basic_indata_dir, RESOLUTION)))
+                    print "Length of result file list: ",len(results_files)
                 if not CCI_CLOUD_VALIDATION:
                     cfc_stats, cth_stats, cty_stats = compile_stats(results_files, 
                                                                     result_end, 

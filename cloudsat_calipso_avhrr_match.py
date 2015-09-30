@@ -153,8 +153,6 @@ from cloudsat_calipso_avhrr_plot import (drawCalClsatAvhrrPlotTimeDiff,
                                          drawCalClsatGEOPROFAvhrrPlot, 
                                          drawCalClsatAvhrrPlotSATZ,
                                          drawCalClsatCWCAvhrrPlot)
-from config import CALIPSO_CLOUD_FRACTION
-
 INSTRUMENT = {'npp': 'viirs',
               'noaa18': 'avhrr'}
 from datetime import datetime, timedelta
@@ -1502,9 +1500,7 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
             resolution=str(config.RESOLUTION),
             basename=values['basename'] )
 
-    statfilename = os.path.join(result_path, result_file)
-    if CALIPSO_CLOUD_FRACTION == True:
-        statfilename = os.path.join(result_path, "CCF_" + result_file)      
+    statfilename = os.path.join(result_path, result_file)   
     statfile = open(statfilename,"w")
     if process_mode == "BASIC":
         if clsatObj is not None:
@@ -1523,22 +1519,6 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     else:
         statfile.write('No CloudSat \n')
     statfile.write("Start-Stop-Length CALIPSO: %f %f %f %f %s \n" %(caObj.calipso.latitude[0],caObj.calipso.longitude[0],caObj.calipso.latitude[len(caObj.calipso.latitude)-1],caObj.calipso.longitude[len(caObj.calipso.latitude)-1],len(cal_data_ok)))
-
-##    if CALIPSO_CLOUD_FRACTION == True: ==> Let's skip the use of ssccf for calculating cloud fraction, done in another way/KG
-####        (new_cloud_top, new_cloud_base, new_optical_depth, new_cloud_fraction, new_fcf, new_ssccf) = \
-##            CalipsoCloudFraction(caObj.calipso.cloud_top_profile, \
-##                                 caObj.calipso.cloud_base_profile, \
-##                                 caObj.calipso.optical_depth, \
-##                                 caObj.calipso.cloud_fraction, \
-##                                 caObj.calipso.feature_classification_flags, \
-##                                 caObj.calipso.single_shot_cloud_cleared_fraction)
-##        caObj.calipso.cloud_top_profile = new_cloud_top
-##        caObj.calipso.cloud_base_profile = new_cloud_base
-##        caObj.calipso.optical_depth = new_optical_depth
-##        caObj.calipso.cloud_fraction = new_cloud_fraction
-##        caObj.calipso.feature_classification_flags = new_fcf
-##        caObj.calipso.single_shot_cloud_cleared_fraction = new_ssccf
-
 
 
     # If mode = OPTICAL_DEPTH -> Change cloud -top and -base profile

@@ -68,12 +68,9 @@ IMAGER_INSTRUMENT = os.environ.get('IMAGER_INSTRUMENT', 'avhrr')
 RESOLUTION = int(os.environ.get('ATRAIN_RESOLUTION', 1))
 if RESOLUTION == 1:
     AVHRR_SAT = 'NPP' #'pps'
-    CALIPSO_CLOUD_FRACTION = False
     ALSO_USE_1KM_FILES = False
 elif RESOLUTION == 5:
     AVHRR_SAT = 'NOAA18'
-    # CALIPSO_CLOUD_FRACTION = True   Introduced when the idea was to use single_shot_cloud_cleared_fraction, now abandoned!
-    CALIPSO_CLOUD_FRACTION = False  #Notice that both these parameters must equal, i.e. set to either True or False!!!/KG
     ALSO_USE_1KM_FILES = True
 
 #: Base directory for validation results
@@ -418,9 +415,21 @@ CASES_npp =  [{'satname': 'npp', 'year': 2012, 'month': 6},
                        {'satname': 'npp', 'year': 2013, 'month': 03},
                        {'satname': 'npp', 'year': 2013, 'month': 04},
                        {'satname': 'npp', 'year': 2013, 'month': 05}]
+CASES =[{'satname': 'noaa18', 'year': 2009, 'month': 1},
+         {'satname': 'noaa18', 'year': 2009, 'month': 2},
+         {'satname': 'noaa18', 'year': 2009, 'month': 3},
+         {'satname': 'noaa18', 'year': 2009, 'month': 4},
+         {'satname': 'noaa18', 'year': 2009, 'month': 5},
+         {'satname': 'noaa18', 'year': 2009, 'month': 6},
+         {'satname': 'noaa18', 'year': 2009, 'month': 7},
+         {'satname': 'noaa18', 'year': 2009, 'month': 8},
+         {'satname': 'noaa18', 'year': 2009, 'month': 9},
+         {'satname': 'noaa18', 'year': 2009, 'month': 10},
+         {'satname': 'noaa18', 'year': 2009, 'month': 11},
+         {'satname': 'noaa18', 'year': 2009, 'month': 12}]
 
-CASES =  CASES_npp
-CASES = CASES_noaaa + CASES_npp
+#CASES =  CASES_npp
+#CASES = CASES_noaaa + CASES_npp
 #CASES = CASES_noaaa
 
 #: PPS area definition (from ``acpg/cfg/region_config.cfg``) for which
@@ -434,12 +443,8 @@ MAIN_DATADIR = MAIN_DIR
 #: TODO: No description yet...
 # Seems like this can't be set to True if we run without Calipso 5km data!
 # ??? Adam 2012-10-14
-if CALIPSO_CLOUD_FRACTION == True:
-    #COMPILED_STATS_FILENAME = '%s/Results_prob/compiled_stats_CCF' %MAIN_DATADIR
-    COMPILED_STATS_FILENAME = '%s/Results_cloudthreshold_0.3/compiled_stats_CCF' %MAIN_DATADIR
-else:
-    #COMPILED_STATS_FILENAME = '%s/Results_prob/compiled_stats' %MAIN_DATADIR
-    COMPILED_STATS_FILENAME = '%s/Results_cloudthreshold_0.3/compiled_stats' %MAIN_DATADIR
+    
+COMPILED_STATS_FILENAME = '%s/%s/compiled_stats' %(MAIN_DATADIR, RESULT_DIR)
     
 #: Surfaces for which statistics should be summarized
 SURFACES = ["ICE_COVER_SEA", "ICE_FREE_SEA", "SNOW_COVER_LAND", "SNOW_FREE_LAND", \
