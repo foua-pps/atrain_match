@@ -18,8 +18,8 @@ CCI_CLOUD_VALIDATION = False
 
 
 ALSO_USE_5KM_FILES = True
-COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC = True
-COMPILE_RESULTS_SEPARATELY_FOR_SEMI_AND_OPAQUE = True
+COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC = False
+COMPILE_RESULTS_SEPARATELY_FOR_SEMI_AND_OPAQUE = False
 OPTICAL_DETECTION_LIMIT = 0.2
 if COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC:
     ALSO_USE_5KM_FILES = True #5km data is needed to split result on optical depth of top layer.
@@ -76,14 +76,10 @@ elif RESOLUTION == 5:
 #: Base directory for validation results
 #_validation_results_dir = os.environ['VALIDATION_RESULTS_DIR']    
 _validation_results_dir = os.environ.get('VALIDATION_RESULTS_DIR', "/nobackup/smhid9/sm_kgkar/atrain_match_2013")
+CONFIG_PATH = os.environ.get('ATRAINMATCH_CONFIG_DIR', './etc')
 
 #: Don't know how this directory is used...
 MAIN_RUNDIR = os.getcwd()
-
-#: Base directory for validation results
-#MAIN_DIR = os.environ.get('VALIDATION_RESULTS_DIR', "/nobackup/smhid9/sm_erjoh/atrain_match")
-#TODO: remove MAINDIR
-MAIN_DIR = os.environ.get('VALIDATION_RESULTS_DIR', "/nobackup/smhid9/sm_kgkar/atrain_match_2013")
 
 # Region configuaration file with area definitons
 AREA_CONFIG_FILE = os.environ.get('AREA_CONFIG_FILE', './areas.def')
@@ -203,22 +199,6 @@ ALLOWED_MODES = ['BASIC',
                  'POLAR_ICE_COVER_SEA_DAY',
                  'POLAR_ICE_COVER_SEA_NIGHT',
                  'POLAR_ICE_COVER_SEA_TWILIGHT']
-#latitude_filter = ['TROPICAL', 'SUB-TROPIC-ZONE', 'HIGH-LATITUDES', 'POLAR']
-#land_filter = ['SNOW-COVER-LAND', 'SNOW-FREE-LAND', 'ICE-FREE-SEA', 'ICE-COVER-SEA']
-#day_night_filter = ['DAY', 'NIGHT', 'TWILIGHT']
-#modes = set()
-#modes.add('BASIC') # no filtering
-#for lat in latitude_filter:
-#    modes.add(lat)
-#    for land in land_filter:
-#        modes.add('_'.join([lat, land]))
-#        modes.add(land)
-#        for day in day_night_filter:
-#            modes.add('_'.join([lat, land, day]))
-#            modes.add('_'.join([lat, day]))
-#            modes.add(day)
-    
-
 
 #: Threshold for optical thickness. If optical thickness is below this value it will be filtered out.
 #MIN_OPTICAL_DEPTH = 0.35 # Original formulation - only allowing one value
@@ -267,8 +247,8 @@ if RESOLUTION == 1:
 elif RESOLUTION == 5:
     DSEC_PER_AVHRR_SCALINE = 1.0/6. * 4 # A "work for the time being" solution.
     SWATHWD=409
-    AREA = "no_area"
-    #AREA = "cea5km_test"#"arctic_super_1002_5km"
+    #AREA = "no_area"
+    AREA = "cea5km_test"#"arctic_super_1002_5km"
     #: See :data:`CLOUDSAT_TRACK_RESOLUTION` in RESOLUTION = 1km
     CLOUDSAT_TRACK_RESOLUTION = 1.076#*5.0
     CLOUDSAT5KM_TRACK_RESOLUTION = CLOUDSAT_TRACK_RESOLUTION#*5.0
@@ -377,22 +357,7 @@ CASES =[{'satname': 'noaa18', 'year': 2009, 'month': 1},
 
 #CASES =  CASES_npp
 #CASES = CASES_noaaa + CASES_npp
-#CASES = CASES_noaaa
-
-#: PPS area definition (from ``acpg/cfg/region_config.cfg``) for which
-#: statistics should be summarized
-MAP = [AREA]
-
-#: Base directory for ``atrain_match`` output to use when summarizing statistics.
-#: Should contain the ``Results`` directory
-MAIN_DATADIR = MAIN_DIR
-
-#: TODO: No description yet...
-# Seems like this can't be set to True if we run without Calipso 5km data!
-# ??? Adam 2012-10-14
-    
-COMPILED_STATS_FILENAME = '%s/%s/compiled_stats' %(MAIN_DATADIR, RESULT_DIR)
-    
+#CASES = CASES_noaaa    
 #: Surfaces for which statistics should be summarized
 SURFACES = ["ICE_COVER_SEA", "ICE_FREE_SEA", "SNOW_COVER_LAND", "SNOW_FREE_LAND", \
             "COASTAL_ZONE", "TROPIC_ZONE", "TROPIC_ZONE_SNOW_FREE_LAND", "TROPIC_ZONE_ICE_FREE_SEA", \
@@ -402,11 +367,7 @@ SURFACES = ["ICE_COVER_SEA", "ICE_FREE_SEA", "SNOW_COVER_LAND", "SNOW_FREE_LAND"
             "POLAR", "POLAR_SNOW_FREE_LAND", "POLAR_ICE_FREE_SEA", \
             "POLAR_SNOW_COVER_LAND", "POLAR_ICE_COVER_SEA"]
 
-#: Filter types for which statistics should be summerized
-FILTERTYPE = []#'OPTICAL_DEPTH']
-if RESOLUTION == 5:
-    #FILTERTYPE.append('OPTICAL_DEPTH')
-    FILTERTYPE = ['OPTICAL_DEPTH']
+
 #: DAY NIGHT TWILIGHT FLAG that will be used
 #DNT_FLAG = ['ALL']
 DNT_FLAG = ['ALL', 'DAY', 'NIGHT', 'TWILIGHT']

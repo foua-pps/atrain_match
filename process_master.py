@@ -32,7 +32,7 @@ def process_matchups(matchups, run_modes, reprocess=False, debug=False):
     from common import MatchupError
     import os
     import ConfigParser
-    CONFIG_PATH = os.environ.get('ATRAINMATCH_CONFIG_DIR', './etc')
+    from config import CONFIG_PATH
     CONF = ConfigParser.ConfigParser()
     CONF.read(os.path.join(CONFIG_PATH, "atrain_match.cfg"))
     OPTIONS = {}
@@ -117,11 +117,8 @@ def main(args=None):
     parser = OptionParser()
     parser.set_usage("usage: %prog [options] sno_output_files...\n"
                      "Some influential environment variables:\n"
-                     "SAT_DIR                   Base directory where satellite data files are stored.\n"
                      "VALIDATION_RESULTS_DIR    Base directory where results will be stored.\n"
                      "                          Used indirectly by cloudsat_calipso_avhrr_match.py.\n"
-                     "CTTH_FILE                 CTTH file type to use (one of 'ctth', 'ctth_opaque, \n"
-                     "                          and 'ctth_semitransparent.\n")
     parser.add_option('-M', '--mode', type='choice', action='append', choices=config.ALLOWED_MODES,
                       help="Run validation software in MODE (valid modes are %s)" % \
                       ', '.join(config.ALLOWED_MODES))

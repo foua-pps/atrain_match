@@ -3,27 +3,25 @@ Created on Oct 13, 2010
 
 @author: a001696
 '''
-from config import (CASES, MAIN_DATADIR, MAP, RESOLUTION, 
-                    COMPILED_STATS_FILENAME,
+from config import (CASES, RESOLUTION, _validation_results_dir, AREA,
                     MIN_OPTICAL_DEPTH, CCI_CLOUD_VALIDATION,
-                    DNT_FLAG, 
+                    DNT_FLAG, CONFIG_PATH, SURFACES,
                     COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC,
                     COMPILE_RESULTS_SEPARATELY_FOR_SEMI_AND_OPAQUE,
-                    ALSO_USE_5KM_FILES, RESULT_DIR)
+                    ALSO_USE_5KM_FILES)
 
-
-def compile_stats(results_files, result_end, write=False, name_in_file='BASIC'):
+def compile_stats(results_files, write=False, outfile_cfc=None):
     """Run through all summary statistics."""
     
     print("=========== Cloud fraction ============")
     from statistics import orrb_CFC_stat
     cfc_stats = orrb_CFC_stat.CloudFractionStats(results_files)
     if write:
-        cfc_stats.write(COMPILED_STATS_FILENAME + '_cfc_%s%s.txt' %(name_in_file,result_end))
+        cfc_stats.write(outfile_cfc)
     for l in cfc_stats.printout():
         print(l)
     
-    compiled_cth_file_name = COMPILED_STATS_FILENAME + '_cth_%s%s.txt' %(name_in_file,result_end) 
+    compiled_cth_file_name = outfile_cfc.replace('_cfc_','_cth_')
     # First all clouds, then split results
     note = "========== Cloud top height ==========="
     from statistics import orrb_CTH_stat
@@ -139,28 +137,24 @@ def compile_stats(results_files, result_end, write=False, name_in_file='BASIC'):
             cth_stats.printout()
             for l in cth_stats.printout():
                 print(l)
-
-
     
     if not CCI_CLOUD_VALIDATION:
         print("============= Cloud type ==============")
+        compiled_cty_file_name = outfile_cfc.replace('_cfc_','_cty_')
         from statistics import orrb_CTY_stat
         cty_stats = orrb_CTY_stat.CloudTypeStats(results_files, cfc_stats)
         if write:
-            cty_stats.write(COMPILED_STATS_FILENAME + '_cty_%s%s.txt' %(
-                name_in_file,result_end))
+            cty_stats.write(compiled_cty_file_name)
         cty_stats.printout()
         for l in cty_stats.printout():
             print(l)
-        return cfc_stats, cth_stats, cty_stats
-    else:
-        return cfc_stats, cth_stats
-
-
 
 if __name__ == '__main__':
     from optparse import OptionParser
-    
+    import os
+    from glob import glob
+    import ConfigParser
+
     parser = OptionParser()
     parser.add_option('-w', '--write', action='store_true',
                       help="Write results to file")
@@ -169,162 +163,88 @@ if __name__ == '__main__':
     parser.add_option('-t', '--standard', action='store_true',  
                       help="Calculate the statistic for mode STANDARD")
     parser.add_option('-o', '--odticfilter', action='store_true',  
-                      help="Calculate the statistic for mode OPTICAL_DEPTH_THIN_IS_CLEAR")
+                      help="Calculate the statistic for mode "
+                      "OPTICAL_DEPTH_THIN_IS_CLEAR")
     parser.add_option('-n', '--surface_new_way', action='store_true',
-                      help='calculate the statistic for the different surfaces with basic method')
-    parser.add_option('-c', '--cotfilter', action='store_true', # Added for handling a list of cot values/KG
-                      help='calculate the statistic for the optical thickness filters')
-    
+                      help='calculate the statistic for the different '
+                      'surfaces with basic method')
+    parser.add_option('-c', '--cotfilter', action='store_true', 
+                      help='calculate the statistic for the optical '
+                      'thickness filters')    
     (options, args) = parser.parse_args()
-    
-    from glob import glob
-    results_files = []
-    print("Gathering statistics from all validation results files in the "
-          "following directories:")
-    #if not options.no_basic:
-    if options.basic == True: # I prefer this one! /KG
-        print('Calculate statistic for mode BASIC')
-        print(RESOLUTION)
-        for dnt in DNT_FLAG:
-            results_files = []
-            for case in CASES:
-                basic_indata_dir = "%s/%s/%s/%skm/%s/%02d/%s/BASIC" % \
-                    (MAIN_DATADIR, RESULT_DIR, case['satname'],  RESOLUTION , 
-                     case['year'], case['month'], MAP[0])
-                if dnt in [None, 'ALL', 'all']:
-                    result_end = ''
-                else:
-                    basic_indata_dir = basic_indata_dir + '_' + dnt
-                    result_end = '_%s' %dnt
-                print("-> " + basic_indata_dir)
-                results_files.extend(glob("%s/%skm*.dat" %(basic_indata_dir, RESOLUTION)))
-            if not CCI_CLOUD_VALIDATION:
-                cfc_stats, cth_stats, cty_stats = compile_stats(results_files, 
-                                                                      result_end, 
-                                                                      write=options.write)
-            else:
-                cfc_stats, cth_stats = compile_stats(results_files, result_end, write=options.write)
-            print('')
 
-    if options.standard == True: # I prefer this one! /KG
-        print('Calculate statistic for mode STANDARD')
-        print(RESOLUTION)
-        for dnt in DNT_FLAG:
-            results_files = []
-            for case in CASES:
-                basic_indata_dir = "%s/%s/%s/%skm/%s/%02d/%s/STANDARD" % \
-                    (MAIN_DATADIR, RESULT_DIR, case['satname'],  RESOLUTION , case['year'], case['month'], MAP[0])
-                if dnt in [None, 'ALL', 'all']:
-                    result_end = ''
-                else:
-                    basic_indata_dir = basic_indata_dir + '_' + dnt
-                    result_end = '_%s' %dnt
-                print("-> " + basic_indata_dir)
-                results_files.extend(glob("%s/%skm*.dat" %(basic_indata_dir, RESOLUTION)))
-            if not CCI_CLOUD_VALIDATION:
-                cfc_stats, cth_stats, cty_stats = compile_stats(results_files, 
-                                                                      result_end, 
-                                                                      write=options.write, 
-                                                                      name_in_file='STANDARD')
-            else:
-                cfc_stats, cth_stats = compile_stats(results_files, 
-                                                           result_end, 
-                                                           write=options.write, 
-                                                           name_in_file='STANDARD')        
-            print('')
-
-    if options.odticfilter == True: # I prefer this one! /KG
-        print('Calculate statistic for mode OPTICAL_DEPTH_THIN_IS_CLEAR')
-        print(RESOLUTION)
-        for dnt in DNT_FLAG:
-            results_files = []
-            for case in CASES:
-                basic_indata_dir = "%s/%s/%s/%skm/%s/%02d/%s/OPTICAL_DEPTH_THIN_IS_CLEAR" % \
-                    (MAIN_DATADIR, RESULT_DIR, case['satname'],  RESOLUTION , 
-                     case['year'], case['month'], MAP[0])
-                if dnt in [None, 'ALL', 'all']:
-                    result_end = ''
-                else:
-                    basic_indata_dir = basic_indata_dir + '_' + dnt
-                    result_end = '_%s' %dnt
-                print("-> " + basic_indata_dir)            
-                results_files.extend(glob("%s/%skm*.dat" %(basic_indata_dir, RESOLUTION)))
-            if not CCI_CLOUD_VALIDATION:
-                cfc_stats, cth_stats, cty_stats = compile_stats(
-                    results_files, result_end, 
-                    write=options.write, name_in_file='OPTICAL_DEPTH_THIN_IS_CLEAR')
-            else:
-                cfc_stats, cth_stats = compile_stats(
-                    results_files, result_end, 
-                    write=options.write, name_in_file='OPTICAL_DEPTH_THIN_IS_CLEAR')        
-            print('')
-
-    if options.surface_new_way == True:
-        from config import SURFACES
-        print('Calculate statistic for the different surfaces with basic method')
-        for surface in SURFACES:
-            for dnt in DNT_FLAG:
-                results_files = []
-                for case in CASES:
-                    print(RESOLUTION)
-                    basic_indata_dir = "%s/%s/%s/%skm/%s/%02d/%s/%s" % \
-                    (MAIN_DATADIR, RESULT_DIR, case['satname'], RESOLUTION , 
-                     case['year'], case['month'], MAP[0], surface)
-                    if dnt in [None, 'ALL', 'all']:
-                        result_end = surface
-                    else:
-                        basic_indata_dir = basic_indata_dir + '_' + dnt
-                        result_end = '%s_%s' %(surface, dnt)
-                    print("-> " + basic_indata_dir)
-                    results_files.extend(glob("%s/%skm*.dat" %(basic_indata_dir, RESOLUTION)))
-                if not CCI_CLOUD_VALIDATION:
-                    cfc_stats, cth_stats, cty_stats = compile_stats(
-                        results_files, result_end, 
-                        write=options.write, name_in_file=surface)
-                else:
-                    cfc_stats, cth_stats = compile_stats(
-                        results_files, result_end, write=options.write, 
-                        name_in_file=surface) 
-                print('')            
-    
-
-    if options.cotfilter == True:
-        print('Calculate statistic for mode COT-filter')
-        print(RESOLUTION)
-
-        New_DNT_FLAG = ['ALL', 'DAY', 'NIGHT', 'TWILIGHT']
+    #Get filename-templates form atrain_match.cfg
+    CONF = ConfigParser.ConfigParser()
+    CONF.read(os.path.join(CONFIG_PATH, "atrain_match.cfg"))
+    config_options = {}
+    for option, value in CONF.items('general', raw = True):
+        config_options[option] = value
         
-        #for dnt in DNT_FLAG:
+    #Find all wanted modes (dnt)    
+    modes_list =[]
+    New_DNT_FLAG = ['', '_DAY', '_NIGHT', '_TWILIGHT']
+    if options.basic == True:
+        modes_list.append('BASIC')
+    if options.standard == True:
+        modes_list.append('STANDARD')
+    if options.odticfilter == True: # I prefer this one! /KG
+        print('Will calculate statistic for mode OPTICAL_DEPTH_THIN_IS_CLEAR')
+        modes_list.append('OPTICAL_DEPTH_THIN_IS_CLEAR')
+    if options.surface_new_way == True:
+        print('Will calculate statistic for the different surfaces')
+        for surface in SURFACES:
+            modes_list.append(surface)
+        #Add dnt flag to all modes so far
+    print modes_list
+    modes_dnt_list = []
+    for mode in modes_list:
+          for dnt in New_DNT_FLAG:
+              modes_dnt_list.append(mode + dnt)
+    #Treat cotfilter separately as those directories have not dnt-flag at end          
+    if options.cotfilter == True:
+        print('Will calculate statistic for mode COT-filter')
         for dnt in New_DNT_FLAG:
             for cot in MIN_OPTICAL_DEPTH:
-                results_files = []
-                for case in CASES:
-                    basic_indata_dir = "%s/%s/%s/%skm/%s/%02d/%s/OPTICAL_DEPTH-%0.2f" % \
-                    (MAIN_DATADIR, RESULT_DIR, case['satname'], RESOLUTION , 
-                     case['year'], case['month'], MAP[0], cot)
-                    if dnt in [None, 'ALL', 'all']:
-                        result_end = '_%0.2f' % cot
-                    else:
-                        basic_indata_dir = "%s/%s/%s/%skm/%s/%02d/%s/OPTICAL_DEPTH_%s-%0.2f" % \
-                                           (MAIN_DATADIR, RESULT_DIR, case['satname'], 
-                                            RESOLUTION , case['year'], case['month'], MAP[0], dnt,cot)
-                        #basic_indata_dir = basic_indata_dir + '_' + dnt
-                        result_end = '_%s_%0.2f' % (dnt,cot)
-                    print("-> " + basic_indata_dir)
-                    results_files.extend(glob("%s/%skm*.dat" %(basic_indata_dir, RESOLUTION)))
-                    print "Length of result file list: ",len(results_files)
-                if not CCI_CLOUD_VALIDATION:
-                    cfc_stats, cth_stats, cty_stats = compile_stats(results_files, 
-                                                                    result_end, 
-                                                                    write=options.write, 
-                                                                    name_in_file='cotfilter')
-                else:
-                    cfc_stats, cth_stats = compile_stats(results_files, 
-                                                                   result_end, 
-                                                                   write=options.write, 
-                                                                   name_in_file='cotfilter')        
-                print('')
-                        
-             
-            print('')
+                #modes_list.append("OPTICAL_DEPTH-%0.2_%sf"(dnt,cot))# if like this
+                modes_dnt_list.append("OPTICAL_DEPTH%s-%0.2f"%(dnt,cot))
+
+    #For each mode calcualte the statistics            
+    for process_mode_dnt in modes_dnt_list:
+        print("Gathering statistics from all validation results files in the "
+              "following directories:")    
+        print(RESOLUTION)
+        results_files = []
+        #get result files for all cases
+        for case in CASES:
+            indata_dir = config_options['result_dir'].format(
+                val_dir=_validation_results_dir,
+                satellite=case['satname'],
+                resolution=str(RESOLUTION),
+                area=AREA,
+                month=case['month'],
+                year=case['year'],
+                mode=process_mode_dnt,
+                min_opt_depth="")    
+            print("-> " + indata_dir)
+            results_files.extend(glob("%s/*%skm*.dat" %(indata_dir, RESOLUTION)))
+        #compile and write results    
+        compiled_dir = config_options['compiled_stats_dir'].format(
+            val_dir=_validation_results_dir)
+        if not os.path.exists(compiled_dir):
+            os.makedirs(compiled_dir)
+        compiled_file_cfc = config_options['compiled_stats_filename'].format(
+            satellite=case['satname'],
+            resolution=str(RESOLUTION),
+            area=AREA,
+            month=case['month'],
+            year=case['year'], 
+            mode=process_mode_dnt,
+            stat_type='cfc',
+            min_opt_depth="")
+        compiled_file_cfc = os.path.join(compiled_dir, compiled_file_cfc)
+        compile_stats(results_files,  write=options.write, outfile_cfc=compiled_file_cfc)
+
+
+
+
             

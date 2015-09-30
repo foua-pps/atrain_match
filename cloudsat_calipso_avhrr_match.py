@@ -302,7 +302,6 @@ def insert_info_in_filename_or_path(file_or_name_path, values, datetime_obj=None
         month=values.get('month',"unknown"),
         mode=values.get('mode',"unknown"),
         min_opt_depth=values.get('min_opt_depth',""),
-        result_dir = config.RESULT_DIR,
         atrain_datatype=values.get("atrain_datatype","atrain_datatype"))
 
     if datetime_obj is None:
@@ -1331,40 +1330,16 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     # If everything is OK, now create filename for statistics output file and
     # open it for writing.  Notice that more than one file (but maximum 2) can
     # be created for one particular noaa orbit.
-
-    #resultpath = "%s/%s/%ikm/%s/%s/%s/%s" % (config.RESULT_DIR, 
-    #                                         base_sat,
-    #                                         int(config.RESOLUTION), 
-    #                                         base_year, base_month, 
-    #                                         config.AREA, process_mode_dnt)
     min_depth_to_file_name=""
     if process_mode == 'OPTICAL_DEPTH':
         min_depth_to_file_name="-%.2f"%(min_optical_depth)
-        #resultpath = "%s/%s/%ikm/%s/%s/%s/%s-%.1f" % (config.RESULT_DIR, 
-        #                                              base_sat,
-        #                                              int(config.RESOLUTION), 
-        #                                              base_year, base_month,
-        #                                              config.AREA, process_mode_dnt, 
-        #                                              min_optical_depth)      
-    #result_dir = {val_dir}/Results/{satellite}/{resolution}km/{year}/{month}/{area}/{mode}-{min_opt_depth}/
     values['mode']= process_mode_dnt
     values['min_opt_depth']=min_depth_to_file_name
     result_path = insert_info_in_filename_or_path(config_options['result_dir'], values, datetime_obj=values['date_time'])
-    #result_path = config_options['result_dir'].format(
-    #        val_dir=config._validation_results_dir,
-    #        satellite=values["satellite"],
-    #        resolution=str(config.RESOLUTION),
-    #        area=config.AREA,
-    #        month=values["month"],
-    #        year=values["year"],
-    #        mode=process_mode_dnt,
-    #        min_opt_depth=min_depth_to_file_name
-    #        )
+
     if not os.path.exists(result_path):
         os.makedirs(result_path)
 
-    #statname = "%ikm_%s_cloudsat_calipso_avhrr_stat.dat" % (int(config.RESOLUTION),
-    #                                                        basename)
     result_file = config_options['result_file'].format(
             resolution=str(config.RESOLUTION),
             basename=values['basename'] )
