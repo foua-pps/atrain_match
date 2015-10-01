@@ -85,14 +85,34 @@ def CloudsatCloudOpticalDepth(cloud_top, cloud_base, optical_depth, cloud_fracti
 
     return new_cloud_top, new_cloud_base, new_cloud_fraction, new_fcf
 
-def CloudsatOpticalDepthHeightFiltering1km(CaObj):
+def check_total_optical_depth_and_warn(caObj):
+    obj = caObj.calipso
+    if  (obj.total_optical_depth_5km is not None and 
+         (obj.total_optical_depth_5km < obj.optical_depth_top_layer5km).any()):
+        badPix=np.less(obj.total_optical_depth_5km+0.001, 
+                       obj.optical_depth_top_layer5km)
+        diff=obj.total_optical_depth_5km- obj.optical_depth_top_layer5km
+        print "warning", len(obj.total_optical_depth_5km)  
+        print len(obj.total_optical_depth_5km[badPix])
+        print obj.total_optical_depth_5km[badPix]
+        print obj.optical_depth_top_layer5km[badPix] 
+        print diff[badPix]
+        print obj.number_of_layers_found[badPix]
+        if obj.detection_height_5km is not None:
+            print obj.detection_height_5km[badPix] 
+        print np.where(badPix)
+        print obj.cloud_top_profile[0,badPix]
+        print obj.cloud_base_profile[0,badPix]
+
+def CalipsoOpticalDepthHeightFiltering1km(CaObj):
     #print CaObj.calipso.cloud_top_profile[0,:]
     new_cloud_tops = np.where(
-        CaObj.calipso.cloud_base_profile[0,:]>CaObj.calipso.detection_height_5km,
+        CaObj.calipso.cloud_base_profile[0,:] > CaObj.calipso.detection_height_5km,
         CaObj.calipso.cloud_base_profile[0,:]+0.1,
         CaObj.calipso.detection_height_5km)
-    clouds_to_update = np.logical_and(CaObj.calipso.cloud_top_profile[0,:]>CaObj.calipso.detection_height_5km,
-                                      np.not_equal(CaObj.calipso.detection_height_5km,-9))
+    clouds_to_update = np.logical_and(
+        CaObj.calipso.cloud_top_profile[0,:]>CaObj.calipso.detection_height_5km,
+        np.not_equal(CaObj.calipso.detection_height_5km, -9))
     CaObj.calipso.cloud_top_profile[0,:] = np.where(
         clouds_to_update,
         new_cloud_tops,
@@ -102,7 +122,7 @@ def CloudsatOpticalDepthHeightFiltering1km(CaObj):
     #print CaObj.calipso.detection_height_5km
     return CaObj
 
-def CalipsoOpticalDepthSeToClearFiltering1km(CaObj):
+def CalipsoOpticalDepthSetThinToClearFiltering1km(CaObj):
     isThin_clouds = np.logical_and(CaObj.calipso.total_optical_depth_5km < OPTICAL_DETECTION_LIMIT,
                                    np.not_equal(CaObj.calipso.total_optical_depth_5km,-9))
     #>0.0 important. Some clouds are missing in 5km data set but present in 1km data set!

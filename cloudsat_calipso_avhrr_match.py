@@ -40,13 +40,9 @@ RUNNING INSTRUCTIONS
 --------------------
 
 The program is capable of running in a wide range of modes. 
-
-
-Input data has to be supplied at directories defined by MAIN_DIR and SUB_DIR
-parameters below.
  
 Every exection of the program prints out statistics for PPS Cloud Mask, Cloud
-Type and Cloud Top Height directly on the screen.
+Type and Cloud Top Height directly to file
 
 Don't forget to set all parameters needed for standard ACPG/AHAMAP execution
 since the matchup software uses parts of the ACPG/AHAMAP software.
@@ -301,7 +297,7 @@ def insert_info_in_filename_or_path(file_or_name_path, values, datetime_obj=None
         year=values.get('year',"unknown"),
         month=values.get('month',"unknown"),
         mode=values.get('mode',"unknown"),
-        min_opt_depth=values.get('min_opt_depth',""),
+        #min_opt_depth=values.get('min_opt_depth',""),
         atrain_datatype=values.get("atrain_datatype","atrain_datatype"))
 
     if datetime_obj is None:
@@ -367,33 +363,6 @@ def get_time_list_and_cross_time(cross):
     tlist = get_time_list(cross_time, time_window, delta_t_in_seconds=60)
     return tlist, cross_time, cross_satellite
 
-
-
-def find_avhrr_file_old(cross, options):
-    """
-    Find the *satellite* avhrr file closest to *datetime*.
-    """
-    (tlist, cross_time, cross_satellite) = get_time_list_and_cross_time(cross)
-    found_dir = None
-    for tobj in tlist:
-        rad_dir = insert_info_in_filename_or_path(options['radiance_dir'],
-                                                  values, datetime_obj=tobj)
-
-        print rad_dir
-        if os.path.exists(rad_dir):
-            found_dir = rad_dir
-            break
-    if not found_dir:
-        raise MatchupError("No dir found with radiance data!\n" + 
-                           "Searching under %s" % options['radiance_dir'])
-    for tobj in tlist:
-        file_pattern = insert_info_in_filename_or_path(options['radiance_file'],
-                                                       values,datetime_obj=tobj)
-        radiance_files = glob(os.path.join(found_dir, file_pattern))
-        if len(radiance_files) > 0:
-            write_log('INFO',"Found files: " + str(radiance_files))
-            return radiance_files[0]
-    return None
 
 def find_radiance_file(cross, options):
     found_file, tobj= find_avhrr_file(cross, 
@@ -615,11 +584,6 @@ def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
                            'physiography': physiography_file})
 
     ppsfiles = ppsFiles(file_name_dict)
-                        #cloudtype=cloudtype_file,
-                        #ctth=ctth_file,
-                        #cpp=cpp_file,
-                        #nwp_tsur=nwp_tsur_file,
-                        #sunsatangles=sunsatangles_file)
     return  ppsfiles
 
 
@@ -725,8 +689,6 @@ def get_calipso_matchups(calipso_files, values,
                 endBreak)
         else:
             calipso = calipso1km
-                                    
-            
     else:
         calipso = reshapeCalipso(calipso_files, 
                                  avhrrGeoObj, values, True)[0]
@@ -851,8 +813,6 @@ def read_pps_data(pps_files, avhrr_file, cross):
         ctype.conditions_flag = ctype_mpop.ct_conditions.data
         ctype.status_flag = ctype_mpop.ct_statusflag.data
         #print ctype_mpop.ct_quality
-        
-
 
     write_log("INFO","Read PPS CTTH")
     try:
@@ -868,23 +828,24 @@ def read_pps_data(pps_files, avhrr_file, cross):
     nwp_dict['t850'] = read_nwp(pps_files.nwp_t850, "temperature 850hPa")
     nwp_dict['t950'] = read_nwp(pps_files.nwp_t950, "temperature 950hPa")
     nwp_dict['ttro'] = read_nwp(pps_files.nwp_ttro, "tropopause temperature")
-    nwp_dict['ciwv'] = read_nwp(pps_files.nwp_ciwv,  "atmosphere_water_vapor_content")
-
+    nwp_dict['ciwv'] = read_nwp(pps_files.nwp_ciwv, 
+                                "atmosphere_water_vapor_content")
 
     for ttype in ['r06', 't11', 't37t12', 't37']:
         h5_obj_type = ttype +'_text'
         text_type = 'text_' + ttype
-        nwp_dict[text_type] = read_thr(getattr(pps_files,text_type), h5_obj_type,text_type)
+        nwp_dict[text_type] = read_thr(getattr(pps_files,text_type), 
+                                       h5_obj_type,text_type)
     for h5_obj_type in ['t11ts_inv', 't11t37_inv', 't37t12_inv', 't11t12_inv', 
                         't11ts', 't11t37', 't37t12', 't11t12',
                         'r09', 'r06', 't85t11_inv', 't85t11']:
         thr_type = 'thr_' + h5_obj_type
-        nwp_dict[thr_type] = read_thr(getattr(pps_files,thr_type), h5_obj_type, thr_type)
+        nwp_dict[thr_type] = read_thr(getattr(pps_files,thr_type), 
+                                      h5_obj_type, thr_type)
     for h5_obj_type in ['emis1', 'emis8','emis9']:
-        thr_type = h5_obj_type
-        nwp_dict[thr_type] = read_thr(getattr(pps_files,"emis"), h5_obj_type, thr_type)
-
-
+        emis_type = h5_obj_type
+        nwp_dict[emis_type] = read_thr(getattr(pps_files,"emis"), 
+                                       h5_obj_type, emis_type)
     nwp_obj = NWPObj(nwp_dict)
     return avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, nwp_obj, cppLwp, cppCph 
 
@@ -1333,8 +1294,7 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     min_depth_to_file_name=""
     if process_mode == 'OPTICAL_DEPTH':
         min_depth_to_file_name="-%.2f"%(min_optical_depth)
-    values['mode']= process_mode_dnt
-    values['min_opt_depth']=min_depth_to_file_name
+    values['mode']= process_mode_dnt+min_depth_to_file_name
     result_path = insert_info_in_filename_or_path(config_options['result_dir'], values, datetime_obj=values['date_time'])
 
     if not os.path.exists(result_path):
@@ -1387,30 +1347,21 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
         print "COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC=True"
         print "ALSO_USE_5KM_FILES=True or RESOLUTION==5"
 
-    if  (caObj.calipso.total_optical_depth_5km is not None and 
-         (caObj.calipso.total_optical_depth_5km < caObj.calipso.optical_depth_top_layer5km).any()):
-        badPix=np.less(caObj.calipso.total_optical_depth_5km+0.001, caObj.calipso.optical_depth_top_layer5km)
-        diff=caObj.calipso.total_optical_depth_5km- caObj.calipso.optical_depth_top_layer5km
-        print "warning", len(caObj.calipso.total_optical_depth_5km), "\n", len(caObj.calipso.total_optical_depth_5km[badPix]),"\n", caObj.calipso.total_optical_depth_5km[badPix],"\n", caObj.calipso.optical_depth_top_layer5km[badPix],"\n", diff[badPix],"\n", caObj.calipso.number_of_layers_found[badPix],"\n", caObj.calipso.detection_height_5km[badPix],"\n", np.where(badPix),"\n",caObj.calipso.cloud_top_profile[0,badPix],"\n",caObj.calipso.cloud_base_profile[0,badPix]
-
+    check_total_optical_depth_and_warn(caObj)
 
     if process_mode != 'BASIC' and RESOLUTION==1:
-        caObj = CloudsatOpticalDepthHeightFiltering1km(caObj)
+        caObj = CalipsoOpticalDepthHeightFiltering1km(caObj)
 
     if process_mode == 'OPTICAL_DEPTH_THIN_IS_CLEAR' and RESOLUTION==1:
         write_log('INFO',"Setting thin clouds to clear"
                   ", using 5km data in mode OPTICAL_DEPTH_THIN_IS_CLEAR")
-        caObj = CalipsoOpticalDepthSeToClearFiltering1km(caObj)
-        if (caObj.calipso.total_optical_depth_5km < caObj.calipso.optical_depth_top_layer5km).any():
-            badPix=np.less(caObj.calipso.total_optical_depth_5km+0.001, caObj.calipso.optical_depth_top_layer5km)
-            diff=caObj.calipso.total_optical_depth_5km- caObj.calipso.optical_depth_top_layer5km
-            print "warning", len(caObj.calipso.total_optical_depth_5km), "\n", len(caObj.calipso.total_optical_depth_5km[badPix]),"\n", caObj.calipso.total_optical_depth_5km[badPix],"\n", caObj.calipso.optical_depth_top_layer5km[badPix],"\n", diff[badPix],"\n", caObj.calipso.number_of_layers_found[badPix],"\n", caObj.calipso.detection_height_5km[badPix],"\n", np.where(badPix),"\n",caObj.calipso.cloud_top_profile[0,badPix],"\n",caObj.calipso.cloud_base_profile[0,badPix]
-
+        caObj = CalipsoOpticalDepthSetThinToClearFiltering1km(caObj)
       
 
     NinaTestar = False    
     if NinaTestar :   
-        new_cloud_top = NinaTestarMedelCloudBaseAndTop(caObj.calipso.cloud_top_profile, caObj.calipso.cloud_base_profile)
+        new_cloud_top = NinaTestarMedelCloudBaseAndTop(caObj.calipso.cloud_top_profile, 
+                                                       caObj.calipso.cloud_base_profile)
         caObj.calipso.cloud_top_profile = new_cloud_top
 
 
@@ -1421,14 +1372,12 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     cal_vert_feature = np.where(np.not_equal(caObj.calipso.feature_classification_flags[0,::],1),feature_array[::],cal_vert_feature[::])  
     #feature_array = 2*np.bitwise_and(np.right_shift(caObj.calipso.feature_classification_flags[0,::],4),1) + np.bitwise_and(np.right_shift(caObj.calipso.feature_classification_flags[0,::],3),1)
 
-
     # Prepare for plotting, cloud emissivity and statistics calculations
     
     caliop_toplay_thickness = np.ones(caObj.calipso.cloud_top_profile[0,::].shape)*-9
 
     thickness = (caObj.calipso.cloud_top_profile[0,::]-caObj.calipso.cloud_base_profile[0,::])*1000.
     caliop_toplay_thickness = np.where(np.greater(caObj.calipso.cloud_top_profile[0,::],-9),thickness,caliop_toplay_thickness)
-
     
     caliop_height = []
     caliop_base = []
@@ -1484,14 +1433,12 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     if config.RESOLUTION == 1 and cloudsat_type == 'CWC-RVOD' and clsatObj is not None:
         elevationcwc = np.where(np.less_equal(clsatObj.cloudsatcwc.elevation,0),
                             -9, clsatObj.cloudsatcwc.elevation)
-
         data_okcwc = np.ones(clsatObj.cloudsatcwc.elevation.shape,'b')
                 
     ### 5 KM DATA CWC-RVOD ###                       
     elif config.RESOLUTION == 5 and cloudsat_type == 'CWC-RVOD' and clsatObj is not None:
         elevationcwc = np.where(np.less_equal(clsatObj.cloudsat5kmcwc.elevation,0),
                             -9, clsatObj.cloudsat5kmcwc.elevation,-9)
-
         data_okcwc = np.ones(clsatObj.cloudsat5kmcwc.elevation.shape,'b')
    
     #======================================================================
@@ -1499,24 +1446,18 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     if process_mode_dnt in config.PLOT_MODES:
         write_log('INFO', "Plotting")
 
-        #plot_dir = {val_dir}/Plot/{satellite}/{resolution}km/%Y/%m/{area}/  
-        plotpath = insert_info_in_filename_or_path(config_options['plot_dir'], values, datetime_obj=values['date_time'])      
-        #print plotpath
-        #plotpath = os.path.join(config.PLOT_DIR,
-        #                        base_sat, "%ikm" % config.RESOLUTION, 
-        #                        base_year, base_month, config.AREA)
-            
+        plotpath = insert_info_in_filename_or_path(config_options['plot_dir'], values,
+                                                   datetime_obj=values['date_time'])      
         trajectorypath = os.path.join(plotpath, "trajectory_plot")
         if not os.path.exists(trajectorypath):
             os.makedirs(trajectorypath)
-
         trajectoryname = os.path.join(trajectorypath, 
                                       "%skm_%s_trajectory" % (int(config.RESOLUTION),
                                                               values['basename']))
         # To make it possible to use the same function call to drawCalClsatGEOPROFAvhrr*kmPlot
         # in any processing mode:
-        if 'emissfilt_calipso_ok' not in locals():
-            emissfilt_calipso_ok = None
+        #This is always None!
+        emissfilt_calipso_ok = None
         if clsatObj is None:
             file_type = ['eps', 'png']
             if PLOT_ONLY_PNG==True:

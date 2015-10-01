@@ -117,11 +117,13 @@ def main(args=None):
     parser = OptionParser()
     parser.set_usage("usage: %prog [options] sno_output_files...\n"
                      "Some influential environment variables:\n"
-                     "VALIDATION_RESULTS_DIR    Base directory where results will be stored.\n"
-                     "                          Used indirectly by cloudsat_calipso_avhrr_match.py.\n"
-    parser.add_option('-M', '--mode', type='choice', action='append', choices=config.ALLOWED_MODES,
-                      help="Run validation software in MODE (valid modes are %s)" % \
-                      ', '.join(config.ALLOWED_MODES))
+                     "VALIDATION_RESULTS_DIR "
+                     "Base directory where results will be stored.\n")
+    parser.add_option('-M', '--mode', type='choice', action='append', 
+                      choices=config.ALLOWED_MODES,
+                      help=("Run validation software in MODE ("
+                            "valid modes are %s)" % 
+                            ', '.join(config.ALLOWED_MODES)))
     parser.add_option('-r', '--reprocess', action='store_true', default=False,
                       help="Disregard any previously generated Cloudsat- and "
                       "Calipso-AVHRR matchup files.")
