@@ -122,7 +122,7 @@ def main(args=None):
                         "Calipso-AVHRR matchup files.")
     parser.add_argument('-d', '--debug', const=True, nargs='?', required=False, 
                         help="Get debug logging")
-    group.add_argument( '--pps_okay_scenes', '-os', 
+    group.add_argument( '--pps_okay_scene', '-os', 
                       help="Interpret arguments as PPS okay scenes instead of "
                       "sno_output_files (e.g. noaa19_20101201_1345_27891*)")
     group.add_argument( '--pps_product_file', '-pf', 
@@ -152,10 +152,9 @@ def main(args=None):
         # Simulate crosses from PPS scenes
         from find_crosses import Cross
         from runutils import parse_scene
-
-        for scene in args:
-            satname, time, orbit = parse_scene(scene) #@UnusedVariable
-            matchups.append(Cross(satname, '', time, time, -999, -999))
+        scene = options.pps_okay_scenes
+        satname, time, orbit = parse_scene(scene) #@UnusedVariable
+        matchups.append(Cross(satname, '', time, time, -999, -999))
     elif options.sno_file is not None:
         sno_output_file = options.sno_file
         found_matchups = find_crosses.parse_crosses_file(sno_output_file)
