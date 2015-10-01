@@ -150,28 +150,30 @@ def compile_stats(results_files, write=False, outfile_cfc=None):
             print(l)
 
 if __name__ == '__main__':
-    from optparse import OptionParser
+
     import os
     from glob import glob
     import ConfigParser
 
-    parser = OptionParser()
-    parser.add_option('-w', '--write', action='store_true',
+
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument( '--write', '-w', const=True, nargs='?', required=False,
                       help="Write results to file")
-    parser.add_option('-b', '--basic', action='store_true',  
+    parser.add_argument('--basic', '-b',  const=True, nargs='?', required=False,  
                       help="Calculate the statistic for mode BASIC")
-    parser.add_option('-t', '--standard', action='store_true',  
+    parser.add_argument('--standard', '-t', const=True, nargs='?', required=False,  
                       help="Calculate the statistic for mode STANDARD")
-    parser.add_option('-o', '--odticfilter', action='store_true',  
+    parser.add_argument('--odticfilter', '-o',  const=True, nargs='?', required=False,  
                       help="Calculate the statistic for mode "
                       "OPTICAL_DEPTH_THIN_IS_CLEAR")
-    parser.add_option('-n', '--surface_new_way', action='store_true',
+    parser.add_argument('--surface_new_way', '-n',  const=True, nargs='?', required=False,
                       help='calculate the statistic for the different '
                       'surfaces with basic method')
-    parser.add_option('-c', '--cotfilter', action='store_true', 
+    parser.add_argument('--cotfilter', '-c',  const=True, nargs='?', required=False, 
                       help='calculate the statistic for the optical '
                       'thickness filters')    
-    (options, args) = parser.parse_args()
+    (options) = parser.parse_args()
 
     #Get filename-templates form atrain_match.cfg
     CONF = ConfigParser.ConfigParser()
