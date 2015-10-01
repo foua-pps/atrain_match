@@ -148,11 +148,11 @@ def main(args=None):
         logging.getLogger().setLevel(logging.DEBUG)
     
     matchups = []
-    if options.pps_okay_scenes:
+    if options.pps_okay_scene:
         # Simulate crosses from PPS scenes
         from find_crosses import Cross
         from runutils import parse_scene
-        scene = options.pps_okay_scenes
+        scene = options.pps_okay_scene
         satname, time, orbit = parse_scene(scene) #@UnusedVariable
         matchups.append(Cross(satname, '', time, time, -999, -999))
     elif options.sno_file is not None:
