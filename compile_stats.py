@@ -221,7 +221,7 @@ if __name__ == '__main__':
                 satellite=case['satname'],
                 resolution=str(RESOLUTION),
                 area=AREA,
-                month=case['month'],
+                month="%02d"%(case['month']),
                 year=case['year'],
                 mode=process_mode_dnt,
                 min_opt_depth="")    

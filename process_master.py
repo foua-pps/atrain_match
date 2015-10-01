@@ -111,45 +111,44 @@ def main(args=None):
     For a complete usage description, run 'python process_master -h'.
     
     """
-    from optparse import OptionParser
     import find_crosses
-    
-    parser = OptionParser()
-    parser.set_usage("usage: %prog [options] sno_output_files...\n"
-                     "Some influential environment variables:\n"
-                     "VALIDATION_RESULTS_DIR "
-                     "Base directory where results will be stored.\n")
-    parser.add_option('-M', '--mode', type='choice', action='append', 
-                      choices=config.ALLOWED_MODES,
-                      help=("Run validation software in MODE ("
-                            "valid modes are %s)" % 
-                            ', '.join(config.ALLOWED_MODES)))
-    parser.add_option('-r', '--reprocess', action='store_true', default=False,
-                      help="Disregard any previously generated Cloudsat- and "
-                      "Calipso-AVHRR matchup files.")
-    parser.add_option('-d', '--debug', action='store_true', default=False)
-    parser.add_option('-s', '--scenes', action='store_true',
-                      help="Interpret arguments as PPS scenes instead of "
+    import argparse
+    parser = argparse.ArgumentParser()
+    group = parser.add_mutually_exclusive_group(required=True)
+    parser.add_argument('--mode', '-M', type=str, required=False, choices=config.ALLOWED_MODES,
+                      help=("Run validation software in MODE "))
+    parser.add_argument('--reprocess', '-r', const=True, nargs='?', required=False,
+                        help="Disregard any previously generated Cloudsat- and "
+                        "Calipso-AVHRR matchup files.")
+    parser.add_argument('-d', '--debug', const=True, nargs='?', required=False, 
+                        help="Get debug logging")
+    group.add_argument( '--pps_okay_scenes', '-os', 
+                      help="Interpret arguments as PPS okay scenes instead of "
                       "sno_output_files (e.g. noaa19_20101201_1345_27891*)")
-    (options, args) = parser.parse_args(args)
+    group.add_argument( '--pps_product_file', '-pf', 
+                      help="Interpret arguments as inputfile with "  
+                      "list of pps files")
+    group.add_argument('--sno_file', '-sf', 
+                      help="Interpret arguments as sno_output_file")
+
+    options = parser.parse_args()
     
     if options.mode is not None:
-        run_modes = options.mode
+        run_modes = [options.mode]
     else:
         run_modes = config.ALLOWED_MODES
-    
-    if len(args) > 0:
-        sno_output_files = args
-    else:
-        parser.error("No snotimes output files provided")
-    
+
+    reprocess = False    
+    if options.reprocess is not None:
+        reprocess = options.reprocess
+
     config.DEBUG = options.debug
     if options.debug:
         import logging
         logging.getLogger().setLevel(logging.DEBUG)
     
     matchups = []
-    if options.scenes:
+    if options.pps_okay_scenes:
         # Simulate crosses from PPS scenes
         from find_crosses import Cross
         from runutils import parse_scene
@@ -157,19 +156,26 @@ def main(args=None):
         for scene in args:
             satname, time, orbit = parse_scene(scene) #@UnusedVariable
             matchups.append(Cross(satname, '', time, time, -999, -999))
-    else:
-        for sno_output_file in sno_output_files:
-            found_matchups = find_crosses.parse_crosses_file(sno_output_file)
-            if len(found_matchups) == 0:
-                write_log('WARNING', "No matchups found in SNO output file %s" %
-                          sno_output_file)
-                if options.debug is True:
-                    raise Warning()
-                continue
-            else:
-                matchups.extend(found_matchups)
+    elif options.sno_file is not None:
+        sno_output_file = options.sno_file
+        found_matchups = find_crosses.parse_crosses_file(sno_output_file)
+        if len(found_matchups) == 0:
+            write_log('WARNING', "No matchups found in SNO output file %s" %
+                      sno_output_file)
+            if options.debug is True:
+                raise Warning()
+        else:
+            matchups.extend(found_matchups)
+    elif options.pps_product_file is not None:
+        from find_crosses import Cross
+        from runutils import  parse_scenesfile_v2014
+        pps_output_file = options.pps_product_file
+        read_from_file = open(pps_output_file,'r')
+        for line in read_from_file:
+            satname, time = parse_scenesfile_v2014(line)
+            matchups.append(Cross(satname, '', time, time, -999, -999))
 
-    process_matchups(matchups, run_modes, options.reprocess, options.debug)
+    process_matchups(matchups, run_modes, reprocess, options.debug)
     
     return 0
 

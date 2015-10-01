@@ -77,3 +77,20 @@ def parse_scene(filename):
     orbit = int(orbit_s)
     
     return satname, _datetime, orbit
+
+def parse_scenesfile_v2014(filename):
+    """
+    Parse pps file =S_NWC_CT_{satellite}_{orbit}_%Y%m%dT%H%M???Z_*.h5
+    """
+    from datetime import datetime
+    import re
+    filename = os.path.basename(filename)
+    if not filename:
+        raise ValueError("No file %r" % filename)        
+    match = re.match(r"S_NWC_.+_([^_]+)_\d+_(\d+)T(\d\d\d\d).+", filename)
+    if not match:
+        raise ValueError("Couldn't parse pps file %r" % filename)
+    satname, date_s, time_s = match.groups()
+    _datetime = datetime.strptime(date_s + time_s, '%Y%m%d%H%M')
+    
+    return satname, _datetime

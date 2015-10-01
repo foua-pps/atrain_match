@@ -991,7 +991,6 @@ def print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature,
                                          okcaliop_semi_pps_not_thin,  
                                          statfile, cal_vert_feature, 
                                          avhrr_ctth_cal_ok, caliop_max_height)
-
         #Not thin top layer
         #Opaque stats
         lim=config.OPTICAL_DETECTION_LIMIT
@@ -1003,7 +1002,6 @@ def print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature,
                                          okcaliop_opaque_pps_thin,  
                                          statfile, cal_vert_feature, 
                                          avhrr_ctth_cal_ok, caliop_max_height)
-
         #Semi-transparent stats
         statfile.write("CLOUD HEIGHT SEMI TOP LAYER VERY THIN\n")
         okcaliop_semi_pps_thin = np.logical_and(
@@ -1013,7 +1011,6 @@ def print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature,
                                          okcaliop_semi_pps_thin,  
                                          statfile, cal_vert_feature, 
                                          avhrr_ctth_cal_ok, caliop_max_height)
-
 
 def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
                         cal_vert_feature, avhrr_ctth_csat_ok, data_ok,
