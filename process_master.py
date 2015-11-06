@@ -128,6 +128,9 @@ def main(args=None):
     group.add_argument( '--pps_product_file', '-pf', 
                       help="Interpret arguments as inputfile with "  
                       "list of pps files")
+    group.add_argument( '--cci_product_file', '-cf', 
+                      help="Interpret arguments as inputfile with "  
+                      "list of cci files")
     group.add_argument('--sno_file', '-sf', 
                       help="Interpret arguments as sno_output_file")
 
@@ -173,6 +176,17 @@ def main(args=None):
         for line in read_from_file:
             satname, time = parse_scenesfile_v2014(line)
             matchups.append(Cross(satname, '', time, time, -999, -999))
+    elif options.cci_product_file is not None:
+        from find_crosses import Cross
+        from runutils import  parse_scenesfile_cci
+        cci_output_file = options.cci_product_file
+        read_from_file = open(cci_output_file,'r')
+        for line in read_from_file:
+            if line.rstrip() in "":
+                pass
+            else:    
+                satname, time = parse_scenesfile_cci(line)
+                matchups.append(Cross(satname, '', time, time, -999, -999))
 
     process_matchups(matchups, run_modes, reprocess, options.debug)
     

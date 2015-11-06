@@ -347,22 +347,22 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
                      for idx in range(row_matched.shape[0])]
     ctype_track = [ctype.cloudtype[row_matched[idx], col_matched[idx]]
                  for idx in range(row_matched.shape[0])]
-    if hasattr(ctype, 'ct_quality'):
+    if hasattr(ctype, 'ct_quality') and PPS_VALIDATION:
         ctype_ct_qualityflag_track = [ctype.ct_quality[row_matched[idx], col_matched[idx]]
                              for idx in range(row_matched.shape[0])]
-    if hasattr(ctype, 'ct_conditions'):
+    if hasattr(ctype, 'ct_conditions') and ctype.ct_conditions is not None:
         ctype_ct_conditionsflag_track = [ctype.ct_conditions[row_matched[idx], col_matched[idx]]
                              for idx in range(row_matched.shape[0])]
-    if hasattr(ctype, 'ct_statusflag'):
+    if hasattr(ctype, 'ct_statusflag') and PPS_VALIDATION:
         ctype_ct_statusflag_track = [ctype.ct_statusflag[row_matched[idx], col_matched[idx]]
                              for idx in range(row_matched.shape[0])]
-    if hasattr(ctth, 'ctth_statusflag'):
+    if hasattr(ctth, 'ctth_statusflag') and PPS_VALIDATION:
         ctype_ctth_statusflag_track = [ctth.ctth_statusflag[row_matched[idx], col_matched[idx]]
                                        for idx in range(row_matched.shape[0])]
-    if hasattr(ctype, 'qualityflag'):
+    if hasattr(ctype, 'qualityflag') and PPS_VALIDATION:
         ctype_qflag_track = [ctype.qualityflag[row_matched[idx], col_matched[idx]]
                              for idx in range(row_matched.shape[0])]
-    if  ctype.phaseflag != None:
+    if  ctype.phaseflag != None and PPS_VALIDATION:
         ctype_pflag_track = [ctype.phaseflag[row_matched[idx], col_matched[idx]]
                              for idx in range(row_matched.shape[0])]
     if nwp_obj.surft != None:
@@ -505,16 +505,17 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
             np.equal(temp, AngObj.sunz.no_data),
             np.equal(temp, AngObj.sunz.missing_data)),
         -9, sunz_temp)
-    temp = [AngObj.azidiff.data[row_matched[idx], col_matched[idx]] 
-            for idx in range(row_matched.shape[0])]
-    azidiff_temp = [(AngObj.azidiff.data[row_matched[idx], col_matched[idx]] * 
-                  AngObj.azidiff.gain + AngObj.azidiff.intercept)
-                 for idx in range(row_matched.shape[0])]
-    azidiff_track = np.where(
-        np.logical_or(
-            np.equal(temp, AngObj.azidiff.no_data),
-            np.equal(temp, AngObj.azidiff.missing_data)),
-        -9, azidiff_temp)
+    if AngObj.azidiff is not None:
+        temp = [AngObj.azidiff.data[row_matched[idx], col_matched[idx]] 
+                for idx in range(row_matched.shape[0])]
+        azidiff_temp = [(AngObj.azidiff.data[row_matched[idx], col_matched[idx]] * 
+                         AngObj.azidiff.gain + AngObj.azidiff.intercept)
+                        for idx in range(row_matched.shape[0])]
+        azidiff_track = np.where(
+            np.logical_or(
+                np.equal(temp, AngObj.azidiff.no_data),
+                np.equal(temp, AngObj.azidiff.missing_data)),
+            -9, azidiff_temp)
     if ctth == None:
         write_log('INFO', "Not extracting ctth")
     else:
@@ -594,7 +595,8 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
             obt.avhrr.b22micron = np.array(b22micron_track)
     obt.avhrr.satz = np.array(satz_track)
     obt.avhrr.sunz = np.array(sunz_track)
-    obt.avhrr.azidiff = np.array(azidiff_track)
+    if AngObj.azidiff is not None:
+        obt.avhrr.azidiff = np.array(azidiff_track)
     if ctth:
         obt.avhrr.ctth_height = np.array(ctth_height_track)
         obt.avhrr.ctth_pressure = np.array(ctth_pressure_track)

@@ -138,13 +138,13 @@ class ppsFiles(object):
 
 class NWPObj(object):
     def __init__(self, array_dict):
-        self.nwp_tsur = None
-        self.nwp_t500 = None
-        self.nwp_t700 = None
-        self.nwp_t850 = None
-        self.nwp_t950 = None
-        self.nwp_ttro = None
-        self.nwp_ciwv = None
+        self.tsur = None
+        self.t500 = None
+        self.t700 = None
+        self.t850 = None
+        self.t950 = None
+        self.ttro = None
+        self.ciwv = None
         self.text_r06 = None
         self.text_t11 = None
         self.text_t37t12 = None
@@ -209,6 +209,7 @@ def find_calipso_files_inner(date_time, time_window, options, values):
             values, 
             datetime_obj=tobj)
         tmplist = glob(os.path.join(calipso_dir, calipso_file_pattern))
+        print "globbing", os.path.join(calipso_dir, calipso_file_pattern)
         flist.extend([ s for s in tmplist if s not in flist ])      
     return flist
 

@@ -100,7 +100,13 @@ def get_land_coast_sea_info_pps2012(cloudtype_qflag):
     all_lsc_flag =  np.bool_(np.ones(cloudtype_qflag.shape))
     return (no_qflag, land_flag, sea_flag, coast_flag, all_lsc_flag)
 
-
+def get_land_coast_sea_info_cci2014(lsflag):
+    write_log("INFO", "Assuming cloudtype flags structure from CCI v2014?")
+    land_flag =  lsflag
+    sea_flag =  1 -lsflag
+    coast_flag = None
+    all_lsc_flag =  np.bool_(np.ones(lsflag))
+    return (no_qflag, land_flag, sea_flag, coast_flag, all_lsc_flag)
 
 
 def get_ice_info_pps2014(cloudtype_status):
@@ -138,6 +144,21 @@ def get_day_night_twilight_info_pps2012(cloudtype_qflag):
     print "number of night", len(cloudtype_qflag[night_flag==True]) 
     print "number of twilight", len(cloudtype_qflag[twilight_flag==True])
     all_dnt_flag =  np.bool_(np.ones(cloudtype_qflag.shape))
+    return (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag)
+
+def get_day_night_twilight_info_cci2014(sunz):
+    write_log("INFO", "Assuming CCI v2014")
+    no_qflag = np.zeros(sunz.shape)
+    day_flag = np.where(np.less_equal(sunz,80),1,0)
+    night_flag =  np.where(np.greater_equal(sunz,95),1,0)
+    twilight_flag =  np.where(
+        np.logical_and(np.greater(sunz,80),
+                       np.less(sunz,95)),
+        1,0)
+    print "number of day", len(sunz[day_flag==True])
+    print "number of night", len(sunz[night_flag==True]) 
+    print "number of twilight", len(sunz[twilight_flag==True])
+    all_dnt_flag =  np.bool_(np.ones(sunz.shape))
     return (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag)
 
 def get_sunglint_info_pps2012(cloudtype_qflag):
@@ -288,6 +309,9 @@ def get_subset_for_mode(caObj, mode):
     return cal_subset     
 
 def get_day_night_info(caObj):
+    if config.CCI_CLOUD_VALIDATION:
+        daynight_flags = get_day_night_twilight_info_cci2014(
+        caObj.avhrr.sunz)
     if hasattr(caObj.avhrr, 'cloudtype_qflag'):
         if caObj.avhrr.cloudtype_qflag is not None:
             daynight_flags = get_day_night_twilight_info_pps2012(
@@ -295,7 +319,7 @@ def get_day_night_info(caObj):
     if hasattr(caObj.avhrr, 'cloudtype_conditions'):
         if caObj.avhrr.cloudtype_conditions is not None:
             daynight_flags = get_day_night_twilight_info_pps2014(
-                caObj.avhrr.cloudtype_conditions) 
+                caObj.avhrr.cloudtype_conditions)             
     (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag) = daynight_flags
     if (no_qflag.sum() + night_flag.sum() + twilight_flag.sum() + day_flag.sum()) != caObj.calipso.longitude.size:          
         print('something wrong with quality flags. It does not sum up. See beginning of statistic file')
@@ -631,8 +655,12 @@ def print_calipso_stats_ctype(caObj, statfile, cal_subset, cal_vert_feature):
         np.logical_and(np.greater(cal_vert_feature[::],5),
                        np.less_equal(cal_vert_feature[::],7)),
         cal_subset)
-    if caObj.avhrr.cloudtype_conditions is not None:
-        write_log("INFO", "Assuming cloudtype structure from pps v2014")
+
+    if config.CCI_CLOUD_VALIDATION or caObj.avhrr.cloudtype_conditions is not None:
+        if config.CCI_CLOUD_VALIDATION:
+            write_log("INFO", "CCI validation ctype validation not useful!")
+        else:    
+            write_log("INFO", "Assuming cloudtype structure from pps v2014")
         avhrr_low = np.logical_and(
             np.logical_and(np.greater_equal(caObj.avhrr.cloudtype,5),
                            np.less_equal(caObj.avhrr.cloudtype,6)),

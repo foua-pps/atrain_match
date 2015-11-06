@@ -118,55 +118,44 @@ def read_cci_ctype(cci_nc,avhrrAngObj):
     ctype.region = SafRegion()
     #ctype.region.xsize=10
     #ctype.region.ysize=10
-    ctype.des = "This is a cci cloudtype"
-    ctype.cloudtype_des = "This is the cloudtype description"
-    ctype.qualityflag_des = "This is the qualityflag description"
-    ctype.phaseflag_des = "This is the phaseflag description"
-    ctype.sec_1970 = "???"
-    ctype.satellite_id = "????"
 
-    ctype.cloudtype_lut.append("This is the first cloudtype lut")
-    ctype.cloudtype_lut.append("This is the second cloudtype lut")
-    ctype.qualityflag_lut.append("This is the first qualityflag lut")
-    ctype.qualityflag_lut.append("This is the second qualityflag lut")
-    ctype.phaseflag_lut.append("This is the first phaseflag lut")
-    ctype.phaseflag_lut.append("This is the second phaseflag lut")
 
     #pps 1: cloudfree land 2:cloudfree sea
     #cci lsflag 0:sea 1:land
-    write_log("WARNING", "Making skeleton cloudtype quality flag using "
-              "sun zenith angels. "
-              "This is ok for now, but will have to change "
-              "when cloudtype flags are changed in pps v 2014!")
-    ctype.qualityflag = cci_nc.variables['lsflag'][::] 
-    ctype.qualityflag = ctype.qualityflag +128
-    #Setting NWP_data_present when got day if we set nothing day pixels
+    #write_log("WARNING", "Making skeleton cloudtype quality flag using "
+    #          "sun zenith angels. "
+    #          "This is ok for now, but will have to change "
+    #          "when cloudtype flags are changed in pps v 2014!")
+    #ctype.ct_conditions = cci_nc.variables['lsflag'][::] 
+    #ctype.ct_conditions = ctype.ct_conditions + 1024
+    #Setting all_satellite_channels_available When got day if we set nothing day pixels
     #over sea will have flag value == 0 and not be included.
 
-    ctype.qualityflag = np.where(
-        np.logical_and(
-            np.greater(avhrrAngObj.sunz.data,80),
-            np.less(avhrrAngObj.sunz.data,95)),
-        #np.equal(cci_nc.variables['illum'][::],2),#Twilight
-        ctype.qualityflag+8,#Twilight
-        ctype.qualityflag)
-    ctype.qualityflag = np.where(
-            np.greater_equal(avhrrAngObj.sunz.data,95),
-            #np.equal(cci_nc.variables['illum'][::],3),#Night
-            ctype.qualityflag+4,#Night
-            ctype.qualityflag)
-    #if cloud cover over 0.5 set ctype to 9: Medium level cumiliform cloud
+    #ctype.ct_conditions = np.where(
+    #    np.logical_and(
+    #        np.greater(avhrrAngObj.sunz.data,80),
+    #        np.less(avhrrAngObj.sunz.data,95)),
+    #    #np.equal(cci_nc.variables['illum'][::],2),#Twilight
+    #    ctype.ct_conditions+6,#Twilight
+    #    ctype.ct_conditions)
+    #ctype.ct_conditions = np.where(
+    #        np.greater_equal(avhrrAngObj.sunz.data,95),
+    #        #np.equal(cci_nc.variables['illum'][::],3),#Night
+    #        ctype.ct_conditions+2,#Night
+    #        ctype.ct_conditions)
+    #if cloud cover over 0.5 set ctype to 6: Medium level cumiliform cloud
     ctype.cloudtype = 2 - cci_nc.variables['lsflag'][::]
-    ctype.cloudtype = np.where(
-        cci_nc.variables['cc_total'][::]>0.5,9,
-        ctype.cloudtype)
+    ctype.cloudtype[cci_nc.variables['cc_total'][::]>0.5] = 6
     ctype.phaseflag = None
+    ctype.ct_conditions = None
+    ctype.landseaflag = cci_nc.variables['lsflag'][::]
     return ctype
 
 def read_cci_angobj(cci_nc):
     """Read angles info from filename
     """
     #pps_io.readSunSatAngles(pps_files.sunsatangles) 
+    from pps_io import SunSatAngleData
     avhrrAngObj = SunSatAngleData()
     avhrrAngObj.satz.data = cci_nc.variables['satellite_zenith_view_no1'][::] 
     avhrrAngObj.sunz.data = cci_nc.variables['solar_zenith_view_no1'][::]
