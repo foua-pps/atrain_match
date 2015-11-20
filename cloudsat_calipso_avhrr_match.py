@@ -274,7 +274,7 @@ def get_satid_datetime_orbit_from_fname(avhrr_filename,as_oldstyle=False):
                  "date":date_time.strftime("%Y%m%d"),
                  "year":date_time.year,
                  "month":"%02d"%(date_time.month),    
-                 "time":date_time.strftime("%H%m"),
+                 "time":date_time.strftime("%H%M"),
                  #"basename":sat_id + "_" + date_time.strftime("%Y%m%d_%H%M_99999"),#"20080613002200-ESACCI",
                  "ccifilename":avhrr_filename,
                  "ppsfilename":None}
