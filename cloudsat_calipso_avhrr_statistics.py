@@ -1,6 +1,6 @@
 #Program cloudsat_calipso_avhrr_statistics.py
 import config
-
+import sys
 from pps_error_messages import write_log
 
 import numpy as np
@@ -155,6 +155,7 @@ def get_day_night_twilight_info_cci2014(sunz):
         np.logical_and(np.greater(sunz,80),
                        np.less(sunz,95)),
         1,0)
+    no_qflag = np.where(np.isnan(sunz),1,0)
     print "number of day", len(sunz[day_flag==True])
     print "number of night", len(sunz[night_flag==True]) 
     print "number of twilight", len(sunz[twilight_flag==True])
