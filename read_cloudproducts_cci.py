@@ -20,15 +20,21 @@ def daysafter4713bc_to_sec1970(bcdate_array):
     """Translating days after 4713bc 12:00 to sec since 1970
     """
     #import pps_time_util #@UnresolvedImport
-    
+    #first date if several in the file, swath at midnight   
     bcdate = np.min(bcdate_array)
+    # days since 4713 bc 12:00:00
     ddays = np.floor(bcdate)
+    #seconds after 12:00:00 
     dseconds = np.floor(24*60*60*(bcdate-ddays))
+    mseconds = np.floor(1000*(24*60*60*(bcdate-ddays)-dseconds))
+    # to avoid too large numbers count from 1950-01-01 12:00
+    # time datetime.datetime(1950, 1, 1, 12, 0,0,0) == julian day 2433283
     ddays = ddays-2433283
 
-    time_delta = datetime.timedelta(days=ddays, seconds=dseconds)
-    the_time = datetime.datetime(1950, 1, 1, 12, 0) + time_delta
-    sec_1970 = calendar.timegm(the_time.timetuple())
+    time_delta = datetime.timedelta(days=ddays, seconds=dseconds, 
+                                    microseconds = mseconds)
+    the_time = datetime.datetime(1950, 1, 1, 12, 0,0,0) + time_delta
+    sec_1970 = calendar.timegm(the_time.timetuple()) + the_time.microsecond/1000
     sec_1970_array = 24*60*60*(bcdate_array - bcdate) + sec_1970
     return sec_1970_array
 
