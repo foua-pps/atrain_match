@@ -675,13 +675,17 @@ def match_calipso_avhrr(values,
     if res == 1:
         lonCalipso = calipsoObj.longitude.ravel()
         latCalipso = calipsoObj.latitude.ravel()
+        timeCalipso_tai = calipsoObj.time[::,0].ravel()
         timeCalipso = calipsoObj.time[::,0].ravel() + dsec
+        timeCalipso_utc = calipsoObj.utc_time[::,0].ravel()
         elevationCalipso = calipsoObj.elevation.ravel()
     if res == 5:
         # Use [:,1] Since 5km data has start, center, and end for each pixel
         lonCalipso = calipsoObj.longitude[:,1].ravel()
         latCalipso = calipsoObj.latitude[:,1].ravel()
+        timeCalipso_tai = calipsoObj.time[:,1].ravel()
         timeCalipso = calipsoObj.time[:,1].ravel() + dsec
+        timeCalipso_utc = calipsoObj.utc_time[:,1].ravel()
         elevationCalipso = calipsoObj.elevation[::,2].ravel()
     
     ndim = lonCalipso.shape[0]
@@ -729,6 +733,8 @@ def match_calipso_avhrr(values,
     retv.calipso.cloud_fraction = np.repeat(calipsoObj.cloud_fraction,idx_match)
     retv.calipso.latitude = np.repeat(latCalipso,idx_match)
     retv.calipso.longitude = np.repeat(lonCalipso,idx_match)
+    retv.calipso.time_utc = np.repeat(timeCalipso_utc,idx_match)
+    retv.calipso.time_tai = np.repeat(timeCalipso_tai,idx_match)
     #for p in range(20):
     #    print "cal time", time.gmtime(timeCalipso[p])
     #    print "cal lat", retv.calipso.latitude[p]
@@ -760,7 +766,7 @@ def match_calipso_avhrr(values,
     x_ctpp = np.repeat(calipsoObj.cloud_top_profile_pressure[::,0],idx_match)
     x_cbp = np.repeat(calipsoObj.cloud_base_profile[::,0],idx_match)
     x_cmt = np.repeat(calipsoObj.cloud_mid_temperature[::,0],idx_match)
-    
+
     col_dim = calipsoObj.cloud_mid_temperature.shape[1]
     for i in range(1,col_dim):
         x_fcf = np.concatenate(\
