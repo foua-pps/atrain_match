@@ -103,15 +103,47 @@ class ppsAvhrrObject(DataObject):
             't950': None,
             'ttro': None,
             'ciwv': None,
-            'r06micron': None,
-            'r09micron': None,
-            'bt37micron': None,
-            'bt11micron': None,
-            'bt12micron': None,
-            'bt86micron': None,
+            #Imager channels currently used by pps
+            'r06micron':  None,  #modis_1
+            'r09micron':  None,  #modis_2
+            'bt37micron': None, #modis_20
+            'bt11micron': None, #modis 31
+            'bt12micron': None, #modis 32
+            'bt86micron': None, #modis 29
             'bt22micron': None,
-            'bt13micron': None,
-            'r16micron': None,
+            'bt13micron': None, #modis 26
+            'r16micron':  None,  #moodis 6
+            #developing channels from modis change to pps_id_name i.e r12micron 
+            #when introduced into pps
+            'modis_3':  None,
+            'modis_4':  None,
+            'modis_5':  None,
+            'modis_7':  None,
+            'modis_8':  None,
+            'modis_9':  None,
+            'modis_10': None,
+            'modis_11': None,
+            'modis 12': None,
+            'modis_13': None,
+            'modis_14': None,
+            'modis_15': None,
+            'modis 16': None,
+            'modis_17': None,
+            'modis_18': None,
+            'modis_19': None,
+            'modis 21': None,
+            'modis_22': None,
+            'modis_23': None,
+            'modis_24': None,
+            'modis_25': None,
+            'modis_27': None,
+            'modis_28': None,
+            'modis_30': None,
+            'modis_33': None,
+            'modis_34': None,
+            'modis_35': None,
+            'modis_36': None,
+            'fraction_of_land': None,
             'text_r06': None,
             'text_t11': None,
             'text_t37t12': None,
@@ -135,7 +167,28 @@ class ppsAvhrrObject(DataObject):
             'emis1': None,
             'emis8': None,
             'emis9': None,
-            }
+            #nwp data on segment resolution
+            'segment_nwp_geoheight': None,
+            'segment_nwp_moist': None,
+            'segment_nwp_pressure': None,
+            'segment_nwp_temp': None,
+            'segment_surfaceLandTemp': None,
+            'segment_surfaceSeaTemp': None,
+            'segment_surfaceGeoHeight': None,
+            'segment_surfaceMoist': None,
+            'segment_surfacePressure': None,
+            'segment_fractionOfLand': None,
+            'segment_meanElevation': None,
+            'segment_ptro': None,
+            'segment_ttro': None,
+            'segment_t850': None,
+            'segment_tb11clfree_sea': None,
+            'segment_tb12clfree_sea': None,
+            'segment_tb11clfree_land': None,
+            'segment_tb12clfree_land': None,
+            'segment_tb11cloudy_surface': None,
+            'segment_tb12cloudy_surface': None
+        }
         
         
 class CalipsoObject(DataObject):

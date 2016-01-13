@@ -275,7 +275,7 @@ def get_channel_data_from_object(dataObj, chn_des, matched, nodata=-9):
                channels[chnum].intercept)       
               for idx in range(matched['row'].shape[0])]
 
-    chdata_on_track = np.where(
+    chdata_on_track= np.where(
         np.logical_or(
             np.equal(temp, dataObj.nodata),
             np.equal(temp, dataObj.missing_data)),
@@ -287,7 +287,8 @@ def get_channel_data_from_object(dataObj, chn_des, matched, nodata=-9):
 def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj, 
                              nwp_obj, ctth, ctype, 
                              row_matched, col_matched, 
-                             avhrrLwp=None, avhrrCph=None):
+                             avhrrLwp=None, avhrrCph=None,
+                             nwp_segments=None):
     ctype_track = []
     ctype_qflag_track = None
     ctype_pflag_track = None
@@ -546,6 +547,63 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
             ctth_opaque_track = [is_opaque[row_matched[idx], col_matched[idx]]
                                  for idx in range(row_matched.shape[0])]
     #: TODO Do not use fix nodata-values but instead something.no_data
+    if nwp_segments != None:
+        pass
+        """
+        #obt.avhrr.segment_nwgeoheight
+        obt.avhrr.segment_nwp_moist
+        obt.avhrr.segment_nwp_pressure
+        obt.avhrr.segment_nwp_temp
+        obt.avhrr.segment_surfaceLandTemp
+        obt.avhrr.segment_surfaceSeaTemp
+        obt.avhrr.segment_surfaceGeoHeight
+        obt.avhrr.segment_surfaceMoist
+        obt.avhrr.segment_surfacePressure
+        obt.avhrr.segment_fractionOfLand
+        obt.avhrr.segment_meanElevation
+        obt.avhrr.segment_ptro
+        obt.avhrr.segment_ttro
+        #obt.avhrr.segment_t850
+        obt.avhrr.segment_tb11clfree_sea
+        obt.avhrr.segment_tb12clfree_sea
+        obt.avhrr.segment_tb11clfree_land
+        obt.avhrr.segment_tb12clfree_land
+        obt.avhrr.segment_tb11cloudy_surface
+        obt.avhrr.segment_tb12cloudy_surface  
+        """
+        def get_segment_row_col_idx(nwp_segments, row_matched, col_matched):
+            segment_colidx = nwp_segments['colidx']
+            segment_rowidx = nwp_segments['rowidx']
+            seg_row = np.zeros(np.size(row_matched)) -9
+            seg_col = np.zeros(np.size(col_matched)) -9
+            for s_col in xrange(nwp_segments['norows']):
+                for s_row in xrange(nwp_segments['nocols']):
+                    print s_col, s_row, segment_rowidx[s_row,s_col] 
+                    within_segment = np.logical_and(
+                        np.logical_and(row_matched>=segment_rowidx[s_row,s_col]-nwp_segments['segSizeX']/2,
+                                       row_matched<segment_rowidx[s_row,s_col]+nwp_segments['segSizeX']/2),
+                        np.logical_and(col_matched>=segment_colidx[s_row,s_col]-nwp_segments['segSizeY']/2,
+                                       col_matched<segment_colidx[s_row,s_col]+nwp_segments['segSizeY']/2))
+                    seg_row[within_segment] = s_row
+                    seg_col[within_segment] = s_col
+            return  seg_row, seg_col   
+        seg_row, seg_col = get_segment_row_col_idx(nwp_segments, row_matched, col_matched)
+        obt.avhrr.segment_t850 = np.array([nwp_segments['t850'][seg_row[idx], seg_col[idx]]
+                                           for idx in range(row_matched.shape[0])])
+        obt.avhrr.segment_nwp_geoheight = np.array([nwp_segments['geoheight'][seg_row[idx], seg_col[idx]]
+                                                    for idx in range(row_matched.shape[0])])
+
+        import matplotlib.pyplot as plt
+        fig = plt.figure(figsize = (9,16))
+        ax = fig.add_subplot(111)
+        plt.plot(obt.avhrr.segment_t850  ,'.b-')
+        plt.plot(t850_track  ,'.k-')
+        plt.savefig("t850_t850_segment_diff.png")
+        plt.show()
+        print obt.avhrr.segment_t850
+        print t850_track
+        print obt.avhrr.segment_t850 - t850_track
+
     if avhrrLwp != None:
         if PPS_FORMAT_2012_OR_EARLIER:
             nodata_temp = -1
@@ -665,7 +723,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
 def match_calipso_avhrr(values, 
                         calipsoObj, imagerGeoObj, imagerObj, 
                         ctype, ctth, cppCph, nwp_obj,
-                        avhrrAngObj, options, res=resolution):
+                        avhrrAngObj, nwp_segments, options, res=resolution):
 
     import time
     import string
@@ -896,7 +954,8 @@ def match_calipso_avhrr(values,
     # Pick out the data from the track from AVHRR
     retv = avhrr_track_from_matched(retv, imagerGeoObj, imagerObj, avhrrAngObj, 
                                     nwp_obj, ctth, ctype, cal_on_avhrr, 
-                                    cap_on_avhrr, avhrrCph=cppCph)
+                                    cap_on_avhrr, avhrrCph=cppCph, 
+                                    nwp_segments=nwp_segments)
     # -------------------------------------------------------------------------    
 
 # for arname, value in retv1.avhrr.all_arrays.items():

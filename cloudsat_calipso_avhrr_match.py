@@ -134,6 +134,7 @@ class ppsFiles(object):
         self.thr_t85t11 = None
         self.thr_r06 = None
         self.thr_r09 = None
+        self.nwp_segments = None
         self.__dict__.update(file_name_dict)    
 
 class NWPObj(object):
@@ -174,9 +175,9 @@ def readCpp(filename, cpp_type):
     if cpp_type in h5file.keys():
         value = h5file[cpp_type].value
         gain = h5file[cpp_type].attrs['gain']
-        intersec = h5file[cpp_type].attrs['intercept']
+        intercept = h5file[cpp_type].attrs['intercept']
         nodat = h5file[cpp_type].attrs['no_data_value']
-        product = np.where(value != nodat,value * gain + intersec, value)   
+        product = np.where(value != nodat,value * gain + intercept, value)   
     h5file.close()
     return product
 
@@ -538,7 +539,7 @@ def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
         write_log("INFO", "PHYSIOGRAPHY: " + physiography_file)
 
     if not 'nwp_tsur_file' in options:
-        write_log("WARNING", "No t-surface file searched for!")
+        write_log("WARNING", "No surface temperature file searched for!")
         nwp_tsur_file=None
     else:
         nwp_tsur_name = insert_info_in_filename_or_path(options['nwp_tsur_file'],
@@ -576,7 +577,10 @@ def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
             file_name_dict[thr_file] = get_pps_file(avhrr_file, options,
                                                     values, 
                                                     thr_file+'_file', 'thr_dir')
- 
+
+    file_name_dict['nwp_segments'] = get_pps_file(avhrr_file, options,
+                                                  values, 
+                                                  'segment_file', 'segment_dir') 
     file_name_dict.update({'cloudtype': cloudtype_file,
                            'ctth': ctth_file,
                            'cpp': cpp_file,
@@ -666,7 +670,8 @@ def get_total_optical_depth_and_optical_depth_top_layer_from_5km_data(calipso, c
 
 def get_calipso_matchups(calipso_files, values, 
                          avhrrGeoObj, avhrrObj, ctype, ctth, 
-                         nwp_obj, avhrrAngObj, options, cppCph=None, cafiles1km=None, cafiles5km=None):
+                         nwp_obj, avhrrAngObj, options, cppCph=None, 
+                         nwp_segments=None, cafiles1km=None, cafiles5km=None):
     """
     Read Calipso data and match with the given PPS data.
     """
@@ -703,7 +708,8 @@ def get_calipso_matchups(calipso_files, values,
     write_log('INFO',"Matching with avhrr")
     tup = match_calipso_avhrr(values, calipso,
                               avhrrGeoObj, avhrrObj, ctype,
-                              ctth, cppCph, nwp_obj, avhrrAngObj, options)
+                              ctth, cppCph, nwp_obj, avhrrAngObj, 
+                              nwp_segments, options)
     ca_matchup, ca_min_diff, ca_max_diff = tup
     #import pdb; pdb.set_trace()
     return ca_matchup, (ca_min_diff, ca_max_diff)
@@ -718,6 +724,69 @@ def read_nwp(file_name, type_of_nwp):
         write_log("INFO","NO NWP %s File, Continue"%(type_of_nwp))
         return None
 
+def read_segment_data(filename):
+    import h5py
+    product = {}
+    if filename is not None:
+        h5file = h5py.File(filename, 'r')
+        for attribute in list(h5file.attrs):
+            product[attribute] = h5file.attrs[attribute]
+        for attribute in list(h5file['satdef'].attrs):
+            product[attribute] = h5file['satdef'].attrs[attribute]
+        product['colidx'] = h5file['satdef']['colidx'].value
+        product['rowidx'] = h5file['satdef']['rowidx'].value
+        write_log("INFO", "Read segment info moisture")
+        for moist_data in ['moist', 'surfaceMoist']:
+            data = h5file['segment_area'][moist_data]
+            gain = h5file.attrs['m_gain']
+            intercept = h5file.attrs['m_intercept']
+            nodata = h5file.attrs['m_nodata']
+            data[data!=nodata] = data[data!=nodata] * gain + intercept
+            product[moist_data] = data
+        write_log("INFO", "Read segment info pressure")
+        for pressure_data in ['pressure', 'surfacePressure', 'ptro']:
+            data = h5file['segment_area'][pressure_data]
+            gain = h5file.attrs['p_gain']
+            intercept = h5file.attrs['p_intercept']
+            nodata = h5file.attrs['p_nodata']
+            data[data!=nodata] = data[data!=nodata] * gain + intercept
+            product[pressure_data] = data
+        write_log("INFO", "Read segment info height")
+        for geoheight_data in ['geoheight', 'surfaceGeoHeight']:
+            data = h5file['segment_area'][geoheight_data]
+            gain = h5file.attrs['h_gain']
+            intercept = h5file.attrs['h_intercept']
+            nodata = h5file.attrs['h_nodata']
+            data[data!=nodata] = data[data!=nodata] * gain + intercept
+            product[geoheight_data] = data
+        write_log("INFO", "Read segment info temperature")
+        for temperature_data in ['temp', 't850', 'ttro', 'surfaceLandTemp', 'surfaceSeaTemp']:
+            data = h5file['segment_area'][temperature_data]
+            gain = h5file.attrs['t_gain']
+            intercept = h5file.attrs['t_intercept']
+            nodata = h5file.attrs['t_nodata']
+            data[data!=nodata] = data[data!=nodata] * gain + intercept
+            product[temperature_data] = data
+        for misc_data in ['meanElevation', 'fractionOfLand']:
+            product[misc_data] = h5file['segment_area'][misc_data]
+        write_log("INFO", "Read segment info brightness temperature")
+        for tb_data in ['tb11clfree_sea',
+                        'tb12clfree_sea',
+                        'tb11clfree_land',
+                        'tb12clfree_land']:
+            data = h5file['segment_area'][tb_data]
+            gain = h5file.attrs['t_gain']
+            intercept = h5file.attrs['tb_intercept']
+            nodata = h5file.attrs['t_nodata']
+            data[data!=nodata] = data[data!=nodata] * gain + intercept
+            product[tb_data] = data
+        h5file.close()
+        return product
+    else:
+        write_log("INFO","NO segment %s File, Continue"%(filename))
+        return product
+
+
 def read_thr(filename, h5_obj_type, thr_type):
     import h5py #@UnresolvedImport
     product = None
@@ -728,22 +797,22 @@ def read_thr(filename, h5_obj_type, thr_type):
             if 1==1:#h5_obj_type in h5file.keys():
                 value = h5file[h5_obj_type].value
                 gain = h5file.attrs['gain']
-                intersec = h5file.attrs['intercept']
-                product = value * gain + intersec
+                intercept = h5file.attrs['intercept']
+                product = value * gain + intercept
                 write_log("INFO", "Read EMIS: %s"%(thr_type))
             else:
                 write_log("ERROR","Could not read %s File, Continue"%(thr_type))
             h5file.close()   
         else:
-            write_log("INFO","NO THR %s File, Continue"%(thr_type))
+            write_log("INFO","NO EMIS %s File, Continue"%(thr_type))
         return product  
     if filename is not None: 
         h5file = h5py.File(filename, 'r')
         if h5_obj_type in h5file.keys():
             value = h5file[h5_obj_type].value
             gain = h5file[h5_obj_type].attrs['gain']
-            intersec = h5file[h5_obj_type].attrs['intercept']
-            product = value * gain + intersec
+            intercept = h5file[h5_obj_type].attrs['intercept']
+            product = value * gain + intercept
             write_log("INFO", "Read THR: %s"%(thr_type))
         else:
             write_log("ERROR","Could not read %s File, Continue"%(thr_type))
@@ -821,7 +890,8 @@ def read_pps_data(pps_files, avhrr_file, cross):
     except:
         write_log("INFO","No CTTH")
         ctth = None
-   
+
+    write_log("INFO","Read PPS NWP data")   
     nwp_dict={}
     nwp_dict['surft'] = read_nwp(pps_files.nwp_tsur, "surface temperature")
     nwp_dict['t500'] = read_nwp(pps_files.nwp_t500, "temperature 500hPa")
@@ -832,6 +902,7 @@ def read_pps_data(pps_files, avhrr_file, cross):
     nwp_dict['ciwv'] = read_nwp(pps_files.nwp_ciwv, 
                                 "atmosphere_water_vapor_content")
 
+    write_log("INFO","Read PPS threshold data")  
     for ttype in ['r06', 't11', 't37t12', 't37']:
         h5_obj_type = ttype +'_text'
         text_type = 'text_' + ttype
@@ -843,12 +914,15 @@ def read_pps_data(pps_files, avhrr_file, cross):
         thr_type = 'thr_' + h5_obj_type
         nwp_dict[thr_type] = read_thr(getattr(pps_files,thr_type), 
                                       h5_obj_type, thr_type)
+    write_log("INFO","Read PPS Emissivity data")  
     for h5_obj_type in ['emis1', 'emis8','emis9']:
         emis_type = h5_obj_type
         nwp_dict[emis_type] = read_thr(getattr(pps_files,"emis"), 
                                        h5_obj_type, emis_type)
     nwp_obj = NWPObj(nwp_dict)
-    return avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, nwp_obj, cppLwp, cppCph 
+    write_log("INFO","Read PPS NWP segment resolution data") 
+    segment_data_object = read_segment_data(getattr(pps_files,'nwp_segments'))
+    return avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, nwp_obj, cppLwp, cppCph, segment_data_object 
 
 def read_cloud_cci(avhrr_file):
     from read_cloudproducts_cci import cci_read_all
@@ -866,13 +940,15 @@ def get_matchups_from_data(cross, config_options):
         if not avhrr_file:
             raise MatchupError("No avhrr file found!\ncross = " + str(cross))
         pps_files = find_files_from_avhrr(avhrr_file, config_options)   
-        avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, nwp_obj, cppLwp, cppCph =read_pps_data(pps_files, avhrr_file, cross)
+        retv =read_pps_data(pps_files, avhrr_file, cross)
+        avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, nwp_obj, cppLwp, cppCph, nwp_segment = retv
         date_time = values["date_time"]
     if (CCI_CLOUD_VALIDATION):
         avhrr_file, tobj = find_cci_cloud_file(cross, config_options)
         #avhrr_file = "20080613002200-ESACCI-L2_CLOUD-CLD_PRODUCTS-AVHRRGAC-NOAA18-fv1.0.nc"
         values = get_satid_datetime_orbit_from_fname(avhrr_file)
         avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, surft, cppLwp, cppCph =read_cloud_cci(avhrr_file)
+        nwp_segment = None
         nwp_obj = NWPObj({'surft':surft})        
         avhrrGeoObj.satellite = values["satellite"];
         date_time = values["date_time"]
@@ -970,7 +1046,8 @@ def get_matchups_from_data(cross, config_options):
                                                         values,
                                                         avhrrGeoObj, avhrrObj, ctype,
                                                         ctth, nwp_obj, avhrrAngObj, 
-                                                        config_options, cppCph,  
+                                                        config_options, cppCph,
+                                                        nwp_segment,
                                                         calipso1km, calipso5km)
 
     else:
