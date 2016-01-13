@@ -283,6 +283,76 @@ def get_channel_data_from_object(dataObj, chn_des, matched, nodata=-9):
 
     return chdata_on_track
 
+def insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt):
+        """
+        #obt.avhrr.segment_nwgeoheight
+        obt.avhrr.segment_nwp_moist
+        obt.avhrr.segment_nwp_pressure
+        obt.avhrr.segment_nwp_temp
+        obt.avhrr.segment_surfaceLandTemp
+        obt.avhrr.segment_surfaceSeaTemp
+        obt.avhrr.segment_surfaceGeoHeight
+        obt.avhrr.segment_surfaceMoist
+        obt.avhrr.segment_surfacePressure
+        obt.avhrr.segment_fractionOfLand
+        obt.avhrr.segment_meanElevation
+        obt.avhrr.segment_ptro
+        obt.avhrr.segment_ttro
+        #obt.avhrr.segment_t850
+        obt.avhrr.segment_tb11clfree_sea
+        obt.avhrr.segment_tb12clfree_sea
+        obt.avhrr.segment_tb11clfree_land
+        obt.avhrr.segment_tb12clfree_land
+        obt.avhrr.segment_tb11cloudy_surface
+        obt.avhrr.segment_tb12cloudy_surface  
+        """
+        def get_segment_row_col_idx(nwp_segments, row_matched, col_matched):
+            segment_colidx = nwp_segments['colidx']
+            segment_rowidx = nwp_segments['rowidx']
+            seg_row = np.zeros(np.size(row_matched)) -9
+            seg_col = np.zeros(np.size(col_matched)) -9
+            for s_col in xrange(nwp_segments['norows']):
+                for s_row in xrange(nwp_segments['nocols']):
+                    within_segment = np.logical_and(
+                        np.logical_and(row_matched>=segment_rowidx[s_row,s_col]-nwp_segments['segSizeX']/2,
+                                       row_matched<segment_rowidx[s_row,s_col]+nwp_segments['segSizeX']/2),
+                        np.logical_and(col_matched>=segment_colidx[s_row,s_col]-nwp_segments['segSizeY']/2,
+                                       col_matched<segment_colidx[s_row,s_col]+nwp_segments['segSizeY']/2))
+                    seg_row[within_segment] = s_row
+                    seg_col[within_segment] = s_col
+            return  seg_row, seg_col   
+        seg_row, seg_col = get_segment_row_col_idx(nwp_segments, row_matched, col_matched)
+        for data_set in ['surfaceLandTemp',
+                         'surfaceSeaTemp',
+                         'surfaceGeoHeight',
+                         'surfaceMoist',
+                         'surfacePressure',
+                         'fractionOfLand',
+                         'meanElevation',
+                         'ptro',
+                         'ttro',
+                         't850',
+                         'tb11clfree_sea',
+                         'tb12clfree_sea',
+                         'tb11clfree_land',
+                         'tb12clfree_land']:
+                         #'tb11cloudy_surface',
+                         #'tb12cloudy_surface ',
+            setattr(obt.avhrr,'segment_nwp_' + data_set, 
+                    np.array([nwp_segments[data_set][seg_row[idx], seg_col[idx]]
+                              for idx in range(row_matched.shape[0])]))
+        #obt.avhrr.segment_t850 = np.array([nwp_segments['t850'][seg_row[idx], seg_col[idx]]
+        #                                   for idx in range(row_matched.shape[0])])
+
+        for data_set in ['moist', 'pressure', 'geoheight', 'temp']:
+            setattr(obt.avhrr,'segment_nwp_' + data_set, 
+                              np.array([nwp_segments[data_set][seg_row[idx], seg_col[idx]]
+                                        for idx in range(row_matched.shape[0])]))
+        #obt.avhrr.segment_nwp_geoheight = np.array([nwp_segments['geoheight'][seg_row[idx], seg_col[idx]]
+        #                                            for idx in range(row_matched.shape[0])])
+
+        return obt
+
 #---------------------------------------------------------------------------
 def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj, 
                              nwp_obj, ctth, ctype, 
@@ -548,61 +618,8 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
                                  for idx in range(row_matched.shape[0])]
     #: TODO Do not use fix nodata-values but instead something.no_data
     if nwp_segments != None:
-        pass
-        """
-        #obt.avhrr.segment_nwgeoheight
-        obt.avhrr.segment_nwp_moist
-        obt.avhrr.segment_nwp_pressure
-        obt.avhrr.segment_nwp_temp
-        obt.avhrr.segment_surfaceLandTemp
-        obt.avhrr.segment_surfaceSeaTemp
-        obt.avhrr.segment_surfaceGeoHeight
-        obt.avhrr.segment_surfaceMoist
-        obt.avhrr.segment_surfacePressure
-        obt.avhrr.segment_fractionOfLand
-        obt.avhrr.segment_meanElevation
-        obt.avhrr.segment_ptro
-        obt.avhrr.segment_ttro
-        #obt.avhrr.segment_t850
-        obt.avhrr.segment_tb11clfree_sea
-        obt.avhrr.segment_tb12clfree_sea
-        obt.avhrr.segment_tb11clfree_land
-        obt.avhrr.segment_tb12clfree_land
-        obt.avhrr.segment_tb11cloudy_surface
-        obt.avhrr.segment_tb12cloudy_surface  
-        """
-        def get_segment_row_col_idx(nwp_segments, row_matched, col_matched):
-            segment_colidx = nwp_segments['colidx']
-            segment_rowidx = nwp_segments['rowidx']
-            seg_row = np.zeros(np.size(row_matched)) -9
-            seg_col = np.zeros(np.size(col_matched)) -9
-            for s_col in xrange(nwp_segments['norows']):
-                for s_row in xrange(nwp_segments['nocols']):
-                    print s_col, s_row, segment_rowidx[s_row,s_col] 
-                    within_segment = np.logical_and(
-                        np.logical_and(row_matched>=segment_rowidx[s_row,s_col]-nwp_segments['segSizeX']/2,
-                                       row_matched<segment_rowidx[s_row,s_col]+nwp_segments['segSizeX']/2),
-                        np.logical_and(col_matched>=segment_colidx[s_row,s_col]-nwp_segments['segSizeY']/2,
-                                       col_matched<segment_colidx[s_row,s_col]+nwp_segments['segSizeY']/2))
-                    seg_row[within_segment] = s_row
-                    seg_col[within_segment] = s_col
-            return  seg_row, seg_col   
-        seg_row, seg_col = get_segment_row_col_idx(nwp_segments, row_matched, col_matched)
-        obt.avhrr.segment_t850 = np.array([nwp_segments['t850'][seg_row[idx], seg_col[idx]]
-                                           for idx in range(row_matched.shape[0])])
-        obt.avhrr.segment_nwp_geoheight = np.array([nwp_segments['geoheight'][seg_row[idx], seg_col[idx]]
-                                                    for idx in range(row_matched.shape[0])])
-
-        import matplotlib.pyplot as plt
-        fig = plt.figure(figsize = (9,16))
-        ax = fig.add_subplot(111)
-        plt.plot(obt.avhrr.segment_t850  ,'.b-')
-        plt.plot(t850_track  ,'.k-')
-        plt.savefig("t850_t850_segment_diff.png")
-        plt.show()
-        print obt.avhrr.segment_t850
-        print t850_track
-        print obt.avhrr.segment_t850 - t850_track
+        obt = insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt)
+  
 
     if avhrrLwp != None:
         if PPS_FORMAT_2012_OR_EARLIER:

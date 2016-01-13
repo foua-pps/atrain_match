@@ -741,18 +741,20 @@ def read_segment_data(filename):
             gain = h5file.attrs['m_gain']
             intercept = h5file.attrs['m_intercept']
             nodata = h5file.attrs['m_nodata']
-            data[data!=nodata] = data[data!=nodata] * gain + intercept
+            #data[data!=nodata] = data[data!=nodata] * (gain) + intercept
             product[moist_data] = data
         write_log("INFO", "Read segment info pressure")
         for pressure_data in ['pressure', 'surfacePressure', 'ptro']:
+            #pressure is in Pa in segments file
             data = h5file['segment_area'][pressure_data]
             gain = h5file.attrs['p_gain']
             intercept = h5file.attrs['p_intercept']
             nodata = h5file.attrs['p_nodata']
-            data[data!=nodata] = data[data!=nodata] * gain + intercept
+            data[data!=nodata] = data[data!=nodata] * (gain/100) + intercept/100 #Pa => hPa
             product[pressure_data] = data
         write_log("INFO", "Read segment info height")
         for geoheight_data in ['geoheight', 'surfaceGeoHeight']:
+            #geo height is in meters in segment file
             data = h5file['segment_area'][geoheight_data]
             gain = h5file.attrs['h_gain']
             intercept = h5file.attrs['h_intercept']
@@ -760,13 +762,22 @@ def read_segment_data(filename):
             data[data!=nodata] = data[data!=nodata] * gain + intercept
             product[geoheight_data] = data
         write_log("INFO", "Read segment info temperature")
-        for temperature_data in ['temp', 't850', 'ttro', 'surfaceLandTemp', 'surfaceSeaTemp']:
+        for temperature_data in ['temp']:
+            # temperature are measured in Kelvin in segmentfile
             data = h5file['segment_area'][temperature_data]
             gain = h5file.attrs['t_gain']
             intercept = h5file.attrs['t_intercept']
             nodata = h5file.attrs['t_nodata']
             data[data!=nodata] = data[data!=nodata] * gain + intercept
             product[temperature_data] = data
+        for temperature_data in ['t850', 'ttro', 'surfaceLandTemp', 'surfaceSeaTemp']:
+            data = h5file['segment_area'][temperature_data]
+            gain = h5file.attrs['t_gain']
+            intercept = h5file.attrs['t_intercept']
+            nodata = h5file.attrs['t_nodata']
+            data_float = np.array(data, dtype=np.float)
+            data_float[data!=nodata] = data_float[data!=nodata] * gain + intercept
+            product[temperature_data] = data_float
         for misc_data in ['meanElevation', 'fractionOfLand']:
             product[misc_data] = h5file['segment_area'][misc_data]
         write_log("INFO", "Read segment info brightness temperature")
@@ -778,8 +789,9 @@ def read_segment_data(filename):
             gain = h5file.attrs['t_gain']
             intercept = h5file.attrs['tb_intercept']
             nodata = h5file.attrs['t_nodata']
-            data[data!=nodata] = data[data!=nodata] * gain + intercept
-            product[tb_data] = data
+            data_float = np.array(data, dtype=np.float)
+            data_float[data!=nodata] = data_float[data!=nodata] * gain + intercept
+            product[tb_data] = data_float
         h5file.close()
         return product
     else:
