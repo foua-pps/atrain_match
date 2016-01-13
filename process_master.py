@@ -173,9 +173,12 @@ def main(args=None):
         from runutils import  parse_scenesfile_v2014
         pps_output_file = options.pps_product_file
         read_from_file = open(pps_output_file,'r')
-        for line in read_from_file:
-            satname, time = parse_scenesfile_v2014(line)
-            matchups.append(Cross(satname, '', time, time, -999, -999))
+        for line in read_from_file:      
+            if line.rstrip() in "":
+                pass
+            else:   
+                satname, time = parse_scenesfile_v2014(line)
+                matchups.append(Cross(satname, '', time, time, -999, -999))
     elif options.cci_product_file is not None:
         from find_crosses import Cross
         from runutils import  parse_scenesfile_cci
