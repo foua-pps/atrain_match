@@ -115,8 +115,8 @@ class MatchMapper(object):
                    time_diff=time_diff, time_threshold=time_threshold)
 
 
-def match_lonlat(source, target, 
-                 radius_of_influence=0.7*RESOLUTION*1000.0, 
+def match_lonlat(source, target,
+                 radius_of_influence=0.7*RESOLUTION*1000.0,
                  n_neighbours=1):
     """
     Produce a masked array of the same shape as the arrays in *target*, with
@@ -133,7 +133,8 @@ def match_lonlat(source, target,
     """
     from pyresample.geometry import SwathDefinition
     from pyresample.kd_tree import get_neighbour_info
-    
+    from pyresample.kd_tree import get_sample_from_neighbour_info
+
     lon, lat = source
     mask_out_lat = np.logical_or(lat<-90, lat>90)
     mask_out_lon = np.logical_or(lon>180, lat<-180)
@@ -143,24 +144,61 @@ def match_lonlat(source, target,
 
     source_def = SwathDefinition(*(lon,lat))
     target_def = SwathDefinition(*target)
-
-    
     logger.debug("Matching %d nearest neighbours" % n_neighbours)
-    valid_in, valid_out, indices, distances = get_neighbour_info( #@UnusedVariable
+    valid_in, valid_out, indices, distances = get_neighbour_info(
         source_def, target_def, radius_of_influence, neighbours=n_neighbours)
+    #Use pyresampe code to find colmun and row numbers for each pixel
+    #This is works also with no-data in imager lat/lon.
+    cols_matrix, rows_matrix = np.meshgrid(np.array(xrange(0,lat.shape[1])),
+                                           np.array(xrange(0,lat.shape[0])))
+    cols = get_sample_from_neighbour_info('nn', target_def.shape,
+                                          cols_matrix,
+                                          valid_in, valid_out,
+                                          indices)
+    rows = get_sample_from_neighbour_info('nn', target_def.shape,
+                                          rows_matrix,
+                                          valid_in, valid_out,
+                                          indices)
+    rows = np.array(rows)
+    cols = np.array(cols)
+
+                                          
+    """ Code used during debugging, leaving it here for now
+    #Hopfully not needed anymore as indices is not used directly
     if indices.dtype in ['uint32']:
-        #With pykdtree installed get_neighbour_info returns indices 
+        #With pykdtree installed get_neighbour_info returns indices
         # as type uint32
         #This does not combine well with a nodata value of -9.
         indices = np.array(indices,dtype=np.int64)
-    
+    #get_expected_output even for nodata in lat/lon!
+    #print "indices", indices
+    if 1==1:
+        print distances, indices
+        print max(indices)
+        print min(indices)
+        print len(valid_in)
+        print len(valid_in[valid_in])
+        # But why is +1 item needed??
+        from_one_to_many = np.array(xrange(0,len(valid_in)+1))
+        print from_one_to_many
+        valid_in_new = np.append(valid_in,np.array([True]), axis=0)
+        print valid_in_new
+        use_these = indices[valid_out]
+        print use_these
+        new_numbers = from_one_to_many[valid_in_new]
+        print new_numbers
+        indices[valid_out] = new_numbers[use_these]
+    #print "indices", indices
     shape = list(target_def.shape)
     shape.append(n_neighbours)
     indices.shape = shape
     distances.shape = shape
-
     rows = indices // source_def.shape[1]
     cols = indices % source_def.shape[1]
+    print "c", cols, "r", rows
+    print rows.shape, cols.shape
+    """
+
     # Make sure all indices are valid
     rows[rows >= source_def.shape[0]] = NODATA
     cols[cols >= source_def.shape[1]] = NODATA
