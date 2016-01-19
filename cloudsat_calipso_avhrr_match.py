@@ -646,8 +646,8 @@ def get_total_optical_depth_and_optical_depth_top_layer_from_5km_data(calipso, c
     write_log('INFO',"Find total optical depth from 5km data")
     if calipso5km is None and resolution == 5:
         calipso5km = calipso
-    calipso.optical_depth_top_layer5km = -9 + 0*calipso.number_of_layers_found.ravel()
-    calipso.total_optical_depth_5km = -9 + 0*calipso.number_of_layers_found.ravel()
+    calipso.optical_depth_top_layer5km = -9.0 + 0*calipso.number_of_layers_found.ravel()
+    calipso.total_optical_depth_5km = -9.0 + 0*calipso.number_of_layers_found.ravel()
     if resolution==5:
         pixels = np.logical_and(calipso5km.number_of_layers_found.ravel()>0     ,
                                 calipso5km.optical_depth[:,0].ravel()>=0)   
