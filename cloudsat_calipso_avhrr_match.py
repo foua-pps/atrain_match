@@ -813,7 +813,7 @@ def read_segment_data(filename):
         return product
     else:
         write_log("INFO","NO segment %s File, Continue"%(filename))
-        return product
+        return None
 
 
 def read_thr(filename, h5_obj_type, thr_type):
