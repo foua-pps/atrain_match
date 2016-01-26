@@ -331,13 +331,13 @@ def get_semi_opaque_info(caObj):
     semi_flag = None    
     opaque_flag = None
     if hasattr(caObj.avhrr, 'cloudtype_qflag'):
-        print caObj.avhrr.ctth_opaque
+        #print caObj.avhrr.ctth_opaque
         if caObj.avhrr.ctth_opaque is not None:
             semi_flag, opaque_flag = get_semi_opaque_info_pps2012(
                 caObj.avhrr.ctth_opaque) 
     if hasattr(caObj.avhrr, 'cloudtype_conditions'):
         if caObj.avhrr.ctth_status is not None:
-            print caObj.avhrr.ctth_status
+            #print caObj.avhrr.ctth_status
             semi_flag, opaque_flag = get_semi_opaque_info_pps2014(
                 caObj.avhrr.ctth_status)
     return semi_flag, opaque_flag
