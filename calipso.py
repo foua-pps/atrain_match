@@ -397,6 +397,8 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
     bt37micron_track = []
     bt11micron_track = []
     bt12micron_track = []
+    bt22micron_track = []
+    r13micron_track = []
     satz_track = []
     lwp_track = []
     cph_track = []
@@ -560,9 +562,10 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
         # b16
         r16micron_track = get_channel_data_from_object(dataObj, '16', row_col)
         # b22
-        b22micron_track = get_channel_data_from_object(dataObj, '22', row_col)
+        bt22micron_track = get_channel_data_from_object(dataObj, '22', row_col)
+        print bt22micron_track
         #b13
-        b13micron_track = get_channel_data_from_object(dataObj, '13', row_col)
+        r13micron_track = get_channel_data_from_object(dataObj, '13', row_col)
 
 
 
@@ -675,10 +678,11 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
             obt.avhrr.bt86micron = np.array(bt86micron_track)
         if r16micron_track != None:
             obt.avhrr.r16micron = np.array(r16micron_track)
-        if b13micron_track != None:
-            obt.avhrr.b13micron = np.array(b13micron_track)
-        if b22micron_track != None:
-            obt.avhrr.b22micron = np.array(b22micron_track)
+        if r13micron_track != None:
+            obt.avhrr.r13micron = np.array(r13micron_track)
+        if r22micron_track != None:
+            print "read 22 micron track"
+            obt.avhrr.r22micron = np.array(r22micron_track)
     obt.avhrr.satz = np.array(satz_track)
     obt.avhrr.sunz = np.array(sunz_track)
     if AngObj.azidiff is not None:
