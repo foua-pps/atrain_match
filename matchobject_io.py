@@ -110,8 +110,8 @@ class ppsAvhrrObject(DataObject):
             'bt11micron': None, #modis 31
             'bt12micron': None, #modis 32
             'bt86micron': None, #modis 29
-            'bt22micron': None,
-            'bt13micron': None, #modis 26
+            'r22micron': None,
+            'r13micron': None, #modis 26
             'r16micron':  None,  #moodis 6
             #developing channels from modis change to pps_id_name i.e r12micron 
             #when introduced into pps

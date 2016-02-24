@@ -850,6 +850,41 @@ def read_thr(filename, h5_obj_type, thr_type):
         write_log("INFO","NO THR %s File, Continue"%(thr_type))
     return product
 
+def readViirsData_h5(filename):
+    import h5py
+    from pps_io import NewAvhrrData, AvhrrChannelData
+    avhrrdata = NewAvhrrData()
+    ich=0
+    if filename is not None:
+        h5file = h5py.File(filename, 'r')
+        nof_images = h5file['what'].attrs['sets']
+        for num in xrange(1, nof_images+1,1):
+            image = "image%d"%(num)
+            channel = h5file[image].attrs['channel']
+            if channel in ["M05",
+                           "M07",
+                           "M10",
+                           "M12",
+                           "M14",
+                           "M15",
+                           "M16",
+                           "M11",
+                           "M09"]:
+ 
+                avhrrdata.channel.append(AvhrrChannelData())
+                avhrrdata.channel[ich].data = h5file[image]['data'].value
+                avhrrdata.channel[ich].des = "VIIRS %s"%(channel)
+                avhrrdata.channel[ich].gain = h5file[image]['what'].attrs['gain']
+                avhrrdata.channel[ich].intercept = h5file[image]['what'].attrs['offset']
+                avhrrdata.nodata = h5file[image]['what'].attrs['nodata']
+                avhrrdata.missingdata = h5file[image]['what'].attrs['missingdata']
+                avhrrdata.no_data = h5file[image]['what'].attrs['nodata']
+                avhrrdata.missing_data = h5file[image]['what'].attrs['missingdata']
+                ich = ich + 1
+    h5file.close()
+
+    return avhrrdata
+
 def read_pps_data(pps_files, avhrr_file, cross):
     import pps_io #@UnresolvedImport
     import epshdf #@UnresolvedImport
@@ -859,7 +894,7 @@ def read_pps_data(pps_files, avhrr_file, cross):
     avhrrAngObj = pps_io.readSunSatAngles(pps_files.sunsatangles) #, withAbsoluteAzimuthAngles=True)
     if 'npp' in [cross.satellite1, cross.satellite2]:
         write_log("INFO","Read VIIRS data")
-        avhrrObj = pps_io.readViirsData(avhrr_file)
+        avhrrObj = readViirsData_h5(avhrr_file)
     else:
         write_log("INFO","Read AVHRR data")
         avhrrObj = pps_io.readAvhrrData(avhrr_file)    

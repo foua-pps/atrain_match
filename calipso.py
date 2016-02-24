@@ -235,6 +235,7 @@ def get_channel_data_from_object(dataObj, chn_des, matched, nodata=-9):
                                          "Avhrr channel channel5."],
                                    '06': [ "VIIRS M05",
                                            "AVHRR ch 1", 
+                                           "AVHRR ch1",
                                            "AVHRR 1"],
                                    '09': [ "VIIRS M07",
                                            "AVHRR ch 2",
@@ -242,11 +243,13 @@ def get_channel_data_from_object(dataObj, chn_des, matched, nodata=-9):
                                            "AVHRR 2"],
                                    '16': [ "VIIRS M10",
                                            "AVHRR ch 3a",
+                                           "3a",
                                            "AVHRR ch3a",
                                            "AVHRR 3A"],
                                    '37': [ "VIIRS M12",
                                            "AVHRR ch 3b",
                                            "AVHRR ch3b",
+                                           "3b",
                                            "AVHRR 3B"],
                                    '22': [ "VIIRS M11"],   
                                    '13': [ "VIIRS M09"],
@@ -268,7 +271,7 @@ def get_channel_data_from_object(dataObj, chn_des, matched, nodata=-9):
         if channels[ich].des in CHANNEL_MICRON_DESCRIPTIONS[chn_des]:
             chnum = ich
     if chnum ==-1:
-        chnum = CHANNEL_MICRON_AVHRR_PPS[chn_des]
+        #chnum = CHANNEL_MICRON_AVHRR_PPS[chn_des]
         if chnum ==-1:
             return None
         write_log('WARNING',  "Using pps channel numbers to find "
@@ -397,7 +400,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
     bt37micron_track = []
     bt11micron_track = []
     bt12micron_track = []
-    bt22micron_track = []
+    r22micron_track = []
     r13micron_track = []
     satz_track = []
     lwp_track = []
@@ -562,8 +565,8 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
         # b16
         r16micron_track = get_channel_data_from_object(dataObj, '16', row_col)
         # b22
-        bt22micron_track = get_channel_data_from_object(dataObj, '22', row_col)
-        print bt22micron_track
+        r22micron_track = get_channel_data_from_object(dataObj, '22', row_col)
+        print r22micron_track
         #b13
         r13micron_track = get_channel_data_from_object(dataObj, '13', row_col)
 
