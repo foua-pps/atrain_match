@@ -894,7 +894,8 @@ def read_pps_data(pps_files, avhrr_file, cross):
     avhrrAngObj = pps_io.readSunSatAngles(pps_files.sunsatangles) #, withAbsoluteAzimuthAngles=True)
     if 'npp' in [cross.satellite1, cross.satellite2]:
         write_log("INFO","Read VIIRS data")
-        avhrrObj = readViirsData_h5(avhrr_file)
+        avhrrObj = pps_io.readViirsData(avhrr_file)
+        #avhrrObj = readViirsData_h5(avhrr_file)
     else:
         write_log("INFO","Read AVHRR data")
         avhrrObj = pps_io.readAvhrrData(avhrr_file)    
