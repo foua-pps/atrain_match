@@ -1052,6 +1052,7 @@ def get_matchups_from_data(cross, config_options):
                                                 replace('05kmCLay', '01kmCLay').\
                                                 replace('-Prov-V3-01.', '*').\
                                                 replace('-Prov-V3-02.', '*').\
+                                                replace('-Prov-V3-30.', '*').\
                                                 replace('.hdf', '.h5')
                     files_found = glob.glob(file1km)
                     if len(files_found)==0:
