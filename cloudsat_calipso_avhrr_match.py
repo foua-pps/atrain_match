@@ -1592,7 +1592,7 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     #print "Number of points with more than 0 layers: ",x.shape[0]
     cal_data_ok = np.greater(caliop_max_height,-9.)
 
-    if caObj.avhrr.surftemp != None:
+    if np.size(caObj.avhrr.surftemp)>1 or caObj.avhrr.surftemp != None:
         cal_surftemp_ok = np.repeat(caObj.avhrr.surftemp[::],cal_data_ok)
 
     if clsatObj is not None:

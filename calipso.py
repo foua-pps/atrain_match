@@ -1085,7 +1085,7 @@ def reshapeCalipso(calipsofiles, avhrr, values, timereshape = True, res=resoluti
         # Concatenate the feature values
         #arname = array name from calipsoObj
         for arname, value in startCalipso.all_arrays.items(): 
-            if value != None:
+            if np.size(value)>1 or value != None:
                 if value.size != 1:
                     startCalipso.all_arrays[arname] = np.concatenate((value[0:cal_break,...],newCalipso.all_arrays[arname]))
 
