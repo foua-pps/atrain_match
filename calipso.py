@@ -306,10 +306,8 @@ def get_channel_data_from_object(dataObj, chn_des, matched, nodata=-9):
     numOfChannels = len(channels)
     chnum=-1
     for ich in range(numOfChannels):
-        print "hej", channels[ich].des
         if channels[ich].des in CHANNEL_MICRON_DESCRIPTIONS[chn_des]:
             chnum = ich
-    print "hej", numOfChannels
     if chnum ==-1:
         #chnum = CHANNEL_MICRON_AVHRR_PPS[chn_des]
         if chnum ==-1:
@@ -335,7 +333,7 @@ def get_channel_data_from_object(dataObj, chn_des, matched, nodata=-9):
             np.equal(temp, dataObj.missing_data)),
         nodata, chdata)
 
-    return chdata_on_track
+    return np.array(chdata_on_track)
 
 def insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt):
         """
@@ -413,201 +411,103 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
                              row_matched, col_matched, 
                              avhrrLwp=None, avhrrCph=None,
                              nwp_segments=None):
-    ctype_track = []
-    ctype_qflag_track = None
-    ctype_pflag_track = None
-    ctype_ct_qualityflag_track = None
-    ctype_ct_conditionsflag_track = None
-    ctype_ct_statusflag_track = None
-    ctype_ctth_statusflag_track = None
-    ctth_height_track = []
-    ctth_pressure_track = []
-    ctth_temperature_track = []
-    ctth_opaque_track = None
-    lon_avhrr_track = []
-    lat_avhrr_track = []
-    surft_track = []
-    t500_track = []
-    t700_track = []
-    t850_track = []
-    t950_track = []
-    ttro_track = []
-    ciwv_track = []
-    r06micron_track = []
-    r09micron_track = []
-    r16micron_track = []
-    bt86micron_track = []
-    bt37micron_track = []
-    bt11micron_track = []
-    bt12micron_track = []
-    r22micron_track = []
-    r13micron_track = []
-    satz_track = []
-    lwp_track = []
-    cph_track = []
-    text_r06_track = []
-    text_t11_track = []
-    text_t37t12_track = []
-    text_t37_track = []
-    thr_t11ts_inv_track = []
-    thr_t11t37_inv_track = []
-    thr_t37t12_inv_track = []
-    thr_t11t12_inv_track = []
-    thr_t85t11_inv_track = []
-    thr_t11ts_track = []
-    thr_t11t37_track = []
-    thr_t37t12_track = []
-    thr_t11t12_track = []
-    thr_t85t11_track = []
-    thr_r09_track = []
-    thr_r06_track = []
-    emis1_track = []
-    emis8_track = []
-    emis9_track = []
-
+    value_track = []
     row_col = {'row': row_matched, 'col': col_matched} 
 
-    #idx = [x in range(row_matched.shape[0])]
-    lat_avhrr_track = [GeoObj.latitude[row_matched[idx], col_matched[idx]] 
+    #Find lat/lon and cloudtype
+    value_track = [GeoObj.latitude[row_matched[idx], col_matched[idx]] 
                      for idx in range(row_matched.shape[0])]
-    lon_avhrr_track = [GeoObj.longitude[row_matched[idx], col_matched[idx]]
+    obt.avhrr.latitude = np.array(value_track)
+    value_track = [GeoObj.longitude[row_matched[idx], col_matched[idx]]
                      for idx in range(row_matched.shape[0])]
-    ctype_track = [ctype.cloudtype[row_matched[idx], col_matched[idx]]
+    obt.avhrr.longitude = np.array(value_track)
+    value_track = [ctype.cloudtype[row_matched[idx], col_matched[idx]]
                  for idx in range(row_matched.shape[0])]
-    if hasattr(ctype, 'ct_quality') and PPS_VALIDATION:
-        ctype_ct_qualityflag_track = [ctype.ct_quality[row_matched[idx], col_matched[idx]]
-                             for idx in range(row_matched.shape[0])]
-    if hasattr(ctype, 'ct_conditions') and ctype.ct_conditions is not None:
-        ctype_ct_conditionsflag_track = [ctype.ct_conditions[row_matched[idx], col_matched[idx]]
-                             for idx in range(row_matched.shape[0])]
-    if hasattr(ctype, 'ct_statusflag') and PPS_VALIDATION:
-        ctype_ct_statusflag_track = [ctype.ct_statusflag[row_matched[idx], col_matched[idx]]
-                             for idx in range(row_matched.shape[0])]
-    if hasattr(ctth, 'ctth_statusflag') and PPS_VALIDATION:
-        ctype_ctth_statusflag_track = [ctth.ctth_statusflag[row_matched[idx], col_matched[idx]]
-                                       for idx in range(row_matched.shape[0])]
-    if hasattr(ctype, 'qualityflag') and PPS_VALIDATION:
-        ctype_qflag_track = [ctype.qualityflag[row_matched[idx], col_matched[idx]]
-                             for idx in range(row_matched.shape[0])]
-    if  ctype.phaseflag != None and PPS_VALIDATION:
-        ctype_pflag_track = [ctype.phaseflag[row_matched[idx], col_matched[idx]]
-                             for idx in range(row_matched.shape[0])]
-    if nwp_obj.surft != None:
-        surft_track = [nwp_obj.surft[row_matched[idx], col_matched[idx]]
-                       for idx in range(row_matched.shape[0])]
-    if nwp_obj.t500 != None:
-        t500_track = [nwp_obj.t500[row_matched[idx], col_matched[idx]]
-                       for idx in range(row_matched.shape[0])]
-    if nwp_obj.t700 != None:
-        t700_track = [nwp_obj.t700[row_matched[idx], col_matched[idx]]
-                       for idx in range(row_matched.shape[0])]
-    if nwp_obj.t850 != None:
-        t850_track = [nwp_obj.t850[row_matched[idx], col_matched[idx]]
-                       for idx in range(row_matched.shape[0])]
-    if nwp_obj.t950 != None:
-        t950_track = [nwp_obj.t950[row_matched[idx], col_matched[idx]]
-                       for idx in range(row_matched.shape[0])]
-    if nwp_obj.ttro != None:
-        ttro_track = [nwp_obj.ttro[row_matched[idx], col_matched[idx]]
-                       for idx in range(row_matched.shape[0])]
-    if nwp_obj.ciwv != None:
-        ciwv_track = [nwp_obj.ciwv[row_matched[idx], col_matched[idx]]
-                       for idx in range(row_matched.shape[0])]
-    #Thresholds:    
-    if nwp_obj.text_r06 != None:
-        text_r06_track = [nwp_obj.text_r06[row_matched[idx], col_matched[idx]]
-                          for idx in range(row_matched.shape[0])]
-    if nwp_obj.text_t11 != None:
-        text_t11_track = [nwp_obj.text_t11[row_matched[idx], col_matched[idx]]
-                          for idx in range(row_matched.shape[0])]
-    if nwp_obj.text_t37t12 != None:
-        text_t37t12_track = [nwp_obj.text_t37t12[row_matched[idx], col_matched[idx]]
-                          for idx in range(row_matched.shape[0])]
-    if nwp_obj.text_t37 != None:
-        text_t37_track = [nwp_obj.text_t37[row_matched[idx], col_matched[idx]]
-                          for idx in range(row_matched.shape[0])]
-    if nwp_obj.thr_t85t11_inv != None:
-        thr_t85t11_inv_track = [
-            nwp_obj.thr_t85t11_inv[row_matched[idx], col_matched[idx]]
-            for idx in range(row_matched.shape[0])]
-    if nwp_obj.thr_t11ts_inv != None:
-        thr_t11ts_inv_track = [
-            nwp_obj.thr_t11ts_inv[row_matched[idx], col_matched[idx]]
-            for idx in range(row_matched.shape[0])] 
-    if nwp_obj.thr_t11t37_inv != None:
-        thr_t11t37_inv_track = [
-            nwp_obj.thr_t11t37_inv[row_matched[idx], col_matched[idx]]
-            for idx in range(row_matched.shape[0])] 
-    if nwp_obj.thr_t37t12_inv != None:
-        thr_t37t12_inv_track = [
-            nwp_obj.thr_t37t12_inv[row_matched[idx], col_matched[idx]]
-            for idx in range(row_matched.shape[0])] 
-    if nwp_obj.thr_t11t12_inv != None:
-        thr_t11t12_inv_track = [
-            nwp_obj.thr_t11t12_inv[row_matched[idx], col_matched[idx]]
-            for idx in range(row_matched.shape[0])]
-    if nwp_obj.thr_t85t11 != None:
-        thr_t85t11_track = [
-            nwp_obj.thr_t85t11[row_matched[idx], col_matched[idx]]
-            for idx in range(row_matched.shape[0])] 
-    if nwp_obj.thr_t11ts != None:
-        thr_t11ts_track = [
-            nwp_obj.thr_t11ts[row_matched[idx], col_matched[idx]]
-            for idx in range(row_matched.shape[0])] 
-    if nwp_obj.thr_t11t37 != None:
-        thr_t11t37_track = [
-            nwp_obj.thr_t11t37[row_matched[idx], col_matched[idx]]
-            for idx in range(row_matched.shape[0])] 
-    if nwp_obj.thr_t37t12 != None:
-        thr_t37t12_track = [
-            nwp_obj.thr_t37t12[row_matched[idx], col_matched[idx]]
-            for idx in range(row_matched.shape[0])] 
-    if nwp_obj.thr_t11t12 != None:
-        thr_t11t12_track = [
-            nwp_obj.thr_t11t12[row_matched[idx], col_matched[idx]]
-            for idx in range(row_matched.shape[0])] 
-    if nwp_obj.thr_r09 != None:
-        thr_r09_track = [
-            nwp_obj.thr_r09[row_matched[idx], col_matched[idx]]
-            for idx in range(row_matched.shape[0])]
-    if nwp_obj.thr_r06 != None:
-        thr_r06_track = [
-            nwp_obj.thr_r06[row_matched[idx], col_matched[idx]]
-            for idx in range(row_matched.shape[0])]
-    if nwp_obj.emis1 != None:
-        emis1_track = [
-            nwp_obj.emis1[row_matched[idx], col_matched[idx]]
-            for idx in range(row_matched.shape[0])]
-    if nwp_obj.emis8 != None:
-        emis8_track = [
-            nwp_obj.emis8[row_matched[idx], col_matched[idx]]
-            for idx in range(row_matched.shape[0])]
-    if nwp_obj.emis9 != None:
-        emis9_track = [
-            nwp_obj.emis9[row_matched[idx], col_matched[idx]]
-            for idx in range(row_matched.shape[0])]
+    obt.avhrr.cloudtype = np.array(value_track)
 
+    #cloud-type and ctth flags
+    if hasattr(ctype, 'ct_quality') and PPS_VALIDATION:
+        value_track = [ctype.ct_quality[row_matched[idx], col_matched[idx]]
+                             for idx in range(row_matched.shape[0])]
+        obt.avhrr.cloudtype_quality = np.array(value_track)
+    if hasattr(ctype, 'ct_conditions') and ctype.ct_conditions is not None:
+        value_track = [ctype.ct_conditions[row_matched[idx], col_matched[idx]]
+                             for idx in range(row_matched.shape[0])]
+        obt.avhrr.cloudtype_conditions = np.array(value_track)
+    if hasattr(ctype, 'ct_statusflag') and PPS_VALIDATION:
+        value_track = [ctype.ct_statusflag[row_matched[idx], col_matched[idx]]
+                             for idx in range(row_matched.shape[0])]
+        obt.avhrr.cloudtype_status = np.array(value_track)
+    if hasattr(ctth, 'ctth_statusflag') and PPS_VALIDATION:
+        value_track = [ctth.ctth_statusflag[row_matched[idx], col_matched[idx]]
+                                       for idx in range(row_matched.shape[0])]
+        obt.avhrr.ctth_status = np.array(value_track)
+    if hasattr(ctype, 'qualityflag') and PPS_VALIDATION:
+        value_track = [ctype.qualityflag[row_matched[idx], col_matched[idx]]
+                             for idx in range(row_matched.shape[0])]
+        obt.avhrr.cloudtype_qflag = np.array(value_track)
+    if  ctype.phaseflag != None and PPS_VALIDATION:
+        value_track = [ctype.phaseflag[row_matched[idx], col_matched[idx]]
+                             for idx in range(row_matched.shape[0])]
+        obt.avhrr.cloudtype_pflag = np.array(value_track)
+    for nwp_info in ["surftemp", "t500", "t700", "t850", "t950", "ttro", "ciwv"]:
+        if hasattr(nwp_obj, nwp_info):
+            data = getattr(nwp_obj, nwp_info)
+            if np.size(data)>1:
+                value_track = [data[row_matched[idx], col_matched[idx]]
+                               for idx in range(row_matched.shape[0])]
+                setattr(obt.avhrr, nwp_info, np.array(value_track))
+    for texture in ["text_r06", "text_t11", "text_t37", "text_t37t12"]:
+        if hasattr(nwp_obj, texture):
+            data = getattr(nwp_obj, texture)
+            if np.size(data)>1:
+                value_track = [data[row_matched[idx], col_matched[idx]]
+                               for idx in range(row_matched.shape[0])]
+                setattr(obt.avhrr, texture, np.array(value_track)) 
+    #Thresholds:    
+    for thr in ["thr_t11ts_inv",
+                "thr_t85t11_inv",
+                "thr_t11t37_inv",
+                "thr_t37t12_inv",
+                "thr_t11t12_inv",
+                "thr_t85t11",
+                "thr_t11ts",
+                "thr_t11t37",
+                "thr_t37t12",
+                "thr_t11t12",
+                "thr_r06",
+                "thr_r09"]:
+        if hasattr(nwp_obj, thr):
+            data = getattr(nwp_obj, thr)
+            if np.size(data)>1:
+                value_track = [data[row_matched[idx], col_matched[idx]]
+                               for idx in range(row_matched.shape[0])]
+                setattr(obt.avhrr, thr, np.array(value_track))
+    for emis in ["emis1", "emis8", "emis9"]:
+        if hasattr(nwp_obj, emis):
+            data = getattr(nwp_obj, emis)
+            if np.size(data)>1:
+                value_track = [data[row_matched[idx], col_matched[idx]]
+                               for idx in range(row_matched.shape[0])]
+                setattr(obt.avhrr, emis, np.array(value_track))
     if dataObj != None:
-        # r06   
-        # Should nodata be set to something different from default (-9)?
-        # FIXME!
-        r06micron_track = get_channel_data_from_object(dataObj, '06', row_col)
+        obt.avhrr.r06micron = get_channel_data_from_object(dataObj, '06', row_col)
         # r09   
-        r09micron_track = get_channel_data_from_object(dataObj, '09', row_col)
+        obt.avhrr.r09micron = get_channel_data_from_object(dataObj, '09', row_col)
         # bt37   
-        bt37micron_track = get_channel_data_from_object(dataObj, '37', row_col)
+        obt.avhrr.bt37micron = get_channel_data_from_object(dataObj, '37', row_col)
         # b11
-        bt11micron_track = get_channel_data_from_object(dataObj, '11', row_col)
+        obt.avhrr.bt11micron = get_channel_data_from_object(dataObj, '11', row_col)
         # b12
-        bt12micron_track = get_channel_data_from_object(dataObj, '12', row_col)
+        obt.avhrr.bt12micron = get_channel_data_from_object(dataObj, '12', row_col)
         # b86
-        bt86micron_track = get_channel_data_from_object(dataObj, '86', row_col)
+        obt.avhrr.bt86micron = get_channel_data_from_object(dataObj, '86', row_col)
         # b16
-        r16micron_track = get_channel_data_from_object(dataObj, '16', row_col)
+        obt.avhrr.r16micron = get_channel_data_from_object(dataObj, '16', row_col)
         # b22
-        r22micron_track = get_channel_data_from_object(dataObj, '22', row_col)
+        obt.avhrr.r22micron = get_channel_data_from_object(dataObj, '22', row_col)
         #b13
-        r13micron_track = get_channel_data_from_object(dataObj, '13', row_col)
+        obt.avhrr.r13micron = get_channel_data_from_object(dataObj, '13', row_col)
         for modis_channel in [
                 'modis_3',
                 'modis_4',
@@ -641,16 +541,14 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
                 'modis_36']:
             modis_track = get_channel_data_from_object(dataObj, 
                                                        modis_channel, row_col)
-            setattr(obt.avhrr,modis_channel, modis_track)
-
-
-
+            setattr(obt.avhrr, modis_channel, modis_track)
+    #Angles        
     temp = [AngObj.satz.data[row_matched[idx], col_matched[idx]] 
             for idx in range(row_matched.shape[0])]
     sats_temp = [(AngObj.satz.data[row_matched[idx], col_matched[idx]] * 
                   AngObj.satz.gain + AngObj.satz.intercept)
                  for idx in range(row_matched.shape[0])]
-    satz_track = np.where(
+    obt.avhrr.satz = np.where(
         np.logical_or(
             np.equal(temp, AngObj.satz.no_data),
             np.equal(temp, AngObj.satz.missing_data)),
@@ -660,7 +558,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
     sunz_temp = [(AngObj.sunz.data[row_matched[idx], col_matched[idx]] * 
                   AngObj.sunz.gain + AngObj.sunz.intercept)
                  for idx in range(row_matched.shape[0])]
-    sunz_track = np.where(
+    obt.avhrr.sunz = np.where(
         np.logical_or(
             np.equal(temp, AngObj.sunz.no_data),
             np.equal(temp, AngObj.sunz.missing_data)),
@@ -671,11 +569,11 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
         azidiff_temp = [(AngObj.azidiff.data[row_matched[idx], col_matched[idx]] * 
                          AngObj.azidiff.gain + AngObj.azidiff.intercept)
                         for idx in range(row_matched.shape[0])]
-        azidiff_track = np.where(
+        obt.avhrr.azidiff = np.where(
             np.logical_or(
                 np.equal(temp, AngObj.azidiff.no_data),
                 np.equal(temp, AngObj.azidiff.missing_data)),
-            -9, azidiff_temp)
+            -9, azidiff_temp)        
     if ctth == None:
         write_log('INFO', "Not extracting ctth")
     else:
@@ -685,31 +583,33 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
         hh_temp = np.int32([(ctth.height[row_matched[idx], col_matched[idx]] * 
                              ctth.h_gain + ctth.h_intercept)
                             for idx in range(row_matched.shape[0])])
-        ctth_height_track = np.where(np.equal(temp, ctth.h_nodata), 
+        obt.avhrr.ctth_height = np.where(np.equal(temp, ctth.h_nodata), 
                                      -9, hh_temp)
         temp = [ctth.temperature[row_matched[idx], col_matched[idx]]
                 for idx in range(row_matched.shape[0])]
         tt_temp = np.int32([(ctth.temperature[row_matched[idx], col_matched[idx]] * 
                              ctth.t_gain + ctth.t_intercept)
                             for idx in range(row_matched.shape[0])])
-        ctth_temperature_track = np.where(np.equal(temp, ctth.t_nodata),
+        obt.avhrr.ctth_temperature =  np.where(np.equal(temp, ctth.t_nodata),
                                           -9,tt_temp)
         temp = [ctth.pressure[row_matched[idx], col_matched[idx]]
                 for idx in range(row_matched.shape[0])]
         pp_temp = np.int32([(ctth.pressure[row_matched[idx], col_matched[idx]] * 
                              ctth.p_gain + ctth.p_intercept)
                             for idx in range(row_matched.shape[0])])
-        ctth_pressure_track = np.where(np.equal(temp, ctth.p_nodata), 
+        obt.avhrr.ctth_pressure = np.where(np.equal(temp, ctth.p_nodata), 
                                       -9, pp_temp)
-        if (PPS_VALIDATION and hasattr(ctth,'processingflag')):
+        if (PPS_VALIDATION and hasattr(ctth, 'processingflag')):
             is_opaque = np.bitwise_and(np.right_shift(ctth.processingflag, 2), 1)
-            ctth_opaque_track = [is_opaque[row_matched[idx], col_matched[idx]]
+            value_track = [is_opaque[row_matched[idx], col_matched[idx]]
                                  for idx in range(row_matched.shape[0])]
-    #: TODO Do not use fix nodata-values but instead something.no_data
+            obt.avhrr.ctth_opaque = np.array(value_track)
+    #NWP on ctth resolution        
     if nwp_segments != None:
         obt = insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt)
   
-
+    #: TODO Do not use fix nodata-values but instead something.no_data
+    #CPP-products
     if avhrrLwp != None:
         if PPS_FORMAT_2012_OR_EARLIER:
             nodata_temp = -1
@@ -717,7 +617,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
             nodata_temp = 65535
         lwp_temp = [avhrrLwp[row_matched[idx], col_matched[idx]]
                     for idx in range(row_matched.shape[0])]
-        lwp_track = np.where(np.equal(lwp_temp, nodata_temp), -9, lwp_temp)
+        obt.avhrr.lwp = np.where(np.equal(lwp_temp, nodata_temp), -9, lwp_temp)
     if avhrrCph != None:
         if PPS_FORMAT_2012_OR_EARLIER:
             nodata_temp = -1
@@ -725,105 +625,8 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
             nodata_temp = 255
         cph_temp = [avhrrCph[row_matched[idx], col_matched[idx]]
                     for idx in range(row_matched.shape[0])]
-        cph_track = np.where(np.equal(cph_temp, nodata_temp), -9, cph_temp)
+        obt.avhrr.cph = np.where(np.equal(cph_temp, nodata_temp), -9, cph_temp)
 
-
-    obt.avhrr.latitude = np.array(lat_avhrr_track)
-    obt.avhrr.longitude = np.array(lon_avhrr_track)
-    obt.avhrr.cloudtype = np.array(ctype_track)
-    if ctype_qflag_track is not None:
-        obt.avhrr.cloudtype_qflag = np.array(ctype_qflag_track)
-    if ctype_pflag_track is not None:
-        obt.avhrr.cloudtype_pflag = np.array(ctype_pflag_track)
-    if ctype_ct_qualityflag_track is not None:
-        obt.avhrr.cloudtype_quality = np.array(ctype_ct_qualityflag_track)
-    if ctype_ct_conditionsflag_track is not None:
-        obt.avhrr.cloudtype_conditions = np.array(ctype_ct_conditionsflag_track)
-    if ctype_ct_statusflag_track is not None:
-        obt.avhrr.cloudtype_status = np.array(ctype_ct_statusflag_track)
-    if ctype_ctth_statusflag_track is not None:
-        obt.avhrr.ctth_status = np.array(ctype_ctth_statusflag_track)
-    if dataObj != None:        
-        obt.avhrr.r06micron = np.array(r06micron_track)
-        obt.avhrr.r09micron = np.array(r09micron_track)
-        obt.avhrr.bt37micron = np.array(bt37micron_track)
-        obt.avhrr.bt11micron = np.array(bt11micron_track)
-        obt.avhrr.bt12micron = np.array(bt12micron_track)
-        if bt86micron_track != None:
-            obt.avhrr.bt86micron = np.array(bt86micron_track)
-        if r16micron_track != None:
-            obt.avhrr.r16micron = np.array(r16micron_track)
-        if r13micron_track != None:
-            obt.avhrr.r13micron = np.array(r13micron_track)
-        if r22micron_track != None:
-            print "read 22 micron track"
-            obt.avhrr.r22micron = np.array(r22micron_track)
-    obt.avhrr.satz = np.array(satz_track)
-    obt.avhrr.sunz = np.array(sunz_track)
-    if AngObj.azidiff is not None:
-        obt.avhrr.azidiff = np.array(azidiff_track)
-    if ctth:
-        obt.avhrr.ctth_height = np.array(ctth_height_track)
-        obt.avhrr.ctth_pressure = np.array(ctth_pressure_track)
-        obt.avhrr.ctth_temperature = np.array(ctth_temperature_track)
-        if ctth_opaque_track is not None:
-            obt.avhrr.ctth_opaque = np.array(ctth_opaque_track)
-    if nwp_obj.surft != None:
-        obt.avhrr.surftemp = np.array(surft_track)
-    if nwp_obj.t500 != None:
-        obt.avhrr.t500 = np.array(t500_track)
-    if nwp_obj.t700 != None:
-        obt.avhrr.t700 = np.array(t700_track)
-    if nwp_obj.t850 != None:
-        obt.avhrr.t850 = np.array(t850_track)
-    if nwp_obj.t950 != None:
-        obt.avhrr.t950 = np.array(t950_track)
-    if nwp_obj.ttro != None:
-        obt.avhrr.ttro = np.array(ttro_track)
-    if nwp_obj.ciwv != None:
-        obt.avhrr.ciwv = np.array(ciwv_track)
-    if nwp_obj.text_r06 != None:
-        obt.avhrr.text_r06 = np.array(text_r06_track)
-    if nwp_obj.text_t11 != None:
-        obt.avhrr.text_t11 = np.array(text_t11_track)
-    if nwp_obj.text_t37t12 != None:
-        obt.avhrr.text_t37t12 = np.array(text_t37t12_track)
-    if nwp_obj.text_t37 != None:
-        obt.avhrr.text_t37 = np.array(text_t37_track)
-    if nwp_obj.thr_t11ts_inv != None:
-        obt.avhrr.thr_t11ts_inv = np.array(thr_t11ts_inv_track)
-    if nwp_obj.thr_t85t11_inv != None:
-        obt.avhrr.thr_t85t11_inv = np.array(thr_t85t11_inv_track)
-    if nwp_obj.thr_t11t37_inv != None:
-        obt.avhrr.thr_t11t37_inv = np.array(thr_t11t37_inv_track)
-    if nwp_obj.thr_t37t12_inv != None:
-        obt.avhrr.thr_t37t12_inv = np.array(thr_t37t12_inv_track)
-    if nwp_obj.thr_t11t12_inv != None:
-        obt.avhrr.thr_t11t12_inv = np.array(thr_t11t12_inv_track)
-    if nwp_obj.thr_t85t11 != None:
-        obt.avhrr.thr_t85t11 = np.array(thr_t85t11_track)
-    if nwp_obj.thr_t11ts != None:
-        obt.avhrr.thr_t11ts = np.array(thr_t11ts_track)
-    if nwp_obj.thr_t11t37 != None:
-        obt.avhrr.thr_t11t37 = np.array(thr_t11t37_track)
-    if nwp_obj.thr_t37t12 != None:
-        obt.avhrr.thr_t37t12 = np.array(thr_t37t12_track)
-    if nwp_obj.thr_t11t12 != None:
-        obt.avhrr.thr_t11t12 = np.array(thr_t11t12_track)
-    if nwp_obj.thr_r06 != None:
-        obt.avhrr.thr_r06 = np.array(thr_r06_track)
-    if nwp_obj.thr_r09 != None:
-        obt.avhrr.thr_r09 = np.array(thr_r09_track)
-    if nwp_obj.emis1 != None:
-        obt.avhrr.emis1 = np.array(emis1_track)
-    if nwp_obj.emis8 != None:
-        obt.avhrr.emis8 = np.array(emis8_track)
-    if nwp_obj.emis9 != None:
-        obt.avhrr.emis9 = np.array(emis9_track)
-    if avhrrLwp != None:
-        obt.avhrr.lwp = np.array(lwp_track)
-    if avhrrCph != None:
-        obt.avhrr.cph = np.array(cph_track)
     return obt
 
 # -----------------------------------------------------------------

@@ -141,7 +141,7 @@ class ppsFiles(object):
 
 class NWPObj(object):
     def __init__(self, array_dict):
-        self.tsur = None
+        self.surftemp = None
         self.t500 = None
         self.t700 = None
         self.t850 = None
@@ -640,7 +640,7 @@ def get_cloudsat_matchups(cloudsat_files, cloudtype_file, avhrrGeoObj, avhrrObj,
         write_log('INFO',("No cloudsat plot-file"))
     cl_matchup, cl_min_diff, cl_max_diff = match_fun(cloudtype_file, cloudsat,
                                                      avhrrGeoObj, avhrrObj, ctype,
-                                                     ctth, nwp_obj.surft, avhrrAngObj, cppLwp)
+                                                     ctth, nwp_obj.surftemp, avhrrAngObj, cppLwp)
 
     return cl_matchup, (cl_min_diff, cl_max_diff)
 
@@ -677,7 +677,7 @@ def get_calipso_matchups(calipso_files, values,
     """
     Read Calipso data and match with the given PPS data.
     """
-    surft = nwp_obj.surft
+    surftemp = nwp_obj.surftemp
     if cafiles1km != None:
         #pdb.set_trace()
         calipso1km = reshapeCalipso(cafiles1km, avhrrGeoObj, values, False, 1)[0]
@@ -821,7 +821,6 @@ def read_segment_data(filename):
 def read_thr(filename, h5_obj_type, thr_type):
     import h5py #@UnresolvedImport
     product = None
-    print thr_type
     if thr_type in ["emis1", "emis8", "emis9"]:
         if filename is not None: 
             h5file = h5py.File(filename, 'r')
@@ -896,7 +895,6 @@ def readModisData_h5(filename):
         h5file = h5py.File(filename, 'r')
         nof_images = h5file['what'].attrs['sets']
         for num in xrange(1, nof_images+1,1):
-            print num
             image = "image%d"%(num)
             channel = h5file[image].attrs['channel']
             if channel in [
@@ -910,7 +908,6 @@ def readModisData_h5(filename):
                     "27", "28", "29", "30",
                     "31", "32", "33", "34",
                     "35", "36"]:
-                print channel
                 avhrrdata.channel.append(ImagerChannelData())
                 avhrrdata.channel[ich].data = h5file[image]['data'].value
                 avhrrdata.channel[ich].des = "MODIS %s"%(channel)
@@ -1002,7 +999,7 @@ def read_pps_data(pps_files, avhrr_file, cross):
 
     write_log("INFO","Read PPS NWP data")   
     nwp_dict={}
-    nwp_dict['surft'] = read_nwp(pps_files.nwp_tsur, "surface temperature")
+    nwp_dict['surftemp'] = read_nwp(pps_files.nwp_tsur, "surface temperature")
     nwp_dict['t500'] = read_nwp(pps_files.nwp_t500, "temperature 500hPa")
     nwp_dict['t700'] = read_nwp(pps_files.nwp_t700, "temperature 700HPa")
     nwp_dict['t850'] = read_nwp(pps_files.nwp_t850, "temperature 850hPa")
@@ -1056,9 +1053,9 @@ def get_matchups_from_data(cross, config_options):
         avhrr_file, tobj = find_cci_cloud_file(cross, config_options)
         #avhrr_file = "20080613002200-ESACCI-L2_CLOUD-CLD_PRODUCTS-AVHRRGAC-NOAA18-fv1.0.nc"
         values = get_satid_datetime_orbit_from_fname(avhrr_file)
-        avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, surft, cppLwp, cppCph =read_cloud_cci(avhrr_file)
+        avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, surftemp, cppLwp, cppCph =read_cloud_cci(avhrr_file)
         nwp_segment = None
-        nwp_obj = NWPObj({'surft':surft})        
+        nwp_obj = NWPObj({'surftemp':surftemp})        
         avhrrGeoObj.satellite = values["satellite"];
         date_time = values["date_time"]
 
