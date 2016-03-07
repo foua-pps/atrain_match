@@ -100,8 +100,10 @@ from cloudsat_calipso_avhrr_plot import (drawCalClsatAvhrrPlotTimeDiff,
                                          drawCalClsatGEOPROFAvhrrPlot, 
                                          drawCalClsatAvhrrPlotSATZ,
                                          drawCalClsatCWCAvhrrPlot)
+#All non-avhrr satellites need to be here. Avhrr is default.
 INSTRUMENT = {'npp': 'viirs',
-              'noaa18': 'avhrr'}
+              'noaa18': 'avhrr',
+              'eos2': 'modis'} 
 from datetime import datetime, timedelta
 from glob import glob
 
@@ -885,6 +887,44 @@ def readViirsData_h5(filename):
 
     return avhrrdata
 
+def readModisData_h5(filename):
+    import h5py
+    from pps_io import NewImagerData, ImagerChannelData
+    avhrrdata = NewImagerData()
+    ich=0
+    if filename is not None:
+        h5file = h5py.File(filename, 'r')
+        nof_images = h5file['what'].attrs['sets']
+        for num in xrange(1, nof_images+1,1):
+            print num
+            image = "image%d"%(num)
+            channel = h5file[image].attrs['channel']
+            if channel in [
+                    "1", "2", "3", "4", 
+                    "5", "8", "7", "8", 
+                    "9", "10", "11", "12", 
+                    "13lo", "13hi", "14lo", "14hi", 
+                    "15", "16", "17", "18",
+                    "19", "20", "21", "22",
+                    "23", "24", "25", "26",
+                    "27", "28", "29", "30",
+                    "31", "32", "33", "34",
+                    "35", "36"]:
+                print channel
+                avhrrdata.channel.append(ImagerChannelData())
+                avhrrdata.channel[ich].data = h5file[image]['data'].value
+                avhrrdata.channel[ich].des = "MODIS %s"%(channel)
+                avhrrdata.channel[ich].gain = h5file[image]['what'].attrs['gain']
+                avhrrdata.channel[ich].intercept = h5file[image]['what'].attrs['offset']
+                avhrrdata.nodata = h5file[image]['what'].attrs['nodata']
+                avhrrdata.missingdata = h5file[image]['what'].attrs['missingdata']
+                avhrrdata.no_data = h5file[image]['what'].attrs['nodata']
+                avhrrdata.missing_data = h5file[image]['what'].attrs['missingdata']
+                ich = ich + 1
+    h5file.close()
+
+    return avhrrdata
+
 def read_pps_data(pps_files, avhrr_file, cross):
     import pps_io #@UnresolvedImport
     import epshdf #@UnresolvedImport
@@ -896,6 +936,10 @@ def read_pps_data(pps_files, avhrr_file, cross):
         write_log("INFO","Read VIIRS data")
         avhrrObj = pps_io.readViirsData(avhrr_file)
         #avhrrObj = readViirsData_h5(avhrr_file)
+    elif (cross.satellite1 in ['eos1','eos2'] or 
+        cross.satellite2 in ['eos1', 'eos2']):
+        #avhrrObj = pps_io.readModisData(avhrr_file)
+        avhrrObj = readModisData_h5(avhrr_file)
     else:
         write_log("INFO","Read AVHRR data")
         avhrrObj = pps_io.readAvhrrData(avhrr_file)    
@@ -1085,6 +1129,7 @@ def get_matchups_from_data(cross, config_options):
                     file5km = file1km.replace('/1km/', '/5km/').\
                                                 replace('01kmCLay', '05kmCLay').\
                                                 replace('-ValStage1-V3-30.', '*').\
+                                                replace('-ValStage1-V3-01.', '*').\
                                                 replace('-ValStage1-V3-02.', '*')
 
                     files_found = glob.glob(file5km)

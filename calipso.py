@@ -215,6 +215,7 @@ def get_channel_data_from_object(dataObj, chn_des, matched, nodata=-9):
         channels = dataObj.channels
     except:
         channels = dataObj.channel
+        
     CHANNEL_MICRON_DESCRIPTIONS = {'11': ["avhrr channel 4 - 11um",
                                          "Avhrr channel channel4.",
                                          "AVHRR ch4",
@@ -236,25 +237,62 @@ def get_channel_data_from_object(dataObj, chn_des, matched, nodata=-9):
                                    '06': [ "VIIRS M05",
                                            "AVHRR ch 1", 
                                            "AVHRR ch1",
-                                           "AVHRR 1"],
+                                           "AVHRR 1",
+                                           "MODIS 1"],
                                    '09': [ "VIIRS M07",
                                            "AVHRR ch 2",
                                            "AVHRR ch2",
-                                           "AVHRR 2"],
+                                           "AVHRR 2",
+                                           "MODIS 2"],
                                    '16': [ "VIIRS M10",
                                            "AVHRR ch 3a",
                                            "3a",
                                            "AVHRR ch3a",
-                                           "AVHRR 3A"],
+                                           "AVHRR 3A",
+                                           "MODIS 6"],
                                    '37': [ "VIIRS M12",
                                            "AVHRR ch 3b",
                                            "AVHRR ch3b",
+                                           "MODIS 20",
                                            "3b",
                                            "AVHRR 3B"],
                                    '22': [ "VIIRS M11"],   
-                                   '13': [ "VIIRS M09"],
+                                   '13': [ "VIIRS M09",
+                                           "MODIS 26"],
+                                   '86': [ "VIIRS M14",
+                                           "MODIS 29"],
 
-                                  '86': [ "VIIRS M14"]}
+                                   'modis_3': ['MODIS 3'],
+                                   'modis_4': ['MODIS 4'],
+                                   'modis_5': ['MODIS 5'],
+                                   'modis_7': ['MODIS 7'],
+                                   'modis_8': ['MODIS 8'],
+                                   'modis_9': ['MODIS 9'],
+                                   'modis_10': ['MODIS 10'],
+                                   'modis_11': ['MODIS 11'],
+                                   'modis 12': ['MODIS 12'],
+                                   'modis_13lo': ['MODIS 13lo'],
+                                   'modis_13hi': ['MODIS 13hi'],
+                                   'modis_14lo': ['MODIS 14lo'],
+                                   'modis_14hi': ['MODIS 14hi'],
+                                   'modis_15': ['MODIS 15'],
+                                   'modis 16': ['MODIS 16'],
+                                   'modis_17': ['MODIS 17'],
+                                   'modis_18': ['MODIS 18'],
+                                   'modis_19': ['MODIS 19'],
+                                   'modis 21': ['MODIS 21'],
+                                   'modis_22': ['MODIS 22'],
+                                   'modis_23': ['MODIS 23'],
+                                   'modis_24': ['MODIS 24'],
+                                   'modis_25': ['MODIS 25'],
+                                   'modis_27': ['MODIS 27'],
+                                   'modis_28': ['MODIS 28'],
+                                   'modis_30': ['MODIS 30'],
+                                   'modis_33': ['MODIS 33'],
+                                   'modis_34': ['MODIS 34'],
+                                   'modis_35': ['MODIS 35'],
+                                   'modis_36': ['MODIS 36']                     
+                               }
     CHANNEL_MICRON_AVHRR_PPS = {'11': 3,
                                 '12': 4,
                                 '06': 0,
@@ -268,8 +306,10 @@ def get_channel_data_from_object(dataObj, chn_des, matched, nodata=-9):
     numOfChannels = len(channels)
     chnum=-1
     for ich in range(numOfChannels):
+        print "hej", channels[ich].des
         if channels[ich].des in CHANNEL_MICRON_DESCRIPTIONS[chn_des]:
             chnum = ich
+    print "hej", numOfChannels
     if chnum ==-1:
         #chnum = CHANNEL_MICRON_AVHRR_PPS[chn_des]
         if chnum ==-1:
@@ -568,7 +608,40 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
         r22micron_track = get_channel_data_from_object(dataObj, '22', row_col)
         #b13
         r13micron_track = get_channel_data_from_object(dataObj, '13', row_col)
-
+        for modis_channel in [
+                'modis_3',
+                'modis_4',
+                'modis_5',
+                'modis_7',
+                'modis_8',
+                'modis_9',
+                'modis_10',
+                'modis_11',
+                'modis 12',
+                'modis_13lo',
+                'modis_13hi',
+                'modis_14lo',
+                'modis_14hi',
+                'modis_15',
+                'modis 16',
+                'modis_17',
+                'modis_18',
+                'modis_19',
+                'modis 21',
+                'modis_22',
+                'modis_23',
+                'modis_24',
+                'modis_25',
+                'modis_27',
+                'modis_28',
+                'modis_30',
+                'modis_33',
+                'modis_34',
+                'modis_35',
+                'modis_36']:
+            modis_track = get_channel_data_from_object(dataObj, 
+                                                       modis_channel, row_col)
+            setattr(obt.avhrr,modis_channel, modis_track)
 
 
 
@@ -670,7 +743,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
         obt.avhrr.cloudtype_status = np.array(ctype_ct_statusflag_track)
     if ctype_ctth_statusflag_track is not None:
         obt.avhrr.ctth_status = np.array(ctype_ctth_statusflag_track)
-    if dataObj != None:
+    if dataObj != None:        
         obt.avhrr.r06micron = np.array(r06micron_track)
         obt.avhrr.r09micron = np.array(r09micron_track)
         obt.avhrr.bt37micron = np.array(bt37micron_track)
