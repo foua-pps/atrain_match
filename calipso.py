@@ -686,6 +686,7 @@ def match_calipso_avhrr(values,
     idx_match = elements_within_range(timeCalipso, avhrr_lines_sec_1970, sec_timeThr) 
     if idx_match.sum() == 0:
         raise MatchupError("No matches in region within time threshold %d s." % sec_timeThr)
+        
     
     lon_calipso = np.repeat(lonCalipso, idx_match)
     lat_calipso = np.repeat(latCalipso, idx_match)
@@ -818,7 +819,9 @@ def match_calipso_avhrr(values,
         if USE_5KM_FILES_TO_FILTER_CALIPSO_DATA:
             retv.calipso.detection_height_5km = np.repeat(\
                 calipsoObj.detection_height_5km.ravel(),idx_match.ravel()).astype('d')
- 
+    if np.size(calipsoObj.aerosol_flag)>1 or calipsoObj.aerosol_flag!=None:
+        retv.calipso.aerosol_flag = np.repeat(
+            calipsoObj.aerosol_flag.ravel(),idx_match.ravel()).astype('d')
 
         
     #cloud_mid_temp = np.repeat(calipsoObj.cloud_mid_temperature.flat,idx_match_2d.flat)
@@ -935,11 +938,11 @@ def match_calipso_avhrr(values,
     return retv,min_diff,max_diff
 
 # -----------------------------------------------------
-def get_calipso(filename, res):
+def get_calipso(filename, res, ALAY=False):
     from scipy import ndimage
     # Read CALIPSO Lidar (CALIOP) data:
-    clobj = read_calipso(filename, res)
-    if res == 1:
+    clobj = read_calipso(filename, res, ALAY=ALAY)
+    if res == 1 and not ALAY:
         lon = clobj.longitude.ravel()
         ndim = lon.shape[0]
         # --------------------------------------------------------------------
@@ -964,16 +967,12 @@ def get_calipso(filename, res):
             0,clobj.cloud_fraction)
         clobj.cloud_fraction = np.where(
             np.logical_and(clobj.cloud_fraction<0,
-                           cloud_fraction_temp>((winsz-1.5)/winsz)),
-            
+                           cloud_fraction_temp>((winsz-1.5)/winsz)),            
             1,clobj.cloud_fraction)
        ##############################################################
       
     
-    elif res == 5:
-
-#        lonCalipso = calipso.longitude[:,1].ravel()
-#        latCalipso = calipso.latitude[:,1].ravel()
+    elif res == 5 and  not ALAY:
         clobj.cloud_fraction = np.where(clobj.cloud_top_profile[:,0] > 0, 1, 0).astype('d')
         # Strange - this will give 0 cloud fraction in points with no data, wouldn't it????/KG
 
@@ -981,143 +980,161 @@ def get_calipso(filename, res):
     return clobj
 
 # -----------------------------------------------------
-def read_calipso(filename, res):
-    
-    import _pyhl #@UnresolvedImport
-    import h5py #@UnresolvedImport
-    
-
-#    if res == 5:
-#        h5file = h5py.File(filename, 'r')
-#        pdb.set_trace()
-#        h5file['Horizontal_Averaging']
-#        h5file.close()
-
-    a=_pyhl.read_nodelist(filename)
-#    b=a.getNodeNames()
-    a.selectAll()
-    a.fetch()
-
+def read_calipso(filename, res, ALAY=False):
+    import h5py     
+    cal_obj_to_infile_obj_name_dict = {
+        "Longitude": "longitude",
+        "Latitude" : "latitude",
+        "Profile_Time": "time",
+        "Profile_UTC_Time": "utc_time",
+        "Feature_Classification_Flags": "feature_classification_flags", #uint16??
+        "Layer_Top_Altitude": "cloud_top_profile",
+        "Layer_Top_Pressure": "cloud_top_profile_pressure",
+        "Layer_Base_Altitude": "cloud_base_profile",
+        "Number_Layers_Found": "number_of_layers_found",
+        "Midlayer_Temperature": "cloud_mid_temperature",
+        "Day_Night_Flag": "day_night_flag",
+        "DEM_Surface_Elevation": "elevation",
+        "IGBP_Surface_Type": "igbp",
+        "NSIDC_Surface_Type": "nsidc",
+        "Lidar_Surface_Elevation": "lidar_surface_elevation"}
+    cal_obj_to_infile_obj_name_dict_only_5km_clayer = {
+        "Ice_Water_Path": "ice_water_path5km",
+        "Ice_Water_Path_Uncertainty": "ice_water_path_uncertainty5km"}
+    cal_obj_to_infile_obj_name_dict_only_5km = {
+        "Feature_Optical_Depth_532": "optical_depth",
+        "Feature_Optical_Depth_Uncertainty_532": "optical_depth_uncertainty",
+        "Single_Shot_Cloud_Cleared_Fraction": "single_shot_cloud_cleared_fraction",
+        "Horizontal_Averaging": "horizontal_averaging5km",
+        "Opacity_Flag": "opacity5km"}
     retv = CalipsoObject()
+    if filename is not None:
+        h5file = h5py.File(filename, 'r')
+        for dataset in cal_obj_to_infile_obj_name_dict.keys():
+            data = h5file[dataset].value
+            setattr(retv, cal_obj_to_infile_obj_name_dict[dataset], data)
+        if res == 5:
+            for dataset in cal_obj_to_infile_obj_name_dict_only_5km.keys():
+                data = h5file[dataset].value
+                setattr(retv, cal_obj_to_infile_obj_name_dict_only_5km[dataset], data)
+        if res == 5 and not ALAY:
+            for dataset in cal_obj_to_infile_obj_name_dict_only_5km_clayer.keys():
+                data = h5file[dataset].value
+                setattr(retv, cal_obj_to_infile_obj_name_dict_only_5km_clayer[dataset], data) 
+        h5file.close()
+    return retv  
 
-    c=a.getNode("/Longitude")
-    retv.longitude=c.data().astype('d')
-    c=a.getNode("/Latitude")
-    retv.latitude=c.data().astype('d')
-    c=a.getNode("/Profile_Time") # Internatiopnal Atomic Time (TAI) seconds from Jan 1, 1993
-    retv.time=c.data()
-    c=a.getNode("/Profile_UTC_Time") # TAI time converted to UTC and stored in format yymmdd.fffffff    
-    retv.utc_time=c.data()
 
-    c=a.getNode("/Feature_Classification_Flags")
-    retv.feature_classification_flags=c.data().astype('uint16')
-    c=a.getNode("/Layer_Top_Altitude")
-    retv.cloud_top_profile=c.data()
-    c=a.getNode("/Layer_Top_Pressure")
-    retv.cloud_top_profile_pressure=c.data()
-    c=a.getNode("/Layer_Base_Altitude")
-    retv.cloud_base_profile=c.data()
-    c=a.getNode("/Number_Layers_Found")
-    retv.number_of_layers_found=c.data()
-    #c=a.getNode("/closest_calipso_cloud_fraction")
-    #retv.cloud_fraction=c.data()
-    c=a.getNode("/Midlayer_Temperature")
-    retv.cloud_mid_temperature=c.data()
-
-    c=a.getNode("/Day_Night_Flag")
-    retv.day_night_flag=c.data()
-    c=a.getNode("/DEM_Surface_Elevation")
-    retv.elevation=c.data()
-    c=a.getNode("/IGBP_Surface_Type")
-    retv.igbp=c.data()
-    c=a.getNode("/NSIDC_Surface_Type")
-    retv.nsidc=c.data()
-    c=a.getNode("/Lidar_Surface_Elevation")
-    retv.lidar_surface_elevation=c.data()
-    if res == 5:
-        write_log('INFO', "calipso-file %s" % filename)
-        c=a.getNode("/Feature_Optical_Depth_532")
-        retv.optical_depth=c.data()
-        c=a.getNode("/Feature_Optical_Depth_Uncertainty_532")
-        retv.optical_depth_uncertainty=c.data()
-        c=a.getNode("/Single_Shot_Cloud_Cleared_Fraction")
-        retv.single_shot_cloud_cleared_fraction=c.data()
-
-        c=a.getNode("/Horizontal_Averaging")
-        retv.horizontal_averaging5km=c.data()
-        c=a.getNode("/Opacity_Flag")
-        retv.opacity5km=c.data()
-        c=a.getNode("/Ice_Water_Path")
-        retv.ice_water_path5km=c.data()
-        c=a.getNode("/Ice_Water_Path_Uncertainty")
-        retv.ice_water_path_uncertainty5km=c.data()
-    return retv
 
 # -----------------------------------------------------
-def reshapeCalipso(calipsofiles, avhrr, values, timereshape = True, res=resolution):
-    import time
+def discardCalipsoFilesOutsideTimeRange(calipsofiles_list, avhrr, values, res=resolution, ALAY=False):
     import sys
-    
-    cal= CalipsoObject()
+    import time
+    dsec = time.mktime((1993,1,1,0,0,0,0,0,0)) - time.timezone
     if (PPS_VALIDATION):
         avhrr = createAvhrrTime(avhrr, values)
     avhrr_end = avhrr.sec1970_end
     avhrr_start = avhrr.sec1970_start
+    calipso_within_time_range = []
+    for i in range(len(calipsofiles_list)):
+        current_file = calipsofiles_list[i]
+        newCalipso = get_calipso(current_file, res, ALAY=ALAY)
+        if res == 1:
+            cal_new_all = newCalipso.time[:,0] + dsec
+        elif res == 5:
+            cal_new_all = newCalipso.time[:,1] + dsec 
+        if cal_new_all[0]>avhrr_end or  cal_new_all[-1]<avhrr_start:
+            print "skipping file %s outside time_limits"%(current_file)
+        else:
+            calipso_within_time_range.append(current_file)
+    return calipso_within_time_range
 
-    dsec = time.mktime((1993,1,1,0,0,0,0,0,0)) - time.timezone
-    startCalipso = get_calipso(calipsofiles[0], res)
+def reshapeCalipso(calipsofiles, res=resolution, ALAY=False):
+    import sys
+    #concatenate and reshape calipso files
+    cal= CalipsoObject()
+    startCalipso = get_calipso(calipsofiles[0], res, ALAY=ALAY)
     # Concatenate the data from the different files
     for i in range(len(calipsofiles) - 1):
         newCalipso = get_calipso(calipsofiles[i + 1], res)
         if res == 1:
-            cal_start_all = startCalipso.time[:,0] + dsec
-            cal_new_all = newCalipso.time[:,0] + dsec
+            cal_start_all = startCalipso.time[:,0] 
+            cal_new_all = newCalipso.time[:,0] 
         elif res == 5:
-            cal_start_all = startCalipso.time[:,1] + dsec
-            cal_new_all = newCalipso.time[:,1] + dsec
-        
+            cal_start_all = startCalipso.time[:,1] 
+            cal_new_all = newCalipso.time[:,1] 
         if not cal_start_all[0] < cal_new_all[0]:
             write_log('INFO', "calipso files are in the wrong order")
             print("Program calipso.py at line %i" %(inspect.currentframe().f_lineno+1))
-            sys.exit(-9)
-            
-        cal_break = np.argmin(np.abs(cal_start_all - cal_new_all[0])) + 1
+            sys.exit(-9)            
+        cal_break = len(cal_start_all) # np.argmin(np.abs(cal_start_all - cal_new_all[0])) + 1
+        print "same number", cal_break, len(cal_start_all)
         # Concatenate the feature values
         #arname = array name from calipsoObj
         for arname, value in startCalipso.all_arrays.items(): 
             if np.size(value)>1 or value != None:
                 if value.size != 1:
-                    startCalipso.all_arrays[arname] = np.concatenate((value[0:cal_break,...],newCalipso.all_arrays[arname]))
-
-    # Finds Break point
-    if res == 1:
-        start_break = np.argmin((np.abs((startCalipso.time[:,0] + dsec) - (avhrr_start - sec_timeThr))))
-        end_break = np.argmin((np.abs((startCalipso.time[:,0] + dsec) - (avhrr_end + sec_timeThr)))) + 2    # Plus two to get one extra, just to be certain    
-    if res == 5:
-        start_break = np.argmin((np.abs((startCalipso.time[:,1] + dsec) - (avhrr_start - sec_timeThr))))
-        end_break = np.argmin((np.abs((startCalipso.time[:,1] + dsec) - (avhrr_end + sec_timeThr)))) + 2    # Plus two to get one extra, just to be certain 
-    if start_break != 0:
-        start_break = start_break - 1 # Minus one to get one extra, just to be certain
-    
-    if timereshape == True:
-        # Cute the feature values
-        #arnameca = array name from calipsoObj
-        for arnameca, valueca in startCalipso.all_arrays.items(): 
-            if valueca != None:
-                if valueca.size != 1:
-                    cal.all_arrays[arnameca] = valueca[start_break:end_break,...]
-                else:
-                    cal.all_arrays[arnameca] = valueca
-    else:
-        cal = startCalipso
-        
+                    startCalipso.all_arrays[arname] = np.concatenate((value[0:cal_break,...], 
+                                                                      newCalipso.all_arrays[arname]))    
+    cal = startCalipso        
     if cal.time.shape[0] <= 0:
-        write_log('INFO',("No time match, please try with some other CloudSat files"))
+        write_log('INFO',("No time match, please try with some other Calipso files"))
         print("Program calipso.py at line %i" %(inspect.currentframe().f_lineno+1))
         sys.exit(-9)  
-    return cal, start_break, end_break
+    return cal
+
+def find_break_points(startCalipso, avhrr, values, res=resolution):
+    import time
+    dsec = time.mktime((1993,1,1,0,0,0,0,0,0)) - time.timezone
+    if (PPS_VALIDATION):
+        avhrr = createAvhrrTime(avhrr, values)
+    avhrr_end = avhrr.sec1970_end
+    avhrr_start = avhrr.sec1970_start
+    # Finds Break point
+    if res == 1:
+        start_break = np.argmin((np.abs((startCalipso.time[:,0] + dsec) 
+                                        - (avhrr_start - sec_timeThr))))
+        end_break = np.argmin((np.abs((startCalipso.time[:,0] + dsec) 
+                                      - (avhrr_end + sec_timeThr)))) + 2    # Plus two to get one extra, just to be certain    
+    if res == 5:
+        start_break = np.argmin((np.abs((startCalipso.time[:,1] + dsec) 
+                                        - (avhrr_start - sec_timeThr))))
+        end_break = np.argmin((np.abs((startCalipso.time[:,1] + dsec) 
+                                      - (avhrr_end + sec_timeThr)))) + 2    # Plus two to get one extra, just to be certain 
+    if start_break != 0:
+        start_break = start_break - 1 # Minus one to get one extra, just to be certain
+    return start_break, end_break
+
+def time_reshape_calipso(startCalipso, avhrr=None, values=None, 
+                         start_break=None, end_break=None):
+    if start_break==None or end_break==None:
+        if avhrr==None or values ==None:
+            write_log('INFO',("Call function with either avhrr and values or"
+                              "start_brak and end_break!"))
+            print("Program calipso.py at line %i" %(inspect.currentframe().f_lineno+1))
+            sys.exit(-9) 
+        start_break, end_break = find_break_points(startCalipso, avhrr, 
+                                                   values, res=resolution)
+    # Cut the feature values
+    #arnameca = array name from calipsoObj
+    cal= CalipsoObject()
+    for arnameca, valueca in startCalipso.all_arrays.items(): 
+        if valueca != None:
+            if valueca.size != 1:
+                cal.all_arrays[arnameca] = valueca[start_break:end_break,...]
+            else:
+                cal.all_arrays[arnameca] = valueca
+    return cal
 
 #****************************************************
+def adjust5kmTo1kmresolution(calipso5km):
+    write_log('INFO',"Repeat 5km calipso data to fit 1km resoluiton")
+    calipso= CalipsoObject()
+    for arname, value in calipso5km.all_arrays.items(): 
+        if np.size(value)>1 or value != None:
+            if value.size != 1:
+                calipso.all_arrays[arname] = np.repeat(value,5) 
+    return calipso 
 
 def add1kmTo5km(Obj1, Obj5, start_break, end_break):
     retv = CalipsoObject()

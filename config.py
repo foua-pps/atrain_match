@@ -16,6 +16,8 @@ PPS_VALIDATION = True
 print "PPS_VALIDATION", PPS_VALIDATION
 CCI_CLOUD_VALIDATION = False
 
+#Search also for calipso 5km aerosol data
+MATCH_AEROSOL_CALIPSO = True
 
 ALSO_USE_5KM_FILES = True
 COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC = False
@@ -105,9 +107,6 @@ CLOUDSAT_CLOUDY_THR = 30.0
 #: If None the maxheight is calculated from the highest cloud
 #MAXHEIGHT = None
 MAXHEIGHT = 18000
-
-#: Range of allowed (AVHRR) satellite azimuth angles, in degrees
-AZIMUTH_RANGE = (0., 360.)
 
 #: Processing modes which can be handled
 # TODO: Split into latitude dependent area, snow-ice-land-sea area and day-night-twilight

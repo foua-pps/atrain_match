@@ -88,12 +88,17 @@ from cloudsat_calipso_avhrr_prepare import *
 
 from cloudsat import reshapeCloudsat, match_cloudsat_avhrr
 from cloudsat import writeCloudsatAvhrrMatchObj, readCloudsatAvhrrMatchObj
-from calipso import reshapeCalipso, match_calipso_avhrr
+from calipso import (reshapeCalipso, 
+                     discardCalipsoFilesOutsideTimeRange,
+                     match_calipso_avhrr, 
+                     find_break_points, 
+                     time_reshape_calipso)
 from matchobject_io import (writeCaliopAvhrrMatchObj, 
                             readCaliopAvhrrMatchObj,
                             DataObject)
 from calipso import  (use5km_find_detection_height_and_total_optical_thickness_faster, 
-                      add1kmTo5km)
+                      add1kmTo5km,
+                      adjust5kmTo1kmresolution)
 import inspect
 import numpy as np
 from cloudsat_calipso_avhrr_plot import (drawCalClsatAvhrrPlotTimeDiff,
@@ -668,41 +673,80 @@ def get_total_optical_depth_and_optical_depth_top_layer_from_5km_data(calipso, c
                 for lay in range(1,calipso5km.number_of_layers_found[pixel],1):  
                     if calipso5km.optical_depth[pixel, lay]>=0:
                         calipso.total_optical_depth_5km[pixel*5:pixel*5+5] +=  calipso5km.optical_depth[pixel, lay]  
-    return calipso   
+    return calipso 
+
+ 
 
 def get_calipso_matchups(calipso_files, values, 
                          avhrrGeoObj, avhrrObj, ctype, ctth, 
                          nwp_obj, avhrrAngObj, options, cppCph=None, 
-                         nwp_segments=None, cafiles1km=None, cafiles5km=None):
+                         nwp_segments=None, cafiles1km=None, cafiles5km=None, 
+                         cafiles5km_aero=None):
     """
     Read Calipso data and match with the given PPS data.
     """
     surftemp = nwp_obj.surftemp
+    #First remove files clearly outside time limit from the lists
+    #When combinating 5km and 1km data some expensive calculations are done
+    #before cutting the data that fits the time condition.
+    #It is unnessecary to do this for files where no-pixel will match!
+    calipso_files = discardCalipsoFilesOutsideTimeRange(
+        calipso_files, avhrrGeoObj, values)
     if cafiles1km != None:
-        #pdb.set_trace()
-        calipso1km = reshapeCalipso(cafiles1km, avhrrGeoObj, values, False, 1)[0]
-        calipso5km, startBreak, endBreak = reshapeCalipso(calipso_files,avhrrGeoObj, values, False)
-        calipso = add1kmTo5km(calipso1km, calipso5km, startBreak, endBreak)
-        calipso = get_total_optical_depth_and_optical_depth_top_layer_from_5km_data(calipso, resolution=5)
+        cafiles1km = discardCalipsoFilesOutsideTimeRange(
+            cafiles1km, avhrrGeoObj, values, res=1)
+    if cafiles5km != None:
+        cafiles5km = discardCalipsoFilesOutsideTimeRange(
+            cafiles5km, avhrrGeoObj, values, res=5)
+    if cafiles5km_aero!=None:
+        cafiles5km_aero = discardCalipsoFilesOutsideTimeRange(
+            cafiles5km_aero, avhrrGeoObj, values, res=5, ALAY=True)
+        
+    calipso  = reshapeCalipso(calipso_files)
+    #find time breakpoints, but don't cut the data yet ..
+    startBreak, endBreak = find_break_points(calipso,  avhrrGeoObj, values)
+    if cafiles1km != None:
+        #RESOLUTION 5km also have 1km data
+        calipso1km = reshapeCalipso(cafiles1km, res=1)
+        calipso5km = calipso
+        #data are also time reshaped in this function (add1km..)
+        calipso = add1kmTo5km(calipso1km, calipso5km, startBreak, endBreak) 
+        calipso = get_total_optical_depth_and_optical_depth_top_layer_from_5km_data(
+            calipso, resolution=5)
     elif cafiles5km !=None:
-        calipso1km, startBreak, endBreak  = reshapeCalipso(calipso_files, avhrrGeoObj, values, False, 1)
-        calipso5km = reshapeCalipso(cafiles5km,avhrrGeoObj, values, False, 5)[0]
-        calipso1km = get_total_optical_depth_and_optical_depth_top_layer_from_5km_data(calipso1km, calipso5km=calipso5km, resolution=1)
+        #RESOLUTION 1km also have 5km data
+        calipso1km = calipso
+        calipso5km = reshapeCalipso(cafiles5km, res=5)
+        calipso1km = get_total_optical_depth_and_optical_depth_top_layer_from_5km_data(
+            calipso1km, calipso5km=calipso5km, resolution=1)
         if USE_5KM_FILES_TO_FILTER_CALIPSO_DATA:
             write_log('INFO',"Find detection height using 5km data")
+            #data are also time reshaped in this function use5km ...
             calipso = use5km_find_detection_height_and_total_optical_thickness_faster(
                 calipso1km, 
                 calipso5km, 
                 startBreak, 
                 endBreak)
         else:
-            calipso = calipso1km
+            calipso = time_reshape_calipso(calipso1km,  
+                                           start_break=startBreak, 
+                                           end_break=endBreak) 
     else:
-        calipso = reshapeCalipso(calipso_files, 
-                                 avhrrGeoObj, values, True)[0]
+        calipso = time_reshape_calipso(calipso,  
+                                       start_break=startBreak, 
+                                       end_break=endBreak)
         if RESOLUTION == 5:
-            calipso = get_total_optical_depth_and_optical_depth_top_layer_from_5km_data(calipso, resolution=RESOLUTION)
-
+            calipso = get_total_optical_depth_and_optical_depth_top_layer_from_5km_data(
+                calipso, resolution=RESOLUTION)
+    if cafiles5km_aero!=None:
+        calipso5km_aero = reshapeCalipso(cafiles5km_aero, res=5, ALAY=True)
+        if RESOLUTION == 1:
+            calipso5km_aero = adjust5kmTo1kmresolution(calipso5km_aero)
+        calipso5km_aero = time_reshape_calipso(calipso5km_aero,  
+                                               start_break=startBreak, 
+                                               end_break=endBreak)
+        print calipso5km_aero.feature_classification_flags
+        calipso.aerosol_flag = calipso5km_aero.feature_classification_flags
     # free some memory    
     calipso1km = None
     calipso5km = None
@@ -1124,11 +1168,10 @@ def get_matchups_from_data(cross, config_options):
                 calipso1km = []
                 for file1km in calipso_files:
                     file5km = file1km.replace('/1km/', '/5km/').\
-                                                replace('01kmCLay', '05kmCLay').\
-                                                replace('-ValStage1-V3-30.', '*').\
-                                                replace('-ValStage1-V3-01.', '*').\
-                                                replace('-ValStage1-V3-02.', '*')
-
+                              replace('01kmCLay', '05kmCLay').\
+                              replace('-ValStage1-V3-30.', '*').\
+                              replace('-ValStage1-V3-01.', '*').\
+                              replace('-ValStage1-V3-02.', '*')
                     files_found = glob.glob(file5km)
                     if len(files_found)==0:
                         #didn't find h5 file, might be hdf file instead
@@ -1148,6 +1191,30 @@ def get_matchups_from_data(cross, config_options):
                                        "\tlen(calipso1km) = %d" % len(calipso5km))
             else:
                 calipso5km = None
+
+        if config.MATCH_AEROSOL_CALIPSO:
+            calipso5km_aero=[]
+            for cfile in calipso_files:
+                file5km_aero = cfile.replace('/CLAY/', '/ALAY/').\
+                               replace('CLay', 'ALay').\
+                               replace('/1km/', '/5km/').\
+                               replace('01km', '05km').\
+                               replace('-ValStage1-V3-30.', '*').\
+                               replace('-ValStage1-V3-01.', '*').\
+                               replace('-ValStage1-V3-02.', '*').\
+                               replace('-Prov-V3-01.', '*').\
+                               replace('-Prov-V3-02.', '*').\
+                               replace('-Prov-V3-30.', '*')
+                files_found_aero = glob.glob(file5km_aero)
+                if len(files_found_aero)==0:
+                    #didn't find h5 file, might be hdf file instead
+                    file5km_aero = file1km.replace('.h5','.hdf')
+                    files_found_aero = glob.glob(file5km_aero)
+                if len(files_found_aero)>0: 
+                        calipso5km_aero.append(files_found_aero[0])                   
+            calipso5km_aero = sorted(require_h5(calipso5km_aero))
+            print "found these aerosol files", calipso5km_aero
+                
                 
         write_log("INFO", "Read CALIPSO data")        
         ca_matchup, ca_time_diff = get_calipso_matchups(calipso_files, 
@@ -1156,7 +1223,7 @@ def get_matchups_from_data(cross, config_options):
                                                         ctth, nwp_obj, avhrrAngObj, 
                                                         config_options, cppCph,
                                                         nwp_segment,
-                                                        calipso1km, calipso5km)
+                                                        calipso1km, calipso5km, calipso5km_aero)
 
     else:
         write_log("INFO", "NO CALIPSO File, Continue")
@@ -1398,7 +1465,6 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     ## Cloudsat ##
     if clsatObj is not None:
         if cloudsat_type == 'GEOPROF':
-            clsatObj = CloudsatAvhrrSatz(clsatObj)
             cllon = clsatObj.cloudsat.longitude.copy()
             cllat = clsatObj.cloudsat.latitude.copy()
         elif cloudsat_type == 'CWC-RVOD':
@@ -1452,7 +1518,6 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
         avhrr_ctth_csat_ok = None
 
     ## Calipso ##        
-    caObj = CalipsoAvhrrSatz(caObj)
     #import pdb;pdb.set_trace()
     calon = caObj.calipso.longitude.copy()
     calat = caObj.calipso.latitude.copy()

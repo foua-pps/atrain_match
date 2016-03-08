@@ -2,9 +2,9 @@
 #Program cloudsat_calipso_avhrr_plot.py
 
 import numpy
-from config import AZIMUTH_RANGE, MAXHEIGHT, CLOUDSAT_CLOUDY_THR,\
+from config import MAXHEIGHT, CLOUDSAT_CLOUDY_THR,\
     RESOLUTION, CLOUDSAT_TRACK_RESOLUTION
-
+AZIMUTH_RANGE = [0, 360]
 def format_title(title):
     """
     Format *title*, possibly adding satellite azimuth range (depending on range).
