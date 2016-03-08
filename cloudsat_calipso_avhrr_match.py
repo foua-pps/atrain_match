@@ -656,7 +656,7 @@ def get_total_optical_depth_and_optical_depth_top_layer_from_5km_data(calipso, c
     calipso.optical_depth_top_layer5km = -9.0 + 0*calipso.number_of_layers_found.ravel()
     calipso.total_optical_depth_5km = -9.0 + 0*calipso.number_of_layers_found.ravel()
     if resolution==5:
-        pixels = np.logical_and(calipso5km.number_of_layers_found.ravel()>0     ,
+        pixels = np.logical_and(calipso5km.number_of_layers_found.ravel()>0,
                                 calipso5km.optical_depth[:,0].ravel()>=0)   
         calipso.optical_depth_top_layer5km[pixels] = calipso5km.optical_depth[pixels, 0]
         calipso.total_optical_depth_5km[pixels] =  calipso5km.optical_depth[pixels, 0]       
@@ -664,8 +664,6 @@ def get_total_optical_depth_and_optical_depth_top_layer_from_5km_data(calipso, c
             pixels = np.logical_and(pixels,calipso5km.optical_depth[:, lay]>=0)
             calipso.total_optical_depth_5km[pixels] +=  calipso5km.optical_depth[pixels, lay]
     else:
-        calipso.optical_depth_top_layer5km=0*calipso.cloud_top_profile[:,0]-9
-        calipso.total_optical_depth_5km = np.ones(calipso.number_of_layers_found.shape)*-9
         for pixel in range(calipso5km.utc_time.shape[0]): 
             if calipso5km.number_of_layers_found[pixel]>0 and calipso5km.optical_depth[pixel, 0]>=0:
                 calipso.optical_depth_top_layer5km[pixel*5:pixel*5+5] = calipso5km.optical_depth[pixel, 0] 
@@ -745,8 +743,8 @@ def get_calipso_matchups(calipso_files, values,
         calipso5km_aero = time_reshape_calipso(calipso5km_aero,  
                                                start_break=startBreak, 
                                                end_break=endBreak)
-        print calipso5km_aero.feature_classification_flags
-        calipso.aerosol_flag = calipso5km_aero.feature_classification_flags
+        #for now insert aerosol flag into calipso_cloud object
+        calipso.aerosol_flag = calipso5km_aero.feature_classification_flags[::]
     # free some memory    
     calipso1km = None
     calipso5km = None
@@ -1528,6 +1526,7 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
                                 -9,caObj.calipso.elevation)
     cal_data_ok = np.ones(caObj.calipso.elevation.shape,'b')
     write_log('INFO', "Length of CALIOP array: ", len(cal_data_ok))
+
     avhrr_ctth_cal_ok = np.repeat(caObj.avhrr.ctth_height[::],cal_data_ok)
 
     if CCI_CLOUD_VALIDATION: #ctth relative mean sea level
@@ -1619,34 +1618,34 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
 
     # Extract CALIOP Vertical Feature Classification (bits 10-12) from 16 bit
     # representation for topmost cloud layer #Nina 20140120 this is cloud type nit vert feature !!
-    cal_vert_feature = np.ones(caObj.calipso.cloud_top_profile[0,::].shape)*-9
-    feature_array = 4*np.bitwise_and(np.right_shift(caObj.calipso.feature_classification_flags[0,::],11),1) + 2*np.bitwise_and(np.right_shift(caObj.calipso.feature_classification_flags[0,::],10),1) + np.bitwise_and(np.right_shift(caObj.calipso.feature_classification_flags[0,::],9),1)
-    cal_vert_feature = np.where(np.not_equal(caObj.calipso.feature_classification_flags[0,::],1),feature_array[::],cal_vert_feature[::])  
-    #feature_array = 2*np.bitwise_and(np.right_shift(caObj.calipso.feature_classification_flags[0,::],4),1) + np.bitwise_and(np.right_shift(caObj.calipso.feature_classification_flags[0,::],3),1)
+    cal_vert_feature = np.ones(caObj.calipso.cloud_top_profile[::,0].shape)*-9
+    feature_array = 4*np.bitwise_and(np.right_shift(caObj.calipso.feature_classification_flags[::,0],11),1) + 2*np.bitwise_and(np.right_shift(caObj.calipso.feature_classification_flags[::,0],10),1) + np.bitwise_and(np.right_shift(caObj.calipso.feature_classification_flags[::,0],9),1)
+    cal_vert_feature = np.where(np.not_equal(caObj.calipso.feature_classification_flags[::,0],1),feature_array[::],cal_vert_feature[::])  
+    #feature_array = 2*np.bitwise_and(np.right_shift(caObj.calipso.feature_classification_flags[::,0],4),1) + np.bitwise_and(np.right_shift(caObj.calipso.feature_classification_flags[::,0],3),1)
 
     # Prepare for plotting, cloud emissivity and statistics calculations
     
-    caliop_toplay_thickness = np.ones(caObj.calipso.cloud_top_profile[0,::].shape)*-9
+    caliop_toplay_thickness = np.ones(caObj.calipso.cloud_top_profile[::,0].shape)*-9
 
-    thickness = (caObj.calipso.cloud_top_profile[0,::]-caObj.calipso.cloud_base_profile[0,::])*1000.
-    caliop_toplay_thickness = np.where(np.greater(caObj.calipso.cloud_top_profile[0,::],-9),thickness,caliop_toplay_thickness)
+    thickness = (caObj.calipso.cloud_top_profile[::,0]-caObj.calipso.cloud_base_profile[::,0])*1000.
+    caliop_toplay_thickness = np.where(np.greater(caObj.calipso.cloud_top_profile[::,0],-9),thickness,caliop_toplay_thickness)
     
     caliop_height = []
     caliop_base = []
-    caliop_max_height = np.ones(caObj.calipso.cloud_top_profile[0,::].shape)*-9
+    caliop_max_height = np.ones(caObj.calipso.cloud_top_profile[::,0].shape)*-9
     
     for i in range(10):
-        hh = np.where(np.greater(caObj.calipso.cloud_top_profile[i,::],-9),
-                            caObj.calipso.cloud_top_profile[i,::] * 1000.,-9)
+        hh = np.where(np.greater(caObj.calipso.cloud_top_profile[::,i],-9),
+                            caObj.calipso.cloud_top_profile[::,i] * 1000.,-9)
                                         
         caliop_max_height = np.maximum(caliop_max_height,
-                                       caObj.calipso.cloud_top_profile[i, ::] * 1000.)
+                                       caObj.calipso.cloud_top_profile[::,i] * 1000.)
         # This is actually unnecessary - we know that layer 1 is always the
         # highest layer!!  However, arrays caliop_height and caliop_base are
         # needed later for plotting/ KG
 
-        bb = np.where(np.greater(caObj.calipso.cloud_base_profile[i,::],-9),
-                            caObj.calipso.cloud_base_profile[i,::] * 1000.,-9)
+        bb = np.where(np.greater(caObj.calipso.cloud_base_profile[::,i],-9),
+                            caObj.calipso.cloud_base_profile[::,i] * 1000.,-9)
         #if (hh>bb):
         caliop_height.append(hh)
         caliop_base.append(bb)
@@ -1658,7 +1657,8 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     cal_data_ok = np.greater(caliop_max_height,-9.)
 
     if np.size(caObj.avhrr.surftemp)>1 or caObj.avhrr.surftemp != None:
-        cal_surftemp_ok = np.repeat(caObj.avhrr.surftemp[::],cal_data_ok)
+        print caObj.avhrr.surftemp.shape, cal_data_ok.shape
+        cal_surftemp_ok = np.repeat(caObj.avhrr.surftemp[::], cal_data_ok)
 
     if clsatObj is not None:
         # Transfer CloudSat MODIS cloud flag to CALIPSO representation

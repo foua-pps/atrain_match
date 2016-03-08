@@ -629,6 +629,24 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
 
     return obt
 
+def calipso_track_from_matched(retv, calipso, idx_match):
+    # Calipso line,pixel inside AVHRR swath:
+    for arnameca, valueca in calipso.all_arrays.items(): 
+        if valueca != None:
+            if valueca.size != 1:
+                the_values = valueca[idx_match,...]
+                shape_of_data = the_values.shape
+                if len(shape_of_data)==1 or shape_of_data[1]==1:
+                    #traditionally atrain_match expect arrays to be of chspe (n,) not (n,1)
+                    #This is what repeat returns so let it to as before:
+                    retv.calipso.all_arrays[arnameca] = np.repeat(np.array(the_values.ravel()),1)
+                else:
+                    retv.calipso.all_arrays[arnameca] = the_values
+            else:
+                retv.calipso.all_arrays[arnameca] = valueca
+    return retv
+    
+
 # -----------------------------------------------------------------
 def match_calipso_avhrr(values, 
                         calipsoObj, imagerGeoObj, imagerObj, 
@@ -686,8 +704,14 @@ def match_calipso_avhrr(values,
     idx_match = elements_within_range(timeCalipso, avhrr_lines_sec_1970, sec_timeThr) 
     if idx_match.sum() == 0:
         raise MatchupError("No matches in region within time threshold %d s." % sec_timeThr)
-        
-    
+    print len(timeCalipso), len(idx_match), idx_match[-1]
+    retv = calipso_track_from_matched(retv, calipsoObj, idx_match)
+    cal_on_avhrr = np.repeat(cal, idx_match)
+    cap_on_avhrr = np.repeat(cap, idx_match)
+    retv.calipso.avhrr_linnum = cal_on_avhrr.astype('i')
+    retv.calipso.avhrr_pixnum = cap_on_avhrr.astype('i')
+    write_log('INFO',"cap_on_avhrr.shape: ",cap_on_avhrr.shape)
+
     lon_calipso = np.repeat(lonCalipso, idx_match)
     lat_calipso = np.repeat(latCalipso, idx_match)
     # Calipso line,pixel inside AVHRR swath:
@@ -698,150 +722,14 @@ def match_calipso_avhrr(values,
               time.gmtime(timeCalipso[ndim-1]))
     
     retv.calipso.sec_1970 = np.repeat(timeCalipso,idx_match)
-
-    retv.calipso.cloud_fraction = np.repeat(calipsoObj.cloud_fraction,idx_match)
     retv.calipso.latitude = np.repeat(latCalipso,idx_match)
     retv.calipso.longitude = np.repeat(lonCalipso,idx_match)
     retv.calipso.time_utc = np.repeat(timeCalipso_utc,idx_match)
     retv.calipso.time_tai = np.repeat(timeCalipso_tai,idx_match)
-    #for p in range(20):
-    #    print "cal time", time.gmtime(timeCalipso[p])
-    #    print "cal lat", retv.calipso.latitude[p]
-    #    print "cal lon", retv.calipso.longitude[p]
-    #    #print "cci time", time.gmtime(avhrr_lines_sec_1970[p])
-    #    print "cci lat", imagerGeoObj.latitude[cal_on_avhrr[p],cap_on_avhrr[p]]
-    #    print "cci lat", imagerGeoObj.longitude[cal_on_avhrr[p],cap_on_avhrr[p]]
-
-   
-    write_log('INFO',"cap_on_avhrr.shape: ",cap_on_avhrr.shape)
-    retv.calipso.avhrr_linnum = cal_on_avhrr.astype('i')
-    retv.calipso.avhrr_pixnum = cap_on_avhrr.astype('i')
-    
-    #print "Concatenate arrays..."
-    #x = np.concatenate((idx_match,idx_match))
-    #for i in range(2,10):
-    #    x = np.concatenate((x,idx_match))
-    #idx_match_2d = np.reshape(x,(ndim,10))
-
-    write_log('INFO', "Make cloud top and base arrays...")
-#    missing_data = -9.9
-    #cloud_top = np.repeat(calipsoObj.cloud_top_profile.flat,idx_match_2d.flat)
-    #cloud_top = np.where(np.less(cloud_top,0),missing_data,cloud_top)
-    #N = cloud_top.flat.shape[0]/10
-    #cloud_top = np.reshape(cloud_top,(N,10))
-    
-    x_fcf = np.repeat(calipsoObj.feature_classification_flags[::,0],idx_match)
-    x_ctp = np.repeat(calipsoObj.cloud_top_profile[::,0],idx_match)
-    x_ctpp = np.repeat(calipsoObj.cloud_top_profile_pressure[::,0],idx_match)
-    x_cbp = np.repeat(calipsoObj.cloud_base_profile[::,0],idx_match)
-    x_cmt = np.repeat(calipsoObj.cloud_mid_temperature[::,0],idx_match)
-
-    col_dim = calipsoObj.cloud_mid_temperature.shape[1]
-    for i in range(1,col_dim):
-        x_fcf = np.concatenate(\
-            (x_fcf,np.repeat(calipsoObj.feature_classification_flags[::,i],idx_match)))
-        x_ctp = np.concatenate(\
-            (x_ctp,np.repeat(calipsoObj.cloud_top_profile[::,i],idx_match)))
-        x_ctpp = np.concatenate(\
-            (x_ctpp,np.repeat(calipsoObj.cloud_top_profile_pressure[::,i],idx_match)))
-        x_cbp = np.concatenate(\
-            (x_cbp,np.repeat(calipsoObj.cloud_base_profile[::,i],idx_match)))
-        x_cmt = np.concatenate(\
-            (x_cmt,np.repeat(calipsoObj.cloud_mid_temperature[::,i],idx_match)))
-    N_fcf = x_fcf.shape[0]/col_dim
-    retv.calipso.feature_classification_flags = np.reshape(x_fcf,(col_dim,N_fcf)).astype('i')
-    N_ctp = x_ctp.shape[0]/col_dim
-    retv.calipso.cloud_top_profile = np.reshape(x_ctp,(col_dim,N_ctp)).astype('d')
-    N_ctpp = x_ctp.shape[0]/col_dim
-    retv.calipso.cloud_top_profile_pressure = np.reshape(x_ctpp,(col_dim,N_ctpp)).astype('d')
-    N_cbp = x_cbp.shape[0]/col_dim
-    retv.calipso.cloud_base_profile = np.reshape(x_cbp,(col_dim,N_cbp)).astype('d')
-    N_cmt = x_cmt.shape[0]/col_dim
-    retv.calipso.cloud_mid_temperature = np.reshape(x_cmt,(col_dim,N_cmt)).astype('d')
-
-    x_lse = np.repeat(calipsoObj.lidar_surface_elevation[::,0],idx_match)
-    col_dim = calipsoObj.lidar_surface_elevation.shape[1]
-    for i in range(1,col_dim):
-        x_lse = np.concatenate(\
-            (x_lse,np.repeat(calipsoObj.lidar_surface_elevation[::,i],idx_match)))
-    N_lse = x_lse.shape[0]/col_dim
-    retv.calipso.lidar_surface_elevation = np.reshape(x_lse,(col_dim,N_lse)).astype('d')
-
-    col_dim = calipsoObj.cloud_mid_temperature.shape[1]
-    if res == 5:
-        x_od = np.repeat(calipsoObj.optical_depth[::,0],idx_match)
-        x_odu = np.repeat(calipsoObj.optical_depth_uncertainty[::,0],idx_match)
-        x_ss = np.repeat(calipsoObj.single_shot_cloud_cleared_fraction[::,0],idx_match)
-        x_ha = np.repeat(calipsoObj.horizontal_averaging5km[::,0],idx_match)
-        x_op = np.repeat(calipsoObj.opacity5km[::,0],idx_match)
-        x_iwp = np.repeat(calipsoObj.ice_water_path5km[::,0],idx_match)
-        x_iwpu = np.repeat(calipsoObj.ice_water_path_uncertainty5km[::,0],idx_match)
-        for i in range(1, col_dim):
-            x_od = np.concatenate(\
-                (x_od,np.repeat(calipsoObj.optical_depth[::,i],idx_match)))
-            x_odu = np.concatenate(\
-                (x_odu,np.repeat(calipsoObj.optical_depth_uncertainty[::,i],idx_match)))
-            x_ss = np.concatenate(\
-                (x_ss,np.repeat(calipsoObj.single_shot_cloud_cleared_fraction[::,i],idx_match)))
-            x_ha = np.concatenate(\
-                (x_ha,np.repeat(calipsoObj.horizontal_averaging5km[::,i],idx_match)))
-            x_op = np.concatenate(\
-                (x_op,np.repeat(calipsoObj.opacity5km[::,i],idx_match)))
-            x_iwp = np.concatenate(\
-                (x_iwp,np.repeat(calipsoObj.ice_water_path5km[::,i],idx_match)))
-            x_iwpu = np.concatenate(\
-                (x_iwpu,np.repeat(calipsoObj.ice_water_path_uncertainty5km[::,i],idx_match)))
-        N_od = x_od.shape[0]/col_dim
-        retv.calipso.optical_depth = np.reshape(x_od,(col_dim,N_od)).astype('d')
-        N_odu = x_odu.shape[0]/col_dim
-        retv.calipso.optical_depth_uncertainty = np.reshape(x_odu,(col_dim,N_odu)).astype('d')
-        N_ss = x_ss.shape[0]/col_dim
-        retv.calipso.single_shot_cloud_cleared_fraction = np.reshape(x_ss,(col_dim,N_ss)).astype('d')
-        N_ha = x_ha.shape[0]/col_dim
-        retv.calipso.horizontal_averaging5km = np.reshape(x_ha,(col_dim,N_ha)).astype('d')
-        N_op = x_op.shape[0]/col_dim
-        retv.calipso.opacity5km = np.reshape(x_op,(col_dim,N_op)).astype('d')
-        N_iwp = x_iwp.shape[0]/col_dim
-        retv.calipso.ice_water_path5km = np.reshape(x_iwp,(col_dim,N_iwp)).astype('d')
-        N_iwpu = x_iwpu.shape[0]/col_dim
-        retv.calipso.ice_water_path_uncertainty5km = np.reshape(x_iwpu,(col_dim,N_iwpu)).astype('d')
-        retv.calipso.optical_depth_top_layer5km = np.repeat(\
-            calipsoObj.optical_depth[:,0].ravel(),idx_match.ravel()).astype('d') 
-
-    #This option is possible both with 5km and 1km resolution
-    if ALSO_USE_5KM_FILES or res ==5:
-        write_log('INFO', "Adding optical_depth_top_layer5km")
-        retv.calipso.optical_depth_top_layer5km = np.repeat(
-            calipsoObj.optical_depth_top_layer5km.ravel(),idx_match.ravel()).astype('d')
-        retv.calipso.total_optical_depth_5km = np.repeat(
-            calipsoObj.total_optical_depth_5km.ravel(),idx_match.ravel()).astype('d')
-    if res == 1 :
-        if USE_5KM_FILES_TO_FILTER_CALIPSO_DATA:
-            retv.calipso.detection_height_5km = np.repeat(\
-                calipsoObj.detection_height_5km.ravel(),idx_match.ravel()).astype('d')
-    if np.size(calipsoObj.aerosol_flag)>1 or calipsoObj.aerosol_flag!=None:
-        retv.calipso.aerosol_flag = np.repeat(
-            calipsoObj.aerosol_flag.ravel(),idx_match.ravel()).astype('d')
-
-        
-    #cloud_mid_temp = np.repeat(calipsoObj.cloud_mid_temperature.flat,idx_match_2d.flat)
-    #cloud_mid_temp = np.where(np.less(cloud_mid_temp,0),missing_data,cloud_mid_temp)
-    #cloud_mid_temp = np.reshape(cloud_mid_temp,(N,10))
-    #retv.calipso.cloud_mid_temperature = cloud_mid_temp
-    
-    # IGBP Land Cover:
-    retv.calipso.igbp = np.repeat(calipsoObj.igbp.ravel(),idx_match.ravel())
-
-    # NSIDC Ice and Snow Cover:
-    retv.calipso.nsidc = np.repeat(calipsoObj.nsidc.ravel(),idx_match.ravel())
 
     # Elevation is given in km's. Convert to meters:
     retv.calipso.elevation = np.repeat(elevationCalipso.ravel()*1000.0,
                                             idx_match.ravel()).astype('d')
-
-    retv.calipso.number_of_layers_found = np.repeat(\
-        calipsoObj.number_of_layers_found.ravel(),idx_match.ravel()).astype('i')
-    
     # Time
     if len(imagerGeoObj.time.shape)>1:
         retv.avhrr.sec_1970= [imagerGeoObj.time[line,pixel] for line, pixel in zip(cal_on_avhrr,cap_on_avhrr)]
@@ -853,16 +741,14 @@ def match_calipso_avhrr(values,
     max_diff = np.maximum.reduce(retv.diff_sec_1970)
     write_log('INFO', "Maximum and minimum time differences in sec (avhrr-calipso): ",
           np.maximum.reduce(retv.diff_sec_1970),np.minimum.reduce(retv.diff_sec_1970))
-
     write_log('INFO', "AVHRR observation time of first calipso-avhrr match: ",
           time.gmtime(retv.avhrr.sec_1970[0]))
     write_log('INFO', "AVHRR observation time of last calipso-avhrr match: ",
-          time.gmtime(retv.avhrr.sec_1970[N_cmt-1]))
+          time.gmtime(retv.avhrr.sec_1970[-1]))
 
     # Make the latitude and pps cloudtype on the calipso track:
     # line and pixel arrays have equal dimensions
     write_log('INFO', "Generate the latitude,cloudtype tracks!")
-    
     # -------------------------------------------------------------------------
     # Pick out the data from the track from AVHRR
     retv = avhrr_track_from_matched(retv, imagerGeoObj, imagerObj, avhrrAngObj, 
@@ -870,26 +756,6 @@ def match_calipso_avhrr(values,
                                     cap_on_avhrr, avhrrCph=cppCph, 
                                     nwp_segments=nwp_segments)
     # -------------------------------------------------------------------------    
-
-# for arname, value in retv1.avhrr.all_arrays.items():
-#        if arname not in retv.avhrr.all_arrays.keys():
-#            pdb.set_trace()
-#        print arname
-#        if value == None:
-#            if retv.avhrr.all_arrays[arname] == None:
-#                continue
-#            else:
-#                pdb.set_trace()
-#        if (value==retv.avhrr.all_arrays[arname]).all() != True:
-#            pdb.set_trace()
-#        if (value.dtype==retv.avhrr.all_arrays[arname].dtype) != True:
-#            pdb.set_trace()
-#        if (value.shape==retv.avhrr.all_arrays[arname].shape) != True:
-#            pdb.set_trace()
-#    for arname in retv.avhrr.all_arrays.keys():
-#        if arname not in retv1.avhrr.all_arrays.keys():
-#            pdb.set_trace()
-#    print('all avhrr correct')
     write_log('INFO', "AVHRR-PPS Cloud Type,latitude: shapes = ",
           retv.avhrr.cloudtype.shape,retv.avhrr.latitude.shape)
     ll = []
@@ -1012,14 +878,17 @@ def read_calipso(filename, res, ALAY=False):
         h5file = h5py.File(filename, 'r')
         for dataset in cal_obj_to_infile_obj_name_dict.keys():
             data = h5file[dataset].value
+            data = np.array(data)
             setattr(retv, cal_obj_to_infile_obj_name_dict[dataset], data)
         if res == 5:
             for dataset in cal_obj_to_infile_obj_name_dict_only_5km.keys():
                 data = h5file[dataset].value
+                data = np.array(data)
                 setattr(retv, cal_obj_to_infile_obj_name_dict_only_5km[dataset], data)
         if res == 5 and not ALAY:
             for dataset in cal_obj_to_infile_obj_name_dict_only_5km_clayer.keys():
                 data = h5file[dataset].value
+                data = np.array(data)
                 setattr(retv, cal_obj_to_infile_obj_name_dict_only_5km_clayer[dataset], data) 
         h5file.close()
     return retv  
@@ -1075,7 +944,7 @@ def reshapeCalipso(calipsofiles, res=resolution, ALAY=False):
             if np.size(value)>1 or value != None:
                 if value.size != 1:
                     startCalipso.all_arrays[arname] = np.concatenate((value[0:cal_break,...], 
-                                                                      newCalipso.all_arrays[arname]))    
+                                                                      newCalipso.all_arrays[arname])) 
     cal = startCalipso        
     if cal.time.shape[0] <= 0:
         write_log('INFO',("No time match, please try with some other Calipso files"))
@@ -1133,7 +1002,10 @@ def adjust5kmTo1kmresolution(calipso5km):
     for arname, value in calipso5km.all_arrays.items(): 
         if np.size(value)>1 or value != None:
             if value.size != 1:
-                calipso.all_arrays[arname] = np.repeat(value,5) 
+                the_shape = value.shape
+                new_values = np.repeat(value,5,axis=0)
+                calipso.all_arrays[arname] = new_values
+                    
     return calipso 
 
 def add1kmTo5km(Obj1, Obj5, start_break, end_break):
