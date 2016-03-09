@@ -34,7 +34,8 @@ class DataObject(object):
         try:
             return self.all_arrays[name]
         except KeyError:
-            raise AttributeError("%s instance has no attribute '%s'" % (self.__class__.__name__, name))
+            raise AttributeError("%s instance has no attribute '%s'" % (
+                self.__class__.__name__, name))
     
     def __setattr__(self, name, value):
         if name == 'all_arrays':
@@ -81,7 +82,9 @@ class DataObject(object):
                 pass
             else:
                 try:
-                    self.all_arrays[key] = np.ma.array(self.all_arrays[key], mask = self.all_arrays[key]<=nodata)
+                    self.all_arrays[key] = np.ma.array(
+                        self.all_arrays[key], 
+                        mask = self.all_arrays[key]<=nodata)
                 except:
                     print "cloud not mask %s"%(key)
             
@@ -255,7 +258,8 @@ class CalipsoAvhrrTrackObject:
     def make_nsidc_texture(self, kernel_sz = 51):
         """Derive the stdv of the ice dataset"""
 
-        self.calipso.all_arrays['nsidc_texture'] = sliding_std(self.calipso.all_arrays['nsidc'], kernel_sz)
+        self.calipso.all_arrays['nsidc_texture'] = sliding_std(
+            self.calipso.all_arrays['nsidc'], kernel_sz)
     
     def __add__(self, other):
         """Concatenating two objects together"""
