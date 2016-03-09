@@ -941,7 +941,7 @@ def readModisData_h5(filename):
             channel = h5file[image].attrs['channel']
             if channel in [
                     "1", "2", "3", "4", 
-                    "5", "8", "7", "8", 
+                    "5", "6", "7", "8", 
                     "9", "10", "11", "12", 
                     "13lo", "13hi", "14lo", "14hi", 
                     "15", "16", "17", "18",
