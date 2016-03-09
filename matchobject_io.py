@@ -53,14 +53,22 @@ class DataObject(object):
                 #print "Don't concatenate member " + key + "... " + str(e)
                 self.all_arrays[key] = other.all_arrays[key]
                 continue
-
             try:
                 if self.all_arrays[key].ndim == 1:  
-                    self.all_arrays[key] = np.concatenate([self.all_arrays[key],
-                                                           other.all_arrays[key]])
+                    self.all_arrays[key] = np.concatenate(
+                        [self.all_arrays[key],
+                         other.all_arrays[key]])
+                elif key in ['segment_nwp_geoheight',
+                             'segment_nwp_moist',
+                             'segment_nwp_pressure',
+                             'segment_nwp_temp']:
+                     self.all_arrays[key] = np.concatenate(
+                         [self.all_arrays[key],
+                          other.all_arrays[key]], 0)
                 elif self.all_arrays[key].ndim == 2: 
-                    self.all_arrays[key] = np.concatenate([self.all_arrays[key],
-                                                           other.all_arrays[key]], 1)
+                    self.all_arrays[key] = np.concatenate(
+                        [self.all_arrays[key],
+                         other.all_arrays[key]], 0)
                         
             except ValueError, e:
                 #print "Don't concatenate member " + key + "... " + str(e)
@@ -274,7 +282,13 @@ def readCaliopAvhrrMatchObj(filename):
                             (h5file['/avhrr'], retv.avhrr)]:
         for dataset in group.keys():        
             if dataset in data_obj.all_arrays.keys():
-                data_obj.all_arrays[dataset] = group[dataset].value
+                the_data = group[dataset].value
+                if the_data.ndim==2:
+                    my_shape = the_data.shape
+                    if my_shape[0]<11 and my_shape[1]>10:
+                        the_data = the_data.transpose()
+                        print "WARNING transposing", dataset
+                data_obj.all_arrays[dataset] = the_data
 
     retv.diff_sec_1970 = h5file['diff_sec_1970'].value
 
