@@ -276,6 +276,7 @@ class CalipsoAvhrrTrackObject:
 
 
 # ----------------------------------------
+ATRAIN_REMATCHED_FORMAT_PRE_2016_03=False
 def readCaliopAvhrrMatchObj(filename):
     import h5py #@UnresolvedImport
     
@@ -287,11 +288,29 @@ def readCaliopAvhrrMatchObj(filename):
         for dataset in group.keys():        
             if dataset in data_obj.all_arrays.keys():
                 the_data = group[dataset].value
-                if the_data.ndim==2:
+                if dataset in ['segment_nwp_geoheight',
+                               'segment_nwp_moist',
+                               'segment_nwp_pressure',
+                               'segment_nwp_temp']:
+                    pass
+                    #these parameters where never transposed-
+                elif the_data.ndim==2:
                     my_shape = the_data.shape
+                    # Check for old-format transposed data and transpose it back
                     if my_shape[0]<11 and my_shape[1]>10:
+                        #The data transposed had less than 11 layers.
                         the_data = the_data.transpose()
                         print "WARNING transposing", dataset
+                    elif my_shape[0]<11 and my_shape[1]<11:
+                        #We have fewer than 11 matched pixels in a file.
+                        #As default assume new format.
+                        #Set ATRAIN_REMATCHED_FORMAT_PRE_2016_03=True
+                        #If having problem with old reshaped files.
+                        print ("WARNING make sure" 
+                               "ATRAIN_REMATCHED_FORMAT_PRE_2016_03"
+                               "is properly set")
+                        if ATRAIN_REMATCHED_FORMAT_PRE_2016_03:
+                            the_data = the_data.transpose()
                 data_obj.all_arrays[dataset] = the_data
 
     retv.diff_sec_1970 = h5file['diff_sec_1970'].value
