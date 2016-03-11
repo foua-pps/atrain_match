@@ -848,6 +848,7 @@ def get_calipso(filename, res, ALAY=False):
 # -----------------------------------------------------
 def read_calipso(filename, res, ALAY=False):
     import h5py     
+    print "readin file", filename
     cal_obj_to_infile_obj_name_dict = {
         "Longitude": "longitude",
         "Latitude" : "latitude",
@@ -913,8 +914,10 @@ def discardCalipsoFilesOutsideTimeRange(calipsofiles_list, avhrr, values, res=re
         elif res == 5:
             cal_new_all = newCalipso.time[:,1] + dsec 
         if cal_new_all[0]>avhrr_end or  cal_new_all[-1]<avhrr_start:
-            print "skipping file %s outside time_limits"%(current_file)
+            pass
+            #print "skipping file %s outside time_limits"%(current_file)
         else:
+            print "keeping file %s inside time_limits"%(current_file)
             calipso_within_time_range.append(current_file)
     return calipso_within_time_range
 
@@ -925,7 +928,7 @@ def reshapeCalipso(calipsofiles, res=resolution, ALAY=False):
     startCalipso = get_calipso(calipsofiles[0], res, ALAY=ALAY)
     # Concatenate the data from the different files
     for i in range(len(calipsofiles) - 1):
-        newCalipso = get_calipso(calipsofiles[i + 1], res)
+        newCalipso = get_calipso(calipsofiles[i + 1], res, ALAY=ALAY)
         if res == 1:
             cal_start_all = startCalipso.time[:,0] 
             cal_new_all = newCalipso.time[:,0] 
