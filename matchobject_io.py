@@ -226,7 +226,6 @@ class CalipsoObject(DataObject):
             'utc_time': None, 
             'sec_1970': None,
             'time_tai': None,
-            'time_utc': None,
             'feature_classification_flags': None,
             'day_night_flag': None,
             'optical_depth': None,

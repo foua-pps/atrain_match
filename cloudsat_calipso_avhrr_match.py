@@ -98,6 +98,7 @@ from matchobject_io import (writeCaliopAvhrrMatchObj,
                             DataObject)
 from calipso import  (use5km_find_detection_height_and_total_optical_thickness_faster, 
                       add1kmTo5km,
+                      add5kmVariablesTo1kmresolution,
                       adjust5kmTo1kmresolution)
 import inspect
 import numpy as np
@@ -715,6 +716,7 @@ def get_calipso_matchups(calipso_files, values,
         #RESOLUTION 1km also have 5km data
         calipso1km = calipso
         calipso5km = reshapeCalipso(cafiles5km, res=5)
+        calipso1km = add5kmVariablesTo1kmresolution(calipso1km, calipso5km)
         calipso1km = get_total_optical_depth_and_optical_depth_top_layer_from_5km_data(
             calipso1km, calipso5km=calipso5km, resolution=1)
         if USE_5KM_FILES_TO_FILTER_CALIPSO_DATA:

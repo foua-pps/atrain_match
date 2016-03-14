@@ -724,7 +724,6 @@ def match_calipso_avhrr(values,
     retv.calipso.sec_1970 = np.repeat(timeCalipso,idx_match)
     retv.calipso.latitude = np.repeat(latCalipso,idx_match)
     retv.calipso.longitude = np.repeat(lonCalipso,idx_match)
-    retv.calipso.time_utc = np.repeat(timeCalipso_utc,idx_match)
     retv.calipso.time_tai = np.repeat(timeCalipso_tai,idx_match)
 
     # Elevation is given in km's. Convert to meters:
@@ -848,10 +847,24 @@ def get_calipso(filename, res, ALAY=False):
 # -----------------------------------------------------
 def read_calipso(filename, res, ALAY=False):
     import h5py     
-    print "readin file", filename
-    cal_obj_to_infile_obj_name_dict = {
-        "Longitude": "longitude",
-        "Latitude" : "latitude",
+    print "reading file", filename
+    scip_these_larger_variables_until_needed = {
+        # if any of these are needed just rempve them from the dictionary!
+        "Spacecraft_Position": True, #3D-variable
+        #2-D variable with second dimension larger than 40:
+        "Attenuated_Backscatter_Statistics_1064" : True,
+        "Attenuated_Backscatter_Statistics_532" : True,
+        "Attenuated_Total_Color_Ratio_Statistics" : True,
+        "Volume_Depolarization_Ratio_Statistics" : True,
+        "Particulate_Depolarization_Ratio_Statistics" : True,
+        "Cirrus_Shape_Parameter" : True,
+        "Cirrus_Shape_Parameter_Invalid_Points" : True,
+        "Cirrus_Shape_Parameter_Uncertainty" : True
+        }
+    
+    traditional_atrain_match_names = {
+        #"Longitude": "longitude",
+        #"Latitude" : "latitude",
         "Profile_Time": "time",
         "Profile_UTC_Time": "utc_time",
         "Feature_Classification_Flags": "feature_classification_flags", #uint16??
@@ -859,38 +872,34 @@ def read_calipso(filename, res, ALAY=False):
         "Layer_Top_Pressure": "cloud_top_profile_pressure",
         "Layer_Base_Altitude": "cloud_base_profile",
         "Number_Layers_Found": "number_of_layers_found",
-        "Midlayer_Temperature": "cloud_mid_temperature",
-        "Day_Night_Flag": "day_night_flag",
+        #"Day_Night_Flag": "day_night_flag",
         "DEM_Surface_Elevation": "elevation",
         "IGBP_Surface_Type": "igbp",
         "NSIDC_Surface_Type": "nsidc",
-        "Lidar_Surface_Elevation": "lidar_surface_elevation"}
-    cal_obj_to_infile_obj_name_dict_only_5km_clayer = {
-        "Ice_Water_Path": "ice_water_path5km",
-        "Ice_Water_Path_Uncertainty": "ice_water_path_uncertainty5km"}
-    cal_obj_to_infile_obj_name_dict_only_5km = {
         "Feature_Optical_Depth_532": "optical_depth",
-        "Feature_Optical_Depth_Uncertainty_532": "optical_depth_uncertainty",
-        "Single_Shot_Cloud_Cleared_Fraction": "single_shot_cloud_cleared_fraction",
-        "Horizontal_Averaging": "horizontal_averaging5km",
-        "Opacity_Flag": "opacity5km"}
+        #"Feature_Optical_Depth_Uncertainty_532": "optical_depth_uncertainty",
+        #"Single_Shot_Cloud_Cleared_Fraction": "single_shot_cloud_cleared_fraction",
+        #"Midlayer_Temperature": "cloud_mid_temperature", #currently not used in atrain_match
+        #"Lidar_Surface_Elevation": "lidar_surface_elevation",#currently not used in atrain_match 
+        #"Ice_Water_Path": "ice_water_path5km", #currently not used in atrain_match
+        #"Ice_Water_Path_Uncertainty": "ice_water_path_uncertainty5km",#currently not used in atrain_match
+        #"Horizontal_Averaging": "horizontal_averaging5km", #currently not used in atrain_match
+        #"Opacity_Flag": "opacity5km"#currently not used in atrain_match 
+    }
     retv = CalipsoObject()
     if filename is not None:
         h5file = h5py.File(filename, 'r')
-        for dataset in cal_obj_to_infile_obj_name_dict.keys():
+        for dataset in h5file.keys():
+            if dataset in "metadata_t":
+                continue
+            if dataset in scip_these_larger_variables_until_needed.keys():
+                continue
+            name = dataset.lower()
+            if dataset in traditional_atrain_match_names.keys():
+                name = traditional_atrain_match_names[dataset]
             data = h5file[dataset].value
             data = np.array(data)
-            setattr(retv, cal_obj_to_infile_obj_name_dict[dataset], data)
-        if res == 5:
-            for dataset in cal_obj_to_infile_obj_name_dict_only_5km.keys():
-                data = h5file[dataset].value
-                data = np.array(data)
-                setattr(retv, cal_obj_to_infile_obj_name_dict_only_5km[dataset], data)
-        if res == 5 and not ALAY:
-            for dataset in cal_obj_to_infile_obj_name_dict_only_5km_clayer.keys():
-                data = h5file[dataset].value
-                data = np.array(data)
-                setattr(retv, cal_obj_to_infile_obj_name_dict_only_5km_clayer[dataset], data) 
+            setattr(retv, name, data) 
         h5file.close()
     return retv  
 
@@ -1007,9 +1016,24 @@ def adjust5kmTo1kmresolution(calipso5km):
             if value.size != 1:
                 the_shape = value.shape
                 new_values = np.repeat(value,5,axis=0)
-                calipso.all_arrays[arname] = new_values
-                    
+                calipso.all_arrays[arname] = new_values                    
     return calipso 
+
+def add5kmVariablesTo1kmresolution(calipso1km, calipso5km):
+    write_log('INFO',"Repeat 5km calipso data to fit 1km resoluiton")
+    for variable_5km  in [ "column_optical_depth_aerosols_1064",
+                           "column_optical_depth_aerosols_532",
+                           "column_optical_depth_aerosols_uncertainty_1064",
+                           "column_optical_depth_aerosols_uncertainty_532",
+                           "column_optical_depth_cloud_532",
+                           "column_optical_depth_cloud_uncertainty_532",
+                           #"feature_optical_depth_532",
+                           #"feature_optical_depth_uncertainty_532"
+                       ]:                
+        data = getattr(calipso5km, variable_5km)
+        new_data = np.repeat(data, 5, axis=0)    
+        setattr(calipso1km, variable_5km +"_5km", new_data)             
+    return calipso1km 
 
 def add1kmTo5km(Obj1, Obj5, start_break, end_break):
     retv = CalipsoObject()
