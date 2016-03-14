@@ -1382,7 +1382,7 @@ def get_matchups(cross, options, reprocess=False):
             else:
                 write_log('INFO', "Calipso Matchups will be processed for better match" + 
                            " %s."%values_avhrr["basename"]) 
-                write_log('INFO', "CloudSat Matchups not read from previously " + 
+                write_log('INFO', "Calipso Matchups not read from previously " + 
                            "processed data %s."%basename)  
                 caObj = None
         if None in [caObj] and None in [clObj]:

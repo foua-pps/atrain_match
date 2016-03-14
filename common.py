@@ -108,21 +108,7 @@ def write_match_objects(filename, diff_sec_1970, groups):
                                      compression=COMPRESS_LVL)
 
 
-def read_match_objects(filename):
-    """
-    Read match objects from HDF5 file *filename*. Returns a tuple
-    (diff_sec_1970, groups).
-    
-    """
-    import h5py
-    with h5py.File(filename, 'r') as f:
-        diff_sec_1970 = f['diff_sec_1970'][:]
-        groups = {}
-        for group_name in f.keys():
-            if group_name != 'diff_sec_1970':
-                g = f[group_name]
-                groups[group_name] = []
-                for dataset_name in g.keys():
-                    groups[group_name].append(g[dataset_name][:])
-    
-    return diff_sec_1970, groups
+#This function "read_match_objects()" is not used. 
+#Not sure when it was last used. 20160314 a001865
+#Function in matchobject_io is used for reading match objects. 
+#Removed the code, look for it in git if needed.
