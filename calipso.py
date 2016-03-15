@@ -661,16 +661,16 @@ def match_calipso_avhrr(values,
     if res == 1:
         lonCalipso = calipsoObj.longitude.ravel()
         latCalipso = calipsoObj.latitude.ravel()
-        timeCalipso_tai = calipsoObj.time[::,0].ravel()
-        timeCalipso = calipsoObj.time[::,0].ravel() + dsec
+        timeCalipso_tai = calipsoObj.profile_time_tai[::,0].ravel()
+        timeCalipso = calipsoObj.profile_time_tai[::,0].ravel() + dsec
         timeCalipso_utc = calipsoObj.profile_utc_time[::,0].ravel()
         elevationCalipso = calipsoObj.elevation.ravel()
     if res == 5:
         # Use [:,1] Since 5km data has start, center, and end for each pixel
         lonCalipso = calipsoObj.longitude[:,1].ravel()
         latCalipso = calipsoObj.latitude[:,1].ravel()
-        timeCalipso_tai = calipsoObj.time[:,1].ravel()
-        timeCalipso = calipsoObj.time[:,1].ravel() + dsec
+        timeCalipso_tai = calipsoObj.profile_time_tai[:,1].ravel()
+        timeCalipso = calipsoObj.profile_time_tai[:,1].ravel() + dsec
         timeCalipso_utc = calipsoObj.profile_utc_time[:,1].ravel()
         elevationCalipso = calipsoObj.elevation[::,2].ravel()
     
@@ -735,7 +735,7 @@ def match_calipso_avhrr(values,
     retv.calipso.sec_1970 = np.repeat(timeCalipso,idx_match)
     retv.calipso.latitude = np.repeat(latCalipso,idx_match)
     retv.calipso.longitude = np.repeat(lonCalipso,idx_match)
-    retv.calipso.time_tai = np.repeat(timeCalipso_tai,idx_match)
+    retv.calipso.profile_time_tai = np.repeat(timeCalipso_tai,idx_match)
 
     # Elevation is given in km's. Convert to meters:
     retv.calipso.elevation = np.repeat(elevationCalipso.ravel()*1000.0,
@@ -872,9 +872,11 @@ def read_calipso(filename, res, ALAY=False):
         "Cirrus_Shape_Parameter_Invalid_Points" : True,
         "Cirrus_Shape_Parameter_Uncertainty" : True
         }
-    
+    atrain_match_names = {
+        "Profile_Time": "profile_time_tai"}
+
     traditional_atrain_match_names = {
-        "Profile_Time": "time",
+        #"Profile_Time": "time", #this is first tai then translated into utc? time
         #"Profile_UTC_Time": "utc_time",
         "Feature_Classification_Flags": "feature_classification_flags", #uint16??
         #"Layer_Top_Altitude": "cloud_top_profile",
@@ -908,6 +910,8 @@ def read_calipso(filename, res, ALAY=False):
             name = dataset.lower()
             if dataset in traditional_atrain_match_names.keys():
                 name = traditional_atrain_match_names[dataset]
+            if dataset in atrain_match_names.keys():
+                name = atrain_match_names[dataset]
             data = h5file[dataset].value
             data = np.array(data)
             setattr(retv, name, data) 
@@ -930,9 +934,9 @@ def discardCalipsoFilesOutsideTimeRange(calipsofiles_list, avhrr, values, res=re
         current_file = calipsofiles_list[i]
         newCalipso = get_calipso(current_file, res, ALAY=ALAY)
         if res == 1:
-            cal_new_all = newCalipso.time[:,0] + dsec
+            cal_new_all = newCalipso.profile_time_tai[:,0] + dsec
         elif res == 5:
-            cal_new_all = newCalipso.time[:,1] + dsec 
+            cal_new_all = newCalipso.profile_time_tai[:,1] + dsec 
         if cal_new_all[0]>avhrr_end or  cal_new_all[-1]<avhrr_start:
             pass
             #print "skipping file %s outside time_limits"%(current_file)
@@ -950,11 +954,11 @@ def reshapeCalipso(calipsofiles, res=resolution, ALAY=False):
     for i in range(len(calipsofiles) - 1):
         newCalipso = get_calipso(calipsofiles[i + 1], res, ALAY=ALAY)
         if res == 1:
-            cal_start_all = startCalipso.time[:,0] 
-            cal_new_all = newCalipso.time[:,0] 
+            cal_start_all = startCalipso.profile_time_tai[:,0] 
+            cal_new_all = newCalipso.profile_time_tai[:,0] 
         elif res == 5:
-            cal_start_all = startCalipso.time[:,1] 
-            cal_new_all = newCalipso.time[:,1] 
+            cal_start_all = startCalipso.profile_time_tai[:,1] 
+            cal_new_all = newCalipso.profile_time_tai[:,1] 
         if not cal_start_all[0] < cal_new_all[0]:
             write_log('INFO', "calipso files are in the wrong order")
             print("Program calipso.py at line %i" %(inspect.currentframe().f_lineno+1))
@@ -969,7 +973,7 @@ def reshapeCalipso(calipsofiles, res=resolution, ALAY=False):
                     startCalipso.all_arrays[arname] = np.concatenate((value[0:cal_break,...], 
                                                                       newCalipso.all_arrays[arname])) 
     cal = startCalipso        
-    if cal.time.shape[0] <= 0:
+    if cal.profile_time_tai.shape[0] <= 0:
         write_log('INFO',("No time match, please try with some other Calipso files"))
         print("Program calipso.py at line %i" %(inspect.currentframe().f_lineno+1))
         sys.exit(-9)  
@@ -988,14 +992,14 @@ def find_break_points(startCalipso, avhrr, values, res=resolution):
     avhrr_start = avhrr.sec1970_start
     # Finds Break point
     if res == 1:
-        start_break = np.argmin((np.abs((startCalipso.time[:,0] + dsec) 
+        start_break = np.argmin((np.abs((startCalipso.profile_time_tai[:,0] + dsec) 
                                         - (avhrr_start - sec_timeThr))))
-        end_break = np.argmin((np.abs((startCalipso.time[:,0] + dsec) 
+        end_break = np.argmin((np.abs((startCalipso.profile_time_tai[:,0] + dsec) 
                                       - (avhrr_end + sec_timeThr)))) + 2    # Plus two to get one extra, just to be certain    
     if res == 5:
-        start_break = np.argmin((np.abs((startCalipso.time[:,1] + dsec) 
+        start_break = np.argmin((np.abs((startCalipso.profile_time_tai[:,1] + dsec) 
                                         - (avhrr_start - sec_timeThr))))
-        end_break = np.argmin((np.abs((startCalipso.time[:,1] + dsec) 
+        end_break = np.argmin((np.abs((startCalipso.profile_time_tai[:,1] + dsec) 
                                       - (avhrr_end + sec_timeThr)))) + 2    # Plus two to get one extra, just to be certain 
     if start_break != 0:
         start_break = start_break - 1 # Minus one to get one extra, just to be certain
@@ -1302,7 +1306,7 @@ if __name__ == "__main__":
     # Testing...
     caObj = calipso_avhrr_matchup.getCaliopAvhrrMatch(avhrrfile,calipsofile,ctypefile,ctthfile)
     dsec = time.mktime((1993,1,1,0,0,0,0,0,0)) - time.timezone
-    print "Original: ",calipso.time[16203,0]+dsec
+    print "Original: ",calipso.profile_time_tai[16203,0]+dsec
     print "Matchup:  ",caObj.calipso.sec_1970[3421]
     print calipso.layer_top_altitude[16203]
     print caObj.calipso.layer_top_altitude[3421,::]
