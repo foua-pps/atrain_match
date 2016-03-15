@@ -182,7 +182,7 @@ def get_inversion_info_pps2012(cloudtype_qflag):
 
 def get_subset_for_mode(caObj, mode):
   # First prepare possible subsetting of CALIOP datasets according to NSIDC
-    # and IGBP surface types
+    # and IGBP surface types  
     if mode == "EMISSFILT":
         emissfilt_calipso_ok = process_calipso_ok 
         cal_subset = emissfilt_calipso_ok
@@ -947,7 +947,7 @@ def print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature,
         lim=2*config.OPTICAL_DETECTION_LIMIT
         okcaliop_single_not_thinnest = np.logical_and(
             okcaliop_single, 
-            np.greater_equal(caObj.calipso.feature_optical_depth_532_top_layer5km,lim))
+            np.greater_equal(caObj.calipso.feature_optical_depth_532_top_layer_5km,lim))
         print_height_all_low_medium_high("CALIOP-SINGLE-LAYER>%f"%(lim), 
                                          okcaliop_single_not_thinnest,  
                                          statfile, cal_vert_feature, 
@@ -957,7 +957,7 @@ def print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature,
         lim=config.OPTICAL_DETECTION_LIMIT
         okcaliop_not_thinnest_top_layer = np.logical_and(
             okcaliop, 
-            np.greater_equal(caObj.calipso.feature_optical_depth_532_top_layer5km,lim))
+            np.greater_equal(caObj.calipso.feature_optical_depth_532_top_layer_5km,lim))
         print_height_all_low_medium_high("CALIOP-TOP-LAYER>%f"%(lim), 
                                          okcaliop_not_thinnest_top_layer,  
                                          statfile, cal_vert_feature, 
@@ -967,7 +967,7 @@ def print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature,
         statfile.write("CLOUD HEIGHT VERY THIN TOP LAYER\n")
         okcaliop_thinnest_top_layer = np.logical_and(
             okcaliop, 
-            np.less_equal(caObj.calipso.feature_optical_depth_532_top_layer5km,lim))
+            np.less_equal(caObj.calipso.feature_optical_depth_532_top_layer_5km,lim))
         print_height_all_low_medium_high("CALIOP-TOP-LAYER<=%f"%(lim), 
                                          okcaliop_thinnest_top_layer,  
                                          statfile, cal_vert_feature, 
@@ -1006,7 +1006,7 @@ def print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature,
         statfile.write("CLOUD HEIGHT OPAQUE TOP LAYER VERY NOT-THIN\n")
         okcaliop_opaque_pps_not_thin = np.logical_and(
             np.logical_and(okcaliop, opaque_flag),
-            np.greater(caObj.calipso.feature_optical_depth_532_top_layer5km,lim))
+            np.greater(caObj.calipso.feature_optical_depth_532_top_layer_5km,lim))
         print_height_all_low_medium_high("CALIOP-OPAQUE-TOP-LAYER>%f"%(lim), 
                                          okcaliop_opaque_pps_not_thin,  
                                          statfile, cal_vert_feature, 
@@ -1015,7 +1015,7 @@ def print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature,
         statfile.write("CLOUD HEIGHT SEMI TOP LAYER VERY NOT-THIN\n")
         okcaliop_semi_pps_not_thin = np.logical_and(
             np.logical_and(okcaliop, semi_flag),
-            np.greater(caObj.calipso.feature_optical_depth_532_top_layer5km,lim))
+            np.greater(caObj.calipso.feature_optical_depth_532_top_layer_5km,lim))
         print_height_all_low_medium_high("CALIOP-SEMI-TOP-LAYER>%f"%(lim), 
                                          okcaliop_semi_pps_not_thin,  
                                          statfile, cal_vert_feature, 
@@ -1026,7 +1026,7 @@ def print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature,
         statfile.write("CLOUD HEIGHT OPAQUE TOP LAYER VERY THIN\n")
         okcaliop_opaque_pps_thin = np.logical_and(
             np.logical_and(okcaliop, opaque_flag),
-            np.less_equal(caObj.calipso.feature_optical_depth_532_top_layer5km,lim))
+            np.less_equal(caObj.calipso.feature_optical_depth_532_top_layer_5km,lim))
         print_height_all_low_medium_high("CALIOP-OPAQUE-TOP-LAYER<=%f"%(lim), 
                                          okcaliop_opaque_pps_thin,  
                                          statfile, cal_vert_feature, 
@@ -1035,7 +1035,7 @@ def print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature,
         statfile.write("CLOUD HEIGHT SEMI TOP LAYER VERY THIN\n")
         okcaliop_semi_pps_thin = np.logical_and(
             np.logical_and(okcaliop, semi_flag),
-            np.less_equal(caObj.calipso.feature_optical_depth_532_top_layer5km,lim))
+            np.less_equal(caObj.calipso.feature_optical_depth_532_top_layer_5km,lim))
         print_height_all_low_medium_high("CALIOP-SEMI-TOP-LAYER<=%f"%(lim), 
                                          okcaliop_semi_pps_thin,  
                                          statfile, cal_vert_feature, 

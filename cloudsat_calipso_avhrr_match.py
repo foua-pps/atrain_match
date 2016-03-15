@@ -654,12 +654,12 @@ def get_total_optical_depth_and_optical_depth_top_layer_from_5km_data(calipso, c
     write_log('INFO',"Find total optical depth from 5km data")
     if calipso5km is None and resolution == 5:
         calipso5km = calipso
-    calipso.feature_optical_depth_532_top_layer5km = -9.0 + 0*calipso.number_layers_found.ravel()
+    calipso.feature_optical_depth_532_top_layer_5km = -9.0 + 0*calipso.number_layers_found.ravel()
     calipso.total_optical_depth_5km = -9.0 + 0*calipso.number_layers_found.ravel()
     if resolution==5:
         pixels = np.logical_and(calipso5km.number_layers_found.ravel()>0,
                                 calipso5km.feature_optical_depth_532[:,0].ravel()>=0)   
-        calipso.feature_optical_depth_532_top_layer5km[pixels] = calipso5km.feature_optical_depth_532[pixels, 0]
+        calipso.feature_optical_depth_532_top_layer_5km[pixels] = calipso5km.feature_optical_depth_532[pixels, 0]
         calipso.total_optical_depth_5km[pixels] =  calipso5km.feature_optical_depth_532[pixels, 0]       
         for lay in range(1,np.max(calipso5km.number_layers_found[pixels]),1):  
             pixels = np.logical_and(pixels,calipso5km.feature_optical_depth_532[:, lay]>=0)
@@ -667,7 +667,7 @@ def get_total_optical_depth_and_optical_depth_top_layer_from_5km_data(calipso, c
     else:
         for pixel in range(calipso5km.profile_utc_time.shape[0]): 
             if calipso5km.number_layers_found[pixel]>0 and calipso5km.feature_optical_depth_532[pixel, 0]>=0:
-                calipso.feature_optical_depth_532_top_layer5km[pixel*5:pixel*5+5] = calipso5km.feature_optical_depth_532[pixel, 0] 
+                calipso.feature_optical_depth_532_top_layer_5km[pixel*5:pixel*5+5] = calipso5km.feature_optical_depth_532[pixel, 0] 
                 calipso.total_optical_depth_5km[pixel*5:pixel*5+5] =  calipso5km.feature_optical_depth_532[pixel, 0]
                 for lay in range(1,calipso5km.number_layers_found[pixel],1):  
                     if calipso5km.feature_optical_depth_532[pixel, lay]>=0:

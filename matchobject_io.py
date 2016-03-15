@@ -231,7 +231,7 @@ class CalipsoObject(DataObject):
             #A vector with the corresponding optical thickness for 5km data
             # is stored also for 1km data. Because of that I put the 5km in the name
             #/2013-08-17/Nina
-            'feature_optical_depth_532_top_layer5km': None,
+            'feature_optical_depth_532_top_layer_5km': None,
             'detection_height_5km': None,
             'total_optical_depth_5km': None
             }
@@ -290,7 +290,7 @@ traditional_atrain_match_to_new_names ={
     "igbp":                       "igbp_surface_type",
     "nsidc":                      "nsidc_surface_type",
     "optical_depth":              "feature_optical_depth_532",
-    "optical_depth_top_layer5km": "feature_optical_depth_532_top_layer5km"
+    "optical_depth_top_layer5km": "feature_optical_depth_532_top_layer_5km"
     }
 
 # ----------------------------------------
