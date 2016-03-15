@@ -10,7 +10,7 @@ from config import (AREA, _validation_results_dir,
                     sec_timeThr, COMPRESS_LVL, RESOLUTION,
                     NLINES, SWATHWD, NODATA,
                     DO_WRITE_COVERAGE, DO_WRITE_DATA) #@UnusedImport
-from common import MatchupError, TimeMatchError, elements_within_range #@UnusedImport
+from common import MatchupError, TimeMatchError, elements_within_range
 from config import RESOLUTION as resolution
 from config import (OPTICAL_DETECTION_LIMIT,
                     OPTICAL_LIMIT_CLOUD_TOP,
@@ -698,9 +698,20 @@ def match_calipso_avhrr(values,
     else:
         avhrr_lines_sec_1970 = np.where(cal != NODATA, imagerGeoObj.time[cal], np.nan)
 
-#    avhrr_lines_sec_1970 = calnan * DSEC_PER_AVHRR_SCALINE + imagerGeoObj.sec1970_start
+    #    avhrr_lines_sec_1970 = calnan * DSEC_PER_AVHRR_SCALINE + imagerGeoObj.sec1970_start
     # Find all matching Calipso pixels within +/- sec_timeThr from the AVHRR data
-#    pdb.set_trace()
+    #    pdb.set_trace()
+
+    """
+    import matplotlib.pyplot as plt
+    fig = plt.figure(figsize = (9,8))
+    ax = fig.add_subplot(111)
+    plt.plot(timeCalipso, 'b.')
+    plt.plot(avhrr_lines_sec_1970, 'g.')
+    plt.show()
+    fig.savefig("nina_test_fil.png")
+    """
+
     idx_match = elements_within_range(timeCalipso, avhrr_lines_sec_1970, sec_timeThr) 
     if idx_match.sum() == 0:
         raise MatchupError("No matches in region within time threshold %d s." % sec_timeThr)
@@ -863,8 +874,6 @@ def read_calipso(filename, res, ALAY=False):
         }
     
     traditional_atrain_match_names = {
-        #"Longitude": "longitude",
-        #"Latitude" : "latitude",
         "Profile_Time": "time",
         "Profile_UTC_Time": "utc_time",
         "Feature_Classification_Flags": "feature_classification_flags", #uint16??
@@ -872,11 +881,13 @@ def read_calipso(filename, res, ALAY=False):
         "Layer_Top_Pressure": "cloud_top_profile_pressure",
         "Layer_Base_Altitude": "cloud_base_profile",
         "Number_Layers_Found": "number_of_layers_found",
-        #"Day_Night_Flag": "day_night_flag",
         "DEM_Surface_Elevation": "elevation",
         "IGBP_Surface_Type": "igbp",
         "NSIDC_Surface_Type": "nsidc",
         "Feature_Optical_Depth_532": "optical_depth",
+        #"Longitude": "longitude",
+        #"Latitude" : "latitude",
+        #"Day_Night_Flag": "day_night_flag",
         #"Feature_Optical_Depth_Uncertainty_532": "optical_depth_uncertainty",
         #"Single_Shot_Cloud_Cleared_Fraction": "single_shot_cloud_cleared_fraction",
         #"Midlayer_Temperature": "cloud_mid_temperature", #currently not used in atrain_match
@@ -965,6 +976,10 @@ def reshapeCalipso(calipsofiles, res=resolution, ALAY=False):
     return cal
 
 def find_break_points(startCalipso, avhrr, values, res=resolution):
+    """
+    Find the start and end point where calipso and avhrr matches is within 
+    time limits.
+    """
     import time
     dsec = time.mktime((1993,1,1,0,0,0,0,0,0)) - time.timezone
     if (PPS_VALIDATION):
@@ -988,6 +1003,10 @@ def find_break_points(startCalipso, avhrr, values, res=resolution):
 
 def time_reshape_calipso(startCalipso, avhrr=None, values=None, 
                          start_break=None, end_break=None):
+    """
+    Cut the calipso data at the point where matches with avhrr is within 
+    time limits.
+    """
     if start_break==None or end_break==None:
         if avhrr==None or values ==None:
             write_log('INFO',("Call function with either avhrr and values or"
@@ -1286,6 +1305,6 @@ if __name__ == "__main__":
     print "Original: ",calipso.time[16203,0]+dsec
     print "Matchup:  ",caObj.calipso.sec_1970[3421]
     print calipso.cloud_top_profile[16203]
-    print caObj.calipso.cloud_top_profile[::,3421]
+    print caObj.calipso.cloud_top_profile[3421,::]
     
     

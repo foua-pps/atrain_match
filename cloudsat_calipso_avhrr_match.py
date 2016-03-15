@@ -1192,6 +1192,7 @@ def get_matchups_from_data(cross, config_options):
             else:
                 calipso5km = None
 
+        calipso5km_aero=None
         if config.MATCH_AEROSOL_CALIPSO:
             calipso5km_aero=[]
             for cfile in calipso_files:
@@ -1608,15 +1609,7 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     if process_mode == 'OPTICAL_DEPTH_THIN_IS_CLEAR' and RESOLUTION==1:
         write_log('INFO',"Setting thin clouds to clear"
                   ", using 5km data in mode OPTICAL_DEPTH_THIN_IS_CLEAR")
-        caObj = CalipsoOpticalDepthSetThinToClearFiltering1km(caObj)
-      
-
-    NinaTestar = False    
-    if NinaTestar :   
-        new_cloud_top = NinaTestarMedelCloudBaseAndTop(caObj.calipso.cloud_top_profile, 
-                                                       caObj.calipso.cloud_base_profile)
-        caObj.calipso.cloud_top_profile = new_cloud_top
-
+        caObj = CalipsoOpticalDepthSetThinToClearFiltering1km(caObj)      
 
     # Extract CALIOP Vertical Feature Classification (bits 10-12) from 16 bit
     # representation for topmost cloud layer #Nina 20140120 this is cloud type nit vert feature !!
