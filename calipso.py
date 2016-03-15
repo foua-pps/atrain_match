@@ -884,7 +884,7 @@ def read_calipso(filename, res, ALAY=False):
         "DEM_Surface_Elevation": "elevation",
         #"IGBP_Surface_Type": "igbp",
         #"NSIDC_Surface_Type": "nsidc",
-        "Feature_Optical_Depth_532": "optical_depth",
+        #"Feature_Optical_Depth_532": "optical_depth",
         #"Longitude": "longitude",
         #"Latitude" : "latitude",
         #"Day_Night_Flag": "day_night_flag",
@@ -1123,7 +1123,7 @@ def add1kmTo5km(Obj1, Obj5, start_break, end_break):
             Obj5.number_layers_found[i] = 1
             Obj5.layer_top_altitude[i, 0] = cloudtop_sum/cloud_layers
             Obj5.layer_base_altitude[i, 0] = cloudbase_sum/cloud_layers
-            Obj5.optical_depth[i, 0] = 1.0 #Just put it safely away from the thinnest cloud layers - the best we can do!
+            Obj5.feature_optical_depth_532[i, 0] = 1.0 #Just put it safely away from the thinnest cloud layers - the best we can do!
             # Obj5.feature_classification_flags[i, 0] = 22218 if assuming like below:
             # cloud, low quality, water phase, low quality, low broken cumulus, confident, 1 km horizontal averaging)
             feature_array = np.asarray(feature_array_list)
@@ -1153,7 +1153,7 @@ def use5km_find_detection_height_and_total_optical_thickness_faster(Obj1, Obj5, 
     for pixel in range(Obj5.utc_time.shape[0]):
         top = Obj5.layer_top_altitude[pixel, 0]
         base = Obj5.layer_base_altitude[pixel, 0]
-        opt_th = Obj5.optical_depth[pixel, 0]        
+        opt_th = Obj5.feature_optical_depth_532[pixel, 0]        
         if base==-9999 or top==-9999 or opt_th==-9999: 
             #can not calculate detection height without data!
             continue            
@@ -1184,7 +1184,7 @@ def use5km_find_detection_height_and_total_optical_thickness_faster(Obj1, Obj5, 
             #dont use layers with negative top or base or optical_thickness values
                 top = Obj5.layer_top_altitude[pixel, lay]
                 base = Obj5.layer_base_altitude[pixel, lay]
-                opt_th = Obj5.optical_depth[pixel, lay]    
+                opt_th = Obj5.feature_optical_depth_532[pixel, lay]    
 
                 if (top!=-9999 and base!=-9999 and opt_th!=-9999):
                     cloud_at_these_height_index = np.logical_and(

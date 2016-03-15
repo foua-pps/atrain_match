@@ -228,14 +228,14 @@ class CalipsoObject(DataObject):
             'time_tai': None,
             'feature_classification_flags': None,
             'day_night_flag': None,
-            'optical_depth': None,
-            'optical_depth_uncertainty': None,
+            'feature_optical_depth_532': None,
+            'feature_optical_depth_uncertainty_532': None,
             'single_shot_cloud_cleared_fraction': None,
             #If a combination of 5 and 1km data are used for RESOLUTION=1
             #A vector with the corresponding optical thickness for 5km data
             # is stored also for 1km data. Because of that I put the 5km in the name
             #/2013-08-17/Nina
-            'optical_depth_top_layer5km': None,
+            'feature_optical_depth_532_top_layer5km': None,
             'lidar_surface_elevation': None,
             'horizontal_averaging5km': None,
             'opacity5km': None,

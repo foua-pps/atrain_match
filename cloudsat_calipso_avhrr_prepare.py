@@ -50,14 +50,14 @@ def CloudsatCloudOpticalDepth(cloud_top, cloud_base, optical_depth, cloud_fracti
 def check_total_optical_depth_and_warn(caObj):
     obj = caObj.calipso
     if  (obj.total_optical_depth_5km is not None and 
-         (obj.total_optical_depth_5km < obj.optical_depth_top_layer5km).any()):
+         (obj.total_optical_depth_5km < obj.feature_optical_depth_532_top_layer5km).any()):
         badPix=np.less(obj.total_optical_depth_5km+0.001, 
-                       obj.optical_depth_top_layer5km)
-        diff=obj.total_optical_depth_5km- obj.optical_depth_top_layer5km
+                       obj.feature_optical_depth_532_top_layer5km)
+        diff=obj.total_optical_depth_5km- obj.feature_optical_depth_532_top_layer5km
         print "warning", len(obj.total_optical_depth_5km)  
         print len(obj.total_optical_depth_5km[badPix])
         print obj.total_optical_depth_5km[badPix]
-        print obj.optical_depth_top_layer5km[badPix] 
+        print obj.feature_optical_depth_532_top_layer5km[badPix] 
         print diff[badPix]
         print obj.number_layers_found[badPix]
         if obj.detection_height_5km is not None:
