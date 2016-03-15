@@ -935,7 +935,7 @@ def print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature,
         statfile.write("CLOUD HEIGHT SINGLE-LAYER\n")
         okcaliop_single = np.logical_and(
             okcaliop, 
-            np.equal(caObj.calipso.number_of_layers_found,1)) 
+            np.equal(caObj.calipso.number_layers_found,1)) 
         print_height_all_low_medium_high("CALIOP-SINGLE-LAYER", 
                                          okcaliop_single,
                                          statfile, cal_vert_feature, 

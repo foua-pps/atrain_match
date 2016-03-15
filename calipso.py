@@ -880,9 +880,9 @@ def read_calipso(filename, res, ALAY=False):
         "Layer_Top_Altitude": "cloud_top_profile",
         "Layer_Top_Pressure": "cloud_top_profile_pressure",
         "Layer_Base_Altitude": "cloud_base_profile",
-        "Number_Layers_Found": "number_of_layers_found",
+        #"Number_Layers_Found": "number_of_layers_found",
         "DEM_Surface_Elevation": "elevation",
-        "IGBP_Surface_Type": "igbp",
+        #"IGBP_Surface_Type": "igbp",
         #"NSIDC_Surface_Type": "nsidc",
         "Feature_Optical_Depth_532": "optical_depth",
         #"Longitude": "longitude",
@@ -1072,10 +1072,10 @@ def add1kmTo5km(Obj1, Obj5, start_break, end_break):
     len_5km = Obj5.utc_time.shape[0]
     len_1km = Obj5.utc_time.shape[0]*5
     for i in range(len_5km):
-        if Obj5.number_of_layers_found[i] > 0:
+        if Obj5.number_layers_found[i] > 0:
             cfc_5km = cfc_5km + 1
     for i in range(len_1km):
-        if Obj1.number_of_layers_found[i] > 0:
+        if Obj1.number_layers_found[i] > 0:
             cfc_1km = cfc_1km + 1
 
 
@@ -1104,23 +1104,23 @@ def add1kmTo5km(Obj1, Obj5, start_break, end_break):
     for i in range(Obj5.utc_time.shape[0]):
         cfc = 0.0
         for j in range(5):
-            if Obj1.number_of_layers_found[i*5+j] > 0:
+            if Obj1.number_layers_found[i*5+j] > 0:
                 cfc = cfc + 0.2000
-        if ((Obj5.number_of_layers_found[i] > 0) and (cfc < 0.1)):
+        if ((Obj5.number_layers_found[i] > 0) and (cfc < 0.1)):
             cfc = 1.0
-        if ((cfc > 0.1) and (Obj5.number_of_layers_found[i] == 0)): #Add missing layer due to CALIPSO processing bug
+        if ((cfc > 0.1) and (Obj5.number_layers_found[i] == 0)): #Add missing layer due to CALIPSO processing bug
             cloudtop_sum = 0.0
             cloudbase_sum = 0.0
             cloud_layers = 0
             feature_array_list = []
             for j in range(5):
-                if Obj1.number_of_layers_found[i*5+j] != 0:
-                    for k in range(Obj1.number_of_layers_found[i*5+j]):
+                if Obj1.number_layers_found[i*5+j] != 0:
+                    for k in range(Obj1.number_layers_found[i*5+j]):
                         cloudtop_sum = cloudtop_sum + Obj1.cloud_top_profile[i,k]
                         cloudbase_sum = cloudbase_sum + Obj1.cloud_base_profile[i,k]
                         cloud_layers = cloud_layers + 1
                         feature_array_list.append(Obj1.feature_classification_flags[i, k])
-            Obj5.number_of_layers_found[i] = 1
+            Obj5.number_layers_found[i] = 1
             Obj5.cloud_top_profile[i, 0] = cloudtop_sum/cloud_layers
             Obj5.cloud_base_profile[i, 0] = cloudbase_sum/cloud_layers
             Obj5.optical_depth[i, 0] = 1.0 #Just put it safely away from the thinnest cloud layers - the best we can do!
@@ -1149,7 +1149,7 @@ def use5km_find_detection_height_and_total_optical_thickness_faster(Obj1, Obj5, 
     if (Obj5.utc_time[:,1] == Obj1.utc_time[2::5]).sum() != Obj5.utc_time.shape[0]:
         write_log('WARNING', "length mismatch")
         pdb.set_trace()
-    Obj1.detection_height_5km = np.ones(Obj1.number_of_layers_found.shape)*-9                 
+    Obj1.detection_height_5km = np.ones(Obj1.number_layers_found.shape)*-9                 
     for pixel in range(Obj5.utc_time.shape[0]):
         top = Obj5.cloud_top_profile[pixel, 0]
         base = Obj5.cloud_base_profile[pixel, 0]
@@ -1159,7 +1159,7 @@ def use5km_find_detection_height_and_total_optical_thickness_faster(Obj1, Obj5, 
             continue            
         pixel_1km_first = 5*pixel
         need_only_to_use_one_layer = False
-        if (Obj5.number_of_layers_found[pixel]==1 or
+        if (Obj5.number_layers_found[pixel]==1 or
             (base>=np.max(Obj5.cloud_top_profile[pixel, 1:10])) and
             opt_th>=OPTICAL_LIMIT_CLOUD_TOP):
             need_only_to_use_one_layer = True
@@ -1180,7 +1180,7 @@ def use5km_find_detection_height_and_total_optical_thickness_faster(Obj1, Obj5, 
             cloud_top_max = int(round(1000*cloud_max_top))          
             height_profile = 0.001*np.array(range(cloud_top_max, -1, -1))
             optical_thickness = np.zeros(height_profile.shape)
-            for lay in range(Obj5.number_of_layers_found[pixel]): 
+            for lay in range(Obj5.number_layers_found[pixel]): 
             #dont use layers with negative top or base or optical_thickness values
                 top = Obj5.cloud_top_profile[pixel, lay]
                 base = Obj5.cloud_base_profile[pixel, lay]
@@ -1293,8 +1293,8 @@ if __name__ == "__main__":
                            calipso.cloud_base_profile[::,i] * 1000.,-9)
         caliop_base.append(bb)
 
-    x = np.repeat(calipso.number_of_layers_found.ravel(),
-                       np.greater(calipso.number_of_layers_found.ravel(),0))
+    x = np.repeat(calipso.number_layers_found.ravel(),
+                       np.greater(calipso.number_layers_found.ravel(),0))
     print "Number of points with more than 0 layers: ",x.shape[0]
     
     cal_data_ok = np.greater(caliop_max_height,-9.)

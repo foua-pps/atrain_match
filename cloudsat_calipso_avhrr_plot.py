@@ -150,7 +150,7 @@ def drawCalClsatGEOPROFAvhrrPlot(clsatObj_cloudsat,
         top_ok = caliop_height[i]
         for idx in range(len(pixel_position)):
             if cal_data_ok[idx]:
-#                if caObj_calipso.number_of_layers_found[idx] > i:
+#                if caObj_calipso.number_layers_found[idx] > i:
                 if base_ok[idx] != -9.0:
                     if not caliop_label_set:
                         ax.vlines(pixel_position[idx] + calipso_displacement,

@@ -41,7 +41,7 @@ for filename in files:
     print os.path.basename(filename)
     caObj = caObj + readCaliopAvhrrMatchObj(filename)
 
-isCloud = caObj.calipso.all_arrays['number_of_layers_found'] > 0
+isCloud = caObj.calipso.all_arrays['number_layers_found'] > 0
 r16 = caObj.avhrr.all_arrays['r16micron']
 t37 = caObj.avhrr.all_arrays['bt37micron']
 t86 = caObj.avhrr.all_arrays['bt86micron']

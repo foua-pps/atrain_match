@@ -654,22 +654,22 @@ def get_total_optical_depth_and_optical_depth_top_layer_from_5km_data(calipso, c
     write_log('INFO',"Find total optical depth from 5km data")
     if calipso5km is None and resolution == 5:
         calipso5km = calipso
-    calipso.optical_depth_top_layer5km = -9.0 + 0*calipso.number_of_layers_found.ravel()
-    calipso.total_optical_depth_5km = -9.0 + 0*calipso.number_of_layers_found.ravel()
+    calipso.optical_depth_top_layer5km = -9.0 + 0*calipso.number_layers_found.ravel()
+    calipso.total_optical_depth_5km = -9.0 + 0*calipso.number_layers_found.ravel()
     if resolution==5:
-        pixels = np.logical_and(calipso5km.number_of_layers_found.ravel()>0,
+        pixels = np.logical_and(calipso5km.number_layers_found.ravel()>0,
                                 calipso5km.optical_depth[:,0].ravel()>=0)   
         calipso.optical_depth_top_layer5km[pixels] = calipso5km.optical_depth[pixels, 0]
         calipso.total_optical_depth_5km[pixels] =  calipso5km.optical_depth[pixels, 0]       
-        for lay in range(1,np.max(calipso5km.number_of_layers_found[pixels]),1):  
+        for lay in range(1,np.max(calipso5km.number_layers_found[pixels]),1):  
             pixels = np.logical_and(pixels,calipso5km.optical_depth[:, lay]>=0)
             calipso.total_optical_depth_5km[pixels] +=  calipso5km.optical_depth[pixels, lay]
     else:
         for pixel in range(calipso5km.utc_time.shape[0]): 
-            if calipso5km.number_of_layers_found[pixel]>0 and calipso5km.optical_depth[pixel, 0]>=0:
+            if calipso5km.number_layers_found[pixel]>0 and calipso5km.optical_depth[pixel, 0]>=0:
                 calipso.optical_depth_top_layer5km[pixel*5:pixel*5+5] = calipso5km.optical_depth[pixel, 0] 
                 calipso.total_optical_depth_5km[pixel*5:pixel*5+5] =  calipso5km.optical_depth[pixel, 0]
-                for lay in range(1,calipso5km.number_of_layers_found[pixel],1):  
+                for lay in range(1,calipso5km.number_layers_found[pixel],1):  
                     if calipso5km.optical_depth[pixel, lay]>=0:
                         calipso.total_optical_depth_5km[pixel*5:pixel*5+5] +=  calipso5km.optical_depth[pixel, lay]  
     return calipso 
@@ -1646,8 +1646,8 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
         caliop_base.append(bb)
         thickness = hh - bb
         
-    x = np.repeat(caObj.calipso.number_of_layers_found.ravel(),
-                        np.greater(caObj.calipso.number_of_layers_found.ravel(),0))
+    x = np.repeat(caObj.calipso.number_layers_found.ravel(),
+                        np.greater(caObj.calipso.number_layers_found.ravel(),0))
     #print "Number of points with more than 0 layers: ",x.shape[0]
     cal_data_ok = np.greater(caliop_max_height,-9.)
 

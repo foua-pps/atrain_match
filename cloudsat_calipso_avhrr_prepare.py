@@ -59,7 +59,7 @@ def check_total_optical_depth_and_warn(caObj):
         print obj.total_optical_depth_5km[badPix]
         print obj.optical_depth_top_layer5km[badPix] 
         print diff[badPix]
-        print obj.number_of_layers_found[badPix]
+        print obj.number_layers_found[badPix]
         if obj.detection_height_5km is not None:
             print obj.detection_height_5km[badPix] 
         print np.where(badPix)
@@ -85,7 +85,7 @@ def CalipsoOpticalDepthSetThinToClearFiltering1km(CaObj):
                                    np.not_equal(CaObj.calipso.total_optical_depth_5km,-9))
     #>0.0 important. Some clouds are missing in 5km data set but present in 1km data set!
     set_to_clear = np.logical_and(
-        CaObj.calipso.number_of_layers_found>0,
+        CaObj.calipso.number_layers_found>0,
         isThin_clouds)
     #print set_to_clear.shape
     for lay in xrange(CaObj.calipso.cloud_base_profile.shape[1]):
