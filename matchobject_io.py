@@ -263,19 +263,27 @@ class CalipsoAvhrrTrackObject:
 
         return self
 
+"""
+These variables belonging to calipso object now have new names.
+They now keep their name from the calipso file.
+Except for the varaible profile_time which is called profile_time_tai.
+So not to forget it is tai time in it.
+Here we remember what names they used to have to be able to 
+reprocess old reshaped-files.
+When reprocessing old reshaped-files,
+which we might want to do, these are needed.
+"""
 traditional_atrain_match_to_new_names ={
-    """
-    These variables belonging to calipso object now have new names.
-    They now keep their name from the calipso file.
-    Except for the varaible profile_time which is called profile_time_tai.
-    So not to forget it is tai time in it.
-    Here we remember what names they used to have to be able to 
-    reprocess old reshaped-files.
-    When reprocessing old reshaped-files,
-    which we might want to do, these are needed.
-    """
     #"time":                      "profile_time_tai",
     #"utc_time":                  "profile_utc_time",
+    #these were never used:
+    #"optical_depth_uncertainty": "feature_optical_depth_uncertainty_532",
+    #"cloud_mid_temperature: "midlayer_temperature",
+    #"ice_water_path5km": "ice_water_path",
+    #"ice_water_path_uncertainty5km": "ice_water_path_uncertainty",
+    #"horizontal_averaging5km",: "horizontal_averaging",
+    #"opacity5km: "opacity_flag",
+
     "cloud_top_profile":          "layer_top_altitude",
     "cloud_base_profile":         "layer_base_altitude",
     "number_of_layers_found":     "number_layers_found",
@@ -287,25 +295,41 @@ traditional_atrain_match_to_new_names ={
 
 # ----------------------------------------
 def readCaliopAvhrrMatchObj(filename):
-    import h5py #@UnresolvedImport            
+    ATRAIN_REMATCHED_FORMAT_PRE_2016_03 = False
+    import h5py          
     retv = CalipsoAvhrrTrackObject()    
     h5file = h5py.File(filename, 'r')
+    if "cloud_top_profile" in h5file['/calipso'].keys():
+        print "OLD FORMAT"
+        ATRAIN_REMATCHED_FORMAT_PRE_2016_03 = True
     for group, data_obj in [(h5file['/calipso'], retv.calipso),
                             (h5file['/avhrr'], retv.avhrr)]:
         for dataset in group.keys():  
             atrain_match_name = dataset
-            if (dataset in traditional_atrain_match_to_new_names.keys() and not
-                dataset in data_obj.all_arrays.keys()):
+            if (dataset in traditional_atrain_match_to_new_names.keys()):# and not
+#                dataset in data_obj.all_arrays.keys()):
                 atrain_match_name = traditional_atrain_match_to_new_names[dataset]   
-
             if atrain_match_name in data_obj.all_arrays.keys():
                 the_data = group[dataset].value
-                #Traditionally the 2D datasets were transposed.
-                #When processing finding old-reshaped-files transpose these back
+                #Traditionally the calipso 2D datasets were transposed.
+                #When processing old-reshaped-files transpose these back
                 #to original orientation
-                if (the_data.ndim==2 and 
-                    dataset in traditional_atrain_match_to_new_names.keys()):
-                    the_data = the_data.transpose()
+                if (the_data.ndim==2 and  
+                    ATRAIN_REMATCHED_FORMAT_PRE_2016_03):
+                    if dataset in ["cloud_top_profile",
+                                   "cloud_base_profile",
+                                   "cloud_base_profile_pressure",
+                                   #"cloud_mid_temperature",
+                                   #"horizontal_averaging5km",
+                                   #"ice_water_path5km",
+                                   #"ice_water_path_uncertainty5km",
+                                   #"opacity5km",
+                                   #"optical_depth_uncertainty",
+                                   "optical_depth",
+                                   "single_shot_cloud_cleared_fraction",
+                                   "lidar_surface_elevation",
+                                   "feature_classification_flags"]:
+                        the_data = the_data.transpose()    
                 data_obj.all_arrays[atrain_match_name] = the_data
     retv.diff_sec_1970 = h5file['diff_sec_1970'].value
     h5file.close()
