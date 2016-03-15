@@ -219,8 +219,8 @@ class CalipsoObject(DataObject):
             'cloud_mid_temperature': None,
             'number_of_layers_found': None,
             'igbp': None,
-            'nsidc': None,
-            'nsidc_texture': None,
+            'nsidc_surface_type': None,
+            'nsidc_surface_type_texture': None,
             'elevation': None,
             'time': None,
             'utc_time': None, 
@@ -254,11 +254,11 @@ class CalipsoAvhrrTrackObject:
         self.calipso = CalipsoObject()
         self.diff_sec_1970 = None
 
-    def make_nsidc_texture(self, kernel_sz = 51):
+    def make_nsidc_surface_type_texture(self, kernel_sz = 51):
         """Derive the stdv of the ice dataset"""
 
-        self.calipso.all_arrays['nsidc_texture'] = sliding_std(
-            self.calipso.all_arrays['nsidc'], kernel_sz)
+        self.calipso.all_arrays['nsidc_surface_type_texture'] = sliding_std(
+            self.calipso.all_arrays['nsidc_surface_type'], kernel_sz)
     
     def __add__(self, other):
         """Concatenating two objects together"""
@@ -316,7 +316,7 @@ def readCaliopAvhrrMatchObj(filename):
 
     h5file.close()
 
-    retv.make_nsidc_texture()
+    retv.make_nsidc_surface_type_texture()
     return retv
 
 # ----------------------------------------

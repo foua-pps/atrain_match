@@ -883,7 +883,7 @@ def read_calipso(filename, res, ALAY=False):
         "Number_Layers_Found": "number_of_layers_found",
         "DEM_Surface_Elevation": "elevation",
         "IGBP_Surface_Type": "igbp",
-        "NSIDC_Surface_Type": "nsidc",
+        #"NSIDC_Surface_Type": "nsidc",
         "Feature_Optical_Depth_532": "optical_depth",
         #"Longitude": "longitude",
         #"Latitude" : "latitude",

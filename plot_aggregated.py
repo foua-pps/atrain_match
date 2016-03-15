@@ -48,13 +48,13 @@ t86 = caObj.avhrr.all_arrays['bt86micron']
 t11 = caObj.avhrr.all_arrays['bt11micron']
 t12 = caObj.avhrr.all_arrays['bt12micron']
 
-# nsidc 
+# nsidc_surface_type 
 # 255 = Coast
 # 1-100 = Sea ice concentration %
 # 101 = Permamnent ice
 # 0 = Ice free
-isIce = np.logical_and(caObj.calipso.all_arrays['nsidc'] >= 15,
-                       caObj.calipso.all_arrays['nsidc'] <= 100)
+isIce = np.logical_and(caObj.calipso.all_arrays['nsidc_surface_type'] >= 15,
+                       caObj.calipso.all_arrays['nsidc_surface_type'] <= 100)
 isWater = np.logical_and(np.equal(caObj.calipso.all_arrays['igbp'], 17), 
                          np.equal(isIce, False))
 isClearWater = np.logical_and(isWater, np.equal(isCloud, False))
