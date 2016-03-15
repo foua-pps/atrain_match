@@ -223,7 +223,7 @@ class CalipsoObject(DataObject):
             'nsidc_surface_type_texture': None,
             'elevation': None,
             'time': None,
-            'utc_time': None, 
+            'profile_utc_time': None, 
             'sec_1970': None,
             'time_tai': None,
             'feature_classification_flags': None,

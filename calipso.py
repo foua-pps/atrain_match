@@ -663,7 +663,7 @@ def match_calipso_avhrr(values,
         latCalipso = calipsoObj.latitude.ravel()
         timeCalipso_tai = calipsoObj.time[::,0].ravel()
         timeCalipso = calipsoObj.time[::,0].ravel() + dsec
-        timeCalipso_utc = calipsoObj.utc_time[::,0].ravel()
+        timeCalipso_utc = calipsoObj.profile_utc_time[::,0].ravel()
         elevationCalipso = calipsoObj.elevation.ravel()
     if res == 5:
         # Use [:,1] Since 5km data has start, center, and end for each pixel
@@ -671,7 +671,7 @@ def match_calipso_avhrr(values,
         latCalipso = calipsoObj.latitude[:,1].ravel()
         timeCalipso_tai = calipsoObj.time[:,1].ravel()
         timeCalipso = calipsoObj.time[:,1].ravel() + dsec
-        timeCalipso_utc = calipsoObj.utc_time[:,1].ravel()
+        timeCalipso_utc = calipsoObj.profile_utc_time[:,1].ravel()
         elevationCalipso = calipsoObj.elevation[::,2].ravel()
     
     ndim = lonCalipso.shape[0]
@@ -875,7 +875,7 @@ def read_calipso(filename, res, ALAY=False):
     
     traditional_atrain_match_names = {
         "Profile_Time": "time",
-        "Profile_UTC_Time": "utc_time",
+        #"Profile_UTC_Time": "utc_time",
         "Feature_Classification_Flags": "feature_classification_flags", #uint16??
         #"Layer_Top_Altitude": "cloud_top_profile",
         #"Layer_Top_Pressure": "cloud_top_pressure" #not used in atrain-match,
@@ -1059,7 +1059,7 @@ def add1kmTo5km(Obj1, Obj5, start_break, end_break):
     # First check if length of 5 km and 1 km arrays correspond (i.e. 1 km array = 5 times longer array)
     # Here we check the middle time (index 1) out of the three time values given (start, mid, end) for 5 km data
     #pdb.set_trace()
-    if (Obj5.utc_time[:,1] == Obj1.utc_time[2::5]).sum() != Obj5.utc_time.shape[0]:
+    if (Obj5.profile_utc_time[:,1] == Obj1.profile_utc_time[2::5]).sum() != Obj5.profile_utc_time.shape[0]:
                               
         print("length mismatch")
         pdb.set_trace()
@@ -1069,8 +1069,8 @@ def add1kmTo5km(Obj1, Obj5, start_break, end_break):
     #pdb.set_trace()
     cfc_5km = 0
     cfc_1km = 0
-    len_5km = Obj5.utc_time.shape[0]
-    len_1km = Obj5.utc_time.shape[0]*5
+    len_5km = Obj5.profile_utc_time.shape[0]
+    len_1km = Obj5.profile_utc_time.shape[0]*5
     for i in range(len_5km):
         if Obj5.number_layers_found[i] > 0:
             cfc_5km = cfc_5km + 1
@@ -1101,7 +1101,7 @@ def add1kmTo5km(Obj1, Obj5, start_break, end_break):
     # weakness or bug in the CALIPSO retrieval of clouds below 4 km
 
 
-    for i in range(Obj5.utc_time.shape[0]):
+    for i in range(Obj5.profile_utc_time.shape[0]):
         cfc = 0.0
         for j in range(5):
             if Obj1.number_layers_found[i*5+j] > 0:
@@ -1146,11 +1146,11 @@ def add1kmTo5km(Obj1, Obj5, start_break, end_break):
 
 def use5km_find_detection_height_and_total_optical_thickness_faster(Obj1, Obj5, start_break, end_break):
     retv = CalipsoObject()
-    if (Obj5.utc_time[:,1] == Obj1.utc_time[2::5]).sum() != Obj5.utc_time.shape[0]:
+    if (Obj5.profile_utc_time[:,1] == Obj1.profile_utc_time[2::5]).sum() != Obj5.profile_utc_time.shape[0]:
         write_log('WARNING', "length mismatch")
         pdb.set_trace()
     Obj1.detection_height_5km = np.ones(Obj1.number_layers_found.shape)*-9                 
-    for pixel in range(Obj5.utc_time.shape[0]):
+    for pixel in range(Obj5.profile_utc_time.shape[0]):
         top = Obj5.layer_top_altitude[pixel, 0]
         base = Obj5.layer_base_altitude[pixel, 0]
         opt_th = Obj5.feature_optical_depth_532[pixel, 0]        

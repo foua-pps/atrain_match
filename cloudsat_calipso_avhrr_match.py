@@ -665,7 +665,7 @@ def get_total_optical_depth_and_optical_depth_top_layer_from_5km_data(calipso, c
             pixels = np.logical_and(pixels,calipso5km.feature_optical_depth_532[:, lay]>=0)
             calipso.total_optical_depth_5km[pixels] +=  calipso5km.feature_optical_depth_532[pixels, lay]
     else:
-        for pixel in range(calipso5km.utc_time.shape[0]): 
+        for pixel in range(calipso5km.profile_utc_time.shape[0]): 
             if calipso5km.number_layers_found[pixel]>0 and calipso5km.feature_optical_depth_532[pixel, 0]>=0:
                 calipso.feature_optical_depth_532_top_layer5km[pixel*5:pixel*5+5] = calipso5km.feature_optical_depth_532[pixel, 0] 
                 calipso.total_optical_depth_5km[pixel*5:pixel*5+5] =  calipso5km.feature_optical_depth_532[pixel, 0]
