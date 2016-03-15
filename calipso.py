@@ -809,7 +809,7 @@ def match_calipso_avhrr(values,
             fd.close()    
             # CALIOP Maximum cloud top in km:
 
-    max_cloud_top_calipso = np.maximum.reduce(retv.calipso.cloud_top_profile.ravel())
+    max_cloud_top_calipso = np.maximum.reduce(retv.calipso.layer_top_altitude.ravel())
     write_log('INFO', "max_cloud_top_calipso: ",max_cloud_top_calipso)
     return retv,min_diff,max_diff
 
@@ -825,10 +825,10 @@ def get_calipso(filename, res, ALAY=False):
         # Derive the calipso cloud fraction using the 
         # cloud height:       
         winsz = 3 #Means a winsz x sinsz KERNEL is used.
-        max_height = np.ones(clobj.cloud_top_profile[::, 0].shape) * -9
-        for idx in range(clobj.cloud_top_profile.shape[1]):
+        max_height = np.ones(clobj.layer_top_altitude[::, 0].shape) * -9
+        for idx in range(clobj.layer_top_altitude.shape[1]):
             max_height = np.maximum(max_height,
-                                    clobj.cloud_top_profile[::, idx] * 1000.)
+                                    clobj.layer_top_altitude[::, idx] * 1000.)
     
         calipso_clmask = np.greater(max_height, 0).astype('d')
         clobj.cloud_fraction = calipso_clmask 
@@ -849,7 +849,7 @@ def get_calipso(filename, res, ALAY=False):
       
     
     elif res == 5 and  not ALAY:
-        clobj.cloud_fraction = np.where(clobj.cloud_top_profile[:,0] > 0, 1, 0).astype('d')
+        clobj.cloud_fraction = np.where(clobj.layer_top_altitude[:,0] > 0, 1, 0).astype('d')
         # Strange - this will give 0 cloud fraction in points with no data, wouldn't it????/KG
 
     
@@ -877,7 +877,7 @@ def read_calipso(filename, res, ALAY=False):
         "Profile_Time": "time",
         "Profile_UTC_Time": "utc_time",
         "Feature_Classification_Flags": "feature_classification_flags", #uint16??
-        "Layer_Top_Altitude": "cloud_top_profile",
+        #"Layer_Top_Altitude": "cloud_top_profile",
         #"Layer_Top_Pressure": "cloud_top_pressure" #not used in atrain-match,
         #"Layer_Base_Altitude": "cloud_base_profile",
         #"Number_Layers_Found": "number_layers_found",
@@ -1116,12 +1116,12 @@ def add1kmTo5km(Obj1, Obj5, start_break, end_break):
             for j in range(5):
                 if Obj1.number_layers_found[i*5+j] != 0:
                     for k in range(Obj1.number_layers_found[i*5+j]):
-                        cloudtop_sum = cloudtop_sum + Obj1.cloud_top_profile[i,k]
+                        cloudtop_sum = cloudtop_sum + Obj1.layer_top_altitude[i,k]
                         cloudbase_sum = cloudbase_sum + Obj1.layer_base_altitude[i,k]
                         cloud_layers = cloud_layers + 1
                         feature_array_list.append(Obj1.feature_classification_flags[i, k])
             Obj5.number_layers_found[i] = 1
-            Obj5.cloud_top_profile[i, 0] = cloudtop_sum/cloud_layers
+            Obj5.layer_top_altitude[i, 0] = cloudtop_sum/cloud_layers
             Obj5.layer_base_altitude[i, 0] = cloudbase_sum/cloud_layers
             Obj5.optical_depth[i, 0] = 1.0 #Just put it safely away from the thinnest cloud layers - the best we can do!
             # Obj5.feature_classification_flags[i, 0] = 22218 if assuming like below:
@@ -1151,7 +1151,7 @@ def use5km_find_detection_height_and_total_optical_thickness_faster(Obj1, Obj5, 
         pdb.set_trace()
     Obj1.detection_height_5km = np.ones(Obj1.number_layers_found.shape)*-9                 
     for pixel in range(Obj5.utc_time.shape[0]):
-        top = Obj5.cloud_top_profile[pixel, 0]
+        top = Obj5.layer_top_altitude[pixel, 0]
         base = Obj5.layer_base_altitude[pixel, 0]
         opt_th = Obj5.optical_depth[pixel, 0]        
         if base==-9999 or top==-9999 or opt_th==-9999: 
@@ -1160,7 +1160,7 @@ def use5km_find_detection_height_and_total_optical_thickness_faster(Obj1, Obj5, 
         pixel_1km_first = 5*pixel
         need_only_to_use_one_layer = False
         if (Obj5.number_layers_found[pixel]==1 or
-            (base>=np.max(Obj5.cloud_top_profile[pixel, 1:10])) and
+            (base>=np.max(Obj5.layer_top_altitude[pixel, 1:10])) and
             opt_th>=OPTICAL_LIMIT_CLOUD_TOP):
             need_only_to_use_one_layer = True
         if  need_only_to_use_one_layer:
@@ -1176,13 +1176,13 @@ def use5km_find_detection_height_and_total_optical_thickness_faster(Obj1, Obj5, 
             min_base = np.min(bases[bases!=-9999])
             Obj1.detection_height_5km[pixel_1km_first:pixel_1km_first+5] = min_base
         else: 
-            cloud_max_top = np.max(Obj5.cloud_top_profile[pixel, 0:10])
+            cloud_max_top = np.max(Obj5.layer_top_altitude[pixel, 0:10])
             cloud_top_max = int(round(1000*cloud_max_top))          
             height_profile = 0.001*np.array(range(cloud_top_max, -1, -1))
             optical_thickness = np.zeros(height_profile.shape)
             for lay in range(Obj5.number_layers_found[pixel]): 
             #dont use layers with negative top or base or optical_thickness values
-                top = Obj5.cloud_top_profile[pixel, lay]
+                top = Obj5.layer_top_altitude[pixel, lay]
                 base = Obj5.layer_base_altitude[pixel, lay]
                 opt_th = Obj5.optical_depth[pixel, lay]    
 
@@ -1282,12 +1282,12 @@ if __name__ == "__main__":
 
     caliop_height = []
     caliop_base = []
-    caliop_max_height = np.ones(calipso.cloud_top_profile[::,0].shape)*-9
+    caliop_max_height = np.ones(calipso.layer_top_altitude[::,0].shape)*-9
     for i in range(10):
-        hh = np.where(np.greater(calipso.cloud_top_profile[::,i],-9),
-                           calipso.cloud_top_profile[::,i] * 1000.,-9)
+        hh = np.where(np.greater(calipso.layer_top_altitude[::,i],-9),
+                           calipso.layer_top_altitude[::,i] * 1000.,-9)
         caliop_max_height = np.maximum(caliop_max_height,
-                                            calipso.cloud_top_profile[::,i] * 1000.)
+                                            calipso.layer_top_altitude[::,i] * 1000.)
         caliop_height.append(hh)
         bb = np.where(np.greater(calipso.layer_base_altitude[::,i],-9),
                            calipso.layer_base_altitude[::,i] * 1000.,-9)
@@ -1304,7 +1304,7 @@ if __name__ == "__main__":
     dsec = time.mktime((1993,1,1,0,0,0,0,0,0)) - time.timezone
     print "Original: ",calipso.time[16203,0]+dsec
     print "Matchup:  ",caObj.calipso.sec_1970[3421]
-    print calipso.cloud_top_profile[16203]
-    print caObj.calipso.cloud_top_profile[3421,::]
+    print calipso.layer_top_altitude[16203]
+    print caObj.calipso.layer_top_altitude[3421,::]
     
     
