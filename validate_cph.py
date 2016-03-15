@@ -193,16 +193,16 @@ def get_calipso_phase(calipso_filename, qual_min=CALIPSO_QUAL_VALUES['medium'],
     # Don't care about pixels with lower than *qual_min* quality
     return np.ma.array(phase, mask=qual < qual_min)
 
-def get_calipso_igbp(calipso_filename):
+def get_calipso_igbp_surface_type(calipso_filename):
     """
-    Returns Calipso igbp.
+    Returns Calipso igbp_surface_type.
     
     """
     with h5py.File(calipso_filename,'r') as f:
-        igbp = f['IGBP_Surface_Type'][:]
+        igbp_surface_type = f['IGBP_Surface_Type'][:]
     if f:
         f.close()
-    return igbp.ravel()
+    return igbp_surface_type.ravel()
 
 def find_calipso_files_from_avhrr_filename(avhrr_filename, options):
     """
@@ -432,7 +432,7 @@ def get_mapper(avhrr_filename, calipso_filename, sunsat_filename):
     return mapper
 
 
-#def write_matched_values(filename, cpp_phase, cal_phase, cal_igbp):
+#def write_matched_values(filename, cpp_phase, cal_phase, cal_igbp_surface_type):
 #    import h5py
 #    selected = (~cpp_phase.mask & ~cal_phase.mask)
 #    with h5py.File(filename, 'w') as f:
@@ -440,7 +440,7 @@ def get_mapper(avhrr_filename, calipso_filename, sunsat_filename):
 #                         compression=_COMPRESSION)
 #        f.create_dataset('calipso_phase', data=cal_phase[selected],
 #                         compression=_COMPRESSION)
-#        f.create_dataset('calipso_igbp', data=cal_igbp[selected],
+#        f.create_dataset('calipso_igbp_surface_type', data=cal_igbp_surface_type[selected],
 #                         compression=_COMPRESSION)
 
 
@@ -574,7 +574,7 @@ def process_case(calipso_filename, avhrr_filename, sunsat_filename,
                                   qual_min=qual_min)
     print cal_phase
     print len(cal_phase)
-    cal_igbp = get_calipso_igbp(calipso_filename)
+    cal_igbp_surface_type = get_calipso_igbp_surface_type(calipso_filename)
 
     selection = ~cpp_phase.mask & ~cal_phase.mask
     if VALIDATE_FOR_CPP_PIXELS and PPS_VALIDATION:
@@ -634,7 +634,7 @@ def process_case(calipso_filename, avhrr_filename, sunsat_filename,
                                     attributes=restrictions)
             write_data_to_open_file(np.array(cal_phase[selection].ravel()), 'calipso_phase', f,
                        attributes=restrictions)
-            write_data_to_open_file(np.array(cal_igbp[selection].ravel()), 'calipso_igbp', f,
+            write_data_to_open_file(np.array(cal_igbp_surface_type[selection].ravel()), 'calipso_igbp_surface_type', f,
                        attributes=restrictions)
             write_data_to_open_file(np.array(calipso_time[selection].ravel()), 'calipso_time', f)
             write_data_to_open_file(np.array(avhrr_time_remapped[selection].ravel()), 'avhrr_time', f,
@@ -649,7 +649,7 @@ def process_case(calipso_filename, avhrr_filename, sunsat_filename,
         #           attributes=restrictions)
         #write_data(np.array(cal_phase[selection].ravel()), 'calipso_phase', filename,
         #           attributes=restrictions)
-        #write_data(np.array(cal_igbp[selection].ravel()), 'calipso_igbp', filename,
+        #write_data(np.array(cal_igbp_surface_type[selection].ravel()), 'calipso_igbp_surface_type', filename,
         #           attributes=restrictions)
         #write_data(np.array(calipso_time[selection].ravel()), 'calipso_time', filename)
         #write_data(np.array(avhrr_time_remapped[selection].ravel()), 'avhrr_time', filename,
@@ -736,7 +736,7 @@ def validate_all(matched_values_files, verbose=False, landsea=None):
         with h5py.File(filename, 'r') as f:
             selection = f['selection'][:]
             _slice = selection
-            land_sea_cal = f['calipso_igbp'][:]
+            land_sea_cal = f['calipso_igbp_surface_type'][:]
             landsea_select = get_land_sea_selection_cal(landsea, land_sea_cal)
             if landsea is not None:
                 selection = f['selection'][:]

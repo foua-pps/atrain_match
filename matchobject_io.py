@@ -218,7 +218,7 @@ class CalipsoObject(DataObject):
             'cloud_base_profile': None,
             'cloud_mid_temperature': None,
             'number_of_layers_found': None,
-            'igbp': None,
+            'igbp_surface_type': None,
             'nsidc_surface_type': None,
             'nsidc_surface_type_texture': None,
             'elevation': None,

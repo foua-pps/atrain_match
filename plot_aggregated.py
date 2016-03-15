@@ -55,7 +55,7 @@ t12 = caObj.avhrr.all_arrays['bt12micron']
 # 0 = Ice free
 isIce = np.logical_and(caObj.calipso.all_arrays['nsidc_surface_type'] >= 15,
                        caObj.calipso.all_arrays['nsidc_surface_type'] <= 100)
-isWater = np.logical_and(np.equal(caObj.calipso.all_arrays['igbp'], 17), 
+isWater = np.logical_and(np.equal(caObj.calipso.all_arrays['igbp_surface_type'], 17), 
                          np.equal(isIce, False))
 isClearWater = np.logical_and(isWater, np.equal(isCloud, False))
 isClearIce = np.logical_and(isIce, np.equal(isCloud, False))
