@@ -664,7 +664,7 @@ def match_calipso_avhrr(values,
         timeCalipso_tai = calipsoObj.profile_time_tai[::,0].ravel()
         timeCalipso = calipsoObj.profile_time_tai[::,0].ravel() + dsec
         timeCalipso_utc = calipsoObj.profile_utc_time[::,0].ravel()
-        elevationCalipso = calipsoObj.elevation.ravel()
+        elevationCalipso = calipsoObj.dem_surface_elevation.ravel()
     if res == 5:
         # Use [:,1] Since 5km data has start, center, and end for each pixel
         lonCalipso = calipsoObj.longitude[:,1].ravel()
@@ -672,7 +672,7 @@ def match_calipso_avhrr(values,
         timeCalipso_tai = calipsoObj.profile_time_tai[:,1].ravel()
         timeCalipso = calipsoObj.profile_time_tai[:,1].ravel() + dsec
         timeCalipso_utc = calipsoObj.profile_utc_time[:,1].ravel()
-        elevationCalipso = calipsoObj.elevation[::,2].ravel()
+        elevationCalipso = calipsoObj.dem_surface_elevation[::,2].ravel()
     
     ndim = lonCalipso.shape[0]
     
@@ -715,7 +715,6 @@ def match_calipso_avhrr(values,
     idx_match = elements_within_range(timeCalipso, avhrr_lines_sec_1970, sec_timeThr) 
     if idx_match.sum() == 0:
         raise MatchupError("No matches in region within time threshold %d s." % sec_timeThr)
-    print len(timeCalipso), len(idx_match), idx_match[-1]
     retv = calipso_track_from_matched(retv, calipsoObj, idx_match)
     cal_on_avhrr = np.repeat(cal, idx_match)
     cap_on_avhrr = np.repeat(cap, idx_match)
@@ -874,30 +873,16 @@ def read_calipso(filename, res, ALAY=False):
         }
     atrain_match_names = {
         "Profile_Time": "profile_time_tai"}
-
     traditional_atrain_match_names = {
-        #"Profile_Time": "time", #this is first tai then translated into utc? time
+        #"Profile_Time": "time", "time_tai"
         #"Profile_UTC_Time": "utc_time",
-        "Feature_Classification_Flags": "feature_classification_flags", #uint16??
         #"Layer_Top_Altitude": "cloud_top_profile",
-        #"Layer_Top_Pressure": "cloud_top_pressure" #not used in atrain-match,
         #"Layer_Base_Altitude": "cloud_base_profile",
         #"Number_Layers_Found": "number_layers_found",
-        "DEM_Surface_Elevation": "elevation",
+        #"DEM_Surface_Elevation": "elevation",
         #"IGBP_Surface_Type": "igbp",
         #"NSIDC_Surface_Type": "nsidc",
         #"Feature_Optical_Depth_532": "optical_depth",
-        #"Longitude": "longitude",
-        #"Latitude" : "latitude",
-        #"Day_Night_Flag": "day_night_flag",
-        #"Feature_Optical_Depth_Uncertainty_532": "optical_depth_uncertainty",
-        #"Single_Shot_Cloud_Cleared_Fraction": "single_shot_cloud_cleared_fraction",
-        #"Midlayer_Temperature": "cloud_mid_temperature", #currently not used in atrain_match
-        #"Lidar_Surface_Elevation": "lidar_surface_elevation",#currently not used in atrain_match 
-        #"Ice_Water_Path": "ice_water_path5km", #currently not used in atrain_match
-        #"Ice_Water_Path_Uncertainty": "ice_water_path_uncertainty5km",#currently not used in atrain_match
-        #"Horizontal_Averaging": "horizontal_averaging5km", #currently not used in atrain_match
-        #"Opacity_Flag": "opacity5km"#currently not used in atrain_match 
     }
     retv = CalipsoObject()
     if filename is not None:
@@ -908,8 +893,6 @@ def read_calipso(filename, res, ALAY=False):
             if dataset in scip_these_larger_variables_until_needed.keys():
                 continue
             name = dataset.lower()
-            if dataset in traditional_atrain_match_names.keys():
-                name = traditional_atrain_match_names[dataset]
             if dataset in atrain_match_names.keys():
                 name = atrain_match_names[dataset]
             data = h5file[dataset].value
