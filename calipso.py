@@ -878,9 +878,9 @@ def read_calipso(filename, res, ALAY=False):
         "Profile_UTC_Time": "utc_time",
         "Feature_Classification_Flags": "feature_classification_flags", #uint16??
         "Layer_Top_Altitude": "cloud_top_profile",
-        "Layer_Top_Pressure": "cloud_top_profile_pressure",
-        "Layer_Base_Altitude": "cloud_base_profile",
-        #"Number_Layers_Found": "number_of_layers_found",
+        #"Layer_Top_Pressure": "cloud_top_pressure" #not used in atrain-match,
+        #"Layer_Base_Altitude": "cloud_base_profile",
+        #"Number_Layers_Found": "number_layers_found",
         "DEM_Surface_Elevation": "elevation",
         #"IGBP_Surface_Type": "igbp",
         #"NSIDC_Surface_Type": "nsidc",
@@ -1117,12 +1117,12 @@ def add1kmTo5km(Obj1, Obj5, start_break, end_break):
                 if Obj1.number_layers_found[i*5+j] != 0:
                     for k in range(Obj1.number_layers_found[i*5+j]):
                         cloudtop_sum = cloudtop_sum + Obj1.cloud_top_profile[i,k]
-                        cloudbase_sum = cloudbase_sum + Obj1.cloud_base_profile[i,k]
+                        cloudbase_sum = cloudbase_sum + Obj1.layer_base_altitude[i,k]
                         cloud_layers = cloud_layers + 1
                         feature_array_list.append(Obj1.feature_classification_flags[i, k])
             Obj5.number_layers_found[i] = 1
             Obj5.cloud_top_profile[i, 0] = cloudtop_sum/cloud_layers
-            Obj5.cloud_base_profile[i, 0] = cloudbase_sum/cloud_layers
+            Obj5.layer_base_altitude[i, 0] = cloudbase_sum/cloud_layers
             Obj5.optical_depth[i, 0] = 1.0 #Just put it safely away from the thinnest cloud layers - the best we can do!
             # Obj5.feature_classification_flags[i, 0] = 22218 if assuming like below:
             # cloud, low quality, water phase, low quality, low broken cumulus, confident, 1 km horizontal averaging)
@@ -1152,7 +1152,7 @@ def use5km_find_detection_height_and_total_optical_thickness_faster(Obj1, Obj5, 
     Obj1.detection_height_5km = np.ones(Obj1.number_layers_found.shape)*-9                 
     for pixel in range(Obj5.utc_time.shape[0]):
         top = Obj5.cloud_top_profile[pixel, 0]
-        base = Obj5.cloud_base_profile[pixel, 0]
+        base = Obj5.layer_base_altitude[pixel, 0]
         opt_th = Obj5.optical_depth[pixel, 0]        
         if base==-9999 or top==-9999 or opt_th==-9999: 
             #can not calculate detection height without data!
@@ -1172,7 +1172,7 @@ def use5km_find_detection_height_and_total_optical_thickness_faster(Obj1, Obj5, 
                 # filter top layer
                 Obj1.detection_height_5km[pixel_1km_first:pixel_1km_first+5] = base + (top-base)*(opt_th - OPTICAL_LIMIT_CLOUD_TOP)*1.0/opt_th    
         elif   Obj1.total_optical_depth_5km[pixel_1km_first]<0 <= OPTICAL_LIMIT_CLOUD_TOP:
-            bases = Obj5.cloud_base_profile[pixel, 0:10]
+            bases = Obj5.layer_base_altitude[pixel, 0:10]
             min_base = np.min(bases[bases!=-9999])
             Obj1.detection_height_5km[pixel_1km_first:pixel_1km_first+5] = min_base
         else: 
@@ -1183,7 +1183,7 @@ def use5km_find_detection_height_and_total_optical_thickness_faster(Obj1, Obj5, 
             for lay in range(Obj5.number_layers_found[pixel]): 
             #dont use layers with negative top or base or optical_thickness values
                 top = Obj5.cloud_top_profile[pixel, lay]
-                base = Obj5.cloud_base_profile[pixel, lay]
+                base = Obj5.layer_base_altitude[pixel, lay]
                 opt_th = Obj5.optical_depth[pixel, lay]    
 
                 if (top!=-9999 and base!=-9999 and opt_th!=-9999):
@@ -1289,8 +1289,8 @@ if __name__ == "__main__":
         caliop_max_height = np.maximum(caliop_max_height,
                                             calipso.cloud_top_profile[::,i] * 1000.)
         caliop_height.append(hh)
-        bb = np.where(np.greater(calipso.cloud_base_profile[::,i],-9),
-                           calipso.cloud_base_profile[::,i] * 1000.,-9)
+        bb = np.where(np.greater(calipso.layer_base_altitude[::,i],-9),
+                           calipso.layer_base_altitude[::,i] * 1000.,-9)
         caliop_base.append(bb)
 
     x = np.repeat(calipso.number_layers_found.ravel(),

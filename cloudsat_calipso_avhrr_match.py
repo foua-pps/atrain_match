@@ -1583,13 +1583,13 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     if process_mode == 'OPTICAL_DEPTH':#Remove this if-statement if you always want to do filtering!/KG
         (new_cloud_top, new_cloud_base, new_cloud_fraction, new_fcf) = \
                         CloudsatCloudOpticalDepth(caObj.calipso.cloud_top_profile, 
-                                                  caObj.calipso.cloud_base_profile, \
+                                                  caObj.calipso.layer_base_altitude, \
                                                   caObj.calipso.optical_depth, 
                                                   caObj.calipso.cloud_fraction, 
                                                   caObj.calipso.feature_classification_flags, 
                                                   min_optical_depth)
         caObj.calipso.cloud_top_profile = new_cloud_top
-        caObj.calipso.cloud_base_profile = new_cloud_base
+        caObj.calipso.layer_base_altitude = new_cloud_base
         caObj.calipso.cloud_fraction = new_cloud_fraction
         caObj.calipso.feature_classification_flags = new_fcf
 
@@ -1622,7 +1622,7 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     
     caliop_toplay_thickness = np.ones(caObj.calipso.cloud_top_profile[::,0].shape)*-9
 
-    thickness = (caObj.calipso.cloud_top_profile[::,0]-caObj.calipso.cloud_base_profile[::,0])*1000.
+    thickness = (caObj.calipso.cloud_top_profile[::,0]-caObj.calipso.layer_base_altitude[::,0])*1000.
     caliop_toplay_thickness = np.where(np.greater(caObj.calipso.cloud_top_profile[::,0],-9),thickness,caliop_toplay_thickness)
     
     caliop_height = []
@@ -1639,8 +1639,8 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
         # highest layer!!  However, arrays caliop_height and caliop_base are
         # needed later for plotting/ KG
 
-        bb = np.where(np.greater(caObj.calipso.cloud_base_profile[::,i],-9),
-                            caObj.calipso.cloud_base_profile[::,i] * 1000.,-9)
+        bb = np.where(np.greater(caObj.calipso.layer_base_altitude[::,i],-9),
+                            caObj.calipso.layer_base_altitude[::,i] * 1000.,-9)
         #if (hh>bb):
         caliop_height.append(hh)
         caliop_base.append(bb)

@@ -64,12 +64,12 @@ def check_total_optical_depth_and_warn(caObj):
             print obj.detection_height_5km[badPix] 
         print np.where(badPix)
         print obj.cloud_top_profile[0,badPix]
-        print obj.cloud_base_profile[0,badPix]
+        print obj.layer_base_altitude[0,badPix]
 
 def CalipsoOpticalDepthHeightFiltering1km(CaObj):
     new_cloud_tops = np.where(
-        CaObj.calipso.cloud_base_profile[:,0] > CaObj.calipso.detection_height_5km,
-        CaObj.calipso.cloud_base_profile[:,0]+0.1,
+        CaObj.calipso.layer_base_altitude[:,0] > CaObj.calipso.detection_height_5km,
+        CaObj.calipso.layer_base_altitude[:,0]+0.1,
         CaObj.calipso.detection_height_5km)
     clouds_to_update = np.logical_and(
         CaObj.calipso.cloud_top_profile[:,0]>CaObj.calipso.detection_height_5km,
@@ -88,22 +88,22 @@ def CalipsoOpticalDepthSetThinToClearFiltering1km(CaObj):
         CaObj.calipso.number_layers_found>0,
         isThin_clouds)
     #print set_to_clear.shape
-    for lay in xrange(CaObj.calipso.cloud_base_profile.shape[1]):
+    for lay in xrange(CaObj.calipso.layer_base_altitude.shape[1]):
         #print lay
         CaObj.calipso.cloud_top_profile[:,lay] = np.where(
             set_to_clear,
             -9999,
             CaObj.calipso.cloud_top_profile[:,lay])
-        CaObj.calipso.cloud_base_profile[:,lay] = np.where(
+        CaObj.calipso.layer_base_altitude[:,lay] = np.where(
             set_to_clear,
             -9999,
-            CaObj.calipso.cloud_base_profile[:,lay])
+            CaObj.calipso.layer_base_altitude[:,lay])
     CaObj.calipso.cloud_fraction = np.where(
         set_to_clear,
         0.5,
         CaObj.calipso.cloud_fraction)
 
-    #print CaObj.calipso.cloud_base_profile.shape      
+    #print CaObj.calipso.layer_base_altitude.shape      
     return CaObj
  
 
