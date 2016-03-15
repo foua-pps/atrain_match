@@ -208,41 +208,32 @@ class CalipsoObject(DataObject):
     def __init__(self):
         DataObject.__init__(self)                            
         self.all_arrays = {
-            'longitude': None,
-            'latitude': None,
             'avhrr_linnum': None,
             'avhrr_pixnum': None,
+            'elevation': None,
+            'longitude': None,
+            'latitude': None,
             'cloud_fraction': None,
             'layer_top_altitude': None,
-            'cloud_top_pressure': None,
             'layer_base_altitude': None,
-            'cloud_mid_temperature': None,
             'number_layers_found': None,
             'igbp_surface_type': None,
             'nsidc_surface_type': None,
             'nsidc_surface_type_texture': None,
-            'elevation': None,
             'profile_utc_time': None, 
             'sec_1970': None,
             'profile_time_tai': None,
             'feature_classification_flags': None,
             'day_night_flag': None,
             'feature_optical_depth_532': None,
-            'feature_optical_depth_uncertainty_532': None,
             'single_shot_cloud_cleared_fraction': None,
             #If a combination of 5 and 1km data are used for RESOLUTION=1
             #A vector with the corresponding optical thickness for 5km data
             # is stored also for 1km data. Because of that I put the 5km in the name
             #/2013-08-17/Nina
             'feature_optical_depth_532_top_layer5km': None,
-            'lidar_surface_elevation': None,
-            'horizontal_averaging5km': None,
-            'opacity5km': None,
-            'ice_water_path5km': None,
-            'ice_water_path_uncertainty5km': None,
             'detection_height_5km': None,
-            'total_optical_depth_5km': None,
-            'aerosol_flag': None
+            'total_optical_depth_5km': None
             }
 
 
@@ -272,49 +263,52 @@ class CalipsoAvhrrTrackObject:
 
         return self
 
+traditional_atrain_match_to_new_names ={
+    """
+    These variables belonging to calipso object now have new names.
+    They now keep their name from the calipso file.
+    Except for the varaible profile_time which is called profile_time_tai.
+    So not to forget it is tai time in it.
+    Here we remember what names they used to have to be able to 
+    reprocess old reshaped-files.
+    When reprocessing old reshaped-files,
+    which we might want to do, these are needed.
+    """
+    #"time":                      "profile_time_tai",
+    #"utc_time":                  "profile_utc_time",
+    "cloud_top_profile":          "layer_top_altitude",
+    "cloud_base_profile":         "layer_base_altitude",
+    "number_of_layers_found":     "number_layers_found",
+    "igbp":                       "igbp_surface_type",
+    "nsidc":                      "nsidc_surface_type",
+    "optical_depth":              "feature_optical_depth_532",
+    "optical_depth_top_layer5km": "feature_optical_depth_532_top_layer5km"
+    }
 
 # ----------------------------------------
-ATRAIN_REMATCHED_FORMAT_PRE_2016_03=False
 def readCaliopAvhrrMatchObj(filename):
-    import h5py #@UnresolvedImport
-    
-    retv = CalipsoAvhrrTrackObject()
-    
+    import h5py #@UnresolvedImport            
+    retv = CalipsoAvhrrTrackObject()    
     h5file = h5py.File(filename, 'r')
     for group, data_obj in [(h5file['/calipso'], retv.calipso),
                             (h5file['/avhrr'], retv.avhrr)]:
-        for dataset in group.keys():        
-            if dataset in data_obj.all_arrays.keys():
+        for dataset in group.keys():  
+            atrain_match_name = dataset
+            if (dataset in traditional_atrain_match_to_new_names.keys() and not
+                dataset in data_obj.all_arrays.keys()):
+                atrain_match_name = traditional_atrain_match_to_new_names[dataset]   
+
+            if atrain_match_name in data_obj.all_arrays.keys():
                 the_data = group[dataset].value
-                if dataset in ['segment_nwp_geoheight',
-                               'segment_nwp_moist',
-                               'segment_nwp_pressure',
-                               'segment_nwp_temp']:
-                    pass
-                    #these parameters where never transposed-
-                elif the_data.ndim==2:
-                    my_shape = the_data.shape
-                    # Check for old-format transposed data and transpose it back
-                    if my_shape[0]<11 and my_shape[1]>10:
-                        #The data transposed had less than 11 layers.
-                        the_data = the_data.transpose()
-                        print "WARNING transposing", dataset
-                    elif my_shape[0]<11 and my_shape[1]<11:
-                        #We have fewer than 11 matched pixels in a file.
-                        #As default assume new format.
-                        #Set ATRAIN_REMATCHED_FORMAT_PRE_2016_03=True
-                        #If having problem with old reshaped files.
-                        print ("WARNING make sure" 
-                               "ATRAIN_REMATCHED_FORMAT_PRE_2016_03"
-                               "is properly set")
-                        if ATRAIN_REMATCHED_FORMAT_PRE_2016_03:
-                            the_data = the_data.transpose()
-                data_obj.all_arrays[dataset] = the_data
-
+                #Traditionally the 2D datasets were transposed.
+                #When processing finding old-reshaped-files transpose these back
+                #to original orientation
+                if (the_data.ndim==2 and 
+                    dataset in traditional_atrain_match_to_new_names.keys()):
+                    the_data = the_data.transpose()
+                data_obj.all_arrays[atrain_match_name] = the_data
     retv.diff_sec_1970 = h5file['diff_sec_1970'].value
-
     h5file.close()
-
     retv.make_nsidc_surface_type_texture()
     return retv
 

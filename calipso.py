@@ -872,18 +872,8 @@ def read_calipso(filename, res, ALAY=False):
         "Cirrus_Shape_Parameter_Uncertainty" : True
         }
     atrain_match_names = {
+        #Add "_tai" to the profile_time name to not forget it is tai time
         "Profile_Time": "profile_time_tai"}
-    traditional_atrain_match_names = {
-        #"Profile_Time": "time", "time_tai"
-        #"Profile_UTC_Time": "utc_time",
-        #"Layer_Top_Altitude": "cloud_top_profile",
-        #"Layer_Base_Altitude": "cloud_base_profile",
-        #"Number_Layers_Found": "number_layers_found",
-        #"DEM_Surface_Elevation": "elevation",
-        #"IGBP_Surface_Type": "igbp",
-        #"NSIDC_Surface_Type": "nsidc",
-        #"Feature_Optical_Depth_532": "optical_depth",
-    }
     retv = CalipsoObject()
     if filename is not None:
         h5file = h5py.File(filename, 'r')
