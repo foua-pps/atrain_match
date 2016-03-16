@@ -680,7 +680,7 @@ def get_calipso_matchups(calipso_files, values,
                          avhrrGeoObj, avhrrObj, ctype, ctth, 
                          nwp_obj, avhrrAngObj, options, cppCph=None, 
                          nwp_segments=None, cafiles1km=None, cafiles5km=None, 
-                         cafiles5km_aero=None):
+                         cafiles5km_aerosol=None):
     """
     Read Calipso data and match with the given PPS data.
     """
@@ -697,9 +697,9 @@ def get_calipso_matchups(calipso_files, values,
     if cafiles5km != None:
         cafiles5km = discardCalipsoFilesOutsideTimeRange(
             cafiles5km, avhrrGeoObj, values, res=5)
-    if cafiles5km_aero!=None:
-        cafiles5km_aero = discardCalipsoFilesOutsideTimeRange(
-            cafiles5km_aero, avhrrGeoObj, values, res=5, ALAY=True)
+    if cafiles5km_aerosol!=None:
+        cafiles5km_aerosol = discardCalipsoFilesOutsideTimeRange(
+            cafiles5km_aerosol, avhrrGeoObj, values, res=5, ALAY=True)
         
     calipso  = reshapeCalipso(calipso_files)
     #find time breakpoints, but don't cut the data yet ..
@@ -738,13 +738,13 @@ def get_calipso_matchups(calipso_files, values,
             calipso = total_and_top_layer_optical_depth_5km(calipso, resolution=5)
 
     #aerosol-data
-    calipso_aero = None
-    if cafiles5km_aero!=None:
-        calipso5km_aero = reshapeCalipso(cafiles5km_aero, res=5, ALAY=True)
+    calipso_aerosol = None
+    if cafiles5km_aerosol!=None:
+        calipso5km_aerosol = reshapeCalipso(cafiles5km_aerosol, res=5, ALAY=True)
         if RESOLUTION == 1:
-            calipso_aerosol = adjust5kmTo1kmresolution(calipso5km_aero)
+            calipso_aerosol = adjust5kmTo1kmresolution(calipso5km_aerosol)
         elif RESOLUTION == 5:
-            calipso_aerosol = calipso5km_aero
+            calipso_aerosol = calipso5km_aerosol
         calipso_aerosol = time_reshape_calipso(calipso_aerosol,  
                                                start_break=startBreak, 
                                                end_break=endBreak)
@@ -1193,11 +1193,11 @@ def get_matchups_from_data(cross, config_options):
             else:
                 calipso5km = None
 
-        calipso5km_aero=None
+        calipso5km_aerosol=None
         if config.MATCH_AEROSOL_CALIPSO:
-            calipso5km_aero=[]
+            calipso5km_aerosol=[]
             for cfile in calipso_files:
-                file5km_aero = cfile.replace('/CLAY/', '/ALAY/').\
+                file5km_aerosol = cfile.replace('/CLAY/', '/ALAY/').\
                                replace('CLay', 'ALay').\
                                replace('/1km/', '/5km/').\
                                replace('01km', '05km').\
@@ -1207,15 +1207,15 @@ def get_matchups_from_data(cross, config_options):
                                replace('-Prov-V3-01.', '*').\
                                replace('-Prov-V3-02.', '*').\
                                replace('-Prov-V3-30.', '*')
-                files_found_aero = glob.glob(file5km_aero)
-                if len(files_found_aero)==0:
+                files_found_aerosol = glob.glob(file5km_aerosol)
+                if len(files_found_aerosol)==0:
                     #didn't find h5 file, might be hdf file instead
-                    file5km_aero = file1km.replace('.h5','.hdf')
-                    files_found_aero = glob.glob(file5km_aero)
-                if len(files_found_aero)>0: 
-                        calipso5km_aero.append(files_found_aero[0])                   
-            calipso5km_aero = sorted(require_h5(calipso5km_aero))
-            print "found these aerosol files", calipso5km_aero
+                    file5km_aerosol = file1km.replace('.h5','.hdf')
+                    files_found_aerosol = glob.glob(file5km_aerosol)
+                if len(files_found_aerosol)>0: 
+                        calipso5km_aerosol.append(files_found_aerosol[0])                   
+            calipso5km_aerosol = sorted(require_h5(calipso5km_aerosol))
+            print "found these aerosol files", calipso5km_aerosol
                 
                 
         write_log("INFO", "Read CALIPSO data")        
@@ -1225,7 +1225,7 @@ def get_matchups_from_data(cross, config_options):
                                                         ctth, nwp_obj, avhrrAngObj, 
                                                         config_options, cppCph,
                                                         nwp_segment,
-                                                        calipso1km, calipso5km, calipso5km_aero)
+                                                        calipso1km, calipso5km, calipso5km_aerosol)
 
     else:
         write_log("INFO", "NO CALIPSO File, Continue")
