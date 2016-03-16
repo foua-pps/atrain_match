@@ -766,7 +766,8 @@ def match_calipso_avhrr(values,
                                     cap_on_avhrr, avhrrCph=cppCph, 
                                     nwp_segments=nwp_segments)
 
-    retv.calipso_aerosol = calipso_track_from_matched(retv.calipso_aerosol, calipsoObjAerosol, idx_match)
+    if calipsoObjAerosol is not None:
+        retv.calipso_aerosol = calipso_track_from_matched(retv.calipso_aerosol, calipsoObjAerosol, idx_match)
 
     # -------------------------------------------------------------------------    
     write_log('INFO', "AVHRR-PPS Cloud Type,latitude: shapes = ",
