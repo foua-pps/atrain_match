@@ -1023,12 +1023,19 @@ def add5kmVariablesTo1kmresolution(calipso1km, calipso5km):
                            "column_optical_depth_aerosols_uncertainty_532",
                            "column_optical_depth_cloud_532",
                            "column_optical_depth_cloud_uncertainty_532",
+                           "feature_optical_depth_532_top_layer_5km",
+                           "total_optical_depth_5km"
                            #"feature_optical_depth_532",
                            #"feature_optical_depth_uncertainty_532"
                        ]:                
         data = getattr(calipso5km, variable_5km)
         new_data = np.repeat(data, 5, axis=0)    
-        setattr(calipso1km, variable_5km +"_5km", new_data)             
+        setattr(calipso1km, variable_5km +"_5km", new_data)      
+    for variable_5km  in ["feature_optical_depth_532_top_layer_5km",
+                          "total_optical_depth_5km"]:                
+        data = getattr(calipso5km, variable_5km)
+        new_data = np.repeat(data, 5, axis=0)    
+        setattr(calipso1km, variable_5km, new_data)        
     return calipso1km 
 
 def add1kmTo5km(Obj1, Obj5, start_break, end_break):
@@ -1121,7 +1128,7 @@ def add1kmTo5km(Obj1, Obj5, start_break, end_break):
     return retv
     
 
-def use5km_find_detection_height_and_total_optical_thickness_faster(Obj1, Obj5, start_break, end_break):
+def detection_height_from_5km_data(Obj1, Obj5, start_break, end_break):
     retv = CalipsoObject()
     if (Obj5.profile_utc_time[:,1] == Obj1.profile_utc_time[2::5]).sum() != Obj5.profile_utc_time.shape[0]:
         write_log('WARNING', "length mismatch")
@@ -1147,7 +1154,8 @@ def use5km_find_detection_height_and_total_optical_thickness_faster(Obj1, Obj5, 
                 Obj1.detection_height_5km[pixel_1km_first:pixel_1km_first+5] = base
             else:     
                 # filter top layer
-                Obj1.detection_height_5km[pixel_1km_first:pixel_1km_first+5] = base + (top-base)*(opt_th - OPTICAL_LIMIT_CLOUD_TOP)*1.0/opt_th    
+                Obj1.detection_height_5km[pixel_1km_first:pixel_1km_first+5] = (
+                    base + (top-base)*(opt_th - OPTICAL_LIMIT_CLOUD_TOP)*1.0/opt_th)    
         elif   Obj1.total_optical_depth_5km[pixel_1km_first]<0 <= OPTICAL_LIMIT_CLOUD_TOP:
             bases = Obj5.layer_base_altitude[pixel, 0:10]
             min_base = np.min(bases[bases!=-9999])
@@ -1179,7 +1187,8 @@ def use5km_find_detection_height_and_total_optical_thickness_faster(Obj1, Obj5, 
                                 base <= height_profile+0.01))
                         write_log('INFO',"Cloud top %.2f base: %.2f "%(top, base))
                         write_log('INFO'," Using height_profile %2.f %2.f"%(
-                                np.min(height_profile[cloud_at_these_height_index]),np.max(height_profile[cloud_at_these_height_index])))
+                                np.min(height_profile[cloud_at_these_height_index]),
+                            np.max(height_profile[cloud_at_these_height_index])))
                         eye_this_cloud = np.where(cloud_at_these_height_index ,  1, 0)
                         number_of_cloud_boxes = sum(eye_this_cloud)         
                     if number_of_cloud_boxes == 0:

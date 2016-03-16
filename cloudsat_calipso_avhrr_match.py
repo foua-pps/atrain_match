@@ -96,7 +96,7 @@ from calipso import (reshapeCalipso,
 from matchobject_io import (writeCaliopAvhrrMatchObj, 
                             readCaliopAvhrrMatchObj,
                             DataObject)
-from calipso import  (use5km_find_detection_height_and_total_optical_thickness_faster, 
+from calipso import  (detection_height_from_5km_data,
                       add1kmTo5km,
                       add5kmVariablesTo1kmresolution,
                       adjust5kmTo1kmresolution)
@@ -650,28 +650,28 @@ def get_cloudsat_matchups(cloudsat_files, cloudtype_file, avhrrGeoObj, avhrrObj,
 
     return cl_matchup, (cl_min_diff, cl_max_diff)
 
-def get_total_optical_depth_and_optical_depth_top_layer_from_5km_data(calipso, calipso5km=None, resolution=5):
+def total_and_top_layer_optical_depth_5km(calipso, resolution=5):
     write_log('INFO',"Find total optical depth from 5km data")
-    if calipso5km is None and resolution == 5:
-        calipso5km = calipso
-    calipso.feature_optical_depth_532_top_layer_5km = -9.0 + 0*calipso.number_layers_found.ravel()
-    calipso.total_optical_depth_5km = -9.0 + 0*calipso.number_layers_found.ravel()
+    optical_depth_in = calipso.feature_optical_depth_532
+    o_depth_top_layer = -9.0 + 0*calipso.number_layers_found.ravel()
+    total_o_depth = -9.0 + 0*calipso.number_layers_found.ravel()
     if resolution==5:
-        pixels = np.logical_and(calipso5km.number_layers_found.ravel()>0,
-                                calipso5km.feature_optical_depth_532[:,0].ravel()>=0)   
-        calipso.feature_optical_depth_532_top_layer_5km[pixels] = calipso5km.feature_optical_depth_532[pixels, 0]
-        calipso.total_optical_depth_5km[pixels] =  calipso5km.feature_optical_depth_532[pixels, 0]       
-        for lay in range(1,np.max(calipso5km.number_layers_found[pixels]),1):  
-            pixels = np.logical_and(pixels,calipso5km.feature_optical_depth_532[:, lay]>=0)
-            calipso.total_optical_depth_5km[pixels] +=  calipso5km.feature_optical_depth_532[pixels, lay]
+        pixels = np.logical_and(
+            calipso.number_layers_found.ravel()>0,
+            optical_depth_in[:,0].ravel() >= 0)   
+        o_depth_top_layer[pixels] = optical_depth_in[pixels, 0]
+        total_o_depth[pixels] =  optical_depth_in[pixels, 0]       
+        for lay in range(1, np.max(calipso.number_layers_found[pixels]), 1):  
+            pixels = np.logical_and(
+                pixels, 
+                optical_depth_in[:, lay]>=0)
+            total_o_depth[pixels] +=  optical_depth_in[pixels, lay]
     else:
-        for pixel in range(calipso5km.profile_utc_time.shape[0]): 
-            if calipso5km.number_layers_found[pixel]>0 and calipso5km.feature_optical_depth_532[pixel, 0]>=0:
-                calipso.feature_optical_depth_532_top_layer_5km[pixel*5:pixel*5+5] = calipso5km.feature_optical_depth_532[pixel, 0] 
-                calipso.total_optical_depth_5km[pixel*5:pixel*5+5] =  calipso5km.feature_optical_depth_532[pixel, 0]
-                for lay in range(1,calipso5km.number_layers_found[pixel],1):  
-                    if calipso5km.feature_optical_depth_532[pixel, lay]>=0:
-                        calipso.total_optical_depth_5km[pixel*5:pixel*5+5] +=  calipso5km.feature_optical_depth_532[pixel, lay]  
+        print "ERROR this fuction is only for 5km data!"
+        print "These features can then added to 1km data set"
+    calipso.feature_optical_depth_532_top_layer_5km = o_depth_top_layer
+    calipso.total_optical_depth_5km = total_o_depth                   
+  
     return calipso 
 
  
@@ -710,19 +710,19 @@ def get_calipso_matchups(calipso_files, values,
         calipso5km = calipso
         #data are also time reshaped in this function (add1km..)
         calipso = add1kmTo5km(calipso1km, calipso5km, startBreak, endBreak) 
-        calipso = get_total_optical_depth_and_optical_depth_top_layer_from_5km_data(
-            calipso, resolution=5)
+        calipso = total_and_top_layer_optical_depth_5km(calipso, resolution=5)
+
     elif cafiles5km !=None:
         #RESOLUTION 1km also have 5km data
         calipso1km = calipso
         calipso5km = reshapeCalipso(cafiles5km, res=5)
+        calipso5km = total_and_top_layer_optical_depth_5km(calipso5km, resolution=5)
         calipso1km = add5kmVariablesTo1kmresolution(calipso1km, calipso5km)
-        calipso1km = get_total_optical_depth_and_optical_depth_top_layer_from_5km_data(
-            calipso1km, calipso5km=calipso5km, resolution=1)
+        print calipso1km.total_optical_depth_5km
         if USE_5KM_FILES_TO_FILTER_CALIPSO_DATA:
             write_log('INFO',"Find detection height using 5km data")
             #data are also time reshaped in this function use5km ...
-            calipso = use5km_find_detection_height_and_total_optical_thickness_faster(
+            calipso = detection_height_from_5km_data(
                 calipso1km, 
                 calipso5km, 
                 startBreak, 
@@ -736,8 +736,7 @@ def get_calipso_matchups(calipso_files, values,
                                        start_break=startBreak, 
                                        end_break=endBreak)
         if RESOLUTION == 5:
-            calipso = get_total_optical_depth_and_optical_depth_top_layer_from_5km_data(
-                calipso, resolution=RESOLUTION)
+            calipso = total_and_top_layer_optical_depth_5km(calipso, resolution=5)
     if cafiles5km_aero!=None:
         calipso5km_aero = reshapeCalipso(cafiles5km_aero, res=5, ALAY=True)
         if RESOLUTION == 1:
