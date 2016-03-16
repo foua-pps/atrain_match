@@ -67,6 +67,7 @@ def check_total_optical_depth_and_warn(caObj):
         print obj.layer_base_altitude[0,badPix]
 
 def CalipsoOpticalDepthHeightFiltering1km(CaObj):
+    #Should all layers be updated???
     new_cloud_tops = np.where(
         CaObj.calipso.layer_base_altitude[:,0] > CaObj.calipso.detection_height_5km,
         CaObj.calipso.layer_base_altitude[:,0]+0.1,
