@@ -629,7 +629,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
 
     return obt
 
-def calipso_track_from_matched(retv, calipso, idx_match):
+def calipso_track_from_matched(retv_calipso, calipso, idx_match):
     # Calipso line,pixel inside AVHRR swath:
     for arnameca, valueca in calipso.all_arrays.items(): 
         if valueca != None:
@@ -639,17 +639,18 @@ def calipso_track_from_matched(retv, calipso, idx_match):
                 if len(shape_of_data)==1 or shape_of_data[1]==1:
                     #traditionally atrain_match expect arrays to be of chspe (n,) not (n,1)
                     #This is what repeat returns so let it to as before:
-                    retv.calipso.all_arrays[arnameca] = np.repeat(np.array(the_values.ravel()),1)
+                    retv_calipso.all_arrays[arnameca] = np.repeat(np.array(the_values.ravel()),1)
                 else:
-                    retv.calipso.all_arrays[arnameca] = the_values
+                    retv_calipso.all_arrays[arnameca] = the_values
             else:
-                retv.calipso.all_arrays[arnameca] = valueca
-    return retv
+                retv_calipso.all_arrays[arnameca] = valueca
+    return retv_calipso
     
 
 # -----------------------------------------------------------------
 def match_calipso_avhrr(values, 
-                        calipsoObj, imagerGeoObj, imagerObj, 
+                        calipsoObj, calipsoObjAerosol, 
+                        imagerGeoObj, imagerObj, 
                         ctype, ctth, cppCph, nwp_obj,
                         avhrrAngObj, nwp_segments, options, res=resolution):
 
@@ -715,7 +716,7 @@ def match_calipso_avhrr(values,
     idx_match = elements_within_range(timeCalipso, avhrr_lines_sec_1970, sec_timeThr) 
     if idx_match.sum() == 0:
         raise MatchupError("No matches in region within time threshold %d s." % sec_timeThr)
-    retv = calipso_track_from_matched(retv, calipsoObj, idx_match)
+    retv.calipso = calipso_track_from_matched(retv.calipso, calipsoObj, idx_match)
     cal_on_avhrr = np.repeat(cal, idx_match)
     cap_on_avhrr = np.repeat(cap, idx_match)
     retv.calipso.avhrr_linnum = cal_on_avhrr.astype('i')
@@ -764,6 +765,9 @@ def match_calipso_avhrr(values,
                                     nwp_obj, ctth, ctype, cal_on_avhrr, 
                                     cap_on_avhrr, avhrrCph=cppCph, 
                                     nwp_segments=nwp_segments)
+
+    retv.calipso_aerosol = calipso_track_from_matched(retv.calipso_aerosol, calipsoObjAerosol, idx_match)
+
     # -------------------------------------------------------------------------    
     write_log('INFO', "AVHRR-PPS Cloud Type,latitude: shapes = ",
           retv.avhrr.cloudtype.shape,retv.avhrr.latitude.shape)
@@ -1023,8 +1027,6 @@ def add5kmVariablesTo1kmresolution(calipso1km, calipso5km):
                            "column_optical_depth_aerosols_uncertainty_532",
                            "column_optical_depth_cloud_532",
                            "column_optical_depth_cloud_uncertainty_532",
-                           "feature_optical_depth_532_top_layer_5km",
-                           "total_optical_depth_5km"
                            #"feature_optical_depth_532",
                            #"feature_optical_depth_uncertainty_532"
                        ]:                

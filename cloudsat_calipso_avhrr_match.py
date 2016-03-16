@@ -718,7 +718,6 @@ def get_calipso_matchups(calipso_files, values,
         calipso5km = reshapeCalipso(cafiles5km, res=5)
         calipso5km = total_and_top_layer_optical_depth_5km(calipso5km, resolution=5)
         calipso1km = add5kmVariablesTo1kmresolution(calipso1km, calipso5km)
-        print calipso1km.total_optical_depth_5km
         if USE_5KM_FILES_TO_FILTER_CALIPSO_DATA:
             write_log('INFO',"Find detection height using 5km data")
             #data are also time reshaped in this function use5km ...
@@ -737,21 +736,24 @@ def get_calipso_matchups(calipso_files, values,
                                        end_break=endBreak)
         if RESOLUTION == 5:
             calipso = total_and_top_layer_optical_depth_5km(calipso, resolution=5)
+
+    #aerosol-data
+    calipso_aero = None
     if cafiles5km_aero!=None:
         calipso5km_aero = reshapeCalipso(cafiles5km_aero, res=5, ALAY=True)
         if RESOLUTION == 1:
-            calipso5km_aero = adjust5kmTo1kmresolution(calipso5km_aero)
-        calipso5km_aero = time_reshape_calipso(calipso5km_aero,  
+            calipso_aerosol = adjust5kmTo1kmresolution(calipso5km_aero)
+        elif RESOLUTION == 5:
+            calipso_aerosol = calipso5km_aero
+        calipso_aerosol = time_reshape_calipso(calipso_aerosol,  
                                                start_break=startBreak, 
                                                end_break=endBreak)
-        #for now insert aerosol flag into calipso_cloud object
-        calipso.aerosol_flag = calipso5km_aero.feature_classification_flags[::]
     # free some memory    
     calipso1km = None
     calipso5km = None
         
     write_log('INFO',"Matching with avhrr")
-    tup = match_calipso_avhrr(values, calipso,
+    tup = match_calipso_avhrr(values, calipso, calipso_aerosol,
                               avhrrGeoObj, avhrrObj, ctype,
                               ctth, cppCph, nwp_obj, avhrrAngObj, 
                               nwp_segments, options)

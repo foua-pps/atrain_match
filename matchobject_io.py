@@ -242,6 +242,7 @@ class CalipsoAvhrrTrackObject:
     def __init__(self):
         self.avhrr = ppsAvhrrObject()
         self.calipso = CalipsoObject()
+        self.calipso_aerosol = CalipsoObject()
         self.diff_sec_1970 = None
 
     def make_nsidc_surface_type_texture(self, kernel_sz = 51):
@@ -254,6 +255,7 @@ class CalipsoAvhrrTrackObject:
         """Concatenating two objects together"""
         self.avhrr = self.avhrr + other.avhrr
         self.calipso = self.calipso + other.calipso
+        self.calipso_aerosol = self.calipso_aerosol + other.calipso_aerosol
         try:
             self.diff_sec_1970 = np.concatenate([self.diff_sec_1970,
                                                  other.diff_sec_1970])
@@ -344,6 +346,7 @@ def writeCaliopAvhrrMatchObj(filename, ca_obj):
     """
     from common import write_match_objects
     groups = {'calipso': ca_obj.calipso.all_arrays,
+              'calipso_aerosol': ca_obj.calipso_aerosol.all_arrays,
               'avhrr': ca_obj.avhrr.all_arrays}
     write_match_objects(filename, ca_obj.diff_sec_1970, groups)    
 
