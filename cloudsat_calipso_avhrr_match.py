@@ -360,10 +360,12 @@ def get_time_list_and_cross_time(cross):
         cross_satellite = cross.satellite1.lower()
         cross_time = cross.time1   
     ddt = timedelta(seconds=config.SAT_ORBIT_DURATION + config.sec_timeThr)
+    ddt2 = ddt
     if ALWAYS_USE_AVHRR_ORBIT_THAT_STARTS_BEFORE_CROSS:
         ddt2=timedelta(seconds=0)
-    else:
-        ddt2=ddt
+    if config.USE_ORBITS_THAT_STARTS_EXACTLY_AT_CROSS:
+        ddt=timedelta(seconds=0)
+        ddt2=timedelta(seconds=0)
     time_low = cross_time - ddt
     time_high = cross_time + ddt2
     write_log("INFO", "Searching for avhrr/viirs file with start time  between" 

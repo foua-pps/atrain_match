@@ -15,6 +15,7 @@ through a set of SNO matchups.
 
 from pps_error_messages import write_log
 import config
+from common import InputError
 #print "config.SAT_DIR:", config.SAT_DIR
 #print "config.CALIPSO_DIR:", config.CALIPSO_DIR
 
@@ -149,7 +150,7 @@ def main(args=None):
     if options.debug:
         import logging
         logging.getLogger().setLevel(logging.DEBUG)
-    
+
     matchups = []
     if options.pps_okay_scene:
         # Simulate crosses from PPS scenes
@@ -159,6 +160,11 @@ def main(args=None):
         satname, time, orbit = parse_scene(scene) #@UnusedVariable
         matchups.append(Cross(satname, '', time, time, -999, -999))
     elif options.sno_file is not None:
+        if config.USE_ORBITS_THAT_STARTS_EXACTLY_AT_CROSS:
+            print config.USE_ORBITS_THAT_STARTS_EXACTLY_AT_CROSS
+            raise InputError(
+                " Expected " +
+                "USE_ORBITS_THAT_STARTS_EXACTLY_AT_CROSS=False (config.py) ")
         sno_output_file = options.sno_file
         found_matchups = find_crosses.parse_crosses_file(sno_output_file)
         if len(found_matchups) == 0:
