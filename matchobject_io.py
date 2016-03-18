@@ -294,60 +294,83 @@ traditional_atrain_match_to_new_names ={
     "optical_depth":              "feature_optical_depth_532",
     "optical_depth_top_layer5km": "feature_optical_depth_532_top_layer_5km"
     }
-
-# ----------------------------------------
-def readCaliopAvhrrMatchObj(filename):
-    ATRAIN_REMATCHED_FORMAT_PRE_2016_03 = False
-    import h5py          
-    retv = CalipsoAvhrrTrackObject()    
-    h5file = h5py.File(filename, 'r')
-    if "cloud_top_profile" in h5file['/calipso'].keys():
-        print "OLD FORMAT"
-        ATRAIN_REMATCHED_FORMAT_PRE_2016_03 = True
+  
+        
+def readCaliopAvhrrMatchObjOldFormat(h5file, retv):
+    print "OLD FORMAT"
     for group, data_obj in [(h5file['/calipso'], retv.calipso),
                             (h5file['/avhrr'], retv.avhrr)]:
         for dataset in group.keys():  
             atrain_match_name = dataset
-            if (dataset in traditional_atrain_match_to_new_names.keys()):# and not
-#                dataset in data_obj.all_arrays.keys()):
-                atrain_match_name = traditional_atrain_match_to_new_names[dataset]   
+            if (dataset in traditional_atrain_match_to_new_names.keys()):
+                atrain_match_name = traditional_atrain_match_to_new_names[dataset]  
             if atrain_match_name in data_obj.all_arrays.keys():
                 the_data = group[dataset].value
-                #Traditionally the calipso 2D datasets were transposed.
-                #When processing old-reshaped-files transpose these back
-                #to original orientation
-                if (the_data.ndim==2 and  
-                    ATRAIN_REMATCHED_FORMAT_PRE_2016_03):
-                    if dataset in ["cloud_top_profile",
-                                   "cloud_base_profile",
-                                   "cloud_base_profile_pressure",
-                                   #"cloud_mid_temperature",
-                                   #"horizontal_averaging5km",
-                                   #"ice_water_path5km",
-                                   #"ice_water_path_uncertainty5km",
-                                   #"opacity5km",
-                                   #"optical_depth_uncertainty",
-                                   "optical_depth",
-                                   "single_shot_cloud_cleared_fraction",
-                                   "lidar_surface_elevation",
-                                   "feature_classification_flags"]:
-                        the_data = the_data.transpose()    
+                if dataset in ["cloud_top_profile",
+                               "cloud_base_profile",
+                               "cloud_base_profile_pressure",
+                               #"cloud_mid_temperature",
+                               #"horizontal_averaging5km",
+                               #"ice_water_path5km",
+                               #"ice_water_path_uncertainty5km",
+                               #"opacity5km",
+                               #"optical_depth_uncertainty",
+                               "optical_depth",
+                               "single_shot_cloud_cleared_fraction",
+                               "lidar_surface_elevation",
+                               "feature_classification_flags"]:
+                    the_data = the_data.transpose()
                 data_obj.all_arrays[atrain_match_name] = the_data
+    return retv
+
+def readCaliopAvhrrMatchObjNewFormat(h5file, retv):
+    h5_groups = []
+    data_objects = []
+    if 'calipso' in h5file.keys():
+        h5_groups.append(h5file['/calipso'])
+        data_objects.append(retv.calipso)
+    if 'calipso_aerosol' in h5file.keys():
+        h5_groups.append(h5file['/calipso_aerosol'])
+        data_objects.append(retv.calipso_aerosol)
+    if 'pps' in h5file.keys():
+        h5_groups.append(h5file['/pps'])
+        data_objects.append(retv.avhrr)
+    if 'cci' in h5file.keys():
+        h5_groups.append(h5file['/cci'])
+        data_objects.append(retv.avhrr)
+
+    for group, data_obj in zip(h5_groups, data_objects):
+        for dataset in group.keys():  
+            atrain_match_name = dataset
+            if atrain_match_name in data_obj.all_arrays.keys():
+                data_obj.all_arrays[atrain_match_name] = group[dataset].value
+    return retv            
+# ----------------------------------------
+
+def readCaliopAvhrrMatchObj(filename):
+    import h5py          
+    retv = CalipsoAvhrrTrackObject()    
+    h5file = h5py.File(filename, 'r')
+    if "cloud_top_profile" in h5file['/calipso'].keys():
+        retv = readCaliopAvhrrMatchObjOldFormat(h5file, retv)
+        print "OLD FORMAT"
+    else:
+        retv = readCaliopAvhrrMatchObjNewFormat(h5file, retv)
     retv.diff_sec_1970 = h5file['diff_sec_1970'].value
     h5file.close()
     retv.make_nsidc_surface_type_texture()
     return retv
 
 # ----------------------------------------
-def writeCaliopAvhrrMatchObj(filename, ca_obj):
+def writeCaliopAvhrrMatchObj(filename, ca_obj, avhrr_obj_name = 'pps'):
     """
     Write *ca_obj* to *filename*.
     
     """
-    from common import write_match_objects
+    from common import write_match_objects    
     groups = {'calipso': ca_obj.calipso.all_arrays,
               'calipso_aerosol': ca_obj.calipso_aerosol.all_arrays,
-              'avhrr': ca_obj.avhrr.all_arrays}
+              avhrr_obj_name: ca_obj.avhrr.all_arrays}
     write_match_objects(filename, ca_obj.diff_sec_1970, groups)    
 
     status = 1

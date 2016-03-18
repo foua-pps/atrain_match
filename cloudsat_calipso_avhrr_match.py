@@ -1281,7 +1281,11 @@ def get_matchups_from_data(cross, config_options):
         ca_time_diff = (NaN, NaN)
     else:
         ca_match_file = rematched_file_base.replace('atrain_datatype', 'caliop')
-        writeCaliopAvhrrMatchObj(ca_match_file, ca_matchup) 
+        avhrr_obj_name = 'pps'
+        if config.CCI_CLOUD_VALIDATION:
+            avhrr_obj_name = 'cci'
+        writeCaliopAvhrrMatchObj(ca_match_file, ca_matchup, 
+                                 avhrr_obj_name = avhrr_obj_name) 
     
     
     return {'cloudsat': cl_matchup, 'cloudsat_time_diff': cl_time_diff,

@@ -15,6 +15,10 @@ class TimeMatchError(Exception):
     the same as the time in the filename."""
     pass
 
+class InputError(Exception):
+    """This exception is used when the input does
+    not match what is expected."""
+    pass
 
 def elements_within_range(compare, base, _range):
     """Compare arrays *compare* and *base*, elementwise. Returns an array with
