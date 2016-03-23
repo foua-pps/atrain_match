@@ -1093,7 +1093,7 @@ def add1kmTo5km(Obj1, Obj5, start_break, end_break):
         for j in range(5):
             if Obj1.number_layers_found[i*5+j] > 0:
                 cfc = cfc + 0.2000
-        if ((Obj5.number_layers_found[i] > 0):
+        if (Obj5.number_layers_found[i] > 0):
             cfc = 1.0
         if ((cfc > 0.1) and (Obj5.number_layers_found[i] == 0)): #Add missing layer due to CALIPSO processing bug
             cloudtop_sum = 0.0
