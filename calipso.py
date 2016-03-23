@@ -1093,7 +1093,7 @@ def add1kmTo5km(Obj1, Obj5, start_break, end_break):
         for j in range(5):
             if Obj1.number_layers_found[i*5+j] > 0:
                 cfc = cfc + 0.2000
-        if ((Obj5.number_layers_found[i] > 0) and (cfc < 0.1)):
+        if ((Obj5.number_layers_found[i] > 0):
             cfc = 1.0
         if ((cfc > 0.1) and (Obj5.number_layers_found[i] == 0)): #Add missing layer due to CALIPSO processing bug
             cloudtop_sum = 0.0
@@ -1117,7 +1117,7 @@ def add1kmTo5km(Obj1, Obj5, start_break, end_break):
             Obj5.feature_classification_flags[i, 0] = np.median(feature_array[:]) # However, let's take the median value
             Obj5.single_shot_cloud_cleared_fraction[i] = 0.0 # Just put any value, we will not use it! 
             
-        if Obj5.cloud_fraction[i] >= 0.0:
+        if cfc > 0 :
             Obj5.cloud_fraction[i]=cfc
 
     # Cute the feature values
