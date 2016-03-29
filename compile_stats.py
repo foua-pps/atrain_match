@@ -226,7 +226,8 @@ if __name__ == '__main__':
                 month="%02d"%(case['month']),
                 year=case['year'],
                 mode=process_mode_dnt,
-                min_opt_depth="")    
+                min_opt_depth="")  
+            indata_dir =indata_dir.replace("%d_%H","*")
             print("-> " + indata_dir)
             results_files.extend(glob("%s/*%skm*.dat" %(indata_dir, RESOLUTION)))
         #compile and write results    
