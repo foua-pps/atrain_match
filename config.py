@@ -57,7 +57,7 @@ if USE_5KM_FILES_TO_FILTER_CALIPSO_DATA:
     ALSO_USE_5KM_FILES = True
 
 
-H4H5_EXECUTABLE = os.environ.get('H4H5_EXECUTABLE','/local_disk/opt/h4h5tools-2.2.1-linux-x86_64-static/bin/h4toh5')
+H4H5_EXECUTABLE = os.environ.get('H4H5_EXECUTABLE','h4toh5')
 #H4H5_EXECUTABLE = '/software/apps/h4h5tools/2.2.1/i1214-hdf4-4.2.8-i1214-hdf5-1.8.9-i1214/bin/h4toh5'
 PLOT_ONLY_PNG = True
 #Nina 20150831 I have never needed the files printed here:
@@ -105,7 +105,7 @@ CLOUDSAT_TYPE = 'GEOPROF'
 SAT_ORBIT_DURATION = 6*60 #Not to large
 # If to large, cloudsat_calipso_avhrr_match.py takes wrong swath
 # sometimes when swaths are close in time
-
+CALIPSO_FILE_LENGTH = 60*60 #calipso fiels are for certain shorter 60 minnutes
 #: Allowed time deviation in seconds between AVHRR and CALIPSO/CloudSat matchup
 sec_timeThr = 60*5
 
@@ -364,6 +364,18 @@ CASES =[{'satname': 'noaa18', 'year': 2009, 'month': 1},
          {'satname': 'noaa18', 'year': 2009, 'month': 10},
          {'satname': 'noaa18', 'year': 2009, 'month': 11},
          {'satname': 'noaa18', 'year': 2009, 'month': 12}]
+CASES =[{'satname': 'eos2', 'year': 2010, 'month': 1},
+         {'satname': 'eos2', 'year': 2010, 'month': 2},
+         {'satname': 'eos2', 'year': 2010, 'month': 3},
+         {'satname': 'eos2', 'year': 2010, 'month': 4},
+         {'satname': 'eos2', 'year': 2010, 'month': 5},
+         {'satname': 'eos2', 'year': 2010, 'month': 6},
+         {'satname': 'eos2', 'year': 2010, 'month': 7},
+         {'satname': 'eos2', 'year': 2010, 'month': 8},
+         {'satname': 'eos2', 'year': 2010, 'month': 9},
+         {'satname': 'eos2', 'year': 2010, 'month': 10},
+         {'satname': 'eos2', 'year': 2010, 'month': 11},
+         {'satname': 'eos2', 'year': 2010, 'month': 12}]
 
 #CASES =  CASES_npp
 #CASES = CASES_noaaa + CASES_npp

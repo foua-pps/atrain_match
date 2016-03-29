@@ -321,8 +321,10 @@ def find_calipso_files(date_time, options, values):
         calipso_files = []
     else:
         #might need to geth this in before looking for matchups
+        tdelta_before = timedelta(seconds = (config.CALIPSO_FILE_LENGTH + 
+                                             config.sec_timeThr))
         tdelta = timedelta(seconds = (config.SAT_ORBIT_DURATION + config.sec_timeThr))
-        time_window = (tdelta, tdelta)
+        time_window = (tdelta_before, tdelta)
         calipso_files = find_calipso_files_inner(date_time, time_window, options, values)
         if len(calipso_files) > 1:
             write_log("INFO", "More than one Calipso file found within time window!")
@@ -766,6 +768,7 @@ def get_calipso_matchups(calipso_files, values,
 def read_nwp(file_name, type_of_nwp):
     import epshdf #@UnresolvedImport
     if file_name is not None : # and config.CLOUDSAT_TYPE == "GEOPROF":
+        write_log("INFO", "Read file %s"%(file_name))
         nwpinst = epshdf.read_nwpdata(file_name)
         write_log("INFO", "Read NWP %s"%(type_of_nwp))
         return nwpinst.gain*nwpinst.data.astype('d') + nwpinst.intercept
@@ -1212,10 +1215,11 @@ def get_matchups_from_data(cross, config_options):
                 files_found_aerosol = glob.glob(file5km_aerosol)
                 if len(files_found_aerosol)==0:
                     #didn't find h5 file, might be hdf file instead
-                    file5km_aerosol = file1km.replace('.h5','.hdf')
+                    file5km_aerosol = file5km_aerosol.replace('.h5','.hdf')
                     files_found_aerosol = glob.glob(file5km_aerosol)
                 if len(files_found_aerosol)>0: 
-                        calipso5km_aerosol.append(files_found_aerosol[0])                   
+                        calipso5km_aerosol.append(files_found_aerosol[0]) 
+            print "found these aerosol files", calipso5km_aerosol             
             calipso5km_aerosol = sorted(require_h5(calipso5km_aerosol))
             print "found these aerosol files", calipso5km_aerosol
                 
