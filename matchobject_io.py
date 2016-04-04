@@ -215,6 +215,7 @@ class CalipsoObject(DataObject):
             'latitude': None,
             'cloud_fraction': None,
             'layer_top_altitude': None,
+            'midlayer_temperature': None,
             'layer_base_altitude': None,
             'number_layers_found': None,
             'igbp_surface_type': None,
@@ -280,12 +281,11 @@ traditional_atrain_match_to_new_names ={
     #"utc_time":                  "profile_utc_time",
     #these were never used:
     #"optical_depth_uncertainty": "feature_optical_depth_uncertainty_532",
-    #"cloud_mid_temperature: "midlayer_temperature",
     #"ice_water_path5km": "ice_water_path",
     #"ice_water_path_uncertainty5km": "ice_water_path_uncertainty",
     #"horizontal_averaging5km",: "horizontal_averaging",
     #"opacity5km: "opacity_flag",
-
+    "cloud_mid_temperature":      "midlayer_temperature",
     "cloud_top_profile":          "layer_top_altitude",
     "cloud_base_profile":         "layer_base_altitude",
     "number_of_layers_found":     "number_layers_found",
@@ -297,7 +297,7 @@ traditional_atrain_match_to_new_names ={
   
         
 def readCaliopAvhrrMatchObjOldFormat(h5file, retv):
-    print "OLD FORMAT"
+    #print "OLD FORMAT"
     for group, data_obj in [(h5file['/calipso'], retv.calipso),
                             (h5file['/avhrr'], retv.avhrr)]:
         for dataset in group.keys():  
@@ -309,7 +309,7 @@ def readCaliopAvhrrMatchObjOldFormat(h5file, retv):
                 if dataset in ["cloud_top_profile",
                                "cloud_base_profile",
                                "cloud_base_profile_pressure",
-                               #"cloud_mid_temperature",
+                               "cloud_mid_temperature",
                                #"horizontal_averaging5km",
                                #"ice_water_path5km",
                                #"ice_water_path_uncertainty5km",
@@ -353,7 +353,7 @@ def readCaliopAvhrrMatchObj(filename):
     h5file = h5py.File(filename, 'r')
     if "cloud_top_profile" in h5file['/calipso'].keys():
         retv = readCaliopAvhrrMatchObjOldFormat(h5file, retv)
-        print "OLD FORMAT"
+        #print "OLD FORMAT"
     else:
         retv = readCaliopAvhrrMatchObjNewFormat(h5file, retv)
     retv.diff_sec_1970 = h5file['diff_sec_1970'].value
