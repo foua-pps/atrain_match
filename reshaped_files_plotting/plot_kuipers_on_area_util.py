@@ -99,7 +99,7 @@ class ppsRemappedObject(DataObject):
         self.find_number_of_clouds_clear()
         ThreatScoreClear = (
             self.N_detected_clear)*1.0/( self.N_clear + self.N_undetected_clouds)
-        ThreatScoreClea = np.ma.masked_array(ThreatScoreClear, 
+        ThreatScoreClear = np.ma.masked_array(ThreatScoreClear, 
                                              mask=ThreatScoreClear==0)
         self.Threat_Score_Clear = ThreatScoreClear
     def plot_kuipers(self, PLOT_DIR="/local_disk/temp/", figure_name="figure_"):
@@ -126,22 +126,26 @@ class ppsRemappedObject(DataObject):
         img.show()
         """
 
-    def plot_hitrate(self, PLOT_DIR = "/local_disk/temp/", figure_name="figure_"):
+    def plot_hitrate(self, PLOT_DIR = "/local_disk/", figure_name="figure_"):
         pr.plot.show_quicklook( self.definition, self.Hitrate, 
                                 vmin=0, vmax=1, label="hitrate")
-        pr.plot.save_quicklook(PLOT_DIR + figure_name + 'hitrate_' + self.area_name +'.png',
+        pr.plot.save_quicklook(PLOT_DIR + figure_name + 'hitrate_' + 
+                               self.area_name +'.png',
                                self.definition, self.Hitrate, 
                                vmin=0, vmax=1, label="hitrate") 
-    def plot_threat_score(self, PLOT_DIR = "/local_disk/temp/", figure_name="figure_"):
+    def plot_threat_score(self, PLOT_DIR = "/local_disk/", 
+                          figure_name="figure_"):
         pr.plot.show_quicklook( self.definition, self.Threat_Score, 
                                 vmin=0, vmax=1, label="threat_score")
-        pr.plot.save_quicklook(PLOT_DIR + figure_name + 'threat_score_' + self.area_name +'.png',
+        pr.plot.save_quicklook(PLOT_DIR + figure_name + 'threat_score_' + 
+                               self.area_name +'.png',
                                self.definition, self.Threat_Score, 
                                vmin=0, vmax=1, label="threat_score")
-    def plot_threat_score_clear(self, PLOT_DIR = "/local_disk/temp/", figure_name="figure_"):
+    def plot_threat_score_clear(self, PLOT_DIR = "/local_disk/", figure_name="figure_"):
         pr.plot.show_quicklook( self.definition, self.Threat_Score_Clear, 
                                 vmin=0, vmax=1, label="threat_score_clear")
-        pr.plot.save_quicklook(PLOT_DIR + figure_name + 'threat_score_clear_' + self.area_name +'.png',
+        pr.plot.save_quicklook(PLOT_DIR + figure_name + 'threat_score_clear_' 
+                               + self.area_name +'.png',
                                self.definition, self.Threat_Score_Clear, 
                                vmin=0, vmax=1, label="threat_score_clear")
 
@@ -206,21 +210,27 @@ def get_some_info_from_caobj(my_obj, caObj, isGAC=True, isACPGv2012=False):
     isClearPPS = np.logical_and(caObj.avhrr.all_arrays['cloudtype']>0,
                                 caObj.avhrr.all_arrays['cloudtype']<5)
    
-    print "should be zero", np.sum(np.logical_and(caObj.calipso.all_arrays['number_layers_found']==0,
-                                                  caObj.calipso.all_arrays['layer_top_altitude'][::,0]>0))
+    print "should be zero", np.sum(np.logical_and(
+        caObj.calipso.all_arrays['number_layers_found']==0,
+        caObj.calipso.all_arrays['layer_top_altitude'][::,0]>0))
     nlay =np.where(caObj.calipso.all_arrays['number_layers_found']>0,1,0)
     meancl=ndimage.filters.uniform_filter1d(nlay*1.0, size=10)
     isCalipsoCloudy = np.logical_and(nlay > 0, meancl>0.0)
-    isCalipsoCloudy = np.logical_and(isCalipsoCloudy, 
-                                     caObj.calipso.all_arrays['total_optical_depth_5km']>2.0)
-    #isCalipsoCloudy = np.logical_and(nlay > 0, caObj.calipso.all_arrays['cloud_fraction']>0.2)
-    #isCalipsoCloudy = np.logical_and(isCalipsoCloudy, 
-    #                                 caObj.calipso.all_arrays['total_optical_depth_5km']>0.5)
+    isCalipsoCloudy = np.logical_and(
+        isCalipsoCloudy, 
+        caObj.calipso.all_arrays['total_optical_depth_5km']>2.0)
+    isCalipsoCloudy = np.logical_and(
+        nlay > 0, 
+        caObj.calipso.all_arrays['cloud_fraction']>0.2)
+    isCalipsoCloudy = np.logical_and(
+        isCalipsoCloudy, 
+        caObj.calipso.all_arrays['total_optical_depth_5km']>0.5)
 
 
     isCalipsoClear = np.logical_and(nlay == 0, meancl<0.1)
-    isCalipsoClear = np.logical_and(isCalipsoClear, 
-                                    caObj.calipso.all_arrays['total_optical_depth_5km']<0)
+    isCalipsoClear = np.logical_and(
+        isCalipsoClear, 
+        caObj.calipso.all_arrays['total_optical_depth_5km']<0)
 
 
     undetected_clouds = np.logical_and(isCalipsoCloudy, isClearPPS)

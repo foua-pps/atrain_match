@@ -12,7 +12,7 @@ from plot_kuipers_on_area_util import (PerformancePlottingObject,
                                        get_detection_stats_on_area_map_grid)
 isModis1km = False
 isNPP_v2014 = False
-isGAC_v2014_morning_sat = True
+isGAC_v2014_morning_sat = False
 isGAC_v2014 = True
 
 
@@ -50,8 +50,8 @@ elif isGAC_v2014:
 #arctic_super_5010_test
 #antarctica_test
 #'ease_nh_test'
-my_area = 'ease_nh_test'
-#my_area = 'euro_arctic_test'
+#my_area = 'ease_nh_test'
+my_area = 'euro_arctic_test'
 my_obj = PerformancePlottingObject()
 my_obj.area.set_area(area_name=my_area)
 caObj = CalipsoAvhrrTrackObject()

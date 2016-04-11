@@ -323,7 +323,7 @@ def readCaliopAvhrrMatchObjOldFormat(h5file, retv):
                 data_obj.all_arrays[atrain_match_name] = the_data
     return retv
 
-def readCaliopAvhrrMatchObjNewFormat(h5file, retv):
+def readCaliopAvhrrMatchObjNewFormat(h5file, retv, var_to_read=None):
     h5_groups = []
     data_objects = []
     if 'calipso' in h5file.keys():
@@ -343,19 +343,22 @@ def readCaliopAvhrrMatchObjNewFormat(h5file, retv):
         for dataset in group.keys():  
             atrain_match_name = dataset
             if atrain_match_name in data_obj.all_arrays.keys():
+                if var_to_read is not None:
+                  if atrain_match_name not in var_to_read:  
+                      pass
                 data_obj.all_arrays[atrain_match_name] = group[dataset].value
     return retv            
 # ----------------------------------------
 
-def readCaliopAvhrrMatchObj(filename):
+def readCaliopAvhrrMatchObj(filename, var_to_read=None):
     import h5py          
     retv = CalipsoAvhrrTrackObject()    
     h5file = h5py.File(filename, 'r')
     if "cloud_top_profile" in h5file['/calipso'].keys():
-        retv = readCaliopAvhrrMatchObjOldFormat(h5file, retv)
+        retv = readCaliopAvhrrMatchObjOldFormat(h5file, retv, var_to_read=None)
         #print "OLD FORMAT"
     else:
-        retv = readCaliopAvhrrMatchObjNewFormat(h5file, retv)
+        retv = readCaliopAvhrrMatchObjNewFormat(h5file, retv, var_to_read=None)
     retv.diff_sec_1970 = h5file['diff_sec_1970'].value
     h5file.close()
     retv.make_nsidc_surface_type_texture()
