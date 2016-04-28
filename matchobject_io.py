@@ -160,6 +160,7 @@ class ppsAvhrrObject(DataObject):
             'text_r06': None,
             'text_t11': None,
             'text_t37t12': None,
+            'text_t11t12': None,
             'text_t37': None,
             'thr_t11ts_inv': None,
             'thr_t11t37_inv': None,
@@ -180,6 +181,24 @@ class ppsAvhrrObject(DataObject):
             'emis1': None,
             'emis8': None,
             'emis9': None,
+            'warmest_t11': None,
+            'warmest_t12': None,
+            'warmest_t37': None,
+            'warmest_r09': None,
+            'warmest_r06': None,
+            'warmest_r16': None,
+            'darkest_t11': None,
+            'darkest_t12': None,
+            'darkest_t37': None,
+            'darkest_r09': None,
+            'darkest_r06': None,
+            'darkest_r16': None,
+            'coldest_t11': None,
+            'coldest_t12': None,
+            'coldest_t37': None,
+            'coldest_r09': None,
+            'coldest_r06': None,
+            'coldest_r16': None,
             #nwp data on segment resolution
             'segment_nwp_geoheight': None,
             'segment_nwp_moist': None,
@@ -249,8 +268,9 @@ class CalipsoAvhrrTrackObject:
     def make_nsidc_surface_type_texture(self, kernel_sz = 51):
         """Derive the stdv of the ice dataset"""
 
-        self.calipso.all_arrays['nsidc_surface_type_texture'] = sliding_std(
-            self.calipso.all_arrays['nsidc_surface_type'], kernel_sz)
+        if self.calipso.all_arrays['nsidc_surface_type'] is not None:
+            self.calipso.all_arrays['nsidc_surface_type_texture'] = sliding_std(
+                self.calipso.all_arrays['nsidc_surface_type'], kernel_sz)
     
     def __add__(self, other):
         """Concatenating two objects together"""
@@ -281,11 +301,14 @@ traditional_atrain_match_to_new_names ={
     #"utc_time":                  "profile_utc_time",
     #these were never used:
     #"optical_depth_uncertainty": "feature_optical_depth_uncertainty_532",
+
+    "cloud_mid_temperature": "midlayer_temperature",
     #"ice_water_path5km": "ice_water_path",
     #"ice_water_path_uncertainty5km": "ice_water_path_uncertainty",
     #"horizontal_averaging5km",: "horizontal_averaging",
     #"opacity5km: "opacity_flag",
-    "cloud_mid_temperature":      "midlayer_temperature",
+
+    "cloud_top_profile_pressure": "layer_top_pressure",
     "cloud_top_profile":          "layer_top_altitude",
     "cloud_base_profile":         "layer_base_altitude",
     "number_of_layers_found":     "number_layers_found",
