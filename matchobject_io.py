@@ -319,7 +319,7 @@ traditional_atrain_match_to_new_names ={
     }
   
         
-def readCaliopAvhrrMatchObjOldFormat(h5file, retv):
+def readCaliopAvhrrMatchObjOldFormat(h5file, retv, var_to_read=None):
     #print "OLD FORMAT"
     for group, data_obj in [(h5file['/calipso'], retv.calipso),
                             (h5file['/avhrr'], retv.avhrr)]:
