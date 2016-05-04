@@ -10,24 +10,25 @@ from matchobject_io import (readCaliopAvhrrMatchObj,
 from plot_kuipers_on_area_util import (PerformancePlottingObject,
                                        get_some_info_from_caobj,
                                        get_detection_stats_on_area_map_grid)
-isModis1km = False
+isModis1km = True
 isNPP_v2014 = False
-isGAC_v2014_morning_sat = False
+isGAC_v2014_morning_sat = True
 isGAC_v2014 = True
-method = 'KG'
+method = 'r13_extratest'
+DNT="day"
 
 onlyCirrus=False
 isACPGv2012=False
 if isModis1km:
     num_files_to_read = 24*4
     isGAC=False
-    figure_name = "figure_global_modis_14th_%s_"%(method)
+    figure_name = "figure_global_modis_14th_%s_dnt_%s_"%(method, DNT)
     ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/global_modis_14th_created20160419/"
     files = glob(ROOT_DIR + "Reshaped_Files/eos?/1km/????/??/2010??14_*/*h5")
 elif isNPP_v2014:
     num_files_to_read = 30
     isGAC=False
-    figure_name = "figure_local_npp_%s_"%(method)
+    figure_name = "figure_local_npp_%s_dnt_%s_"%(method, DNT)
     ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/sh_reshaped_patch_2014/"
     files = glob(ROOT_DIR + "Reshaped_Files/npp/1km/????/06/arc*/*h5")
 elif isGAC_v2014_morning_sat:
@@ -36,7 +37,7 @@ elif isGAC_v2014_morning_sat:
     ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/clara_a2_rerun/Reshaped_Files_CLARA_A2_final/"
     files = glob(ROOT_DIR + "noaa17/5km/20??/??/*/*h5")
     files = files + glob(ROOT_DIR + "metop*/5km/20??/??/*/*h5")
-    figure_name = "figure_morning_sat_%s_"%(method)
+    figure_name = "figure_morning_sat_%s_dnt_%s_"%(method, DNT)
     #files = glob(ROOT_DIR + "noaa17/5km/20??/1*/*/*noaa*h5")
 elif isGAC_v2014:
     num_files_to_read = 30
@@ -59,7 +60,7 @@ elif isGAC_v2014:
 #my_area = 'euro_arctic_test'
 #my_area = 'ease_world_test'
 my_obj = PerformancePlottingObject()
-my_obj.area.set_area(radius_km=75)
+my_obj.area.set_area(radius_km=200)
 caObj = CalipsoAvhrrTrackObject()
 
 num = 0
@@ -74,7 +75,7 @@ for filename in files:
         continue
     if num >num_files_to_read:
         print "Get info from some %d files!"%(num_files_to_read)
-        my_obj = get_some_info_from_caobj(my_obj, caObj, isGAC=isGAC, method=method)
+        my_obj = get_some_info_from_caobj(my_obj, caObj, isGAC=isGAC, method=method, DNT=DNT)
         my_obj = get_detection_stats_on_area_map_grid(my_obj)        
         caObj = caObj_new
         num=0
@@ -85,7 +86,7 @@ for filename in files:
 my_obj =get_some_info_from_caobj(my_obj, caObj, isGAC=isGAC, method=method)
 my_obj = get_detection_stats_on_area_map_grid(my_obj)  
 
-my_obj.area.PLOT_DIR = "/home/a001865/Documents/ATRAIN_MATCH/plots_modis/"
+my_obj.area.PLOT_DIR = "/home/a001865/Documents/ATRAIN_MATCH/plots_r13_testing/"
 my_obj.area.figure_name=figure_name
 #Calcualte kuipers
 my_obj.area.calculate_kuipers()
@@ -115,3 +116,5 @@ my_obj.area.calculate_far_cloudy()
 my_obj.area._remap_score( score='FARcloudy', vmax=0.5)
 my_obj.area.calculate_far_clear()
 my_obj.area._remap_score( score='FARclear', vmax=0.5)
+my_obj.area.calculate_increased_hitrate()
+my_obj.area._remap_score( score='increased_Hitrate', vmin=-0.05, vmax=0.05)
