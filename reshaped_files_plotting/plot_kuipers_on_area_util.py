@@ -69,21 +69,27 @@ class ppsRemappedObject(DataObject):
         self.N_clouds = self.N_detected_clouds+self.N_undetected_clouds 
         self.N = self.N_clear + self.N_clouds
 
-    def _remap_score(self, vmin=0, vmax=1.0, score='Kuipers'):
+    def _remap_score(self, vmin=0.0, vmax=1.0, 
+                     score='Kuipers', screen_out_valid=False):
         print score
         from pyresample import image, geometry
-        for area_name in ['antarctica',
-                          'npole',
-                          'ease_nh_test',
-                          'ease_sh_test',
-                          #'cea5km_test'
-                          #'euro_arctic',
-                          #'ease_world_test'
+        for area_name in [
+                'euro_arctic',
+                'antarctica',
+                'npole',
+                'ease_nh_test',
+                'ease_sh_test',
+                #'cea5km_test'
+                #'euro_arctic',
+                #'ease_world_test'
         ]:
             area_def = utils.parse_area_file(
                 'reshaped_files_plotting/region_config_test.cfg',  
                 area_name)[0]
             data = getattr(self, score)
+            data = data.copy()
+            data[np.logical_and(np.equal(data.mask,False),data>vmax)]=vmax
+            data[np.logical_and(np.equal(data.mask,False),data<vmin)]=vmin #do not wan't low ex hitrates set to nodata!
             #lons = np.ma.masked_array(self.lons, mask=data.mask)
             #lats = np.ma.masked_array(self.lats, mask=data.mask)
             lons = self.lons
@@ -91,7 +97,7 @@ class ppsRemappedObject(DataObject):
             swath_def = geometry.SwathDefinition(lons=lons, lats=lats)
             swath_con = image.ImageContainerNearest(
                 data, swath_def, 
-                radius_of_influence=self.radius_km*1000*1.5,
+                radius_of_influence=self.radius_km*1000*2.5,
                 epsilon=1.0)
             area_con = swath_con.resample(area_def)
             result = area_con.image_data
@@ -111,9 +117,9 @@ class ppsRemappedObject(DataObject):
             data = getattr(self, score)
             the_mask = data.mask
             data=np.ma.masked_invalid(data)
-            lons = lons[np.not_equal(the_mask, True)]
-            lats = lats[np.not_equal(the_mask, True)]
-            data = data[np.not_equal(the_mask, True)]
+            #lons = lons[np.not_equal(the_mask, True)]
+            #lats = lats[np.not_equal(the_mask, True)]
+            #data = data[np.not_equal(the_mask, True)]
             ind = np.argsort(lats)
             lons = lons[ind]
             lats = lats[ind]
@@ -134,7 +140,7 @@ class ppsRemappedObject(DataObject):
             lat_max = 83.0
             lon_max = 179.9
             
-            fig = plt.figure(figsize = (11,9))
+            fig = plt.figure(figsize = (16,9))
             ax = fig.add_subplot(111)
             # transform lon / lat coordinates to map projection
             plons, plats = m(*(lons, lats))        
@@ -147,9 +153,42 @@ class ppsRemappedObject(DataObject):
             x, y, z = (np.array(lons.ravel()), 
                        np.array(lats.ravel()), 
                        np.array(data.ravel()))
+            import copy; 
+            my_cmap=copy.copy(matplotlib.cm.coolwarm)
+            my_cmap_for_masked=copy.copy(matplotlib.cm.coolwarm)
+            if score in "Bias" and screen_out_valid:
+                #This screens out values between -5 and +5%
+                vmax=25
+                vmin=-25
+                my_cmap=copy.copy(matplotlib.cm.get_cmap("coolwarm", lut=100))
+                cmap_vals = my_cmap(np.arange(100)) #extractvalues as an array
+                cmap_vals[39:61] = [0.9, 0.9, 0.9, 1] #change the first value
+                my_cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
+                    "newwarmcool", cmap_vals) 
+                print my_cmap
+            if score in "RMS" and screen_out_valid:
+                # This screens out balues beteen 0 and 20%.
+                vmax=50
+                vmin=0
+                my_cmap=copy.copy(matplotlib.cm.get_cmap("coolwarm", lut=100))
+                cmap_vals = my_cmap(np.arange(100)) #extract values as an array
+                cmap_vals[0:41] = [0.9, 0.9, 0.9, 1] #change the first value
+                my_cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
+                    "newwarmcool", cmap_vals) 
+                print my_cmap
+            my_cmap_for_masked.set_over('w') #masked should be white
+            my_cmap_for_masked.set_under('k', alpha=0) #do not cover the data, set to transparent
+
+
             zi = griddata((x, y), z, (xi, yi), method='nearest')
-            im1 = m.pcolormesh(xi, yi, zi, cmap='coolwarm', 
+            remapped_mask = griddata((x, y),  
+                                     np.where(data.mask.ravel(),1.0,0.0), 
+                                     (xi, yi), method='nearest')
+
+            im1 = m.pcolormesh(xi, yi, zi, cmap=my_cmap,
                                vmin=vmin, vmax=vmax, latlon=True)
+            im2 = m.pcolormesh(xi, yi, remapped_mask, cmap=my_cmap_for_masked,
+                               vmin=0.4, vmax=0.5, latlon=True)
             #draw som lon/lat lines
             m.drawparallels(np.arange(-90.,90.,30.))
             m.drawmeridians(np.arange(-180.,180.,60.))
@@ -178,7 +217,7 @@ class ppsRemappedObject(DataObject):
                    self.N_false_clouds*self.N_undetected_clouds)/Kuipers_devider
         the_mask = np.logical_or(self.N_clear<20, self.N_clouds<20)
         the_mask = np.logical_or(the_mask, self.N_clouds < 0.01*self.N_clear)
-        the_mask = np.logical_or(the_mask, self.N_clear < 0.01*self.N_clouds)
+        the_mask = np.logical_or(the_mask, self.N_clear < 0.01*self.N_clouds)        
         Kuipers = np.ma.masked_array(Kuipers, mask=the_mask)
         self.Kuipers = Kuipers
 
@@ -259,21 +298,45 @@ class ppsRemappedObject(DataObject):
         FARcloudy = np.ma.masked_array(FARcloudy, mask=the_mask)
         self.FARcloudy = FARcloudy
     def calculate_calipso_cfc(self):
+        self.np_float_array()
+        self.find_number_of_clouds_clear()
         calipso_cfc = 100*(
             self.N_detected_clouds + self.N_undetected_clouds)*1.0/(self.N)
         the_mask = self.N<20
         calipso_cfc = np.ma.masked_array(calipso_cfc, mask=the_mask)
         self.calipso_cfc = calipso_cfc
+    def calculate_pps_cfc(self):
+        self.np_float_array()
+        self.find_number_of_clouds_clear()
+        pps_cfc = 100*(
+            self.N_detected_clouds + self.N_false_clouds)*1.0/(self.N)
+        the_mask = self.N<20
+        pps_cfc = np.ma.masked_array(pps_cfc, mask=the_mask)
+        self.pps_cfc = pps_cfc
     def calculate_bias(self):
         self.np_float_array()
-        self.calculate_calipso_cfc()
         self.find_number_of_clouds_clear()
+        self.calculate_calipso_cfc()
         Bias = 100*(
             self.N_detected_clouds + 
             self.N_false_clouds)*1.0/(self.N) - self.calipso_cfc
-        the_mask = self.N<20
+        the_mask = self.N<20 
         Bias = np.ma.masked_array(Bias, mask=the_mask)
         self.Bias = Bias
+
+    def calculate_RMS(self):
+        self.np_float_array()
+        self.calculate_calipso_cfc()
+        self.find_number_of_clouds_clear()
+        self.calculate_bias()
+        RMS = np.sqrt((self.N_false_clouds*(100.0 - 0.0 - self.Bias)**2 + 
+                       self.N_undetected_clouds*(0.0 - 100.0 -self.Bias)**2 + 
+                       self.N_detected_clear*self.Bias**2 + 
+                       self.N_detected_clouds*self.Bias**2)/(
+                   self.N))
+        the_mask = self.N<20 
+        RMS = np.ma.masked_array(RMS, mask=the_mask)
+        self.RMS = RMS
 
     def plot_kuipers(self, PLOT_DIR="/local_disk/temp/", figure_name="figure_"):
         
@@ -344,10 +407,11 @@ class PerformancePlottingObject:
     def __init__(self):
         self.match_imager_calipso = ppsMatch_Imager_CalipsoObject()
         self.area = ppsRemappedObject()
-def get_detection_stats_on_area_map_grid(my_obj, max_distance=500*1000):
+def get_detection_stats_on_area_map_grid(my_obj):
     #Start with the area and get lat and lon to calculate the stats:
-    area_def = my_obj.area.definition 
+    #area_def = my_obj.area.definition 
     lats = my_obj.area.lats[:]
+    max_distance=my_obj.area.radius_km*1000*2.5
     #print "lons shape", lons.shape
     if lats.ndim ==1:
         area_def = SwathDefinition(*(my_obj.area.lons,
@@ -356,7 +420,7 @@ def get_detection_stats_on_area_map_grid(my_obj, max_distance=500*1000):
                                        my_obj.match_imager_calipso.latitude)) 
         valid_in, valid_out, indices, distances = get_neighbour_info(
             area_def, target_def, radius_of_influence=max_distance, 
-            epsilon=1000, neighbours=1)
+            epsilon=100, neighbours=1)
         cols = get_sample_from_neighbour_info('nn', target_def.shape,
                                               np.array(xrange(0,len(lats))),
                                               valid_in, valid_out,
@@ -428,6 +492,13 @@ def get_fibonacci_spread_points_on_earth(radius_km):
     latitude = np.arcsin(temp)*180/pi
     longitude[longitude>180] = longitude[longitude>180] -360
     longitude[longitude<-180] = longitude[longitude<-180] +360
+    #latitude[latitude>90]=180 - latitude[latitude>90]
+    #latitude[latitude<-90]=-180 -latitude[latitude<-90]
+    longitude =longitude[latitude<90]
+    latitude =latitude[latitude<90]
+    longitude =longitude[latitude>-90]
+    latitude =latitude[latitude>-90]
+
     if np.isnan(np.max(latitude)):
         raise ValueError
     return longitude, latitude
@@ -444,7 +515,7 @@ def get_some_info_from_caobj(my_obj, caObj, isGAC=True, isACPGv2012=False,
     if method == 'KG' and isGAC:
         isCalipsoCloudy = np.logical_and(
             caObj.calipso.all_arrays['cloud_fraction']>0.5,
-            caObj.calipso.all_arrays['total_optical_depth_5km']>0.2)
+            caObj.calipso.all_arrays['total_optical_depth_5km']>0.15)
         isCalipsoClear = np.not_equal(isCalipsoCloudy,True)
     elif method == 'Nina' and isGAC:    
         isCalipsoCloudy = np.logical_and(
@@ -452,7 +523,7 @@ def get_some_info_from_caobj(my_obj, caObj, isGAC=True, isACPGv2012=False,
             caObj.calipso.all_arrays['cloud_fraction']>0.5)
         isCalipsoCloudy = np.logical_and(
             isCalipsoCloudy, 
-            caObj.calipso.all_arrays['total_optical_depth_5km']>0.2)
+            caObj.calipso.all_arrays['total_optical_depth_5km']>0.15)
         isCalipsoClear = np.logical_and(nlay == 0, meancl<0.01)
         isCalipsoClear = np.logical_and(
             isCalipsoClear, 
@@ -462,6 +533,9 @@ def get_some_info_from_caobj(my_obj, caObj, isGAC=True, isACPGv2012=False,
         isCalipsoClear = np.not_equal(isCalipsoCloudy, True)   
     elif method == 'Nina':
         isCalipsoCloudy = nlay>0  
+        isCalipsoCloudy = np.logical_and(
+            isCalipsoCloudy, 
+            caObj.calipso.all_arrays['total_optical_depth_5km']>0.15)
         isCalipsoClear = np.logical_and(nlay == 0, meancl<0.01)
     elif method =='KG_r13_extratest':
         isCalipsoCloudy = nlay>0  
@@ -473,7 +547,10 @@ def get_some_info_from_caobj(my_obj, caObj, isGAC=True, isACPGv2012=False,
         r13[sunz<90] = r13[sunz<90]/np.cos(np.radians(sunz_cos[sunz<90]))
         isCloud_r13 = np.logical_and(r13>2.0, caObj.avhrr.all_arrays['ciwv']>3)
     elif method =='r13_extratest':
-        isCalipsoCloudy = nlay>0  
+        isCalipsoCloudy = nlay>0 
+        isCalipsoCloudy = np.logical_and(
+            isCalipsoCloudy, 
+            caObj.calipso.all_arrays['total_optical_depth_5km']>0.15)
         isCalipsoClear = np.logical_and(nlay == 0, meancl<0.01)
         r13 = caObj.avhrr.all_arrays['r13micron']
         sunz =  caObj.avhrr.all_arrays['sunz']
@@ -488,7 +565,21 @@ def get_some_info_from_caobj(my_obj, caObj, isGAC=True, isACPGv2012=False,
                                      caObj.avhrr.all_arrays['sunz']<80)
         isClearPPS =  np.logical_and(isClearPPS, 
                                      caObj.avhrr.all_arrays['sunz']<80)
-                                    
+    if DNT in ["night"]:
+        isCloudyPPS = np.logical_and(isCloudyPPS, 
+                                     caObj.avhrr.all_arrays['sunz']>95)
+        isClearPPS =  np.logical_and(isClearPPS, 
+                                     caObj.avhrr.all_arrays['sunz']>95)
+    if DNT in ["twilight"]:
+        isCloudyPPS = np.logical_and(isCloudyPPS, 
+                                     caObj.avhrr.all_arrays['sunz']>=80)
+        isClearPPS =  np.logical_and(isClearPPS, 
+                                     caObj.avhrr.all_arrays['sunz']>=80)
+        isCloudyPPS = np.logical_and(isCloudyPPS, 
+                                     caObj.avhrr.all_arrays['sunz']<95)
+        isClearPPS =  np.logical_and(isClearPPS, 
+                                     caObj.avhrr.all_arrays['sunz']<95)                  
+               
     undetected_clouds = np.logical_and(isCalipsoCloudy, isClearPPS)
     false_clouds = np.logical_and(isCalipsoClear, isCloudyPPS)
     detected_clouds = np.logical_and(isCalipsoCloudy, isCloudyPPS)
@@ -510,4 +601,9 @@ def get_some_info_from_caobj(my_obj, caObj, isGAC=True, isACPGv2012=False,
             np.logical_and(isClearPPS, isCloud_r13))
         my_obj.match_imager_calipso.new_false_clouds = new_false_clouds[use]
         my_obj.match_imager_calipso.new_detected_clouds = new_detected_clouds[use]
+    else:
+       my_obj.match_imager_calipso.new_false_clouds = np.zeros(
+           my_obj.match_imager_calipso.false_clouds.shape)
+       my_obj.match_imager_calipso.new_detected_clouds = np.zeros(
+           my_obj.match_imager_calipso.false_clouds.shape)
     return my_obj
