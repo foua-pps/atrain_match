@@ -214,12 +214,12 @@ class ppsAvhrrObject(DataObject):
             'segment_nwp_ptro': None,
             'segment_nwp_ttro': None,
             'segment_nwp_t850': None,
-            'segment_tb11clfree_sea': None,
-            'segment_tb12clfree_sea': None,
-            'segment_tb11clfree_land': None,
-            'segment_tb12clfree_land': None,
-            'segment_tb11cloudy_surface': None,
-            'segment_tb12cloudy_surface': None,
+            'segment_nwp_tb11clfree_sea': None,
+            'segment_nwp_tb12clfree_sea': None,
+            'segment_nwp_tb11clfree_land': None,
+            'segment_nwp_tb12clfree_land': None,
+            'segment_nwp_tb11cloudy_surface': None,
+            'segment_nwp_tb12cloudy_surface': None,
         }
         
         
