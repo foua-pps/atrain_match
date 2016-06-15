@@ -280,7 +280,7 @@ def get_channel_data_from_object(dataObj, chn_des, matched, nodata=-9):
                                    'modis_17': ['MODIS 17'],
                                    'modis_18': ['MODIS 18'],
                                    'modis_19': ['MODIS 19'],
-                                   'modis 21': ['MODIS 21'],
+                                   'modis_21': ['MODIS 21'],
                                    'modis_22': ['MODIS 22'],
                                    'modis_23': ['MODIS 23'],
                                    'modis_24': ['MODIS 24'],
@@ -502,7 +502,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
                 value_track = [data[row_matched[idx], col_matched[idx]]
                                for idx in range(row_matched.shape[0])]
                 setattr(obt.avhrr, thr, np.array(value_track))
-    for emis in ["emis1", "emis8", "emis9"]:
+    for emis in ["emis1", "emis6", "emis8", "emis9"]:
         if hasattr(nwp_obj, emis):
             data = getattr(nwp_obj, emis)
             if np.size(data)>1:
@@ -536,17 +536,17 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
                 'modis_9',
                 'modis_10',
                 'modis_11',
-                'modis 12',
+                'modis_12',
                 'modis_13lo',
                 'modis_13hi',
                 'modis_14lo',
                 'modis_14hi',
                 'modis_15',
-                'modis 16',
+                'modis_16',
                 'modis_17',
                 'modis_18',
                 'modis_19',
-                'modis 21',
+                'modis_21',
                 'modis_22',
                 'modis_23',
                 'modis_24',

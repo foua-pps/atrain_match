@@ -171,6 +171,7 @@ class NWPObj(object):
         self.thr_r06 = None
         self.thr_r09 = None
         self.emis1 = None
+        self.emis6 = None
         self.emis8 = None
         self.emis9 = None
         self.__dict__.update(array_dict) 
@@ -871,7 +872,7 @@ def read_segment_data(filename):
 def read_thr(filename, h5_obj_type, thr_type):
     import h5py #@UnresolvedImport
     product = None
-    if thr_type in ["emis1", "emis8", "emis9"]:
+    if thr_type in ["emis1","emis6", "emis8", "emis9"]:
         if filename is not None: 
             h5file = h5py.File(filename, 'r')
             if 1==1:#h5_obj_type in h5file.keys():
@@ -1071,7 +1072,7 @@ def read_pps_data(pps_files, avhrr_file, cross):
         nwp_dict[thr_type] = read_thr(getattr(pps_files,thr_type), 
                                       h5_obj_type, thr_type)
     write_log("INFO","Read PPS Emissivity data")  
-    for h5_obj_type in ['emis1', 'emis8','emis9']:
+    for h5_obj_type in ['emis1',"emis6", 'emis8','emis9']:
         emis_type = h5_obj_type
         nwp_dict[emis_type] = read_thr(getattr(pps_files,"emis"), 
                                        h5_obj_type, emis_type)
