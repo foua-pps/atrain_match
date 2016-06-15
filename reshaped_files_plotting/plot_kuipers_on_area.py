@@ -86,12 +86,12 @@ for filename in files:
 my_obj =get_some_info_from_caobj(my_obj, caObj, isGAC=isGAC, method=method)
 my_obj = get_detection_stats_on_area_map_grid(my_obj)  
 
-my_obj.area.PLOT_DIR = "/home/a001865/Documents/ATRAIN_MATCH/plots_DRR_RMS/"
+my_obj.area.PLOT_DIR = "/home/a001865/ATRAIN_MATCH_KUIPERS_PLOT/"
 my_obj.area.figure_name=figure_name
 #Calcualte scores
-my_obj.area.calculate_increased_hitrate()
-my_obj.area._remap_score( score='increased_Hitrate', vmin=-0.05, vmax=0.05)
-my_obj.area.calculate_bias(screen_out_valid=True)
+#my_obj.area.calculate_increased_hitrate()
+#my_obj.area._remap_score( score='increased_Hitrate', vmin=-0.05, vmax=0.05)
+my_obj.area.calculate_bias()
 my_obj.area._remap_score( vmin=-25.0, vmax=25.0, score='Bias', 
                           screen_out_valid=True)
 my_obj.area.calculate_kuipers()
@@ -121,5 +121,5 @@ my_obj.area.calculate_far_cloudy()
 my_obj.area._remap_score( score='FARcloudy', vmax=0.5)
 my_obj.area.calculate_far_clear()
 my_obj.area._remap_score( score='FARclear', vmax=0.5)
-my_obj.area.calculate_RMS(screen_out_valid=True)
+my_obj.area.calculate_RMS()
 my_obj.area._remap_score( score='RMS',  vmax=50.0, screen_out_valid=True)

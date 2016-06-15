@@ -117,6 +117,8 @@ class ppsRemappedObject(DataObject):
             data = getattr(self, score)
             the_mask = data.mask
             data=np.ma.masked_invalid(data)
+            data[np.logical_and(data>vmax,~the_mask)] = vmax
+            data[np.logical_and(data<vmin,~the_mask)] = vmin
             #lons = lons[np.not_equal(the_mask, True)]
             #lats = lats[np.not_equal(the_mask, True)]
             #data = data[np.not_equal(the_mask, True)]
@@ -157,7 +159,7 @@ class ppsRemappedObject(DataObject):
             my_cmap=copy.copy(matplotlib.cm.coolwarm)
             my_cmap_for_masked=copy.copy(matplotlib.cm.coolwarm)
             if score in "Bias" and screen_out_valid:
-                #This screens out values between -5 and +5%
+                #This screens out values between -5 and +5% 
                 vmax=25
                 vmin=-25
                 my_cmap=copy.copy(matplotlib.cm.get_cmap("coolwarm", lut=100))
@@ -167,7 +169,7 @@ class ppsRemappedObject(DataObject):
                     "newwarmcool", cmap_vals) 
                 print my_cmap
             if score in "RMS" and screen_out_valid:
-                # This screens out balues beteen 0 and 20%.
+                # This screens out values beteen 0 and 20%. 41/100=20%
                 vmax=50
                 vmin=0
                 my_cmap=copy.copy(matplotlib.cm.get_cmap("coolwarm", lut=100))
@@ -562,19 +564,19 @@ def get_some_info_from_caobj(my_obj, caObj, isGAC=True, isACPGv2012=False,
 
     if DNT in ["day"]:
         isCloudyPPS = np.logical_and(isCloudyPPS, 
-                                     caObj.avhrr.all_arrays['sunz']<80)
+                                     caObj.avhrr.all_arrays['sunz']<=80)
         isClearPPS =  np.logical_and(isClearPPS, 
-                                     caObj.avhrr.all_arrays['sunz']<80)
+                                     caObj.avhrr.all_arrays['sunz']<=80)
     if DNT in ["night"]:
         isCloudyPPS = np.logical_and(isCloudyPPS, 
-                                     caObj.avhrr.all_arrays['sunz']>95)
+                                     caObj.avhrr.all_arrays['sunz']>=95)
         isClearPPS =  np.logical_and(isClearPPS, 
-                                     caObj.avhrr.all_arrays['sunz']>95)
+                                     caObj.avhrr.all_arrays['sunz']>=95)
     if DNT in ["twilight"]:
         isCloudyPPS = np.logical_and(isCloudyPPS, 
-                                     caObj.avhrr.all_arrays['sunz']>=80)
+                                     caObj.avhrr.all_arrays['sunz']>80)
         isClearPPS =  np.logical_and(isClearPPS, 
-                                     caObj.avhrr.all_arrays['sunz']>=80)
+                                     caObj.avhrr.all_arrays['sunz']>80)
         isCloudyPPS = np.logical_and(isCloudyPPS, 
                                      caObj.avhrr.all_arrays['sunz']<95)
         isClearPPS =  np.logical_and(isClearPPS, 
