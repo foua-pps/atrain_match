@@ -63,11 +63,134 @@ class ppsStatsOnFibLatticeObject(DataObject):
         self.N_clear = self.N_detected_clear+self.N_false_clouds
         self.N_clouds = self.N_detected_clouds+self.N_undetected_clouds 
         self.N = self.N_clear + self.N_clouds
-
-    def _remap_score(self, vmin=0.0, vmax=1.0, 
-                     score='Kuipers', screen_out_valid=False):
-        print score
+    
+    def _remap_a_score_on_an_area(self, plot_area_name='npole', vmin=0.0, vmax=1.0, 
+                                  score='Kuipers'):
         from pyresample import image, geometry
+        area_def = utils.parse_area_file(
+            'reshaped_files_plotting/region_config_test.cfg',  
+            plot_area_name)[0]
+        data = getattr(self, score)
+        data = data.copy()
+        data[np.logical_and(np.equal(data.mask,False),data>vmax)]=vmax
+        data[np.logical_and(np.equal(data.mask,False),data<vmin)]=vmin #do not wan't low ex hitrates set to nodata!
+        #lons = np.ma.masked_array(self.lons, mask=data.mask)
+        #lats = np.ma.masked_array(self.lats, mask=data.mask)
+        lons = self.lons
+        lats = self.lats
+        swath_def = geometry.SwathDefinition(lons=lons, lats=lats)
+        swath_con = image.ImageContainerNearest(
+            data, swath_def, 
+            radius_of_influence=self.radius_km*1000*2.5,
+            epsilon=1.0)
+        area_con = swath_con.resample(area_def)
+        result = area_con.image_data
+        #pr.plot.show_quicklook(area_def, result,
+        #                      vmin=vmin, vmax=vmax, label=score)
+        
+        pr.plot.save_quicklook(self.PLOT_DIR + self.figure_name + 
+                               score +'_' + plot_area_name +'.png',
+                               area_def, result, 
+                               vmin=vmin, vmax=vmax, label=score)
+
+    def _remap_a_score_on_an_robinson_projection(self, vmin=0.0, vmax=1.0, 
+                                                 score='Kuipers', screen_out_valid=False):
+        import matplotlib.pyplot as plt
+        from mpl_toolkits.basemap import Basemap
+        from scipy.interpolate import griddata
+        plt.close('all')
+        data = getattr(self, score)
+        the_mask = data.mask
+        data=np.ma.masked_invalid(data)
+        data[np.logical_and(data>vmax,~the_mask)] = vmax
+        data[np.logical_and(data<vmin,~the_mask)] = vmin
+        #lons = lons[np.not_equal(the_mask, True)]
+        #lats = lats[np.not_equal(the_mask, True)]
+        #data = data[np.not_equal(the_mask, True)]
+        ind = np.argsort(lats)
+        lons = lons[ind]
+        lats = lats[ind]
+        data =data[ind]
+        ind = np.argsort(lons)
+        lons = lons[ind]
+        lats = lats[ind]
+        data =data[ind]
+        lons = lons.reshape(len(data),1)#*3.14/180
+        lats = lats.reshape(len(data),1)#*3.14/180
+        data =data.reshape(len(data),1)
+        proj1 = Basemap(projection='robin',lon_0=0,resolution='c')
+        m = proj1
+        numcols=1000
+        numrows=500
+        lat_min = -83.0
+        lon_min = -179.9
+        lat_max = 83.0
+        lon_max = 179.9
+            
+        fig = plt.figure(figsize = (16,9))
+        ax = fig.add_subplot(111)
+        # transform lon / lat coordinates to map projection
+        plons, plats = m(*(lons, lats))        
+        # grid the data to lat/lo grid, approximation but needed fo plotting
+        # numcols, numrows = 1000, 500
+        xi = np.linspace(lon_min, lon_max, numcols)
+        yi = np.linspace(lat_min, lat_max, numrows)
+        xi, yi = np.meshgrid(xi, yi)
+        # interpolate
+        x, y, z = (np.array(lons.ravel()), 
+                   np.array(lats.ravel()), 
+                   np.array(data.ravel()))
+        import copy; 
+        my_cmap=copy.copy(matplotlib.cm.coolwarm)
+        my_cmap_for_masked=copy.copy(matplotlib.cm.coolwarm)
+        if score in "Bias" and screen_out_valid:
+            #This screens out values between -5 and +5% 
+            vmax=25
+            vmin=-25
+            my_cmap=copy.copy(matplotlib.cm.get_cmap("coolwarm", lut=100))
+            cmap_vals = my_cmap(np.arange(100)) #extractvalues as an array
+            cmap_vals[39:61] = [0.9, 0.9, 0.9, 1] #change the first value
+            my_cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
+                "newwarmcool", cmap_vals) 
+            print my_cmap
+        if score in "RMS" and screen_out_valid:
+            # This screens out values beteen 0 and 20%. 41/100=20%
+            vmax=50
+            vmin=0
+            my_cmap=copy.copy(matplotlib.cm.get_cmap("coolwarm", lut=100))
+            cmap_vals = my_cmap(np.arange(100)) #extract values as an array
+            cmap_vals[0:41] = [0.9, 0.9, 0.9, 1] #change the first value
+            my_cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
+                "newwarmcool", cmap_vals) 
+            print my_cmap
+        my_cmap_for_masked.set_over('w') #masked should be white
+        my_cmap_for_masked.set_under('k', alpha=0) #do not cover the data, set to transparent
+
+
+        zi = griddata((x, y), z, (xi, yi), method='nearest')
+        remapped_mask = griddata((x, y),  
+                                 np.where(data.mask.ravel(),1.0,0.0), 
+                                 (xi, yi), method='nearest')
+
+        im1 = m.pcolormesh(xi, yi, zi, cmap=my_cmap,
+                           vmin=vmin, vmax=vmax, latlon=True)
+        im2 = m.pcolormesh(xi, yi, remapped_mask, cmap=my_cmap_for_masked,
+                           vmin=0.4, vmax=0.5, latlon=True)
+        #draw som lon/lat lines
+        m.drawparallels(np.arange(-90.,90.,30.))
+        m.drawmeridians(np.arange(-180.,180.,60.))
+        m.drawcoastlines()
+        m.drawmapboundary(fill_color='0.9')
+        cb = m.colorbar(im1,"right", size="5%", pad="2%")
+        ax.set_title(score)
+        plt.savefig(self.PLOT_DIR + self.figure_name + 
+                    'basemap_' + 
+                    score +'_robinson_' +'.png')
+        plt.close('all')
+
+    def remap_and_plot_score_on_several_areas(self, vmin=0.0, vmax=1.0, 
+                                              score='Kuipers', screen_out_valid=False):
+        print score
         for plot_area_name in [
                 #'cea5km_test'
                 #'euro_arctic',
@@ -77,125 +200,12 @@ class ppsStatsOnFibLatticeObject(DataObject):
                 'npole',
                 'ease_nh_test',
                 'ease_sh_test' ]:
-            area_def = utils.parse_area_file(
-                'reshaped_files_plotting/region_config_test.cfg',  
-                plot_area_name)[0]
-            data = getattr(self, score)
-            data = data.copy()
-            data[np.logical_and(np.equal(data.mask,False),data>vmax)]=vmax
-            data[np.logical_and(np.equal(data.mask,False),data<vmin)]=vmin #do not wan't low ex hitrates set to nodata!
-            #lons = np.ma.masked_array(self.lons, mask=data.mask)
-            #lats = np.ma.masked_array(self.lats, mask=data.mask)
-            lons = self.lons
-            lats = self.lats
-            swath_def = geometry.SwathDefinition(lons=lons, lats=lats)
-            swath_con = image.ImageContainerNearest(
-                data, swath_def, 
-                radius_of_influence=self.radius_km*1000*2.5,
-                epsilon=1.0)
-            area_con = swath_con.resample(area_def)
-            result = area_con.image_data
-            #pr.plot.show_quicklook(area_def, result,
-            #                      vmin=vmin, vmax=vmax, label=score)
-        
-            pr.plot.save_quicklook(self.PLOT_DIR + self.figure_name + 
-                                   score +'_' + plot_area_name +'.png',
-                                   area_def, result, 
-                                   vmin=vmin, vmax=vmax, label=score)
+            self._remap_a_score_on_an_area(plot_area_name=plot_area_name, 
+                                           vmin=vmin, vmax=vmax, score=score)
         #the real robinson projection
         if "morning" not in self.figure_name:
-            import matplotlib.pyplot as plt
-            from mpl_toolkits.basemap import Basemap
-            from scipy.interpolate import griddata
-            plt.close('all')
-            data = getattr(self, score)
-            the_mask = data.mask
-            data=np.ma.masked_invalid(data)
-            data[np.logical_and(data>vmax,~the_mask)] = vmax
-            data[np.logical_and(data<vmin,~the_mask)] = vmin
-            #lons = lons[np.not_equal(the_mask, True)]
-            #lats = lats[np.not_equal(the_mask, True)]
-            #data = data[np.not_equal(the_mask, True)]
-            ind = np.argsort(lats)
-            lons = lons[ind]
-            lats = lats[ind]
-            data =data[ind]
-            ind = np.argsort(lons)
-            lons = lons[ind]
-            lats = lats[ind]
-            data =data[ind]
-            lons = lons.reshape(len(data),1)#*3.14/180
-            lats = lats.reshape(len(data),1)#*3.14/180
-            data =data.reshape(len(data),1)
-            proj1 = Basemap(projection='robin',lon_0=0,resolution='c')
-            m = proj1
-            numcols=1000
-            numrows=500
-            lat_min = -83.0
-            lon_min = -179.9
-            lat_max = 83.0
-            lon_max = 179.9
-            
-            fig = plt.figure(figsize = (16,9))
-            ax = fig.add_subplot(111)
-            # transform lon / lat coordinates to map projection
-            plons, plats = m(*(lons, lats))        
-            # grid the data to lat/lo grid, approximation but needed fo plotting
-            # numcols, numrows = 1000, 500
-            xi = np.linspace(lon_min, lon_max, numcols)
-            yi = np.linspace(lat_min, lat_max, numrows)
-            xi, yi = np.meshgrid(xi, yi)
-            # interpolate
-            x, y, z = (np.array(lons.ravel()), 
-                       np.array(lats.ravel()), 
-                       np.array(data.ravel()))
-            import copy; 
-            my_cmap=copy.copy(matplotlib.cm.coolwarm)
-            my_cmap_for_masked=copy.copy(matplotlib.cm.coolwarm)
-            if score in "Bias" and screen_out_valid:
-                #This screens out values between -5 and +5% 
-                vmax=25
-                vmin=-25
-                my_cmap=copy.copy(matplotlib.cm.get_cmap("coolwarm", lut=100))
-                cmap_vals = my_cmap(np.arange(100)) #extractvalues as an array
-                cmap_vals[39:61] = [0.9, 0.9, 0.9, 1] #change the first value
-                my_cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
-                    "newwarmcool", cmap_vals) 
-                print my_cmap
-            if score in "RMS" and screen_out_valid:
-                # This screens out values beteen 0 and 20%. 41/100=20%
-                vmax=50
-                vmin=0
-                my_cmap=copy.copy(matplotlib.cm.get_cmap("coolwarm", lut=100))
-                cmap_vals = my_cmap(np.arange(100)) #extract values as an array
-                cmap_vals[0:41] = [0.9, 0.9, 0.9, 1] #change the first value
-                my_cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
-                    "newwarmcool", cmap_vals) 
-                print my_cmap
-            my_cmap_for_masked.set_over('w') #masked should be white
-            my_cmap_for_masked.set_under('k', alpha=0) #do not cover the data, set to transparent
-
-
-            zi = griddata((x, y), z, (xi, yi), method='nearest')
-            remapped_mask = griddata((x, y),  
-                                     np.where(data.mask.ravel(),1.0,0.0), 
-                                     (xi, yi), method='nearest')
-
-            im1 = m.pcolormesh(xi, yi, zi, cmap=my_cmap,
-                               vmin=vmin, vmax=vmax, latlon=True)
-            im2 = m.pcolormesh(xi, yi, remapped_mask, cmap=my_cmap_for_masked,
-                               vmin=0.4, vmax=0.5, latlon=True)
-            #draw som lon/lat lines
-            m.drawparallels(np.arange(-90.,90.,30.))
-            m.drawmeridians(np.arange(-180.,180.,60.))
-            m.drawcoastlines()
-            m.drawmapboundary(fill_color='0.9')
-            cb = m.colorbar(im1,"right", size="5%", pad="2%")
-            ax.set_title(score)
-            plt.savefig(self.PLOT_DIR + self.figure_name + 
-                        'basemap_' + 
-                        score +'_robinson_' +'.png')
-            plt.close('all')
+            self._remap_a_score_on_an_robinson_projection(vmin=vmin, vmax=vmax, 
+                                                          score=score, screen_out_valid=False)
     def calculate_kuipers(self):
         self.np_float_array()
         self.find_number_of_clouds_clear()
