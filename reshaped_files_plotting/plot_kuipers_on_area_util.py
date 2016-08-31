@@ -332,70 +332,69 @@ class ppsRemappedObject(DataObject):
 
 class PerformancePlottingObject:
     def __init__(self):
-        self.match_imager_calipso = ppsMatch_Imager_CalipsoObject()
         self.area = ppsRemappedObject()
-def get_detection_stats_on_area_map_grid(my_obj):
-    #Start with the area and get lat and lon to calculate the stats:
-    #area_def = my_obj.area.definition 
-    lats = my_obj.area.lats[:]
-    max_distance=my_obj.area.radius_km*1000*2.5
-    #print "lons shape", lons.shape
-    if lats.ndim ==1:
-        area_def = SwathDefinition(*(my_obj.area.lons,
-                                     my_obj.area.lats))
-        target_def = SwathDefinition(*(my_obj.match_imager_calipso.longitude, 
-                                       my_obj.match_imager_calipso.latitude)) 
-        valid_in, valid_out, indices, distances = get_neighbour_info(
-            area_def, target_def, radius_of_influence=max_distance, 
-            epsilon=100, neighbours=1)
-        cols = get_sample_from_neighbour_info('nn', target_def.shape,
-                                              np.array(xrange(0,len(lats))),
-                                              valid_in, valid_out,
-                                              indices)
-        cols = cols[valid_out]
-        detected_clouds = my_obj.match_imager_calipso.detected_clouds[valid_out]
-        detected_clear = my_obj.match_imager_calipso.detected_clear[valid_out]
-        false_clouds = my_obj.match_imager_calipso.false_clouds[valid_out]
-        undetected_clouds = my_obj.match_imager_calipso.undetected_clouds[valid_out]
-        new_detected_clouds = my_obj.match_imager_calipso.new_detected_clouds[valid_out]
-        new_false_clouds = my_obj.match_imager_calipso.new_false_clouds[valid_out]
-        for c, ind in zip(cols.ravel(), xrange(len(cols.ravel()))):
-            if distances[ind]<max_distance:
-                my_obj.area.N_false_clouds[c] += false_clouds[ind]
-                my_obj.area.N_detected_clouds[c] += detected_clouds[ind]
-                my_obj.area.N_detected_clear[c] += detected_clear[ind]
-                my_obj.area.N_undetected_clouds[c] += undetected_clouds[ind]
-                my_obj.area.N_new_false_clouds[c] += new_false_clouds[ind]
-                my_obj.area.N_new_detected_clouds[c] += new_detected_clouds[ind]
-    else:
-        target_def = SwathDefinition(*(my_obj.match_imager_calipso.longitude, 
-                                      my_obj.match_imager_calipso.latitude)) 
-        valid_in, valid_out, indices, distances = get_neighbour_info(
-            area_def, target_def, radius_of_influence=max_distance, neighbours=1)
-        #Use pyresampe code to find colmun and row numbers for each pixel
-        cols_matrix, rows_matrix = np.meshgrid(np.array(xrange(0,lats.shape[1])),
-                                               np.array(xrange(0,lats.shape[0])))
-        cols = get_sample_from_neighbour_info('nn', target_def.shape,
-                                              cols_matrix,
-                                              valid_in, valid_out,
-                                              indices)
-        rows = get_sample_from_neighbour_info('nn', target_def.shape,
-                                              rows_matrix,
-                                              valid_in, valid_out,
-                                              indices)
-        rows = rows[valid_out]
-        cols = cols[valid_out]
-        detected_clouds = my_obj.match_imager_calipso.detected_clouds[valid_out]
-        detected_clear = my_obj.match_imager_calipso.detected_clear[valid_out]
-        false_clouds = my_obj.match_imager_calipso.false_clouds[valid_out]
-        undetected_clouds = my_obj.match_imager_calipso.undetected_clouds[valid_out]
-        for r, c, ind in zip(rows.ravel(), cols.ravel(), xrange(len(cols.ravel()))):
-            if distances[ind]<max_distance:
-                my_obj.area.N_false_clouds[r,c] += false_clouds[ind]
-                my_obj.area.N_detected_clouds[r,c] += detected_clouds[ind]
-                my_obj.area.N_detected_clear[r,c] += detected_clear[ind]
-                my_obj.area.N_undetected_clouds[r,c] += undetected_clouds[ind]  
-    return my_obj
+    def add_detection_stats_on_area_map_grid(self, my_obj):
+        #Start with the area and get lat and lon to calculate the stats:
+        #area_def = self.area.definition 
+        lats = self.area.lats[:]
+        max_distance=self.area.radius_km*1000*2.5
+        #print "lons shape", lons.shape
+        if lats.ndim ==1:
+            area_def = SwathDefinition(*(self.area.lons,
+                                         self.area.lats))
+            target_def = SwathDefinition(*(my_obj.longitude, 
+                                           my_obj.latitude)) 
+            valid_in, valid_out, indices, distances = get_neighbour_info(
+                area_def, target_def, radius_of_influence=max_distance, 
+                epsilon=100, neighbours=1)
+            cols = get_sample_from_neighbour_info('nn', target_def.shape,
+                                                  np.array(xrange(0,len(lats))),
+                                                  valid_in, valid_out,
+                                                  indices)
+            cols = cols[valid_out]
+            detected_clouds = my_obj.detected_clouds[valid_out]
+            detected_clear = my_obj.detected_clear[valid_out]
+            false_clouds = my_obj.false_clouds[valid_out]
+            undetected_clouds = my_obj.undetected_clouds[valid_out]
+            new_detected_clouds = my_obj.new_detected_clouds[valid_out]
+            new_false_clouds = my_obj.new_false_clouds[valid_out]
+            for c, ind in zip(cols.ravel(), xrange(len(cols.ravel()))):
+                if distances[ind]<max_distance:
+                    self.area.N_false_clouds[c] += false_clouds[ind]
+                    self.area.N_detected_clouds[c] += detected_clouds[ind]
+                    self.area.N_detected_clear[c] += detected_clear[ind]
+                    self.area.N_undetected_clouds[c] += undetected_clouds[ind]
+                    self.area.N_new_false_clouds[c] += new_false_clouds[ind]
+                    self.area.N_new_detected_clouds[c] += new_detected_clouds[ind]
+        else:
+            target_def = SwathDefinition(*(my_obj.longitude, 
+                                           my_obj.latitude)) 
+            valid_in, valid_out, indices, distances = get_neighbour_info(
+                area_def, target_def, radius_of_influence=max_distance, neighbours=1)
+            #Use pyresampe code to find colmun and row numbers for each pixel
+            cols_matrix, rows_matrix = np.meshgrid(np.array(xrange(0,lats.shape[1])),
+                                                   np.array(xrange(0,lats.shape[0])))
+            cols = get_sample_from_neighbour_info('nn', target_def.shape,
+                                                  cols_matrix,
+                                                  valid_in, valid_out,
+                                                  indices)
+            rows = get_sample_from_neighbour_info('nn', target_def.shape,
+                                                  rows_matrix,
+                                                  valid_in, valid_out,
+                                                  indices)
+            rows = rows[valid_out]
+            cols = cols[valid_out]
+            detected_clouds = my_obj.detected_clouds[valid_out]
+            detected_clear = my_obj.detected_clear[valid_out]
+            false_clouds = my_obj.false_clouds[valid_out]
+            undetected_clouds = my_obj.undetected_clouds[valid_out]
+            for r, c, ind in zip(rows.ravel(), cols.ravel(), xrange(len(cols.ravel()))):
+                if distances[ind]<max_distance:
+                    self.area.N_false_clouds[r,c] += false_clouds[ind]
+                    self.area.N_detected_clouds[r,c] += detected_clouds[ind]
+                    self.area.N_detected_clear[r,c] += detected_clear[ind]
+                    self.area.N_undetected_clouds[r,c] += undetected_clouds[ind]  
+
 
 def get_fibonacci_spread_points_on_earth(radius_km):
     #Earth area = 510072000km2
@@ -430,8 +429,9 @@ def get_fibonacci_spread_points_on_earth(radius_km):
         raise ValueError
     return longitude, latitude
     
-def get_some_info_from_caobj(my_obj, caObj, isGAC=True, isACPGv2012=False, 
+def get_some_info_from_caobj(caObj, isGAC=True, isACPGv2012=False, 
                              method='KG', DNT='All'):
+    my_obj = ppsMatch_Imager_CalipsoObject()
     #cloudObj = get_clear_and_cloudy_vectors(caObj, isACPGv2012, isGAC)  
     isCloudyPPS = np.logical_and(caObj.avhrr.all_arrays['cloudtype']>4,
                                  caObj.avhrr.all_arrays['cloudtype']<21) 
@@ -513,12 +513,12 @@ def get_some_info_from_caobj(my_obj, caObj, isGAC=True, isACPGv2012=False,
     detected_clear = np.logical_and(isCalipsoClear, isClearPPS)
     use = np.logical_or(np.logical_or(detected_clouds, detected_clear),
                         np.logical_or(false_clouds, undetected_clouds))
-    my_obj.match_imager_calipso.false_clouds = false_clouds[use]
-    my_obj.match_imager_calipso.detected_clouds = detected_clouds[use]
-    my_obj.match_imager_calipso.undetected_clouds = undetected_clouds[use]
-    my_obj.match_imager_calipso.detected_clear = detected_clear[use]
-    my_obj.match_imager_calipso.latitude = caObj.avhrr.latitude[use]
-    my_obj.match_imager_calipso.longitude = caObj.avhrr.longitude[use]  
+    my_obj.false_clouds = false_clouds[use]
+    my_obj.detected_clouds = detected_clouds[use]
+    my_obj.undetected_clouds = undetected_clouds[use]
+    my_obj.detected_clear = detected_clear[use]
+    my_obj.latitude = caObj.avhrr.latitude[use]
+    my_obj.longitude = caObj.avhrr.longitude[use]  
     if "r13" in method:
         new_detected_clouds = np.logical_and(
             isCalipsoCloudy,
@@ -526,11 +526,11 @@ def get_some_info_from_caobj(my_obj, caObj, isGAC=True, isACPGv2012=False,
         new_false_clouds = np.logical_and(
             isCalipsoClear,
             np.logical_and(isClearPPS, isCloud_r13))
-        my_obj.match_imager_calipso.new_false_clouds = new_false_clouds[use]
-        my_obj.match_imager_calipso.new_detected_clouds = new_detected_clouds[use]
+        my_obj.new_false_clouds = new_false_clouds[use]
+        my_obj.new_detected_clouds = new_detected_clouds[use]
     else:
-       my_obj.match_imager_calipso.new_false_clouds = np.zeros(
-           my_obj.match_imager_calipso.false_clouds.shape)
-       my_obj.match_imager_calipso.new_detected_clouds = np.zeros(
-           my_obj.match_imager_calipso.false_clouds.shape)
+       my_obj.new_false_clouds = np.zeros(
+           my_obj.false_clouds.shape)
+       my_obj.new_detected_clouds = np.zeros(
+           my_obj.false_clouds.shape)
     return my_obj
