@@ -11,10 +11,10 @@ from plot_kuipers_on_area_util import (PerformancePlottingObject,
                                        get_some_info_from_caobj)
 isModis1km = False
 isNPP_v2014 = False
-isGAC_v2014_morning_sat = True
+isGAC_v2014_morning_sat = False
 isGAC_v2014 = True
 method = 'KG'
-DNT="twilight"
+DNT="all"
 
 onlyCirrus=False
 isACPGv2012=False
@@ -37,7 +37,7 @@ elif isGAC_v2014_morning_sat:
     files = glob(ROOT_DIR + "noaa17/5km/20??/??/*/*h5")
     files = files + glob(ROOT_DIR + "metop*/5km/20??/??/*/*h5")
     figure_name = "figure_morning_sat_%s_dnt_%s_"%(method, DNT)
-    files = glob(ROOT_DIR + "noaa17/5km/20??/1*/*/*noaa*h5")
+    #files = glob(ROOT_DIR + "noaa17/5km/20??/1*/*/*noaa*h5")
 elif isGAC_v2014:
     num_files_to_read = 30
     isGAC=True

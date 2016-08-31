@@ -98,6 +98,8 @@ class ppsStatsOnFibLatticeObject(DataObject):
         import matplotlib.pyplot as plt
         from mpl_toolkits.basemap import Basemap
         from scipy.interpolate import griddata
+        lons = self.lons
+        lats = self.lats
         plt.close('all')
         data = getattr(self, score)
         the_mask = data.mask
@@ -118,8 +120,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
         lons = lons.reshape(len(data),1)#*3.14/180
         lats = lats.reshape(len(data),1)#*3.14/180
         data =data.reshape(len(data),1)
-        proj1 = Basemap(projection='robin',lon_0=0,resolution='c')
-        m = proj1
+        my_proj1 = Basemap(projection='robin',lon_0=0,resolution='c')
         numcols=1000
         numrows=500
         lat_min = -83.0
@@ -130,7 +131,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
         fig = plt.figure(figsize = (16,9))
         ax = fig.add_subplot(111)
         # transform lon / lat coordinates to map projection
-        plons, plats = m(*(lons, lats))        
+        plons, plats = my_proj1(*(lons, lats))        
         # grid the data to lat/lo grid, approximation but needed fo plotting
         # numcols, numrows = 1000, 500
         xi = np.linspace(lon_min, lon_max, numcols)
@@ -142,7 +143,6 @@ class ppsStatsOnFibLatticeObject(DataObject):
                    np.array(data.ravel()))
         import copy; 
         my_cmap=copy.copy(matplotlib.cm.coolwarm)
-        my_cmap_for_masked=copy.copy(matplotlib.cm.coolwarm)
         if score in "Bias" and screen_out_valid:
             #This screens out values between -5 and +5% 
             vmax=25
@@ -163,25 +163,25 @@ class ppsStatsOnFibLatticeObject(DataObject):
             my_cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
                 "newwarmcool", cmap_vals) 
             print my_cmap
+        #to mask out where we lack data
+        my_cmap_for_masked=copy.copy(matplotlib.cm.coolwarm)
         my_cmap_for_masked.set_over('w') #masked should be white
         my_cmap_for_masked.set_under('k', alpha=0) #do not cover the data, set to transparent
-
 
         zi = griddata((x, y), z, (xi, yi), method='nearest')
         remapped_mask = griddata((x, y),  
                                  np.where(data.mask.ravel(),1.0,0.0), 
                                  (xi, yi), method='nearest')
-
-        im1 = m.pcolormesh(xi, yi, zi, cmap=my_cmap,
+        im1 = my_proj1.pcolormesh(xi, yi, zi, cmap=my_cmap,
                            vmin=vmin, vmax=vmax, latlon=True)
-        im2 = m.pcolormesh(xi, yi, remapped_mask, cmap=my_cmap_for_masked,
+        im2 = my_proj1.pcolormesh(xi, yi, remapped_mask, cmap=my_cmap_for_masked,
                            vmin=0.4, vmax=0.5, latlon=True)
         #draw som lon/lat lines
-        m.drawparallels(np.arange(-90.,90.,30.))
-        m.drawmeridians(np.arange(-180.,180.,60.))
-        m.drawcoastlines()
-        m.drawmapboundary(fill_color='0.9')
-        cb = m.colorbar(im1,"right", size="5%", pad="2%")
+        my_proj1.drawparallels(np.arange(-90.,90.,30.))
+        my_proj1.drawmeridians(np.arange(-180.,180.,60.))
+        my_proj1.drawcoastlines()
+        my_proj1.drawmapboundary(fill_color='0.9')
+        cb = my_proj1.colorbar(im1,"right", size="5%", pad="2%")
         ax.set_title(score)
         plt.savefig(self.PLOT_DIR + self.figure_name + 
                     'basemap_' + 
