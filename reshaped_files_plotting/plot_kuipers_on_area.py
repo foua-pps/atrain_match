@@ -73,7 +73,7 @@ for filename in files:
         caObj = caObj + caObj_new
 
 #Get info from the last files too
-my_obj =get_some_info_from_caobj(my_obj, caObj, isGAC=isGAC, method=method)
+my_obj =get_some_info_from_caobj(my_obj, caObj, isGAC=isGAC, method=method, DNT=DNT)
 my_obj = get_detection_stats_on_area_map_grid(my_obj)  
 my_obj.area.PLOT_DIR = "/home/a001865/ATRAIN_MATCH_KUIPERS_PLOT/"
 my_obj.area.figure_name=figure_name
