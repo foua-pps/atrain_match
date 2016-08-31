@@ -10,7 +10,7 @@ from matchobject_io import (readCaliopAvhrrMatchObj,
 from plot_kuipers_on_area_util import (PerformancePlottingObject,
                                        get_some_info_from_caobj,
                                        get_detection_stats_on_area_map_grid)
-isModis1km = True
+isModis1km = False
 isNPP_v2014 = False
 isGAC_v2014_morning_sat = True
 isGAC_v2014 = True
@@ -23,7 +23,7 @@ if isModis1km:
     num_files_to_read = 24*4
     isGAC=False
     figure_name = "figure_global_modis_14th_%s_dnt_%s_"%(method, DNT)
-    ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/global_modis_14th_created20160419/"
+    ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/global_modis_14th_created20160615/"
     files = glob(ROOT_DIR + "Reshaped_Files/eos?/1km/????/??/2010??14_*/*h5")
 elif isNPP_v2014:
     num_files_to_read = 30
@@ -38,7 +38,7 @@ elif isGAC_v2014_morning_sat:
     files = glob(ROOT_DIR + "noaa17/5km/20??/??/*/*h5")
     files = files + glob(ROOT_DIR + "metop*/5km/20??/??/*/*h5")
     figure_name = "figure_morning_sat_%s_dnt_%s_"%(method, DNT)
-    #files = glob(ROOT_DIR + "noaa17/5km/20??/1*/*/*noaa*h5")
+    files = glob(ROOT_DIR + "noaa17/5km/20??/1*/*/*noaa*h5")
 elif isGAC_v2014:
     num_files_to_read = 30
     isGAC=True
@@ -48,19 +48,9 @@ elif isGAC_v2014:
     files = files + glob(ROOT_DIR + "noaa19/5km/20??/??/*/*noaa*h5")
     #files = glob(ROOT_DIR + "noaa19/5km/2010/09/*/*noaa*h5")
 
-#area definition moved!!
-#arctic_super_5010_test
-#my_area = 'antarctica_test'
-#my_area ='npole'
-#'ease_nh_test'
-#my_area = 'ease_nh_test'
-#my_area = 'ibla_57n20e'
-#my_area = 'cea5km_test'
-#my_area = 'robinson_test'
-#my_area = 'euro_arctic_test'
-#my_area = 'ease_world_test'
+
 my_obj = PerformancePlottingObject()
-my_obj.area.set_area(radius_km=250)
+my_obj.area.set_area(radius_km=75)
 caObj = CalipsoAvhrrTrackObject()
 
 num = 0
@@ -85,7 +75,6 @@ for filename in files:
 #Get info from the last files too
 my_obj =get_some_info_from_caobj(my_obj, caObj, isGAC=isGAC, method=method)
 my_obj = get_detection_stats_on_area_map_grid(my_obj)  
-
 my_obj.area.PLOT_DIR = "/home/a001865/ATRAIN_MATCH_KUIPERS_PLOT/"
 my_obj.area.figure_name=figure_name
 #Calcualte scores
@@ -96,19 +85,15 @@ my_obj.area._remap_score( vmin=-25.0, vmax=25.0, score='Bias',
                           screen_out_valid=True)
 my_obj.area.calculate_kuipers()
 my_obj.area._remap_score( vmin=0.0, score='Kuipers')
-#my_obj.area.plot_kuipers(PLOT_DIR=PLOT_DIR, figure_name=figure_name)
 #Calcualte hitrate
 my_obj.area.calculate_hitrate()
 my_obj.area._remap_score( vmin=0.5, score='Hitrate')
-#my_obj.area.plot_hitrate(PLOT_DIR=PLOT_DIR, figure_name=figure_name)
 #Calcualte threat_score
 my_obj.area.calculate_threat_score()
 my_obj.area._remap_score( score='Threat_Score')
-#my_obj.area.plot_threat_score(PLOT_DIR=PLOT_DIR, figure_name=figure_name)
 #Calcualte threat_score_clear
 my_obj.area.calculate_threat_score_clear()
 my_obj.area._remap_score( score='Threat_Score_Clear')
-#my_obj.area.plot_threat_score_clear(PLOT_DIR=PLOT_DIR, figure_name=figure_name)
 my_obj.area.calculate_calipso_cfc()
 my_obj.area._remap_score( vmin=0, vmax=100.0, score='calipso_cfc')
 my_obj.area.calculate_pps_cfc()

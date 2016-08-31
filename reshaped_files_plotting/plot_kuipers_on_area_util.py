@@ -34,16 +34,8 @@ class ppsRemappedObject(DataObject):
             'N_undetected_clouds': None,
             'N_detected_clear': None,
             'Kuipers': None}  
-    def set_area(self, area_name = 'robinson_test', radius_km=200):
-        #area_name = 'robinson_test'
-        area_def = utils.parse_area_file(
-            'reshaped_files_plotting/region_config_test.cfg',  
-            area_name)[0]
+    def set_area(self, radius_km=200):
         self.radius_km = radius_km
-        self.area_name=area_name
-        self.definition = area_def
-        #self.lons = area_def.lons[:]
-        #self.lats = area_def.lats[:]
         self.lons, self.lats =get_fibonacci_spread_points_on_earth(radius_km = radius_km)
         import matplotlib.pyplot as plt
         fig = plt.figure(figsize = (36,18))
@@ -73,19 +65,18 @@ class ppsRemappedObject(DataObject):
                      score='Kuipers', screen_out_valid=False):
         print score
         from pyresample import image, geometry
-        for area_name in [
+        for plot_area_name in [
+                #'cea5km_test'
+                #'euro_arctic',
+                #'ease_world_test'
                 'euro_arctic',
                 'antarctica',
                 'npole',
                 'ease_nh_test',
-                'ease_sh_test',
-                #'cea5km_test'
-                #'euro_arctic',
-                #'ease_world_test'
-        ]:
+                'ease_sh_test' ]:
             area_def = utils.parse_area_file(
                 'reshaped_files_plotting/region_config_test.cfg',  
-                area_name)[0]
+                plot_area_name)[0]
             data = getattr(self, score)
             data = data.copy()
             data[np.logical_and(np.equal(data.mask,False),data>vmax)]=vmax
@@ -105,7 +96,7 @@ class ppsRemappedObject(DataObject):
             #                      vmin=vmin, vmax=vmax, label=score)
         
             pr.plot.save_quicklook(self.PLOT_DIR + self.figure_name + 
-                                   score +'_' + area_name +'.png',
+                                   score +'_' + plot_area_name +'.png',
                                    area_def, result, 
                                    vmin=vmin, vmax=vmax, label=score)
         #the real robinson projection
@@ -200,7 +191,7 @@ class ppsRemappedObject(DataObject):
             ax.set_title(score)
             plt.savefig(self.PLOT_DIR + self.figure_name + 
                         'basemap_' + 
-                        score +'_robinson_' +area_name  +'.png')
+                        score +'_robinson_' +'.png')
             plt.close('all')
     def calculate_kuipers(self):
         self.np_float_array()
@@ -319,13 +310,11 @@ class ppsRemappedObject(DataObject):
         self.np_float_array()
         self.find_number_of_clouds_clear()
         self.calculate_calipso_cfc()
-        Bias = 100*(
-            self.N_detected_clouds + 
-            self.N_false_clouds)*1.0/(self.N) - self.calipso_cfc
+        self.calculate_pps_cfc()
+        Bias = self.pps_cfc - self.calipso_cfc
         the_mask = self.N<20 
         Bias = np.ma.masked_array(Bias, mask=the_mask)
         self.Bias = Bias
-
     def calculate_RMS(self):
         self.np_float_array()
         self.calculate_calipso_cfc()
@@ -340,70 +329,6 @@ class ppsRemappedObject(DataObject):
         RMS = np.ma.masked_array(RMS, mask=the_mask)
         self.RMS = RMS
 
-    def plot_kuipers(self, PLOT_DIR="/local_disk/temp/", figure_name="figure_"):
-        
-        pr.plot.show_quicklook(self.definition, self.Kuipers, 
-                               vmin=0, vmax=1, label="kuipers")
-        pr.plot.save_quicklook(PLOT_DIR + figure_name + 'kuipers_' + 
-                               self.area_name +'.png',
-                               self.definition, self.Kuipers, 
-                               vmin=0, vmax=1, label="kuipers")
-        """
-        import matplotlib.pyplot as plt
-        from mpl_toolkits.basemap import Basemap
-        fig = plt.figure(figsize = (9,16))
-        ax = fig.add_subplot(111)
-        
-        m = Basemap(projection='kav7',lon_0=0,resolution=None)
-        m.drawmapboundary(fill_color='0.0')
-        im1 = m.pcolormesh(self.lons.ravel(), self.lats.ravel(), self.Kuipers.ravel(),shading='flat',cmap=plt.cm.coolwarm, latlon=True)
-        m.drawparallels(np.arange(-90.,99.,30.))
-        m.drawmeridians(np.arange(-180.,180.,60.))
-        cb = m.colorbar(im1,"right", size="5%", pad="2%")
-        ax.set_title('Kuipers')
-        plt.show()        
-        """
-        """
-        import matplotlib.pyplot as plt
-        bmap = pr.plot.area_def2basemap(self.definition)
-        bmng = bmap.bluemarble()
-        col = bmap.imshow(self.Kuipers, origin='upper', cmap="hot", label="kuipers")
-        plt.colorbar(label="kuipers")
-        #plt.colorbar.set_label("kuipers")
-        plt.show()
-    
-        from trollimage.colormap import rdbu
-        from trollimage.image import Image
-
-        img = Image(self.Kuipers, mode="L")        
-        rdbu.set_range(-1, 1.0)
-        img.colorize(rdbu)        
-        img.show()
-        plt.show()
-        """
-    def plot_hitrate(self, PLOT_DIR = "/local_disk/", figure_name="figure_"):
-        pr.plot.show_quicklook( self.definition, self.Hitrate, 
-                                vmin=0, vmax=1, label="hitrate")
-        pr.plot.save_quicklook(PLOT_DIR + figure_name + 'hitrate_' + 
-                               self.area_name +'.png',
-                               self.definition, self.Hitrate, 
-                               vmin=0, vmax=1, label="hitrate") 
-    def plot_threat_score(self, PLOT_DIR = "/local_disk/", 
-                          figure_name="figure_"):
-        pr.plot.show_quicklook( self.definition, self.Threat_Score, 
-                                vmin=0, vmax=1, label="threat_score")
-        pr.plot.save_quicklook(PLOT_DIR + figure_name + 'threat_score_' + 
-                               self.area_name +'.png',
-                               self.definition, self.Threat_Score, 
-                               vmin=0, vmax=1, label="threat_score")
-    def plot_threat_score_clear(self, PLOT_DIR = "/local_disk/", 
-                                figure_name="figure_"):
-        pr.plot.show_quicklook( self.definition, self.Threat_Score_Clear, 
-                                vmin=0, vmax=1, label="threat_score_clear")
-        pr.plot.save_quicklook(PLOT_DIR + figure_name + 'threat_score_clear_' 
-                               + self.area_name +'.png',
-                               self.definition, self.Threat_Score_Clear, 
-                               vmin=0, vmax=1, label="threat_score_clear")
 
 class PerformancePlottingObject:
     def __init__(self):
