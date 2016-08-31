@@ -20,7 +20,7 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
             'new_false_clouds': None,
             'lats': None,
             'lons': None}
-class ppsRemappedObject(DataObject):
+class ppsStatsOnFibLatticeObject(DataObject):
     def __init__(self):
         DataObject.__init__(self)                            
         self.all_arrays = {
@@ -33,8 +33,11 @@ class ppsRemappedObject(DataObject):
             'N_new_detected_clouds': None,
             'N_undetected_clouds': None,
             'N_detected_clear': None,
+            'N_clear':None,
+            'N_clouds':None,
+            'N': None,
             'Kuipers': None}  
-    def set_area(self, radius_km=200):
+    def set_flattice(self, radius_km=200):
         self.radius_km = radius_km
         self.lons, self.lats =get_fibonacci_spread_points_on_earth(radius_km = radius_km)
         import matplotlib.pyplot as plt
@@ -332,16 +335,16 @@ class ppsRemappedObject(DataObject):
 
 class PerformancePlottingObject:
     def __init__(self):
-        self.area = ppsRemappedObject()
-    def add_detection_stats_on_area_map_grid(self, my_obj):
+        self.flattice = ppsStatsOnFibLatticeObject()
+    def add_detection_stats_on_fib_lattice(self, my_obj):
         #Start with the area and get lat and lon to calculate the stats:
         #area_def = self.area.definition 
-        lats = self.area.lats[:]
-        max_distance=self.area.radius_km*1000*2.5
+        lats = self.flattice.lats[:]
+        max_distance=self.flattice.radius_km*1000*2.5
         #print "lons shape", lons.shape
         if lats.ndim ==1:
-            area_def = SwathDefinition(*(self.area.lons,
-                                         self.area.lats))
+            area_def = SwathDefinition(*(self.flattice.lons,
+                                         self.flattice.lats))
             target_def = SwathDefinition(*(my_obj.longitude, 
                                            my_obj.latitude)) 
             valid_in, valid_out, indices, distances = get_neighbour_info(
@@ -360,12 +363,12 @@ class PerformancePlottingObject:
             new_false_clouds = my_obj.new_false_clouds[valid_out]
             for c, ind in zip(cols.ravel(), xrange(len(cols.ravel()))):
                 if distances[ind]<max_distance:
-                    self.area.N_false_clouds[c] += false_clouds[ind]
-                    self.area.N_detected_clouds[c] += detected_clouds[ind]
-                    self.area.N_detected_clear[c] += detected_clear[ind]
-                    self.area.N_undetected_clouds[c] += undetected_clouds[ind]
-                    self.area.N_new_false_clouds[c] += new_false_clouds[ind]
-                    self.area.N_new_detected_clouds[c] += new_detected_clouds[ind]
+                    self.flattice.N_false_clouds[c] += false_clouds[ind]
+                    self.flattice.N_detected_clouds[c] += detected_clouds[ind]
+                    self.flattice.N_detected_clear[c] += detected_clear[ind]
+                    self.flattice.N_undetected_clouds[c] += undetected_clouds[ind]
+                    self.flattice.N_new_false_clouds[c] += new_false_clouds[ind]
+                    self.flattice.N_new_detected_clouds[c] += new_detected_clouds[ind]
         else:
             target_def = SwathDefinition(*(my_obj.longitude, 
                                            my_obj.latitude)) 
@@ -390,10 +393,10 @@ class PerformancePlottingObject:
             undetected_clouds = my_obj.undetected_clouds[valid_out]
             for r, c, ind in zip(rows.ravel(), cols.ravel(), xrange(len(cols.ravel()))):
                 if distances[ind]<max_distance:
-                    self.area.N_false_clouds[r,c] += false_clouds[ind]
-                    self.area.N_detected_clouds[r,c] += detected_clouds[ind]
-                    self.area.N_detected_clear[r,c] += detected_clear[ind]
-                    self.area.N_undetected_clouds[r,c] += undetected_clouds[ind]  
+                    self.flattice.N_false_clouds[r,c] += false_clouds[ind]
+                    self.flattice.N_detected_clouds[r,c] += detected_clouds[ind]
+                    self.flattice.N_detected_clear[r,c] += detected_clear[ind]
+                    self.flattice.N_undetected_clouds[r,c] += undetected_clouds[ind]  
 
 
 def get_fibonacci_spread_points_on_earth(radius_km):

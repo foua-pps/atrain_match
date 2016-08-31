@@ -49,7 +49,7 @@ elif isGAC_v2014:
 
 
 pplot_obj = PerformancePlottingObject()
-pplot_obj.area.set_area(radius_km=75)
+pplot_obj.flattice.set_flattice(radius_km=75)
 caObj = CalipsoAvhrrTrackObject()
 
 num = 0
@@ -65,7 +65,7 @@ for filename in files:
     if num >num_files_to_read:
         print "Get info from some %d files!"%(num_files_to_read)
         my_obj = get_some_info_from_caobj(caObj, isGAC=isGAC, method=method, DNT=DNT)
-        pplot_obj.add_detection_stats_on_area_map_grid(my_obj)        
+        pplot_obj.add_detection_stats_on_fib_lattice(my_obj)        
         caObj = caObj_new
         num=0
     else:
@@ -73,39 +73,39 @@ for filename in files:
 
 #Get info from the last files too
 my_obj =get_some_info_from_caobj(caObj, isGAC=isGAC, method=method, DNT=DNT)
-pplot_obj.add_detection_stats_on_area_map_grid(my_obj)  
+pplot_obj.add_detection_stats_on_fib_lattice(my_obj)  
 
 
-pplot_obj.area.PLOT_DIR = "/home/a001865/ATRAIN_MATCH_KUIPERS_PLOT/"
-pplot_obj.area.figure_name=figure_name
+pplot_obj.flattice.PLOT_DIR = "/home/a001865/ATRAIN_MATCH_KUIPERS_PLOT/"
+pplot_obj.flattice.figure_name=figure_name
 #Calcualte scores
-#pplot_obj.area.calculate_increased_hitrate()
-#pplot_obj.area._remap_score( score='increased_Hitrate', vmin=-0.05, vmax=0.05)
-pplot_obj.area.calculate_bias()
-pplot_obj.area._remap_score( vmin=-25.0, vmax=25.0, score='Bias', 
+#pplot_obj.flattice.calculate_increased_hitrate()
+#pplot_obj.flattice._remap_score( score='increased_Hitrate', vmin=-0.05, vmax=0.05)
+pplot_obj.flattice.calculate_bias()
+pplot_obj.flattice._remap_score( vmin=-25.0, vmax=25.0, score='Bias', 
                           screen_out_valid=True)
-pplot_obj.area.calculate_kuipers()
-pplot_obj.area._remap_score( vmin=0.0, score='Kuipers')
+pplot_obj.flattice.calculate_kuipers()
+pplot_obj.flattice._remap_score( vmin=0.0, score='Kuipers')
 #Calcualte hitrate
-pplot_obj.area.calculate_hitrate()
-pplot_obj.area._remap_score( vmin=0.5, score='Hitrate')
+pplot_obj.flattice.calculate_hitrate()
+pplot_obj.flattice._remap_score( vmin=0.5, score='Hitrate')
 #Calcualte threat_score
-pplot_obj.area.calculate_threat_score()
-pplot_obj.area._remap_score( score='Threat_Score')
+pplot_obj.flattice.calculate_threat_score()
+pplot_obj.flattice._remap_score( score='Threat_Score')
 #Calcualte threat_score_clear
-pplot_obj.area.calculate_threat_score_clear()
-pplot_obj.area._remap_score( score='Threat_Score_Clear')
-pplot_obj.area.calculate_calipso_cfc()
-pplot_obj.area._remap_score( vmin=0, vmax=100.0, score='calipso_cfc')
-pplot_obj.area.calculate_pps_cfc()
-pplot_obj.area._remap_score( vmin=0, vmax=100.0, score='pps_cfc')
-pplot_obj.area.calculate_pod_cloudy()
-pplot_obj.area._remap_score( score='PODcloudy', vmin=0.5)
-pplot_obj.area.calculate_pod_clear()
-pplot_obj.area._remap_score( score='PODclear', vmin=0.5)
-pplot_obj.area.calculate_far_cloudy()
-pplot_obj.area._remap_score( score='FARcloudy', vmax=0.5)
-pplot_obj.area.calculate_far_clear()
-pplot_obj.area._remap_score( score='FARclear', vmax=0.5)
-pplot_obj.area.calculate_RMS()
-pplot_obj.area._remap_score( score='RMS',  vmax=50.0, screen_out_valid=True)
+pplot_obj.flattice.calculate_threat_score_clear()
+pplot_obj.flattice._remap_score( score='Threat_Score_Clear')
+pplot_obj.flattice.calculate_calipso_cfc()
+pplot_obj.flattice._remap_score( vmin=0, vmax=100.0, score='calipso_cfc')
+pplot_obj.flattice.calculate_pps_cfc()
+pplot_obj.flattice._remap_score( vmin=0, vmax=100.0, score='pps_cfc')
+pplot_obj.flattice.calculate_pod_cloudy()
+pplot_obj.flattice._remap_score( score='PODcloudy', vmin=0.5)
+pplot_obj.flattice.calculate_pod_clear()
+pplot_obj.flattice._remap_score( score='PODclear', vmin=0.5)
+pplot_obj.flattice.calculate_far_cloudy()
+pplot_obj.flattice._remap_score( score='FARcloudy', vmax=0.5)
+pplot_obj.flattice.calculate_far_clear()
+pplot_obj.flattice._remap_score( score='FARclear', vmax=0.5)
+pplot_obj.flattice.calculate_RMS()
+pplot_obj.flattice._remap_score( score='RMS',  vmax=50.0, screen_out_valid=True)
