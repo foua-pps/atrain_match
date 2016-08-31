@@ -10,12 +10,12 @@ from matchobject_io import (readCaliopAvhrrMatchObj,
 from plot_kuipers_on_area_util import (PerformancePlottingObject,
                                        get_some_info_from_caobj,
                                        get_detection_stats_on_area_map_grid)
-isModis1km = False
+isModis1km = True
 isNPP_v2014 = False
-isGAC_v2014_morning_sat = False
+isGAC_v2014_morning_sat = True
 isGAC_v2014 = True
-method = 'KG'
-DNT="all"
+method = 'Nina'
+DNT="twilight"
 
 onlyCirrus=False
 isACPGv2012=False
@@ -60,7 +60,7 @@ elif isGAC_v2014:
 #my_area = 'euro_arctic_test'
 #my_area = 'ease_world_test'
 my_obj = PerformancePlottingObject()
-my_obj.area.set_area(radius_km=75)
+my_obj.area.set_area(radius_km=250)
 caObj = CalipsoAvhrrTrackObject()
 
 num = 0

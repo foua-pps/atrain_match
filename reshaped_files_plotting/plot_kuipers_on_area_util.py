@@ -534,10 +534,10 @@ def get_some_info_from_caobj(my_obj, caObj, isGAC=True, isACPGv2012=False,
         isCalipsoCloudy = nlay>0
         isCalipsoClear = np.not_equal(isCalipsoCloudy, True)   
     elif method == 'Nina':
-        isCalipsoCloudy = nlay>0  
-        isCalipsoCloudy = np.logical_and(
-            isCalipsoCloudy, 
-            caObj.calipso.all_arrays['total_optical_depth_5km']>0.15)
+        isCalipsoCloudy = np.logical_or(
+            caObj.calipso.all_arrays['total_optical_depth_5km']>0.15, 
+            np.logical_and(caObj.calipso.all_arrays['total_optical_depth_5km']<0,
+                           nlay>0))
         isCalipsoClear = np.logical_and(nlay == 0, meancl<0.01)
     elif method =='KG_r13_extratest':
         isCalipsoCloudy = nlay>0  
@@ -549,10 +549,10 @@ def get_some_info_from_caobj(my_obj, caObj, isGAC=True, isACPGv2012=False,
         r13[sunz<90] = r13[sunz<90]/np.cos(np.radians(sunz_cos[sunz<90]))
         isCloud_r13 = np.logical_and(r13>2.0, caObj.avhrr.all_arrays['ciwv']>3)
     elif method =='r13_extratest':
-        isCalipsoCloudy = nlay>0 
-        isCalipsoCloudy = np.logical_and(
-            isCalipsoCloudy, 
-            caObj.calipso.all_arrays['total_optical_depth_5km']>0.15)
+        isCalipsoCloudy = np.logical_or(
+            caObj.calipso.all_arrays['total_optical_depth_5km']>0.15, 
+            np.logical_and(caObj.calipso.all_arrays['total_optical_depth_5km']<0,
+                           nlay>0))
         isCalipsoClear = np.logical_and(nlay == 0, meancl<0.01)
         r13 = caObj.avhrr.all_arrays['r13micron']
         sunz =  caObj.avhrr.all_arrays['sunz']
