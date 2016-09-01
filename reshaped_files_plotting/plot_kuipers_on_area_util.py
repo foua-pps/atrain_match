@@ -4,6 +4,7 @@ from pyresample.geometry import SwathDefinition
 from pyresample.kd_tree import get_neighbour_info
 from pyresample.kd_tree import get_sample_from_neighbour_info
 import pyresample as pr
+import os
 from scipy import ndimage
 import matplotlib
 #matplotlib.use("TkAgg")
@@ -28,7 +29,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
             'lats': None,
             'lons': None,
             'N_false_clouds': None,
-            'N_lapse_rate': None,
+            'Min_lapse_rate': None,
             'N_detected_clouds': None,
             'N_new_false_clouds': None,
             'N_new_detected_clouds': None,
@@ -46,21 +47,25 @@ class ppsStatsOnFibLatticeObject(DataObject):
         ax = fig.add_subplot(111)
         plt.plot(self.lons,self.lats,'b*')
         #plt.show()
-        self.N_lapse_rate = np.zeros(self.lats.shape)
+        self.Sum_ctth_bias_low = np.zeros(self.lats.shape)
+        self.Min_lapse_rate = np.zeros(self.lats.shape)
         self.N_new_false_clouds = np.zeros(self.lats.shape)
         self.N_new_detected_clouds = np.zeros(self.lats.shape)
         self.N_false_clouds = np.zeros(self.lats.shape)
         self.N_detected_clouds = np.zeros(self.lats.shape)
         self.N_undetected_clouds = np.zeros(self.lats.shape)
         self.N_detected_clear = np.zeros(self.lats.shape)
+        self.N_detected_height_low = np.zeros(self.lats.shape)
     def np_float_array(self):
-        self.N_lapse_rate = 1.0*np.array(self.N_lapse_rate)
+        self.Sum_ctth_bias_low = 1.0*np.array(self.Sum_ctth_bias_low)
+        self.Min_lapse_rate = 1.0*np.array(self.Min_lapse_rate)
         self.N_detected_clouds = 1.0*np.array(self.N_detected_clouds)
         self.N_undetected_clouds = 1.0*np.array(self.N_undetected_clouds)  
         self.N_false_clouds = 1.0*np.array(self.N_false_clouds)
         self.N_detected_clear = 1.0*np.array(self.N_detected_clear)
         self.N_new_detected_clouds = 1.0*np.array(self.N_new_detected_clouds)
         self.N_new_false_clouds = 1.0*np.array(self.N_new_false_clouds)
+        self.N_detected_height_low = 1.0*np.array(self.N_detected_height_low)
     def find_number_of_clouds_clear(self):
         self.np_float_array()
         self.N_clear = self.N_detected_clear+self.N_false_clouds
@@ -91,7 +96,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
         #pr.plot.show_quicklook(area_def, result,
         #                      vmin=vmin, vmax=vmax, label=score)
         
-        pr.plot.save_quicklook(self.PLOT_DIR + self.figure_name + 
+        pr.plot.save_quicklook(self.PLOT_DIR_SCORE + self.figure_name + 
                                score +'_' + plot_area_name +'.png',
                                area_def, result, 
                                vmin=vmin, vmax=vmax, label=score)
@@ -183,7 +188,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
         my_proj1.drawmapboundary(fill_color='0.9')
         cb = my_proj1.colorbar(im1,"right", size="5%", pad="2%")
         ax.set_title(score)
-        plt.savefig(self.PLOT_DIR + self.figure_name + 
+        plt.savefig(self.PLOT_DIR_SCORE + self.figure_name + 
                     'basemap_' + 
                     score +'_robinson_' +'.png')
         plt.close('all')
@@ -191,6 +196,9 @@ class ppsStatsOnFibLatticeObject(DataObject):
     def remap_and_plot_score_on_several_areas(self, vmin=0.0, vmax=1.0, 
                                               score='Kuipers', screen_out_valid=False):
         print score
+        self.PLOT_DIR_SCORE = self.PLOT_DIR + '/' + score +'/'
+        if not os.path.exists(self.PLOT_DIR_SCORE ):
+            os.makedirs(self.PLOT_DIR_SCORE)
         for plot_area_name in [
                 #'cea5km_test'
                 #'euro_arctic',
@@ -229,16 +237,21 @@ class ppsStatsOnFibLatticeObject(DataObject):
 
     def calculate_lapse_rate(self):
         self.np_float_array()
-        the_mask = self.N_lapse_rate>-0.001
-        lapse_rate = np.ma.masked_array(self.N_lapse_rate, mask=the_mask)
+        the_mask = self.Min_lapse_rate>-0.001
+        lapse_rate = np.ma.masked_array(self.Min_lapse_rate, mask=the_mask)
         self.lapse_rate = lapse_rate
+    def calculate_height_bias(self):
+        self.np_float_array()
+        the_mask = self.N_detected_height_low<1
+        ctth_bias_low = self.Sum_ctth_bias_low*1.0/self.N_detected_height_low
+        ctth_bias_low = np.ma.masked_array(ctth_bias_low, mask=the_mask)
+        self.ctth_bias_low = ctth_bias_low
 
     def calculate_hitrate(self):
         self.np_float_array()
         self.find_number_of_clouds_clear()
-        Hitrate = (
-            self.N_detected_clouds + self.N_detected_clear)*1.0/(
-                self.N_clear + self.N_clouds)
+        Hitrate = (self.N_detected_clouds + self.N_detected_clear)*1.0/(
+            self.N_clear + self.N_clouds)
         the_mask = self.N<20
         Hitrate = np.ma.masked_array(Hitrate, mask=the_mask)
         self.Hitrate = Hitrate
@@ -373,11 +386,13 @@ class PerformancePlottingObject:
             cols = cols[valid_out]
             detected_clouds = my_obj.detected_clouds[valid_out]
             detected_clear = my_obj.detected_clear[valid_out]
+            detected_height_low = my_obj.detected_height_low[valid_out]
             false_clouds = my_obj.false_clouds[valid_out]
             undetected_clouds = my_obj.undetected_clouds[valid_out]
             new_detected_clouds = my_obj.new_detected_clouds[valid_out]
             new_false_clouds = my_obj.new_false_clouds[valid_out]
             lapse_rate = my_obj.lapse_rate[valid_out]  
+            height_bias_low = my_obj.height_bias_low[valid_out] 
             for c, ind in zip(cols.ravel(), xrange(len(cols.ravel()))):
                 if distances[ind]<max_distance:
                     self.flattice.N_false_clouds[c] += false_clouds[ind]
@@ -386,7 +401,10 @@ class PerformancePlottingObject:
                     self.flattice.N_undetected_clouds[c] += undetected_clouds[ind]
                     self.flattice.N_new_false_clouds[c] += new_false_clouds[ind]
                     self.flattice.N_new_detected_clouds[c] += new_detected_clouds[ind]
-                    self.flattice.N_lapse_rate[c] = np.min([self.flattice.N_lapse_rate[c],
+                    self.flattice.N_detected_height_low[c] += detected_height_low[ind]
+                    self.flattice.Sum_ctth_bias_low[c] += height_bias_low[ind]
+
+                    self.flattice.Min_lapse_rate[c] = np.min([self.flattice.Min_lapse_rate[c],
                                                             lapse_rate[ind]])
                                                            
         else:
@@ -453,12 +471,27 @@ def get_fibonacci_spread_points_on_earth(radius_km):
     return longitude, latitude
 
 def get_lapse_rate(caObj,use):
-    delta_h = caObj.calipso.all_arrays['layer_top_altitude'][use,0] - 0.001*caObj.calipso.all_arrays['elevation'][use]
-    delta_t = (273.15 + caObj.calipso.all_arrays['layer_top_temperature'][use,0] - caObj.avhrr.all_arrays['surftemp'][use])
+    from get_flag_info import get_calipso_low_clouds
+    low_clouds = get_calipso_low_clouds(caObj)
+    if np.size(caObj.avhrr.all_arrays['surftemp'])==1 and caObj.avhrr.all_arrays['surftemp'] is None:
+        return 0*use
+    delta_h = caObj.calipso.all_arrays['layer_top_altitude'][:,0] - 0.001*caObj.calipso.all_arrays['elevation'][:]
+    delta_t = (273.15 + caObj.calipso.all_arrays['layer_top_temperature'][:,0] - caObj.avhrr.all_arrays['surftemp'][:])
     lapse_rate = delta_t/delta_h
-    lapse_rate[caObj.calipso.all_arrays['layer_top_temperature'][use,0]<-500] = 0
-    lapse_rate[caObj.calipso.all_arrays['layer_top_altitude'][use,0]>5.0] = 0
-    return lapse_rate
+    lapse_rate[caObj.calipso.all_arrays['layer_top_temperature'][:,0]<-500] = 0
+    lapse_rate[caObj.calipso.all_arrays['layer_top_altitude'][:,0]>35.0] = 0
+    lapse_rate[low_clouds] = 0.0
+    return lapse_rate[use]
+
+def get_ctth_bias_low(caObj, use, detected_height):
+    from get_flag_info import get_calipso_low_clouds
+    low_clouds = get_calipso_low_clouds(caObj)
+    detected_low = np.logical_and(detected_height, low_clouds)
+    height_c = 1000*caObj.calipso.all_arrays['layer_top_altitude'][:,0] - caObj.calipso.all_arrays['elevation']
+    height_pps = caObj.avhrr.all_arrays['ctth_height']
+    delta_h = height_pps - height_c
+    delta_h[~detected_low]=0
+    return delta_h[use], detected_low[use]
     
 def get_some_info_from_caobj(caObj, isGAC=True, isACPGv2012=False, 
                              method='KG', DNT='All'):
@@ -495,6 +528,9 @@ def get_some_info_from_caobj(caObj, isGAC=True, isACPGv2012=False,
             np.logical_and(caObj.calipso.all_arrays['total_optical_depth_5km']<0,
                            nlay>0))
         isCalipsoClear = np.logical_and(nlay == 0, meancl<0.01)
+        isCalipsoClear = np.logical_and(
+            isCalipsoClear,
+            caObj.calipso.all_arrays['total_optical_depth_5km']<0)
     elif method =='KG_r13_extratest':
         isCalipsoCloudy = nlay>0  
         isCalipsoClear = np.not_equal(isCalipsoCloudy,True)
@@ -551,7 +587,9 @@ def get_some_info_from_caobj(caObj, isGAC=True, isACPGv2012=False,
     my_obj.latitude = caObj.avhrr.latitude[use]
     my_obj.longitude = caObj.avhrr.longitude[use]  
     my_obj.lapse_rate = get_lapse_rate(caObj,use)
-
+    my_obj.height_bias_low, my_obj.detected_height_low = get_ctth_bias_low(
+        caObj, use, np.logical_and(detected_clouds,
+                                   caObj.avhrr.all_arrays['ctth_temperature']>-9))
     if "r13" in method:
         new_detected_clouds = np.logical_and(
             isCalipsoCloudy,

@@ -13,17 +13,18 @@ isModis1km = True
 isNPP_v2014 = False
 isGAC_v2014_morning_sat = False
 isGAC_v2014 = True
-method = 'KG'
+method = 'Nina'
 DNT="all"
 
 onlyCirrus=False
 isACPGv2012=False
 if isModis1km:
-    num_files_to_read = 24*4
+    num_files_to_read = 1
     isGAC=False
     figure_name = "figure_global_modis_14th_%s_dnt_%s_"%(method, DNT)
     ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/global_modis_14th_created20160615/"
-    files = glob(ROOT_DIR + "Reshaped_Files/eos?/1km/????/??/2010??14_*/*h5")
+    #files = glob(ROOT_DIR + "Reshaped_Files/eos?/1km/????/12/2010??14_*/*h5")
+    files = glob(ROOT_DIR + "Reshaped_Files/merged/*.h5")
 elif isNPP_v2014:
     num_files_to_read = 30
     isGAC=False
@@ -49,7 +50,7 @@ elif isGAC_v2014:
 
 
 pplot_obj = PerformancePlottingObject()
-pplot_obj.flattice.set_flattice(radius_km=75)
+pplot_obj.flattice.set_flattice(radius_km=250)
 caObj = CalipsoAvhrrTrackObject()
 
 num = 0
@@ -78,9 +79,11 @@ pplot_obj.add_detection_stats_on_fib_lattice(my_obj)
 
 pplot_obj.flattice.PLOT_DIR = "/home/a001865/ATRAIN_MATCH_KUIPERS_PLOT/"
 pplot_obj.flattice.figure_name=figure_name
+pplot_obj.flattice.calculate_height_bias()
+pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-1000.0, vmax=1000.0, score='ctth_bias_low')
+
 pplot_obj.flattice.calculate_lapse_rate()
-pplot_obj.flattice.remap_and_plot_score_on_several_areas(
-    vmin=-25.0, vmax=0.0, score='lapse_rate', screen_out_valid=True)
+pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-25.0, vmax=0.0, score='lapse_rate')
 #Calcualte scores
 #pplot_obj.flattice.calculate_increased_hitrate()
 #pplot_obj.flattice.remap_and_plot_score_on_several_areas( score='increased_Hitrate', vmin=-0.05, vmax=0.05)

@@ -25,7 +25,7 @@ from matchobject_io import (readCaliopAvhrrMatchObj,
 import matplotlib.pyplot as plt
 
 def get_feature_type(caObj, aerosol_type=2):
-   cal_vert_feature = np.ones(caObj.calipso.layer_top_altitude[::,0].shape)*-9
+   cal_vert_feature = np.ones(caObj.calipso_aerosol.layer_top_altitude[::,0].shape)*-9
    cavf = caObj.calipso_aerosol.feature_classification_flags[::,0]
    feature_array = (4*np.bitwise_and(np.right_shift(cavf,11),1) + 
                     2*np.bitwise_and(np.right_shift(cavf,10),1) + 
