@@ -9,7 +9,7 @@ from matchobject_io import (readCaliopAvhrrMatchObj,
                             CalipsoAvhrrTrackObject)
 from plot_kuipers_on_area_util import (PerformancePlottingObject,
                                        get_some_info_from_caobj)
-isModis1km = False
+isModis1km = True
 isNPP_v2014 = False
 isGAC_v2014_morning_sat = False
 isGAC_v2014 = True
@@ -78,6 +78,9 @@ pplot_obj.add_detection_stats_on_fib_lattice(my_obj)
 
 pplot_obj.flattice.PLOT_DIR = "/home/a001865/ATRAIN_MATCH_KUIPERS_PLOT/"
 pplot_obj.flattice.figure_name=figure_name
+pplot_obj.flattice.calculate_lapse_rate()
+pplot_obj.flattice.remap_and_plot_score_on_several_areas(
+    vmin=-25.0, vmax=0.0, score='lapse_rate', screen_out_valid=True)
 #Calcualte scores
 #pplot_obj.flattice.calculate_increased_hitrate()
 #pplot_obj.flattice.remap_and_plot_score_on_several_areas( score='increased_Hitrate', vmin=-0.05, vmax=0.05)

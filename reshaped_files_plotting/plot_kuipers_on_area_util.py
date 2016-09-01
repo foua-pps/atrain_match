@@ -28,6 +28,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
             'lats': None,
             'lons': None,
             'N_false_clouds': None,
+            'N_lapse_rate': None,
             'N_detected_clouds': None,
             'N_new_false_clouds': None,
             'N_new_detected_clouds': None,
@@ -45,13 +46,15 @@ class ppsStatsOnFibLatticeObject(DataObject):
         ax = fig.add_subplot(111)
         plt.plot(self.lons,self.lats,'b*')
         #plt.show()
+        self.N_lapse_rate = np.zeros(self.lats.shape)
         self.N_new_false_clouds = np.zeros(self.lats.shape)
         self.N_new_detected_clouds = np.zeros(self.lats.shape)
         self.N_false_clouds = np.zeros(self.lats.shape)
         self.N_detected_clouds = np.zeros(self.lats.shape)
         self.N_undetected_clouds = np.zeros(self.lats.shape)
         self.N_detected_clear = np.zeros(self.lats.shape)
-    def np_float_array(self):    
+    def np_float_array(self):
+        self.N_lapse_rate = 1.0*np.array(self.N_lapse_rate)
         self.N_detected_clouds = 1.0*np.array(self.N_detected_clouds)
         self.N_undetected_clouds = 1.0*np.array(self.N_undetected_clouds)  
         self.N_false_clouds = 1.0*np.array(self.N_false_clouds)
@@ -106,9 +109,6 @@ class ppsStatsOnFibLatticeObject(DataObject):
         data=np.ma.masked_invalid(data)
         data[np.logical_and(data>vmax,~the_mask)] = vmax
         data[np.logical_and(data<vmin,~the_mask)] = vmin
-        #lons = lons[np.not_equal(the_mask, True)]
-        #lats = lats[np.not_equal(the_mask, True)]
-        #data = data[np.not_equal(the_mask, True)]
         ind = np.argsort(lats)
         lons = lons[ind]
         lats = lats[ind]
@@ -226,6 +226,12 @@ class ppsStatsOnFibLatticeObject(DataObject):
         the_mask = np.logical_or(the_mask, self.N_clear < 0.01*self.N_clouds)        
         Kuipers = np.ma.masked_array(Kuipers, mask=the_mask)
         self.Kuipers = Kuipers
+
+    def calculate_lapse_rate(self):
+        self.np_float_array()
+        the_mask = self.N_lapse_rate>-0.001
+        lapse_rate = np.ma.masked_array(self.N_lapse_rate, mask=the_mask)
+        self.lapse_rate = lapse_rate
 
     def calculate_hitrate(self):
         self.np_float_array()
@@ -371,6 +377,7 @@ class PerformancePlottingObject:
             undetected_clouds = my_obj.undetected_clouds[valid_out]
             new_detected_clouds = my_obj.new_detected_clouds[valid_out]
             new_false_clouds = my_obj.new_false_clouds[valid_out]
+            lapse_rate = my_obj.lapse_rate[valid_out]  
             for c, ind in zip(cols.ravel(), xrange(len(cols.ravel()))):
                 if distances[ind]<max_distance:
                     self.flattice.N_false_clouds[c] += false_clouds[ind]
@@ -379,6 +386,9 @@ class PerformancePlottingObject:
                     self.flattice.N_undetected_clouds[c] += undetected_clouds[ind]
                     self.flattice.N_new_false_clouds[c] += new_false_clouds[ind]
                     self.flattice.N_new_detected_clouds[c] += new_detected_clouds[ind]
+                    self.flattice.N_lapse_rate[c] = np.min([self.flattice.N_lapse_rate[c],
+                                                            lapse_rate[ind]])
+                                                           
         else:
             target_def = SwathDefinition(*(my_obj.longitude, 
                                            my_obj.latitude)) 
@@ -441,6 +451,14 @@ def get_fibonacci_spread_points_on_earth(radius_km):
     if np.isnan(np.max(latitude)):
         raise ValueError
     return longitude, latitude
+
+def get_lapse_rate(caObj,use):
+    delta_h = caObj.calipso.all_arrays['layer_top_altitude'][use,0] - 0.001*caObj.calipso.all_arrays['elevation'][use]
+    delta_t = (273.15 + caObj.calipso.all_arrays['layer_top_temperature'][use,0] - caObj.avhrr.all_arrays['surftemp'][use])
+    lapse_rate = delta_t/delta_h
+    lapse_rate[caObj.calipso.all_arrays['layer_top_temperature'][use,0]<-500] = 0
+    lapse_rate[caObj.calipso.all_arrays['layer_top_altitude'][use,0]>5.0] = 0
+    return lapse_rate
     
 def get_some_info_from_caobj(caObj, isGAC=True, isACPGv2012=False, 
                              method='KG', DNT='All'):
@@ -532,6 +550,8 @@ def get_some_info_from_caobj(caObj, isGAC=True, isACPGv2012=False,
     my_obj.detected_clear = detected_clear[use]
     my_obj.latitude = caObj.avhrr.latitude[use]
     my_obj.longitude = caObj.avhrr.longitude[use]  
+    my_obj.lapse_rate = get_lapse_rate(caObj,use)
+
     if "r13" in method:
         new_detected_clouds = np.logical_and(
             isCalipsoCloudy,
@@ -547,3 +567,7 @@ def get_some_info_from_caobj(caObj, isGAC=True, isACPGv2012=False,
        my_obj.new_detected_clouds = np.zeros(
            my_obj.false_clouds.shape)
     return my_obj
+
+
+
+
