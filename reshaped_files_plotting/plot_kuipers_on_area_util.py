@@ -48,6 +48,8 @@ class ppsStatsOnFibLatticeObject(DataObject):
         plt.plot(self.lons,self.lats,'b*')
         #plt.show()
         self.Sum_ctth_bias_low = np.zeros(self.lats.shape)
+        self.Sum_ctth_bias_temperature_low = np.zeros(self.lats.shape)
+        self.Sum_ctth_bias_temperature_low_t11 = np.zeros(self.lats.shape)
         self.Min_lapse_rate = np.zeros(self.lats.shape)
         self.N_new_false_clouds = np.zeros(self.lats.shape)
         self.N_new_detected_clouds = np.zeros(self.lats.shape)
@@ -58,6 +60,8 @@ class ppsStatsOnFibLatticeObject(DataObject):
         self.N_detected_height_low = np.zeros(self.lats.shape)
     def np_float_array(self):
         self.Sum_ctth_bias_low = 1.0*np.array(self.Sum_ctth_bias_low)
+        self.Sum_ctth_bias_temperature_low = 1.0*np.array(self.Sum_ctth_bias_temperature_low)
+        self.Sum_ctth_bias_temperature_low_t11 = 1.0*np.array(self.Sum_ctth_bias_temperature_low_t11)
         self.Min_lapse_rate = 1.0*np.array(self.Min_lapse_rate)
         self.N_detected_clouds = 1.0*np.array(self.N_detected_clouds)
         self.N_undetected_clouds = 1.0*np.array(self.N_undetected_clouds)  
@@ -240,6 +244,18 @@ class ppsStatsOnFibLatticeObject(DataObject):
         the_mask = self.Min_lapse_rate>-0.001
         lapse_rate = np.ma.masked_array(self.Min_lapse_rate, mask=the_mask)
         self.lapse_rate = lapse_rate
+    def calculate_temperature_bias(self):
+        self.np_float_array()
+        the_mask = self.N_detected_height_low<1
+        ctth_bias_temperature_low = self.Sum_ctth_bias_temperature_low*1.0/self.N_detected_height_low
+        ctth_bias_temperature_low = np.ma.masked_array(ctth_bias_temperature_low, mask=the_mask)
+        self.ctth_bias_temperature_low = ctth_bias_temperature_low
+    def calculate_temperature_bias_t11(self):
+        self.np_float_array()
+        the_mask = self.N_detected_height_low<1
+        ctth_bias_temperature_low_t11 = self.Sum_ctth_bias_temperature_low_t11*1.0/self.N_detected_height_low
+        ctth_bias_temperature_low_t11 = np.ma.masked_array(ctth_bias_temperature_low_t11, mask=the_mask)
+        self.ctth_bias_temperature_low_t11 = ctth_bias_temperature_low_t11
     def calculate_height_bias(self):
         self.np_float_array()
         the_mask = self.N_detected_height_low<1
@@ -393,6 +409,8 @@ class PerformancePlottingObject:
             new_false_clouds = my_obj.new_false_clouds[valid_out]
             lapse_rate = my_obj.lapse_rate[valid_out]  
             height_bias_low = my_obj.height_bias_low[valid_out] 
+            temperature_bias_low = my_obj.temperature_bias_low[valid_out]
+            temperature_bias_low_t11 = my_obj.temperature_bias_low_t11[valid_out] 
             for c, ind in zip(cols.ravel(), xrange(len(cols.ravel()))):
                 if distances[ind]<max_distance:
                     self.flattice.N_false_clouds[c] += false_clouds[ind]
@@ -403,7 +421,8 @@ class PerformancePlottingObject:
                     self.flattice.N_new_detected_clouds[c] += new_detected_clouds[ind]
                     self.flattice.N_detected_height_low[c] += detected_height_low[ind]
                     self.flattice.Sum_ctth_bias_low[c] += height_bias_low[ind]
-
+                    self.flattice.Sum_ctth_bias_temperature_low[c] += temperature_bias_low[ind]
+                    self.flattice.Sum_ctth_bias_temperature_low_t11[c] += temperature_bias_low_t11[ind]
                     self.flattice.Min_lapse_rate[c] = np.min([self.flattice.Min_lapse_rate[c],
                                                             lapse_rate[ind]])
                                                            
@@ -474,7 +493,7 @@ def get_lapse_rate(caObj,use):
     from get_flag_info import get_calipso_low_clouds
     low_clouds = get_calipso_low_clouds(caObj)
     if np.size(caObj.avhrr.all_arrays['surftemp'])==1 and caObj.avhrr.all_arrays['surftemp'] is None:
-        return 0*use
+        return 0*use[use]
     delta_h = caObj.calipso.all_arrays['layer_top_altitude'][:,0] - 0.001*caObj.calipso.all_arrays['elevation'][:]
     delta_t = (273.15 + caObj.calipso.all_arrays['layer_top_temperature'][:,0] - caObj.avhrr.all_arrays['surftemp'][:])
     lapse_rate = delta_t/delta_h
@@ -491,7 +510,31 @@ def get_ctth_bias_low(caObj, use, detected_height):
     height_pps = caObj.avhrr.all_arrays['ctth_height']
     delta_h = height_pps - height_c
     delta_h[~detected_low]=0
-    return delta_h[use], detected_low[use]
+    #try:
+    #    temperature_c = 273.15 + caObj.calipso.all_arrays['layer_top_temperature'][:,0]
+    #except:
+    temperature_c = 273.15 + caObj.calipso.all_arrays['midlayer_temperature'][:,0]
+    temperature_pps = caObj.avhrr.all_arrays['ctth_temperature']
+    delta_t = temperature_pps - temperature_c
+    delta_t[~detected_low]=0
+    delta_t[temperature_c<0]=0
+    delta_t[temperature_pps<0]=0
+    return delta_h[use], delta_t[use], detected_low[use]
+
+def get_ctth_bias_low_t11(caObj, use, detected_height):
+    from get_flag_info import get_calipso_low_clouds
+    low_clouds = get_calipso_low_clouds(caObj)
+    detected_low = np.logical_and(detected_height, low_clouds)
+    #try:
+    #    temperature_c = 273.15 + caObj.calipso.all_arrays['layer_top_temperature'][:,0]
+    #except:
+    temperature_c = 273.15 + caObj.calipso.all_arrays['midlayer_temperature'][:,0]
+    temperature_pps = caObj.avhrr.all_arrays['bt11micron']
+    delta_t = temperature_pps - temperature_c
+    delta_t[~detected_low]=0
+    delta_t[temperature_c<0]=0
+    delta_t[temperature_pps<0]=0
+    return delta_t[use]
     
 def get_some_info_from_caobj(caObj, isGAC=True, isACPGv2012=False, 
                              method='KG', DNT='All'):
@@ -587,7 +630,10 @@ def get_some_info_from_caobj(caObj, isGAC=True, isACPGv2012=False,
     my_obj.latitude = caObj.avhrr.latitude[use]
     my_obj.longitude = caObj.avhrr.longitude[use]  
     my_obj.lapse_rate = get_lapse_rate(caObj,use)
-    my_obj.height_bias_low, my_obj.detected_height_low = get_ctth_bias_low(
+    my_obj.height_bias_low, my_obj.temperature_bias_low, my_obj.detected_height_low = get_ctth_bias_low(
+        caObj, use, np.logical_and(detected_clouds,
+                                   caObj.avhrr.all_arrays['ctth_height']>-9))
+    my_obj.temperature_bias_low_t11 = get_ctth_bias_low_t11(
         caObj, use, np.logical_and(detected_clouds,
                                    caObj.avhrr.all_arrays['ctth_temperature']>-9))
     if "r13" in method:

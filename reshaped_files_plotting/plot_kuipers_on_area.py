@@ -9,11 +9,11 @@ from matchobject_io import (readCaliopAvhrrMatchObj,
                             CalipsoAvhrrTrackObject)
 from plot_kuipers_on_area_util import (PerformancePlottingObject,
                                        get_some_info_from_caobj)
-isModis1km = True
+isModis1km = False
 isNPP_v2014 = False
 isGAC_v2014_morning_sat = False
 isGAC_v2014 = True
-method = 'Nina'
+method = 'KG'
 DNT="all"
 
 onlyCirrus=False
@@ -80,7 +80,11 @@ pplot_obj.add_detection_stats_on_fib_lattice(my_obj)
 pplot_obj.flattice.PLOT_DIR = "/home/a001865/ATRAIN_MATCH_KUIPERS_PLOT/"
 pplot_obj.flattice.figure_name=figure_name
 pplot_obj.flattice.calculate_height_bias()
-pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-1000.0, vmax=1000.0, score='ctth_bias_low')
+pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-2000.0, vmax=2000.0, score='ctth_bias_low')
+pplot_obj.flattice.calculate_temperature_bias()
+pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-10.0, vmax=10.0, score='ctth_bias_temperature_low')
+pplot_obj.flattice.calculate_temperature_bias_t11()
+pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-10.0, vmax=10.0, score='ctth_bias_temperature_low_t11')
 
 pplot_obj.flattice.calculate_lapse_rate()
 pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-25.0, vmax=0.0, score='lapse_rate')
