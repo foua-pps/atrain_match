@@ -9,11 +9,11 @@ from matchobject_io import (readCaliopAvhrrMatchObj,
                             CalipsoAvhrrTrackObject)
 from plot_kuipers_on_area_util import (PerformancePlottingObject,
                                        ppsMatch_Imager_CalipsoObject)
-isModis1km = True
+isModis1km = False
 isNPP_v2014 = False
 isGAC_v2014_morning_sat = False
 isGAC_v2014 = True
-method = 'Nina'
+method = 'KG'
 DNT="all"
 
 onlyCirrus=False
@@ -50,7 +50,7 @@ elif isGAC_v2014:
 
 
 pplot_obj = PerformancePlottingObject()
-pplot_obj.flattice.set_flattice(radius_km=250)
+pplot_obj.flattice.set_flattice(radius_km=75)
 caObj = CalipsoAvhrrTrackObject()
 temp_obj = ppsMatch_Imager_CalipsoObject()
 
@@ -60,25 +60,45 @@ for filename in files:
 
     num +=1
     try :
-        caObj_new=readCaliopAvhrrMatchObj(filename)        
+        caObj_new=readCaliopAvhrrMatchObj(filename, var_to_skip='segment')        
     except:
         print "skipping file %s"%(filename)
         continue
-    if num >num_files_to_read:
+    if num_files_to_read==1:
+        print "Get info from one file!"
+        temp_obj.get_some_info_from_caobj(caObj_new, isGAC=isGAC, method=method, DNT=DNT)
+        print "Got info, now remap to the lattice"
+        pplot_obj.add_detection_stats_on_fib_lattice(temp_obj)     
+    elif num >num_files_to_read:
         print "Get info from some %d files!"%(num_files_to_read)
         temp_obj.get_some_info_from_caobj(caObj, isGAC=isGAC, method=method, DNT=DNT)
-        pplot_obj.add_detection_stats_on_fib_lattice(temp_obj)        
+        print "got info, now remap to the lattice"
+        pplot_obj.add_detection_stats_on_fib_lattice(temp_obj) 
+        print "Got info from some files!"
         caObj = caObj_new
         num=0
     else:
         caObj = caObj + caObj_new
 
 #Get info from the last files too 
-temp_obj.get_some_info_from_caobj(caObj, isGAC=isGAC, method=method, DNT=DNT)
-pplot_obj.add_detection_stats_on_fib_lattice(temp_obj) 
+if num_files_to_read!=1:
+    print "Get info from last files!"
+    temp_obj.get_some_info_from_caobj(caObj, isGAC=isGAC, method=method, DNT=DNT)
+    pplot_obj.add_detection_stats_on_fib_lattice(temp_obj) 
 
 pplot_obj.flattice.PLOT_DIR = "/home/a001865/ATRAIN_MATCH_KUIPERS_PLOT/"
 pplot_obj.flattice.figure_name=figure_name
+#start to calculate
+pplot_obj.flattice.calculate_height_bias_type()
+pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-2000.0, vmax=2000.0, score='ctth_bias_type_0')
+pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-2000.0, vmax=2000.0, score='ctth_bias_type_1')
+pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-2000.0, vmax=2000.0, score='ctth_bias_type_2')
+pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-2000.0, vmax=2000.0, score='ctth_bias_type_3')
+pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-2000.0, vmax=2000.0, score='ctth_bias_type_4')
+pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-2000.0, vmax=2000.0, score='ctth_bias_type_5')
+pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-2000.0, vmax=2000.0, score='ctth_bias_type_6')
+pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-2000.0, vmax=2000.0, score='ctth_bias_type_7')
+
 pplot_obj.flattice.calculate_height_bias()
 pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-2000.0, vmax=2000.0, score='ctth_bias_low')
 pplot_obj.flattice.calculate_temperature_bias()
