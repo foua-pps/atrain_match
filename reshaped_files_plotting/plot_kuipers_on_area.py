@@ -8,12 +8,12 @@ from glob import glob
 from matchobject_io import (readCaliopAvhrrMatchObj,
                             CalipsoAvhrrTrackObject)
 from plot_kuipers_on_area_util import (PerformancePlottingObject,
-                                       get_some_info_from_caobj)
-isModis1km = False
+                                       ppsMatch_Imager_CalipsoObject)
+isModis1km = True
 isNPP_v2014 = False
 isGAC_v2014_morning_sat = False
 isGAC_v2014 = True
-method = 'KG'
+method = 'Nina'
 DNT="all"
 
 onlyCirrus=False
@@ -52,10 +52,11 @@ elif isGAC_v2014:
 pplot_obj = PerformancePlottingObject()
 pplot_obj.flattice.set_flattice(radius_km=250)
 caObj = CalipsoAvhrrTrackObject()
+temp_obj = ppsMatch_Imager_CalipsoObject()
 
 num = 0
 for filename in files:
-    #print  os.path.basename(filename)
+    print  os.path.basename(filename)
 
     num +=1
     try :
@@ -65,17 +66,16 @@ for filename in files:
         continue
     if num >num_files_to_read:
         print "Get info from some %d files!"%(num_files_to_read)
-        my_obj = get_some_info_from_caobj(caObj, isGAC=isGAC, method=method, DNT=DNT)
-        pplot_obj.add_detection_stats_on_fib_lattice(my_obj)        
+        temp_obj.get_some_info_from_caobj(caObj, isGAC=isGAC, method=method, DNT=DNT)
+        pplot_obj.add_detection_stats_on_fib_lattice(temp_obj)        
         caObj = caObj_new
         num=0
     else:
         caObj = caObj + caObj_new
 
-#Get info from the last files too
-my_obj =get_some_info_from_caobj(caObj, isGAC=isGAC, method=method, DNT=DNT)
-pplot_obj.add_detection_stats_on_fib_lattice(my_obj)  
-
+#Get info from the last files too 
+temp_obj.get_some_info_from_caobj(caObj, isGAC=isGAC, method=method, DNT=DNT)
+pplot_obj.add_detection_stats_on_fib_lattice(temp_obj) 
 
 pplot_obj.flattice.PLOT_DIR = "/home/a001865/ATRAIN_MATCH_KUIPERS_PLOT/"
 pplot_obj.flattice.figure_name=figure_name

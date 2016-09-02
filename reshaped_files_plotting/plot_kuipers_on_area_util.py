@@ -21,6 +21,148 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
             'new_false_clouds': None,
             'lats': None,
             'lons': None}
+    def get_some_info_from_caobj(self, caObj, isGAC=True,  method='KG', DNT='All'):
+        self.set_false_and_missed_cloudy_and_clear(caObj=caObj, 
+                                                   isGAC=isGAC, method=method, DNT=DNT)
+        self.set_r13_extratest(caObj=caObj)
+        self.get_lapse_rate(caObj=caObj)
+        self.get_ctth_bias_low(caObj=caObj)
+        self.get_ctth_bias_low_temperature(caObj=caObj)
+
+    def set_false_and_missed_cloudy_and_clear(self, caObj, 
+                                              isGAC=True,  method='KG', DNT='All' ):
+        isCloudyPPS = np.logical_and(caObj.avhrr.all_arrays['cloudtype']>4,
+                                     caObj.avhrr.all_arrays['cloudtype']<21) 
+        isClearPPS = np.logical_and(caObj.avhrr.all_arrays['cloudtype']>0,
+                                    caObj.avhrr.all_arrays['cloudtype']<5)
+        nlay =np.where(caObj.calipso.all_arrays['number_layers_found']>0,1,0)
+        meancl=ndimage.filters.uniform_filter1d(nlay*1.0, size=3)
+        if method == 'KG' and isGAC:
+            isCalipsoCloudy = np.logical_and(
+                caObj.calipso.all_arrays['cloud_fraction']>0.5,
+                caObj.calipso.all_arrays['total_optical_depth_5km']>0.15)
+            isCalipsoClear = np.not_equal(isCalipsoCloudy, True)
+        elif method == 'Nina' and isGAC:    
+            isCalipsoCloudy = np.logical_and(
+                nlay > 0, 
+                caObj.calipso.all_arrays['cloud_fraction']>0.5)
+            isCalipsoCloudy = np.logical_and(
+                isCalipsoCloudy, 
+                caObj.calipso.all_arrays['total_optical_depth_5km']>0.15)
+            isCalipsoClear = np.logical_and(nlay == 0, meancl<0.01)
+            isCalipsoClear = np.logical_and(
+                isCalipsoClear, 
+                caObj.calipso.all_arrays['total_optical_depth_5km']<0)
+        elif method == 'KG':
+            isCalipsoCloudy = nlay>0
+            isCalipsoClear = np.not_equal(isCalipsoCloudy, True)   
+        elif method == 'Nina':
+            isCalipsoCloudy = np.logical_or(
+                caObj.calipso.all_arrays['total_optical_depth_5km']>0.15, 
+                np.logical_and(caObj.calipso.all_arrays['total_optical_depth_5km']<0,
+                               nlay>0))
+            isCalipsoClear = np.logical_and(nlay == 0, meancl<0.01)
+            isCalipsoClear = np.logical_and(
+                isCalipsoClear,
+                caObj.calipso.all_arrays['total_optical_depth_5km']<0)
+        sunz = caObj.avhrr.all_arrays['sunz']       
+        if DNT in ["day"]:
+            isCloudyPPS = np.logical_and(isCloudyPPS,  sunz<=80)
+            isClearPPS =  np.logical_and(isClearPPS,  sunz<=80)
+        if DNT in ["night"]:
+            isCloudyPPS = np.logical_and(isCloudyPPS,  sunz>=95)
+            isClearPPS =  np.logical_and(isClearPPS,  sunz>=95)
+        if DNT in ["twilight"]:
+            isCloudyPPS = np.logical_and(isCloudyPPS,  sunz>80)
+            isClearPPS =  np.logical_and(isClearPPS,  sunz>80)
+            isCloudyPPS = np.logical_and(isCloudyPPS,  sunz<95)
+            isClearPPS =  np.logical_and(isClearPPS,  sunz<95)                  
+        if DNT in ["all"]:
+            pass
+        undetected_clouds = np.logical_and(isCalipsoCloudy, isClearPPS)
+        false_clouds = np.logical_and(isCalipsoClear, isCloudyPPS)
+        detected_clouds = np.logical_and(isCalipsoCloudy, isCloudyPPS)
+        detected_clear = np.logical_and(isCalipsoClear, isClearPPS)
+        use = np.logical_or(np.logical_or(detected_clouds, detected_clear),
+                            np.logical_or(false_clouds, undetected_clouds))
+        detected_height = np.logical_and(detected_clouds,
+                                         caObj.avhrr.all_arrays['ctth_height']>-9)
+        detected_temperature = np.logical_and(detected_clouds,
+                                       caObj.avhrr.all_arrays['ctth_temperature']>-9)
+
+        self.false_clouds = false_clouds[use]
+        self.detected_clouds = detected_clouds[use]
+        self.undetected_clouds = undetected_clouds[use]
+        self.detected_clear = detected_clear[use]
+        self.latitude = caObj.avhrr.latitude[use]
+        self.longitude = caObj.avhrr.longitude[use] 
+        self.use = use
+        self.detected_height = detected_height[use]
+        self.detected_temperature = detected_temperature[use]
+
+    def set_r13_extratest(self,caObj):
+        if np.size(caObj.avhrr.all_arrays['r13micron'])==1 and caObj.avhrr.all_arrays['r13micron'] is None:
+            self.new_false_clouds = np.zeros(self.false_clouds.shape)
+            self.new_detected_clouds = np.zeros(self.false_clouds.shape)  
+            return
+        r13 = caObj.avhrr.all_arrays['r13micron']
+        sunz =  caObj.avhrr.all_arrays['sunz']
+        sunz_cos = sunz.copy()
+        sunz_cos[sunz>87] =87    
+        r13[sunz<90] = r13[sunz<90]/np.cos(np.radians(sunz_cos[sunz<90]))
+        isCloud_r13 = np.logical_and(r13>2.0, caObj.avhrr.all_arrays['ciwv']>3)
+        new_detected_clouds = np.logical_and(self.detected_clouds,
+                                             isCloud_r13[self.use])
+        new_false_clouds = np.logical_and(self.detected_clear,
+                                          isCloud_r13[self.use])
+        self.new_false_clouds = new_false_clouds
+        self.new_detected_clouds = new_detected_clouds
+        
+    def get_lapse_rate(self, caObj):
+        if np.size(caObj.avhrr.all_arrays['surftemp'])==1 and caObj.avhrr.all_arrays['surftemp'] is None:
+            self.lapse_rate = np.zeros(self.false_clouds.shape)
+            return
+        from get_flag_info import get_calipso_low_clouds
+        low_clouds = get_calipso_low_clouds(caObj)
+        delta_h = caObj.calipso.all_arrays['layer_top_altitude'][:,0] - 0.001*caObj.calipso.all_arrays['elevation'][:]
+        delta_t = (273.15 + caObj.calipso.all_arrays['layer_top_temperature'][:,0] - caObj.avhrr.all_arrays['surftemp'][:])
+        lapse_rate = delta_t/delta_h
+        lapse_rate[caObj.calipso.all_arrays['layer_top_temperature'][:,0]<-500] = 0
+        lapse_rate[caObj.calipso.all_arrays['layer_top_altitude'][:,0]>35.0] = 0
+        lapse_rate[low_clouds] = 0.0
+        self.lapse_rate = lapse_rate[self.use]
+
+    def get_ctth_bias_low(self, caObj):
+        from get_flag_info import get_calipso_low_clouds
+        low_clouds = get_calipso_low_clouds(caObj)
+        detected_low = np.logical_and(self.detected_height, low_clouds[self.use])
+        height_c = 1000*caObj.calipso.all_arrays['layer_top_altitude'][self.use,0] - caObj.calipso.all_arrays['elevation'][self.use]
+        height_pps = caObj.avhrr.all_arrays['ctth_height'][self.use]
+        delta_h = height_pps - height_c
+        delta_h[~detected_low]=0
+        self.height_bias_low = delta_h
+        self.detected_height_low = detected_low
+
+    def get_ctth_bias_low_temperature(self, caObj):
+        from get_flag_info import get_calipso_low_clouds
+        low_clouds = get_calipso_low_clouds(caObj)
+        detected_low = np.logical_and(self.detected_height, low_clouds[self.use])
+        temperature_c = 273.15 + caObj.calipso.all_arrays['midlayer_temperature'][self.use,0]
+        temperature_pps = caObj.avhrr.all_arrays['ctth_temperature'][self.use]
+        delta_t = temperature_pps - temperature_c
+        delta_t[~detected_low]=0
+        delta_t[temperature_c<0]=0
+        delta_t[temperature_pps<0]=0
+        temperature_pps = caObj.avhrr.all_arrays['bt11micron'][self.use]
+        delta_t_t11 = temperature_pps - temperature_c
+        delta_t_t11[~detected_low]=0
+        delta_t_t11[temperature_c<0]=0
+        delta_t_t11[temperature_pps<0]=0
+        self.temperature_bias_low = delta_t
+        self.temperature_bias_low_t11 = delta_t_t11
+
+
+
 class ppsStatsOnFibLatticeObject(DataObject):
     def __init__(self):
         DataObject.__init__(self)                            
@@ -200,8 +342,8 @@ class ppsStatsOnFibLatticeObject(DataObject):
     def remap_and_plot_score_on_several_areas(self, vmin=0.0, vmax=1.0, 
                                               score='Kuipers', screen_out_valid=False):
         print score
-        self.PLOT_DIR_SCORE = self.PLOT_DIR + '/' + score +'/'
-        if not os.path.exists(self.PLOT_DIR_SCORE ):
+        self.PLOT_DIR_SCORE = self.PLOT_DIR + "/%s/Radius_%d_km/"%(score, self.radius_km)
+        if not os.path.exists(self.PLOT_DIR_SCORE):
             os.makedirs(self.PLOT_DIR_SCORE)
         for plot_area_name in [
                 #'cea5km_test'
@@ -489,168 +631,8 @@ def get_fibonacci_spread_points_on_earth(radius_km):
         raise ValueError
     return longitude, latitude
 
-def get_lapse_rate(caObj,use):
-    from get_flag_info import get_calipso_low_clouds
-    low_clouds = get_calipso_low_clouds(caObj)
-    if np.size(caObj.avhrr.all_arrays['surftemp'])==1 and caObj.avhrr.all_arrays['surftemp'] is None:
-        return 0*use[use]
-    delta_h = caObj.calipso.all_arrays['layer_top_altitude'][:,0] - 0.001*caObj.calipso.all_arrays['elevation'][:]
-    delta_t = (273.15 + caObj.calipso.all_arrays['layer_top_temperature'][:,0] - caObj.avhrr.all_arrays['surftemp'][:])
-    lapse_rate = delta_t/delta_h
-    lapse_rate[caObj.calipso.all_arrays['layer_top_temperature'][:,0]<-500] = 0
-    lapse_rate[caObj.calipso.all_arrays['layer_top_altitude'][:,0]>35.0] = 0
-    lapse_rate[low_clouds] = 0.0
-    return lapse_rate[use]
 
-def get_ctth_bias_low(caObj, use, detected_height):
-    from get_flag_info import get_calipso_low_clouds
-    low_clouds = get_calipso_low_clouds(caObj)
-    detected_low = np.logical_and(detected_height, low_clouds)
-    height_c = 1000*caObj.calipso.all_arrays['layer_top_altitude'][:,0] - caObj.calipso.all_arrays['elevation']
-    height_pps = caObj.avhrr.all_arrays['ctth_height']
-    delta_h = height_pps - height_c
-    delta_h[~detected_low]=0
-    #try:
-    #    temperature_c = 273.15 + caObj.calipso.all_arrays['layer_top_temperature'][:,0]
-    #except:
-    temperature_c = 273.15 + caObj.calipso.all_arrays['midlayer_temperature'][:,0]
-    temperature_pps = caObj.avhrr.all_arrays['ctth_temperature']
-    delta_t = temperature_pps - temperature_c
-    delta_t[~detected_low]=0
-    delta_t[temperature_c<0]=0
-    delta_t[temperature_pps<0]=0
-    return delta_h[use], delta_t[use], detected_low[use]
-
-def get_ctth_bias_low_t11(caObj, use, detected_height):
-    from get_flag_info import get_calipso_low_clouds
-    low_clouds = get_calipso_low_clouds(caObj)
-    detected_low = np.logical_and(detected_height, low_clouds)
-    #try:
-    #    temperature_c = 273.15 + caObj.calipso.all_arrays['layer_top_temperature'][:,0]
-    #except:
-    temperature_c = 273.15 + caObj.calipso.all_arrays['midlayer_temperature'][:,0]
-    temperature_pps = caObj.avhrr.all_arrays['bt11micron']
-    delta_t = temperature_pps - temperature_c
-    delta_t[~detected_low]=0
-    delta_t[temperature_c<0]=0
-    delta_t[temperature_pps<0]=0
-    return delta_t[use]
     
-def get_some_info_from_caobj(caObj, isGAC=True, isACPGv2012=False, 
-                             method='KG', DNT='All'):
-    my_obj = ppsMatch_Imager_CalipsoObject()
-    #cloudObj = get_clear_and_cloudy_vectors(caObj, isACPGv2012, isGAC)  
-    isCloudyPPS = np.logical_and(caObj.avhrr.all_arrays['cloudtype']>4,
-                                 caObj.avhrr.all_arrays['cloudtype']<21) 
-    isClearPPS = np.logical_and(caObj.avhrr.all_arrays['cloudtype']>0,
-                                caObj.avhrr.all_arrays['cloudtype']<5)
-    nlay =np.where(caObj.calipso.all_arrays['number_layers_found']>0,1,0)
-    meancl=ndimage.filters.uniform_filter1d(nlay*1.0, size=3)
-    if method == 'KG' and isGAC:
-        isCalipsoCloudy = np.logical_and(
-            caObj.calipso.all_arrays['cloud_fraction']>0.5,
-            caObj.calipso.all_arrays['total_optical_depth_5km']>0.15)
-        isCalipsoClear = np.not_equal(isCalipsoCloudy,True)
-    elif method == 'Nina' and isGAC:    
-        isCalipsoCloudy = np.logical_and(
-            nlay > 0, 
-            caObj.calipso.all_arrays['cloud_fraction']>0.5)
-        isCalipsoCloudy = np.logical_and(
-            isCalipsoCloudy, 
-            caObj.calipso.all_arrays['total_optical_depth_5km']>0.15)
-        isCalipsoClear = np.logical_and(nlay == 0, meancl<0.01)
-        isCalipsoClear = np.logical_and(
-            isCalipsoClear, 
-            caObj.calipso.all_arrays['total_optical_depth_5km']<0)
-    elif method == 'KG':
-        isCalipsoCloudy = nlay>0
-        isCalipsoClear = np.not_equal(isCalipsoCloudy, True)   
-    elif method == 'Nina':
-        isCalipsoCloudy = np.logical_or(
-            caObj.calipso.all_arrays['total_optical_depth_5km']>0.15, 
-            np.logical_and(caObj.calipso.all_arrays['total_optical_depth_5km']<0,
-                           nlay>0))
-        isCalipsoClear = np.logical_and(nlay == 0, meancl<0.01)
-        isCalipsoClear = np.logical_and(
-            isCalipsoClear,
-            caObj.calipso.all_arrays['total_optical_depth_5km']<0)
-    elif method =='KG_r13_extratest':
-        isCalipsoCloudy = nlay>0  
-        isCalipsoClear = np.not_equal(isCalipsoCloudy,True)
-        r13 = caObj.avhrr.all_arrays['r13micron']
-        sunz =  caObj.avhrr.all_arrays['sunz']
-        sunz_cos = sunz.copy()
-        sunz_cos[sunz>87] =87    
-        r13[sunz<90] = r13[sunz<90]/np.cos(np.radians(sunz_cos[sunz<90]))
-        isCloud_r13 = np.logical_and(r13>2.0, caObj.avhrr.all_arrays['ciwv']>3)
-    elif method =='r13_extratest':
-        isCalipsoCloudy = np.logical_or(
-            caObj.calipso.all_arrays['total_optical_depth_5km']>0.15, 
-            np.logical_and(caObj.calipso.all_arrays['total_optical_depth_5km']<0,
-                           nlay>0))
-        isCalipsoClear = np.logical_and(nlay == 0, meancl<0.01)
-        r13 = caObj.avhrr.all_arrays['r13micron']
-        sunz =  caObj.avhrr.all_arrays['sunz']
-        sunz_cos = sunz.copy()
-        sunz_cos[sunz>87] =87    
-        r13[sunz<90] = r13[sunz<90]/np.cos(np.radians(sunz_cos[sunz<90]))
-        isCloud_r13 = np.logical_and(r13>2.0, caObj.avhrr.all_arrays['ciwv']>3)
-        
-
-    if DNT in ["day"]:
-        isCloudyPPS = np.logical_and(isCloudyPPS, 
-                                     caObj.avhrr.all_arrays['sunz']<=80)
-        isClearPPS =  np.logical_and(isClearPPS, 
-                                     caObj.avhrr.all_arrays['sunz']<=80)
-    if DNT in ["night"]:
-        isCloudyPPS = np.logical_and(isCloudyPPS, 
-                                     caObj.avhrr.all_arrays['sunz']>=95)
-        isClearPPS =  np.logical_and(isClearPPS, 
-                                     caObj.avhrr.all_arrays['sunz']>=95)
-    if DNT in ["twilight"]:
-        isCloudyPPS = np.logical_and(isCloudyPPS, 
-                                     caObj.avhrr.all_arrays['sunz']>80)
-        isClearPPS =  np.logical_and(isClearPPS, 
-                                     caObj.avhrr.all_arrays['sunz']>80)
-        isCloudyPPS = np.logical_and(isCloudyPPS, 
-                                     caObj.avhrr.all_arrays['sunz']<95)
-        isClearPPS =  np.logical_and(isClearPPS, 
-                                     caObj.avhrr.all_arrays['sunz']<95)                  
-               
-    undetected_clouds = np.logical_and(isCalipsoCloudy, isClearPPS)
-    false_clouds = np.logical_and(isCalipsoClear, isCloudyPPS)
-    detected_clouds = np.logical_and(isCalipsoCloudy, isCloudyPPS)
-    detected_clear = np.logical_and(isCalipsoClear, isClearPPS)
-    use = np.logical_or(np.logical_or(detected_clouds, detected_clear),
-                        np.logical_or(false_clouds, undetected_clouds))
-    my_obj.false_clouds = false_clouds[use]
-    my_obj.detected_clouds = detected_clouds[use]
-    my_obj.undetected_clouds = undetected_clouds[use]
-    my_obj.detected_clear = detected_clear[use]
-    my_obj.latitude = caObj.avhrr.latitude[use]
-    my_obj.longitude = caObj.avhrr.longitude[use]  
-    my_obj.lapse_rate = get_lapse_rate(caObj,use)
-    my_obj.height_bias_low, my_obj.temperature_bias_low, my_obj.detected_height_low = get_ctth_bias_low(
-        caObj, use, np.logical_and(detected_clouds,
-                                   caObj.avhrr.all_arrays['ctth_height']>-9))
-    my_obj.temperature_bias_low_t11 = get_ctth_bias_low_t11(
-        caObj, use, np.logical_and(detected_clouds,
-                                   caObj.avhrr.all_arrays['ctth_temperature']>-9))
-    if "r13" in method:
-        new_detected_clouds = np.logical_and(
-            isCalipsoCloudy,
-            np.logical_and(isClearPPS, isCloud_r13))
-        new_false_clouds = np.logical_and(
-            isCalipsoClear,
-            np.logical_and(isClearPPS, isCloud_r13))
-        my_obj.new_false_clouds = new_false_clouds[use]
-        my_obj.new_detected_clouds = new_detected_clouds[use]
-    else:
-       my_obj.new_false_clouds = np.zeros(
-           my_obj.false_clouds.shape)
-       my_obj.new_detected_clouds = np.zeros(
-           my_obj.false_clouds.shape)
-    return my_obj
 
 
 
