@@ -91,6 +91,8 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
                             np.logical_or(false_clouds, undetected_clouds))
         detected_height = np.logical_and(detected_clouds,
                                          caObj.avhrr.all_arrays['ctth_height']>-9)
+        detected_height = np.logical_and(detected_height,
+                                         caObj.calipso.all_arrays['layer_top_altitude'][:,0]>-1)
         detected_temperature = np.logical_and(detected_clouds,
                                        caObj.avhrr.all_arrays['ctth_temperature']>-9)
 
@@ -146,6 +148,15 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         delta_h[~detected_low]=0
         self.height_bias_low = delta_h
         self.detected_height_low = detected_low
+        try:
+            temperature_pps = caObj.avhrr.all_arrays['ctth_temperature'][self.use]
+            temp_diff = temperature_pps - caObj.avhrr.all_arrays['surftemp'][self.use]
+            rate = -1.0/5.0 #-5K per kilometer
+            self.lapse_bias_low = rate*temp_diff*1000 - height_c
+        except:
+            self.lapse_bias_low = 0* height_c
+        self.lapse_bias_low[~detected_low]=0
+        self.lapse_bias_low[temperature_pps<0]=0
 
     def get_ctth_bias_low_temperature(self, caObj):
         from get_flag_info import get_calipso_low_clouds
@@ -162,7 +173,8 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         delta_t_t11[~detected_low]=0
         delta_t_t11[temperature_c<0]=0
         delta_t_t11[temperature_pps<0]=0
-        self.temperature_bias_low = delta_t
+        self.temperature_bias_low =delta_t
+        self.temperature_bias_low[~detected_low]=0
         self.temperature_bias_low_t11 = delta_t_t11
 
     def get_ctth_bias_type(self, caObj, calipso_cloudtype=0):
@@ -206,6 +218,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
         plt.plot(self.lons,self.lats,'b*')
         #plt.show()
         self.Sum_ctth_bias_low = np.zeros(self.lats.shape)
+        self.Sum_lapse_bias_low = np.zeros(self.lats.shape)
         self.Sum_ctth_bias_temperature_low = np.zeros(self.lats.shape)
         self.Sum_ctth_bias_temperature_low_t11 = np.zeros(self.lats.shape)
         self.Min_lapse_rate = np.zeros(self.lats.shape)
@@ -223,6 +236,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
             self.N_detected_height_type[cc_type] = 1.0*np.zeros(self.lats.shape)
     def np_float_array(self):
         self.Sum_ctth_bias_low = 1.0*np.array(self.Sum_ctth_bias_low)
+        self.Sum_lapse_bias_low = 1.0*np.array(self.Sum_lapse_bias_low)
         self.Sum_ctth_bias_temperature_low = 1.0*np.array(self.Sum_ctth_bias_temperature_low)
         self.Sum_ctth_bias_temperature_low_t11 = 1.0*np.array(self.Sum_ctth_bias_temperature_low_t11)
         self.Min_lapse_rate = 1.0*np.array(self.Min_lapse_rate)
@@ -276,22 +290,27 @@ class ppsStatsOnFibLatticeObject(DataObject):
         lons = self.lons
         lats = self.lats
         plt.close('all')
-        data = getattr(self, score)
-        the_mask = data.mask
-        data=np.ma.masked_invalid(data)
-        data[np.logical_and(data>vmax,~the_mask)] = vmax
-        data[np.logical_and(data<vmin,~the_mask)] = vmin
+        ma_data = getattr(self, score)
+        the_mask = ma_data.mask
+        data=ma_data.data
+        #data[np.logical_and(data>vmax,~the_mask)] = vmax
+        #data[np.logical_and(data<vmin,~the_mask)] = vmin
+        #reshape data a bit
         ind = np.argsort(lats)
         lons = lons[ind]
         lats = lats[ind]
-        data =data[ind]
+        data = data[ind]
+        the_mask = the_mask[ind]
         ind = np.argsort(lons)
         lons = lons[ind]
         lats = lats[ind]
         data =data[ind]
-        lons = lons.reshape(len(data),1)#*3.14/180
-        lats = lats.reshape(len(data),1)#*3.14/180
-        data =data.reshape(len(data),1)
+        the_mask = the_mask[ind]
+        lons =         lons.reshape(len(data),1)#*3.14/180
+        lats =         lats.reshape(len(data),1)#*3.14/180
+        data =         data.reshape(len(data),1)
+        the_mask =     the_mask.reshape(len(data),1)
+
         my_proj1 = Basemap(projection='robin',lon_0=0,resolution='c')
         numcols=1000
         numrows=500
@@ -302,23 +321,12 @@ class ppsStatsOnFibLatticeObject(DataObject):
             
         fig = plt.figure(figsize = (16,9))
         ax = fig.add_subplot(111)
-        # transform lon / lat coordinates to map projection
-        plons, plats = my_proj1(*(lons, lats))        
-        # grid the data to lat/lo grid, approximation but needed fo plotting
-        # numcols, numrows = 1000, 500
-        xi = np.linspace(lon_min, lon_max, numcols)
-        yi = np.linspace(lat_min, lat_max, numrows)
-        xi, yi = np.meshgrid(xi, yi)
-        # interpolate
-        x, y, z = (np.array(lons.ravel()), 
-                   np.array(lats.ravel()), 
-                   np.array(data.ravel()))
         import copy; 
         my_cmap=copy.copy(matplotlib.cm.coolwarm)
         if score in "Bias" and screen_out_valid:
             #This screens out values between -5 and +5% 
             vmax=25
-            vmin=-25
+            vmin=-25            
             my_cmap=copy.copy(matplotlib.cm.get_cmap("coolwarm", lut=100))
             cmap_vals = my_cmap(np.arange(100)) #extractvalues as an array
             cmap_vals[39:61] = [0.9, 0.9, 0.9, 1] #change the first value
@@ -336,18 +344,20 @@ class ppsStatsOnFibLatticeObject(DataObject):
                 "newwarmcool", cmap_vals) 
             print my_cmap
         #to mask out where we lack data
-        my_cmap_for_masked=copy.copy(matplotlib.cm.coolwarm)
-        my_cmap_for_masked.set_over('w') #masked should be white
-        my_cmap_for_masked.set_under('k', alpha=0) #do not cover the data, set to transparent
-
+        data[np.logical_and(data>vmax,~the_mask)]=vmax
+        data[np.logical_and(data<vmin,~the_mask)]=vmin
+        data[the_mask]=2*vmax #give no data value that will be masked white
+        xi = np.linspace(lon_min, lon_max, numcols)
+        yi = np.linspace(lat_min, lat_max, numrows)
+        xi, yi = np.meshgrid(xi, yi)
+        # interpolate
+        x, y, z = (np.array(lons.ravel()), 
+                   np.array(lats.ravel()), 
+                   np.array(data.ravel()))
+        my_cmap.set_over('w',alpha=1)
         zi = griddata((x, y), z, (xi, yi), method='nearest')
-        remapped_mask = griddata((x, y),  
-                                 np.where(data.mask.ravel(),1.0,0.0), 
-                                 (xi, yi), method='nearest')
         im1 = my_proj1.pcolormesh(xi, yi, zi, cmap=my_cmap,
                            vmin=vmin, vmax=vmax, latlon=True)
-        im2 = my_proj1.pcolormesh(xi, yi, remapped_mask, cmap=my_cmap_for_masked,
-                           vmin=0.4, vmax=0.5, latlon=True)
         #draw som lon/lat lines
         my_proj1.drawparallels(np.arange(-90.,90.,30.))
         my_proj1.drawmeridians(np.arange(-180.,180.,60.))
@@ -425,7 +435,12 @@ class ppsStatsOnFibLatticeObject(DataObject):
         ctth_bias_low = self.Sum_ctth_bias_low*1.0/self.N_detected_height_low
         ctth_bias_low = np.ma.masked_array(ctth_bias_low, mask=the_mask)
         self.ctth_bias_low = ctth_bias_low
-
+    def calculate_height_bias_lapse(self):
+        self.np_float_array()
+        the_mask = self.N_detected_height_low<1
+        lapse_bias_low = self.Sum_lapse_bias_low*1.0/self.N_detected_height_low
+        lapse_bias_low = np.ma.masked_array(lapse_bias_low, mask=the_mask)
+        self.lapse_bias_low = lapse_bias_low
     def calculate_height_bias_type(self):
         self.np_float_array()
         for cc_type in xrange(8):
@@ -554,81 +569,80 @@ class PerformancePlottingObject:
         self.flattice = ppsStatsOnFibLatticeObject()
     def add_detection_stats_on_fib_lattice(self, my_obj):
         #Start with the area and get lat and lon to calculate the stats:
-        #area_def = self.area.definition 
         lats = self.flattice.lats[:]
         max_distance=self.flattice.radius_km*1000*2.5
-        #print "lons shape", lons.shape
-        if lats.ndim ==1:
-            area_def = SwathDefinition(*(self.flattice.lons,
-                                         self.flattice.lats))
-            target_def = SwathDefinition(*(my_obj.longitude, 
-                                           my_obj.latitude)) 
-            valid_in, valid_out, indices, distances = get_neighbour_info(
-                area_def, target_def, radius_of_influence=max_distance, 
-                epsilon=100, neighbours=1)
-            cols = get_sample_from_neighbour_info('nn', target_def.shape,
-                                                  np.array(xrange(0,len(lats))),
-                                                  valid_in, valid_out,
-                                                  indices)
-            cols = cols[valid_out]
-            detected_clouds = my_obj.detected_clouds[valid_out]
-            detected_clear = my_obj.detected_clear[valid_out]
-            detected_height_low = my_obj.detected_height_low[valid_out]
-            false_clouds = my_obj.false_clouds[valid_out]
-            undetected_clouds = my_obj.undetected_clouds[valid_out]
-            new_detected_clouds = my_obj.new_detected_clouds[valid_out]
-            new_false_clouds = my_obj.new_false_clouds[valid_out]
-            lapse_rate = my_obj.lapse_rate[valid_out]  
-            height_bias_low = my_obj.height_bias_low[valid_out] 
-            temperature_bias_low = my_obj.temperature_bias_low[valid_out]
-            temperature_bias_low_t11 = my_obj.temperature_bias_low_t11[valid_out] 
-            #lets make things faster, I'm tired of waiting!
-            cols[distances>max_distance]=-9 #don't use pixles matched too far away!
-            import time        
-            tic = time.time()      
-            arr, counts = np.unique(cols, return_index=False, return_counts=True)        
-            for d in arr[arr>0]:
-                use = cols==d
-                ind = np.where(use)[0]
-                #if ind.any():
-                self.flattice.N_false_clouds[d] += np.sum(false_clouds[ind])
-                self.flattice.N_detected_clouds[d] += np.sum(detected_clouds[ind])
-                self.flattice.N_detected_clear[d] += np.sum(detected_clear[ind])
-                self.flattice.N_undetected_clouds[d] += np.sum(undetected_clouds[ind])
-                self.flattice.N_new_false_clouds[d] += np.sum(new_false_clouds[ind])
-                self.flattice.N_new_detected_clouds[d] += np.sum(new_detected_clouds[ind])
-                self.flattice.N_detected_height_low[d] += np.sum(detected_height_low[ind])
-                self.flattice.Sum_ctth_bias_low[d] += np.sum(height_bias_low[ind])
-                self.flattice.Sum_ctth_bias_temperature_low[d] += np.sum(temperature_bias_low[ind])
-                self.flattice.Sum_ctth_bias_temperature_low_t11[d] += np.sum(temperature_bias_low_t11[ind])
-                self.flattice.Min_lapse_rate[d] = np.min([self.flattice.Min_lapse_rate[d],
-                                                          np.min(lapse_rate[ind])])  
-                cc_type = 0
-                self.flattice.Sum_height_bias_type[cc_type][d] += np.sum(my_obj.height_bias_type[cc_type][ind])
-                self.flattice.N_detected_height_type[cc_type][d] += np.sum(my_obj.detected_height_type[cc_type][ind])
-                cc_type = 1
-                self.flattice.Sum_height_bias_type[cc_type][d] += np.sum(my_obj.height_bias_type[cc_type][ind])
-                self.flattice.N_detected_height_type[cc_type][d] += np.sum(my_obj.detected_height_type[cc_type][ind])
-                cc_type = 2
-                self.flattice.Sum_height_bias_type[cc_type][d] += np.sum(my_obj.height_bias_type[cc_type][ind])
-                self.flattice.N_detected_height_type[cc_type][d] += np.sum(my_obj.detected_height_type[cc_type][ind])
-                cc_type = 3
-                self.flattice.Sum_height_bias_type[cc_type][d] += np.sum(my_obj.height_bias_type[cc_type][ind])
-                self.flattice.N_detected_height_type[cc_type][d] += np.sum(my_obj.detected_height_type[cc_type][ind])
-                cc_type = 4
-                self.flattice.Sum_height_bias_type[cc_type][d] += np.sum(my_obj.height_bias_type[cc_type][ind])
-                self.flattice.N_detected_height_type[cc_type][d] += np.sum(my_obj.detected_height_type[cc_type][ind])
-                cc_type = 5
-                self.flattice.Sum_height_bias_type[cc_type][d] += np.sum(my_obj.height_bias_type[cc_type][ind])
-                self.flattice.N_detected_height_type[cc_type][d] += np.sum(my_obj.detected_height_type[cc_type][ind])
-                cc_type = 6
-                self.flattice.Sum_height_bias_type[cc_type][d] += np.sum(my_obj.height_bias_type[cc_type][ind])
-                self.flattice.N_detected_height_type[cc_type][d] += np.sum(my_obj.detected_height_type[cc_type][ind])
-                cc_type = 7
-                self.flattice.Sum_height_bias_type[cc_type][d] += np.sum(my_obj.height_bias_type[cc_type][ind])
-                self.flattice.N_detected_height_type[cc_type][d] += np.sum(my_obj.detected_height_type[cc_type][ind])
+        area_def = SwathDefinition(*(self.flattice.lons,
+                                     self.flattice.lats))
+        target_def = SwathDefinition(*(my_obj.longitude, 
+                                       my_obj.latitude)) 
+        valid_in, valid_out, indices, distances = get_neighbour_info(
+            area_def, target_def, radius_of_influence=max_distance, 
+            epsilon=100, neighbours=1)
+        cols = get_sample_from_neighbour_info('nn', target_def.shape,
+                                              np.array(xrange(0,len(lats))),
+                                              valid_in, valid_out,
+                                              indices)
+        cols = cols[valid_out]
+        detected_clouds = my_obj.detected_clouds[valid_out]
+        detected_clear = my_obj.detected_clear[valid_out]
+        detected_height_low = my_obj.detected_height_low[valid_out]
+        false_clouds = my_obj.false_clouds[valid_out]
+        undetected_clouds = my_obj.undetected_clouds[valid_out]
+        new_detected_clouds = my_obj.new_detected_clouds[valid_out]
+        new_false_clouds = my_obj.new_false_clouds[valid_out]
+        lapse_rate = my_obj.lapse_rate[valid_out]  
+        height_bias_low = my_obj.height_bias_low[valid_out] 
+        temperature_bias_low = my_obj.temperature_bias_low[valid_out]
+        temperature_bias_low_t11 = my_obj.temperature_bias_low_t11[valid_out]
+        lapse_bias_low = my_obj.lapse_bias_low[valid_out]
+        #lets make things faster, I'm tired of waiting!
+        cols[distances>max_distance]=-9 #don't use pixles matched too far away!
+        import time        
+        tic = time.time()      
+        arr, counts = np.unique(cols, return_index=False, return_counts=True)        
+        for d in arr[arr>0]:
+            use = cols==d
+            ind = np.where(use)[0]
+            #if ind.any():
+            self.flattice.N_false_clouds[d] += np.sum(false_clouds[ind])
+            self.flattice.N_detected_clouds[d] += np.sum(detected_clouds[ind])
+            self.flattice.N_detected_clear[d] += np.sum(detected_clear[ind])
+            self.flattice.N_undetected_clouds[d] += np.sum(undetected_clouds[ind])
+            self.flattice.N_new_false_clouds[d] += np.sum(new_false_clouds[ind])
+            self.flattice.N_new_detected_clouds[d] += np.sum(new_detected_clouds[ind])
+            self.flattice.N_detected_height_low[d] += np.sum(detected_height_low[ind])
+            self.flattice.Sum_ctth_bias_low[d] += np.sum(height_bias_low[ind])
+            self.flattice.Sum_lapse_bias_low[d] += np.sum(lapse_bias_low[ind])
+            self.flattice.Sum_ctth_bias_temperature_low[d] += np.sum(temperature_bias_low[ind])
+            self.flattice.Sum_ctth_bias_temperature_low_t11[d] += np.sum(temperature_bias_low_t11[ind])
+            self.flattice.Min_lapse_rate[d] = np.min([self.flattice.Min_lapse_rate[d],
+                                                      np.min(lapse_rate[ind])])  
+            cc_type = 0
+            self.flattice.Sum_height_bias_type[cc_type][d] += np.sum(my_obj.height_bias_type[cc_type][ind])
+            self.flattice.N_detected_height_type[cc_type][d] += np.sum(my_obj.detected_height_type[cc_type][ind])
+            cc_type = 1
+            self.flattice.Sum_height_bias_type[cc_type][d] += np.sum(my_obj.height_bias_type[cc_type][ind])
+            self.flattice.N_detected_height_type[cc_type][d] += np.sum(my_obj.detected_height_type[cc_type][ind])
+            cc_type = 2
+            self.flattice.Sum_height_bias_type[cc_type][d] += np.sum(my_obj.height_bias_type[cc_type][ind])
+            self.flattice.N_detected_height_type[cc_type][d] += np.sum(my_obj.detected_height_type[cc_type][ind])
+            cc_type = 3
+            self.flattice.Sum_height_bias_type[cc_type][d] += np.sum(my_obj.height_bias_type[cc_type][ind])
+            self.flattice.N_detected_height_type[cc_type][d] += np.sum(my_obj.detected_height_type[cc_type][ind])
+            cc_type = 4
+            self.flattice.Sum_height_bias_type[cc_type][d] += np.sum(my_obj.height_bias_type[cc_type][ind])
+            self.flattice.N_detected_height_type[cc_type][d] += np.sum(my_obj.detected_height_type[cc_type][ind])
+            cc_type = 5
+            self.flattice.Sum_height_bias_type[cc_type][d] += np.sum(my_obj.height_bias_type[cc_type][ind])
+            self.flattice.N_detected_height_type[cc_type][d] += np.sum(my_obj.detected_height_type[cc_type][ind])
+            cc_type = 6
+            self.flattice.Sum_height_bias_type[cc_type][d] += np.sum(my_obj.height_bias_type[cc_type][ind])
+            self.flattice.N_detected_height_type[cc_type][d] += np.sum(my_obj.detected_height_type[cc_type][ind])
+            cc_type = 7
+            self.flattice.Sum_height_bias_type[cc_type][d] += np.sum(my_obj.height_bias_type[cc_type][ind])
+            self.flattice.N_detected_height_type[cc_type][d] += np.sum(my_obj.detected_height_type[cc_type][ind])
 
-            print "mapping took %1.4f seconds"%(time.time()-tic)   
+        print "mapping took %1.4f seconds"%(time.time()-tic)   
 
 
 def get_fibonacci_spread_points_on_earth(radius_km):
