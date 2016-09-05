@@ -1547,7 +1547,8 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     if CCI_CLOUD_VALIDATION: #ctth relative mean sea level
         avhrr_ctth_cal_ok = np.where(np.greater(avhrr_ctth_cal_ok,0.0),avhrr_ctth_cal_ok[::],avhrr_ctth_cal_ok)
     else: #ctth relative topography
-        avhrr_ctth_cal_ok = np.where(np.greater(avhrr_ctth_cal_ok,0.0),avhrr_ctth_cal_ok[::]+cal_elevation,avhrr_ctth_cal_ok)
+        #2016-09-06 Bugfix should be >= 0. Clouds at height zero on a mountin 3km heigh correspond to 3km above sea level!
+        avhrr_ctth_cal_ok = np.where(np.greater_equal(avhrr_ctth_cal_ok,0.0),avhrr_ctth_cal_ok[::]+cal_elevation,avhrr_ctth_cal_ok)
         
     if (len(cal_data_ok) == 0):
         write_log('INFO', "Processing stopped: Zero lenght of matching arrays!")
