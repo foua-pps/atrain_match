@@ -236,6 +236,7 @@ class CalipsoObject(DataObject):
             'cloud_fraction': None,
             'layer_top_altitude': None,
             'layer_top_temperature': None,
+            'layer_top_pressure': None,
             'midlayer_temperature': None,
             'layer_base_altitude': None,
             'number_layers_found': None,
@@ -255,7 +256,8 @@ class CalipsoObject(DataObject):
             #/2013-08-17/Nina
             'feature_optical_depth_532_top_layer_5km': None,
             'detection_height_5km': None,
-            'total_optical_depth_5km': None
+            'total_optical_depth_5km': None,
+            'tropopause_height': None
             }
 
 

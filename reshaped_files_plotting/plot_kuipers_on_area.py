@@ -14,7 +14,7 @@ isNPP_v2014 = False
 isGAC_v2014_morning_sat = True
 isGAC_v2014 = True
 method = 'KG'
-DNT="all"
+DNT="day"
 
 onlyCirrus=False
 isACPGv2012=False
@@ -32,11 +32,13 @@ elif isNPP_v2014:
     ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/sh_reshaped_patch_2014/"
     files = glob(ROOT_DIR + "Reshaped_Files/npp/1km/????/06/arc*/*h5")
 elif isGAC_v2014_morning_sat:
-    num_files_to_read = 30*3
+    num_files_to_read = 1#30*3
     isGAC=True
     ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/clara_a2_rerun/Reshaped_Files_CLARA_A2_final/"
     files = glob(ROOT_DIR + "noaa17/5km/20??/??/*/*h5")
     files = files + glob(ROOT_DIR + "metop*/5km/20??/??/*/*h5")
+    files = glob(ROOT_DIR + "merged/metop*h5")
+    files = files + glob(ROOT_DIR + "merged/noaa17*h5") 
     figure_name = "figure_morning_sat_%s_dnt_%s_"%(method, DNT)
     #files = glob(ROOT_DIR + "noaa17/5km/20??/1*/*/*noaa*h5")
 elif isGAC_v2014:
@@ -60,7 +62,7 @@ for filename in files:
 
     num +=1
     try :
-        caObj_new=readCaliopAvhrrMatchObj(filename, var_to_skip='segment')        
+        caObj_new=readCaliopAvhrrMatchObj(filename)#, var_to_skip='segment')        
     except:
         print "skipping file %s"%(filename)
         continue
@@ -91,6 +93,10 @@ pplot_obj.flattice.figure_name=figure_name
 #start to calculate
 pplot_obj.flattice.calculate_height_bias_lapse()
 pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-2000.0, vmax=2000.0, score='lapse_bias_low')
+pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-10000.0, vmax=10000.0, score='lapse_bias_high')
+pplot_obj.flattice.calculate_height_bias()
+pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-2000.0, vmax=2000.0, score='ctth_bias_low')
+pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-10000.0, vmax=10000.0, score='ctth_bias_high')
 
 pplot_obj.flattice.calculate_temperature_bias()
 pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-2000.0, vmax=2000.0, score='ctth_bias_temperature_low')
@@ -105,8 +111,7 @@ pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-2000.0, vmax=200
 pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-4000.0, vmax=4000.0, score='ctth_bias_type_6')
 pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-4000.0, vmax=4000.0, score='ctth_bias_type_7')
 
-pplot_obj.flattice.calculate_height_bias()
-pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-2000.0, vmax=2000.0, score='ctth_bias_low')
+
 
 pplot_obj.flattice.calculate_temperature_bias_t11()
 pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-10.0, vmax=10.0, score='ctth_bias_temperature_low_t11')
