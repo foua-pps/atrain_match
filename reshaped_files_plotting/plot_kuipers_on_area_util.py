@@ -21,9 +21,8 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
             'new_false_clouds': None,
             'lats': None,
             'lons': None}
-    def get_some_info_from_caobj(self, caObj, isGAC=True,  method='KG', DNT='All'):
-        self.set_false_and_missed_cloudy_and_clear(caObj=caObj, 
-                                                   isGAC=isGAC, method=method, DNT=DNT)
+    def get_some_info_from_caobj(self, caObj):
+        self.set_false_and_missed_cloudy_and_clear(caObj=caObj)
         self.set_r13_extratest(caObj=caObj)
         self.get_lapse_rate(caObj=caObj)
         self.get_ctth_bias_low(caObj=caObj)
@@ -34,20 +33,19 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         for cc_type in xrange(8):
             self.get_ctth_bias_type(caObj=caObj, calipso_cloudtype=cc_type)
 
-    def set_false_and_missed_cloudy_and_clear(self, caObj, 
-                                              isGAC=True,  method='KG', DNT='All' ):
+    def set_false_and_missed_cloudy_and_clear(self, caObj):
         isCloudyPPS = np.logical_and(caObj.avhrr.all_arrays['cloudtype']>4,
                                      caObj.avhrr.all_arrays['cloudtype']<21) 
         isClearPPS = np.logical_and(caObj.avhrr.all_arrays['cloudtype']>0,
                                     caObj.avhrr.all_arrays['cloudtype']<5)
         nlay =np.where(caObj.calipso.all_arrays['number_layers_found']>0,1,0)
         meancl=ndimage.filters.uniform_filter1d(nlay*1.0, size=3)
-        if method == 'KG' and isGAC:
+        if self.cc_method == 'KG' and self.isGAC:
             isCalipsoCloudy = np.logical_and(
                 caObj.calipso.all_arrays['cloud_fraction']>0.5,
                 caObj.calipso.all_arrays['total_optical_depth_5km']>0.15)
             isCalipsoClear = np.not_equal(isCalipsoCloudy, True)
-        elif method == 'Nina' and isGAC:    
+        elif self.cc_method == 'Nina' and self.isGAC:    
             isCalipsoCloudy = np.logical_and(
                 nlay > 0, 
                 caObj.calipso.all_arrays['cloud_fraction']>0.5)
@@ -58,10 +56,10 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
             isCalipsoClear = np.logical_and(
                 isCalipsoClear, 
                 caObj.calipso.all_arrays['total_optical_depth_5km']<0)
-        elif method == 'KG':
+        elif self.cc_method == 'KG':
             isCalipsoCloudy = nlay>0
             isCalipsoClear = np.not_equal(isCalipsoCloudy, True)   
-        elif method == 'Nina':
+        elif self.cc_method == 'Nina':
             isCalipsoCloudy = np.logical_or(
                 caObj.calipso.all_arrays['total_optical_depth_5km']>0.15, 
                 np.logical_and(caObj.calipso.all_arrays['total_optical_depth_5km']<0,
@@ -70,19 +68,23 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
             isCalipsoClear = np.logical_and(
                 isCalipsoClear,
                 caObj.calipso.all_arrays['total_optical_depth_5km']<0)
-        sunz = caObj.avhrr.all_arrays['sunz']       
-        if DNT in ["day"]:
+        sunz = caObj.avhrr.all_arrays['sunz']
+        if self.filter_method == "satz":
+            satz = caObj.avhrr.all_arrays['satz']
+            isCloudyPPS = np.logical_and(isCloudyPPS,  satz<=30)
+            isClearPPS =  np.logical_and(isClearPPS,  satz<=30) 
+        if self.DNT in ["day"]:
             isCloudyPPS = np.logical_and(isCloudyPPS,  sunz<=80)
             isClearPPS =  np.logical_and(isClearPPS,  sunz<=80)
-        if DNT in ["night"]:
+        if self.DNT in ["night"]:
             isCloudyPPS = np.logical_and(isCloudyPPS,  sunz>=95)
             isClearPPS =  np.logical_and(isClearPPS,  sunz>=95)
-        if DNT in ["twilight"]:
+        if self.DNT in ["twilight"]:
             isCloudyPPS = np.logical_and(isCloudyPPS,  sunz>80)
             isClearPPS =  np.logical_and(isClearPPS,  sunz>80)
             isCloudyPPS = np.logical_and(isCloudyPPS,  sunz<95)
             isClearPPS =  np.logical_and(isClearPPS,  sunz<95)                  
-        if DNT in ["all"]:
+        if self.DNT in ["all"]:
             pass
         undetected_clouds = np.logical_and(isCalipsoCloudy, isClearPPS)
         false_clouds = np.logical_and(isCalipsoClear, isCloudyPPS)
@@ -194,15 +196,16 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
             new_pps_h = rate_neg*temp_diff*1000 
             new_pps_h[temp_diff>0] = rate_pos*temp_diff[temp_diff>0]*1000 
             new_pps_h[new_pps_h<100] = 100
-            keep = (
-                (tsur - caObj.avhrr.all_arrays['ctth_temperature'])/
-                (tsur - caObj.avhrr.all_arrays['ttro']))>0.33
+            #keep = (
+            #    (tsur - caObj.avhrr.all_arrays['ctth_temperature'])/
+            #    (tsur - caObj.avhrr.all_arrays['ttro']))>0.33
             keep = new_pps_h>3000
-            new_pps_h[keep] = height_pps[keep]
-            self.lapse_bias_low = new_pps_h[self.use] - height_c        
+            new_pps_h[keep] = caObj.avhrr.all_arrays['ctth_height'][keep]
+            self.lapse_bias_high = new_pps_h[self.use] - height_c        
             self.lapse_bias_high[~detected_high]=0
             self.lapse_bias_high[temperature_pps<0]=0
         except:
+            raise
             self.lapse_bias_high = 0* height_c
 
 
@@ -222,7 +225,7 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         delta_t_t11[temperature_c<0]=0
         delta_t_t11[temperature_pps<0]=0
         self.temperature_bias_low =delta_t
-        self.temperature_bias_low[~detected_low]=0
+        #self.temperature_bias_low[~detected_low]=0
         self.temperature_bias_low_t11 = delta_t_t11
 
     def get_ctth_bias_type(self, caObj, calipso_cloudtype=0):
@@ -328,8 +331,8 @@ class ppsStatsOnFibLatticeObject(DataObject):
         #pr.plot.show_quicklook(area_def, result,
         #                      vmin=vmin, vmax=vmax, label=score)
         
-        pr.plot.save_quicklook(self.PLOT_DIR_SCORE + self.figure_name + 
-                               score +'_' + plot_area_name +'.png',
+        pr.plot.save_quicklook(self.PLOT_DIR_SCORE + self.PLOT_FILENAME_START+
+                               plot_area_name +'.png',
                                area_def, result, 
                                vmin=vmin, vmax=vmax, label=score)
 
@@ -416,15 +419,18 @@ class ppsStatsOnFibLatticeObject(DataObject):
         my_proj1.drawmapboundary(fill_color='0.9')
         cb = my_proj1.colorbar(im1,"right", size="5%", pad="2%")
         ax.set_title(score)
-        plt.savefig(self.PLOT_DIR_SCORE + self.figure_name + 
-                    'basemap_' + 
-                    score +'_robinson_' +'.png')
+        plt.savefig(self.PLOT_DIR_SCORE + self.PLOT_FILENAME_START+
+                    '_robinson_' +'.png')
         plt.close('all')
 
     def remap_and_plot_score_on_several_areas(self, vmin=0.0, vmax=1.0, 
                                               score='Kuipers', screen_out_valid=False):
         print score
-        self.PLOT_DIR_SCORE = self.PLOT_DIR + "/%s/Radius_%d_km/"%(score, self.radius_km)
+        self.PLOT_DIR_SCORE = self.PLOT_DIR + "/%s/%s/"%(score, self.satellites)
+        self.PLOT_FILENAME_START = "fig_%s_ccm_%s_%sfilter_dnt_%s_%s_r%skm_"%(
+            self.satellites,self.cc_method,self.filter_method,
+            self.DNT, score, self.radius_km)
+         
         if not os.path.exists(self.PLOT_DIR_SCORE):
             os.makedirs(self.PLOT_DIR_SCORE)
         for plot_area_name in [
@@ -439,7 +445,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
             self._remap_a_score_on_an_area(plot_area_name=plot_area_name, 
                                            vmin=vmin, vmax=vmax, score=score)
         #the real robinson projection
-        if "morning" not in self.figure_name:
+        if "metop" not in self.satellites:
             self._remap_a_score_on_an_robinson_projection(vmin=vmin, vmax=vmax, 
                                                           score=score, screen_out_valid=False)
     def calculate_kuipers(self):
