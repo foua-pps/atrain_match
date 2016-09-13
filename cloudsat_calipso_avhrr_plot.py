@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #Program cloudsat_calipso_avhrr_plot.py
 
-import numpy
+import numpy 
 from config import MAXHEIGHT, CLOUDSAT_CLOUDY_THR,\
     RESOLUTION, CLOUDSAT_TRACK_RESOLUTION
 AZIMUTH_RANGE = [0, 360]
@@ -146,8 +146,8 @@ def drawCalClsatGEOPROFAvhrrPlot(clsatObj_cloudsat,
     pixel_position = numpy.arange(dummy)
     caliop_label_set = False
     for i in range(10):
-        base_ok = caliop_base[i]
-        top_ok = caliop_height[i]
+        base_ok = caliop_base[:,i]
+        top_ok = caliop_height[:,i]
         for idx in range(len(pixel_position)):
             if cal_data_ok[idx]:
 #                if caObj_calipso.number_layers_found[idx] > i:
@@ -177,6 +177,84 @@ def drawCalClsatGEOPROFAvhrrPlot(clsatObj_cloudsat,
     else:
         for filetype in file_type:
             filename = "%s/%skm_%s_cloudsat_calipso_%s_clouds.%s" \
+                %(plotpath, RESOLUTION, basename, instrument, filetype)
+            fig.savefig(filename, format = filetype)
+
+#added plot with two pps cloud-heights and no cloudsat
+def drawCalPPSHeightPlot_PrototypePPSHeight(caObj_calipso, 
+                                            data_ok,
+                                            ctth_height1,
+                                            ctth_height2,
+                                            plotpath, 
+                                            basename,
+                                            file_type='png',
+                                            **options):
+    if 'instrument' in options:
+        instrument = options['instrument']
+    else:
+        instrument = 'avhrr'
+    from matplotlib import pyplot as plt
+    # Prepare for Avhrr
+    caliop_height = caObj_calipso.layer_top_altitude*1000
+    caliop_base = caObj_calipso.layer_base_altitude*1000
+    caliop_base[caliop_base<0]=-9
+    caliop_height[caliop_height<0]=-9
+    number_of_pixels=caObj_calipso.latitude.shape[0]
+    pixel_position=numpy.arange(number_of_pixels)
+    pixel_position_ok = pixel_position[data_ok]
+    avhrr_ctth_ok1 = ctth_height1[data_ok]
+    avhrr_ctth_ok2 = ctth_height2[data_ok]  
+#    # Calculates Hihest Cloud Top   
+    if MAXHEIGHT == None:
+        maxheight_calipso = numpy.nanmax(caliop_height)
+        maxheight_avhrr = numpy.nanmax(ctth_height1)
+        max_height_sat = [maxheight_calipso, maxheight_avhrr]
+        maxheight = maxheight + 1000
+    else:
+        maxheight = MAXHEIGHT
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.vlines(pixel_position, 0, caObj_calipso.elevation, 
+                    color='k', alpha=1.0)
+    title = "%s-CALIOP Cloud Top Heights" % instrument.upper()
+    #: Plot Caliop 
+    caliop_label_set = False
+    #Plot all 10 calipso layers
+    for i in range(10):
+        base_ok = caliop_base[:,0]
+        top_ok  = caliop_height[:,0]
+        if numpy.min(top_ok<0):
+            #no more clouds, quit plotting calipso
+            break 
+        if caliop_label_set:
+            ax.vlines(pixel_position, 
+                        base_ok, top_ok,  
+                        colors="g", linestyle='solid', 
+                      alpha=1.0)  
+        else:
+            ax.vlines(pixel_position, 
+                      base_ok, top_ok,
+                      colors="g", linestyle='solid', 
+                      alpha=1.0, label='caliop')
+            caliop_label_set = True
+    #: Plot Avhrr   
+    ax.plot(pixel_position_ok, avhrr_ctth_ok1, 'b+', 
+            label=instrument.upper() + " pps-ctth")
+    ax.plot(pixel_position_ok, avhrr_ctth_ok2, 'c.', 
+            label=instrument.upper() + " new-ctth")
+    ax.set_ylim(0, maxheight)
+    ax.set_title(title)
+    ax.set_xlabel("Track Position")
+    ax.set_ylabel("Cloud Height (meter)")
+    plt.legend(fancybox=True, loc=1,  numpoints=4)
+    plt.show() 
+    if isinstance(file_type, str) == True:
+        filename = "%s/%skm_%s_calipso_%s_clouds.%s" \
+            % (plotpath, RESOLUTION, basename, instrument, file_type)
+        fig.savefig(filename, format = file_type)
+    else:
+        for filetype in file_type:
+            filename = "%s/%skm_%s_calipso_%s_clouds.%s" \
                 %(plotpath, RESOLUTION, basename, instrument, filetype)
             fig.savefig(filename, format = filetype)
       
