@@ -73,12 +73,9 @@ from config import (VAL_CPP,
                     USE_5KM_FILES_TO_FILTER_CALIPSO_DATA,
                     PPS_FORMAT_2012_OR_EARLIER,
                     RESOLUTION)
-
-
-#from pps_basic_configure import *
-from pps_error_messages import write_log
 import logging
 logging.basicConfig(level=logging.info)
+logger = logging.getLogger(__name__)
 
 #import config
 from common import attach_subdir_from_config, MatchupError
@@ -279,7 +276,7 @@ def insert_info_in_filename_or_path(file_or_name_path, values, datetime_obj=None
 
 def find_calipso_files(date_time, options, values):
     if config.CLOUDSAT_TYPE == 'CWC-RVOD':
-        write_log("INFO", "Do not use CALIPSO in CWC-RWOD mode, Continue")
+        logger.info("Do not use CALIPSO in CWC-RWOD mode, Continue")
         calipso_files = []
     else:
         #might need to geth this in before looking for matchups
@@ -289,12 +286,12 @@ def find_calipso_files(date_time, options, values):
         time_window = (tdelta_before, tdelta)
         calipso_files = find_calipso_files_inner(date_time, time_window, options, values)
         if len(calipso_files) > 1:
-            write_log("INFO", "More than one Calipso file found within time window!")
+            logger.info("More than one Calipso file found within time window!")
         elif len(calipso_files) == 0:
             raise MatchupError("Couldn't find calipso matchup!")
         calipso_files = sorted(require_h5(calipso_files))
         calipso_basenames = [ os.path.basename(s) for s in calipso_files ]
-        write_log("INFO", "Calipso files: " + str(calipso_basenames))
+        logger.info("Calipso files: " + str(calipso_basenames))
         return calipso_files
 
 def find_cloudsat_files(date_time, options, values):
@@ -303,13 +300,13 @@ def find_cloudsat_files(date_time, options, values):
     time_window = (tdelta, tdelta)
     cloudsat_files = find_cloudsat_files_inner(date_time, time_window, options, values)
     if len(cloudsat_files) > 1:
-        write_log("INFO", "More than one Cloudsat file found within time window!")
+        logger.info("More than one Cloudsat file found within time window!")
     elif len(cloudsat_files) == 0:
-        write_log("INFO", "No Cloudsat file found within time window!")
+        logger.info("No Cloudsat file found within time window!")
         #raise MatchupError("Couldn't find cloudsat matchup!")
     cloudsat_files = sorted(require_h5(cloudsat_files))
     cloudsat_basenames = [ os.path.basename(s) for s in cloudsat_files ]
-    write_log("INFO", "Cloudsat files: " + str(cloudsat_basenames))
+    logger.info("Cloudsat files: " + str(cloudsat_basenames))
     return cloudsat_files
    
 # -----------------------------------------------------
@@ -332,7 +329,7 @@ def get_time_list_and_cross_time(cross):
         ddt2=timedelta(seconds=0)
     time_low = cross_time - ddt
     time_high = cross_time + ddt2
-    write_log("INFO", "Searching for avhrr/viirs file with start time  between" 
+    logger.info("Searching for avhrr/viirs file with start time  between" 
               ": %s and %s  "%(time_low.strftime("%d %H:%M"),time_high.strftime("%d %H:%M"))) 
     time_window = (ddt, ddt2)
     # Make list of file times to search from:
@@ -361,8 +358,8 @@ def find_cci_cloud_file(cross, options):
 def find_avhrr_file(cross, filedir_pattern, filename_pattern, values={}):
     (tlist, cross_time, cross_satellite) = get_time_list_and_cross_time(cross)
     time_window=cross.time_window
-    write_log('INFO',"Time window: ", time_window)
-    write_log('INFO',"Cross time: {cross_time}".format(cross_time=cross_time))
+    logger.info("Time window: %s", time_window)
+    logger.info("Cross time: {cross_time}".format(cross_time=cross_time))
     values["satellite"] = cross_satellite
     found_dir = None
     no_files_found = True
@@ -376,12 +373,12 @@ def find_avhrr_file(cross, filedir_pattern, filename_pattern, values={}):
             found_dir = avhrr_dir
             if avhrr_dir not in checked_dir.keys():
                 checked_dir[avhrr_dir] = 1
-                write_log('INFO',"Found directory "
+                logger.info("Found directory "
                           "{dirctory} ".format(dirctory=found_dir))
         else:
             if not found_dir and avhrr_dir not in checked_dir.keys():
                 checked_dir[avhrr_dir] = 1
-                write_log('INFO',"This directory does not exist, pattern:"
+                logger.info("This directory does not exist, pattern:"
                           " {directory}".format(directory=avhrr_dir))
             continue
 
@@ -391,12 +388,12 @@ def find_avhrr_file(cross, filedir_pattern, filename_pattern, values={}):
         files = glob(os.path.join(found_dir, file_pattern))
         if len(files) > 0:
             no_files_found = False
-            write_log('INFO',"Found files: " + os.path.basename(str(files[0])))
+            logger.info("Found files: " + os.path.basename(str(files[0])))
             return files[0], tobj
     if not found_dir:       
         return None, None
     if no_files_found:       
-         write_log('INFO', "Found no files for patterns of type:"
+         logger.info( "Found no files for patterns of type:"
                    " {pattern}".format(pattern=file_pattern)  )
     return None, None
 
@@ -417,7 +414,7 @@ def require_h5(files):
                 print(f)
                 #sys.exit()
                 command = '%s %s' % (H4H5_EXECUTABLE, f)
-                write_log('INFO', "Converting %r to HDF5" % f)
+                logger.info("Converting %r to HDF5" % f)
                 if os.system(command):
                     raise RuntimeError("Couldn't convert %r to HDF5" % f)
                 h5_files.append(h5_file)
@@ -428,7 +425,7 @@ def require_h5(files):
 
 def get_pps_file(avhrr_file, options, values, type_of_file, file_dir):
     if not type_of_file in options:
-        write_log("INFO", "No %s file in cfg-file!"%(type_of_file))
+        logger.info("No %s file in cfg-file!"%(type_of_file))
         return None
     date_time = values["date_time"]
     cloudtype_name = insert_info_in_filename_or_path(options[type_of_file], 
@@ -437,10 +434,10 @@ def get_pps_file(avhrr_file, options, values, type_of_file, file_dir):
                                            values, datetime_obj=date_time)  
     try:
         file_name = glob(os.path.join(path, cloudtype_name))[0]
-        #write_log("DEBUG", type_of_file +": ", file_name)
+        #logger.debug( type_of_file +": ", file_name)
         return file_name
     except IndexError:
-        write_log("INFO","No %s file found corresponding to %s." %( type_of_file, avhrr_file))
+        logger.info("No %s file found corresponding to %s." %( type_of_file, avhrr_file))
         return None
 
 def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
@@ -449,7 +446,7 @@ def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
     """
     # Let's get the satellite and the date-time of the pps radiance
     # (avhrr/viirs) file:
-    write_log("INFO", "Avhrr or viirs file = %s" % avhrr_file)
+    logger.info("Avhrr or viirs file = %s" % avhrr_file)
     values = get_satid_datetime_orbit_from_fname(avhrr_file,
                                                  as_oldstyle=as_oldstyle)
     date_time = values["date_time"]
@@ -463,7 +460,7 @@ def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
         cloudtype_file = glob(os.path.join(path, cloudtype_name))[0]
     except IndexError:
         raise MatchupError("No cloudtype file found corresponding to %s." % avhrr_file)
-    write_log("INFO", "CLOUDTYPE: " + cloudtype_file)
+    logger.info("CLOUDTYPE: " + cloudtype_file)
     ctth_name = insert_info_in_filename_or_path(options['ctth_file'], 
                                                 values, datetime_obj=date_time)
     path =  insert_info_in_filename_or_path(options['ctth_dir'], 
@@ -472,7 +469,7 @@ def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
         ctth_file = glob(os.path.join(path, ctth_name))[0]
     except IndexError:
         raise MatchupError("No ctth file found corresponding to %s." % avhrr_file)
-    write_log("INFO", "CTTH: " + ctth_file)
+    logger.info("CTTH: " + ctth_file)
     if VAL_CPP: 
         cpp_name = insert_info_in_filename_or_path(options['cpp_file'],
                                                    values, datetime_obj=date_time)
@@ -482,9 +479,9 @@ def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
             cpp_file = glob(os.path.join(path, cpp_name))[0]
         except IndexError:
             raise MatchupError("No cpp file found corresponding to %s." % avhrr_file)
-        write_log("INFO", "CPP: " + cpp_file)
+        logger.info("CPP: " + cpp_file)
     else:     
-       write_log("INFO", "Not validation of CPP ")
+       logger.info("Not validation of CPP ")
        cpp_file = None
     sunsatangles_name = insert_info_in_filename_or_path(options['sunsatangles_file'],
                                                         values, datetime_obj=date_time)
@@ -495,10 +492,10 @@ def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
     except IndexError:
         sunsatangles_file = None
         raise MatchupError("No sunsatangles file found corresponding to %s." % avhrr_file)
-    write_log("INFO", "SUNSATANGLES: " + sunsatangles_file)
+    logger.info("SUNSATANGLES: " + sunsatangles_file)
 
     if not 'physiography_file' in options:
-        write_log("WARNING", "No physiography file searched for!")
+        logger.warning("No physiography file searched for!")
         physiography_file = None
     else:
         physiography_name = insert_info_in_filename_or_path(options['physiography_file'],
@@ -510,10 +507,10 @@ def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
         except IndexError:
             physiography_file = None
             raise MatchupError("No physiography file found corresponding to %s." % avhrr_file)
-        write_log("INFO", "PHYSIOGRAPHY: " + physiography_file)
+        logger.info("PHYSIOGRAPHY: " + physiography_file)
 
     if not 'nwp_tsur_file' in options:
-        write_log("WARNING", "No surface temperature file searched for!")
+        logger.warning("No surface temperature file searched for!")
         nwp_tsur_file=None
     else:
         nwp_tsur_name = insert_info_in_filename_or_path(options['nwp_tsur_file'],
@@ -524,7 +521,7 @@ def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
             nwp_tsur_file = glob(os.path.join(path, nwp_tsur_name))[0]
         except IndexError:
             raise MatchupError("No nwp_tsur file found corresponding to %s." % avhrr_file)
-        write_log("INFO", "NWP_TSUR: " + nwp_tsur_file)
+        logger.info("NWP_TSUR: " + nwp_tsur_file)
 
     file_name_dict={}
     for nwp_file in ['nwp_tsur','nwp_t500','nwp_t700',
@@ -606,10 +603,10 @@ def get_cloudsat_matchups(cloudsat_files, cloudtype_file, avhrrGeoObj, avhrrObj,
     cloudsat = reshape_fun(cloudsat_files, avhrrGeoObj, cloudtype_file)
 
     if plot_file != None:
-        write_log('INFO',"plot cloudsat - avhrr track")
+        logger.info("plot cloudsat - avhrr track")
         _plot_avhrr_track(plot_file, avhrrGeoObj, cloudsat)
     else:
-        write_log('INFO',("No cloudsat plot-file"))
+        logger.info(("No cloudsat plot-file"))
     cl_matchup, cl_min_diff, cl_max_diff = match_fun(cloudtype_file, cloudsat,
                                                      avhrrGeoObj, avhrrObj, ctype,
                                                      ctth, nwp_obj.surftemp, avhrrAngObj, cppLwp)
@@ -617,7 +614,7 @@ def get_cloudsat_matchups(cloudsat_files, cloudtype_file, avhrrGeoObj, avhrrObj,
     return cl_matchup, (cl_min_diff, cl_max_diff)
 
 def total_and_top_layer_optical_depth_5km(calipso, resolution=5):
-    write_log('INFO',"Find total optical depth from 5km data")
+    logger.info("Find total optical depth from 5km data")
     optical_depth_in = calipso.feature_optical_depth_532
     o_depth_top_layer = -9.0 + 0*calipso.number_layers_found.ravel()
     total_o_depth = -9.0 + 0*calipso.number_layers_found.ravel()
@@ -685,7 +682,7 @@ def get_calipso_matchups(calipso_files, values,
         calipso5km = total_and_top_layer_optical_depth_5km(calipso5km, resolution=5)
         calipso1km = add5kmVariablesTo1kmresolution(calipso1km, calipso5km)
         if USE_5KM_FILES_TO_FILTER_CALIPSO_DATA:
-            write_log('INFO',"Find detection height using 5km data")
+            logger.info("Find detection height using 5km data")
             #data are also time reshaped in this function use5km ...
             calipso = detection_height_from_5km_data(
                 calipso1km, 
@@ -718,7 +715,7 @@ def get_calipso_matchups(calipso_files, values,
     calipso1km = None
     calipso5km = None
         
-    write_log('INFO',"Matching with avhrr")
+    logger.info("Matching with avhrr")
     tup = match_calipso_avhrr(values, calipso, calipso_aerosol,
                               avhrrGeoObj, avhrrObj, ctype,
                               ctth, cppCph, nwp_obj, avhrrAngObj, 
@@ -767,15 +764,15 @@ def get_matchups_from_data(cross, config_options):
         print cloudsat_files
         if (isinstance(cloudsat_files, str) == True or 
             (isinstance(cloudsat_files, list) and len(cloudsat_files) != 0)):
-            write_log("INFO","Read CLOUDSAT %s data" % config.CLOUDSAT_TYPE)
+            logger.info("Read CLOUDSAT %s data" % config.CLOUDSAT_TYPE)
             cl_matchup, cl_time_diff = get_cloudsat_matchups(cloudsat_files, 
                                                              pps_files.cloudtype,
                                                              avhrrGeoObj, avhrrObj, ctype,
                                                              ctth, nwp_obj, avhrrAngObj, cppLwp, config_options)
         else:
-            write_log("INFO", "NO CLOUDSAT File, Continue")
+            logger.info("NO CLOUDSAT File, Continue")
     else:
-        write_log("INFO", "NO CLOUDSAT File,"
+        logger.info("NO CLOUDSAT File,"
                   "CCI-cloud validation only for calipso, Continue")
 
     if (isinstance(calipso_files, str) == True or 
@@ -786,7 +783,7 @@ def get_matchups_from_data(cross, config_options):
         
         if config.RESOLUTION == 5:
             if config.ALSO_USE_1KM_FILES == True:
-                write_log("INFO", "Search for CALIPSO 1km data too")
+                logger.info("Search for CALIPSO 1km data too")
                 calipso1km = []
                 calipso5km = []
                 for file5km in calipso_files:
@@ -820,7 +817,7 @@ def get_matchups_from_data(cross, config_options):
 
         if config.RESOLUTION == 1:
             if config.ALSO_USE_5KM_FILES == True:
-                write_log("INFO", "Search for CALIPSO 5km data too")
+                logger.info("Search for CALIPSO 5km data too")
                 calipso5km = []
                 calipso1km = []
                 for file1km in calipso_files:
@@ -875,7 +872,7 @@ def get_matchups_from_data(cross, config_options):
             print "found these aerosol files", calipso5km_aerosol
                 
                 
-        write_log("INFO", "Read CALIPSO data")        
+        logger.info("Read CALIPSO data")        
         ca_matchup, ca_time_diff = get_calipso_matchups(calipso_files, 
                                                         values,
                                                         avhrrGeoObj, avhrrObj, ctype,
@@ -885,7 +882,7 @@ def get_matchups_from_data(cross, config_options):
                                                         calipso1km, calipso5km, calipso5km_aerosol)
 
     else:
-        write_log("INFO", "NO CALIPSO File, Continue")
+        logger.info("NO CALIPSO File, Continue")
     #import pdb; pdb.set_trace()
 
     # Get satellite name, time, and orbit number from avhrr_file
@@ -911,7 +908,7 @@ def get_matchups_from_data(cross, config_options):
     
     # Create directories if they don't exist yet
     if not os.path.exists(os.path.dirname(rematched_path)):
-        write_log('INFO', "Creating dir %s:"%(rematched_path))
+        logger.info("Creating dir %s:"%(rematched_path))
         os.makedirs(os.path.dirname(rematched_path))
     
     # Write cloudsat matchup
@@ -990,7 +987,7 @@ def get_matchups(cross, options, reprocess=False):
         values["atrain_datatype"] = "cloudsat-%s" % config.CLOUDSAT_TYPE[0]
         cl_match_file, tobj = find_avhrr_file(cross, options['reshape_dir'], options['reshape_file'], values=values)
         if not cl_match_file:
-            write_log('INFO', "No processed CloudSat match files found." + 
+            logger.info("No processed CloudSat match files found." + 
                       " Generating from source data.")
             clObj = None
             date_time=date_time_cross
@@ -1004,13 +1001,13 @@ def get_matchups(cross, options, reprocess=False):
                 matchup_diff_seconds<=diff_avhrr_seconds or 
                 abs(matchup_diff_seconds-diff_avhrr_seconds)<300 or
                 abs(matchup_diff_seconds-diff_avhrr_seconds) <300):
-                write_log('INFO', "CloudSat Matchups read from previously " + 
+                logger.info("CloudSat Matchups read from previously " + 
                           "processed data.")
                 date_time=tobj
             else:
-                write_log('INFO', "CloudSat Matchups will be processed for better match" + 
+                logger.info("CloudSat Matchups will be processed for better match" + 
                           " %s."%values_avhrr["basename"]) 
-                write_log('INFO', "CloudSat Matchups not read from previously " + 
+                logger.info("CloudSat Matchups not read from previously " + 
                           "processed data %s."%basename)  
                 clObj = None
                 
@@ -1018,7 +1015,7 @@ def get_matchups(cross, options, reprocess=False):
         values["atrain_datatype"] = "caliop"
         ca_match_file, tobj = find_avhrr_file(cross, options['reshape_dir'], options['reshape_file'], values=values)
         if not  ca_match_file:
-            write_log('INFO', 
+            logger.info( 
                       ("No processed CALIPSO match files found. "+
                        "Generating from source data."))
             caObj = None
@@ -1037,15 +1034,15 @@ def get_matchups(cross, options, reprocess=False):
                 matchup_diff_seconds<=diff_avhrr_seconds or 
                 abs(matchup_diff_seconds-diff_avhrr_seconds)<300 or
                 matchup_diff_seconds<300):
-                write_log('INFO', 
+                logger.info( 
                           "CALIPSO Matchups read from previously processed data.")
-                write_log('INFO', 'Filename: ' + ca_match_file)
+                logger.info( 'Filename: ' + ca_match_file)
                 calipso_min_and_max_timediffs = (caObj.diff_sec_1970.min(), 
                                                  caObj.diff_sec_1970.max())
             else:
-                write_log('INFO', "Calipso Matchups will be processed for better match" + 
+                logger.info("Calipso Matchups will be processed for better match" + 
                            " %s."%values_avhrr["basename"]) 
-                write_log('INFO', "Calipso Matchups not read from previously " + 
+                logger.info("Calipso Matchups not read from previously " + 
                            "processed data %s."%basename)  
                 caObj = None
         if None in [caObj] and None in [clObj]:
@@ -1078,8 +1075,8 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     
     """
     
-    write_log('INFO', "Case: %s" % str(cross))
-    write_log('INFO', "Process mode: %s" % process_mode_dnt)
+    logger.info("Case: %s" % str(cross))
+    logger.info("Process mode: %s" % process_mode_dnt)
     cloudsat_type = config.CLOUDSAT_TYPE
     # split process_mode_dnt into two parts. One with process_mode and one dnt_flag
     mode_dnt = process_mode_dnt.split('_')
@@ -1099,7 +1096,7 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
 
 
     sensor = INSTRUMENT.get(sno_satname, 'avhrr')
-    write_log("INFO", "Sensor = " + sensor)
+    logger.info("Sensor = " + sensor)
 
     #pdb.set_trace()
 
@@ -1121,7 +1118,7 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     base_month = basename.split('_')[1][4:6]
     
     if config.RESOLUTION not in [1, 5]:
-        write_log("INFO","Define resolution")
+        logger.info("Define resolution")
         print("Program cloudsat_calipso_avhrr_match.py at line %i" %(inspect.currentframe().f_lineno+1))
         sys.exit(-9) 
 
@@ -1146,17 +1143,17 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
 
         CALIPSO_DISPLACED = 0
         latdiff = abs(clsatObj.cloudsat.latitude[0] - caObj.calipso.latitude[0])
-        write_log('INFO',"latdiff: ", latdiff)
+        logger.info("latdiff: ", latdiff)
         if latdiff > 0.1:
-            write_log('INFO', "CloudSat/CALIPSO startpoint differ by %f degrees." % latdiff)
-            write_log('INFO', "Cloudsat start lon, lat: %f, %f" % (clsatObj.cloudsat.longitude[0], clsatObj.cloudsat.latitude[0]))
-            write_log('INFO', "CALIPSO start lon, lat: %f, %f" % (caObj.calipso.longitude[0], caObj.calipso.latitude[0]))
+            logger.info("CloudSat/CALIPSO startpoint differ by %f degrees." % latdiff)
+            logger.info("Cloudsat start lon, lat: %f, %f" % (clsatObj.cloudsat.longitude[0], clsatObj.cloudsat.latitude[0]))
+            logger.info("CALIPSO start lon, lat: %f, %f" % (caObj.calipso.longitude[0], caObj.calipso.latitude[0]))
             CALIPSO_DISPLACED = 1
             for j in range(clsatObj.cloudsat.latitude.shape[0]):
                 if (abs(clsatObj.cloudsat.latitude[j] - caObj.calipso.latitude[0]) < 0.05) and\
                        (abs(clsatObj.cloudsat.longitude[j] - caObj.calipso.longitude[0]) < 0.1):
                     calipso_displacement=int(j*config.CLOUDSAT_TRACK_RESOLUTION)
-                    write_log('INFO', "CALIPSO_DISPLACEMENT: %d" % calipso_displacement)
+                    logger.info("CALIPSO_DISPLACEMENT: %d" % calipso_displacement)
                     break
         # First make sure that PPS cloud top heights are converted to height
         # above sea level just as CloudSat and CALIPSO heights are defined. Use
@@ -1164,7 +1161,7 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
         elevation = np.where(np.less_equal(clsatObj.cloudsat.elevation,0),\
                             -9,clsatObj.cloudsat.elevation)			# If clsatObj.cloudsat.elevation is <= 0 elevation(i,j)=-9, else the value = clsatObj.cloudsat.elevation(i,j)
         data_ok = np.ones(clsatObj.cloudsat.elevation.shape,'b')
-        write_log('INFO', "Length of CLOUDSAT array: ", len(data_ok))
+        logger.info("Length of CLOUDSAT array: ", len(data_ok))
         avhrr_ctth_csat_ok = np.repeat(clsatObj.avhrr.ctth_height[::],data_ok)
 
         if CCI_CLOUD_VALIDATION: #ctth relative mean sea level
@@ -1173,7 +1170,7 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
             avhrr_ctth_csat_ok = np.where(np.greater(avhrr_ctth_csat_ok,0.0),avhrr_ctth_csat_ok[::]+elevation*1.0,avhrr_ctth_csat_ok)
 
         if len(data_ok) == 0:
-            write_log('INFO',"Processing stopped: Zero lenght of matching arrays!")
+            logger.info("Processing stopped: Zero lenght of matching arrays!")
             print("Program cloudsat_calipso_avhrr_match.py at line %i" %(inspect.currentframe().f_lineno+1))
             sys.exit()
     else:
@@ -1190,7 +1187,7 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     cal_elevation = np.where(np.less_equal(caObj.calipso.elevation,0),
                                 -9,caObj.calipso.elevation)
     cal_data_ok = np.ones(caObj.calipso.elevation.shape,'b')
-    write_log('INFO', "Length of CALIOP array: ", len(cal_data_ok))
+    logger.info("Length of CALIOP array: %d", len(cal_data_ok))
 
     avhrr_ctth_cal_ok = np.repeat(caObj.avhrr.ctth_height[::],cal_data_ok)
 
@@ -1201,7 +1198,7 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
         avhrr_ctth_cal_ok = np.where(np.greater_equal(avhrr_ctth_cal_ok,0.0),avhrr_ctth_cal_ok[::]+cal_elevation,avhrr_ctth_cal_ok)
         
     if (len(cal_data_ok) == 0):
-        write_log('INFO', "Processing stopped: Zero lenght of matching arrays!")
+        logger.info("Processing stopped: Zero lenght of matching arrays!")
         print("Program cloudsat_calipso_avhrr_match.py at line %i" %(inspect.currentframe().f_lineno+1))
         sys.exit()
         
@@ -1270,7 +1267,7 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
         caObj = CalipsoOpticalDepthHeightFiltering1km(caObj)
 
     if process_mode == 'OPTICAL_DEPTH_THIN_IS_CLEAR' and RESOLUTION==1:
-        write_log('INFO',"Setting thin clouds to clear"
+        logger.info("Setting thin clouds to clear"
                   ", using 5km data in mode OPTICAL_DEPTH_THIN_IS_CLEAR")
         caObj = CalipsoOpticalDepthSetThinToClearFiltering1km(caObj)      
 
@@ -1354,7 +1351,7 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     #======================================================================
     # Draw plot
     if process_mode_dnt in config.PLOT_MODES:
-        write_log('INFO', "Plotting")
+        logger.info("Plotting")
 
         plotpath = insert_info_in_filename_or_path(config_options['plot_dir'], values,
                                                    datetime_obj=values['date_time'])      
@@ -1463,7 +1460,7 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     if cloudsat_type == 'GEOPROF':
         process_calipso_ok = 0
         
-    write_log('INFO', "Calculating statistics")
+    logger.info("Calculating statistics")
     CalculateStatistics(process_mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
                         cal_vert_feature, avhrr_ctth_csat_ok, data_ok,
                         cal_data_ok, avhrr_ctth_cal_ok, caliop_max_height,

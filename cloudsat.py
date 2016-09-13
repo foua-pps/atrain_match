@@ -10,8 +10,9 @@
 #         by setting start_sec1970[0] and end_sec1970[0]
 
 import pdb #@UnusedImport
-from pps_error_messages import write_log #@UnresolvedImport
-
+import logging
+logging.basicConfig(level=logging.info)
+logger = logging.getLogger(__name__)
 from matchobject_io import (DataObject,
                             ppsAvhrrObject)                            
 
@@ -434,7 +435,7 @@ if __name__ == "__main__":
     cloudsatfile = "%s/2007151082929_05796_CS_2B-GEOPROF_GRANULE_P_R04_E02.h5"%(CLOUDSAT_DIR)
 
     # --------------------------------------------------------------------
-    write_log("INFO","Read CLOUDSAT data")
+    logger.info("Read CLOUDSAT data")
     # Read CLOUDSAT Radar data:
     cloudsat = get_cloudsat(cloudsatfile)
     #cloudsat = read_cloudsat(cloudsatfile)

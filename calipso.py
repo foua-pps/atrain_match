@@ -4,7 +4,9 @@ import inspect #@UnusedImport
 import os #@UnusedImport
 import numpy as np
 from pps_basic_configure import * 
-from pps_error_messages import write_log
+import logging
+logging.basicConfig(level=logging.info)
+logger = logging.getLogger(__name__)
 
 from config import (AREA, _validation_results_dir, 
                     sec_timeThr, COMPRESS_LVL, RESOLUTION,
@@ -143,7 +145,7 @@ def createAvhrrTime(Obt, values):
     if IMAGER_INSTRUMENT == 'viirs':
     #if filename.split('_')[0] == 'npp':
         if Obt.sec1970_start < 0: #10800
-            write_log("WARNING", 
+            logger.warning( 
                       "NPP start time negative! " + str(Obt.sec1970_start))
             datetime=values["date_time"]
             Obt.sec1970_start = calendar.timegm(datetime.timetuple())
@@ -156,8 +158,8 @@ def createAvhrrTime(Obt, values):
         linetime = np.linspace(Obt.sec1970_start, Obt.sec1970_end, num_of_scan)
         Obt.time = np.apply_along_axis(np.multiply,  0, np.ones([num_of_scan, 16]), linetime).reshape(Obt.num_of_lines)
 
-        write_log("INFO", "NPP start time :  ", time.gmtime(Obt.sec1970_start))
-        write_log("INFO", "NPP end time : ", time.gmtime(Obt.sec1970_end))
+        logger.info("NPP start time :  ", time.gmtime(Obt.sec1970_start))
+        logger.info("NPP end time : ", time.gmtime(Obt.sec1970_end))
 
  
     else:
@@ -175,7 +177,7 @@ def createAvhrrTime(Obt, values):
         diff_filename_infile_time = sec1970_start_filename-Obt.sec1970_start
         diff_hours= abs( diff_filename_infile_time/3600.0  )
         if (diff_hours<13):
-            write_log("INFO", "Time in file and filename do agree. Difference  %d hours."%diff_hours)
+            logger.info("Time in file and filename do agree. Difference  %d hours."%diff_hours)
         if (diff_hours>13):
             """
             This if statement takes care of a bug in start and end time, 
@@ -186,7 +188,7 @@ def createAvhrrTime(Obt, values):
             Now instead check if we aer more than 13 hours off. 
             If we are this is probably the problem, do the check and make sure results are fine afterwards.
             """
-            write_log("WARNING", "Time in file and filename do not agree! Difference  %d hours.", diff_hours)
+            logger.warning("Time in file and filename do not agree! Difference  %d hours.", diff_hours)
             import calendar, time
             timediff = Obt.sec1970_end - Obt.sec1970_start
             old_start = time.gmtime(Obt.sec1970_start + (24 * 3600)) # Adds 24 h to get the next day in new start
@@ -199,7 +201,7 @@ def createAvhrrTime(Obt, values):
             diff_filename_infile_time = sec1970_start_filename-Obt.sec1970_start
             diff_hours= abs( diff_filename_infile_time/3600.0)
             if (diff_hours>20):
-                write_log("ERROR", "Time in file and filename do not agree! Difference  %d hours.", diff_hours)
+                logger.error("Time in file and filename do not agree! Difference  %d hours.", diff_hours)
                 raise TimeMatchError("Time in file and filename do not agree.")        
         Obt.time = np.linspace(Obt.sec1970_start, Obt.sec1970_end, Obt.num_of_lines)
     return Obt
@@ -312,7 +314,7 @@ def get_channel_data_from_object(dataObj, chn_des, matched, nodata=-9):
         #chnum = CHANNEL_MICRON_AVHRR_PPS[chn_des]
         if chnum ==-1:
             return None
-        write_log('WARNING',  "Using pps channel numbers to find "
+        logger.warning(  "Using pps channel numbers to find "
               "corresponding avhrr channel")
               
         
@@ -594,9 +596,9 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
                 np.equal(temp, AngObj.azidiff.missing_data)),
             -9, azidiff_temp)        
     if ctth == None:
-        write_log('INFO', "Not extracting ctth")
+        logger.info("Not extracting ctth")
     else:
-        write_log('INFO', "Extracting ctth along track ")
+        logger.info("Extracting ctth along track ")
         temp = [ctth.height[row_matched[idx], col_matched[idx]]
                 for idx in range(row_matched.shape[0])]
         hh_temp = np.int32([(ctth.height[row_matched[idx], col_matched[idx]] * 
@@ -740,14 +742,14 @@ def match_calipso_avhrr(values,
     cap_on_avhrr = np.repeat(cap, idx_match)
     retv.calipso.avhrr_linnum = cal_on_avhrr.astype('i')
     retv.calipso.avhrr_pixnum = cap_on_avhrr.astype('i')
-    write_log('INFO',"cap_on_avhrr.shape: ",cap_on_avhrr.shape)
+    logger.info("cap_on_avhrr.shape: %s",cap_on_avhrr.shape)
 
     lon_calipso = np.repeat(lonCalipso, idx_match)
     lat_calipso = np.repeat(latCalipso, idx_match)
     # Calipso line,pixel inside AVHRR swath:
     cal_on_avhrr = np.repeat(cal, idx_match)
     cap_on_avhrr = np.repeat(cap, idx_match)
-    write_log('INFO', "Start and end times: ",
+    logger.info("Start and end times: %s %s",
               time.gmtime(timeCalipso[0]),
               time.gmtime(timeCalipso[ndim-1]))
     
@@ -768,16 +770,16 @@ def match_calipso_avhrr(values,
 
     min_diff = np.minimum.reduce(retv.diff_sec_1970)
     max_diff = np.maximum.reduce(retv.diff_sec_1970)
-    write_log('INFO', "Maximum and minimum time differences in sec (avhrr-calipso): ",
+    logger.info("Maximum and minimum time differences in sec (avhrr-calipso): %d %d",
           np.maximum.reduce(retv.diff_sec_1970),np.minimum.reduce(retv.diff_sec_1970))
-    write_log('INFO', "AVHRR observation time of first calipso-avhrr match: ",
+    logger.info("AVHRR observation time of first calipso-avhrr match: %s",
           time.gmtime(retv.avhrr.sec_1970[0]))
-    write_log('INFO', "AVHRR observation time of last calipso-avhrr match: ",
+    logger.info("AVHRR observation time of last calipso-avhrr match: %s",
           time.gmtime(retv.avhrr.sec_1970[-1]))
 
     # Make the latitude and pps cloudtype on the calipso track:
     # line and pixel arrays have equal dimensions
-    write_log('INFO', "Generate the latitude,cloudtype tracks!")
+    logger.info("Generate the latitude,cloudtype tracks!")
     # -------------------------------------------------------------------------
     # Pick out the data from the track from AVHRR
     retv = avhrr_track_from_matched(retv, imagerGeoObj, imagerObj, avhrrAngObj, 
@@ -789,7 +791,7 @@ def match_calipso_avhrr(values,
         retv.calipso_aerosol = calipso_track_from_matched(retv.calipso_aerosol, calipsoObjAerosol, idx_match)
 
     # -------------------------------------------------------------------------    
-    write_log('INFO', "AVHRR-PPS Cloud Type,latitude: shapes = ",
+    logger.info("AVHRR-PPS Cloud Type,latitude: shapes = %s %s",
           retv.avhrr.cloudtype.shape,retv.avhrr.latitude.shape)
     ll = []
     for i in range(ndim):        
@@ -809,7 +811,7 @@ def match_calipso_avhrr(values,
     #This is not used I think, Nina 2015-08-31
     if DO_WRITE_DATA:
         if not os.path.exists(data_path):
-            write_log('INFO', "Creating datadir: %s"%(data_path ))
+            logger.info("Creating datadir: %s"%(data_path ))
             os.makedirs(data_path)
         data_file = options['data_file'].format(resolution=str(RESOLUTION),
                                                 basename=values["basename"],
@@ -833,7 +835,7 @@ def match_calipso_avhrr(values,
             # CALIOP Maximum cloud top in km:
 
     max_cloud_top_calipso = np.maximum.reduce(retv.calipso.layer_top_altitude.ravel())
-    write_log('INFO', "max_cloud_top_calipso: ",max_cloud_top_calipso)
+    logger.info("max_cloud_top_calipso: %2.1f",max_cloud_top_calipso)
     return retv,min_diff,max_diff
 
 # -----------------------------------------------------
@@ -957,7 +959,7 @@ def reshapeCalipso(calipsofiles, res=resolution, ALAY=False):
             cal_start_all = startCalipso.profile_time_tai[:,1] 
             cal_new_all = newCalipso.profile_time_tai[:,1] 
         if not cal_start_all[0] < cal_new_all[0]:
-            write_log('INFO', "calipso files are in the wrong order")
+            logger.info("calipso files are in the wrong order")
             print("Program calipso.py at line %i" %(inspect.currentframe().f_lineno+1))
             sys.exit(-9)            
         cal_break = len(cal_start_all) # np.argmin(np.abs(cal_start_all - cal_new_all[0])) + 1
@@ -971,7 +973,7 @@ def reshapeCalipso(calipsofiles, res=resolution, ALAY=False):
                                                                       newCalipso.all_arrays[arname])) 
     cal = startCalipso        
     if cal.profile_time_tai.shape[0] <= 0:
-        write_log('INFO',("No time match, please try with some other Calipso files"))
+        logger.info(("No time match, please try with some other Calipso files"))
         print("Program calipso.py at line %i" %(inspect.currentframe().f_lineno+1))
         sys.exit(-9)  
     return cal
@@ -1010,7 +1012,7 @@ def time_reshape_calipso(startCalipso, avhrr=None, values=None,
     """
     if start_break==None or end_break==None:
         if avhrr==None or values ==None:
-            write_log('INFO',("Call function with either avhrr and values or"
+            logger.info(("Call function with either avhrr and values or"
                               "start_brak and end_break!"))
             print("Program calipso.py at line %i" %(inspect.currentframe().f_lineno+1))
             sys.exit(-9) 
@@ -1029,7 +1031,7 @@ def time_reshape_calipso(startCalipso, avhrr=None, values=None,
 
 #****************************************************
 def adjust5kmTo1kmresolution(calipso5km):
-    write_log('INFO',"Repeat 5km calipso data to fit 1km resoluiton")
+    logger.info("Repeat 5km calipso data to fit 1km resoluiton")
     calipso= CalipsoObject()
     for arname, value in calipso5km.all_arrays.items(): 
         if np.size(value)>1 or value != None:
@@ -1040,7 +1042,7 @@ def adjust5kmTo1kmresolution(calipso5km):
     return calipso 
 
 def add5kmVariablesTo1kmresolution(calipso1km, calipso5km):
-    write_log('INFO',"Repeat 5km calipso data to fit 1km resoluiton")
+    logger.info("Repeat 5km calipso data to fit 1km resoluiton")
     for variable_5km  in [ "column_optical_depth_aerosols_1064",
                            "column_optical_depth_aerosols_532",
                            "column_optical_depth_aerosols_uncertainty_1064",
@@ -1151,7 +1153,7 @@ def add1kmTo5km(Obj1, Obj5, start_break, end_break):
 def detection_height_from_5km_data(Obj1, Obj5, start_break, end_break):
     retv = CalipsoObject()
     if (Obj5.profile_utc_time[:,1] == Obj1.profile_utc_time[2::5]).sum() != Obj5.profile_utc_time.shape[0]:
-        write_log('WARNING', "length mismatch")
+        logger.warning("length mismatch")
         #pdb.set_trace()
     Obj1.detection_height_5km = np.ones(Obj1.number_layers_found.shape)*-9                 
     for pixel in range(Obj5.profile_utc_time.shape[0]):
@@ -1206,18 +1208,18 @@ def detection_height_from_5km_data(Obj1, Obj5, start_break, end_break):
                             np.logical_and(
                                 top  <= height_profile+0.01, 
                                 base <= height_profile+0.01))
-                        write_log('INFO',"Cloud top %.2f base: %.2f "%(top, base))
-                        write_log('INFO'," Using height_profile %2.f %2.f"%(
+                        logger.info("Cloud top %.2f base: %.2f "%(top, base))
+                        logger.info(" Using height_profile %2.f %2.f"%(
                                 np.min(height_profile[cloud_at_these_height_index]),
                             np.max(height_profile[cloud_at_these_height_index])))
                         eye_this_cloud = np.where(cloud_at_these_height_index ,  1, 0)
                         number_of_cloud_boxes = sum(eye_this_cloud)         
                     if number_of_cloud_boxes == 0:
-                        write_log('WARNING', "cloud has no depth!!")
+                        logger.warning("cloud has no depth!!")
                     optical_thickness_this_layer = (
                         eye_this_cloud*opt_th*1.0/number_of_cloud_boxes)             
                     if abs(np.sum(optical_thickness_this_layer) - opt_th)>0.001:
-                        write_log('WARNING', "The sum of the optical thickness profile is "
+                        logger.warning("The sum of the optical thickness profile is "
                                   "not the same as total optical thickness of the cloud!!")             
                     optical_thickness = optical_thickness + optical_thickness_this_layer
             optical_thickness_profile = np.cumsum(optical_thickness)
@@ -1265,16 +1267,16 @@ if __name__ == "__main__":
     yyyymmdd = sl[1]
 
     # Read AVHRR lon,lat data
-    write_log("INFO","Read AVHRR geolocation data") #@UndefinedVariable
+    logger.info("Read AVHRR geolocation data") #@UndefinedVariable
     avhrrGeoObj = pps_io.readAvhrrGeoData(avhrrfile)
 
     # Read PPS Cloud Type data
-    write_log("INFO","Read PPS Cloud Type") #@UndefinedVariable
+    logger.info("Read PPS Cloud Type") #@UndefinedVariable
     ctype = epshdf.read_cloudtype(ctypefile,1,1,0)
     ctth = epshdf.read_cloudtop(ctthfile,1,1,1,0,1)
     
     # --------------------------------------------------------------------
-    write_log("INFO","Read CALIPSO data") #@UndefinedVariable
+    logger.info("Read CALIPSO data") #@UndefinedVariable
     # Read CALIPSO Lidar (CALIOP) data:
     calipso = get_calipso(calipsofile)
 

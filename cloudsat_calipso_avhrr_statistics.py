@@ -1,8 +1,9 @@
 #Program cloudsat_calipso_avhrr_statistics.py
 import config
 import sys
-from pps_error_messages import write_log
-
+import logging
+logging.basicConfig(level=logging.info)
+logger = logging.getLogger(__name__)
 import numpy as np
 
 def calculate_ctth_stats(okcaliop, avhrr_ctth_cal_ok,caliop_max_height):
@@ -30,14 +31,14 @@ def calculate_ctth_stats(okcaliop, avhrr_ctth_cal_ok,caliop_max_height):
     return "%f %f %f %s %f "%(corr_caliop_avhrr,bias,RMS_difference,len(avhrr_height_work),sum(diff_squared_biascorr))
 
 def get_semi_opaque_info_pps2014(ctth_status):
-    write_log("INFO", "Assuming cloudtype flags structure from pps v2014")
+    logger.info("Assuming cloudtype flags structure from pps v2014")
     temp_val = (ctth_status>>7 & 1)
     semi_flag = temp_val == 1
     opaque_flag = temp_val == 0
     return  semi_flag, opaque_flag
 
 def get_semi_opaque_info_pps2012(ctth_opaque):
-    write_log("INFO", "Assuming  pps v2012")
+    logger.info("Assuming  pps v2012")
     semi_flag = ctth_opaque == 0
     opaque_flag = ctth_opaque == 1
     return  semi_flag, opaque_flag
@@ -46,33 +47,33 @@ def get_semi_opaque_info_pps2012(ctth_opaque):
 
 
 def get_sunglint_info_pps2014(cloudtype_conditions):
-    write_log("INFO", "Assuming cloudtype flags structure from pps v2014")
+    logger.info("Assuming cloudtype flags structure from pps v2014")
     temp_val = (cloudtype_conditions>>3 & 1)
     sunglint_flag = temp_val == 1
     return  sunglint_flag
 
 def get_high_terrain_info_pps2014(cloudtype_conditions):
-    write_log("INFO", "Assuming cloudtype flags structure from pps v2014")
+    logger.info("Assuming cloudtype flags structure from pps v2014")
     temp_val = (cloudtype_conditions>>6 & 1)
     mountin_flag = temp_val == 1
     print "number of mountain %d"%(len(cloudtype_conditions[mountin_flag==True]))
     return  mountin_flag
 
 def get_mountin_info_pps2014(cloudtype_conditions):
-    write_log("INFO", "Assuming cloudtype flags structure from pps v2014")
+    logger.info("Assuming cloudtype flags structure from pps v2014")
     temp_val = (cloudtype_conditions>>7 & 1)
     mountin_flag = temp_val == 1
     print "number of mountain %d"%(len(cloudtype_conditions[mountin_flag==True]))
     return  mountin_flag
 
 def get_inversion_info_pps2014(cloudtype_status):
-    write_log("INFO", "Assuming cloudtype flags structure from pps v2014")
+    logger.info("Assuming cloudtype flags structure from pps v2014")
     flag_temp = (cloudtype_status>>0 & 1)+0  
     inversion_flag = flag_temp ==1
     return inversion_flag
 
 def get_land_coast_sea_info_pps2014(cloudtype_conditions):
-    write_log("INFO", "Assuming cloudtype flags structure from pps v2014")
+    logger.info("Assuming cloudtype flags structure from pps v2014")
     sealand_val = (cloudtype_conditions>>4 & 1) + (cloudtype_conditions>>5 & 1)*2
     no_qflag = sealand_val == 0
     land_flag =  sealand_val == 1
@@ -86,7 +87,7 @@ def get_land_coast_sea_info_pps2014(cloudtype_conditions):
     return (no_qflag, land_flag, sea_flag, coast_flag, all_lsc_flag)
 
 def get_land_coast_sea_info_pps2012(cloudtype_qflag):
-    write_log("INFO", "Assuming cloudtype flags structure from pps v2012")
+    logger.info("Assuming cloudtype flags structure from pps v2012")
     land_sea_val = (cloudtype_qflag>>0 & 1)
     coast_val = (cloudtype_qflag>>1 & 1)
     no_qflag = None
@@ -101,7 +102,7 @@ def get_land_coast_sea_info_pps2012(cloudtype_qflag):
     return (no_qflag, land_flag, sea_flag, coast_flag, all_lsc_flag)
 
 def get_land_coast_sea_info_cci2014(lsflag):
-    write_log("INFO", "Assuming cloudtype flags structure from CCI v2014?")
+    logger.info("Assuming cloudtype flags structure from CCI v2014?")
     land_flag =  lsflag
     sea_flag =  1 -lsflag
     coast_flag = None
@@ -110,19 +111,19 @@ def get_land_coast_sea_info_cci2014(lsflag):
 
 
 def get_ice_info_pps2014(cloudtype_status):
-    write_log("INFO", "Assuming cloudtype flags structure from pps v2014")
+    logger.info("Assuming cloudtype flags structure from pps v2014")
     ice_flag_temp = (cloudtype_status>>3 & 1)+0  
     ice_flag = ice_flag_temp ==1
     return ice_flag
 
 def get_ice_info_pps2012(cloudtype_qflag):
-    write_log("INFO", "Assuming cloudtype flags structure from pps v2012")
+    logger.info("Assuming cloudtype flags structure from pps v2012")
     ice_flag_temp = (cloudtype_qflag>>15 & 1)+0  
     ice_flag = ice_flag_temp ==1
     return ice_flag
 
 def get_day_night_twilight_info_pps2014(cloudtype_conditions):
-    write_log("INFO", "Assuming cloudtype flags structure from pps v2014")
+    logger.info("Assuming cloudtype flags structure from pps v2014")
     daynight_val = (cloudtype_conditions>>1 & 1) + (cloudtype_conditions>>2 & 1)*2
     no_qflag = daynight_val == 0
     night_flag =  daynight_val == 1
@@ -135,7 +136,7 @@ def get_day_night_twilight_info_pps2014(cloudtype_conditions):
     return (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag)
 
 def get_day_night_twilight_info_pps2012(cloudtype_qflag): 
-    write_log("INFO", "Assuming cloudtype flags structure from pps v2012")
+    logger.info("Assuming cloudtype flags structure from pps v2012")
     no_qflag = cloudtype_qflag == 0
     night_flag = (((cloudtype_qflag>>2) & 1) == 1) & ~no_qflag
     twilight_flag = (((cloudtype_qflag>>3) & 1) == 1) & ~no_qflag
@@ -147,7 +148,7 @@ def get_day_night_twilight_info_pps2012(cloudtype_qflag):
     return (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag)
 
 def get_day_night_twilight_info_cci2014(sunz):
-    write_log("INFO", "Assuming CCI v2014")
+    logger.info("Assuming CCI v2014")
     no_qflag = np.zeros(sunz.shape)
     day_flag = np.where(np.less_equal(sunz,80),1,0)
     night_flag =  np.where(np.greater_equal(sunz,95),1,0)
@@ -163,19 +164,19 @@ def get_day_night_twilight_info_cci2014(sunz):
     return (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag)
 
 def get_sunglint_info_pps2012(cloudtype_qflag):
-    write_log("INFO", "Assuming cloudtype flags structure from pps v2012")
+    logger.info("Assuming cloudtype flags structure from pps v2012")
     no_qflag = cloudtype_qflag == 0
     sunglint_flag = (((cloudtype_qflag>>4) & 1) == 1) & ~no_qflag
     return  sunglint_flag
 
 def get_mountin_info_pps2012(cloudtype_qflag):
-    write_log("INFO", "Assuming cloudtype flags structure from pps v2012")
+    logger.info("Assuming cloudtype flags structure from pps v2012")
     no_qflag = cloudtype_qflag == 0
     mountin_flag = (((cloudtype_qflag>>5) & 1) == 1) & ~no_qflag
     return  mountin_flag
 
 def get_inversion_info_pps2012(cloudtype_qflag):
-    write_log("INFO", "Assuming cloudtype flags structure from pps v2012")
+    logger.info("Assuming cloudtype flags structure from pps v2012")
     no_qflag = cloudtype_qflag == 0
     inversion_flag = (((cloudtype_qflag>>6) & 1) == 1) & ~no_qflag
     return inversion_flag
@@ -659,9 +660,9 @@ def print_calipso_stats_ctype(caObj, statfile, cal_subset, cal_vert_feature):
 
     if config.CCI_CLOUD_VALIDATION or caObj.avhrr.cloudtype_conditions is not None:
         if config.CCI_CLOUD_VALIDATION:
-            write_log("INFO", "CCI validation ctype validation not useful!")
+            logger.info("CCI validation ctype validation not useful!")
         else:    
-            write_log("INFO", "Assuming cloudtype structure from pps v2014")
+            logger.info("Assuming cloudtype structure from pps v2014")
         avhrr_low = np.logical_and(
             np.logical_and(np.greater_equal(caObj.avhrr.cloudtype,5),
                            np.less_equal(caObj.avhrr.cloudtype,6)),
@@ -681,7 +682,7 @@ def print_calipso_stats_ctype(caObj, statfile, cal_subset, cal_vert_feature):
                                     cal_subset)
 
     else:
-        write_log("INFO", "Assuming cloudtype structure from pps v2012")
+        logger.info("Assuming cloudtype structure from pps v2012")
         avhrr_low = np.logical_and(
             np.logical_and(np.greater_equal(caObj.avhrr.cloudtype,5),
                            np.less_equal(caObj.avhrr.cloudtype,8)),

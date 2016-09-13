@@ -9,8 +9,11 @@
 #         changed start_sec1970 and end_sec1970 to rank0 array 
 #         by setting start_sec1970[0] and end_sec1970[0]
 
-from pps_basic_configure import *
-from pps_error_messages import *
+#from pps_basic_configure import *
+#from pps_error_messages import *
+import logging
+logging.basicConfig(level=logging.info)
+logger = logging.getLogger(__name__)
 
 from calipso import *
 from config import SUB_DIR, DATA_DIR, sec_timeThr
@@ -459,23 +462,23 @@ def get_cloudsatCwc_avhrr_linpix(avhrrIn,lon,lat):
         os.makedirs(COVERAGE_DIR)
     while startline < avhrrIn.longitude.shape[0]:
         
-        write_log("INFO","Calling get_cloudsatxwx_avhrr_linpix: start-line = ",startline)
+        logger.info("Calling get_cloudsatxwx_avhrr_linpix: start-line = ",startline)
         tmpaid = "tmparea_%d"%i
         endline = startline+NLINES
         coverage_filename = "%s/coverage_avhrr_cloudsat-CWC_RVOD_matchup_%s_%.5d_%.5d_%.5d_%s.h5"%\
                             (COVERAGE_DIR,avhrrIn.satellite,avhrrIn.orbit,
                              startline,endline,tmpaid)
-        write_log("INFO","Coverage filename = ",coverage_filename)
+        logger.info("Coverage filename = ",coverage_filename)
         cal,cap,ok = get_cloudsatCwc_avhrr_linpix_segment(avhrrIn,lon,lat,
                                                       (startline,endline),
                                                       SWATHWD,tmppcs,tmpaid,
                                                       coverage_filename)
         if ok:
             HasEncounteredMatch=1
-            write_log("INFO","There was a match...")
+            logger.info("There was a match...")
             
         if not ok and HasEncounteredMatch:
-            write_log("INFO","Data is now empty. Leave the loop...")
+            logger.info("Data is now empty. Leave the loop...")
             break
         
         if(startline==0):
@@ -509,7 +512,7 @@ def get_cloudsatCwc_avhrr_linpix_segment(avhrrIn,lon,lat,lines,swath_width,tmppc
         lines_end = avhrrIn.longitude.shape[0]
     lines_start = lines[0]
     
-    write_log("INFO","lines_start,lines_end: ",lines_start,lines_end)
+    logger.info("lines_start,lines_end: ",lines_start,lines_end)
     nlines = lines_end - lines_start
     lonarr = avhrrIn.longitude[lines_start:lines_end,::]
     latarr = avhrrIn.latitude[lines_start:lines_end,::]
@@ -519,21 +522,21 @@ def get_cloudsatCwc_avhrr_linpix_segment(avhrrIn,lon,lat,lines,swath_width,tmppc
     idx = numpy.arange(idx_start,idx_end)
     
     linearr = numpy.divide(idx,swath_width)
-    write_log("INFO","Start and end line numbers: ",linearr[0],linearr[idx.shape[0]-1])
+    logger.info("Start and end line numbers: ",linearr[0],linearr[idx.shape[0]-1])
     
     linearr = numpy.reshape(linearr,(nlines,swath_width))
     pixelarr = numpy.fmod(idx,swath_width).astype('l')
     pixelarr = numpy.reshape(pixelarr,(nlines,swath_width))
 
     """
-    write_log("INFO","Get bounding box...")
+    logger.info("Get bounding box...")
     bounds = getBoundingBox(lonarr,latarr)
-    write_log("INFO","Bounding box (lon,lat): ",bounds)
+    logger.info("Bounding box (lon,lat): ",bounds)
     
     area_x_tup = pps_gisdata.c2s([(bounds[0],bounds[1]),(bounds[2],bounds[3])],tmppcs)
     dimx = int((area_x_tup[1][0] - area_x_tup[0][0])/1000.0 + 1.0)
     dimy = int((area_x_tup[1][1] - area_x_tup[0][1])/1000.0 + 1.0)
-    write_log("INFO","X,Y dims: ",dimx,dimy)
+    logger.info("X,Y dims: ",dimx,dimy)
     define_longlat_ll(tmpaid, "Temp area def", tmppcs,
                       pcs.d2r((bounds[0],bounds[1])), # lower left corner (lon, lat)
                       (dimx,dimy), 1000)
@@ -544,19 +547,19 @@ def get_cloudsatCwc_avhrr_linpix_segment(avhrrIn,lon,lat,lines,swath_width,tmppc
 
     
     if not os.path.exists(covfilename):
-        write_log("INFO","Create Coverage map...")
+        logger.info("Create Coverage map...")
         cov = _satproj.create_coverage(areaObj,lonarr,latarr,1)
         print covfilename
         writeCoverage(cov,covfilename,"satproj",AREA1KM)
     else:
-        write_log("INFO","Read the AVHRR-CLOUDSAT matchup coverage from file...")
+        logger.info("Read the AVHRR-CLOUDSAT matchup coverage from file...")
         cov,info = readCoverage(covfilename)
     
     mapped_line = _satproj.project(cov.coverage,cov.rowidx,cov.colidx,linearr,NODATA)
     mapped_pixel = _satproj.project(cov.coverage,cov.rowidx,cov.colidx,pixelarr,NODATA)
 
 
-    write_log("INFO","Go through cloudsat track:")
+    logger.info("Go through cloudsat track:")
     cloudsat_avhrr_line = []
     cloudsat_avhrr_pixel = []
     for i in range(ndim):
@@ -580,7 +583,7 @@ def get_cloudsatCwc_avhrr_linpix_segment(avhrrIn,lon,lat,lines,swath_width,tmppc
     cloudsat_avhrr_pixel = numpy.array(cloudsat_avhrr_pixel)
 
     x=numpy.repeat(cloudsat_avhrr_line,numpy.not_equal(cloudsat_avhrr_line,-9))
-    write_log("INFO","Number of matching points = ",x.shape[0])
+    logger.info("Number of matching points = ",x.shape[0])
     if x.shape[0] > 0:
         matchOk = 1
     else:
