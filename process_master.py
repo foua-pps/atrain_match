@@ -18,8 +18,6 @@ logger = logging.getLogger(__name__)
 
 import config
 from common import InputError
-#print "config.SAT_DIR:", config.SAT_DIR
-#print "config.CALIPSO_DIR:", config.CALIPSO_DIR
 
 def process_matchups(matchups, run_modes, reprocess=False, debug=False):
     """
@@ -55,30 +53,34 @@ def process_matchups(matchups, run_modes, reprocess=False, debug=False):
             #import pdb
             #cloudsat_calipso_avhrr_match.run(match, mode, reprocess)
             #pdb.set_trace()
-            if mode in ["OPTICAL_DEPTH","OPTICAL_DEPTH_DAY","OPTICAL_DEPTH_NIGHT","OPTICAL_DEPTH_TWILIGHT"]:
+            if mode in ["OPTICAL_DEPTH","OPTICAL_DEPTH_DAY",
+                        "OPTICAL_DEPTH_NIGHT","OPTICAL_DEPTH_TWILIGHT"]:
                 for num in range(len(config.MIN_OPTICAL_DEPTH)):
                     min_optical_depth = config.MIN_OPTICAL_DEPTH[num]
                     try:
-                        cloudsat_calipso_avhrr_match.run(match, mode,  OPTIONS, min_optical_depth, reprocess)
+                        cloudsat_calipso_avhrr_match.run(
+                            match, mode, OPTIONS, min_optical_depth, 
+                            reprocess)
                     except MatchupError, err:
                         logger.warning("Matchup problem: %s" % str(err))
                         no_matchup_files.append(match)
                         break
                     except:
                         problematic.add(match)
-                        logger.warning("Couldn't run cloudsat_calipso_avhrr_match.")
+                        logger.warning(
+                            "Couldn't run cloudsat_calipso_avhrr_match.")
                         if debug is True:
                             raise
                         break
             else:
                 min_optical_depth = None 
-                #min_optical_depth = 0.35 #Assuming this is the detection limit /KG 13/12 2012
-                                          #But you also need to modify basic python module and config.py
-                                          #if you want to filter for all cases!
+                #min_optical_depth = 0.35 
+                #Assuming this in_optical_depth the detection limit /KG 13/12 2012
+                #But you also need to modify basic python module and config.py
+                #if you want to filter for all cases!
                 try:
                     cloudsat_calipso_avhrr_match.run(match, mode,  OPTIONS, min_optical_depth, reprocess)
                 except MatchupError, err:
-                    raise
                     logger.warning("Matchup problem: %s" % str(err))
                     import traceback
                     traceback.print_exc()
