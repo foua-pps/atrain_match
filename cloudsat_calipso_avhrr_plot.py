@@ -228,19 +228,19 @@ def drawCalPPSHeightPlot_PrototypePPSHeight(caObj_calipso,
             break 
         if caliop_label_set:
             ax.vlines(pixel_position, 
-                        base_ok, top_ok,  
+                        base_ok, top_ok, linewidth=0.5,  
                         colors="g", linestyle='solid', 
-                      alpha=1.0)  
+                      alpha=1.0 )  
         else:
             ax.vlines(pixel_position, 
                       base_ok, top_ok,
-                      colors="g", linestyle='solid', 
+                      colors="g", linewidth=0.5, linestyle='solid', 
                       alpha=1.0, label='caliop')
             caliop_label_set = True
     #: Plot Avhrr   
-    ax.plot(pixel_position_ok, avhrr_ctth_ok1, 'b+', 
+    ax.plot(pixel_position_ok, avhrr_ctth_ok1, 'b+', linewidth=0.5, 
             label=instrument.upper() + " pps-ctth")
-    ax.plot(pixel_position_ok, avhrr_ctth_ok2, 'c.', 
+    ax.plot(pixel_position_ok, avhrr_ctth_ok2, 'c.', linewidth=0.5, markersize=4,  
             label=instrument.upper() + " new-ctth")
     ax.set_ylim(0, maxheight)
     ax.set_title(title)
