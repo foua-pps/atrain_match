@@ -4,8 +4,10 @@
 """
 import ppshdf_cloudproducts
 import ppshdf_helpers
-from epshdf import (SafRegion, 
-                    CloudType)
+#2016-09-14 Use objects from read_cloudproducts_and_nwp_pps instead.
+#Try to rempve all things from pps 
+#from epshdf import (SafRegion, 
+#                    CloudType)
 import netCDF4	
 import numpy as np
 import pps_io
