@@ -12,8 +12,10 @@ through a set of SNO matchups.
     This module has a command line interface.
 
 """
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-from pps_error_messages import write_log
 import config
 from common import InputError
 #print "config.SAT_DIR:", config.SAT_DIR
@@ -59,12 +61,12 @@ def process_matchups(matchups, run_modes, reprocess=False, debug=False):
                     try:
                         cloudsat_calipso_avhrr_match.run(match, mode,  OPTIONS, min_optical_depth, reprocess)
                     except MatchupError, err:
-                        write_log('WARNING', "Matchup problem: %s" % str(err))
+                        logger.warning("Matchup problem: %s" % str(err))
                         no_matchup_files.append(match)
                         break
                     except:
                         problematic.add(match)
-                        write_log('WARNING', "Couldn't run cloudsat_calipso_avhrr_match.")
+                        logger.warning("Couldn't run cloudsat_calipso_avhrr_match.")
                         if debug is True:
                             raise
                         break
@@ -76,7 +78,8 @@ def process_matchups(matchups, run_modes, reprocess=False, debug=False):
                 try:
                     cloudsat_calipso_avhrr_match.run(match, mode,  OPTIONS, min_optical_depth, reprocess)
                 except MatchupError, err:
-                    write_log('WARNING', "Matchup problem: %s" % str(err))
+                    raise
+                    logger.warning("Matchup problem: %s" % str(err))
                     import traceback
                     traceback.print_exc()
                     no_matchup_files.append(match)
@@ -85,19 +88,19 @@ def process_matchups(matchups, run_modes, reprocess=False, debug=False):
                     import traceback
                     traceback.print_exc()
                     problematic.add(match)
-                    write_log('WARNING', "Couldn't run cloudsat_calipso_avhrr_match.")
+                    logger.warning("Couldn't run cloudsat_calipso_avhrr_match.")
                     if debug is True:
                         raise
                     break
 
                 
     if len(no_matchup_files) > 0:
-        write_log('WARNING', 
+        logger.warning(
                   "%d of %d cases had no matchups in region, within the time window:\n%s" % \
                   (len(no_matchup_files), len(matchups),
                    '\n'.join([str(m) for m in no_matchup_files])))
     if len(problematic) > 0:
-        write_log('WARNING', "%d of %d cases had unknown problems:\n%s" % \
+        logger.warning("%d of %d cases had unknown problems:\n%s" % \
                   (len(problematic), len(matchups),
                    '\n'.join([str(m) for m in problematic])))
     
@@ -168,7 +171,7 @@ def main(args=None):
         sno_output_file = options.sno_file
         found_matchups = find_crosses.parse_crosses_file(sno_output_file)
         if len(found_matchups) == 0:
-            write_log('WARNING', "No matchups found in SNO output file %s" %
+            logger.warning("No matchups found in SNO output file %s" %
                       sno_output_file)
             if options.debug is True:
                 raise Warning()

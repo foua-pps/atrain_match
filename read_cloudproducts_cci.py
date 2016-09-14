@@ -11,7 +11,9 @@ import numpy as np
 import pps_io
 import calendar
 import datetime
-from pps_error_messages import write_log
+import logging
+logging.basicConfig(level=logging.info)
+logger = logging.getLogger(__name__)
 import time
 #import h5py
 #from mpop.satin.nwcsaf_pps import NwcSafPpsChannel
@@ -47,23 +49,23 @@ def cci_read_all(filename):
     #cci_nc.variables['cth'].add_offset
     #cci_nc.variables['cth'][:] 
     #cci_nc.variables['cth'].scale_factor
-    write_log("INFO", "Opening file %s"%(filename))
+    logger.info("Opening file %s"%(filename))
     cci_nc = netCDF4.Dataset(filename, 'r', format='NETCDF4')
-    write_log("INFO", "Reading ctth ...")
+    logger.info("Reading ctth ...")
     ctth = read_cci_ctth(cci_nc)
-    write_log("INFO", "Reading angles ...")
+    logger.info("Reading angles ...")
     avhrrAngObj = read_cci_angobj(cci_nc)
-    write_log("INFO", "Reading cloud type ...")
+    logger.info("Reading cloud type ...")
     ctype = read_cci_ctype(cci_nc, avhrrAngObj)
-    write_log("INFO", "Reading longitude, latitude and time ...")
+    logger.info("Reading longitude, latitude and time ...")
     avhrrGeoObj = read_cci_geoobj(cci_nc)
-    write_log("INFO", "Not reading surface temperature")
+    logger.info("Not reading surface temperature")
     surft = None
-    write_log("INFO", "Not reading cloud liquid water path")
+    logger.info("Not reading cloud liquid water path")
     cppLwp = None
-    write_log("INFO", "Reading cloud phase")
+    logger.info("Reading cloud phase")
     cppCph = read_cci_phase(cci_nc)
-    write_log("INFO", "Not reading channel data")
+    logger.info("Not reading channel data")
     avhrrObj = None  
     if cci_nc:
         cci_nc.close()
@@ -78,36 +80,36 @@ def cci_read_prod(filename, prod_type='ctth'):
     #cci_nc.variables['cth'].add_offset
     #cci_nc.variables['cth'][:] 
     #cci_nc.variables['cth'].scale_factor
-    write_log("INFO", "Opening file %s"%(filename))
+    logger.info("Opening file %s"%(filename))
     cci_nc = netCDF4.Dataset(filename, 'r', format='NETCDF4')
     if prod_type == 'ctth':
-        write_log("INFO", "Reading ctth ...")
+        logger.info("Reading ctth ...")
         retv = read_cci_ctth(cci_nc)
         if cci_nc:
             cci_nc.close()
         return retv
     if prod_type == 'ang':
-        write_log("INFO", "Reading angles ...")
+        logger.info("Reading angles ...")
         retv =  read_cci_angobj(cci_nc)
         if cci_nc:
             cci_nc.close()
         return retv    
     if prod_type == 'ctype': 
-        write_log("INFO", "Reading angles ...")
+        logger.info("Reading angles ...")
         avhrrAngObj =  read_cci_angobj(cci_nc)
-        write_log("INFO", "Reading cloud type ...")
+        logger.info("Reading cloud type ...")
         retv = read_cci_ctype(cci_nc, avhrrAngObj)
         if cci_nc:
             cci_nc.close()
         return  retv
     if prod_type == 'geotime':      
-        write_log("INFO", "Reading longitude, latitude and time ...")
+        logger.info("Reading longitude, latitude and time ...")
         retv = read_cci_geoobj(cci_nc)
         if cci_nc:
             cci_nc.close()
         return retv
     if prod_type == 'phase':  
-        write_log("INFO", "Reading cloud phase")
+        logger.info("Reading cloud phase")
         retv = read_cci_phase(cci_nc)
         if cci_nc:
             cci_nc.close()
@@ -128,7 +130,7 @@ def read_cci_ctype(cci_nc,avhrrAngObj):
 
     #pps 1: cloudfree land 2:cloudfree sea
     #cci lsflag 0:sea 1:land
-    #write_log("WARNING", "Making skeleton cloudtype quality flag using "
+    #logger.warning("Making skeleton cloudtype quality flag using "
     #          "sun zenith angels. "
     #          "This is ok for now, but will have to change "
     #          "when cloudtype flags are changed in pps v 2014!")
@@ -184,7 +186,7 @@ def read_cci_geoobj(cci_nc):
     """
     #avhrrGeoObj = pps_io.readAvhrrGeoData(avhrr_file)
     avhrrGeoObj = pps_io.GeoLocationData()
-    write_log("INFO", "Min lon: %s, max lon: %d"%(
+    logger.info("Min lon: %s, max lon: %d"%(
             np.min(cci_nc.variables['lon'][::]),np.max(cci_nc.variables['lon'][::])))
     #cci_nc.variables['lon'].add_offset
     #avhrrGeoObj.longitude = cci_nc.variables['lon'][::]
@@ -218,14 +220,14 @@ def read_cci_geoobj(cci_nc):
                          time.gmtime(avhrrGeoObj.sec1970_start))
     tim2 = time.strftime("%Y%m%d %H:%M", 
                          time.gmtime(avhrrGeoObj.sec1970_end))
-    write_log("INFO", "Starttime: %s, end time: %s"%(tim1, tim2))
-    write_log("INFO", "Min lon: %f, max lon: %d"%(
+    logger.info("Starttime: %s, end time: %s"%(tim1, tim2))
+    logger.info("Min lon: %f, max lon: %d"%(
             np.min(np.where(
                     np.equal(avhrrGeoObj.longitude, avhrrGeoObj.nodata),
                     99999,
                     avhrrGeoObj.longitude)),
             np.max(avhrrGeoObj.longitude)))
-    write_log("INFO", "Min lat: %d, max lat: %d"%(
+    logger.info("Min lat: %d, max lat: %d"%(
             np.min(avhrrGeoObj.latitude),np.max(avhrrGeoObj.latitude)))
 
     return  avhrrGeoObj
