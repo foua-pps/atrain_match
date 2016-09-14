@@ -11,7 +11,6 @@
 
 import pdb #@UnusedImport
 import logging
-logging.basicConfig(level=logging.info)
 logger = logging.getLogger(__name__)
 from matchobject_io import (DataObject,
                             ppsAvhrrObject)                            

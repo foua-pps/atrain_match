@@ -2,7 +2,6 @@
 import config
 import sys
 import logging
-logging.basicConfig(level=logging.info)
 logger = logging.getLogger(__name__)
 import numpy as np
 

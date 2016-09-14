@@ -13,7 +13,7 @@ through a set of SNO matchups.
 
 """
 import logging
-logging.basicConfig(level=logging.INFO)
+#logging.basicConfig(level=logging.INFO) #doing this causes messages twice!
 logger = logging.getLogger(__name__)
 
 import config

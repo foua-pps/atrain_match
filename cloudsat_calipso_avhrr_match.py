@@ -74,7 +74,6 @@ from config import (VAL_CPP,
                     PPS_FORMAT_2012_OR_EARLIER,
                     RESOLUTION)
 import logging
-logging.basicConfig(level=logging.info)
 logger = logging.getLogger(__name__)
 
 #import config

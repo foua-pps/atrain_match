@@ -14,7 +14,6 @@ import pps_io
 import calendar
 import datetime
 import logging
-logging.basicConfig(level=logging.info)
 logger = logging.getLogger(__name__)
 import time
 #import h5py

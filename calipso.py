@@ -5,7 +5,6 @@ import os #@UnusedImport
 import numpy as np
 from pps_basic_configure import * 
 import logging
-logging.basicConfig(level=logging.info)
 logger = logging.getLogger(__name__)
 
 from config import (AREA, _validation_results_dir, 
