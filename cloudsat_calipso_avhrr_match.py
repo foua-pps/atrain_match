@@ -84,6 +84,7 @@ from cloudsat_calipso_avhrr_statistics import *
 from trajectory_plotting import plotSatelliteTrajectory
 from cloudsat_calipso_avhrr_prepare import *
 
+from read_cloudproducts_and_nwp_pps import NWPObj
 from cloudsat import reshapeCloudsat, match_cloudsat_avhrr
 from cloudsat import writeCloudsatAvhrrMatchObj, readCloudsatAvhrrMatchObj
 from calipso import (reshapeCalipso, 

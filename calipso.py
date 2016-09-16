@@ -460,10 +460,11 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
     from pps_prototyping_util import (get_t11t12_texture_data_from_object,
                                       get_coldest_values,get_darkest_values,
                                       get_warmest_values)
-    nwp_obj = get_t11t12_texture_data_from_object(dataObj, nwp_obj, '11','12', 
-                                                  'text_t11t12') 
-    nwp_obj = get_t11t12_texture_data_from_object(dataObj, nwp_obj, '37','12',
-                                                  'text_t37t12_square')
+    if dataObj != None:
+        nwp_obj = get_t11t12_texture_data_from_object(dataObj, nwp_obj, '11','12', 
+                                                      'text_t11t12') 
+        nwp_obj = get_t11t12_texture_data_from_object(dataObj, nwp_obj, '37','12',
+                                                      'text_t37t12_square')
     for texture in ["text_r06", "text_t11", "text_t37", "text_t37t12", 
                     "text_t37t12_square", "text_t11t12"]:
         if hasattr(nwp_obj, texture):
@@ -472,18 +473,19 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
                 value_track = [data[row_matched[idx], col_matched[idx]]
                                for idx in range(row_matched.shape[0])]
                 setattr(obt.avhrr, texture, np.array(value_track))
-    neighbour_obj =get_warmest_values(dataObj, row_col)
-    for key in ["warmest_t11", "warmest_t12", "warmest_t37",
-                "warmest_r06", "warmest_r09", "warmest_r16"]:
-        setattr(obt.avhrr, key, np.array(getattr(neighbour_obj,key)))
-    neighbour_obj =get_darkest_values(dataObj, row_col)
-    for key in ["darkest_t11", "darkest_t12", "darkest_t37",
-                "darkest_r06", "darkest_r09", "darkest_r16"]:
-        setattr(obt.avhrr, key, np.array(getattr(neighbour_obj,key)))
-    neighbour_obj =get_coldest_values(dataObj, row_col)
-    for key in ["coldest_t11", "coldest_t12", "coldest_t37",
-                "coldest_r06", "coldest_r09", "coldest_r16"]:
-        setattr(obt.avhrr, key, np.array(getattr(neighbour_obj,key)))
+    if dataObj != None:
+        neighbour_obj =get_warmest_values(dataObj, row_col)
+        for key in ["warmest_t11", "warmest_t12", "warmest_t37",
+                    "warmest_r06", "warmest_r09", "warmest_r16"]:
+            setattr(obt.avhrr, key, np.array(getattr(neighbour_obj,key)))
+        neighbour_obj =get_darkest_values(dataObj, row_col)
+        for key in ["darkest_t11", "darkest_t12", "darkest_t37",
+                    "darkest_r06", "darkest_r09", "darkest_r16"]:
+            setattr(obt.avhrr, key, np.array(getattr(neighbour_obj,key)))
+        neighbour_obj =get_coldest_values(dataObj, row_col)
+        for key in ["coldest_t11", "coldest_t12", "coldest_t37",
+                    "coldest_r06", "coldest_r09", "coldest_r16"]:
+            setattr(obt.avhrr, key, np.array(getattr(neighbour_obj,key)))
     #Thresholds:    
     for thr in ["thr_t11ts_inv",
                 "thr_t85t11_inv",

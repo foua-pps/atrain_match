@@ -2,15 +2,11 @@
   Use this module to read cci cloudproducts
   2013 SMHI, N.Hakansson a001865
 """
-import ppshdf_cloudproducts
-import ppshdf_helpers
-#2016-09-14 Use objects from read_cloudproducts_and_nwp_pps instead.
-#Try to rempve all things from pps 
-#from epshdf import (SafRegion, 
-#                    CloudType)
+from read_cloudproducts_and_nwp_pps import (CtypeObj, CtthObj, 
+                                            imagerAngObj, imagerGeoObj)
+
 import netCDF4	
 import numpy as np
-import pps_io
 import calendar
 import datetime
 import logging
@@ -120,13 +116,9 @@ def cci_read_prod(filename, prod_type='ctth'):
 def read_cci_ctype(cci_nc,avhrrAngObj):
     """Read cloudtype and flag info from filename
     """
-    #epshdf.read_cloudtype(pps_files.cloudtype, 1, 1, 0)
     #cci_nc.variables['cc_total'][:])
     #cci_nc.variables['ls_flag'][:])
-    ctype = CloudType()
-    ctype.region = SafRegion()
-    #ctype.region.xsize=10
-    #ctype.region.ysize=10
+    ctype = CtypeObj()
 
 
     #pps 1: cloudfree land 2:cloudfree sea
@@ -163,9 +155,7 @@ def read_cci_ctype(cci_nc,avhrrAngObj):
 def read_cci_angobj(cci_nc):
     """Read angles info from filename
     """
-    #pps_io.readSunSatAngles(pps_files.sunsatangles) 
-    from pps_io import SunSatAngleData
-    avhrrAngObj = SunSatAngleData()
+    avhrrAngObj = imagerAngObj()
     avhrrAngObj.satz.data = cci_nc.variables['satellite_zenith_view_no1'][::] 
     avhrrAngObj.sunz.data = cci_nc.variables['solar_zenith_view_no1'][::]
     avhrrAngObj.azidiff = None #cci_nc.variables['rel_azimuth_view_no1']??
@@ -173,7 +163,6 @@ def read_cci_angobj(cci_nc):
 def read_cci_phase(cci_nc):
     """Read angles info from filename
     """
-    #pps_io.readSunSatAngles(pps_files.sunsatangles) 
     phase = cci_nc.variables['phase'][::] 
     #if hasattr(phase, 'mask'):
     #    phase_out = np.where(phase.mask, -999, phase.data)
@@ -185,25 +174,34 @@ def read_cci_phase(cci_nc):
 def read_cci_geoobj(cci_nc):
     """Read geolocation and time info from filename
     """
-    #avhrrGeoObj = pps_io.readAvhrrGeoData(avhrr_file)
-    avhrrGeoObj = pps_io.GeoLocationData()
+    GeoObj = imagerGeoObj()
     logger.info("Min lon: %s, max lon: %d"%(
             np.min(cci_nc.variables['lon'][::]),np.max(cci_nc.variables['lon'][::])))
     #cci_nc.variables['lon'].add_offset
-    #avhrrGeoObj.longitude = cci_nc.variables['lon'][::]
-    avhrrGeoObj.longitude = np.where(
+    #GeoObj.longitude = cci_nc.variables['lon'][::]
+    GeoObj.nodata = -999.0
+    in_fillvalue = cci_nc.variables['lon']._FillValue
+    GeoObj.longitude = cci_nc.variables['lon'][::]
+    GeoObj.longitude[cci_nc.variables['lon'][::] == in_fillvalue] = GeoObj.nodata
+    GeoObj.latitude = cci_nc.variables['lon'][::]
+    GeoObj.latitude[cci_nc.variables['lon'][::] == in_fillvalue] = GeoObj.nodata
+    np.where(
         np.logical_and(
-            np.greater_equal(cci_nc.variables['lon'][::] ,cci_nc.variables['lon'].valid_min),
-            np.less_equal(cci_nc.variables['lon'][::] ,cci_nc.variables['lon'].valid_max)),
+            np.greater_equal(cci_nc.variables['lon'][::],
+                             cci_nc.variables['lon'].valid_min),
+            np.less_equal(cci_nc.variables['lon'][::],
+                          cci_nc.variables['lon'].valid_max)),
         cci_nc.variables['lon'][::],
-        avhrrGeoObj.nodata)
-    #avhrrGeoObj.latitude = cci_nc.variables['lat'][::] 
-    avhrrGeoObj.latitude = np.where(
+        GeoObj.nodata)
+    #GeoObj.latitude = cci_nc.variables['lat'][::] 
+    GeoObj.latitude = np.where(
         np.logical_and(
-            np.greater_equal(cci_nc.variables['lat'][::] ,cci_nc.variables['lat'].valid_min),
-            np.less_equal(cci_nc.variables['lat'][::] ,cci_nc.variables['lat'].valid_max)),
+            np.greater_equal(cci_nc.variables['lat'][::],
+                             cci_nc.variables['lat'].valid_min),
+            np.less_equal(cci_nc.variables['lat'][::],
+                          cci_nc.variables['lat'].valid_max)),
         cci_nc.variables['lat'][::],
-        avhrrGeoObj.nodata)
+        GeoObj.nodata)
     #cci_nc.variables['lon'].scale_factor
     #cci_nc.variables['lat'].add_offset
 
@@ -212,34 +210,31 @@ def read_cci_geoobj(cci_nc):
     # from file because time are already available on arrays in the netcdf files
     #dsec = calendar.timegm((1993,1,1,0,0,0,0,0,0)) #TAI to UTC
     time_temp = daysafter4713bc_to_sec1970(cci_nc.variables['time'][::])
-    avhrrGeoObj.time = time_temp[::]#[:,0] #time_temp[:,0]
+    GeoObj.time = time_temp[::]#[:,0] #time_temp[:,0]
 
-    avhrrGeoObj.sec1970_start = np.min(avhrrGeoObj.time)  
-    avhrrGeoObj.sec1970_end = np.max(avhrrGeoObj.time)
+    GeoObj.sec1970_start = np.min(GeoObj.time)  
+    GeoObj.sec1970_end = np.max(GeoObj.time)
 
     tim1 = time.strftime("%Y%m%d %H:%M", 
-                         time.gmtime(avhrrGeoObj.sec1970_start))
+                         time.gmtime(GeoObj.sec1970_start))
     tim2 = time.strftime("%Y%m%d %H:%M", 
-                         time.gmtime(avhrrGeoObj.sec1970_end))
+                         time.gmtime(GeoObj.sec1970_end))
     logger.info("Starttime: %s, end time: %s"%(tim1, tim2))
     logger.info("Min lon: %f, max lon: %d"%(
             np.min(np.where(
-                    np.equal(avhrrGeoObj.longitude, avhrrGeoObj.nodata),
+                    np.equal(GeoObj.longitude, GeoObj.nodata),
                     99999,
-                    avhrrGeoObj.longitude)),
-            np.max(avhrrGeoObj.longitude)))
+                    GeoObj.longitude)),
+            np.max(GeoObj.longitude)))
     logger.info("Min lat: %d, max lat: %d"%(
-            np.min(avhrrGeoObj.latitude),np.max(avhrrGeoObj.latitude)))
+            np.min(GeoObj.latitude),np.max(GeoObj.latitude)))
 
-    return  avhrrGeoObj
+    return  GeoObj
 
 def read_cci_ctth(cci_nc):
     """Read cloud top: temperature, height and pressure from filename
     """
-    ctth = ppshdf_cloudproducts.CloudTop()
-    ctth.region = ppshdf_helpers.SafRegion() 
-    #ctth.region.xsize=10
-    #ctth.region.ysize=10
+    ctth = CtthObj()
     cth = cci_nc.variables['cth'][::]
     if hasattr(cth, 'mask'):
         cth_data = np.where(cth.mask, -999, cth.data)

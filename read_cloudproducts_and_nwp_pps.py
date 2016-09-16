@@ -222,7 +222,7 @@ def read_pps_geoobj_nc(pps_nc):
     """
     GeoObj = imagerGeoObj()
     GeoObj.longitude = pps_nc.variables['lon'][::]
-    GeoObj.nodata =pps_nc.variables['lon']._FillValue
+    GeoObj.nodata = pps_nc.variables['lon']._FillValue
     GeoObj.latitude = pps_nc.variables['lat'][::]
     GeoObj.num_of_lines = GeoObj.latitude.shape[0]
     time_temp = pps_nc.variables['time'].units #to 1970 s
@@ -249,13 +249,19 @@ def read_pps_geoobj_h5(filename):
     """
     h5file = h5py.File(filename, 'r')
     GeoObj = imagerGeoObj()
-    GeoObj.nodata = h5file['where/lon/what'].attrs['nodata']
+    in_fillvalue1 = h5file['where/lon/what'].attrs['nodata']
+    in_fillvalue2 = h5file['where/lon/what'].attrs['missingdata']
+    GeoObj.nodata = -999.0
     gain = h5file['where/lon/what'].attrs['gain']
     intercept = h5file['where/lon/what'].attrs['offset']
     GeoObj.longitude = h5file['where/lon']['data'].value*gain + intercept
     GeoObj.latitude = h5file['where/lat']['data'].value*gain + intercept
-    GeoObj.longitude[h5file['where/lon']['data'].value==GeoObj.nodata] = GeoObj.nodata
-    GeoObj.latitude[h5file['where/lat']['data'].value==GeoObj.nodata] = GeoObj.nodata
+
+    GeoObj.longitude[h5file['where/lon']['data'].value==in_fillvalue1] = GeoObj.nodata
+    GeoObj.latitude[h5file['where/lat']['data'].value==in_fillvalue1] = GeoObj.nodata
+    GeoObj.longitude[h5file['where/lon']['data'].value==in_fillvalue2] = GeoObj.nodata
+    GeoObj.latitude[h5file['where/lat']['data'].value==in_fillvalue2] = GeoObj.nodata
+
     GeoObj.num_of_lines = GeoObj.latitude.shape[0]
     GeoObj.sec1970_start = h5file['how'].attrs['startepochs']
     GeoObj.sec1970_end =  h5file['how'].attrs['endepochs']

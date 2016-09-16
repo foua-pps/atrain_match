@@ -55,9 +55,10 @@ def map_avhrr(avhrr, lon, lat, radius_of_influence):
     from amsr_avhrr.match import match_lonlat
     source = (avhrr.longitude, avhrr.latitude)
     target = (lon, lat)
-    if avhrr.longitude.dtype != lon.dtype:
-        source = (avhrr.longitude.astype(np.float64), avhrr.latitude.astype(np.float64))
-        target = (lon.astype(np.float64), lat.astype(np.float64))      
+    #if avhrr.longitude.dtype != lon.dtype or  avhrr.latitude.dtype != lat.dtype:
+    source = (avhrr.longitude.astype(np.float64), avhrr.latitude.astype(np.float64))
+    target = (lon.astype(np.float64), lat.astype(np.float64))   
+    print avhrr.longitude.dtype, lon.dtype, avhrr.latitude.dtype,  lat.dtype    
     mapper = match_lonlat(source, target, radius_of_influence, n_neighbours=1)
     
     # Return the nearest (and the only calculated) neighbour
