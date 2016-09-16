@@ -9,14 +9,16 @@ from matchobject_io import (readCaliopAvhrrMatchObj,
                             CalipsoAvhrrTrackObject)
 from plot_kuipers_on_area_util import (PerformancePlottingObject,
                                        ppsMatch_Imager_CalipsoObject)
+isGAC_CCI = False
+isGAC_CCI_morning = True
 isModis1km = True
 isNPP_v2014 = False
 isGAC_v2014_morning_sat = False
 isGAC_v2014 = True
-method = 'Nina' #Nina or KG
-DNT="day" #"all/day/night/twilight"
+method = 'KG' #Nina or KG
+DNT="twilight" #"all/day/night/twilight"
 filter_method = 'no' #no or satz
-radius_km = 250 #t.ex 75 250 500
+radius_km = 75 #t.ex 75 250 500
 
 #morning 75 satz xall dnt
 #mornign 75 no xall dnt
@@ -25,7 +27,23 @@ radius_km = 250 #t.ex 75 250 500
 #=16 runs
 onlyCirrus=False
 isACPGv2012=False
-if isModis1km:
+if isGAC_CCI:
+    num_files_to_read = 90
+    isGAC=True
+    satellites = "cci_noaa18_noaa19"
+    ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/cci_reshaped_tgz/"
+    files = glob(ROOT_DIR + "noaa19/*/????/??/*/*.h5")
+    ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/cci_reshaped_tgz/"
+    files = files + glob(ROOT_DIR + "noaa18/*/????/??/*/*.h5")
+elif isGAC_CCI_morning:
+    num_files_to_read = 90
+    isGAC=True
+    satellites = "cci_noaa17_metopa"
+    ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/cci_reshaped_tgz/"
+    files = glob(ROOT_DIR + "metopa/*/????/??/*/*.h5")
+    ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/cci_reshaped_tgz/"
+    files = files + glob(ROOT_DIR + "noaa17/*/????/??/*/*.h5")
+elif isModis1km:
     num_files_to_read = 1
     isGAC=False
     satellites = "eos_modis"
@@ -62,7 +80,7 @@ elif isGAC_v2014:
 
 pplot_obj = PerformancePlottingObject()
 pplot_obj.flattice.set_flattice(radius_km=radius_km)
-pplot_obj.flattice.PLOT_DIR = "/home/a001865/ATRAIN_MATCH_KUIPERS_PLOT/"
+pplot_obj.flattice.PLOT_DIR = "/home/a001865/ATRAIN_MATCH_KUIPERS_PLOT_CCI_3/"
 pplot_obj.flattice.DNT = DNT
 pplot_obj.flattice.satellites = satellites
 pplot_obj.flattice.filter_method = filter_method

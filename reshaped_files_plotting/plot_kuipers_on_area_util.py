@@ -34,6 +34,8 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
             self.get_ctth_bias_type(caObj=caObj, calipso_cloudtype=cc_type)
 
     def set_false_and_missed_cloudy_and_clear(self, caObj):
+        lat = caObj.avhrr.all_arrays['latitude']
+        lon = caObj.avhrr.all_arrays['longitude']
         isCloudyPPS = np.logical_and(caObj.avhrr.all_arrays['cloudtype']>4,
                                      caObj.avhrr.all_arrays['cloudtype']<21) 
         isClearPPS = np.logical_and(caObj.avhrr.all_arrays['cloudtype']>0,
@@ -68,6 +70,10 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
             isCalipsoClear = np.logical_and(
                 isCalipsoClear,
                 caObj.calipso.all_arrays['total_optical_depth_5km']<0)
+        use_ok_lat_lon = np.logical_and(np.logical_and(lat>=-90, lat<=90),
+                                        np.logical_and(lon>=-180, lat<=180))
+        isCloudyPPS = np.logical_and(isCloudyPPS,  use_ok_lat_lon)
+        isClearPPS =  np.logical_and(isClearPPS,  use_ok_lat_lon)
         sunz = caObj.avhrr.all_arrays['sunz']
         if self.filter_method == "satz":
             satz = caObj.avhrr.all_arrays['satz']
@@ -146,6 +152,8 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         low_clouds = get_calipso_low_clouds(caObj)
         detected_low = np.logical_and(self.detected_height, low_clouds[self.use])
         height_c = 1000*caObj.calipso.all_arrays['layer_top_altitude'][self.use,0] - caObj.calipso.all_arrays['elevation'][self.use]
+        if "cci" in self.satellites:
+            height_c = 1000*caObj.calipso.all_arrays['layer_top_altitude'][self.use,0]  
         height_pps = caObj.avhrr.all_arrays['ctth_height'][self.use]
         delta_h = height_pps - height_c
         delta_h[~detected_low]=0
@@ -180,6 +188,8 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         high_clouds = get_calipso_high_clouds(caObj)
         detected_high = np.logical_and(self.detected_height, high_clouds[self.use])
         height_c = 1000*caObj.calipso.all_arrays['layer_top_altitude'][self.use,0] - caObj.calipso.all_arrays['elevation'][self.use]
+        if "cci" in self.satellites:
+            height_c = 1000*caObj.calipso.all_arrays['layer_top_altitude'][self.use,0] 
         height_pps = caObj.avhrr.all_arrays['ctth_height'][self.use]
         delta_h = height_pps - height_c
         delta_h[~detected_high]=0
@@ -205,7 +215,6 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
             self.lapse_bias_high[~detected_high]=0
             self.lapse_bias_high[temperature_pps<0]=0
         except:
-            raise
             self.lapse_bias_high = 0* height_c
 
 
@@ -219,11 +228,14 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         delta_t[~detected_low]=0
         delta_t[temperature_c<0]=0
         delta_t[temperature_pps<0]=0
-        temperature_pps = caObj.avhrr.all_arrays['bt11micron'][self.use]
-        delta_t_t11 = temperature_pps - temperature_c
-        delta_t_t11[~detected_low]=0
-        delta_t_t11[temperature_c<0]=0
-        delta_t_t11[temperature_pps<0]=0
+        try:
+            temperature_pps = caObj.avhrr.all_arrays['bt11micron'][self.use]
+            delta_t_t11 = temperature_pps - temperature_c
+            delta_t_t11[~detected_low]=0
+            delta_t_t11[temperature_c<0]=0
+            delta_t_t11[temperature_pps<0]=0
+        except:
+            delta_t_t11 = 0*delta_t
         self.temperature_bias_low =delta_t
         #self.temperature_bias_low[~detected_low]=0
         self.temperature_bias_low_t11 = delta_t_t11
@@ -233,6 +245,8 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         wanted_clouds = get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=calipso_cloudtype)
         detected_typei = np.logical_and(self.detected_height, wanted_clouds[self.use])
         height_c = 1000*caObj.calipso.all_arrays['layer_top_altitude'][self.use,0] - caObj.calipso.all_arrays['elevation'][self.use]
+        if "cci" in self.satellites:
+            height_c = 1000*caObj.calipso.all_arrays['layer_top_altitude'][self.use,0] 
         height_pps = caObj.avhrr.all_arrays['ctth_height'][self.use]
         delta_h = height_pps - height_c
         delta_h[~detected_typei]=0
