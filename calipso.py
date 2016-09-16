@@ -157,8 +157,8 @@ def createAvhrrTime(Obt, values):
         linetime = np.linspace(Obt.sec1970_start, Obt.sec1970_end, num_of_scan)
         Obt.time = np.apply_along_axis(np.multiply,  0, np.ones([num_of_scan, 16]), linetime).reshape(Obt.num_of_lines)
 
-        logger.info("NPP start time :  ", time.gmtime(Obt.sec1970_start))
-        logger.info("NPP end time : ", time.gmtime(Obt.sec1970_end))
+        logger.info("NPP start time :  %s", time.gmtime(Obt.sec1970_start))
+        logger.info("NPP end time : %s", time.gmtime(Obt.sec1970_end))
 
  
     else:
@@ -861,10 +861,11 @@ def get_calipso(filename, res, ALAY=False):
         # This filtering of single clear/cloud pixels is questionable.
         # Minor investigation (45 scenes npp), shows small decrease in results if removed.
         cloud_fraction_temp =  ndimage.filters.uniform_filter1d(calipso_clmask, size=winsz)
-        clobj.cloud_fraction = np.where(
-            np.logical_and(clobj.cloud_fraction>1,
-                           cloud_fraction_temp<1.5/winsz),
-            0,clobj.cloud_fraction)
+        #don't use filter to set cloudy pixels to clear
+        #clobj.cloud_fraction = np.where(
+        #    np.logical_and(clobj.cloud_fraction>1,
+        #                   cloud_fraction_temp<1.5/winsz),
+        #    0,clobj.cloud_fraction)
         clobj.cloud_fraction = np.where(
             np.logical_and(clobj.cloud_fraction<0,
                            cloud_fraction_temp>((winsz-1.5)/winsz)),            
