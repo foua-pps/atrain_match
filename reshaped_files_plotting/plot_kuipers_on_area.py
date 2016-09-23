@@ -11,13 +11,14 @@ from plot_kuipers_on_area_util import (PerformancePlottingObject,
                                        ppsMatch_Imager_CalipsoObject)
 isGAC_CCI = False
 isGAC_CCI_morning = True
-isModis1km = True
+isModis1km = False
 isNPP_v2014 = False
-isGAC_v2014_morning_sat = False
+isGAC_v2014_morning_sat = True
 isGAC_v2014 = True
-method = 'KG' #Nina or KG
+cci_orbits = True
+method = 'KG' #Nina or KG or BASIC==no filter
 DNT="twilight" #"all/day/night/twilight"
-filter_method = 'no' #no or satz
+filter_method = 'satz' #no or satz
 radius_km = 75 #t.ex 75 250 500
 
 #morning 75 satz xall dnt
@@ -65,7 +66,11 @@ elif isGAC_v2014_morning_sat:
     files = glob(ROOT_DIR + "merged/metop*h5")
     files = files + glob(ROOT_DIR + "merged/noaa17*h5") 
     satellites = "metopa_metopb_noaa17"
-    #files = glob(ROOT_DIR + "noaa17/5km/20??/1*/*/*noaa*h5")
+    if cci_orbits:
+        satellites = "part_metopa_noaa17"
+        files = glob(ROOT_DIR + "merged/noaa17*2006*h5")
+        files = files + glob(ROOT_DIR + "merged/noaa17*2006*h5")
+        files = files + glob(ROOT_DIR + "merged/metopa*20*0*h5") #07.08.09.10
 elif isGAC_v2014:
     num_files_to_read = 1
     isGAC=True
@@ -73,14 +78,15 @@ elif isGAC_v2014:
     ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/clara_a2_rerun/Reshaped_Files_CLARA_A2_final/"
     files = glob(ROOT_DIR + "merged/noaa18*h5")
     files = files + glob(ROOT_DIR + "merged/noaa19*h5")
-    #files = glob(ROOT_DIR + "noaa18/5km/20??/??/*/*noaa*h5")
-    #files = files + glob(ROOT_DIR + "noaa19/5km/20??/??/*/*noaa*h5")
-    #files = glob(ROOT_DIR + "noaa19/5km/2010/09/*/*noaa*h5")
-
+    if cci_orbits:
+        satellites = "part_nooa18_nooaa19"
+        files = glob(ROOT_DIR + "merged/noaa18*200*h5")
+        files = files + glob(ROOT_DIR + "merged/noaa19*20*0*h5")  
+        
 
 pplot_obj = PerformancePlottingObject()
 pplot_obj.flattice.set_flattice(radius_km=radius_km)
-pplot_obj.flattice.PLOT_DIR = "/home/a001865/ATRAIN_MATCH_KUIPERS_PLOT_CCI_3/"
+pplot_obj.flattice.PLOT_DIR = "/home/a001865/ATRAIN_MATCH_KUIPERS_PLOT_CCI_PPS"
 pplot_obj.flattice.DNT = DNT
 pplot_obj.flattice.satellites = satellites
 pplot_obj.flattice.filter_method = filter_method
@@ -127,6 +133,15 @@ if num_files_to_read!=1:
     temp_obj.get_some_info_from_caobj(caObj)
     pplot_obj.add_detection_stats_on_fib_lattice(temp_obj) 
 
+pplot_obj.flattice.calculate_bias()
+pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-25.0, vmax=25.0, score='Bias', 
+                          screen_out_valid=True)
+pplot_obj.flattice.calculate_kuipers()
+pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=0.0, score='Kuipers')
+#Calcualte hitrate
+pplot_obj.flattice.calculate_hitrate()
+pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=0.5, score='Hitrate')
+pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=0.0, vmax=1000.0, score='Number_of')
 
 #start to calculate
 if 'modis' in satellites:
@@ -164,14 +179,7 @@ pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-4000.0, vmax=400
 
 
 
-pplot_obj.flattice.calculate_bias()
-pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-25.0, vmax=25.0, score='Bias', 
-                          screen_out_valid=True)
-pplot_obj.flattice.calculate_kuipers()
-pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=0.0, score='Kuipers')
-#Calcualte hitrate
-pplot_obj.flattice.calculate_hitrate()
-pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=0.5, score='Hitrate')
+
 #Calcualte threat_score
 pplot_obj.flattice.calculate_threat_score()
 pplot_obj.flattice.remap_and_plot_score_on_several_areas( score='Threat_Score')

@@ -34,6 +34,12 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
             self.get_ctth_bias_type(caObj=caObj, calipso_cloudtype=cc_type)
 
     def set_false_and_missed_cloudy_and_clear(self, caObj):
+        if "cci" in self.satellites:
+            print "re-calculating optical-depth"
+            temp_od = caObj.calipso.all_arrays['feature_optical_depth_532']
+            temp_od[temp_od<-999]=0
+            caObj.calipso.all_arrays['total_optical_depth_5km'] = np.sum(
+                temp_od, axis=1.0) 
         lat = caObj.avhrr.all_arrays['latitude']
         lon = caObj.avhrr.all_arrays['longitude']
         isCloudyPPS = np.logical_and(caObj.avhrr.all_arrays['cloudtype']>4,
@@ -42,7 +48,10 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
                                     caObj.avhrr.all_arrays['cloudtype']<5)
         nlay =np.where(caObj.calipso.all_arrays['number_layers_found']>0,1,0)
         meancl=ndimage.filters.uniform_filter1d(nlay*1.0, size=3)
-        if self.cc_method == 'KG' and self.isGAC:
+        if self.cc_method == 'BASIC' and self.isGAC:
+            isCalipsoCloudy =  caObj.calipso.all_arrays['cloud_fraction']>0.5
+            isCalipsoClear = np.not_equal(isCalipsoCloudy, True)
+        elif self.cc_method == 'KG' and self.isGAC:
             isCalipsoCloudy = np.logical_and(
                 caObj.calipso.all_arrays['cloud_fraction']>0.5,
                 caObj.calipso.all_arrays['total_optical_depth_5km']>0.15)
@@ -320,6 +329,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
         self.N_clear = self.N_detected_clear+self.N_false_clouds
         self.N_clouds = self.N_detected_clouds+self.N_undetected_clouds 
         self.N = self.N_clear + self.N_clouds
+        self.Number_of = np.ma.masked_array(self.N, mask=self.N<0)
     
     def _remap_a_score_on_an_area(self, plot_area_name='npole', vmin=0.0, vmax=1.0, 
                                   score='Kuipers'):
@@ -535,6 +545,11 @@ class ppsStatsOnFibLatticeObject(DataObject):
             self.N_clear + self.N_clouds)
         the_mask = self.N<20
         Hitrate = np.ma.masked_array(Hitrate, mask=the_mask)
+        self.Hitrate_total_mean = (
+            np.sum(self.N_detected_clouds[~the_mask]) + 
+            np.sum(self.N_detected_clear[~the_mask]))*1.0/(
+                np.sum(self.N[~the_mask]))
+        print self.Hitrate_total_mean
         self.Hitrate = Hitrate
 
     def calculate_increased_hitrate(self):
