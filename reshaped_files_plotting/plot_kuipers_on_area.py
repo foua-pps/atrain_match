@@ -10,15 +10,15 @@ from matchobject_io import (readCaliopAvhrrMatchObj,
 from plot_kuipers_on_area_util import (PerformancePlottingObject,
                                        ppsMatch_Imager_CalipsoObject)
 isGAC_CCI = False
-isGAC_CCI_morning = True
+isGAC_CCI_morning = False
 isModis1km = False
 isNPP_v2014 = False
-isGAC_v2014_morning_sat = True
+isGAC_v2014_morning_sat = False
 isGAC_v2014 = True
-cci_orbits = True
+cci_orbits = False
 method = 'KG' #Nina or KG or BASIC==no filter
-DNT="twilight" #"all/day/night/twilight"
-filter_method = 'satz' #no or satz
+DNT="night" #"all/day/night/twilight"
+filter_method = 'no' #no or satz
 radius_km = 75 #t.ex 75 250 500
 
 #morning 75 satz xall dnt
@@ -86,7 +86,7 @@ elif isGAC_v2014:
 
 pplot_obj = PerformancePlottingObject()
 pplot_obj.flattice.set_flattice(radius_km=radius_km)
-pplot_obj.flattice.PLOT_DIR = "/home/a001865/ATRAIN_MATCH_KUIPERS_PLOT_CCI_PPS"
+pplot_obj.flattice.PLOT_DIR = "/home/a001865/ATRAIN_MATCH_KUIPERS_PLOT_CCI_PPS_TEST"
 pplot_obj.flattice.DNT = DNT
 pplot_obj.flattice.satellites = satellites
 pplot_obj.flattice.filter_method = filter_method
@@ -134,8 +134,7 @@ if num_files_to_read!=1:
     pplot_obj.add_detection_stats_on_fib_lattice(temp_obj) 
 
 pplot_obj.flattice.calculate_bias()
-pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-25.0, vmax=25.0, score='Bias', 
-                          screen_out_valid=True)
+pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-25.0, vmax=25.0, score='Bias',  screen_out_valid=True)
 pplot_obj.flattice.calculate_kuipers()
 pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=0.0, score='Kuipers')
 #Calcualte hitrate
@@ -152,8 +151,8 @@ if 'modis' in satellites:
     pplot_obj.flattice.calculate_lapse_rate()
     pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-25.0, vmax=0.0, score='lapse_rate')
     #Calcualte scores #nneds r13
-    #pplot_obj.flattice.calculate_increased_hitrate()
-    #pplot_obj.flattice.remap_and_plot_score_on_several_areas( score='increased_Hitrate', vmin=-0.05, vmax=0.05)
+    pplot_obj.flattice.calculate_increased_hitrate()
+    pplot_obj.flattice.remap_and_plot_score_on_several_areas( score='increased_Hitrate', vmin=-0.05, vmax=0.05)
 
 pplot_obj.flattice.calculate_height_bias()
 pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-2000.0, vmax=2000.0, score='ctth_bias_low')
@@ -200,3 +199,15 @@ pplot_obj.flattice.calculate_far_clear()
 pplot_obj.flattice.remap_and_plot_score_on_several_areas( score='FARclear', vmax=0.5)
 pplot_obj.flattice.calculate_RMS()
 pplot_obj.flattice.remap_and_plot_score_on_several_areas( score='RMS',  vmax=50.0, screen_out_valid=True)
+
+name = "fig_%s_ccm_%s_%sfilter_dnt_%s_r%skm_"%(
+    pplot_obj.flattice.satellites,
+    pplot_obj.flattice.cc_method,
+    pplot_obj.flattice.filter_method,
+    pplot_obj.flattice.DNT, 
+    pplot_obj.flattice.radius_km)
+print name
+for measure in pplot_obj.flattice.__dict__['all_arrays'].keys():
+    if 'polar' in measure:
+        print measure, "%3.2f"%(
+            pplot_obj.flattice.__dict__['all_arrays'][measure] )

@@ -489,7 +489,12 @@ class ppsStatsOnFibLatticeObject(DataObject):
                    self.N_false_clouds*self.N_undetected_clouds)/Kuipers_devider
         the_mask = np.logical_or(self.N_clear<20, self.N_clouds<20)
         the_mask = np.logical_or(the_mask, self.N_clouds < 0.01*self.N_clear)
-        the_mask = np.logical_or(the_mask, self.N_clear < 0.01*self.N_clouds)        
+        the_mask = np.logical_or(the_mask, self.N_clear < 0.01*self.N_clouds)
+        use = np.logical_or(self.lats>=70,~the_mask)
+        self.Kuipers_total_mean_polar = (
+            (
+                np.sum(N_detected_clouds[use])*np.sum(N_detected_clear[use]) - 
+                np.sum(self.N_false_clouds[use])*np.sum(self.N_undetected_clouds[use]))/((np.sum(N_clouds[use]))*(np.sum(N_clear[use]))))
         Kuipers = np.ma.masked_array(Kuipers, mask=the_mask)
         self.Kuipers = Kuipers
 
@@ -545,11 +550,11 @@ class ppsStatsOnFibLatticeObject(DataObject):
             self.N_clear + self.N_clouds)
         the_mask = self.N<20
         Hitrate = np.ma.masked_array(Hitrate, mask=the_mask)
-        self.Hitrate_total_mean = (
-            np.sum(self.N_detected_clouds[~the_mask]) + 
-            np.sum(self.N_detected_clear[~the_mask]))*1.0/(
-                np.sum(self.N[~the_mask]))
-        print self.Hitrate_total_mean
+        use = np.logical_or(self.lats>=70,~the_mask)
+        self.Hitrate_total_mean_polar = (
+            np.sum(self.N_detected_clouds[use]) + 
+            np.sum(self.N_detected_clear[use]))*1.0/(
+                np.sum(self.N[use]))
         self.Hitrate = Hitrate
 
     def calculate_increased_hitrate(self):
@@ -592,6 +597,11 @@ class ppsStatsOnFibLatticeObject(DataObject):
         the_mask = self.N_clear<20
         PODclear = np.ma.masked_array(PODclear, mask=the_mask)
         self.PODclear = PODclear 
+        use = np.logical_or(self.lats>=70,~the_mask)
+        self.PODclear_total_mean_polar = (
+            np.sum(self.N_detected_clear[use]))*1.0/(
+                np.sum(self.N_clear[use]))
+
     def calculate_pod_cloudy(self):
         self.np_float_array()
         self.find_number_of_clouds_clear()
@@ -600,6 +610,11 @@ class ppsStatsOnFibLatticeObject(DataObject):
         the_mask = self.N_clouds<20
         PODcloudy = np.ma.masked_array(PODcloudy, mask=the_mask)
         self.PODcloudy = PODcloudy
+        use = np.logical_or(self.lats>=70,~the_mask)
+        self.PODcloudy_total_mean_polar = (
+            np.sum(self.N_detected_clouds[use]))*1.0/(
+                np.sum(self.N_clouds[use]))
+
     def calculate_far_clear(self):
         self.np_float_array()
         self.find_number_of_clouds_clear()
@@ -618,6 +633,11 @@ class ppsStatsOnFibLatticeObject(DataObject):
         the_mask = self.N_clouds<20
         FARcloudy = np.ma.masked_array(FARcloudy, mask=the_mask)
         self.FARcloudy = FARcloudy
+        use = np.logical_or(self.lats>=70,~the_mask)
+        self.FARcloudy_total_mean_polar = (
+            np.sum(self.N_false_clouds[use]))*1.0/(
+                np.sum(self.N_detected_clouds[use])+ 
+                np.sum(self.N_false_clouds[use]))
     def calculate_calipso_cfc(self):
         self.np_float_array()
         self.find_number_of_clouds_clear()
@@ -642,6 +662,11 @@ class ppsStatsOnFibLatticeObject(DataObject):
         Bias = self.pps_cfc - self.calipso_cfc
         the_mask = self.N<20 
         Bias = np.ma.masked_array(Bias, mask=the_mask)
+        use = np.logical_or(self.lats>=70,~the_mask)
+        self.Bias_total_mean_polar = 100*(
+            -np.sum(self.N_undetected_clouds[use]) + 
+            np.sum(self.N_false_clouds[use]))*1.0/(np.sum(self.N[use]))
+        print "hej",self.Bias_total_mean_polar
         self.Bias = Bias
     def calculate_RMS(self):
         self.np_float_array()
