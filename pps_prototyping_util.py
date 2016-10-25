@@ -82,12 +82,12 @@ def get_t11t12_texture_data_from_object(dataObj, nwp_obj, ch11, ch12, text_name)
     t11 = get_channel_data_from_object_all(dataObj, ch11, nodata=-9)
     t12 = get_channel_data_from_object_all(dataObj, ch12, nodata=-9)    
     t11t12 = 1.0*np.array(t11-t12)
-    K=np.median(t11t12) #K is treck to get better accurracy maybe not needed as differences are often small
+    K=np.median(t11t12) #K is trick to get better accurracy maybe not needed as differences are often small
     t11t12 = (t11t12-K)
     from scipy.ndimage import uniform_filter
     mean = uniform_filter(t11t12, size=(5,5), mode='mirror')
     mean_of_squared = uniform_filter(t11t12**2, size=(5,5), mode='mirror')    
-    t11t12_texture = uniform_filter(mean_of_squared - mean**2)
+    t11t12_texture = mean_of_squared - mean**2 
     setattr(nwp_obj, text_name, t11t12_texture)
     return nwp_obj
 

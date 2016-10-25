@@ -3,7 +3,7 @@ import pdb #@UnusedImport
 import inspect #@UnusedImport
 import os #@UnusedImport
 import numpy as np
-from pps_basic_configure import * 
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -462,13 +462,16 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
                                       get_warmest_values)
     if dataObj != None:
         nwp_obj = get_t11t12_texture_data_from_object(dataObj, nwp_obj, '11','12', 
-                                                      'text_t11t12') 
+                                                      'text_t11t12_square') 
         nwp_obj = get_t11t12_texture_data_from_object(dataObj, nwp_obj, '37','12',
                                                       'text_t37t12_square')
     for texture in ["text_r06", "text_t11", "text_t37", "text_t37t12", 
-                    "text_t37t12_square", "text_t11t12"]:
+                    "text_t37t12_square", "text_t11t12_square"]:
         if hasattr(nwp_obj, texture):
             data = getattr(nwp_obj, texture)
+            if texture=='text_t11t12_square':
+                data = np.sqrt(data)
+                texture = 'text_t11t12_notsquared'
             if np.size(data)>1:
                 value_track = [data[row_matched[idx], col_matched[idx]]
                                for idx in range(row_matched.shape[0])]

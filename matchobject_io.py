@@ -160,7 +160,7 @@ class ppsAvhrrObject(DataObject):
             'text_r06': None,
             'text_t11': None,
             'text_t37t12': None,
-            'text_t11t12': None,
+            'text_t11t12_notsquared': None,
             'text_t37': None,
             'thr_t11ts_inv': None,
             'thr_t11t37_inv': None,
