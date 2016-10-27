@@ -603,13 +603,17 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
         logger.info("Not extracting ctth")
     else:
         logger.info("Extracting ctth along track ")
-        temp = [ctth.height[row_matched[idx], col_matched[idx]]
-                for idx in range(row_matched.shape[0])]
         hh_temp = np.int32([(ctth.height[row_matched[idx], col_matched[idx]] * 
                              ctth.h_gain + ctth.h_intercept)
                             for idx in range(row_matched.shape[0])])
-        obt.avhrr.ctth_height = np.where(np.equal(temp, ctth.h_nodata), 
-                                     -9, hh_temp)
+        if np.ma.is_masked(hh_temp):
+            obt.avhrr.ctth_height = np.where(hh_temp.mask, -9, hh_temp.data)
+        else: #ordianry non-masked array or without nodata    
+            temp = [ctth.height[row_matched[idx], col_matched[idx]]
+                    for idx in range(row_matched.shape[0])]
+            obt.avhrr.ctth_height = np.where(np.equal(temp, ctth.h_nodata), 
+                                             -9, hh_temp)
+        #ctth temperature    
         temp = [ctth.temperature[row_matched[idx], col_matched[idx]]
                 for idx in range(row_matched.shape[0])]
         tt_temp = np.int32([(ctth.temperature[row_matched[idx], col_matched[idx]] * 

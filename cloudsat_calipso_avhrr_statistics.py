@@ -923,7 +923,7 @@ def print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature,
     # FIRST TOTAL FIGURES
     okcaliop = np.logical_and(
         cal_data_ok, 
-        np.logical_and(np.greater(avhrr_ctth_cal_ok[::],0),cal_subset))
+        np.logical_and(np.greater_equal(avhrr_ctth_cal_ok[::],0),cal_subset))
     #print "ALL CLOUDS:" 
     print_height_all_low_medium_high("CALIOP", 
                                      okcaliop, 

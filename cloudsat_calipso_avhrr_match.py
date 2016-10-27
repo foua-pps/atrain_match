@@ -1167,7 +1167,7 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
         if CCI_CLOUD_VALIDATION: #ctth relative mean sea level
             avhrr_ctth_csat_ok = np.where(np.greater(avhrr_ctth_csat_ok,0.0),avhrr_ctth_csat_ok[::],avhrr_ctth_csat_ok)
         else: #ctth relative topography
-            avhrr_ctth_csat_ok = np.where(np.greater(avhrr_ctth_csat_ok,0.0),avhrr_ctth_csat_ok[::]+elevation*1.0,avhrr_ctth_csat_ok)
+            avhrr_ctth_csat_ok = np.where(np.greater_equal(avhrr_ctth_csat_ok,0.0),avhrr_ctth_csat_ok[::]+elevation*1.0,avhrr_ctth_csat_ok)
 
         if len(data_ok) == 0:
             logger.info("Processing stopped: Zero lenght of matching arrays!")
