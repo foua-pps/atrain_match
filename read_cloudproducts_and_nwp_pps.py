@@ -103,9 +103,9 @@ class CtthObj:
 def read_ctth_h5(filename):
     h5file = h5py.File(filename, 'r')
     ctth = CtthObj()
-    ctth.height = np.int32(h5file['ctth_alti'].value)
-    ctth.temperature = np.int32(h5file['ctth_tempe'].value)
-    ctth.pressure = np.int32(h5file['ctth_pres'].value)
+    ctth.height = h5file['ctth_alti'].value.astype(np.float)
+    ctth.temperature = h5file['ctth_tempe'].value.astype(np.float)
+    ctth.pressure = h5file['ctth_pres'].value.astype(np.float)
     ctth.ctth_statusflag = h5file['ctth_status_flag'].value
     #Currently unpacked arrays later in calipso.py
     #TODO: move this here also for h5!
@@ -135,9 +135,9 @@ def read_ctth_h5(filename):
 def read_ctth_nc(filename):
     pps_nc = netCDF4.Dataset(filename, 'r', format='NETCDF4')
     ctth = CtthObj()
-    ctth.height = np.int32(pps_nc.variables['ctth_alti'][0,:,:])
-    ctth.temperature = np.int32(pps_nc.variables['ctth_tempe'][0,:,:])
-    ctth.pressure = np.int32(pps_nc.variables['ctth_pres'][0,:,:])
+    ctth.height = pps_nc.variables['ctth_alti'][0,:,:].astype(np.float)
+    ctth.temperature = pps_nc.variables['ctth_tempe'][0,:,:].astype(np.float)
+    ctth.pressure = pps_nc.variables['ctth_pres'][0,:,:].astype(np.float)
     ctth.ctth_statusflag = pps_nc.variables['ctth_status_flag'][0,:,:]
     #Currently unpacked arrays later in calipso.py
     ctth.h_gain=1.0 
@@ -154,10 +154,13 @@ def read_ctth_nc(filename):
     #already scaled
     if np.ma.is_masked(ctth.height):     
         ctth.height.data[ctth.height.mask]  = ATRAIN_MATCH_NODATA
+        ctth.height = ctth.height.data
     if np.ma.is_masked(ctth.pressure):       
-        ctth.pressure.data[ctth.pressure.mask]  = ATRAIN_MATCH_NODATA    
+        ctth.pressure.data[ctth.pressure.mask]  = ATRAIN_MATCH_NODATA 
+        ctth.pressure = ctth.pressure.data
     if np.ma.is_masked(ctth.temperature):        
-        ctth.temperature.data[ctth.temperature.mask]  = ATRAIN_MATCH_NODATA          
+        ctth.temperature.data[ctth.temperature.mask]  = ATRAIN_MATCH_NODATA
+        ctth.temperature = ctth.temperature.data
     return ctth
 
 def read_cloudtype_h5(filename):
@@ -188,6 +191,9 @@ def readImagerData_nc(pps_nc):
             one_channel = ImagerChannelData()
             #channel = image.channel                     
             one_channel.data = image[0,:,:]
+            if np.ma.is_masked(one_channel.data):
+                one_channel.data[one_channel.data.mask] = ATRAIN_MATCH_NODATA
+                one_channel.data = one_channel.data.data
             one_channel.des = image.description
             #Currently unpacked arrays later in calipso.py:
             #TODO: move this herealso for h5!
@@ -205,9 +211,9 @@ def read_pps_angobj_nc(pps_nc):
     """Read angles info from filename
     """
     AngObj = imagerAngObj()
-    AngObj.satz.data = np.int32(pps_nc.variables['satzenith'][0,:,:])
-    AngObj.sunz.data = np.int32(pps_nc.variables['sunzenith'][0,:,:])
-    AngObj.azidiff.data = np.int32(pps_nc.variables['azimuthdiff'][0,:,:])
+    AngObj.satz.data = pps_nc.variables['satzenith'][0,:,:].astype(np.float)
+    AngObj.sunz.data = pps_nc.variables['sunzenith'][0,:,:].astype(np.float)
+    AngObj.azidiff.data = pps_nc.variables['azimuthdiff'][0,:,:].astype(np.float)
     AngObj.satz.no_data = pps_nc.variables['satzenith']._FillValue
     AngObj.sunz.no_data = pps_nc.variables['sunzenith']._FillValue
     AngObj.azidiff.no_data = pps_nc.variables['azimuthdiff']._FillValue
@@ -220,10 +226,13 @@ def read_pps_angobj_nc(pps_nc):
     #already scaled
     if np.ma.is_masked(AngObj.sunz.data):        
         AngObj.sunz.data[AngObj.sunz.data.mask] = ATRAIN_MATCH_NODATA
+        AngObj.sunz.data = AngObj.sunz.data.data
     if np.ma.is_masked(AngObj.satz.data): 
         AngObj.satz.data[AngObj.satz.data.mask] = ATRAIN_MATCH_NODATA
+        AngObj.satz.data = AngObj.satz.data.data
     if np.ma.is_masked(AngObj.azidiff.data): 
-        AngObj.azidiff.data[ AngObj.azidiff.data.mask] = ATRAIN_MATCH_NODATA
+        AngObj.azidiff.data[AngObj.azidiff.data.mask] = ATRAIN_MATCH_NODATA
+        AngObj.azidiff.data = AngObj.azidiff.data.data
     return AngObj
 
 def read_pps_angobj_h5(filename):
@@ -235,20 +244,20 @@ def read_pps_angobj_h5(filename):
         if 'image' in var:
             image = h5file[var]            
             if image.attrs['description'] == "Solar zenith angle":
-                AngObj.sunz.data = np.int32(image['data'].value)
+                AngObj.sunz.data = np.float(image['data'].value)
                 AngObj.sunz.gain = image['what'].attrs['gain']
                 AngObj.sunz.intercept = image['what'].attrs['offset']
                 AngObj.sunz.no_data = image['what'].attrs['nodata']
                 AngObj.sunz.missing_data = image['what'].attrs['missingdata']
             elif image.attrs['description'] == "Satellite zenith angle":
-                AngObj.satz.data = np.int32(image['data'].value)
+                AngObj.satz.data = np.float(image['data'].value)
                 AngObj.satz.gain = image['what'].attrs['gain']
                 AngObj.satz.intercept = image['what'].attrs['offset']
                 AngObj.satz.no_data = image['what'].attrs['nodata']
                 AngObj.satz.missing_data = image['what'].attrs['missingdata']
             elif (image.attrs['description'] == 
                   "Relative satellite-sun azimuth angle"):
-                AngObj.azidiff.data = np.int32(image['data'].value)
+                AngObj.azidiff.data = np.float(image['data'].value)
                 AngObj.azidiff.gain = image['what'].attrs['gain']
                 AngObj.azidiff.intercept = image['what'].attrs['offset']
                 AngObj.azidiff.no_data = image['what'].attrs['nodata']
@@ -360,7 +369,13 @@ def read_nwp_h5(filename, nwp_key):
 def read_etc_nc(ncFile, etc_key):
     if etc_key in ncFile.variables.keys():
         logger.info("Read %s"%(etc_key))
-        return  ncFile.variables[etc_key][0,:,:]
+        nwp_var = ncFile.variables[etc_key][0,:,:]
+        if np.ma.is_masked(nwp_var):
+            if 'emis' in etc_key:
+                #set emissivity 1.0 where we miss data
+                nwp_var.data[nwp_var.mask] = 1.0
+            nwp_var = nwp_var.data
+        return  nwp_var
     else:
         logger.info("NO %s File, Continue"%(etc_key))
         return None
