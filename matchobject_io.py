@@ -108,11 +108,18 @@ class ppsAvhrrObject(DataObject):
             'cloudtype_status': None,
             'ctth_status': None,
             'surftemp': None,
+            't250': None,
             't500': None,
             't700': None,
+            't800': None,
             't850': None,
+            't900': None,
             't950': None,
+            't1000': None,
+            't2m': None,
             'ttro': None,
+            'ptro': None,
+            'psur': None,
             'ciwv': None,
             #Imager channels currently used by pps
             'r06micron':  None,  #modis_1

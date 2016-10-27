@@ -15,7 +15,13 @@ class NWPObj(object):
         self.t700 = None
         self.t850 = None
         self.t950 = None
-        self.ttro = None
+        self.t1000 = None
+        self.t900 = None
+        self.t250 = None
+        self.t800 = None
+        self.psur = None
+        self.ptro = None
+        self.t2m = None
         self.ciwv = None
         self.text_r06 = None
         self.text_t11 = None
@@ -146,14 +152,12 @@ def read_ctth_nc(filename):
     logger.info("min-h: %d, max-h: %d, h_nodata: %d"%(
         np.min(ctth.height), np.max(ctth.height.data), ctth.h_nodata))
     #already scaled
-    print ctth.temperature[1:10,1:10]
     if np.ma.is_masked(ctth.height):     
         ctth.height.data[ctth.height.mask]  = ATRAIN_MATCH_NODATA
     if np.ma.is_masked(ctth.pressure):       
         ctth.pressure.data[ctth.pressure.mask]  = ATRAIN_MATCH_NODATA    
     if np.ma.is_masked(ctth.temperature):        
-        ctth.temperature.data[ctth.temperature.mask]  = ATRAIN_MATCH_NODATA  
-        
+        ctth.temperature.data[ctth.temperature.mask]  = ATRAIN_MATCH_NODATA          
     return ctth
 
 def read_cloudtype_h5(filename):
@@ -584,6 +588,13 @@ def pps_read_all(pps_files, avhrr_file, cross):
         nwp_dict['t950'] = read_etc_nc(pps_nc_nwp, "t950")
         nwp_dict['ttro'] = read_etc_nc(pps_nc_nwp, "ttro")
         nwp_dict['ciwv'] = read_etc_nc(pps_nc_nwp, "ciwv")
+        nwp_dict['t1000'] = read_etc_nc(pps_nc_nwp, "t1000")
+        nwp_dict['t900'] = read_etc_nc(pps_nc_nwp, "t900")
+        nwp_dict['t800'] = read_etc_nc(pps_nc_nwp, "t800")
+        nwp_dict['t250'] = read_etc_nc(pps_nc_nwp, "t250")
+        nwp_dict['ptro'] = read_etc_nc(pps_nc_nwp, "ptro")
+        nwp_dict['psur'] = read_etc_nc(pps_nc_nwp, "psur")
+        nwp_dict['t2m'] = read_etc_nc(pps_nc_nwp, "t2m")
     else:   
          nwp_dict['surftemp'] = read_nwp_h5(pps_files.nwp_tsur,"tsur")
          nwp_dict['t500'] = read_nwp_h5(pps_files.nwp_t500, "t500")

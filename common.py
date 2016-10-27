@@ -100,6 +100,7 @@ def write_match_objects(filename, diff_sec_1970, groups):
             g = f.create_group(group_name)
             for array_name, array in group_object.items():
                 if array is None:
+                    #print "empty array", array_name
                     continue
                 try:
                     if len(array) == 0:
@@ -109,11 +110,8 @@ def write_match_objects(filename, diff_sec_1970, groups):
                     # TODO: Write it as and attribute instead?
                     g.create_dataset(array_name, data=array)
                 else:
+                    #print "writing", array_name
                     g.create_dataset(array_name, data=array,
                                      compression=COMPRESS_LVL)
 
 
-#This function "read_match_objects()" is not used. 
-#Not sure when it was last used. 20160314 a001865
-#Function in matchobject_io is used for reading match objects. 
-#Removed the code, look for it in git if needed.

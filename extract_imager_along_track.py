@@ -274,6 +274,8 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
                 value_track = [data[row_matched[idx], col_matched[idx]]
                                for idx in range(npix)]
                 setattr(obt.avhrr, nwp_info, np.array(value_track))
+        else:
+            print "missing", nwp_info
     from pps_prototyping_util import (get_t11t12_texture_data_from_object,
                                       get_coldest_values,get_darkest_values,
                                       get_warmest_values)
