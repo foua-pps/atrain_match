@@ -143,21 +143,14 @@ def get_channel_data_from_object(dataObj, chn_des, matched, nodata=-9):
     temp = [channels[chnum].data[matched['row'][idx], 
                                  matched['col'][idx]]
             for idx in range(matched['row'].shape[0])] 
-    chdata = [(channels[chnum].data[matched['row'][idx], matched['col'][idx]] * 
-               channels[chnum].gain + 
-               channels[chnum].intercept)       
-              for idx in range(matched['row'].shape[0])]
-    chdata_on_track= np.where(
-        np.logical_or(
-            np.equal(temp, dataObj.nodata),
-            np.equal(temp, dataObj.missing_data)),
-        nodata, chdata)
-
+    chdata_on_track = [channels[chnum].data[matched['row'][idx], matched['col'][idx]]
+                       for idx in range(matched['row'].shape[0])]
     return np.array(chdata_on_track)
 
 
 
 def insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt):
+        npix = row_matched.shape[0]
         """
         #obt.avhrr.segment_nwgeoheight
         obt.avhrr.segment_nwp_moist
@@ -214,16 +207,16 @@ def insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt):
                          #'tb12cloudy_surface ',
             setattr(obt.avhrr,'segment_nwp_' + data_set, 
                     np.array([nwp_segments[data_set][seg_row[idx], seg_col[idx]]
-                              for idx in range(row_matched.shape[0])]))
+                              for idx in range(npix)]))
         #obt.avhrr.segment_t850 = np.array([nwp_segments['t850'][seg_row[idx], seg_col[idx]]
-        #                                   for idx in range(row_matched.shape[0])])
+        #                                   for idx in range(npix)])
 
         for data_set in ['moist', 'pressure', 'geoheight', 'temp']:
             setattr(obt.avhrr,'segment_nwp_' + data_set, 
                               np.array([nwp_segments[data_set][seg_row[idx], seg_col[idx]]
-                                        for idx in range(row_matched.shape[0])]))
+                                        for idx in range(npix)]))
         #obt.avhrr.segment_nwp_geoheight = np.array([nwp_segments['geoheight'][seg_row[idx], seg_col[idx]]
-        #                                            for idx in range(row_matched.shape[0])])
+        #                                            for idx in range(npix)])
 
         return obt
 
@@ -235,49 +228,51 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
                              nwp_segments=None):
     value_track = []
     row_col = {'row': row_matched, 'col': col_matched} 
+    npix = row_matched.shape[0]
 
     #Find lat/lon and cloudtype
     value_track = [GeoObj.latitude[row_matched[idx], col_matched[idx]] 
-                     for idx in range(row_matched.shape[0])]
+                     for idx in range(npix)]
     obt.avhrr.latitude = np.array(value_track)
     value_track = [GeoObj.longitude[row_matched[idx], col_matched[idx]]
-                     for idx in range(row_matched.shape[0])]
+                     for idx in range(npix)]
     obt.avhrr.longitude = np.array(value_track)
     value_track = [ctype.cloudtype[row_matched[idx], col_matched[idx]]
-                 for idx in range(row_matched.shape[0])]
+                 for idx in range(npix)]
     obt.avhrr.cloudtype = np.array(value_track)
 
     #cloud-type and ctth flags
     if hasattr(ctype, 'ct_quality') and PPS_VALIDATION:
         value_track = [ctype.ct_quality[row_matched[idx], col_matched[idx]]
-                             for idx in range(row_matched.shape[0])]
+                             for idx in range(npix)]
         obt.avhrr.cloudtype_quality = np.array(value_track)
     if hasattr(ctype, 'ct_conditions') and ctype.ct_conditions is not None:
         value_track = [ctype.ct_conditions[row_matched[idx], col_matched[idx]]
-                             for idx in range(row_matched.shape[0])]
+                             for idx in range(npix)]
         obt.avhrr.cloudtype_conditions = np.array(value_track)
     if hasattr(ctype, 'ct_statusflag') and PPS_VALIDATION:
         value_track = [ctype.ct_statusflag[row_matched[idx], col_matched[idx]]
-                             for idx in range(row_matched.shape[0])]
+                             for idx in range(npix)]
         obt.avhrr.cloudtype_status = np.array(value_track)
     if hasattr(ctth, 'ctth_statusflag') and PPS_VALIDATION:
         value_track = [ctth.ctth_statusflag[row_matched[idx], col_matched[idx]]
-                                       for idx in range(row_matched.shape[0])]
+                                       for idx in range(npix)]
         obt.avhrr.ctth_status = np.array(value_track)
     if hasattr(ctype, 'qualityflag') and PPS_VALIDATION:
         value_track = [ctype.qualityflag[row_matched[idx], col_matched[idx]]
-                             for idx in range(row_matched.shape[0])]
+                             for idx in range(npix)]
         obt.avhrr.cloudtype_qflag = np.array(value_track)
     if  ctype.phaseflag != None and PPS_VALIDATION:
         value_track = [ctype.phaseflag[row_matched[idx], col_matched[idx]]
-                             for idx in range(row_matched.shape[0])]
+                             for idx in range(npix)]
         obt.avhrr.cloudtype_pflag = np.array(value_track)
-    for nwp_info in ["surftemp", "t500", "t700", "t850", "t950", "ttro", "ciwv"]:
+    for nwp_info in ["surftemp", "t500", "t700", "t850", "t950", "ttro", "ciwv",
+                     "t900", "t1000", "t800", "t250", "t2m", "ptro", "psur"]:
         if hasattr(nwp_obj, nwp_info):
             data = getattr(nwp_obj, nwp_info)
             if np.size(data)>1:
                 value_track = [data[row_matched[idx], col_matched[idx]]
-                               for idx in range(row_matched.shape[0])]
+                               for idx in range(npix)]
                 setattr(obt.avhrr, nwp_info, np.array(value_track))
     from pps_prototyping_util import (get_t11t12_texture_data_from_object,
                                       get_coldest_values,get_darkest_values,
@@ -296,7 +291,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
                 texture = 'text_t11t12_notsquared'
             if np.size(data)>1:
                 value_track = [data[row_matched[idx], col_matched[idx]]
-                               for idx in range(row_matched.shape[0])]
+                               for idx in range(npix)]
                 setattr(obt.avhrr, texture, np.array(value_track))
     if dataObj != None:
         neighbour_obj =get_warmest_values(dataObj, row_col)
@@ -328,14 +323,14 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
             data = getattr(nwp_obj, thr)
             if np.size(data)>1:
                 value_track = [data[row_matched[idx], col_matched[idx]]
-                               for idx in range(row_matched.shape[0])]
+                               for idx in range(npix)]
                 setattr(obt.avhrr, thr, np.array(value_track))
     for emis in ["emis1", "emis6", "emis8", "emis9"]:
         if hasattr(nwp_obj, emis):
             data = getattr(nwp_obj, emis)
             if np.size(data)>1:
                 value_track = [data[row_matched[idx], col_matched[idx]]
-                               for idx in range(row_matched.shape[0])]
+                               for idx in range(npix)]
                 setattr(obt.avhrr, emis, np.array(value_track))
     if dataObj != None:
         obt.avhrr.r06micron = get_channel_data_from_object(dataObj, '06', row_col)
@@ -359,71 +354,30 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
             modis_track = get_channel_data_from_object(dataObj, 
                                                        modis_channel, row_col)
             setattr(obt.avhrr, modis_channel, modis_track)
-    #Angles        
-    temp = [AngObj.satz.data[row_matched[idx], col_matched[idx]] 
-            for idx in range(row_matched.shape[0])]
-    sats_temp = [(AngObj.satz.data[row_matched[idx], col_matched[idx]] * 
-                  AngObj.satz.gain + AngObj.satz.intercept)
-                 for idx in range(row_matched.shape[0])]
-    obt.avhrr.satz = np.where(
-        np.logical_or(
-            np.equal(temp, AngObj.satz.no_data),
-            np.equal(temp, AngObj.satz.missing_data)),
-        -9, sats_temp)
-    temp = [AngObj.sunz.data[row_matched[idx], col_matched[idx]] 
-            for idx in range(row_matched.shape[0])]
-    sunz_temp = [(AngObj.sunz.data[row_matched[idx], col_matched[idx]] * 
-                  AngObj.sunz.gain + AngObj.sunz.intercept)
-                 for idx in range(row_matched.shape[0])]
-    obt.avhrr.sunz = np.where(
-        np.logical_or(
-            np.equal(temp, AngObj.sunz.no_data),
-            np.equal(temp, AngObj.sunz.missing_data)),
-        -9, sunz_temp)
+    #Angles, scale with gain and intercept when reading
+    obt.avhrr.satz = [AngObj.satz.data[row_matched[idx], col_matched[idx]] 
+                      for idx in range(npix)]
+    obt.avhrr.sunz = [AngObj.sunz.data[row_matched[idx], col_matched[idx]] 
+                      for idx in range(npix)]
     if AngObj.azidiff is not None:
-        temp = [AngObj.azidiff.data[row_matched[idx], col_matched[idx]] 
-                for idx in range(row_matched.shape[0])]
-        azidiff_temp = [(AngObj.azidiff.data[row_matched[idx], col_matched[idx]] * 
-                         AngObj.azidiff.gain + AngObj.azidiff.intercept)
-                        for idx in range(row_matched.shape[0])]
-        obt.avhrr.azidiff = np.where(
-            np.logical_or(
-                np.equal(temp, AngObj.azidiff.no_data),
-                np.equal(temp, AngObj.azidiff.missing_data)),
-            -9, azidiff_temp)        
+        obt.avhrr.azidiff = [AngObj.azidiff.data[row_matched[idx], col_matched[idx]] 
+                             for idx in range(npix)]
     if ctth == None:
         logger.info("Not extracting ctth")
     else:
         logger.info("Extracting ctth along track ")
-        hh_temp = np.int32([(ctth.height[row_matched[idx], col_matched[idx]] * 
-                             ctth.h_gain + ctth.h_intercept)
-                            for idx in range(row_matched.shape[0])])
-        if np.ma.is_masked(hh_temp):
-            obt.avhrr.ctth_height = np.where(hh_temp.mask, -9, hh_temp.data)
-        else: #ordianry non-masked array or without nodata    
-            temp = [ctth.height[row_matched[idx], col_matched[idx]]
-                    for idx in range(row_matched.shape[0])]
-            obt.avhrr.ctth_height = np.where(np.equal(temp, ctth.h_nodata), 
-                                             -9, hh_temp)
-        #ctth temperature    
-        temp = [ctth.temperature[row_matched[idx], col_matched[idx]]
-                for idx in range(row_matched.shape[0])]
-        tt_temp = np.int32([(ctth.temperature[row_matched[idx], col_matched[idx]] * 
-                             ctth.t_gain + ctth.t_intercept)
-                            for idx in range(row_matched.shape[0])])
-        obt.avhrr.ctth_temperature =  np.where(np.equal(temp, ctth.t_nodata),
-                                          -9,tt_temp)
-        temp = [ctth.pressure[row_matched[idx], col_matched[idx]]
-                for idx in range(row_matched.shape[0])]
-        pp_temp = np.int32([(ctth.pressure[row_matched[idx], col_matched[idx]] * 
-                             ctth.p_gain + ctth.p_intercept)
-                            for idx in range(row_matched.shape[0])])
-        obt.avhrr.ctth_pressure = np.where(np.equal(temp, ctth.p_nodata), 
-                                      -9, pp_temp)
+        #scale with gain and intercept when reading!
+        obt.avhrr.ctth_height = [ctth.height[row_matched[idx], col_matched[idx]]
+                                 for idx in range(npix)]
+        obt.avhrr.ctth_temperature = [ctth.temperature[row_matched[idx], col_matched[idx]]
+                                      for idx in range(npix)]
+        obt.avhrr.ctth_pressure = [ctth.pressure[row_matched[idx], col_matched[idx]]
+                                   for idx in range(npix)]
+
         if (PPS_VALIDATION and hasattr(ctth, 'processingflag')):
             is_opaque = np.bitwise_and(np.right_shift(ctth.processingflag, 2), 1)
             value_track = [is_opaque[row_matched[idx], col_matched[idx]]
-                                 for idx in range(row_matched.shape[0])]
+                           for idx in range(npix)]
             obt.avhrr.ctth_opaque = np.array(value_track)
     #NWP on ctth resolution        
     if nwp_segments != None:
@@ -437,7 +391,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
         else:
             nodata_temp = 65535
         lwp_temp = [avhrrLwp[row_matched[idx], col_matched[idx]]
-                    for idx in range(row_matched.shape[0])]
+                    for idx in range(npix)]
         obt.avhrr.lwp = np.where(np.equal(lwp_temp, nodata_temp), -9, lwp_temp)
     if avhrrCph != None:
         if PPS_FORMAT_2012_OR_EARLIER:
@@ -445,7 +399,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
         else:
             nodata_temp = 255
         cph_temp = [avhrrCph[row_matched[idx], col_matched[idx]]
-                    for idx in range(row_matched.shape[0])]
+                    for idx in range(npix)]
         obt.avhrr.cph = np.where(np.equal(cph_temp, nodata_temp), -9, cph_temp)
 
     return obt

@@ -6,6 +6,7 @@ import time
 import calendar
 logger = logging.getLogger(__name__)
 from config import (VAL_CPP)
+ATRAIN_MATCH_NODATA = -9
 #logger.debug('Just so you know: this module has a logger...')
 class NWPObj(object):
     def __init__(self, array_dict):
@@ -92,12 +93,13 @@ class CtthObj:
         self.pressure = None
         self.ctth_statusflag = None
 
+#def read_ctth_v2012 might be needed?
 def read_ctth_h5(filename):
     h5file = h5py.File(filename, 'r')
     ctth = CtthObj()
-    ctth.height = h5file['ctth_alti'].value
-    ctth.temperature = h5file['ctth_tempe'].value
-    ctth.pressure = h5file['ctth_pres'].value
+    ctth.height = np.int32(h5file['ctth_alti'].value)
+    ctth.temperature = np.int32(h5file['ctth_tempe'].value)
+    ctth.pressure = np.int32(h5file['ctth_pres'].value)
     ctth.ctth_statusflag = h5file['ctth_status_flag'].value
     #Currently unpacked arrays later in calipso.py
     #TODO: move this here also for h5!
@@ -110,6 +112,16 @@ def read_ctth_h5(filename):
     ctth.h_nodata = h5file['ctth_alti'].attrs['_FillValue']
     ctth.t_nodata = h5file['ctth_tempe'].attrs['_FillValue']
     ctth.p_nodata = h5file['ctth_pres'].attrs['_FillValue']
+    hmask = ctth.height.data==ctth.h_nodata
+    tmask = ctth.temperature.data==ctth.t_nodata
+    pmask = ctth.pressure.data==ctth.p_nodata
+    ctth.height.data[~hmask] = ctth.height.data[~hmask]*ctth.h_gain + ctth.h_intercept
+    ctth.pressure.data[~pmask] = ctth.pressure.data[~pmask]*ctth.p_gain + ctth.p_intercept
+    ctth.temperature.data[~tmask] = ctth.temperature.data[~tmask]*ctth.t_gain + ctth.t_intercept
+    ctth.height.data[hmask] = ATRAIN_MATCH_NODATA
+    ctth.pressure.data[pmask] = ATRAIN_MATCH_NODATA    
+    ctth.temperature.data[tmask] = ATRAIN_MATCH_NODATA 
+
     logger.info("min-h: %d, max-h: %d, h_nodata: %d"%(
         min(ctth.height), max(ctth.height), ctth.h_nodata))
     return ctth
@@ -117,23 +129,31 @@ def read_ctth_h5(filename):
 def read_ctth_nc(filename):
     pps_nc = netCDF4.Dataset(filename, 'r', format='NETCDF4')
     ctth = CtthObj()
-    print type(pps_nc.variables['ctth_alti'][0,:,:][0])
-    ctth.height = pps_nc.variables['ctth_alti'][0,:,:]
-    ctth.temperature = pps_nc.variables['ctth_tempe'][0,:,:]
-    ctth.pressure = pps_nc.variables['ctth_pres'][0,:,:]
+    ctth.height = np.int32(pps_nc.variables['ctth_alti'][0,:,:])
+    ctth.temperature = np.int32(pps_nc.variables['ctth_tempe'][0,:,:])
+    ctth.pressure = np.int32(pps_nc.variables['ctth_pres'][0,:,:])
     ctth.ctth_statusflag = pps_nc.variables['ctth_status_flag'][0,:,:]
     #Currently unpacked arrays later in calipso.py
     ctth.h_gain=1.0 
     ctth.h_intercept=0.0
-    ctth.p_gain=10.0 #
+    ctth.p_gain=1.0 #
     ctth.p_intercept=0.0
-    ctth.t_gain=0.01 #
+    ctth.t_gain=1 #
     ctth.t_intercept=0.0
     ctth.h_nodata = pps_nc.variables['ctth_alti']._FillValue
     ctth.t_nodata = pps_nc.variables['ctth_tempe']._FillValue
     ctth.p_nodata = pps_nc.variables['ctth_pres']._FillValue
     logger.info("min-h: %d, max-h: %d, h_nodata: %d"%(
         np.min(ctth.height), np.max(ctth.height.data), ctth.h_nodata))
+    #already scaled
+    print ctth.temperature[1:10,1:10]
+    if np.ma.is_masked(ctth.height):     
+        ctth.height.data[ctth.height.mask]  = ATRAIN_MATCH_NODATA
+    if np.ma.is_masked(ctth.pressure):       
+        ctth.pressure.data[ctth.pressure.mask]  = ATRAIN_MATCH_NODATA    
+    if np.ma.is_masked(ctth.temperature):        
+        ctth.temperature.data[ctth.temperature.mask]  = ATRAIN_MATCH_NODATA  
+        
     return ctth
 
 def read_cloudtype_h5(filename):
@@ -181,15 +201,25 @@ def read_pps_angobj_nc(pps_nc):
     """Read angles info from filename
     """
     AngObj = imagerAngObj()
-    AngObj.satz.data = pps_nc.variables['satzenith'][0,:,:]
-    AngObj.sunz.data = pps_nc.variables['sunzenith'][0,:,:]
-    AngObj.azidiff.data = pps_nc.variables['azimuthdiff'][0,:,:]
+    AngObj.satz.data = np.int32(pps_nc.variables['satzenith'][0,:,:])
+    AngObj.sunz.data = np.int32(pps_nc.variables['sunzenith'][0,:,:])
+    AngObj.azidiff.data = np.int32(pps_nc.variables['azimuthdiff'][0,:,:])
     AngObj.satz.no_data = pps_nc.variables['satzenith']._FillValue
     AngObj.sunz.no_data = pps_nc.variables['sunzenith']._FillValue
     AngObj.azidiff.no_data = pps_nc.variables['azimuthdiff']._FillValue
-    AngObj.satz.missing_data = pps_nc.variables['satzenith']._FillValue
-    AngObj.sunz.missing_data = pps_nc.variables['sunzenith']._FillValue
-    AngObj.azidiff.missing_data = pps_nc.variables['azimuthdiff']._FillValue
+    AngObj.satz.intercept = pps_nc.variables['satzenith'].add_offset
+    AngObj.sunz.intercept = pps_nc.variables['sunzenith'].add_offset
+    AngObj.azidiff.intercept = pps_nc.variables['azimuthdiff'].add_offset
+    AngObj.satz.gain = pps_nc.variables['satzenith'].scale_factor
+    AngObj.sunz.gain = pps_nc.variables['sunzenith'].scale_factor
+    AngObj.azidiff.gain = pps_nc.variables['azimuthdiff'].scale_factor
+    #already scaled
+    if np.ma.is_masked(AngObj.sunz.data):        
+        AngObj.sunz.data[AngObj.sunz.data.mask] = ATRAIN_MATCH_NODATA
+    if np.ma.is_masked(AngObj.satz.data): 
+        AngObj.satz.data[AngObj.satz.data.mask] = ATRAIN_MATCH_NODATA
+    if np.ma.is_masked(AngObj.azidiff.data): 
+        AngObj.azidiff.data[ AngObj.azidiff.data.mask] = ATRAIN_MATCH_NODATA
     return AngObj
 
 def read_pps_angobj_h5(filename):
@@ -201,24 +231,39 @@ def read_pps_angobj_h5(filename):
         if 'image' in var:
             image = h5file[var]            
             if image.attrs['description'] == "Solar zenith angle":
-                AngObj.sunz.data = image['data'].value
+                AngObj.sunz.data = np.int32(image['data'].value)
                 AngObj.sunz.gain = image['what'].attrs['gain']
                 AngObj.sunz.intercept = image['what'].attrs['offset']
                 AngObj.sunz.no_data = image['what'].attrs['nodata']
                 AngObj.sunz.missing_data = image['what'].attrs['missingdata']
             elif image.attrs['description'] == "Satellite zenith angle":
-                AngObj.satz.data = image['data'].value
+                AngObj.satz.data = np.int32(image['data'].value)
                 AngObj.satz.gain = image['what'].attrs['gain']
                 AngObj.satz.intercept = image['what'].attrs['offset']
                 AngObj.satz.no_data = image['what'].attrs['nodata']
                 AngObj.satz.missing_data = image['what'].attrs['missingdata']
             elif (image.attrs['description'] == 
                   "Relative satellite-sun azimuth angle"):
-                AngObj.azidiff.data = image['data'].value
+                AngObj.azidiff.data = np.int32(image['data'].value)
                 AngObj.azidiff.gain = image['what'].attrs['gain']
                 AngObj.azidiff.intercept = image['what'].attrs['offset']
                 AngObj.azidiff.no_data = image['what'].attrs['nodata']
                 AngObj.azidiff.missing_data = image['what'].attrs['missingdata']
+    sunzmask = np.logical_or(AngObj.sunz.data ==AngObj.sunz.no_data,
+                             AngObj.sunz.data ==AngObj.sunz.missing_data)
+    satzmask = np.logical_or(AngObj.satz.data ==AngObj.satz.no_data,
+                             AngObj.satz.data ==AngObj.satz.missing_data)
+    diffmask = np.logical_or(AngObj.azidiff.data ==AngObj.azidiff.no_data,
+                             AngObj.azidiff.data ==AngObj.azidiff.missing_data)
+    AngObj.sunz.data[~sunzmask] = AngObj.sunz.data[~sunzmask]*AngObj.sunz.gain + AngObj.sunz.intercept
+    AngObj.satz.data[~satzmask] = AngObj.satz.data[~satzmask]*AngObj.satz.gain + AngObj.satz.intercept
+    AngObj.azidiff.data[~diffmask] = AngObj.azidiff.data[~diffmask]*AngObj.azidiff.gain + AngObj.azidiff.intercept
+    AngObj.sunz.data[~sunzmask] = AngObj.sunz.data[~sunzmask]*AngObj.sunz.gain + AngObj.sunz.intercept
+    AngObj.satz.data[~satzmask] = AngObj.satz.data[~satzmask]*AngObj.satz.gain + AngObj.satz.intercept
+    AngObj.azidiff.data[~diffmask] = AngObj.azidiff.data[~diffmask]*AngObj.azidiff.gain + AngObj.azidiff.intercept
+    AngObj.sunz.data[sunzmask] = ATRAIN_MATCH_NODATA
+    AngObj.satz.data[satzmask] = ATRAIN_MATCH_NODATA
+    AngObj.azidiff.data[diffmask] = ATRAIN_MATCH_NODATA
 
     return AngObj
 
@@ -452,15 +497,19 @@ def readImagerData_h5(filename):
             one_channel = ImagerChannelData()                   
             one_channel.data = image['data'].value
             one_channel.des = image.attrs['description']
-            #Currently unpacked arrays later in calipso.py:
-            #TODO: move this herealso for h5!
-            one_channel.gain = image['what'].attrs['gain']
-            one_channel.intercept = image['what'].attrs['offset']
+            one_channel.gain = 1.0
+            one_channel.intercept = 0.0
+            gain = image['what'].attrs['gain']
+            intercept = image['what'].attrs['offset']
             imager_data.channel.append(one_channel) 
             imager_data.nodata = image['what'].attrs['nodata']
             imager_data.missingdata = image['what'].attrs['missingdata']
             imager_data.no_data = imager_data.nodata
             imager_data.missing_data = imager_data.missingdata
+            mask = np.logical_and(one_channel.data == imager_data.no_data,
+                                 one_channel.data == imager_data.missing_data)
+            one_channel.data[~mask] = one_channel.data[~mask]*gain + intercept
+            one_channel.data[~mask] = ATRAIN_MATCH_NODATA
     h5file.close()
     return imager_data
 
