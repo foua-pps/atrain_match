@@ -19,6 +19,7 @@ class NWPObj(object):
         self.text_r06 = None
         self.text_t11 = None
         self.text_t37t12 = None
+        self.text_t11t12 = None
         self.text_t37 = None
         self.thr_t11ts_inv = None
         self.thr_t11t37_inv = None
@@ -109,26 +110,30 @@ def read_ctth_h5(filename):
     ctth.h_nodata = h5file['ctth_alti'].attrs['_FillValue']
     ctth.t_nodata = h5file['ctth_tempe'].attrs['_FillValue']
     ctth.p_nodata = h5file['ctth_pres'].attrs['_FillValue']
+    logger.info("min-h: %d, max-h: %d, h_nodata: %d"%(
+        min(ctth.height), max(ctth.height), ctth.h_nodata))
     return ctth
 
 def read_ctth_nc(filename):
     pps_nc = netCDF4.Dataset(filename, 'r', format='NETCDF4')
     ctth = CtthObj()
+    print type(pps_nc.variables['ctth_alti'][0,:,:][0])
     ctth.height = pps_nc.variables['ctth_alti'][0,:,:]
     ctth.temperature = pps_nc.variables['ctth_tempe'][0,:,:]
     ctth.pressure = pps_nc.variables['ctth_pres'][0,:,:]
     ctth.ctth_statusflag = pps_nc.variables['ctth_status_flag'][0,:,:]
     #Currently unpacked arrays later in calipso.py
-    #TODO: move this here also for h5!
-    ctth.h_gain=1.0
+    ctth.h_gain=1.0 
     ctth.h_intercept=0.0
-    ctth.p_gain=1.0
+    ctth.p_gain=10.0 #
     ctth.p_intercept=0.0
-    ctth.t_gain=1.0
+    ctth.t_gain=0.01 #
     ctth.t_intercept=0.0
     ctth.h_nodata = pps_nc.variables['ctth_alti']._FillValue
     ctth.t_nodata = pps_nc.variables['ctth_tempe']._FillValue
     ctth.p_nodata = pps_nc.variables['ctth_pres']._FillValue
+    logger.info("min-h: %d, max-h: %d, h_nodata: %d"%(
+        np.min(ctth.height), np.max(ctth.height.data), ctth.h_nodata))
     return ctth
 
 def read_cloudtype_h5(filename):
@@ -542,7 +547,7 @@ def pps_read_all(pps_files, avhrr_file, cross):
     logger.info("Read PPS texture data")  
     if '.nc' in pps_files.text_t11:
         pps_nc_txt = netCDF4.Dataset(pps_files.text_t11, 'r', format='NETCDF4')
-        for ttype in ['r06', 't11', 't37t12', 't37']:
+        for ttype in ['r06', 't11', 't37t12', 't37', 't11t12']:
             text_type = 'text_' + ttype
             nwp_dict[text_type] = read_etc_nc(pps_nc_txt, ttype)
     else:    

@@ -28,7 +28,7 @@ print "PPS_VALIDATION", PPS_VALIDATION
 CCI_CLOUD_VALIDATION = False
 
 #Search also for calipso 5km aerosol data
-MATCH_AEROSOL_CALIPSO = True
+MATCH_AEROSOL_CALIPSO = False
 
 ALSO_USE_5KM_FILES = True
 COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC = True
@@ -102,7 +102,7 @@ AREA_CONFIG_FILE = os.environ.get('AREA_CONFIG_FILE', './areas.def')
 CLOUDSAT_TYPE = 'GEOPROF'
 
 #: Constant: Approximate duration of a satellite orbit in seconds
-SAT_ORBIT_DURATION = 6*60 #Not to large
+SAT_ORBIT_DURATION = 90*60 #Not to large
 # If to large, cloudsat_calipso_avhrr_match.py takes wrong swath
 # sometimes when swaths are close in time
 CALIPSO_FILE_LENGTH = 60*60 #calipso fiels are for certain shorter 60 minnutes

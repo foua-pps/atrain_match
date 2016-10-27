@@ -21,8 +21,8 @@ from config import (AREA, sec_timeThr, RESOLUTION,
                     _validation_results_dir)
 from common import (MatchupError, 
                     elements_within_range)
-from calipso import (writeCoverage,
-                     createAvhrrTime, avhrr_track_from_matched)
+from calipso import createAvhrrTime
+from extract_imager_along_track import avhrr_track_from_matched
 
 
 class CloudsatObject(DataObject):
