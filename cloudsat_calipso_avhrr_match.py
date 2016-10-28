@@ -117,6 +117,7 @@ class ppsFiles(object):
         self.cloudtype = None
         self.ctth = None
         self.cpp = None
+        self.cma = None
         self.sunsatangles = None
         self.nwp_tsur = None
         self.nwp_t500 = None
@@ -461,6 +462,16 @@ def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
     except IndexError:
         raise MatchupError("No cloudtype file found corresponding to %s." % avhrr_file)
     logger.info("CLOUDTYPE: " + cloudtype_file)
+    cma_name = insert_info_in_filename_or_path(options['cma_file'], 
+                                                     values, datetime_obj=date_time)
+    path = insert_info_in_filename_or_path(options['cma_dir'], 
+                                           values, datetime_obj=date_time)
+    try:
+        print os.path.join(path, cma_name)
+        cma_file = glob(os.path.join(path, cma_name))[0]
+    except IndexError:
+        raise MatchupError("No cma file found corresponding to %s." % avhrr_file)
+    logger.info("CMA: " + cma_file)
     ctth_name = insert_info_in_filename_or_path(options['ctth_file'], 
                                                 values, datetime_obj=date_time)
     path =  insert_info_in_filename_or_path(options['ctth_dir'], 
@@ -502,11 +513,12 @@ def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
                                                             values, datetime_obj=date_time)
         path =insert_info_in_filename_or_path(options['physiography_dir'], 
                                               values, datetime_obj=date_time)
+        pattern = os.path.join(path, physiography_name)
         try:
-            physiography_file = glob(os.path.join(path, physiography_name))[0]
+            physiography_file = glob(pattern)[0]
         except IndexError:
             physiography_file = None
-            raise MatchupError("No physiography file found corresponding to %s." % avhrr_file)
+            raise MatchupError("No physiography file found corresponding to %s." % pattern)
         logger.info("PHYSIOGRAPHY: " + physiography_file)
 
     if not 'nwp_tsur_file' in options:
@@ -517,10 +529,11 @@ def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
                                                         values, datetime_obj=date_time)
         path = insert_info_in_filename_or_path(options['nwp_nwp_dir'],
                                                values, datetime_obj=date_time)
+        pattern = os.path.join(path, nwp_tsur_name)
         try:
-            nwp_tsur_file = glob(os.path.join(path, nwp_tsur_name))[0]
+            nwp_tsur_file = glob(pattern)[0]
         except IndexError:
-            raise MatchupError("No nwp_tsur file found corresponding to %s." % avhrr_file)
+            raise MatchupError("No nwp_tsur file found corresponding to %s." % pattern)
         logger.info("NWP_TSUR: " + nwp_tsur_file)
 
     file_name_dict={}
@@ -553,6 +566,7 @@ def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
                                                   values, 
                                                   'segment_file', 'segment_dir') 
     file_name_dict.update({'cloudtype': cloudtype_file,
+                           'cma': cma_file,
                            'ctth': ctth_file,
                            'cpp': cpp_file,
                            'nwp_tsur': nwp_tsur_file,
@@ -640,7 +654,7 @@ def total_and_top_layer_optical_depth_5km(calipso, resolution=5):
  
 
 def get_calipso_matchups(calipso_files, values, 
-                         avhrrGeoObj, avhrrObj, ctype, ctth, 
+                         avhrrGeoObj, avhrrObj, ctype, cma,  ctth, 
                          nwp_obj, avhrrAngObj, options, cppCph=None, 
                          nwp_segments=None, cafiles1km=None, cafiles5km=None, 
                          cafiles5km_aerosol=None):
@@ -717,7 +731,7 @@ def get_calipso_matchups(calipso_files, values,
         
     logger.info("Matching with avhrr")
     tup = match_calipso_avhrr(values, calipso, calipso_aerosol,
-                              avhrrGeoObj, avhrrObj, ctype,
+                              avhrrGeoObj, avhrrObj, ctype, cma,
                               ctth, cppCph, nwp_obj, avhrrAngObj, 
                               nwp_segments, options)
     ca_matchup, ca_min_diff, ca_max_diff = tup
@@ -745,7 +759,8 @@ def get_matchups_from_data(cross, config_options):
             raise MatchupError("No avhrr file found!\ncross = " + str(cross))
         pps_files = find_files_from_avhrr(avhrr_file, config_options)   
         retv =read_pps_data(pps_files, avhrr_file, cross)
-        avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, nwp_obj, cppLwp, cppCph, nwp_segment = retv
+        (avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, 
+         nwp_obj, cppLwp, cppCph, nwp_segment, cma )= retv
         date_time = values["date_time"]
     if (CCI_CLOUD_VALIDATION):
         avhrr_file, tobj = find_cci_cloud_file(cross, config_options)
@@ -875,8 +890,9 @@ def get_matchups_from_data(cross, config_options):
         logger.info("Read CALIPSO data")        
         ca_matchup, ca_time_diff = get_calipso_matchups(calipso_files, 
                                                         values,
-                                                        avhrrGeoObj, avhrrObj, ctype,
-                                                        ctth, nwp_obj, avhrrAngObj, 
+                                                        avhrrGeoObj, avhrrObj, 
+                                                        ctype, cma, ctth, 
+                                                        nwp_obj, avhrrAngObj, 
                                                         config_options, cppCph,
                                                         nwp_segment,
                                                         calipso1km, calipso5km, calipso5km_aerosol)

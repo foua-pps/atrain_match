@@ -222,7 +222,7 @@ def insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt):
 
 #---------------------------------------------------------------------------
 def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj, 
-                             nwp_obj, ctth, ctype, 
+                             nwp_obj, ctth, ctype, cma, 
                              row_matched, col_matched, 
                              avhrrLwp=None, avhrrCph=None,
                              nwp_segments=None):
@@ -240,7 +240,9 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
     value_track = [ctype.cloudtype[row_matched[idx], col_matched[idx]]
                  for idx in range(npix)]
     obt.avhrr.cloudtype = np.array(value_track)
-
+    value_track = [cma.cma_ext[row_matched[idx], col_matched[idx]]
+                   for idx in range(npix)]
+    obt.avhrr.cloudmask = np.array(value_track)
     #cloud-type and ctth flags
     if hasattr(ctype, 'ct_quality') and PPS_VALIDATION:
         value_track = [ctype.ct_quality[row_matched[idx], col_matched[idx]]

@@ -82,6 +82,16 @@ class ImagerChannelData:
         self.gain = 1.0
         self.intercept = 0.0
         self.data = None
+class CmaObj:
+    #skeleton container for v2014 cma
+    def __init__(self):
+        self.cma_ext = None
+        self.cma_testlist0 = None #new in v2018
+        self.cma_testlist1 = None #new in v2018
+        self.cma_testlist2 = None #new in v2018
+        self.cma_testlist3 = None #new in v2018
+        self.cma_testlist4 = None #new in v2018
+        self.cma_testlist5 = None #new in v2018
 
 class CtypeObj:
     #skeleton container for v2014 cloudtype
@@ -118,18 +128,18 @@ def read_ctth_h5(filename):
     ctth.h_nodata = h5file['ctth_alti'].attrs['_FillValue']
     ctth.t_nodata = h5file['ctth_tempe'].attrs['_FillValue']
     ctth.p_nodata = h5file['ctth_pres'].attrs['_FillValue']
-    hmask = ctth.height.data==ctth.h_nodata
-    tmask = ctth.temperature.data==ctth.t_nodata
-    pmask = ctth.pressure.data==ctth.p_nodata
-    ctth.height.data[~hmask] = ctth.height.data[~hmask]*ctth.h_gain + ctth.h_intercept
-    ctth.pressure.data[~pmask] = ctth.pressure.data[~pmask]*ctth.p_gain + ctth.p_intercept
-    ctth.temperature.data[~tmask] = ctth.temperature.data[~tmask]*ctth.t_gain + ctth.t_intercept
-    ctth.height.data[hmask] = ATRAIN_MATCH_NODATA
-    ctth.pressure.data[pmask] = ATRAIN_MATCH_NODATA    
-    ctth.temperature.data[tmask] = ATRAIN_MATCH_NODATA 
+    hmask = ctth.height == ctth.h_nodata
+    tmask = ctth.temperature == ctth.t_nodata
+    pmask = ctth.pressure == ctth.p_nodata
+    ctth.height[~hmask] = ctth.height[~hmask]*ctth.h_gain + ctth.h_intercept
+    ctth.pressure[~pmask] = ctth.pressure[~pmask]*ctth.p_gain + ctth.p_intercept
+    ctth.temperature[~tmask] = ctth.temperature[~tmask]*ctth.t_gain + ctth.t_intercept
+    ctth.height[hmask] = ATRAIN_MATCH_NODATA
+    ctth.pressure[pmask] = ATRAIN_MATCH_NODATA    
+    ctth.temperature[tmask] = ATRAIN_MATCH_NODATA 
 
     logger.info("min-h: %d, max-h: %d, h_nodata: %d"%(
-        min(ctth.height), max(ctth.height), ctth.h_nodata))
+        np.min(ctth.height), np.max(ctth.height), ctth.h_nodata))
     return ctth
 
 def read_ctth_nc(filename):
@@ -180,6 +190,25 @@ def read_cloudtype_nc(filename):
     ctype.ct_statusflag = pps_nc.variables['ct_status_flag'][0,:,:]
     ctype.ct_quality = pps_nc.variables['ct_quality'][0,:,:]
     return ctype
+
+def read_cma_h5(filename):
+    h5file = h5py.File(filename, 'r')
+    cma = CmaObj()
+    cma.cma_ext = h5file['cma_extended'].value
+    #try KeyError 'cma'
+    return cma
+
+def read_cma_nc(filename):
+    pps_nc = netCDF4.Dataset(filename, 'r', format='NETCDF4')
+    cma = CmaObj()
+    cma.cma_ext = pps_nc.variables['cma_extended'][0,:,:]
+    cma.cma_testlist0 = pps_nc.variables['cma_testlist0'][0,:,:]
+    cma.cma_testlist1 = pps_nc.variables['cma_testlist1'][0,:,:]
+    cma.cma_testlist2 = pps_nc.variables['cma_testlist2'][0,:,:]
+    cma.cma_testlist3 = pps_nc.variables['cma_testlist3'][0,:,:]
+    cma.cma_testlist4 = pps_nc.variables['cma_testlist4'][0,:,:]
+    cma.cma_testlist5 = pps_nc.variables['cma_testlist5'][0,:,:]
+    return cma
 
 
 def readImagerData_nc(pps_nc):
@@ -239,25 +268,27 @@ def read_pps_angobj_h5(filename):
     """Read angles info from filename
     """
     h5file = h5py.File(filename, 'r')
-    AngObj = imagerAngObj()    
+    AngObj = imagerAngObj() 
+  
     for var in h5file.keys():
         if 'image' in var:
-            image = h5file[var]            
-            if image.attrs['description'] == "Solar zenith angle":
-                AngObj.sunz.data = np.float(image['data'].value)
+            image = h5file[var]     
+            if image.attrs['description'] == "sun zenith angle":
+                print "reading sunz"
+                AngObj.sunz.data = image['data'].value.astype(np.float)
                 AngObj.sunz.gain = image['what'].attrs['gain']
                 AngObj.sunz.intercept = image['what'].attrs['offset']
                 AngObj.sunz.no_data = image['what'].attrs['nodata']
                 AngObj.sunz.missing_data = image['what'].attrs['missingdata']
-            elif image.attrs['description'] == "Satellite zenith angle":
-                AngObj.satz.data = np.float(image['data'].value)
+            elif image.attrs['description'] == "satellite zenith angle":
+                AngObj.satz.data = image['data'].value.astype(np.float)
                 AngObj.satz.gain = image['what'].attrs['gain']
                 AngObj.satz.intercept = image['what'].attrs['offset']
                 AngObj.satz.no_data = image['what'].attrs['nodata']
                 AngObj.satz.missing_data = image['what'].attrs['missingdata']
             elif (image.attrs['description'] == 
-                  "Relative satellite-sun azimuth angle"):
-                AngObj.azidiff.data = np.float(image['data'].value)
+                  "relative sun-satellite azimuth difference angle"):
+                AngObj.azidiff.data = image['data'].value.astype(np.float)
                 AngObj.azidiff.gain = image['what'].attrs['gain']
                 AngObj.azidiff.intercept = image['what'].attrs['offset']
                 AngObj.azidiff.no_data = image['what'].attrs['nodata']
@@ -483,6 +514,8 @@ def read_thr_h5(filename, h5_obj_type, thr_type):
                 gain = h5file.attrs['gain']
                 intercept = h5file.attrs['intercept']
                 product = value * gain + intercept
+                product[product<0] = 1.0
+                product[product>1.0] = 1.0
                 logger.info("Read EMIS: %s"%(thr_type))
             else:
                 logger.info("ERROR","Could not read %s File, Continue"%(thr_type))
@@ -525,23 +558,23 @@ def readImagerData_h5(filename):
             imager_data.missingdata = image['what'].attrs['missingdata']
             imager_data.no_data = imager_data.nodata
             imager_data.missing_data = imager_data.missingdata
-            mask = np.logical_and(one_channel.data == imager_data.no_data,
+            mask = np.logical_or(one_channel.data == imager_data.no_data,
                                  one_channel.data == imager_data.missing_data)
             one_channel.data[~mask] = one_channel.data[~mask]*gain + intercept
-            one_channel.data[~mask] = ATRAIN_MATCH_NODATA
+            one_channel.data[mask] = ATRAIN_MATCH_NODATA
     h5file.close()
     return imager_data
 
 
 def pps_read_all(pps_files, avhrr_file, cross):
-    logger.info("Read AVHRR geolocation data")
+    logger.info("Read IMAGER geolocation data")
     if '.nc' in avhrr_file:
         pps_nc = netCDF4.Dataset(avhrr_file, 'r', format='NETCDF4')
         avhrrGeoObj = read_pps_geoobj_nc(pps_nc)
     else:    
         #use mpop?
         avhrrGeoObj = read_pps_geoobj_h5(avhrr_file)    
-    logger.info("Read AVHRR Sun -and Satellites Angles data")
+    logger.info("Read IMAGER Sun -and Satellites Angles data")
     if '.nc' in pps_files.sunsatangles:
         pps_nc_ang = netCDF4.Dataset(pps_files.sunsatangles, 'r', format='NETCDF4')
         avhrrAngObj = read_pps_angobj_nc(pps_nc_ang)
@@ -558,28 +591,17 @@ def pps_read_all(pps_files, avhrr_file, cross):
     cppCph = None
     if VAL_CPP:    
         logger.info("Read CPP data")
-        from ppshdf_cloudproducts import CppProducts #@UnresolvedImport
-        if PPS_FORMAT_2012_OR_EARLIER:
-            try:
-                cpp = CppProducts.from_h5(pps_files.cpp,
-                                          product_names=['cph','lwp'])
-                cppLwp = cpp.products['lwp'].array
-                cppCph = cpp.products['cph'].array
-                logger.info("CPP chp and lwp data read")
-            except KeyError:
-                #import traceback
-                #traceback.print_exc()
-                cppLwp = readCpp(pps_files.cpp, 'lwp')
-                cppCph = readCpp(pps_files.cpp, 'cph')
-                logger.info("CPP lwp, cph data read")
-        else:
-            cpp = CppProducts.from_h5(pps_files.cpp,
-                                      product_names=['cpp_phase','cpp_lwp'],
-                                      scale_up=True)
-            # LWP convert from kg/m2 to g/m2
-            cppLwp = 1000. * cpp.products['cpp_lwp'].array
-            cppCph = cpp.products['cpp_phase'].array
-            
+        cpp = CppProducts.from_h5(pps_files.cpp,
+                                  product_names=['cpp_phase','cpp_lwp'],
+                                  scale_up=True)
+        # LWP convert from kg/m2 to g/m2
+        cppLwp = 1000. * cpp.products['cpp_lwp'].array
+        cppCph = cpp.products['cpp_phase'].array
+    logger.info("Read PPS Cloud mask")
+    if '.nc' in pps_files.cloudtype:
+        cma = read_cma_nc(pps_files.cma)
+    else:
+        cma = read_cma_h5(pps_files.cma)
     logger.info("Read PPS Cloud Type")
     if '.nc' in pps_files.cloudtype:
         ctype = read_cloudtype_nc(pps_files.cloudtype)
@@ -659,4 +681,4 @@ def pps_read_all(pps_files, avhrr_file, cross):
     nwp_obj = NWPObj(nwp_dict)
     logger.info("Read PPS NWP segment resolution data") 
     segment_data_object = read_segment_data(getattr(pps_files,'nwp_segments'))
-    return avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, nwp_obj, cppLwp, cppCph, segment_data_object 
+    return avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, nwp_obj, cppLwp, cppCph, segment_data_object, cma 

@@ -147,7 +147,7 @@ def calipso_track_from_matched(retv_calipso, calipso, idx_match):
 def match_calipso_avhrr(values, 
                         calipsoObj, calipsoObjAerosol, 
                         imagerGeoObj, imagerObj, 
-                        ctype, ctth, cppCph, nwp_obj,
+                        ctype, cma, ctth, cppCph, nwp_obj,
                         avhrrAngObj, nwp_segments, options, res=resolution):
 
     import time
@@ -259,7 +259,7 @@ def match_calipso_avhrr(values,
     # Pick out the data from the track from AVHRR
     from extract_imager_along_track import avhrr_track_from_matched
     retv = avhrr_track_from_matched(retv, imagerGeoObj, imagerObj, avhrrAngObj, 
-                                    nwp_obj, ctth, ctype, cal_on_avhrr, 
+                                    nwp_obj, ctth, ctype, cma,  cal_on_avhrr, 
                                     cap_on_avhrr, avhrrCph=cppCph, 
                                     nwp_segments=nwp_segments)
 
