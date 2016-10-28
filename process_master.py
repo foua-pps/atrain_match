@@ -13,7 +13,7 @@ through a set of SNO matchups.
 
 """
 import logging
-#logging.basicConfig(level=logging.INFO) #doing this causes messages twice!
+logging.basicConfig(level=logging.INFO) 
 logger = logging.getLogger(__name__)
 
 import config
@@ -35,8 +35,11 @@ def process_matchups(matchups, run_modes, reprocess=False, debug=False):
     import ConfigParser
     from config import CONFIG_PATH
     CONF = ConfigParser.ConfigParser()
-    CONF.read(os.path.join(CONFIG_PATH, "atrain_match.cfg"))
-    OPTIONS = {}
+    config_file = os.path.join(CONFIG_PATH, "atrain_match.cfg")
+    if not os.path.isfile(config_file):
+        raise IOError("Couldn't find config file %s."%(config_file))
+    CONF.read(config_file)
+    OPTIONS = {}    
     for option, value in CONF.items('general', raw = True):
         OPTIONS[option] = value
 
