@@ -202,12 +202,27 @@ def read_cma_nc(filename):
     pps_nc = netCDF4.Dataset(filename, 'r', format='NETCDF4')
     cma = CmaObj()
     cma.cma_ext = pps_nc.variables['cma_extended'][0,:,:]
-    cma.cma_testlist0 = pps_nc.variables['cma_testlist0'][0,:,:]
-    cma.cma_testlist1 = pps_nc.variables['cma_testlist1'][0,:,:]
-    cma.cma_testlist2 = pps_nc.variables['cma_testlist2'][0,:,:]
-    cma.cma_testlist3 = pps_nc.variables['cma_testlist3'][0,:,:]
-    cma.cma_testlist4 = pps_nc.variables['cma_testlist4'][0,:,:]
-    cma.cma_testlist5 = pps_nc.variables['cma_testlist5'][0,:,:]
+    #cma.cma_testlist0 = pps_nc.variables['cma_testlist0'][0,:,:]
+    #cma.cma_testlist1 = pps_nc.variables['cma_testlist1'][0,:,:]
+    #cma.cma_testlist2 = pps_nc.variables['cma_testlist2'][0,:,:]
+    #cma.cma_testlist3 = pps_nc.variables['cma_testlist3'][0,:,:]
+    #cma.cma_testlist4 = pps_nc.variables['cma_testlist4'][0,:,:]
+    #cma.cma_testlist5 = pps_nc.variables['cma_testlist5'][0,:,:]
+    for var_name in ['cma_testlist0',
+                'cma_testlist1',
+                'cma_testlist2',
+                'cma_testlist3',
+                'cma_testlist4',
+                'cma_testlist5']:
+        array = pps_nc.variables[var_name][0,:,:]
+        if np.ma.is_masked(array):
+            mask = array.mask
+            data = array.data
+            data[mask]= 0
+            setattr(cma, var_name, data)
+        else:
+            setattr(cma, var_name, array)
+         
     return cma
 
 
@@ -408,7 +423,7 @@ def read_etc_nc(ncFile, etc_key):
             nwp_var = nwp_var.data
         return  nwp_var
     else:
-        logger.info("NO %s File, Continue"%(etc_key))
+        logger.info("NO %s field, Continue "%(etc_key))
         return None
 
 def read_segment_data(filename):
