@@ -21,7 +21,6 @@ from config import (AREA, sec_timeThr, RESOLUTION,
                     _validation_results_dir)
 from common import (MatchupError, 
                     elements_within_range)
-from calipso import createAvhrrTime
 from extract_imager_along_track import avhrr_track_from_matched
 
 
@@ -251,7 +250,6 @@ def match_cloudsat_avhrr(ctypefile,cloudsatObj,avhrrGeoObj,avhrrObj,ctype,ctth,s
     calnan = numpy.where(cal == NODATA, numpy.nan, cal)
     if (~numpy.isnan(calnan)).sum() == 0:
         raise MatchupError("No matches within region.")
-    avhrrGeoObj = createAvhrrTime(avhrrGeoObj, ctypefile)
     avhrr_lines_sec_1970 = numpy.where(cal != NODATA, avhrrGeoObj.time[cal], numpy.nan)
     # Find all matching Cloudsat pixels within +/- sec_timeThr from the AVHRR data
     idx_match = elements_within_range(cloudsatObj.sec1970, avhrr_lines_sec_1970, sec_timeThr)
@@ -363,7 +361,6 @@ def reshapeCloudsat(cloudsatfiles, avhrr, avhrrfilename):
     import sys
     import inspect
     clsat = CloudsatObject()
-    avhrr = createAvhrrTime(avhrr, avhrrfilename)
     avhrr_end = avhrr.sec1970_end
     avhrr_start = avhrr.sec1970_start
     

@@ -55,77 +55,6 @@ def sec1970_to_julianday(sec1970):
  
     return jday
 
-def createAvhrrTime(Obt, values):
-    import os #@Reimport
-    from config import DSEC_PER_AVHRR_SCALINE
-    #import time
-    #from datetime import datetime
-    import calendar
-    import time
-    #filename = os.path.basename(filename)
-    # Ex.: npp_20120827_2236_04321_satproj_00000_04607_cloudtype.h5
-    if IMAGER_INSTRUMENT == 'viirs':
-    #if filename.split('_')[0] == 'npp':
-        if Obt.sec1970_start < 0: #10800
-            logger.warning( 
-                      "NPP start time negative! " + str(Obt.sec1970_start))
-            datetime=values["date_time"]
-            Obt.sec1970_start = calendar.timegm(datetime.timetuple())
-            #Obt.sec1970_start = calendar.timegm((year, mon, day, hour, mins, sec)) + hundredSec
-        num_of_scan = Obt.num_of_lines / 16.
-        #if (Obt.sec1970_end - Obt.sec1970_start) / (num_of_scan) > 2:
-        #    pdb.set_trace()
-       #linetime = np.linspace(1, 10, 20)
-       #test = np.apply_along_axis(np.multiply,  0, np.ones([20, 16]), linetime).reshape(30)        
-        linetime = np.linspace(Obt.sec1970_start, Obt.sec1970_end, num_of_scan)
-        Obt.time = np.apply_along_axis(np.multiply,  0, np.ones([num_of_scan, 16]), linetime).reshape(Obt.num_of_lines)
-
-        logger.info("NPP start time :  %s", time.gmtime(Obt.sec1970_start))
-        logger.info("NPP end time : %s", time.gmtime(Obt.sec1970_end))
- 
-    else:
-        if Obt.sec1970_end < Obt.sec1970_start:
-            """
-            In some GAC edition the end time is negative. If so this if statement 
-            tries to estimate the endtime depending on the start time plus number of 
-            scanlines multiplied with the estimate scan time for the instrument. 
-            This estimation is not that correct but what to do?
-            """
-            Obt.sec1970_end = int(DSEC_PER_AVHRR_SCALINE * Obt.num_of_lines + Obt.sec1970_start)
-
-        datetime=values["date_time"]
-        sec1970_start_filename = calendar.timegm(datetime.timetuple())
-        diff_filename_infile_time = sec1970_start_filename-Obt.sec1970_start
-        diff_hours= abs( diff_filename_infile_time/3600.0  )
-        if (diff_hours<13):
-            logger.info("Time in file and filename do agree. Difference  %d hours."%diff_hours)
-        if (diff_hours>13):
-            """
-            This if statement takes care of a bug in start and end time, 
-            that occurs when a file is cut at midnight
-            Former condition needed line number in file name:
-            if ((values["ppsfilename"].split('_')[-3] != '00000' and PPS_FORMAT_2012_OR_EARLIER) or
-            (values["ppsfilename"].split('_')[-2] != '00000' and not PPS_FORMAT_2012_OR_EARLIER)):
-            Now instead check if we aer more than 13 hours off. 
-            If we are this is probably the problem, do the check and make sure results are fine afterwards.
-            """
-            logger.warning("Time in file and filename do not agree! Difference  %d hours.", diff_hours)
-            import calendar, time
-            timediff = Obt.sec1970_end - Obt.sec1970_start
-            old_start = time.gmtime(Obt.sec1970_start + (24 * 3600)) # Adds 24 h to get the next day in new start
-            new_start = calendar.timegm(time.strptime('%i %i %i' %(old_start.tm_year, \
-                                                                   old_start.tm_mon, \
-                                                                   old_start.tm_mday), \
-                                                                   '%Y %m %d'))
-            Obt.sec1970_start = new_start
-            Obt.sec1970_end = new_start + timediff
-            diff_filename_infile_time = sec1970_start_filename-Obt.sec1970_start
-            diff_hours= abs( diff_filename_infile_time/3600.0)
-            if (diff_hours>20):
-                logger.error("Time in file and filename do not agree! Difference  %d hours.", diff_hours)
-                raise TimeMatchError("Time in file and filename do not agree.")        
-        Obt.time = np.linspace(Obt.sec1970_start, Obt.sec1970_end, Obt.num_of_lines)
-    return Obt
 
 def calipso_track_from_matched(retv_calipso, calipso, idx_match):
     # Calipso line,pixel inside AVHRR swath:
@@ -182,12 +111,11 @@ def match_calipso_avhrr(values,
     from common import map_avhrr
     cal, cap = map_avhrr(imagerGeoObj, lonCalipso.ravel(), latCalipso.ravel(),
                          radius_of_influence=RESOLUTION*0.7*1000.0) # somewhat larger than radius...
+    print cal, cap
     calnan = np.where(cal == NODATA, np.nan, cal)
     if (~np.isnan(calnan)).sum() == 0:
         raise MatchupError("No matches within region.")
-    if (PPS_VALIDATION):
-        #CCIcloud already have time as array.
-        imagerGeoObj = createAvhrrTime(imagerGeoObj, values)
+
     
     if len(imagerGeoObj.time.shape)>1:
         imager_time_vector = [imagerGeoObj.time[line,pixel] for line, pixel in zip(cal,cap)]
@@ -352,14 +280,12 @@ def read_calipso(filename, res, ALAY=False):
         h5file.close()
     return retv  
 
-def discardCalipsoFilesOutsideTimeRange(calipsofiles_list, avhrr, values, res=resolution, ALAY=False):
+def discardCalipsoFilesOutsideTimeRange(calipsofiles_list, avhrrGeoObj, values, res=resolution, ALAY=False):
     import sys
     import time
     dsec = time.mktime((1993,1,1,0,0,0,0,0,0)) - time.timezone
-    if (PPS_VALIDATION):
-        avhrr = createAvhrrTime(avhrr, values)
-    avhrr_end = avhrr.sec1970_end
-    avhrr_start = avhrr.sec1970_start
+    avhrr_end = avhrrGeoObj.sec1970_end
+    avhrr_start = avhrrGeoObj.sec1970_start
     calipso_within_time_range = []
     for i in range(len(calipsofiles_list)):
         current_file = calipsofiles_list[i]
@@ -368,7 +294,7 @@ def discardCalipsoFilesOutsideTimeRange(calipsofiles_list, avhrr, values, res=re
             cal_new_all = newCalipso.profile_time_tai[:,0] + dsec
         elif res == 5:
             cal_new_all = newCalipso.profile_time_tai[:,1] + dsec 
-        if cal_new_all[0]>avhrr_end or  cal_new_all[-1]<avhrr_start:
+        if cal_new_all[0]>avhrr_end  or  cal_new_all[-1] <avhrr_start:
             pass
             #print "skipping file %s outside time_limits"%(current_file)
         else:
@@ -410,17 +336,15 @@ def reshapeCalipso(calipsofiles, res=resolution, ALAY=False):
         sys.exit(-9)  
     return cal
 
-def find_break_points(startCalipso, avhrr, values, res=resolution):
+def find_break_points(startCalipso, avhrrGeoObj, values, res=resolution):
     """
     Find the start and end point where calipso and avhrr matches is within 
     time limits.
     """
     import time
     dsec = time.mktime((1993,1,1,0,0,0,0,0,0)) - time.timezone
-    if (PPS_VALIDATION):
-        avhrr = createAvhrrTime(avhrr, values)
-    avhrr_end = avhrr.sec1970_end
-    avhrr_start = avhrr.sec1970_start
+    avhrr_end = avhrrGeoObj.sec1970_end
+    avhrr_start = avhrrGeoObj.sec1970_start
     # Finds Break point
     if res == 1:
         start_break = np.argmin((np.abs((startCalipso.profile_time_tai[:,0] + dsec) 

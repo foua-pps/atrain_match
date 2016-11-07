@@ -1,4 +1,5 @@
 import numpy as np
+import os
 import netCDF4
 import h5py
 import logging
@@ -6,8 +7,75 @@ import time
 import calendar
 logger = logging.getLogger(__name__)
 from config import (VAL_CPP)
-ATRAIN_MATCH_NODATA = -9
+from config import NODATA
+ATRAIN_MATCH_NODATA = NODATA
 #logger.debug('Just so you know: this module has a logger...')
+
+def createAvhrrTime(Obt, values={}):
+    """ Function to make crate a matrix with time for each pixel 
+    from objects start adn end time """
+    from config import DSEC_PER_AVHRR_SCALINE, IMAGER_INSTRUMENT 
+    #filename = os.path.basename(filename)
+    # Ex.: npp_20120827_2236_04321_satproj_00000_04607_cloudtype.h5
+    if IMAGER_INSTRUMENT == 'viirs':
+    #if filename.split('_')[0] == 'npp':
+        if Obt.sec1970_start < 0: #10800
+            logger.warning( 
+                      "NPP start time negative! " + str(Obt.sec1970_start))
+            datetime=values["date_time"]
+            Obt.sec1970_start = calendar.timegm(datetime.timetuple())
+            #Obt.sec1970_start = calendar.timegm((year, mon, day, hour, mins, sec)) + hundredSec
+        num_of_scan = Obt.num_of_lines / 16.
+        #if (Obt.sec1970_end - Obt.sec1970_start) / (num_of_scan) > 2:
+        #    pdb.set_trace()
+       #linetime = np.linspace(1, 10, 20)
+       #test = np.apply_along_axis(np.multiply,  0, np.ones([20, 16]), linetime).reshape(30)        
+        linetime = np.linspace(Obt.sec1970_start, Obt.sec1970_end, num_of_scan)
+        Obt.time = np.apply_along_axis(np.multiply,  0, np.ones([num_of_scan, 16]), linetime).reshape(Obt.num_of_lines)
+        logger.info("NPP start time :  %s", time.gmtime(Obt.sec1970_start))
+        logger.info("NPP end time : %s", time.gmtime(Obt.sec1970_end))
+    else:
+        if Obt.sec1970_end < Obt.sec1970_start:
+            """
+            In some GAC edition the end time is negative. If so this if statement 
+            tries to estimate the endtime depending on the start time plus number of 
+            scanlines multiplied with the estimate scan time for the instrument. 
+            This estimation is not that correct but what to do?
+            """
+            Obt.sec1970_end = int(DSEC_PER_AVHRR_SCALINE * Obt.num_of_lines + Obt.sec1970_start)
+        datetime=values["date_time"]
+        sec1970_start_filename = calendar.timegm(datetime.timetuple())
+        diff_filename_infile_time = sec1970_start_filename-Obt.sec1970_start
+        diff_hours= abs( diff_filename_infile_time/3600.0  )
+        if (diff_hours<13):
+            logger.info("Time in file and filename do agree. Difference  %d hours."%diff_hours)
+        if (diff_hours>13):
+            """
+            This if statement takes care of a bug in start and end time, 
+            that occurs when a file is cut at midnight
+            Former condition needed line number in file name:
+            if ((values["ppsfilename"].split('_')[-3] != '00000' and PPS_FORMAT_2012_OR_EARLIER) or
+            (values["ppsfilename"].split('_')[-2] != '00000' and not PPS_FORMAT_2012_OR_EARLIER)):
+            Now instead check if we aer more than 13 hours off. 
+            If we are this is probably the problem, do the check and make sure results are fine afterwards.
+            """
+            logger.warning("Time in file and filename do not agree! Difference  %d hours.", diff_hours)
+            timediff = Obt.sec1970_end - Obt.sec1970_start
+            old_start = time.gmtime(Obt.sec1970_start + (24 * 3600)) # Adds 24 h to get the next day in new start
+            new_start = calendar.timegm(time.strptime('%i %i %i' %(old_start.tm_year, \
+                                                                   old_start.tm_mon, \
+                                                                   old_start.tm_mday), \
+                                                                   '%Y %m %d'))
+            Obt.sec1970_start = new_start
+            Obt.sec1970_end = new_start + timediff
+            diff_filename_infile_time = sec1970_start_filename-Obt.sec1970_start
+            diff_hours= abs( diff_filename_infile_time/3600.0)
+            if (diff_hours>20):
+                logger.error("Time in file and filename do not agree! Difference  %d hours.", diff_hours)
+                raise TimeMatchError("Time in file and filename do not agree.")        
+        Obt.time = np.linspace(Obt.sec1970_start, Obt.sec1970_end, Obt.num_of_lines)
+    return Obt
+
 class NWPObj(object):
     def __init__(self, array_dict):
         self.surftemp = None
@@ -588,7 +656,10 @@ def pps_read_all(pps_files, avhrr_file, cross):
         avhrrGeoObj = read_pps_geoobj_nc(pps_nc)
     else:    
         #use mpop?
-        avhrrGeoObj = read_pps_geoobj_h5(avhrr_file)    
+        avhrrGeoObj = read_pps_geoobj_h5(avhrr_file)  
+    #create time info for each pixel  
+    values = get_satid_datetime_orbit_from_fname(avhrr_file, as_oldstyle=False)  
+    imagerGeoObj = createAvhrrTime(imagerGeoObj, values)
     logger.info("Read IMAGER Sun -and Satellites Angles data")
     if '.nc' in pps_files.sunsatangles:
         pps_nc_ang = netCDF4.Dataset(pps_files.sunsatangles, 'r', format='NETCDF4')
@@ -624,14 +695,18 @@ def pps_read_all(pps_files, avhrr_file, cross):
         ctype = read_cloudtype_h5(pps_files.cloudtype)
         #Removed not working read with mpop 2016-09-14
     logger.info("Read PPS CTTH")
-    if '.nc' in pps_files.ctth:
+    if pps_files.ctth is None:
+        ctth = None
+    elif '.nc' in pps_files.ctth:
         ctth = read_ctth_nc(pps_files.ctth)
     else:
         ctth = read_ctth_h5(pps_files.ctth)
 
     logger.info("Read PPS NWP data")
     nwp_dict={}
-    if '.nc' in pps_files.nwp_tsur:
+    if pps_files.nwp_tsur is None:
+        pass
+    elif '.nc' in pps_files.nwp_tsur:
         pps_nc_nwp = netCDF4.Dataset(pps_files.nwp_tsur, 'r', format='NETCDF4')
         nwp_dict['surftemp'] = read_etc_nc(pps_nc_nwp, "tsur")
         nwp_dict['t500'] = read_etc_nc(pps_nc_nwp, "t500")
@@ -656,8 +731,10 @@ def pps_read_all(pps_files, avhrr_file, cross):
          nwp_dict['ttro'] = read_nwp_h5(pps_files.nwp_ttro, "ttro")
          nwp_dict['ciwv'] = read_nwp_h5(pps_files.nwp_ciwv, "ciwv")
 
-    logger.info("Read PPS texture data")  
-    if '.nc' in pps_files.text_t11:
+    if pps_files.text_t11 is None:
+        pass
+        logger.info("Not reading PPS texture data")  
+    elif '.nc' in pps_files.text_t11:
         pps_nc_txt = netCDF4.Dataset(pps_files.text_t11, 'r', format='NETCDF4')
         for ttype in ['r06', 't11', 't37t12', 't37', 't11t12']:
             text_type = 'text_' + ttype
@@ -668,8 +745,10 @@ def pps_read_all(pps_files, avhrr_file, cross):
             text_type = 'text_' + ttype
             nwp_dict[text_type] = read_thr_h5(getattr(pps_files,text_type), 
                                               h5_obj_type,text_type)
-    logger.info("Read PPS threshold data") 
-    if '.nc' in pps_files.thr_t11ts:
+    if pps_files.thr_t11ts is None:
+        pass
+        logger.info("Not reading PPS threshold data") 
+    elif '.nc' in pps_files.thr_t11ts:
         pps_nc_thr = netCDF4.Dataset(pps_files.thr_t11ts, 'r', format='NETCDF4')
         for nc_obj_type in ['t11ts_inv', 't11t37_inv', 't37t12_inv', 't11t12_inv', 
                             't11ts', 't11t37', 't37t12', 't11t12',
@@ -683,8 +762,10 @@ def pps_read_all(pps_files, avhrr_file, cross):
             thr_type = 'thr_' + h5_obj_type
             nwp_dict[thr_type] = read_thr_h5(getattr(pps_files,thr_type), 
                                              h5_obj_type, thr_type)
-    logger.info("Read PPS Emissivity data") 
-    if '.nc' in pps_files.emis:
+    if pps_files.thr_t11ts is None:
+        pass
+        logger.info("Not reading PPS Emissivity data") 
+    elif '.nc' in pps_files.emis:
         pps_nc_thr = netCDF4.Dataset(pps_files.emis, 'r', format='NETCDF4')
         for emis_type in ['emis1',"emis6", 'emis8','emis9']:
             nwp_dict[emis_type] = read_etc_nc(pps_nc_thr, emis_type)
