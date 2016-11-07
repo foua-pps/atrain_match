@@ -18,6 +18,7 @@ from get_flag_info import (get_semi_opaque_info_pps2014,
                            get_day_night_twilight_info_pps2014,
                            get_day_night_twilight_info_pps2012,
                            get_day_night_twilight_info_cci2014,
+                           get_day_night_twilight_info_maia,
                            get_sunglint_info_pps2012,
                            get_mountin_info_pps2012,
                            get_inversion_info_pps2012)
@@ -179,14 +180,14 @@ def get_subset_for_mode(caObj, mode):
     return cal_subset     
 
 def get_day_night_info(caObj):
-    if config.CCI_CLOUD_VALIDATION:
+    if config.CCI_CLOUD_VALIDATION or config.MAIA_CLOUD_VALIDATION:
         daynight_flags = get_day_night_twilight_info_cci2014(
         caObj.avhrr.sunz)
-    if hasattr(caObj.avhrr, 'cloudtype_qflag'):
+    elif hasattr(caObj.avhrr, 'cloudtype_qflag'):
         if caObj.avhrr.cloudtype_qflag is not None:
             daynight_flags = get_day_night_twilight_info_pps2012(
                 caObj.avhrr.cloudtype_qflag)
-    if hasattr(caObj.avhrr, 'cloudtype_conditions'):
+    elif hasattr(caObj.avhrr, 'cloudtype_conditions'):
         if caObj.avhrr.cloudtype_conditions is not None:
             daynight_flags = get_day_night_twilight_info_pps2014(
                 caObj.avhrr.cloudtype_conditions)             

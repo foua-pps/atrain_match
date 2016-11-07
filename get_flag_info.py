@@ -1,4 +1,6 @@
 import numpy as np
+import logging
+logger = logging.getLogger(__name__)
 
 def get_semi_opaque_info_pps2014(ctth_status):
     print "INFO", "Assuming cloudtype flags structure from pps v2014"
@@ -144,6 +146,8 @@ def get_inversion_info_pps2012(cloudtype_qflag):
 #6 = cirrus (transparent)
 #7 = deep convective (opaque)
 def get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=0):
+    #bits 10-12, start at 1 counting
+
     cflag = caObj.calipso.feature_classification_flags[::,0]
     cal_vert_feature = np.zeros(cflag.shape)-9.0
     feature_array = (4*np.bitwise_and(np.right_shift(cflag,11),1) + 
@@ -187,6 +191,7 @@ def get_land_coast_sea_info_cci2014(lsflag):
     all_lsc_flag =  np.bool_(np.ones(lsflag))
     return (no_qflag, land_flag, sea_flag, coast_flag, all_lsc_flag)
 def get_day_night_twilight_info_cci2014(sunz):
+    sunz = np.array(sunz)
     logger.info("Assuming CCI v2014")
     no_qflag = np.zeros(sunz.shape)
     day_flag = np.where(np.less_equal(sunz,80),1,0)
@@ -200,4 +205,26 @@ def get_day_night_twilight_info_cci2014(sunz):
     print "number of night", len(sunz[night_flag==True]) 
     print "number of twilight", len(sunz[twilight_flag==True])
     all_dnt_flag =  np.bool_(np.ones(sunz.shape))
+    return (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag)
+
+def get_maia_ct_flag(ct_flag):
+    #bits 4-8, start at 0 counting
+    maia_ct_flag = (16*np.bitwise_and(np.right_shift(ct_flag,8),1) + 
+                    8*np.bitwise_and(np.right_shift(ct_flag,7),1) +
+                    4*np.bitwise_and(np.right_shift(ct_flag,6),1) + 
+                    2*np.bitwise_and(np.right_shift(ct_flag,5),1) + 
+                    1*np.bitwise_and(np.right_shift(ct_flag,4),1))
+    return  maia_ct_flag 
+def get_day_night_twilight_info_maia(cm_flag):
+    #bit 13-14
+    maia_cm_flag = (2*np.bitwise_and(np.right_shift(cm_flag,14),1) + 
+                    1*np.bitwise_and(np.right_shift(cm_flag,13),1)) 
+    day_flag = np.where(maia_cm_flag==2,1,0) #include also sunglint in day ==3
+    night_flag =  np.where(maia_cm_flag==0,1,0)
+    twilight_flag =  np.where(maia_cm_flag==1,1,0)
+    print "number of day", len(maia_cm_flag[day_flag==True])
+    print "number of night", len(maia_cm_flag[night_flag==True]) 
+    print "number of twilight", len(maia_cm_flag[twilight_flag==True])
+    all_dnt_flag =  np.ones(maia_cm_flag.shape)
+    no_qflag = 0 * all_dnt_flag #dummy flag
     return (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag)

@@ -139,9 +139,10 @@ def match_lonlat(source, target,
     mask_out_lat = np.logical_or(lat<-90, lat>90)
     mask_out_lon = np.logical_or(lon>180, lat<-180)
     mask_out = np.logical_or(mask_out_lat, mask_out_lon)
-    lat = np.ma.masked_array(lat, mask_out)
-    lon = np.ma.masked_array(lon, mask_out)
-
+    lat = np.ma.masked_array(lat, mask=mask_out)
+    lon = np.ma.masked_array(lon, mask=mask_out)
+    #lat = np.around(lat, decimals=4)
+    #lon = np.around(lon, decimals=4)
     source_def = SwathDefinition(*(lon,lat))
     target_def = SwathDefinition(*target)
     logger.debug("Matching %d nearest neighbours" % n_neighbours)
@@ -200,6 +201,7 @@ def match_lonlat(source, target,
     """
 
     # Make sure all indices are valid
+    #import ipdb; ipdb.set_trace()
     rows[rows >= source_def.shape[0]] = NODATA
     cols[cols >= source_def.shape[1]] = NODATA
     mask = distances > radius_of_influence

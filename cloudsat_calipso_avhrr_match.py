@@ -68,6 +68,7 @@ from numpy import NaN
 from config import (VAL_CPP,
                     PLOT_ONLY_PNG,
                     CCI_CLOUD_VALIDATION,
+                    MAIA_CLOUD_VALIDATION,
                     PPS_VALIDATION,
                     ALWAYS_USE_AVHRR_ORBIT_THAT_STARTS_BEFORE_CROSS,
                     USE_5KM_FILES_TO_FILTER_CALIPSO_DATA,
@@ -248,7 +249,24 @@ def get_satid_datetime_orbit_from_fname(avhrr_filename,as_oldstyle=False):
                  "ccifilename":avhrr_filename,
                  "ppsfilename":None}
         values['basename'] = values["satellite"] + "_" + values["date"] + "_" + values["time"] + "_" + values["orbit"]
+    if MAIA_CLOUD_VALIDATION:
+         #viiCT_npp_DB_20120817_S035411_E035535_DES_N_La052_Lo-027_00001.h5
+        sl_ = os.path.basename(avhrr_filename).split('_')
+        date_time = datetime.strptime(sl_[3] + sl_[4], '%Y%m%dS%H%M%S')
 
+        sat_id = sl_[1].lower()
+        values= {"satellite": sat_id,
+                 "date_time": date_time,
+                 "orbit": "99999",
+                 "date":date_time.strftime("%Y%m%d"),
+                 "year":date_time.year,
+                 "month":"%02d"%(date_time.month),    
+                 "time":date_time.strftime("%H%M"),
+                 #"basename":sat_id + "_" + date_time.strftime("%Y%m%d_%H%M_99999"),#"20080613002200-ESACCI",
+                 "ccifilename":avhrr_filename,
+                 "ppsfilename":None}
+        values['basename'] = values["satellite"] + "_" + values["date"] + "_" + values["time"] + "_" + values["orbit"]
+    
 
     return values
 
@@ -337,7 +355,6 @@ def get_time_list_and_cross_time(cross):
     tlist = get_time_list(cross_time, time_window, delta_t_in_seconds=60)
     return tlist, cross_time, cross_satellite
 
-
 def find_radiance_file(cross, options):
     found_file, tobj= find_avhrr_file(cross, 
                                       options['radiance_dir'], 
@@ -346,7 +363,6 @@ def find_radiance_file(cross, options):
         raise MatchupError("No dir or file found with radiance data!\n" + 
                            "Searching for %s %s" % (options['radiance_dir'],options['radiance_file']))
     return found_file, tobj
-
 def find_cci_cloud_file(cross, options):
     found_file, tobj= find_avhrr_file(cross, 
                                       options['cci_dir'], 
@@ -355,6 +371,15 @@ def find_cci_cloud_file(cross, options):
         raise MatchupError("No dir or file found with cci cloud data!\n" + 
                            "Searching under %s" % options['cci_dir'])
     return found_file, tobj
+def find_maia_cloud_file(cross, options):
+    found_file, tobj= find_avhrr_file(cross, 
+                                      options['maia_dir'], 
+                                      options['maia_file'])
+    if not found_file:
+        raise MatchupError("No dir or file found with maia cloud data!\n" + 
+                           "Searching under %s" % options['maia_dir'])
+    return found_file, tobj
+
 
 def find_avhrr_file(cross, filedir_pattern, filename_pattern, values={}):
     (tlist, cross_time, cross_satellite) = get_time_list_and_cross_time(cross)
@@ -742,6 +767,10 @@ def read_cloud_cci(avhrr_file):
     from read_cloudproducts_cci import cci_read_all
     return cci_read_all(avhrr_file)
 
+def read_cloud_maia(avhrr_file):
+    from read_cloudproducts_maia import maia_read_all
+    return maia_read_all(avhrr_file)
+
 def read_pps_data(pps_files, avhrr_file, cross):
     from read_cloudproducts_and_nwp_pps import pps_read_all
     return pps_read_all(pps_files, avhrr_file, cross)
@@ -767,6 +796,15 @@ def get_matchups_from_data(cross, config_options):
         #avhrr_file = "20080613002200-ESACCI-L2_CLOUD-CLD_PRODUCTS-AVHRRGAC-NOAA18-fv1.0.nc"
         values = get_satid_datetime_orbit_from_fname(avhrr_file)
         avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, surftemp, cppLwp, cppCph =read_cloud_cci(avhrr_file)
+        nwp_segment = None
+        nwp_obj = NWPObj({'surftemp':surftemp})        
+        avhrrGeoObj.satellite = values["satellite"];
+        date_time = values["date_time"]
+    if (MAIA_CLOUD_VALIDATION):
+        avhrr_file, tobj = find_maia_cloud_file(cross, config_options)
+        #viiCT_npp_DB_20120817_S035411_E035535_DES_N_La052_Lo-027_00001.h5
+        values = get_satid_datetime_orbit_from_fname(avhrr_file)
+        avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, surftemp, cppLwp, cppCph, cma =read_cloud_maia(avhrr_file)
         nwp_segment = None
         nwp_obj = NWPObj({'surftemp':surftemp})        
         avhrrGeoObj.satellite = values["satellite"];

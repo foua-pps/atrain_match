@@ -244,7 +244,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
                    for idx in range(npix)]
     obt.avhrr.cloudmask = np.array(value_track)
     #cloud-type and ctth flags
-    if hasattr(cma, 'cma_testlist0'):
+    if hasattr(cma, 'cma_testlist0') and np.size(cma.cma_testlist0)>10:
         obt.avhrr.cma_testlist0 = np.array(
             [cma.cma_testlist0[row_matched[idx], col_matched[idx]]
             for idx in range(npix)])
@@ -273,15 +273,15 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
         value_track = [ctype.ct_conditions[row_matched[idx], col_matched[idx]]
                              for idx in range(npix)]
         obt.avhrr.cloudtype_conditions = np.array(value_track)
-    if hasattr(ctype, 'ct_statusflag') and PPS_VALIDATION:
+    if hasattr(ctype, 'ct_statusflag') and PPS_VALIDATION and np.size(ctype.ct_statusflag)>10:
         value_track = [ctype.ct_statusflag[row_matched[idx], col_matched[idx]]
                              for idx in range(npix)]
         obt.avhrr.cloudtype_status = np.array(value_track)
-    if hasattr(ctth, 'ctth_statusflag') and PPS_VALIDATION:
+    if hasattr(ctth, 'ctth_statusflag') and PPS_VALIDATION and np.size(ctype.ctth_statusflag)>10:
         value_track = [ctth.ctth_statusflag[row_matched[idx], col_matched[idx]]
                                        for idx in range(npix)]
         obt.avhrr.ctth_status = np.array(value_track)
-    if hasattr(ctype, 'qualityflag') and PPS_VALIDATION:
+    if hasattr(ctype, 'qualityflag') and PPS_VALIDATION and np.size(ctype.ct_qualityflag)>10:
         value_track = [ctype.qualityflag[row_matched[idx], col_matched[idx]]
                              for idx in range(npix)]
         obt.avhrr.cloudtype_qflag = np.array(value_track)
