@@ -294,7 +294,7 @@ def discardCalipsoFilesOutsideTimeRange(calipsofiles_list, avhrrGeoObj, values, 
             cal_new_all = newCalipso.profile_time_tai[:,0] + dsec
         elif res == 5:
             cal_new_all = newCalipso.profile_time_tai[:,1] + dsec 
-        if cal_new_all[0]>avhrr_end  or  cal_new_all[-1] <avhrr_start:
+        if cal_new_all[0]>avhrr_end + sec_timeThr or  cal_new_all[-1] + sec_timeThr<avhrr_start:
             pass
             #print "skipping file %s outside time_limits"%(current_file)
         else:
