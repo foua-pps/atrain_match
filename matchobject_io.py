@@ -258,6 +258,7 @@ class CalipsoObject(DataObject):
             'day_night_flag': None,
             'feature_optical_depth_532': None,
             'single_shot_cloud_cleared_fraction': None,
+            'profile_id':None,
             #If a combination of 5 and 1km data are used for RESOLUTION=1
             #A vector with the corresponding optical thickness for 5km data
             # is stored also for 1km data. Because of that I put the 5km in the name
@@ -373,7 +374,9 @@ def readCaliopAvhrrMatchObjNewFormat(h5file, retv, var_to_read=None, var_to_skip
     if 'cci' in h5file.keys():
         h5_groups.append(h5file['/cci'])
         data_objects.append(retv.avhrr)
-
+    if 'maia' in h5file.keys():
+        h5_groups.append(h5file['/maia'])
+        data_objects.append(retv.avhrr)
     for group, data_obj in zip(h5_groups, data_objects):
         for dataset in group.keys():  
             atrain_match_name = dataset

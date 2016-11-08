@@ -932,6 +932,8 @@ def get_matchups_from_data(cross, config_options):
         avhrr_obj_name = 'pps'
         if config.CCI_CLOUD_VALIDATION:
             avhrr_obj_name = 'cci'
+        if config.MAIA_CLOUD_VALIDATION:
+            avhrr_obj_name = 'maia'
         writeCaliopAvhrrMatchObj(ca_match_file, ca_matchup, 
                                  avhrr_obj_name = avhrr_obj_name) 
     
