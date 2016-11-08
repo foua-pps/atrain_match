@@ -14,6 +14,25 @@ logger = logging.getLogger(__name__)
 import time
 #import h5py
 #from mpop.satin.nwcsaf_pps import NwcSafPpsChannel
+def get_satid_datetime_orbit_from_fname_cci(avhrr_filename):
+    # Get satellite name, time, and orbit number from avhrr_file
+    #avhrr_file = "20080613002200-ESACCI-L2_CLOUD-CLD_PRODUCTS-AVHRRGAC-NOAA18-fv1.0.nc"
+    sl_ = os.path.basename(avhrr_filename).split('-')
+    date_time = datetime.strptime(sl_[0], '%Y%m%d%H%M%S')
+    
+    sat_id = "noaa18"#sl_[5]_lower,
+    values= {"satellite": sat_id,
+             "date_time": date_time,
+             "orbit": "99999",
+             "date":date_time.strftime("%Y%m%d"),
+             "year":date_time.year,
+             "month":"%02d"%(date_time.month),    
+             "time":date_time.strftime("%H%M"),
+             #"basename":sat_id + "_" + date_time.strftime("%Y%m%d_%H%M_99999"),#"20080613002200-ESACCI",
+             "ccifilename":avhrr_filename,
+             "ppsfilename":None}
+    values['basename'] = values["satellite"] + "_" + values["date"] + "_" + values["time"] + "_" + values["orbit"]
+    return values
 
 def daysafter4713bc_to_sec1970(bcdate_array):
     """Translating days after 4713bc 12:00 to sec since 1970

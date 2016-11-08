@@ -11,6 +11,43 @@ from config import NODATA
 ATRAIN_MATCH_NODATA = NODATA
 #logger.debug('Just so you know: this module has a logger...')
 
+def get_satid_datetime_orbit_from_fname_pps(avhrr_filename,as_oldstyle=False):
+    #import runutils
+    #satname, _datetime, orbit = runutils.parse_scene(avhrr_filename)
+    #returnd orbit as int, loosing leeding zeros, use %05d to get it right.
+    # Get satellite name, time, and orbit number from avhrr_file
+    if PPS_VALIDATION and (PPS_FORMAT_2012_OR_EARLIER or as_oldstyle):
+        sl_ = os.path.basename(avhrr_filename).split('_')
+        date_time= datetime.strptime(sl_[1] + sl_[2], '%Y%m%d%H%M')
+        values= {"satellite": sl_[0],
+                 "date_time": date_time,
+                 "orbit": sl_[3].split('.')[0],
+                 "date":sl_[1],
+                 "year":date_time.year,
+                 "month":"%02d"%(date_time.month),  
+                 #"lines_lines": sl_[5] + "_" + sl_[6],
+                 "lines_lines": "*",
+                 "time":sl_[2],
+                 "ppsfilename":avhrr_filename}
+        values['basename'] = values["satellite"] + "_" + values["date"] + "_" + values["time"] + "_" + values["orbit"]
+    else: #PPS v2014-filenames
+        sl_ = os.path.basename(avhrr_filename).split('_')
+        date_time= datetime.strptime(sl_[5], '%Y%m%dT%H%M%S%fZ')
+        values= {"satellite": sl_[3],
+                 "date_time": date_time,
+                 "orbit": sl_[4],
+                 #"date":"%04d%02d%02d"%(date_time.year,dat_time.month, date_time.day),
+                 "date": date_time.strftime("%Y%m%d"),
+                 "year":date_time.year,
+                 "month":"%02d"%(date_time.month),  
+                 "lines_lines": "*",
+                 "time":date_time.strftime("%H%M"),
+                 "ppsfilename":avhrr_filename}
+        values['basename'] = values["satellite"] + "_" + values["date"] + "_" + values["time"] + "_" + values["orbit"]
+
+    return values    
+        
+
 def createAvhrrTime(Obt, values={}):
     """ Function to make crate a matrix with time for each pixel 
     from objects start adn end time """
@@ -658,7 +695,7 @@ def pps_read_all(pps_files, avhrr_file, cross):
         #use mpop?
         avhrrGeoObj = read_pps_geoobj_h5(avhrr_file)  
     #create time info for each pixel  
-    values = get_satid_datetime_orbit_from_fname(avhrr_file, as_oldstyle=False)  
+    values = get_satid_datetime_orbit_from_fname_pps(avhrr_file, as_oldstyle=False)  
     imagerGeoObj = createAvhrrTime(imagerGeoObj, values)
     logger.info("Read IMAGER Sun -and Satellites Angles data")
     if '.nc' in pps_files.sunsatangles:

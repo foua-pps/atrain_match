@@ -199,75 +199,17 @@ def find_cloudsat_files_inner(date_time, time_window, options, values):
         flist.extend([ s for s in tmplist if s not in flist ])      
     return flist
 
-def get_satid_datetime_orbit_from_fname(avhrr_filename,as_oldstyle=False):
-    #import runutils
-    #satname, _datetime, orbit = runutils.parse_scene(avhrr_filename)
-    #returnd orbit as int, loosing leeding zeros, use %05d to get it right.
-    # Get satellite name, time, and orbit number from avhrr_file
+def get_satid_datetime_orbit_from_fname(filename,as_oldstyle=False):
+    from read_cloudproducts_and_nwp_pps import get_satid_datetime_orbit_from_fname_pps
+    from read_cloudproducts_cci import get_satid_datetime_orbit_from_fname_cci
+    from read_cloudproducts_maia import get_satid_datetime_orbit_from_fname_maia
+    #Get satellite name, time, and orbit number from avhrr_file
     if PPS_VALIDATION  and not PPS_FORMAT_2012_OR_EARLIER and not as_oldstyle:
-        sl_ = os.path.basename(avhrr_filename).split('_')
-        date_time= datetime.strptime(sl_[5], '%Y%m%dT%H%M%S%fZ')
-        values= {"satellite": sl_[3],
-                 "date_time": date_time,
-                 "orbit": sl_[4],
-                 #"date":"%04d%02d%02d"%(date_time.year,dat_time.month, date_time.day),
-                 "date": date_time.strftime("%Y%m%d"),
-                 "year":date_time.year,
-                 "month":"%02d"%(date_time.month),  
-                 "lines_lines": "*",
-                 "time":date_time.strftime("%H%M"),
-                 "ppsfilename":avhrr_filename}
-        values['basename'] = values["satellite"] + "_" + values["date"] + "_" + values["time"] + "_" + values["orbit"]
-    if PPS_VALIDATION and (PPS_FORMAT_2012_OR_EARLIER or as_oldstyle):
-        sl_ = os.path.basename(avhrr_filename).split('_')
-        date_time= datetime.strptime(sl_[1] + sl_[2], '%Y%m%d%H%M')
-        values= {"satellite": sl_[0],
-                 "date_time": date_time,
-                 "orbit": sl_[3].split('.')[0],
-                 "date":sl_[1],
-                 "year":date_time.year,
-                 "month":"%02d"%(date_time.month),  
-                 #"lines_lines": sl_[5] + "_" + sl_[6],
-                 "lines_lines": "*",
-                 "time":sl_[2],
-                 "ppsfilename":avhrr_filename}
-        values['basename'] = values["satellite"] + "_" + values["date"] + "_" + values["time"] + "_" + values["orbit"]
+        values = get_satid_datetime_orbit_from_fname_pps(filename, as_oldstyle=False)  
     if CCI_CLOUD_VALIDATION:
-         #avhrr_file = "20080613002200-ESACCI-L2_CLOUD-CLD_PRODUCTS-AVHRRGAC-NOAA18-fv1.0.nc"
-        sl_ = os.path.basename(avhrr_filename).split('-')
-        date_time = datetime.strptime(sl_[0], '%Y%m%d%H%M%S')
-
-        sat_id = "noaa18"#sl_[5]_lower,
-        values= {"satellite": sat_id,
-                 "date_time": date_time,
-                 "orbit": "99999",
-                 "date":date_time.strftime("%Y%m%d"),
-                 "year":date_time.year,
-                 "month":"%02d"%(date_time.month),    
-                 "time":date_time.strftime("%H%M"),
-                 #"basename":sat_id + "_" + date_time.strftime("%Y%m%d_%H%M_99999"),#"20080613002200-ESACCI",
-                 "ccifilename":avhrr_filename,
-                 "ppsfilename":None}
-        values['basename'] = values["satellite"] + "_" + values["date"] + "_" + values["time"] + "_" + values["orbit"]
+        values = get_satid_datetime_orbit_from_fname_cci(filename)
     if MAIA_CLOUD_VALIDATION:
-         #viiCT_npp_DB_20120817_S035411_E035535_DES_N_La052_Lo-027_00001.h5
-        sl_ = os.path.basename(avhrr_filename).split('_')
-        date_time = datetime.strptime(sl_[3] + sl_[4], '%Y%m%dS%H%M%S')
-
-        sat_id = sl_[1].lower()
-        values= {"satellite": sat_id,
-                 "date_time": date_time,
-                 "orbit": "99999",
-                 "date":date_time.strftime("%Y%m%d"),
-                 "year":date_time.year,
-                 "month":"%02d"%(date_time.month),    
-                 "time":date_time.strftime("%H%M"),
-                 #"basename":sat_id + "_" + date_time.strftime("%Y%m%d_%H%M_99999"),#"20080613002200-ESACCI",
-                 "ccifilename":avhrr_filename,
-                 "ppsfilename":None}
-        values['basename'] = values["satellite"] + "_" + values["date"] + "_" + values["time"] + "_" + values["orbit"]
-    
-
+        values = get_satid_datetime_orbit_from_fname_maia(filename)
     return values
 
 
