@@ -140,6 +140,9 @@ def main(args=None):
     group.add_argument( '--cci_product_file', '-cf', 
                       help="Interpret arguments as inputfile with "  
                       "list of cci files")
+    group.add_argument( '--maia_product_file', '-mf', 
+                      help="Interpret arguments as inputfile with "  
+                      "list of maia files")
     group.add_argument('--sno_file', '-sf', 
                       help="Interpret arguments as sno_output_file")
 
@@ -203,6 +206,17 @@ def main(args=None):
                 pass
             else:    
                 satname, time = parse_scenesfile_cci(line)
+                matchups.append(Cross(satname, '', time, time, -999, -999))
+    elif options.maia_product_file is not None:
+        from find_crosses import Cross
+        from runutils import  parse_scenesfile_maia
+        maia_output_file = options.maia_product_file
+        read_from_file = open(maia_output_file,'r')
+        for line in read_from_file:
+            if line.rstrip() in "":
+                pass
+            else:    
+                satname, time = parse_scenesfile_maia(line)
                 matchups.append(Cross(satname, '', time, time, -999, -999))
 
     process_matchups(matchups, run_modes, reprocess, options.debug)

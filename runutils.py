@@ -111,3 +111,20 @@ def parse_scenesfile_cci(filename):
     _datetime = datetime.strptime(date_s + time_s, '%Y%m%d%H%M')
     
     return satname, _datetime
+
+def parse_scenesfile_maia(filename):
+    """
+    Parse maia file:  #viiCT_npp_DB_20120817_S035411_E035535_DES_N_La052_Lo-027_00001.h5
+    """
+    from datetime import datetime
+    import re
+    filename = os.path.basename(filename)
+    if not filename:
+        raise ValueError("No file %r" % filename)        
+    match = re.match(r"viiCT_(npp)_\S\S_(\d+)_S(\d+)_", filename)
+    if not match:
+        raise ValueError("Couldn't parse maia file %r" % filename)
+    satname, date_s, time_s = match.groups()
+    _datetime = datetime.strptime(date_s + time_s, '%Y%m%d%H%M%S')
+    
+    return satname, _datetime
