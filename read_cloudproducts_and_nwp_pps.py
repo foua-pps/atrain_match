@@ -7,8 +7,7 @@ import time
 import calendar
 from datetime import datetime
 logger = logging.getLogger(__name__)
-from config import (VAL_CPP)
-from config import NODATA, PPS_FORMAT_2012_OR_EARLIER
+from config import NODATA, PPS_FORMAT_2012_OR_EARLIER, VAL_CPP
 ATRAIN_MATCH_NODATA = NODATA
 #logger.debug('Just so you know: this module has a logger...')
 

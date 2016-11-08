@@ -1,7 +1,7 @@
 import numpy as np
 import logging
 logger = logging.getLogger(__name__)
-from config import PPS_VALIDATION
+from config import PPS_VALIDATION, SAVE_NEIGHBOUR_INFO
 CHANNEL_MICRON_DESCRIPTIONS = {'11': ["avhrr channel 4 - 11um",
                                       "Avhrr channel channel4.",
                                       "AVHRR ch4",
@@ -269,7 +269,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
         value_track = [ctype.ct_quality[row_matched[idx], col_matched[idx]]
                              for idx in range(npix)]
         obt.avhrr.cloudtype_quality = np.array(value_track)
-    if hasattr(ctype, 'ct_conditions') and ctype.ct_conditions is not None:
+    if hasattr(ctype, 'ct_conditions') and np.size(ctype.ct_conditions)>10:
         value_track = [ctype.ct_conditions[row_matched[idx], col_matched[idx]]
                              for idx in range(npix)]
         obt.avhrr.cloudtype_conditions = np.array(value_track)
@@ -315,7 +315,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
                 value_track = [data[row_matched[idx], col_matched[idx]]
                                for idx in range(npix)]
                 setattr(obt.avhrr, texture, np.array(value_track))
-    if dataObj != None:
+    if dataObj != None and SAVE_NEIGHBOUR_INFO:
         neighbour_obj =get_warmest_values(dataObj, row_col)
         for key in ["warmest_t11", "warmest_t12", "warmest_t37",
                     "warmest_r06", "warmest_r09", "warmest_r16"]:

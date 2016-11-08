@@ -30,7 +30,8 @@ MAIA_CLOUD_VALIDATION = False
 
 #Search also for calipso 5km aerosol data
 MATCH_AEROSOL_CALIPSO = False
-
+#Save imager data also for warmest and coldest pixels:
+SAVE_NEIGHBOUR_INFO = False
 ALSO_USE_5KM_FILES = True
 COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC = False
 COMPILE_RESULTS_SEPARATELY_FOR_SEMI_AND_OPAQUE = False
