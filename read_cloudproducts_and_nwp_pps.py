@@ -5,9 +5,10 @@ import h5py
 import logging
 import time
 import calendar
+from datetime import datetime
 logger = logging.getLogger(__name__)
 from config import (VAL_CPP)
-from config import NODATA
+from config import NODATA, PPS_FORMAT_2012_OR_EARLIER
 ATRAIN_MATCH_NODATA = NODATA
 #logger.debug('Just so you know: this module has a logger...')
 
@@ -16,7 +17,7 @@ def get_satid_datetime_orbit_from_fname_pps(avhrr_filename,as_oldstyle=False):
     #satname, _datetime, orbit = runutils.parse_scene(avhrr_filename)
     #returnd orbit as int, loosing leeding zeros, use %05d to get it right.
     # Get satellite name, time, and orbit number from avhrr_file
-    if PPS_VALIDATION and (PPS_FORMAT_2012_OR_EARLIER or as_oldstyle):
+    if PPS_FORMAT_2012_OR_EARLIER or as_oldstyle:
         sl_ = os.path.basename(avhrr_filename).split('_')
         date_time= datetime.strptime(sl_[1] + sl_[2], '%Y%m%d%H%M')
         values= {"satellite": sl_[0],
@@ -690,12 +691,12 @@ def pps_read_all(pps_files, avhrr_file, cross):
     logger.info("Read IMAGER geolocation data")
     if '.nc' in avhrr_file:
         pps_nc = netCDF4.Dataset(avhrr_file, 'r', format='NETCDF4')
-        avhrrGeoObj = read_pps_geoobj_nc(pps_nc)
+        imagerGeoObj = read_pps_geoobj_nc(pps_nc)
     else:    
         #use mpop?
-        avhrrGeoObj = read_pps_geoobj_h5(avhrr_file)  
+        imagerGeoObj = read_pps_geoobj_h5(avhrr_file)  
     #create time info for each pixel  
-    values = get_satid_datetime_orbit_from_fname_pps(avhrr_file, as_oldstyle=False)  
+    values = get_satid_datetime_orbit_from_fname_pps(avhrr_file)  
     imagerGeoObj = createAvhrrTime(imagerGeoObj, values)
     logger.info("Read IMAGER Sun -and Satellites Angles data")
     if '.nc' in pps_files.sunsatangles:
@@ -814,4 +815,4 @@ def pps_read_all(pps_files, avhrr_file, cross):
     nwp_obj = NWPObj(nwp_dict)
     logger.info("Read PPS NWP segment resolution data") 
     segment_data_object = read_segment_data(getattr(pps_files,'nwp_segments'))
-    return avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, nwp_obj, cppLwp, cppCph, segment_data_object, cma 
+    return avhrrAngObj, ctth, imagerGeoObj, ctype, avhrrObj, nwp_obj, cppLwp, cppCph, segment_data_object, cma 

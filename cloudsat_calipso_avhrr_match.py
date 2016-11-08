@@ -204,8 +204,8 @@ def get_satid_datetime_orbit_from_fname(filename,as_oldstyle=False):
     from read_cloudproducts_cci import get_satid_datetime_orbit_from_fname_cci
     from read_cloudproducts_maia import get_satid_datetime_orbit_from_fname_maia
     #Get satellite name, time, and orbit number from avhrr_file
-    if PPS_VALIDATION  and not PPS_FORMAT_2012_OR_EARLIER and not as_oldstyle:
-        values = get_satid_datetime_orbit_from_fname_pps(filename, as_oldstyle=False)  
+    if PPS_VALIDATION:
+        values = get_satid_datetime_orbit_from_fname_pps(filename, as_oldstyle=as_oldstyle)  
     if CCI_CLOUD_VALIDATION:
         values = get_satid_datetime_orbit_from_fname_cci(filename)
     if MAIA_CLOUD_VALIDATION:

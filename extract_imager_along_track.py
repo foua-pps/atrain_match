@@ -277,7 +277,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
         value_track = [ctype.ct_statusflag[row_matched[idx], col_matched[idx]]
                              for idx in range(npix)]
         obt.avhrr.cloudtype_status = np.array(value_track)
-    if hasattr(ctth, 'ctth_statusflag') and PPS_VALIDATION and np.size(ctype.ctth_statusflag)>10:
+    if hasattr(ctth, 'ctth_statusflag') and PPS_VALIDATION and np.size(ctth.ctth_statusflag)>10:
         value_track = [ctth.ctth_statusflag[row_matched[idx], col_matched[idx]]
                                        for idx in range(npix)]
         obt.avhrr.ctth_status = np.array(value_track)
