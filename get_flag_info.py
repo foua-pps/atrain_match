@@ -228,3 +228,9 @@ def get_day_night_twilight_info_maia(cm_flag):
     all_dnt_flag =  np.ones(maia_cm_flag.shape)
     no_qflag = 0 * all_dnt_flag #dummy flag
     return (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag)
+
+def get_pixels_where_test_is_passed(cma_testlist, bit_nr=0):
+    #print bit_nr,
+    #print 
+    test_was_fullfilled = (cma_testlist.astype(np.uint16)>>bit_nr & 1)
+    return test_was_fullfilled

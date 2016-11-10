@@ -80,7 +80,7 @@ def parse_scene(filename):
 
 def parse_scenesfile_v2014(filename):
     """
-    Parse pps file =S_NWC_CT_{satellite}_{orbit}_%Y%m%dT%H%M???Z_*.h5
+    Parse pps file =S_NWC_CT_{satellite}_{orbit}_%Y%m%dT%H%M???Z_*.h5 or .nc
     """
     from datetime import datetime
     import re
