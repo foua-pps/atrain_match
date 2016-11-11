@@ -366,17 +366,11 @@ def print_calipso_cmask_stats(caObj, statfile, cal_subset):
        
     # CORRELATION CLOUD MASK: CALIOP - AVHRR
 
-
-    if config.ALSO_USE_1KM_FILES:
-        calipso_clear = np.logical_and(
-            np.less(caObj.calipso.cloud_fraction,0.5),cal_subset)
-        calipso_cloudy = np.logical_and(
-            np.greater(caObj.calipso.cloud_fraction,0.5),cal_subset)
-    else:
-        calipso_clear = np.logical_and(
-            np.less(caObj.calipso.cloud_fraction,0.34),cal_subset)
-        calipso_cloudy = np.logical_and(
-            np.greater(caObj.calipso.cloud_fraction,0.66),cal_subset)
+    calipso_clear = np.logical_and(
+        np.less(caObj.calipso.cloud_fraction,config.CALIPSO_CLEAR_MAX_CFC),cal_subset)
+    calipso_cloudy = np.logical_and(
+        np.greater(caObj.calipso.cloud_fraction,config.CALIPSO_CLOUDY_MIN_CFC),cal_subset)
+    
         
     # For the combined 1km + 5km dataset cloud_fraction can only have values (0.0, 0.2, 0.4, 0.6, 0.8, 1.0). So the threshold should
     # really be set to 0.4, i.e., at least two 1 km columns should be cloudy!. 

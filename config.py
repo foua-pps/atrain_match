@@ -28,10 +28,18 @@ print "PPS_VALIDATION", PPS_VALIDATION
 CCI_CLOUD_VALIDATION = False
 MAIA_CLOUD_VALIDATION = False
 
-#Search also for calipso 5km aerosol data
-MATCH_AEROSOL_CALIPSO = False
 #Save imager data also for warmest and coldest pixels:
 SAVE_NEIGHBOUR_INFO = False
+    
+# For the combined 1km + 5km dataset cloud_fraction can only have values 
+#(0.0, 0.2, 0.4, 0.6, 0.8, 1.0). So the threshold should
+# really be set to 0.4, i.e., at least two 1 km columns should be cloudy!. 
+    
+CALIPSO_CLOUDY_MIN_CFC = 0.5 #0.34 Tradition, KG used 0.5
+CALIPSO_CLEAR_MAX_CFC = 0.0001 #0.66 Tradition, KG used 0.5 for v2014 validation
+
+#Search also for calipso 5km aerosol data
+MATCH_AEROSOL_CALIPSO = False
 ALSO_USE_5KM_FILES = True
 COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC = False
 COMPILE_RESULTS_SEPARATELY_FOR_SEMI_AND_OPAQUE = False
