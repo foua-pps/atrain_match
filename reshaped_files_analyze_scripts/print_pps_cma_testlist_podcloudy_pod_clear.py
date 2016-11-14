@@ -32,6 +32,7 @@ def print_common_stats(caObj, use, name_dict):
         isCalipsoClear,
         caObj.calipso.all_arrays['nsidc_surface_type']<=0)
 
+    test_1(caObj, isCalipsoCloudy, isCalipsoClear)
 
     isCloudyPPS = np.logical_and(caObj.avhrr.all_arrays['cloudtype']>4,
                                  caObj.avhrr.all_arrays['cloudtype']<21) 
@@ -97,7 +98,13 @@ def print_common_stats(caObj, use, name_dict):
             MISSclear = (np.sum(np.logical_and(isCalipsoClear[use_this_test], 
                                               isCloudyPPS[use_this_test]))*1.0
                         /np.sum(isCalipsoClear[use]))
-            PRINT_FOR_OUTPUT_ON_SCREEN = False
+            MISSsnow = (np.sum(np.logical_and(
+                np.logical_and(
+                    isCalipsoSnowIce[use_this_test],
+                    gotLight[use_this_test]), 
+                isCloudyPPS[use_this_test]))*1.0
+                        /np.sum(isCalipsoClear[use]))
+            PRINT_FOR_OUTPUT_ON_SCREEN = True
             test_name = name_dict[var][bit_nr]
             if PRINT_FOR_OUTPUT_ON_SCREEN:
                 print "%s test_bit: %s"%(var, str(bit_nr).rjust(2,' ') ),
@@ -118,11 +125,12 @@ def print_common_stats(caObj, use, name_dict):
                     ("%3.2f"%(FARclear*100)).rjust(5,' '), 
                     test_name)    
             else:    
-                print "N: %s POD-cloudy: %s FAR-cloudy: %s MISS-clear: %s %s"%(
+                print "N: %s POD-cloudy: %s FAR-cloudy: %s MISS-clear: %s MISS-snow: %s %s"%(
                     str(np.sum(use_this_test)).rjust(8,' '), 
                     ("%3.2f"%(PODcloudy*100)).rjust(5,' '), 
                     ("%3.2f"%(FARcloudy*100)).rjust(5,' '), 
                     ("%3.2f"%(MISSclear*100)).rjust(5,' '), 
+                    ("%3.2f"%(MISSsnow*100)).rjust(5,' '), 
                     test_name)  
 
             #print "%s test_bit:%d N: %d POD-cloudy: %3.2f FAR-cloudy: %3.2f POD-clear %3.2f FAR-clear %3.2f"%(
@@ -131,25 +139,24 @@ def print_common_stats(caObj, use, name_dict):
     print "should be zero", np.sum(np.logical_and(isCalipsoClear[all_pix], 
                                                   isCloudyPPS[all_pix])),
     print np.sum(np.logical_and(isCalipsoClear[use], 
-                                isCloudyPPS[use]))
-    """
-    investigate = all_pix
-    for var in ['cma_testlist0',
-                'cma_testlist1',
-                'cma_testlist2',
-                'cma_testlist3',
-                'cma_testlist4',
-                'cma_testlist5',
-            ]:
-        print var, caObj.avhrr.all_arrays[var][investigate]
-   """             
+                                isCloudyPPS[use]))            
 
     Num = np.sum(use)
     part_nodata = nodata*1.0/(nodata+Num)
     #print "N: %d POD-cloudy: %3.2f FAR-cloudy: %3.2f POD-clear %3.2f"%(
     #    Num, PODcloudy, FARcloudy , PODclear)
                 
-        
+def test_1(caObj, isCloudy, isClear):
+    test_is_on = get_pixels_where_test_is_passed(
+        caObj.avhrr.all_arrays['cma_testlist1'], bit_nr=5)
+    import matplotlib.pyplot as plt
+    feature1 = caObj.avhrr.all_arrays['text_t11t12']
+    feature2 = caObj.avhrr.all_arrays['bt11micron']
+    bad = np.logical_and(test_is_on, isClear)
+    good = np.logical_and(test_is_on, isCloudy)
+    plt.plot( feature2[bad],feature1[bad], 'b.')
+    plt.plot( feature2[good],feature1[good], 'b.')    
+    plt.show()
 
 ROOT_DIR = ("/home/a001865/DATA_MISC/reshaped_files/"
             "global_modis_14th_created20161108/")
