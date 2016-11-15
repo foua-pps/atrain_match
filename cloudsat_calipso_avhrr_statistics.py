@@ -651,8 +651,8 @@ def print_calipso_stats_ctype(caObj, statfile, cal_subset, cal_vert_feature):
     #print "CALIPSO high-AVHRR frac,CALIPSO medium-AVHRR frac, CALIPSO low-AVHRR frac",n_frac_high,n_frac_medium,n_frac_low
     
     if (n_low_low+n_medium_low+n_high_low+n_frac_low) > 0:
-        pod_low = float(n_low_low)/(n_low_low+n_medium_low+n_high_low+n_frac_low)
-        far_low = float(n_medium_low+n_high_low+n_frac_low)/(n_low_low+n_medium_low+n_high_low+n_frac_low)
+        pod_low = float(n_low_low + n_frac_low)/(n_low_low+n_medium_low+n_high_low+n_frac_low)
+        far_low = float(n_medium_low+n_high_low)/(n_low_low+n_medium_low+n_high_low+n_frac_low)
     else:
         pod_low = -9.0
         far_low = -9.0

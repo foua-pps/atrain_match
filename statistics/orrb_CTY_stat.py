@@ -105,7 +105,7 @@ class CloudTypeStats(OrrbStats):
         common_cloud_free = Totpix-samples_low_cal-samples_medium_cal-samples_high_cal
         
         # numpy.divide handles potential division by zero
-        pod_low = divide(float(n_low_low),float(samples_low_cal))
+        pod_low = divide(float(n_low_low + n_frac_low),float(samples_low_cal))
         far_low = 1-pod_low
         pod_medium = divide(float(n_medium_medium),float(samples_medium_cal))
         far_medium = 1-pod_medium
@@ -138,9 +138,9 @@ class CloudTypeStats(OrrbStats):
         
         n_low_no_no = n_medium_medium+n_medium_high+n_high_medium+n_high_high+n_frac_medium+n_frac_high+\
                         (Totpix-samples_low_cal-samples_medium_cal-samples_high_cal)
-        n_low_yes_yes = n_low_low
+        n_low_yes_yes = n_low_low + n_frac_low
         n_low_yes_no = n_low_medium+n_low_high+n_low_clear
-        n_low_no_yes = n_medium_low+n_high_low+n_clear_low+n_frac_low
+        n_low_no_yes = n_medium_low+n_high_low+n_clear_low
         square_sum_cal_low = float(n_low_yes_yes+n_low_no_no)*bias_low_noperc*bias_low_noperc + \
                                 n_low_no_yes*(-1.0-bias_low_noperc)*(-1.0-bias_low_noperc) + \
                                 n_low_yes_no*(1.0-bias_low_noperc)*(1.0-bias_low_noperc)
