@@ -408,7 +408,10 @@ def read_pps_angobj_h5(filename):
                 AngObj.satz.intercept = image['what'].attrs['offset']
                 AngObj.satz.no_data = image['what'].attrs['nodata']
                 AngObj.satz.missing_data = image['what'].attrs['missingdata']
-            elif ("elative" in image.attrs['description']):            ):
+            elif (image.attrs['description'] == 
+                  "relative sun-satellite azimuth difference angle" or 
+                  image.attrs['description'] == 
+                  "Relative satellite-sun azimuth angle"):
                 AngObj.azidiff.data = image['data'].value.astype(np.float)
                 AngObj.azidiff.gain = image['what'].attrs['gain']
                 AngObj.azidiff.intercept = image['what'].attrs['offset']
