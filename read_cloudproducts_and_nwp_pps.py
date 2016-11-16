@@ -393,21 +393,22 @@ def read_pps_angobj_h5(filename):
     for var in h5file.keys():
         if 'image' in var:
             image = h5file[var]     
-            if image.attrs['description'] == "sun zenith angle":
+            if (image.attrs['description'] == "sun zenith angle" or
+                image.attrs['description'] == "Solar zenith angle"):
                 print "reading sunz"
                 AngObj.sunz.data = image['data'].value.astype(np.float)
                 AngObj.sunz.gain = image['what'].attrs['gain']
                 AngObj.sunz.intercept = image['what'].attrs['offset']
                 AngObj.sunz.no_data = image['what'].attrs['nodata']
                 AngObj.sunz.missing_data = image['what'].attrs['missingdata']
-            elif image.attrs['description'] == "satellite zenith angle":
+            elif (image.attrs['description'] == "satellite zenith angle" or
+                  image.attrs['description'] == "Satellite zenith angle"):
                 AngObj.satz.data = image['data'].value.astype(np.float)
                 AngObj.satz.gain = image['what'].attrs['gain']
                 AngObj.satz.intercept = image['what'].attrs['offset']
                 AngObj.satz.no_data = image['what'].attrs['nodata']
                 AngObj.satz.missing_data = image['what'].attrs['missingdata']
-            elif (image.attrs['description'] == 
-                  "relative sun-satellite azimuth difference angle"):
+            elif ("elative" in image.attrs['description']):            ):
                 AngObj.azidiff.data = image['data'].value.astype(np.float)
                 AngObj.azidiff.gain = image['what'].attrs['gain']
                 AngObj.azidiff.intercept = image['what'].attrs['offset']
