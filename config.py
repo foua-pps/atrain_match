@@ -23,10 +23,10 @@ USE_ORBITS_THAT_STARTS_EXACTLY_AT_CROSS = str2bool(
         'USE_ORBITS_THAT_STARTS_EXACTLY_AT_CROSS', True))
 
 #Choose one to validate
-PPS_VALIDATION = True
+PPS_VALIDATION = str2bool(os.environ.get('PPS_VALIDATION', True))
 print "PPS_VALIDATION", PPS_VALIDATION
 CCI_CLOUD_VALIDATION = False
-MAIA_CLOUD_VALIDATION = False
+MAIA_CLOUD_VALIDATION = str2bool(os.environ.get('MAIA_CLOUD_VALIDATION', False))
 
 #Save imager data also for warmest and coldest pixels:
 SAVE_NEIGHBOUR_INFO = False
@@ -117,7 +117,7 @@ SAT_ORBIT_DURATION = 50*60 #Not to large
 # sometimes when swaths are close in time
 CALIPSO_FILE_LENGTH = 60*60 #calipso fiels are for certain shorter 60 minnutes
 #: Allowed time deviation in seconds between AVHRR and CALIPSO/CloudSat matchup
-sec_timeThr = 60*20
+sec_timeThr = 60*10
 
 #: Recommended cloud threshold for the CloudSat cloud mask. In 5km data this
 #: threshold has already been applied, so there is no reason to change it for

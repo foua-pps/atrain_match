@@ -48,7 +48,7 @@ def get_satid_datetime_orbit_from_fname_pps(avhrr_filename,as_oldstyle=False):
     return values    
         
 
-def createAvhrrTime(Obt, values={}):
+def createAvhrrTime(Obt, values={}, Trust_sec_1970=False):
     """ Function to make crate a matrix with time for each pixel 
     from objects start adn end time """
     from config import DSEC_PER_AVHRR_SCALINE, IMAGER_INSTRUMENT 
@@ -71,6 +71,8 @@ def createAvhrrTime(Obt, values={}):
         Obt.time = np.apply_along_axis(np.multiply,  0, np.ones([num_of_scan, 16]), linetime).reshape(Obt.num_of_lines)
         logger.info("NPP start time :  %s", time.gmtime(Obt.sec1970_start))
         logger.info("NPP end time : %s", time.gmtime(Obt.sec1970_end))
+    elif Trust_sec_1970  :
+        Obt.time = np.linspace(Obt.sec1970_start, Obt.sec1970_end, Obt.num_of_lines)
     else:
         if Obt.sec1970_end < Obt.sec1970_start:
             """

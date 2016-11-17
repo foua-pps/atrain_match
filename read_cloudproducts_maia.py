@@ -146,7 +146,7 @@ def read_maia_geoobj(maia_h5, filename):
     GeoObj.sec1970_end = calendar.timegm(date_time_end.timetuple())
     GeoObj.num_of_lines = GeoObj.latitude.shape[0]
 
-    GeoObj = createAvhrrTime(GeoObj, values={})
+    GeoObj = createAvhrrTime(GeoObj, values={},Trust_sec_1970=True)
     tim1 = time.strftime("%Y%m%d %H:%M", 
                          time.gmtime(GeoObj.sec1970_start))
     tim2 = time.strftime("%Y%m%d %H:%M", 

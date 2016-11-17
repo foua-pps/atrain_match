@@ -121,7 +121,7 @@ def parse_scenesfile_maia(filename):
     filename = os.path.basename(filename)
     if not filename:
         raise ValueError("No file %r" % filename)        
-    match = re.match(r"viiCT_(npp)_\S\S_(\d+)_S(\d+)_", filename)
+    match = re.match(r"\S\S\SCT_(\S\S\S)_\S\S_(\d+)_S(\d+)_", filename)
     if not match:
         raise ValueError("Couldn't parse maia file %r" % filename)
     satname, date_s, time_s = match.groups()

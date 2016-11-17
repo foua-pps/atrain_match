@@ -45,8 +45,9 @@ def get_clear_cloudy_vectors(caObj, use):#, both_have_ct):
                  /np.sum(isCalipsoClear[use]))
     Num = np.sum(use)
     part_nodata = nodata*1.0/(nodata+Num)
-    print "N: %d POD-cloudy: %3.2f FAR-cloudy: %3.2f POD-clear %3.2f"%(# Part-CT-nodata: %3.2f"%(
-        Num, PODcloudy, FARcloudy , PODclear)#, part_nodata)
+    max_time_diff = np.max(caObj.diff_sec_1970[use])
+    print "N: %d POD-cloudy: %3.2f FAR-cloudy: %3.2f POD-clear %3.2f Max-time-diff %ds"%(# Part-CT-nodata: %3.2f"%(
+        Num, PODcloudy, FARcloudy , PODclear, max_time_diff)#, part_nodata)
                  
 
 def print_common_stats(caObjMAIA, caObjPPS):
@@ -69,24 +70,32 @@ def print_common_stats(caObjMAIA, caObjPPS):
     #maia_ct = caObjMAIA.avhrr.all_arrays['cloudtype']
     pps_bt11 = caObjPPS.avhrr.all_arrays['bt11micron']
     pps_profile_id[pps_bt11<0]=-9
-    
+    pps_profile_id[caObjPPS.avhrr.all_arrays['cloudtype']<1]=-9
+    pps_profile_id[caObjPPS.avhrr.all_arrays['cloudtype']>20]=-9
+    maia_profile_id[caObjMAIA.avhrr.all_arrays['cloudtype']<1]=-9
+    maia_profile_id[caObjMAIA.avhrr.all_arrays['cloudtype']>20]=-9
     #profile_id_in_both = np.intersect1d(maia_profile_id,pps_profile_id) 
 
     use_pps = pps_sec_1970>0
     use_maia = maia_sec_1970>0
     use_pps[pps_sec_1970<min_time_maia] = False
-    use_pps[pps_sec_1970>max_time_maia] = False
+    use_pps[pps_sec_1970<min_time_maia] = False
+    use_pps[caObjPPS.diff_sec_1970>600] = False
+    use_maia[caObjMAIA.diff_sec_1970>600] = False
     use_maia[maia_sec_1970<min_time_pps] = False
     use_maia[maia_sec_1970>max_time_pps] = False
     use_pps[pps_lat<min_lat_maia] = False
     use_pps[pps_lat>max_lat_maia] = False
     use_maia[maia_lat<min_lat_pps] = False
     use_maia[maia_lat>max_lat_pps] = False
+    use_maia[maia_profile_id<0] = False
+    use_pps[pps_profile_id<0] = False
 
     use_maia_same_profile = np.array([p_id in pps_profile_id[use_pps] for p_id in maia_profile_id])
     use_pps_same_profile =  np.array([p_id in maia_profile_id[use_maia] for p_id in pps_profile_id])
-    use_maia = np.logical_and(use_maia, use_maia_same_profile)
-    use_pps = np.logical_and(use_pps, use_pps_same_profile)
+    use_maia =  np.logical_and(use_maia, use_maia_same_profile)
+    use_pps =   np.logical_and(use_pps, use_pps_same_profile)
+    print np.sum(use_maia), np.sum(use_pps)
 
 
     #both_have_ct = np.logical_and(caObjMAIA.avhrr.all_arrays['cloudtype']<20,
@@ -98,21 +107,23 @@ def print_common_stats(caObjMAIA, caObjPPS):
     get_clear_cloudy_vectors(caObjPPS, use_pps)#, both_have_ct)
 
 
-MAIA_ROOT_DIR = ("/home/a001865/VALIDATIONS_TEST/"
-                 "VIIRS_npp_pps_for_maia_comparison/Reshaped_Files/"
-                 "npp/1km/2012/")
-PPS_ROOT_DIR = ("/home/a001865/VALIDATIONS_TEST/"
-                "VIIRS_npp_pps_for_maia_comparison_the_pps/Reshaped_Files/"
-                "npp/1km/2012/")
+MAIA_ROOT_DIR = ("/home/a001865/VALIDATIONS/MAIA/Reshaped_Files/"
+                 "*/1km/")
+PPS_ROOT_DIR = ("/home/a001865/VALIDATIONS/PPS/Reshaped_Files/"
+                "*/1km/")
 
-for month in ['06','07','08','10']:
-    maia_files = glob(MAIA_ROOT_DIR + "%s/*/*h5"%(month))
-    pps_files = glob(PPS_ROOT_DIR + "%s/*/*h5"%(month))
+
+for y_month in ['2012/06','2012/07','2012/08','2012/10','2015/12']:
+    maia_files = glob(MAIA_ROOT_DIR + "%s/*/*h5"%(y_month))
+    pps_files = glob(PPS_ROOT_DIR + "%s/*/*h5"%(y_month))
     caObjMAIA = CalipsoAvhrrTrackObject()
-    #caObjPPS = CalipsoAvhrrTrackObject()
+    caObjPPS = CalipsoAvhrrTrackObject()
     for filename in maia_files:
-     caObjMAIA +=  readCaliopAvhrrMatchObj(filename)  
+        caObjMAIA +=  readCaliopAvhrrMatchObj(filename)  
     for filename in pps_files:
-        caObjPPS =  readCaliopAvhrrMatchObj(filename) 
-        print "Scene %s"%(os.path.basename(filename))
-        print_common_stats(caObjMAIA, caObjPPS)
+        caObjPPS +=  readCaliopAvhrrMatchObj(filename) 
+    satellite = 'Suomi-NPP'
+    if y_month in ['2015/12']:
+        satellite = 'Metop-B'
+    print "Year, month, satellite %s %s"%(y_month, satellite)
+    print_common_stats(caObjMAIA, caObjPPS)
