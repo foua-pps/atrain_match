@@ -594,34 +594,33 @@ def read_segment_data(filename):
         for misc_data in ['meanElevation', 'fractionOfLand']:
             product[misc_data] = h5file['segment_area'][misc_data]
         logger.info("Read segment info brightness temperature")
-        try:
-            for tb_data in ['tb11clfree_sea',
-                            'tb12clfree_sea',
-                            'tb11clfree_land',
-                            'tb12clfree_land']:
+        
+        for tb_data in ['tb11clfree_sea',
+                        'tb12clfree_sea',
+                        'tb11clfree_land',
+                        'tb12clfree_land',
+                        'tb4clfree_sea',
+                        'tb5clfree_sea',
+                        'tb4clfree_land',
+                        'tb5clfree_land'
+                        'tb11lowcloud_sea',
+                        'tb12lowcloud_sea',
+                        'tb11lowcloud_land',
+                        'tb12lowcloud_land']:
+            try:
+                
                 data = h5file['segment_area'][tb_data]
                 gain = h5file.attrs['t_gain']
                 intercept = h5file.attrs['tb_intercept']
                 nodata = h5file.attrs['t_nodata']
                 data_float = np.array(data, dtype=np.float)
                 data_float[data!=nodata] = data_float[data!=nodata] * gain + intercept
-                product[tb_data] = data_float
-        except ValueError:
-            for tb_data, h5name in zip(['tb11clfree_sea',
-                                        'tb12clfree_sea',
-                                        'tb11clfree_land',
-                                        'tb12clfree_land'],
-                                       ['tb4clfree_sea',
-                                        'tb5clfree_sea',
-                                        'tb4clfree_land',
-                                       'tb5clfree_land']):
-                data = h5file['segment_area'][h5name]
-                gain = h5file.attrs['t_gain']
-                intercept = h5file.attrs['tb_intercept']
-                nodata = h5file.attrs['t_nodata']
-                data_float = np.array(data, dtype=np.float)
-                data_float[data!=nodata] = data_float[data!=nodata] * gain + intercept
-                product[tb_data] = data_float
+                name= tb_data
+                name = name.replace('4','11')
+                name = name.replace('5','12')
+                product[name] = data_float                
+            except ValueError:
+                pass
         h5file.close()
         return product
     else:
