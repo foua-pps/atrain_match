@@ -181,10 +181,16 @@ def insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt):
             for s_col in xrange(nwp_segments['norows']):
                 for s_row in xrange(nwp_segments['nocols']):
                     within_segment = np.logical_and(
-                        np.logical_and(row_matched>=segment_rowidx[s_row,s_col]-nwp_segments['segSizeX']/2,
-                                       row_matched<segment_rowidx[s_row,s_col]+nwp_segments['segSizeX']/2),
-                        np.logical_and(col_matched>=segment_colidx[s_row,s_col]-nwp_segments['segSizeY']/2,
-                                       col_matched<segment_colidx[s_row,s_col]+nwp_segments['segSizeY']/2))
+                        np.logical_and(
+                            row_matched >= (segment_rowidx[s_row,s_col] 
+                                            - nwp_segments['segSizeX']/2),
+                            row_matched < (segment_rowidx[s_row,s_col] 
+                                           + nwp_segments['segSizeX']/2)),
+                        np.logical_and(
+                            col_matched >= (segment_colidx[s_row,s_col]
+                                            - nwp_segments['segSizeY']/2),
+                            col_matched < (segment_colidx[s_row,s_col]
+                                           + nwp_segments['segSizeY']/2)))
                     seg_row[within_segment] = s_row
                     seg_col[within_segment] = s_col
             return  seg_row, seg_col   
@@ -202,14 +208,20 @@ def insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt):
                          'tb11clfree_sea',
                          'tb12clfree_sea',
                          'tb11clfree_land',
-                         'tb12clfree_land']:
-                         #'tb11cloudy_surface',
-                         #'tb12cloudy_surface ',
-            setattr(obt.avhrr,'segment_nwp_' + data_set, 
-                    np.array([nwp_segments[data_set][seg_row[idx], seg_col[idx]]
-                              for idx in range(npix)]))
-        #obt.avhrr.segment_t850 = np.array([nwp_segments['t850'][seg_row[idx], seg_col[idx]]
-        #                                   for idx in range(npix)])
+                         'tb12clfree_land',
+                         'tb11lowcloud_sea',
+                         'tb12lowcloud_sea',
+                         'tb11lowcloud_land',
+                         'tb12lowcloud_land']:
+            if data_set in nwp_segments.keys():
+                #'tb11cloudy_surface',
+                #'tb12cloudy_surface ',
+                setattr(obt.avhrr,'segment_nwp_' + data_set, 
+                        np.array([nwp_segments[data_set][seg_row[idx], seg_col[idx]]
+                                  for idx in range(npix)]))
+            elif 'clfree' in data_set or 'lowcloud' in data_set:
+                #these are nor always present
+                pass
 
         for data_set in ['moist', 'pressure', 'geoheight', 'temp']:
             setattr(obt.avhrr,'segment_nwp_' + data_set, 
