@@ -9,6 +9,8 @@ from matchobject_io import (readCaliopAvhrrMatchObj,
 from plot_kuipers_on_area_util import (PerformancePlottingObject,
                                        ppsMatch_Imager_CalipsoObject)
 import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.rcParams.update({'font.size': 16})
 from get_flag_info import get_calipso_clouds_of_type_i
 from get_flag_info import (get_semi_opaque_info_pps2014,
                            get_calipso_high_clouds,
@@ -16,6 +18,8 @@ from get_flag_info import (get_semi_opaque_info_pps2014,
                            get_calipso_low_clouds)
 
 def make_boxplot(caObj, name):
+    if 'old' in name:
+        name = "pps_traditional"
     low_clouds = get_calipso_low_clouds(caObj)
     high_clouds = get_calipso_high_clouds(caObj)
     medium_clouds = get_calipso_medium_clouds(caObj)
@@ -24,23 +28,73 @@ def make_boxplot(caObj, name):
     height_pps = caObj.avhrr.all_arrays['ctth_height']
     use = np.logical_and(height_pps >-1,
                          caObj.calipso.all_arrays['layer_top_altitude'][:,0]>-1)
+
     low = np.logical_and(low_clouds,use)
     medium = np.logical_and(medium_clouds,use)
     high = np.logical_and(high_clouds,use)
     bias = height_pps - height_c
-    fig = plt.figure(figsize = (9,9))        
+    limit = np.percentile(bias[use],5)
+    print limit 
+
+    fig = plt.figure(figsize = (7,9))        
     ax = fig.add_subplot(111)
-    plt.boxplot([bias[low],bias[medium],bias[high]],whis=[2, 98],sym='',labels=["low","medium","high"])
-    ax.set_ylim(-15000,15000)
+    plt.boxplot([bias[low],bias[medium],bias[high]],whis=[2, 98],sym='',labels=["low","medium","high"],showmeans=True)
+    ax.set_ylim(-14000,8000)
     ax.fill_between(np.arange(0,6),-1500,1500, facecolor='green', alpha=0.2)
     ax.fill_between(np.arange(0,6),2000,15000, facecolor='red', alpha=0.2)
     ax.fill_between(np.arange(0,6),-2000,-15000, facecolor='red', alpha=0.2)
-    for y_val in xrange(-5000,6000,1000):
-        plt.plot(np.arange(0,6), y_val + 0*np.arange(0,6),':k')
+    for y_val in [-5,-4,-3,-2,-1,1,2,3,4,5]:
+        plt.plot(np.arange(0,6), y_val*1000 + 0*np.arange(0,6),':k')
+
+    plt.plot(np.arange(0,6), 0 + 0*np.arange(0,6),'k')
     plt.title(name)
     plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/CTTH_LAPSE_RATE_INVESTIGATION/ctth_box_plot_%s.png"%(name))
     #plt.show()
 
+
+def make_compare(caObj, caObj2, name):
+    low_clouds = get_calipso_low_clouds(caObj)
+    high_clouds = get_calipso_high_clouds(caObj)
+    medium_clouds = get_calipso_medium_clouds(caObj)
+    height_c = (1000*caObj.calipso.all_arrays['layer_top_altitude'][:,0] - 
+                caObj.calipso.all_arrays['elevation'])
+    height_pps1 = caObj.avhrr.all_arrays['ctth_height']
+    height_pps2 = caObj2.avhrr.all_arrays['ctth_height']
+    use = np.logical_and(height_pps1 >-1,height_pps2>-1)
+    use = np.logical_and(use,
+                         caObj.calipso.all_arrays['layer_top_altitude'][:,0]>-1)
+
+    low = np.logical_and(low_clouds,use)
+    medium = np.logical_and(medium_clouds,use)
+    high = np.logical_and(high_clouds,use)
+    bias1 = height_pps1 - height_c
+    bias2 = height_pps2 - height_c
+    limit = np.percentile(bias2[use],5)
+    print limit 
+    fig = plt.figure(figsize = (9,9))        
+    ax = fig.add_subplot(111)
+    plt.boxplot([bias1[low],bias1[medium],bias1[high], bias2[low],
+                 bias2[medium],bias2[high]],whis=[2, 98],sym='',
+                labels=["low1","medium1","high1",
+                        "low2","medium2","high2"],showmeans=True)
+    ax.set_ylim(-15000,15000)
+    ax.fill_between(np.arange(0,12),-1500,1500, facecolor='green', alpha=0.2)
+    ax.fill_between(np.arange(0,12),2000,15000, facecolor='red', alpha=0.2)
+    ax.fill_between(np.arange(0,12),-2000,-15000, facecolor='red', alpha=0.2)
+    for y_val in xrange(-5000,6000,1000):
+        plt.plot(np.arange(0,12), y_val + 0*np.arange(0,12),':k')
+    plt.title(name)
+    plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/CTTH_LAPSE_RATE_INVESTIGATION/ctth_box_plot_%s.png"%(name))
+    plt.show()
+
+    """
+    fig = plt.figure(figsize = (9,9))        
+    ax = fig.add_subplot(111)
+    plt.plot(np.sorted(height_pps1 - height_pps2))
+    plt.title(name)
+    plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/CTTH_LAPSE_RATE_INVESTIGATION/ctth_compare_%s.png"%(name))
+    plt.show()
+    """
 def investigate_nn_ctth():
     ROOT_DIR_GAC_nn = ("/home/a001865/DATA_MISC/reshaped_files/"
                        "ATRAIN_RESULTS_GAC_nn21/Reshaped_Files/noaa18/")
@@ -48,10 +102,13 @@ def investigate_nn_ctth():
                         "ATRAIN_RESULTS_GAC_old/Reshaped_Files/noaa18/")
     ROOT_DIR_GAC_nn_new = ("/home/a001865/DATA_MISC/reshaped_files/"
                            "ATRAIN_RESULTS_GAC_nn20161125/Reshaped_Files/noaa18/")
+    ROOT_DIR_GAC_nn_18 = ("/home/a001865/DATA_MISC/reshaped_files/"
+                           "ATRAIN_RESULTS_GAC_nn20161130/Reshaped_Files/noaa18/")
 
     re_name = re.compile("_RESULTS_GAC_(\w+)\/")
-
-    for ROOT_DIR in [ROOT_DIR_GAC_nn, ROOT_DIR_GAC_old, ROOT_DIR_GAC_nn_new]:
+    caobj_dict = {}
+    for ROOT_DIR in [ROOT_DIR_GAC_nn, ROOT_DIR_GAC_old, 
+                     ROOT_DIR_GAC_nn_new, ROOT_DIR_GAC_nn_18]:
         match = re_name.search(ROOT_DIR)
         name = "no_name"
         if match:
@@ -60,8 +117,10 @@ def investigate_nn_ctth():
         caObj = CalipsoAvhrrTrackObject()
         for filename in files:
             caObj +=  readCaliopAvhrrMatchObj(filename) 
+        caobj_dict[name] = caObj    
         make_boxplot(caObj, name) 
-
+    make_compare(caobj_dict['old'],caobj_dict['nn20161125'],'test')
+    make_compare(caobj_dict['nn20161130'],caobj_dict['nn20161125'],'test2')
 if __name__ == "__main__":
     investigate_nn_ctth()
     

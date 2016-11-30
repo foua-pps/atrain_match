@@ -32,8 +32,6 @@ def print_common_stats(caObj, use, name_dict):
         isCalipsoClear,
         caObj.calipso.all_arrays['nsidc_surface_type']<=0)
 
-    test_1(caObj, isCalipsoCloudy, isCalipsoClear)
-
     isCloudyPPS = np.logical_and(caObj.avhrr.all_arrays['cloudtype']>4,
                                  caObj.avhrr.all_arrays['cloudtype']<21) 
     isClearPPS = np.logical_and(caObj.avhrr.all_arrays['cloudtype']>0,
@@ -104,6 +102,13 @@ def print_common_stats(caObj, use, name_dict):
                     gotLight[use_this_test]), 
                 isCloudyPPS[use_this_test]))*1.0
                         /np.sum(isCalipsoClear[use]))
+            LOSTsnow = (np.sum(np.logical_and(
+                np.logical_and(
+                    isCalipsoSnowIce[use_this_test],
+                    gotLight[use_this_test]), 
+                isCloudyPPS[use_this_test]))*1.0
+                        /np.sum(np.logical_and(isCalipsoSnowIce[use],gotLight[use])))
+
             PRINT_FOR_OUTPUT_ON_SCREEN = True
             test_name = name_dict[var][bit_nr]
             if PRINT_FOR_OUTPUT_ON_SCREEN:
@@ -111,12 +116,13 @@ def print_common_stats(caObj, use, name_dict):
 
             if (var ==  'cma_testlist5' or (var == 'cma_testlist4' and bit_nr>1) and 
                 'snow' in name_dict[var][bit_nr]):
-                print "N: %s POD-clear: %s FAR-clear: %s POD-snow: %s FAR_not_clouds %s %s "%(
+                print "N: %s POD-clear: %s FAR-clear: %s POD-snow: %s FAR_not_clouds %s LOSTsnow %s %s "%(
                     str(np.sum(use_this_test)).rjust(8,' '), 
                     ("%3.2f"%(PODclear*100)).rjust(5,' '), 
                     ("%3.2f"%(FARclear*100)).rjust(5,' '), 
                     ("%3.2f"%(PODsnow*100)).rjust(5,' '), 
                     ("%3.2f"%(FARsnow_not_clouds*100)).rjust(5,' '),
+                    ("%3.2f"%(LOSTsnow*100)).rjust(5,' '),
                     test_name) 
             elif var ==  'cma_testlist5' or (var == 'cma_testlist4' and bit_nr>1):
                 print "N: %s POD-clear: %s FAR-clear: %s %s"%(
@@ -146,25 +152,17 @@ def print_common_stats(caObj, use, name_dict):
     #print "N: %d POD-cloudy: %3.2f FAR-cloudy: %3.2f POD-clear %3.2f"%(
     #    Num, PODcloudy, FARcloudy , PODclear)
                 
-def test_1(caObj, isCloudy, isClear):
-    test_is_on = get_pixels_where_test_is_passed(
-        caObj.avhrr.all_arrays['cma_testlist1'], bit_nr=5)
-    import matplotlib.pyplot as plt
-    feature1 = caObj.avhrr.all_arrays['text_t11t12']
-    feature2 = caObj.avhrr.all_arrays['bt11micron']
-    bad = np.logical_and(test_is_on, isClear)
-    good = np.logical_and(test_is_on, isCloudy)
-    plt.plot( feature2[bad],feature1[bad], 'b.')
-    plt.plot( feature2[good],feature1[good], 'b.')    
-    plt.show()
+
 
 ROOT_DIR = ("/home/a001865/DATA_MISC/reshaped_files/"
             "global_modis_14th_created20161108/")
 ROOT_DIR_GAC = ("/home/a001865/DATA_MISC/reshaped_files/"
-            "ATRAIN_RESULTS_GAC/Reshaped_Files/noaa18/")
+            "ATRAIN_RESULTS_GAC_oldctth/Reshaped_Files/noaa18/")
+ROOT_DIR_GAC = ("/home/a001865/DATA_MISC/reshaped_files/"
+            "ATRAIN_RESULTS_GAC_hsatz/Reshaped_Files/noaa18/")
 
 files = glob(ROOT_DIR + "Reshaped_Files/merged/modis*h5")
-files = glob(ROOT_DIR_GAC + "5km/2009/*/*/*h5")
+files = glob(ROOT_DIR_GAC + "5km/20??/*/*/*h5")
 
 
 test_list_file = "/home/a001865/git/acpg_develop/acpg/pges/cloudmask/pps_pge01_cmasktests.h"
@@ -187,6 +185,7 @@ caObjPPS = CalipsoAvhrrTrackObject()
 for filename in files:
     caObjPPS +=  readCaliopAvhrrMatchObj(filename) 
     print "Scene %s"%(os.path.basename(filename))
-    use = caObjPPS.avhrr.all_arrays['bt11micron']>-9
+use = caObjPPS.avhrr.all_arrays['bt11micron']>-9
+use = caObjPPS.avhrr.all_arrays['sunz']>95
 print_common_stats(caObjPPS, use, name_dict)
 
