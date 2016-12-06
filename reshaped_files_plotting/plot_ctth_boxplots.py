@@ -35,17 +35,23 @@ def make_boxplot(caObj, name):
     bias = height_pps - height_c
     limit = np.percentile(bias[use],5)
     print limit 
-
-    fig = plt.figure(figsize = (7,9))        
+    from matplotlib import rcParams
+    rcParams.update({'figure.autolayout': True})
+    fig = plt.figure(figsize = (6,9))        
     ax = fig.add_subplot(111)
+    #plt.tight_layout()
+    #plt.subplots_adjust(left=0.2)
+    #plt.subplots_adjust(left=10, bottom=10, right=10, top=10, wspace=0, hspace=0)
     plt.boxplot([bias[low],bias[medium],bias[high]],whis=[2, 98],sym='',labels=["low","medium","high"],showmeans=True)
     ax.set_ylim(-14000,8000)
+    ax.fill_between(np.arange(0,6),-500,500, facecolor='green', alpha=0.6)
+    ax.fill_between(np.arange(0,6),-1000,1000, facecolor='green', alpha=0.4)
     ax.fill_between(np.arange(0,6),-1500,1500, facecolor='green', alpha=0.2)
     ax.fill_between(np.arange(0,6),2000,15000, facecolor='red', alpha=0.2)
     ax.fill_between(np.arange(0,6),-2000,-15000, facecolor='red', alpha=0.2)
-    for y_val in [-5,-4,-3,-2,-1,1,2,3,4,5]:
+    for y_val in [-5,-4,-3,-2,2,3,4,5]:
         plt.plot(np.arange(0,6), y_val*1000 + 0*np.arange(0,6),':k')
-
+        plt.plot(np.arange(0,6), -10*1000 + 0*np.arange(0,6),':k')
     plt.plot(np.arange(0,6), 0 + 0*np.arange(0,6),'k')
     plt.title(name)
     plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/CTTH_LAPSE_RATE_INVESTIGATION/ctth_box_plot_%s.png"%(name))
@@ -121,9 +127,53 @@ def investigate_nn_ctth():
         make_boxplot(caObj, name) 
     make_compare(caobj_dict['old'],caobj_dict['nn20161125'],'test')
     make_compare(caobj_dict['nn20161130'],caobj_dict['nn20161125'],'test2')
-if __name__ == "__main__":
-    investigate_nn_ctth()
+
+
+def investigate_nn_ctth_modis():
+    #november
+    ROOT_DIR_MODIS_nn = (
+        "/home/a001865/DATA_MISC/reshaped_files/"
+        "ATRAIN_RESULTS_MODIS_NOVEMBER/Reshaped_Files/merged/")
+    ROOT_DIR_MODIS_nn_viirs = (
+        "/home/a001865/DATA_MISC/reshaped_files/"
+        "ATRAIN_RESULTS_MODIS_NOVEMBER_nnviirs_20161205/Reshaped_Files/merged/")
+    #may
     
+    ROOT_DIR_MODIS_nn = (
+        "/home/a001865/DATA_MISC/reshaped_files/"
+        "ATRAIN_RESULTS_MODIS_MAY/Reshaped_Files/merged/")
+    ROOT_DIR_MODIS_nn_viirs = (
+        "/home/a001865/DATA_MISC/reshaped_files/"
+        "ATRAIN_RESULTS_MODIS_MAY_nnviirs_20161205/Reshaped_Files/merged/")
+    ROOT_DIR_MODIS_nn_mersi2 = (
+        "/home/a001865/DATA_MISC/reshaped_files/"
+        "ATRAIN_RESULTS_MODIS_MAY_nnmersi2_20161206/Reshaped_Files/merged/")
+   
+    ROOT_DIR_MODIS_old = (
+        "/home/a001865/DATA_MISC/reshaped_files/"
+        "global_modis_14th_created20161108/Reshaped_Files/merged/")
+
+    caobj_dict = {}
+    for ROOT_DIR, name in zip(
+            [ROOT_DIR_MODIS_nn, ROOT_DIR_MODIS_nn_viirs, 
+             ROOT_DIR_MODIS_nn_mersi2, ROOT_DIR_MODIS_old], 
+            ["modis_may_nnAVHRR","modis_may_nnVIIRS","modis_may_nnMERSI2",
+             "modis_may_traditional_pps"]):
+        print name
+        files = glob(ROOT_DIR + "/*05*.h5")
+        caObj = CalipsoAvhrrTrackObject()
+        for filename in files:
+            print filename
+            caObj +=  readCaliopAvhrrMatchObj(filename) 
+        caobj_dict[name] = caObj    
+        make_boxplot(caObj, name) 
+    #make_compare(caobj_dict["modis_nn18var"],
+    #             caobj_dict["modis_traditional_pps"],
+    #             'compare_modis')
+
+if __name__ == "__main__":
+    #investigate_nn_ctth()
+    investigate_nn_ctth_modis()   
     """
     isModis1km = False
     isNPP_v2014 = False

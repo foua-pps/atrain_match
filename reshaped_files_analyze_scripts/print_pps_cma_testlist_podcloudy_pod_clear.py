@@ -109,13 +109,16 @@ def print_common_stats(caObj, use, name_dict):
                 isCloudyPPS[use_this_test]))*1.0
                         /np.sum(np.logical_and(isCalipsoSnowIce[use],gotLight[use])))
 
-            PRINT_FOR_OUTPUT_ON_SCREEN = True
+            PRINT_FOR_OUTPUT_ON_SCREEN = False
             test_name = name_dict[var][bit_nr]
             if PRINT_FOR_OUTPUT_ON_SCREEN:
                 print "%s test_bit: %s"%(var, str(bit_nr).rjust(2,' ') ),
 
-            if (var ==  'cma_testlist5' or (var == 'cma_testlist4' and bit_nr>1) and 
-                'snow' in name_dict[var][bit_nr]):
+            clear_test=False    
+            if (var ==  'cma_testlist5' and bit_nr<10) or (var == 'cma_testlist4' and bit_nr>1):
+                clear_test=True
+    
+            if clear_test and 'snow' in name_dict[var][bit_nr]:
                 print "N: %s POD-clear: %s FAR-clear: %s POD-snow: %s FAR_not_clouds %s LOSTsnow %s %s "%(
                     str(np.sum(use_this_test)).rjust(8,' '), 
                     ("%3.2f"%(PODclear*100)).rjust(5,' '), 
@@ -124,7 +127,7 @@ def print_common_stats(caObj, use, name_dict):
                     ("%3.2f"%(FARsnow_not_clouds*100)).rjust(5,' '),
                     ("%3.2f"%(LOSTsnow*100)).rjust(5,' '),
                     test_name) 
-            elif var ==  'cma_testlist5' or (var == 'cma_testlist4' and bit_nr>1):
+            elif clear_test:
                 print "N: %s POD-clear: %s FAR-clear: %s %s"%(
                     str(np.sum(use_this_test)).rjust(8,' '), 
                     ("%3.2f"%(PODclear*100)).rjust(5,' '), 
@@ -159,7 +162,7 @@ ROOT_DIR = ("/home/a001865/DATA_MISC/reshaped_files/"
 ROOT_DIR_GAC = ("/home/a001865/DATA_MISC/reshaped_files/"
             "ATRAIN_RESULTS_GAC_oldctth/Reshaped_Files/noaa18/")
 ROOT_DIR_GAC = ("/home/a001865/DATA_MISC/reshaped_files/"
-            "ATRAIN_RESULTS_GAC_hsatz/Reshaped_Files/noaa18/")
+            "ATRAIN_RESULTS_GAC_oldctth_20161201/Reshaped_Files/noaa18/")
 
 files = glob(ROOT_DIR + "Reshaped_Files/merged/modis*h5")
 files = glob(ROOT_DIR_GAC + "5km/20??/*/*/*h5")
@@ -186,6 +189,6 @@ for filename in files:
     caObjPPS +=  readCaliopAvhrrMatchObj(filename) 
     print "Scene %s"%(os.path.basename(filename))
 use = caObjPPS.avhrr.all_arrays['bt11micron']>-9
-use = caObjPPS.avhrr.all_arrays['sunz']>95
+#use = caObjPPS.avhrr.all_arrays['sunz']>95
 print_common_stats(caObjPPS, use, name_dict)
 
