@@ -745,7 +745,7 @@ def pps_read_all(pps_files, avhrr_file, cross):
         cppLwp = 1000. * cpp.products['cpp_lwp'].array
         cppCph = cpp.products['cpp_phase'].array
 
-    if ('cmaprob' in pps_files.cloudtype and pps_files.cloudtype==pps_files.cma):
+    if ('prob' in pps_files.cloudtype and pps_files.ctth==pps_files.cma):
         logger.info("Read PPS Cloud mask prob")
         cma, ctype, ctth = read_cmaprob_h5(pps_files.cma)
     else:    
