@@ -183,6 +183,9 @@ def get_day_night_info(caObj):
     if config.CCI_CLOUD_VALIDATION or config.MAIA_CLOUD_VALIDATION:
         daynight_flags = get_day_night_twilight_info_cci2014(
         caObj.avhrr.sunz)
+    if config.PPS_VALIDATION and  hasattr(caObj.avhrr, 'cma_prob') and np.size(caObj.avhrr.cma_prob)>10:
+        daynight_flags = get_day_night_twilight_info_cci2014(
+            caObj.avhrr.sunz)
     if config.PPS_VALIDATION and  hasattr(caObj.avhrr, 'cloudtype_qflag'):
         if caObj.avhrr.cloudtype_qflag is not None:
             daynight_flags = get_day_night_twilight_info_pps2012(
@@ -190,7 +193,7 @@ def get_day_night_info(caObj):
     if config.PPS_VALIDATION and  hasattr(caObj.avhrr, 'cloudtype_conditions'):
         if caObj.avhrr.cloudtype_conditions is not None:
             daynight_flags = get_day_night_twilight_info_pps2014(
-                caObj.avhrr.cloudtype_conditions)             
+                caObj.avhrr.cloudtype_conditions)     
     (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag) = daynight_flags
     if (no_qflag.sum() + night_flag.sum() + twilight_flag.sum() + day_flag.sum()) != caObj.calipso.longitude.size:          
         print('something wrong with quality flags. It does not sum up. See beginning of statistic file')

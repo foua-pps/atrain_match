@@ -68,6 +68,7 @@ def createAvhrrTime(Obt, values={}, Trust_sec_1970=False):
        #linetime = np.linspace(1, 10, 20)
        #test = np.apply_along_axis(np.multiply,  0, np.ones([20, 16]), linetime).reshape(30)        
         linetime = np.linspace(Obt.sec1970_start, Obt.sec1970_end, num_of_scan)
+        print linetime.shape, num_of_scan
         Obt.time = np.apply_along_axis(np.multiply,  0, np.ones([num_of_scan, 16]), linetime).reshape(Obt.num_of_lines)
         logger.info("NPP start time :  %s", time.gmtime(Obt.sec1970_start))
         logger.info("NPP end time : %s", time.gmtime(Obt.sec1970_end))
@@ -193,6 +194,7 @@ class CmaObj:
     #skeleton container for v2014 cma
     def __init__(self):
         self.cma_ext = None
+        self.cma_prob = None
         self.cma_testlist0 = None #new in v2018
         self.cma_testlist1 = None #new in v2018
         self.cma_testlist2 = None #new in v2018
@@ -304,6 +306,23 @@ def read_cma_h5(filename):
     cma.cma_ext = h5file['cma_extended'].value
     #try KeyError 'cma'
     return cma
+
+def read_cmaprob_h5(filename):
+    h5file = h5py.File(filename, 'r')
+    cma = CmaObj()
+    cma.cma_prob = h5file['cloud_probability'].value
+    cma.cma_ext = 0*cma.cma_prob
+    cma.cma_ext[cma.cma_prob>=0.5] = 1.0
+    ctype = CtypeObj()
+    ctype.cloudtype = 0*cma.cma_prob
+    ctype.cloudtype[cma.cma_prob>=0.5] = 9 #low clouds
+    ctype.cloudtype[cma.cma_prob<0.5] = 1
+    ctth = CtthObj()
+    ctth.height = 5000.0 +0*cma.cma_prob
+    ctth.temperature = 280.0 + 0*cma.cma_prob
+    ctth.pressure = 500.0 + 0*cma.cma_prob
+    #try KeyError 'cma'
+    return cma, ctype, ctth
 
 def read_cma_nc(filename):
     pps_nc = netCDF4.Dataset(filename, 'r', format='NETCDF4')
@@ -725,24 +744,28 @@ def pps_read_all(pps_files, avhrr_file, cross):
         # LWP convert from kg/m2 to g/m2
         cppLwp = 1000. * cpp.products['cpp_lwp'].array
         cppCph = cpp.products['cpp_phase'].array
-    logger.info("Read PPS Cloud mask")
-    if '.nc' in pps_files.cloudtype:
-        cma = read_cma_nc(pps_files.cma)
-    else:
-        cma = read_cma_h5(pps_files.cma)
-    logger.info("Read PPS Cloud Type")
-    if '.nc' in pps_files.cloudtype:
-        ctype = read_cloudtype_nc(pps_files.cloudtype)
-    else:
-        ctype = read_cloudtype_h5(pps_files.cloudtype)
-        #Removed not working read with mpop 2016-09-14
-    logger.info("Read PPS CTTH")
-    if pps_files.ctth is None:
-        ctth = None
-    elif '.nc' in pps_files.ctth:
-        ctth = read_ctth_nc(pps_files.ctth)
-    else:
-        ctth = read_ctth_h5(pps_files.ctth)
+
+    if ('cmaprob' in pps_files.cloudtype and pps_files.cloudtype==pps_files.cma):
+        logger.info("Read PPS Cloud mask prob")
+        cma, ctype, ctth = read_cmaprob_h5(pps_files.cma)
+    else:    
+        logger.info("Read PPS Cloud mask")
+        if '.nc' in pps_files.cloudtype:
+            cma = read_cma_nc(pps_files.cma)
+        else:
+            cma = read_cma_h5(pps_files.cma)        
+        logger.info("Read PPS Cloud Type")
+        if '.nc' in pps_files.cloudtype:
+            ctype = read_cloudtype_nc(pps_files.cloudtype)
+        else:
+            ctype = read_cloudtype_h5(pps_files.cloudtype)
+        logger.info("Read PPS CTTH")
+        if pps_files.ctth is None:
+            ctth = None
+        elif '.nc' in pps_files.ctth:
+            ctth = read_ctth_nc(pps_files.ctth)
+        else:
+            ctth = read_ctth_h5(pps_files.ctth)
 
     logger.info("Read PPS NWP data")
     nwp_dict={}
