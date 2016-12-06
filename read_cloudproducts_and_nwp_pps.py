@@ -312,11 +312,11 @@ def read_cmaprob_h5(filename):
     cma = CmaObj()
     cma.cma_prob = h5file['cloud_probability'].value
     cma.cma_ext = 0*cma.cma_prob
-    cma.cma_ext[cma.cma_prob>=0.5] = 1.0
+    cma.cma_ext[cma.cma_prob>=50] = 1.0
     ctype = CtypeObj()
     ctype.cloudtype = 0*cma.cma_prob
-    ctype.cloudtype[cma.cma_prob>=0.5] = 9 #low clouds
-    ctype.cloudtype[cma.cma_prob<0.5] = 1
+    ctype.cloudtype[cma.cma_prob>=50] = 9 #low clouds
+    ctype.cloudtype[cma.cma_prob<50] = 1
     ctth = CtthObj()
     ctth.height = 5000.0 +0*cma.cma_prob
     ctth.temperature = 280.0 + 0*cma.cma_prob
