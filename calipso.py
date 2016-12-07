@@ -227,7 +227,7 @@ def get_calipso(filename, res, ALAY=False):
         # Replace _pypps_filter (mean over array) with function from scipy.
         # This filtering of single clear/cloud pixels is questionable.
         # Minor investigation (45 scenes npp), shows small decrease in results if removed.
-        cloud_fraction_temp =  ndimage.filters.uniform_filter1d(calipso_clmask, size=winsz)
+        cloud_fraction_temp =  ndimage.filters.uniform_filter1d(calipso_clmask*1.0, size=winsz)
         #don't use filter to set cloudy pixels to clear
         #clobj.cloud_fraction = np.where(
         #    np.logical_and(clobj.cloud_fraction>1,
@@ -414,7 +414,17 @@ def add5kmVariablesTo1kmresolution(calipso1km, calipso5km):
                           "total_optical_depth_5km"]:                
         data = getattr(calipso5km, variable_5km)
         new_data = np.repeat(data, 5, axis=0)    
-        setattr(calipso1km, variable_5km, new_data)        
+        setattr(calipso1km, variable_5km, new_data)  
+    isCloudOnlyIn5km = np.logical_and(calipso1km.cloud_fraction<0.1,
+                                      calipso1km.total_optical_depth_5km>0)
+    #give clouds in only 5km  cloud fraction equal to 0.15
+    #these clouds are either: 
+    #1) thin or 
+    #2) other pixels of the 5 1km pixles are cloudy
+    #In case 1 we might want to have them as clouds in case 2 we do not.
+    #For now just set all of them to 0.15.
+    calipso1km.cloud_fraction[
+        isCloudOnlyIn5km] = 0.15 #+ calipso1km.total_optical_depth_5km[isCloudOnlyIn5km] 
     return calipso1km 
 
 def add1kmTo5km(Obj1, Obj5, start_break, end_break):
