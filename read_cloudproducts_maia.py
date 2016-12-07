@@ -45,24 +45,33 @@ def get_satid_datetime_orbit_from_fname_maia(avhrr_filename):
 def maia_read_all(filename):
     """Read geolocation, angles info, ctth, and cloudtype
     """
+    from runutils import unzip_file
+
+    unzipped = unzip_file(filename)
+    if unzipped:
+        filename = unzipped
+
     logger.info("Opening file %s" % (filename))
-    maia_h5 = h5py.File(filename, 'r')
-    logger.info("Reading angles ...")
-    avhrrAngObj = read_maia_angobj(maia_h5)
-    logger.info("Reading cloud type ...")
-    ctype, cma, ctth = read_maia_ctype_cmask_ctth(maia_h5)  # , avhrrAngObj)
-    logger.info("Reading longitude, latitude and time ...")
-    avhrrGeoObj = read_maia_geoobj(maia_h5, filename)
-    logger.info("Reading surface temperature")
-    surft = read_maia_surftemp(maia_h5)
-    logger.info("Not reading cloud liquid water path")
-    cppLwp = None
-    logger.info("Not reading cloud phase")
-    cppCph = None
-    logger.info("Not reading channel data")
-    avhrrObj = None
-    if maia_h5:
-        maia_h5.close()
+    with h5py.File(filename, 'r') as maia_h5:
+        logger.info("Reading angles ...")
+        avhrrAngObj = read_maia_angobj(maia_h5)
+        logger.info("Reading cloud type ...")
+        # , avhrrAngObj)
+        ctype, cma, ctth = read_maia_ctype_cmask_ctth(maia_h5)
+        logger.info("Reading longitude, latitude and time ...")
+        avhrrGeoObj = read_maia_geoobj(maia_h5, filename)
+        logger.info("Reading surface temperature")
+        surft = read_maia_surftemp(maia_h5)
+        logger.info("Not reading cloud liquid water path")
+        cppLwp = None
+        logger.info("Not reading cloud phase")
+        cppCph = None
+        logger.info("Not reading channel data")
+        avhrrObj = None
+
+    if unzipped:
+        os.remove(unzipped)
+
     return avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, surft, cppLwp, cppCph, cma
 
 
@@ -144,6 +153,7 @@ def read_maia_geoobj(maia_h5, filename):
     GeoObj.longitude[GeoObj.longitude == -9999] = GeoObj.nodata
     GeoObj.latitude[GeoObj.latitude == -9999] = GeoObj.nodata
 
+    # viiCT_npp_GL_20150711_S211124_E211248_ASC_D_La-40_Lo-108_19188.h5
     # viiCT_npp_DB_20120817_S035411_E035535_DES_N_La052_Lo-027_00001.h5
     sl_ = os.path.basename(filename).split('_')
     date_time_start = datetime.strptime(sl_[3] + sl_[4], '%Y%m%dS%H%M%S')
