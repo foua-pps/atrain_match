@@ -233,10 +233,12 @@ def get_calipso(filename, res, ALAY=False):
         #    np.logical_and(clobj.cloud_fraction>1,
         #                   cloud_fraction_temp<1.5/winsz),
         #    0,clobj.cloud_fraction)
+        #If winsz=3: 1clear 2cloudy => cfc = 0.66
+        #   winsz=3; 2clear 1cloudy => cfc = 0.33
         clobj.cloud_fraction = np.where(
             np.logical_and(clobj.cloud_fraction<0,
-                           cloud_fraction_temp>((winsz-1.5)/winsz)),            
-            1,clobj.cloud_fraction)
+                           cloud_fraction_temp>0.01),            
+            cloud_fraction_temp,clobj.cloud_fraction)
        ##############################################################
     elif res == 5 and  not ALAY:
         clobj.cloud_fraction = np.where(clobj.layer_top_altitude[:,0] > 0, 1, 0).astype('d')
