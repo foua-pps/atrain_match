@@ -229,14 +229,10 @@ def get_calipso(filename, res, ALAY=False):
         # Minor investigation (45 scenes npp), shows small decrease in results if removed.
         cloud_fraction_temp =  ndimage.filters.uniform_filter1d(calipso_clmask*1.0, size=winsz)
         #don't use filter to set cloudy pixels to clear
-        #clobj.cloud_fraction = np.where(
-        #    np.logical_and(clobj.cloud_fraction>1,
-        #                   cloud_fraction_temp<1.5/winsz),
-        #    0,clobj.cloud_fraction)
         #If winsz=3: 1clear 2cloudy => cfc = 0.66
         #   winsz=3; 2clear 1cloudy => cfc = 0.33
         clobj.cloud_fraction = np.where(
-            np.logical_and(clobj.cloud_fraction<0,
+            np.logical_and(clobj.cloud_fraction<1.0,
                            cloud_fraction_temp>0.01),            
             cloud_fraction_temp,clobj.cloud_fraction)
        ##############################################################
