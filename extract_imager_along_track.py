@@ -260,6 +260,10 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
         obt.avhrr.cma_prob = np.array(
             [cma.cma_prob[row_matched[idx], col_matched[idx]]
              for idx in range(npix)])
+    if hasattr(cma, 'cma_aerosolflag') and np.size(cma.cma_aerosolflag)>10:
+        obt.avhrr.cma_aerosolflag = np.array(
+            [cma.cma_aerosolflag[row_matched[idx], col_matched[idx]]
+             for idx in range(npix)])
     if hasattr(cma, 'cma_testlist0') and np.size(cma.cma_testlist0)>10:
         obt.avhrr.cma_testlist0 = np.array(
             [cma.cma_testlist0[row_matched[idx], col_matched[idx]]

@@ -195,6 +195,7 @@ class CmaObj:
     def __init__(self):
         self.cma_ext = None
         self.cma_prob = None
+        self.cma_aflag = None
         self.cma_testlist0 = None #new in v2018
         self.cma_testlist1 = None #new in v2018
         self.cma_testlist2 = None #new in v2018
@@ -336,12 +337,14 @@ def read_cma_nc(filename):
     #cma.cma_testlist3 = pps_nc.variables['cma_testlist3'][0,:,:]
     #cma.cma_testlist4 = pps_nc.variables['cma_testlist4'][0,:,:]
     #cma.cma_testlist5 = pps_nc.variables['cma_testlist5'][0,:,:]
-    for var_name in ['cma_testlist0',
-                'cma_testlist1',
-                'cma_testlist2',
-                'cma_testlist3',
-                'cma_testlist4',
-                'cma_testlist5']:
+    for var_name in [
+            'cma_aerosolflag',
+            'cma_testlist0',
+            'cma_testlist1',
+            'cma_testlist2',
+            'cma_testlist3',
+            'cma_testlist4',
+            'cma_testlist5']:
         array = pps_nc.variables[var_name][0,:,:]
         if np.ma.is_masked(array):
             mask = array.mask
