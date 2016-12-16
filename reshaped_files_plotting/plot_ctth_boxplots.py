@@ -18,8 +18,6 @@ from get_flag_info import (get_semi_opaque_info_pps2014,
                            get_calipso_low_clouds)
 
 def make_boxplot(caObj, name):
-    if 'old' in name:
-        name = "pps_traditional"
     low_clouds = get_calipso_low_clouds(caObj)
     high_clouds = get_calipso_high_clouds(caObj)
     medium_clouds = get_calipso_medium_clouds(caObj)
@@ -113,20 +111,18 @@ def investigate_nn_ctth():
 
     re_name = re.compile("_RESULTS_GAC_(\w+)\/")
     caobj_dict = {}
-    for ROOT_DIR in [ROOT_DIR_GAC_nn, ROOT_DIR_GAC_old, 
-                     ROOT_DIR_GAC_nn_new, ROOT_DIR_GAC_nn_18]:
-        match = re_name.search(ROOT_DIR)
-        name = "no_name"
-        if match:
-            name = match.group(1)
+    for ROOT_DIR, name in zip([ROOT_DIR_GAC_nn, ROOT_DIR_GAC_old, 
+                                   ROOT_DIR_GAC_nn_new, ROOT_DIR_GAC_nn_18],
+                                  ["gac_CTTHnn_21", "gac_CTTHold", "gac_CTTHnn_20161125",
+                                   "gac_CTTHnn_AVHRR"]):
         files = glob(ROOT_DIR + "5km/2009/*/*/*h5")
         caObj = CalipsoAvhrrTrackObject()
         for filename in files:
             caObj +=  readCaliopAvhrrMatchObj(filename) 
         caobj_dict[name] = caObj    
         make_boxplot(caObj, name) 
-    make_compare(caobj_dict['old'],caobj_dict['nn20161125'],'test')
-    make_compare(caobj_dict['nn20161130'],caobj_dict['nn20161125'],'test2')
+    #make_compare(caobj_dict['old'],caobj_dict['nn20161125'],'test')
+    #make_compare(caobj_dict['nn20161130'],caobj_dict['nn20161125'],'test2')
 
 
 def investigate_nn_ctth_modis():
@@ -157,8 +153,8 @@ def investigate_nn_ctth_modis():
     for ROOT_DIR, name in zip(
             [ROOT_DIR_MODIS_nn, ROOT_DIR_MODIS_nn_viirs, 
              ROOT_DIR_MODIS_nn_mersi2, ROOT_DIR_MODIS_old], 
-            ["modis_may_nnAVHRR","modis_may_nnVIIRS","modis_may_nnMERSI2",
-             "modis_may_traditional_pps"]):
+            ["modis_may_CTTHnn_AVHRR","modis_may_CTTHnn_VIIRS","modis_may_CTTHnn_MERSI2",
+             "modis_may_CTTHold"]):
         print name
         files = glob(ROOT_DIR + "/*05*.h5")
         caObj = CalipsoAvhrrTrackObject()
@@ -168,12 +164,12 @@ def investigate_nn_ctth_modis():
         caobj_dict[name] = caObj    
         make_boxplot(caObj, name) 
     #make_compare(caobj_dict["modis_nn18var"],
-    #             caobj_dict["modis_traditional_pps"],
+    #             caobj_dict["modis_CTTHold"],
     #             'compare_modis')
 
 if __name__ == "__main__":
-    #investigate_nn_ctth()
-    investigate_nn_ctth_modis()   
+    investigate_nn_ctth()
+    #investigate_nn_ctth_modis()   
     """
     isModis1km = False
     isNPP_v2014 = False

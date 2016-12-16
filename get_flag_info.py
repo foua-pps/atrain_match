@@ -2,6 +2,8 @@ import numpy as np
 import logging
 logger = logging.getLogger(__name__)
 
+
+
 def get_semi_opaque_info_pps2014(ctth_status):
     print "INFO", "Assuming cloudtype flags structure from pps v2014"
     temp_val = (ctth_status>>7 & 1)
@@ -147,7 +149,6 @@ def get_inversion_info_pps2012(cloudtype_qflag):
 #7 = deep convective (opaque)
 def get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=0):
     #bits 10-12, start at 1 counting
-
     cflag = caObj.calipso.feature_classification_flags[::,0]
     cal_vert_feature = np.zeros(cflag.shape)-9.0
     feature_array = (4*np.bitwise_and(np.right_shift(cflag,11),1) + 
@@ -164,7 +165,7 @@ def get_calipso_low_clouds(caObj):
     calipso_low =  np.logical_or(
         np.logical_or(
             get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=0),
-            get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=2)),
+            get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=1)),
         np.logical_or(
             get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=2),
             get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=3)))    
