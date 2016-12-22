@@ -124,6 +124,30 @@ def investigate_nn_ctth():
     #make_compare(caobj_dict['old'],caobj_dict['nn20161125'],'test')
     #make_compare(caobj_dict['nn20161130'],caobj_dict['nn20161125'],'test2')
 
+def investigate_nn_ctth_viirs():
+    ROOT_DIR_ctthold = (
+        "/home/a001865/DATA_MISC/reshaped_files/"
+        "NPP_FULL_ORBIT_2014/Reshaped_Files/")
+    ROOT_DIR_nn_avhrr = (
+        "/home/a001865/DATA_MISC/reshaped_files/"
+        "ATRAIN_RESULTS_NPP2/Reshaped_Files/npp/1km/2015/07/*/")
+    ROOT_DIR_nn_viirs = (
+        "/home/a001865/DATA_MISC/reshaped_files/"
+        "ATRAIN_RESULTS_NPP_nnVIIRS_20161216/Reshaped_Files/npp/1km/2015/07/*/")
+
+    caobj_dict = {}
+    for ROOT_DIR, name in zip(
+            [ROOT_DIR_ctthold, ROOT_DIR_nn_avhrr, ROOT_DIR_nn_viirs], 
+            ["npp_CTTHold","npp_CTTHnn_AVHRR","npp_CTTHnn_VIIRS"]):
+        print ROOT_DIR
+        print name
+        files = glob(ROOT_DIR + "*.h5")
+        caObj = CalipsoAvhrrTrackObject()
+        for filename in files:
+            print filename
+            caObj +=  readCaliopAvhrrMatchObj(filename) 
+        caobj_dict[name] = caObj    
+        make_boxplot(caObj, name) 
 
 def investigate_nn_ctth_modis():
     #november
@@ -133,8 +157,14 @@ def investigate_nn_ctth_modis():
     ROOT_DIR_MODIS_nn_viirs = (
         "/home/a001865/DATA_MISC/reshaped_files/"
         "ATRAIN_RESULTS_MODIS_NOVEMBER_nnviirs_20161205/Reshaped_Files/merged/")
+    ROOT_DIR_MODIS_nn_mersi2 = (
+        "/home/a001865/DATA_MISC/reshaped_files/"
+        "ATRAIN_RESULTS_MODIS_NOVEMBER_AEROSOL/Reshaped_Files/merged/")
+
+
+
     #may
-    
+    """
     ROOT_DIR_MODIS_nn = (
         "/home/a001865/DATA_MISC/reshaped_files/"
         "ATRAIN_RESULTS_MODIS_MAY/Reshaped_Files/merged/")
@@ -144,7 +174,7 @@ def investigate_nn_ctth_modis():
     ROOT_DIR_MODIS_nn_mersi2 = (
         "/home/a001865/DATA_MISC/reshaped_files/"
         "ATRAIN_RESULTS_MODIS_MAY_nnmersi2_20161206/Reshaped_Files/merged/")
-   
+    """
     ROOT_DIR_MODIS_old = (
         "/home/a001865/DATA_MISC/reshaped_files/"
         "global_modis_14th_created20161108/Reshaped_Files/merged/")
@@ -153,10 +183,11 @@ def investigate_nn_ctth_modis():
     for ROOT_DIR, name in zip(
             [ROOT_DIR_MODIS_nn, ROOT_DIR_MODIS_nn_viirs, 
              ROOT_DIR_MODIS_nn_mersi2, ROOT_DIR_MODIS_old], 
-            ["modis_may_CTTHnn_AVHRR","modis_may_CTTHnn_VIIRS","modis_may_CTTHnn_MERSI2",
-             "modis_may_CTTHold"]):
+            ["modis_november_CTTHnn_AVHRR","modis_november_CTTHnn_VIIRS",
+             "modis_november_CTTHnn_MERSI2",
+             "modis_november_CTTHold"]):
         print name
-        files = glob(ROOT_DIR + "/*05*.h5")
+        files = glob(ROOT_DIR + "/*11*.h5")
         caObj = CalipsoAvhrrTrackObject()
         for filename in files:
             print filename
@@ -168,8 +199,9 @@ def investigate_nn_ctth_modis():
     #             'compare_modis')
 
 if __name__ == "__main__":
-    investigate_nn_ctth()
-    #investigate_nn_ctth_modis()   
+    #investigate_nn_ctth()
+    investigate_nn_ctth_modis() 
+    #investigate_nn_ctth_viirs()
     """
     isModis1km = False
     isNPP_v2014 = False
