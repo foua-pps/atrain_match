@@ -188,7 +188,11 @@ def drawCalPPSHeightPlot_PrototypePPSHeight(caObj_calipso,
                                             plotpath, 
                                             basename,
                                             file_type='png',
+                                            xmin=0,
+                                            xmax=-1,
                                             **options):
+    if xmax<0:
+        xmax = len(data_ok)
     if 'instrument' in options:
         instrument = options['instrument']
     else:
@@ -204,7 +208,8 @@ def drawCalPPSHeightPlot_PrototypePPSHeight(caObj_calipso,
     pixel_position_ok = pixel_position[data_ok]
     avhrr_ctth_ok1 = ctth_height1[data_ok]
     avhrr_ctth_ok2 = ctth_height2[data_ok]  
-#    # Calculates Hihest Cloud Top   
+#    # Calculates Hihest Cloud Top  
+
     if MAXHEIGHT == None:
         maxheight_calipso = np.nanmax(caliop_height)
         maxheight_avhrr = np.nanmax(ctth_height1)
@@ -212,42 +217,55 @@ def drawCalPPSHeightPlot_PrototypePPSHeight(caObj_calipso,
         maxheight = maxheight + 1000
     else:
         maxheight = MAXHEIGHT
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-    ax.vlines(pixel_position, 0, caObj_calipso.elevation, 
-                    color='k', alpha=1.0)
+    maxheight = MAXHEIGHT
+    fig = plt.figure(figsize = (20,15))
     title = "%s-CALIOP Cloud Top Heights" % instrument.upper()
-    #: Plot Caliop 
-    caliop_label_set = False
-    #Plot all 10 calipso layers
-    for i in range(10):
-        base_ok = caliop_base[:,0]
-        top_ok  = caliop_height[:,0]
-        if np.min(top_ok<0):
-            #no more clouds, quit plotting calipso
-            break 
-        if caliop_label_set:
-            ax.vlines(pixel_position, 
-                        base_ok, top_ok, linewidth=0.5,  
-                        colors="g", linestyle='solid', 
-                      alpha=1.0 )  
-        else:
-            ax.vlines(pixel_position, 
-                      base_ok, top_ok,
-                      colors="g", linewidth=0.5, linestyle='solid', 
-                      alpha=1.0, label='caliop')
-            caliop_label_set = True
+    font = {'family' : 'normal',
+            'weight' : 'normal',
+            'size'   : 22}
+    plt.rc('font', **font)
+    for subplot_nr in [211, 212]:
+        ax = fig.add_subplot(subplot_nr)
+
+        ax.vlines(pixel_position, 0, caObj_calipso.elevation, 
+                  color='k', alpha=1.0)
+        #: Plot Caliop 
+        caliop_label_set = False
+        #Plot all 10 calipso layers
+        for i in range(10):
+            base_ok = caliop_base[:,0]
+            top_ok  = caliop_height[:,0]
+            if np.min(top_ok<0):
+                #no more clouds, quit plotting calipso
+                break 
+            if caliop_label_set:
+                ax.vlines(pixel_position, 
+                          base_ok, top_ok, linewidth=0.5,  
+                          colors="g", linestyle='solid', 
+                          alpha=1.0 )  
+            else:
+                ax.vlines(pixel_position, 
+                          base_ok, top_ok,
+                          colors="g", linewidth=0.5, linestyle='solid', 
+                          alpha=1.0, label='caliop')
+                caliop_label_set = True
+        ax.set_ylabel("Cloud Height (meter)", fontsize=22)
     #: Plot Avhrr   
+    ax = fig.add_subplot(211)
     ax.plot(pixel_position_ok, avhrr_ctth_ok1, 'b+', linewidth=0.5, 
-            label=instrument.upper() + " pps-ctth")
-    ax.plot(pixel_position_ok, avhrr_ctth_ok2, 'c.', linewidth=0.5, markersize=4,  
-            label=instrument.upper() + " new-ctth")
-    ax.set_ylim(0, maxheight)
-    ax.set_title(title)
-    ax.set_xlabel("Track Position")
-    ax.set_ylabel("Cloud Height (meter)")
+            label=instrument.upper() + " old-CTTH")
     plt.legend(fancybox=True, loc=1,  numpoints=4)
-    plt.show() 
+    ax.set_xlim(xmin, xmax)
+    ax = fig.add_subplot(212)
+    ax.plot(pixel_position_ok, avhrr_ctth_ok2, 'b+', linewidth=0.5,  
+            label=instrument.upper() + " nn-CTTH")
+    plt.legend(fancybox=True, loc=1,  numpoints=4)
+    ax.set_xlim(xmin,xmax)
+    #ax.set_ylim(0, maxheight)
+    plt.suptitle(title, fontsize=24)
+    ax.set_xlabel("Track Position", fontsize=22)
+
+    #plt.show() 
     if isinstance(file_type, str) == True:
         filename = "%s/%skm_%s_calipso_%s_clouds.%s" \
             % (plotpath, RESOLUTION, basename, instrument, file_type)
