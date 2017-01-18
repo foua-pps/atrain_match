@@ -44,6 +44,7 @@ def get_satid_datetime_orbit_from_fname_pps(avhrr_filename,as_oldstyle=False):
                  "time":date_time.strftime("%H%M"),
                  "ppsfilename":avhrr_filename}
         values['basename'] = values["satellite"] + "_" + values["date"] + "_" + values["time"] + "_" + values["orbit"]
+    values["jday"]=date_time.timetuple().tm_yday
 
     return values    
         
@@ -587,8 +588,10 @@ def read_segment_data(filename):
             gain = h5file.attrs['p_gain']
             intercept = h5file.attrs['p_intercept']
             nodata = h5file.attrs['p_nodata']
-            data[data!=nodata] = data[data!=nodata] * (gain/100) + intercept/100 #Pa => hPa
-            product[pressure_data] = data
+            #data[data!=nodata] = data[data!=nodata] * (gain/100) + intercept/100 #Pa => hPa
+            data_float = np.array(data, dtype=np.float)
+            data_float[data!=nodata] = data_float[data!=nodata] * (gain/100) + intercept/100 #Pa => hPa
+            product[pressure_data] = data_float
         logger.info("Read segment info height")
         for geoheight_data in ['geoheight', 'surfaceGeoHeight']:
             #geo height is in meters in segment file
@@ -605,8 +608,9 @@ def read_segment_data(filename):
             gain = h5file.attrs['t_gain']
             intercept = h5file.attrs['t_intercept']
             nodata = h5file.attrs['t_nodata']
-            data[data!=nodata] = data[data!=nodata] * gain + intercept
-            product[temperature_data] = data
+            data_float = np.array(data, dtype=np.float)
+            data_float[data!=nodata] = data_float[data!=nodata] * gain + intercept
+            product[temperature_data] = data_float
         for temperature_data in ['t850', 'ttro', 'surfaceLandTemp', 'surfaceSeaTemp']:
             data = h5file['segment_area'][temperature_data]
             gain = h5file.attrs['t_gain']
