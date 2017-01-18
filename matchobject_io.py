@@ -102,6 +102,7 @@ class ppsAvhrrObject(DataObject):
             'ctth_opaque': None,  # True if opaque retrieval was applied
             'cloudtype': None,
             'cloudmask': None,
+            'cma_aerosolflag':None,
             'cma_testlist0':None,
             'cma_testlist1':None,
             'cma_testlist2':None,
@@ -237,6 +238,15 @@ class ppsAvhrrObject(DataObject):
             'segment_nwp_tb12cloudy_surface': None,
         }
         
+class ModisObject(DataObject):
+    def __init__(self):
+        DataObject.__init__(self)                            
+        self.all_arrays = {
+            'height': None,
+            'temperature': None,
+            'pressure': None,
+            'cloud_emissivity': None}
+
         
 class CalipsoObject(DataObject):
     def __init__(self):
@@ -280,6 +290,7 @@ class CalipsoObject(DataObject):
 class CalipsoAvhrrTrackObject:
     def __init__(self):
         self.avhrr = ppsAvhrrObject()
+        self.modis = ModisObject()
         self.calipso = CalipsoObject()
         self.calipso_aerosol = CalipsoObject()
         self.diff_sec_1970 = None
@@ -421,7 +432,8 @@ def writeCaliopAvhrrMatchObj(filename, ca_obj, avhrr_obj_name = 'pps'):
     from common import write_match_objects    
     groups = {'calipso': ca_obj.calipso.all_arrays,
               'calipso_aerosol': ca_obj.calipso_aerosol.all_arrays,
-              avhrr_obj_name: ca_obj.avhrr.all_arrays}
+              avhrr_obj_name: ca_obj.avhrr.all_arrays,
+              'modis_lvl2': ca_obj.modis.all_arrays }
     write_match_objects(filename, ca_obj.diff_sec_1970, groups)    
 
     status = 1

@@ -11,7 +11,7 @@ import os
 PPS_FORMAT_2012_OR_EARLIER = False
 
 #Set to true if you always want an avhrr orbit that starts before the cross
-ALWAYS_USE_AVHRR_ORBIT_THAT_STARTS_BEFORE_CROSS = False
+ALWAYS_USE_AVHRR_ORBIT_THAT_STARTS_BEFORE_CROSS = True
 #This option is generally not needed to set to True.
 #However when matching 5-minute granules, and calling
 #atrain_match with any option EXCEPT --sno_file setting this
@@ -36,8 +36,10 @@ SAVE_NEIGHBOUR_INFO = False
 # really be set to 0.4, i.e., at least two 1 km columns should be cloudy!. 
     
 CALIPSO_CLOUDY_MIN_CFC = 0.5 #0.34 Tradition, KG used 0.5
-CALIPSO_CLEAR_MAX_CFC = 0.0001 #0.66 Tradition, KG used 0.5 for v2014 validation
+CALIPSO_CLEAR_MAX_CFC = 0.000001 #0.66 Tradition, KG used 0.5 for v2014 validation
 
+#Search also for MODIS lvl2 data
+MATCH_MODIS_LVL2 = False
 #Search also for calipso 5km aerosol data
 MATCH_AEROSOL_CALIPSO = False
 ALSO_USE_5KM_FILES = True

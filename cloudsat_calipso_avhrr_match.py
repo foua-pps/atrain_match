@@ -77,7 +77,7 @@ from config import (VAL_CPP,
 import logging
 logger = logging.getLogger(__name__)
 
-#import config
+import config
 from common import attach_subdir_from_config, MatchupError
 
 from cloudsat_calipso_avhrr_statistics import *
@@ -109,6 +109,7 @@ from cloudsat_calipso_avhrr_plot import (drawCalClsatAvhrrPlotTimeDiff,
 #All non-avhrr satellites need to be here. Avhrr is default.
 INSTRUMENT = {'npp': 'viirs',
               'noaa18': 'avhrr',
+              'eos1': 'modis',
               'eos2': 'modis'} 
 from datetime import datetime, timedelta
 from glob import glob
@@ -439,12 +440,15 @@ def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
     except IndexError:
         raise MatchupError("No cma file found corresponding to %s." % avhrr_file)
     logger.info("CMA: " + cma_file)
+    
+ 
     ctth_name = insert_info_in_filename_or_path(options['ctth_file'], 
                                                 values, datetime_obj=date_time)
     path =  insert_info_in_filename_or_path(options['ctth_dir'], 
-                                                values, datetime_obj=date_time)  
+                                            values, datetime_obj=date_time)  
     try:
         ctth_file = glob(os.path.join(path, ctth_name))[0]
+
     except IndexError:
         raise MatchupError("No ctth file found corresponding to %s." % avhrr_file)
     logger.info("CTTH: " + ctth_file)
@@ -923,6 +927,9 @@ def get_matchups_from_data(cross, config_options):
             'atrain_datatype', 'cloudsat-%s' % config.CLOUDSAT_TYPE)
         writeCloudsatAvhrrMatchObj(cl_match_file, cl_matchup)
 
+    if config.MATCH_MODIS_LVL2 and config.IMAGER_INSTRUMENT.lower() in ['modis']:
+        from read_modis_products import add_modis_06    
+        ca_matchup = add_modis_06(ca_matchup, avhrr_file, config_options) 
     # Write calipso matchup
     if config.CLOUDSAT_TYPE == "CWC-RVOD":
         ca_matchup = None
@@ -1186,9 +1193,9 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
                                 -9,caObj.calipso.elevation)
     cal_data_ok = np.ones(caObj.calipso.elevation.shape,'b')
     logger.info("Length of CALIOP array: %d", len(cal_data_ok))
-
+    
     avhrr_ctth_cal_ok = np.repeat(caObj.avhrr.ctth_height[::],cal_data_ok)
-
+        
     if CCI_CLOUD_VALIDATION: #ctth relative mean sea level
         avhrr_ctth_cal_ok = np.where(np.greater(avhrr_ctth_cal_ok,0.0),avhrr_ctth_cal_ok[::],avhrr_ctth_cal_ok)
     else: #ctth relative topography

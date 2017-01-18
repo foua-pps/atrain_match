@@ -138,6 +138,19 @@ def get_inversion_info_pps2012(cloudtype_qflag):
 #5 = polluted dust
 #6 = smoke
 #7 = other
+def get_calipso_aerosol_of_type_i(caObj, atype=0):
+    #bits 10-12, start at 1 counting
+    cflag = caObj.calipso_aerosol.feature_classification_flags[::,0]
+    cal_vert_feature = np.zeros(cflag.shape)-9.0
+    feature_array = (4*np.bitwise_and(np.right_shift(cflag,11),1) + 
+                     2*np.bitwise_and(np.right_shift(cflag,10),1) + 
+                     1*np.bitwise_and(np.right_shift(cflag,9),1))
+    cal_vert_feature = np.where(
+        np.not_equal(cflag,1),feature_array,cal_vert_feature)
+
+    is_requested_type =  cal_vert_feature == atype
+    return is_requested_type 
+
 #If feature type = cloud, bits 10-12 will specify the cloud type.
 #0 = low overcast, transparent
 #1 = low overcast, opaque
