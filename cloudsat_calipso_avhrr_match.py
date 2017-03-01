@@ -621,7 +621,7 @@ def total_and_top_layer_optical_depth_5km(calipso, resolution=5):
         print "ERROR this fuction is only for 5km data!"
         print "These features can then added to 1km data set"
     calipso.feature_optical_depth_532_top_layer_5km = o_depth_top_layer
-    calipso.total_optical_depth_5km = total_o_depth                   
+    calipso.total_optical_depth_5km = total_o_depth       
   
     return calipso 
 
@@ -660,12 +660,28 @@ def get_calipso_matchups(calipso_files, values,
         print "Calipso version 3 data used and old 1 km restore method!"
         calipso1km = reshapeCalipso(cafiles1km, res=1)
         calipso5km = calipso
-        #data are also time reshaped in this function (add1km..)
-        calipso = add1kmTo5km(calipso1km, calipso5km, startBreak, endBreak) 
+        calipso = add1kmTo5km(calipso1km, calipso5km)
+        calipso = time_reshape_calipso(calipso, 
+                                       start_break=startBreak, end_break=endBreak) 
         calipso = total_and_top_layer_optical_depth_5km(calipso, resolution=5)
 
+    elif cafiles5km !=None and CALIPSO_version4:
+        #RESOLUTION 1km also have 5km data calipso version 4
+        print "Calipso version 3 data used and old 5 km restored optical depth method!!"
+        calipso1km = calipso
+        calipso5km = reshapeCalipso(cafiles5km, res=5)
+        calipso5km = addSingleShotTo5km(calipso5km) 
+        calipso5km = total_and_top_layer_optical_depth_5km(calipso5km, resolution=5)
+        calipso1km = add5kmVariablesTo1kmresolution(calipso1km, calipso5km)
+        if USE_5KM_FILES_TO_FILTER_CALIPSO_DATA:
+            logger.info("Find detection height using 5km data")
+            calipso1km = detection_height_from_5km_data(calipso1km, calipso5km)
+        calipso = time_reshape_calipso(calipso1km,  
+                                       start_break=startBreak, 
+                                       end_break=endBreak) 
+
     elif cafiles5km !=None and CALIPSO_version3:
-        #RESOLUTION 1km also have 5km data
+        #RESOLUTION 1km also have 5km data calipso version 3
         print "Calipso version 3 data used and old 5 km restored optical depth method!!"
         calipso1km = calipso
         calipso5km = reshapeCalipso(cafiles5km, res=5)
@@ -673,23 +689,20 @@ def get_calipso_matchups(calipso_files, values,
         calipso1km = add5kmVariablesTo1kmresolution(calipso1km, calipso5km)
         if USE_5KM_FILES_TO_FILTER_CALIPSO_DATA:
             logger.info("Find detection height using 5km data")
-            #data are also time reshaped in this function use5km ...
-            calipso = detection_height_from_5km_data(
-                calipso1km, 
-                calipso5km, 
-                startBreak, 
-                endBreak)
-        else:
-            calipso = time_reshape_calipso(calipso1km,  
-                                           start_break=startBreak, 
-                                           end_break=endBreak) 
+            calipso1km = detection_height_from_5km_data(calipso1km, calipso5km)
+        calipso = time_reshape_calipso(calipso1km,  
+                                       start_break=startBreak, 
+                                       end_break=endBreak) 
     elif CALIPSO_version4 and RESOLUTION == 5 and ALSO_USE_SINGLE_SHOT_CLOUD_CLEARED:
 
         #RESOLUTION exclusively 5km data but additional clouds taken from 330 m single shot resolution
         print "Calipso version 4 data used and new single shot restore method!!"
         #calipso5km = reshapeCalipso(cafiles5km, res=5)
         calipso5km  = reshapeCalipso(calipso_files)
-        calipso = addSingleShotTo5km(calipso5km, startBreak, endBreak) 
+        calipso = addSingleShotTo5km(calipso5km) 
+        calipso = time_reshape_calipso(calipso,  
+                                       start_break=startBreak, 
+                                       end_break=endBreak) 
         calipso = total_and_top_layer_optical_depth_5km(calipso, resolution=5)
     elif CALIPSO_version4 and RESOLUTION == 5 and ALSO_USE_1KM_FILES:
 
@@ -698,7 +711,10 @@ def get_calipso_matchups(calipso_files, values,
         #calipso5km = reshapeCalipso(cafiles5km, res=5)
         calipso5km  = reshapeCalipso(calipso_files)
         calipso1km = reshapeCalipso(cafiles1km, res=1)
-        calipso = add1kmTo5km(calipso1km, calipso5km, startBreak, endBreak) 
+        calipso = add1kmTo5km(calipso1km, calipso5km)
+        calipso = time_reshape_calipso(calipso,  
+                                       start_break=startBreak, 
+                                       end_break=endBreak) 
         calipso = total_and_top_layer_optical_depth_5km(calipso, resolution=5)
     else:
         print "Standard method used (no additional resolutions or layers)!!"
