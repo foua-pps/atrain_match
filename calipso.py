@@ -18,6 +18,9 @@ from config import (OPTICAL_DETECTION_LIMIT,
                     ALSO_USE_5KM_FILES,
                     USE_5KM_FILES_TO_FILTER_CALIPSO_DATA,
                     PPS_VALIDATION,
+                    CALIPSO_version4,
+                    CALIPSO_version3,
+                    CALIPSO_CLOUDY_MIN_CFC,
                     IMAGER_INSTRUMENT,
                     PPS_FORMAT_2012_OR_EARLIER)
 EXCLUDE_GEOMETRICALLY_THICK = False
@@ -229,6 +232,10 @@ def get_calipso(filename, res, ALAY=False):
         # Minor investigation (45 scenes npp), shows small decrease in results if removed.
         cloud_fraction_temp =  ndimage.filters.uniform_filter1d(calipso_clmask*1.0, size=winsz)
         #don't use filter to set cloudy pixels to clear
+        #clobj.cloud_fraction = np.where(
+        #    np.logical_and(clobj.cloud_fraction>1,
+        #                   cloud_fraction_temp<1.5/winsz),
+        #    0,clobj.cloud_fraction)
         #If winsz=3: 1clear 2cloudy => cfc = 0.66
         #   winsz=3; 2clear 1cloudy => cfc = 0.33
         clobj.cloud_fraction = np.where(
@@ -243,7 +250,8 @@ def get_calipso(filename, res, ALAY=False):
 
 
 def read_calipso(filename, res, ALAY=False):
-    import h5py     
+    import h5py
+    import pdb, sys
     print "reading file", filename
     scip_these_larger_variables_until_needed = {
         # if any of these are needed just rempve them from the dictionary!
@@ -265,6 +273,42 @@ def read_calipso(filename, res, ALAY=False):
     if filename is not None:
         h5file = h5py.File(filename, 'r')
         for dataset in h5file.keys():
+            if dataset == "Lidar_Surface_Detection": # New group V4
+                continue
+            if dataset == "Single_Shot_Detection": # New group V4
+                                                   # Extract number of cloudy single shots (max 15)
+                                                   # plus average cloud base and top
+                                                   # in 5 km FOV
+                name = "ssNumber_Layers_Found"
+                data = h5file["Single_Shot_Detection/ssNumber_Layers_Found"].value
+                data = np.array(data)
+                data_reshaped_15 = data.reshape(-1,15)
+                single_shot_cloud_cleared_array = np.sum(data_reshaped_15==0,axis=1) #Number of clear
+                single_shot_cloud_cleared_array = 15-single_shot_cloud_cleared_array #Number of cloudy
+                name = "Number_cloudy_single_shots" # New name used here
+                #pdb.set_trace()
+                setattr(retv, name, single_shot_cloud_cleared_array)
+                #We need also average cloud top and cloud base for single_shot clouds
+                data = h5file["Single_Shot_Detection/ssLayer_Base_Altitude"].value
+                data = np.array(data)
+                data_reshaped_5 = data.reshape(-1,5)
+                base_array = data_reshaped_5[:,0]
+                base_array = base_array.reshape(-1,15)
+                base_array = np.where(base_array>0, base_array, 0.0)
+                base_mean = np.where(single_shot_cloud_cleared_array>0, np.sum(base_array,axis=1)/single_shot_cloud_cleared_array, -9.0) #Calculate average cloud base
+                name = "Average_cloud_base_single_shots"
+                setattr(retv, name, base_mean)
+                data = h5file["Single_Shot_Detection/ssLayer_Top_Altitude"].value
+                data = np.array(data)
+                data_reshaped_5 = data.reshape(-1,5)
+                top_array = data_reshaped_5[:,0]
+                top_array = top_array.reshape(-1,15)
+                top_array = np.where(top_array>0, top_array, 0.0)
+                top_mean = np.where(single_shot_cloud_cleared_array>0, np.sum(top_array,axis=1)/single_shot_cloud_cleared_array, -9.0) #Calculate average cloud top
+                name = "Average_cloud_top_single_shots"
+                #pdb.set_trace()
+                setattr(retv, name, top_mean)
+                continue
             if dataset in "metadata_t":
                 continue
             if dataset in scip_these_larger_variables_until_needed.keys():
@@ -471,6 +515,10 @@ def add1kmTo5km(Obj1, Obj5, start_break, end_break):
         for j in range(5):
             if Obj1.number_layers_found[i*5+j] > 0:
                 cfc = cfc + 0.2000
+        if cfc == 1.0:
+            cfc = 0.99 # Just to be able to track the case when no cloud layers existed in 5 km data
+                       # but all 1 km FOVs were cloudy /KG 20170213
+                 
         if (Obj5.number_layers_found[i] > 0):
             Obj5.cloud_fraction[i] = 1.0
         if ((cfc > 0.1) and (Obj5.number_layers_found[i] == 0)): #Add missing layer due to CALIPSO processing bug
@@ -494,6 +542,74 @@ def add1kmTo5km(Obj1, Obj5, start_break, end_break):
             feature_array = np.asarray(feature_array_list)
             Obj5.feature_classification_flags[i, 0] = np.median(feature_array[:]) # However, let's take the median value
             Obj5.single_shot_cloud_cleared_fraction[i] = 0.0 # Just put any value, we will not use it!
+            Obj5.cloud_fraction[i] = cfc
+    # Cute the feature values
+    #arnameca = array name from calipsoObj
+    for arnameca, valueca in Obj5.all_arrays.items(): 
+        if valueca != None:
+            if valueca.size != 1:
+                retv.all_arrays[arnameca] = valueca[start_break:end_break,...]
+            else:
+                retv.all_arrays[arnameca] = valueca
+    return retv
+
+def addSingleShotTo5km(Obj5, start_break, end_break): # Valid only for CALIPSO-CALIOP version 4.10
+    retv = CalipsoObject()
+    print "Making use of new Single Shot cloud cleared information"
+
+    #First making a preliminary check of the differences in fraction of cloudy calipso columns in 5 km and single shot data.
+    #pdb.set_trace()
+    cfc_5km = 0
+    cfc_Single_Shot = 0
+    len_5km = Obj5.profile_utc_time.shape[0]
+    len_single_shot = Obj5.Number_cloudy_single_shots.shape[0]
+    if len_5km == len_single_shot:
+        for i in range(len_5km):
+            if Obj5.number_layers_found[i] > 0:
+                cfc_5km = cfc_5km + 1
+        for i in range(len_single_shot):
+            cfc_from_Single_Shot = Obj5.Number_cloudy_single_shots[i]/15.0
+            if cfc_from_Single_Shot > CALIPSO_CLOUDY_MIN_CFC:
+                cfc_Single_Shot = cfc_Single_Shot + 1
+    else:
+        print "Different array length for 5 km and Single Shot data!"
+        #sys.exit(-9)
+        
+
+    print "*****CHECKING CLOUD FREQUENCY DIFFERENCES IN SINGLE SHOT AND 5KM DATASETS:"
+    print " "
+    print "Number of 5 km FOVS: ", len_5km
+    print "Number of cloudy 5 km FOVS:", cfc_5km
+    print "Cloudy fraction 5 km: ", float(cfc_5km)/float(len_5km)
+    print "Number of Single shot FOVS: ", len_single_shot
+    print "Number of cloudy Single shot FOVS:", cfc_Single_Shot 
+    print "Cloudy fraction Single Shots: ", float(cfc_Single_Shot)/float(len_single_shot)
+    print " "
+    #pdb.set_trace()
+
+    
+    # Now calculate the cloud fraction in 5 km data from single shot data (fraction of 15 FOVs declared cloudy).
+    # In addition, if there are cloud layers in 5 km data but nothing in single shot data, set cloud fraction to 1.0.
+    # This latter case represents when very thin cloud layers are being detected over longer distances.
+    # Finally, if there are cloud layers in single shot data but not in 5 km data, add a layer to 5 km data and set corresponding
+    # COT to 1.0. Cloud base and cloud tp for this layer is calculated as averages from original levels (max height for
+    # top and min height for base if there are more than one layer).This is a pragmatic solution to take care of a
+    # weakness or bug in the CALIPSO retrieval of clouds below 4 km
+
+    for i in range(Obj5.profile_utc_time.shape[0]):
+        cfc = Obj5.Number_cloudy_single_shots[i]/15.0 
+        if cfc == 1.0:
+            cfc = 0.99 # Just to be able to track the case when no cloud layers existed in 5 km data
+                       # but all 330 m FOVs were cloudy /KG 20170213
+        if (Obj5.number_layers_found[i] > 0):
+            Obj5.cloud_fraction[i] = 1.0
+        if ((cfc > 0.01) and (Obj5.number_layers_found[i] == 0)): #Add missing layer due to CALIPSO processing bug
+            Obj5.number_layers_found[i] = 1
+            Obj5.layer_top_altitude[i, 0] = Obj5.Average_cloud_top_single_shots[i] # Averaged from single shot data
+            Obj5.layer_base_altitude[i, 0] = Obj5.Average_cloud_base_single_shots[i] # Averaged from single shot data
+            Obj5.feature_optical_depth_532[i, 0] = 1.0 #Just put it safely away from the thinnest cloud layers - the best we can do!
+##             feature_array = np.asarray(feature_array_list)
+##             Obj5.feature_classification_flags[i, 0] = np.median(feature_array[:]) However, let's take the median value
             Obj5.cloud_fraction[i] = cfc
     # Cute the feature values
     #arnameca = array name from calipsoObj

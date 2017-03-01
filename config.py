@@ -11,7 +11,7 @@ import os
 PPS_FORMAT_2012_OR_EARLIER = False
 
 #Set to true if you always want an avhrr orbit that starts before the cross
-ALWAYS_USE_AVHRR_ORBIT_THAT_STARTS_BEFORE_CROSS = True
+ALWAYS_USE_AVHRR_ORBIT_THAT_STARTS_BEFORE_CROSS = False
 #This option is generally not needed to set to True.
 #However when matching 5-minute granules, and calling
 #atrain_match with any option EXCEPT --sno_file setting this
@@ -28,6 +28,10 @@ print "PPS_VALIDATION", PPS_VALIDATION
 CCI_CLOUD_VALIDATION = False
 MAIA_CLOUD_VALIDATION = str2bool(os.environ.get('MAIA_CLOUD_VALIDATION', False))
 
+#Choose CALIPSO-CALIOP version
+CALIPSO_version4 = True
+CALIPSO_version3 = False
+
 #Save imager data also for warmest and coldest pixels:
 SAVE_NEIGHBOUR_INFO = False
     
@@ -36,10 +40,12 @@ SAVE_NEIGHBOUR_INFO = False
 # really be set to 0.4, i.e., at least two 1 km columns should be cloudy!. 
     
 CALIPSO_CLOUDY_MIN_CFC = 0.5 #0.34 Tradition, KG used 0.5
-CALIPSO_CLEAR_MAX_CFC = 0.000001 #0.66 Tradition, KG used 0.5 for v2014 validation
+CALIPSO_CLEAR_MAX_CFC = 0.5 #0.66 Tradition, KG used 0.5 for v2014 validation
+#CALIPSO_CLEAR_MAX_CFC = 0.0001 #0.66 Tradition, KG used 0.5 for v2014 validation
 
 #Search also for MODIS lvl2 data
 MATCH_MODIS_LVL2 = False
+
 #Search also for calipso 5km aerosol data
 MATCH_AEROSOL_CALIPSO = False
 ALSO_USE_5KM_FILES = True
@@ -90,17 +96,19 @@ IMAGER_INSTRUMENT = os.environ.get('IMAGER_INSTRUMENT', 'avhrr')
 #: Resolution, in km, to use for data files. This setting is used throughout
 #: ``atrain_match`` to specify file names, sub-directories, and data handling.
 #: Currently, 1 or 5 is supported
-RESOLUTION = int(os.environ.get('ATRAIN_RESOLUTION', 1))
+RESOLUTION = int(os.environ.get('ATRAIN_RESOLUTION', 5))
 if RESOLUTION == 1:
     AVHRR_SAT = 'NPP' #'pps'
     ALSO_USE_1KM_FILES = False
+    ALSO_USE_SINGLE_SHOT_CLOUD_CLEARED = False
 elif RESOLUTION == 5:
     AVHRR_SAT = 'NOAA18'
-    ALSO_USE_1KM_FILES = True
+    ALSO_USE_1KM_FILES = False
+    ALSO_USE_SINGLE_SHOT_CLOUD_CLEARED = True
 
 #: Base directory for validation results
 #_validation_results_dir = os.environ['VALIDATION_RESULTS_DIR']    
-_validation_results_dir = os.environ.get('VALIDATION_RESULTS_DIR', "/nobackup/smhid9/sm_kgkar/atrain_match_2013")
+_validation_results_dir = os.environ.get('VALIDATION_RESULTS_DIR', "/nobackup/smhid12/sm_kgkar/atrain_match_test_CALIPSOv4")
 CONFIG_PATH = os.environ.get('ATRAINMATCH_CONFIG_DIR', './etc')
 
 #: Don't know how this directory is used...
@@ -119,7 +127,7 @@ SAT_ORBIT_DURATION = 50*60 #Not to large
 # sometimes when swaths are close in time
 CALIPSO_FILE_LENGTH = 60*60 #calipso fiels are for certain shorter 60 minnutes
 #: Allowed time deviation in seconds between AVHRR and CALIPSO/CloudSat matchup
-sec_timeThr = 60*10
+sec_timeThr = 60*3
 
 #: Recommended cloud threshold for the CloudSat cloud mask. In 5km data this
 #: threshold has already been applied, so there is no reason to change it for
@@ -283,6 +291,8 @@ elif RESOLUTION == 5:
 else:
     raise ValueError("RESOLUTION == %s not supported" % str(RESOLUTION))
 
+# Just run mode BASIC if testing
+#ALLOWED_MODES = ['BASIC'] #Nina: not checking in as default
 
 #: TODO: No description
 COMPRESS_LVL = 6
@@ -376,6 +386,12 @@ CASES =[{'satname': 'noaa18', 'year': 2009, 'month': 1},
          {'satname': 'noaa18', 'year': 2009, 'month': 10},
          {'satname': 'noaa18', 'year': 2009, 'month': 11},
          {'satname': 'noaa18', 'year': 2009, 'month': 12}]
+CASES_V4test_NOAA18 =[{'satname': 'noaa18', 'year': 2006, 'month': 10},
+         {'satname': 'noaa18', 'year': 2006, 'month': 11},
+         {'satname': 'noaa18', 'year': 2006, 'month': 12}]
+CASES_V4test_NOAA17 =[{'satname': 'noaa17', 'year': 2006, 'month': 10},
+         {'satname': 'noaa17', 'year': 2006, 'month': 11},
+         {'satname': 'noaa17', 'year': 2006, 'month': 12}]
 CASES =[{'satname': 'eos2', 'year': 2010, 'month': 1},
          {'satname': 'eos2', 'year': 2010, 'month': 2},
          {'satname': 'eos2', 'year': 2010, 'month': 3},
@@ -389,7 +405,9 @@ CASES =[{'satname': 'eos2', 'year': 2010, 'month': 1},
          {'satname': 'eos2', 'year': 2010, 'month': 11},
          {'satname': 'eos2', 'year': 2010, 'month': 12}]
 
-CASES =[{'satname': 'npp', 'year': 2012, 'month': 10}]
+#CASES =[{'satname': 'npp', 'year': 2012, 'month': 10}]
+
+CASES = CASES_V4test_NOAA18
 
 #CASES =  CASES_npp
 #CASES = CASES_noaaa + CASES_npp

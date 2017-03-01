@@ -63,12 +63,13 @@ def createAvhrrTime(Obt, values={}, Trust_sec_1970=False):
             datetime=values["date_time"]
             Obt.sec1970_start = calendar.timegm(datetime.timetuple())
             #Obt.sec1970_start = calendar.timegm((year, mon, day, hour, mins, sec)) + hundredSec
-        num_of_scan = Obt.num_of_lines / 16.
+        num_of_scan = np.int(Obt.num_of_lines / 16.)
         #if (Obt.sec1970_end - Obt.sec1970_start) / (num_of_scan) > 2:
         #    pdb.set_trace()
        #linetime = np.linspace(1, 10, 20)
        #test = np.apply_along_axis(np.multiply,  0, np.ones([20, 16]), linetime).reshape(30)        
         linetime = np.linspace(Obt.sec1970_start, Obt.sec1970_end, num_of_scan)
+        print linetime
         print linetime.shape, num_of_scan
         Obt.time = np.apply_along_axis(np.multiply,  0, np.ones([num_of_scan, 16]), linetime).reshape(Obt.num_of_lines)
         logger.info("NPP start time :  %s", time.gmtime(Obt.sec1970_start))

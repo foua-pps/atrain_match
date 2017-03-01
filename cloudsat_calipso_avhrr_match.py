@@ -70,9 +70,14 @@ from config import (VAL_CPP,
                     CCI_CLOUD_VALIDATION,
                     MAIA_CLOUD_VALIDATION,
                     PPS_VALIDATION,
+                    CALIPSO_version4,
+                    CALIPSO_version3,
                     ALWAYS_USE_AVHRR_ORBIT_THAT_STARTS_BEFORE_CROSS,
                     USE_5KM_FILES_TO_FILTER_CALIPSO_DATA,
+                    ALSO_USE_1KM_FILES,
+                    ALSO_USE_SINGLE_SHOT_CLOUD_CLEARED,
                     PPS_FORMAT_2012_OR_EARLIER,
+                    MATCH_MODIS_LVL2, 
                     RESOLUTION)
 import logging
 logger = logging.getLogger(__name__)
@@ -98,6 +103,7 @@ from matchobject_io import (writeCaliopAvhrrMatchObj,
                             DataObject)
 from calipso import  (detection_height_from_5km_data,
                       add1kmTo5km,
+                      addSingleShotTo5km,
                       add5kmVariablesTo1kmresolution,
                       adjust5kmTo1kmresolution)
 import inspect
@@ -440,15 +446,12 @@ def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
     except IndexError:
         raise MatchupError("No cma file found corresponding to %s." % avhrr_file)
     logger.info("CMA: " + cma_file)
-    
- 
     ctth_name = insert_info_in_filename_or_path(options['ctth_file'], 
                                                 values, datetime_obj=date_time)
     path =  insert_info_in_filename_or_path(options['ctth_dir'], 
-                                            values, datetime_obj=date_time)  
+                                                values, datetime_obj=date_time)  
     try:
         ctth_file = glob(os.path.join(path, ctth_name))[0]
-
     except IndexError:
         raise MatchupError("No ctth file found corresponding to %s." % avhrr_file)
     logger.info("CTTH: " + ctth_file)
@@ -652,16 +655,18 @@ def get_calipso_matchups(calipso_files, values,
     calipso  = reshapeCalipso(calipso_files)
     #find time breakpoints, but don't cut the data yet ..
     startBreak, endBreak = find_break_points(calipso,  avhrrGeoObj, values)
-    if cafiles1km != None:
+    if cafiles1km != None and CALIPSO_version3:
         #RESOLUTION 5km also have 1km data
+        print "Calipso version 3 data used and old 1 km restore method!"
         calipso1km = reshapeCalipso(cafiles1km, res=1)
         calipso5km = calipso
         #data are also time reshaped in this function (add1km..)
         calipso = add1kmTo5km(calipso1km, calipso5km, startBreak, endBreak) 
         calipso = total_and_top_layer_optical_depth_5km(calipso, resolution=5)
 
-    elif cafiles5km !=None:
+    elif cafiles5km !=None and CALIPSO_version3:
         #RESOLUTION 1km also have 5km data
+        print "Calipso version 3 data used and old 5 km restored optical depth method!!"
         calipso1km = calipso
         calipso5km = reshapeCalipso(cafiles5km, res=5)
         calipso5km = total_and_top_layer_optical_depth_5km(calipso5km, resolution=5)
@@ -678,7 +683,25 @@ def get_calipso_matchups(calipso_files, values,
             calipso = time_reshape_calipso(calipso1km,  
                                            start_break=startBreak, 
                                            end_break=endBreak) 
+    elif CALIPSO_version4 and RESOLUTION == 5 and ALSO_USE_SINGLE_SHOT_CLOUD_CLEARED:
+
+        #RESOLUTION exclusively 5km data but additional clouds taken from 330 m single shot resolution
+        print "Calipso version 4 data used and new single shot restore method!!"
+        #calipso5km = reshapeCalipso(cafiles5km, res=5)
+        calipso5km  = reshapeCalipso(calipso_files)
+        calipso = addSingleShotTo5km(calipso5km, startBreak, endBreak) 
+        calipso = total_and_top_layer_optical_depth_5km(calipso, resolution=5)
+    elif CALIPSO_version4 and RESOLUTION == 5 and ALSO_USE_1KM_FILES:
+
+        #RESOLUTION exclusively 5km data but additional clouds taken from 1 km data
+        print "Calipso version 4 data used but old method combining 1 km and 5 km data!!"
+        #calipso5km = reshapeCalipso(cafiles5km, res=5)
+        calipso5km  = reshapeCalipso(calipso_files)
+        calipso1km = reshapeCalipso(cafiles1km, res=1)
+        calipso = add1kmTo5km(calipso1km, calipso5km, startBreak, endBreak) 
+        calipso = total_and_top_layer_optical_depth_5km(calipso, resolution=5)
     else:
+        print "Standard method used (no additional resolutions or layers)!!"
         calipso = time_reshape_calipso(calipso,  
                                        start_break=startBreak, 
                                        end_break=endBreak)
@@ -1193,9 +1216,9 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
                                 -9,caObj.calipso.elevation)
     cal_data_ok = np.ones(caObj.calipso.elevation.shape,'b')
     logger.info("Length of CALIOP array: %d", len(cal_data_ok))
-    
+
     avhrr_ctth_cal_ok = np.repeat(caObj.avhrr.ctth_height[::],cal_data_ok)
-        
+
     if CCI_CLOUD_VALIDATION: #ctth relative mean sea level
         avhrr_ctth_cal_ok = np.where(np.greater(avhrr_ctth_cal_ok,0.0),avhrr_ctth_cal_ok[::],avhrr_ctth_cal_ok)
     else: #ctth relative topography
