@@ -2,7 +2,7 @@
   Use this module to read cci cloudproducts
   2013 SMHI, N.Hakansson a001865
 """
-from read_cloudproducts_and_nwp_pps import (CtypeObj, CtthObj, 
+from read_cloudproducts_and_nwp_pps import (CtypeObj, CtthObj, CppObj, 
                                             imagerAngObj, imagerGeoObj)
 
 import netCDF4	
@@ -77,10 +77,8 @@ def cci_read_all(filename):
     avhrrGeoObj = read_cci_geoobj(cci_nc)
     logger.info("Not reading surface temperature")
     surft = None
-    logger.info("Not reading cloud liquid water path")
-    cppLwp = None
     logger.info("Reading cloud phase")
-    cppCph = read_cci_phase(cci_nc)
+    cpp = read_cci_phase(cci_nc)
     logger.info("Not reading channel data")
     avhrrObj = None  
     if cci_nc:
@@ -182,13 +180,14 @@ def read_cci_angobj(cci_nc):
 def read_cci_phase(cci_nc):
     """Read angles info from filename
     """
-    phase = cci_nc.variables['phase'][::] 
+    cpp_obj = CppObj()
+    cpp_obj["cpp_phase"] = cci_nc.variables['phase'][::] 
     #if hasattr(phase, 'mask'):
     #    phase_out = np.where(phase.mask, -999, phase.data)
     #else:
     #    phase_out = phase.data
     #print phase    
-    return phase
+    return cpp_obj
 
 def read_cci_geoobj(cci_nc):
     """Read geolocation and time info from filename

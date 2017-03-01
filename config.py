@@ -39,9 +39,8 @@ SAVE_NEIGHBOUR_INFO = False
 #(0.0, 0.2, 0.4, 0.6, 0.8, 1.0). So the threshold should
 # really be set to 0.4, i.e., at least two 1 km columns should be cloudy!. 
     
-CALIPSO_CLOUDY_MIN_CFC = 0.5 #0.34 Tradition, KG used 0.5
-CALIPSO_CLEAR_MAX_CFC = 0.5 #0.66 Tradition, KG used 0.5 for v2014 validation
-#CALIPSO_CLEAR_MAX_CFC = 0.0001 #0.66 Tradition, KG used 0.5 for v2014 validation
+CALIPSO_CLOUDY_MIN_CFC = 0.5 #0.66 Tradition, KG used 0.5 for v2014 validation
+CALIPSO_CLEAR_MAX_CFC = 0.5  #0.34 Tradition, KG used 0.5, PPS development 0.1 or 0.2 
 
 #Search also for MODIS lvl2 data
 MATCH_MODIS_LVL2 = False
@@ -83,7 +82,7 @@ PLOT_ONLY_PNG = True
 DO_WRITE_COVERAGE = False 
 DO_WRITE_DATA = False
 #important for cph_validate.py
-VAL_CPP = os.environ.get('VAL_CPP', False)
+VAL_CPP = os.environ.get('VAL_CPP', True)
 VALIDATE_FOR_CPP_PIXELS = True #means validating for cloudtype only for pixels where we also got cpp.cph values
 CPP_REDUCE_PIXELS = int(os.environ.get('CPP_REDUCE_PIXELS', 0))
 # 1 means validate on a sub-set of the pixels, according to settings in

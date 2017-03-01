@@ -566,7 +566,7 @@ def _plot_avhrr_track(match_file, avhrr, track):
     fig.savefig(plot_file)
 
 def get_cloudsat_matchups(cloudsat_files, cloudtype_file, avhrrGeoObj, avhrrObj,
-                          ctype, ctth, nwp_obj, avhrrAngObj, cppLwp, plot_file=None):
+                          ctype, ctth, nwp_obj, avhrrAngObj, cpp, plot_file=None):
     """
     Read Cloudsat data and match with the given PPS data.
     """
@@ -597,7 +597,7 @@ def get_cloudsat_matchups(cloudsat_files, cloudtype_file, avhrrGeoObj, avhrrObj,
         logger.info(("No cloudsat plot-file"))
     cl_matchup, cl_min_diff, cl_max_diff = match_fun(cloudtype_file, cloudsat,
                                                      avhrrGeoObj, avhrrObj, ctype,
-                                                     ctth, nwp_obj.surftemp, avhrrAngObj, cppLwp)
+                                                     ctth, nwp_obj.surftemp, avhrrAngObj, cpp)
 
     return cl_matchup, (cl_min_diff, cl_max_diff)
 
@@ -629,7 +629,7 @@ def total_and_top_layer_optical_depth_5km(calipso, resolution=5):
 
 def get_calipso_matchups(calipso_files, values, 
                          avhrrGeoObj, avhrrObj, ctype, cma,  ctth, 
-                         nwp_obj, avhrrAngObj, options, cppCph=None, 
+                         nwp_obj, avhrrAngObj, options, cpp=None, 
                          nwp_segments=None, cafiles1km=None, cafiles5km=None, 
                          cafiles5km_aerosol=None):
     """
@@ -742,7 +742,7 @@ def get_calipso_matchups(calipso_files, values,
     logger.info("Matching with avhrr")
     tup = match_calipso_avhrr(values, calipso, calipso_aerosol,
                               avhrrGeoObj, avhrrObj, ctype, cma,
-                              ctth, cppCph, nwp_obj, avhrrAngObj, 
+                              ctth, cpp, nwp_obj, avhrrAngObj, 
                               nwp_segments, options)
     ca_matchup, ca_min_diff, ca_max_diff = tup
     #import pdb; pdb.set_trace()
@@ -774,13 +774,13 @@ def get_matchups_from_data(cross, config_options):
         pps_files = find_files_from_avhrr(avhrr_file, config_options)   
         retv =read_pps_data(pps_files, avhrr_file, cross)
         (avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, 
-         nwp_obj, cppLwp, cppCph, nwp_segment, cma )= retv
+         nwp_obj, cpp, nwp_segment, cma )= retv
         date_time = values["date_time"]
     if (CCI_CLOUD_VALIDATION):
         avhrr_file, tobj = find_cci_cloud_file(cross, config_options)
         #avhrr_file = "20080613002200-ESACCI-L2_CLOUD-CLD_PRODUCTS-AVHRRGAC-NOAA18-fv1.0.nc"
         values = get_satid_datetime_orbit_from_fname(avhrr_file)
-        avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, surftemp, cppLwp, cppCph =read_cloud_cci(avhrr_file)
+        avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, surftemp, cpp =read_cloud_cci(avhrr_file)
         nwp_segment = None
         nwp_obj = NWPObj({'surftemp':surftemp})        
         avhrrGeoObj.satellite = values["satellite"];
@@ -789,7 +789,7 @@ def get_matchups_from_data(cross, config_options):
         avhrr_file, tobj = find_maia_cloud_file(cross, config_options)
         #viiCT_npp_DB_20120817_S035411_E035535_DES_N_La052_Lo-027_00001.h5
         values = get_satid_datetime_orbit_from_fname(avhrr_file)
-        avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, surftemp, cppLwp, cppCph, cma =read_cloud_maia(avhrr_file)
+        avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, surftemp, cpp, cma =read_cloud_maia(avhrr_file)
         nwp_segment = None
         nwp_obj = NWPObj({'surftemp':surftemp})        
         avhrrGeoObj.satellite = values["satellite"];
@@ -806,7 +806,7 @@ def get_matchups_from_data(cross, config_options):
             cl_matchup, cl_time_diff = get_cloudsat_matchups(cloudsat_files, 
                                                              pps_files.cloudtype,
                                                              avhrrGeoObj, avhrrObj, ctype,
-                                                             ctth, nwp_obj, avhrrAngObj, cppLwp, config_options)
+                                                             ctth, nwp_obj, avhrrAngObj, cpp, config_options)
         else:
             logger.info("NO CLOUDSAT File, Continue")
     else:
@@ -916,7 +916,7 @@ def get_matchups_from_data(cross, config_options):
                                                         avhrrGeoObj, avhrrObj, 
                                                         ctype, cma, ctth, 
                                                         nwp_obj, avhrrAngObj, 
-                                                        config_options, cppCph,
+                                                        config_options, cpp,
                                                         nwp_segment,
                                                         calipso1km, calipso5km, calipso5km_aerosol)
 

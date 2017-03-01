@@ -62,17 +62,15 @@ def maia_read_all(filename):
         avhrrGeoObj = read_maia_geoobj(maia_h5, filename)
         logger.info("Reading surface temperature")
         surft = read_maia_surftemp(maia_h5)
-        logger.info("Not reading cloud liquid water path")
-        cppLwp = None
-        logger.info("Not reading cloud phase")
-        cppCph = None
+        logger.info("Not reading cloud microphysical properties")
+        cpp = None
         logger.info("Not reading channel data")
         avhrrObj = None
 
     if unzipped:
         os.remove(unzipped)
 
-    return avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, surft, cppLwp, cppCph, cma
+    return avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, surft, cpp, cma
 
 
 def read_maia_ctype_cmask_ctth(maia_h5):

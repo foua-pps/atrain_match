@@ -69,8 +69,6 @@ def createAvhrrTime(Obt, values={}, Trust_sec_1970=False):
        #linetime = np.linspace(1, 10, 20)
        #test = np.apply_along_axis(np.multiply,  0, np.ones([20, 16]), linetime).reshape(30)        
         linetime = np.linspace(Obt.sec1970_start, Obt.sec1970_end, num_of_scan)
-        print linetime
-        print linetime.shape, num_of_scan
         Obt.time = np.apply_along_axis(np.multiply,  0, np.ones([num_of_scan, 16]), linetime).reshape(Obt.num_of_lines)
         logger.info("NPP start time :  %s", time.gmtime(Obt.sec1970_start))
         logger.info("NPP end time : %s", time.gmtime(Obt.sec1970_end))
@@ -220,6 +218,18 @@ class CtthObj:
         self.temperature = None
         self.pressure = None
         self.ctth_statusflag = None
+class CppObj:
+    #skeleton container for v2018 cpp
+    def __init__(self):
+        self.cpp_cot = None
+        self.cpp_cwp = None
+        self.cpp_dcot = None
+        self.cpp_dcwp = None
+        self.cpp_lwp = None
+        self.cpp_iwp = None
+        self.cpp_phase = None
+        self.cpp_phase_extended = None
+        self.cpp_reff = None
 
 #def read_ctth_v2012 might be needed?
 def read_ctth_h5(filename):
@@ -523,17 +533,46 @@ def read_pps_geoobj_h5(filename):
         np.min(GeoObj.latitude),np.max(GeoObj.latitude)))
     return  GeoObj
 
-def readCpp(filename, cpp_type):
-    import h5py 
+def read_cpp_h5(filename):
+    cpp_obj = CppObj() 
     h5file = h5py.File(filename, 'r')
-    if cpp_type in h5file.keys():
-        value = h5file[cpp_type].value
-        gain = h5file[cpp_type].attrs['gain']
-        intercept = h5file[cpp_type].attrs['intercept']
-        nodat = h5file[cpp_type].attrs['no_data_value']
-        product = np.where(value != nodat,value * gain + intercept, value)   
+    for cpp_key in cpp_obj.__dict__.keys():
+        if cpp_key in h5file.keys():
+            value = h5file[cpp_key].value
+            gain = h5file[cpp_key].attrs['gain']
+            intercept = h5file[cpp_key].attrs['intercept']
+            nodat = h5file[cpp_key].attrs['no_data_value']            
+            product = np.where(value != nodat, 
+                               value * gain + intercept, 
+                               ATRAIN_MATCH_NODATA)   
+            setattr(cpp_obj, cpp_key, product)
     h5file.close()
-    return product
+    return cpp_obj
+
+def read_cpp_nc_one_var(ncFile, cpp_key):
+    if cpp_key in ncFile.variables.keys():
+        logger.info("Read %s"%(cpp_key))
+        cpp_var = ncFile.variables[cpp_key][0,:,:]
+        if np.ma.is_masked(cpp_var):
+            cpp_data = cpp_var.data.astype(np.float)
+            cpp_data[cpp_var.mask] = ATRAIN_MATCH_NODATA
+        else:
+            cpp_data = cpp_var
+        
+        return  cpp_data
+    else:
+        logger.info("NO %s field, Continue "%(cpp_key))
+        return None
+
+
+def read_cpp_nc(ncFile):
+    cpp_obj = CppObj()    
+    for cpp_key in cpp_obj.__dict__.keys():
+        data = read_cpp_nc_one_var(ncFile, cpp_key)
+        setattr(cpp_obj, cpp_key, data)
+    return cpp_obj    
+
+
 
 def read_nwp_h5(filename, nwp_key):
     import h5py 
@@ -720,63 +759,7 @@ def readImagerData_h5(filename):
     return imager_data
 
 
-def pps_read_all(pps_files, avhrr_file, cross):
-    logger.info("Read IMAGER geolocation data")
-    if '.nc' in avhrr_file:
-        pps_nc = netCDF4.Dataset(avhrr_file, 'r', format='NETCDF4')
-        imagerGeoObj = read_pps_geoobj_nc(pps_nc)
-    else:    
-        #use mpop?
-        imagerGeoObj = read_pps_geoobj_h5(avhrr_file)  
-    #create time info for each pixel  
-    values = get_satid_datetime_orbit_from_fname_pps(avhrr_file)  
-    imagerGeoObj = createAvhrrTime(imagerGeoObj, values)
-    logger.info("Read IMAGER Sun -and Satellites Angles data")
-    if '.nc' in pps_files.sunsatangles:
-        pps_nc_ang = netCDF4.Dataset(pps_files.sunsatangles, 'r', format='NETCDF4')
-        avhrrAngObj = read_pps_angobj_nc(pps_nc_ang)
-    else:
-        #use mpop?
-        avhrrAngObj = read_pps_angobj_h5(pps_files.sunsatangles)
-    logger.info("Read Imagerdata data")
-    if '.nc' in avhrr_file:
-        avhrrObj = readImagerData_nc(pps_nc)
-    else:
-        avhrrObj = readImagerData_h5(avhrr_file)
-
-    cppLwp = None
-    cppCph = None
-    if VAL_CPP:    
-        logger.info("Read CPP data")
-        cpp = CppProducts.from_h5(pps_files.cpp,
-                                  product_names=['cpp_phase','cpp_lwp'],
-                                  scale_up=True)
-        # LWP convert from kg/m2 to g/m2
-        cppLwp = 1000. * cpp.products['cpp_lwp'].array
-        cppCph = cpp.products['cpp_phase'].array
-
-    if ('prob' in pps_files.cloudtype and pps_files.ctth==pps_files.cma):
-        logger.info("Read PPS Cloud mask prob")
-        cma, ctype, ctth = read_cmaprob_h5(pps_files.cma)
-    else:    
-        logger.info("Read PPS Cloud mask")
-        if '.nc' in pps_files.cloudtype:
-            cma = read_cma_nc(pps_files.cma)
-        else:
-            cma = read_cma_h5(pps_files.cma)        
-        logger.info("Read PPS Cloud Type")
-        if '.nc' in pps_files.cloudtype:
-            ctype = read_cloudtype_nc(pps_files.cloudtype)
-        else:
-            ctype = read_cloudtype_h5(pps_files.cloudtype)
-        logger.info("Read PPS CTTH")
-        if pps_files.ctth is None:
-            ctth = None
-        elif '.nc' in pps_files.ctth:
-            ctth = read_ctth_nc(pps_files.ctth)
-        else:
-            ctth = read_ctth_h5(pps_files.ctth)
-
+def read_all_intermediate_files(pps_files):
     logger.info("Read PPS NWP data")
     nwp_dict={}
     if pps_files.nwp_tsur is None:
@@ -850,6 +833,69 @@ def pps_read_all(pps_files, avhrr_file, cross):
             nwp_dict[emis_type] = read_thr_h5(getattr(pps_files,"emis"), 
                                               h5_obj_type, emis_type)
     nwp_obj = NWPObj(nwp_dict)
+    return nwp_obj
+
+def pps_read_all(pps_files, avhrr_file, cross):
+    logger.info("Read IMAGER geolocation data")
+    if '.nc' in avhrr_file:
+        pps_nc = netCDF4.Dataset(avhrr_file, 'r', format='NETCDF4')
+        imagerGeoObj = read_pps_geoobj_nc(pps_nc)
+    else:    
+        #use mpop?
+        imagerGeoObj = read_pps_geoobj_h5(avhrr_file)  
+    #create time info for each pixel  
+    values = get_satid_datetime_orbit_from_fname_pps(avhrr_file)  
+    imagerGeoObj = createAvhrrTime(imagerGeoObj, values)
+    logger.info("Read IMAGER Sun -and Satellites Angles data")
+    if '.nc' in pps_files.sunsatangles:
+        pps_nc_ang = netCDF4.Dataset(pps_files.sunsatangles, 'r', format='NETCDF4')
+        avhrrAngObj = read_pps_angobj_nc(pps_nc_ang)
+    else:
+        #use mpop?
+        avhrrAngObj = read_pps_angobj_h5(pps_files.sunsatangles)
+    logger.info("Read Imagerdata data")
+    if '.nc' in avhrr_file:
+        avhrrObj = readImagerData_nc(pps_nc)
+    else:
+        avhrrObj = readImagerData_h5(avhrr_file)
+
+    cpp = None
+    if VAL_CPP:    
+        logger.info("Read CPP data")
+        logger.warning("Warning lwp is read in kg/m2")
+        if pps_files.cpp is None:
+            pass
+        elif '.nc' in pps_files.cpp:
+            pps_nc_cpp = netCDF4.Dataset(pps_files.cpp, 'r', format='NETCDF4')
+            cpp = read_cpp_nc(pps_nc_cpp)
+        else:
+            cpp = read_cpp_h5(filename)
+
+    if ('prob' in pps_files.cloudtype and pps_files.ctth==pps_files.cma):
+        logger.info("Read PPS Cloud mask prob")
+        cma, ctype, ctth = read_cmaprob_h5(pps_files.cma)
+    else:    
+        logger.info("Read PPS Cloud mask")
+        if '.nc' in pps_files.cloudtype:
+            cma = read_cma_nc(pps_files.cma)
+        else:
+            cma = read_cma_h5(pps_files.cma)        
+        logger.info("Read PPS Cloud Type")
+        if '.nc' in pps_files.cloudtype:
+            ctype = read_cloudtype_nc(pps_files.cloudtype)
+        else:
+            ctype = read_cloudtype_h5(pps_files.cloudtype)
+        logger.info("Read PPS CTTH")
+        if pps_files.ctth is None:
+            ctth = None
+        elif '.nc' in pps_files.ctth:
+            ctth = read_ctth_nc(pps_files.ctth)
+        else:
+            ctth = read_ctth_h5(pps_files.ctth)
+
+    logger.info("Read PPS full resolution intermediate files")
+    nwp_obj = read_all_intermediate_files(pps_files)
+  
     logger.info("Read PPS NWP segment resolution data") 
     segment_data_object = read_segment_data(getattr(pps_files,'nwp_segments'))
-    return avhrrAngObj, ctth, imagerGeoObj, ctype, avhrrObj, nwp_obj, cppLwp, cppCph, segment_data_object, cma 
+    return avhrrAngObj, ctth, imagerGeoObj, ctype, avhrrObj, nwp_obj, cpp, segment_data_object, cma 

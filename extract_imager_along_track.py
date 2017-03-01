@@ -236,7 +236,7 @@ def insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt):
 def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj, 
                              nwp_obj, ctth, ctype, cma, 
                              row_matched, col_matched, 
-                             avhrrLwp=None, avhrrCph=None,
+                             cpp=None,
                              nwp_segments=None):
     value_track = []
     row_col = {'row': row_matched, 'col': col_matched} 
@@ -424,25 +424,16 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
     #NWP on ctth resolution        
     if nwp_segments != None:
         obt = insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt)
-  
-    #: TODO Do not use fix nodata-values but instead something.no_data
-    #CPP-products
-    if avhrrLwp != None:
-        if PPS_FORMAT_2012_OR_EARLIER:
-            nodata_temp = -1
-        else:
-            nodata_temp = 65535
-        lwp_temp = [avhrrLwp[row_matched[idx], col_matched[idx]]
-                    for idx in range(npix)]
-        obt.avhrr.lwp = np.where(np.equal(lwp_temp, nodata_temp), -9, lwp_temp)
-    if avhrrCph != None:
-        if PPS_FORMAT_2012_OR_EARLIER:
-            nodata_temp = -1
-        else:
-            nodata_temp = 255
-        cph_temp = [avhrrCph[row_matched[idx], col_matched[idx]]
-                    for idx in range(npix)]
-        obt.avhrr.cph = np.where(np.equal(cph_temp, nodata_temp), -9, cph_temp)
+    if cpp is None:    
+        logger.info("Not extracting cpp")
+    else:
+        logger.info("Extracting cpp along track ")
+        for data_set_name in cpp.__dict__.keys():
+            data = getattr(cpp, data_set_name)
+            if data is not None:
+                extracted_data = [data[row_matched[idx], col_matched[idx]] 
+                                  for idx in range(npix)]
+                setattr(obt.avhrr, data_set_name, extracted_data)
 
     return obt
 
