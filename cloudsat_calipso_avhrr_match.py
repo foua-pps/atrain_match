@@ -85,7 +85,7 @@ logger = logging.getLogger(__name__)
 import config
 from common import attach_subdir_from_config, MatchupError
 
-from cloudsat_calipso_avhrr_statistics import *
+from cloudsat_calipso_avhrr_statistics import (CalculateStatistics)
 #from trajectory_plot import plotSatelliteTrajectory
 from trajectory_plotting import plotSatelliteTrajectory
 from cloudsat_calipso_avhrr_prepare import *
@@ -399,8 +399,8 @@ def require_h5(files):
     return h5_files
 
 def get_pps_file(avhrr_file, options, values, type_of_file, file_dir):
-    if not type_of_file in options:
-        logger.info("No %s file in cfg-file!"%(type_of_file))
+    if not type_of_file in options:              
+        logger.info("No %s file in cfg-file."%(type_of_file))
         return None
     date_time = values["date_time"]
     cloudtype_name = insert_info_in_filename_or_path(options[type_of_file], 
@@ -421,7 +421,7 @@ def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
     """
     # Let's get the satellite and the date-time of the pps radiance
     # (avhrr/viirs) file:
-    logger.info("Avhrr or viirs file = %s" % avhrr_file)
+    logger.info("IMAGER: %s" % avhrr_file)
     values = get_satid_datetime_orbit_from_fname(avhrr_file,
                                                  as_oldstyle=as_oldstyle)
     date_time = values["date_time"]
@@ -431,7 +431,7 @@ def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
     path = insert_info_in_filename_or_path(options['cloudtype_dir'], 
                                            values, datetime_obj=date_time)
     try:
-        print os.path.join(path, cloudtype_name)
+        #print os.path.join(path, cloudtype_name)
         cloudtype_file = glob(os.path.join(path, cloudtype_name))[0]
     except IndexError:
         raise MatchupError("No cloudtype file found corresponding to %s." % avhrr_file)
@@ -441,7 +441,7 @@ def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
     path = insert_info_in_filename_or_path(options['cma_dir'], 
                                            values, datetime_obj=date_time)
     try:
-        print os.path.join(path, cma_name)
+        #print os.path.join(path, cma_name)
         cma_file = glob(os.path.join(path, cma_name))[0]
     except IndexError:
         raise MatchupError("No cma file found corresponding to %s." % avhrr_file)
@@ -657,7 +657,7 @@ def get_calipso_matchups(calipso_files, values,
     startBreak, endBreak = find_break_points(calipso,  avhrrGeoObj, values)
     if cafiles1km != None and CALIPSO_version3:
         #RESOLUTION 5km also have 1km data
-        print "Calipso version 3 data used and old 1 km restore method!"
+        logger.info("Calipso version 3 data used and old 1 km restore method!")
         calipso1km = reshapeCalipso(cafiles1km, res=1)
         calipso5km = calipso
         calipso = add1kmTo5km(calipso1km, calipso5km)
@@ -667,7 +667,8 @@ def get_calipso_matchups(calipso_files, values,
 
     elif cafiles5km !=None and CALIPSO_version4:
         #RESOLUTION 1km also have 5km data calipso version 4
-        print "Calipso version 3 data used and old 5 km restored optical depth method!!"
+        logger.info("Calipso version 4, single shot fraction and "
+                    "old 5km restored optical depth method used!")
         calipso1km = calipso
         calipso5km = reshapeCalipso(cafiles5km, res=5)
         calipso5km = addSingleShotTo5km(calipso5km) 
@@ -682,7 +683,7 @@ def get_calipso_matchups(calipso_files, values,
 
     elif cafiles5km !=None and CALIPSO_version3:
         #RESOLUTION 1km also have 5km data calipso version 3
-        print "Calipso version 3 data used and old 5 km restored optical depth method!!"
+        logger.info("Calipso version 3 data used and old 5 km restored optical depth method!")
         calipso1km = calipso
         calipso5km = reshapeCalipso(cafiles5km, res=5)
         calipso5km = total_and_top_layer_optical_depth_5km(calipso5km, resolution=5)
@@ -696,7 +697,7 @@ def get_calipso_matchups(calipso_files, values,
     elif CALIPSO_version4 and RESOLUTION == 5 and ALSO_USE_SINGLE_SHOT_CLOUD_CLEARED:
 
         #RESOLUTION exclusively 5km data but additional clouds taken from 330 m single shot resolution
-        print "Calipso version 4 data used and new single shot restore method!!"
+        logger.info("Calipso version 4 data used and new single shot restore method!")
         #calipso5km = reshapeCalipso(cafiles5km, res=5)
         calipso5km  = reshapeCalipso(calipso_files)
         calipso = addSingleShotTo5km(calipso5km) 
@@ -707,7 +708,7 @@ def get_calipso_matchups(calipso_files, values,
     elif CALIPSO_version4 and RESOLUTION == 5 and ALSO_USE_1KM_FILES:
 
         #RESOLUTION exclusively 5km data but additional clouds taken from 1 km data
-        print "Calipso version 4 data used but old method combining 1 km and 5 km data!!"
+        logger.info("Calipso version 4 data used but old method combining 1 km and 5 km data!")
         #calipso5km = reshapeCalipso(cafiles5km, res=5)
         calipso5km  = reshapeCalipso(calipso_files)
         calipso1km = reshapeCalipso(cafiles1km, res=1)
@@ -717,7 +718,7 @@ def get_calipso_matchups(calipso_files, values,
                                        end_break=endBreak) 
         calipso = total_and_top_layer_optical_depth_5km(calipso, resolution=5)
     else:
-        print "Standard method used (no additional resolutions or layers)!!"
+        logger.info("Standard method used (no additional resolutions or layers)!")
         calipso = time_reshape_calipso(calipso,  
                                        start_break=startBreak, 
                                        end_break=endBreak)
@@ -959,7 +960,7 @@ def get_matchups_from_data(cross, config_options):
         except NameError:
             cl_matchup = None
             cl_time_diff = (NaN, NaN)
-            print('CloudSat is not defined. No CloudSat Match File created')
+            logger.info('CloudSat is not defined. No CloudSat Match File created')
 
     else:
         cl_match_file = rematched_file_base.replace(
@@ -1300,10 +1301,10 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     if (config.COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC and
         (config.ALSO_USE_5KM_FILES or config.RESOLUTION==5) and 
         caObj.calipso.total_optical_depth_5km is None):
-        print "WARNING:", "rematched_file is missing total_optical_depth_5km field"
-        print "INFO:", "consider reprocessing with "
-        print "COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC=True"
-        print "ALSO_USE_5KM_FILES=True or RESOLUTION==5"
+        logger.warning("rematched_file is missing total_optical_depth_5km field")
+        logger.info("Consider reprocessing with: ")
+        logger.info("COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC=True")
+        logger.info("ALSO_USE_5KM_FILES=True or RESOLUTION==5")
 
     check_total_optical_depth_and_warn(caObj)
 
@@ -1356,7 +1357,7 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     cal_data_ok = np.greater(caliop_max_height,-9.)
 
     if np.size(caObj.avhrr.surftemp)>1 or caObj.avhrr.surftemp != None:
-        print caObj.avhrr.surftemp.shape, cal_data_ok.shape
+        #print caObj.avhrr.surftemp.shape, cal_data_ok.shape
         cal_surftemp_ok = np.repeat(caObj.avhrr.surftemp[::], cal_data_ok)
 
     if clsatObj is not None:

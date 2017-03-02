@@ -28,7 +28,6 @@ def elements_within_range(compare, base, _range):
     
     c = numpy.array(compare)
     b = numpy.array(base)
-    
     return numpy.logical_and(c > b - _range, c < b + _range)
 
 
@@ -58,7 +57,7 @@ def map_avhrr(avhrr, lon, lat, radius_of_influence):
     #if avhrr.longitude.dtype != lon.dtype or  avhrr.latitude.dtype != lat.dtype:
     source = (avhrr.longitude.astype(np.float64), avhrr.latitude.astype(np.float64))
     target = (lon.astype(np.float64), lat.astype(np.float64))   
-    print avhrr.longitude.dtype, lon.dtype, avhrr.latitude.dtype,  lat.dtype    
+    #print avhrr.longitude.dtype, lon.dtype, avhrr.latitude.dtype,  lat.dtype    
     mapper = match_lonlat(source, target, radius_of_influence, n_neighbours=1)
     
     # Return the nearest (and the only calculated) neighbour

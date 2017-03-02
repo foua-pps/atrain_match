@@ -63,13 +63,9 @@ def createAvhrrTime(Obt, values={}, Trust_sec_1970=False):
             datetime=values["date_time"]
             Obt.sec1970_start = calendar.timegm(datetime.timetuple())
             #Obt.sec1970_start = calendar.timegm((year, mon, day, hour, mins, sec)) + hundredSec
-        num_of_scan = np.int(Obt.num_of_lines / 16.)
-        #if (Obt.sec1970_end - Obt.sec1970_start) / (num_of_scan) > 2:
-        #    pdb.set_trace()
-       #linetime = np.linspace(1, 10, 20)
-       #test = np.apply_along_axis(np.multiply,  0, np.ones([20, 16]), linetime).reshape(30)        
+        num_of_scan = np.int(Obt.num_of_lines / 16.)      
         linetime = np.linspace(Obt.sec1970_start, Obt.sec1970_end, num_of_scan)
-        Obt.time = np.apply_along_axis(np.multiply,  0, np.ones([num_of_scan, 16]), linetime).reshape(Obt.num_of_lines)
+        Obt.time = np.repeat(linetime, 16)
         logger.info("NPP start time :  %s", time.gmtime(Obt.sec1970_start))
         logger.info("NPP end time : %s", time.gmtime(Obt.sec1970_end))
     elif Trust_sec_1970  :
@@ -377,10 +373,12 @@ def readImagerData_nc(pps_nc):
             logger.info("reading channel %s", image.description)
             one_channel = ImagerChannelData()
             #channel = image.channel                     
-            one_channel.data = image[0,:,:]
+            data_temporary = image[0,:,:]
             if np.ma.is_masked(one_channel.data):
-                one_channel.data[one_channel.data.mask] = ATRAIN_MATCH_NODATA
-                one_channel.data = one_channel.data.data
+                one_channel.data = data_temporary.data
+                one_channel.data[data_temporary.mask] = ATRAIN_MATCH_NODATA
+            else:
+                one_channel.data = data_temporary
             one_channel.des = image.description
             #Currently unpacked arrays later in calipso.py:
             #TODO: move this herealso for h5!

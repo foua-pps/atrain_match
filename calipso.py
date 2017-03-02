@@ -62,7 +62,7 @@ def sec1970_to_julianday(sec1970):
 def calipso_track_from_matched(retv_calipso, calipso, idx_match):
     # Calipso line,pixel inside AVHRR swath:
     for arnameca, valueca in calipso.all_arrays.items(): 
-        if valueca != None:
+        if valueca is not None:
             if valueca.size != 1:
                 the_values = valueca[idx_match,...]
                 shape_of_data = the_values.shape
@@ -114,7 +114,7 @@ def match_calipso_avhrr(values,
     from common import map_avhrr
     cal, cap = map_avhrr(imagerGeoObj, lonCalipso.ravel(), latCalipso.ravel(),
                          radius_of_influence=RESOLUTION*0.7*1000.0) # somewhat larger than radius...
-    print cal, cap
+    #print cal, cap
     calnan = np.where(cal == NODATA, np.nan, cal)
     if (~np.isnan(calnan)).sum() == 0:
         raise MatchupError("No matches within region.")
@@ -139,7 +139,6 @@ def match_calipso_avhrr(values,
     plt.show()
     fig.savefig("nina_test_fil.png")
     """
-
     idx_match = elements_within_range(timeCalipso, avhrr_lines_sec_1970, sec_timeThr) 
     if idx_match.sum() == 0:
         raise MatchupError("No matches in region within time threshold %d s." % sec_timeThr)
@@ -148,7 +147,7 @@ def match_calipso_avhrr(values,
     cap_on_avhrr = np.repeat(cap, idx_match)
     retv.calipso.avhrr_linnum = cal_on_avhrr.astype('i')
     retv.calipso.avhrr_pixnum = cap_on_avhrr.astype('i')
-    logger.info("cap_on_avhrr.shape: %s",cap_on_avhrr.shape)
+    logger.info("calipso matched with avhrr shape: %s",cap_on_avhrr.shape)
 
     lon_calipso = np.repeat(lonCalipso, idx_match)
     lat_calipso = np.repeat(latCalipso, idx_match)
@@ -252,7 +251,7 @@ def get_calipso(filename, res, ALAY=False):
 def read_calipso(filename, res, ALAY=False):
     import h5py
     import pdb, sys
-    print "reading file", filename
+    logger.info("Reading file %s"%(filename))
     scip_these_larger_variables_until_needed = {
         # if any of these are needed just rempve them from the dictionary!
         "Spacecraft_Position": True, #3D-variable
@@ -295,7 +294,7 @@ def read_calipso(filename, res, ALAY=False):
                 base_array = data_reshaped_5[:,0]
                 base_array = base_array.reshape(-1,15)
                 base_array = np.where(base_array>0, base_array, 0.0)
-                base_mean = np.where(single_shot_cloud_cleared_array>0, np.sum(base_array,axis=1)/single_shot_cloud_cleared_array, -9.0) #Calculate average cloud base
+                base_mean = np.where(single_shot_cloud_cleared_array>0, np.divide(np.sum(base_array,axis=1),single_shot_cloud_cleared_array), -9.0) #Calculate average cloud base
                 name = "Average_cloud_base_single_shots"
                 setattr(retv, name, base_mean)
                 data = h5file["Single_Shot_Detection/ssLayer_Top_Altitude"].value
@@ -304,7 +303,7 @@ def read_calipso(filename, res, ALAY=False):
                 top_array = data_reshaped_5[:,0]
                 top_array = top_array.reshape(-1,15)
                 top_array = np.where(top_array>0, top_array, 0.0)
-                top_mean = np.where(single_shot_cloud_cleared_array>0, np.sum(top_array,axis=1)/single_shot_cloud_cleared_array, -9.0) #Calculate average cloud top
+                top_mean = np.where(single_shot_cloud_cleared_array>0, np.divide(np.sum(top_array,axis=1),single_shot_cloud_cleared_array), -9.0) #Calculate average cloud top
                 name = "Average_cloud_top_single_shots"
                 #pdb.set_trace()
                 setattr(retv, name, top_mean)
@@ -351,7 +350,7 @@ def discardCalipsoFilesOutsideTimeRange(calipsofiles_list, avhrrGeoObj, values, 
             pass
             #print "skipping file %s outside time_limits"%(current_file)
         else:
-            print "keeping file %s inside time_limits"%(current_file)
+            logger.info("Keeping file %s inside time_limits"%(os.path.basename(current_file)))
             calipso_within_time_range.append(current_file)
     return calipso_within_time_range
 
@@ -431,7 +430,7 @@ def time_reshape_calipso(startCalipso, avhrr=None, values=None,
     #arnameca = array name from calipsoObj
     cal= CalipsoObject()
     for arnameca, valueca in startCalipso.all_arrays.items(): 
-        if valueca != None:
+        if valueca is not None:
             if valueca.size != 1:
                 cal.all_arrays[arnameca] = valueca[start_break:end_break,...]
             else:
