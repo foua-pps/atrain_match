@@ -193,7 +193,7 @@ def insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt):
                                            + nwp_segments['segSizeY']/2)))
                     seg_row[within_segment] = s_row
                     seg_col[within_segment] = s_col
-            return  seg_row, seg_col   
+            return  seg_row.astype(np.int16), seg_col.astype(np.int16)   
         seg_row, seg_col = get_segment_row_col_idx(nwp_segments, row_matched, col_matched)
         for data_set in ['surfaceLandTemp',
                          'surfaceSeaTemp',
