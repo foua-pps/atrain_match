@@ -379,7 +379,7 @@ def reshapeCalipso(calipsofiles, res=resolution, ALAY=False):
         for arname, value in startCalipso.all_arrays.items(): 
             if np.size(value)>1 or value != None:
                 if value.size != 1:
-                    startCalipso.all_arrays[arname] = np.concatenate((value[0:cal_break,...], 
+                    startCalipso.all_arrays[arname] = np.concatenate((value[0:,...], 
                                                                       newCalipso.all_arrays[arname])) 
     cal = startCalipso        
     if cal.profile_time_tai.shape[0] <= 0:

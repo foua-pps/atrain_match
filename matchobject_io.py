@@ -274,6 +274,7 @@ class CalipsoObject(DataObject):
             'day_night_flag': None,
             'feature_optical_depth_532': None,
             'single_shot_cloud_cleared_fraction': None,
+            'cfc_single_shots_1km_from_5km_file': None,
             'profile_id':None,
             #If a combination of 5 and 1km data are used for RESOLUTION=1
             #A vector with the corresponding optical thickness for 5km data
