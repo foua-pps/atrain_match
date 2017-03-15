@@ -233,7 +233,7 @@ def match_cloudsat_avhrr(ctypefile,cloudsatObj,imagerGeoObj,imagerObj,ctype,cma,
     
     #arnamecl = array name from cloudsatObj
     for arnamecl, value in cloudsatObj.all_arrays.items(): 
-        if value != None:
+        if value is not None:
             #print arnamecl, value, value.shape, value.ndim
             if value.ndim == 0:
                 retv.cloudsat.all_arrays[arnamecl] = value.copy()
@@ -320,7 +320,7 @@ def reshapeCloudsat(cloudsatfiles, avhrr, avhrrfilename):
         # Concatenate the feature values
         #arname = array name from cloudsatObj
         for arname, value in startCloudsat.all_arrays.items(): 
-            if value != None:
+            if value is not None:
                 if value.size != 1:
                     startCloudsat.all_arrays[arname] = numpy.concatenate((value[0:clsat_break,...],newCloudsat.all_arrays[arname]))
                 
@@ -333,7 +333,7 @@ def reshapeCloudsat(cloudsatfiles, avhrr, avhrrfilename):
     # Cute the feature values
     #arnamecl = array name from cloudsatObj
     for arnamecl, valuecl in startCloudsat.all_arrays.items(): 
-        if valuecl != None:
+        if valuecl is not None:
             if valuecl.size != 1:
                 clsat.all_arrays[arnamecl] = valuecl[start_break:end_break,...]
             else:

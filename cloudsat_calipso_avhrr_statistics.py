@@ -212,7 +212,7 @@ def get_semi_opaque_info(caObj):
 
 
 def print_cloudsat_stats(clsatObj, statfile):
-    if clsatObj != None:
+    if clsatObj is not None:
         cloudsat_cloud_mask=clsatObj.cloudsat.cloud_mask
         cloudsat_cloud_mask=np.greater_equal(cloudsat_cloud_mask, 
                                              config.CLOUDSAT_CLOUDY_THR)
@@ -274,7 +274,7 @@ def print_cloudsat_stats(clsatObj, statfile):
         statfile.write('No CloudSat \n')
 
 def print_cloudsat_modis_stats(clsatObj, statfile):
-    if clsatObj != None:
+    if clsatObj is not None:
         # CORRELATION CLOUD MASK: CLOUDSAT - MODIS
     
         #print "------------------------------------"
@@ -432,7 +432,7 @@ def print_calipso_modis_stats(caObj, statfile, cal_subset, cal_MODIS_cflag):
                                    cal_subset)
     calipso_cloudy = np.logical_and(
         np.greater(caObj.calipso.cloud_fraction,0.66),cal_subset)
-    if cal_MODIS_cflag != None:
+    if cal_MODIS_cflag is not None:
         modis_clear = np.logical_and(
             np.logical_or(np.equal(cal_MODIS_cflag,1),
                           np.equal(cal_MODIS_cflag,0)),cal_subset)
@@ -440,7 +440,7 @@ def print_calipso_modis_stats(caObj, statfile, cal_subset, cal_MODIS_cflag):
             np.logical_or(np.equal(cal_MODIS_cflag,3),
                           np.equal(cal_MODIS_cflag,2)),cal_subset)
 
-    if cal_MODIS_cflag != None:
+    if cal_MODIS_cflag is not None:
         n_clear_clear = np.repeat(
             modis_clear,
             np.logical_and(calipso_clear,modis_clear)).shape[0]
@@ -679,7 +679,7 @@ def print_cloudsat_stats_ctop(clsatObj, statfile):
 
     # CLOUD TOP EVALUATION
     #=======================
-    if clsatObj != None: 
+    if clsatObj is not None: 
         avhrr_ctth_csat_ok = clsatObj.avhrr.avhrr_ctth_csat_ok
         # CORRELATION: CLOUDSAT - AVHRR HEIGHT
     

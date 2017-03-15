@@ -620,20 +620,20 @@ def get_calipso_matchups(calipso_files, values,
     #It is unnessecary to do this for files where no-pixel will match!
     calipso_files = discardCalipsoFilesOutsideTimeRange(
         calipso_files, avhrrGeoObj, values)
-    if cafiles1km != None:
+    if cafiles1km is not None:
         cafiles1km = discardCalipsoFilesOutsideTimeRange(
             cafiles1km, avhrrGeoObj, values, res=1)
-    if cafiles5km != None:
+    if cafiles5km is not None:
         cafiles5km = discardCalipsoFilesOutsideTimeRange(
             cafiles5km, avhrrGeoObj, values, res=5)
-    if cafiles5km_aerosol!=None:
+    if cafiles5km_aerosol is not None:
         cafiles5km_aerosol = discardCalipsoFilesOutsideTimeRange(
             cafiles5km_aerosol, avhrrGeoObj, values, res=5, ALAY=True)
         
     calipso  = reshapeCalipso(calipso_files)
     #find time breakpoints, but don't cut the data yet ..
     startBreak, endBreak = find_break_points(calipso,  avhrrGeoObj, values)
-    if cafiles1km != None and CALIPSO_version3:
+    if cafiles1km is not None and CALIPSO_version3:
         #RESOLUTION 5km also have 1km data
         logger.info("Calipso version 3 data used and old 1 km restore method!")
         calipso1km = reshapeCalipso(cafiles1km, res=1)
@@ -643,7 +643,7 @@ def get_calipso_matchups(calipso_files, values,
                                        start_break=startBreak, end_break=endBreak) 
         calipso = total_and_top_layer_optical_depth_5km(calipso, resolution=5)
 
-    elif cafiles5km !=None and CALIPSO_version4:
+    elif cafiles5km is not None and CALIPSO_version4:
         #RESOLUTION 1km also have 5km data calipso version 4
         logger.info("Calipso version 4, single shot fraction and "
                     "old 5km restored optical depth method used!")
@@ -659,7 +659,7 @@ def get_calipso_matchups(calipso_files, values,
                                        start_break=startBreak, 
                                        end_break=endBreak) 
 
-    elif cafiles5km !=None and CALIPSO_version3:
+    elif cafiles5km is not None and CALIPSO_version3:
         #RESOLUTION 1km also have 5km data calipso version 3
         logger.info("Calipso version 3 data used and old 5 km restored optical depth method!")
         calipso1km = calipso
@@ -705,7 +705,7 @@ def get_calipso_matchups(calipso_files, values,
 
     #aerosol-data
     calipso_aerosol = None
-    if cafiles5km_aerosol!=None:
+    if cafiles5km_aerosol is not None:
         calipso5km_aerosol = reshapeCalipso(cafiles5km_aerosol, res=5, ALAY=True)
         if RESOLUTION == 1:
             calipso_aerosol = adjust5kmTo1kmresolution(calipso5km_aerosol)
