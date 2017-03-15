@@ -60,7 +60,7 @@ def drawCalClsatGEOPROFAvhrrPlot(clsatObj,
             base_height = height-120
             top_height = height+120
             plot_these =np.logical_and(cmask_ok, height>240*4)
-
+            #TODO Fix colors!
             ax.vlines(pixel_position[clsatObj.cloudsat.calipso_index[plot_these]],
                       base_height[plot_these], top_height[plot_these], 'm',#color = colors[nidx], \
                       linestyle = 'solid', linewidth = 1)    

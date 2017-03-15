@@ -47,16 +47,10 @@ def calculate_ctth_stats(okcaliop, avhrr_ctth_cal_ok,caliop_max_height):
     #return (corr_caliop_avhrr,bias,RMS_difference,avhrr_height_work,diff_squared_biascorr)
     return "%f %f %f %s %f "%(corr_caliop_avhrr,bias,RMS_difference,len(avhrr_height_work),sum(diff_squared_biascorr))
 
-
-
-
 def get_subset_for_mode(caObj, mode):
   # First prepare possible subsetting of CALIOP datasets according to NSIDC
     # and IGBP surface types  
-    if mode == "EMISSFILT":
-        emissfilt_calipso_ok = process_calipso_ok 
-        cal_subset = emissfilt_calipso_ok
-    elif mode == 'ICE_COVER_SEA':
+    if mode == 'ICE_COVER_SEA':
 ##         cal_subset = np.logical_and(np.logical_and(np.less(caObj.calipso.nsidc_surface_type,100),np.greater(caObj.calipso.nsidc_surface_type,10)),np.equal(caObj.calipso.igbp_surface_type,17))
         # Unfortunately, the above formulation used for ORR-B excluded the case
         # when ice-cover was exactly 100 %!!! Very embarrassing!/KG
@@ -681,29 +675,25 @@ def print_calipso_stats_ctype(caObj, statfile, cal_subset, cal_vert_feature):
     statfile.write("CLOUD TYPE CALIOP-PPS TABLE MISSED: %s %s %s %s %s %s %s \n" % (n_clear_low,n_clear_medium,n_clear_high,n_low_clear,n_medium_clear,n_high_clear,n_frac_clear))
             
 
-def print_cloudsat_stats_ctop(clsatObj, statfile, avhrr_ctth_csat_ok):
+def print_cloudsat_stats_ctop(clsatObj, statfile):
 
     # CLOUD TOP EVALUATION
     #=======================
     if clsatObj != None: 
+        avhrr_ctth_csat_ok = clsatObj.avhrr.avhrr_ctth_csat_ok
         # CORRELATION: CLOUDSAT - AVHRR HEIGHT
     
         #print "STATISTICS CLOUD TOP HEIGHT: CLOUDSAT - AVHRR"
+        clsat_max_height = -9 + 0*np.zeros(clsatObj.cloudsat.latitude.shape)
     
-        #if mode not in config.PLOT_MODES:
-        if True: # TODO: The above if statement seems to have lost its meaning...
-            dummy=clsatObj.cloudsat.latitude.shape[0]
-            pixel_position_plain=np.arange(dummy)
-            clsat_max_height = -9 + 0*np.zeros(clsatObj.cloudsat.latitude.shape)
-    
-            for i in range(125):
-                height = clsatObj.cloudsat.Height[:,i]
-                cmask_ok = clsatObj.cloudsat.cloud_mask[:,i]
-                top_height = height+120
-                top_height[height<240*4] = -9999 #Do not use not sure why these are not used Nina 20170317
-                is_cloudy = cmask_ok > config.CLOUDSAT_CLOUDY_THR
-                top_height[~is_cloudy] = -9999
-                clsat_max_height[clsat_max_height<top_height] =  top_height[clsat_max_height<top_height] 
+        for i in range(125):
+            height = clsatObj.cloudsat.Height[:,i]
+            cmask_ok = clsatObj.cloudsat.cloud_mask[:,i]
+            top_height = height+120
+            #top_height[height<240*4] = -9999 #Do not use not sure why these are not used Nina 20170317
+            is_cloudy = cmask_ok > config.CLOUDSAT_CLOUDY_THR
+            top_height[~is_cloudy] = -9999
+            clsat_max_height[clsat_max_height<top_height] =  top_height[clsat_max_height<top_height] 
 
         okarr = np.greater_equal(avhrr_ctth_csat_ok,0.0)
         okarr = np.logical_and(okarr,np.greater_equal(clsat_max_height,0.0))
@@ -769,11 +759,16 @@ def print_height_all_low_medium_high(NAME, okcaliop,  statfile,
     statfile.write("CLOUD HEIGHT %s HIGH: %s \n" % (NAME, out_stats))
 
 def print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature, 
-                             cal_data_ok, avhrr_ctth_cal_ok, 
-                             semi_flag, opaque_flag, 
-                             caliop_max_height ):
+                             semi_flag, opaque_flag):
+
     # CORRELATION: CALIOP - AVHRR HEIGHT
     # FIRST TOTAL FIGURES
+    avhrr_ctth_cal_ok = caObj.avhrr.avhrr_ctth_cal_ok  
+    cal_data_ok = np.greater(caObj.calipso.layer_top_altitude[:,0],-9.)
+    caliop_max_height = caObj.calipso.layer_top_altitude[:,0].copy()
+    caliop_max_height[caliop_max_height>=0] *= 1000
+    caliop_max_height[caliop_max_height<0] = -9
+
     okcaliop = np.logical_and(
         cal_data_ok, 
         np.logical_and(np.greater_equal(avhrr_ctth_cal_ok[::],0),cal_subset))
@@ -895,11 +890,17 @@ def print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature,
                                          avhrr_ctth_cal_ok, caliop_max_height)
 
 def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
-                        cal_vert_feature, avhrr_ctth_csat_ok, data_ok,
-                        cal_data_ok, avhrr_ctth_cal_ok, caliop_max_height,
-                        process_calipso_ok, dnt_flag = None): 
+                        dnt_flag = None): 
     import sys
  
+    # Extract CALIOP Vertical Feature Classification (bits 10-12) from 16 bit
+    # representation for topmost cloud layer #Nina 20140120 this is cloud type nit vert feature !!
+    cal_vert_feature = np.ones(caObj.calipso.layer_top_altitude[::,0].shape)*-9
+    feature_array = 4*np.bitwise_and(np.right_shift(caObj.calipso.feature_classification_flags[::,0],11),1) + 2*np.bitwise_and(np.right_shift(caObj.calipso.feature_classification_flags[::,0],10),1) + np.bitwise_and(np.right_shift(caObj.calipso.feature_classification_flags[::,0],9),1)
+    cal_vert_feature = np.where(np.not_equal(caObj.calipso.feature_classification_flags[::,0],1),feature_array[::],cal_vert_feature[::])  
+
+
+
     cal_subset = get_subset_for_mode(caObj, mode)
     semi_flag, opaque_flag = get_semi_opaque_info(caObj)
     (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag) = get_day_night_info(caObj)
@@ -926,11 +927,9 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
     print_calipso_cmask_stats(caObj, statfile, cal_subset)
     print_calipso_modis_stats(caObj, statfile, cal_subset, cal_MODIS_cflag)
     print_calipso_stats_ctype(caObj, statfile, cal_subset, cal_vert_feature)
-    print_cloudsat_stats_ctop(clsatObj, statfile, avhrr_ctth_csat_ok)
+    print_cloudsat_stats_ctop(clsatObj, statfile)
     print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature, 
-                             cal_data_ok, avhrr_ctth_cal_ok,  
-                             semi_flag, opaque_flag, 
-                             caliop_max_height)
+                             semi_flag, opaque_flag)
    
 
 

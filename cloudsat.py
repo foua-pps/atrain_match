@@ -97,7 +97,7 @@ def readCloudsatAvhrrMatchObj(filename):
     
     h5file = h5py.File(filename, 'r')
     for group, data_obj in [(h5file['/cloudsat'], retv.cloudsat),
-                            (h5file['/avhrr'], retv.avhrr)]:
+                            (h5file['/pps'], retv.avhrr)]:
         for dataset in group.keys():        
             if dataset in data_obj.all_arrays.keys():
                 data_obj.all_arrays[dataset] = group[dataset].value
