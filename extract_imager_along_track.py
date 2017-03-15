@@ -310,7 +310,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
                              for idx in range(npix)]
         obt.avhrr.cloudtype_pflag = np.array(value_track)
     for nwp_info in ["surftemp", "t500", "t700", "t850", "t950", "ttro", "ciwv",
-                     "t900", "t1000", "t800", "t250", "t2m", "ptro", "psur"]:
+                     "t900", "t1000", "t800", "t250", "t2m", "ptro", "psur", "snowa", "snowd"]:
         if hasattr(nwp_obj, nwp_info):
             data = getattr(nwp_obj, nwp_info)
             if np.size(data)>1:

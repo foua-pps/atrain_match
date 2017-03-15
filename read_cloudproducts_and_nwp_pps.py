@@ -148,6 +148,8 @@ class NWPObj(object):
         self.emis6 = None
         self.emis8 = None
         self.emis9 = None
+        self.snowa = None
+        self.snowd = None
         self.__dict__.update(array_dict) 
 
 class smallDataObject(object):
@@ -778,6 +780,8 @@ def read_all_intermediate_files(pps_files):
         nwp_dict['ptro'] = read_etc_nc(pps_nc_nwp, "ptro")
         nwp_dict['psur'] = read_etc_nc(pps_nc_nwp, "psur")
         nwp_dict['t2m'] = read_etc_nc(pps_nc_nwp, "t2m")
+        nwp_dict['snowa'] = read_etc_nc(pps_nc_nwp, "snowa")
+        nwp_dict['snowd'] = read_etc_nc(pps_nc_nwp, "snowd")
     else:   
          nwp_dict['surftemp'] = read_nwp_h5(pps_files.nwp_tsur,"tsur")
          nwp_dict['t500'] = read_nwp_h5(pps_files.nwp_t500, "t500")
