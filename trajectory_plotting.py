@@ -1,6 +1,7 @@
 """New plotting routines using pyresample functionality"""
 
-def plotSatelliteTrajectory(longitude, latitude,
+def plotSatelliteTrajectory(longitude, 
+                            latitude,
                             trajectoryname, 
                             area_config_file,
                             fig_type='eps',
@@ -9,10 +10,11 @@ def plotSatelliteTrajectory(longitude, latitude,
     import numpy as np
     import os
     
-    if "area_id" in options:
-        area_id = options['area_id']
+    if 'trajectory_plot_area'  in options:
+        area_id = options['trajectory_plot_area']
     else:
         area_id = "mill10km_test"
+    print area_id    
         
     track = np.ones(latitude.shape)
 

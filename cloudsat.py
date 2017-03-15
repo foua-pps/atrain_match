@@ -115,34 +115,14 @@ def readCloudsatAvhrrMatchObj(filename):
 def writeCloudsatAvhrrMatchObj(filename,cl_obj):
     from common import write_match_objects
     groups = {'cloudsat': cl_obj.cloudsat.all_arrays,
-              'avhrr': cl_obj.avhrr.all_arrays}
+              'pps': cl_obj.avhrr.all_arrays}
     write_match_objects(filename, cl_obj.diff_sec_1970, groups)
     
     status = 1
     return status
 
 # -----------------------------------------------------
-def select_cloudsat_inside_avhrr(cloudsatObj,cal,sec1970_start_end,sec_timeThr):
-    # Cloudsat times are already in UTC in sec since 1970
-    import numpy
-
-    sec1970_start,sec1970_end = sec1970_start_end
-    
-    # Select the points inside the avhrr swath:
-    # Allowing for sec_timeThr seconds deviation:
-    idx_time_okay = numpy.logical_and(numpy.greater(\
-        cloudsatObj.sec1970,sec1970_start - sec_timeThr),
-                                   numpy.less(\
-        cloudsatObj.sec1970,sec1970_end + sec_timeThr))
-
-    #idx_match = numpy.not_equal(cal,NODATA)
-    idx_place_okay = numpy.where(numpy.not_equal(cal,NODATA),idx_time_okay,False)
-    idx_match = idx_place_okay
-    return idx_match
-
-# -----------------------------------------------------
 def get_cloudsat(filename):
-#    import _pypps_filters
     #import numpy
     import time
 
@@ -215,7 +195,7 @@ def read_cloudsat(filename):
     return retv
 
 # -----------------------------------------------------
-def match_cloudsat_avhrr(ctypefile,cloudsatObj,avhrrGeoObj,avhrrObj,ctype,ctth,surft,avhrrAngObj, avhrrLwp,options):
+def match_cloudsat_avhrr(ctypefile,cloudsatObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,imagerAngObj, cpp):
     import numpy
     import time
     import string
@@ -235,26 +215,17 @@ def match_cloudsat_avhrr(ctypefile,cloudsatObj,avhrrGeoObj,avhrrObj,ctype,ctth,s
     timeCloudsat = cloudsatObj.sec1970.ravel()
     ndim = lonCloudsat.shape[0]
 
-    # --------------------------------------------------------------------
-
-    #cal,cap = get_cloudsat_avhrr_linpix(avhrrGeoObj,ctypefile,lonCloudsat,latCloudsat,timeCloudsat, options)
-
-    # This function (match_calipso_avhrr) could use the MatchMapper object
-    # created in map_avhrr() to make things a lot simpler... See usage in
-    # amsr_avhrr_match.py
     #Nina 20150313 Swithcing to mapping without area as in cpp. Following suggestion from Jakob
     from common import map_avhrr
-    cal, cap = map_avhrr(imagerGeoObj, lonCalipso.ravel(), latCalipso.ravel(),
+    cal, cap = map_avhrr(imagerGeoObj, lonCloudsat.ravel(), latCloudsat.ravel(),
                          radius_of_influence=RESOLUTION*0.7*1000.0) # somewhat larger than radius...
 
     calnan = numpy.where(cal == NODATA, numpy.nan, cal)
     if (~numpy.isnan(calnan)).sum() == 0:
         raise MatchupError("No matches within region.")
-    avhrr_lines_sec_1970 = numpy.where(cal != NODATA, avhrrGeoObj.time[cal], numpy.nan)
+    imager_lines_sec_1970 = numpy.where(cal != NODATA, imagerGeoObj.time[cal], numpy.nan)
     # Find all matching Cloudsat pixels within +/- sec_timeThr from the AVHRR data
-    idx_match = elements_within_range(cloudsatObj.sec1970, avhrr_lines_sec_1970, sec_timeThr)
-    #            numpy.logical_and(cloudsatObj.sec1970 > avhrr_lines_sec_1970 - sec_timeThr,
-    #                              cloudsatObj.sec1970 < avhrr_lines_sec_1970 + sec_timeThr)
+    idx_match = elements_within_range(cloudsatObj.sec1970, imager_lines_sec_1970, sec_timeThr)
     if idx_match.sum() == 0:
         raise MatchupError("No matches in region within time threshold %d s." % sec_timeThr)  
     
@@ -263,16 +234,17 @@ def match_cloudsat_avhrr(ctypefile,cloudsatObj,avhrrGeoObj,avhrrObj,ctype,ctth,s
     #arnamecl = array name from cloudsatObj
     for arnamecl, value in cloudsatObj.all_arrays.items(): 
         if value != None:
+            #print arnamecl, value, value.shape, value.ndim
             if value.ndim == 0:
                 retv.cloudsat.all_arrays[arnamecl] = value.copy()
             elif value.ndim == 1:
                 if value.size != 1:
-                    retv.cloudsat.all_arrays[arnamecl] = value.copy()[idx_match,:].astype('d')
+                    retv.cloudsat.all_arrays[arnamecl] = value.copy()[idx_match].astype('d')
             elif value.ndim == 2:
                 temp = value.copy()[idx_match,:].astype('d')
                 if arnamecl == 'Radar_Reflectivity':
                     temp = numpy.where(numpy.less(temp,0),-9.9,temp)
-                retv.cloudsat.all_arrays[arnamecl] = temp.transpose()
+                retv.cloudsat.all_arrays[arnamecl] = temp
     
     # Special because in 5km lon and lat is 2dim and shold just be 1dim
     retv.cloudsat.longitude = numpy.repeat(lonCloudsat, idx_match).astype('d')
@@ -291,7 +263,7 @@ def match_cloudsat_avhrr(ctypefile,cloudsatObj,avhrrGeoObj,avhrrObj,ctype,ctth,s
     print "Cloudsat observation time of last cloudsat-avhrr match: ",\
         time.gmtime(retv.cloudsat.sec_1970[N-1])
     # Time
-    retv.avhrr.sec_1970 = avhrrGeoObj.time[cal_on_avhrr]    
+    retv.avhrr.sec_1970 = imagerGeoObj.time[cal_on_avhrr]    
     retv.diff_sec_1970 = retv.cloudsat.sec_1970 - retv.avhrr.sec_1970
     
     min_diff = numpy.minimum.reduce(retv.diff_sec_1970)
@@ -306,50 +278,14 @@ def match_cloudsat_avhrr(ctypefile,cloudsatObj,avhrrGeoObj,avhrrObj,ctype,ctth,s
                 
     # Make the latitude and pps cloudtype on the cloudsat track:
     # line and pixel arrays have equal dimensions
+
     print "Generate all datatypes (lat,lon,cty,ctth,surft) on the cloudsat track!"
-    retv = avhrr_track_from_matched(retv, avhrrGeoObj, avhrrObj, avhrrAngObj, \
-                                    surft, ctth, ctype, cal_on_avhrr, cap_on_avhrr, avhrrLwp)
+    retv = avhrr_track_from_matched(retv, imagerGeoObj, imagerObj, imagerAngObj, \
+                                    nwp, ctth, ctype, cma, cal_on_avhrr, cap_on_avhrr, cpp)
 
     print "AVHRR-PPS Cloud Type,latitude: shapes = ",\
           retv.avhrr.cloudtype.shape,retv.avhrr.latitude.shape
 
-    ll = []
-    for i in range(ndim):        
-        #ll.append(("%7.3f  %7.3f  %d\n"%(lonCloudsat[i],latCloudsat[i],0)))
-        ll.append(("%7.3f  %7.3f  %d\n"%(lonCloudsat[i],latCloudsat[i],idx_match[i])))
-    basename = os.path.basename(ctypefile).split(".h5")[0]
-    values={"satellite":basename.split("_")[-8]}
-    values["year"] = str(basename.split("_")[-7][0:4])
-    values["month"] = str(basename.split("_")[-7][4:6])
-    values["basename"] = string.join(basename.split("_")[0:4],"_")
-    data_path = options['data_dir'].format(val_dir=_validation_results_dir, 
-                                           satellite=values["satellite"],
-                                           resolution=str(RESOLUTION),
-                                           year=values["year"],
-                                           month=values["month"],
-                                           area=AREA)                                           
-    if not os.path.exists(data_path):
-        print "Creating datadir: %s"%(data_path )
-        os.makedirs(data_path)
-    data_file = options['data_file'].format(resolution=str(RESOLUTION),
-                                            basename=values["basename"],
-                                            atrain_sat="cloudsat-GEOPROF",
-                                            track="track2")
-    filename = data_path + data_file    
-    fd = open(filename,"w")
-    fd.writelines(ll)
-    fd.close()
-    ll = []
-    for i in range(N):
-        ll.append(("%7.3f  %7.3f  %d\n"%(retv.cloudsat.longitude[i],retv.cloudsat.latitude[i],0)))
-    data_file = options['data_file'].format(resolution=str(RESOLUTION),
-                                            basename=values["basename"],
-                                            atrain_sat="cloudsat-GEOPROF",
-                                            track="track_excl")
-    filename = data_path + data_file 
-    fd = open(filename,"w")
-    fd.writelines(ll)
-    fd.close()
 
     return retv,min_diff,max_diff
 

@@ -29,8 +29,8 @@ CCI_CLOUD_VALIDATION = False
 MAIA_CLOUD_VALIDATION = str2bool(os.environ.get('MAIA_CLOUD_VALIDATION', False))
 
 #Choose CALIPSO-CALIOP version
-CALIPSO_version4 = True
-CALIPSO_version3 = False
+CALIPSO_version4 = False
+CALIPSO_version3 = True
 
 #Save imager data also for warmest and coldest pixels:
 SAVE_NEIGHBOUR_INFO = False
@@ -82,7 +82,7 @@ PLOT_ONLY_PNG = True
 DO_WRITE_COVERAGE = False 
 DO_WRITE_DATA = False
 #important for cph_validate.py
-VAL_CPP = os.environ.get('VAL_CPP', True)
+VAL_CPP = os.environ.get('VAL_CPP', False)
 VALIDATE_FOR_CPP_PIXELS = True #means validating for cloudtype only for pixels where we also got cpp.cph values
 CPP_REDUCE_PIXELS = int(os.environ.get('CPP_REDUCE_PIXELS', 0))
 # 1 means validate on a sub-set of the pixels, according to settings in
@@ -91,7 +91,7 @@ CPP_REDUCE_PIXELS = int(os.environ.get('CPP_REDUCE_PIXELS', 0))
 # Imager Instrument on which PPS has been run (currently you can only run the
 # atrain match on either AVHRR data or VIIRS data, not both):
 IMAGER_INSTRUMENT = os.environ.get('IMAGER_INSTRUMENT', 'avhrr')
-
+print IMAGER_INSTRUMENT 
 #: Resolution, in km, to use for data files. This setting is used throughout
 #: ``atrain_match`` to specify file names, sub-directories, and data handling.
 #: Currently, 1 or 5 is supported
@@ -253,16 +253,7 @@ if RESOLUTION == 1:
     #AREA = "npole"
     #AREA = "europa"
     #AREA = "cea1km_test"
-    #: CloudSat sampling frequency in km (or rather the most likely
-    #: resolution difference between CALIPSO 1 km datasets and
-    #: the CloudSat 2B-GEOPROF dataset). Nominally CloudSat sampling
-    #: rate is said to be 1.1 km but it seems as the CALIPSO sampling
-    #: rate is not exactly 1 km but slightly above - as based on the
-    #: optimised matching of plots of the two datasets.
-    # TODO: Try too remove this one. Should be much better if it could be \
-    # calculated instead inside atrain_match sugestion: \
-    # cloudsat_track_resolution = len(calipso.longitude) / len(cloudsat.longitude)
-    CLOUDSAT_TRACK_RESOLUTION = 1.076
+    #: cloudsat sampling issue moved to where it is used. And solved by resampling 20170315
     if USE_5KM_FILES_TO_FILTER_CALIPSO_DATA:
          ALLOWED_MODES.append('OPTICAL_DEPTH_THIN_IS_CLEAR')      # Filter out cases with the thinnest topmost CALIPSO layers. Define MIN_OPTICAL_DEPTH above
          ALLOWED_MODES.append('OPTICAL_DEPTH_THIN_IS_CLEAR_DAY')
@@ -278,10 +269,6 @@ elif RESOLUTION == 5:
     SWATHWD=409
     #AREA = "no_area"
     AREA = "cea5km_test"#"arctic_super_1002_5km"
-    #: See :data:`CLOUDSAT_TRACK_RESOLUTION` in RESOLUTION = 1km
-    CLOUDSAT_TRACK_RESOLUTION = 1.076#*5.0
-    CLOUDSAT5KM_TRACK_RESOLUTION = CLOUDSAT_TRACK_RESOLUTION#*5.0
-
 
     ALLOWED_MODES.append('OPTICAL_DEPTH')      # Filter out cases with the thinnest topmost CALIPSO layers. Define MIN_OPTICAL_DEPTH above
     ALLOWED_MODES.append('OPTICAL_DEPTH_DAY')
@@ -303,8 +290,8 @@ NLINES=6000
 NODATA=-9
 
 #: Processing modes for which plotting should also be performed
-#PLOT_MODES = ['BASIC']
-PLOT_MODES = ['No Plot']
+PLOT_MODES = ['BASIC']
+#PLOT_MODES = ['No Plot']
 
 #========== Statistics setup ==========#
 #: List of dictionaries containing *satname*, *year*, and *month*, for which

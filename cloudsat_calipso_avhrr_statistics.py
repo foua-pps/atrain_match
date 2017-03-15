@@ -219,20 +219,12 @@ def get_semi_opaque_info(caObj):
 
 def print_cloudsat_stats(clsatObj, statfile):
     if clsatObj != None:
-        dummy=clsatObj.cloudsat.latitude.shape[0]
-        pixel_position=np.arange(dummy)
         cloudsat_cloud_mask=clsatObj.cloudsat.cloud_mask
         cloudsat_cloud_mask=np.greater_equal(cloudsat_cloud_mask, 
                                              config.CLOUDSAT_CLOUDY_THR)
-        
-        cloudsat_cloud_fraction=np.zeros(len(pixel_position))
-    
-    
-        sum_cloudsat_cloud_mask=sum(cloudsat_cloud_mask)
-        
-        for idx in range (len(pixel_position)):
-            if sum_cloudsat_cloud_mask[idx] > 2: # requires at least two cloudy bins
-                cloudsat_cloud_fraction[idx]=1
+        cloudsat_cloud_fraction=np.zeros(clsatObj.cloudsat.latitude.shape[0])
+        sum_cloudsat_cloud_mask = sum(cloudsat_cloud_mask)
+        cloudsat_cloud_fraction[sum_cloudsat_cloud_mask > 2] = 1 # requires at least two cloudy bins
         print "Warning what version of pps cloudtype is this!!"        
         cloudsat_clear =  np.less(cloudsat_cloud_fraction,1)
         cloudsat_cloudy = np.greater_equal(cloudsat_cloud_fraction,1)
@@ -278,11 +270,6 @@ def print_cloudsat_stats(clsatObj, statfile):
         else:
             far_clear = -9.0
     
-        #print "POD-Cloudy: ",pod_cloudy
-        #print "POD-Clear: ",pod_clear
-        #print "FAR-Cloudy: ",far_cloudy
-        #print "FAR-Clear: ",far_clear    
-        #print "-----------------------------------------"
         mean_cloudsat=((n_clear_clear+n_clear_cloudy)*0.0 + (n_cloudy_clear+n_cloudy_cloudy)*1.0)/(n_clear_clear+n_clear_cloudy+n_cloudy_clear+n_cloudy_cloudy)
         mean_pps=((n_clear_clear+n_cloudy_clear)*0.0 + (n_cloudy_cloudy+n_clear_cloudy)*1.0)/(n_clear_clear+n_clear_cloudy+n_cloudy_clear+n_cloudy_cloudy)
         bias=mean_pps-mean_cloudsat
@@ -305,7 +292,16 @@ def print_cloudsat_modis_stats(clsatObj, statfile):
         modis_cloudy = np.logical_or(
             np.equal(clsatObj.cloudsat.MODIS_cloud_flag,3),
             np.equal(clsatObj.cloudsat.MODIS_cloud_flag,2))
-    
+        cloudsat_cloud_mask=clsatObj.cloudsat.cloud_mask
+        cloudsat_cloud_mask=np.greater_equal(cloudsat_cloud_mask, 
+                                             config.CLOUDSAT_CLOUDY_THR)
+        cloudsat_cloud_fraction=np.zeros(clsatObj.cloudsat.latitude.shape[0])
+        sum_cloudsat_cloud_mask = sum(cloudsat_cloud_mask)
+        cloudsat_cloud_fraction[sum_cloudsat_cloud_mask > 2] = 1 # requires at least two cloudy bins
+        print "Warning what version of pps cloudtype is this!!"        
+        cloudsat_clear =  np.less(cloudsat_cloud_fraction,1)
+        cloudsat_cloudy = np.greater_equal(cloudsat_cloud_fraction,1)
+
         n_clear_clear = np.repeat(
             modis_clear, np.logical_and(cloudsat_clear,modis_clear)).shape[0]
         n_cloudy_cloudy = np.repeat(
@@ -685,7 +681,7 @@ def print_calipso_stats_ctype(caObj, statfile, cal_subset, cal_vert_feature):
     statfile.write("CLOUD TYPE CALIOP-PPS TABLE MISSED: %s %s %s %s %s %s %s \n" % (n_clear_low,n_clear_medium,n_clear_high,n_low_clear,n_medium_clear,n_high_clear,n_frac_clear))
             
 
-def print_cloudsat_stats_ctop(clsatObj, statfile):
+def print_cloudsat_stats_ctop(clsatObj, statfile, avhrr_ctth_csat_ok):
 
     # CLOUD TOP EVALUATION
     #=======================
@@ -698,30 +694,19 @@ def print_cloudsat_stats_ctop(clsatObj, statfile):
         if True: # TODO: The above if statement seems to have lost its meaning...
             dummy=clsatObj.cloudsat.latitude.shape[0]
             pixel_position_plain=np.arange(dummy)
-            clsat_max_height = np.repeat(clsatObj.cloudsat.Height[124,::],data_ok)
-    #        clsat_max_height = np.zeros(dummy, 'f')
+            clsat_max_height = -9 + 0*np.zeros(clsatObj.cloudsat.latitude.shape)
     
             for i in range(125):
-                height = clsatObj.cloudsat.Height[i,::]
-                cmask_ok = clsatObj.cloudsat.cloud_mask[i,::]
-                for idx in range(len(pixel_position_plain)):
-                    #nidx = int(cmask_ok[idx]+0.5)-1
-                    nidx = int(cmask_ok[idx]+0.5)
-                    #if nidx < 0:
-                    if nidx == 0:
-                        continue
-                    #print idx,nidx,colors[nidx]
-                    #if height[idx] < 0 or height[idx] > MAXHEIGHT:
-                    if height[idx] < 240*4: # or height[idx] > config.MAXHEIGHT:
-                        continue
-#                    base_height = height[idx]-120
-                    top_height = height[idx]+120
-                    if nidx >= int(config.CLOUDSAT_CLOUDY_THR):
-    #                if nidx >= 20:
-                        clsat_max_height[idx] = max(clsat_max_height[idx],top_height)  
-    
-        okarr = np.logical_and(np.greater(avhrr_ctth_csat_ok,0.0),data_ok)
-        okarr = np.logical_and(okarr,np.greater(clsat_max_height,0.0))
+                height = clsatObj.cloudsat.Height[:,i]
+                cmask_ok = clsatObj.cloudsat.cloud_mask[:,i]
+                top_height = height+120
+                top_height[height<240*4] = -9999 #Do not use not sure why these are not used Nina 20170317
+                is_cloudy = cmask_ok > config.CLOUDSAT_CLOUDY_THR
+                top_height[~is_cloudy] = -9999
+                clsat_max_height[clsat_max_height<top_height] =  top_height[clsat_max_height<top_height] 
+
+        okarr = np.greater_equal(avhrr_ctth_csat_ok,0.0)
+        okarr = np.logical_and(okarr,np.greater_equal(clsat_max_height,0.0))
         clsat_max_height = np.repeat(clsat_max_height[::],okarr)
         avhrr_height = np.repeat(avhrr_ctth_csat_ok[::],okarr)
     
@@ -941,7 +926,7 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
     print_calipso_cmask_stats(caObj, statfile, cal_subset)
     print_calipso_modis_stats(caObj, statfile, cal_subset, cal_MODIS_cflag)
     print_calipso_stats_ctype(caObj, statfile, cal_subset, cal_vert_feature)
-    print_cloudsat_stats_ctop(clsatObj, statfile)
+    print_cloudsat_stats_ctop(clsatObj, statfile, avhrr_ctth_csat_ok)
     print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature, 
                              cal_data_ok, avhrr_ctth_cal_ok,  
                              semi_flag, opaque_flag, 

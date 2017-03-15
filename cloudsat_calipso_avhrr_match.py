@@ -66,6 +66,7 @@ import sys
 import numpy as np
 from numpy import NaN
 from config import (VAL_CPP,
+                    NODATA,
                     PLOT_ONLY_PNG,
                     CCI_CLOUD_VALIDATION,
                     MAIA_CLOUD_VALIDATION,
@@ -86,7 +87,6 @@ import config
 from common import attach_subdir_from_config, MatchupError
 
 from cloudsat_calipso_avhrr_statistics import (CalculateStatistics)
-#from trajectory_plot import plotSatelliteTrajectory
 from trajectory_plotting import plotSatelliteTrajectory
 from cloudsat_calipso_avhrr_prepare import *
 
@@ -550,23 +550,8 @@ def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
     ppsfiles = ppsFiles(file_name_dict)
     return  ppsfiles
 
-
-def _plot_avhrr_track(match_file, avhrr, track):
-    """
-    Helper function for calling `cloudsat_calipso_avhrr_plot.map_avhrr_track`.
-    
-    """
-    from cloudsat_calipso_avhrr_plot import map_avhrr_track
-    
-    avhrr_lonlat = avhrr.longitude, avhrr.latitude
-    track_lonlat = track.longitude, track.latitude
-    fig = map_avhrr_track(avhrr_lonlat, track_lonlat)
-    
-    plot_file = match_file.replace('.h5', '.png')
-    fig.savefig(plot_file)
-
 def get_cloudsat_matchups(cloudsat_files, cloudtype_file, avhrrGeoObj, avhrrObj,
-                          ctype, ctth, nwp_obj, avhrrAngObj, cpp, plot_file=None):
+                          ctype, cma, ctth, nwp_obj, avhrrAngObj, cpp, config_options):
     """
     Read Cloudsat data and match with the given PPS data.
     """
@@ -589,16 +574,9 @@ def get_cloudsat_matchups(cloudsat_files, cloudtype_file, avhrrGeoObj, avhrrObj,
         reshape_fun = reshapeCloudsat
         match_fun = match_cloudsat_avhrr
     cloudsat = reshape_fun(cloudsat_files, avhrrGeoObj, cloudtype_file)
-
-    if plot_file != None:
-        logger.info("plot cloudsat - avhrr track")
-        _plot_avhrr_track(plot_file, avhrrGeoObj, cloudsat)
-    else:
-        logger.info(("No cloudsat plot-file"))
     cl_matchup, cl_min_diff, cl_max_diff = match_fun(cloudtype_file, cloudsat,
-                                                     avhrrGeoObj, avhrrObj, ctype,
-                                                     ctth, nwp_obj.surftemp, avhrrAngObj, cpp)
-
+                                                     avhrrGeoObj, avhrrObj, ctype, cma,
+                                                     ctth, nwp_obj, avhrrAngObj, cpp)
     return cl_matchup, (cl_min_diff, cl_max_diff)
 
 def total_and_top_layer_optical_depth_5km(calipso, resolution=5):
@@ -806,7 +784,7 @@ def get_matchups_from_data(cross, config_options):
             logger.info("Read CLOUDSAT %s data" % config.CLOUDSAT_TYPE)
             cl_matchup, cl_time_diff = get_cloudsat_matchups(cloudsat_files, 
                                                              pps_files.cloudtype,
-                                                             avhrrGeoObj, avhrrObj, ctype,
+                                                             avhrrGeoObj, avhrrObj, ctype, cma,
                                                              ctth, nwp_obj, avhrrAngObj, cpp, config_options)
         else:
             logger.info("NO CLOUDSAT File, Continue")
@@ -1177,42 +1155,22 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
             cllat = clsatObj.cloudsat.latitude.copy()
             return
 
-        # Issue a warning if startpoint or endpoint latitude of CloudSat and
-        # CALIPSO differ by more than 0.1 degrees Furthermore, if startpoint
-        # differs it means that CALIPSO data is not available for the first
-        # part of the matchup cross section. This means that we must find the
-        # first corresponding CloudSat point to this CALIPSO start point before 
-        # we can do the plotting (statistics calculations are not
-        # affected). Consequently, set the CALIPSO_DISPLACED flag and find
-        # correct startpoint just before starting the plotting of CALIPSO data!
-
-        CALIPSO_DISPLACED = 0
-        latdiff = abs(clsatObj.cloudsat.latitude[0] - caObj.calipso.latitude[0])
-        logger.info("latdiff: ", latdiff)
-        if latdiff > 0.1:
-            logger.info("CloudSat/CALIPSO startpoint differ by %f degrees." % latdiff)
-            logger.info("Cloudsat start lon, lat: %f, %f" % (clsatObj.cloudsat.longitude[0], clsatObj.cloudsat.latitude[0]))
-            logger.info("CALIPSO start lon, lat: %f, %f" % (caObj.calipso.longitude[0], caObj.calipso.latitude[0]))
-            CALIPSO_DISPLACED = 1
-            for j in range(clsatObj.cloudsat.latitude.shape[0]):
-                if (abs(clsatObj.cloudsat.latitude[j] - caObj.calipso.latitude[0]) < 0.05) and\
-                       (abs(clsatObj.cloudsat.longitude[j] - caObj.calipso.longitude[0]) < 0.1):
-                    calipso_displacement=int(j*config.CLOUDSAT_TRACK_RESOLUTION)
-                    logger.info("CALIPSO_DISPLACEMENT: %d" % calipso_displacement)
-                    break
         # First make sure that PPS cloud top heights are converted to height
         # above sea level just as CloudSat and CALIPSO heights are defined. Use
         # corresponding DEM data.
         elevation = np.where(np.less_equal(clsatObj.cloudsat.elevation,0),\
                             -9,clsatObj.cloudsat.elevation)			# If clsatObj.cloudsat.elevation is <= 0 elevation(i,j)=-9, else the value = clsatObj.cloudsat.elevation(i,j)
         data_ok = np.ones(clsatObj.cloudsat.elevation.shape,'b')
-        logger.info("Length of CLOUDSAT array: ", len(data_ok))
+        logger.info("Length of CLOUDSAT array: %d", len(data_ok))
         avhrr_ctth_csat_ok = np.repeat(clsatObj.avhrr.ctth_height[::],data_ok)
 
-        if CCI_CLOUD_VALIDATION: #ctth relative mean sea level
-            avhrr_ctth_csat_ok = np.where(np.greater(avhrr_ctth_csat_ok,0.0),avhrr_ctth_csat_ok[::],avhrr_ctth_csat_ok)
+        avhrr_ctth_csat_ok = avhrr_ctth_csat_ok.ravel()
+        if CCI_CLOUD_VALIDATION: 
+            #ctth already relative mean sea level
+            pass
         else: #ctth relative topography
-            avhrr_ctth_csat_ok = np.where(np.greater_equal(avhrr_ctth_csat_ok,0.0),avhrr_ctth_csat_ok[::]+elevation*1.0,avhrr_ctth_csat_ok)
+            got_height = avhrr_ctth_csat_ok>=0                    
+            avhrr_ctth_csat_ok[got_height] += elevation[got_height]*1.0
 
         if len(data_ok) == 0:
             logger.info("Processing stopped: Zero lenght of matching arrays!")
@@ -1316,6 +1274,7 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
                   ", using 5km data in mode OPTICAL_DEPTH_THIN_IS_CLEAR")
         caObj = CalipsoOpticalDepthSetThinToClearFiltering1km(caObj)      
 
+
     # Extract CALIOP Vertical Feature Classification (bits 10-12) from 16 bit
     # representation for topmost cloud layer #Nina 20140120 this is cloud type nit vert feature !!
     cal_vert_feature = np.ones(caObj.calipso.layer_top_altitude[::,0].shape)*-9
@@ -1323,60 +1282,32 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     cal_vert_feature = np.where(np.not_equal(caObj.calipso.feature_classification_flags[::,0],1),feature_array[::],cal_vert_feature[::])  
     #feature_array = 2*np.bitwise_and(np.right_shift(caObj.calipso.feature_classification_flags[::,0],4),1) + np.bitwise_and(np.right_shift(caObj.calipso.feature_classification_flags[::,0],3),1)
 
-    # Prepare for plotting, cloud emissivity and statistics calculations
-    
-    caliop_toplay_thickness = np.ones(caObj.calipso.layer_top_altitude[::,0].shape)*-9
 
-    thickness = (caObj.calipso.layer_top_altitude[::,0]-caObj.calipso.layer_base_altitude[::,0])*1000.
-    caliop_toplay_thickness = np.where(np.greater(caObj.calipso.layer_top_altitude[::,0],-9),thickness,caliop_toplay_thickness)
-    
-    caliop_height = []
-    caliop_base = []
-    caliop_max_height = np.ones(caObj.calipso.layer_top_altitude[::,0].shape)*-9
-    
-    for i in range(10):
-        hh = np.where(np.greater(caObj.calipso.layer_top_altitude[::,i],-9),
-                            caObj.calipso.layer_top_altitude[::,i] * 1000.,-9)
-                                        
-        caliop_max_height = np.maximum(caliop_max_height,
-                                       caObj.calipso.layer_top_altitude[::,i] * 1000.)
-        # This is actually unnecessary - we know that layer 1 is always the
-        # highest layer!!  However, arrays caliop_height and caliop_base are
-        # needed later for plotting/ KG
+    caliop_max_height = caObj.calipso.layer_top_altitude[:,0].copy()
+    caliop_max_height[caliop_max_height>=0] *= 1000
+    caliop_max_height[caliop_max_height<0] = -9
 
-        bb = np.where(np.greater(caObj.calipso.layer_base_altitude[::,i],-9),
-                            caObj.calipso.layer_base_altitude[::,i] * 1000.,-9)
-        #if (hh>bb):
-        caliop_height.append(hh)
-        caliop_base.append(bb)
-        thickness = hh - bb
-        
-    x = np.repeat(caObj.calipso.number_layers_found.ravel(),
-                        np.greater(caObj.calipso.number_layers_found.ravel(),0))
-    #print "Number of points with more than 0 layers: ",x.shape[0]
-    cal_data_ok = np.greater(caliop_max_height,-9.)
+    cal_data_ok = np.greater(caObj.calipso.layer_top_altitude[:,0],-9.)
 
     if np.size(caObj.avhrr.surftemp)>1 or caObj.avhrr.surftemp != None:
         #print caObj.avhrr.surftemp.shape, cal_data_ok.shape
         cal_surftemp_ok = np.repeat(caObj.avhrr.surftemp[::], cal_data_ok)
 
     if clsatObj is not None:
+        #map cloudsat to calipso
+        from amsr_avhrr.match import match_lonlat
+        source = (clsatObj.cloudsat.longitude.astype(np.float64).reshape(-1,1), clsatObj.cloudsat.latitude.astype(np.float64).reshape(-1,1))
+        target = (caObj.calipso.longitude.astype(np.float64).reshape(-1,1), caObj.calipso.latitude.astype(np.float64).reshape(-1,1))
+        mapper = match_lonlat(source, target, radius_of_influence=1000, n_neighbours=1)
+        caObj.calipso.cloudsat_index = mapper.rows.filled(NODATA).ravel()
+        target = (clsatObj.cloudsat.longitude.astype(np.float64).reshape(-1,1), clsatObj.cloudsat.latitude.astype(np.float64).reshape(-1,1))
+        source = (caObj.calipso.longitude.astype(np.float64).reshape(-1,1), caObj.calipso.latitude.astype(np.float64).reshape(-1,1))
+        mapper = match_lonlat(source, target, radius_of_influence=1000, n_neighbours=1)
+        clsatObj.cloudsat.calipso_index = mapper.rows.filled(NODATA).ravel()
+
         # Transfer CloudSat MODIS cloud flag to CALIPSO representation
         cal_MODIS_cflag = np.zeros(len(cal_data_ok),'b')
-        for i in range(len(cal_data_ok)):
-            if not CALIPSO_DISPLACED: 
-                cloudsat_index = int(i/config.CLOUDSAT_TRACK_RESOLUTION + 0.5)
-                #print len(clsatObj.cloudsat.MODIS_cloud_flag),cloudsat_index
-                if len(clsatObj.cloudsat.MODIS_cloud_flag) > (cloudsat_index):
-                    cal_MODIS_cflag[i] = clsatObj.cloudsat.MODIS_cloud_flag[cloudsat_index]
-                else:
-                    cal_MODIS_cflag[i] = -9
-            else:
-                cloudsat_index = int((i+calipso_displacement)/config.CLOUDSAT_TRACK_RESOLUTION + 0.5)
-                if len(clsatObj.cloudsat.MODIS_cloud_flag) > (cloudsat_index-1):
-                    cal_MODIS_cflag[i] = clsatObj.cloudsat.MODIS_cloud_flag[cloudsat_index]
-                else:
-                    cal_MODIS_cflag[i] = -9
+        cal_MODIS_cflag[caObj.calipso.cloudsat_index] = clsatObj.cloudsat.MODIS_cloud_flag
     else:
         cal_MODIS_cflag = None
                 
@@ -1397,95 +1328,49 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     # Draw plot
     if process_mode_dnt in config.PLOT_MODES:
         logger.info("Plotting")
+        file_type = ['eps', 'png']
+        if PLOT_ONLY_PNG==True:
+            file_type = ['png']
 
         plotpath = insert_info_in_filename_or_path(config_options['plot_dir'], values,
-                                                   datetime_obj=values['date_time'])      
+                                                   datetime_obj=values['date_time'])  
+        ##TRAJECTORY
         trajectorypath = os.path.join(plotpath, "trajectory_plot")
         if not os.path.exists(trajectorypath):
             os.makedirs(trajectorypath)
         trajectoryname = os.path.join(trajectorypath, 
                                       "%skm_%s_trajectory" % (int(config.RESOLUTION),
                                                               values['basename']))
-        # To make it possible to use the same function call to drawCalClsatGEOPROFAvhrr*kmPlot
-        # in any processing mode:
-        #This is always None!
-        emissfilt_calipso_ok = None
-        if clsatObj is None:
-            file_type = ['eps', 'png']
-            if PLOT_ONLY_PNG==True:
-                file_type = ['png']
-            if 'trajectory_plot_area' in config_options:
-                plotSatelliteTrajectory(calon, calat,
-                                        trajectoryname, 
-                                        config.AREA_CONFIG_FILE, 
-                                        file_type,
-                                        area_id=config_options['trajectory_plot_area'])
-            else:
-                plotSatelliteTrajectory(calon, calat,
-                                        trajectoryname, 
-                                        config.AREA_CONFIG_FILE,
-                                        file_type)
-
-            drawCalClsatAvhrrPlotTimeDiff(calat, None, 
-                                          caObj.diff_sec_1970, 
-                                          plotpath, basename, 
-                                          config.RESOLUTION, file_type,
-                                          instrument=sensor)
-            drawCalClsatAvhrrPlotSATZ(calat, None, 
-                                      caObj.avhrr.satz, 
-                                      plotpath, basename, 
-                                      config.RESOLUTION, file_type,
-                                      instrument=sensor)
-            drawCalClsatGEOPROFAvhrrPlot(None, 
-                                         caObj.calipso, None, data_ok,
-                                         None, caliop_base,
-                                         caliop_height, cal_data_ok,
-                                         avhrr_ctth_cal_ok, plotpath,
-                                         basename, process_mode, 
-                                         emissfilt_calipso_ok, file_type,
+        plotSatelliteTrajectory(calon, 
+                                calat,
+                                trajectoryname, 
+                                config.AREA_CONFIG_FILE, 
+                                file_type,
+                                **config_options)
+        #HEIGHT
+        if clsatObj is None or cloudsat_type=='GEOPROF':
+            drawCalClsatGEOPROFAvhrrPlot(clsatObj, 
+                                         caObj, 
+                                         avhrr_ctth_cal_ok, 
+                                         plotpath,
+                                         basename, 
+                                         process_mode, 
+                                         file_type,
                                          instrument=sensor)
-        else:                    
-            if cloudsat_type=='GEOPROF':
-                file_type = ['eps', 'png']
-                drawCalClsatAvhrrPlotSATZ(cllat, 
-                                          clsatObj.avhrr.satz, 
-                                          caObj.avhrr.satz, 
-                                          plotpath, basename, 
-                                          config.RESOLUTION, file_type,
-                                          instrument=sensor)
-                drawCalClsatGEOPROFAvhrrPlot(clsatObj.cloudsat, 
-                                             clsatObj.avhrr, caObj.calipso, 
-                                             caObj.avhrr, elevation, data_ok,
-                                             CALIPSO_DISPLACED, caliop_base,
-                                             caliop_height, cal_data_ok,
-                                             avhrr_ctth_cal_ok, plotpath,
-                                             basename, process_mode, 
-                                             emissfilt_calipso_ok, file_type,
-                                             instrument=sensor)
-                drawCalClsatAvhrrPlotTimeDiff(cllat, 
-                                              clsatObj.diff_sec_1970, 
-                                              caObj.diff_sec_1970, 
-                                              plotpath, basename, 
-                                              config.RESOLUTION, file_type,
-                                              instrument=sensor)
-                if 'trajectory_plot_area' in config_options:
-                    plotSatelliteTrajectory(cllon, cllat, trajectoryname,
-                                            config.AREA_CONFIG_FILE,
-                                            file_type,
-                                            area_id=config_options['trajectory_plot_area'])
-                else:
-                    plotSatelliteTrajectory(cllon, cllat, 
-                                            trajectoryname,
-                                            config.AREA_CONFIG_FILE,
-                                            file_type)
+        #TIME DIFF SATZ   
+        drawCalClsatAvhrrPlotTimeDiff(clsatObj, 
+                                      caObj,
+                                      plotpath, basename, 
+                                      config.RESOLUTION,
+                                      instrument=sensor)
+        drawCalClsatAvhrrPlotSATZ(clsatObj, 
+                                  caObj,
+                                  plotpath, basename, 
+                                  config.RESOLUTION, file_type,
+                                  instrument=sensor)
                 
-            elif cloudsat_type=='CWC-RVOD':
-                drawCalClsatAvhrrPlotTimeDiff(cllat, 
-                                              clsatObj.diff_sec_1970, 
-                                              caObj.diff_sec_1970, 
-                                              plotpath, basename, 
-                                              config.RESOLUTION,
-                                              instrument=sensor)
+        if clsatObj is not None and cloudsat_type=='CWC-RVOD':
+                                
                 phase='LW'  
                 drawCalClsatCWCAvhrrPlot(clsatObj, 
                                          elevationcwc, 
