@@ -150,6 +150,7 @@ class NWPObj(object):
         self.emis9 = None
         self.snowa = None
         self.snowd = None
+        self.seaice = None
         self.__dict__.update(array_dict) 
 
 class smallDataObject(object):
@@ -762,6 +763,12 @@ def readImagerData_h5(filename):
 def read_all_intermediate_files(pps_files):
     logger.info("Read PPS NWP data")
     nwp_dict={}
+    if pps_files.seaice is None:
+        pass
+    elif '.nc' in pps_files.seaice:
+        pps_nc_seaice = netCDF4.Dataset(pps_files.seaice, 'r', format='NETCDF4')
+        nwp_dict["seaice"] = read_etc_nc(pps_nc_seaice, "seaice")
+
     if pps_files.nwp_tsur is None:
         pass
     elif '.nc' in pps_files.nwp_tsur:

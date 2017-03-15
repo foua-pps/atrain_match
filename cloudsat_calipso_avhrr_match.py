@@ -519,6 +519,9 @@ def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
     emis_file = get_pps_file(avhrr_file, options, values, 
                                            'emis_file', 'emis_dir')
     file_name_dict['emis'] = emis_file
+    seaice_file = get_pps_file(avhrr_file, options, values, 
+                               'seaice_file', 'seaice_dir')
+    file_name_dict['seaice'] = seaice_file
 
     for text_file in ['text_r06', 'text_t11', 'text_t37t12', 'text_t37']:
         file_name_dict[text_file] = get_pps_file(avhrr_file, options, values, 
