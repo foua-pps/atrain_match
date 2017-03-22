@@ -854,8 +854,9 @@ def add_additional_clousat_calipso_index_vars(clsatObj, caObj):
 
 def add_elevation_corrected_imager_ctth(clsatObj, caObj):
     ## Cloudsat ##
-    clsatObj.avhrr.avhrr_ctth_csat_ok = None
+
     if clsatObj is not None:
+        clsatObj.avhrr.avhrr_ctth_csat_ok = None
         # First make sure that PPS cloud top heights are converted to height
         # above sea level just as CloudSat height are defined. Use
         # corresponding DEM data.
@@ -1126,17 +1127,18 @@ def get_matchups(cross, options, reprocess=False):
             values['basename'] = basename
             values['month']="%02d"%(tobj.month)
 
-    #TODO: Fix a better solution for below so it can handle missing cloudsat better.
-    if None in [caObj] and None in [clObj]:
-        return get_matchups_from_data(cross, options)
-    elif None in [clObj] and config.CLOUDSAT_TYPE == 'CWC-RVOD':
-        return get_matchups_from_data(cross, options)
-    elif caObj is None and config.CLOUDSAT_TYPE == 'GEOPROF':
-        return get_matchups_from_data(cross, options)
-
-
-    return {'calipso': caObj, 'cloudsat': clObj, 
-            'basename': basename,'values':values}
+    #Currently not possible to match wihtout calipso        
+    if caObj is None:
+        out_dict = get_matchups_from_data(cross, options)
+    elif clObj is None and config.CLOUDSAT_MATCHING:
+        out_dict =  get_matchups_from_data(cross, options)
+    else:
+        out_dict = {'calipso': caObj, 'cloudsat': clObj, 
+                    'basename': basename,'values':values}
+    if clObj is None and config.CLOUDSAT_MATCHING:
+        raise MatchupError("Couldn't find cloudsat matchup!")
+        
+    return out_dict
 
 def plot_some_figures(clsatObj, caObj, sensor, values, basename, process_mode, 
                       config_options):

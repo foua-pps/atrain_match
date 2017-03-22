@@ -252,6 +252,7 @@ class CalipsoObject(DataObject):
     def __init__(self):
         DataObject.__init__(self)                            
         self.all_arrays = {
+            'cloudsat_index': None,
             'avhrr_linnum': None,
             'avhrr_pixnum': None,
             'elevation': None,

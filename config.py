@@ -28,6 +28,10 @@ print "PPS_VALIDATION", PPS_VALIDATION
 CCI_CLOUD_VALIDATION = False
 MAIA_CLOUD_VALIDATION = str2bool(os.environ.get('MAIA_CLOUD_VALIDATION', False))
 
+#If set to True, program will fail it there are no cloudsat match
+#If set to False, matching will be done if the correct data is found
+CLOUDSAT_MATCHING = False
+
 #Choose CALIPSO-CALIOP version
 CALIPSO_version4 = False
 CALIPSO_version3 = True
