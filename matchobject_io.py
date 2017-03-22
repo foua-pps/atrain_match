@@ -288,7 +288,74 @@ class CalipsoObject(DataObject):
             'tropopause_height': None
             }
 
+class CloudsatObject(DataObject):
+    def __init__(self):
+        DataObject.__init__(self)                            
+        self.all_arrays = {
+                            'longitude': None,
+                            'latitude': None,
+                            'avhrr_linnum': None,
+                            'avhrr_pixnum': None,
+                            'elevation': None,
+                            'Profile_time': None,
+                            'sec_1970': None,
+                            'TAI_start': None,
+                            'Temp_min_mixph_K': None,
+                            'Temp_max_mixph_K': None,
+                            # The data:
+                            'CPR_Cloud_mask': None,
+                            'CPR_Echo_Top': None,
+                            'Clutter_reduction_flag': None,
+                            'Data_quality': None,
+                            'Data_targetID': None,
+                            'Gaseous_Attenuation': None,
+                            'MODIS_Cloud_Fraction': None,
+                            'MODIS_cloud_flag': None,
+                            'Radar_Reflectivity': None,
+                            'Height': None,
+                            'SigmaZero': None,
+                            'SurfaceHeightBin': None,
+                            'SurfaceHeightBin_fraction': None,
+                            'sem_NoiseFloor': None,
+                            'sem_NoiseFloorVar': None,
+                            'sem_NoiseGate': None,
+                            'RVOD_liq_water_path': None,
+                            'RVOD_liq_water_path_uncertainty': None,
+                            'RVOD_ice_water_path': None,
+                            'RVOD_ice_water_path_uncertainty': None,
+                            'LO_RVOD_liquid_water_path': None,
+                            'LO_RVOD_liquid_water_path_uncertainty': None,
+                            'IO_RVOD_ice_water_path': None,
+                            'IO_RVOD_ice_water_path_uncertainty': None,
+                            'RVOD_liq_water_content': None,
+                            'RVOD_liq_water_content_uncertainty': None,
+                            'RVOD_ice_water_content': None,
+                            'RVOD_ice_water_content_uncertainty': None,
+                            'LO_RVOD_liquid_water_content': None,
+                            'LO_RVOD_liquid_water_content_uncertainty': None,
+                            'IO_RVOD_ice_water_content': None,
+                            'IO_RVOD_ice_water_content_uncertainty': None,
+                            'RVOD_CWC_status': None
+                           }
 
+
+class CloudsatAvhrrTrackObject:
+    def __init__(self):
+        self.avhrr=ppsAvhrrObject()
+        self.cloudsat=CloudsatObject()
+        self.diff_sec_1970=None
+    def __add__(self, other):
+        """Concatenating two objects together"""
+        self.avhrr = self.avhrr + other.avhrr
+        self.cloudsat = self.cloudsat + other.cloudsat
+        try:
+            self.diff_sec_1970 = np.concatenate([self.diff_sec_1970,
+                                                 other.diff_sec_1970])
+        except ValueError, e:
+            #print "Don't concatenate member diff_sec_1970... " + str(e)
+            self.diff_sec_1970 = other.diff_sec_1970
+
+        return self
 
 class CalipsoAvhrrTrackObject:
     def __init__(self):
@@ -310,6 +377,7 @@ class CalipsoAvhrrTrackObject:
         self.avhrr = self.avhrr + other.avhrr
         self.calipso = self.calipso + other.calipso
         self.calipso_aerosol = self.calipso_aerosol + other.calipso_aerosol
+        self.modis_lvl2 = self.modis_lvl2 + other.modis_lvl2
         try:
             self.diff_sec_1970 = np.concatenate([self.diff_sec_1970,
                                                  other.diff_sec_1970])
@@ -410,7 +478,6 @@ def readCaliopAvhrrMatchObjNewFormat(h5file, retv, var_to_read=None, var_to_skip
                         continue  
                 data_obj.all_arrays[atrain_match_name] = group[dataset].value
     return retv            
-# ----------------------------------------
 
 def readCaliopAvhrrMatchObj(filename, var_to_read=None, var_to_skip=None):
     import h5py          
@@ -442,7 +509,6 @@ def writeCaliopAvhrrMatchObj(filename, ca_obj, avhrr_obj_name = 'pps'):
     status = 1
     return status
 
-
 def sliding_std(x, size=5):
     """derive a sliding standard deviation of a data array"""
     from scipy.ndimage.filters import uniform_filter
@@ -450,6 +516,26 @@ def sliding_std(x, size=5):
     c2 = uniform_filter(x.astype('float')*x.astype('float'), size=size)
     return abs(c2 - c1*c1)**.5
 
+def readCloudsatAvhrrMatchObj(filename):
+    import h5py    
+    retv = CloudsatAvhrrTrackObject()    
+    h5file = h5py.File(filename, 'r')
+    for group, data_obj in [(h5file['/cloudsat'], retv.cloudsat),
+                            (h5file['/pps'], retv.avhrr)]:
+        for dataset in group.keys():        
+            if dataset in data_obj.all_arrays.keys():
+                data_obj.all_arrays[dataset] = group[dataset].value 
+    retv.diff_sec_1970 = h5file['diff_sec_1970'].value
+    h5file.close()
+    return retv
+
+def writeCloudsatAvhrrMatchObj(filename,cl_obj):
+    from common import write_match_objects
+    groups = {'cloudsat': cl_obj.cloudsat.all_arrays,
+              'pps': cl_obj.avhrr.all_arrays}
+    write_match_objects(filename, cl_obj.diff_sec_1970, groups)    
+    status = 1
+    return status
 
 
 # ----------------------------------------

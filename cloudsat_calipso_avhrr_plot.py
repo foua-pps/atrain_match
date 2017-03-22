@@ -56,7 +56,7 @@ def drawCalClsatGEOPROFAvhrrPlot(clsatObj,
         clsat_max_height = -9 + np.zeros(clsatObj.cloudsat.latitude.shape) 
         for i in range(125):
             height = clsatObj.cloudsat.Height[:,i]
-            cmask_ok = clsatObj.cloudsat.cloud_mask[:,i] > CLOUDSAT_CLOUDY_THR
+            cmask_ok = clsatObj.cloudsat.CPR_Cloud_mask[:,i] > CLOUDSAT_CLOUDY_THR
             base_height = height-120
             top_height = height+120
             plot_these =np.logical_and(cmask_ok, height>240*4)
@@ -72,8 +72,8 @@ def drawCalClsatGEOPROFAvhrrPlot(clsatObj,
     caliop_label_set = False
     #Plot all 10 calipso layers
     for i in range(10):
-        base_ok = caliop_base[:,0]
-        top_ok  = caliop_height[:,0]
+        base_ok = caliop_base[:,i]
+        top_ok  = caliop_height[:,i]
         if np.min(top_ok<0):
             #no more clouds, quit plotting calipso
             break 

@@ -213,11 +213,10 @@ def get_semi_opaque_info(caObj):
 
 def print_cloudsat_stats(clsatObj, statfile):
     if clsatObj is not None:
-        cloudsat_cloud_mask=clsatObj.cloudsat.cloud_mask
+        cloudsat_cloud_mask=clsatObj.cloudsat.CPR_Cloud_mask
         cloudsat_cloud_mask=np.greater_equal(cloudsat_cloud_mask, 
                                              config.CLOUDSAT_CLOUDY_THR)
         cloudsat_cloud_fraction=np.zeros(clsatObj.cloudsat.latitude.shape[0])
-        print cloudsat_cloud_mask.shape
         sum_cloudsat_cloud_mask = np.sum(cloudsat_cloud_mask, axis=1)
         if len(sum_cloudsat_cloud_mask) != (len(cloudsat_cloud_fraction)):
             raise ValueError('Boolean index-array should have same lenght as array!')
@@ -288,7 +287,7 @@ def print_cloudsat_modis_stats(clsatObj, statfile):
         modis_cloudy = np.logical_or(
             np.equal(clsatObj.cloudsat.MODIS_cloud_flag,3),
             np.equal(clsatObj.cloudsat.MODIS_cloud_flag,2))
-        cloudsat_cloud_mask=clsatObj.cloudsat.cloud_mask
+        cloudsat_cloud_mask=clsatObj.cloudsat.CPR_Cloud_mask
         cloudsat_cloud_mask=np.greater_equal(cloudsat_cloud_mask, 
                                              config.CLOUDSAT_CLOUDY_THR)
         cloudsat_cloud_fraction=np.zeros(clsatObj.cloudsat.latitude.shape[0])
@@ -692,7 +691,7 @@ def print_cloudsat_stats_ctop(clsatObj, statfile):
     
         for i in range(125):
             height = clsatObj.cloudsat.Height[:,i]
-            cmask_ok = clsatObj.cloudsat.cloud_mask[:,i]
+            cmask_ok = clsatObj.cloudsat.CPR_Cloud_mask[:,i]
             top_height = height+120
             #top_height[height<240*4] = -9999 #Do not use not sure why these are not used Nina 20170317
             is_cloudy = cmask_ok > config.CLOUDSAT_CLOUDY_THR

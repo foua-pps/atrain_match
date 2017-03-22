@@ -93,7 +93,6 @@ from cloudsat_calipso_avhrr_prepare import *
 
 from read_cloudproducts_and_nwp_pps import NWPObj
 from cloudsat import reshapeCloudsat, match_cloudsat_avhrr
-from cloudsat import writeCloudsatAvhrrMatchObj, readCloudsatAvhrrMatchObj
 from calipso import (reshapeCalipso, 
                      discardCalipsoFilesOutsideTimeRange,
                      match_calipso_avhrr, 
@@ -101,7 +100,8 @@ from calipso import (reshapeCalipso,
                      time_reshape_calipso)
 from matchobject_io import (writeCaliopAvhrrMatchObj, 
                             readCaliopAvhrrMatchObj,
-                            DataObject)
+                            writeCloudsatAvhrrMatchObj, 
+                            readCloudsatAvhrrMatchObj)
 from calipso import  (detection_height_from_5km_data,
                       add1kmTo5km,
                       addSingleShotTo5km,
@@ -851,6 +851,17 @@ def add_additional_clousat_calipso_index_vars(clsatObj, caObj):
         # Transfer CloudSat MODIS cloud flag to CALIPSO representation
         caObj.calipso.cal_MODIS_cflag = np.zeros(len(caObj.calipso.elevation),'b')
         caObj.calipso.cal_MODIS_cflag[caObj.calipso.cloudsat_index] = clsatObj.cloudsat.MODIS_cloud_flag
+    if clsatObj is not None:
+        clsat_max_height = -9 + 0*np.zeros(clsatObj.cloudsat.latitude.shape)
+        for i in range(125):
+            height = clsatObj.cloudsat.Height[:,i]
+            cmask_ok = clsatObj.cloudsat.CPR_Cloud_mask[:,i]
+            top_height = height+120
+            #top_height[height<240*4] = -9999 #Do not use not sure why these are not used Nina 20170317
+            is_cloudy = cmask_ok > config.CLOUDSAT_CLOUDY_THR
+            top_height[~is_cloudy] = -9999
+            clsat_max_height[clsat_max_height<top_height] =  top_height[clsat_max_height<top_height]
+        clsatObj.cloudsat.clsat_max_height = clsat_max_height
     return clsatObj, caObj
 
 def add_elevation_corrected_imager_ctth(clsatObj, caObj):

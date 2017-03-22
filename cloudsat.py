@@ -1,21 +1,12 @@
-#HISTORY CHANGES BY ANKE TETZLAFF#
+#Change log is found in git
 
-#080430:
-# Could not run in the Arctic using the tmpaid creation
-# Used hard coded area 'arctic_super_5010' instead
-
-#080416: Got error message in line 232 and 234:
-#         "only rank-0 arrays can be converted to Python scalars";
-#         changed start_sec1970 and end_sec1970 to rank0 array 
-#         by setting start_sec1970[0] and end_sec1970[0]
-
-import pdb #@UnusedImport
 import logging
 logger = logging.getLogger(__name__)
 from matchobject_io import (DataObject,
-                            ppsAvhrrObject)                            
+                            ppsAvhrrObject,
+                            CloudsatObject,
+                            CloudsatAvhrrTrackObject)                            
 
-#from calipso import * #@UnusedWildImport
 from config import (AREA, sec_timeThr, RESOLUTION,
                     NODATA, NLINES, SWATHWD, 
                     _validation_results_dir)
@@ -24,104 +15,8 @@ from common import (MatchupError,
 from extract_imager_along_track import avhrr_track_from_matched
 
 
-class CloudsatObject(DataObject):
-    def __init__(self):
-        DataObject.__init__(self)                            
-        self.all_arrays = {
-                            'longitude': None,
-                            'latitude': None,
-                            'avhrr_linnum': None,
-                            'avhrr_pixnum': None,
-                            'elevation': None,
-                            'Profile_time': None,
-                            'sec_1970': None,
-                            'sec1970': None,
-                            'TAI_start': None,
-                            'Temp_min_mixph_K': None,
-                            'Temp_max_mixph_K': None,
-                            # The data:
-                            'CPR_Cloud_mask': None,
-                            'CPR_Echo_Top': None,
-                            'Clutter_reduction_flag': None,
-                            'Data_quality': None,
-                            'Data_targetID': None,
-                            'Gaseous_Attenuation': None,
-                            'MODIS_Cloud_Fraction': None,
-                            'MODIS_cloud_flag': None,
-                            'Radar_Reflectivity': None,
-                            'Height': None,
-                            'SigmaZero': None,
-                            'SurfaceHeightBin': None,
-                            'SurfaceHeightBin_fraction': None,
-                            'sem_NoiseFloor': None,
-                            'sem_NoiseFloorVar': None,
-                            'sem_NoiseGate': None,
-                            'RVOD_liq_water_path': None,
-                            'RVOD_liq_water_path_uncertainty': None,
-                            'RVOD_ice_water_path': None,
-                            'RVOD_ice_water_path_uncertainty': None,
-                            'LO_RVOD_liquid_water_path': None,
-                            'LO_RVOD_liquid_water_path_uncertainty': None,
-                            'IO_RVOD_ice_water_path': None,
-                            'IO_RVOD_ice_water_path_uncertainty': None,
-                            'RVOD_liq_water_content': None,
-                            'RVOD_liq_water_content_uncertainty': None,
-                            'RVOD_ice_water_content': None,
-                            'RVOD_ice_water_content_uncertainty': None,
-                            'LO_RVOD_liquid_water_content': None,
-                            'LO_RVOD_liquid_water_content_uncertainty': None,
-                            'IO_RVOD_ice_water_content': None,
-                            'IO_RVOD_ice_water_content_uncertainty': None,
-                            'RVOD_CWC_status': None
-                           }
 
 
-class CloudsatAvhrrTrackObject:
-    def __init__(self):
-        self.avhrr=ppsAvhrrObject()
-        self.cloudsat=CloudsatObject()
-        self.diff_sec_1970=None
-
-
-def duplicate_names(cloudsatObj):
-    # For some reason these ones have two names
-    cloudsatObj.echo_top = cloudsatObj.CPR_Echo_Top
-    cloudsatObj.sec_1970 = cloudsatObj.sec1970
-    cloudsatObj.cloud_mask = cloudsatObj.CPR_Cloud_mask
-
-# ----------------------------------------
-def readCloudsatAvhrrMatchObj(filename):
-    import h5py #@UnresolvedImport
-    
-    retv = CloudsatAvhrrTrackObject()
-    
-    h5file = h5py.File(filename, 'r')
-    for group, data_obj in [(h5file['/cloudsat'], retv.cloudsat),
-                            (h5file['/pps'], retv.avhrr)]:
-        for dataset in group.keys():        
-            if dataset in data_obj.all_arrays.keys():
-                data_obj.all_arrays[dataset] = group[dataset].value
-
-    duplicate_names(retv.cloudsat)
-    
-    retv.diff_sec_1970 = h5file['diff_sec_1970'].value
-
-    h5file.close()
-
-    return retv
-
-
-# ----------------------------------------
-def writeCloudsatAvhrrMatchObj(filename,cl_obj):
-    from common import write_match_objects
-    groups = {'cloudsat': cl_obj.cloudsat.all_arrays,
-              'pps': cl_obj.avhrr.all_arrays}
-    write_match_objects(filename, cl_obj.diff_sec_1970, groups)
-    
-    status = 1
-    return status
-
-# -----------------------------------------------------
 def get_cloudsat(filename):
     #import numpy
     import time
@@ -151,7 +46,7 @@ def get_cloudsat(filename):
     end_sec1970 = cloudsat.TAI_start + dsec + cloudsat.Profile_time[ndim-1]
     end_time = time.gmtime(end_sec1970[0])
     print "GEOPROF Start and end times: ",start_time,end_time
-    cloudsat.sec1970 = timeCloudsat + start_sec1970
+    cloudsat.sec_1970 = timeCloudsat + start_sec1970
 
     # --------------------------------------------------------------------
 
@@ -159,7 +54,7 @@ def get_cloudsat(filename):
 
 # -----------------------------------------------------
 def read_cloudsat(filename):
-    import h5py #@UnresolvedImport
+    import h5py 
     from config import CLOUDSAT_TYPE
 
     def get_data(dataset):
@@ -212,7 +107,7 @@ def match_cloudsat_avhrr(ctypefile,cloudsatObj,imagerGeoObj,imagerObj,ctype,cma,
         lonCloudsat = cloudsatObj.longitude[:,1].ravel()
         latCloudsat = cloudsatObj.latitude[:,1].ravel()
         
-    timeCloudsat = cloudsatObj.sec1970.ravel()
+    timeCloudsat = cloudsatObj.sec_1970.ravel()
     ndim = lonCloudsat.shape[0]
 
     #Nina 20150313 Swithcing to mapping without area as in cpp. Following suggestion from Jakob
@@ -225,12 +120,10 @@ def match_cloudsat_avhrr(ctypefile,cloudsatObj,imagerGeoObj,imagerObj,ctype,cma,
         raise MatchupError("No matches within region.")
     imager_lines_sec_1970 = numpy.where(cal != NODATA, imagerGeoObj.time[cal], numpy.nan)
     # Find all matching Cloudsat pixels within +/- sec_timeThr from the AVHRR data
-    idx_match = elements_within_range(cloudsatObj.sec1970, imager_lines_sec_1970, sec_timeThr)
+    idx_match = elements_within_range(cloudsatObj.sec_1970, imager_lines_sec_1970, sec_timeThr)
     if idx_match.sum() == 0:
         raise MatchupError("No matches in region within time threshold %d s." % sec_timeThr)  
-    
-    duplicate_names(cloudsatObj)
-    
+     
     #arnamecl = array name from cloudsatObj
     for arnamecl, value in cloudsatObj.all_arrays.items(): 
         if value is not None:
@@ -309,8 +202,8 @@ def reshapeCloudsat(cloudsatfiles, avhrr, avhrrfilename):
         newCloudsat = get_cloudsat(cloudsatfiles[i+1])
         newCloudsat.Profile_time = numpy.add(newCloudsat.Profile_time,newCloudsat.TAI_start)
         
-        clsat_start_all = startCloudsat.sec1970.ravel()
-        clsat_new_all = newCloudsat.sec1970.ravel()
+        clsat_start_all = startCloudsat.sec_1970.ravel()
+        clsat_new_all = newCloudsat.sec_1970.ravel()
         
         if not clsat_start_all[0]<clsat_new_all[0]:
             print "cloudsat files are in the wrong order"
@@ -325,10 +218,10 @@ def reshapeCloudsat(cloudsatfiles, avhrr, avhrrfilename):
                     startCloudsat.all_arrays[arname] = numpy.concatenate((value[0:clsat_break,...],newCloudsat.all_arrays[arname]))
                 
     # Finds Break point
-    start_break = numpy.argmin((numpy.abs((startCloudsat.sec1970) - (avhrr_start - sec_timeThr))))
+    start_break = numpy.argmin((numpy.abs((startCloudsat.sec_1970) - (avhrr_start - sec_timeThr))))
     if start_break != 0:
         start_break = start_break - 1 # Minus one to get one extra, just to be certain
-    end_break = numpy.argmin((numpy.abs((startCloudsat.sec1970) - (avhrr_end + sec_timeThr)))) + 2    # Plus two to get one extra, just to be certain
+    end_break = numpy.argmin((numpy.abs((startCloudsat.sec_1970) - (avhrr_end + sec_timeThr)))) + 2    # Plus two to get one extra, just to be certain
 
     # Cute the feature values
     #arnamecl = array name from cloudsatObj
