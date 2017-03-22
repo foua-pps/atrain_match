@@ -1130,12 +1130,12 @@ def get_matchups(cross, options, reprocess=False):
     #Currently not possible to match wihtout calipso        
     if caObj is None:
         out_dict = get_matchups_from_data(cross, options)
-    elif clObj is None and config.CLOUDSAT_MATCHING:
+    elif clObj is None and config.CLOUDSAT_REQUIRED:
         out_dict =  get_matchups_from_data(cross, options)
     else:
         out_dict = {'calipso': caObj, 'cloudsat': clObj, 
                     'basename': basename,'values':values}
-    if clObj is None and config.CLOUDSAT_MATCHING:
+    if clObj is None and config.CLOUDSAT_REQUIRED:
         raise MatchupError("Couldn't find cloudsat matchup!")
         
     return out_dict
