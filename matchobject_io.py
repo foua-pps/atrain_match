@@ -93,6 +93,7 @@ class ppsAvhrrObject(DataObject):
     def __init__(self):
         DataObject.__init__(self)                            
         self.all_arrays = {
+            'imager_ctth_m_above_seasurface': None,
             'longitude': None,
             'latitude': None,
             'sec_1970': None,

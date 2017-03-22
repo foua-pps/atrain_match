@@ -66,6 +66,7 @@ import sys
 import numpy as np
 from numpy import NaN
 from config import (VAL_CPP,
+                    IMAGER_INSTRUMENT,
                     NODATA,
                     PLOT_ONLY_PNG,
                     CCI_CLOUD_VALIDATION,
@@ -856,7 +857,7 @@ def add_elevation_corrected_imager_ctth(clsatObj, caObj):
     ## Cloudsat ##
 
     if clsatObj is not None:
-        clsatObj.avhrr.avhrr_ctth_csat_ok = None
+        clsatObj.avhrr.imager_ctth_m_above_seasurface = None
         # First make sure that PPS cloud top heights are converted to height
         # above sea level just as CloudSat height are defined. Use
         # corresponding DEM data.
@@ -864,14 +865,14 @@ def add_elevation_corrected_imager_ctth(clsatObj, caObj):
                              0,clsatObj.cloudsat.elevation)		
         num_csat_data_ok = len(clsatObj.cloudsat.elevation)
         logger.info("Length of CLOUDSAT array: %d", num_csat_data_ok )
-        avhrr_ctth_csat_ok = np.array(clsatObj.avhrr.ctth_height).copy().ravel()
+        imager_ctth_m_above_seasurface = np.array(clsatObj.avhrr.ctth_height).copy().ravel()
         if CCI_CLOUD_VALIDATION: 
             #ctth already relative mean sea level
             pass
         else: #ctth relative topography
-            got_height = avhrr_ctth_csat_ok>=0                    
-            avhrr_ctth_csat_ok[got_height] += elevation[got_height]*1.0
-        clsatObj.avhrr.avhrr_ctth_csat_ok = avhrr_ctth_csat_ok
+            got_height = imager_ctth_m_above_seasurface>=0                    
+            imager_ctth_m_above_seasurface[got_height] += elevation[got_height]*1.0
+        clsatObj.avhrr.imager_ctth_m_above_seasurface = imager_ctth_m_above_seasurface
         if num_csat_data_ok == 0:
             logger.info("Processing stopped: Zero lenght of matching arrays!")
             print("Program cloudsat_calipso_avhrr_match.py at line %i" %(inspect.currentframe().f_lineno+1))
@@ -883,14 +884,14 @@ def add_elevation_corrected_imager_ctth(clsatObj, caObj):
                              0,caObj.calipso.elevation)
     num_cal_data_ok = len(caObj.calipso.elevation)
     logger.info("Length of CALIOP array: %d", num_cal_data_ok)
-    avhrr_ctth_cal_ok = np.array(caObj.avhrr.ctth_height).copy().ravel()
+    imager_ctth_m_above_seasurface = np.array(caObj.avhrr.ctth_height).copy().ravel()
     if CCI_CLOUD_VALIDATION: 
         #ctth relative mean sea level
         pass
     else: #ctth relative topography
-        got_height = avhrr_ctth_cal_ok>=0                    
-        avhrr_ctth_cal_ok[got_height] += cal_elevation[got_height]*1.0
-    caObj.avhrr.avhrr_ctth_cal_ok = avhrr_ctth_cal_ok
+        got_height = imager_ctth_m_above_seasurface>=0                    
+        imager_ctth_m_above_seasurface[got_height] += cal_elevation[got_height]*1.0
+    caObj.avhrr.imager_ctth_m_above_seasurface = imager_ctth_m_above_seasurface
     return clsatObj, caObj
 
 
@@ -998,7 +999,7 @@ def get_matchups_from_data(cross, config_options):
         ca_matchup = add_modis_06(ca_matchup, avhrr_file, config_options) 
     #add additional vars to cloudsat and calipso objects:
     cl_matchup, ca_matchup = add_additional_clousat_calipso_index_vars(cl_matchup, ca_matchup)
-
+    cl_matchup, ca_matchup = add_elevation_corrected_imager_ctth(cl_matchup, ca_matchup)
     # Write cloudsat matchup    
     if cl_matchup is not None:
         cl_match_file = rematched_file_base.replace(
@@ -1040,7 +1041,7 @@ def get_matchups(cross, options, reprocess=False):
     if values["satellite"] in ['calipso', 'cloudsat']:
         values["satellite"] = cross.satellite2.lower()
         date_time_cross = cross.time2
-        
+
     if reprocess is False:
         import os #@Reimport
         diff_avhrr_seconds=None
@@ -1140,7 +1141,7 @@ def get_matchups(cross, options, reprocess=False):
         
     return out_dict
 
-def plot_some_figures(clsatObj, caObj, sensor, values, basename, process_mode, 
+def plot_some_figures(clsatObj, caObj, values, basename, process_mode, 
                       config_options):
 
     logger.info("Plotting")
@@ -1180,23 +1181,23 @@ def plot_some_figures(clsatObj, caObj, sensor, values, basename, process_mode,
         #HEIGHT
         drawCalClsatGEOPROFAvhrrPlot(clsatObj, 
                                      caObj, 
-                                     caObj.avhrr.avhrr_ctth_cal_ok, 
+                                     caObj.avhrr.imager_ctth_m_above_seasurface, 
                                      plotpath,
                                      basename, 
                                      process_mode, 
                                      file_type,
-                                     instrument=sensor)
+                                     instrument=IMAGER_INSTRUMENT)
         #TIME DIFF SATZ 
         drawCalClsatAvhrrPlotTimeDiff(clsatObj, 
                                       caObj,
                                       plotpath, basename, 
                                       config.RESOLUTION,
-                                      instrument=sensor)
+                                      instrument=IMAGER_INSTRUMENT)
         drawCalClsatAvhrrPlotSATZ(clsatObj, 
                                   caObj,
                                   plotpath, basename, 
                                   config.RESOLUTION, file_type,
-                                  instrument=sensor)
+                                  instrument=IMAGER_INSTRUMENT)
     if clsatObj is not None and config.CLOUDSAT_TYPE=='CWC-RVOD':       
         if config.RESOLUTION == 1:
             elevationcwc = np.where(np.less_equal(clsatObj.cloudsatcwc.elevation,0),
@@ -1213,15 +1214,14 @@ def plot_some_figures(clsatObj, caObj, sensor, values, basename, process_mode,
                                  data_okcwc, 
                                  plotpath, basename, 
                                  phase,
-                                 instrument=sensor)
+                                 instrument=IMAGER_INSTRUMENT)
         phase='IW'  
         drawCalClsatCWCAvhrrPlot(clsatObj, 
                                  elevationcwc, 
                                  data_okcwc, 
                                  plotpath, basename, phase,
-                                 instrument=sensor)
-                
-                
+                                 instrument=IMAGER_INSTRUMENT)
+                                
 def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=False):
 
     """
@@ -1230,6 +1230,14 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     """    
     logger.info("Case: %s" % str(cross))
     logger.info("Process mode: %s" % process_mode_dnt)
+
+    sno_satname = cross.satellite1.lower()
+    if sno_satname in ['calipso', 'cloudsat']:
+        sno_satname = cross.satellite2.lower()
+    sensor = INSTRUMENT.get(sno_satname, 'avhrr')
+    if sensor.lower != IMAGER_INSTRUMENT.lower :
+        logger.error("Uncertain of sensor: %s or %s?" %(sensor.upper(), IMAGER_INSTRUMENT.upper() )  )
+
     # split process_mode_dnt into two parts. One with process_mode and one dnt_flag
     mode_dnt = process_mode_dnt.split('_')
     if len(mode_dnt) == 1:
@@ -1242,30 +1250,13 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
         process_mode = process_mode_dnt
         dnt_flag = None
 
-    sno_satname = cross.satellite1.lower()
-    if sno_satname in ['calipso', 'cloudsat']:
-        sno_satname = cross.satellite2.lower()
-
-
-    sensor = INSTRUMENT.get(sno_satname, 'avhrr')
-    logger.info("Sensor = " + sensor)
-
-    #pdb.set_trace()
-
-
     # Now fetch all the datasets for the section of the AREA where all
     # three datasets match. Also get maximum and minimum time differences to AVHRR (in seconds)
     matchup_results = get_matchups(cross, config_options, reprocess)
     caObj = matchup_results['calipso']
     clsatObj = matchup_results['cloudsat']
     values = matchup_results['values']
-    #import pdb;pdb.set_trace()
-
     basename = matchup_results['basename']
-    base_sat = basename.split('_')[0]
-    base_year = basename.split('_')[1][:4]
-    base_month = basename.split('_')[1][4:6]
-    
     num_cal_data_ok = len(caObj.calipso.elevation)
     if (num_cal_data_ok == 0):
         logger.info("Processing stopped: Zero lenght of matching arrays!")
@@ -1274,8 +1265,9 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     if caObj.calipso.cloudsat_index is None:
         logger.info("Adding some stuff that might not be in older reshaped files")
         clsatObj, caObj = add_additional_clousat_calipso_index_vars(clsatObj, caObj)
-    #Calculate hight from sea surface    
-    clsatObj, caObj = add_elevation_corrected_imager_ctth( clsatObj, caObj)
+    #Calculate hight from sea surface 
+    if caObj.avhrr.imager_ctth_m_above_seasurface is None:
+        clsatObj, caObj = add_elevation_corrected_imager_ctth(clsatObj, caObj)
     # If mode = OPTICAL_DEPTH -> Change cloud -top and -base profile
     if process_mode == 'OPTICAL_DEPTH':#Remove this if-statement if you always want to do filtering!/KG
         (new_cloud_top, new_cloud_base, new_cloud_fraction, new_fcf) = \
@@ -1289,7 +1281,6 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
         caObj.calipso.layer_base_altitude = new_cloud_base
         caObj.calipso.cloud_fraction = new_cloud_fraction
         caObj.calipso.feature_classification_flags = new_fcf
-
     if (config.COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC and
         (config.ALSO_USE_5KM_FILES or config.RESOLUTION==5) and 
         caObj.calipso.total_optical_depth_5km is None):
@@ -1297,17 +1288,13 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
         logger.info("Consider reprocessing with: ")
         logger.info("COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC=True")
         logger.info("ALSO_USE_5KM_FILES=True or RESOLUTION==5")
-
     check_total_optical_depth_and_warn(caObj)
-
     if process_mode != 'BASIC' and RESOLUTION==1:
         caObj = CalipsoOpticalDepthHeightFiltering1km(caObj)
-
     if process_mode == 'OPTICAL_DEPTH_THIN_IS_CLEAR' and RESOLUTION==1:
         logger.info("Setting thin clouds to clear"
                   ", using 5km data in mode OPTICAL_DEPTH_THIN_IS_CLEAR")
         caObj = CalipsoOpticalDepthSetThinToClearFiltering1km(caObj) 
-
     #=============================================================
     #Get result filename    
     min_depth_to_file_name=""
@@ -1324,7 +1311,7 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     #=============================================================
     # Draw plot
     if process_mode_dnt in config.PLOT_MODES:
-        plot_some_figures(clsatObj, caObj, sensor, values, basename, process_mode, 
+        plot_some_figures(clsatObj, caObj, values, basename, process_mode, 
                           config_options)
     #==============================================================
     #Calculate Statistics
@@ -1332,3 +1319,4 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     CalculateStatistics(process_mode, clsatObj, statfilename, caObj, 
                         dnt_flag)
     #=============================================================
+  

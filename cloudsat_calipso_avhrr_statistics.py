@@ -23,8 +23,8 @@ from get_flag_info import (get_semi_opaque_info_pps2014,
                            get_mountin_info_pps2012,
                            get_inversion_info_pps2012)
 
-def calculate_ctth_stats(okcaliop, avhrr_ctth_cal_ok,caliop_max_height):
-    avhrr_height_work = np.repeat(avhrr_ctth_cal_ok[::],okcaliop)
+def calculate_ctth_stats(okcaliop, imager_ctth_m_above_seasurface,caliop_max_height):
+    avhrr_height_work = np.repeat(imager_ctth_m_above_seasurface[::],okcaliop)
     caliop_max_height_work = np.repeat(caliop_max_height[::],okcaliop)
     if len(caliop_max_height_work) > 0:
         if len(avhrr_height_work) > 20:
@@ -684,7 +684,7 @@ def print_cloudsat_stats_ctop(clsatObj, statfile):
     # CLOUD TOP EVALUATION
     #=======================
     if clsatObj is not None: 
-        avhrr_ctth_csat_ok = clsatObj.avhrr.avhrr_ctth_csat_ok
+        imager_ctth_m_above_seasurface = clsatObj.avhrr.imager_ctth_m_above_seasurface
         # CORRELATION: CLOUDSAT - AVHRR HEIGHT
     
         #print "STATISTICS CLOUD TOP HEIGHT: CLOUDSAT - AVHRR"
@@ -699,10 +699,10 @@ def print_cloudsat_stats_ctop(clsatObj, statfile):
             top_height[~is_cloudy] = -9999
             clsat_max_height[clsat_max_height<top_height] =  top_height[clsat_max_height<top_height] 
 
-        okarr = np.greater_equal(avhrr_ctth_csat_ok,0.0)
+        okarr = np.greater_equal(imager_ctth_m_above_seasurface,0.0)
         okarr = np.logical_and(okarr,np.greater_equal(clsat_max_height,0.0))
         clsat_max_height = np.repeat(clsat_max_height[::],okarr)
-        avhrr_height = np.repeat(avhrr_ctth_csat_ok[::],okarr)
+        avhrr_height = np.repeat(imager_ctth_m_above_seasurface[::],okarr)
     
         if len(avhrr_height) > 0:
             if len(avhrr_height) > 20:
@@ -731,9 +731,9 @@ def print_cloudsat_stats_ctop(clsatObj, statfile):
 
 
 def print_height_all_low_medium_high(NAME, okcaliop,  statfile, 
-                                     cal_vert_feature, avhrr_ctth_cal_ok,
+                                     cal_vert_feature, imager_ctth_m_above_seasurface,
                                      caliop_max_height):
-    out_stats = calculate_ctth_stats(okcaliop,avhrr_ctth_cal_ok,
+    out_stats = calculate_ctth_stats(okcaliop,imager_ctth_m_above_seasurface,
                                      caliop_max_height)
     statfile.write("CLOUD HEIGHT %s ALL: %s\n" %(NAME, out_stats))
 #    statfile.write("CLOUD HEIGHT CALIOP ALL: 
@@ -742,7 +742,7 @@ def print_height_all_low_medium_high(NAME, okcaliop,  statfile,
     cal_low_ok = np.logical_and(np.greater_equal(cal_vert_feature[::],0),
                                 np.less_equal(cal_vert_feature[::],3))
     cal_low_ok = np.logical_and(cal_low_ok, okcaliop) 
-    out_stats =calculate_ctth_stats(cal_low_ok,avhrr_ctth_cal_ok,
+    out_stats =calculate_ctth_stats(cal_low_ok,imager_ctth_m_above_seasurface,
                                     caliop_max_height)   
     statfile.write("CLOUD HEIGHT %s LOW: %s \n" % (NAME, out_stats))
         
@@ -750,7 +750,7 @@ def print_height_all_low_medium_high(NAME, okcaliop,  statfile,
     cal_mid_ok = np.logical_and(np.greater(cal_vert_feature[::],3),
                                 np.less_equal(cal_vert_feature[::],5))
     cal_mid_ok = np.logical_and(cal_mid_ok,okcaliop)
-    out_stats = calculate_ctth_stats(cal_mid_ok, avhrr_ctth_cal_ok,
+    out_stats = calculate_ctth_stats(cal_mid_ok, imager_ctth_m_above_seasurface,
                                      caliop_max_height)   
     statfile.write("CLOUD HEIGHT %s MEDIUM: %s \n" % (NAME, out_stats))
             
@@ -758,7 +758,7 @@ def print_height_all_low_medium_high(NAME, okcaliop,  statfile,
     cal_high_ok = np.logical_and(np.greater(cal_vert_feature[::],5),
                                  np.less_equal(cal_vert_feature[::],7))
     cal_high_ok = np.logical_and(cal_high_ok,okcaliop)
-    out_stats = calculate_ctth_stats(cal_high_ok, avhrr_ctth_cal_ok,
+    out_stats = calculate_ctth_stats(cal_high_ok, imager_ctth_m_above_seasurface,
                                      caliop_max_height) 
     statfile.write("CLOUD HEIGHT %s HIGH: %s \n" % (NAME, out_stats))
 
@@ -767,7 +767,7 @@ def print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature,
 
     # CORRELATION: CALIOP - AVHRR HEIGHT
     # FIRST TOTAL FIGURES
-    avhrr_ctth_cal_ok = caObj.avhrr.avhrr_ctth_cal_ok  
+    imager_ctth_m_above_seasurface = caObj.avhrr.imager_ctth_m_above_seasurface  
     cal_data_ok = np.greater(caObj.calipso.layer_top_altitude[:,0],-9.)
     caliop_max_height = caObj.calipso.layer_top_altitude[:,0].copy()
     caliop_max_height[caliop_max_height>=0] *= 1000
@@ -775,12 +775,12 @@ def print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature,
 
     okcaliop = np.logical_and(
         cal_data_ok, 
-        np.logical_and(np.greater_equal(avhrr_ctth_cal_ok[::],0),cal_subset))
+        np.logical_and(np.greater_equal(imager_ctth_m_above_seasurface[::],0),cal_subset))
     #print "ALL CLOUDS:" 
     print_height_all_low_medium_high("CALIOP", 
                                      okcaliop, 
                                      statfile, cal_vert_feature, 
-                                     avhrr_ctth_cal_ok, caliop_max_height)
+                                     imager_ctth_m_above_seasurface, caliop_max_height)
     
 
     if config.COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC:
@@ -791,7 +791,7 @@ def print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature,
         print_height_all_low_medium_high("CALIOP-SINGLE-LAYER", 
                                          okcaliop_single,
                                          statfile, cal_vert_feature, 
-                                         avhrr_ctth_cal_ok, caliop_max_height)
+                                         imager_ctth_m_above_seasurface, caliop_max_height)
 
     if (config.COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC and
         (config.ALSO_USE_5KM_FILES or config.RESOLUTION==5)): 
@@ -803,7 +803,7 @@ def print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature,
         print_height_all_low_medium_high("CALIOP-SINGLE-LAYER>%f"%(lim), 
                                          okcaliop_single_not_thinnest,  
                                          statfile, cal_vert_feature, 
-                                         avhrr_ctth_cal_ok, caliop_max_height)
+                                         imager_ctth_m_above_seasurface, caliop_max_height)
         
         statfile.write("CLOUD HEIGHT NOT VERY THIN TOP LAYER\n")
         lim=config.OPTICAL_DETECTION_LIMIT
@@ -813,7 +813,7 @@ def print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature,
         print_height_all_low_medium_high("CALIOP-TOP-LAYER>%f"%(lim), 
                                          okcaliop_not_thinnest_top_layer,  
                                          statfile, cal_vert_feature, 
-                                         avhrr_ctth_cal_ok, caliop_max_height)
+                                         imager_ctth_m_above_seasurface, caliop_max_height)
 
         lim=config.OPTICAL_DETECTION_LIMIT
         statfile.write("CLOUD HEIGHT VERY THIN TOP LAYER\n")
@@ -823,7 +823,7 @@ def print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature,
         print_height_all_low_medium_high("CALIOP-TOP-LAYER<=%f"%(lim), 
                                          okcaliop_thinnest_top_layer,  
                                          statfile, cal_vert_feature, 
-                                         avhrr_ctth_cal_ok, caliop_max_height)
+                                         imager_ctth_m_above_seasurface, caliop_max_height)
            
     if (config.COMPILE_RESULTS_SEPARATELY_FOR_SEMI_AND_OPAQUE and 
         semi_flag is not None and
@@ -835,7 +835,7 @@ def print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature,
         print_height_all_low_medium_high("CALIOP-OPAQUE", 
                                          okcaliop_opaque_pps,  
                                          statfile, cal_vert_feature, 
-                                         avhrr_ctth_cal_ok, caliop_max_height)
+                                         imager_ctth_m_above_seasurface, caliop_max_height)
 
         #Semi-transparent stats
         statfile.write("CLOUD HEIGHT SEMI\n")
@@ -843,7 +843,7 @@ def print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature,
         print_height_all_low_medium_high("CALIOP-SEMI", 
                                          okcaliop_semi_pps,  
                                          statfile, cal_vert_feature, 
-                                         avhrr_ctth_cal_ok, caliop_max_height)
+                                         imager_ctth_m_above_seasurface, caliop_max_height)
 
 
     if (config.COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC and
@@ -862,7 +862,7 @@ def print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature,
         print_height_all_low_medium_high("CALIOP-OPAQUE-TOP-LAYER>%f"%(lim), 
                                          okcaliop_opaque_pps_not_thin,  
                                          statfile, cal_vert_feature, 
-                                         avhrr_ctth_cal_ok, caliop_max_height)
+                                         imager_ctth_m_above_seasurface, caliop_max_height)
         #Semi-transparent stats
         statfile.write("CLOUD HEIGHT SEMI TOP LAYER VERY NOT-THIN\n")
         okcaliop_semi_pps_not_thin = np.logical_and(
@@ -871,7 +871,7 @@ def print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature,
         print_height_all_low_medium_high("CALIOP-SEMI-TOP-LAYER>%f"%(lim), 
                                          okcaliop_semi_pps_not_thin,  
                                          statfile, cal_vert_feature, 
-                                         avhrr_ctth_cal_ok, caliop_max_height)
+                                         imager_ctth_m_above_seasurface, caliop_max_height)
         #Not thin top layer
         #Opaque stats
         lim=config.OPTICAL_DETECTION_LIMIT
@@ -882,7 +882,7 @@ def print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature,
         print_height_all_low_medium_high("CALIOP-OPAQUE-TOP-LAYER<=%f"%(lim), 
                                          okcaliop_opaque_pps_thin,  
                                          statfile, cal_vert_feature, 
-                                         avhrr_ctth_cal_ok, caliop_max_height)
+                                         imager_ctth_m_above_seasurface, caliop_max_height)
         #Semi-transparent stats
         statfile.write("CLOUD HEIGHT SEMI TOP LAYER VERY THIN\n")
         okcaliop_semi_pps_thin = np.logical_and(
@@ -891,7 +891,7 @@ def print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature,
         print_height_all_low_medium_high("CALIOP-SEMI-TOP-LAYER<=%f"%(lim), 
                                          okcaliop_semi_pps_thin,  
                                          statfile, cal_vert_feature, 
-                                         avhrr_ctth_cal_ok, caliop_max_height)
+                                         imager_ctth_m_above_seasurface, caliop_max_height)
 
 def print_main_stats(clsatObj, caObj, statfile, process_mode):
     num_cal_data_ok = len(caObj.calipso.elevation)

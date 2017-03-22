@@ -8,7 +8,7 @@ from config import MAXHEIGHT, CLOUDSAT_CLOUDY_THR,\
 # -----------------------------------------------------
 def drawCalClsatGEOPROFAvhrrPlot(clsatObj, 
                                  caObj,  
-                                 avhrr_ctth_cal_ok, 
+                                 imager_ctth_m_above_seasurface, 
                                  plotpath, 
                                  basename,
                                  mode, 
@@ -30,7 +30,7 @@ def drawCalClsatGEOPROFAvhrrPlot(clsatObj,
     # Calculates Hihest Cloud Top   
     if MAXHEIGHT == None:
         maxheight_calipso = np.nanmax(caliop_height)
-        maxheight_avhrr = np.nanmax(avhrr_ctth_cal_ok)
+        maxheight_avhrr = np.nanmax(imager_ctth_m_above_seasurface)
         max_height_sat = [maxheight_calipso, maxheight_avhrr]
         maxheight = maxheight + 1000
     else:
@@ -90,8 +90,8 @@ def drawCalClsatGEOPROFAvhrrPlot(clsatObj,
             caliop_label_set = True
     
     #: Plot Imager   
-    got_height = avhrr_ctth_cal_ok>=0
-    ax.plot(pixel_position[got_height], avhrr_ctth_cal_ok[got_height], 'b+', 
+    got_height = imager_ctth_m_above_seasurface>=0
+    ax.plot(pixel_position[got_height], imager_ctth_m_above_seasurface[got_height], 'b+', 
             label=instrument.upper())
     ax.set_ylim(0, maxheight)
     ax.set_title(title)
