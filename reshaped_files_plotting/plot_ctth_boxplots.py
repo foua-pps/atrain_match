@@ -67,7 +67,13 @@ def make_boxplot(caObj, name):
     limit = np.percentile(bias[use],5)
     #print limit 
     abias = np.abs(bias)
-    print name, np.mean(abias[c_all]), np.mean(abias[low]),np.mean(abias[medium]),np.mean(abias[high]), limit
+    #abias[abias>2000]=2000
+    print name.ljust(30, " "), "%3.1f"%(np.mean(abias[c_all])), "%3.1f"%(np.mean(abias[low])),"%3.1f"%(np.mean(abias[medium])),"%3.1f"%(np.mean(abias[high])), "%3.1f"%(limit)
+
+    c_all = np.logical_or(np.logical_and(~very_thin,high),np.logical_or(low,medium))
+    number_of = np.sum(c_all)
+     
+    #print name.ljust(30, " "), "%3.1f"%(np.sum(abias[c_all]<250)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<500)*100.0/number_of),  "%3.1f"%(np.sum(abias[c_all]<1000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<1500)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<2000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<3000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<4000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<5000)*100.0/number_of)
     from matplotlib import rcParams
     rcParams.update({'figure.autolayout': True})
     fig = plt.figure(figsize = (6,9))        
@@ -139,12 +145,18 @@ def make_compare(caObj, caObj2, name):
     plt.show()
     """
 def investigate_nn_ctth():
+    ROOT_DIR_GAC_nnNina = ("/home/a001865/DATA_MISC/reshaped_files/"
+                       "ATRAIN_RESULTS_GAC_nnNina/Reshaped_Files/noaa18/")
     ROOT_DIR_GAC_nn = ("/home/a001865/DATA_MISC/reshaped_files/"
                        "ATRAIN_RESULTS_GAC_nn21/Reshaped_Files/noaa18/")
     ROOT_DIR_GAC_old = ("/home/a001865/DATA_MISC/reshaped_files/"
                         "ATRAIN_RESULTS_GAC_old/Reshaped_Files/noaa18/")
+    ROOT_DIR_GAC_oldCTTH_12x12 = ("/home/a001865/DATA_MISC/reshaped_files/"
+                        "ATRAIN_RESULTS_GAC_oldCTTH_12x12/Reshaped_Files/noaa18/")
     ROOT_DIR_GAC_v2014 = ("/home/a001865/DATA_MISC/reshaped_files/"
                         "ATRAIN_RESULTS_GAC_v2014/Reshaped_Files/noaa18/")
+    ROOT_DIR_GAC_v2014_12x12 = ("/home/a001865/DATA_MISC/reshaped_files/"
+                                "ATRAIN_RESULTS_GAC_v2014_12x12/Reshaped_Files/noaa18/")
     ROOT_DIR_GAC_nn_new = ("/home/a001865/DATA_MISC/reshaped_files/"
                            "ATRAIN_RESULTS_GAC_nn20161125/Reshaped_Files/noaa18/")
     ROOT_DIR_GAC_nn_avhrr = ("/home/a001865/DATA_MISC/reshaped_files/"
@@ -153,14 +165,20 @@ def investigate_nn_ctth():
                            "ATRAIN_RESULTS_GAC_tuned_nnAVHRR/Reshaped_Files/noaa18/")
     ROOT_DIR_GAC_nn_avhrr1_tuned = ("/home/a001865/DATA_MISC/reshaped_files/"
                            "ATRAIN_RESULTS_GAC_nnAVHRR1/Reshaped_Files/noaa18/")
+    ROOT_DIR_GAC_nn_avhrr_with_gac = ("/home/a001865/DATA_MISC/reshaped_files/"
+                           "ATRAIN_RESULTS_GAC_AVHRR_with_gac/Reshaped_Files/noaa18/")
     re_name = re.compile("_RESULTS_GAC_(\w+)\/")
     caobj_dict = {}
-    for ROOT_DIR, name in zip([ROOT_DIR_GAC_nn, ROOT_DIR_GAC_old, ROOT_DIR_GAC_v2014, 
-                                   ROOT_DIR_GAC_nn_new, ROOT_DIR_GAC_nn_avhrr, 
-                               ROOT_DIR_GAC_nn_avhrr_tuned, ROOT_DIR_GAC_nn_avhrr1_tuned],
-                                  ["gac_CTTHnn_21", "gac_CTTHold","gac_CTTHv2014", 
-                                   "gac_CTTHnn_20161125", "gac_CTTHnn_AVHRR", 
-                                   "gac_CTTHnn_AVHRR_tuned", "gac_CTTHnn_AVHRR1_tuned"]):
+    for ROOT_DIR, name in zip([ROOT_DIR_GAC_nnNina, ROOT_DIR_GAC_nn, ROOT_DIR_GAC_old, ROOT_DIR_GAC_v2014, 
+                               ROOT_DIR_GAC_nn_new, ROOT_DIR_GAC_nn_avhrr, 
+                               ROOT_DIR_GAC_nn_avhrr_tuned, ROOT_DIR_GAC_nn_avhrr1_tuned, 
+                               ROOT_DIR_GAC_v2014_12x12,
+                               ROOT_DIR_GAC_oldCTTH_12x12,
+                               ROOT_DIR_GAC_nn_avhrr_with_gac],
+                              ["gac_nnLessIsMore","gac_nn21", "gac_CTTHold","gac_2014", 
+                               "gac_nn20161125", "gac_nnAVHRR", 
+                               "gac_nnAVHRR_tuned", "gac_nnAVHRR1_tuned", 
+                               "gac_v2014_12x12","gac_CTTHold_12x12", "gac_17var_modis_noaa19"]):
         files = glob(ROOT_DIR + "5km/2009/*/*/*h5")
         caObj = CalipsoAvhrrTrackObject()
         for filename in files:
@@ -199,13 +217,20 @@ def investigate_nn_ctth_viirs():
     ROOT_DIR_nn_viirs_CLAY4 = (
         "/home/a001865/DATA_MISC/reshaped_files/"
         "ATRAIN_RESULTS_NPP_nnVIIRS_20170310_CLAY4/Reshaped_Files/npp/1km/2015/07/*/")
-
+    ROOT_DIR_nn_viirs_lm = (
+        "/home/a001865/DATA_MISC/reshaped_files/"
+        "ATRAIN_RESULTS_NPP_viirs_lm/Reshaped_Files/npp/1km/2015/07/*/")
+    ROOT_DIR_nn_avhrr_lm = (
+        "/home/a001865/DATA_MISC/reshaped_files/"
+        "ATRAIN_RESULTS_NPP_avhrr_lm/Reshaped_Files/npp/1km/2015/07/*/")
+    ROOT_DIR_nn_avhrr_wg = (
+        "/home/a001865/DATA_MISC/reshaped_files/"
+        "ATRAIN_RESULTS_NPP_AVHRR_with_gac/Reshaped_Files/npp/1km/2015/07/*/")
     caobj_dict = {}
     for ROOT_DIR, name in zip(
-            [ROOT_DIR_nn_avhrr1,ROOT_DIR_nn_avhrr,ROOT_DIR_nn_avhrr_tuned, ROOT_DIR_v2014, ROOT_DIR_14bug, ROOT_DIR_14bug_maia, ROOT_DIR_nn_viirs, ROOT_DIR_nn_viirs_CLAY4, ROOT_DIR_nn_viirs_new], 
-            ["npp_CTTHnn_AVHRR1","npp_CTTHnn_AVHRR","npp_CTTHnn_AVHRR_tuned", "npp_CTTHv2014","npp_CTTHv2014_buggy","npp_CTTHv2014_buggy_maia","npp_CTTHnn_VIIRS","npp_CTTHnn_VIIRS_C4","npp_CTTHnn_VIIRS_tuned"]):
-        print ROOT_DIR
-        print name
+            [ROOT_DIR_nn_avhrr_wg, ROOT_DIR_nn_avhrr1,ROOT_DIR_nn_avhrr,ROOT_DIR_nn_avhrr_tuned, ROOT_DIR_v2014, ROOT_DIR_14bug, ROOT_DIR_14bug_maia, ROOT_DIR_nn_viirs, ROOT_DIR_nn_viirs_CLAY4, ROOT_DIR_nn_viirs_new,ROOT_DIR_nn_viirs_lm,ROOT_DIR_nn_avhrr_lm], 
+            ["npp_CTTHnn_AVHRR_with_gac", "npp_CTTHnn_AVHRR1","npp_CTTHnn_AVHRR","npp_CTTHnn_AVHRR_tuned", "npp_CTTHv2014","npp_CTTHv2014_buggy","npp_CTTHv2014_buggy_maia","npp_CTTHnn_VIIRS","npp_CTTHnn_VIIRS_C4","npp_CTTHnn_VIIRS_tuned", "npp_nnVIIRS_LessIsMore", "npp_nnAVHRR_LessIsMore"]):
+        #print ROOT_DIR
         files = glob(ROOT_DIR + "*.h5")
         caObj = CalipsoAvhrrTrackObject()
         for filename in files:
@@ -308,7 +333,7 @@ def investigate_nn_ctth_modis_november():
     #             'compare_modis')
 
 if __name__ == "__main__":
-    investigate_nn_ctth()
+    #investigate_nn_ctth()
     #investigate_nn_ctth_modis_november() 
-    #investigate_nn_ctth_viirs()
+    investigate_nn_ctth_viirs()
   
