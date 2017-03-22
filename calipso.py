@@ -101,8 +101,7 @@ def match_calipso_avhrr(values,
         timeCalipso_tai = calipsoObj.profile_time_tai[:,1].ravel()
         timeCalipso = calipsoObj.profile_time_tai[:,1].ravel() + dsec
         timeCalipso_utc = calipsoObj.profile_utc_time[:,1].ravel()
-        elevationCalipso = calipsoObj.dem_surface_elevation[::,2].ravel()
-    
+        elevationCalipso = calipsoObj.dem_surface_elevation[::,2].ravel()    
     ndim = lonCalipso.shape[0]
     
     # --------------------------------------------------------------------
@@ -118,7 +117,6 @@ def match_calipso_avhrr(values,
     calnan = np.where(cal == NODATA, np.nan, cal)
     if (~np.isnan(calnan)).sum() == 0:
         raise MatchupError("No matches within region.")
-
     
     if len(imagerGeoObj.time.shape)>1:
         imager_time_vector = [imagerGeoObj.time[line,pixel] for line, pixel in zip(cal,cap)]
@@ -126,19 +124,6 @@ def match_calipso_avhrr(values,
     else:
         avhrr_lines_sec_1970 = np.where(cal != NODATA, imagerGeoObj.time[cal], np.nan)
 
-    #    avhrr_lines_sec_1970 = calnan * DSEC_PER_AVHRR_SCALINE + imagerGeoObj.sec1970_start
-    # Find all matching Calipso pixels within +/- sec_timeThr from the AVHRR data
-    #    pdb.set_trace()
-
-    """
-    import matplotlib.pyplot as plt
-    fig = plt.figure(figsize = (9,8))
-    ax = fig.add_subplot(111)
-    plt.plot(timeCalipso, 'b.')
-    plt.plot(avhrr_lines_sec_1970, 'g.')
-    plt.show()
-    fig.savefig("nina_test_fil.png")
-    """
     idx_match = elements_within_range(timeCalipso, avhrr_lines_sec_1970, sec_timeThr) 
     if idx_match.sum() == 0:
         raise MatchupError("No matches in region within time threshold %d s." % sec_timeThr)
@@ -195,17 +180,11 @@ def match_calipso_avhrr(values,
 
     if calipsoObjAerosol is not None:
         retv.calipso_aerosol = calipso_track_from_matched(retv.calipso_aerosol, calipsoObjAerosol, idx_match)
-
-    # -------------------------------------------------------------------------    
     logger.info("AVHRR-PPS Cloud Type,latitude: shapes = %s %s",
-          retv.avhrr.cloudtype.shape,retv.avhrr.latitude.shape)
-    ll = []
-    for i in range(ndim):        
-        #ll.append(("%7.3f  %7.3f  %d\n"%(lonCalipso[i],latCalipso[i],0)))
-        ll.append(("%7.3f  %7.3f  %d\n"%(lonCalipso[i],latCalipso[i],idx_match[i])))
+                retv.avhrr.cloudtype.shape,retv.avhrr.latitude.shape)
     max_cloud_top_calipso = np.maximum.reduce(retv.calipso.layer_top_altitude.ravel())
     logger.info("max_cloud_top_calipso: %2.1f",max_cloud_top_calipso)
-    return retv,min_diff,max_diff
+    return retv
 
 def get_calipso(filename, res, ALAY=False):
     from scipy import ndimage

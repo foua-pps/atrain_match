@@ -287,7 +287,7 @@ def match_cloudsat_avhrr(ctypefile,cloudsatObj,imagerGeoObj,imagerObj,ctype,cma,
           retv.avhrr.cloudtype.shape,retv.avhrr.latitude.shape
 
 
-    return retv,min_diff,max_diff
+    return retv
 
 #------------------------------------------------------------------------------------------
 

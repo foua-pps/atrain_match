@@ -579,10 +579,10 @@ def get_cloudsat_matchups(cloudsat_files, cloudtype_file, avhrrGeoObj, avhrrObj,
         reshape_fun = reshapeCloudsat
         match_fun = match_cloudsat_avhrr
     cloudsat = reshape_fun(cloudsat_files, avhrrGeoObj, cloudtype_file)
-    cl_matchup, cl_min_diff, cl_max_diff = match_fun(cloudtype_file, cloudsat,
-                                                     avhrrGeoObj, avhrrObj, ctype, cma,
-                                                     ctth, nwp_obj, avhrrAngObj, cpp)
-    return cl_matchup, (cl_min_diff, cl_max_diff)
+    cl_matchup = match_fun(cloudtype_file, cloudsat,
+                           avhrrGeoObj, avhrrObj, ctype, cma,
+                           ctth, nwp_obj, avhrrAngObj, cpp)
+    return cl_matchup
 
 def total_and_top_layer_optical_depth_5km(calipso, resolution=5):
     logger.info("Find total optical depth from 5km data")
@@ -724,14 +724,11 @@ def get_calipso_matchups(calipso_files, values,
     calipso5km = None
         
     logger.info("Matching with avhrr")
-    tup = match_calipso_avhrr(values, calipso, calipso_aerosol,
+    ca_matchup = match_calipso_avhrr(values, calipso, calipso_aerosol,
                               avhrrGeoObj, avhrrObj, ctype, cma,
                               ctth, cpp, nwp_obj, avhrrAngObj, 
                               nwp_segments, options)
-    ca_matchup, ca_min_diff, ca_max_diff = tup
-    #import pdb; pdb.set_trace()
-    return ca_matchup, (ca_min_diff, ca_max_diff)
-
+    return ca_matchup
 def read_cloud_cci(avhrr_file):
     from read_cloudproducts_cci import cci_read_all
     return cci_read_all(avhrr_file)
@@ -743,6 +740,158 @@ def read_cloud_maia(avhrr_file):
 def read_pps_data(pps_files, avhrr_file, cross):
     from read_cloudproducts_and_nwp_pps import pps_read_all
     return pps_read_all(pps_files, avhrr_file, cross)
+
+def get_additional_calipso_files_if_requested(calipso_files):
+    import glob
+    calipso5km = None
+    calipso1km = None
+    calipso5km_aerosol=None
+
+    if config.RESOLUTION == 5:
+        if config.ALSO_USE_1KM_FILES == True:
+            logger.info("Search for CALIPSO 1km data too")
+            calipso1km = []
+            calipso5km = []
+            for file5km in calipso_files:
+                file1km = file5km.replace('/5km/', '/1km/').\
+                          replace('05kmCLay', '01kmCLay').\
+                          replace('-Prov-V3-01.', '*').\
+                          replace('-Prov-V3-02.', '*').\
+                          replace('-Prov-V3-30.', '*').\
+                          replace('.hdf', '.h5')
+                files_found = glob.glob(file1km)
+                if len(files_found)==0:
+                    #didn't find h5 file, might be hdf file instead
+                    file1km = file1km.replace('.h5','.hdf')
+                    files_found = glob.glob(file1km)
+                if len(files_found)>0:    
+                    calipso1km.append(files_found[0])
+                    calipso5km.append(file5km)
+            calipso1km = sorted(require_h5(calipso1km))
+            calipso_files = sorted(calipso5km)
+            calipso5km = None
+
+            if len(calipso_files) == 0:
+                raise MatchupError("Did not find any matching 5km and 1km calipso files")
+
+            if len(calipso_files) != len(calipso1km):
+                raise MatchupError("Inconsistent number of calipso files...\n" + 
+                                   "\tlen(calipso_files) = %d\n" % len(calipso_files) + 
+                                   "\tlen(calipso1km) = %d" % len(calipso1km))
+    if config.RESOLUTION == 1:
+        if config.ALSO_USE_5KM_FILES == True:
+            logger.info("Search for CALIPSO 5km data too")
+            calipso5km = []
+            calipso1km = []
+            for file1km in calipso_files:
+                file5km = file1km.replace('/1km/', '/5km/').\
+                          replace('01kmCLay', '05kmCLay').\
+                          replace('-ValStage1-V3-30.', '*').\
+                          replace('-ValStage1-V3-01.', '*').\
+                          replace('-ValStage1-V3-02.', '*')
+                files_found = glob.glob(file5km)
+                if len(files_found)==0:
+                    #didn't find h5 file, might be hdf file instead
+                    file5km = file5km.replace('.h5','.hdf')
+                    files_found = glob.glob(file5km)
+                if len(files_found)>0: 
+                    calipso5km.append(files_found[0])
+                    calipso1km.append(file1km)
+            calipso5km = sorted(require_h5(calipso5km))
+            calipso_files = sorted(calipso1km)
+            calipso1km = None
+            if len(calipso_files) == 0:
+                raise MatchupError("Did not find any matching 5km and 1km calipso files")
+            if len(calipso_files) != len(calipso5km):
+                raise MatchupError("Inconsistent number of calipso files...\n" + 
+                                   "\tlen(calipso_files) = %d\n" % len(calipso_files) + 
+                                   "\tlen(calipso1km) = %d" % len(calipso5km))
+    if config.MATCH_AEROSOL_CALIPSO:
+        calipso5km_aerosol=[]
+        for cfile in calipso_files:
+            file5km_aerosol = cfile.replace('/CLAY/', '/ALAY/').\
+                              replace('CLay', 'ALay').\
+                              replace('/1km/', '/5km/').\
+                              replace('01km', '05km').\
+                              replace('-ValStage1-V3-30.', '*').\
+                              replace('-ValStage1-V3-01.', '*').\
+                              replace('-ValStage1-V3-02.', '*').\
+                              replace('-Prov-V3-01.', '*').\
+                              replace('-Prov-V3-02.', '*').\
+                              replace('-Prov-V3-30.', '*')
+            files_found_aerosol = glob.glob(file5km_aerosol)
+            if len(files_found_aerosol)==0:
+                #didn't find h5 file, might be hdf file instead
+                file5km_aerosol = file5km_aerosol.replace('.h5','.hdf')
+                files_found_aerosol = glob.glob(file5km_aerosol)
+            if len(files_found_aerosol)>0: 
+                calipso5km_aerosol.append(files_found_aerosol[0]) 
+        print "found these aerosol files", calipso5km_aerosol             
+        calipso5km_aerosol = sorted(require_h5(calipso5km_aerosol))
+        print "found these aerosol files", calipso5km_aerosol
+    return calipso5km, calipso1km, calipso5km_aerosol              
+
+
+def add_additional_clousat_calipso_index_vars(clsatObj, caObj):
+    #add cloudsat modisflag to calipso obj
+    caObj.calipso.cal_MODIS_cflag = None
+    if clsatObj is not None:
+        #map cloudsat to calipso and the other way around!
+        from amsr_avhrr.match import match_lonlat
+        source = (clsatObj.cloudsat.longitude.astype(np.float64).reshape(-1,1), clsatObj.cloudsat.latitude.astype(np.float64).reshape(-1,1))
+        target = (caObj.calipso.longitude.astype(np.float64).reshape(-1,1), caObj.calipso.latitude.astype(np.float64).reshape(-1,1))
+        mapper = match_lonlat(source, target, radius_of_influence=1000, n_neighbours=1)
+        caObj.calipso.cloudsat_index = mapper.rows.filled(NODATA).ravel()
+        target = (clsatObj.cloudsat.longitude.astype(np.float64).reshape(-1,1), clsatObj.cloudsat.latitude.astype(np.float64).reshape(-1,1))
+        source = (caObj.calipso.longitude.astype(np.float64).reshape(-1,1), caObj.calipso.latitude.astype(np.float64).reshape(-1,1))
+        mapper = match_lonlat(source, target, radius_of_influence=1000, n_neighbours=1)
+        clsatObj.cloudsat.calipso_index = mapper.rows.filled(NODATA).ravel()
+
+        # Transfer CloudSat MODIS cloud flag to CALIPSO representation
+        caObj.calipso.cal_MODIS_cflag = np.zeros(len(caObj.calipso.elevation),'b')
+        caObj.calipso.cal_MODIS_cflag[caObj.calipso.cloudsat_index] = clsatObj.cloudsat.MODIS_cloud_flag
+    return clsatObj, caObj
+
+def add_elevation_corrected_imager_ctth(clsatObj, caObj):
+    ## Cloudsat ##
+    clsatObj.avhrr.avhrr_ctth_csat_ok = None
+    if clsatObj is not None:
+        # First make sure that PPS cloud top heights are converted to height
+        # above sea level just as CloudSat height are defined. Use
+        # corresponding DEM data.
+        elevation = np.where(np.less_equal(clsatObj.cloudsat.elevation,0),
+                             0,clsatObj.cloudsat.elevation)		
+        num_csat_data_ok = len(clsatObj.cloudsat.elevation)
+        logger.info("Length of CLOUDSAT array: %d", num_csat_data_ok )
+        avhrr_ctth_csat_ok = np.array(clsatObj.avhrr.ctth_height).copy().ravel()
+        if CCI_CLOUD_VALIDATION: 
+            #ctth already relative mean sea level
+            pass
+        else: #ctth relative topography
+            got_height = avhrr_ctth_csat_ok>=0                    
+            avhrr_ctth_csat_ok[got_height] += elevation[got_height]*1.0
+        clsatObj.avhrr.avhrr_ctth_csat_ok = avhrr_ctth_csat_ok
+        if num_csat_data_ok == 0:
+            logger.info("Processing stopped: Zero lenght of matching arrays!")
+            print("Program cloudsat_calipso_avhrr_match.py at line %i" %(inspect.currentframe().f_lineno+1))
+            sys.exit()
+    ## Calipso ##        
+    # First make sure that PPS cloud top heights are converted to height above sea level
+    # just as CALIPSO heights are defined. Use corresponding DEM data.
+    cal_elevation = np.where(np.less_equal(caObj.calipso.elevation,0),
+                             0,caObj.calipso.elevation)
+    num_cal_data_ok = len(caObj.calipso.elevation)
+    logger.info("Length of CALIOP array: %d", num_cal_data_ok)
+    avhrr_ctth_cal_ok = np.array(caObj.avhrr.ctth_height).copy().ravel()
+    if CCI_CLOUD_VALIDATION: 
+        #ctth relative mean sea level
+        pass
+    else: #ctth relative topography
+        got_height = avhrr_ctth_cal_ok>=0                    
+        avhrr_ctth_cal_ok[got_height] += cal_elevation[got_height]*1.0
+    caObj.avhrr.avhrr_ctth_cal_ok = avhrr_ctth_cal_ok
+    return clsatObj, caObj
+
 
 def get_matchups_from_data(cross, config_options):
     """
@@ -779,131 +928,40 @@ def get_matchups_from_data(cross, config_options):
         avhrrGeoObj.satellite = values["satellite"];
         date_time = values["date_time"]
 
-    calipso_files = find_calipso_files(date_time, config_options, values)
-
+    #CLOUDSAT:  
+    cl_matchup = None
     if (PPS_VALIDATION):
         cloudsat_files = find_cloudsat_files(date_time, config_options, values)
         print cloudsat_files
         if (isinstance(cloudsat_files, str) == True or 
             (isinstance(cloudsat_files, list) and len(cloudsat_files) != 0)):
             logger.info("Read CLOUDSAT %s data" % config.CLOUDSAT_TYPE)
-            cl_matchup, cl_time_diff = get_cloudsat_matchups(cloudsat_files, 
-                                                             pps_files.cloudtype,
-                                                             avhrrGeoObj, avhrrObj, ctype, cma,
-                                                             ctth, nwp_obj, avhrrAngObj, cpp, config_options)
+            cl_matchup = get_cloudsat_matchups(cloudsat_files, 
+                                               pps_files.cloudtype,
+                                               avhrrGeoObj, avhrrObj, ctype, cma,
+                                               ctth, nwp_obj, avhrrAngObj, cpp, config_options)
         else:
             logger.info("NO CLOUDSAT File, Continue")
     else:
         logger.info("NO CLOUDSAT File,"
                   "CCI-cloud validation only for calipso, Continue")
-
+    #CALIPSO:
+    ca_matchup = None
+    calipso_files = find_calipso_files(date_time, config_options, values)
     if (isinstance(calipso_files, str) == True or 
         (isinstance(calipso_files, list) and len(calipso_files) != 0)):
-        import glob
-        calipso5km = None
-        calipso1km = None
-        
-        if config.RESOLUTION == 5:
-            if config.ALSO_USE_1KM_FILES == True:
-                logger.info("Search for CALIPSO 1km data too")
-                calipso1km = []
-                calipso5km = []
-                for file5km in calipso_files:
-                    file1km = file5km.replace('/5km/', '/1km/').\
-                                                replace('05kmCLay', '01kmCLay').\
-                                                replace('-Prov-V3-01.', '*').\
-                                                replace('-Prov-V3-02.', '*').\
-                                                replace('-Prov-V3-30.', '*').\
-                                                replace('.hdf', '.h5')
-                    files_found = glob.glob(file1km)
-                    if len(files_found)==0:
-                         #didn't find h5 file, might be hdf file instead
-                        file1km = file1km.replace('.h5','.hdf')
-                        files_found = glob.glob(file1km)
-                    if len(files_found)>0:    
-                        calipso1km.append(files_found[0])
-                        calipso5km.append(file5km)
-                calipso1km = sorted(require_h5(calipso1km))
-                calipso_files = sorted(calipso5km)
-                calipso5km = None
-
-                if len(calipso_files) == 0:
-                    raise MatchupError("Did not find any matching 5km and 1km calipso files")
-
-                if len(calipso_files) != len(calipso1km):
-                    raise MatchupError("Inconsistent number of calipso files...\n" + 
-                                       "\tlen(calipso_files) = %d\n" % len(calipso_files) + 
-                                       "\tlen(calipso1km) = %d" % len(calipso1km))
-            else:
-                calipso1km = None
-
-        if config.RESOLUTION == 1:
-            if config.ALSO_USE_5KM_FILES == True:
-                logger.info("Search for CALIPSO 5km data too")
-                calipso5km = []
-                calipso1km = []
-                for file1km in calipso_files:
-                    file5km = file1km.replace('/1km/', '/5km/').\
-                              replace('01kmCLay', '05kmCLay').\
-                              replace('-ValStage1-V3-30.', '*').\
-                              replace('-ValStage1-V3-01.', '*').\
-                              replace('-ValStage1-V3-02.', '*')
-                    files_found = glob.glob(file5km)
-                    if len(files_found)==0:
-                        #didn't find h5 file, might be hdf file instead
-                        file5km = file5km.replace('.h5','.hdf')
-                        files_found = glob.glob(file5km)
-                    if len(files_found)>0: 
-                        calipso5km.append(files_found[0])
-                        calipso1km.append(file1km)
-                calipso5km = sorted(require_h5(calipso5km))
-                calipso_files = sorted(calipso1km)
-                calipso1km = None
-                if len(calipso_files) == 0:
-                    raise MatchupError("Did not find any matching 5km and 1km calipso files")
-                if len(calipso_files) != len(calipso5km):
-                    raise MatchupError("Inconsistent number of calipso files...\n" + 
-                                       "\tlen(calipso_files) = %d\n" % len(calipso_files) + 
-                                       "\tlen(calipso1km) = %d" % len(calipso5km))
-            else:
-                calipso5km = None
-
-        calipso5km_aerosol=None
-        if config.MATCH_AEROSOL_CALIPSO:
-            calipso5km_aerosol=[]
-            for cfile in calipso_files:
-                file5km_aerosol = cfile.replace('/CLAY/', '/ALAY/').\
-                               replace('CLay', 'ALay').\
-                               replace('/1km/', '/5km/').\
-                               replace('01km', '05km').\
-                               replace('-ValStage1-V3-30.', '*').\
-                               replace('-ValStage1-V3-01.', '*').\
-                               replace('-ValStage1-V3-02.', '*').\
-                               replace('-Prov-V3-01.', '*').\
-                               replace('-Prov-V3-02.', '*').\
-                               replace('-Prov-V3-30.', '*')
-                files_found_aerosol = glob.glob(file5km_aerosol)
-                if len(files_found_aerosol)==0:
-                    #didn't find h5 file, might be hdf file instead
-                    file5km_aerosol = file5km_aerosol.replace('.h5','.hdf')
-                    files_found_aerosol = glob.glob(file5km_aerosol)
-                if len(files_found_aerosol)>0: 
-                        calipso5km_aerosol.append(files_found_aerosol[0]) 
-            print "found these aerosol files", calipso5km_aerosol             
-            calipso5km_aerosol = sorted(require_h5(calipso5km_aerosol))
-            print "found these aerosol files", calipso5km_aerosol
-                
-                
+        extra_files = get_additional_calipso_files_if_requested(calipso_files)
+        calipso5km, calipso1km, calipso5km_aerosol  = extra_files
+      
         logger.info("Read CALIPSO data")        
-        ca_matchup, ca_time_diff = get_calipso_matchups(calipso_files, 
-                                                        values,
-                                                        avhrrGeoObj, avhrrObj, 
-                                                        ctype, cma, ctth, 
-                                                        nwp_obj, avhrrAngObj, 
-                                                        config_options, cpp,
-                                                        nwp_segment,
-                                                        calipso1km, calipso5km, calipso5km_aerosol)
-
+        ca_matchup= get_calipso_matchups(calipso_files, 
+                                         values,
+                                         avhrrGeoObj, avhrrObj, 
+                                         ctype, cma, ctth, 
+                                         nwp_obj, avhrrAngObj, 
+                                         config_options, cpp,
+                                         nwp_segment,
+                                         calipso1km, calipso5km, calipso5km_aerosol)
     else:
         logger.info("NO CALIPSO File, Continue")
 
@@ -932,26 +990,24 @@ def get_matchups_from_data(cross, config_options):
     if not os.path.exists(os.path.dirname(rematched_path)):
         logger.info("Creating dir %s:"%(rematched_path))
         os.makedirs(os.path.dirname(rematched_path))
-    
-    # Write cloudsat matchup    
-    try:
-        if cl_matchup is not None:
-            cl_match_file = rematched_file_base.replace(
-                'atrain_datatype', 'cloudsat-%s' % config.CLOUDSAT_TYPE)
-            writeCloudsatAvhrrMatchObj(cl_match_file, cl_matchup)
-    except NameError:
-        cl_matchup = None
-        cl_time_diff = (NaN, NaN)
-        logger.info('CloudSat is not defined. No CloudSat Match File created')
 
+    #add modis lvl2    
     if config.MATCH_MODIS_LVL2 and config.IMAGER_INSTRUMENT.lower() in ['modis']:
         from read_modis_products import add_modis_06    
         ca_matchup = add_modis_06(ca_matchup, avhrr_file, config_options) 
-    # Write calipso matchup
-    if config.CLOUDSAT_TYPE == "CWC-RVOD":
-        ca_matchup = None
-        ca_time_diff = (NaN, NaN)
+    #add additional vars to cloudsat and calipso objects:
+    cl_matchup, ca_matchup = add_additional_clousat_calipso_index_vars(cl_matchup, ca_matchup)
+
+    # Write cloudsat matchup    
+    if cl_matchup is not None:
+        cl_match_file = rematched_file_base.replace(
+            'atrain_datatype', 'cloudsat-%s' % config.CLOUDSAT_TYPE)
+        writeCloudsatAvhrrMatchObj(cl_match_file, cl_matchup)
     else:
+        logger.info('CloudSat is not defined. No CloudSat Match File created')
+     
+    # Write calipso matchup
+    if ca_matchup is not None:
         ca_match_file = rematched_file_base.replace('atrain_datatype', 'caliop')
         avhrr_obj_name = 'pps'
         if config.CCI_CLOUD_VALIDATION:
@@ -961,9 +1017,7 @@ def get_matchups_from_data(cross, config_options):
         writeCaliopAvhrrMatchObj(ca_match_file, ca_matchup, 
                                  avhrr_obj_name = avhrr_obj_name) 
     
-    
-    return {'cloudsat': cl_matchup, 'cloudsat_time_diff': cl_time_diff,
-            'calipso': ca_matchup, 'calipso_time_diff': ca_time_diff,
+    return {'cloudsat': cl_matchup, 'calipso': ca_matchup, 
             'basename': basename, 'values':values}
 
 
@@ -975,7 +1029,6 @@ def get_matchups(cross, options, reprocess=False):
     """
     caObj = None
     clObj = None
-    calipso_min_and_max_timediffs = NaN, NaN
     values = {}
     try:
         values["satellite"] = cross.satellite1.lower()
@@ -1059,8 +1112,6 @@ def get_matchups(cross, options, reprocess=False):
                 logger.info( 
                           "CALIPSO Matchups read from previously processed data.")
                 logger.info( 'Filename: ' + ca_match_file)
-                calipso_min_and_max_timediffs = (caObj.diff_sec_1970.min(), 
-                                                 caObj.diff_sec_1970.max())
             else:
                 logger.info("Calipso Matchups will be processed for better match" + 
                            " %s."%values_avhrr["basename"]) 
@@ -1085,10 +1136,7 @@ def get_matchups(cross, options, reprocess=False):
 
 
     return {'calipso': caObj, 'cloudsat': clObj, 
-            'basename': basename,
-            'calipso_time_diff': calipso_min_and_max_timediffs,
-            'values':values
-            }
+            'basename': basename,'values':values}
 
 def plot_some_figures(clsatObj, caObj, sensor, values, basename, process_mode, 
                       config_options):
@@ -1147,7 +1195,16 @@ def plot_some_figures(clsatObj, caObj, sensor, values, basename, process_mode,
                                   plotpath, basename, 
                                   config.RESOLUTION, file_type,
                                   instrument=sensor)
-    if clsatObj is not None and config.CLOUDSAT_TYPE=='CWC-RVOD':        
+    if clsatObj is not None and config.CLOUDSAT_TYPE=='CWC-RVOD':       
+        if config.RESOLUTION == 1:
+            elevationcwc = np.where(np.less_equal(clsatObj.cloudsatcwc.elevation,0),
+                                    -9, clsatObj.cloudsatcwc.elevation)
+            data_okcwc = np.ones(clsatObj.cloudsatcwc.elevation.shape,'b')                
+            ### 5 KM DATA CWC-RVOD ###                       
+        elif config.RESOLUTION == 5: 
+            elevationcwc = np.where(np.less_equal(clsatObj.cloudsat5kmcwc.elevation,0),
+                                    -9, clsatObj.cloudsat5kmcwc.elevation,-9)
+            data_okcwc = np.ones(clsatObj.cloudsat5kmcwc.elevation.shape,'b')
         phase='LW'  
         drawCalClsatCWCAvhrrPlot(clsatObj, 
                                  elevationcwc, 
@@ -1202,100 +1259,21 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     values = matchup_results['values']
     #import pdb;pdb.set_trace()
 
-
-    clsat_min_diff, clsat_max_diff = matchup_results.get('cloudsat_time_diff', (NaN, NaN))
-    ca_min_diff, ca_max_diff = matchup_results.get('calipso_time_diff', (NaN, NaN))
-    
     basename = matchup_results['basename']
     base_sat = basename.split('_')[0]
     base_year = basename.split('_')[1][:4]
     base_month = basename.split('_')[1][4:6]
     
-    if config.RESOLUTION not in [1, 5]:
-        logger.info("Define resolution")
-        print("Program cloudsat_calipso_avhrr_match.py at line %i" %(inspect.currentframe().f_lineno+1))
-        sys.exit(-9) 
-
-    ## Cloudsat ##
-    if clsatObj is not None:
-        # First make sure that PPS cloud top heights are converted to height
-        # above sea level just as CloudSat height are defined. Use
-        # corresponding DEM data.
-        elevation = np.where(np.less_equal(clsatObj.cloudsat.elevation,0),
-                             0,clsatObj.cloudsat.elevation)		
-        num_csat_data_ok = len(clsatObj.cloudsat.elevation)
-        logger.info("Length of CLOUDSAT array: %d", num_csat_data_ok )
-        avhrr_ctth_csat_ok = np.array(clsatObj.avhrr.ctth_height).copy().ravel()
-        if CCI_CLOUD_VALIDATION: 
-            #ctth already relative mean sea level
-            pass
-        else: #ctth relative topography
-            got_height = avhrr_ctth_csat_ok>=0                    
-            avhrr_ctth_csat_ok[got_height] += elevation[got_height]*1.0
-        clsatObj.avhrr.avhrr_ctth_csat_ok = avhrr_ctth_csat_ok
-        if num_csat_data_ok == 0:
-            logger.info("Processing stopped: Zero lenght of matching arrays!")
-            print("Program cloudsat_calipso_avhrr_match.py at line %i" %(inspect.currentframe().f_lineno+1))
-            sys.exit()
-    else:
-        data_ok = None
-        avhrr_ctth_csat_ok = None
-
-    ## Calipso ##        
-    # First make sure that PPS cloud top heights are converted to height above sea level
-    # just as CALIPSO heights are defined. Use corresponding DEM data.
-    cal_elevation = np.where(np.less_equal(caObj.calipso.elevation,0),
-                             0,caObj.calipso.elevation)
     num_cal_data_ok = len(caObj.calipso.elevation)
-    logger.info("Length of CALIOP array: %d", num_cal_data_ok)
-    avhrr_ctth_cal_ok = np.array(caObj.avhrr.ctth_height).copy().ravel()
-    if CCI_CLOUD_VALIDATION: 
-        #ctth relative mean sea level
-        pass
-    else: #ctth relative topography
-        got_height = avhrr_ctth_cal_ok>=0                    
-        avhrr_ctth_cal_ok[got_height] += cal_elevation[got_height]*1.0
-    caObj.avhrr.avhrr_ctth_cal_ok = avhrr_ctth_cal_ok
-    if ( num_cal_data_ok == 0):
+    if (num_cal_data_ok == 0):
         logger.info("Processing stopped: Zero lenght of matching arrays!")
         print("Program cloudsat_calipso_avhrr_match.py at line %i" %(inspect.currentframe().f_lineno+1))
         sys.exit()
-        
-    # If everything is OK, now create filename for statistics output file and
-    # open it for writing.  Notice that more than one file (but maximum 2) can
-    # be created for one particular noaa orbit.
-    min_depth_to_file_name=""
-    if process_mode == 'OPTICAL_DEPTH':
-        min_depth_to_file_name="-%.2f"%(min_optical_depth)
-    values['mode']= process_mode_dnt+min_depth_to_file_name
-    result_path = insert_info_in_filename_or_path(config_options['result_dir'], values, datetime_obj=values['date_time'])
-
-    if not os.path.exists(result_path):
-        os.makedirs(result_path)
-    result_file = config_options['result_file'].format(
-            resolution=str(config.RESOLUTION),
-            basename=values['basename'] )
-    statfilename = os.path.join(result_path, result_file)   
-    statfile = open(statfilename,"w")
-    if process_mode == "BASIC":
-        if clsatObj is not None:
-            statfile.write("CloudSat min and max time diff: %f %f \n" %(clsat_min_diff,clsat_max_diff))
-        else:
-            statfile.write('No CloudSat \n')
-        statfile.write("CALIPSO min and max time diff: %f %f \n" %(ca_min_diff,ca_max_diff))
-    else:
-        if clsatObj is not None:
-            statfile.write("CloudSat min and max time diff: See results for BASIC! \n")
-        else:
-            statfile.write('No CloudSat \n')
-        statfile.write("CALIPSO min and max time diff: See results for BASIC! \n")
-    if clsatObj is not None:
-        statfile.write("Start-Stop-Length Cloudsat: %f %f %f %f %s \n" %(clsatObj.cloudsat.latitude[0],clsatObj.cloudsat.longitude[0],clsatObj.cloudsat.latitude[len(clsatObj.cloudsat.latitude)-1],clsatObj.cloudsat.longitude[len(clsatObj.cloudsat.latitude)-1],num_csat_data_ok))
-    else:
-        statfile.write('No CloudSat \n')
-    statfile.write("Start-Stop-Length CALIPSO: %f %f %f %f %s \n" %(caObj.calipso.latitude[0],caObj.calipso.longitude[0],caObj.calipso.latitude[len(caObj.calipso.latitude)-1],caObj.calipso.longitude[len(caObj.calipso.latitude)-1],num_cal_data_ok))
-
-
+    if caObj.calipso.cloudsat_index is None:
+        logger.info("Adding some stuff that might not be in older reshaped files")
+        clsatObj, caObj = add_additional_clousat_calipso_index_vars(clsatObj, caObj)
+    #Calculate hight from sea surface    
+    clsatObj, caObj = add_elevation_corrected_imager_ctth( clsatObj, caObj)
     # If mode = OPTICAL_DEPTH -> Change cloud -top and -base profile
     if process_mode == 'OPTICAL_DEPTH':#Remove this if-statement if you always want to do filtering!/KG
         (new_cloud_top, new_cloud_base, new_cloud_fraction, new_fcf) = \
@@ -1326,42 +1304,21 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     if process_mode == 'OPTICAL_DEPTH_THIN_IS_CLEAR' and RESOLUTION==1:
         logger.info("Setting thin clouds to clear"
                   ", using 5km data in mode OPTICAL_DEPTH_THIN_IS_CLEAR")
-        caObj = CalipsoOpticalDepthSetThinToClearFiltering1km(caObj)      
+        caObj = CalipsoOpticalDepthSetThinToClearFiltering1km(caObj) 
 
-
-
-
-    if clsatObj is not None:
-        #map cloudsat to calipso and the other way around!
-        from amsr_avhrr.match import match_lonlat
-        source = (clsatObj.cloudsat.longitude.astype(np.float64).reshape(-1,1), clsatObj.cloudsat.latitude.astype(np.float64).reshape(-1,1))
-        target = (caObj.calipso.longitude.astype(np.float64).reshape(-1,1), caObj.calipso.latitude.astype(np.float64).reshape(-1,1))
-        mapper = match_lonlat(source, target, radius_of_influence=1000, n_neighbours=1)
-        caObj.calipso.cloudsat_index = mapper.rows.filled(NODATA).ravel()
-        target = (clsatObj.cloudsat.longitude.astype(np.float64).reshape(-1,1), clsatObj.cloudsat.latitude.astype(np.float64).reshape(-1,1))
-        source = (caObj.calipso.longitude.astype(np.float64).reshape(-1,1), caObj.calipso.latitude.astype(np.float64).reshape(-1,1))
-        mapper = match_lonlat(source, target, radius_of_influence=1000, n_neighbours=1)
-        clsatObj.cloudsat.calipso_index = mapper.rows.filled(NODATA).ravel()
-
-        # Transfer CloudSat MODIS cloud flag to CALIPSO representation
-        cal_MODIS_cflag = np.zeros(len(caObj.calipso.elevation),'b')
-        cal_MODIS_cflag[caObj.calipso.cloudsat_index] = clsatObj.cloudsat.MODIS_cloud_flag
-    else:
-        cal_MODIS_cflag = None
-                
-    ##########################
-    ### 1 KM DATA CWC-RVOD ###                       
-    if config.RESOLUTION == 1 and config.CLOUDSAT_TYPE == 'CWC-RVOD' and clsatObj is not None:
-        elevationcwc = np.where(np.less_equal(clsatObj.cloudsatcwc.elevation,0),
-                            -9, clsatObj.cloudsatcwc.elevation)
-        data_okcwc = np.ones(clsatObj.cloudsatcwc.elevation.shape,'b')
-                
-    ### 5 KM DATA CWC-RVOD ###                       
-    elif config.RESOLUTION == 5 and config.CLOUDSAT_TYPE == 'CWC-RVOD' and clsatObj is not None:
-        elevationcwc = np.where(np.less_equal(clsatObj.cloudsat5kmcwc.elevation,0),
-                            -9, clsatObj.cloudsat5kmcwc.elevation,-9)
-        data_okcwc = np.ones(clsatObj.cloudsat5kmcwc.elevation.shape,'b')
-   
+    #=============================================================
+    #Get result filename    
+    min_depth_to_file_name=""
+    if process_mode == 'OPTICAL_DEPTH':
+        min_depth_to_file_name="-%.2f"%(min_optical_depth)
+    values['mode']= process_mode_dnt+min_depth_to_file_name
+    result_path = insert_info_in_filename_or_path(config_options['result_dir'], values, datetime_obj=values['date_time'])
+    if not os.path.exists(result_path):
+        os.makedirs(result_path)
+    result_file = config_options['result_file'].format(
+            resolution=str(config.RESOLUTION),
+            basename=values['basename'] )
+    statfilename = os.path.join(result_path, result_file)                           
     #=============================================================
     # Draw plot
     if process_mode_dnt in config.PLOT_MODES:
@@ -1370,6 +1327,6 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     #==============================================================
     #Calculate Statistics
     logger.info("Calculating statistics")
-    CalculateStatistics(process_mode, clsatObj, statfile, caObj, 
-                        cal_MODIS_cflag, dnt_flag)
+    CalculateStatistics(process_mode, clsatObj, statfilename, caObj, 
+                        dnt_flag)
     #=============================================================

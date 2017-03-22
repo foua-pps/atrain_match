@@ -826,7 +826,7 @@ def print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature,
                                          avhrr_ctth_cal_ok, caliop_max_height)
            
     if (config.COMPILE_RESULTS_SEPARATELY_FOR_SEMI_AND_OPAQUE and 
-        semi_flag is not None or
+        semi_flag is not None and
         opaque_flag is not None):
             
         #Opaque stats
@@ -849,7 +849,7 @@ def print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature,
     if (config.COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC and
         (config.ALSO_USE_5KM_FILES or config.RESOLUTION==5) and
         config.COMPILE_RESULTS_SEPARATELY_FOR_SEMI_AND_OPAQUE and 
-        semi_flag is not None or
+        semi_flag is not None and
         opaque_flag is not None):
             
         #Thin top layer
@@ -893,10 +893,46 @@ def print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature,
                                          statfile, cal_vert_feature, 
                                          avhrr_ctth_cal_ok, caliop_max_height)
 
-def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
+def print_main_stats(clsatObj, caObj, statfile, process_mode):
+    num_cal_data_ok = len(caObj.calipso.elevation)
+    if clsatObj is not None:   
+        num_csat_data_ok = len(clsatObj.cloudsat.elevation)  
+    if process_mode == "BASIC":
+        if clsatObj is not None:
+            statfile.write("CloudSat min and max time diff: %f %f \n" %(clsatObj.diff_sec_1970.min(),
+                                                                        clsatObj.diff_sec_1970.max()))
+        else:
+            statfile.write('No CloudSat \n')
+        statfile.write("CALIPSO min and max time diff: %f %f \n" %(caObj.diff_sec_1970.min(),
+                                                                   caObj.diff_sec_1970.max()))
+
+    else:
+        if clsatObj is not None:
+            statfile.write("CloudSat min and max time diff: See results for BASIC! \n")
+        else:
+            statfile.write('No CloudSat \n')
+        statfile.write("CALIPSO min and max time diff: See results for BASIC! \n")
+
+    if clsatObj is not None:
+        statfile.write("Start-Stop-Length Cloudsat: %f %f %f %f %s \n" %(clsatObj.cloudsat.latitude[0],
+                                                                     clsatObj.cloudsat.longitude[0],
+                                                                     clsatObj.cloudsat.latitude[-1],
+                                                                     clsatObj.cloudsat.longitude[-1],
+                                                                     num_csat_data_ok))
+    else:
+        statfile.write('No CloudSat \n')
+    statfile.write("Start-Stop-Length CALIPSO: %f %f %f %f %s \n" %(caObj.calipso.latitude[0],
+                                                                    caObj.calipso.longitude[0],
+                                                                    caObj.calipso.latitude[-1],
+                                                                    caObj.calipso.longitude[-1],
+                                                                    num_cal_data_ok))
+
+
+def CalculateStatistics(mode, clsatObj, statfilename, caObj,
                         dnt_flag = None): 
+    statfile = open(statfilename,"w")
     import sys
- 
+    cal_MODIS_cflag = caObj.calipso.cal_MODIS_cflag
     # Extract CALIOP Vertical Feature Classification (bits 10-12) from 16 bit
     # representation for topmost cloud layer #Nina 20140120 this is cloud type nit vert feature !!
     cal_vert_feature = np.ones(caObj.calipso.layer_top_altitude[::,0].shape)*-9
@@ -926,6 +962,7 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
         print('statistic calculation is not prepared for this dnt_flag')
         sys.exit()
 
+    print_main_stats(clsatObj, caObj, statfile, mode)
     print_cloudsat_stats(clsatObj, statfile)
     print_cloudsat_modis_stats(clsatObj, statfile)
     print_calipso_cmask_stats(caObj, statfile, cal_subset)
@@ -934,8 +971,5 @@ def CalculateStatistics(mode, clsatObj, statfile, caObj, cal_MODIS_cflag,
     print_cloudsat_stats_ctop(clsatObj, statfile)
     print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature, 
                              semi_flag, opaque_flag)
-   
-
-
     statfile.close()
     
