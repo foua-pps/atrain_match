@@ -261,6 +261,7 @@ def read_ctth_h5(filename):
 
     logger.info("min-h: %d, max-h: %d, h_nodata: %d"%(
         np.min(ctth.height), np.max(ctth.height), ctth.h_nodata))
+    h5file.close()
     return ctth
 
 def read_ctth_nc(filename):
@@ -292,6 +293,7 @@ def read_ctth_nc(filename):
     if np.ma.is_masked(ctth.temperature):        
         ctth.temperature.data[ctth.temperature.mask]  = ATRAIN_MATCH_NODATA
         ctth.temperature = ctth.temperature.data
+    pps_nc.close()
     return ctth
 
 def read_cloudtype_h5(filename):
@@ -301,6 +303,7 @@ def read_cloudtype_h5(filename):
     ctype.ct_conditions = h5file['ct_conditions'].value
     ctype.ct_statusflag = h5file['ct_status_flag'].value
     ctype.ct_quality = h5file['ct_quality'].value
+    h5file.close()
     return ctype
 
 def read_cloudtype_nc(filename):
@@ -310,6 +313,7 @@ def read_cloudtype_nc(filename):
     ctype.ct_conditions = pps_nc.variables['ct_conditions'][0,:,:]
     ctype.ct_statusflag = pps_nc.variables['ct_status_flag'][0,:,:]
     ctype.ct_quality = pps_nc.variables['ct_quality'][0,:,:]
+    pps_nc.close()
     return ctype
 
 def read_cma_h5(filename):
@@ -317,6 +321,7 @@ def read_cma_h5(filename):
     cma = CmaObj()
     cma.cma_ext = h5file['cma_extended'].value
     #try KeyError 'cma'
+    h5file.close()
     return cma
 
 def read_cmaprob_h5(filename):
@@ -336,6 +341,7 @@ def read_cmaprob_h5(filename):
     ctth.temperature = 280.0 + 0*cma.cma_prob
     ctth.pressure = 500.0 + 0*cma.cma_prob
     #try KeyError 'cma'
+    h5file.close()
     return cma, ctype, ctth
 
 def read_cma_nc(filename):
@@ -364,7 +370,7 @@ def read_cma_nc(filename):
             setattr(cma, var_name, data)
         else:
             setattr(cma, var_name, array)
-         
+    pps_nc.close()    
     return cma
 
 
@@ -471,7 +477,7 @@ def read_pps_angobj_h5(filename):
     AngObj.sunz.data[sunzmask] = ATRAIN_MATCH_NODATA
     AngObj.satz.data[satzmask] = ATRAIN_MATCH_NODATA
     AngObj.azidiff.data[diffmask] = ATRAIN_MATCH_NODATA
-
+    h5file.close()
     return AngObj
 
 def read_pps_geoobj_nc(pps_nc):
@@ -584,7 +590,8 @@ def read_nwp_h5(filename, nwp_key):
         gain = h5file[nwp_key].attrs['gain']
         intercept = h5file[nwp_key].attrs['intercept']
         nodat = h5file[nwp_key].attrs['nodata']
-        return  np.where(value != nodat,value * gain + intercept, value)
+        data = np.where(value != nodat,value * gain + intercept, value)
+        return    h5file.close()
     else:
         logger.info("NO NWP %s File, Continue"%(nwp_key))
         return None
@@ -768,6 +775,7 @@ def read_all_intermediate_files(pps_files):
     elif '.nc' in pps_files.seaice:
         pps_nc_seaice = netCDF4.Dataset(pps_files.seaice, 'r', format='NETCDF4')
         nwp_dict["seaice"] = read_etc_nc(pps_nc_seaice, "seaice")
+        pps_nc_seaice.close()
 
     if pps_files.nwp_tsur is None:
         pass
@@ -806,6 +814,7 @@ def read_all_intermediate_files(pps_files):
         for ttype in ['r06', 't11', 't37t12', 't37', 't11t12']:
             text_type = 'text_' + ttype
             nwp_dict[text_type] = read_etc_nc(pps_nc_txt, ttype)
+        pps_nc_txt.close()
     else:    
         for ttype in ['r06', 't11', 't37t12', 't37']:
             h5_obj_type = ttype +'_text'
@@ -822,6 +831,7 @@ def read_all_intermediate_files(pps_files):
                             'r09', 'r06', 't85t11_inv', 't85t11']:
             thr_type = 'thr_' + nc_obj_type
             nwp_dict[thr_type] = read_etc_nc(pps_nc_thr,nc_obj_type)
+        pps_nc_thr.close()    
     else:    
         for h5_obj_type in ['t11ts_inv', 't11t37_inv', 't37t12_inv', 't11t12_inv', 
                             't11ts', 't11t37', 't37t12', 't11t12',
@@ -836,6 +846,7 @@ def read_all_intermediate_files(pps_files):
         pps_nc_thr = netCDF4.Dataset(pps_files.emis, 'r', format='NETCDF4')
         for emis_type in ['emis1',"emis6", 'emis8','emis9']:
             nwp_dict[emis_type] = read_etc_nc(pps_nc_thr, emis_type)
+        pps_nc_thr.close()    
     else:
         for h5_obj_type in ['emis1',"emis6", 'emis8','emis9']:
             emis_type = h5_obj_type
@@ -859,12 +870,14 @@ def pps_read_all(pps_files, avhrr_file, cross):
     if '.nc' in pps_files.sunsatangles:
         pps_nc_ang = netCDF4.Dataset(pps_files.sunsatangles, 'r', format='NETCDF4')
         avhrrAngObj = read_pps_angobj_nc(pps_nc_ang)
+        pps_nc_ang.close()
     else:
         #use mpop?
         avhrrAngObj = read_pps_angobj_h5(pps_files.sunsatangles)
     logger.info("Read Imagerdata data")
     if '.nc' in avhrr_file:
         avhrrObj = readImagerData_nc(pps_nc)
+        pps_nc.close()
     else:
         avhrrObj = readImagerData_h5(avhrr_file)
 
@@ -877,6 +890,7 @@ def pps_read_all(pps_files, avhrr_file, cross):
         elif '.nc' in pps_files.cpp:
             pps_nc_cpp = netCDF4.Dataset(pps_files.cpp, 'r', format='NETCDF4')
             cpp = read_cpp_nc(pps_nc_cpp)
+            pps_nc_cpp.close()
         else:
             cpp = read_cpp_h5(filename)
 
