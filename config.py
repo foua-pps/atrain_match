@@ -68,7 +68,7 @@ if COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC:
 # We consider the cloud top to be OPTICAL_LIMIT_CLOUD_TOP down 
 #in the cloud. For clouds thinner than
 # OPTICAL_LIMIT_CLOUD_TOP we use the cloud base as cloud top.
-USE_5KM_FILES_TO_FILTER_CALIPSO_DATA = False # to get filtered cloudheight results in mode STANDARD and all modes that is not BASIC 
+USE_5KM_FILES_TO_FILTER_CALIPSO_DATA = True # to get filtered cloudheight results in mode STANDARD and all modes that is not BASIC 
 OPTICAL_LIMIT_CLOUD_TOP = 1.0 #also used by xxx in EUMETSAT
 if USE_5KM_FILES_TO_FILTER_CALIPSO_DATA:
     ALSO_USE_5KM_FILES = True
@@ -82,7 +82,7 @@ PLOT_ONLY_PNG = True
 DO_WRITE_COVERAGE = False 
 DO_WRITE_DATA = False
 #important for cph_validate.py
-VAL_CPP = os.environ.get('VAL_CPP', False)
+VAL_CPP = os.environ.get('VAL_CPP', True)
 VALIDATE_FOR_CPP_PIXELS = True #means validating for cloudtype only for pixels where we also got cpp.cph values
 CPP_REDUCE_PIXELS = int(os.environ.get('CPP_REDUCE_PIXELS', 0))
 # 1 means validate on a sub-set of the pixels, according to settings in
@@ -125,8 +125,9 @@ SAT_ORBIT_DURATION = 50*60 #Not to large
 # If to large, cloudsat_calipso_avhrr_match.py takes wrong swath
 # sometimes when swaths are close in time
 CALIPSO_FILE_LENGTH = 60*60 #calipso fiels are for certain shorter 60 minnutes
+CLOUDSAT_FILE_LENGTH = 120*60 #calipso fiels are for certain shorter 120 minnutes
 #: Allowed time deviation in seconds between AVHRR and CALIPSO/CloudSat matchup
-sec_timeThr = 60*3
+sec_timeThr = 60*25
 
 #: Recommended cloud threshold for the CloudSat cloud mask. In 5km data this
 #: threshold has already been applied, so there is no reason to change it for
@@ -393,7 +394,7 @@ CASES =[{'satname': 'eos2', 'year': 2010, 'month': 1},
 
 #CASES =[{'satname': 'npp', 'year': 2012, 'month': 10}]
 
-CASES = CASES_V4test_NOAA18
+CASES = CASES_npp
 
 #CASES =  CASES_npp
 #CASES = CASES_noaaa + CASES_npp

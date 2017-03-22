@@ -264,8 +264,10 @@ def find_calipso_files(date_time, options, values):
 
 def find_cloudsat_files(date_time, options, values):
     #might need to geth this in before looking for matchups
+    tdelta_before = timedelta(seconds = (config.CLOUDSAT_FILE_LENGTH + 
+                                         config.sec_timeThr))
     tdelta = timedelta(seconds = (config.SAT_ORBIT_DURATION + config.sec_timeThr))
-    time_window = (tdelta, tdelta)
+    time_window = (tdelta_before, tdelta)
     cloudsat_files = find_cloudsat_files_inner(date_time, time_window, options, values)
     if len(cloudsat_files) > 1:
         logger.info("More than one Cloudsat file found within time window!")
@@ -931,11 +933,12 @@ def get_matchups_from_data(cross, config_options):
         logger.info("Creating dir %s:"%(rematched_path))
         os.makedirs(os.path.dirname(rematched_path))
     
-    # Write cloudsat matchup
+    # Write cloudsat matchup    
     try:
-        cl_match_file = rematched_file_base.replace(
-            'atrain_datatype', 'cloudsat-%s' % config.CLOUDSAT_TYPE)
-        writeCloudsatAvhrrMatchObj(cl_match_file, cl_matchup)
+        if cl_matchup is not None:
+            cl_match_file = rematched_file_base.replace(
+                'atrain_datatype', 'cloudsat-%s' % config.CLOUDSAT_TYPE)
+            writeCloudsatAvhrrMatchObj(cl_match_file, cl_matchup)
     except NameError:
         cl_matchup = None
         cl_time_diff = (NaN, NaN)
@@ -1089,16 +1092,6 @@ def get_matchups(cross, options, reprocess=False):
 
 def plot_some_figures(clsatObj, caObj, sensor, values, basename, process_mode, 
                       config_options):
-                            
-    if clsatObj is not None and config.CLOUDSAT_TYPE == 'GEOPROF':
-        cllon = clsatObj.cloudsat.longitude.copy()
-        cllat = clsatObj.cloudsat.latitude.copy()
-    elif clsatObj is not None and config.CLOUDSAT_TYPE == 'CWC-RVOD':
-        cllon = clsatObj.cloudsat.longitude.copy()
-        cllat = clsatObj.cloudsat.latitude.copy()
-        return
-    calon = caObj.calipso.longitude.copy()
-    calat = caObj.calipso.latitude.copy()
 
     logger.info("Plotting")
     file_type = ['eps', 'png']
@@ -1109,6 +1102,17 @@ def plot_some_figures(clsatObj, caObj, sensor, values, basename, process_mode,
                                                datetime_obj=values['date_time'])  
     ##TRAJECTORY
     if caObj is not None:
+        """
+        if clsatObj is not None and config.CLOUDSAT_TYPE == 'GEOPROF':
+            cllon = clsatObj.cloudsat.longitude.copy()
+            cllat = clsatObj.cloudsat.latitude.copy()
+        elif clsatObj is not None and config.CLOUDSAT_TYPE == 'CWC-RVOD':
+            cllon = clsatObj.cloudsat.longitude.copy()
+            cllat = clsatObj.cloudsat.latitude.copy()
+            return
+        """
+        calon = caObj.calipso.longitude.copy()
+        calat = caObj.calipso.latitude.copy()
         trajectorypath = os.path.join(plotpath, "trajectory_plot")
         if not os.path.exists(trajectorypath):
             os.makedirs(trajectorypath)
@@ -1132,7 +1136,7 @@ def plot_some_figures(clsatObj, caObj, sensor, values, basename, process_mode,
                                      process_mode, 
                                      file_type,
                                      instrument=sensor)
-        #TIME DIFF SATZ   
+        #TIME DIFF SATZ 
         drawCalClsatAvhrrPlotTimeDiff(clsatObj, 
                                       caObj,
                                       plotpath, basename, 
@@ -1143,7 +1147,6 @@ def plot_some_figures(clsatObj, caObj, sensor, values, basename, process_mode,
                                   plotpath, basename, 
                                   config.RESOLUTION, file_type,
                                   instrument=sensor)
-                
     if clsatObj is not None and config.CLOUDSAT_TYPE=='CWC-RVOD':        
         phase='LW'  
         drawCalClsatCWCAvhrrPlot(clsatObj, 
@@ -1165,8 +1168,7 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     """
     The main work horse.
     
-    """
-    
+    """    
     logger.info("Case: %s" % str(cross))
     logger.info("Process mode: %s" % process_mode_dnt)
     # split process_mode_dnt into two parts. One with process_mode and one dnt_flag
@@ -1199,6 +1201,7 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     clsatObj = matchup_results['cloudsat']
     values = matchup_results['values']
     #import pdb;pdb.set_trace()
+
 
     clsat_min_diff, clsat_max_diff = matchup_results.get('cloudsat_time_diff', (NaN, NaN))
     ca_min_diff, ca_max_diff = matchup_results.get('calipso_time_diff', (NaN, NaN))
