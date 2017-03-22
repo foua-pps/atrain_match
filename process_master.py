@@ -45,6 +45,7 @@ def process_matchups(matchups, run_modes, reprocess=False, debug=False):
 
     problematic = set()
     no_matchup_files = []
+    outstatus = 0
     for match in sorted(matchups):
 
 #        match = matchups[i + 50]
@@ -67,9 +68,11 @@ def process_matchups(matchups, run_modes, reprocess=False, debug=False):
                     except MatchupError, err:
                         logger.warning("Matchup problem: %s" % str(err))
                         no_matchup_files.append(match)
+                        outstatus = 5
                         break
                     except:
                         problematic.add(match)
+                        outstatus = 5
                         logger.warning(
                             "Couldn't run cloudsat_calipso_avhrr_match.")
                         if debug is True:
@@ -88,9 +91,11 @@ def process_matchups(matchups, run_modes, reprocess=False, debug=False):
                     import traceback
                     traceback.print_exc()
                     no_matchup_files.append(match)
+                    outstatus = 5
                     break
                 except:
                     import traceback
+                    outstatus = 5
                     traceback.print_exc()
                     problematic.add(match)
                     logger.warning("Couldn't run cloudsat_calipso_avhrr_match.")
@@ -107,8 +112,8 @@ def process_matchups(matchups, run_modes, reprocess=False, debug=False):
     if len(problematic) > 0:
         logger.warning("%d of %d cases had unknown problems:\n%s" % \
                   (len(problematic), len(matchups),
-                   '\n'.join([str(m) for m in problematic])))
-    
+                   '\n'.join([str(m) for m in problematic])))    
+    return outstatus
 
 def main(args=None):
     """
