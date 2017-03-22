@@ -217,9 +217,11 @@ def print_cloudsat_stats(clsatObj, statfile):
         cloudsat_cloud_mask=np.greater_equal(cloudsat_cloud_mask, 
                                              config.CLOUDSAT_CLOUDY_THR)
         cloudsat_cloud_fraction=np.zeros(clsatObj.cloudsat.latitude.shape[0])
-        sum_cloudsat_cloud_mask = sum(cloudsat_cloud_mask)
+        print cloudsat_cloud_mask.shape
+        sum_cloudsat_cloud_mask = np.sum(cloudsat_cloud_mask, axis=1)
+        if len(sum_cloudsat_cloud_mask) != (len(cloudsat_cloud_fraction)):
+            raise ValueError('Boolean index-array should have same lenght as array!')
         cloudsat_cloud_fraction[sum_cloudsat_cloud_mask > 2] = 1 # requires at least two cloudy bins
-        print "Warning what version of pps cloudtype is this!!"        
         cloudsat_clear =  np.less(cloudsat_cloud_fraction,1)
         cloudsat_cloudy = np.greater_equal(cloudsat_cloud_fraction,1)
         pps_clear = np.logical_and(np.less_equal(clsatObj.avhrr.cloudtype,4),
@@ -290,7 +292,9 @@ def print_cloudsat_modis_stats(clsatObj, statfile):
         cloudsat_cloud_mask=np.greater_equal(cloudsat_cloud_mask, 
                                              config.CLOUDSAT_CLOUDY_THR)
         cloudsat_cloud_fraction=np.zeros(clsatObj.cloudsat.latitude.shape[0])
-        sum_cloudsat_cloud_mask = sum(cloudsat_cloud_mask)
+        sum_cloudsat_cloud_mask = np.sum(cloudsat_cloud_mask, axis=1)
+        if len(sum_cloudsat_cloud_mask) != (len(cloudsat_cloud_fraction)):
+            raise ValueError('Boolean index-array should have same lenght as array!')
         cloudsat_cloud_fraction[sum_cloudsat_cloud_mask > 2] = 1 # requires at least two cloudy bins
         print "Warning what version of pps cloudtype is this!!"        
         cloudsat_clear =  np.less(cloudsat_cloud_fraction,1)
