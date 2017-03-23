@@ -110,6 +110,16 @@ class ppsAvhrrObject(DataObject):
             'cma_testlist3':None,
             'cma_testlist4':None,
             'cma_testlist5':None,
+            'cpp_cot':None,
+            'cpp_cwp':None,
+            'cpp_dcot':None,
+            'cpp_iwp':None,
+            'cpp_lwp':None,
+            'cpp_phase':None,
+            'cpp_reff':None,
+            'seaice':None,
+            'snowd':None,
+            'snowa':None,
             'cloudtype_qflag': None,
             'cloudtype_phaseflag': None,
             'cloudtype_quality': None,
@@ -377,7 +387,7 @@ class CalipsoAvhrrTrackObject:
         self.avhrr = self.avhrr + other.avhrr
         self.calipso = self.calipso + other.calipso
         self.calipso_aerosol = self.calipso_aerosol + other.calipso_aerosol
-        self.modis_lvl2 = self.modis_lvl2 + other.modis_lvl2
+        self.modis = self.modis + other.modis
         try:
             self.diff_sec_1970 = np.concatenate([self.diff_sec_1970,
                                                  other.diff_sec_1970])
@@ -465,6 +475,9 @@ def readCaliopAvhrrMatchObjNewFormat(h5file, retv, var_to_read=None, var_to_skip
     if 'maia' in h5file.keys():
         h5_groups.append(h5file['/maia'])
         data_objects.append(retv.avhrr)
+    if 'modis_lvl2' in h5file.keys():
+        h5_groups.append(h5file['/modis_lvl2'])
+        data_objects.append(retv.modis)
     for group, data_obj in zip(h5_groups, data_objects):
         for dataset in group.keys():  
             atrain_match_name = dataset
