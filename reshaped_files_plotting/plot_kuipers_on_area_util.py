@@ -8,6 +8,12 @@ import os
 from scipy import ndimage
 import matplotlib
 #matplotlib.use("TkAgg")
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 20}
+
+matplotlib.rc('font', **font)
+
 from matchobject_io import DataObject        
 class ppsMatch_Imager_CalipsoObject(DataObject):
     def __init__(self):
@@ -400,27 +406,29 @@ class ppsStatsOnFibLatticeObject(DataObject):
         fig = plt.figure(figsize = (16,9))
         ax = fig.add_subplot(111)
         import copy; 
-        my_cmap=copy.copy(matplotlib.cm.coolwarm)
+        my_cmap=copy.copy(matplotlib.cm.BrBG)
         if score in "Bias" and screen_out_valid:
             #This screens out values between -5 and +5% 
             vmax=25
             vmin=-25            
-            my_cmap=copy.copy(matplotlib.cm.get_cmap("coolwarm", lut=100))
+            my_cmap=copy.copy(matplotlib.cm.get_cmap("BrBG", lut=100))
             cmap_vals = my_cmap(np.arange(100)) #extractvalues as an array
             cmap_vals[39:61] = [0.9, 0.9, 0.9, 1] #change the first value
             my_cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
-                "newwarmcool", cmap_vals) 
+                "newBrBG", cmap_vals) 
             print my_cmap
         if score in "RMS" and screen_out_valid:
             # This screens out values beteen 0 and 20%. 41/100=20%
             vmax=50
             vmin=0
-            my_cmap=copy.copy(matplotlib.cm.get_cmap("coolwarm", lut=100))
+            my_cmap=copy.copy(matplotlib.cm.get_cmap("BrBG", lut=100))
             cmap_vals = my_cmap(np.arange(100)) #extract values as an array
             cmap_vals[0:41] = [0.9, 0.9, 0.9, 1] #change the first value
             my_cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
-                "newwarmcool", cmap_vals) 
+                "newBrBG", cmap_vals) 
             print my_cmap
+            
+
         #to mask out where we lack data
         data[np.logical_and(data>vmax,~the_mask)]=vmax
         data[np.logical_and(data<vmin,~the_mask)]=vmin
@@ -432,16 +440,22 @@ class ppsStatsOnFibLatticeObject(DataObject):
         x, y, z = (np.array(lons.ravel()), 
                    np.array(lats.ravel()), 
                    np.array(data.ravel()))
-        my_cmap.set_over('w',alpha=1)
+        my_cmap.set_over(color='0.9',alpha=1)
         zi = griddata((x, y), z, (xi, yi), method='nearest')
         im1 = my_proj1.pcolormesh(xi, yi, zi, cmap=my_cmap,
                            vmin=vmin, vmax=vmax, latlon=True)
+        im1.set_clim([vmin,vmax]) #to get nice ticks in the colorbar
         #draw som lon/lat lines
         my_proj1.drawparallels(np.arange(-90.,90.,30.))
         my_proj1.drawmeridians(np.arange(-180.,180.,60.))
         my_proj1.drawcoastlines()
-        my_proj1.drawmapboundary(fill_color='0.9')
+        my_proj1.drawmapboundary(fill_color='1.0') #0.9 light grey"
         cb = my_proj1.colorbar(im1,"right", size="5%", pad="2%")
+        tick_locator = matplotlib.ticker.MaxNLocator(nbins=10)
+        cb.locator = tick_locator
+        cb.ax.yaxis.set_major_locator(matplotlib.ticker.AutoLocator())
+        cb.update_ticks()
+
         ax.set_title(score)
         plt.savefig(self.PLOT_DIR_SCORE + self.PLOT_FILENAME_START+
                     '_robinson_' +'.png')

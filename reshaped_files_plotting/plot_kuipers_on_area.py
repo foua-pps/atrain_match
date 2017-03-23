@@ -16,9 +16,9 @@ isNPP_v2014 = False
 isGAC_v2014_morning_sat = False
 isGAC_v2014 = True
 cci_orbits = False
-method = 'KG' #Nina or KG or BASIC==no filter
-DNT="night" #"all/day/night/twilight"
-filter_method = 'no' #no or satz
+method = 'BASIC' #Nina or KG or BASIC==no filter
+DNT="day" #"all/day/night/twilight"
+filter_method = 'satz' #no or satz
 radius_km = 75 #t.ex 75 250 500
 
 #morning 75 satz xall dnt
@@ -61,15 +61,15 @@ elif isGAC_v2014_morning_sat:
     num_files_to_read = 1#30*3
     isGAC=True
     ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/clara_a2_rerun/Reshaped_Files_CLARA_A2_final/"
-    files = glob(ROOT_DIR + "noaa17/5km/20??/??/*/*h5")
-    files = files + glob(ROOT_DIR + "metop*/5km/20??/??/*/*h5")
+    #files = glob(ROOT_DIR + "noaa17/5km/20??/??/*/*h5")
+    #files = files + glob(ROOT_DIR + "metop*/5km/20??/??/*/*h5")
     files = glob(ROOT_DIR + "merged/metop*h5")
     files = files + glob(ROOT_DIR + "merged/noaa17*h5") 
     satellites = "metopa_metopb_noaa17"
     if cci_orbits:
         satellites = "part_metopa_noaa17"
         files = glob(ROOT_DIR + "merged/noaa17*2006*h5")
-        files = files + glob(ROOT_DIR + "merged/noaa17*2006*h5")
+        files = files + glob(ROOT_DIR + "merged/noaa17*2007*h5")
         files = files + glob(ROOT_DIR + "merged/metopa*20*0*h5") #07.08.09.10
 elif isGAC_v2014:
     num_files_to_read = 1
@@ -78,15 +78,16 @@ elif isGAC_v2014:
     ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/clara_a2_rerun/Reshaped_Files_CLARA_A2_final/"
     files = glob(ROOT_DIR + "merged/noaa18*h5")
     files = files + glob(ROOT_DIR + "merged/noaa19*h5")
+    #files = glob(ROOT_DIR + "merged/noaa19*2014*h5")
     if cci_orbits:
         satellites = "part_nooa18_nooaa19"
-        files = glob(ROOT_DIR + "merged/noaa18*200*h5")
-        files = files + glob(ROOT_DIR + "merged/noaa19*20*0*h5")  
+        files = glob(ROOT_DIR + "merged/noaa18*200*h5") #06,07,08,09
+        files = files + glob(ROOT_DIR + "merged/noaa19*20*0*h5") #2009, 2010  
         
 
 pplot_obj = PerformancePlottingObject()
 pplot_obj.flattice.set_flattice(radius_km=radius_km)
-pplot_obj.flattice.PLOT_DIR = "/home/a001865/ATRAIN_MATCH_KUIPERS_PLOT_CCI_PPS_TEST"
+pplot_obj.flattice.PLOT_DIR = "/home/a001865/PICTURES_FROM_PYTHON/ATRAIN_MATCH_KUIPERS_PLOT_CCI_PPS_BrBG_2"
 pplot_obj.flattice.DNT = DNT
 pplot_obj.flattice.satellites = satellites
 pplot_obj.flattice.filter_method = filter_method
