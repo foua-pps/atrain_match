@@ -32,6 +32,8 @@ MAIA_CLOUD_VALIDATION = str2bool(os.environ.get('MAIA_CLOUD_VALIDATION', False))
 #If set to False, matching will be done if the correct data is found
 CLOUDSAT_REQUIRED = False
 
+USE_EXISTING_RESHAPED_FILES = False
+
 #Choose CALIPSO-CALIOP version
 CALIPSO_version4 = False
 CALIPSO_version3 = True
@@ -294,8 +296,8 @@ NLINES=6000
 NODATA=-9
 
 #: Processing modes for which plotting should also be performed
-PLOT_MODES = ['BASIC']
-#PLOT_MODES = ['No Plot']
+#PLOT_MODES = ['BASIC']
+PLOT_MODES = ['No Plot']
 
 #========== Statistics setup ==========#
 #: List of dictionaries containing *satname*, *year*, and *month*, for which

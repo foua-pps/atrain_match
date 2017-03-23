@@ -80,7 +80,8 @@ from config import (VAL_CPP,
                     ALSO_USE_SINGLE_SHOT_CLOUD_CLEARED,
                     PPS_FORMAT_2012_OR_EARLIER,
                     MATCH_MODIS_LVL2, 
-                    RESOLUTION)
+                    RESOLUTION,
+                    USE_EXISTING_RESHAPED_FILES)
 import logging
 logger = logging.getLogger(__name__)
 
@@ -1053,20 +1054,21 @@ def get_matchups(cross, options, reprocess=False):
         values["satellite"] = cross.satellite2.lower()
         date_time_cross = cross.time2
 
-    if reprocess is False:
+    if reprocess is False or USE_EXISTING_RESHAPED_FILES:
         import os #@Reimport
         diff_avhrr_seconds=None
         avhrr_file=None
-        if (PPS_VALIDATION ):
-            avhrr_file, tobj = find_radiance_file(cross, options)
-            values_avhrr = get_satid_datetime_orbit_from_fname(avhrr_file)
-        if (CCI_CLOUD_VALIDATION):
-            avhrr_file, tobj = find_cci_cloud_file(cross, options)
-        if avhrr_file is not None:
-            values_avhrr = get_satid_datetime_orbit_from_fname(avhrr_file)
-            date_time_avhrr = values_avhrr["date_time"]
-            td = date_time_avhrr-date_time_cross
-            diff_avhrr_seconds=abs(td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
+        if not USE_EXISTING_RESHAPED_FILES:
+            if (PPS_VALIDATION ):
+                avhrr_file, tobj = find_radiance_file(cross, options)
+                values_avhrr = get_satid_datetime_orbit_from_fname(avhrr_file)
+            if (CCI_CLOUD_VALIDATION):
+                avhrr_file, tobj = find_cci_cloud_file(cross, options)
+            if avhrr_file is not None:
+                values_avhrr = get_satid_datetime_orbit_from_fname(avhrr_file)
+                date_time_avhrr = values_avhrr["date_time"]
+                td = date_time_avhrr-date_time_cross
+                diff_avhrr_seconds=abs(td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
 
 
         #need to pUt in the info res, atrain data type before go inte find avhrr??
@@ -1085,7 +1087,9 @@ def get_matchups(cross, options, reprocess=False):
             matchup_diff_seconds=abs(td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
             clObj = readCloudsatAvhrrMatchObj(cl_match_file) 
             basename = '_'.join(os.path.basename(cl_match_file).split('_')[1:5])
-            if (diff_avhrr_seconds is None or 
+            if  USE_EXISTING_RESHAPED_FILES:
+                pass
+            elif (diff_avhrr_seconds is None or 
                 matchup_diff_seconds<=diff_avhrr_seconds or 
                 abs(matchup_diff_seconds-diff_avhrr_seconds)<300 or
                 abs(matchup_diff_seconds-diff_avhrr_seconds) <300):
@@ -1117,8 +1121,9 @@ def get_matchups(cross, options, reprocess=False):
             matchup_diff_seconds = abs(td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
             caObj = readCaliopAvhrrMatchObj(ca_match_file)
             basename = '_'.join(os.path.basename(ca_match_file).split('_')[1:5])
-            print matchup_diff_seconds, diff_avhrr_seconds
-            if (diff_avhrr_seconds is None or 
+            if USE_EXISTING_RESHAPED_FILES:
+                pass
+            elif (diff_avhrr_seconds is None or 
                 matchup_diff_seconds<=diff_avhrr_seconds or 
                 abs(matchup_diff_seconds-diff_avhrr_seconds)<300 or
                 matchup_diff_seconds<300):
@@ -1139,7 +1144,9 @@ def get_matchups(cross, options, reprocess=False):
             values['basename'] = basename
             values['month']="%02d"%(tobj.month)
 
-    #Currently not possible to match wihtout calipso        
+    #Currently not possible to match wihtout calipso    
+    if caObj is None and USE_EXISTING_RESHAPED_FILES:
+        raise MatchupError("Couldn't find calipso already processed matchup file, USE_EXISTING_RESHAPED_FILES = True!") 
     if caObj is None:
         out_dict = get_matchups_from_data(cross, options)
     elif clObj is None and config.CLOUDSAT_REQUIRED:
