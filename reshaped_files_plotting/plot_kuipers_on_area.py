@@ -12,20 +12,18 @@ from plot_kuipers_on_area_util import (PerformancePlottingObject,
 isGAC_CCI = False
 isGAC_CCI_morning = False
 isModis1km = False
+isModis1km_nnctth = True
 isNPP_v2014 = False
 isGAC_v2014_morning_sat = False
-isGAC_v2014 = True
+isGAC_v2014 = False
 cci_orbits = False
-method = 'BASIC' #Nina or KG or BASIC==no filter
-DNT="day" #"all/day/night/twilight"
-filter_method = 'satz' #no or satz
-radius_km = 75 #t.ex 75 250 500
+method = 'Nina' #Nina or KG or BASIC==no filter
+DNT="all" #"all/day/night/twilight"
+filter_method = 'no' #no or satz
+radius_km = 300 #t.ex 75 250 500
+BASE_PLOT_DIR = "/home/a001865/PICTURES_FROM_PYTHON/ATRAIN_MATCH_KUIPERS_PLOT_CCI_PPS_BrBG_2"
 
-#morning 75 satz xall dnt
-#mornign 75 no xall dnt
-#GAC 75 no xall dnt
-#modis, 250 no xall dnt
-#=16 runs
+
 onlyCirrus=False
 isACPGv2012=False
 if isGAC_CCI:
@@ -47,10 +45,17 @@ elif isGAC_CCI_morning:
 elif isModis1km:
     num_files_to_read = 1
     isGAC=False
-    satellites = "eos_modis"
+    satellites = "eos_modis_v2014"
     ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/global_modis_14th_created20160615/"
     #files = glob(ROOT_DIR + "Reshaped_Files/eos?/1km/????/12/2010??14_*/*h5")
     files = glob(ROOT_DIR + "Reshaped_Files/merged/*.h5")
+elif isModis1km_nnctth:
+    num_files_to_read = 1
+    isGAC=False
+    satellites = "eos_modis_v2018"
+    ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/global_modis_14th_created20170321/"
+    #files = glob(ROOT_DIR + "Reshaped_Files/eos?/1km/????/12/2010??14_*/*h5")
+    files = glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/*/*.h5")
 elif isNPP_v2014:
     num_files_to_read = 30
     isGAC=False
@@ -80,14 +85,14 @@ elif isGAC_v2014:
     files = files + glob(ROOT_DIR + "merged/noaa19*h5")
     #files = glob(ROOT_DIR + "merged/noaa19*2014*h5")
     if cci_orbits:
-        satellites = "part_nooa18_nooaa19"
+        satellites = "part_noaa18_noaa19"
         files = glob(ROOT_DIR + "merged/noaa18*200*h5") #06,07,08,09
         files = files + glob(ROOT_DIR + "merged/noaa19*20*0*h5") #2009, 2010  
         
 
 pplot_obj = PerformancePlottingObject()
 pplot_obj.flattice.set_flattice(radius_km=radius_km)
-pplot_obj.flattice.PLOT_DIR = "/home/a001865/PICTURES_FROM_PYTHON/ATRAIN_MATCH_KUIPERS_PLOT_CCI_PPS_BrBG_2"
+pplot_obj.flattice.PLOT_DIR = BASE_PLOT_DIR
 pplot_obj.flattice.DNT = DNT
 pplot_obj.flattice.satellites = satellites
 pplot_obj.flattice.filter_method = filter_method
@@ -108,7 +113,7 @@ for filename in files:
 
     num +=1
     try :
-        caObj_new=readCaliopAvhrrMatchObj(filename)#, var_to_skip='segment')        
+        caObj_new=readCaliopAvhrrMatchObj(filename)#, var_to_skip='segment')
     except:
         print "skipping file %s"%(filename)
         continue
@@ -155,6 +160,9 @@ if 'modis' in satellites:
     pplot_obj.flattice.calculate_increased_hitrate()
     pplot_obj.flattice.remap_and_plot_score_on_several_areas( score='increased_Hitrate', vmin=-0.05, vmax=0.05)
 
+pplot_obj.flattice.calculate_height_mae()
+pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=000.0, vmax=2000.0, score='ctth_mae_low')
+pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=000.0, vmax=5000.0, score='ctth_mae_high')
 pplot_obj.flattice.calculate_height_bias()
 pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-2000.0, vmax=2000.0, score='ctth_bias_low')
 pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-5000.0, vmax=5000.0, score='ctth_bias_high')
