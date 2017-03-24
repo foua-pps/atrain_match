@@ -865,6 +865,17 @@ def add_additional_clousat_calipso_index_vars(clsatObj, caObj):
         clsatObj.cloudsat.clsat_max_height = clsat_max_height
     return clsatObj, caObj
 
+def add_modis_lvl2_clousat_(clsatObj, caObj):
+    #add cloudsat modisflag to calipso obj
+    #map cloudsat to calipso and the other way around!
+    clsatObj.modis.all_arrays["height"] = caObj.modis.all_arrays["height"][clsatObj.cloudsat.calipso_index]
+    clsatObj.modis.all_arrays["temperature"] = caObj.modis.all_arrays["temperature"][clsatObj.cloudsat.calipso_index]
+    clsatObj.modis.all_arrays["pressure"] = caObj.modis.all_arrays["pressure"][clsatObj.cloudsat.calipso_index]
+    clsatObj.modis.all_arrays["cloud_emissivity"] = caObj.modis.all_arrays["cloud_emissivity"][clsatObj.cloudsat.calipso_index]
+    clsatObj.modis.all_arrays["latitude_5km"] = caObj.modis.all_arrays["latitude_5km"][clsatObj.cloudsat.calipso_index]
+    clsatObj.modis.all_arrays["longitude_5km"] = caObj.modis.all_arrays["longitude_5km"][clsatObj.cloudsat.calipso_index]
+    return clsatObj
+
 def add_elevation_corrected_imager_ctth(clsatObj, caObj):
     ## Cloudsat ##
 
@@ -1012,6 +1023,7 @@ def get_matchups_from_data(cross, config_options):
     #add additional vars to cloudsat and calipso objects:
     cl_matchup, ca_matchup = add_additional_clousat_calipso_index_vars(cl_matchup, ca_matchup)
     cl_matchup, ca_matchup = add_elevation_corrected_imager_ctth(cl_matchup, ca_matchup)
+    cl_matchup = add_modis_lvl2_clousat_(cl_matchup, ca_matchup)
     # Write cloudsat matchup    
     if cl_matchup is not None:
         cl_match_file = rematched_file_base.replace(

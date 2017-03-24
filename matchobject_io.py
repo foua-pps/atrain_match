@@ -352,12 +352,14 @@ class CloudsatObject(DataObject):
 class CloudsatAvhrrTrackObject:
     def __init__(self):
         self.avhrr=ppsAvhrrObject()
+        self.modis = ModisObject()
         self.cloudsat=CloudsatObject()
         self.diff_sec_1970=None
     def __add__(self, other):
         """Concatenating two objects together"""
         self.avhrr = self.avhrr + other.avhrr
         self.cloudsat = self.cloudsat + other.cloudsat
+        self.modis = self.modis + other.modis
         try:
             self.diff_sec_1970 = np.concatenate([self.diff_sec_1970,
                                                  other.diff_sec_1970])
@@ -545,6 +547,7 @@ def readCloudsatAvhrrMatchObj(filename):
 def writeCloudsatAvhrrMatchObj(filename,cl_obj):
     from common import write_match_objects
     groups = {'cloudsat': cl_obj.cloudsat.all_arrays,
+              'modis_lvl2': cl_obj.modis.all_arrays,
               'pps': cl_obj.avhrr.all_arrays}
     write_match_objects(filename, cl_obj.diff_sec_1970, groups)    
     status = 1
