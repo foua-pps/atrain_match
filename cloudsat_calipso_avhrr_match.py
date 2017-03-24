@@ -1166,7 +1166,7 @@ def get_matchups(cross, options, reprocess=False):
     else:
         out_dict = {'calipso': caObj, 'cloudsat': clObj, 
                     'basename': basename,'values':values}
-    if clObj is None and config.CLOUDSAT_REQUIRED:
+    if out_dict['cloudsat'] is None and config.CLOUDSAT_REQUIRED:
         raise MatchupError("Couldn't find cloudsat matchup!")
         
     return out_dict
