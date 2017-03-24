@@ -5,6 +5,7 @@
 """
 import os
 from glob import glob
+import numpy as np
 from matchobject_io import (readCaliopAvhrrMatchObj,
                             CalipsoAvhrrTrackObject)
 from plot_kuipers_on_area_util import (PerformancePlottingObject,
@@ -12,7 +13,8 @@ from plot_kuipers_on_area_util import (PerformancePlottingObject,
 isGAC_CCI = False
 isGAC_CCI_morning = False
 isModis1km = False
-isModis1km_nnctth = True
+isModis1km_lvl2 = True
+isModis1km_nnctth = False
 isNPP_v2014 = False
 isGAC_v2014_morning_sat = False
 isGAC_v2014 = False
@@ -49,6 +51,13 @@ elif isModis1km:
     ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/global_modis_14th_created20160615/"
     #files = glob(ROOT_DIR + "Reshaped_Files/eos?/1km/????/12/2010??14_*/*h5")
     files = glob(ROOT_DIR + "Reshaped_Files/merged/*.h5")
+elif isModis1km_lvl2:
+    num_files_to_read = 1
+    isGAC=False
+    satellites = "eos_modis_lvl2_C6"
+    ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/global_modis_14th_created20170321/"
+    #files = glob(ROOT_DIR + "Reshaped_Files/eos?/1km/????/12/2010??14_*/*h5")
+    files = glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/*/*.h5")
 elif isModis1km_nnctth:
     num_files_to_read = 1
     isGAC=False
@@ -114,7 +123,17 @@ for filename in files:
     num +=1
     try :
         caObj_new=readCaliopAvhrrMatchObj(filename)#, var_to_skip='segment')
+        if "modis_lvl2" in satellites:
+            caObj_new.avhrr.all_arrays["cloudtype"] = np.where(
+                caObj_new.modis.all_arrays["cloud_emissivity"]>100,1,7)
+            caObj_new.avhrr.all_arrays["temperature"] = (
+                caObj_new.modis.all_arrays["temperature"]-15000+150)       
+            caObj_new.avhrr.all_arrays["height"] = (
+                caObj_new.modis.all_arrays["height"])
+        
+         
     except:
+        #raise
         print "skipping file %s"%(filename)
         continue
     if num_files_to_read==1:

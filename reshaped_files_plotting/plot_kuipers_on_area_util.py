@@ -166,10 +166,17 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
     def get_ctth_bias_low(self, caObj):
         from get_flag_info import get_calipso_low_clouds
         low_clouds = get_calipso_low_clouds(caObj)
-        detected_low = np.logical_and(self.detected_height, low_clouds[self.use])
-        height_c = 1000*caObj.calipso.all_arrays['layer_top_altitude'][self.use,0] - caObj.calipso.all_arrays['elevation'][self.use]
+        detected_low = np.logical_and(self.detected_height, 
+                                      low_clouds[self.use])
+        height_c = 1000*(
+            caObj.calipso.all_arrays['layer_top_altitude'][self.use,0] - 
+            caObj.calipso.all_arrays['elevation'][self.use])
         if "cci" in self.satellites:
-            height_c = 1000*caObj.calipso.all_arrays['layer_top_altitude'][self.use,0]  
+            height_c = 1000*caObj.calipso.all_arrays[
+                'layer_top_altitude'][self.use,0]   
+        if "modis_lvl2" in self.satellites:
+            height_c = 1000*caObj.calipso.all_arrays[
+                'layer_top_altitude'][self.use,0]  
         height_pps = caObj.avhrr.all_arrays['ctth_height'][self.use]
         delta_h = height_pps - height_c
         delta_h[~detected_low]=0
@@ -366,6 +373,12 @@ class ppsStatsOnFibLatticeObject(DataObject):
         result = area_con.image_data
         #pr.plot.show_quicklook(area_def, result,
         #                      vmin=vmin, vmax=vmax, label=score)
+        if "FAR" in score:
+            matplotlib.rcParams['image.cmap']= "BrBG"
+        elif "mae" in score:
+            matplotlib.rcParams['image.cmap']= "Reds"
+        else:
+            matplotlib.rcParams['image.cmap']= "BrBG"
         
         pr.plot.save_quicklook(self.PLOT_DIR_SCORE + self.PLOT_FILENAME_START+
                                plot_area_name +'.png',
@@ -412,7 +425,12 @@ class ppsStatsOnFibLatticeObject(DataObject):
         fig = plt.figure(figsize = (16,9))
         ax = fig.add_subplot(111)
         import copy; 
-        my_cmap=copy.copy(matplotlib.cm.BrBG)
+        if "FAR" in score:
+            my_cmap=copy.copy(matplotlib.cm.BrBG)
+        elif "mae" in score:
+            my_cmap=copy.copy(matplotlib.cm.Reds)
+        else:    
+            my_cmap=copy.copy(matplotlib.cm.BrBG)
         if score in "Bias" and screen_out_valid:
             #This screens out values between -5 and +5% 
             vmax=25
@@ -433,7 +451,8 @@ class ppsStatsOnFibLatticeObject(DataObject):
             my_cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
                 "newBrBG", cmap_vals) 
             print my_cmap
-            
+
+      
 
         #to mask out where we lack data
         data[np.logical_and(data>vmax,~the_mask)]=vmax
