@@ -24,7 +24,7 @@ def add_modis_06(ca_matchup, pps_imager_file, options):
     row_matched = ca_matchup.calipso.avhrr_linnum
     col_matched = ca_matchup.calipso.avhrr_pixnum
     index = zip(row_matched,col_matched)
-    index_5km = zip(np.floor(row_matched/5),np.floor(col_matched/5))
+    index_5km = zip(np.floor(row_matched/5).astype(np.int),np.floor(col_matched/5).astype(np.int))
     npix = len(row_matched)
     #import time
     #tic= time.time()
@@ -81,7 +81,7 @@ def read_modis_h5(filename):
     pmask = modis_06.pressure == modis_06.p_nodata
     modis_06.height[~hmask] = modis_06.height[~hmask]*modis_06.h_gain + modis_06.h_intercept
     modis_06.pressure[~pmask] = modis_06.pressure[~pmask]*modis_06.p_gain + modis_06.p_intercept
-    modis_06.temperature[~tmask] = modis_06.temperature[~tmask]*modis_06.t_gain + modis_06.t_intercept
+    modis_06.temperature[~tmask] = modis_06.temperature[~tmask]*modis_06.t_gain - modis_06.t_intercept*modis_06.t_gain
     modis_06.height[hmask] = ATRAIN_MATCH_NODATA
     modis_06.pressure[pmask] = ATRAIN_MATCH_NODATA    
     modis_06.temperature[tmask] = ATRAIN_MATCH_NODATA 
