@@ -874,17 +874,20 @@ def add_additional_clousat_calipso_index_vars(clsatObj, caObj):
             top_height[~is_cloudy] = -9999
             clsat_max_height[clsat_max_height<top_height] =  top_height[clsat_max_height<top_height]
         clsatObj.cloudsat.clsat_max_height = clsat_max_height
+    if clsatObj is not None:
+        clsatObj.cloudsat.calipso_feature_classification_flags = caObj.calipso.feature_classification_flags[clsatObj.cloudsat.calipso_index,0]
     return clsatObj, caObj
 
 def add_modis_lvl2_clousat_(clsatObj, caObj):
     #add cloudsat modisflag to calipso obj
     #map cloudsat to calipso and the other way around!
-    clsatObj.modis.all_arrays["height"] = caObj.modis.all_arrays["height"][clsatObj.cloudsat.calipso_index]
-    clsatObj.modis.all_arrays["temperature"] = caObj.modis.all_arrays["temperature"][clsatObj.cloudsat.calipso_index]
-    clsatObj.modis.all_arrays["pressure"] = caObj.modis.all_arrays["pressure"][clsatObj.cloudsat.calipso_index]
-    clsatObj.modis.all_arrays["cloud_emissivity"] = caObj.modis.all_arrays["cloud_emissivity"][clsatObj.cloudsat.calipso_index]
-    clsatObj.modis.all_arrays["latitude_5km"] = caObj.modis.all_arrays["latitude_5km"][clsatObj.cloudsat.calipso_index]
-    clsatObj.modis.all_arrays["longitude_5km"] = caObj.modis.all_arrays["longitude_5km"][clsatObj.cloudsat.calipso_index]
+    if clsatObj is not None:
+        clsatObj.modis.all_arrays["height"] = caObj.modis.all_arrays["height"][clsatObj.cloudsat.calipso_index]
+        clsatObj.modis.all_arrays["temperature"] = caObj.modis.all_arrays["temperature"][clsatObj.cloudsat.calipso_index]
+        clsatObj.modis.all_arrays["pressure"] = caObj.modis.all_arrays["pressure"][clsatObj.cloudsat.calipso_index]
+        clsatObj.modis.all_arrays["cloud_emissivity"] = caObj.modis.all_arrays["cloud_emissivity"][clsatObj.cloudsat.calipso_index]
+        clsatObj.modis.all_arrays["latitude_5km"] = caObj.modis.all_arrays["latitude_5km"][clsatObj.cloudsat.calipso_index]
+        clsatObj.modis.all_arrays["longitude_5km"] = caObj.modis.all_arrays["longitude_5km"][clsatObj.cloudsat.calipso_index]
     return clsatObj
 
 def add_elevation_corrected_imager_ctth(clsatObj, caObj):

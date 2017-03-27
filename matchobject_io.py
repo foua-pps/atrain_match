@@ -191,6 +191,7 @@ class ppsAvhrrObject(DataObject):
             'thr_t11ts_inv': None,
             'thr_t11t37_inv': None,
             'thr_t37t12_inv': None,
+            'imager_ctth_m_above_seasurface': None,
             'thr_t11t12_inv': None,
             'thr_t85t11_inv': None,
             'thr_t11ts': None,
@@ -263,6 +264,7 @@ class CalipsoObject(DataObject):
     def __init__(self):
         DataObject.__init__(self)                            
         self.all_arrays = {
+            'cal_MODIS_cflag': None,
             'cloudsat_index': None,
             'avhrr_linnum': None,
             'avhrr_pixnum': None,
@@ -302,6 +304,7 @@ class CloudsatObject(DataObject):
     def __init__(self):
         DataObject.__init__(self)                            
         self.all_arrays = {
+            'clsat_max_height':None,
                             'longitude': None,
                             'latitude': None,
                             'avhrr_linnum': None,
@@ -536,6 +539,7 @@ def readCloudsatAvhrrMatchObj(filename):
     retv = CloudsatAvhrrTrackObject()    
     h5file = h5py.File(filename, 'r')
     for group, data_obj in [(h5file['/cloudsat'], retv.cloudsat),
+                            (h5file['/modis_lvl2'], retv.modis),
                             (h5file['/pps'], retv.avhrr)]:
         for dataset in group.keys():        
             if dataset in data_obj.all_arrays.keys():
