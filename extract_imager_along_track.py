@@ -1,7 +1,7 @@
 import numpy as np
 import logging
 logger = logging.getLogger(__name__)
-from config import PPS_VALIDATION, SAVE_NEIGHBOUR_INFO
+from config import PPS_VALIDATION, SAVE_NEIGHBOUR_INFO, CTTH_TYPES
 CHANNEL_MICRON_DESCRIPTIONS = {'11': ["avhrr channel 4 - 11um",
                                       "Avhrr channel channel4.",
                                       "AVHRR ch4",
@@ -320,6 +320,17 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
                 setattr(obt.avhrr, nwp_info, np.array(value_track))
         else:
             print "missing", nwp_info
+    if len(CTTH_TYPES)>1:        
+        for ctth_type in CTTH_TYPES[1:]:
+            ctth_obj = getattr(nwp_obj,ctth_type)
+            for data_set in ["pressure", "temperature", "height"]:
+                data = getattr(ctth_obj, data_set)
+                value_track = [data[row_matched[idx], col_matched[idx]]
+                               for idx in range(npix)]
+                name = "%s_%s"%(ctth_type.lower(),data_set)
+                setattr(obt.avhrr, name, np.array(value_track))
+            
+        
     from pps_prototyping_util import (get_t11t12_texture_data_from_object,
                                       get_coldest_values,get_darkest_values,
                                       get_warmest_values)

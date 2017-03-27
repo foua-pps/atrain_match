@@ -226,6 +226,7 @@ def insert_info_in_filename_or_path(file_or_name_path, values, datetime_obj=None
     #file_or_name_path = file_or_name_path.format(**values)
     satellite=values.get("satellite","*")
     file_or_name_path = file_or_name_path.format(
+        ctth_type=values.get("ctth_type",""),
         satellite=satellite,
         orbit=values.get("orbit","*"),
         instrument = INSTRUMENT.get(satellite,"avhrr"),
@@ -450,15 +451,25 @@ def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
     except IndexError:
         raise MatchupError("No cma file found corresponding to %s." % avhrr_file)
     logger.info("CMA: " + cma_file)
-    ctth_name = insert_info_in_filename_or_path(options['ctth_file'], 
-                                                values, datetime_obj=date_time)
-    path =  insert_info_in_filename_or_path(options['ctth_dir'], 
+    ctth_files = {}
+    for ctth_type in config.CTTH_TYPES:
+        values['ctth_type'] = ctth_type
+        ctth_name = insert_info_in_filename_or_path(options['ctth_file'], 
+                                                    values, 
+                                                    datetime_obj=date_time)
+        path =  insert_info_in_filename_or_path(options['ctth_dir'], 
                                                 values, datetime_obj=date_time)  
-    try:
-        ctth_file = glob(os.path.join(path, ctth_name))[0]
-    except IndexError:
-        raise MatchupError("No ctth file found corresponding to %s." % avhrr_file)
-    logger.info("CTTH: " + ctth_file)
+
+        try:
+            ctth_files[ctth_type] = glob(os.path.join(path, ctth_name))[0]
+            
+        except IndexError:
+            raise MatchupError(
+                "No ctth file found corresponding to %s-type %s." %(ctth_type, 
+                                                                    avhrr_file))
+     
+    logger.info("CTTH: " + ctth_files[config.CTTH_TYPES[0]])                          
+    
     if VAL_CPP: 
         cpp_name = insert_info_in_filename_or_path(options['cpp_file'],
                                                    values, datetime_obj=date_time)
@@ -548,7 +559,7 @@ def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
                                                   'segment_file', 'segment_dir') 
     file_name_dict.update({'cloudtype': cloudtype_file,
                            'cma': cma_file,
-                           'ctth': ctth_file,
+                           'ctth': ctth_files,
                            'cpp': cpp_file,
                            'nwp_tsur': nwp_tsur_file,
                            'sunsatangles': sunsatangles_file,

@@ -7,7 +7,7 @@ import time
 import calendar
 from datetime import datetime
 logger = logging.getLogger(__name__)
-from config import NODATA, PPS_FORMAT_2012_OR_EARLIER, VAL_CPP
+from config import NODATA, PPS_FORMAT_2012_OR_EARLIER, VAL_CPP, CTTH_TYPES
 ATRAIN_MATCH_NODATA = NODATA
 #logger.debug('Just so you know: this module has a logger...')
 
@@ -852,6 +852,9 @@ def read_all_intermediate_files(pps_files):
             emis_type = h5_obj_type
             nwp_dict[emis_type] = read_thr_h5(getattr(pps_files,"emis"), 
                                               h5_obj_type, emis_type)
+    if len(CTTH_TYPES)>1:        
+        for ctth_type in CTTH_TYPES[1:]: #already read first
+            nwp_dict[ctth_type] = read_ctth_nc(pps_files.ctth[ctth_type]) 
     nwp_obj = NWPObj(nwp_dict)
     return nwp_obj
 
@@ -911,10 +914,11 @@ def pps_read_all(pps_files, avhrr_file, cross):
         logger.info("Read PPS CTTH")
         if pps_files.ctth is None:
             ctth = None
-        elif '.nc' in pps_files.ctth:
-            ctth = read_ctth_nc(pps_files.ctth)
-        else:
-            ctth = read_ctth_h5(pps_files.ctth)
+        elif '.nc' in pps_files.ctth[CTTH_TYPES[0]]:
+            #read first ctth as primary one
+            ctth = read_ctth_nc(pps_files.ctth[CTTH_TYPES[0]])
+        else:            
+            ctth = read_ctth_h5(pps_files.ctth[CTTH_TYPES[0]])
 
     logger.info("Read PPS full resolution intermediate files")
     nwp_obj = read_all_intermediate_files(pps_files)

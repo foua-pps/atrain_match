@@ -49,7 +49,10 @@ CALIPSO_CLOUDY_MIN_CFC = 0.5 #0.66 Tradition, KG used 0.5 for v2014 validation
 CALIPSO_CLEAR_MAX_CFC = 0.5  #0.34 Tradition, KG used 0.5, PPS development 0.1 or 0.2 
 
 #Search also for MODIS lvl2 data
-MATCH_MODIS_LVL2 = False
+MATCH_MODIS_LVL2 = True
+
+#CTTH_TYPES 
+CTTH_TYPES = ["CTTH"] #["CTTHnn","CTTHold"]
 
 #Search also for calipso 5km aerosol data
 MATCH_AEROSOL_CALIPSO = False
