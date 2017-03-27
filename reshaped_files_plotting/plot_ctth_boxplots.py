@@ -54,6 +54,7 @@ def make_boxplot(caObj, name):
     
     use = np.logical_and(height_pps >-1,
                          caObj.calipso.all_arrays['layer_top_altitude'][:,0]>=0)
+    use = np.logical_and(height_pps <45000,use)
 
     low = np.logical_and(low_clouds,use)
     medium = np.logical_and(medium_clouds,use)
@@ -67,6 +68,7 @@ def make_boxplot(caObj, name):
     limit = np.percentile(bias[use],5)
     #print limit 
     abias = np.abs(bias)
+    MAE = np.mean(abias[c_all])
     #abias[abias>2000]=2000
     print name.ljust(30, " "), "%3.1f"%(np.mean(abias[c_all])), "%3.1f"%(np.mean(abias[low])),"%3.1f"%(np.mean(abias[medium])),"%3.1f"%(np.mean(abias[high])), "%3.1f"%(limit)
 
@@ -95,55 +97,12 @@ def make_boxplot(caObj, name):
     plt.boxplot([bias[low],bias[medium],bias[high],bias[high_thick],bias[high_thin],bias[high_very_thin]],whis=[5, 95],sym='',
                 labels=["low","medium","high-all","high-thick\n od>0.4","high-thin \n 0.1<od<0.4","high-vthin\n od<0.1"],showmeans=True)
     ax.set_ylim(-14000,8000)
-
-    plt.title(name)
+    plt.title("%s MAE = %3.0f"%(name,MAE))
     plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/CTTH_LAPSE_RATE_INVESTIGATION/ctth_box_plot_%s_5_95_filt.png"%(name))
     #plt.show()
 
 
-def make_compare(caObj, caObj2, name):
-    low_clouds = get_calipso_low_clouds(caObj)
-    high_clouds = get_calipso_high_clouds(caObj)
-    medium_clouds = get_calipso_medium_clouds(caObj)
-    height_c = (1000*caObj.calipso.all_arrays['layer_top_altitude'][:,0] - 
-                caObj.calipso.all_arrays['elevation'])
-    height_pps1 = caObj.avhrr.all_arrays['ctth_height']
-    height_pps2 = caObj2.avhrr.all_arrays['ctth_height']
-    use = np.logical_and(height_pps1 >-1,height_pps2>-1)
-    use = np.logical_and(use,
-                         caObj.calipso.all_arrays['layer_top_altitude'][:,0]>-1)
 
-    low = np.logical_and(low_clouds,use)
-    medium = np.logical_and(medium_clouds,use)
-    high = np.logical_and(high_clouds,use)
-    bias1 = height_pps1 - height_c
-    bias2 = height_pps2 - height_c
-    limit = np.percentile(bias2[use],5)
-    print limit 
-    fig = plt.figure(figsize = (9,9))        
-    ax = fig.add_subplot(111)
-    plt.boxplot([bias1[low],bias1[medium],bias1[high], bias2[low],
-                 bias2[medium],bias2[high]],whis=[2, 98],sym='',
-                labels=["low1","medium1","high1",
-                        "low2","medium2","high2"],showmeans=True)
-    ax.set_ylim(-15000,15000)
-    ax.fill_between(np.arange(0,12),-1500,1500, facecolor='green', alpha=0.2)
-    ax.fill_between(np.arange(0,12),2000,15000, facecolor='red', alpha=0.2)
-    ax.fill_between(np.arange(0,12),-2000,-15000, facecolor='red', alpha=0.2)
-    for y_val in xrange(-5000,6000,1000):
-        plt.plot(np.arange(0,12), y_val + 0*np.arange(0,12),':k')
-    plt.title(name)
-    plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/CTTH_LAPSE_RATE_INVESTIGATION/ctth_box_plot_%s.png"%(name))
-    plt.show()
-
-    """
-    fig = plt.figure(figsize = (9,9))        
-    ax = fig.add_subplot(111)
-    plt.plot(np.sorted(height_pps1 - height_pps2))
-    plt.title(name)
-    plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/CTTH_LAPSE_RATE_INVESTIGATION/ctth_compare_%s.png"%(name))
-    plt.show()
-    """
 def investigate_nn_ctth():
     ROOT_DIR_GAC_nnNina = ("/home/a001865/DATA_MISC/reshaped_files/"
                        "ATRAIN_RESULTS_GAC_nnNina/Reshaped_Files/noaa18/")
