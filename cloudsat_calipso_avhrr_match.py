@@ -155,10 +155,6 @@ class ppsFiles(object):
         self.nwp_segments = None
         self.__dict__.update(file_name_dict)    
 
-test = 0
-
-
-
 
 def get_time_list(cross_time, time_window, delta_t_in_seconds):
     tlist = []
@@ -569,13 +565,13 @@ def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
     return  ppsfiles
 
 def get_cloudsat_matchups(cloudsat_files, cloudtype_file, avhrrGeoObj, avhrrObj,
-                          ctype, cma, ctth, nwp_obj, avhrrAngObj, cpp, config_options):
+                          ctype, cma, ctth, nwp_obj, avhrrAngObj, cpp, nwp_segments,  config_options):
     """
     Read Cloudsat data and match with the given PPS data.
     """
     if config.CLOUDSAT_TYPE == 'CWC-RVOD':
         if config.RESOLUTION == 1:      
-            if test == 1:
+            if 1 == 2:
                 from cloudsat_cwc import match_cloudsatCwc_avhrr
                 from cloudsat_cwc import reshapeCloudsat1kmCwc
                 reshape_fun = reshapeCloudsat1kmCwc
@@ -594,7 +590,7 @@ def get_cloudsat_matchups(cloudsat_files, cloudtype_file, avhrrGeoObj, avhrrObj,
     cloudsat = reshape_fun(cloudsat_files, avhrrGeoObj, cloudtype_file)
     cl_matchup = match_fun(cloudtype_file, cloudsat,
                            avhrrGeoObj, avhrrObj, ctype, cma,
-                           ctth, nwp_obj, avhrrAngObj, cpp)
+                           ctth, nwp_obj, avhrrAngObj, cpp, nwp_segments)
     return cl_matchup
 
 def total_and_top_layer_optical_depth_5km(calipso, resolution=5):
@@ -946,14 +942,14 @@ def get_matchups_from_data(cross, config_options):
         pps_files = find_files_from_avhrr(avhrr_file, config_options)   
         retv =read_pps_data(pps_files, avhrr_file, cross)
         (avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, 
-         nwp_obj, cpp, nwp_segment, cma )= retv
+         nwp_obj, cpp, nwp_segments, cma )= retv
         date_time = values["date_time"]
     if (CCI_CLOUD_VALIDATION):
         avhrr_file, tobj = find_cci_cloud_file(cross, config_options)
         #avhrr_file = "20080613002200-ESACCI-L2_CLOUD-CLD_PRODUCTS-AVHRRGAC-NOAA18-fv1.0.nc"
         values = get_satid_datetime_orbit_from_fname(avhrr_file)
         avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, surftemp, cpp =read_cloud_cci(avhrr_file)
-        nwp_segment = None
+        nwp_segments = None
         nwp_obj = NWPObj({'surftemp':surftemp})        
         avhrrGeoObj.satellite = values["satellite"];
         date_time = values["date_time"]
@@ -962,7 +958,7 @@ def get_matchups_from_data(cross, config_options):
         #viiCT_npp_DB_20120817_S035411_E035535_DES_N_La052_Lo-027_00001.h5
         values = get_satid_datetime_orbit_from_fname(avhrr_file)
         avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, surftemp, cpp, cma =read_cloud_maia(avhrr_file)
-        nwp_segment = None
+        nwp_segments = None
         nwp_obj = NWPObj({'surftemp':surftemp})        
         avhrrGeoObj.satellite = values["satellite"];
         date_time = values["date_time"]
@@ -978,7 +974,8 @@ def get_matchups_from_data(cross, config_options):
             cl_matchup = get_cloudsat_matchups(cloudsat_files, 
                                                pps_files.cloudtype,
                                                avhrrGeoObj, avhrrObj, ctype, cma,
-                                               ctth, nwp_obj, avhrrAngObj, cpp, config_options)
+                                               ctth, nwp_obj, avhrrAngObj, cpp, 
+                                               nwp_segments, config_options)
         else:
             logger.info("NO CLOUDSAT File, Continue")
     else:
@@ -999,7 +996,7 @@ def get_matchups_from_data(cross, config_options):
                                          ctype, cma, ctth, 
                                          nwp_obj, avhrrAngObj, 
                                          config_options, cpp,
-                                         nwp_segment,
+                                         nwp_segments,
                                          calipso1km, calipso5km, calipso5km_aerosol)
     else:
         logger.info("NO CALIPSO File, Continue")

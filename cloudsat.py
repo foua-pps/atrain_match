@@ -90,7 +90,8 @@ def read_cloudsat(filename):
     return retv
 
 # -----------------------------------------------------
-def match_cloudsat_avhrr(ctypefile,cloudsatObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,imagerAngObj, cpp):
+def match_cloudsat_avhrr(ctypefile,cloudsatObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,imagerAngObj, 
+                         cpp, nwp_segments):
     import numpy
     import time
     import string
@@ -173,8 +174,9 @@ def match_cloudsat_avhrr(ctypefile,cloudsatObj,imagerGeoObj,imagerObj,ctype,cma,
     # line and pixel arrays have equal dimensions
 
     print "Generate all datatypes (lat,lon,cty,ctth,surft) on the cloudsat track!"
-    retv = avhrr_track_from_matched(retv, imagerGeoObj, imagerObj, imagerAngObj, \
-                                    nwp, ctth, ctype, cma, cal_on_avhrr, cap_on_avhrr, cpp)
+    retv = avhrr_track_from_matched(retv, imagerGeoObj, imagerObj, imagerAngObj, 
+                                    nwp, ctth, ctype, cma, cal_on_avhrr, cap_on_avhrr, 
+                                    cpp=cpp, nwp_segments=nwp_segments)
 
     print "AVHRR-PPS Cloud Type,latitude: shapes = ",\
           retv.avhrr.cloudtype.shape,retv.avhrr.latitude.shape

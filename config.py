@@ -77,7 +77,7 @@ if COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC:
 # We consider the cloud top to be OPTICAL_LIMIT_CLOUD_TOP down 
 #in the cloud. For clouds thinner than
 # OPTICAL_LIMIT_CLOUD_TOP we use the cloud base as cloud top.
-USE_5KM_FILES_TO_FILTER_CALIPSO_DATA = True # to get filtered cloudheight results in mode STANDARD and all modes that is not BASIC 
+USE_5KM_FILES_TO_FILTER_CALIPSO_DATA = False # to get filtered cloudheight results in mode STANDARD and all modes that is not BASIC 
 OPTICAL_LIMIT_CLOUD_TOP = 1.0 #also used by xxx in EUMETSAT
 if USE_5KM_FILES_TO_FILTER_CALIPSO_DATA:
     ALSO_USE_5KM_FILES = True

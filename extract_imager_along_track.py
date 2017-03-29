@@ -148,6 +148,44 @@ def get_channel_data_from_object(dataObj, chn_des, matched, nodata=-9):
     return np.array(chdata_on_track)
 
 
+def _interpolate_height_and_temperature_from_pressure(imagerObj,
+                                                      level):
+    """ Function to find height att pressure level (level)
+    from segment_nwp, pressure and height vectors.
+    High means high in pressure. The level closest to ground i hi, and lo is at lower 
+    pressure further up in atmosphere.
+    """
+    values_h =  imagerObj.segment_nwp_geoheight
+    pressure_v=  imagerObj.segment_nwp_pressure
+    surface_h = imagerObj.segment_nwp_surfaceGeoHeight
+    psur = imagerObj.segment_nwp_surfacePressure
+    nlev = pressure_v.shape[1]
+    npix = pressure_v.shape[0]
+    k = np.arange(npix)
+    higher_index = np.array([nlev -1 - np.searchsorted(pressure_v[ind,:], level, side='right',
+                                                       sorter=xrange(nlev -1, -1, -1)) 
+                             for ind in xrange(npix)])
+    higher_index[higher_index >= (nlev - 1)] = nlev - 2
+    lower_index = higher_index + 1
+    # update "lo" where level is between surface and first level in array
+    below_level_1 = level > pressure_v[:,0]
+    lower_index[below_level_1] = 0
+    # get pressure and height for layer below and above level
+    hi = pressure_v[k,higher_index]
+    lo = pressure_v[k,lower_index]
+    height_hi_ = values_h[k,higher_index]*1.0
+    height_lo_ = values_h[k,lower_index]*1.0
+    # update "hi" where level is between surface and first level in array
+    hi[below_level_1] = psur[below_level_1]
+    height_hi_[below_level_1] = surface_h[below_level_1]
+    # log pressures
+    hi = np.log(hi)
+    lo = np.log(lo)
+    level = np.log(level)
+    # interpolate
+    out_h = height_hi_ - (hi - level) * (height_hi_ - height_lo_) / (hi - lo)
+    return out_h 
+
 
 def insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt):
         npix = row_matched.shape[0]
@@ -227,9 +265,15 @@ def insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt):
             setattr(obt.avhrr,'segment_nwp_' + data_set, 
                               np.array([nwp_segments[data_set][seg_row[idx], seg_col[idx]]
                                         for idx in range(npix)]))
+        #Extract h440: hight at 440 hPa, and h680
+        
+
         #obt.avhrr.segment_nwp_geoheight = np.array([nwp_segments['geoheight'][seg_row[idx], seg_col[idx]]
         #                                            for idx in range(npix)])
-
+        data = _interpolate_height_and_temperature_from_pressure(obt.avhrr, 440)
+        setattr(obt.avhrr, 'segment_nwp_h440', data)
+        data = _interpolate_height_and_temperature_from_pressure(obt.avhrr, 680)
+        setattr(obt.avhrr, 'segment_nwp_h680', data)
         return obt
 
 #---------------------------------------------------------------------------
