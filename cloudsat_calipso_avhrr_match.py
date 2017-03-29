@@ -564,33 +564,26 @@ def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
     ppsfiles = ppsFiles(file_name_dict)
     return  ppsfiles
 
-def get_cloudsat_matchups(cloudsat_files, cloudtype_file, avhrrGeoObj, avhrrObj,
-                          ctype, cma, ctth, nwp_obj, avhrrAngObj, cpp, nwp_segments,  config_options):
+def get_cloudsat_matchups(cloudsat_files, avhrrGeoObj, avhrrObj,
+                          ctype, cma, ctth, nwp_obj, avhrrAngObj, 
+                          cpp, nwp_segments,  config_options):
     """
     Read Cloudsat data and match with the given PPS data.
     """
     if config.CLOUDSAT_TYPE == 'CWC-RVOD':
-        if config.RESOLUTION == 1:      
-            if 1 == 2:
-                from cloudsat_cwc import match_cloudsatCwc_avhrr
-                from cloudsat_cwc import reshapeCloudsat1kmCwc
-                reshape_fun = reshapeCloudsat1kmCwc
-                match_fun = match_cloudsatCwc_avhrr
-            else:
-                reshape_fun = reshapeCloudsat
-                match_fun = match_cloudsat_avhrr 
-        elif config.RESOLUTION == 5:
-            from cloudsat5km_cwc import match_cloudsat5kmCwc_avhrr5km
-            from cloudsat5km_cwc import reshapeCloudsat5kmCwc
-            reshape_fun = reshapeCloudsat5kmCwc
-            match_fun = match_cloudsat5kmCwc_avhrr5km
-    else:
-        reshape_fun = reshapeCloudsat
-        match_fun = match_cloudsat_avhrr
-    cloudsat = reshape_fun(cloudsat_files, avhrrGeoObj, cloudtype_file)
-    cl_matchup = match_fun(cloudtype_file, cloudsat,
-                           avhrrGeoObj, avhrrObj, ctype, cma,
-                           ctth, nwp_obj, avhrrAngObj, cpp, nwp_segments)
+        my_info_text = ("Can't match cloudsat for type CWC-RVOD!\n\n"
+                        "\t***************************************************\n"
+                        "\tConfiguration CLOUDSAT_TYPE = CWC-RVOD is not working. \n"
+                        "\tWrite readers, etc for cloudsat CWC-RVOD if needed.\n"
+                        "\tInclude them in cloudsat.py or in cloudsat_cwc.py.\n"
+                        "\tConsider using only cloudsat.py and matchobject_io.py.\n"
+                        "\tMost things should be similar to functions already in cloudsat.py.\n"
+                        "\t***************************************************\n")
+        raise MatchupError(my_info_text)
+    cloudsat = reshapeCloudsat(cloudsat_files, avhrrGeoObj)
+    cl_matchup = match_cloudsat_avhrr(cloudsat,
+                                      avhrrGeoObj, avhrrObj, ctype, cma,
+                                      ctth, nwp_obj, avhrrAngObj, cpp, nwp_segments)
     return cl_matchup
 
 def total_and_top_layer_optical_depth_5km(calipso, resolution=5):
@@ -972,7 +965,6 @@ def get_matchups_from_data(cross, config_options):
             (isinstance(cloudsat_files, list) and len(cloudsat_files) != 0)):
             logger.info("Read CLOUDSAT %s data" % config.CLOUDSAT_TYPE)
             cl_matchup = get_cloudsat_matchups(cloudsat_files, 
-                                               pps_files.cloudtype,
                                                avhrrGeoObj, avhrrObj, ctype, cma,
                                                ctth, nwp_obj, avhrrAngObj, cpp, 
                                                nwp_segments, config_options)

@@ -124,8 +124,8 @@ MAIN_RUNDIR = os.getcwd()
 # Region configuaration file with area definitons
 AREA_CONFIG_FILE = os.environ.get('AREA_CONFIG_FILE', './areas.def')
 
-#: Cloudsat data type (currently 'GEOPROF' and 'CWC-RVOD' are supported)
-#CLOUDSAT_TYPE = 'CWC-RVOD'
+#: Cloudsat data type (currently 'GEOPROF' are supported)
+#: Traditionally also  'CWC-RVOD' where supported
 CLOUDSAT_TYPE = 'GEOPROF'
 
 #: Constant: Approximate duration of a satellite orbit in seconds
