@@ -261,19 +261,31 @@ def insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt):
                 #these are nor always present
                 pass
 
+                
         for data_set in ['moist', 'pressure', 'geoheight', 'temp']:
             setattr(obt.avhrr,'segment_nwp_' + data_set, 
                               np.array([nwp_segments[data_set][seg_row[idx], seg_col[idx]]
                                         for idx in range(npix)]))
-        #Extract h440: hight at 440 hPa, and h680
+        #Remove nodata and not used upper part of atmosphere   
+        N = obt.avhrr.segment_nwp_pressure.shape[1]
+        pressure_n_to_keep = np.sum(np.max(obt.avhrr.segment_nwp_pressure,axis=0)>50)
+        logger.info("Not saving upper %d levels of 3-D nwp from segment file"%(N-pressure_n_to_keep))
+        logger.info("Keeping %d lower levels of 3-D nwp from segment file"%(pressure_n_to_keep))
+        for data_set in ['segment_nwp_moist', 'segment_nwp_pressure', 
+                          'segment_nwp_geoheight', 'segment_nwp_temp']:
+            data = getattr(obt.avhrr, data_set) 
+            setattr(obt.avhrr, data_set, data[:,0:pressure_n_to_keep])
+
         
 
         #obt.avhrr.segment_nwp_geoheight = np.array([nwp_segments['geoheight'][seg_row[idx], seg_col[idx]]
         #                                            for idx in range(npix)])
+        #Extract h440: hight at 440 hPa, and h680
         data = _interpolate_height_and_temperature_from_pressure(obt.avhrr, 440)
         setattr(obt.avhrr, 'segment_nwp_h440', data)
         data = _interpolate_height_and_temperature_from_pressure(obt.avhrr, 680)
         setattr(obt.avhrr, 'segment_nwp_h680', data)
+        
         return obt
 
 #---------------------------------------------------------------------------
