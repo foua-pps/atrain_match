@@ -168,8 +168,8 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         low_clouds = get_calipso_low_clouds(caObj)
         detected_low = np.logical_and(self.detected_height, 
                                       low_clouds[self.use])
-        height_c = 1000*(
-            caObj.calipso.all_arrays['layer_top_altitude'][self.use,0] - 
+        height_c = (1000*(
+            caObj.calipso.all_arrays['layer_top_altitude'][self.use,0]) - 
             caObj.calipso.all_arrays['elevation'][self.use])
         if "cci" in self.satellites:
             height_c = 1000*caObj.calipso.all_arrays[
