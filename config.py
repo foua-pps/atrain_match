@@ -30,8 +30,14 @@ MAIA_CLOUD_VALIDATION = str2bool(os.environ.get('MAIA_CLOUD_VALIDATION', False))
 
 #If set to True, program will fail it there are no cloudsat match
 #If set to False, matching will be done if the correct data is found
+#If files are found but are not matching in time or space, program
+# will also fail, as it used to do.
 CLOUDSAT_REQUIRED = False
 
+#If set to True, no creation of reshaped files will be done.
+#Program will fail it there are no reshaped files already created.
+#This is useful for processing on SURFACES when original data are not
+#available any more. For normal processing let it be False.
 USE_EXISTING_RESHAPED_FILES = False
 
 #Choose CALIPSO-CALIOP version
@@ -52,6 +58,7 @@ CALIPSO_CLEAR_MAX_CFC = 0.5  #0.34 Tradition, KG used 0.5, PPS development 0.1 o
 MATCH_MODIS_LVL2 = True
 
 #CTTH_TYPES 
+#To be able to match several PPS CTTH products in one file.
 CTTH_TYPES = ["CTTH"] #["CTTHnn","CTTHold"]
 
 #Search also for calipso 5km aerosol data
@@ -133,7 +140,7 @@ SAT_ORBIT_DURATION = 50*60 #Not to large
 # If to large, cloudsat_calipso_avhrr_match.py takes wrong swath
 # sometimes when swaths are close in time
 CALIPSO_FILE_LENGTH = 60*60 #calipso fiels are for certain shorter 60 minnutes
-CLOUDSAT_FILE_LENGTH = 120*60 #calipso fiels are for certain shorter 120 minnutes
+CLOUDSAT_FILE_LENGTH = 120*60 #cloudsat fiels are for certain shorter 120 minnutes
 #: Allowed time deviation in seconds between AVHRR and CALIPSO/CloudSat matchup
 sec_timeThr = 60*25
 
