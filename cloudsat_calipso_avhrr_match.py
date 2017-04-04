@@ -437,16 +437,20 @@ def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
     except IndexError:
         raise MatchupError("No cloudtype file found corresponding to %s." % avhrr_file)
     logger.info("CLOUDTYPE: " + cloudtype_file)
-    cma_name = insert_info_in_filename_or_path(options['cma_file'], 
-                                                     values, datetime_obj=date_time)
-    path = insert_info_in_filename_or_path(options['cma_dir'], 
-                                           values, datetime_obj=date_time)
-    try:
-        #print os.path.join(path, cma_name)
-        cma_file = glob(os.path.join(path, cma_name))[0]
-    except IndexError:
-        raise MatchupError("No cma file found corresponding to %s." % avhrr_file)
-    logger.info("CMA: " + cma_file)
+    if 'cma_file' in options.keys():
+        cma_name = insert_info_in_filename_or_path(options['cma_file'], 
+                                                   values, datetime_obj=date_time)
+        path = insert_info_in_filename_or_path(options['cma_dir'], 
+                                               values, datetime_obj=date_time)
+        try:
+            #print os.path.join(path, cma_name)
+            cma_file = glob(os.path.join(path, cma_name))[0]
+        except IndexError:
+            raise MatchupError("No cma file found corresponding to %s." % avhrr_file)
+        logger.info("CMA: " + cma_file)
+    else:
+        cma_file = None
+        logger.info("No cma file in atrain_match.cfg")
     ctth_files = {}
     for ctth_type in config.CTTH_TYPES:
         values['ctth_type'] = ctth_type
@@ -607,10 +611,7 @@ def total_and_top_layer_optical_depth_5km(calipso, resolution=5):
         print "These features can then added to 1km data set"
     calipso.feature_optical_depth_532_top_layer_5km = o_depth_top_layer
     calipso.total_optical_depth_5km = total_o_depth       
-  
     return calipso 
-
- 
 
 def get_calipso_matchups(calipso_files, values, 
                          avhrrGeoObj, avhrrObj, ctype, cma,  ctth, 

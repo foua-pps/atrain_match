@@ -308,10 +308,11 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
     value_track = [ctype.cloudtype[row_matched[idx], col_matched[idx]]
                  for idx in range(npix)]
     obt.avhrr.cloudtype = np.array(value_track)
-    value_track = [cma.cma_ext[row_matched[idx], col_matched[idx]]
-                   for idx in range(npix)]
-    obt.avhrr.cloudmask = np.array(value_track)
-    #cloud-type and ctth flags
+    if cma is not None:
+        value_track = [cma.cma_ext[row_matched[idx], col_matched[idx]]
+                       for idx in range(npix)]
+        obt.avhrr.cloudmask = np.array(value_track)
+    #cma flags or cma prob
     if hasattr(cma, 'cma_prob') and np.size(cma.cma_prob)>10:
         obt.avhrr.cma_prob = np.array(
             [cma.cma_prob[row_matched[idx], col_matched[idx]]
@@ -339,8 +340,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
         obt.avhrr.cma_testlist5 = np.array(
             [cma.cma_testlist5[row_matched[idx], col_matched[idx]]
              for idx in range(npix)])
-
-    
+    #cloud-type and ctth flags
     if hasattr(ctype, 'ct_quality') and PPS_VALIDATION and np.size(ctype.ct_quality)>10:
         value_track = [ctype.ct_quality[row_matched[idx], col_matched[idx]]
                              for idx in range(npix)]

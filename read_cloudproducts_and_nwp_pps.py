@@ -541,20 +541,33 @@ def read_pps_geoobj_h5(filename):
     return  GeoObj
 
 def read_cpp_h5(filename):
-    cpp_obj = CppObj() 
     h5file = h5py.File(filename, 'r')
+    cpp_obj = CppObj()    
     for cpp_key in cpp_obj.__dict__.keys():
-        if cpp_key in h5file.keys():
-            value = h5file[cpp_key].value
-            gain = h5file[cpp_key].attrs['gain']
-            intercept = h5file[cpp_key].attrs['intercept']
-            nodat = h5file[cpp_key].attrs['no_data_value']            
-            product = np.where(value != nodat, 
-                               value * gain + intercept, 
-                               ATRAIN_MATCH_NODATA)   
-            setattr(cpp_obj, cpp_key, product)
-    h5file.close()
-    return cpp_obj
+        data = read_cpp_h5_one_var(h5file, cpp_key)
+        setattr(cpp_obj, cpp_key, data)
+    h5file.close()    
+    return cpp_obj 
+
+def read_cpp_h5_one_var(h5file, cpp_key):
+    if cpp_key in h5file.keys():
+        logger.info("Read %s"%(cpp_key))
+        cpp_var_value = h5file[cpp_key].value
+        nodata = h5file[cpp_key].attrs['_FillValue']  
+        if cpp_key in ["cpp_phase", "cpp_phase_extended"]:
+            gain = 1.0
+            intercept = 0.0
+        else:    
+            gain = h5file[cpp_key].attrs['scale_factor']
+            intercept = h5file[cpp_key].attrs['add_offset']
+
+        cpp_data = np.where(cpp_var_value != nodata, 
+                           cpp_var_value * gain + intercept, 
+                           ATRAIN_MATCH_NODATA) 
+        return  cpp_data
+    else:
+        logger.info("NO %s field, Continue "%(cpp_key))
+        return None
 
 def read_cpp_nc_one_var(ncFile, cpp_key):
     if cpp_key in ncFile.variables.keys():
@@ -572,11 +585,13 @@ def read_cpp_nc_one_var(ncFile, cpp_key):
         return None
 
 
-def read_cpp_nc(ncFile):
+def read_cpp_nc(filename):
+    pps_nc_cpp = netCDF4.Dataset(filename, 'r', format='NETCDF4')
     cpp_obj = CppObj()    
     for cpp_key in cpp_obj.__dict__.keys():
         data = read_cpp_nc_one_var(ncFile, cpp_key)
         setattr(cpp_obj, cpp_key, data)
+    pps_nc_cpp.close()
     return cpp_obj    
 
 
@@ -890,19 +905,20 @@ def pps_read_all(pps_files, avhrr_file, cross):
         logger.warning("Warning lwp is read in kg/m2")
         if pps_files.cpp is None:
             pass
-        elif '.nc' in pps_files.cpp:
-            pps_nc_cpp = netCDF4.Dataset(pps_files.cpp, 'r', format='NETCDF4')
-            cpp = read_cpp_nc(pps_nc_cpp)
-            pps_nc_cpp.close()
-        else:
-            cpp = read_cpp_h5(filename)
+        elif '.nc' in pps_files.cpp:          
+            cpp = read_cpp_nc(pps_files.cpp)
+        else:            
+            cpp = read_cpp_h5(pps_files.cpp)
 
     if ('prob' in pps_files.cloudtype and pps_files.ctth==pps_files.cma):
+        #special solution to have cma prob in Jenkins very fast
         logger.info("Read PPS Cloud mask prob")
         cma, ctype, ctth = read_cmaprob_h5(pps_files.cma)
     else:    
         logger.info("Read PPS Cloud mask")
-        if '.nc' in pps_files.cloudtype:
+        if pps_files.cma is None:
+            cma = None
+        elif '.nc' in pps_files.cma:
             cma = read_cma_nc(pps_files.cma)
         else:
             cma = read_cma_h5(pps_files.cma)        
