@@ -245,7 +245,9 @@ def read_calipso(filename, res, ALAY=False):
         "Cirrus_Shape_Parameter_Uncertainty" : True
         }
     atrain_match_names = {
-        #Add "_tai" to the profile_time name to not forget it is tai time
+        #Use version 3 "nsidc_surface_type" as name for sea/ice info
+        "Snow_Ice_Surface_Type": "nsidc_surface_type",
+        #Add "_tai" to the profile_time name to not forget it is tai time           
         "Profile_Time": "profile_time_tai"}
     retv = CalipsoObject()
     if filename is not None:
@@ -257,6 +259,7 @@ def read_calipso(filename, res, ALAY=False):
                                                    # Extract number of cloudy single shots (max 15)
                                                    # plus average cloud base and top
                                                    # in 5 km FOV
+                logger.info("Reading single shot information")
                 name = "ssNumber_Layers_Found"
                 data = h5file["Single_Shot_Detection/ssNumber_Layers_Found"].value
                 data = np.array(data)
@@ -307,7 +310,7 @@ def read_calipso(filename, res, ALAY=False):
                 name = atrain_match_names[dataset]
             data = h5file[dataset].value
             data = np.array(data)
-            setattr(retv, name, data) 
+            setattr(retv, name, data)    
         h5file.close()
     return retv  
 

@@ -100,6 +100,12 @@ class ppsAvhrrObject(DataObject):
             'ctth_height': None,
             'ctth_pressure': None,
             'ctth_temperature': None,
+            'ctthold_height': None,
+            'ctthold_pressure': None,
+            'ctthold_temperature': None,
+            'ctthnna1_height': None,
+            'ctthnna1_pressure': None,
+            'ctthnna1_temperature': None,
             'ctth_opaque': None,  # True if opaque retrieval was applied
             'cloudtype': None,
             'cloudmask': None,
@@ -228,10 +234,12 @@ class ppsAvhrrObject(DataObject):
             'coldest_r06': None,
             'coldest_r16': None,
             #nwp data on segment resolution
-            'segment_nwp_geoheight': None,
-            'segment_nwp_moist': None,
-            'segment_nwp_pressure': None,
-            'segment_nwp_temp': None,
+            #'segment_nwp_geoheight': None,
+            #'segment_nwp_moist': None,
+            #'segment_nwp_pressure': None,
+            #'segment_nwp_temp': None,
+            'segment_nwp_h440': None,
+            'segment_nwp_h680': None,
             'segment_nwp_surfaceLandTemp': None,
             'segment_nwp_surfaceSeaTemp': None,
             'segment_nwp_surfaceGeoHeight': None,
@@ -280,6 +288,8 @@ class CalipsoObject(DataObject):
             'number_layers_found': None,
             'igbp_surface_type': None,
             'nsidc_surface_type': None,
+            'nsidc_surface_type': None,
+            'snow_ice_surface_type': None,
             'nsidc_surface_type_texture': None,
             'profile_utc_time': None, 
             'sec_1970': None,
@@ -494,6 +504,8 @@ def readCaliopAvhrrMatchObjNewFormat(h5file, retv, var_to_read=None, var_to_skip
                     if var_to_skip in atrain_match_name:
                         #print "skipping",atrain_match_name 
                         continue  
+                if atrain_match_name in ["snow_ice_surface_type"]:
+                    atrain_match_name = "nsidc_surface_type"
                 data_obj.all_arrays[atrain_match_name] = group[dataset].value
     return retv            
 
