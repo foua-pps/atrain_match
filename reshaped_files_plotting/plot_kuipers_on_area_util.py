@@ -31,6 +31,7 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         self.set_false_and_missed_cloudy_and_clear(caObj=caObj)
         self.set_r13_extratest(caObj=caObj)
         self.get_lapse_rate(caObj=caObj)
+        self.get_ctth_bias(caObj=caObj)
         self.get_ctth_bias_low(caObj=caObj)
         self.get_ctth_bias_high(caObj=caObj)
         self.get_ctth_bias_low_temperature(caObj=caObj)
@@ -116,6 +117,8 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         detected_height = np.logical_and(detected_clouds,
                                          caObj.avhrr.all_arrays['ctth_height']>-9)
         detected_height = np.logical_and(detected_height,
+                                         caObj.avhrr.all_arrays['ctth_height']<45000)
+        detected_height = np.logical_and(detected_height,
                                          caObj.calipso.all_arrays['layer_top_altitude'][:,0]>-1)
         detected_temperature = np.logical_and(detected_clouds,
                                        caObj.avhrr.all_arrays['ctth_temperature']>-9)
@@ -162,12 +165,7 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         lapse_rate[~low_clouds] = 0.0
         self.lapse_rate = lapse_rate[self.use]
 
-
-    def get_ctth_bias_low(self, caObj):
-        from get_flag_info import get_calipso_low_clouds
-        low_clouds = get_calipso_low_clouds(caObj)
-        detected_low = np.logical_and(self.detected_height, 
-                                      low_clouds[self.use])
+    def get_ctth_bias(self, caObj):
         height_c = (1000*(
             caObj.calipso.all_arrays['layer_top_altitude'][self.use,0]) - 
             caObj.calipso.all_arrays['elevation'][self.use])
@@ -179,9 +177,8 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
                 'layer_top_altitude'][self.use,0]  
         height_pps = caObj.avhrr.all_arrays['ctth_height'][self.use]
         delta_h = height_pps - height_c
-        delta_h[~detected_low]=0
-        self.height_bias_low = delta_h
-        self.detected_height_low = detected_low
+        self.height_bias = delta_h
+        self.height_bias[~self.detected_height]=0
         try:
             #tsur = caObj.avhrr.all_arrays['surftemp']
             tsur = caObj.avhrr.all_arrays['segment_nwp_temp'][:,0] 
@@ -198,47 +195,38 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
                 (tsur - caObj.avhrr.all_arrays['ttro']))>0.33
             keep = new_pps_h>3000
             new_pps_h[keep] = caObj.avhrr.all_arrays['ctth_height'][keep]
-            self.lapse_bias_low = new_pps_h[self.use] - height_c
-            self.lapse_bias_low[~detected_low]=0
-            self.lapse_bias_low[temperature_pps<0]=0
+            self.lapse_bias = new_pps_h[self.use] - height_c
+            self.lapse_bias[~self.detected_height]=0
+            self.lapse_bias[temperature_pps<0]=0
         except:
             #raise
-            self.lapse_bias_low = 0* height_c
+            self.lapse_bias = 0* height_c
+
+    def get_ctth_bias_low(self, caObj):
+        from get_flag_info import get_calipso_low_clouds
+        low_clouds = get_calipso_low_clouds(caObj)
+        detected_low = np.logical_and(self.detected_height, 
+                                      low_clouds[self.use])
+        delta_h = self.height_bias.copy()
+        delta_h[~detected_low]=0
+        self.height_bias_low = delta_h
+        self.detected_height_low = detected_low
+        delta_h = self.lapse_bias.copy()
+        delta_h[~detected_low]=0
+        self.lapse_bias_low = delta_h
  
 
     def get_ctth_bias_high(self, caObj):
         from get_flag_info import get_calipso_high_clouds
         high_clouds = get_calipso_high_clouds(caObj)
         detected_high = np.logical_and(self.detected_height, high_clouds[self.use])
-        height_c = 1000*caObj.calipso.all_arrays['layer_top_altitude'][self.use,0] - caObj.calipso.all_arrays['elevation'][self.use]
-        if "cci" in self.satellites:
-            height_c = 1000*caObj.calipso.all_arrays['layer_top_altitude'][self.use,0] 
-        height_pps = caObj.avhrr.all_arrays['ctth_height'][self.use]
-        delta_h = height_pps - height_c
+        delta_h = self.height_bias.copy()
         delta_h[~detected_high]=0
-        self.height_bias_high = delta_h
+        self.height_bias_high = delta_h.copy()
         self.detected_height_high = detected_high
-        try:
-            #tsur = caObj.avhrr.all_arrays['surftemp']
-            tsur = caObj.avhrr.all_arrays['segment_nwp_temp'][:,0] 
-            #temperature_pps = caObj.avhrr.all_arrays['ctth_temperature']
-            temperature_pps = caObj.avhrr.all_arrays['bt12micron']
-            temp_diff = temperature_pps - tsur
-            rate_neg = -1.0/6.5
-            rate_pos = +1.0/3.0
-            new_pps_h = rate_neg*temp_diff*1000 
-            new_pps_h[temp_diff>0] = rate_pos*temp_diff[temp_diff>0]*1000 
-            new_pps_h[new_pps_h<100] = 100
-            #keep = (
-            #    (tsur - caObj.avhrr.all_arrays['ctth_temperature'])/
-            #    (tsur - caObj.avhrr.all_arrays['ttro']))>0.33
-            keep = new_pps_h>3000
-            new_pps_h[keep] = caObj.avhrr.all_arrays['ctth_height'][keep]
-            self.lapse_bias_high = new_pps_h[self.use] - height_c        
-            self.lapse_bias_high[~detected_high]=0
-            self.lapse_bias_high[temperature_pps<0]=0
-        except:
-            self.lapse_bias_high = 0* height_c
+        delta_h = self.lapse_bias.copy()
+        delta_h[~detected_high]=0
+        self.lapse_bias_high = delta_h
 
 
     def get_ctth_bias_low_temperature(self, caObj):
@@ -267,11 +255,7 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         from get_flag_info import get_calipso_clouds_of_type_i
         wanted_clouds = get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=calipso_cloudtype)
         detected_typei = np.logical_and(self.detected_height, wanted_clouds[self.use])
-        height_c = 1000*caObj.calipso.all_arrays['layer_top_altitude'][self.use,0] - caObj.calipso.all_arrays['elevation'][self.use]
-        if "cci" in self.satellites:
-            height_c = 1000*caObj.calipso.all_arrays['layer_top_altitude'][self.use,0] 
-        height_pps = caObj.avhrr.all_arrays['ctth_height'][self.use]
-        delta_h = height_pps - height_c
+        delta_h = self.height_bias.copy()
         delta_h[~detected_typei]=0
         self.height_bias_type[calipso_cloudtype] = delta_h
         self.detected_height_type[calipso_cloudtype] = detected_typei
@@ -310,6 +294,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
         self.Sum_ctth_bias_high = np.zeros(self.lats.shape)
         self.Sum_ctth_mae_low = np.zeros(self.lats.shape)
         self.Sum_ctth_mae_high = np.zeros(self.lats.shape)
+        self.Sum_ctth_mae = np.zeros(self.lats.shape)
         self.Sum_lapse_bias_high = np.zeros(self.lats.shape)
         self.Sum_ctth_bias_temperature_low = np.zeros(self.lats.shape)
         self.Sum_ctth_bias_temperature_low_t11 = np.zeros(self.lats.shape)
@@ -322,6 +307,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
         self.N_detected_clear = np.zeros(self.lats.shape)
         self.N_detected_height_low = np.zeros(self.lats.shape)
         self.N_detected_height_high = np.zeros(self.lats.shape)
+        self.N_detected_height = np.zeros(self.lats.shape)
         self.Sum_height_bias_type={}
         self.N_detected_height_type={}
         for cc_type in xrange(8):
@@ -330,6 +316,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
     def np_float_array(self):
         self.Sum_ctth_mae_low = 1.0*np.array(self.Sum_ctth_mae_low)
         self.Sum_ctth_mae_high = 1.0*np.array(self.Sum_ctth_mae_high)
+        self.Sum_ctth_mae = 1.0*np.array(self.Sum_ctth_mae)
 
         self.Sum_ctth_bias_low = 1.0*np.array(self.Sum_ctth_bias_low)
         self.Sum_lapse_bias_low = 1.0*np.array(self.Sum_lapse_bias_low)
@@ -465,7 +452,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
         x, y, z = (np.array(lons.ravel()), 
                    np.array(lats.ravel()), 
                    np.array(data.ravel()))
-        my_cmap.set_over(color='0.9',alpha=1)
+        my_cmap.set_over(color='0.5',alpha=1)
         zi = griddata((x, y), z, (xi, yi), method='nearest')
         im1 = my_proj1.pcolormesh(xi, yi, zi, cmap=my_cmap,
                            vmin=vmin, vmax=vmax, latlon=True)
@@ -544,50 +531,54 @@ class ppsStatsOnFibLatticeObject(DataObject):
         self.lapse_rate = lapse_rate
     def calculate_temperature_bias(self):
         self.np_float_array()
-        the_mask = self.N_detected_height_low<1
+        the_mask = self.N_detected_height_low<10
         ctth_bias_temperature_low = self.Sum_ctth_bias_temperature_low*1.0/self.N_detected_height_low
         ctth_bias_temperature_low = np.ma.masked_array(ctth_bias_temperature_low, mask=the_mask)
         self.ctth_bias_temperature_low = ctth_bias_temperature_low
     def calculate_temperature_bias_t11(self):
         self.np_float_array()
-        the_mask = self.N_detected_height_low<1
+        the_mask = self.N_detected_height_low<10
         ctth_bias_temperature_low_t11 = self.Sum_ctth_bias_temperature_low_t11*1.0/self.N_detected_height_low
         ctth_bias_temperature_low_t11 = np.ma.masked_array(ctth_bias_temperature_low_t11, mask=the_mask)
         self.ctth_bias_temperature_low_t11 = ctth_bias_temperature_low_t11
     def calculate_height_bias(self):
         self.np_float_array()
-        the_mask = self.N_detected_height_low<1
+        the_mask = self.N_detected_height_low<10
         ctth_bias_low = self.Sum_ctth_bias_low*1.0/self.N_detected_height_low
         ctth_bias_low = np.ma.masked_array(ctth_bias_low, mask=the_mask)
         self.ctth_bias_low = ctth_bias_low
-        the_mask = self.N_detected_height_high<1
+        the_mask = self.N_detected_height_high<10
         ctth_bias_high = self.Sum_ctth_bias_high*1.0/self.N_detected_height_high
         ctth_bias_high = np.ma.masked_array(ctth_bias_high, mask=the_mask)
         self.ctth_bias_high = ctth_bias_high
     def calculate_height_mae(self):
         self.np_float_array()
-        the_mask = self.N_detected_height_low<1
+        the_mask = self.N_detected_height_low<10
         ctth_mae_low = self.Sum_ctth_mae_low*1.0/self.N_detected_height_low
         ctth_mae_low = np.ma.masked_array(ctth_mae_low, mask=the_mask)
         self.ctth_mae_low = ctth_mae_low
-        the_mask = self.N_detected_height_high<1
+        the_mask = self.N_detected_height_high<10
         ctth_mae_high = self.Sum_ctth_mae_high*1.0/self.N_detected_height_high
         ctth_mae_high = np.ma.masked_array(ctth_mae_high, mask=the_mask)
         self.ctth_mae_high = ctth_mae_high
+        the_mask = self.N_detected_height<10
+        ctth_mae = self.Sum_ctth_mae*1.0/self.N_detected_height
+        ctth_mae = np.ma.masked_array(ctth_mae, mask=the_mask)
+        self.ctth_mae = ctth_mae
     def calculate_height_bias_lapse(self):
         self.np_float_array()
-        the_mask = self.N_detected_height_low<1
+        the_mask = self.N_detected_height_low<10
         lapse_bias_low = self.Sum_lapse_bias_low*1.0/self.N_detected_height_low
         lapse_bias_low = np.ma.masked_array(lapse_bias_low, mask=the_mask)
         self.lapse_bias_low = lapse_bias_low
-        the_mask = self.N_detected_height_high<1
+        the_mask = self.N_detected_height_high<10
         lapse_bias_high = self.Sum_lapse_bias_high*1.0/self.N_detected_height_high
         lapse_bias_high = np.ma.masked_array(lapse_bias_high, mask=the_mask)
         self.lapse_bias_high = lapse_bias_high
     def calculate_height_bias_type(self):
         self.np_float_array()
         for cc_type in xrange(8):
-            the_mask = self.N_detected_height_type[cc_type]<1
+            the_mask = self.N_detected_height_type[cc_type]<10
             ctth_bias_type_i = self.Sum_height_bias_type[cc_type]*1.0/self.N_detected_height_type[cc_type]
             ctth_bias_type_i = np.ma.masked_array(ctth_bias_type_i, mask=the_mask)
             setattr(self, "ctth_bias_type_%d"%(cc_type), ctth_bias_type_i)   
@@ -755,12 +746,14 @@ class PerformancePlottingObject:
         detected_clear = my_obj.detected_clear[valid_out]
         detected_height_low = my_obj.detected_height_low[valid_out]
         detected_height_high = my_obj.detected_height_high[valid_out]
+        detected_height = my_obj.detected_height[valid_out]
         false_clouds = my_obj.false_clouds[valid_out]
         undetected_clouds = my_obj.undetected_clouds[valid_out]
         new_detected_clouds = my_obj.new_detected_clouds[valid_out]
         new_false_clouds = my_obj.new_false_clouds[valid_out]
         lapse_rate = my_obj.lapse_rate[valid_out]  
-        height_bias_low = my_obj.height_bias_low[valid_out] 
+        height_bias_low = my_obj.height_bias_low[valid_out]
+        height_bias = my_obj.height_bias[valid_out]
         temperature_bias_low = my_obj.temperature_bias_low[valid_out]
         temperature_bias_low_t11 = my_obj.temperature_bias_low_t11[valid_out]
         lapse_bias_low = my_obj.lapse_bias_low[valid_out]
@@ -783,8 +776,10 @@ class PerformancePlottingObject:
             self.flattice.N_new_detected_clouds[d] += np.sum(new_detected_clouds[ind])
             self.flattice.N_detected_height_low[d] += np.sum(detected_height_low[ind])
             self.flattice.N_detected_height_high[d] += np.sum(detected_height_high[ind])
+            self.flattice.N_detected_height[d] += np.sum(detected_height[ind])    
             self.flattice.Sum_ctth_bias_low[d] += np.sum(height_bias_low[ind])
             self.flattice.Sum_ctth_mae_low[d] += np.sum(np.abs(height_bias_low[ind]))
+            self.flattice.Sum_ctth_mae[d] += np.sum(np.abs(height_bias[ind]))
             self.flattice.Sum_lapse_bias_low[d] += np.sum(lapse_bias_low[ind])
             self.flattice.Sum_ctth_bias_high[d] += np.sum(height_bias_high[ind])
             self.flattice.Sum_ctth_mae_high[d] += np.sum(np.abs(height_bias_high[ind]))

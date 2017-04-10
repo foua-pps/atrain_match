@@ -13,8 +13,8 @@ from plot_kuipers_on_area_util import (PerformancePlottingObject,
 isGAC_CCI = False
 isGAC_CCI_morning = False
 isModis1km = False
-isModis1km_lvl2 = False
-isModis1km_nnctth = True
+isModis1km_lvl2 = True
+isModis1km_nnctth = False
 isNPP_v2014 = False
 isGAC_v2014_morning_sat = False
 isGAC_v2014 = False
@@ -180,6 +180,7 @@ if 'modis' in satellites:
     pplot_obj.flattice.remap_and_plot_score_on_several_areas( score='increased_Hitrate', vmin=-0.05, vmax=0.05)
 
 pplot_obj.flattice.calculate_height_mae()
+pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=000.0, vmax=2500.0, score='ctth_mae')
 pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=000.0, vmax=2000.0, score='ctth_mae_low')
 pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=000.0, vmax=5000.0, score='ctth_mae_high')
 pplot_obj.flattice.calculate_height_bias()
