@@ -12,8 +12,8 @@ from plot_kuipers_on_area_util import (PerformancePlottingObject,
                                        ppsMatch_Imager_CalipsoObject)
 isGAC_CCI = False
 isGAC_CCI_morning = False
-isModis1km = False
-isModis1km_lvl2 = True
+isModis1km = True
+isModis1km_lvl2 = False
 isModis1km_nnctth = False
 isNPP_v2014 = False
 isGAC_v2014_morning_sat = False
@@ -22,7 +22,7 @@ cci_orbits = False
 method = 'Nina' #Nina or KG or BASIC==no filter
 DNT="all" #"all/day/night/twilight"
 filter_method = 'no' #no or satz
-radius_km = 300 #t.ex 75 250 500
+radius_km = 500 #t.ex 75 250 500 300
 BASE_PLOT_DIR = "/home/a001865/PICTURES_FROM_PYTHON/ATRAIN_MATCH_KUIPERS_PLOT_CCI_PPS_BrBG_2"
 
 
@@ -48,21 +48,21 @@ elif isModis1km:
     num_files_to_read = 1
     isGAC=False
     satellites = "eos_modis_v2014_2"
-    ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/global_modis_14th_created20160615/"
+    ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/global_modis_14th_created20170330/"
     #files = glob(ROOT_DIR + "Reshaped_Files/eos?/1km/????/12/2010??14_*/*h5")
-    files = glob(ROOT_DIR + "Reshaped_Files/merged/*.h5")
+    files = glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/*/*.h5")
 elif isModis1km_lvl2:
     num_files_to_read = 1
     isGAC=False
     satellites = "eos_modis_lvl2_C6"
-    ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/global_modis_14th_created20170324/"
+    ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/global_modis_14th_created20170330/"
     #files = glob(ROOT_DIR + "Reshaped_Files/eos?/1km/????/12/2010??14_*/*h5")
     files = glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/*/*.h5")
 elif isModis1km_nnctth:
     num_files_to_read = 1
     isGAC=False
     satellites = "eos_modis_v2018"
-    ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/global_modis_14th_created20170324/"
+    ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/global_modis_14th_created20170330/"
     #files = glob(ROOT_DIR + "Reshaped_Files/eos?/1km/????/12/2010??14_*/*h5")
     files = glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/*/*.h5")
 elif isNPP_v2014:
@@ -127,10 +127,15 @@ for filename in files:
             caObj_new.avhrr.all_arrays["cloudtype"] = np.where(
                 caObj_new.modis.all_arrays["cloud_emissivity"]>100,1,7)
             caObj_new.avhrr.all_arrays["ctth_temperature"] = (
-                caObj_new.modis.all_arrays["temperature"]-15000+150)       
+                caObj_new.modis.all_arrays["temperature"])       
             caObj_new.avhrr.all_arrays["ctth_height"] = (
                 caObj_new.modis.all_arrays["height"])
-        
+        if "eos_modis_v2014" in satellites:
+            caObj_new.avhrr.all_arrays["ctth_temperature"] = (
+                caObj_new.avhrr.all_arrays["ctthold_temperature"])       
+            caObj_new.avhrr.all_arrays["ctth_height"] = (
+                caObj_new.avhrr.all_arrays["ctthold_height"])
+
          
     except:
         #raise
@@ -168,7 +173,7 @@ pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=0.5, score='Hitra
 pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=0.0, vmax=1000.0, score='Number_of')
 
 #start to calculate
-if 'modis' in satellites:
+if 'modis' in satellites and 1==2:
     #needs surftemp
     pplot_obj.flattice.calculate_height_bias_lapse()
     pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-2000.0, vmax=2000.0, score='lapse_bias_low')
@@ -180,6 +185,8 @@ if 'modis' in satellites:
     pplot_obj.flattice.remap_and_plot_score_on_several_areas( score='increased_Hitrate', vmin=-0.05, vmax=0.05)
 
 pplot_obj.flattice.calculate_height_mae()
+pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=00.0, vmax=500.0, score='N_detected_height_both')
+pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-1500.0, vmax=1500.0, score='ctth_mae_diff')
 pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=000.0, vmax=2500.0, score='ctth_mae')
 pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=000.0, vmax=2000.0, score='ctth_mae_low')
 pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=000.0, vmax=5000.0, score='ctth_mae_high')

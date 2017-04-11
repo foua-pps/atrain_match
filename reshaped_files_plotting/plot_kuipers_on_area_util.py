@@ -179,6 +179,18 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         delta_h = height_pps - height_c
         self.height_bias = delta_h
         self.height_bias[~self.detected_height]=0
+        
+        height_modis = caObj.modis.all_arrays["height"][self.use]   
+        delta_h_modis = height_modis - 1000*caObj.calipso.all_arrays[
+            'layer_top_altitude'][self.use,0] 
+        self.detected_height_both = np.logical_and(self.detected_height,height_modis>0) 
+        mae_pps = np.abs(self.height_bias.copy())
+        mae_modis = np.abs(delta_h_modis)
+        diff_mae = mae_modis - mae_pps 
+        diff_mae[~self.detected_height_both] = 0
+        
+        self.height_mae_diff = diff_mae
+
         try:
             #tsur = caObj.avhrr.all_arrays['surftemp']
             tsur = caObj.avhrr.all_arrays['segment_nwp_temp'][:,0] 
@@ -295,6 +307,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
         self.Sum_ctth_mae_low = np.zeros(self.lats.shape)
         self.Sum_ctth_mae_high = np.zeros(self.lats.shape)
         self.Sum_ctth_mae = np.zeros(self.lats.shape)
+        self.Sum_ctth_mae_diff = np.zeros(self.lats.shape)
         self.Sum_lapse_bias_high = np.zeros(self.lats.shape)
         self.Sum_ctth_bias_temperature_low = np.zeros(self.lats.shape)
         self.Sum_ctth_bias_temperature_low_t11 = np.zeros(self.lats.shape)
@@ -308,6 +321,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
         self.N_detected_height_low = np.zeros(self.lats.shape)
         self.N_detected_height_high = np.zeros(self.lats.shape)
         self.N_detected_height = np.zeros(self.lats.shape)
+        self.N_detected_height_both = np.zeros(self.lats.shape)
         self.Sum_height_bias_type={}
         self.N_detected_height_type={}
         for cc_type in xrange(8):
@@ -317,6 +331,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
         self.Sum_ctth_mae_low = 1.0*np.array(self.Sum_ctth_mae_low)
         self.Sum_ctth_mae_high = 1.0*np.array(self.Sum_ctth_mae_high)
         self.Sum_ctth_mae = 1.0*np.array(self.Sum_ctth_mae)
+        self.Sum_ctth_mae_diff = 1.0*np.array(self.Sum_ctth_mae_diff)
 
         self.Sum_ctth_bias_low = 1.0*np.array(self.Sum_ctth_bias_low)
         self.Sum_lapse_bias_low = 1.0*np.array(self.Sum_lapse_bias_low)
@@ -345,8 +360,12 @@ class ppsStatsOnFibLatticeObject(DataObject):
             plot_area_name)[0]
         data = getattr(self, score)
         data = data.copy()
-        data[np.logical_and(np.equal(data.mask,False),data>vmax)]=vmax
-        data[np.logical_and(np.equal(data.mask,False),data<vmin)]=vmin #do not wan't low ex hitrates set to nodata!
+        if np.ma.is_masked(data):
+            data[np.logical_and(np.equal(data.mask,False),data>vmax)]=vmax
+            data[np.logical_and(np.equal(data.mask,False),data<vmin)]=vmin #do not wan't low ex hitrates set to nodata!
+        else:
+            data[data>vmax]=vmax
+            data[data<vmin]=vmin   
         #lons = np.ma.masked_array(self.lons, mask=data.mask)
         #lats = np.ma.masked_array(self.lats, mask=data.mask)
         lons = self.lons
@@ -361,6 +380,8 @@ class ppsStatsOnFibLatticeObject(DataObject):
         #pr.plot.show_quicklook(area_def, result,
         #                      vmin=vmin, vmax=vmax, label=score)
         if "FAR" in score:
+            matplotlib.rcParams['image.cmap']= "BrBG"
+        elif "diff" in score:  
             matplotlib.rcParams['image.cmap']= "BrBG"
         elif "mae" in score:
             matplotlib.rcParams['image.cmap']= "Reds"
@@ -413,6 +434,8 @@ class ppsStatsOnFibLatticeObject(DataObject):
         ax = fig.add_subplot(111)
         import copy; 
         if "FAR" in score:
+            my_cmap=copy.copy(matplotlib.cm.BrBG)
+        elif "diff" in score:  
             my_cmap=copy.copy(matplotlib.cm.BrBG)
         elif "mae" in score:
             my_cmap=copy.copy(matplotlib.cm.Reds)
@@ -565,6 +588,13 @@ class ppsStatsOnFibLatticeObject(DataObject):
         ctth_mae = self.Sum_ctth_mae*1.0/self.N_detected_height
         ctth_mae = np.ma.masked_array(ctth_mae, mask=the_mask)
         self.ctth_mae = ctth_mae
+        the_mask = self.N_detected_height_both<10
+        ctth_mae_diff = self.Sum_ctth_mae_diff*1.0/self.N_detected_height_both
+        ctth_mae_diff = np.ma.masked_array(ctth_mae_diff, mask=the_mask)
+        self.ctth_mae_diff = ctth_mae_diff
+        the_mask = self.N_detected_height_both<0
+        self.N_detected_height_both = np.ma.masked_array(self.N_detected_height_both, mask=the_mask)
+
     def calculate_height_bias_lapse(self):
         self.np_float_array()
         the_mask = self.N_detected_height_low<10
@@ -747,6 +777,7 @@ class PerformancePlottingObject:
         detected_height_low = my_obj.detected_height_low[valid_out]
         detected_height_high = my_obj.detected_height_high[valid_out]
         detected_height = my_obj.detected_height[valid_out]
+        detected_height_both = my_obj.detected_height_both[valid_out]
         false_clouds = my_obj.false_clouds[valid_out]
         undetected_clouds = my_obj.undetected_clouds[valid_out]
         new_detected_clouds = my_obj.new_detected_clouds[valid_out]
@@ -754,6 +785,7 @@ class PerformancePlottingObject:
         lapse_rate = my_obj.lapse_rate[valid_out]  
         height_bias_low = my_obj.height_bias_low[valid_out]
         height_bias = my_obj.height_bias[valid_out]
+        height_mae_diff = my_obj.height_mae_diff[valid_out]
         temperature_bias_low = my_obj.temperature_bias_low[valid_out]
         temperature_bias_low_t11 = my_obj.temperature_bias_low_t11[valid_out]
         lapse_bias_low = my_obj.lapse_bias_low[valid_out]
@@ -776,10 +808,12 @@ class PerformancePlottingObject:
             self.flattice.N_new_detected_clouds[d] += np.sum(new_detected_clouds[ind])
             self.flattice.N_detected_height_low[d] += np.sum(detected_height_low[ind])
             self.flattice.N_detected_height_high[d] += np.sum(detected_height_high[ind])
-            self.flattice.N_detected_height[d] += np.sum(detected_height[ind])    
+            self.flattice.N_detected_height[d] += np.sum(detected_height[ind])
+            self.flattice.N_detected_height_both[d] += np.sum(detected_height_both[ind])
             self.flattice.Sum_ctth_bias_low[d] += np.sum(height_bias_low[ind])
             self.flattice.Sum_ctth_mae_low[d] += np.sum(np.abs(height_bias_low[ind]))
             self.flattice.Sum_ctth_mae[d] += np.sum(np.abs(height_bias[ind]))
+            self.flattice.Sum_ctth_mae_diff[d] += np.sum(height_mae_diff[ind])
             self.flattice.Sum_lapse_bias_low[d] += np.sum(lapse_bias_low[ind])
             self.flattice.Sum_ctth_bias_high[d] += np.sum(height_bias_high[ind])
             self.flattice.Sum_ctth_mae_high[d] += np.sum(np.abs(height_bias_high[ind]))
