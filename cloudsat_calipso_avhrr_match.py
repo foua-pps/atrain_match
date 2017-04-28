@@ -1269,7 +1269,7 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     if sno_satname in ['calipso', 'cloudsat']:
         sno_satname = cross.satellite2.lower()
     sensor = INSTRUMENT.get(sno_satname, 'avhrr')
-    if sensor.lower != IMAGER_INSTRUMENT.lower :
+    if sensor.lower() != IMAGER_INSTRUMENT.lower() :
         logger.error("Uncertain of sensor: %s or %s?" %(sensor.upper(), IMAGER_INSTRUMENT.upper() )  )
 
     # split process_mode_dnt into two parts. One with process_mode and one dnt_flag
