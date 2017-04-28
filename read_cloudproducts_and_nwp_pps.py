@@ -589,7 +589,7 @@ def read_cpp_nc(filename):
     pps_nc_cpp = netCDF4.Dataset(filename, 'r', format='NETCDF4')
     cpp_obj = CppObj()    
     for cpp_key in cpp_obj.__dict__.keys():
-        data = read_cpp_nc_one_var(ncFile, cpp_key)
+        data = read_cpp_nc_one_var(pps_nc_cpp, cpp_key)
         setattr(cpp_obj, cpp_key, data)
     pps_nc_cpp.close()
     return cpp_obj    
@@ -916,6 +916,7 @@ def pps_read_all(pps_files, avhrr_file, cross):
         cma, ctype, ctth = read_cmaprob_h5(pps_files.cma)
     else:    
         logger.info("Read PPS Cloud mask")
+        print pps_files.cma 
         if pps_files.cma is None:
             cma = None
         elif '.nc' in pps_files.cma:
