@@ -13,12 +13,10 @@ from cloudsat_calipso_avhrr_match import (find_calipso_files,
                                           get_satid_datetime_orbit_from_fname)
 
 import numpy as np
-from amsr_avhrr.util import get_avhrr_lonlat
 from amsr_avhrr.util import get_avhrr_time
 from read_cloudproducts_cci import cci_read_prod
 import time
 import h5py
-import numpy as np
 import logging
 from config import _validation_results_dir
 from config import RESOLUTION, PPS_VALIDATION, CCI_CLOUD_VALIDATION, \

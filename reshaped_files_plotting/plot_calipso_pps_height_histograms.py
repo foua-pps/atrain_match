@@ -7,7 +7,7 @@
 """
 
 from glob import glob
-import os.path
+#import os.path
 import os
 import numpy as np
 from scipy import histogram
@@ -83,7 +83,7 @@ isCloudy =  np.logical_and(isCloudyPPS,isCloudyCaliop)
 isCloudy =  np.logical_and(pps_temp>-9,isCloudy)
 isCloudy = np.logical_and(pps_temp>150,isCloudy)
 isCloudy = np.logical_and(cal_temp>150,isCloudy)
-import numpy as np
+
 
 """
 for ind in range(5,15):

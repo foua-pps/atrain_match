@@ -109,7 +109,7 @@ from calipso import  (detection_height_from_5km_data,
                       add5kmVariablesTo1kmresolution,
                       adjust5kmTo1kmresolution)
 import inspect
-import numpy as np
+
 from cloudsat_calipso_avhrr_plot import (drawCalClsatAvhrrPlotTimeDiff,
                                          drawCalClsatGEOPROFAvhrrPlot, 
                                          drawCalClsatAvhrrPlotSATZ,
@@ -1046,7 +1046,7 @@ def get_matchups_from_data(cross, config_options):
             avhrr_obj_name = 'maia'
         writeCaliopAvhrrMatchObj(ca_match_file, ca_matchup, 
                                  avhrr_obj_name = avhrr_obj_name) 
-    
+    nwp_obj = None
     return {'cloudsat': cl_matchup, 'calipso': ca_matchup, 
             'basename': basename, 'values':values}
 
@@ -1353,4 +1353,5 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     CalculateStatistics(process_mode, clsatObj, statfilename, caObj, 
                         dnt_flag)
     #=============================================================
-  
+    caObj = None
+    clsatObj = None
