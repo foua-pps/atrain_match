@@ -232,7 +232,7 @@ def reduce_cpp_data(arr, nodata, sunsat_filename, dcwp, flag=None):
     
     #If there is a dcwp-limit, use that one
     if (dcwp_limit is not None):
-        if (dcwp == None):
+        if (dcwp is None):
             print "no dcwp data available, can not filter on dcwp"
         else:
             print "Reduction: remove dcwp >= ", dcwp_limit

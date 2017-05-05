@@ -361,7 +361,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
         value_track = [ctype.qualityflag[row_matched[idx], col_matched[idx]]
                              for idx in range(npix)]
         obt.avhrr.cloudtype_qflag = np.array(value_track)
-    if  ctype.phaseflag != None and PPS_VALIDATION:
+    if  ctype.phaseflag is not None and PPS_VALIDATION:
         value_track = [ctype.phaseflag[row_matched[idx], col_matched[idx]]
                              for idx in range(npix)]
         obt.avhrr.cloudtype_pflag = np.array(value_track)
@@ -390,7 +390,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
     from pps_prototyping_util import (get_t11t12_texture_data_from_object,
                                       get_coldest_values,get_darkest_values,
                                       get_warmest_values)
-    if dataObj != None:
+    if dataObj is not None:
         nwp_obj = get_t11t12_texture_data_from_object(dataObj, nwp_obj, '11','12', 
                                                       'text_t11t12_square') 
         nwp_obj = get_t11t12_texture_data_from_object(dataObj, nwp_obj, '37','12',
@@ -403,7 +403,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
                 value_track = [data[row_matched[idx], col_matched[idx]]
                                for idx in range(npix)]
                 setattr(obt.avhrr, texture, np.array(value_track))
-    if dataObj != None and SAVE_NEIGHBOUR_INFO:
+    if dataObj is not None and SAVE_NEIGHBOUR_INFO:
         neighbour_obj =get_warmest_values(dataObj, row_col)
         for key in ["warmest_t11", "warmest_t12", "warmest_t37",
                     "warmest_r06", "warmest_r09", "warmest_r16"]:
@@ -442,7 +442,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
                 value_track = [data[row_matched[idx], col_matched[idx]]
                                for idx in range(npix)]
                 setattr(obt.avhrr, emis, np.array(value_track))
-    if dataObj != None:
+    if dataObj is not None:
         obt.avhrr.r06micron = get_channel_data_from_object(dataObj, '06', row_col)
         # r09   
         obt.avhrr.r09micron = get_channel_data_from_object(dataObj, '09', row_col)
@@ -472,7 +472,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
     if AngObj.azidiff is not None:
         obt.avhrr.azidiff = [AngObj.azidiff.data[row_matched[idx], col_matched[idx]] 
                              for idx in range(npix)]
-    if ctth == None:
+    if ctth is None:
         logger.info("Not extracting ctth")
     else:
         logger.info("Extracting ctth along track ")
@@ -490,7 +490,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
                            for idx in range(npix)]
             obt.avhrr.ctth_opaque = np.array(value_track)
     #NWP on ctth resolution        
-    if nwp_segments != None:
+    if nwp_segments is not None:
         obt = insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt)
     if cpp is None:    
         logger.info("Not extracting cpp")

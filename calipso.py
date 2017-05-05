@@ -359,9 +359,8 @@ def reshapeCalipso(calipsofiles, res=resolution, ALAY=False):
         # Concatenate the feature values
         #arname = array name from calipsoObj
         for arname, value in startCalipso.all_arrays.items(): 
-            if np.size(value)>1 or value != None:
-                if value.size != 1:
-                    startCalipso.all_arrays[arname] = np.concatenate((value[0:,...], 
+            if value is not None:
+                startCalipso.all_arrays[arname] = np.concatenate((value[0:,...], 
                                                                       newCalipso.all_arrays[arname])) 
     cal = startCalipso        
     if cal.profile_time_tai.shape[0] <= 0:
@@ -423,11 +422,10 @@ def adjust5kmTo1kmresolution(calipso5km):
     logger.info("Repeat 5km calipso data to fit 1km resoluiton")
     calipso= CalipsoObject()
     for arname, value in calipso5km.all_arrays.items(): 
-        if np.size(value)>1 or value != None:
-            if value.size != 1:
-                the_shape = value.shape
-                new_values = np.repeat(value,5,axis=0)
-                calipso.all_arrays[arname] = new_values                    
+        if value is not None:
+            the_shape = value.shape
+            new_values = np.repeat(value,5,axis=0)
+            calipso.all_arrays[arname] = new_values                    
     return calipso 
 
 def add5kmVariablesTo1kmresolution(calipso1km, calipso5km):

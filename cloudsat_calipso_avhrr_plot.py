@@ -28,7 +28,7 @@ def drawCalClsatGEOPROFAvhrrPlot(clsatObj,
     caliop_height[caliop_height<0]=-9
     pixel_position = np.arange(caObj.calipso.latitude.shape[0])                            
     # Calculates Hihest Cloud Top   
-    if MAXHEIGHT == None:
+    if MAXHEIGHT is None:
         maxheight_calipso = np.nanmax(caliop_height)
         maxheight_avhrr = np.nanmax(imager_ctth_m_above_seasurface)
         max_height_sat = [maxheight_calipso, maxheight_avhrr]
@@ -42,7 +42,7 @@ def drawCalClsatGEOPROFAvhrrPlot(clsatObj,
     ax.vlines(pixel_position, 0, caObj.calipso.elevation, 
               color='k', alpha=1.0)
     #plot cloudsat if we have it    
-    if clsatObj != None:
+    if clsatObj is not None:
         #: Colors
         colors=[]
         for i in range(10):
@@ -137,7 +137,7 @@ def drawCalPPSHeightPlot_PrototypePPSHeight(caObj_calipso,
     avhrr_ctth_ok2 = ctth_height2[data_ok]  
 #    # Calculates Hihest Cloud Top  
 
-    if MAXHEIGHT == None:
+    if MAXHEIGHT is None:
         maxheight_calipso = np.nanmax(caliop_height)
         maxheight_avhrr = np.nanmax(ctth_height1)
         max_height_sat = [maxheight_calipso, maxheight_avhrr]
@@ -307,7 +307,7 @@ def drawCalClsatCWCAvhrrPlot(clsatObj, elevationcwc, data_okcwc,
     ax1.set_xlabel("Track Position")
     ax1.set_ylabel("%sC Height"%(phase))
     ax1.set_title("CloudSat-%sC"%(phase))
-    if MAXHEIGHT == None:
+    if MAXHEIGHT is None:
         maxheight = np.max(top_heightcwc) + 1000
     else:
         maxheight = MAXHEIGHT
@@ -337,7 +337,7 @@ def drawCalClsatAvhrrPlotTimeDiff(clsatObj,
     minvalue = np.nanmin(cal_diff_sec_1970)/60.0
     title = "Time Difference CALIPSO - %s" % instrument.upper()
     ylabel_str = "Time diff (CALIPSO - %s)[min]" % instrument.upper()
-    if clsatObj != None:
+    if clsatObj is not None:
         clsat_diff_sec_1970 = clsatObj.diff_sec_1970/60.0
         title = "Time Difference Between %s and CloudSat/CALIPSO" % instrument.upper()
         ylabel_str = "Time diff (CALIPSO/CloudSat - %s)[min]" % instrument.upper()
@@ -383,7 +383,7 @@ def drawCalClsatAvhrrPlotSATZ(clsatObj,
     # Plot Satellite Zenith Angle
     fig = plt.figure() 
     ax = fig.add_subplot(111) 
-    if clsatObj != None:
+    if clsatObj is not None:
         ax.plot(pixel_position[clsatObj.cloudsat.calipso_index],
                 clsatObj.avhrr.satz,
                 'r+', 

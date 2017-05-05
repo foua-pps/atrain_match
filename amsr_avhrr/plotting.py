@@ -7,7 +7,7 @@ import numpy as np
 import logging
 logger = logging.getLogger(__name__)
 
-import matplotlib
+import matplotlib 
 try:
     matplotlib.use('agg', warn=False)
 except TypeError: # For some reason, I don't always have 'warn'
@@ -20,7 +20,7 @@ def imshow_lwps(amsr_lwp, cpp_lwp, time_diff, sea, title=None, lwp_max=None):
     background, and mask out any pixels which are not sea.
     
     """
-    import matplotlib.pyplot as pl
+    import matplotlib.pyplot as plt
     
     from utility_functions import broken_cmap_r
     from matplotlib.colors import ListedColormap
@@ -37,7 +37,7 @@ def imshow_lwps(amsr_lwp, cpp_lwp, time_diff, sea, title=None, lwp_max=None):
     if len(cpp_lwp) == 3:
         cpp_lwp = cpp_lwp.mean(axis=-1)
     
-    fig = pl.figure()
+    fig = plt.figure()
     
     vmin, vmax, break_value = limits([amsr_lwp, cpp_lwp], lwp_max)
     cmap = broken_cmap_r(np.array([vmin, vmax]), break_value=break_value)
@@ -77,12 +77,12 @@ def plot_array(lon, lat, data, legend):
     Make a plot of *data*
     
     """
-    import matplotlib.pyplot as pl
+    import matplotlib.pyplot as plt
     from mpl_toolkits.basemap import Basemap
     
     lon, lon0 = adjust_lon(lon)
     
-    fig = pl.figure()
+    fig = plt.figure()
     ax = fig.add_subplot(111)
     
     m = Basemap(projection='cyl', llcrnrlat=-90, urcrnrlat=90,
@@ -177,7 +177,7 @@ def plot_fields(fields, break_value=None):
     
     """
     from mpl_toolkits.basemap import Basemap
-    from matplotlib import pyplot as pl
+    from matplotlib import pyplot as plt
     from utility_functions import broken_cmap_r
     
     #Comment: utility_functions is a separate package, created by J.Malm,
@@ -195,7 +195,7 @@ def plot_fields(fields, break_value=None):
     vmin, vmax, break_value = limits([f.data for f in fields], break_value)
     cmap = broken_cmap_r(vmin=vmin, vmax=vmax, break_value=break_value)
     
-    fig = pl.figure()
+    fig = plt.figure()
     ax = None
     for ix, f in enumerate(fields):
         ax = fig.add_subplot(len(fields) % 2 + 1, len(fields) // 2 + 1, ix + 1,
@@ -231,8 +231,8 @@ def plot_hists(fields, bins=500):
     Plot histograms of *fields* (list of (data, label) tuples).
     
     """
-    from matplotlib import pyplot as pl
-    fig = pl.figure()
+    from matplotlib import pyplot as plt
+    fig = plt.figure()
     ax = fig.add_subplot(111)
     
     for data, label in fields:

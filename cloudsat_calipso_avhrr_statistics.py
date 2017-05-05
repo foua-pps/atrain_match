@@ -186,7 +186,7 @@ def get_day_night_info(caObj):
         if caObj.avhrr.cloudtype_conditions is not None:
             daynight_flags = get_day_night_twilight_info_pps2014(
                 caObj.avhrr.cloudtype_conditions)     
-    if config.PPS_VALIDATION and daynight_flags == None:
+    if config.PPS_VALIDATION and daynight_flags is None:
         daynight_flags = get_day_night_twilight_info_cci2014(
         caObj.avhrr.sunz)
     (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag) = daynight_flags
@@ -944,7 +944,7 @@ def CalculateStatistics(mode, clsatObj, statfilename, caObj,
     semi_flag, opaque_flag = get_semi_opaque_info(caObj)
     (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag) = get_day_night_info(caObj)
 
-    if dnt_flag == None:
+    if dnt_flag is None:
         print('dnt_flag = %s' %'NO DNT FLAG -> ALL PIXELS')
         cal_subset = np.logical_and(cal_subset, all_dnt_flag)
     elif dnt_flag.upper() == 'DAY':
