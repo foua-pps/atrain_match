@@ -81,13 +81,14 @@ def angle(p1, p2, radians=False):
                 cos(lon1) * cos(lon2) * cos(lat1 - lat2)) / factor
     
     # WGS84
+    """
+    Nina 20170504 commented out unused code
     a = 6378137.0
-    b = 6356752.3142
-    
+    b = 6356752.3142    
     from greatcircle import GreatCircle
-    circle = GreatCircle(a, b, lon1, lat1, lon2, lat2)
-    
+    circle = GreatCircle(a, b, lon1, lat1, lon2, lat2)    
     return circle.distance
+    """
 
 def satangle(satellite1, satellite2, time):
     """Get the earth central angle (in degrees) between *satellite1* and 

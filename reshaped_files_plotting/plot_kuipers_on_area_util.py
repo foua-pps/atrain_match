@@ -738,7 +738,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
             np.sum(self.N_false_clouds[use]))*1.0/(np.sum(self.N[use]))
         print "hej",self.Bias_total_mean_polar
         self.Bias = Bias
-    def calculate_RMS(self):
+    def calculate_rms(self):
         self.np_float_array()
         self.calculate_calipso_cfc()
         self.find_number_of_clouds_clear()

@@ -49,7 +49,7 @@ def get_satid_datetime_orbit_from_fname_pps(avhrr_filename,as_oldstyle=False):
     return values    
         
 
-def createAvhrrTime(Obt, values={}, Trust_sec_1970=False):
+def createAvhrrTime(Obt, values=None, Trust_sec_1970=False):
     """ Function to make crate a matrix with time for each pixel 
     from objects start adn end time """
     from config import DSEC_PER_AVHRR_SCALINE, IMAGER_INSTRUMENT 

@@ -90,7 +90,10 @@ from common import attach_subdir_from_config, MatchupError
 
 from cloudsat_calipso_avhrr_statistics import (CalculateStatistics)
 from trajectory_plotting import plotSatelliteTrajectory
-from cloudsat_calipso_avhrr_prepare import *
+from cloudsat_calipso_avhrr_prepare import (CloudsatCloudOpticalDepth,
+                                            check_total_optical_depth_and_warn,
+                                            CalipsoOpticalDepthHeightFiltering1km,
+                                            CalipsoOpticalDepthSetThinToClearFiltering1km)
 
 from read_cloudproducts_and_nwp_pps import NWPObj
 from cloudsat import reshapeCloudsat, match_cloudsat_avhrr
@@ -331,7 +334,9 @@ def find_maia_cloud_file(cross, options):
     return found_file, tobj
 
 
-def find_avhrr_file(cross, filedir_pattern, filename_pattern, values={}):
+def find_avhrr_file(cross, filedir_pattern, filename_pattern, values=None):
+    if values is None:
+        values = {}
     (tlist, cross_time, cross_satellite) = get_time_list_and_cross_time(cross)
     time_window=cross.time_window
     logger.info("Time window: %s", time_window)
@@ -343,7 +348,7 @@ def find_avhrr_file(cross, filedir_pattern, filename_pattern, values={}):
     for tobj in tlist:
         #print values
         avhrr_dir = insert_info_in_filename_or_path(filedir_pattern,
-                                                  values, datetime_obj=tobj)
+                                                    values, datetime_obj=tobj)
         #print avhrr_dir
         if os.path.exists(avhrr_dir):
             found_dir = avhrr_dir
