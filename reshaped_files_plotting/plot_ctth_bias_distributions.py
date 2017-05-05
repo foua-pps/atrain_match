@@ -42,9 +42,10 @@ def make_profileplot_cloudsat(clsatObj, month):
     elevation = clsatObj.cloudsat.all_arrays['elevation']
     elevation[elevation<0] = 0
     height_mlvl2 = clsatObj.modis.all_arrays['height']+elevation
-    height_pps = clsatObj.avhrr.all_arrays['imager_ctth_m_above_seasurface']
+    #height_pps = clsatObj.avhrr.all_arrays['imager_ctth_m_above_seasurface']
+    height_pps = clsatObj.avhrr.all_arrays['ctthnnant_height']+elevation
     height_old = clsatObj.avhrr.all_arrays['ctthold_height']+elevation
-    height_nna1 = clsatObj.avhrr.all_arrays['ctthnna1_height']+elevation
+    height_nna1 = clsatObj.avhrr.all_arrays['ctthnna1nt_height']+elevation
     use =  height_c>0
     print len(height_c[use])*1.0/len(height_c)
     use = np.logical_and(use, height_mlvl2>-1)
@@ -55,9 +56,9 @@ def make_profileplot_cloudsat(clsatObj, month):
     #use = np.logical_and(use, height_nna1<45000)
     #use = np.logical_and(use, height_old>-1)        
     #use = np.logical_and(use, height_old<45000)                                
-    use = np.logical_and(use,clsatObj.avhrr.all_arrays['ctthnna1_height']>0)
-    use = np.logical_and(use,clsatObj.avhrr.all_arrays['ctthold_height']>0)
-    use = np.logical_and(use,clsatObj.avhrr.all_arrays['imager_ctth_m_above_seasurface']>0)
+    #use = np.logical_and(use,clsatObj.avhrr.all_arrays['ctthnna1_height']>-1)
+    #use = np.logical_and(use,clsatObj.avhrr.all_arrays['ctthold_height']>-1)
+    use = np.logical_and(use,clsatObj.avhrr.all_arrays['imager_ctth_m_above_seasurface']>-1)
     use = np.logical_and(use,clsatObj.avhrr.all_arrays['ctthnna1_height']<45000)
     use = np.logical_and(use,clsatObj.avhrr.all_arrays['ctthold_height']<45000)
     use = np.logical_and(use,clsatObj.avhrr.all_arrays['imager_ctth_m_above_seasurface']<45000)
@@ -118,6 +119,7 @@ def make_profileplot_cloudsat(clsatObj, month):
     #plot_one(nna1_bias, low, -14,14, '0.3', "NN-AVHRR1")
     plt.legend(fancybox=True, loc=1,  numpoints=4)
     ax.set_xlim(-5,5)
+    ax.set_ylim(0,12.0)
     ax.grid(True)
     ax = fig.add_subplot(312)
     #plt.title("Medium")
@@ -130,6 +132,7 @@ def make_profileplot_cloudsat(clsatObj, month):
     #plot_one(nna1_bias, medium, -12,12, '0.3', "NN-AVHRR1")
     plt.legend(fancybox=True, loc=1,  numpoints=4)
     ax.set_xlim(-7,7)
+    ax.set_ylim(0,6.0)
     ax.grid(True)
     ax = fig.add_subplot(311)
     #plt.title("High")
@@ -147,7 +150,7 @@ def make_profileplot_cloudsat(clsatObj, month):
     ax.grid(True)
     #plt.show()   
     #plt.title("%s MAE = %3.0f"%(name,MAE))
-    plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/CTTH_BOX_cloudsat/ctth_profile_%s_cloudsat_all.png"%(month))
+    plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/CTTH_BOX_cloudsat/ctth_profile_1st_%s_cloudsat_all.png"%(month))
 
 
 def make_profileplot(caObj, month):
@@ -160,9 +163,10 @@ def make_profileplot(caObj, month):
     elevation = caObj.calipso.all_arrays['elevation']
     elevation[elevation<0] = 0
     height_mlvl2 = caObj.modis.all_arrays['height']#+elevation
-    height_pps = caObj.avhrr.all_arrays['imager_ctth_m_above_seasurface']
+    #height_pps = caObj.avhrr.all_arrays['imager_ctth_m_above_seasurface']
+    height_pps = caObj.avhrr.all_arrays['ctthnnant_height']+elevation
     height_old = caObj.avhrr.all_arrays['ctthold_height']+elevation
-    height_nna1 = caObj.avhrr.all_arrays['ctthnna1_height']+elevation
+    height_nna1 = caObj.avhrr.all_arrays['ctthnna1nt_height']+elevation
     use = caObj.calipso.all_arrays['layer_top_altitude'][:,0]>0
     print len(height_c[use])*1.0/len(height_c)
     use = np.logical_and(use, height_mlvl2>-1)
@@ -251,7 +255,7 @@ def make_profileplot(caObj, month):
        hist_heights = hist_heights*100.0/n_pix
        plt.plot(0.001*(bins[0:-1]+delta_h*0.5), hist_heights,
                 color,label=label)     
-       plt.xlabel("Bias imager height - CPR (CloudSat) height (km) ")
+       plt.xlabel("Bias imager height - CALIPSO height (km) ")
        plt.ylabel("Percent of data")
        ax.set_xlim(bmin,bmax)
     fig = plt.figure(figsize = (5.5,12))        
@@ -266,6 +270,7 @@ def make_profileplot(caObj, month):
     #plot_one(nna1_bias, low, -14,14, '0.3', "NN-AVHRR1")
     plt.legend(fancybox=True, loc=1,  numpoints=4)
     ax.set_xlim(-5,5)
+    ax.set_ylim(0,12.0)
     ax.grid(True)
     ax = fig.add_subplot(312)
     #plt.title("Medium")
@@ -278,6 +283,7 @@ def make_profileplot(caObj, month):
     #plot_one(nna1_bias, medium, -12,12, '0.3', "NN-AVHRR1")
     plt.legend(fancybox=True, loc=1,  numpoints=4)
     ax.set_xlim(-7,7)
+    ax.set_ylim(0,6.0)
     ax.grid(True)
     ax = fig.add_subplot(311)
     #plt.title("High")
@@ -294,7 +300,7 @@ def make_profileplot(caObj, month):
     ax.grid(True)
     #plt.show()   
     #plt.title("%s MAE = %3.0f"%(name,MAE))
-    plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/CTTH_BOX/ctth_profile_%s_%s.png"%(month,part))
+    plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/CTTH_BOX/ctth_profile_1st_%s_%s.png"%(month,part))
 
 
 
@@ -303,17 +309,21 @@ def investigate_nn_ctth_modis_lvl2_cloudsat():
  
     ROOT_DIR = (
         "/home/a001865/DATA_MISC/reshaped_files/"
-        "global_modis_14th_created20170330/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/*h5")
+        "global_modis_01st_created20170504/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/*h5")
+        #"global_modis_14th_created20170330/Reshaped_Files_merged/eos2/1km/2010/%s/*h5")
     clsatObj = CloudsatAvhrrTrackObject()
     name=""
-    for month in [ "06", "09"]: #"08", "07", "09"]:#"06", "09"]:#, "11", "05", "02","03","04","07","08","10","12"]:#, "01"]:    
+    for month in [ "02", "04","06", "08","10", "12" ]:  #[ "06", "09"]: 
         print ROOT_DIR%(month)
         files = glob(ROOT_DIR%(month))
         name+=month 
         #clsatObj = CloudsatAvhrrTrackObject()
+        clsatObj_new = CloudsatAvhrrTrackObject()
         for filename in files:
-            #print filename
-            clsatObj +=  readCloudsatAvhrrMatchObj(filename)
+            print filename
+            clsatObj_new +=  readCloudsatAvhrrMatchObj(filename)
+        clsatObj +=  clsatObj_new
+        make_profileplot_cloudsat(clsatObj_new, month=month)
     make_profileplot_cloudsat(clsatObj, month=name)
 
 def investigate_nn_ctth_modis_lvl2():
@@ -321,20 +331,27 @@ def investigate_nn_ctth_modis_lvl2():
  
     ROOT_DIR = (
         "/home/a001865/DATA_MISC/reshaped_files/"
-        "global_modis_14th_created20170330/Reshaped_Files_merged/eos2/1km/2010/%s/*h5")
+        "global_modis_01st_created20170504/Reshaped_Files_merged/eos2/1km/2010/%s/*h5")
+        #"global_modis_14th_created20170330/Reshaped_Files_merged/eos2/1km/2010/%s/*h5")
     caObj = CalipsoAvhrrTrackObject()
     name=""
-    for month in [ "06", "09"]: #"08", "07", "09"]:#"06", "09"]:#, "11", "05", "02","03","04","07","08","10","12"]:#, "01"]:    
+    for month in [ "02", "04","06", "08","10", "12" ]:  #[ "06", "09"]:    
         print ROOT_DIR%(month)
         files = glob(ROOT_DIR%(month))
         name+=month 
         #caObj = CalipsoAvhrrTrackObject()
+        caObj_new = CalipsoAvhrrTrackObject()
         for filename in files:
             #print filename
-            caObj +=  readCaliopAvhrrMatchObj(filename)
+            caObj_new += readCaliopAvhrrMatchObj(filename)
+        make_profileplot(caObj_new, month=month)
+        caObj +=  caObj_new
+
     make_profileplot(caObj, month=name)
         
 if __name__ == "__main__":
     #investigate_nn_ctth_modis_lvl2()
     investigate_nn_ctth_modis_lvl2_cloudsat()
     investigate_nn_ctth_modis_lvl2()
+
+

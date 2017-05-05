@@ -20,10 +20,10 @@ def print_common_stats(caObj, use, name_dict):
         caObj.calipso.all_arrays['total_optical_depth_5km']>0.15)
     #isCalipsoClear = caObj.calipso.all_arrays['cloud_fraction']<0.5
     isCalipsoClear = nlay == 0
-    isCalipsoClear = np.logical_and(isCalipsoClear, meancl<0.01)
-    isCalipsoClear = np.logical_and(
-        isCalipsoClear, 
-        caObj.calipso.all_arrays['total_optical_depth_5km']<0)
+    #isCalipsoClear = np.logical_and(isCalipsoClear, meancl<0.01)
+    #isCalipsoClear = np.logical_and(
+    #    isCalipsoClear, 
+    #    caObj.calipso.all_arrays['total_optical_depth_5km']<0)
     isCalipsoSnowIce = np.logical_and(
         isCalipsoClear,
         caObj.calipso.all_arrays['nsidc_surface_type']>50)
@@ -163,10 +163,11 @@ ROOT_DIR_GAC = ("/home/a001865/DATA_MISC/reshaped_files/"
             "ATRAIN_RESULTS_GAC_oldctth/Reshaped_Files/noaa18/")
 ROOT_DIR_GAC = ("/home/a001865/DATA_MISC/reshaped_files/"
             "ATRAIN_RESULTS_GAC_oldctth_20161201/Reshaped_Files/noaa18/")
+ROOT_DIR_GAC = ("/home/a001865/NN_CTTH/data/validation_data/avhrr_gac_noaa19/")
 
 files = glob(ROOT_DIR + "Reshaped_Files/merged/modis*h5")
 files = glob(ROOT_DIR_GAC + "5km/20??/*/*/*h5")
-
+files = glob(ROOT_DIR_GAC + "/*/*h5")
 
 test_list_file = "/home/a001865/git/acpg_develop/acpg/pges/cloudmask/pps_pge01_cmasktests.h"
 TEST_NAMEFILE = open(test_list_file, 'r')

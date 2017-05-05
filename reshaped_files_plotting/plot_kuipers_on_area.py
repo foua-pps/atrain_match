@@ -12,8 +12,8 @@ from plot_kuipers_on_area_util import (PerformancePlottingObject,
                                        ppsMatch_Imager_CalipsoObject)
 isGAC_CCI = False
 isGAC_CCI_morning = False
-isModis1km = True
-isModis1km_lvl2 = False
+isModis1km = False
+isModis1km_lvl2 = True
 isModis1km_nnctth = False
 isNPP_v2014 = False
 isGAC_v2014_morning_sat = False
@@ -22,7 +22,7 @@ cci_orbits = False
 method = 'Nina' #Nina or KG or BASIC==no filter
 DNT="all" #"all/day/night/twilight"
 filter_method = 'no' #no or satz
-radius_km = 500 #t.ex 75 250 500 300
+radius_km = 300 #t.ex 75 250 500 300
 BASE_PLOT_DIR = "/home/a001865/PICTURES_FROM_PYTHON/ATRAIN_MATCH_KUIPERS_PLOT_CCI_PPS_BrBG_2"
 
 
@@ -47,24 +47,37 @@ elif isGAC_CCI_morning:
 elif isModis1km:
     num_files_to_read = 1
     isGAC=False
-    satellites = "eos_modis_v2014_2"
-    ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/global_modis_14th_created20170330/"
+    satellites = "eos_modis_v2014_1steven"
+    ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/global_modis_01st_created20170504/"
     #files = glob(ROOT_DIR + "Reshaped_Files/eos?/1km/????/12/2010??14_*/*h5")
-    files = glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/*/*.h5")
+    files = glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/*2/*.h5")
+    files = files +glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/04/*.h5")
+    files = files +glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/06/*.h5")
+    files = files +glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/08/*.h5")
+    files = files +glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/10/*.h5")
 elif isModis1km_lvl2:
     num_files_to_read = 1
     isGAC=False
-    satellites = "eos_modis_lvl2_C6"
-    ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/global_modis_14th_created20170330/"
+    satellites = "eos_modis_lvl2_C6_1steven"
+    ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/global_modis_01st_created20170504/"
     #files = glob(ROOT_DIR + "Reshaped_Files/eos?/1km/????/12/2010??14_*/*h5")
-    files = glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/*/*.h5")
+    files = glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/*2/*.h5")
+    files = files +glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/04/*.h5")
+    files = files +glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/06/*.h5")
+    files = files +glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/08/*.h5")
+    files = files +glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/10/*.h5")
+
 elif isModis1km_nnctth:
     num_files_to_read = 1
     isGAC=False
-    satellites = "eos_modis_v2018"
-    ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/global_modis_14th_created20170330/"
+    satellites = "eos_modis_v2018_1steven"
+    ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/global_modis_01st_created20170504/"
     #files = glob(ROOT_DIR + "Reshaped_Files/eos?/1km/????/12/2010??14_*/*h5")
-    files = glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/*/*.h5")
+    files = glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/*2/*.h5")
+    files = files +glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/04/*.h5")
+    files = files +glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/06/*.h5")
+    files = files +glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/08/*.h5")
+    files = files +glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/10/*.h5")
 elif isNPP_v2014:
     num_files_to_read = 30
     isGAC=False
@@ -135,6 +148,11 @@ for filename in files:
                 caObj_new.avhrr.all_arrays["ctthold_temperature"])       
             caObj_new.avhrr.all_arrays["ctth_height"] = (
                 caObj_new.avhrr.all_arrays["ctthold_height"])
+        if "eos_modis_v2018" in satellites:
+            caObj_new.avhrr.all_arrays["ctth_temperature"] = (
+                caObj_new.avhrr.all_arrays["ctthnnant_temperature"])       
+            caObj_new.avhrr.all_arrays["ctth_height"] = (
+                caObj_new.avhrr.all_arrays["ctthnnant_height"])
 
          
     except:

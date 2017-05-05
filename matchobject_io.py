@@ -106,6 +106,12 @@ class ppsAvhrrObject(DataObject):
             'ctthnna1_height': None,
             'ctthnna1_pressure': None,
             'ctthnna1_temperature': None,
+            'ctthnna1nt_height': None,
+            'ctthnna1nt_pressure': None,
+            'ctthnna1nt_temperature': None,
+            'ctthnnant_height': None,
+            'ctthnnant_pressure': None,
+            'ctthnnant_temperature': None,
             'ctth_opaque': None,  # True if opaque retrieval was applied
             'cloudtype': None,
             'cloudmask': None,

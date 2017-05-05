@@ -33,12 +33,17 @@ BASE_DIR = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_MODIS_NOVEMBER
 BASE_DIR = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_MODIS_NOVEMBER_nnAVHRR_20170315"
 BASE_DIR = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_MODIS_NOVEMBER_nnVIIRS_20170315"
 
-BASE_DIR = "/home/a001865/DATA_MISC/reshaped_files/global_modis_14th_created20170324"
+BASE_DIR = "/home/a001865/DATA_MISC/reshaped_files/global_modis_14th_created20170330"
 #BASE_DIR = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_MODIS_NOVEMBER_nnAVHRR_with_gac"
 ROOT_DIR = BASE_DIR + "/Reshaped_Files/eos2/1km/2010/%s/*/*caliop*.h5"
 OUT_DIR_TEMPLATE = BASE_DIR + "/Reshaped_Files_merged/eos2/1km/2010/%s/"
 outfile_template = "1km_%s_eos2_2010%s14_0000_00000_caliop_modis_match.h5"
 
+BASE_DIR = "/home/a001865/DATA_MISC/reshaped_files/global_modis_01st_created20170504"
+#BASE_DIR = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_MODIS_NOVEMBER_nnAVHRR_with_gac"
+ROOT_DIR = BASE_DIR + "/Reshaped_Files/eos2/1km/2010/%s/*/*caliop*.h5"
+OUT_DIR_TEMPLATE = BASE_DIR + "/Reshaped_Files_merged/eos2/1km/2010/%s/"
+outfile_template = "1km_%s_eos2_2010%s01_0000_00000_caliop_modis_match.h5"
 
 caObj_night = CalipsoAvhrrTrackObject()
 caObj_day = CalipsoAvhrrTrackObject()
@@ -46,7 +51,7 @@ caObj_day = CalipsoAvhrrTrackObject()
 for year in ["2010"]:#2012/02","2012/05", "2012/08", "2013/07", "2014/02", "2014/04", "2014/09"]:
     #for month in ["01","02","03","04","05","06","07","08","09","10","11","12"]:
     #for month in ["06"]:
-    for month in ["01","02","03","04","05","06","07","08","09","10","11","12"]:
+    for month in ["02","03","04","05","06","07","08","09","10","11","12","01"]:
         OUT_DIR = OUT_DIR_TEMPLATE%(month)
         if not os.path.exists(OUT_DIR):
             os.makedirs(OUT_DIR)
