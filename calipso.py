@@ -321,8 +321,7 @@ def discardCalipsoFilesOutsideTimeRange(calipsofiles_list, avhrrGeoObj, values, 
     avhrr_end = avhrrGeoObj.sec1970_end
     avhrr_start = avhrrGeoObj.sec1970_start
     calipso_within_time_range = []
-    for i in range(len(calipsofiles_list)):
-        current_file = calipsofiles_list[i]
+    for current_file in calipsofiles_list:
         newCalipso = get_calipso(current_file, res, ALAY=ALAY)
         if res == 1:
             cal_new_all = newCalipso.profile_time_tai[:,0] + dsec
@@ -399,10 +398,10 @@ def time_reshape_calipso(startCalipso, avhrr=None, values=None,
     Cut the calipso data at the point where matches with avhrr is within 
     time limits.
     """
-    if start_break==None or end_break==None:
-        if avhrr==None or values ==None:
+    if None in [start_break, end_break]:
+        if None in [avhrr, values]:
             logger.info(("Call function with either avhrr and values or"
-                              "start_brak and end_break!"))
+                         "start_brak and end_break!"))
             print("Program calipso.py at line %i" %(inspect.currentframe().f_lineno+1))
             sys.exit(-9) 
         start_break, end_break = find_break_points(startCalipso, avhrr, 

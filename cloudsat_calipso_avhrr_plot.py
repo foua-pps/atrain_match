@@ -243,11 +243,11 @@ def drawCalClsatCWCAvhrrPlot(clsatObj, elevationcwc, data_okcwc,
 
     y=andrad_y_zeros.copy()
 
-    for i in range(len(andrad_dataP)):
-        if (andrad_dataP[i]<=0):
+    for i, temp_data_i in enumerate(andrad_dataP):
+        if (remp_data_i<=0):
             y[i]=float('nan')
         else:
-            y[i]=andrad_dataP[i]
+            y[i]=temp_data_i
     
     # Findes max value and add 100
     maxvalue=int(max(dataP)+100)							

@@ -59,8 +59,7 @@ def process_matchups(matchups, run_modes, reprocess=False, debug=False):
             #pdb.set_trace()
             if mode in ["OPTICAL_DEPTH","OPTICAL_DEPTH_DAY",
                         "OPTICAL_DEPTH_NIGHT","OPTICAL_DEPTH_TWILIGHT"]:
-                for num in range(len(config.MIN_OPTICAL_DEPTH)):
-                    min_optical_depth = config.MIN_OPTICAL_DEPTH[num]
+                for min_optical_depth in config.MIN_OPTICAL_DEPTH:
                     try:
                         cloudsat_calipso_avhrr_match.run(
                             match, mode, OPTIONS, min_optical_depth, 

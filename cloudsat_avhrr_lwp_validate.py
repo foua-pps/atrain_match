@@ -224,23 +224,13 @@ def get_match_data(filenames):
     sz=np.sum(selection)
 
 
-    #Masking is problematic, do it elementwise...
-    lwp_avhrr_array_new=np.zeros(sz)
-    lwp_cloudsat_array_new=np.zeros(sz)
-    lon_array_new=np.zeros(sz)
-    lat_array_new=np.zeros(sz)
-    diff_new=np.zeros(sz)
-    dt_new=np.zeros(sz)
-    j=-1
-    for i in range(len(selection)):
-        if (selection[i]):
-            j=j+1
-            lwp_avhrr_array_new[j]=lwp_avhrr_array[i]
-            lwp_cloudsat_array_new[j]=lwp_cloudsat_array[i]
-            lon_array_new[j]=lon_array[i]
-            lat_array_new[j]=lat_array[i]
-            diff_new[j]=lwp_avhrr_array[i]-lwp_cloudsat_array[i]
-            dt_new[j]=dt_array[i]
+    #Masking is problematic, now vectorized
+    lwp_avhrr_array_new = np.where(selection, lwp_avhrr_array, 0)
+    lwp_cloudsat_array_new = np.where(selection, lwp_cloudsat_array, 0)
+    lon_array_new = np.where(selection, lon_array, 0)
+    lat_array_new = np.where(selection, lat_array, 0)
+    diff_new = np.where(selection, lwp_avhrr_array-lwp_cloudsat_array, 0)
+    dt_new = np.where(selection, dt_array, 0)
     
 
     return lwp_avhrr_array_new, lwp_cloudsat_array_new, \

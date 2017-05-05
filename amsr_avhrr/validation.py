@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 #: Default threshold for lwp screening [kg m**-2]
 LWP_THRESHOLD = 170
-
+DO_PLOT = False
 
 def screen_lwp(amsr_lwp, cpp_lwp, mask, screened, threshold=LWP_THRESHOLD):
     """
@@ -21,15 +21,14 @@ def screen_lwp(amsr_lwp, cpp_lwp, mask, screened, threshold=LWP_THRESHOLD):
     
     """
     def show_mask(mask, screened):
-        return # Don't use
-        
-        from matplotlib import pyplot as plt
-        fig = plt.figure()
-        ax = fig.add_subplot(111)
-        im = ax.imshow(mask[..., 0])
-        fig.colorbar(im)
-        ax.set_title(', '.join(screened))
-        fig.savefig('mask%d.png' % len(screened))
+        if DO_PLOT:
+            from matplotlib import pyplot as plt
+            fig = plt.figure()
+            ax = fig.add_subplot(111)
+            im = ax.imshow(mask[..., 0])
+            fig.colorbar(im)
+            ax.set_title(', '.join(screened))
+            fig.savefig('mask%d.png' % len(screened))
     
     screened = list(screened)
     
