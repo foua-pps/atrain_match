@@ -1032,7 +1032,8 @@ def get_matchups_from_data(cross, config_options):
     #add additional vars to cloudsat and calipso objects:
     cl_matchup, ca_matchup = add_additional_clousat_calipso_index_vars(cl_matchup, ca_matchup)
     cl_matchup, ca_matchup = add_elevation_corrected_imager_ctth(cl_matchup, ca_matchup)
-    cl_matchup = add_modis_lvl2_clousat_(cl_matchup, ca_matchup)
+    if config.MATCH_MODIS_LVL2 and config.IMAGER_INSTRUMENT.lower() in ['modis']:
+        cl_matchup = add_modis_lvl2_clousat_(cl_matchup, ca_matchup)
     # Write cloudsat matchup    
     if cl_matchup is not None:
         cl_match_file = rematched_file_base.replace(

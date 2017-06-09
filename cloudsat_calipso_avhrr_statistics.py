@@ -374,6 +374,11 @@ def print_calipso_cmask_stats(caObj, statfile, cal_subset):
     
     pps_clear = np.logical_and(np.logical_and(np.less_equal(caObj.avhrr.cloudtype,4),np.greater(caObj.avhrr.cloudtype,0)),cal_subset)
     pps_cloudy = np.logical_and(np.logical_and(np.greater(caObj.avhrr.cloudtype,4),np.less(caObj.avhrr.cloudtype,20)),cal_subset)
+    if config.USE_CMA_FOR_CFC_STATISTICS:
+        pps_clear = np.logical_or(np.equal(caObj.avhrr.cloudmask,3),
+                                   np.equal(caObj.avhrr.cloudmask,0))
+        pps_cloudy = np.logical_or(np.equal(caObj.avhrr.cloudmask,1),
+                                   np.equal(caObj.avhrr.cloudmask,2))
 
     #print "------------------------------------"
     #print "STATISTICS CLOUD MASK: CALIOP - AVHRR"

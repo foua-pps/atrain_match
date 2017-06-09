@@ -44,6 +44,10 @@ USE_EXISTING_RESHAPED_FILES = False
 CALIPSO_version4 = False
 CALIPSO_version3 = True
 
+#Use cloudmask to buld cloud cover statistics. Traditionally
+#cloudtype is used.
+USE_CMA_FOR_CFC_STATISTICS = False
+
 #Save imager data also for warmest and coldest pixels:
 SAVE_NEIGHBOUR_INFO = False
     
@@ -55,7 +59,7 @@ CALIPSO_CLOUDY_MIN_CFC = 0.5 #0.66 Tradition, KG used 0.5 for v2014 validation
 CALIPSO_CLEAR_MAX_CFC = 0.5  #0.34 Tradition, KG used 0.5, PPS development 0.1 or 0.2 
 
 #Search also for MODIS lvl2 data
-MATCH_MODIS_LVL2 = True
+MATCH_MODIS_LVL2 = False
 
 #CTTH_TYPES 
 #To be able to match several PPS CTTH products in one file.
