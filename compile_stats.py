@@ -111,6 +111,9 @@ if __name__ == '__main__':
 
     import argparse
     parser = argparse.ArgumentParser()
+    parser.add_argument('--nodnt', '-d',  const=True, nargs='?', 
+                        required=False,  
+                        help="Don't calculate statistics for all DNTs")
     parser.add_argument('--basic', '-b',  const=True, nargs='?', 
                         required=False,  
                         help="Calculate the statistic for mode BASIC")
@@ -143,7 +146,10 @@ if __name__ == '__main__':
         
     #Find all wanted modes (dnt)    
     modes_list =[]
-    New_DNT_FLAG = ['', '_DAY', '_NIGHT', '_TWILIGHT']
+    if options.nodnt == True:
+        New_DNT_FLAG = ['']
+    else:    
+        New_DNT_FLAG = ['', '_DAY', '_NIGHT', '_TWILIGHT']
     if options.write == True:
         logger.warning("Results always written to file, -w flag is depricated")
     if options.basic == True:
