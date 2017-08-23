@@ -387,11 +387,13 @@ class ppsStatsOnFibLatticeObject(DataObject):
             matplotlib.rcParams['image.cmap']= "Reds"
         else:
             matplotlib.rcParams['image.cmap']= "BrBG"
-        
+        plot_label =score    
+        if "mae" in score:
+            plot_label =""
         pr.plot.save_quicklook(self.PLOT_DIR_SCORE + self.PLOT_FILENAME_START+
                                plot_area_name +'.png',
                                area_def, result, 
-                               vmin=vmin, vmax=vmax, label=score)
+                               vmin=vmin, vmax=vmax, label=plot_label)
 
     def _remap_a_score_on_an_robinson_projection(self, vmin=0.0, vmax=1.0, 
                                                  score='Kuipers', screen_out_valid=False):
@@ -489,9 +491,9 @@ class ppsStatsOnFibLatticeObject(DataObject):
         tick_locator = matplotlib.ticker.MaxNLocator(nbins=10)
         cb.locator = tick_locator
         cb.ax.yaxis.set_major_locator(matplotlib.ticker.AutoLocator())
-        cb.update_ticks()
-
-        ax.set_title(score)
+        cb.update_ticks()   
+        if not "mae" in score:
+            ax.set_title(score)
         plt.savefig(self.PLOT_DIR_SCORE + self.PLOT_FILENAME_START+
                     '_robinson_' +'.png')
         plt.close('all')
