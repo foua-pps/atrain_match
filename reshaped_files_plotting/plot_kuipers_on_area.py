@@ -12,9 +12,9 @@ from plot_kuipers_on_area_util import (PerformancePlottingObject,
                                        ppsMatch_Imager_CalipsoObject)
 isGAC_CCI = False
 isGAC_CCI_morning = False
-isModis1km = True
+isModis1km = False
 isModis1km_lvl2 = False
-isModis1km_nnctth = False
+isModis1km_nnctth = True
 isNPP_v2014 = False
 isGAC_v2014_morning_sat = False
 isGAC_v2014 = False
@@ -45,6 +45,7 @@ elif isGAC_CCI_morning:
     ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/cci_reshaped_tgz/"
     files = files + glob(ROOT_DIR + "noaa17/*/????/??/*/*.h5")
 elif isModis1km:
+    print "isModis1km"
     num_files_to_read = 1
     isGAC=False
     satellites = "eos_modis_v2014_1steven"
@@ -71,7 +72,8 @@ elif isModis1km:
     files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/07/*.h5")
     files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/09/*.h5")
     files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/11/*.h5")
-    satellites = "eos_modis_v2014_1st_and_14th_all_non_training"
+    satellites = "eos_modis_v2014_1st_and_14th_all_non_training_font"
+    print "files", files
 elif isModis1km_lvl2:
     num_files_to_read = 1
     isGAC=False
@@ -94,7 +96,7 @@ elif isModis1km_lvl2:
     files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/11/*.h5")
     #files = glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/*/*.h5")
     #files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/*/*.h5")
-    satellites = "eos_modis_lvl2_C6_1st_and_14th_all_non_training"
+    satellites = "eos_modis_lvl2_C6_1st_and_14th_all_non_training_font"
     
 elif isModis1km_nnctth:
     num_files_to_read = 1
@@ -123,7 +125,8 @@ elif isModis1km_nnctth:
     files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/07/*.h5")
     files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/09/*.h5")
     files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/11/*.h5")
-    satellites = "eos_modis_v2018_1st_and_14th_all_non_trainin"
+    satellites = "eos_modis_v2018_1st_and_14th_all_non_training_font"
+
 elif isNPP_v2014:
     num_files_to_read = 30
     isGAC=False

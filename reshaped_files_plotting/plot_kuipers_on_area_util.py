@@ -7,12 +7,11 @@ import pyresample as pr
 import os
 from scipy import ndimage
 import matplotlib
+import matplotlib.pyplot as plt
 #matplotlib.use("TkAgg")
-font = {'family' : 'normal',
-        'weight' : 'normal',
-        'size'   : 20}
+matplotlib.rcParams.update({'font.size': 30})
+plt.rc('font', family='serif')
 
-matplotlib.rc('font', **font)
 
 from matchobject_io import DataObject        
 class ppsMatch_Imager_CalipsoObject(DataObject):
@@ -296,7 +295,6 @@ class ppsStatsOnFibLatticeObject(DataObject):
     def set_flattice(self, radius_km=200):
         self.radius_km = radius_km
         self.lons, self.lats =get_fibonacci_spread_points_on_earth(radius_km = radius_km)
-        import matplotlib.pyplot as plt
         fig = plt.figure(figsize = (36,18))
         ax = fig.add_subplot(111)
         plt.plot(self.lons,self.lats,'b*')
@@ -397,7 +395,6 @@ class ppsStatsOnFibLatticeObject(DataObject):
 
     def _remap_a_score_on_an_robinson_projection(self, vmin=0.0, vmax=1.0, 
                                                  score='Kuipers', screen_out_valid=False):
-        import matplotlib.pyplot as plt
         from mpl_toolkits.basemap import Basemap
         from scipy.interpolate import griddata
         lons = self.lons
@@ -494,8 +491,18 @@ class ppsStatsOnFibLatticeObject(DataObject):
         cb.update_ticks()   
         if not "mae" in score:
             ax.set_title(score)
+        if score in ["ctth_mae"]:
+            text_i = "(b)"
+            if "v2014" in self.PLOT_FILENAME_START:
+                text_i = "(a)"
+            if "v2018" in self.PLOT_FILENAME_START:
+                text_i = "(c)"    
+            plt.text(0.01, 0.95, text_i, fontsize=36,transform=ax.transAxes, bbox=dict(facecolor='w', edgecolor='w', alpha=1.0))
+                
         plt.savefig(self.PLOT_DIR_SCORE + self.PLOT_FILENAME_START+
-                    '_robinson_' +'.png')
+                    '_robinson_' +'.png', bbox_inches='tight')
+        #plt.savefig(self.PLOT_DIR_SCORE + self.PLOT_FILENAME_START+
+        #            '_robinson_' +'.pdf', bbox_inches='tight')
         plt.close('all')
 
     def remap_and_plot_score_on_several_areas(self, vmin=0.0, vmax=1.0, 

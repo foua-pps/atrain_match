@@ -5,7 +5,8 @@ from glob import glob
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
-matplotlib.rcParams.update({'font.size': 12})
+matplotlib.rcParams.update({'font.size': 18})
+
 from read_cloudproducts_and_nwp_pps import (read_ctth_nc, read_pps_angobj_nc)
 import matplotlib
 #matplotlib.use("TkAgg")
@@ -48,7 +49,7 @@ def plot_pressure_local(out_filenames,PLOT_DIR):
     aggregated_data, satz_step,pressure_plot = read_satz_statistics_files(out_filenames)
     step = 50#hPa read this!!!
     #["CTTHold", "CTTHnnAvhrr", "CTTHnnAvhrrNoRTTOV"]):     
-    fig = plt.figure(figsize = (14,14))  
+    fig = plt.figure(figsize = (12,12))  
     plt.suptitle('CTTH pressure dependence on satzenith angle')
     def plot_one_subplot(aggregated_data, satz_step,pressure_plot,  ctth_label, desc, label=False):
         ax.text(80,11, desc, bbox={'facecolor':'blue', 'alpha':0.1, 'pad':1})
@@ -87,6 +88,8 @@ def plot_pressure_local(out_filenames,PLOT_DIR):
     plt.savefig(PLOT_DIR + "ctth_satz_pressure_%s_second_try_.png"%('modis'))
 
 def plot_pressure_modis_01(out_filenames,PLOT_DIR,month):
+    plt.rc('text', usetex=True)
+    plt.rc('font', family='serif')
     aggregated_data, satz_step,pressure_plot = read_satz_statistics_files(out_filenames)
     step = 50#hPa read this!!!
     #["CTTHold", "CTTHnnAvhrr", "CTTHnnAvhrrNoRTTOV"]):     
@@ -94,6 +97,7 @@ def plot_pressure_modis_01(out_filenames,PLOT_DIR,month):
     plt.suptitle('CTTH pressure dependence on satzenith angle', fontsize=22)
     def plot_one_subplot(aggregated_data, satz_step,pressure_plot,  ctth_label, desc, legend=False):
         ax.text(300,11.5, desc, bbox={'facecolor':'blue', 'alpha':0.0, 'pad':1})
+        #plt.text(0.02, 0.90, desc, fontsize=12,transform=ax.transAxes, bbox=dict(facecolor='w', edgecolor='w', alpha=1.0))
         ax.grid(True)
         plot_a = (aggregated_data[ctth_label][0] ) 
                       #aggregated_data[ctth_label][10])
@@ -116,7 +120,7 @@ def plot_pressure_modis_01(out_filenames,PLOT_DIR,month):
         ax.set_ylim(0,13)
         ax.set_xlim(70,1200)
         if legend:
-            plt.legend(loc='upper right',bbox_to_anchor=(1.3, 1.3))
+            plt.legend(loc='upper right',bbox_to_anchor=(1.3, 1.3),fontsize=18, numpoints=4)
     #["CTTHold", "CTTHnnaNT", "CTTHnnvNT", "CTTHnnm2NT", "CTTHnnmINT", "CTTHnnmINTnco2"]
     ax = fig.add_subplot(331)
     plot_one_subplot(aggregated_data, satz_step, pressure_plot,"CTTHold", "PPS-v2014")
@@ -142,14 +146,14 @@ def plot_pressure_modis_01(out_filenames,PLOT_DIR,month):
     plt.savefig(PLOT_DIR + "ctth_satz_pressure_%s_m%s.png"%('modis',month))
 
 
-    font = {'family' : 'normal',
-            'weight' : 'normal',
-            'size'   : 18}
-    matplotlib.rc('font', **font)
-    fig = plt.figure(figsize = (17,15))  
-    plt.suptitle('Cloud top pressure dependence on satzenith angle', fontsize=22)
+    fig = plt.figure(figsize = (11,11))  
+    plt.rc('text', usetex=True)
+    plt.rc('font', family='serif')
+    #plt.suptitle('Cloud top pressure dependence on satzenith angle', fontsize=12)
     def plot_one_subplot(aggregated_data, satz_step,pressure_plot,  ctth_label, desc, legend=False):
-        ax.text(420,11.5, desc, bbox={'facecolor':'w', 'edgecolor':'w','alpha':1.0, 'pad':6})
+        #ax.text(420,11.5, desc, bbox={'facecolor':'w', 'edgecolor':'w','alpha':1.0, 'pad':6})
+        plt.text(0.03, 0.90, desc, fontsize=18,transform=ax.transAxes, bbox=dict(facecolor='w', edgecolor='w', alpha=1.0))
+
         #ax.grid(True)
         ax.spines['right'].set_visible(False)
         ax.spines['top'].set_visible(False)
@@ -168,10 +172,10 @@ def plot_pressure_modis_01(out_filenames,PLOT_DIR,month):
         plot_60_80 = plot_60_80*100.0/np.sum(plot_60_80)
         plot_calipso = plot_calipso*100.0/np.sum(plot_calipso) 
         plt.plot(pressure_plot[:-1], plot_calipso, 'b', alpha=0.2, label="CALIPSO") 
-        plt.plot(pressure_plot[:-1], plot_00_20, '-k', label="satellite zenth angle: 0-20")
-        plt.plot(pressure_plot[:-1], plot_20_40, '--k', label="satellite zenth angle: 20-40")
-        plt.plot(pressure_plot[:-1], plot_40_60, '-.k', label="satellite zenth angle: 40-60")
-        plt.plot(pressure_plot[:-1], plot_60_80, ':k', label="satellite zenth angle: 60-80")
+        plt.plot(pressure_plot[:-1], plot_00_20, '-k', label="satellite zenith angle: 0-20")
+        plt.plot(pressure_plot[:-1], plot_20_40, '--k', label="satellite zenith angle: 20-40")
+        plt.plot(pressure_plot[:-1], plot_40_60, '-.k', label="satellite zenith angle: 40-60")
+        plt.plot(pressure_plot[:-1], plot_60_80, ':k', label="satellite zenith angle: 60-80")
         ax.fill(pressure_plot[:-1], plot_calipso, "b", alpha=0.2) 
 
         #ax.set_ylabel('percent of ctth results')
@@ -179,31 +183,33 @@ def plot_pressure_modis_01(out_filenames,PLOT_DIR,month):
         ax.set_xlim(70,1150)
         if legend:
             #my_legend = plt.legend(loc='upper right',bbox_to_anchor=(1.2, 1.2), framealpha=1.0,edgecolor='w')
-            my_legend = plt.legend(loc='center left', bbox_to_anchor=(1.1, 0.6), framealpha=1.0,edgecolor='w')
+            my_legend = plt.legend(loc='center left', bbox_to_anchor=(0.9, 0.6), framealpha=1.0,edgecolor='w',fontsize=18, numpoints=4)
             #frame = my_legend.get_frame()
             #frame.set_facecolor('white')
     #["CTTHold", "CTTHnnaNT", "CTTHnnvNT", "CTTHnnm2NT", "CTTHnnmINT", "CTTHnnmINTnco2"]
-    ax = fig.add_subplot(331)
-    plot_one_subplot(aggregated_data, satz_step, pressure_plot,"MODIS-C6", "MODIS-C6")
-    ax = fig.add_subplot(332)
-    plot_one_subplot(aggregated_data, satz_step, pressure_plot,"CTTHold", "PPS-v2014",legend=3)
-    ax = fig.add_subplot(334)
-    plot_one_subplot(aggregated_data, satz_step, pressure_plot, "CTTHnnaNT", "NN-AVHRR")
-    ax = fig.add_subplot(335)
-    plot_one_subplot(aggregated_data, satz_step, pressure_plot,"CTTHnna1NT", "NN-AVHRR1")
-    ax = fig.add_subplot(336)
-    plot_one_subplot(aggregated_data, satz_step, pressure_plot,"CTTHnnvNT", "NN-VIIRS")
-    ax = fig.add_subplot(337)
-    plot_one_subplot(aggregated_data, satz_step, pressure_plot, "CTTHnnm2NT", "NN-MERSI-2")
-    ax = fig.add_subplot(338)
-    plot_one_subplot(aggregated_data, satz_step, pressure_plot,"CTTHnnmINT", "NN-MetImage")
-    ax = fig.add_subplot(339)
-    plot_one_subplot(aggregated_data, satz_step, pressure_plot,"CTTHnnmINTnco2", "NN-MetImage-NoCO2")
-    #ax.set_xlabel('pressure (hPa)')
-    fig.text(0.5, 0.04, 'pressure (hPa)', ha='center',fontsize=18)
-    fig.text(0.04, 0.5, 'percent of cloud top pressure results', va='center', rotation='vertical',fontsize=20)
-    plt.savefig(PLOT_DIR + "ctth_satz_pressure_%s_for_art_m%s.png"%('modis',month))
 
+    ax = fig.add_subplot(331)
+    plot_one_subplot(aggregated_data, satz_step, pressure_plot,"CTTHold", "(a) PPS-v2014")
+    ax = fig.add_subplot(332)
+    plot_one_subplot(aggregated_data, satz_step, pressure_plot,"MODIS-C6", "(b) MODIS-C6",legend=3)
+    ax = fig.add_subplot(334)
+    plot_one_subplot(aggregated_data, satz_step, pressure_plot, "CTTHnnaNT", "(c) NN-AVHRR")
+    ax = fig.add_subplot(335)
+    plot_one_subplot(aggregated_data, satz_step, pressure_plot,"CTTHnna1NT", "(d) NN-AVHRR1")
+    ax = fig.add_subplot(336)
+    plot_one_subplot(aggregated_data, satz_step, pressure_plot,"CTTHnnvNT", "(e) NN-VIIRS")
+    ax = fig.add_subplot(337)
+    plot_one_subplot(aggregated_data, satz_step, pressure_plot, "CTTHnnm2NT", "(f) NN-MERSI-2")
+    ax = fig.add_subplot(338)
+    plot_one_subplot(aggregated_data, satz_step, pressure_plot,"CTTHnnmINTnco2", "(g) NN-MetImage-$NoCO_2$")
+    ax = fig.add_subplot(339)
+    plot_one_subplot(aggregated_data, satz_step, pressure_plot,"CTTHnnmINT", "(h) NN-MetImage")
+
+    #ax.set_xlabel('pressure (hPa)')
+    fig.text(0.5, 0.04, 'Pressure (hPa)', ha='center',fontsize=18)
+    fig.text(0.04, 0.5, 'Percent of cloud top pressure results', va='center', rotation='vertical',fontsize=18)
+    plt.savefig(PLOT_DIR + "ctth_satz_pressure_%s_for_art_m%s.png"%('modis',month))
+    plt.savefig(PLOT_DIR + "ctth_satz_pressure_%s_for_art_m%s.pdf"%('modis',month))
 def investigate_nn_ctth_satz():
     month = '10'
     month_path = month

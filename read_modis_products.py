@@ -88,4 +88,5 @@ def read_modis_h5(filename):
     modis_06.cloud_emissivity = h5file['mod06']['Data Fields']['cloud_emissivity_1km'].value.astype(np.float)
     modis_06.latitude = h5file['mod06']['Geolocation Fields']['Latitude'].value.astype(np.float)
     modis_06.longitude = h5file['mod06']['Geolocation Fields']['Longitude'].value.astype(np.float)
+    h5file.close()
     return modis_06

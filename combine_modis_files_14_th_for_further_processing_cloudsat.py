@@ -39,11 +39,15 @@ ROOT_DIR = BASE_DIR + "/Reshaped_Files/eos2/1km/2010/%s/*/*cloudsat*.h5"
 OUT_DIR_TEMPLATE = BASE_DIR + "/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/"
 outfile_template = "1km_%s_eos2_2010%s14_0000_00000_cloudsat-GEOPROF_modis_match.h5"
 
-BASE_DIR = "/home/a001865/DATA_MISC/reshaped_files/global_modis_01st_created20170504"
-#BASE_DIR = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_MODIS_NOVEMBER_nnAVHRR_with_gac"
+BASE_DIR = "/home/a001865/DATA_MISC/reshaped_files/global_modis_01st_created20170519"
 ROOT_DIR = BASE_DIR + "/Reshaped_Files/eos2/1km/2010/%s/*/*cloudsat*.h5"
 OUT_DIR_TEMPLATE = BASE_DIR + "/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/"
 outfile_template = "1km_%s_eos2_2010%s01_0000_00000_cloudsat-GEOPROF_modis_match.h5"
+
+#BASE_DIR = "/home/a001865/DATA_MISC/reshaped_files/global_modis_14th_created20170519"
+#ROOT_DIR = BASE_DIR + "/Reshaped_Files/eos2/1km/2010/%s/*/*cloudsat*.h5"
+#OUT_DIR_TEMPLATE = BASE_DIR + "/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/"
+#outfile_template = "1km_%s_eos2_2010%s14_0000_00000_cloudsat-GEOPROF_modis_match.h5"
 
 clsatObj_night = CloudsatAvhrrTrackObject()
 clsatObj_day = CloudsatAvhrrTrackObject()
