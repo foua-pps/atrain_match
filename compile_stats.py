@@ -3,7 +3,7 @@ Created on Oct 13, 2010
 
 @author: a001696
 '''
-from config import (CASES, RESOLUTION, _validation_results_dir, AREA,
+from config import (CASES, COMPILE_STATISTICS_TRUTH, RESOLUTION, _validation_results_dir, AREA,
                     MIN_OPTICAL_DEPTH, CCI_CLOUD_VALIDATION,
                     DNT_FLAG, CONFIG_PATH, SURFACES,
                     COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC,
@@ -14,92 +14,26 @@ import logging
 logging.basicConfig(level=logging.INFO) 
 logger = logging.getLogger(__name__)
 
-def compile_stats(results_files, write=True, outfile_cfc="merged_sat_file_cfc"):
+def compile_stats(results_files, write=True, outfile_cfc="merged_sat_file_cfc", truth_sat='calipso'):
     """Run through all summary statistics."""
     
     #print("=========== Cloud fraction ============")
     from statistics import orrb_CFC_stat
-    cfc_stats = orrb_CFC_stat.CloudFractionStats(results_files)
+    cfc_stats = orrb_CFC_stat.CloudFractionStats(results_files=results_files, truth_sat=truth_sat)
     cfc_stats.write(outfile_cfc)
     
     compiled_cth_file_name = outfile_cfc.replace('_cfc_','_cth_')
     # First all clouds, then split results
     note = "========== Cloud top height ==========="
     from statistics import orrb_CTH_stat
-    cth_stats = orrb_CTH_stat.CloudTopStats(results_files, [16,17,18,19], note)
+    cth_stats = orrb_CTH_stat.CloudTopStats(ac_data=cfc_stats.ac_data, truth_sat=truth_sat)
     cth_stats.write(compiled_cth_file_name)
-
-    if COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC:
-            note = "========== Single Layer     ==========="
-            from statistics import orrb_CTH_stat
-            cth_stats = orrb_CTH_stat.CloudTopStats(results_files, 
-                                                    [21,22,23,24], note)
-            cth_stats.write(compiled_cth_file_name, mode='a')
-            
-    if (COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC and
-        (ALSO_USE_5KM_FILES or RESOLUTION==5)): 
-            note =("=== Single Layer, Not optically thin ==\n"
-                   "========== Expect good results here! ==")
-            from statistics import orrb_CTH_stat
-            cth_stats = orrb_CTH_stat.CloudTopStats(results_files, 
-                                                    [26,27,28,29], note)
-            cth_stats.write(compiled_cth_file_name, mode='a')
-            note = "===== Top Layer, Not optically very thin ==="
-            from statistics import orrb_CTH_stat
-            cth_stats = orrb_CTH_stat.CloudTopStats(results_files, 
-                                                    [31,32,33,34], note)
-            cth_stats.write(compiled_cth_file_name, mode='a')
-            note = ("==== Top Layer, Optically very thin ===\n"
-                    "========== Expect bad results here! ===")
-            from statistics import orrb_CTH_stat
-            cth_stats = orrb_CTH_stat.CloudTopStats(results_files, 
-                                                    [36,37,38,39], note)
-            cth_stats.write(compiled_cth_file_name, mode='a')
-
-    if COMPILE_RESULTS_SEPARATELY_FOR_SEMI_AND_OPAQUE:
-        try:
-            note = "========== Opaque All     ==========="
-            from statistics import orrb_CTH_stat
-            cth_stats = orrb_CTH_stat.CloudTopStats(results_files, 
-                                                    [41,42,43,44], note)
-            cth_stats.write(compiled_cth_file_name, mode='a')
-            DID_FIND_SEMI_OPAQUE_RESULTS = True     
-        except IndexError:
-            DID_FIND_SEMI_OPAQUE_RESULTS = False
-            print "Can not find opaque/semi ctth results"
-        if (COMPILE_RESULTS_SEPARATELY_FOR_SEMI_AND_OPAQUE and
-            DID_FIND_SEMI_OPAQUE_RESULTS):          
-            note = "========== Semi-transparent All ==========="
-            from statistics import orrb_CTH_stat
-            cth_stats = orrb_CTH_stat.CloudTopStats(results_files, 
-                                                    [46,47,48,49], note)
-            cth_stats.write(compiled_cth_file_name, mode='a')
-            note = "========== Opaque Not thin top layer ==========="
-            from statistics import orrb_CTH_stat
-            cth_stats = orrb_CTH_stat.CloudTopStats(results_files, 
-                                                    [51,52,53,54], note)
-            cth_stats.write(compiled_cth_file_name, mode='a')
-            note = "========== Semi-transparent Not thin top layer ==========="
-            from statistics import orrb_CTH_stat
-            cth_stats = orrb_CTH_stat.CloudTopStats(results_files, 
-                                                    [56,57,58,59], note)
-            cth_stats.write(compiled_cth_file_name, mode='a')
-            note = "========== Opaque Thin top layer ==========="
-            from statistics import orrb_CTH_stat
-            cth_stats = orrb_CTH_stat.CloudTopStats(results_files, 
-                                                    [61,62,63,64], note)
-            cth_stats.write(compiled_cth_file_name, mode='a')
-            note = "========== Semi-transparent Thin top layer ==========="
-            from statistics import orrb_CTH_stat
-            cth_stats = orrb_CTH_stat.CloudTopStats(results_files, 
-                                                    [66,67,68,69], note)
-            cth_stats.write(compiled_cth_file_name, mode='a')
     
     if not CCI_CLOUD_VALIDATION:
         #print("============= Cloud type ==============")
         compiled_cty_file_name = outfile_cfc.replace('_cfc_','_cty_')
         from statistics import orrb_CTY_stat
-        cty_stats = orrb_CTY_stat.CloudTypeStats(results_files, cfc_stats)
+        cty_stats = orrb_CTY_stat.CloudTypeStats(ac_data=cfc_stats.ac_data, truth_sat=truth_sat)
         cty_stats.write(compiled_cty_file_name)
 
 if __name__ == '__main__':
@@ -184,37 +118,40 @@ if __name__ == '__main__':
         print("Gathering statistics from all validation results files in the "
               "following directories:")    
         print(RESOLUTION)
-        results_files = []
         #get result files for all cases
-        for case in CASES:
-            indata_dir = config_options['result_dir'].format(
-                val_dir=_validation_results_dir,
+        for truth_sat in COMPILE_STATISTICS_TRUTH:
+            results_files = []
+            for case in CASES:
+                indata_dir = config_options['result_dir'].format(
+                    val_dir=_validation_results_dir,
+                    satellite=case['satname'],
+                    resolution=str(RESOLUTION),
+                    area=AREA,
+                    month="%02d"%(case['month']),
+                    year=case['year'],
+                    mode=process_mode_dnt,
+                    truth_sat=truth_sat,
+                    min_opt_depth="")  
+                indata_dir =indata_dir.replace("%d_%H","*")
+                print("-> " + indata_dir)
+                results_files.extend(glob("%s/*%skm*%s*.dat" %(indata_dir, RESOLUTION, truth_sat.lower())))
+            #compile and write results    
+            compiled_dir = config_options['compiled_stats_dir'].format(
+                val_dir=_validation_results_dir)
+            if not os.path.exists(compiled_dir):
+                os.makedirs(compiled_dir)
+            compiled_file_cfc = config_options['compiled_stats_filename'].format(
                 satellite=case['satname'],
                 resolution=str(RESOLUTION),
                 area=AREA,
-                month="%02d"%(case['month']),
-                year=case['year'],
+                month=case['month'],
+                year=case['year'], 
                 mode=process_mode_dnt,
-                min_opt_depth="")  
-            indata_dir =indata_dir.replace("%d_%H","*")
-            print("-> " + indata_dir)
-            results_files.extend(glob("%s/*%skm*.dat" %(indata_dir, RESOLUTION)))
-        #compile and write results    
-        compiled_dir = config_options['compiled_stats_dir'].format(
-            val_dir=_validation_results_dir)
-        if not os.path.exists(compiled_dir):
-            os.makedirs(compiled_dir)
-        compiled_file_cfc = config_options['compiled_stats_filename'].format(
-            satellite=case['satname'],
-            resolution=str(RESOLUTION),
-            area=AREA,
-            month=case['month'],
-            year=case['year'], 
-            mode=process_mode_dnt,
-            stat_type='cfc',
-            min_opt_depth="")
-        compiled_file_cfc = os.path.join(compiled_dir, compiled_file_cfc)
-        compile_stats(results_files,  outfile_cfc=compiled_file_cfc)
+                truth_sat=truth_sat,
+                stat_type='cfc',
+                min_opt_depth="")
+            compiled_file_cfc = os.path.join(compiled_dir, compiled_file_cfc)
+            compile_stats(results_files,  outfile_cfc=compiled_file_cfc,   truth_sat=truth_sat)
     if options.write == True:
         logger.warning("Results always written to file, -w flag is depricated")
 

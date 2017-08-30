@@ -1,5 +1,6 @@
 #Change log is found in git
-
+import time
+import numpy as np
 import logging
 logger = logging.getLogger(__name__)
 from matchobject_io import (DataObject,
@@ -13,31 +14,13 @@ from common import (MatchupError,
                     elements_within_range)
 from extract_imager_along_track import avhrr_track_from_matched
 
+from calipso import (find_break_points, calipso_track_from_matched,
+                     time_reshape_calipso, do_some_logging)
+
 
 def get_cloudsat(filename):
-    #import numpy
-    import time
-    # Read CLOUDSAT Radar data:
+    # Read CLOUDSAT Radar data for calipso something is done in this function:
     cloudsat = read_cloudsat(filename)
-    if RESOLUTION == 1:
-        lonCloudsat = cloudsat.longitude.ravel()
-#        latCloudsat = cloudsat.latitude.ravel()
-        timeCloudsat = cloudsat.Profile_time.ravel()
-    elif RESOLUTION == 5:
-        lonCloudsat = cloudsat.longitude[:,1].ravel()
-#        latCloudsat = cloudsat.latitude[:,1].ravel()
-        timeCloudsat = cloudsat.Profile_time[:,1].ravel()
-    ndim = lonCloudsat.shape[0]
-    # Time in seconds since 1970:
-    # Convert from TAI time to UTC in seconds since 1970:
-    dsec = time.mktime((1993,1,1,0,0,0,0,0,0)) - time.timezone
-    print "GEOPROF TAI start time: ",cloudsat.TAI_start
-    start_sec1970 = cloudsat.TAI_start + dsec
-    start_time = time.gmtime(start_sec1970[0])
-    end_sec1970 = cloudsat.TAI_start + dsec + cloudsat.Profile_time[ndim-1]
-    end_time = time.gmtime(end_sec1970[0])
-    print "GEOPROF Start and end times: ",start_time,end_time
-    cloudsat.sec_1970 = timeCloudsat + start_sec1970
     return cloudsat
 
 def read_cloudsat(filename):
@@ -70,136 +53,85 @@ def read_cloudsat(filename):
                 retv.all_arrays['elevation'] = get_data(tempG[dataset])
             elif dataset == 'Sigma-Zero':           
                 retv.all_arrays['SigmaZero'] = get_data(tempG[dataset])
-    h5file.close()
+    h5file.close()    
+    # Convert from TAI time to UTC in seconds since 1970:
+    dsec = time.mktime((1993,1,1,0,0,0,0,0,0)) - time.timezone
+    retv.sec_1970 = retv.Profile_time.ravel() + retv.TAI_start + dsec
     return retv
+
 
 def match_cloudsat_avhrr(cloudsatObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,imagerAngObj, 
                          cpp, nwp_segments):
-    import numpy
-    import time
     import string
-#    import sys
-#    import inspect
     import os
     retv = CloudsatAvhrrTrackObject()
-    if RESOLUTION ==1:
-        lonCloudsat = cloudsatObj.longitude.ravel()
-        latCloudsat = cloudsatObj.latitude.ravel()
-    elif RESOLUTION ==5:
-        lonCloudsat = cloudsatObj.longitude[:,1].ravel()
-        latCloudsat = cloudsatObj.latitude[:,1].ravel()
+    lonCloudsat = cloudsatObj.longitude.ravel()
+    latCloudsat = cloudsatObj.latitude.ravel()
     timeCloudsat = cloudsatObj.sec_1970.ravel()
-    ndim = lonCloudsat.shape[0]
+
     #Nina 20150313 Swithcing to mapping without area as in cpp. Following suggestion from Jakob
     from common import map_avhrr
     cal, cap = map_avhrr(imagerGeoObj, lonCloudsat.ravel(), latCloudsat.ravel(),
                          radius_of_influence=RESOLUTION*0.7*1000.0) # somewhat larger than radius...
-    calnan = numpy.where(cal == NODATA, numpy.nan, cal)
-    if (~numpy.isnan(calnan)).sum() == 0:
+    calnan = np.where(cal == NODATA, np.nan, cal)
+    if (~np.isnan(calnan)).sum() == 0:
         raise MatchupError("No matches within region.")
-    imager_lines_sec_1970 = numpy.where(cal != NODATA, imagerGeoObj.time[cal], numpy.nan)
+    #check if it is within time limits:
+    if len(imagerGeoObj.time.shape)>1:
+        imager_time_vector = [imagerGeoObj.time[line,pixel] for line, pixel in zip(cal,cap)]
+        imager_lines_sec_1970 = np.where(cal != NODATA, imager_time_vector, np.nan)
+    else:
+        imager_lines_sec_1970 = np.where(cal != NODATA, imagerGeoObj.time[cal], np.nan)
     # Find all matching Cloudsat pixels within +/- sec_timeThr from the AVHRR data
     idx_match = elements_within_range(cloudsatObj.sec_1970, imager_lines_sec_1970, sec_timeThr)
+
     if idx_match.sum() == 0:
         raise MatchupError("No matches in region within time threshold %d s." % sec_timeThr)  
-    #arnamecl = array name from cloudsatObj
-    for arnamecl, value in cloudsatObj.all_arrays.items(): 
-        if value is not None:
-            #print arnamecl, value, value.shape, value.ndim
-            if value.ndim == 0:
-                retv.cloudsat.all_arrays[arnamecl] = value.copy()
-            elif value.ndim == 1:
-                if value.size != 1:
-                    retv.cloudsat.all_arrays[arnamecl] = value.copy()[idx_match].astype('d')
-            elif value.ndim == 2:
-                temp = value.copy()[idx_match,:].astype('d')
-                if arnamecl == 'Radar_Reflectivity':
-                    temp = numpy.where(numpy.less(temp,0),-9.9,temp)
-                retv.cloudsat.all_arrays[arnamecl] = temp
-    # Special because in 5km lon and lat is 2dim and should just be 1dim
-    retv.cloudsat.longitude = numpy.repeat(lonCloudsat, idx_match).astype('d')
-    retv.cloudsat.latitude = numpy.repeat(latCloudsat, idx_match).astype('d')
+
+    retv.cloudsat = calipso_track_from_matched(retv.cloudsat, cloudsatObj, idx_match)
+ 
     # Cloudsat line,pixel inside AVHRR swath:
-    cal_on_avhrr = numpy.repeat(cal, idx_match)
-    cap_on_avhrr = numpy.repeat(cap, idx_match)
+    cal_on_avhrr = np.repeat(cal, idx_match)
+    cap_on_avhrr = np.repeat(cap, idx_match)
     retv.cloudsat.avhrr_linnum = cal_on_avhrr.astype('i')
     retv.cloudsat.avhrr_pixnum = cap_on_avhrr.astype('i')
-    N =    retv.cloudsat.sec_1970.shape[0] 
-    print "Cloudsat observation time of first cloudsat-avhrr match: ",\
-        time.gmtime(retv.cloudsat.sec_1970[0])
-    print "Cloudsat observation time of last cloudsat-avhrr match: ",\
-        time.gmtime(retv.cloudsat.sec_1970[N-1])
-    # Time
-    retv.avhrr.sec_1970 = imagerGeoObj.time[cal_on_avhrr]    
+
+   # Imager time
+    if len(imagerGeoObj.time.shape)>1:
+        retv.avhrr.sec_1970= [imagerGeoObj.time[line,pixel] for line, pixel in zip(cal_on_avhrr,cap_on_avhrr)]
+    else:
+        retv.avhrr.sec_1970 = imagerGeoObj.time[cal_on_avhrr]
     retv.diff_sec_1970 = retv.cloudsat.sec_1970 - retv.avhrr.sec_1970
-    min_diff = numpy.minimum.reduce(retv.diff_sec_1970)
-    max_diff = numpy.maximum.reduce(retv.diff_sec_1970)
-    print "Maximum and minimum time differences in sec (avhrr-cloudsat): ",\
-          numpy.maximum.reduce(retv.diff_sec_1970),numpy.minimum.reduce(retv.diff_sec_1970)
-    print "AVHRR observation time of first cloudsat-avhrr match: ",\
-          time.gmtime(retv.avhrr.sec_1970[0])
-    print "AVHRR observation time of last cloudsat-avhrr match: ",\
-          time.gmtime(retv.avhrr.sec_1970[N-1])               
-    # Make the latitude and pps cloudtype on the cloudsat track:
-    # line and pixel arrays have equal dimensions
-    print "Generate all datatypes (lat,lon,cty,ctth,surft) on the cloudsat track!"
+    do_some_logging(retv, cloudsatObj)
+    logger.info("Generate the latitude,cloudtype tracks!")
     retv = avhrr_track_from_matched(retv, imagerGeoObj, imagerObj, imagerAngObj, 
                                     nwp, ctth, ctype, cma, cal_on_avhrr, cap_on_avhrr, 
                                     cpp=cpp, nwp_segments=nwp_segments)
-    print "AVHRR-PPS Cloud Type,latitude: shapes = ",\
-          retv.avhrr.cloudtype.shape,retv.avhrr.latitude.shape
     return retv
 
 def reshapeCloudsat(cloudsatfiles, avhrr):
-#    import time
-    import numpy
     import sys
-    import inspect
-    clsat = CloudsatObject()
     avhrr_end = avhrr.sec1970_end
     avhrr_start = avhrr.sec1970_start
-    startCloudsat = get_cloudsat(cloudsatfiles[0])
-    startCloudsat.Profile_time = numpy.add(startCloudsat.Profile_time,startCloudsat.TAI_start)
+    clsat = get_cloudsat(cloudsatfiles[0])
     for i in range(len(cloudsatfiles)-1):
         newCloudsat = get_cloudsat(cloudsatfiles[i+1])
-        newCloudsat.Profile_time = numpy.add(newCloudsat.Profile_time,newCloudsat.TAI_start)
-        clsat_start_all = startCloudsat.sec_1970.ravel()
+        clsat_start_all = clsat.sec_1970.ravel()
         clsat_new_all = newCloudsat.sec_1970.ravel()
         if not clsat_start_all[0]<clsat_new_all[0]:
             print "cloudsat files are in the wrong order"
             print("Program cloudsat.py at line %i" %(inspect.currentframe().f_lineno+1))
             sys.exit(-9)
-        clsat_break = numpy.argmin(numpy.abs(clsat_start_all - clsat_new_all[0]))+1
+        clsat_break = np.argmin(np.abs(clsat_start_all - clsat_new_all[0]))+1
         # Concatenate the feature values
         #arname = array name from cloudsatObj
-        for arname, value in startCloudsat.all_arrays.items(): 
+        for arname, value in clsat.all_arrays.items(): 
             if value is not None:
                 if value.size != 1:
-                    startCloudsat.all_arrays[arname] = numpy.concatenate((value[0:clsat_break,...],newCloudsat.all_arrays[arname]))
+                    clsat.all_arrays[arname] = np.concatenate((value[0:clsat_break,...],newCloudsat.all_arrays[arname]))
     # Finds Break point
-    start_break = numpy.argmin((numpy.abs((startCloudsat.sec_1970) - (avhrr_start - sec_timeThr))))
-    if start_break != 0:
-        start_break = start_break - 1 # Minus one to get one extra, just to be certain
-    end_break = numpy.argmin((numpy.abs((startCloudsat.sec_1970) - (avhrr_end + sec_timeThr)))) + 2    # Plus two to get one extra, just to be certain
-    # Cut the feature values
-    #arnamecl = array name from cloudsatObj
-    for arnamecl, valuecl in startCloudsat.all_arrays.items(): 
-        if valuecl is not None:
-            if valuecl.size != 1:
-                clsat.all_arrays[arnamecl] = valuecl[start_break:end_break,...]
-            else:
-                clsat.all_arrays[arnamecl] = valuecl
-    if clsat.Profile_time.shape[0] <= 0:
-        print("No time match, please try with some other CloudSat files")
-        print("Program cloudsat.py at line %i" %(inspect.currentframe().f_lineno+1))
-        sys.exit(-9)
-    else:
-        if clsat.Profile_time.ndim == 1:
-            clsat.TAI_start = clsat.Profile_time[0]
-        else:
-            clsat.TAI_start = clsat.Profile_time[0,0]
-        clsat.Profile_time = clsat.Profile_time - clsat.TAI_start        
-        clsat.TAI_start = numpy.asarray(clsat.TAI_start)
+    startBreak, endBreak = find_break_points(clsat, avhrr)
+    clsat = time_reshape_calipso(clsat, startBreak, endBreak)
     return clsat
     
     
@@ -209,7 +141,6 @@ if __name__ == "__main__":
 #    import string
 #    import epshdf
 #    import pps_io
-    import numpy
     
     from config import CLOUDSAT_DIR
     cloudsatfile = "%s/2007151082929_05796_CS_2B-GEOPROF_GRANULE_P_R04_E02.h5"%(CLOUDSAT_DIR)
@@ -225,11 +156,11 @@ if __name__ == "__main__":
 
     # Test:
     ndim = lonCloudsat.ravel().shape[0]
-    idx_match = numpy.zeros((ndim,),'b')
+    idx_match = np.zeros((ndim,),'b')
     idx_match[0:10] = 1
 
-    x = numpy.repeat(cloudsat.Height[::,0],idx_match)
+    x = np.repeat(cloudsat.Height[::,0],idx_match)
     for i in range(1,125):
-        x = numpy.concatenate((x,numpy.repeat(cloudsat.Height[::,i],idx_match)))
+        x = np.concatenate((x,np.repeat(cloudsat.Height[::,i],idx_match)))
     N = x.shape[0]/125
-    cloudsat.Height = numpy.reshape(x,(125,N))
+    cloudsat.Height = np.reshape(x,(125,N))

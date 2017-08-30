@@ -24,6 +24,8 @@
 """
 
 import numpy as np
+import h5py   
+from common import write_match_objects
 
 class DataObject(object):
     """
@@ -331,52 +333,142 @@ class CloudsatObject(DataObject):
         DataObject.__init__(self)                            
         self.all_arrays = {
             'clsat_max_height':None,
-                            'longitude': None,
-                            'latitude': None,
-                            'avhrr_linnum': None,
-                            'avhrr_pixnum': None,
-                            'elevation': None,
-                            'Profile_time': None,
-                            'sec_1970': None,
-                            'TAI_start': None,
-                            'Temp_min_mixph_K': None,
-                            'Temp_max_mixph_K': None,
-                            # The data:
-                            'CPR_Cloud_mask': None,
-                            'CPR_Echo_Top': None,
-                            'Clutter_reduction_flag': None,
-                            'Data_quality': None,
-                            'Data_targetID': None,
-                            'Gaseous_Attenuation': None,
-                            'MODIS_Cloud_Fraction': None,
-                            'MODIS_cloud_flag': None,
-                            'Radar_Reflectivity': None,
-                            'Height': None,
-                            'SigmaZero': None,
-                            'SurfaceHeightBin': None,
-                            'SurfaceHeightBin_fraction': None,
-                            'sem_NoiseFloor': None,
-                            'sem_NoiseFloorVar': None,
-                            'sem_NoiseGate': None,
-                            'RVOD_liq_water_path': None,
-                            'RVOD_liq_water_path_uncertainty': None,
-                            'RVOD_ice_water_path': None,
-                            'RVOD_ice_water_path_uncertainty': None,
-                            'LO_RVOD_liquid_water_path': None,
-                            'LO_RVOD_liquid_water_path_uncertainty': None,
-                            'IO_RVOD_ice_water_path': None,
-                            'IO_RVOD_ice_water_path_uncertainty': None,
-                            'RVOD_liq_water_content': None,
-                            'RVOD_liq_water_content_uncertainty': None,
-                            'RVOD_ice_water_content': None,
-                            'RVOD_ice_water_content_uncertainty': None,
-                            'LO_RVOD_liquid_water_content': None,
-                            'LO_RVOD_liquid_water_content_uncertainty': None,
-                            'IO_RVOD_ice_water_content': None,
-                            'IO_RVOD_ice_water_content_uncertainty': None,
-                            'RVOD_CWC_status': None
+            'longitude': None,
+            'latitude': None,
+            'avhrr_linnum': None,
+            'avhrr_pixnum': None,
+            'elevation': None,
+            'Profile_time': None,
+            'sec_1970': None,
+            'TAI_start': None,
+            'Temp_min_mixph_K': None,
+            'Temp_max_mixph_K': None,
+            # The data:
+            'CPR_Cloud_mask': None,
+            'CPR_Echo_Top': None,
+            'Clutter_reduction_flag': None,
+            'Data_quality': None,
+            'Data_targetID': None,
+            'Gaseous_Attenuation': None,
+            'MODIS_Cloud_Fraction': None,
+            'MODIS_cloud_flag': None,
+            'Radar_Reflectivity': None,
+            'Height': None,
+            'SigmaZero': None,
+            'SurfaceHeightBin': None,
+            'SurfaceHeightBin_fraction': None,
+            'sem_NoiseFloor': None,
+            'sem_NoiseFloorVar': None,
+            'sem_NoiseGate': None,
+            'RVOD_liq_water_path': None,
+            'RVOD_liq_water_path_uncertainty': None,
+            'RVOD_ice_water_path': None,
+            'RVOD_ice_water_path_uncertainty': None,
+            'LO_RVOD_liquid_water_path': None,
+            'LO_RVOD_liquid_water_path_uncertainty': None,
+            'IO_RVOD_ice_water_path': None,
+            'IO_RVOD_ice_water_path_uncertainty': None,
+            'RVOD_liq_water_content': None,
+            'RVOD_liq_water_content_uncertainty': None,
+            'RVOD_ice_water_content': None,
+            'RVOD_ice_water_content_uncertainty': None,
+            'LO_RVOD_liquid_water_content': None,
+            'LO_RVOD_liquid_water_content_uncertainty': None,
+            'IO_RVOD_ice_water_content': None,
+            'IO_RVOD_ice_water_content_uncertainty': None,
+            'RVOD_CWC_status': None
                            }
 
+class IssObject(DataObject):
+    def __init__(self):
+        DataObject.__init__(self)                            
+        self.all_arrays = {
+            'longitude': None,
+            'latitude': None,
+            'avhrr_linnum': None,
+            'avhrr_pixnum': None,
+            'sec_1970': None,
+            'elevation': None,
+            'cloud_fraction': None, 
+            "cats_fore_fov_angle": None, #(2319,)
+            "cats_fore_fov_latitude": None, #(2319, 3)
+            "cats_fore_fov_longitude": None, #(2319, 3)
+            "index_top_bin_fore_fov": None, #(2319,)
+            "solar_azimuth_angle": None, #(2319,)
+            "solar_zenith_angle": None, #(2319,)
+            "aerosol_type_fore_fov": None, #(2319, 10)
+            "cloud_phase_fore_fov": None, #(2319, 10)
+            "cloud_phase_score_fore_fov": None, #(2319, 10)
+            "constrained_lidar_ratio_flag": None, #(3, 2319, 10, 2)
+            "dem_surface_altitude_fore_fov": None, #(2319,)
+            "day_night_flag": None, #(2319,)
+            "extinction_qc_flag_1064_fore_fov": None, #(2319, 10)
+            "feature_type_fore_fov": None, #(2319, 10)
+            "feature_type_score_fore_fov": None, #(2319, 10)
+            "layer_base_altitude_fore_fov": None, #(2319, 10)
+            "layer_base_bin_fore_fov": None, #(2319, 10)
+            "layer_base_pressure_fore_fov": None, #(2319, 10)
+            "layer_base_temperature_fore_fov": None, #(2319, 10)
+            "layer_effective_multiple_scattering_factor_1064_fore_fov": None, #(2319, 10)
+            "layer_top_altitude_fore_fov": None, #(2319, 10)
+            "layer_top_bin_fore_fov": None, #(2319, 10)
+            "layer_top_pressure_fore_fov": None, #(2319, 10)
+            "layer_top_temperature_fore_fov": None, #(2319, 10)
+            "lidar_ratio_selection_method_1064_fore_fov": None, #(2319, 10)
+            "lidar_surface_altitude_fore_fov": None, #(2319,)
+            "number_layers_fore_fov": None, #(2319,)
+            "opacity_fore_fov": None, #(2319, 10)
+            "profile_id": None, #(2319,)
+            "profile_utc_date": None, #(2319,)
+            "profile_utc_time": None, #(2319, 3)
+            "sky_condition_fore_fov": None, #(2319,)
+            "surface_type_fore_fov": None, #(2319,)
+            "bin_altitude_array": None, #(533,)
+            "feature_optical_depth_1064_fore_fov": None, #(2319, 10)
+            "feature_optical_depth_uncertainty_1064_fore_fov": None, #(2319, 10)
+            "ice_water_path_1064_fore_fov": None, #(2319, 10)
+            "ice_water_path_1064_uncertainty_fore_fov": None, #(2319, 10)
+            "integrated_attenauted_backscatter_1064_fore_fov": None, #(2319, 10)
+            "integrated_attenauted_backscatter_532_fore_fov": None, #(2319, 10)
+            "integrated_attenauted_backscatter_uncertainty_1064_fore_fov": None, #(2319, 10)
+            "integrated_attenauted_backscatter_uncertainty_532_fore_fov": None, #(2319, 10)
+            "integrated_attenuated_total_color_ratio_fore_fov": None, #(2319, 10)
+            "integrated_attenuated_total_color_ratio_uncertainty_fore_fov": None, #(2319, 10)
+            "integrated_volume_depolarization_ratio_1064_fore_fov": None, #(2319, 10)
+            "integrated_volume_depolarization_ratio_uncertainty_1064_fore_fov": None, #(2319, 10)
+            "lidar_ratio_1064_fore_fov": None, #(2319, 10)
+            "measured_two_way_transmittance_1064_fore_fov": None, #(2319, 10)
+            "measured_two_way_transmittance_uncertainty_1064_fore_fov": None, #(2319, 10)
+            "two_way_transmittance_measurement_region_fore_fov": None, #(2319, 10)            
+            #"attenuated_backscatter_statistics_1064_fore_fov": None, #(2319, 10, 4)
+            #"attenuated_backscatter_statistics_532_fore_fov": None, #(2319, 10, 4)
+            #"attenuated_total_color_ratio_statistics_fore_fov": None, #(2319, 10, 4)
+            #"volume_depolarization_ratio_statistics_1064_fore_fov": None, #(2319, 10, 4)
+
+
+
+  
+        }
+class IssAvhrrTrackObject:
+    def __init__(self):
+        self.avhrr=ppsAvhrrObject()
+        self.modis = ModisObject()
+        self.iss=IssObject()
+        self.diff_sec_1970=None
+        self.truth_sat = 'iss'
+    def __add__(self, other):
+        """Concatenating two objects together"""
+        self.avhrr = self.avhrr + other.avhrr
+        self.iss = self.iss + other.iss
+        self.modis = self.modis + other.modis
+        try:
+            self.diff_sec_1970 = np.concatenate([self.diff_sec_1970,
+                                                 other.diff_sec_1970])
+        except ValueError, e:
+            #print "Don't concatenate member diff_sec_1970... " + str(e)
+            self.diff_sec_1970 = other.diff_sec_1970
+
+        return self
 
 class CloudsatAvhrrTrackObject:
     def __init__(self):
@@ -384,6 +476,7 @@ class CloudsatAvhrrTrackObject:
         self.modis = ModisObject()
         self.cloudsat=CloudsatObject()
         self.diff_sec_1970=None
+        self.truth_sat = 'cloudsat'
     def __add__(self, other):
         """Concatenating two objects together"""
         self.avhrr = self.avhrr + other.avhrr
@@ -405,6 +498,7 @@ class CalipsoAvhrrTrackObject:
         self.calipso = CalipsoObject()
         self.calipso_aerosol = CalipsoObject()
         self.diff_sec_1970 = None
+        self.truth_sat = 'calipso'
 
     def make_nsidc_surface_type_texture(self, kernel_sz = 51):
         """Derive the stdv of the ice dataset"""
@@ -488,7 +582,7 @@ def readCaliopAvhrrMatchObjOldFormat(h5file, retv, var_to_read=None):
                 data_obj.all_arrays[atrain_match_name] = the_data
     return retv
 
-def readCaliopAvhrrMatchObjNewFormat(h5file, retv, var_to_read=None, var_to_skip=None):
+def get_stuff_to_read_from_a_reshaped_file(h5file, retv):
     h5_groups = []
     data_objects = []
     if 'calipso' in h5file.keys():
@@ -508,7 +602,17 @@ def readCaliopAvhrrMatchObjNewFormat(h5file, retv, var_to_read=None, var_to_skip
         data_objects.append(retv.avhrr)
     if 'modis_lvl2' in h5file.keys():
         h5_groups.append(h5file['/modis_lvl2'])
-        data_objects.append(retv.modis)
+        data_objects.append(retv.modis)        
+    if 'cloudsat' in  h5file.keys():
+        h5_groups.append(h5file['/cloudsat'])
+        data_objects.append(retv.cloudsat)
+    if 'iss' in  h5file.keys():
+        h5_groups.append(h5file['/iss'])
+        data_objects.append(retv.iss)
+    return (h5_groups, data_objects)
+    
+def readCaliopAvhrrMatchObjNewFormat(h5file, retv, var_to_read=None, var_to_skip=None):
+    (h5_groups, data_objects) =  get_stuff_to_read_from_a_reshaped_file(h5file, retv)
     for group, data_obj in zip(h5_groups, data_objects):
         for dataset in group.keys():  
             atrain_match_name = dataset
@@ -526,7 +630,6 @@ def readCaliopAvhrrMatchObjNewFormat(h5file, retv, var_to_read=None, var_to_skip
     return retv            
 
 def readCaliopAvhrrMatchObj(filename, var_to_read=None, var_to_skip=None):
-    import h5py          
     retv = CalipsoAvhrrTrackObject()    
     h5file = h5py.File(filename, 'r')
     if "cloud_top_profile" in h5file['/calipso'].keys():
@@ -542,16 +645,53 @@ def readCaliopAvhrrMatchObj(filename, var_to_read=None, var_to_skip=None):
 # ----------------------------------------
 def writeCaliopAvhrrMatchObj(filename, ca_obj, avhrr_obj_name = 'pps'):
     """
-    Write *ca_obj* to *filename*.
-    
+    Write *ca_obj* to *filename*.    
     """
-    from common import write_match_objects    
     groups = {'calipso': ca_obj.calipso.all_arrays,
               'calipso_aerosol': ca_obj.calipso_aerosol.all_arrays,
               avhrr_obj_name: ca_obj.avhrr.all_arrays,
               'modis_lvl2': ca_obj.modis.all_arrays }
     write_match_objects(filename, ca_obj.diff_sec_1970, groups)    
+    status = 1
+    return status
 
+def readCloudsatAvhrrMatchObj(filename):
+    retv = CloudsatAvhrrTrackObject()    
+    h5file = h5py.File(filename, 'r')
+    (h5_groups, data_objects) =  get_stuff_to_read_from_a_reshaped_file(h5file, retv)
+    for group, data_obj in zip(h5_groups, data_objects):
+        for dataset in group.keys():        
+            if dataset in data_obj.all_arrays.keys():
+                data_obj.all_arrays[dataset] = group[dataset].value 
+    retv.diff_sec_1970 = h5file['diff_sec_1970'].value
+    h5file.close()
+    return retv
+
+def writeCloudsatAvhrrMatchObj(filename,cl_obj, avhrr_obj_name = 'pps'):    
+    groups = {'cloudsat': cl_obj.cloudsat.all_arrays,
+              'modis_lvl2': cl_obj.modis.all_arrays,
+              avhrr_obj_name: cl_obj.avhrr.all_arrays}
+    write_match_objects(filename, cl_obj.diff_sec_1970, groups)    
+    status = 1
+    return status
+
+def readIssAvhrrMatchObj(filename): 
+    retv = IssAvhrrTrackObject()    
+    h5file = h5py.File(filename, 'r')
+    (h5_groups, data_objects) =  get_stuff_to_read_from_a_reshaped_file(h5file, retv)
+    for group, data_obj in zip(h5_groups, data_objects):
+        for dataset in group.keys():        
+            if dataset in data_obj.all_arrays.keys():
+                data_obj.all_arrays[dataset] = group[dataset].value 
+    retv.diff_sec_1970 = h5file['diff_sec_1970'].value
+    h5file.close()
+    return retv
+
+def writeIssAvhrrMatchObj(filename,iss_obj, avhrr_obj_name = 'pps'):
+    groups = {'iss': iss_obj.iss.all_arrays,
+              'modis_lvl2': iss_obj.modis.all_arrays,
+              avhrr_obj_name: iss_obj.avhrr.all_arrays}
+    write_match_objects(filename, iss_obj.diff_sec_1970, groups)    
     status = 1
     return status
 
@@ -561,29 +701,6 @@ def sliding_std(x, size=5):
     c1 = uniform_filter(x.astype('float'), size=size)
     c2 = uniform_filter(x.astype('float')*x.astype('float'), size=size)
     return abs(c2 - c1*c1)**.5
-
-def readCloudsatAvhrrMatchObj(filename):
-    import h5py    
-    retv = CloudsatAvhrrTrackObject()    
-    h5file = h5py.File(filename, 'r')
-    for group, data_obj in [(h5file['/cloudsat'], retv.cloudsat),
-                            (h5file['/modis_lvl2'], retv.modis),
-                            (h5file['/pps'], retv.avhrr)]:
-        for dataset in group.keys():        
-            if dataset in data_obj.all_arrays.keys():
-                data_obj.all_arrays[dataset] = group[dataset].value 
-    retv.diff_sec_1970 = h5file['diff_sec_1970'].value
-    h5file.close()
-    return retv
-
-def writeCloudsatAvhrrMatchObj(filename,cl_obj):
-    from common import write_match_objects
-    groups = {'cloudsat': cl_obj.cloudsat.all_arrays,
-              'modis_lvl2': cl_obj.modis.all_arrays,
-              'pps': cl_obj.avhrr.all_arrays}
-    write_match_objects(filename, cl_obj.diff_sec_1970, groups)    
-    status = 1
-    return status
 
 
 # ----------------------------------------

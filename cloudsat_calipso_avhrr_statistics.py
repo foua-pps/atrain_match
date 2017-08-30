@@ -45,15 +45,12 @@ def calculate_ctth_stats(okcaliop, imager_ctth_m_above_seasurface,caliop_max_hei
 #        RMS_difference_biascorr = -9.0
         diff_squared_biascorr = np.array([-9.0])
     #return (corr_caliop_avhrr,bias,RMS_difference,avhrr_height_work,diff_squared_biascorr)
-    return "%f %f %f %s %f "%(corr_caliop_avhrr,bias,RMS_difference,len(avhrr_height_work),sum(diff_squared_biascorr))
+    return "%3.2f %3.2f %3.2f %s %3.2f "%(corr_caliop_avhrr,bias,RMS_difference,len(avhrr_height_work),sum(diff_squared_biascorr))
 
 def get_subset_for_mode(caObj, mode):
   # First prepare possible subsetting of CALIOP datasets according to NSIDC
     # and IGBP surface types  
     if mode == 'ICE_COVER_SEA':
-##         cal_subset = np.logical_and(np.logical_and(np.less(caObj.calipso.nsidc_surface_type,100),np.greater(caObj.calipso.nsidc_surface_type,10)),np.equal(caObj.calipso.igbp_surface_type,17))
-        # Unfortunately, the above formulation used for ORR-B excluded the case
-        # when ice-cover was exactly 100 %!!! Very embarrassing!/KG
         cal_subset = np.logical_and(
             np.logical_and(np.less_equal(caObj.calipso.nsidc_surface_type,100),
                            np.greater(caObj.calipso.nsidc_surface_type,10)),
@@ -173,24 +170,26 @@ def get_subset_for_mode(caObj, mode):
         sys.exit()
     return cal_subset     
 
-def get_day_night_info(caObj):
+def get_day_night_info(cObj):
     daynight_flags = None
+    cObj_imager = getattr(cObj, 'avhrr') #Same as cObj.avhrr
+    cObj_truth_sat= getattr(cObj, cObj.truth_sat) #cObj.calipso or cObj.iss
     if config.CCI_CLOUD_VALIDATION or config.MAIA_CLOUD_VALIDATION:
         daynight_flags = get_day_night_twilight_info_cci2014(
-        caObj.avhrr.sunz)
-    if config.PPS_VALIDATION and  hasattr(caObj.avhrr, 'cloudtype_qflag'):
-        if caObj.avhrr.cloudtype_qflag is not None:
+        cObj_imager.sunz)
+    if config.PPS_VALIDATION and  hasattr(cObj_imager, 'cloudtype_qflag'):
+        if cObj_imager.cloudtype_qflag is not None:
             daynight_flags = get_day_night_twilight_info_pps2012(
-                caObj.avhrr.cloudtype_qflag)
-    if config.PPS_VALIDATION and  hasattr(caObj.avhrr, 'cloudtype_conditions'):
-        if caObj.avhrr.cloudtype_conditions is not None:
+                cObj_imager.cloudtype_qflag)
+    if config.PPS_VALIDATION and  hasattr(cObj_imager, 'cloudtype_conditions'):
+        if cObj_imager.cloudtype_conditions is not None:
             daynight_flags = get_day_night_twilight_info_pps2014(
-                caObj.avhrr.cloudtype_conditions)     
+                cObj_imager.cloudtype_conditions)     
     if config.PPS_VALIDATION and daynight_flags is None:
         daynight_flags = get_day_night_twilight_info_cci2014(
-        caObj.avhrr.sunz)
+        cObj_imager.sunz)
     (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag) = daynight_flags
-    if (no_qflag.sum() + night_flag.sum() + twilight_flag.sum() + day_flag.sum()) != caObj.calipso.longitude.size:          
+    if (no_qflag.sum() + night_flag.sum() + twilight_flag.sum() + day_flag.sum()) != cObj_truth_sat.longitude.size:          
         print('something wrong with quality flags. It does not sum up. See beginning of statistic file')
         sys.exit()
     return daynight_flags
@@ -345,7 +344,11 @@ def print_cloudsat_modis_stats(clsatObj, statfile):
         mean_modis=((n_clear_clear+n_cloudy_clear)*0.0 + (n_cloudy_cloudy+n_clear_cloudy)*1.0)/(n_clear_clear+n_clear_cloudy+n_cloudy_clear+n_cloudy_cloudy)
         bias=mean_modis-mean_cloudsat
         statfile.write("CLOUD MASK CLOUDSAT-MODIS TABLE: %s %s %s %s \n" % (n_clear_clear,n_clear_cloudy,n_cloudy_clear,n_cloudy_cloudy))
-        statfile.write("CLOUD MASK CLOUDSAT-MODIS PROB: %f %f %f %f %f \n" % (pod_cloudy,pod_clear,far_cloudy,far_clear,bias))
+        statfile.write("CLOUD MASK CLOUDSAT-MODIS FROM CLOUDSAT FLAG POD-CLOUDY:  %3.2f \n" % (pod_cloudy*100))
+        statfile.write("CLOUD MASK CLOUDSAT-MODIS FROM CLOUDSAT FLAG POD-CLEAR:   %3.2f \n" % (pod_clear)*100)
+        statfile.write("CLOUD MASK CLOUDSAT-MODIS FROM CLOUDSAT FLAG FAR-CLOUDY:  %3.2f \n" % (far_cloudy*100))
+        statfile.write("CLOUD MASK CLOUDSAT-MODIS FROM CLOUDSAT FLAG FAR-CLEAR:   %3.2f \n" % (far_clear*100))
+        statfile.write("CLOUD MASK CLOUDSAT-MODIS FROM CLOUDSAT FLAG BIAS percent: %3.2f \n" % ( bias*100)) 
     else:
         statfile.write('No CloudSat \n')
         statfile.write('No CloudSat \n') 
@@ -355,18 +358,14 @@ def print_calipso_cmask_stats(caObj, statfile, cal_subset):
     # CLOUD MASK EVALUATION
     #=======================
     
-    # CORRELATION CLOUD MASK: CLOUDSAT - AVHRR
+    # CORRELATION CLOUD MASK: CALIOP/ISS - IMAGER
 
-    #print "------------------------------------"
-    #print "STATISTICS CLOUD MASK: CLOUDSAT - AVHRR" 
-    
-       
-    # CORRELATION CLOUD MASK: CALIOP - AVHRR
+    cObj_truth_sat = getattr(caObj, caObj.truth_sat)
 
     calipso_clear = np.logical_and(
-        np.less(caObj.calipso.cloud_fraction,config.CALIPSO_CLEAR_MAX_CFC),cal_subset)
+        np.less(cObj_truth_sat.cloud_fraction,config.CALIPSO_CLEAR_MAX_CFC),cal_subset)
     calipso_cloudy = np.logical_and(
-        np.greater(caObj.calipso.cloud_fraction,config.CALIPSO_CLOUDY_MIN_CFC),cal_subset)
+        np.greater(cObj_truth_sat.cloud_fraction,config.CALIPSO_CLOUDY_MIN_CFC),cal_subset)
     
         
     # For the combined 1km + 5km dataset cloud_fraction can only have values (0.0, 0.2, 0.4, 0.6, 0.8, 1.0). So the threshold should
@@ -376,12 +375,12 @@ def print_calipso_cmask_stats(caObj, statfile, cal_subset):
     pps_cloudy = np.logical_and(np.logical_and(np.greater(caObj.avhrr.cloudtype,4),np.less(caObj.avhrr.cloudtype,20)),cal_subset)
     if config.USE_CMA_FOR_CFC_STATISTICS:
         pps_clear = np.logical_or(np.equal(caObj.avhrr.cloudmask,3),
-                                   np.equal(caObj.avhrr.cloudmask,0))
+                                  np.equal(caObj.avhrr.cloudmask,0))
         pps_cloudy = np.logical_or(np.equal(caObj.avhrr.cloudmask,1),
                                    np.equal(caObj.avhrr.cloudmask,2))
 
     #print "------------------------------------"
-    #print "STATISTICS CLOUD MASK: CALIOP - AVHRR"
+    #print "STATISTICS CLOUD MASK: CALIOP/ISS - IMAGER
     
     n_clear_clear = np.repeat(
         pps_clear,np.logical_and(calipso_clear,pps_clear)).shape[0]
@@ -396,11 +395,6 @@ def print_calipso_cmask_stats(caObj, statfile, cal_subset):
     ncloudy_pps = n_cloudy_cloudy+n_clear_cloudy
     nclear_pps = n_cloudy_clear+n_clear_clear
     
-    
-    #print "Number of clear points (CALIPSO): ",nclear
-    #print "Number of cloudy points (CALIPSO): ",ncloudy
-    #print "Clear-Clear,Cloudy-Cloudy",n_clear_clear,n_cloudy_cloudy
-    #print "Calipso-Clear PPS-Cloudy, Calipso-Cloudy PPS-Clear",n_clear_cloudy,n_cloudy_clear
     
     if ncloudy > 0:
         pod_cloudy = float(n_cloudy_cloudy)/ncloudy
@@ -430,9 +424,13 @@ def print_calipso_cmask_stats(caObj, statfile, cal_subset):
         bias=mean_pps-mean_caliop
     else:
         bias = -9.0
-    statfile.write("CLOUD MASK CALIOP-PPS TABLE: %s %s %s %s \n" % (n_clear_clear,n_clear_cloudy,n_cloudy_clear,n_cloudy_cloudy))
-    statfile.write("CLOUD MASK CALIOP-PPS PROB: %f %f %f %f %f \n" % (pod_cloudy,pod_clear,far_cloudy,far_clear,bias))
-
+    statfile.write("CLOUD MASK %s-IMAGER TABLE: %s %s %s %s \n" % (caObj.truth_sat.upper(), n_clear_clear,n_clear_cloudy,n_cloudy_clear,n_cloudy_cloudy))
+    #statfile.write("CLOUD MASK %s-IMAGER PROB:%3.2f \n" % (caObj.truth_sat.upper(), pod_cloudy,pod_clear,far_cloudy,far_clear,bias))
+    statfile.write("CLOUD MASK %s-IMAGER POD-CLOUDY: %3.2f \n" % (caObj.truth_sat.upper(), pod_cloudy*100))
+    statfile.write("CLOUD MASK %s-IMAGER POD-CLEAR:  %3.2f \n" %  (caObj.truth_sat.upper(), pod_clear*100))
+    statfile.write("CLOUD MASK %s-IMAGER FAR-CLOUDY: %3.2f \n" % (caObj.truth_sat.upper(), far_cloudy*100))
+    statfile.write("CLOUD MASK %s-IMAGER FAR-CLEAR:  %3.2f \n" %  (caObj.truth_sat.upper(), far_clear*100))
+    statfile.write("CLOUD MASK %s-IMAGER BIAS percent: %3.2f \n" %  (caObj.truth_sat.upper(), bias*100))
 
 def print_calipso_modis_stats(caObj, statfile, cal_subset, cal_MODIS_cflag):    
     # CORRELATION CLOUD MASK: CALIOP - MODIS
@@ -466,11 +464,6 @@ def print_calipso_modis_stats(caObj, statfile, cal_subset, cal_MODIS_cflag):
         ncloudy_modis = n_cloudy_cloudy+n_clear_cloudy
         nclear_modis = n_cloudy_clear+n_clear_clear
             
-        #print "Number of clear points (CALIPSO): ",nclear
-        #print "Number of cloudy points (CALIPSO): ",ncloudy
-        #print "Clear-Clear,Cloudy-Cloudy",n_clear_clear,n_cloudy_cloudy
-        #print "Calipso-Clear MODIS-Cloudy, Calipso-Cloudy MODIS-Clear",n_clear_cloudy,n_cloudy_clear
-        
         if ncloudy > 0:
             pod_cloudy = float(n_cloudy_cloudy)/ncloudy
         else:
@@ -488,12 +481,7 @@ def print_calipso_modis_stats(caObj, statfile, cal_subset, cal_MODIS_cflag):
             far_clear = float(n_cloudy_clear)/nclear_modis
         else:
             far_clear = -9.0
-        
-        #print "POD-Cloudy: ",pod_cloudy
-        #print "POD-Clear: ",pod_clear
-        #print "FAR-Cloudy: ",far_cloudy
-        #print "FAR-Clear: ",far_clear    
-        #print "-----------------------------------------"
+
         if (n_clear_clear+n_clear_cloudy+n_cloudy_clear+n_cloudy_cloudy) > 0:
             mean_caliop=((n_clear_clear+n_clear_cloudy)*0.0 + (n_cloudy_clear+n_cloudy_cloudy)*1.0)/(n_clear_clear+n_clear_cloudy+n_cloudy_clear+n_cloudy_cloudy)
             mean_modis=((n_clear_clear+n_cloudy_clear)*0.0 + (n_cloudy_cloudy+n_clear_cloudy)*1.0)/(n_clear_clear+n_clear_cloudy+n_cloudy_clear+n_cloudy_cloudy)
@@ -501,7 +489,12 @@ def print_calipso_modis_stats(caObj, statfile, cal_subset, cal_MODIS_cflag):
         else:
             bias=-9.0
         statfile.write("CLOUD MASK CALIOP-MODIS TABLE: %s %s %s %s \n" % (n_clear_clear,n_clear_cloudy,n_cloudy_clear,n_cloudy_cloudy))
-        statfile.write("CLOUD MASK CALIOP-MODIS PROB: %f %f %f %f %f \n" % (pod_cloudy,pod_clear,far_cloudy,far_clear,bias))
+        #statfile.write("CLOUD MASK CALIOP-MODIS FROM CLOUDSAT FLAG PROB: %f %f %f %f %f \n" % (pod_cloudy,pod_clear,far_cloudy,far_clear,bias))
+        statfile.write("CLOUD MASK CALIOP-MODIS FROM CLOUDSAT FLAG POD-CLOUDY:  %3.2f \n" % (pod_cloudy*100))
+        statfile.write("CLOUD MASK CALIOP-MODIS FROM CLOUDSAT FLAG POD-CLEAR:   %3.2f \n" % (pod_clear*100))
+        statfile.write("CLOUD MASK CALIOP-MODIS FROM CLOUDSAT FLAG FAR-CLOUDY:  %3.2f \n" % (far_cloudy*100))
+        statfile.write("CLOUD MASK CALIOP-MODIS FROM CLOUDSAT FLAG FAR-CLEAR:   %3.2f \n" % (far_clear*100))
+        statfile.write("CLOUD MASK CALIOP-MODIS FROM CLOUDSAT FLAG BIAS percent: %3.2f \n" % ( bias*100))    
     else:
         statfile.write("No CloudSat \n")
         statfile.write("No CloudSat \n")
@@ -565,9 +558,6 @@ def print_calipso_stats_ctype(caObj, statfile, cal_subset, cal_vert_feature):
                            np.less_equal(caObj.avhrr.cloudtype,19)),
             cal_subset)
 
-
-
-
     calipso_clear = np.logical_and(
         np.less(caObj.calipso.cloud_fraction,0.34),cal_subset)
     calipso_cloudy = np.logical_and(
@@ -618,10 +608,6 @@ def print_calipso_stats_ctype(caObj, statfile, cal_subset, cal_vert_feature):
         avhrr_frac,
         np.logical_and(calipso_high,avhrr_frac)).shape[0]
 
-#    nlow = np.repeat(calipso_low,calipso_low).shape[0]
-#    nmedium = np.repeat(calipso_medium,calipso_medium).shape[0]
-#    nhigh = np.repeat(calipso_high,calipso_high).shape[0]
-        
     n_clear_low = np.repeat(
         avhrr_clear,
         np.logical_and(calipso_low,avhrr_clear)).shape[0]
@@ -643,15 +629,7 @@ def print_calipso_stats_ctype(caObj, statfile, cal_subset, cal_vert_feature):
     n_frac_clear = np.repeat(
         avhrr_frac,
         np.logical_and(calipso_clear,avhrr_frac)).shape[0]
-    
-    #print "Number of points with low clouds (CALIPSO): ",nlow
-    #print "Number of points with medium clouds (CALIPSO): ",nmedium
-    #print "Number of points with high clouds (CALIPSO): ",nhigh
-    #print "CALIPSO low-AVHRR low,CALIPSO low-AVHRR medium, CALIPSO low-AVHRR high",n_low_low,n_medium_low,n_high_low
-    #print "CALIPSO medium-AVHRR low,CALIPSO medium-AVHRR medium, CALIPSO medium-AVHRR high",n_low_medium,n_medium_medium,n_high_medium
-    #print "CALIPSO high-AVHRR low,CALIPSO high-AVHRR medium, CALIPSO high-AVHRR high",n_low_high,n_medium_high,n_high_high
-    #print "CALIPSO high-AVHRR frac,CALIPSO medium-AVHRR frac, CALIPSO low-AVHRR frac",n_frac_high,n_frac_medium,n_frac_low
-    
+
     if (n_low_low+n_medium_low+n_high_low+n_frac_low) > 0:
         pod_low = float(n_low_low + n_frac_low)/(n_low_low+n_medium_low+n_high_low+n_frac_low)
         far_low = float(n_medium_low+n_high_low)/(n_low_low+n_medium_low+n_high_low+n_frac_low)
@@ -671,16 +649,9 @@ def print_calipso_stats_ctype(caObj, statfile, cal_subset, cal_vert_feature):
         pod_high =-9.0
         far_high =-9.0
 
-    #print "POD-Low: ",pod_low
-    #print "POD-Medium: ",pod_medium
-    #print "POD-High: ",pod_high
-    #print "FAR-Low: ",far_low
-    #print "FAR-Medium: ",far_medium    
-    #print "FAR-High: ",far_high    
-    #print "-----------------------------------------"
-    statfile.write("CLOUD TYPE CALIOP-PPS TABLE: %s %s %s %s %s %s %s %s %s %s %s %s \n" % (n_low_low,n_low_medium,n_low_high,n_medium_low,n_medium_medium,n_medium_high,n_high_low,n_high_medium,n_high_high,n_frac_low,n_frac_medium,n_frac_high))
-    statfile.write("CLOUD TYPE CALIOP-PPS PROB: %f %f %f %f %f %f \n" % (pod_low,pod_medium,pod_high,far_low,far_medium,far_high))
-    statfile.write("CLOUD TYPE CALIOP-PPS TABLE MISSED: %s %s %s %s %s %s %s \n" % (n_clear_low,n_clear_medium,n_clear_high,n_low_clear,n_medium_clear,n_high_clear,n_frac_clear))
+    statfile.write("CLOUD TYPE %s-PPS TABLE: %s %s %s %s %s %s %s %s %s %s %s %s \n" % (caObj.truth_sat.upper(),n_low_low,n_low_medium,n_low_high,n_medium_low,n_medium_medium,n_medium_high,n_high_low,n_high_medium,n_high_high,n_frac_low,n_frac_medium,n_frac_high))
+    statfile.write("CLOUD TYPE %s-PPS PROB: %f %f %f %f %f %f \n" % (caObj.truth_sat.upper(),pod_low,pod_medium,pod_high,far_low,far_medium,far_high))
+    statfile.write("CLOUD TYPE %s-PPS TABLE MISSED: %s %s %s %s %s %s %s \n" % (caObj.truth_sat.upper(),n_clear_low,n_clear_medium,n_clear_high,n_low_clear,n_medium_clear,n_high_clear,n_frac_clear))
             
 
 def print_cloudsat_stats_ctop(clsatObj, statfile):
@@ -746,7 +717,7 @@ def print_height_all_low_medium_high(NAME, okcaliop,  statfile,
     cal_low_ok = np.logical_and(np.greater_equal(cal_vert_feature[::],0),
                                 np.less_equal(cal_vert_feature[::],3))
     cal_low_ok = np.logical_and(cal_low_ok, okcaliop) 
-    out_stats =calculate_ctth_stats(cal_low_ok,imager_ctth_m_above_seasurface,
+    out_stats = calculate_ctth_stats(cal_low_ok,imager_ctth_m_above_seasurface,
                                     caliop_max_height)   
     statfile.write("CLOUD HEIGHT %s LOW: %s \n" % (NAME, out_stats))
         
@@ -897,83 +868,120 @@ def print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature,
                                          statfile, cal_vert_feature, 
                                          imager_ctth_m_above_seasurface, caliop_max_height)
 
-def print_main_stats(clsatObj, caObj, statfile, process_mode):
-    num_cal_data_ok = len(caObj.calipso.elevation)
-    if clsatObj is not None:   
-        num_csat_data_ok = len(clsatObj.cloudsat.elevation)  
-    if process_mode == "BASIC":
-        if clsatObj is not None:
-            statfile.write("CloudSat min and max time diff: %f %f \n" %(clsatObj.diff_sec_1970.min(),
-                                                                        clsatObj.diff_sec_1970.max()))
-        else:
-            statfile.write('No CloudSat \n')
-        statfile.write("CALIPSO min and max time diff: %f %f \n" %(caObj.diff_sec_1970.min(),
-                                                                   caObj.diff_sec_1970.max()))
+def print_main_stats(cObj, statfile):
+    val_object = getattr(cObj,cObj.truth_sat)
+    num_val_data_ok = len(getattr(val_object,'elevation'))
+    statfile.write("%s min and max time diff: %3.2f %3.2f \n" %(
+        cObj.truth_sat.upper(),
+        cObj.diff_sec_1970.min(),
+        cObj.diff_sec_1970.max()))
 
-    else:
-        if clsatObj is not None:
-            statfile.write("CloudSat min and max time diff: See results for BASIC! \n")
-        else:
-            statfile.write('No CloudSat \n')
-        statfile.write("CALIPSO min and max time diff: See results for BASIC! \n")
+    statfile.write("%s start and stop Latitude: %3.2f %3.2f \n" %(
+        cObj.truth_sat.upper(),
+        val_object.latitude[0],
+        val_object.latitude[-1]))
+
+    statfile.write("%s start and stop Longitude: %3.2f %3.2f \n" %(
+        cObj.truth_sat.upper(),                            
+        val_object.longitude[0],
+        val_object.longitude[-1]))
+
+    statfile.write("%s-IMAGER number of matches: %d\n"%(
+        cObj.truth_sat.upper(), 
+        num_val_data_ok))
+
+
+def CalculateStatistics(mode, statfilename, caObj, clsatObj, issObj,
+                        dnt_flag=None):
+
+
+    import sys
 
     if clsatObj is not None:
-        statfile.write("Start-Stop-Length Cloudsat: %f %f %f %f %s \n" %(clsatObj.cloudsat.latitude[0],
-                                                                     clsatObj.cloudsat.longitude[0],
-                                                                     clsatObj.cloudsat.latitude[-1],
-                                                                     clsatObj.cloudsat.longitude[-1],
-                                                                     num_csat_data_ok))
-    else:
-        statfile.write('No CloudSat \n')
-    statfile.write("Start-Stop-Length CALIPSO: %f %f %f %f %s \n" %(caObj.calipso.latitude[0],
-                                                                    caObj.calipso.longitude[0],
-                                                                    caObj.calipso.latitude[-1],
-                                                                    caObj.calipso.longitude[-1],
-                                                                    num_cal_data_ok))
-
-
-def CalculateStatistics(mode, clsatObj, statfilename, caObj,
-                        dnt_flag = None): 
-    statfile = open(statfilename,"w")
-    import sys
-    cal_MODIS_cflag = caObj.calipso.cal_MODIS_cflag
-    # Extract CALIOP Vertical Feature Classification (bits 10-12) from 16 bit
-    # representation for topmost cloud layer #Nina 20140120 this is cloud type nit vert feature !!
-    cal_vert_feature = np.ones(caObj.calipso.layer_top_altitude[::,0].shape)*-9
-    feature_array = 4*np.bitwise_and(np.right_shift(caObj.calipso.feature_classification_flags[::,0],11),1) + 2*np.bitwise_and(np.right_shift(caObj.calipso.feature_classification_flags[::,0],10),1) + np.bitwise_and(np.right_shift(caObj.calipso.feature_classification_flags[::,0],9),1)
-    cal_vert_feature = np.where(np.not_equal(caObj.calipso.feature_classification_flags[::,0],1),feature_array[::],cal_vert_feature[::])  
-
-
-
-    cal_subset = get_subset_for_mode(caObj, mode)
-    semi_flag, opaque_flag = get_semi_opaque_info(caObj)
-    (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag) = get_day_night_info(caObj)
-
-    if dnt_flag is None:
-        print('dnt_flag = %s' %'NO DNT FLAG -> ALL PIXELS')
-        cal_subset = np.logical_and(cal_subset, all_dnt_flag)
-    elif dnt_flag.upper() == 'DAY':
-        print('dnt_flag = %s' %dnt_flag.upper())
-        cal_subset = np.logical_and(cal_subset, day_flag)
-    elif dnt_flag.upper() == 'NIGHT':
-        print('dnt_flag = %s' %dnt_flag.upper())
-        cal_subset = np.logical_and(cal_subset, night_flag)
-    elif dnt_flag.upper() == 'TWILIGHT':
-        print('dnt_flag = %s' %dnt_flag.upper())
-        cal_subset = np.logical_and(cal_subset, twilight_flag)
-    else:
-        print('dnt_flag = %s' %dnt_flag.upper())
-        print('statistic calculation is not prepared for this dnt_flag')
-        sys.exit()
-
-    print_main_stats(clsatObj, caObj, statfile, mode)
-    print_cloudsat_stats(clsatObj, statfile)
-    print_cloudsat_modis_stats(clsatObj, statfile)
-    print_calipso_cmask_stats(caObj, statfile, cal_subset)
-    print_calipso_modis_stats(caObj, statfile, cal_subset, cal_MODIS_cflag)
-    print_calipso_stats_ctype(caObj, statfile, cal_subset, cal_vert_feature)
-    print_cloudsat_stats_ctop(clsatObj, statfile)
-    print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature, 
-                             semi_flag, opaque_flag)
-    statfile.close()
+        #curretnly only mode BASIC
+        statfile = open(statfilename.replace('xxx','cloudsat'),"w")
+        print_main_stats(clsatObj, statfile)
+        print_cloudsat_stats(clsatObj, statfile)
+        print_cloudsat_stats_ctop(clsatObj, statfile)
+        statfile.close()
     
+    if caObj is not None:
+        statfile = open(statfilename.replace('xxx','calipso'),"w")
+        cal_MODIS_cflag = caObj.calipso.cal_MODIS_cflag
+        # Extract CALIOP Vertical Feature Classification (bits 10-12) from 16 bit
+        # representation for topmost cloud layer #Nina 20140120 this is cloud type nit vert feature !!
+        cal_vert_feature = np.ones(caObj.calipso.layer_top_altitude[::,0].shape)*-9
+        feature_array = (4*np.bitwise_and(np.right_shift(caObj.calipso.feature_classification_flags[::,0],11),1) + 
+                         2*np.bitwise_and(np.right_shift(caObj.calipso.feature_classification_flags[::,0],10),1) + 
+                         np.bitwise_and(np.right_shift(caObj.calipso.feature_classification_flags[::,0],9),1))
+        cal_vert_feature = np.where(np.not_equal(caObj.calipso.feature_classification_flags[::,0],1),
+                                    feature_array[::],cal_vert_feature[::])  
+
+        cal_subset = get_subset_for_mode(caObj, mode)
+        semi_flag, opaque_flag = get_semi_opaque_info(caObj)
+        (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag) = get_day_night_info(caObj)
+
+        if dnt_flag is None:
+            print('dnt_flag = %s' %'NO DNT FLAG -> ALL PIXELS')
+            cal_subset = np.logical_and(cal_subset, all_dnt_flag)
+        elif dnt_flag.upper() == 'DAY':
+            print('dnt_flag = %s' %dnt_flag.upper())
+            cal_subset = np.logical_and(cal_subset, day_flag)
+        elif dnt_flag.upper() == 'NIGHT':
+            print('dnt_flag = %s' %dnt_flag.upper())
+            cal_subset = np.logical_and(cal_subset, night_flag)
+        elif dnt_flag.upper() == 'TWILIGHT':
+            print('dnt_flag = %s' %dnt_flag.upper())
+            cal_subset = np.logical_and(cal_subset, twilight_flag)
+        else:
+            print('dnt_flag = %s' %dnt_flag.upper())
+            print('statistic calculation is not prepared for this dnt_flag')
+            sys.exit()
+
+        print_main_stats(caObj, statfile)
+        print_calipso_cmask_stats(caObj, statfile, cal_subset)
+        print_calipso_modis_stats(caObj, statfile, cal_subset, cal_MODIS_cflag)
+        print_calipso_stats_ctype(caObj, statfile, cal_subset, cal_vert_feature)
+        print_calipso_stats_ctop(caObj, statfile, cal_subset, cal_vert_feature, 
+                                 semi_flag, opaque_flag)
+        statfile.close()
+    
+    if issObj is not None:
+        statfile = open(statfilename.replace('xxx','iss'),"w")
+        """ Currently only CFC statistics
+        # Extract CALIOP Vertical Feature Classification (bits 10-12) from 16 bit
+        # representation for topmost cloud layer #Nina 20140120 this is cloud type nit vert feature !!
+        #cal_vert_feature = np.ones(issObj.iss.layer_top_altitude[::,0].shape)*-9
+        #feature_array = (4*np.bitwise_and(np.right_shift(issObj.iss.feature_classification_flags[::,0],11),1) + 
+        #                 2*np.bitwise_and(np.right_shift(issObj.iss.feature_classification_flags[::,0],10),1) + 
+        #                 np.bitwise_and(np.right_shift(issObj.iss.feature_classification_flags[::,0],9),1))
+        #cal_vert_feature = np.where(np.not_equal(issObj.iss.feature_classification_flags[::,0],1),
+        #                            feature_array[::],cal_vert_feature[::])  
+
+        semi_flag, opaque_flag = get_semi_opaque_info(issObj)
+        (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag) = get_day_night_info(issObj)
+
+        if dnt_flag is None:
+            print('dnt_flag = %s' %'NO DNT FLAG -> ALL PIXELS')
+            iss_subset = np.logical_and(iss_subset, all_dnt_flag)
+        elif dnt_flag.upper() == 'DAY':
+            print('dnt_flag = %s' %dnt_flag.upper())
+            iss_subset = np.logical_and(iss_subset, day_flag)
+        elif dnt_flag.upper() == 'NIGHT':
+            print('dnt_flag = %s' %dnt_flag.upper())
+            iss_subset = np.logical_and(iss_subset, night_flag)
+        elif dnt_flag.upper() == 'TWILIGHT':
+            print('dnt_flag = %s' %dnt_flag.upper())
+            iss_subset = np.logical_and(iss_subset, twilight_flag)
+        else:
+            print('dnt_flag = %s' %dnt_flag.upper())
+            print('statistic calculation is not prepared for this dnt_flag')
+            sys.exit()
+        """    
+        iss_subset = np.bool_(np.ones(issObj.iss.elevation.shape))
+        print_main_stats(issObj, statfile)
+        print_calipso_cmask_stats(issObj, statfile, iss_subset)
+        #print_calipso_stats_ctype(issObj, statfile, cal_subset, cal_vert_feature)
+        #print_calipso_stats_ctop(issObj, statfile, cal_subset, cal_vert_feature, 
+        #                         semi_flag, opaque_flag)
+        statfile.close()

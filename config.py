@@ -28,11 +28,14 @@ print "PPS_VALIDATION", PPS_VALIDATION
 CCI_CLOUD_VALIDATION = False
 MAIA_CLOUD_VALIDATION = str2bool(os.environ.get('MAIA_CLOUD_VALIDATION', False))
 
-#If set to True, program will fail it there are no cloudsat match
+#If set to True, program will fail it there are no match with SAT 
+# (CLOUDASAT, CALIPSO, ISS)
 #If set to False, matching will be done if the correct data is found
 #If files are found but are not matching in time or space, program
 # will also fail, as it used to do.
 CLOUDSAT_REQUIRED = False
+CALIPSO_REQUIRED = False
+ISS_REQUIRED = False #True
 
 #If set to True, no creation of reshaped files will be done.
 #Program will fail it there are no reshaped files already created.
@@ -143,10 +146,11 @@ CLOUDSAT_TYPE = 'GEOPROF'
 SAT_ORBIT_DURATION = 50*60 #Not to large 
 # If to large, cloudsat_calipso_avhrr_match.py takes wrong swath
 # sometimes when swaths are close in time
-CALIPSO_FILE_LENGTH = 60*60 #calipso fiels are for certain shorter 60 minnutes
-CLOUDSAT_FILE_LENGTH = 120*60 #cloudsat fiels are for certain shorter 120 minnutes
+CALIPSO_FILE_LENGTH = 60*60 #calipso files are for certain shorter 60 minutes
+CLOUDSAT_FILE_LENGTH = 120*60 #cloudsat files are for certain shorter 120 minutes
+ISS_FILE_LENGTH = 60*60 #iss files are shorter 60 minutes ??
 #: Allowed time deviation in seconds between AVHRR and CALIPSO/CloudSat matchup
-sec_timeThr = 60*25
+sec_timeThr = 60*10
 
 #: Recommended cloud threshold for the CloudSat cloud mask. In 5km data this
 #: threshold has already been applied, so there is no reason to change it for
@@ -254,7 +258,7 @@ ALLOWED_MODES = ['BASIC',
 #MIN_OPTICAL_DEPTH = [0.35] # New formulation - allowing a set of values
 MIN_OPTICAL_DEPTH = [0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.60, 0.70, 0.80, 0.90, 1.00]
 
-
+AREA = "no_area" #matching are no longer done for an area
 print "RESOLUTION=", RESOLUTION
 if RESOLUTION == 1:
     if IMAGER_INSTRUMENT == 'viirs':
@@ -269,10 +273,6 @@ if RESOLUTION == 1:
                                         # interval between two consecutive
                                         # lines (sec)
         SWATHWD=2048
-    AREA = "no_area"
-    #AREA = "npole"
-    #AREA = "europa"
-    #AREA = "cea1km_test"
     #: cloudsat sampling issue moved to where it is used. And solved by resampling 20170315
     if USE_5KM_FILES_TO_FILTER_CALIPSO_DATA:
          ALLOWED_MODES.append('OPTICAL_DEPTH_THIN_IS_CLEAR')      # Filter out cases with the thinnest topmost CALIPSO layers. Define MIN_OPTICAL_DEPTH above
@@ -287,9 +287,6 @@ if RESOLUTION == 1:
 elif RESOLUTION == 5:
     DSEC_PER_AVHRR_SCALINE = 1.0/6. * 4 # A "work for the time being" solution.
     SWATHWD=409
-    #AREA = "no_area"
-    AREA = "cea5km_test"#"arctic_super_1002_5km"
-
     ALLOWED_MODES.append('OPTICAL_DEPTH')      # Filter out cases with the thinnest topmost CALIPSO layers. Define MIN_OPTICAL_DEPTH above
     ALLOWED_MODES.append('OPTICAL_DEPTH_DAY')
     ALLOWED_MODES.append('OPTICAL_DEPTH_NIGHT')
@@ -413,7 +410,10 @@ CASES =[{'satname': 'eos2', 'year': 2010, 'month': 1},
 
 #CASES =[{'satname': 'npp', 'year': 2012, 'month': 10}]
 
-CASES = CASES_npp
+#CASES = CASES_npp
+#CASES =[{'satname': 'metopa', 'year': 2015, 'month': 05}]
+
+COMPILE_STATISTICS_TRUTH = ['iss','calipso','cloudsat']
 
 #CASES =  CASES_npp
 #CASES = CASES_noaaa + CASES_npp

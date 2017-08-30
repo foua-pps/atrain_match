@@ -7,7 +7,7 @@ from config import OPTICAL_DETECTION_LIMIT
 #tranposed! So there might be needed change of indexing 
 # i.e top layer before where in [0,:] and  top layer is now [:,0]
 
-def CloudsatCloudOpticalDepth(cloud_top, cloud_base, optical_depth, cloud_fraction, fcf, min_optical_depth):
+def CalipsoCloudOpticalDepth(cloud_top, cloud_base, optical_depth, cloud_fraction, fcf, min_optical_depth):
     from config import MIN_OPTICAL_DEPTH
 
     new_cloud_top = np.ones(cloud_top.shape,'d')*np.min(cloud_top)
@@ -102,9 +102,7 @@ def CalipsoOpticalDepthSetThinToClearFiltering1km(CaObj):
     CaObj.calipso.cloud_fraction = np.where(
         set_to_clear,
         0.5,
-        CaObj.calipso.cloud_fraction)
-
-    #print CaObj.calipso.layer_base_altitude.shape      
+        CaObj.calipso.cloud_fraction)      
     return CaObj
  
 

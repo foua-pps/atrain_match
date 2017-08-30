@@ -3,7 +3,6 @@ import pdb #@UnusedImport
 import inspect #@UnusedImport
 import os #@UnusedImport
 import numpy as np
-
 import logging
 logger = logging.getLogger(__name__)
 
@@ -41,24 +40,6 @@ class SatProjCov:
         self.colidx=None
         self.rowidx=None 
 
-def sec1970_to_julianday(sec1970):
-    #import pps_time_util #@UnresolvedImport
-    import time as tm
-    import datetime
-    year,month,day,hour,minutes,sec,tm_wday,tm_yday,tm_isdst = tm.gmtime(sec1970)
-    daysdelta=datetime.datetime(year,month,day,00,0) - datetime.datetime(1950,1,1,00,0)
-    jday50 = daysdelta.days
-    #jday50 is the same as jday_1950
-    #jday_1950 = int(pps_time_util.getJulianDay(year,month,day) - pps_time_util.getJulianDay(1950,1,1))
-    jday = jday50 + (hour+minutes/60.0+sec/3600)/24.0
-    if not jday==tm_yday:
-        print "Is this (%f) really the julian day wanted?"%(jday)
-        print "The day of the year is: (%d)"%(tm_yday)
-        print "And if it days since 1 januari 1950, i would suggest:( %d)"%(jday50)
- 
-    return jday
-
-
 def calipso_track_from_matched(retv_calipso, calipso, idx_match):
     # Calipso line,pixel inside AVHRR swath:
     for arnameca, valueca in calipso.all_arrays.items(): 
@@ -76,110 +57,73 @@ def calipso_track_from_matched(retv_calipso, calipso, idx_match):
                 retv_calipso.all_arrays[arnameca] = valueca
     return retv_calipso
 
+def do_some_logging(retv, cObj):
+    logger.info("Start and end times: %s %s",
+              tm.gmtime(cObj.sec_1970[0]),
+              tm.gmtime(cObj.sec_1970[-1]))
+    logger.info("Maximum and minimum time differences in sec (imager-reference): %d %d",
+          np.max(retv.diff_sec_1970),np.min(retv.diff_sec_1970))
+    logger.info("AVHRR observation time of first imager-reference match: %s",
+          tm.gmtime(retv.avhrr.sec_1970[0]))
+    logger.info("AVHRR observation time of last imager-reference match: %s",
+          tm.gmtime(retv.avhrr.sec_1970[-1]))
+
 def match_calipso_avhrr(values, 
-                        calipsoObj, calipsoObjAerosol, 
+                        caObj, caObjAerosol, 
                         imagerGeoObj, imagerObj, 
                         ctype, cma, ctth, cpp, nwp_obj,
                         avhrrAngObj, nwp_segments, options, res=resolution):
 
-    import time
     import string
-    
-    retv = CalipsoAvhrrTrackObject()
-    dsec = time.mktime((1993,1,1,0,0,0,0,0,0)) - time.timezone # Convert from TAI time to UTC in seconds since 1970
-    if res == 1:
-        lonCalipso = calipsoObj.longitude.ravel()
-        latCalipso = calipsoObj.latitude.ravel()
-        timeCalipso_tai = calipsoObj.profile_time_tai[::,0].ravel()
-        timeCalipso = calipsoObj.profile_time_tai[::,0].ravel() + dsec
-        timeCalipso_utc = calipsoObj.profile_utc_time[::,0].ravel()
-        elevationCalipso = calipsoObj.dem_surface_elevation.ravel()
-    if res == 5:
-        # Use [:,1] Since 5km data has start, center, and end for each pixel
-        lonCalipso = calipsoObj.longitude[:,1].ravel()
-        latCalipso = calipsoObj.latitude[:,1].ravel()
-        timeCalipso_tai = calipsoObj.profile_time_tai[:,1].ravel()
-        timeCalipso = calipsoObj.profile_time_tai[:,1].ravel() + dsec
-        timeCalipso_utc = calipsoObj.profile_utc_time[:,1].ravel()
-        elevationCalipso = calipsoObj.dem_surface_elevation[::,2].ravel()    
-    ndim = lonCalipso.shape[0]
-    
-    # --------------------------------------------------------------------
-    #cal,cap = get_calipso_avhrr_linpix(imagerGeoObj,values,lonCalipso,latCalipso,timeCalipso, options)
-    # This function (match_calipso_avhrr) could use the MatchMapper object
-    # created in map_avhrr() to make things a lot simpler... See usage in
-    # amsr_avhrr_match.py
-    #Nina 20150313 Swithcing to mapping without area as in cpp. Following suggestion from Jakob
     from common import map_avhrr
+ 
+    retv = CalipsoAvhrrTrackObject()
+    lonCalipso = caObj.longitude.ravel()
+    latCalipso = caObj.latitude.ravel()
+    
+    #Nina 20150313 Swithcing to mapping without area as in cpp. Following suggestion from Jakob
     cal, cap = map_avhrr(imagerGeoObj, lonCalipso.ravel(), latCalipso.ravel(),
                          radius_of_influence=RESOLUTION*0.7*1000.0) # somewhat larger than radius...
-    #print cal, cap
+    #warn if no matches
     calnan = np.where(cal == NODATA, np.nan, cal)
     if (~np.isnan(calnan)).sum() == 0:
         raise MatchupError("No matches within region.")
-    
+
+    #check if it is within time limits:
     if len(imagerGeoObj.time.shape)>1:
         imager_time_vector = [imagerGeoObj.time[line,pixel] for line, pixel in zip(cal,cap)]
-        avhrr_lines_sec_1970 = np.where(cal != NODATA, imager_time_vector, np.nan)
+        imager_lines_sec_1970 = np.where(cal != NODATA, imager_time_vector, np.nan)
     else:
-        avhrr_lines_sec_1970 = np.where(cal != NODATA, imagerGeoObj.time[cal], np.nan)
-
-    idx_match = elements_within_range(timeCalipso, avhrr_lines_sec_1970, sec_timeThr) 
+        imager_lines_sec_1970 = np.where(cal != NODATA, imagerGeoObj.time[cal], np.nan)
+    idx_match = elements_within_range(caObj.sec_1970, imager_lines_sec_1970, sec_timeThr) 
     if idx_match.sum() == 0:
         raise MatchupError("No matches in region within time threshold %d s." % sec_timeThr)
-    retv.calipso = calipso_track_from_matched(retv.calipso, calipsoObj, idx_match)
+    retv.calipso = calipso_track_from_matched(retv.calipso, caObj, idx_match)
+    
     cal_on_avhrr = np.repeat(cal, idx_match)
     cap_on_avhrr = np.repeat(cap, idx_match)
     retv.calipso.avhrr_linnum = cal_on_avhrr.astype('i')
     retv.calipso.avhrr_pixnum = cap_on_avhrr.astype('i')
-    logger.info("calipso matched with avhrr shape: %s",cap_on_avhrr.shape)
+    #logger.info("calipso matched with avhrr shape: %s",cap_on_avhrr.shape)
 
-    lon_calipso = np.repeat(lonCalipso, idx_match)
-    lat_calipso = np.repeat(latCalipso, idx_match)
     # Calipso line,pixel inside AVHRR swath:
     cal_on_avhrr = np.repeat(cal, idx_match)
     cap_on_avhrr = np.repeat(cap, idx_match)
-    logger.info("Start and end times: %s %s",
-              time.gmtime(timeCalipso[0]),
-              time.gmtime(timeCalipso[ndim-1]))
-    
-    retv.calipso.sec_1970 = np.repeat(timeCalipso,idx_match)
-    retv.calipso.latitude = np.repeat(latCalipso,idx_match)
-    retv.calipso.longitude = np.repeat(lonCalipso,idx_match)
-    retv.calipso.profile_time_tai = np.repeat(timeCalipso_tai,idx_match)
-
-    # Elevation is given in km's. Convert to meters:
-    retv.calipso.elevation = np.repeat(elevationCalipso.ravel()*1000.0,
-                                            idx_match.ravel()).astype('d')
-    # Time
+    # Imager time
     if len(imagerGeoObj.time.shape)>1:
         retv.avhrr.sec_1970= [imagerGeoObj.time[line,pixel] for line, pixel in zip(cal_on_avhrr,cap_on_avhrr)]
     else:
         retv.avhrr.sec_1970 = imagerGeoObj.time[cal_on_avhrr]
     retv.diff_sec_1970 = retv.calipso.sec_1970 - retv.avhrr.sec_1970
-
-    min_diff = np.minimum.reduce(retv.diff_sec_1970)
-    max_diff = np.maximum.reduce(retv.diff_sec_1970)
-    logger.info("Maximum and minimum time differences in sec (avhrr-calipso): %d %d",
-          np.maximum.reduce(retv.diff_sec_1970),np.minimum.reduce(retv.diff_sec_1970))
-    logger.info("AVHRR observation time of first calipso-avhrr match: %s",
-          time.gmtime(retv.avhrr.sec_1970[0]))
-    logger.info("AVHRR observation time of last calipso-avhrr match: %s",
-          time.gmtime(retv.avhrr.sec_1970[-1]))
-
-    # Make the latitude and pps cloudtype on the calipso track:
-    # line and pixel arrays have equal dimensions
+    do_some_logging(retv, caObj)
     logger.info("Generate the latitude,cloudtype tracks!")
-    # -------------------------------------------------------------------------
-    # Pick out the data from the track from AVHRR
     from extract_imager_along_track import avhrr_track_from_matched
     retv = avhrr_track_from_matched(retv, imagerGeoObj, imagerObj, avhrrAngObj, 
                                     nwp_obj, ctth, ctype, cma,  cal_on_avhrr, 
                                     cap_on_avhrr, cpp=cpp, 
                                     nwp_segments=nwp_segments)
-
-    if calipsoObjAerosol is not None:
-        retv.calipso_aerosol = calipso_track_from_matched(retv.calipso_aerosol, calipsoObjAerosol, idx_match)
+    if caObjAerosol is not None:
+        retv.calipso_aerosol = calipso_track_from_matched(retv.calipso_aerosol, caObjAerosol, idx_match)
     logger.info("AVHRR-PPS Cloud Type,latitude: shapes = %s %s",
                 retv.avhrr.cloudtype.shape,retv.avhrr.latitude.shape)
     max_cloud_top_calipso = np.maximum.reduce(retv.calipso.layer_top_altitude.ravel())
@@ -189,43 +133,87 @@ def match_calipso_avhrr(values,
 def get_calipso(filename, res, ALAY=False):
     from scipy import ndimage
     # Read CALIPSO Lidar (CALIOP) data:
-    clobj = read_calipso(filename, res, ALAY=ALAY)
+    caObj = read_calipso(filename, res, ALAY=ALAY)
     if res == 1 and not ALAY:
-        lon = clobj.longitude.ravel()
-        ndim = lon.shape[0]
+        lon = caObj.longitude.ravel()
         # --------------------------------------------------------------------
         # Derive the calipso cloud fraction using the 
         # cloud height:       
         winsz = 3 #Means a winsz x sinsz KERNEL is used.
-        max_height = np.ones(clobj.layer_top_altitude[::, 0].shape) * -9
-        for idx in range(clobj.layer_top_altitude.shape[1]):
+        max_height = np.ones(caObj.layer_top_altitude[::, 0].shape) * -9
+        for idx in range(caObj.layer_top_altitude.shape[1]):
             max_height = np.maximum(max_height,
-                                    clobj.layer_top_altitude[::, idx] * 1000.)
-    
+                                    caObj.layer_top_altitude[::, idx] * 1000.)    
         calipso_clmask = np.greater(max_height, 0).astype('d')
-        clobj.cloud_fraction = calipso_clmask 
+        caObj.cloud_fraction = calipso_clmask 
         ##############################################################
         # Replace _pypps_filter (mean over array) with function from scipy.
         # This filtering of single clear/cloud pixels is questionable.
         # Minor investigation (45 scenes npp), shows small decrease in results if removed.
         cloud_fraction_temp =  ndimage.filters.uniform_filter1d(calipso_clmask*1.0, size=winsz)
         #don't use filter to set cloudy pixels to clear
-        #clobj.cloud_fraction = np.where(
-        #    np.logical_and(clobj.cloud_fraction>1,
+        #caObj.cloud_fraction = np.where(
+        #    np.logical_and(caObj.cloud_fraction>1,
         #                   cloud_fraction_temp<1.5/winsz),
-        #    0,clobj.cloud_fraction)
+        #    0,caObj.cloud_fraction)
         #If winsz=3: 1clear 2cloudy => cfc = 0.66
         #   winsz=3; 2clear 1cloudy => cfc = 0.33
-        clobj.cloud_fraction = np.where(
-            np.logical_and(clobj.cloud_fraction<1.0,
+        caObj.cloud_fraction = np.where(
+            np.logical_and(caObj.cloud_fraction<1.0,
                            cloud_fraction_temp>0.01),            
-            cloud_fraction_temp,clobj.cloud_fraction)
+            cloud_fraction_temp,caObj.cloud_fraction)
        ##############################################################
     elif res == 5 and  not ALAY:
-        clobj.cloud_fraction = np.where(clobj.layer_top_altitude[:,0] > 0, 1, 0).astype('d')
+        caObj.cloud_fraction = np.where(caObj.layer_top_altitude[:,0] > 0, 1, 0).astype('d')
         # Strange - this will give 0 cloud fraction in points with no data, wouldn't it????/KG
-    return clobj
+    return caObj
 
+def read_calipso_the_single_shot_info(retv, h5file):
+    # Extract number of cloudy single shots (max 15)
+    # plus average cloud base and top
+    # in 5 km FOV
+    logger.info("Reading single shot information")
+    name = "ssNumber_Layers_Found"
+    data = h5file["Single_Shot_Detection/ssNumber_Layers_Found"].value
+    data = np.array(data)
+    data_reshaped_15 = data.reshape(-1,15)
+    single_shot_cloud_cleared_array = np.sum(data_reshaped_15==0,axis=1) #Number of clear
+    single_shot_cloud_cleared_array = 15-single_shot_cloud_cleared_array #Number of cloudy
+    name = "Number_cloudy_single_shots" # New name used here
+    #pdb.set_trace()
+    setattr(retv, name, single_shot_cloud_cleared_array)
+    #We need also average cloud top and cloud base for single_shot clouds
+    data = h5file["Single_Shot_Detection/ssLayer_Base_Altitude"].value
+    data = np.array(data)
+    data_reshaped_5 = data.reshape(-1,5)
+    base_array = data_reshaped_5[:,0]
+    base_array = base_array.reshape(-1,15)
+    base_array = np.where(base_array>0, base_array, 0.0)
+    base_mean = np.where(single_shot_cloud_cleared_array>0, np.divide(np.sum(base_array,axis=1),single_shot_cloud_cleared_array), -9.0) #Calculate average cloud base
+    name = "Average_cloud_base_single_shots"
+    setattr(retv, name, base_mean)
+    data = h5file["Single_Shot_Detection/ssLayer_Top_Altitude"].value
+    data = np.array(data)
+    data_reshaped_5 = data.reshape(-1,5)
+    top_array = data_reshaped_5[:,0]
+    top_array = top_array.reshape(-1,15)
+    top_array = np.where(top_array>0, top_array, 0.0)
+    top_mean = np.where(single_shot_cloud_cleared_array>0, np.divide(np.sum(top_array,axis=1),single_shot_cloud_cleared_array), -9.0) #Calculate average cloud top
+    name = "Average_cloud_top_single_shots"
+    #pdb.set_trace()
+    setattr(retv, name, top_mean)
+    #extract less information for 1km matching
+    if resolution == 1:
+        # create 1km  singel shot cfc
+        data = h5file["Single_Shot_Detection/ssNumber_Layers_Found"].value
+        data = np.array(data).reshape(-1,3)
+        data_reshaped_3 = data.reshape(-1,3)
+        single_shot_num_clear_array = np.sum(data_reshaped_3==0,axis=1) #Number of clear
+        cfc_single_shots = (3-single_shot_num_clear_array)/3.0 #Number of cloudy
+        name = "cfc_single_shots_1km_from_5km_file" # New name used here
+        #pdb.set_trace()
+        setattr(retv, name, cfc_single_shots)
+    return retv
 
 def read_calipso(filename, res, ALAY=False):
     import h5py
@@ -256,51 +244,12 @@ def read_calipso(filename, res, ALAY=False):
             if dataset == "Lidar_Surface_Detection": # New group V4
                 continue
             if dataset == "Single_Shot_Detection": # New group V4
-                                                   # Extract number of cloudy single shots (max 15)
-                                                   # plus average cloud base and top
-                                                   # in 5 km FOV
-                logger.info("Reading single shot information")
-                name = "ssNumber_Layers_Found"
-                data = h5file["Single_Shot_Detection/ssNumber_Layers_Found"].value
-                data = np.array(data)
-                data_reshaped_15 = data.reshape(-1,15)
-                single_shot_cloud_cleared_array = np.sum(data_reshaped_15==0,axis=1) #Number of clear
-                single_shot_cloud_cleared_array = 15-single_shot_cloud_cleared_array #Number of cloudy
-                name = "Number_cloudy_single_shots" # New name used here
-                #pdb.set_trace()
-                setattr(retv, name, single_shot_cloud_cleared_array)
-                #We need also average cloud top and cloud base for single_shot clouds
-                data = h5file["Single_Shot_Detection/ssLayer_Base_Altitude"].value
-                data = np.array(data)
-                data_reshaped_5 = data.reshape(-1,5)
-                base_array = data_reshaped_5[:,0]
-                base_array = base_array.reshape(-1,15)
-                base_array = np.where(base_array>0, base_array, 0.0)
-                base_mean = np.where(single_shot_cloud_cleared_array>0, np.divide(np.sum(base_array,axis=1),single_shot_cloud_cleared_array), -9.0) #Calculate average cloud base
-                name = "Average_cloud_base_single_shots"
-                setattr(retv, name, base_mean)
-                data = h5file["Single_Shot_Detection/ssLayer_Top_Altitude"].value
-                data = np.array(data)
-                data_reshaped_5 = data.reshape(-1,5)
-                top_array = data_reshaped_5[:,0]
-                top_array = top_array.reshape(-1,15)
-                top_array = np.where(top_array>0, top_array, 0.0)
-                top_mean = np.where(single_shot_cloud_cleared_array>0, np.divide(np.sum(top_array,axis=1),single_shot_cloud_cleared_array), -9.0) #Calculate average cloud top
-                name = "Average_cloud_top_single_shots"
-                #pdb.set_trace()
-                setattr(retv, name, top_mean)
-                if resolution == 1:
-                    # create 1km  singel shot cfc
-                    data = h5file["Single_Shot_Detection/ssNumber_Layers_Found"].value
-                    data = np.array(data).reshape(-1,3)
-                    data_reshaped_3 = data.reshape(-1,3)
-                    single_shot_num_clear_array = np.sum(data_reshaped_3==0,axis=1) #Number of clear
-                    cfc_single_shots = (3-single_shot_num_clear_array)/3.0 #Number of cloudy
-                    name = "cfc_single_shots_1km_from_5km_file" # New name used here
-                    #pdb.set_trace()
-                    setattr(retv, name, cfc_single_shots)
-
-                continue
+                # Extract number of cloudy single shots (max 15)
+                # plus average cloud base and top
+                # in 5 km FOV
+                retv = read_calipso_the_single_shot_info(retv, h5file)
+                if res==1:
+                    continue
             if dataset in "metadata_t":
                 continue
             if dataset in scip_these_larger_variables_until_needed.keys():
@@ -310,23 +259,34 @@ def read_calipso(filename, res, ALAY=False):
                 name = atrain_match_names[dataset]
             data = h5file[dataset].value
             data = np.array(data)
-            setattr(retv, name, data)    
+            setattr(retv, name, data) 
+        #Adopt some variables     
+        dsec = tm.mktime((1993,1,1,0,0,0,0,0,0)) - tm.timezone
+        print retv.profile_time_tai.shape
+        if retv.profile_time_tai.shape == retv.number_layers_found.shape:
+            retv.latitude = retv.latitude[:,0]
+            retv.longitude = retv.longitude [:,0]
+            retv.profile_time_tai = retv.profile_time_tai[:,0]
+            # Elevation is given in km's. Convert to meters:
+            retv.elevation = retv.dem_surface_elevation[:,0]*1000.0 
+        else:
+            retv.latitude = retv.latitude[:,1]
+            retv.longitude = retv.longitude[:,1] 
+            retv.profile_time_tai = retv.profile_time_tai[:,1]
+            # Elevation is given in km's. Convert to meters:
+            retv.elevation = retv.dem_surface_elevation[:,2]*1000.0    
+        setattr(retv, "sec_1970", retv.profile_time_tai + dsec)
         h5file.close()
     return retv  
 
 def discardCalipsoFilesOutsideTimeRange(calipsofiles_list, avhrrGeoObj, values, res=resolution, ALAY=False):
     import sys
-    import time
-    dsec = time.mktime((1993,1,1,0,0,0,0,0,0)) - time.timezone
     avhrr_end = avhrrGeoObj.sec1970_end
     avhrr_start = avhrrGeoObj.sec1970_start
     calipso_within_time_range = []
     for current_file in calipsofiles_list:
         newCalipso = get_calipso(current_file, res, ALAY=ALAY)
-        if res == 1:
-            cal_new_all = newCalipso.profile_time_tai[:,0] + dsec
-        elif res == 5:
-            cal_new_all = newCalipso.profile_time_tai[:,1] + dsec 
+        cal_new_all = newCalipso.sec_1970
         if cal_new_all[0]>avhrr_end + sec_timeThr or  cal_new_all[-1] + sec_timeThr<avhrr_start:
             pass
             #print "skipping file %s outside time_limits"%(current_file)
@@ -338,77 +298,49 @@ def discardCalipsoFilesOutsideTimeRange(calipsofiles_list, avhrrGeoObj, values, 
 def reshapeCalipso(calipsofiles, res=resolution, ALAY=False):
     import sys
     #concatenate and reshape calipso files
-    cal= CalipsoObject()
     startCalipso = get_calipso(calipsofiles[0], res, ALAY=ALAY)
     # Concatenate the data from the different files
     for i in range(len(calipsofiles) - 1):
         newCalipso = get_calipso(calipsofiles[i + 1], res, ALAY=ALAY)
-        if res == 1:
-            cal_start_all = startCalipso.profile_time_tai[:,0] 
-            cal_new_all = newCalipso.profile_time_tai[:,0] 
-        elif res == 5:
-            cal_start_all = startCalipso.profile_time_tai[:,1] 
-            cal_new_all = newCalipso.profile_time_tai[:,1] 
+        cal_start_all = startCalipso.profile_time_tai 
+        cal_new_all = newCalipso.profile_time_tai      
         if not cal_start_all[0] < cal_new_all[0]:
             logger.info("calipso files are in the wrong order")
             print("Program calipso.py at line %i" %(inspect.currentframe().f_lineno+1))
             sys.exit(-9)            
-        cal_break = len(cal_start_all) # np.argmin(np.abs(cal_start_all - cal_new_all[0])) + 1
-        print "same number", cal_break, len(cal_start_all)
         # Concatenate the feature values
-        #arname = array name from calipsoObj
+        #arname = array name from caObj
         for arname, value in startCalipso.all_arrays.items(): 
             if value is not None:
                 startCalipso.all_arrays[arname] = np.concatenate((value[0:,...], 
-                                                                      newCalipso.all_arrays[arname])) 
-    cal = startCalipso        
-    if cal.profile_time_tai.shape[0] <= 0:
-        logger.info(("No time match, please try with some other Calipso files"))
-        print("Program calipso.py at line %i" %(inspect.currentframe().f_lineno+1))
-        sys.exit(-9)  
-    return cal
+                                                                  newCalipso.all_arrays[arname]))          
+    return startCalipso 
 
-def find_break_points(startCalipso, avhrrGeoObj, values, res=resolution):
+def find_break_points(startCalipso, avhrrGeoObj):
     """
     Find the start and end point where calipso and avhrr matches is within 
     time limits.
     """
-    import time
-    dsec = time.mktime((1993,1,1,0,0,0,0,0,0)) - time.timezone
     avhrr_end = avhrrGeoObj.sec1970_end
     avhrr_start = avhrrGeoObj.sec1970_start
     # Finds Break point
-    if res == 1:
-        start_break = np.argmin((np.abs((startCalipso.profile_time_tai[:,0] + dsec) 
-                                        - (avhrr_start - sec_timeThr))))
-        end_break = np.argmin((np.abs((startCalipso.profile_time_tai[:,0] + dsec) 
-                                      - (avhrr_end + sec_timeThr)))) + 2    # Plus two to get one extra, just to be certain    
-    if res == 5:
-        start_break = np.argmin((np.abs((startCalipso.profile_time_tai[:,1] + dsec) 
-                                        - (avhrr_start - sec_timeThr))))
-        end_break = np.argmin((np.abs((startCalipso.profile_time_tai[:,1] + dsec) 
-                                      - (avhrr_end + sec_timeThr)))) + 2    # Plus two to get one extra, just to be certain 
+    start_break = np.argmin((np.abs((startCalipso.sec_1970) 
+                                    - (avhrr_start - sec_timeThr))))
+    end_break = np.argmin((np.abs((startCalipso.sec_1970) 
+                                  - (avhrr_end + sec_timeThr)))) + 2    # Plus two to get one extra, just to be certain    
     if start_break != 0:
         start_break = start_break - 1 # Minus one to get one extra, just to be certain
     return start_break, end_break
 
-def time_reshape_calipso(startCalipso, avhrr=None, values=None, 
-                         start_break=None, end_break=None):
+def time_reshape_calipso(startCalipso,
+                         start_break, end_break):
     """
     Cut the calipso data at the point where matches with avhrr is within 
     time limits.
     """
-    if None in [start_break, end_break]:
-        if None in [avhrr, values]:
-            logger.info(("Call function with either avhrr and values or"
-                         "start_brak and end_break!"))
-            print("Program calipso.py at line %i" %(inspect.currentframe().f_lineno+1))
-            sys.exit(-9) 
-        start_break, end_break = find_break_points(startCalipso, avhrr, 
-                                                   values, res=resolution)
     # Cut the feature values
-    #arnameca = array name from calipsoObj
-    cal= CalipsoObject()
+    #arnameca = array name from caObj
+    cal = CalipsoObject()
     for arnameca, valueca in startCalipso.all_arrays.items(): 
         if valueca is not None:
             if valueca.size != 1:
@@ -690,7 +622,6 @@ if __name__ == "__main__":
     import string
     import pps_io #@UnresolvedImport
     import calipso_avhrr_matchup #@UnresolvedImport
-    import time
     
     MAIN_DIR = "/local_disk/calipso_data"
     SUB_DIR = "noaa18_calipso_2007Aug"
@@ -751,7 +682,7 @@ if __name__ == "__main__":
 
     # Testing...
     caObj = calipso_avhrr_matchup.getCaliopAvhrrMatch(avhrrfile,calipsofile,ctypefile,ctthfile)
-    dsec = time.mktime((1993,1,1,0,0,0,0,0,0)) - time.timezone
+    dsec = tm.mktime((1993,1,1,0,0,0,0,0,0)) - tm.timezone
     print "Original: ",calipso.profile_time_tai[16203,0]+dsec
     print "Matchup:  ",caObj.calipso.sec_1970[3421]
     print calipso.layer_top_altitude[16203]
