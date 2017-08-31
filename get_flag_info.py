@@ -196,6 +196,14 @@ def get_calipso_medium_clouds(caObj):
         get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=5))    
     return calipso_high 
 
+def get_calipso_low_medium_high_classification(caObj):
+    mlh_class = {}
+    mlh_class['low_clouds'] = get_calipso_low_clouds(caObj)
+    mlh_class['medium_clouds'] = get_calipso_medium_clouds(caObj)
+    mlh_class['high_clouds'] = get_calipso_high_clouds(caObj)
+    return mlh_class
+
+
 #cci FLAGS
 def get_land_coast_sea_info_cci2014(lsflag):
     logger.info("Assuming cloudtype flags structure from CCI v2014?")

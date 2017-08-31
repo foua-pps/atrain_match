@@ -133,40 +133,39 @@ def match_calipso_avhrr(values,
 def get_calipso(filename, res, ALAY=False):
     from scipy import ndimage
     # Read CALIPSO Lidar (CALIOP) data:
-    caObj = read_calipso(filename, res, ALAY=ALAY)
+    cal = read_calipso(filename, res, ALAY=ALAY)
+    #used for cloud height validation, at certain modis it might be updated.    
+    cal.validation_height = cal.layer_top_altitude[:,0].copy()
+    cal.validation_height[cal.validation_height>=0] *= 1000
+    cal.validation_height[cal.validation_height<0] = -9
     if res == 1 and not ALAY:
-        lon = caObj.longitude.ravel()
+        lon = cal.longitude.ravel()
         # --------------------------------------------------------------------
         # Derive the calipso cloud fraction using the 
         # cloud height:       
-        winsz = 3 #Means a winsz x sinsz KERNEL is used.
-        max_height = np.ones(caObj.layer_top_altitude[::, 0].shape) * -9
-        for idx in range(caObj.layer_top_altitude.shape[1]):
-            max_height = np.maximum(max_height,
-                                    caObj.layer_top_altitude[::, idx] * 1000.)    
-        calipso_clmask = np.greater(max_height, 0).astype('d')
-        caObj.cloud_fraction = calipso_clmask 
+        winsz = 3 #Means a winsz x sinsz KERNEL is used.   
+        calipso_clmask = np.greater_equal(cal.validation_height, 0).astype('d')
+        cal.cloud_fraction = calipso_clmask 
         ##############################################################
-        # Replace _pypps_filter (mean over array) with function from scipy.
         # This filtering of single clear/cloud pixels is questionable.
         # Minor investigation (45 scenes npp), shows small decrease in results if removed.
         cloud_fraction_temp =  ndimage.filters.uniform_filter1d(calipso_clmask*1.0, size=winsz)
         #don't use filter to set cloudy pixels to clear
-        #caObj.cloud_fraction = np.where(
-        #    np.logical_and(caObj.cloud_fraction>1,
+        #cal.cloud_fraction = np.where(
+        #    np.logical_and(cal.cloud_fraction>1,
         #                   cloud_fraction_temp<1.5/winsz),
-        #    0,caObj.cloud_fraction)
+        #    0,cal.cloud_fraction)
         #If winsz=3: 1clear 2cloudy => cfc = 0.66
         #   winsz=3; 2clear 1cloudy => cfc = 0.33
-        caObj.cloud_fraction = np.where(
-            np.logical_and(caObj.cloud_fraction<1.0,
+        cal.cloud_fraction = np.where(
+            np.logical_and(cal.cloud_fraction<1.0,
                            cloud_fraction_temp>0.01),            
-            cloud_fraction_temp,caObj.cloud_fraction)
+            cloud_fraction_temp,cal.cloud_fraction)
        ##############################################################
     elif res == 5 and  not ALAY:
-        caObj.cloud_fraction = np.where(caObj.layer_top_altitude[:,0] > 0, 1, 0).astype('d')
+        cal.cloud_fraction = np.where(cal.layer_top_altitude[:,0] > 0, 1, 0).astype('d')
         # Strange - this will give 0 cloud fraction in points with no data, wouldn't it????/KG
-    return caObj
+    return cal
 
 def read_calipso_the_single_shot_info(retv, h5file):
     # Extract number of cloudy single shots (max 15)
@@ -309,7 +308,6 @@ def reshapeCalipso(calipsofiles, res=resolution, ALAY=False):
             print("Program calipso.py at line %i" %(inspect.currentframe().f_lineno+1))
             sys.exit(-9)            
         # Concatenate the feature values
-        #arname = array name from caObj
         for arname, value in startCalipso.all_arrays.items(): 
             if value is not None:
                 startCalipso.all_arrays[arname] = np.concatenate((value[0:,...], 
@@ -619,6 +617,9 @@ def detection_height_from_5km_data(Obj1, Obj5):
 
 if __name__ == "__main__":
     # Testing:
+    pass
+    """
+    #Nina 20170831 This old code have not been run for many years!
     import string
     import pps_io #@UnresolvedImport
     import calipso_avhrr_matchup #@UnresolvedImport
@@ -687,5 +688,5 @@ if __name__ == "__main__":
     print "Matchup:  ",caObj.calipso.sec_1970[3421]
     print calipso.layer_top_altitude[16203]
     print caObj.calipso.layer_top_altitude[3421,::]
-    
+    """
     

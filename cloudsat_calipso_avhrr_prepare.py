@@ -44,8 +44,10 @@ def CalipsoCloudOpticalDepth(cloud_top, cloud_base, optical_depth, cloud_fractio
                             new_cloud_top[pixel_i, k] = new_cloud_base[pixel_i, k] + \
                             ((new_cloud_top[pixel_i, k] - new_cloud_base[pixel_i, k]) * 1/2.)
                     break
-
-    return new_cloud_top, new_cloud_base, new_cloud_fraction, new_fcf
+    new_validation_height = new_cloud_top[:,0].copy()
+    new_validation_height[new_validation_height>=0] *= 1000
+    new_validation_height[new_validation_height<0] = -9
+    return new_cloud_top, new_cloud_base, new_cloud_fraction, new_fcf, new_validation_height
 
 def check_total_optical_depth_and_warn(caObj):
     obj = caObj.calipso
@@ -75,10 +77,10 @@ def CalipsoOpticalDepthHeightFiltering1km(CaObj):
     clouds_to_update = np.logical_and(
         CaObj.calipso.layer_top_altitude[:,0]>CaObj.calipso.detection_height_5km,
         np.not_equal(CaObj.calipso.detection_height_5km, -9))
-    CaObj.calipso.layer_top_altitude[:,0] = np.where(
+    CaObj.calipso.validation_height = np.where(
         clouds_to_update,
         new_cloud_tops,
-        CaObj.calipso.layer_top_altitude[:,0])
+        CaObj.calipso.validation_height)
     return CaObj
 
 def CalipsoOpticalDepthSetThinToClearFiltering1km(CaObj):
@@ -88,21 +90,9 @@ def CalipsoOpticalDepthSetThinToClearFiltering1km(CaObj):
     set_to_clear = np.logical_and(
         CaObj.calipso.number_layers_found>0,
         isThin_clouds)
-    #print set_to_clear.shape
-    for lay in xrange(CaObj.calipso.layer_base_altitude.shape[1]):
-        #print lay
-        CaObj.calipso.layer_top_altitude[:,lay] = np.where(
-            set_to_clear,
-            -9999,
-            CaObj.calipso.layer_top_altitude[:,lay])
-        CaObj.calipso.layer_base_altitude[:,lay] = np.where(
-            set_to_clear,
-            -9999,
-            CaObj.calipso.layer_base_altitude[:,lay])
-    CaObj.calipso.cloud_fraction = np.where(
-        set_to_clear,
-        0.5,
-        CaObj.calipso.cloud_fraction)      
+    CaObj.calipso.cloud_fraction[set_to_clear] = 0.00001
+    CaObj.calipso.validation_height[set_to_clear] = -9
+
     return CaObj
  
 

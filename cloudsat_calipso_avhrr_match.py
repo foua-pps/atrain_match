@@ -224,7 +224,7 @@ def find_iss_files_inner(date_time, time_window, options, values):
             values, 
             datetime_obj=tobj)
         tmplist = glob(os.path.join(iss_dir, iss_file_pattern))
-        print "globbing", os.path.join(iss_dir, iss_file_pattern)
+        logger.info("globbing %s"%(os.path.join(iss_dir, iss_file_pattern)))
         flist.extend([ s for s in tmplist if s not in flist ])      
     return flist
 
@@ -935,11 +935,10 @@ def add_modis_lvl2_clousat_(clsatObj, caObj):
         clsatObj.modis.all_arrays["longitude_5km"] = caObj.modis.all_arrays["longitude_5km"][clsatObj.cloudsat.calipso_index]
     return clsatObj
 
-def add_elevation_corrected_imager_ctth(clsatObj, caObj):
+def add_elevation_corrected_imager_ctth(clsatObj, caObj, issObj):
     ## Cloudsat ##
 
-    if clsatObj is not None:
-        clsatObj.avhrr.imager_ctth_m_above_seasurface = None
+    if clsatObj is not None and clsatObj.avhrr.imager_ctth_m_above_seasurface is None:
         # First make sure that PPS cloud top heights are converted to height
         # above sea level just as CloudSat height are defined. Use
         # corresponding DEM data.
@@ -962,7 +961,7 @@ def add_elevation_corrected_imager_ctth(clsatObj, caObj):
     ## Calipso ##        
     # First make sure that PPS cloud top heights are converted to height above sea level
     # just as CALIPSO heights are defined. Use corresponding DEM data.
-    if caObj is not None:
+    if caObj is not None and caObj.avhrr.imager_ctth_m_above_seasurface is None:
         cal_elevation = np.where(np.less_equal(caObj.calipso.elevation,0),
                                  0,caObj.calipso.elevation)
         num_cal_data_ok = len(caObj.calipso.elevation)
@@ -975,7 +974,20 @@ def add_elevation_corrected_imager_ctth(clsatObj, caObj):
             got_height = imager_ctth_m_above_seasurface>=0                    
             imager_ctth_m_above_seasurface[got_height] += cal_elevation[got_height]*1.0
         caObj.avhrr.imager_ctth_m_above_seasurface = imager_ctth_m_above_seasurface
-    return clsatObj, caObj
+    if issObj is not None and issObj.avhrr.imager_ctth_m_above_seasurface is None:
+        iss_elevation = np.where(np.less_equal(issObj.iss.elevation,0),
+                                 0,issObj.iss.elevation)
+        num_iss_data_ok = len(issObj.iss.elevation)
+        logger.info("Length of ISS array: %d", num_iss_data_ok)
+        imager_ctth_m_above_seasurface = np.array(issObj.avhrr.ctth_height).copy().ravel()
+        if CCI_CLOUD_VALIDATION: 
+            #ctth relative mean sea level
+            pass
+        else: #ctth relative topography
+            got_height = imager_ctth_m_above_seasurface>=0                    
+            imager_ctth_m_above_seasurface[got_height] += iss_elevation[got_height]*1.0
+        issObj.avhrr.imager_ctth_m_above_seasurface = imager_ctth_m_above_seasurface
+    return clsatObj, caObj, issObj
 
 
 def get_matchups_from_data(cross, config_options):
@@ -1031,14 +1043,14 @@ def get_matchups_from_data(cross, config_options):
         logger.info("NO CLOUDSAT File,"
                   "CCI-cloud validation only for calipso, Continue")
     #ISS:  
-    is_matchup = None
+    iss_matchup = None
     if (PPS_VALIDATION):
         iss_files = find_iss_files(date_time, config_options, values)
         print iss_files
         if (isinstance(iss_files, str) == True or 
             (isinstance(iss_files, list) and len(iss_files) != 0)):
             logger.info("Read ISS %s data")
-            is_matchup = get_iss_matchups(iss_files, 
+            iss_matchup = get_iss_matchups(iss_files, 
                                                avhrrGeoObj, avhrrObj, ctype, cma,
                                                ctth, nwp_obj, avhrrAngObj, cpp, 
                                                nwp_segments, config_options)
@@ -1104,7 +1116,7 @@ def get_matchups_from_data(cross, config_options):
                                                        
     #add additional vars to cloudsat and calipso objects:
     cl_matchup, ca_matchup = add_additional_clousat_calipso_index_vars(cl_matchup, ca_matchup)
-    cl_matchup, ca_matchup = add_elevation_corrected_imager_ctth(cl_matchup, ca_matchup)
+    cl_matchup, ca_matchup, iss_matchup = add_elevation_corrected_imager_ctth(cl_matchup, ca_matchup, iss_matchup)
     #if config.MATCH_MODIS_LVL2 and config.IMAGER_INSTRUMENT.lower() in ['modis']:
     #    cl_matchup = add_modis_lvl2_clousat_(cl_matchup, ca_matchup)
     # Write cloudsat matchup    
@@ -1126,10 +1138,10 @@ def get_matchups_from_data(cross, config_options):
         logger.info('CloudSat is not defined. No CloudSat Match File created')
 
     # Write iss matchup   
-    if is_matchup is not None:
+    if iss_matchup is not None:
         is_match_file = rematched_file_base.replace(
             'atrain_datatype', 'iss')
-        writeIssAvhrrMatchObj(is_match_file, is_matchup, 
+        writeIssAvhrrMatchObj(is_match_file, iss_matchup, 
                                    avhrr_obj_name = avhrr_obj_name)
     else:
         logger.info('Iss is not defined. No Iss Match File created')
@@ -1141,7 +1153,7 @@ def get_matchups_from_data(cross, config_options):
                                  avhrr_obj_name = avhrr_obj_name) 
     nwp_obj = None
     return {'cloudsat': cl_matchup, 'calipso': ca_matchup, 
-            'iss': is_matchup,
+            'iss': iss_matchup,
             'basename': basename, 'values':values}
 
 
@@ -1443,22 +1455,24 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
         logger.info("Adding some stuff that might not be in older reshaped files")
         clsatObj, caObj = add_additional_clousat_calipso_index_vars(clsatObj, caObj)
     #Calculate hight from sea surface 
-    if caObj is not None and caObj.avhrr.imager_ctth_m_above_seasurface is None:
-        clsatObj, caObj = add_elevation_corrected_imager_ctth(clsatObj, caObj)
+    clsatObj, caObj, issObj = add_elevation_corrected_imager_ctth(clsatObj, caObj, issObj)
     # If mode = OPTICAL_DEPTH -> Change cloud -top and -base profile
     if caObj is not None and process_mode == 'OPTICAL_DEPTH':
         #Remove this if-statement if you always want to do filtering!/KG
-        (new_cloud_top, new_cloud_base, new_cloud_fraction, new_fcf) = \
-                        CalipsoCloudOpticalDepth(caObj.calipso.layer_top_altitude, 
-                                                  caObj.calipso.layer_base_altitude, \
-                                                  caObj.calipso.feature_optical_depth_532, 
-                                                  caObj.calipso.cloud_fraction, 
-                                                  caObj.calipso.feature_classification_flags, 
-                                                  min_optical_depth)
+        (new_cloud_top, new_cloud_base, new_cloud_fraction, new_fcf
+         , new_validation_height) = CalipsoCloudOpticalDepth(
+             caObj.calipso.layer_top_altitude, 
+             caObj.calipso.layer_base_altitude, 
+             caObj.calipso.feature_optical_depth_532, 
+             caObj.calipso.cloud_fraction, 
+             caObj.calipso.feature_classification_flags, 
+             min_optical_depth)
         caObj.calipso.layer_top_altitude = new_cloud_top
         caObj.calipso.layer_base_altitude = new_cloud_base
         caObj.calipso.cloud_fraction = new_cloud_fraction
         caObj.calipso.feature_classification_flags = new_fcf
+        caObj.calipso.validation_height = new_validation_height
+
     if (caObj is not None and 
         config.COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC and
         (config.ALSO_USE_5KM_FILES or config.RESOLUTION==5) and 

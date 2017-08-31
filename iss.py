@@ -22,17 +22,41 @@ import calendar
 
 def get_iss(filename):
     # Read ISS Radar data for calipso something is done in this function:
+    limit = -0.02
     iss = read_iss(filename)
     #0 clear or aerosol layer.
     #1 water cloud
     #2 unkknown phase
     #3 ice cloud
-    iss.cloud_fraction = np.where(iss.cloud_phase_fore_fov[:,0]>0, 1.0,0.0)
+    iss.cloud_fraction = 0*iss.cloud_phase_fore_fov[:,0].copy()
+    for layer in range(9,-1,-1): #layer index 9.0
+        is_cloudy = np.greater(iss.cloud_phase_fore_fov[:,layer],0)
+        is_not_very_thin = np.greater(iss.feature_optical_depth_1064_fore_fov[:,layer], limit)
+        is_cloudy = np.logical_and(is_cloudy, is_not_very_thin) 
+        iss.cloud_fraction[is_cloudy] = 1.0
     #0 clear
     #1 aersol only
     #2 cloud only
     #3 cloud and aerosol    
     iss.cloud_fraction = np.where(iss.sky_condition_fore_fov>1.5, 1.0,0.0)
+    logger.warning("Currently using sky_condition_fore_fov to set cloudfraction, use cloud_phase_fore_fov instead?")
+
+    #used for cloud height validation, at cirtain modis it might be updated.
+    # Start from bottom and find hight of highest cloud. 
+    # Remember that layer_top_altitude contain also aerosols
+    # This was not the case for CALIPSO-data
+    # There can be a thin aerosol layer above the highest cloud!
+    iss.validation_height = -9 + 0 * iss.cloud_fraction.copy()
+    for layer in range(9,-1,-1): #layer index 9..0
+        is_cloudy = np.greater(iss.cloud_phase_fore_fov[:,layer],0)
+        is_not_very_thin = np.greater(iss.feature_optical_depth_1064_fore_fov[:,layer], limit)
+        is_cloudy = np.logical_and(is_cloudy, is_not_very_thin)
+        height_layer = iss.layer_top_altitude_fore_fov[:,layer]
+        iss.validation_height[is_cloudy] = height_layer[is_cloudy]
+    logger.warning("Currently not considering cloudheight for cloud layers thinner than %3.2f (feature_optical_depth_1064_fore_fov)"%(limit))
+    iss.validation_height[iss.validation_height>=0] *= 1000
+    iss.validation_height[iss.validation_height<0] = -9
+    iss.validation_height[iss.cloud_fraction<0.5] = -9 #sould not be needed
     return iss
 
 

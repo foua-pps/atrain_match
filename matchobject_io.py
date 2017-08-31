@@ -299,6 +299,7 @@ class CalipsoObject(DataObject):
             'longitude': None,
             'latitude': None,
             'cloud_fraction': None,
+            'validation_height': None,
             'layer_top_altitude': None,
             'layer_top_temperature': None,
             'layer_top_pressure': None,
@@ -337,6 +338,8 @@ class CloudsatObject(DataObject):
             'latitude': None,
             'avhrr_linnum': None,
             'avhrr_pixnum': None,
+            'cloud_fraction': None,
+            'validation_height': None,
             'elevation': None,
             'Profile_time': None,
             'sec_1970': None,
@@ -389,7 +392,8 @@ class IssObject(DataObject):
             'avhrr_pixnum': None,
             'sec_1970': None,
             'elevation': None,
-            'cloud_fraction': None, 
+            'cloud_fraction': None,
+            'validation_height': None,
             "cats_fore_fov_angle": None, #(2319,)
             "cats_fore_fov_latitude": None, #(2319, 3)
             "cats_fore_fov_longitude": None, #(2319, 3)
