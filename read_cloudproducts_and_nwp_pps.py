@@ -595,7 +595,6 @@ def read_cpp_nc(filename):
     return cpp_obj    
 
 
-
 def read_nwp_h5(filename, nwp_key):
     import h5py 
     h5file = h5py.File(filename, 'r')
@@ -606,7 +605,8 @@ def read_nwp_h5(filename, nwp_key):
         intercept = h5file[nwp_key].attrs['intercept']
         nodat = h5file[nwp_key].attrs['nodata']
         data = np.where(value != nodat,value * gain + intercept, value)
-        return    h5file.close()
+        h5file.close()
+        return data    
     else:
         logger.info("NO NWP %s File, Continue"%(nwp_key))
         return None
