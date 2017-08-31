@@ -211,153 +211,125 @@ def get_semi_opaque_info(caObj):
 
 
 def print_cloudsat_stats(clsatObj, statfile):
-    if clsatObj is not None:
-        cloudsat_cloud_mask=clsatObj.cloudsat.CPR_Cloud_mask
-        cloudsat_cloud_mask=np.greater_equal(cloudsat_cloud_mask, 
-                                             config.CLOUDSAT_CLOUDY_THR)
-        cloudsat_cloud_fraction=np.zeros(clsatObj.cloudsat.latitude.shape[0])
-        sum_cloudsat_cloud_mask = np.sum(cloudsat_cloud_mask, axis=1)
-        if len(sum_cloudsat_cloud_mask) != (len(cloudsat_cloud_fraction)):
-            raise ValueError('Boolean index-array should have same lenght as array!')
-        cloudsat_cloud_fraction[sum_cloudsat_cloud_mask > 2] = 1 # requires at least two cloudy bins
-        cloudsat_clear =  np.less(cloudsat_cloud_fraction,1)
-        cloudsat_cloudy = np.greater_equal(cloudsat_cloud_fraction,1)
-        pps_clear = np.logical_and(np.less_equal(clsatObj.avhrr.cloudtype,4),
-                                   np.greater(clsatObj.avhrr.cloudtype,0))
-        pps_cloudy = np.logical_and(np.greater(clsatObj.avhrr.cloudtype,4),
-                                    np.less(clsatObj.avhrr.cloudtype,20))
-
-        n_clear_clear = np.repeat(
-            pps_clear, np.logical_and(cloudsat_clear,pps_clear)).shape[0]
-        n_cloudy_cloudy = np.repeat(
-            pps_cloudy,np.logical_and(cloudsat_cloudy,pps_cloudy)).shape[0]
-        n_clear_cloudy = np.repeat(
-            pps_cloudy,np.logical_and(cloudsat_clear,pps_cloudy)).shape[0]
-        n_cloudy_clear = np.repeat(
-            pps_clear,np.logical_and(cloudsat_cloudy,pps_clear)).shape[0]
+    cloudsat_cloud_mask=clsatObj.cloudsat.CPR_Cloud_mask
+    cloudsat_cloud_mask=np.greater_equal(cloudsat_cloud_mask, 
+                                         config.CLOUDSAT_CLOUDY_THR)
+    cloudsat_cloud_fraction=np.zeros(clsatObj.cloudsat.latitude.shape[0])
+    sum_cloudsat_cloud_mask = np.sum(cloudsat_cloud_mask, axis=1)
+    if len(sum_cloudsat_cloud_mask) != (len(cloudsat_cloud_fraction)):
+        raise ValueError('Boolean index-array should have same lenght as array!')
+    cloudsat_cloud_fraction[sum_cloudsat_cloud_mask > 2] = 1 # requires at least two cloudy bins
+    cloudsat_clear =  np.less(cloudsat_cloud_fraction,1)
+    cloudsat_cloudy = np.greater_equal(cloudsat_cloud_fraction,1)
+    #what version of pps_cloudtype is this not before 2012!
+    pps_clear = np.logical_and(np.less_equal(clsatObj.avhrr.cloudtype,4),
+                               np.greater(clsatObj.avhrr.cloudtype,0))
+    pps_cloudy = np.logical_and(np.greater(clsatObj.avhrr.cloudtype,4),
+                                np.less(clsatObj.avhrr.cloudtype,20))
+    n_clear_clear = np.repeat(
+        pps_clear, np.logical_and(cloudsat_clear,pps_clear)).shape[0]
+    n_cloudy_cloudy = np.repeat(
+        pps_cloudy,np.logical_and(cloudsat_cloudy,pps_cloudy)).shape[0]
+    n_clear_cloudy = np.repeat(
+        pps_cloudy,np.logical_and(cloudsat_clear,pps_cloudy)).shape[0]
+    n_cloudy_clear = np.repeat(
+        pps_clear,np.logical_and(cloudsat_cloudy,pps_clear)).shape[0]
         
-        nclear = np.repeat(cloudsat_clear,cloudsat_clear).shape[0]
-        ncloudy = np.repeat(cloudsat_cloudy,cloudsat_cloudy).shape[0]
-        ncloudy_pps = n_cloudy_cloudy+n_clear_cloudy
-        nclear_pps = n_cloudy_clear+n_clear_clear
+    nclear = np.repeat(cloudsat_clear,cloudsat_clear).shape[0]
+    ncloudy = np.repeat(cloudsat_cloudy,cloudsat_cloudy).shape[0]
+    ncloudy_pps = n_cloudy_cloudy+n_clear_cloudy
+    nclear_pps = n_cloudy_clear+n_clear_clear
     
-        #print "Number of clear points (CLOUDSAT): ",nclear
-        #print "Number of cloudy points (CLOUDSAT): ",ncloudy
-        #print "Clear-Clear,Cloudy-Cloudy",n_clear_clear,n_cloudy_cloudy
-        #print "Cloudsat-Clear PPS-Cloudy, Cloudsat-Cloudy PPS-Clear",n_clear_cloudy,n_cloudy_clear
-    
-        if ncloudy > 0:
-            pod_cloudy = float(n_cloudy_cloudy)/ncloudy
-        else:
-            pod_cloudy = -9.0
-        if ncloudy_pps > 0:
-            far_cloudy = float(n_clear_cloudy)/ncloudy_pps
-        else:
-            far_cloudy = -9.0
-
-        if nclear > 0:
-            pod_clear = float(n_clear_clear)/nclear
-        else:
-            pod_clear = -9.0
-        if nclear_pps > 0:
-            far_clear = float(n_cloudy_clear)/nclear_pps
-        else:
-            far_clear = -9.0
-    
-        mean_cloudsat=((n_clear_clear+n_clear_cloudy)*0.0 + (n_cloudy_clear+n_cloudy_cloudy)*1.0)/(n_clear_clear+n_clear_cloudy+n_cloudy_clear+n_cloudy_cloudy)
-        mean_pps=((n_clear_clear+n_cloudy_clear)*0.0 + (n_cloudy_cloudy+n_clear_cloudy)*1.0)/(n_clear_clear+n_clear_cloudy+n_cloudy_clear+n_cloudy_cloudy)
-        bias=mean_pps-mean_cloudsat
-        statfile.write("CLOUD MASK CLOUDSAT-PPS TABLE: %s %s %s %s \n" % (n_clear_clear,n_clear_cloudy,n_cloudy_clear,n_cloudy_cloudy))
-        statfile.write("CLOUD MASK CLOUDSAT-PPS PROB: %f %f %f %f %f \n" % (pod_cloudy,pod_clear,far_cloudy,far_clear,bias))
+    if ncloudy > 0:
+        pod_cloudy = float(n_cloudy_cloudy)/ncloudy
     else:
-        statfile.write('No CloudSat \n')
-        statfile.write('No CloudSat \n')
+        pod_cloudy = -9.0
+    if ncloudy_pps > 0:
+        far_cloudy = float(n_clear_cloudy)/ncloudy_pps
+    else:
+        far_cloudy = -9.0
+
+    if nclear > 0:
+        pod_clear = float(n_clear_clear)/nclear
+    else:
+        pod_clear = -9.0
+    if nclear_pps > 0:
+        far_clear = float(n_cloudy_clear)/nclear_pps
+    else:
+        far_clear = -9.0
+    
+    mean_cloudsat=((n_clear_clear+n_clear_cloudy)*0.0 + (n_cloudy_clear+n_cloudy_cloudy)*1.0)/(n_clear_clear+n_clear_cloudy+n_cloudy_clear+n_cloudy_cloudy)
+    mean_pps=((n_clear_clear+n_cloudy_clear)*0.0 + (n_cloudy_cloudy+n_clear_cloudy)*1.0)/(n_clear_clear+n_clear_cloudy+n_cloudy_clear+n_cloudy_cloudy)
+    bias=mean_pps-mean_cloudsat
+    statfile.write("CLOUD MASK CLOUDSAT-PPS TABLE: %s %s %s %s \n" % (n_clear_clear,n_clear_cloudy,n_cloudy_clear,n_cloudy_cloudy))
+    statfile.write("CLOUD MASK CLOUDSAT-PPS PROB: %f %f %f %f %f \n" % (pod_cloudy,pod_clear,far_cloudy,far_clear,bias))
+
 
 def print_cloudsat_modis_stats(clsatObj, statfile):
-    if clsatObj is not None:
-        # CORRELATION CLOUD MASK: CLOUDSAT - MODIS
-    
-        #print "------------------------------------"
-        #print "STATISTICS CLOUD MASK: CLOUDSAT - MODIS" 
-    
-        modis_clear = np.logical_or(
-            np.equal(clsatObj.cloudsat.MODIS_cloud_flag,1),
-            np.equal(clsatObj.cloudsat.MODIS_cloud_flag,0))
-        modis_cloudy = np.logical_or(
-            np.equal(clsatObj.cloudsat.MODIS_cloud_flag,3),
-            np.equal(clsatObj.cloudsat.MODIS_cloud_flag,2))
-        cloudsat_cloud_mask=clsatObj.cloudsat.CPR_Cloud_mask
-        cloudsat_cloud_mask=np.greater_equal(cloudsat_cloud_mask, 
-                                             config.CLOUDSAT_CLOUDY_THR)
-        cloudsat_cloud_fraction=np.zeros(clsatObj.cloudsat.latitude.shape[0])
-        sum_cloudsat_cloud_mask = np.sum(cloudsat_cloud_mask, axis=1)
-        if len(sum_cloudsat_cloud_mask) != (len(cloudsat_cloud_fraction)):
-            raise ValueError('Boolean index-array should have same lenght as array!')
-        cloudsat_cloud_fraction[sum_cloudsat_cloud_mask > 2] = 1 # requires at least two cloudy bins
-        print "Warning what version of pps cloudtype is this!!"        
-        cloudsat_clear =  np.less(cloudsat_cloud_fraction,1)
-        cloudsat_cloudy = np.greater_equal(cloudsat_cloud_fraction,1)
+    modis_clear = np.logical_or(
+        np.equal(clsatObj.cloudsat.MODIS_cloud_flag,1),
+        np.equal(clsatObj.cloudsat.MODIS_cloud_flag,0))
+    modis_cloudy = np.logical_or(
+        np.equal(clsatObj.cloudsat.MODIS_cloud_flag,3),
+        np.equal(clsatObj.cloudsat.MODIS_cloud_flag,2))
+    cloudsat_cloud_mask=clsatObj.cloudsat.CPR_Cloud_mask
+    cloudsat_cloud_mask=np.greater_equal(cloudsat_cloud_mask, 
+                                         config.CLOUDSAT_CLOUDY_THR)
+    cloudsat_cloud_fraction=np.zeros(clsatObj.cloudsat.latitude.shape[0])
+    sum_cloudsat_cloud_mask = np.sum(cloudsat_cloud_mask, axis=1)
+    if len(sum_cloudsat_cloud_mask) != (len(cloudsat_cloud_fraction)):
+        raise ValueError('Boolean index-array should have same lenght as array!')
+    cloudsat_cloud_fraction[sum_cloudsat_cloud_mask > 2] = 1 # requires at least two cloudy bins
+    cloudsat_clear =  np.less(cloudsat_cloud_fraction,1)
+    cloudsat_cloudy = np.greater_equal(cloudsat_cloud_fraction,1)
 
-        n_clear_clear = np.repeat(
-            modis_clear, np.logical_and(cloudsat_clear,modis_clear)).shape[0]
-        n_cloudy_cloudy = np.repeat(
-            modis_cloudy, np.logical_and(cloudsat_cloudy,modis_cloudy)).shape[0]
-        n_clear_cloudy = np.repeat(
-            modis_cloudy, np.logical_and(cloudsat_clear,modis_cloudy)).shape[0]
-        n_cloudy_clear = np.repeat(
-            modis_clear, np.logical_and(cloudsat_cloudy,modis_clear)).shape[0]
+    n_clear_clear = np.repeat(
+        modis_clear, np.logical_and(cloudsat_clear,modis_clear)).shape[0]
+    n_cloudy_cloudy = np.repeat(
+        modis_cloudy, np.logical_and(cloudsat_cloudy,modis_cloudy)).shape[0]
+    n_clear_cloudy = np.repeat(
+        modis_cloudy, np.logical_and(cloudsat_clear,modis_cloudy)).shape[0]
+    n_cloudy_clear = np.repeat(
+        modis_clear, np.logical_and(cloudsat_cloudy,modis_clear)).shape[0]
         
-        nclear = np.repeat(cloudsat_clear,cloudsat_clear).shape[0]
-        ncloudy = np.repeat(cloudsat_cloudy,cloudsat_cloudy).shape[0]
-        ncloudy_modis = n_cloudy_cloudy+n_clear_cloudy
-        nclear_modis = n_cloudy_clear+n_clear_clear
+    nclear = np.repeat(cloudsat_clear,cloudsat_clear).shape[0]
+    ncloudy = np.repeat(cloudsat_cloudy,cloudsat_cloudy).shape[0]
+    ncloudy_modis = n_cloudy_cloudy+n_clear_cloudy
+    nclear_modis = n_cloudy_clear+n_clear_clear
         
-        #print "Number of clear points (CLOUDSAT): ",nclear
-        #print "Number of cloudy points (CLOUDSAT): ",ncloudy
-        #print "Clear-Clear,Cloudy-Cloudy",n_clear_clear,n_cloudy_cloudy
-        #print "Cloudsat-Clear MODIS-Cloudy, Cloudsat-Cloudy MODIS-Clear",n_clear_cloudy,n_cloudy_clear
-        
-        if ncloudy > 0:
-            pod_cloudy = float(n_cloudy_cloudy)/ncloudy
-        else:
-            pod_cloudy = -9.0
-        if ncloudy_modis > 0:
-            far_cloudy = float(n_clear_cloudy)/ncloudy_modis
-        else:
-            far_cloudy = -9.0
-
-        if nclear > 0:
-            pod_clear = float(n_clear_clear)/nclear
-        else:
-            pod_clear = -9.0
-        if nclear_modis > 0:
-            far_clear = float(n_cloudy_clear)/nclear_modis
-        else:
-            far_clear = -9.0
-        
-        #print "POD-Cloudy: ",pod_cloudy
-        #print "POD-Clear: ",pod_clear
-        #print "FAR-Cloudy: ",far_cloudy
-        #print "FAR-Clear: ",far_clear    
-        #print "-----------------------------------------"
-        mean_cloudsat=((n_clear_clear+n_clear_cloudy)*0.0 + (n_cloudy_clear+n_cloudy_cloudy)*1.0)/(n_clear_clear+n_clear_cloudy+n_cloudy_clear+n_cloudy_cloudy)
-        mean_modis=((n_clear_clear+n_cloudy_clear)*0.0 + (n_cloudy_cloudy+n_clear_cloudy)*1.0)/(n_clear_clear+n_clear_cloudy+n_cloudy_clear+n_cloudy_cloudy)
-        bias=mean_modis-mean_cloudsat
-        statfile.write("CLOUD MASK CLOUDSAT-MODIS TABLE: %s %s %s %s \n" % (n_clear_clear,n_clear_cloudy,n_cloudy_clear,n_cloudy_cloudy))
-        statfile.write("CLOUD MASK CLOUDSAT-MODIS FROM CLOUDSAT FLAG POD-CLOUDY:  %3.2f \n" % (pod_cloudy*100))
-        statfile.write("CLOUD MASK CLOUDSAT-MODIS FROM CLOUDSAT FLAG POD-CLEAR:   %3.2f \n" % (pod_clear)*100)
-        statfile.write("CLOUD MASK CLOUDSAT-MODIS FROM CLOUDSAT FLAG FAR-CLOUDY:  %3.2f \n" % (far_cloudy*100))
-        statfile.write("CLOUD MASK CLOUDSAT-MODIS FROM CLOUDSAT FLAG FAR-CLEAR:   %3.2f \n" % (far_clear*100))
-        statfile.write("CLOUD MASK CLOUDSAT-MODIS FROM CLOUDSAT FLAG BIAS percent: %3.2f \n" % ( bias*100)) 
+    if ncloudy > 0:
+        pod_cloudy = float(n_cloudy_cloudy)/ncloudy
     else:
-        statfile.write('No CloudSat \n')
-        statfile.write('No CloudSat \n') 
+        pod_cloudy = -9.0
+    if ncloudy_modis > 0:
+        far_cloudy = float(n_clear_cloudy)/ncloudy_modis
+    else:
+        far_cloudy = -9.0
+
+    if nclear > 0:
+        pod_clear = float(n_clear_clear)/nclear
+    else:
+        pod_clear = -9.0
+    if nclear_modis > 0:
+        far_clear = float(n_cloudy_clear)/nclear_modis
+    else:
+        far_clear = -9.0
+
+    mean_cloudsat=((n_clear_clear+n_clear_cloudy)*0.0 + (n_cloudy_clear+n_cloudy_cloudy)*1.0)/(n_clear_clear+n_clear_cloudy+n_cloudy_clear+n_cloudy_cloudy)
+    mean_modis=((n_clear_clear+n_cloudy_clear)*0.0 + (n_cloudy_cloudy+n_clear_cloudy)*1.0)/(n_clear_clear+n_clear_cloudy+n_cloudy_clear+n_cloudy_cloudy)
+    bias=mean_modis-mean_cloudsat
+    statfile.write("CLOUD MASK CLOUDSAT-MODIS TABLE: %s %s %s %s \n" % (n_clear_clear,n_clear_cloudy,n_cloudy_clear,n_cloudy_cloudy))
+    statfile.write("CLOUD MASK CLOUDSAT-MODIS FROM CLOUDSAT FLAG POD-CLOUDY:  %3.2f \n" % (pod_cloudy*100))
+    statfile.write("CLOUD MASK CLOUDSAT-MODIS FROM CLOUDSAT FLAG POD-CLEAR:   %3.2f \n" % (pod_clear)*100)
+    statfile.write("CLOUD MASK CLOUDSAT-MODIS FROM CLOUDSAT FLAG FAR-CLOUDY:  %3.2f \n" % (far_cloudy*100))
+    statfile.write("CLOUD MASK CLOUDSAT-MODIS FROM CLOUDSAT FLAG FAR-CLEAR:   %3.2f \n" % (far_clear*100))
+    statfile.write("CLOUD MASK CLOUDSAT-MODIS FROM CLOUDSAT FLAG BIAS percent: %3.2f \n" % ( bias*100)) 
+
 
 
 def print_calipso_cmask_stats(caObj, statfile, cal_subset):
     # CLOUD MASK EVALUATION
-    #=======================
-    
+    #=======================    
     # CORRELATION CLOUD MASK: CALIOP/ISS - IMAGER
 
     cObj_truth_sat = getattr(caObj, caObj.truth_sat)
@@ -365,9 +337,7 @@ def print_calipso_cmask_stats(caObj, statfile, cal_subset):
     calipso_clear = np.logical_and(
         np.less(cObj_truth_sat.cloud_fraction,config.CALIPSO_CLEAR_MAX_CFC),cal_subset)
     calipso_cloudy = np.logical_and(
-        np.greater(cObj_truth_sat.cloud_fraction,config.CALIPSO_CLOUDY_MIN_CFC),cal_subset)
-    
-        
+        np.greater(cObj_truth_sat.cloud_fraction,config.CALIPSO_CLOUDY_MIN_CFC),cal_subset)        
     # For the combined 1km + 5km dataset cloud_fraction can only have values (0.0, 0.2, 0.4, 0.6, 0.8, 1.0). So the threshold should
     # really be set to 0.4, i.e., at least two 1 km columns should be cloudy!. 
     
@@ -378,9 +348,6 @@ def print_calipso_cmask_stats(caObj, statfile, cal_subset):
                                   np.equal(caObj.avhrr.cloudmask,0))
         pps_cloudy = np.logical_or(np.equal(caObj.avhrr.cloudmask,1),
                                    np.equal(caObj.avhrr.cloudmask,2))
-
-    #print "------------------------------------"
-    #print "STATISTICS CLOUD MASK: CALIOP/ISS - IMAGER
     
     n_clear_clear = np.repeat(
         pps_clear,np.logical_and(calipso_clear,pps_clear)).shape[0]
@@ -413,11 +380,6 @@ def print_calipso_cmask_stats(caObj, statfile, cal_subset):
     else:
         far_clear = -9.0
     
-    #print "POD-Cloudy: ",pod_cloudy
-    #print "POD-Clear: ",pod_clear
-    #print "FAR-Cloudy: ",far_cloudy
-    #print "FAR-Clear: ",far_clear    
-    #print "-----------------------------------------"
     if (n_clear_clear+n_clear_cloudy+n_cloudy_clear+n_cloudy_cloudy) > 0:
         mean_caliop=((n_clear_clear+n_clear_cloudy)*0.0 + (n_cloudy_clear+n_cloudy_cloudy)*1.0)/(n_clear_clear+n_clear_cloudy+n_cloudy_clear+n_cloudy_cloudy)
         mean_pps=((n_clear_clear+n_cloudy_clear)*0.0 + (n_cloudy_cloudy+n_clear_cloudy)*1.0)/(n_clear_clear+n_clear_cloudy+n_cloudy_clear+n_cloudy_cloudy)
@@ -495,12 +457,13 @@ def print_calipso_modis_stats(caObj, statfile, cal_subset, cal_MODIS_cflag):
         statfile.write("CLOUD MASK CALIOP-MODIS FROM CLOUDSAT FLAG FAR-CLOUDY:  %3.2f \n" % (far_cloudy*100))
         statfile.write("CLOUD MASK CALIOP-MODIS FROM CLOUDSAT FLAG FAR-CLEAR:   %3.2f \n" % (far_clear*100))
         statfile.write("CLOUD MASK CALIOP-MODIS FROM CLOUDSAT FLAG BIAS percent: %3.2f \n" % ( bias*100))    
-    else:
-        statfile.write("No CloudSat \n")
-        statfile.write("No CloudSat \n")
+ 
     
 def print_calipso_stats_ctype(caObj, statfile, cal_subset, cal_vert_feature):
-
+    if config.CCI_CLOUD_VALIDATION :
+        logger.info("Cloudtype validation not useful for CCI validation")
+        return
+    
     # CLOUD TYPE EVALUATION - Based exclusively on CALIPSO data (Vertical Feature Mask)
     # =======================
     calipso_low = np.logical_and(
@@ -516,11 +479,8 @@ def print_calipso_stats_ctype(caObj, statfile, cal_subset, cal_vert_feature):
                        np.less_equal(cal_vert_feature[::],7)),
         cal_subset)
 
-    if config.CCI_CLOUD_VALIDATION or caObj.avhrr.cloudtype_conditions is not None:
-        if config.CCI_CLOUD_VALIDATION:
-            logger.info("CCI validation ctype validation not useful!")
-        else:    
-            logger.info("Assuming cloudtype structure from pps v2014")
+    if  caObj.avhrr.cloudtype_conditions is not None: 
+        logger.info("Assuming cloudtype structure from pps v2014")
         avhrr_low = np.logical_and(
             np.logical_and(np.greater_equal(caObj.avhrr.cloudtype,5),
                            np.less_equal(caObj.avhrr.cloudtype,6)),
@@ -649,60 +609,53 @@ def print_calipso_stats_ctype(caObj, statfile, cal_subset, cal_vert_feature):
         pod_high =-9.0
         far_high =-9.0
 
-    statfile.write("CLOUD TYPE %s-PPS TABLE: %s %s %s %s %s %s %s %s %s %s %s %s \n" % (caObj.truth_sat.upper(),n_low_low,n_low_medium,n_low_high,n_medium_low,n_medium_medium,n_medium_high,n_high_low,n_high_medium,n_high_high,n_frac_low,n_frac_medium,n_frac_high))
-    statfile.write("CLOUD TYPE %s-PPS PROB: %f %f %f %f %f %f \n" % (caObj.truth_sat.upper(),pod_low,pod_medium,pod_high,far_low,far_medium,far_high))
-    statfile.write("CLOUD TYPE %s-PPS TABLE MISSED: %s %s %s %s %s %s %s \n" % (caObj.truth_sat.upper(),n_clear_low,n_clear_medium,n_clear_high,n_low_clear,n_medium_clear,n_high_clear,n_frac_clear))
+    statfile.write("CLOUD TYPE %s-IMAGER TABLE: %s %s %s %s %s %s %s %s %s %s %s %s \n" % (caObj.truth_sat.upper(),n_low_low,n_low_medium,n_low_high,n_medium_low,n_medium_medium,n_medium_high,n_high_low,n_high_medium,n_high_high,n_frac_low,n_frac_medium,n_frac_high))
+    statfile.write("CLOUD TYPE %s-IMAGER PROB: %f %f %f %f %f %f \n" % (caObj.truth_sat.upper(),pod_low,pod_medium,pod_high,far_low,far_medium,far_high))
+    statfile.write("CLOUD TYPE %s-IMAGER TABLE MISSED: %s %s %s %s %s %s %s \n" % (caObj.truth_sat.upper(),n_clear_low,n_clear_medium,n_clear_high,n_low_clear,n_medium_clear,n_high_clear,n_frac_clear))
             
 
 def print_cloudsat_stats_ctop(clsatObj, statfile):
 
     # CLOUD TOP EVALUATION
     #=======================
-    if clsatObj is not None: 
-        imager_ctth_m_above_seasurface = clsatObj.avhrr.imager_ctth_m_above_seasurface
-        # CORRELATION: CLOUDSAT - AVHRR HEIGHT
+    imager_ctth_m_above_seasurface = clsatObj.avhrr.imager_ctth_m_above_seasurface
+    # CORRELATION: CLOUDSAT - AVHRR HEIGHT
     
-        #print "STATISTICS CLOUD TOP HEIGHT: CLOUDSAT - AVHRR"
-        clsat_max_height = -9 + 0*np.zeros(clsatObj.cloudsat.latitude.shape)
+    #print "STATISTICS CLOUD TOP HEIGHT: CLOUDSAT - AVHRR"
+    clsat_max_height = -9 + 0*np.zeros(clsatObj.cloudsat.latitude.shape)
     
-        for i in range(125):
-            height = clsatObj.cloudsat.Height[:,i]
-            cmask_ok = clsatObj.cloudsat.CPR_Cloud_mask[:,i]
-            top_height = height+120
-            #top_height[height<240*4] = -9999 #Do not use not sure why these are not used Nina 20170317
-            is_cloudy = cmask_ok > config.CLOUDSAT_CLOUDY_THR
-            top_height[~is_cloudy] = -9999
-            clsat_max_height[clsat_max_height<top_height] =  top_height[clsat_max_height<top_height] 
+    for i in range(125):
+        height = clsatObj.cloudsat.Height[:,i]
+        cmask_ok = clsatObj.cloudsat.CPR_Cloud_mask[:,i]
+        top_height = height+120
+        #top_height[height<240*4] = -9999 #Do not use not sure why these are not used Nina 20170317
+        is_cloudy = cmask_ok > config.CLOUDSAT_CLOUDY_THR
+        top_height[~is_cloudy] = -9999
+        clsat_max_height[clsat_max_height<top_height] =  top_height[clsat_max_height<top_height] 
 
-        okarr = np.greater_equal(imager_ctth_m_above_seasurface,0.0)
-        okarr = np.logical_and(okarr,np.greater_equal(clsat_max_height,0.0))
-        clsat_max_height = np.repeat(clsat_max_height[::],okarr)
-        avhrr_height = np.repeat(imager_ctth_m_above_seasurface[::],okarr)
+    okarr = np.greater_equal(imager_ctth_m_above_seasurface,0.0)
+    okarr = np.logical_and(okarr,np.greater_equal(clsat_max_height,0.0))
+    clsat_max_height = np.repeat(clsat_max_height[::],okarr)
+    avhrr_height = np.repeat(imager_ctth_m_above_seasurface[::],okarr)
     
-        if len(avhrr_height) > 0:
-            if len(avhrr_height) > 20:
-                corr_cloudsat_avhrr = np.corrcoef(clsat_max_height,avhrr_height)[0,1]
-            else:
-                corr_cloudsat_avhrr = -99.0
-            #print "Correlation: cloudsat-avhrr = ",corr_cloudsat_avhrr
-            diff = avhrr_height-clsat_max_height
-            bias = np.mean(diff)
-            #print "Mean difference cloudsat-avhrr = ",bias
-            diff_squared = diff*diff
-            RMS_difference = np.sqrt(np.mean(diff_squared))
-            #print "RMS difference cloudsat-avhrr = ",RMS_difference
-            diff_squared = (diff-bias)*(diff-bias)
-            RMS_difference = np.sqrt(np.mean(diff_squared))
-            #print "Bias-corrected RMS difference cloudsat-avhrr = ",RMS_difference
-            #print "Number of matchups: ", len(avhrr_height)
-            #print "Number of failing PPS CTTHs: ", len(np.repeat(clsatObj.avhrr.cloudtype[::],np.greater(clsatObj.avhrr.cloudtype,4)))-len(avhrr_height)
-            #print
-    
-            statfile.write("CLOUD HEIGHT CLOUDSAT: %f %f %f %s %f \n" % (corr_cloudsat_avhrr,bias,RMS_difference,len(avhrr_height),sum(diff_squared)))
+    if len(avhrr_height) > 0:
+        if len(avhrr_height) > 20:
+            corr_cloudsat_avhrr = np.corrcoef(clsat_max_height,avhrr_height)[0,1]
         else:
-            statfile.write("CLOUD HEIGHT CLOUDSAT: -9.0 -9.0 -9.0 0 -9.0 \n")
+            corr_cloudsat_avhrr = -99.0
+        #print "Correlation: cloudsat-avhrr = ",corr_cloudsat_avhrr
+        diff = avhrr_height-clsat_max_height
+        bias = np.mean(diff)
+        #print "Mean difference cloudsat-avhrr = ",bias
+        diff_squared = diff*diff
+        RMS_difference = np.sqrt(np.mean(diff_squared))
+        #print "RMS difference cloudsat-avhrr = ",RMS_difference
+        bcdiff_squared = (diff-bias)*(diff-bias)
+        bcRMS_difference = np.sqrt(np.mean(diff_squared))    
+        statfile.write("CLOUD HEIGHT CLOUDSAT: %f %f %f %s %f \n" % (corr_cloudsat_avhrr,bias,RMS_difference,len(avhrr_height),sum(bcdiff_squared)))
     else:
-        statfile.write('No CloudSat \n')
+        statfile.write("CLOUD HEIGHT CLOUDSAT: -9.0 -9.0 -9.0 0 -9.0 \n")
+
 
 
 def print_height_all_low_medium_high(NAME, okcaliop,  statfile, 
