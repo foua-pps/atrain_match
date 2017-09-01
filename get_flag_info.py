@@ -203,6 +203,16 @@ def get_calipso_low_medium_high_classification(caObj):
     mlh_class['high_clouds'] = get_calipso_high_clouds(caObj)
     return mlh_class
 
+def get_cloudsat_low_medium_high_classification(clsatObj):
+    mlh_class = {}
+    if clsatObj.avhrr.all_arrays['segment_nwp_h440'] is None:
+        return  mlh_class
+    clsat_h = clsatObj.cloudsat.validation_height
+    mlh_class['low_clouds'] = np.less_equal(clsat_h, clsatObj.avhrr.all_arrays['segment_nwp_h680'])
+    mlh_class['medium_clouds'] = np.logical_and(np.greater(clsat_h, clsatObj.avhrr.all_arrays['segment_nwp_h680']),
+                                                np.less(clsat_h, clsatObj.avhrr.all_arrays['segment_nwp_h680']))
+    mlh_class['high_clouds'] = np.greater_equal(clsat_h, clsatObj.avhrr.all_arrays['segment_nwp_h680']) 
+    return mlh_class
 
 #cci FLAGS
 def get_land_coast_sea_info_cci2014(lsflag):

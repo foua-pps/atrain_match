@@ -17,10 +17,27 @@ from extract_imager_along_track import avhrr_track_from_matched
 from calipso import (find_break_points, calipso_track_from_matched,
                      time_reshape_calipso, do_some_logging)
 
-
+def add_validation_ctth_cloudsat(cloudsat):
+    import config
+    #CLOUDSAT VALIDATION HEIGHT!
+    #The restriction to use only pixels where imager and cloudsat
+    #both is cloudy is done later. This makes it possbile to find also
+    #POD-cloudy for differnt cloud heights
+    validation_height= -9 + 0*np.zeros(cloudsat.latitude.shape)
+    for i in range(125):
+        height = cloudsat.Height[:,i]
+        cmask_ok = cloudsat.CPR_Cloud_mask[:,i]
+        top_height = height+120
+        #top_height[height<240*4] = -9999 #Do not use not sure why these are not used Nina 20170317
+        is_cloudy = cmask_ok > config.CLOUDSAT_CLOUDY_THR
+        top_height[~is_cloudy] = -9999
+        validation_height[validation_height<top_height] =  top_height[validation_height<top_height]
+        cloudsat.validation_height= validation_height
+    return cloudsat
 def get_cloudsat(filename):
     # Read CLOUDSAT Radar data for calipso something is done in this function:
     cloudsat = read_cloudsat(filename)
+    cloudsat = add_validation_ctth_cloudsat(cloudsat)
     return cloudsat
 
 def read_cloudsat(filename):

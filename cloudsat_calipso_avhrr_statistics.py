@@ -6,6 +6,7 @@ logger = logging.getLogger(__name__)
 import numpy as np
 from get_flag_info import (
     get_calipso_low_medium_high_classification,
+    get_cloudsat_low_medium_high_classification,
     get_semi_opaque_info_pps2014, 
     get_semi_opaque_info_pps2012,
     get_sunglint_info_pps2014,
@@ -25,16 +26,35 @@ from get_flag_info import (
     get_mountin_info_pps2012,
     get_inversion_info_pps2012)
 
-def calculate_ctth_stats(val_subset, imager_ctth_m_above_seasurface,caliop_max_height):
+def calculate_ctth_stats(val_subset, imager_ctth_m_above_seasurface, truth_sat_validation_height, imager_is_cloudy):
+
+    imager_have_hight_for_selection = np.logical_and(
+        val_subset,
+        np.greater_equal(imager_ctth_m_above_seasurface,0))
+    truth_have_hight_for_selection = np.logical_and(
+        val_subset,
+        np.greater_equal(truth_sat_validation_height,0)) 
+    #validate where both have height:
+    val_subset = np.logical_and(imager_have_hight_for_selection,
+                                truth_have_hight_for_selection)
+    #print "debug", np.sum(val_subset)
+    #note how many true clouds (iss/cloudsat/caliop) had no hight for imager:
+    only_truth_had_height = np.logical_and(~imager_have_hight_for_selection,
+                                           truth_have_hight_for_selection)
+    #print "debug", np.sum(only_truth_had_height)
+    n_only_truth_had_height = np.sum(only_truth_had_height)
+    n_only_truth_had_height_both_had_cloud = np.sum(np.logical_and(only_truth_had_height,
+                                                                   imager_is_cloudy))
+    #print "debug", np.sum(n_only_truth_had_height_both_had_cloud)
     avhrr_height_work = np.repeat(imager_ctth_m_above_seasurface[::],val_subset)
-    caliop_max_height_work = np.repeat(caliop_max_height[::],val_subset)
-    if len(caliop_max_height_work) > 0:
+    truth_sat_validation_height_work = np.repeat(truth_sat_validation_height[::],val_subset)
+    if len(truth_sat_validation_height_work) > 0:
         if len(avhrr_height_work) > 20:
-            corr_caliop_avhrr = np.corrcoef(caliop_max_height_work,
+            corr_caliop_avhrr = np.corrcoef(truth_sat_validation_height_work,
                                             avhrr_height_work)[0,1]
         else:
             corr_caliop_avhrr = -99.0
-        diff = avhrr_height_work-caliop_max_height_work
+        diff = avhrr_height_work-truth_sat_validation_height_work
         bias = np.mean(diff)
         diff_squared = diff*diff
         RMS_difference = np.sqrt(np.mean(diff_squared))
@@ -47,7 +67,12 @@ def calculate_ctth_stats(val_subset, imager_ctth_m_above_seasurface,caliop_max_h
 #        RMS_difference_biascorr = -9.0
         diff_squared_biascorr = np.array([-9.0])
     #return (corr_caliop_avhrr,bias,RMS_difference,avhrr_height_work,diff_squared_biascorr)
-    return "%3.2f %3.2f %3.2f %s %3.2f "%(corr_caliop_avhrr,bias,RMS_difference,len(avhrr_height_work),sum(diff_squared_biascorr))
+    return "%3.2f %3.2f %3.2f %d %d %d"%(corr_caliop_avhrr,
+                                       bias,
+                                       RMS_difference,
+                                       len(avhrr_height_work), 
+                                       n_only_truth_had_height,
+                                       n_only_truth_had_height_both_had_cloud )
 
 def get_subset_for_mode(caObj, mode):
   # First prepare possible subsetting of CALIOP datasets according to NSIDC
@@ -223,11 +248,8 @@ def print_cloudsat_stats(clsatObj, statfile):
     cloudsat_cloud_fraction[sum_cloudsat_cloud_mask > 2] = 1 # requires at least two cloudy bins
     cloudsat_clear =  np.less(cloudsat_cloud_fraction,1)
     cloudsat_cloudy = np.greater_equal(cloudsat_cloud_fraction,1)
-    #what version of pps_cloudtype is this not before 2012!
-    pps_clear = np.logical_and(np.less_equal(clsatObj.avhrr.cloudtype,4),
-                               np.greater(clsatObj.avhrr.cloudtype,0))
-    pps_cloudy = np.logical_and(np.greater(clsatObj.avhrr.cloudtype,4),
-                                np.less(clsatObj.avhrr.cloudtype,20))
+    # Imager cloudy clear
+    (pps_clear, pps_cloudy) = find_imager_clear_cloudy(clsatObj)
     n_clear_clear = np.repeat(
         pps_clear, np.logical_and(cloudsat_clear,pps_clear)).shape[0]
     n_cloudy_cloudy = np.repeat(
@@ -327,7 +349,15 @@ def print_cloudsat_modis_stats(clsatObj, statfile):
     statfile.write("CLOUD MASK CLOUDSAT-MODIS FROM CLOUDSAT FLAG FAR-CLEAR:   %3.2f \n" % (far_clear*100))
     statfile.write("CLOUD MASK CLOUDSAT-MODIS FROM CLOUDSAT FLAG BIAS percent: %3.2f \n" % ( bias*100)) 
 
-
+def find_imager_clear_cloudy(cObj):
+    imager_clear =np.logical_and(np.less_equal(cObj.avhrr.cloudtype,4),np.greater(cObj.avhrr.cloudtype,0))
+    imager_cloudy = np.logical_and(np.greater(cObj.avhrr.cloudtype,4),np.less(cObj.avhrr.cloudtype,20))
+    if config.USE_CMA_FOR_CFC_STATISTICS:
+        imager_clear = np.logical_or(np.equal(cObj.avhrr.cloudmask,3),
+                                     np.equal(cObj.avhrr.cloudmask,0))
+        imager_cloudy = np.logical_or(np.equal(cObj.avhrr.cloudmask,1),
+                                      np.equal(cObj.avhrr.cloudmask,2))
+    return imager_clear, imager_cloudy
 
 def print_calipso_cmask_stats(caObj, statfile, val_subset):
     # CLOUD MASK EVALUATION
@@ -342,15 +372,10 @@ def print_calipso_cmask_stats(caObj, statfile, val_subset):
         np.greater(cObj_truth_sat.cloud_fraction,config.CALIPSO_CLOUDY_MIN_CFC),val_subset)        
     # For the combined 1km + 5km dataset cloud_fraction can only have values (0.0, 0.2, 0.4, 0.6, 0.8, 1.0). So the threshold should
     # really be set to 0.4, i.e., at least two 1 km columns should be cloudy!. 
-    
-    pps_clear = np.logical_and(np.logical_and(np.less_equal(caObj.avhrr.cloudtype,4),np.greater(caObj.avhrr.cloudtype,0)),val_subset)
-    pps_cloudy = np.logical_and(np.logical_and(np.greater(caObj.avhrr.cloudtype,4),np.less(caObj.avhrr.cloudtype,20)),val_subset)
-    if config.USE_CMA_FOR_CFC_STATISTICS:
-        pps_clear = np.logical_or(np.equal(caObj.avhrr.cloudmask,3),
-                                  np.equal(caObj.avhrr.cloudmask,0))
-        pps_cloudy = np.logical_or(np.equal(caObj.avhrr.cloudmask,1),
-                                   np.equal(caObj.avhrr.cloudmask,2))
-    
+    # Imager cloudy clear
+    (pps_clear, pps_cloudy) = find_imager_clear_cloudy(caObj)
+    pps_clear = np.logical_and(pps_clear, val_subset)
+    pps_cloudy = np.logical_and(pps_cloudy,val_subset)
     n_clear_clear = np.repeat(
         pps_clear,np.logical_and(calipso_clear,pps_clear)).shape[0]
     n_cloudy_cloudy = np.repeat(
@@ -611,40 +636,22 @@ def print_calipso_stats_ctype(caObj, statfile, val_subset, low_medium_high_class
             
 
 def print_cloudsat_stats_ctop(clsatObj, statfile):
-
     # CLOUD TOP EVALUATION
     #=======================
     imager_ctth_m_above_seasurface = clsatObj.avhrr.imager_ctth_m_above_seasurface
-    # CORRELATION: CLOUDSAT - AVHRR HEIGHT
-    
-    #print "STATISTICS CLOUD TOP HEIGHT: CLOUDSAT - AVHRR"
-    clsat_max_height = -9 + 0*np.zeros(clsatObj.cloudsat.latitude.shape)
-    
-    for i in range(125):
-        height = clsatObj.cloudsat.Height[:,i]
-        cmask_ok = clsatObj.cloudsat.CPR_Cloud_mask[:,i]
-        top_height = height+120
-        #top_height[height<240*4] = -9999 #Do not use not sure why these are not used Nina 20170317
-        is_cloudy = cmask_ok > config.CLOUDSAT_CLOUDY_THR
-        top_height[~is_cloudy] = -9999
-        clsat_max_height[clsat_max_height<top_height] =  top_height[clsat_max_height<top_height] 
-
-    okarr = np.greater_equal(imager_ctth_m_above_seasurface,0.0)
-    okarr = np.logical_and(okarr,np.greater_equal(clsat_max_height,0.0))
-    out_stats = calculate_ctth_stats(okarr,imager_ctth_m_above_seasurface,
-                                     clsat_max_height)  
-    #statfile.write("CLOUD HEIGHT CLOUDSAT: %s \n" % (out_stats))
-
+    clsat_max_height = clsatObj.avhrr.validation_height
+    (dummy, imager_is_cloudy) = find_imager_clear_cloudy(clsatObj)
+    okarr = np.greater_equal(clsat_max_height,0.0)    
     print_height_all_low_medium_high("CLOUDSAT", okarr,  statfile, 
                                      None, imager_ctth_m_above_seasurface,
-                                     clsat_max_height)
+                                     clsat_max_height, imager_is_cloudy)
 
 def print_height_all_low_medium_high(NAME, val_subset,  statfile, 
                                      low_medium_high_class, imager_ctth_m_above_seasurface,
-                                     truth_sat_validation_height):
+                                     truth_sat_validation_height, imager_is_cloudy):
 
     out_stats = calculate_ctth_stats(val_subset,imager_ctth_m_above_seasurface,
-                                     truth_sat_validation_height)
+                                     truth_sat_validation_height, imager_is_cloudy)
     statfile.write("CLOUD HEIGHT %s ALL: %s\n" %(NAME, out_stats))
     if low_medium_high_class is None:
         #Nothing more can be done!
@@ -652,17 +659,17 @@ def print_height_all_low_medium_high(NAME, val_subset,  statfile,
     cal_low_ok = np.logical_and(low_medium_high_class['low_clouds'],
                                  val_subset)
     out_stats = calculate_ctth_stats(cal_low_ok,imager_ctth_m_above_seasurface,
-                                     truth_sat_validation_height)   
+                                     truth_sat_validation_height, imager_is_cloudy)   
     statfile.write("CLOUD HEIGHT %s LOW: %s \n" % (NAME, out_stats))
     cal_mid_ok = np.logical_and(low_medium_high_class['medium_clouds'],
                                  val_subset)
     out_stats = calculate_ctth_stats(cal_mid_ok, imager_ctth_m_above_seasurface,
-                                     truth_sat_validation_height)   
+                                     truth_sat_validation_height, imager_is_cloudy)   
     statfile.write("CLOUD HEIGHT %s MEDIUM: %s \n" % (NAME, out_stats))
     cal_high_ok = np.logical_and(low_medium_high_class['high_clouds'],
                                  val_subset)
     out_stats = calculate_ctth_stats(cal_high_ok, imager_ctth_m_above_seasurface,
-                                     truth_sat_validation_height) 
+                                     truth_sat_validation_height, imager_is_cloudy) 
     statfile.write("CLOUD HEIGHT %s HIGH: %s \n" % (NAME, out_stats))
 
 def print_calipso_stats_ctop(cObj, statfile, val_subset, low_medium_high_class):
@@ -674,17 +681,15 @@ def print_calipso_stats_ctop(cObj, statfile, val_subset, low_medium_high_class):
     cObj_truth_sat= getattr(cObj, cObj.truth_sat) #cObj.calipso or cObj.iss
     imager_ctth_m_above_seasurface = cObj_imager.imager_ctth_m_above_seasurface  
     truth_sat_validation_height = cObj_truth_sat.validation_height
-
-    both_have_heights = np.logical_and(
-        np.greater_equal(truth_sat_validation_height,0),
-        np.greater_equal(imager_ctth_m_above_seasurface,0))
-    val_subset = np.logical_and(both_have_heights, val_subset)
+    (dummy, imager_is_cloudy) = find_imager_clear_cloudy(cObj)
  
     #print "ALL CLOUDS:" 
     print_height_all_low_medium_high(cObj.truth_sat.upper(),
                                      val_subset, 
                                      statfile, low_medium_high_class, 
-                                     imager_ctth_m_above_seasurface, truth_sat_validation_height)
+                                     imager_ctth_m_above_seasurface, 
+                                     truth_sat_validation_height, 
+                                     imager_is_cloudy)
     
     if "CALIPSO" not in cObj.truth_sat.upper():
         print "WARNING WARNING WARNING only printing over all statistics for cloudtop for ISS"
@@ -697,7 +702,9 @@ def print_calipso_stats_ctop(cObj, statfile, val_subset, low_medium_high_class):
         print_height_all_low_medium_high("CALIOP-SINGLE-LAYER", 
                                          val_subset_single,
                                          statfile, low_medium_high_class, 
-                                         imager_ctth_m_above_seasurface, truth_sat_validation_height)
+                                         imager_ctth_m_above_seasurface, 
+                                         truth_sat_validation_height, 
+                                         imager_is_cloudy)
 
     if (config.COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC and
         (config.ALSO_USE_5KM_FILES or config.RESOLUTION==5)): 
@@ -709,7 +716,9 @@ def print_calipso_stats_ctop(cObj, statfile, val_subset, low_medium_high_class):
         print_height_all_low_medium_high("CALIOP-SINGLE-LAYER>%f"%(lim), 
                                          val_subset_single_not_thinnest,  
                                          statfile, low_medium_high_class, 
-                                         imager_ctth_m_above_seasurface, truth_sat_validation_height)
+                                         imager_ctth_m_above_seasurface, 
+                                         truth_sat_validation_height, 
+                                         imager_is_cloudy)
         
         statfile.write("CLOUD HEIGHT NOT VERY THIN TOP LAYER\n")
         lim=config.OPTICAL_DETECTION_LIMIT
@@ -719,7 +728,9 @@ def print_calipso_stats_ctop(cObj, statfile, val_subset, low_medium_high_class):
         print_height_all_low_medium_high("CALIOP-TOP-LAYER>%f"%(lim), 
                                          val_subset_not_thinnest_top_layer,  
                                          statfile, low_medium_high_class, 
-                                         imager_ctth_m_above_seasurface, truth_sat_validation_height)
+                                         imager_ctth_m_above_seasurface, 
+                                         truth_sat_validation_height, 
+                                         imager_is_cloudy)
 
         lim=config.OPTICAL_DETECTION_LIMIT
         statfile.write("CLOUD HEIGHT VERY THIN TOP LAYER\n")
@@ -729,7 +740,9 @@ def print_calipso_stats_ctop(cObj, statfile, val_subset, low_medium_high_class):
         print_height_all_low_medium_high("CALIOP-TOP-LAYER<=%f"%(lim), 
                                          val_subset_thinnest_top_layer,  
                                          statfile, low_medium_high_class, 
-                                         imager_ctth_m_above_seasurface, truth_sat_validation_height)
+                                         imager_ctth_m_above_seasurface, 
+                                         truth_sat_validation_height, 
+                                         imager_is_cloudy)
            
     """    
     if (config.COMPILE_RESULTS_SEPARATELY_FOR_SEMI_AND_OPAQUE and 
@@ -830,11 +843,13 @@ def CalculateStatistics(mode, statfilename, caObj, clsatObj, issObj,
     import sys
 
     if clsatObj is not None:
+        val_subset = np.bool_(np.ones(clsatObj.cloudsat.elevation.shape))
         #curretnly only mode BASIC
+        low_medium_high_class = get_cloudsat_low_medium_high_classification(clsatObj)
         statfile = open(statfilename.replace('xxx','cloudsat'),"w")
         print_main_stats(clsatObj, statfile)
         print_cloudsat_stats(clsatObj, statfile)
-        print_cloudsat_stats_ctop(clsatObj, statfile)
+        print_calipso_stats_ctop(clsatObj,  statfile, val_subset, low_medium_high_class)
         statfile.close()
     
     if caObj is not None:
@@ -867,7 +882,7 @@ def CalculateStatistics(mode, statfilename, caObj, clsatObj, issObj,
         print_calipso_cmask_stats(caObj, statfile, val_subset)
         print_calipso_modis_stats(caObj, statfile, val_subset, cal_MODIS_cflag)
         print_calipso_stats_ctype(caObj, statfile, val_subset, low_medium_high_class)
-        print_calipso_stats_ctop(caObj, statfile, val_subset, low_medium_high_class) 
+        print_calipso_stats_ctop(caObj,  statfile, val_subset, low_medium_high_class) 
         statfile.close()
     
     if issObj is not None:

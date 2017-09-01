@@ -40,6 +40,13 @@ class SatProjCov:
         self.colidx=None
         self.rowidx=None 
 
+
+def add_validation_ctth_calipso(calipso):
+    calipso.validation_height = calipso.layer_top_altitude[:,0].copy()
+    calipso.validation_height[calipso.validation_height>=0] *= 1000
+    calipso.validation_height[calipso.validation_height<0] = -9
+    return calipso
+
 def calipso_track_from_matched(retv_calipso, calipso, idx_match):
     # Calipso line,pixel inside AVHRR swath:
     for arnameca, valueca in calipso.all_arrays.items(): 
@@ -134,10 +141,7 @@ def get_calipso(filename, res, ALAY=False):
     from scipy import ndimage
     # Read CALIPSO Lidar (CALIOP) data:
     cal = read_calipso(filename, res, ALAY=ALAY)
-    #used for cloud height validation, at certain modis it might be updated.    
-    cal.validation_height = cal.layer_top_altitude[:,0].copy()
-    cal.validation_height[cal.validation_height>=0] *= 1000
-    cal.validation_height[cal.validation_height<0] = -9
+    cal = add_validation_ctth_calipso(cal)
     if res == 1 and not ALAY:
         lon = cal.longitude.ravel()
         # --------------------------------------------------------------------

@@ -96,7 +96,9 @@ from cloudsat_calipso_avhrr_prepare import (CalipsoCloudOpticalDepth,
                                             CalipsoOpticalDepthSetThinToClearFiltering1km)
 
 from read_cloudproducts_and_nwp_pps import NWPObj
-from cloudsat import reshapeCloudsat, match_cloudsat_avhrr
+from cloudsat import (reshapeCloudsat, 
+                      match_cloudsat_avhrr ,
+                      add_validation_ctth_cloudsat)
 from iss import reshapeIss, match_iss_avhrr
 from calipso import (reshapeCalipso, 
                      discardCalipsoFilesOutsideTimeRange,
@@ -114,7 +116,9 @@ from calipso import  (detection_height_from_5km_data,
                       add1kmTo5km,
                       addSingleShotTo5km,
                       add5kmVariablesTo1kmresolution,
-                      adjust5kmTo1kmresolution)
+                      adjust5kmTo1kmresolution,
+                      add_validation_ctth_calipso
+                  )
 import inspect
 
 from cloudsat_calipso_avhrr_plot import (drawCalClsatAvhrrPlotTimeDiff,
@@ -909,17 +913,6 @@ def add_additional_clousat_calipso_index_vars(clsatObj, caObj):
         # Transfer CloudSat MODIS cloud flag to CALIPSO representation
         caObj.calipso.cal_MODIS_cflag = np.zeros(len(caObj.calipso.elevation),'b')
         caObj.calipso.cal_MODIS_cflag = clsatObj.cloudsat.MODIS_cloud_flag[caObj.calipso.cloudsat_index]
-    if clsatObj is not None:
-        clsat_max_height = -9 + 0*np.zeros(clsatObj.cloudsat.latitude.shape)
-        for i in range(125):
-            height = clsatObj.cloudsat.Height[:,i]
-            cmask_ok = clsatObj.cloudsat.CPR_Cloud_mask[:,i]
-            top_height = height+120
-            #top_height[height<240*4] = -9999 #Do not use not sure why these are not used Nina 20170317
-            is_cloudy = cmask_ok > config.CLOUDSAT_CLOUDY_THR
-            top_height[~is_cloudy] = -9999
-            clsat_max_height[clsat_max_height<top_height] =  top_height[clsat_max_height<top_height]
-        clsatObj.cloudsat.clsat_max_height = clsat_max_height
     if clsatObj is not None and caObj is not None:
         clsatObj.cloudsat.calipso_feature_classification_flags = caObj.calipso.feature_classification_flags[clsatObj.cloudsat.calipso_index,0]
     return clsatObj, caObj
@@ -934,6 +927,7 @@ def add_modis_lvl2_clousat_(clsatObj, caObj):
         clsatObj.modis.all_arrays["latitude_5km"] = caObj.modis.all_arrays["latitude_5km"][clsatObj.cloudsat.calipso_index]
         clsatObj.modis.all_arrays["longitude_5km"] = caObj.modis.all_arrays["longitude_5km"][clsatObj.cloudsat.calipso_index]
     return clsatObj
+
 
 def add_elevation_corrected_imager_ctth(clsatObj, caObj, issObj):
     ## Cloudsat ##
@@ -989,7 +983,13 @@ def add_elevation_corrected_imager_ctth(clsatObj, caObj, issObj):
         issObj.avhrr.imager_ctth_m_above_seasurface = imager_ctth_m_above_seasurface
     return clsatObj, caObj, issObj
 
-
+def add_validation_ctth(clsatObj, caObj):
+    if clsatObj is not None:
+        clsatObj.cloudsat = add_validation_ctth_cloudsat(clsatObj.cloudsat)
+    if caObj is not None:
+        caObj.calipso = add_validation_ctth_calipso(caObj.calipso)
+    return clsatObj, caObj
+    
 def get_matchups_from_data(cross, config_options):
     """
     Retrieve Cloudsat- and Calipso-AVHRR matchups from Cloudsat, Calipso, and
@@ -1114,12 +1114,9 @@ def get_matchups_from_data(cross, config_options):
         if cl_matchup is not None:
             cl_matchup = add_modis_06(cl_matchup, avhrr_file, config_options) 
                                                        
-    #add additional vars to cloudsat and calipso objects:
+    #add additional vars to cloudsat and calipso objects and print them to file:
     cl_matchup, ca_matchup = add_additional_clousat_calipso_index_vars(cl_matchup, ca_matchup)
     cl_matchup, ca_matchup, iss_matchup = add_elevation_corrected_imager_ctth(cl_matchup, ca_matchup, iss_matchup)
-    #if config.MATCH_MODIS_LVL2 and config.IMAGER_INSTRUMENT.lower() in ['modis']:
-    #    cl_matchup = add_modis_lvl2_clousat_(cl_matchup, ca_matchup)
-    # Write cloudsat matchup    
 
     #imager_name
     avhrr_obj_name = 'pps'
@@ -1454,6 +1451,8 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     if caObj is not None and caObj.calipso.cloudsat_index is None:
         logger.info("Adding some stuff that might not be in older reshaped files")
         clsatObj, caObj = add_additional_clousat_calipso_index_vars(clsatObj, caObj)
+    logger.info("Adding validation height that might not be in older reshaped files")
+    clsatObj, caObj = add_validation_ctth(clsatObj, caObj)
     #Calculate hight from sea surface 
     clsatObj, caObj, issObj = add_elevation_corrected_imager_ctth(clsatObj, caObj, issObj)
     # If mode = OPTICAL_DEPTH -> Change cloud -top and -base profile
