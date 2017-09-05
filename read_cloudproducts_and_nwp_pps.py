@@ -792,7 +792,18 @@ def read_all_intermediate_files(pps_files):
         pps_nc_seaice = netCDF4.Dataset(pps_files.seaice, 'r', format='NETCDF4')
         nwp_dict["seaice"] = read_etc_nc(pps_nc_seaice, "seaice")
         pps_nc_seaice.close()
-
+    else:
+        logger.info("Not reading PPS seaice data")  
+    if pps_files.physiography is None:
+        pass
+    elif '.nc' in pps_files.physiography:
+        pps_nc_physiography = netCDF4.Dataset(pps_files.physiography, 'r', format='NETCDF4')
+        nwp_dict["landuse"] = read_etc_nc(pps_nc_physiography, "landuse")
+        nwp_dict["fractionofland"] = read_etc_nc(pps_nc_physiography, "fractionofland")
+        nwp_dict["elevation"] = read_etc_nc(pps_nc_physiography, "elevation")
+        pps_nc_physiography.close()
+    else:
+        logger.info("Not reading PPS physiography data") 
     if pps_files.nwp_tsur is None:
         pass
     elif '.nc' in pps_files.nwp_tsur:

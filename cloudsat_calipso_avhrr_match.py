@@ -141,6 +141,7 @@ class ppsFiles(object):
         self.cpp = None
         self.cma = None
         self.sunsatangles = None
+        self.physiography = None
         self.nwp_tsur = None
         self.nwp_t500 = None
         self.nwp_t700 = None
