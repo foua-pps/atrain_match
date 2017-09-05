@@ -635,17 +635,6 @@ def print_calipso_stats_ctype(caObj, statfile, val_subset, low_medium_high_class
     statfile.write("CLOUD TYPE %s-IMAGER TABLE MISSED: %s %s %s %s %s %s %s \n" % (caObj.truth_sat.upper(),n_clear_low,n_clear_medium,n_clear_high,n_low_clear,n_medium_clear,n_high_clear,n_frac_clear))
             
 
-def print_cloudsat_stats_ctop(clsatObj, statfile):
-    # CLOUD TOP EVALUATION
-    #=======================
-    imager_ctth_m_above_seasurface = clsatObj.avhrr.imager_ctth_m_above_seasurface
-    clsat_max_height = clsatObj.avhrr.validation_height
-    (dummy, imager_is_cloudy) = find_imager_clear_cloudy(clsatObj)
-    okarr = np.greater_equal(clsat_max_height,0.0)    
-    print_height_all_low_medium_high("CLOUDSAT", okarr,  statfile, 
-                                     None, imager_ctth_m_above_seasurface,
-                                     clsat_max_height, imager_is_cloudy)
-
 def print_height_all_low_medium_high(NAME, val_subset,  statfile, 
                                      low_medium_high_class, imager_ctth_m_above_seasurface,
                                      truth_sat_validation_height, imager_is_cloudy):
@@ -842,8 +831,30 @@ def CalculateStatistics(mode, statfilename, caObj, clsatObj, issObj,
 
     import sys
 
+    def get_day_night_subset(cObj, val_subset):
+        (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag) = get_day_night_info(cObj)
+        
+        if dnt_flag is None:
+            print('dnt_flag = %s' %'NO DNT FLAG -> ALL PIXELS')
+            dnt_subset = np.logical_and(val_subset, all_dnt_flag)
+        elif dnt_flag.upper() == 'DAY':
+            print('dnt_flag = %s' %dnt_flag.upper())
+            dnt_subset = np.logical_and(val_subset, day_flag)
+        elif dnt_flag.upper() == 'NIGHT':
+            print('dnt_flag = %s' %dnt_flag.upper())
+            dnt_subset = np.logical_and(val_subset, night_flag)
+        elif dnt_flag.upper() == 'TWILIGHT':
+            print('dnt_flag = %s' %dnt_flag.upper())
+            dnt_subset = np.logical_and(val_subset, twilight_flag)
+        else:
+            print('dnt_flag = %s' %dnt_flag.upper())
+            print('statistic calculation is not prepared for this dnt_flag')
+            sys.exit()
+        return dnt_subset    
+            
     if clsatObj is not None:
         val_subset = np.bool_(np.ones(clsatObj.cloudsat.elevation.shape))
+        val_subset = get_day_night_subset(clsatObj, val_subset)
         #curretnly only mode BASIC
         low_medium_high_class = get_cloudsat_low_medium_high_classification(clsatObj)
         statfile = open(statfilename.replace('xxx','cloudsat'),"w")
@@ -858,26 +869,8 @@ def CalculateStatistics(mode, statfilename, caObj, clsatObj, issObj,
         val_subset = get_subset_for_mode(caObj, mode)
         low_medium_high_class = get_calipso_low_medium_high_classification(caObj)
 
-        semi_flag, opaque_flag = get_semi_opaque_info(caObj)
-        (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag) = get_day_night_info(caObj)
-
-        if dnt_flag is None:
-            print('dnt_flag = %s' %'NO DNT FLAG -> ALL PIXELS')
-            val_subset = np.logical_and(val_subset, all_dnt_flag)
-        elif dnt_flag.upper() == 'DAY':
-            print('dnt_flag = %s' %dnt_flag.upper())
-            val_subset = np.logical_and(val_subset, day_flag)
-        elif dnt_flag.upper() == 'NIGHT':
-            print('dnt_flag = %s' %dnt_flag.upper())
-            val_subset = np.logical_and(val_subset, night_flag)
-        elif dnt_flag.upper() == 'TWILIGHT':
-            print('dnt_flag = %s' %dnt_flag.upper())
-            val_subset = np.logical_and(val_subset, twilight_flag)
-        else:
-            print('dnt_flag = %s' %dnt_flag.upper())
-            print('statistic calculation is not prepared for this dnt_flag')
-            sys.exit()
-
+        #semi_flag, opaque_flag = get_semi_opaque_info(caObj)
+        val_subset = get_day_night_subset(caObj, val_subset)
         print_main_stats(caObj, statfile)
         print_calipso_cmask_stats(caObj, statfile, val_subset)
         print_calipso_modis_stats(caObj, statfile, val_subset, cal_MODIS_cflag)
@@ -888,29 +881,7 @@ def CalculateStatistics(mode, statfilename, caObj, clsatObj, issObj,
     if issObj is not None:
         statfile = open(statfilename.replace('xxx','iss'),"w")
         val_subset = np.bool_(np.ones(issObj.iss.elevation.shape))
-
-        #""" Currently only CFC statistics
-
-        #semi_flag, opaque_flag = get_semi_opaque_info(issObj)
-        (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag) = get_day_night_info(issObj)
-
-        if dnt_flag is None:
-            print('dnt_flag = %s' %'NO DNT FLAG -> ALL PIXELS')
-            val_subset = np.logical_and(val_subset, all_dnt_flag)
-        elif dnt_flag.upper() == 'DAY':
-            print('dnt_flag = %s' %dnt_flag.upper())
-            val_subset = np.logical_and(val_subset, day_flag)
-        elif dnt_flag.upper() == 'NIGHT':
-            print('dnt_flag = %s' %dnt_flag.upper())
-            val_subset = np.logical_and(val_subset, night_flag)
-        elif dnt_flag.upper() == 'TWILIGHT':
-            print('dnt_flag = %s' %dnt_flag.upper())
-            val_subset = np.logical_and(val_subset, twilight_flag)
-        else:
-            print('dnt_flag = %s' %dnt_flag.upper())
-            print('statistic calculation is not prepared for this dnt_flag')
-            sys.exit()
-        #"""    
+        val_subset = get_day_night_subset(caObj, val_subset)
         print_main_stats(issObj, statfile)
         print_calipso_cmask_stats(issObj, statfile, val_subset)
         #print_calipso_stats_ctype(issObj, statfile, val_subset, cal_vert_feature)
