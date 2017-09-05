@@ -81,16 +81,18 @@ class OrrbStats():
         acu["cal_low_samples"] = {}
         acu["cal_medium_samples"] = {}
         acu["cal_high_samples"] = {}
-        acu["mean_error_csa_sum"] = {}
         acu["mean_error_cal_all_sum"] = {}
         acu["mean_error_cal_low_sum"] = {}
         acu["mean_error_cal_medium_sum"] = {}
         acu["mean_error_cal_high_sum"] = {}
-        acu["rms_error_csa_sum"] = {}
         acu["rms_error_cal_all_sum"] = {}
         acu["rms_error_cal_low_sum"] = {}
         acu["rms_error_cal_medium_sum"] = {}
         acu["rms_error_cal_high_sum"] =  {}
+        acu["mae_error_cal_all_sum"] = {}
+        acu["mae_error_cal_low_sum"] = {}
+        acu["mae_error_cal_medium_sum"] = {}
+        acu["mae_error_cal_high_sum"] =  {}
         acu["n_missed_ctth_all"] = {}
         acu["n_missed_ctth_low"] = {}
         acu["n_missed_ctth_medium"] = {}
@@ -170,12 +172,14 @@ class OrrbStats():
                 if data_one_cat[3]<0:
                     print "no pixels!"
                     continue
-                
+                if data_one_cat[3]<=0:
+                   data_one_cat[3]=0 
                 if cloud_level == "MEDIUM":
                     if type_of_clouds not in acu["cal_medium_samples"].keys():                        
                         acu["cal_medium_samples"][type_of_clouds] = 0
                         acu["mean_error_cal_medium_sum"][type_of_clouds] = 0
                         acu["rms_error_cal_medium_sum"][type_of_clouds] = 0
+                        acu["mae_error_cal_medium_sum"][type_of_clouds] = 0
                         acu["n_missed_ctth_medium"][type_of_clouds] = 0
                         acu["n_missed_cma_medium"][type_of_clouds] = 0
                     acu["n_missed_ctth_medium"][type_of_clouds] += data_one_cat[5]
@@ -183,11 +187,13 @@ class OrrbStats():
                     acu["cal_medium_samples"][type_of_clouds] += data_one_cat[3]
                     acu["mean_error_cal_medium_sum"][type_of_clouds] += data_one_cat[3]*data_one_cat[1]
                     acu["rms_error_cal_medium_sum"][type_of_clouds] += data_one_cat[3]*data_one_cat[2]*data_one_cat[2] 
+                    acu["mae_error_cal_medium_sum"][type_of_clouds] += data_one_cat[3]*data_one_cat[6]
                 elif cloud_level == "HIGH":
                     if type_of_clouds not in acu["cal_high_samples"].keys():
                         acu["cal_high_samples"][type_of_clouds] = 0
                         acu["mean_error_cal_high_sum"][type_of_clouds] = 0
                         acu["rms_error_cal_high_sum"][type_of_clouds] = 0 
+                        acu["mae_error_cal_high_sum"][type_of_clouds] = 0 
                         acu["n_missed_ctth_high"][type_of_clouds] = 0
                         acu["n_missed_cma_high"][type_of_clouds] = 0
                     acu["n_missed_ctth_high"][type_of_clouds] += data_one_cat[5]
@@ -195,11 +201,13 @@ class OrrbStats():
                     acu["cal_high_samples"][type_of_clouds] += data_one_cat[3]
                     acu["mean_error_cal_high_sum"][type_of_clouds] += data_one_cat[3]*data_one_cat[1]
                     acu["rms_error_cal_high_sum"][type_of_clouds] += data_one_cat[3]*data_one_cat[2]*data_one_cat[2]
+                    acu["mae_error_cal_high_sum"][type_of_clouds] += data_one_cat[3]*data_one_cat[6]
                 elif cloud_level == "LOW":
                     if type_of_clouds not in acu["cal_low_samples"].keys():
                         acu["cal_low_samples"][type_of_clouds] = 0
                         acu["mean_error_cal_low_sum"][type_of_clouds] = 0
                         acu["rms_error_cal_low_sum"][type_of_clouds] = 0 
+                        acu["mae_error_cal_low_sum"][type_of_clouds] = 0 
                         acu["n_missed_ctth_low"][type_of_clouds] = 0
                         acu["n_missed_cma_low"][type_of_clouds] = 0
                     acu["n_missed_ctth_low"][type_of_clouds] += data_one_cat[5]
@@ -207,11 +215,13 @@ class OrrbStats():
                     acu["cal_low_samples"][type_of_clouds] += data_one_cat[3]
                     acu["mean_error_cal_low_sum"][type_of_clouds] += data_one_cat[3]*data_one_cat[1]
                     acu["rms_error_cal_low_sum"][type_of_clouds] += data_one_cat[3]*data_one_cat[2]*data_one_cat[2]
+                    acu["mae_error_cal_low_sum"][type_of_clouds] += data_one_cat[3]*data_one_cat[6]
                 else:
                     if type_of_clouds not in acu["cal_all_samples"].keys():
                         acu["cal_all_samples"][type_of_clouds] = 0
                         acu["mean_error_cal_all_sum"][type_of_clouds] = 0
                         acu["rms_error_cal_all_sum"][type_of_clouds] = 0
+                        acu["mae_error_cal_all_sum"][type_of_clouds] = 0
                         acu["n_missed_ctth_all"][type_of_clouds] = 0
                         acu["n_missed_cma_all"][type_of_clouds] = 0
                     acu["n_missed_ctth_all"][type_of_clouds] += data_one_cat[5]
@@ -219,6 +229,7 @@ class OrrbStats():
                     acu["cal_all_samples"][type_of_clouds] += data_one_cat[3]
                     acu["mean_error_cal_all_sum"][type_of_clouds] += data_one_cat[3]*data_one_cat[1]
                     acu["rms_error_cal_all_sum"][type_of_clouds] += data_one_cat[3]*data_one_cat[2]*data_one_cat[2] 
+                    acu["mae_error_cal_all_sum"][type_of_clouds] += data_one_cat[3]*data_one_cat[6]
         acu['got_cloudsat_modis_flag'] = got_cloudsat_modis_flag
         acu["Num"] = (acu["n_cloudy_cloudy_cal"] + acu["n_cloudy_clear_cal"] +
              acu["n_clear_cloudy_cal"] + acu["n_clear_clear_cal"])

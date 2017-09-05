@@ -111,6 +111,7 @@ def createAvhrrTime(Obt, values=None, Trust_sec_1970=False):
                 raise TimeMatchError("Time in file and filename do not agree.")        
         Obt.time = np.linspace(Obt.sec1970_start, Obt.sec1970_end, Obt.num_of_lines)
     return Obt
+    
 
 class NWPObj(object):
     def __init__(self, array_dict):

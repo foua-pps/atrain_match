@@ -8,7 +8,7 @@ from matchobject_io import (DataObject,
                             CloudsatObject,
                             CloudsatAvhrrTrackObject)                            
 from config import (AREA, sec_timeThr, RESOLUTION,
-                    NODATA, NLINES, SWATHWD, 
+                    NODATA, NLINES, SWATHWD,CLOUDSAT_CLOUDY_THR, 
                     _validation_results_dir)
 from common import (MatchupError, 
                     elements_within_range)
@@ -29,15 +29,29 @@ def add_validation_ctth_cloudsat(cloudsat):
         cmask_ok = cloudsat.CPR_Cloud_mask[:,i]
         top_height = height+120
         #top_height[height<240*4] = -9999 #Do not use not sure why these are not used Nina 20170317
-        is_cloudy = cmask_ok > config.CLOUDSAT_CLOUDY_THR
+        is_cloudy = cmask_ok > CLOUDSAT_CLOUDY_THR
         top_height[~is_cloudy] = -9999
         validation_height[validation_height<top_height] =  top_height[validation_height<top_height]
         cloudsat.validation_height= validation_height
     return cloudsat
+
+def add_cloudsat_cloud_fraction(cloudsat):
+    cloudsat_cloud_mask = cloudsat.CPR_Cloud_mask
+    cloudsat_cloud_mask = np.greater_equal(cloudsat_cloud_mask, 
+                                           CLOUDSAT_CLOUDY_THR)
+    cloudsat_cloud_fraction = np.zeros(cloudsat.latitude.shape[0])
+    sum_cloudsat_cloud_mask = np.sum(cloudsat_cloud_mask, axis=1)
+    if len(sum_cloudsat_cloud_mask) != (len(cloudsat_cloud_fraction)):
+        raise ValueError('Boolean index-array should have same lenght as array!')
+    cloudsat_cloud_fraction[sum_cloudsat_cloud_mask > 2] = 1 # requires at least two cloudy bins
+    cloudsat.cloud_fraction = cloudsat_cloud_fraction
+    return cloudsat
+
 def get_cloudsat(filename):
     # Read CLOUDSAT Radar data for calipso something is done in this function:
     cloudsat = read_cloudsat(filename)
     cloudsat = add_validation_ctth_cloudsat(cloudsat)
+    cloudsat = add_cloudsat_cloud_fraction(cloudsat)      
     return cloudsat
 
 def read_cloudsat(filename):

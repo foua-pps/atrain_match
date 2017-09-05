@@ -32,16 +32,18 @@ class CloudTopStats(OrrbStats):
         cal_low_samples = self.ac_data["cal_low_samples"] 
         cal_medium_samples = self.ac_data["cal_medium_samples"] 
         cal_high_samples = self.ac_data["cal_high_samples"] 
-        mean_error_csa_sum = self.ac_data["mean_error_csa_sum"] 
         mean_error_cal_all_sum = self.ac_data["mean_error_cal_all_sum"] 
         mean_error_cal_low_sum = self.ac_data["mean_error_cal_low_sum"] 
         mean_error_cal_medium_sum = self.ac_data["mean_error_cal_medium_sum"] 
         mean_error_cal_high_sum = self.ac_data["mean_error_cal_high_sum"] 
-        rms_error_csa_sum = self.ac_data["rms_error_csa_sum"] 
         rms_error_cal_all_sum = self.ac_data["rms_error_cal_all_sum"] 
         rms_error_cal_low_sum = self.ac_data["rms_error_cal_low_sum"] 
         rms_error_cal_medium_sum = self.ac_data["rms_error_cal_medium_sum"] 
         rms_error_cal_high_sum = self.ac_data["rms_error_cal_high_sum"]
+        mae_error_cal_all_sum = self.ac_data["mae_error_cal_all_sum"] 
+        mae_error_cal_low_sum = self.ac_data["mae_error_cal_low_sum"] 
+        mae_error_cal_medium_sum = self.ac_data["mae_error_cal_medium_sum"] 
+        mae_error_cal_high_sum = self.ac_data["mae_error_cal_high_sum"]
 
         n_missed_ctth_all = self.ac_data["n_missed_ctth_all"]
         n_missed_cma_all = self.ac_data["n_missed_cma_all"] 
@@ -76,7 +78,10 @@ class CloudTopStats(OrrbStats):
         self.bcrms_cal_low = {}
         self.bcrms_cal_medium = {}
         self.bcrms_cal_high = {}
-
+        self.mae_cal_all = {}
+        self.mae_cal_low = {}
+        self.mae_cal_medium = {}
+        self.mae_cal_high = {}
         for tc in cal_all_samples.keys():
         # numpy.divide handles potential division by zero
             self.retrieval_rate_all[tc] = cal_all_samples[tc]/(cal_all_samples[tc] +
@@ -84,6 +89,8 @@ class CloudTopStats(OrrbStats):
             self.estimate_pod_cloudy_all[tc] = cal_all_samples[tc]/(cal_all_samples[tc] +
                                                            n_missed_cma_all[tc])
             self.bias_cal_all[tc] = np.divide(mean_error_cal_all_sum[tc], 
+                                              cal_all_samples[tc])
+            self.mae_cal_all[tc] = np.divide(mae_error_cal_all_sum[tc], 
                                               cal_all_samples[tc])
             self.rms_cal_all[tc] = math.sqrt(np.divide(rms_error_cal_all_sum[tc], 
                                                        cal_all_samples[tc]))
@@ -120,6 +127,13 @@ class CloudTopStats(OrrbStats):
             self.rms_cal_high[tc] = math.sqrt(np.divide(rms_error_cal_high_sum[tc], 
                                                    cal_high_samples[tc]))
 
+            self.mae_cal_low[tc] = np.divide(mae_error_cal_low_sum[tc], 
+                                             cal_low_samples[tc])
+            self.mae_cal_medium[tc]= np.divide(mae_error_cal_medium_sum[tc], 
+                                               cal_medium_samples[tc])
+            self.mae_cal_high[tc] = np.divide(mae_error_cal_high_sum[tc], 
+                                                   cal_high_samples[tc])
+
 
             self.bcrms_cal_low[tc] = bias_corrected_rms( self.rms_cal_low[tc], 
                                                      self.bias_cal_low[tc], 
@@ -145,6 +159,10 @@ class CloudTopStats(OrrbStats):
             lines.append("Number of %s matched low cloudtops: %d" % (self.truth_sat.upper(), self.cal_low_samples[tc]))
             lines.append("Number of %s matched medium cloudtops: %d" %( self.truth_sat.upper(), self.cal_medium_samples[tc]))
             lines.append("Number of %s matched high cloudtops: %d" %( self.truth_sat.upper(), self.cal_high_samples[tc]))
+            lines.append("Mean absolute error total cases: %.0f" % self.mae_cal_all[tc])
+            lines.append("Mean absolute error low-level cases: %.0f" % self.mae_cal_low[tc])
+            lines.append("Mean absolute error medium-level cases: %.0f" % self.mae_cal_medium[tc])
+            lines.append("Mean absolute error high-level cases: %.0f" % self.mae_cal_high[tc])
             lines.append("Mean error total cases: %.0f" % self.bias_cal_all[tc])
             lines.append("Mean error low-level cases: %.0f" % self.bias_cal_low[tc])
             lines.append("Mean error medium-level cases: %.0f" % self.bias_cal_medium[tc])

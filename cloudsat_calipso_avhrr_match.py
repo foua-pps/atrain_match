@@ -98,7 +98,8 @@ from cloudsat_calipso_avhrr_prepare import (CalipsoCloudOpticalDepth,
 from read_cloudproducts_and_nwp_pps import NWPObj
 from cloudsat import (reshapeCloudsat, 
                       match_cloudsat_avhrr ,
-                      add_validation_ctth_cloudsat)
+                      add_validation_ctth_cloudsat,
+                      add_cloudsat_cloud_fraction)
 from iss import reshapeIss, match_iss_avhrr
 from calipso import (reshapeCalipso, 
                      discardCalipsoFilesOutsideTimeRange,
@@ -986,6 +987,7 @@ def add_elevation_corrected_imager_ctth(clsatObj, caObj, issObj):
 def add_validation_ctth(clsatObj, caObj):
     if clsatObj is not None:
         clsatObj.cloudsat = add_validation_ctth_cloudsat(clsatObj.cloudsat)
+        clsatObj.cloudsat = add_cloudsat_cloud_fraction(clsatObj.cloudsat) 
     if caObj is not None:
         caObj.calipso = add_validation_ctth_calipso(caObj.calipso)
     return clsatObj, caObj
