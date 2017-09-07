@@ -232,10 +232,10 @@ class CloudTypeStats(OrrbStats):
         lines = []
         if self.Num == 0:
             return lines
-        lines.append( "Total pixels: %s" % self.Num)
-        lines.append( "Common cloud-free: %s" % self.common_cloud_free)
+        lines.append( "Total pixels: %d" % self.Num)
+        lines.append( "Common cloud-free: %d" % self.common_cloud_free)
         lines.append("Total number of matched scenes is: %s" % self.ac_data["scenes"])
-        lines.append("Total number of matched cloud types: %s" % self.samples_tot)
+        lines.append("Total number of matched cloud types: %d" % self.samples_tot)
         lines.append("")
         lines.append("Probability of detecting LOW, MEDIUM and HIGH: %.2f %.2f %.2f" % \
                      (self.pod_low, self.pod_medium, self.pod_high))
