@@ -1030,7 +1030,7 @@ def get_matchups_from_data(cross, config_options):
 
     #CLOUDSAT:  
     cl_matchup = None
-    if (PPS_VALIDATION):
+    if (PPS_VALIDATION and config.CLOUDSAT_REQUIRED):
         cloudsat_files = find_cloudsat_files(date_time, config_options, values)
         print cloudsat_files
         if (isinstance(cloudsat_files, str) == True or 
@@ -1047,7 +1047,7 @@ def get_matchups_from_data(cross, config_options):
                   "CCI-cloud validation only for calipso, Continue")
     #ISS:  
     iss_matchup = None
-    if (PPS_VALIDATION):
+    if (PPS_VALIDATION and config.ISS_REQUIRED):
         iss_files = find_iss_files(date_time, config_options, values)
         print iss_files
         if (isinstance(iss_files, str) == True or 
