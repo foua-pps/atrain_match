@@ -1073,7 +1073,7 @@ def get_matchups_from_data(cross, config_options):
  
     #CALIPSO:
     ca_matchup = None
-    if config.ISS_MATCHING:
+    if config.CALIPSO_MATCHING:
         calipso_files = find_calipso_files(date_time, config_options, values)
         if (isinstance(calipso_files, str) == True or 
             (isinstance(calipso_files, list) and len(calipso_files) != 0)):
