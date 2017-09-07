@@ -22,7 +22,7 @@ import calendar
 
 def get_iss(filename):
     # Read ISS Radar data for calipso something is done in this function:
-    limit = -0.02
+    limit = 0.02
     iss = read_iss(filename)
     #0 clear or aerosol layer.
     #1 water cloud
@@ -54,9 +54,9 @@ def get_iss(filename):
         height_layer = iss.layer_top_altitude_fore_fov[:,layer]
         iss.validation_height[is_cloudy] = height_layer[is_cloudy]
     logger.warning("Currently not considering cloudheight for cloud layers thinner than %3.2f (feature_optical_depth_1064_fore_fov)"%(limit))
-    iss.validation_height[iss.validation_height>=0] *= 1000
+    iss.validation_height[iss.validation_height>=0] = iss.validation_height[iss.validation_height>=0]*1000
     iss.validation_height[iss.validation_height<0] = -9
-    iss.validation_height[iss.cloud_fraction<0.5] = -9 #sould not be needed
+    iss.validation_height[iss.cloud_fraction<0.5] = -9 #should not be needed
     return iss
 
 

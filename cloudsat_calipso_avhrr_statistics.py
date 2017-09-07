@@ -779,7 +779,7 @@ def CalculateStatistics(mode, statfilename, caObj, clsatObj, issObj,
     if issObj is not None:
         statfile = open(statfilename.replace('xxx','iss'),"w")
         val_subset = np.bool_(np.ones(issObj.iss.elevation.shape))
-        val_subset = get_day_night_subset(caObj, val_subset)
+        val_subset = get_day_night_subset(issObj, val_subset)
         print_main_stats(issObj, statfile)
         print_cmask_stats(issObj, statfile, val_subset)
         #print_calipso_stats_ctype(issObj, statfile, val_subset, cal_vert_feature)

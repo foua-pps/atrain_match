@@ -1030,7 +1030,8 @@ def get_matchups_from_data(cross, config_options):
 
     #CLOUDSAT:  
     cl_matchup = None
-    if (PPS_VALIDATION and config.CLOUDSAT_REQUIRED):
+
+    if (PPS_VALIDATION and config.CLOUDSAT_MATCHING):
         cloudsat_files = find_cloudsat_files(date_time, config_options, values)
         print cloudsat_files
         if (isinstance(cloudsat_files, str) == True or 
@@ -1042,12 +1043,16 @@ def get_matchups_from_data(cross, config_options):
                                                nwp_segments, config_options)
         else:
             logger.info("NO CLOUDSAT File, Continue")
-    else:
+    elif CCI_CLOUD_VALIDATION:
         logger.info("NO CLOUDSAT File,"
-                  "CCI-cloud validation only for calipso, Continue")
+                    "CCI-cloud validation only for calipso, Continue",
+                    "It might be working though ...")
+    elif not config.CLOUDSAT_MATCHING:
+        logger.info("NO CLOUDSAT File, CLOUDSAT matching not requested config.CLOUDSAT_MATCHING=False")     
+ 
     #ISS:  
     iss_matchup = None
-    if (PPS_VALIDATION and config.ISS_REQUIRED):
+    if (PPS_VALIDATION and config.ISS_MATCHING):
         iss_files = find_iss_files(date_time, config_options, values)
         print iss_files
         if (isinstance(iss_files, str) == True or 
@@ -1059,30 +1064,36 @@ def get_matchups_from_data(cross, config_options):
                                                nwp_segments, config_options)
         else:
             logger.info("NO ISS File, Continue")
-    else:
+    elif CCI_CLOUD_VALIDATION:
         logger.info("NO ISS File,"
-                  "CCI-cloud validation only for calipso, Continue")
-
+                    "CCI-cloud validation only for calipso, Continue",
+                    "It might be working though ...")
+    elif not config.ISS_MATCHING:
+        logger.info("NO ISS File, ISS matching not requested config.ISS_MATCHING=False")     
+ 
     #CALIPSO:
     ca_matchup = None
-    calipso_files = find_calipso_files(date_time, config_options, values)
-    if (isinstance(calipso_files, str) == True or 
-        (isinstance(calipso_files, list) and len(calipso_files) != 0)):
-        extra_files = get_additional_calipso_files_if_requested(calipso_files)
-        calipso5km, calipso1km, calipso5km_aerosol  = extra_files
+    if config.ISS_MATCHING:
+        calipso_files = find_calipso_files(date_time, config_options, values)
+        if (isinstance(calipso_files, str) == True or 
+            (isinstance(calipso_files, list) and len(calipso_files) != 0)):
+            extra_files = get_additional_calipso_files_if_requested(calipso_files)
+            calipso5km, calipso1km, calipso5km_aerosol  = extra_files
       
-        logger.info("Read CALIPSO data")        
-        ca_matchup= get_calipso_matchups(calipso_files, 
-                                         values,
-                                         avhrrGeoObj, avhrrObj, 
-                                         ctype, cma, ctth, 
-                                         nwp_obj, avhrrAngObj, 
-                                         config_options, cpp,
-                                         nwp_segments,
-                                         calipso1km, calipso5km, calipso5km_aerosol)
+            logger.info("Read CALIPSO data")        
+            ca_matchup= get_calipso_matchups(calipso_files, 
+                                             values,
+                                             avhrrGeoObj, avhrrObj, 
+                                             ctype, cma, ctth, 
+                                             nwp_obj, avhrrAngObj, 
+                                             config_options, cpp,
+                                             nwp_segments,
+                                             calipso1km, calipso5km, calipso5km_aerosol)
+        else:
+            logger.info("NO CALIPSO File, Continue")
     else:
-        logger.info("NO CALIPSO File, Continue")
-
+        logger.info("NO CALIPSO File, CALIPSO matching not requested config.CALIPSO_MATCHING=False")     
+ 
 
     # Get satellite name, time, and orbit number from avhrr_file
     date_time = values["date_time"]

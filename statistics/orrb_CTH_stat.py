@@ -191,6 +191,7 @@ class CloudTopStats(OrrbStats):
                 lines.append("")
                 lines.append("Imager retrieval rate: %3.2f" % self.retrieval_rate_all[tc])
                 lines.append("Total number of %s matched cloudtops: %d" %( self.truth_sat.upper(), self.cal_all_samples[tc]))
+                lines.append("Mean absolute error total cases: %.0f" % self.mae_cal_all[tc])
                 lines.append("Mean error total cases: %.0f" % self.bias_cal_all[tc])
                 lines.append("RMS error total cases: %.0f" % self.rms_cal_all[tc])
                 lines.append("bc-RMS error total cases: %.0f" % self.bcrms_cal_all[tc])

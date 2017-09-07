@@ -28,14 +28,20 @@ print "PPS_VALIDATION", PPS_VALIDATION
 CCI_CLOUD_VALIDATION = False
 MAIA_CLOUD_VALIDATION = str2bool(os.environ.get('MAIA_CLOUD_VALIDATION', False))
 
-#If set to True, program will fail it there are no match with SAT 
-# (CLOUDASAT, CALIPSO, ISS)
+#If set to True, program will fail it there are no match with SAT  (CLOUDASAT, CALIPSO, ISS)
 #If set to False, matching will be done if the correct data is found
 #If files are found but are not matching in time or space, program
 # will also fail, as it used to do.
 CLOUDSAT_REQUIRED = False
 CALIPSO_REQUIRED = False
 ISS_REQUIRED = False #True
+
+# Turn off ISS and CLOUDSAT matching if never used
+# Notice can not be true if CLOUDSAT_REQUIRED is True
+ISS_MATCHING = True      #Notice can not be False if ISS_REQUIRED is True
+CLOUDSAT_MATCHING = True #Notice can not be False if CLOUDSAT_REQUIRED is True
+CALIPSO_MATCHING = True #Notice can not be False if CLOUDSAT_REQUIRED is True
+
 
 #If set to True, no creation of reshaped files will be done.
 #Program will fail it there are no reshaped files already created.
@@ -411,7 +417,7 @@ CASES =[{'satname': 'eos2', 'year': 2010, 'month': 1},
 #CASES =[{'satname': 'npp', 'year': 2012, 'month': 10}]
 
 #CASES = CASES_npp
-#CASES =[{'satname': 'metopa', 'year': 2015, 'month': 05}]
+CASES =[{'satname': 'metopa', 'year': 2015, 'month': 05}]
 
 COMPILE_STATISTICS_TRUTH = ['iss','calipso','cloudsat']
 
