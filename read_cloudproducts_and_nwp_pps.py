@@ -364,7 +364,7 @@ def read_cma_nc(filename):
             'cma_testlist3',
             'cma_testlist4',
             'cma_testlist5']:
-        if varname in pps_nc.variables.keys():
+        if var_name in pps_nc.variables.keys():
             array = pps_nc.variables[var_name][0,:,:]
             atrain_name = var_name
             if var_name == 'cma_aerosol':
