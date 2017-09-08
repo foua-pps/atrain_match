@@ -356,6 +356,7 @@ def read_cma_nc(filename):
     #cma.cma_testlist4 = pps_nc.variables['cma_testlist4'][0,:,:]
     #cma.cma_testlist5 = pps_nc.variables['cma_testlist5'][0,:,:]
     for var_name in [
+            'cma_aerosol', #new updated name
             'cma_aerosolflag',
             'cma_testlist0',
             'cma_testlist1',
@@ -363,14 +364,20 @@ def read_cma_nc(filename):
             'cma_testlist3',
             'cma_testlist4',
             'cma_testlist5']:
-        array = pps_nc.variables[var_name][0,:,:]
-        if np.ma.is_masked(array):
-            mask = array.mask
-            data = array.data
-            data[mask]= 0
-            setattr(cma, var_name, data)
+        if varname in pps_nc.variables.keys():
+            array = pps_nc.variables[var_name][0,:,:]
+            atrain_name = var_name
+            if var_name == 'cma_aerosol':
+                atrain_name =    'cma_aerosolflag'            
+            if np.ma.is_masked(array):
+                mask = array.mask
+                data = array.data
+                data[mask]= 0
+                setattr(cma, atrain_name, data)
+            else:
+                setattr(cma, atrain_name, array)
         else:
-            setattr(cma, var_name, array)
+            logger.info("No  %s in cma file", var_name)
     pps_nc.close()    
     return cma
 
