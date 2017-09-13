@@ -133,6 +133,10 @@ if __name__ == '__main__':
                     truth_sat=truth_sat,
                     min_opt_depth="")  
                 indata_dir =indata_dir.replace("%d_%H","*")
+                indata_file = config_options['result_file'].format(
+                    resolution=str(RESOLUTION),
+                    basename="*",
+                    truth_sat=truth_sat)  
                 print("-> " + indata_dir)
                 results_files.extend(glob("%s/*%skm*%s*.dat" %(indata_dir, RESOLUTION, truth_sat.lower())))
             #compile and write results    

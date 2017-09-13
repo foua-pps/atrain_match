@@ -53,7 +53,7 @@ def process_matchups(matchups, run_modes, reprocess=False, debug=False):
 #        if match.time1 < datetime.datetime(2008,01,01):
 #            continue
         for mode in run_modes:
-            print mode
+            logger.info("mode: %s"%(mode))
             #import pdb
             #cloudsat_calipso_avhrr_match.run(match, mode, reprocess)
             #pdb.set_trace()
