@@ -8,7 +8,7 @@ from matchobject_io import (DataObject,
                             CloudsatObject,
                             CloudsatAvhrrTrackObject)                            
 from config import (AREA, sec_timeThr, RESOLUTION,
-                    NODATA, NLINES, SWATHWD,CLOUDSAT_CLOUDY_THR, 
+                    NODATA, CLOUDSAT_CLOUDY_THR, 
                     _validation_results_dir)
 from common import (MatchupError, 
                     elements_within_range)

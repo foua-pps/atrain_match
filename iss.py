@@ -8,7 +8,7 @@ from matchobject_io import (DataObject,
                             IssObject,
                             IssAvhrrTrackObject)                            
 from config import (AREA, sec_timeThr, RESOLUTION,
-                    NODATA, NLINES, SWATHWD, 
+                    NODATA,
                     _validation_results_dir)
 from common import (MatchupError, 
                     elements_within_range)

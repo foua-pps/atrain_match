@@ -10,13 +10,13 @@ def str2bool(v):
 import os
 PPS_FORMAT_2012_OR_EARLIER = False
 
-#Set to true if you always want an avhrr orbit that starts before the cross
+# Set to true if you always want an avhrr orbit that starts before the cross
 ALWAYS_USE_AVHRR_ORBIT_THAT_STARTS_BEFORE_CROSS = False
-#This option is generally not needed to set to True.
-#However when matching 5-minute granules, and calling
-#atrain_match with any option EXCEPT --sno_file setting this
-#to true saves alot of globbing time. 
-#Notice with --sno_file option this need to be False to
+# This option is generally not needed to set to True.
+# However when matching 5-minute granules, and calling
+# atrain_match with any option EXCEPT --sno_file setting this
+# to true saves alot of globbing time. 
+# Notice with --sno_file option this need to be False to
 # get any matches at all!
 USE_ORBITS_THAT_STARTS_EXACTLY_AT_CROSS = str2bool(
     os.environ.get(
@@ -24,13 +24,13 @@ USE_ORBITS_THAT_STARTS_EXACTLY_AT_CROSS = str2bool(
 
 #Choose one to validate
 PPS_VALIDATION = str2bool(os.environ.get('PPS_VALIDATION', True))
-print "PPS_VALIDATION", PPS_VALIDATION
 CCI_CLOUD_VALIDATION = False
 MAIA_CLOUD_VALIDATION = str2bool(os.environ.get('MAIA_CLOUD_VALIDATION', False))
 
-#If set to True, program will fail it there are no match with SAT  (CLOUDASAT, CALIPSO, ISS)
-#If set to False, matching will be done if the correct data is found
-#If files are found but are not matching in time or space, program
+# If set to True, program will fail if there are no match with 
+# CLOUDASAT, CALIPSO or ISS.
+# If set to False, matching will be done if the correct data is found
+# If files are found but are not matching in time or space, program
 # will also fail, as it used to do.
 CLOUDSAT_REQUIRED = False
 CALIPSO_REQUIRED = False
@@ -38,26 +38,26 @@ ISS_REQUIRED = False #True
 
 # Turn off ISS and CLOUDSAT matching if never used
 # Notice can not be true if CLOUDSAT_REQUIRED is True
-ISS_MATCHING = True      #Notice can not be False if ISS_REQUIRED is True
-CLOUDSAT_MATCHING = True #Notice can not be False if CLOUDSAT_REQUIRED is True
-CALIPSO_MATCHING = True #Notice can not be False if CLOUDSAT_REQUIRED is True
+ISS_MATCHING = False      #Notice can not be False if ISS_REQUIRED = True
+CLOUDSAT_MATCHING = False #Notice can not be False if CLOUDSAT_REQUIRED = True
+CALIPSO_MATCHING = True   #Notice can not be False if CALIPSO_REQUIRED = True
 
 
-#If set to True, no creation of reshaped files will be done.
-#Program will fail it there are no reshaped files already created.
-#This is useful for processing on SURFACES when original data are not
-#available any more. For normal processing let it be False.
+# If set to True, no creation of reshaped files will be done.
+# Program will fail it there are no reshaped files already created.
+# This is useful for processing on SURFACES when original data are not
+# available any more. For normal processing let it be False.
 USE_EXISTING_RESHAPED_FILES = False
 
-#Choose CALIPSO-CALIOP version
+# Choose CALIPSO-CALIOP version
 CALIPSO_version4 = False
 CALIPSO_version3 = True
 
-#Use cloudmask to buld cloud cover statistics. Traditionally
-#cloudtype is used.
+# Use cloudmask to buld cloud cover statistics. Traditionally
+# cloudtype is used.
 USE_CMA_FOR_CFC_STATISTICS = False
 
-#Save imager data also for warmest and coldest pixels:
+# Save imager data also for warmest and coldest pixels:
 SAVE_NEIGHBOUR_INFO = False
     
 # For the combined 1km + 5km dataset cloud_fraction can only have values 
@@ -67,14 +67,14 @@ SAVE_NEIGHBOUR_INFO = False
 CALIPSO_CLOUDY_MIN_CFC = 0.5 #0.66 Tradition, KG used 0.5 for v2014 validation
 CALIPSO_CLEAR_MAX_CFC = 0.5  #0.34 Tradition, KG used 0.5, PPS development 0.1 or 0.2 
 
-#Search also for MODIS lvl2 data
+# Search also for MODIS lvl2 data
 MATCH_MODIS_LVL2 = False
 
-#CTTH_TYPES 
-#To be able to match several PPS CTTH products in one file.
+# CTTH_TYPES 
+# To be able to match several PPS CTTH products in one file.
 CTTH_TYPES = ["CTTH"] #["CTTHnn","CTTHold"]
 
-#Search also for calipso 5km aerosol data
+# Search also for calipso 5km aerosol data
 MATCH_AEROSOL_CALIPSO = False
 ALSO_USE_5KM_FILES = True
 COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC = True
@@ -83,22 +83,19 @@ OPTICAL_DETECTION_LIMIT = 0.2
 if COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC:
     ALSO_USE_5KM_FILES = True #5km data is needed to split result on optical depth of top layer.
 
-#This is only for 1km RESOULTION:
-#In the modes STANDARD: the 1km calipso data will be filtered 
-#using info from 5km data.
-#Data devided on surfaces POLAR and so on will also be filtered.
-#Results in BASIC are always unfiltered.
-#If 5km data is used, results for surfaces will be based on the 
-#STANDARD filtered results.
-#If 5km data is not to filter data, results for surfaces will be 
-#based on the BASIC unfiltered results.
-#If USE_5KM_FILES_TO_FILTER_CALIPSO_DATA is True use 5km data to 
-#filter fluffy clouds
+
+# In the modes STANDARD and OPTICAL-DEPTH:
 # We consider the cloud top to be OPTICAL_LIMIT_CLOUD_TOP down 
-#in the cloud. For clouds thinner than
-# OPTICAL_LIMIT_CLOUD_TOP we use the cloud base as cloud top.
-USE_5KM_FILES_TO_FILTER_CALIPSO_DATA = False # to get filtered cloudheight results in mode STANDARD and all modes that is not BASIC 
-OPTICAL_LIMIT_CLOUD_TOP = 1.0 #also used by xxx in EUMETSAT
+# in the cloud. For clouds thinner than OPTICAL_LIMIT_CLOUD_TOP
+# are treated differently in 1km and 5km resolution:
+# 1km) Use cloud base as cloud top
+# 5km) Remove cloud and treat as clear
+# Set KG_OLD_METHOD_CLOUD_CENTER_CTTH_VALIDATION_HEIGHT to use
+# cloud center as validation height insted.
+
+USE_5KM_FILES_TO_FILTER_CALIPSO_DATA = True # to get filtered cloudheight results in mode STANDARD
+KG_OLD_METHOD_CLOUD_CENTER_AS_HEIGHT = True #If true use cloud layer center as validation height.
+OPTICAL_LIMIT_CLOUD_TOP = 0.1 #1.0 also used by xxx in EUMETSAT, as we do it for each layer take something smaller
 if USE_5KM_FILES_TO_FILTER_CALIPSO_DATA:
     ALSO_USE_5KM_FILES = True
 
@@ -106,10 +103,7 @@ if USE_5KM_FILES_TO_FILTER_CALIPSO_DATA:
 H4H5_EXECUTABLE = os.environ.get('H4H5_EXECUTABLE','h4toh5')
 #H4H5_EXECUTABLE = '/software/apps/h4h5tools/2.2.1/i1214-hdf4-4.2.8-i1214-hdf5-1.8.9-i1214/bin/h4toh5'
 PLOT_ONLY_PNG = True
-#Nina 20150831 I have never needed the files printed here:
-#They need lot of space, lets make it optional to have them!
-DO_WRITE_COVERAGE = False 
-DO_WRITE_DATA = False
+
 #important for cph_validate.py
 VAL_CPP = os.environ.get('VAL_CPP', True)
 VALIDATE_FOR_CPP_PIXELS = True #means validating for cloudtype only for pixels where we also got cpp.cph values
@@ -125,11 +119,9 @@ IMAGER_INSTRUMENT = os.environ.get('IMAGER_INSTRUMENT', 'avhrr')
 #: Currently, 1 or 5 is supported
 RESOLUTION = int(os.environ.get('ATRAIN_RESOLUTION', 5))
 if RESOLUTION == 1:
-    AVHRR_SAT = 'NPP' #'pps'
     ALSO_USE_1KM_FILES = False
     ALSO_USE_SINGLE_SHOT_CLOUD_CLEARED = False
 elif RESOLUTION == 5:
-    AVHRR_SAT = 'NOAA18'
     ALSO_USE_1KM_FILES = False
     ALSO_USE_SINGLE_SHOT_CLOUD_CLEARED = True
 
@@ -137,9 +129,6 @@ elif RESOLUTION == 5:
 #_validation_results_dir = os.environ['VALIDATION_RESULTS_DIR']    
 _validation_results_dir = os.environ.get('VALIDATION_RESULTS_DIR', "/nobackup/smhid12/sm_kgkar/atrain_match_test_CALIPSOv4")
 CONFIG_PATH = os.environ.get('ATRAINMATCH_CONFIG_DIR', './etc')
-
-#: Don't know how this directory is used...
-MAIN_RUNDIR = os.getcwd()
 
 # Region configuaration file with area definitons
 AREA_CONFIG_FILE = os.environ.get('AREA_CONFIG_FILE', './areas.def')
@@ -257,7 +246,12 @@ ALLOWED_MODES = ['BASIC',
                  'POLAR_ICE_COVER_SEA',        # Restrict to tropical regions  +-75
                  'POLAR_ICE_COVER_SEA_DAY',
                  'POLAR_ICE_COVER_SEA_NIGHT',
-                 'POLAR_ICE_COVER_SEA_TWILIGHT']
+                 'POLAR_ICE_COVER_SEA_TWILIGHT',
+                 'STANDARD',      #Filter out thinnest top of clouds for CTTH validation
+                 'STANDARD_DAY',
+                 'STANDARD_NIGHT',
+                 'STANDARD_TWILIGHT',
+]
 
 #: Threshold for optical thickness. If optical thickness is below this value it will be filtered out.
 #MIN_OPTICAL_DEPTH = 0.35 # Original formulation - only allowing one value
@@ -265,7 +259,7 @@ ALLOWED_MODES = ['BASIC',
 MIN_OPTICAL_DEPTH = [0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.60, 0.70, 0.80, 0.90, 1.00]
 
 AREA = "no_area" #matching are no longer done for an area
-print "RESOLUTION=", RESOLUTION
+
 if RESOLUTION == 1:
     if IMAGER_INSTRUMENT == 'viirs':
         # VIIRS scan period is 1.7864 - see
@@ -273,26 +267,20 @@ if RESOLUTION == 1:
         # Adam, 2012-10-21
         DSEC_PER_AVHRR_SCALINE = 1.7864 / 16.
         #DSEC_PER_AVHRR_SCALINE = 60 / 40. # ??? AD, 2012-Oct
-        SWATHWD=3200
     else:
         DSEC_PER_AVHRR_SCALINE = 1.0/6. # Full scan period, i.e. the time
                                         # interval between two consecutive
                                         # lines (sec)
-        SWATHWD=2048
     #: cloudsat sampling issue moved to where it is used. And solved by resampling 20170315
     if USE_5KM_FILES_TO_FILTER_CALIPSO_DATA:
-         ALLOWED_MODES.append('OPTICAL_DEPTH_THIN_IS_CLEAR')      # Filter out cases with the thinnest topmost CALIPSO layers. Define MIN_OPTICAL_DEPTH above
+         ALLOWED_MODES.append('OPTICAL_DEPTH_THIN_IS_CLEAR')    # Filter thin CALIPSO pixels. Define OPTICAL_DETECTION_LIMIT
          ALLOWED_MODES.append('OPTICAL_DEPTH_THIN_IS_CLEAR_DAY')
          ALLOWED_MODES.append('OPTICAL_DEPTH_THIN_IS_CLEAR_NIGHT')
          ALLOWED_MODES.append('OPTICAL_DEPTH_THIN_IS_CLEAR_TWILIGHT')
-         ALLOWED_MODES.append('STANDARD')      # Filter out cases with the thinnest topmost CALIPSO layers. Define MIN_OPTICAL_DEPTH above
-         ALLOWED_MODES.append('STANDARD_DAY')
-         ALLOWED_MODES.append('STANDARD_NIGHT')
-         ALLOWED_MODES.append('STANDARD_TWILIGHT')
+
 
 elif RESOLUTION == 5:
     DSEC_PER_AVHRR_SCALINE = 1.0/6. * 4 # A "work for the time being" solution.
-    SWATHWD=409
     ALLOWED_MODES.append('OPTICAL_DEPTH')      # Filter out cases with the thinnest topmost CALIPSO layers. Define MIN_OPTICAL_DEPTH above
     ALLOWED_MODES.append('OPTICAL_DEPTH_DAY')
     ALLOWED_MODES.append('OPTICAL_DEPTH_NIGHT')
@@ -300,28 +288,19 @@ elif RESOLUTION == 5:
 else:
     raise ValueError("RESOLUTION == %s not supported" % str(RESOLUTION))
 
-# Just run mode BASIC if testing
-#ALLOWED_MODES = ['BASIC'] #Nina: not checking in as default
-
-#: TODO: No description
+#: Compresssion level for generated matched files (h5)
 COMPRESS_LVL = 6
-
-#: TODO: No description
-NLINES=6000
 
 #: TODO: No description
 NODATA=-9
 
 #: Processing modes for which plotting should also be performed
-#PLOT_MODES = ['BASIC']
-PLOT_MODES = ['No Plot']
+PLOT_MODES = ['BASIC', 'STANDARD']
+#PLOT_MODES = ['No Plot']
 
 #========== Statistics setup ==========#
 #: List of dictionaries containing *satname*, *year*, and *month*, for which
 #: statistics should be summarized
-#CASES = [{'satname': 'npp', 'year': 2012, 'month': 06}]
-
-
 CASES_noaaa = [{'satname': 'noaa18', 'year': 2013, 'month': 3},
                {'satname': 'noaa18', 'year': 2013, 'month': 4},
                {'satname': 'noaa18', 'year': 2013, 'month': 5},
@@ -417,13 +396,10 @@ CASES =[{'satname': 'eos2', 'year': 2010, 'month': 1},
 #CASES =[{'satname': 'npp', 'year': 2012, 'month': 10}]
 
 #CASES = CASES_npp
-CASES =[{'satname': 'metopa', 'year': 2015, 'month': 05}]
+#CASES =[{'satname': 'metopa', 'year': 2015, 'month': 05}]
 
 COMPILE_STATISTICS_TRUTH = ['iss','calipso','cloudsat']
 
-#CASES =  CASES_npp
-#CASES = CASES_noaaa + CASES_npp
-#CASES = CASES_noaaa    
 #: Surfaces for which statistics should be summarized
 SURFACES = ["ICE_COVER_SEA", "ICE_FREE_SEA", "SNOW_COVER_LAND", "SNOW_FREE_LAND", \
             "COASTAL_ZONE", "TROPIC_ZONE", "TROPIC_ZONE_SNOW_FREE_LAND", "TROPIC_ZONE_ICE_FREE_SEA", \

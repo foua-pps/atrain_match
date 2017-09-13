@@ -24,6 +24,7 @@ def drawCalClsatGEOPROFAvhrrPlot(clsatObj,
 
     caliop_height = caObj.calipso.layer_top_altitude*1000
     caliop_base = caObj.calipso.layer_base_altitude*1000
+    calipso_val_h = caObj.calipso.validation_height
     caliop_base[caliop_base<0]=-9
     caliop_height[caliop_height<0]=-9
     pixel_position = np.arange(caObj.calipso.latitude.shape[0])                            
@@ -74,38 +75,59 @@ def drawCalClsatGEOPROFAvhrrPlot(clsatObj,
     for i in range(10):
         base_ok = caliop_base[:,i]
         top_ok  = caliop_height[:,i]
+        all_thin = calipso_val_h<=base_ok
+        all_thick = np.logical_or(calipso_val_h>=top_ok, calipso_val_h<=0)
+        half_thin = np.logical_and(calipso_val_h>base_ok,  
+                                  calipso_val_h<top_ok)
+        all_thin = np.logical_and(all_thin,top_ok>0 )
+        all_thick = np.logical_and(all_thick,top_ok>0 )
+        half_thin = np.logical_and(half_thin,top_ok>0 )
+
         if np.min(top_ok<0):
             #no more clouds, quit plotting calipso
             break 
         if caliop_label_set:
-            ax.vlines(pixel_position, 
-                      base_ok, top_ok, linewidth=0.5,  
+            ax.vlines(pixel_position[all_thick], 
+                      base_ok[all_thick], top_ok[all_thick], linewidth=0.5,  
                       colors="g", linestyle='solid', 
-                      alpha=1.0 )  
+                      alpha=0.5 )  
         else:
-            ax.vlines(pixel_position, 
-                      base_ok, top_ok,
+            ax.vlines(pixel_position[all_thick], 
+                      base_ok[all_thick], top_ok[all_thick],
                       colors="g", linewidth=0.5, linestyle='solid', 
-                      alpha=1.0, label='caliop')
+                      alpha=0.5, label='caliop')
             caliop_label_set = True
-    
+        ax.vlines(pixel_position[all_thin], 
+                  base_ok[all_thin], top_ok[all_thin], linewidth=0.5,  
+                  colors="y", linestyle='solid', 
+                  alpha=0.5)   
+        ax.vlines(pixel_position[half_thin], 
+                  calipso_val_h[half_thin], top_ok[half_thin], linewidth=0.5,  
+                  colors="y", linestyle='solid', 
+                  alpha=0.5)    
+        ax.vlines(pixel_position[half_thin], 
+                  base_ok[half_thin], calipso_val_h[half_thin], linewidth=0.5,  
+                  colors="g", linestyle='solid', 
+                  alpha=0.5)    
+
     #: Plot Imager   
     got_height = imager_ctth_m_above_seasurface>=0
     ax.plot(pixel_position[got_height], imager_ctth_m_above_seasurface[got_height], 'b+', 
             label=instrument.upper())
     ax.set_ylim(0, maxheight)
+    #plt.show()
     ax.set_title(title)
     ax.set_xlabel("Track Position")
     ax.set_ylabel("Cloud Height (meter)")
     plt.legend(fancybox=True, loc=1,  numpoints=4)
     if isinstance(file_type, str) == True:
-        filename = "%s/%skm_%s_cloudsat_calipso_%s_clouds.%s" \
-            % (plotpath, RESOLUTION, basename, instrument, file_type)
+        filename = "%s/%skm_%s_cloudsat_calipso_%s_clouds_%s.%s" \
+            % (plotpath, RESOLUTION, basename, instrument, mode.lower(), file_type)
         fig.savefig(filename, format = file_type)
     else:
         for filetype in file_type:
-            filename = "%s/%skm_%s_cloudsat_calipso_%s_clouds.%s" \
-                %(plotpath, RESOLUTION, basename, instrument, filetype)
+            filename = "%s/%skm_%s_cloudsat_calipso_%s_clouds_%s.%s" \
+                %(plotpath, RESOLUTION, basename, instrument,mode.lower(), filetype)
             fig.savefig(filename, format = filetype)
 
 #added plot with two pps cloud-heights and no cloudsat

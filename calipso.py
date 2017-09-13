@@ -8,12 +8,10 @@ logger = logging.getLogger(__name__)
 
 from config import (AREA, _validation_results_dir, 
                     sec_timeThr, COMPRESS_LVL, RESOLUTION,
-                    NLINES, SWATHWD, NODATA,
-                    DO_WRITE_COVERAGE, DO_WRITE_DATA) #@UnusedImport
+                    NODATA) 
 from common import MatchupError, TimeMatchError, elements_within_range
 from config import RESOLUTION as resolution
-from config import (OPTICAL_DETECTION_LIMIT,
-                    OPTICAL_LIMIT_CLOUD_TOP,
+from config import (
                     ALSO_USE_5KM_FILES,
                     USE_5KM_FILES_TO_FILTER_CALIPSO_DATA,
                     PPS_VALIDATION,
@@ -43,7 +41,7 @@ class SatProjCov:
 
 def add_validation_ctth_calipso(calipso):
     calipso.validation_height = calipso.layer_top_altitude[:,0].copy()
-    calipso.validation_height[calipso.validation_height>=0] *= 1000
+    calipso.validation_height[calipso.validation_height>=0] = 1000.0*calipso.validation_height[calipso.validation_height>=0]
     calipso.validation_height[calipso.validation_height<0] = -9
     return calipso
 
@@ -265,7 +263,6 @@ def read_calipso(filename, res, ALAY=False):
             setattr(retv, name, data) 
         #Adopt some variables     
         dsec = tm.mktime((1993,1,1,0,0,0,0,0,0)) - tm.timezone
-        print retv.profile_time_tai.shape
         if retv.profile_time_tai.shape == retv.number_layers_found.shape:
             retv.latitude = retv.latitude[:,0]
             retv.longitude = retv.longitude [:,0]
@@ -386,7 +383,12 @@ def add5kmVariablesTo1kmresolution(calipso1km, calipso5km):
                           "total_optical_depth_5km"]:                
         data = getattr(calipso5km, variable_5km)
         new_data = np.repeat(data, 5, axis=0)    
-        setattr(calipso1km, variable_5km, new_data)  
+        setattr(calipso1km, variable_5km, new_data) 
+    for variable_5km  in ["layer_top_altitude", "layer_base_altitude"]:                
+        data = getattr(calipso5km, variable_5km)#[:,0]*1000
+        data[data<0] =-9
+        new_data = np.repeat(data, 5, axis=0)    
+        setattr(calipso1km, variable_5km + "_5km", new_data)  
     #cfc_5km = np.repeat(calipso5km.cloud_fraction, 5, axis=0)     
     #number_layers_found_5km = np.repeat(calipso5km.number_layers_found, 5, axis=0).ravel() 
     isCloudOnlyIn5km = np.logical_and(calipso1km.cloud_fraction<0.1,
@@ -540,84 +542,6 @@ def addSingleShotTo5km(Obj5): # Valid only for CALIPSO-CALIOP version 4.10
             Obj5.cloud_fraction[i] = cfc
     return Obj5
 
-def detection_height_from_5km_data(Obj1, Obj5):
-    if (Obj5.profile_utc_time[:,1] == Obj1.profile_utc_time[2::5]).sum() != Obj5.profile_utc_time.shape[0]:
-        logger.warning("length mismatch")
-        #pdb.set_trace()
-    Obj1.detection_height_5km = np.ones(Obj1.number_layers_found.shape)*-9                 
-    for pixel in range(Obj5.profile_utc_time.shape[0]):
-        top = Obj5.layer_top_altitude[pixel, 0]
-        base = Obj5.layer_base_altitude[pixel, 0]
-        opt_th = Obj5.feature_optical_depth_532[pixel, 0]        
-        if base==-9999 or top==-9999 or opt_th==-9999: 
-            #can not calculate detection height without data!
-            continue            
-        pixel_1km_first = 5*pixel
-        need_only_to_use_one_layer = False
-        if (Obj5.number_layers_found[pixel]==1 or
-            (base>=np.max(Obj5.layer_top_altitude[pixel, 1:10])) and
-            opt_th>=OPTICAL_LIMIT_CLOUD_TOP):
-            need_only_to_use_one_layer = True
-        if  need_only_to_use_one_layer:
-            #only have one layer or top layer is completely above other layers and thick
-            if opt_th <= OPTICAL_LIMIT_CLOUD_TOP:
-                #top layer too thin use base of it             
-                Obj1.detection_height_5km[pixel_1km_first:pixel_1km_first+5] = base
-            else:     
-                # filter top layer
-                Obj1.detection_height_5km[pixel_1km_first:pixel_1km_first+5] = (
-                    base + (top-base)*(opt_th - OPTICAL_LIMIT_CLOUD_TOP)*1.0/opt_th)    
-        elif   Obj1.total_optical_depth_5km[pixel_1km_first]<0 <= OPTICAL_LIMIT_CLOUD_TOP:
-            bases = Obj5.layer_base_altitude[pixel, 0:10]
-            min_base = np.min(bases[bases!=-9999])
-            Obj1.detection_height_5km[pixel_1km_first:pixel_1km_first+5] = min_base
-        
-        else: 
-            cloud_max_top = np.max(Obj5.layer_top_altitude[pixel, 0:10])
-            cloud_top_max = int(round(1000*cloud_max_top))          
-            height_profile = 0.001*np.array(range(cloud_top_max, -1, -1))
-            optical_thickness = np.zeros(height_profile.shape)
-            for lay in range(Obj5.number_layers_found[pixel]):
-
-            #dont use layers with negative top or base or optical_thickness values
-                top = Obj5.layer_top_altitude[pixel, lay]
-                base = Obj5.layer_base_altitude[pixel, lay]
-                opt_th = Obj5.feature_optical_depth_532[pixel, lay]    
-                if (top!=-9999 and base!=-9999 and opt_th!=-9999):
-                    cloud_at_these_height_index = np.logical_and(
-                        top >= height_profile, 
-                        height_profile>=base)
-                    eye_this_cloud = np.where(cloud_at_these_height_index ,  1, 0)
-                    number_of_cloud_boxes = sum(eye_this_cloud)         
-                    if number_of_cloud_boxes == 0 and top>0:
-                        cloud_at_these_height_index = np.logical_and(
-                            np.logical_and(
-                                top  >= height_profile-0.01, 
-                                base >=height_profile-0.01),
-                            np.logical_and(
-                                top  <= height_profile+0.01, 
-                                base <= height_profile+0.01))
-                        logger.info("Cloud top %.2f base: %.2f "%(top, base))
-                        logger.info(" Using height_profile %2.f %2.f"%(
-                                np.min(height_profile[cloud_at_these_height_index]),
-                            np.max(height_profile[cloud_at_these_height_index])))
-                        eye_this_cloud = np.where(cloud_at_these_height_index ,  1, 0)
-                        number_of_cloud_boxes = sum(eye_this_cloud)         
-                    if number_of_cloud_boxes == 0:
-                        logger.warning("cloud has no depth!!")
-                    optical_thickness_this_layer = (
-                        eye_this_cloud*opt_th*1.0/number_of_cloud_boxes)             
-                    if abs(np.sum(optical_thickness_this_layer) - opt_th)>0.001:
-                        logger.warning("The sum of the optical thickness profile is "
-                                  "not the same as total optical thickness of the cloud!!")             
-                    optical_thickness = optical_thickness + optical_thickness_this_layer
-            optical_thickness_profile = np.cumsum(optical_thickness)
-            ok_and_higher_heights = np.where(
-                optical_thickness_profile <= OPTICAL_LIMIT_CLOUD_TOP, 
-                height_profile, cloud_max_top)
-            height_limit1 = np.min(ok_and_higher_heights)  
-            Obj1.detection_height_5km[pixel_1km_first:pixel_1km_first+5] = height_limit1  
-    return Obj1    
 
 if __name__ == "__main__":
     # Testing:

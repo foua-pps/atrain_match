@@ -90,9 +90,10 @@ from common import attach_subdir_from_config, MatchupError
 
 from cloudsat_calipso_avhrr_statistics import (CalculateStatistics)
 from trajectory_plotting import plotSatelliteTrajectory
-from cloudsat_calipso_avhrr_prepare import (CalipsoCloudOpticalDepth,
+from cloudsat_calipso_avhrr_prepare import (CalipsoCloudOpticalDepth_new,
                                             check_total_optical_depth_and_warn,
                                             CalipsoOpticalDepthHeightFiltering1km,
+                                            detection_height_from_5km_data,
                                             CalipsoOpticalDepthSetThinToClearFiltering1km)
 
 from read_cloudproducts_and_nwp_pps import NWPObj
@@ -113,13 +114,11 @@ from matchobject_io import (writeCaliopAvhrrMatchObj,
                             writeIssAvhrrMatchObj, 
                             readIssAvhrrMatchObj
                         )
-from calipso import  (detection_height_from_5km_data,
-                      add1kmTo5km,
+from calipso import  (add1kmTo5km,
                       addSingleShotTo5km,
                       add5kmVariablesTo1kmresolution,
                       adjust5kmTo1kmresolution,
-                      add_validation_ctth_calipso
-                  )
+                      add_validation_ctth_calipso)
 import inspect
 
 from cloudsat_calipso_avhrr_plot import (drawCalClsatAvhrrPlotTimeDiff,
@@ -1214,6 +1213,8 @@ def get_matchups(cross, options, reprocess=False):
                       " Generating from source data.")
             clObj = None
             date_time=date_time_cross
+        elif not config.CLOUDSAT_MATCHING:
+            logger.info("CloudSat matching turned off config.ISS_MATCHING.")
         else:
             date_time=tobj
             td = tobj- date_time_cross
@@ -1245,6 +1246,8 @@ def get_matchups(cross, options, reprocess=False):
                       " Generating from source data.")
             isObj = None
             date_time=date_time_cross
+        elif not config.ISS_MATCHING:
+            logger.info("ISS matching turned off config.ISS_MATCHING.")
         else:
             date_time=tobj
             td = tobj- date_time_cross
@@ -1471,32 +1474,36 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     clsatObj, caObj, issObj = add_elevation_corrected_imager_ctth(clsatObj, caObj, issObj)
     # If mode = OPTICAL_DEPTH -> Change cloud -top and -base profile
     if caObj is not None and process_mode == 'OPTICAL_DEPTH':
-        #Remove this if-statement if you always want to do filtering!/KG
-        (new_cloud_top, new_cloud_base, new_cloud_fraction, new_fcf
-         , new_validation_height) = CalipsoCloudOpticalDepth(
-             caObj.calipso.layer_top_altitude, 
-             caObj.calipso.layer_base_altitude, 
-             caObj.calipso.feature_optical_depth_532, 
-             caObj.calipso.cloud_fraction, 
-             caObj.calipso.feature_classification_flags, 
-             min_optical_depth)
-        caObj.calipso.layer_top_altitude = new_cloud_top
-        caObj.calipso.layer_base_altitude = new_cloud_base
-        caObj.calipso.cloud_fraction = new_cloud_fraction
-        caObj.calipso.feature_classification_flags = new_fcf
-        caObj.calipso.validation_height = new_validation_height
-
+        #Remove this if-statement if you always want to do filtering!/KG 
+        use_old_method = KG_OLD_METHOD_CLOUD_CENTER_AS_HEIGHT
+        retv = CalipsoCloudOpticalDepth_new(
+            caObj.calipso,
+            min_optical_depth,
+            use_old_method=use_old_method)
+        caObj.calipso.layer_top_altitude = retv[0]
+        caObj.calipso.layer_base_altitude = retv[1]
+        caObj.calipso.cloud_fraction = retv[2]
+        caObj.calipso.feature_classification_flags = retv[3]
+        caObj.calipso.validation_height = retv[4]
+    if caObj is not None and process_mode == 'STANDARD' and RESOLUTION==5:
+        #Remove this if-statement if you always want to do filtering!/KG  
+        retv = CalipsoCloudOpticalDepth_new(caObj.calipso, 0.0)
+        caObj.calipso.layer_top_altitude = retv[0]
+        caObj.calipso.layer_base_altitude = retv[1]
+        caObj.calipso.cloud_fraction = retv[2]
+        caObj.calipso.feature_classification_flags = retv[3]
+        caObj.calipso.validation_height = retv[4]
     if (caObj is not None and 
         config.COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC and
         (config.ALSO_USE_5KM_FILES or config.RESOLUTION==5) and 
         caObj.calipso.total_optical_depth_5km is None):
-        logger.warning("rematched_file is missing total_optical_depth_5km field")
+        logger.warning("Rematched_file is missing total_optical_depth_5km field")
         logger.info("Consider reprocessing with: ")
         logger.info("COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC=True")
         logger.info("ALSO_USE_5KM_FILES=True or RESOLUTION==5")
     if caObj is not None:    
         check_total_optical_depth_and_warn(caObj)
-    if  caObj is not None and process_mode != 'BASIC' and RESOLUTION==1:
+    if  caObj is not None and 'STANDARD' in process_mode and RESOLUTION==1:
         caObj = CalipsoOpticalDepthHeightFiltering1km(caObj)
     if  caObj is not None and process_mode == 'OPTICAL_DEPTH_THIN_IS_CLEAR' and RESOLUTION==1:
         logger.info("Setting thin clouds to clear"
