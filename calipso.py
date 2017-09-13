@@ -384,11 +384,11 @@ def add5kmVariablesTo1kmresolution(calipso1km, calipso5km):
         data = getattr(calipso5km, variable_5km)
         new_data = np.repeat(data, 5, axis=0)    
         setattr(calipso1km, variable_5km, new_data) 
-    for variable_5km  in ["layer_top_altitude", "layer_base_altitude"]:                
-        data = getattr(calipso5km, variable_5km)#[:,0]*1000
-        data[data<0] =-9
-        new_data = np.repeat(data, 5, axis=0)    
-        setattr(calipso1km, variable_5km + "_5km", new_data)  
+    #for variable_5km  in ["layer_top_altitude", "layer_base_altitude"]:                
+    #    data = getattr(calipso5km, variable_5km)#[:,0]*1000
+    #    data[data<0] =-9
+    #    new_data = np.repeat(data, 5, axis=0)    
+    #    setattr(calipso1km, variable_5km + "_5km", new_data)  
     #cfc_5km = np.repeat(calipso5km.cloud_fraction, 5, axis=0)     
     #number_layers_found_5km = np.repeat(calipso5km.number_layers_found, 5, axis=0).ravel() 
     isCloudOnlyIn5km = np.logical_and(calipso1km.cloud_fraction<0.1,

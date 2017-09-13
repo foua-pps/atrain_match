@@ -326,8 +326,8 @@ class CalipsoObject(DataObject):
             'feature_optical_depth_532_top_layer_5km': None,
             'detection_height_5km': None,
             'total_optical_depth_5km': None,
-            'layer_top_altitude_5km': None,
-            'layer_base_altitude_5km': None,
+            #'layer_top_altitude_5km': None,
+            #'layer_base_altitude_5km': None,
             'tropopause_height': None
             }
 

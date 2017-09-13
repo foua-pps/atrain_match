@@ -94,7 +94,7 @@ if COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC:
 # cloud center as validation height insted.
 
 USE_5KM_FILES_TO_FILTER_CALIPSO_DATA = True # to get filtered cloudheight results in mode STANDARD
-KG_OLD_METHOD_CLOUD_CENTER_AS_HEIGHT = True #If true use cloud layer center as validation height.
+KG_OLD_METHOD_CLOUD_CENTER_AS_HEIGHT = False #If true use cloud layer center as validation height.
 OPTICAL_LIMIT_CLOUD_TOP = 0.1 #1.0 also used by xxx in EUMETSAT, as we do it for each layer take something smaller
 if USE_5KM_FILES_TO_FILTER_CALIPSO_DATA:
     ALSO_USE_5KM_FILES = True
@@ -295,8 +295,8 @@ COMPRESS_LVL = 6
 NODATA=-9
 
 #: Processing modes for which plotting should also be performed
-PLOT_MODES = ['BASIC', 'STANDARD']
-#PLOT_MODES = ['No Plot']
+#PLOT_MODES = ['BASIC', 'STANDARD']
+PLOT_MODES = ['No Plot']
 
 #========== Statistics setup ==========#
 #: List of dictionaries containing *satname*, *year*, and *month*, for which
