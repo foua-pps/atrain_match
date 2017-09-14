@@ -1475,7 +1475,7 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     # If mode = OPTICAL_DEPTH -> Change cloud -top and -base profile
     if caObj is not None and process_mode == 'OPTICAL_DEPTH':
         #Remove this if-statement if you always want to do filtering!/KG 
-        use_old_method = KG_OLD_METHOD_CLOUD_CENTER_AS_HEIGHT
+        use_old_method = config.KG_OLD_METHOD_CLOUD_CENTER_AS_HEIGHT
         retv = CalipsoCloudOpticalDepth_new(
             caObj.calipso,
             min_optical_depth,
