@@ -249,8 +249,7 @@ def read_calipso(filename, res, ALAY=False):
                 # plus average cloud base and top
                 # in 5 km FOV
                 retv = read_calipso_the_single_shot_info(retv, h5file)
-                if res==1:
-                    continue
+                continue
             if dataset in "metadata_t":
                 continue
             if dataset in scip_these_larger_variables_until_needed.keys():
