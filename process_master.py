@@ -149,7 +149,8 @@ def main(args=None):
                       "list of maia files")
     group.add_argument('--sno_file', '-sf', 
                       help="Interpret arguments as sno_output_file")
-
+    group.add_argument('--reshaped_product_file', '-rf', 
+                      help="Interpret arguments as reshaped_output_file")
     options = parser.parse_args()
     
     if options.mode is not None:
@@ -221,6 +222,18 @@ def main(args=None):
                 pass
             else:    
                 satname, time = parse_scenesfile_maia(line)
+                matchups.append(Cross(satname, '', time, time, -999, -999))
+    elif options.reshaped_product_file is not None:
+        from find_crosses import Cross
+        from runutils import  parse_scenesfile_reshaped
+        reshaped_output_file = options.reshaped_product_file
+        read_from_file = open(reshaped_output_file,'r')
+        for line in read_from_file:
+            if line.rstrip() in "":
+                pass
+            else: 
+                satname, time = parse_scenesfile_reshaped(line)
+                print time
                 matchups.append(Cross(satname, '', time, time, -999, -999))
 
     process_matchups(matchups, run_modes, reprocess, options.debug)

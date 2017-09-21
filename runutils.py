@@ -179,3 +179,19 @@ def parse_scenesfile_maia(filename):
     _datetime = datetime.strptime(date_s + time_s, '%Y%m%d%H%M%S')
 
     return satname, _datetime
+
+def parse_scenesfile_reshaped(filename):
+    """
+    Parse maia file:  #5km_noaa18_20090328_1855_99999_caliop_avhrr_match.h5
+    """
+    from datetime import datetime
+    import re
+    filename = os.path.basename(filename)
+    if not filename:
+        raise ValueError("No file %r" % filename)
+    match = re.match(r"\d+km_([^_]+)_(\d+)_(\d+)_", filename)
+    if not match:
+        raise ValueError("Couldn't parse reshaped file %r" % filename)
+    satname, date_s, time_s = match.groups()
+    _datetime = datetime.strptime(date_s + time_s, '%Y%m%d%H%M')
+    return satname, _datetime

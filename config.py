@@ -20,11 +20,11 @@ ALWAYS_USE_AVHRR_ORBIT_THAT_STARTS_BEFORE_CROSS = False
 # get any matches at all!
 USE_ORBITS_THAT_STARTS_EXACTLY_AT_CROSS = str2bool(
     os.environ.get(
-        'USE_ORBITS_THAT_STARTS_EXACTLY_AT_CROSS', True))
+        'USE_ORBITS_THAT_STARTS_EXACTLY_AT_CROSS', False))
 
 #Choose one to validate
 PPS_VALIDATION = str2bool(os.environ.get('PPS_VALIDATION', True))
-CCI_CLOUD_VALIDATION = False
+CCI_CLOUD_VALIDATION = str2bool(os.environ.get('CCI_CLOUD_VALIDATION', False))
 MAIA_CLOUD_VALIDATION = str2bool(os.environ.get('MAIA_CLOUD_VALIDATION', False))
 
 # If set to True, program will fail if there are no match with 
@@ -47,7 +47,7 @@ CALIPSO_MATCHING = True   #Notice can not be False if CALIPSO_REQUIRED = True
 # Program will fail it there are no reshaped files already created.
 # This is useful for processing on SURFACES when original data are not
 # available any more. For normal processing let it be False.
-USE_EXISTING_RESHAPED_FILES = False
+USE_EXISTING_RESHAPED_FILES =  str2bool(os.environ.get('USE_EXISTING_RESHAPED_FILES', False))
 
 # Choose CALIPSO-CALIOP version
 CALIPSO_version4 = False
@@ -105,7 +105,7 @@ H4H5_EXECUTABLE = os.environ.get('H4H5_EXECUTABLE','h4toh5')
 PLOT_ONLY_PNG = True
 
 #important for cph_validate.py
-VAL_CPP = os.environ.get('VAL_CPP', True)
+VAL_CPP = os.environ.get('VAL_CPP', False)
 VALIDATE_FOR_CPP_PIXELS = True #means validating for cloudtype only for pixels where we also got cpp.cph values
 CPP_REDUCE_PIXELS = int(os.environ.get('CPP_REDUCE_PIXELS', 0))
 # 1 means validate on a sub-set of the pixels, according to settings in
@@ -256,8 +256,8 @@ ALLOWED_MODES = ['BASIC',
 #: Threshold for optical thickness. If optical thickness is below this value it will be filtered out.
 #MIN_OPTICAL_DEPTH = 0.35 # Original formulation - only allowing one value
 #MIN_OPTICAL_DEPTH = [0.35] # New formulation - allowing a set of values
-MIN_OPTICAL_DEPTH = [0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.60, 0.70, 0.80, 0.90, 1.00]
-
+#MIN_OPTICAL_DEPTH = [0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.60, 0.70, 0.80, 0.90, 1.00]
+MIN_OPTICAL_DEPTH = [0.1]
 AREA = "no_area" #matching are no longer done for an area
 
 if RESOLUTION == 1:
@@ -362,18 +362,6 @@ CASES_npp =  [{'satname': 'npp', 'year': 2012, 'month': 6},
                        {'satname': 'npp', 'year': 2013, 'month': 03},
                        {'satname': 'npp', 'year': 2013, 'month': 04},
                        {'satname': 'npp', 'year': 2013, 'month': 05}]
-CASES =[{'satname': 'noaa18', 'year': 2009, 'month': 1},
-         {'satname': 'noaa18', 'year': 2009, 'month': 2},
-         {'satname': 'noaa18', 'year': 2009, 'month': 3},
-         {'satname': 'noaa18', 'year': 2009, 'month': 4},
-         {'satname': 'noaa18', 'year': 2009, 'month': 5},
-         {'satname': 'noaa18', 'year': 2009, 'month': 6},
-         {'satname': 'noaa18', 'year': 2009, 'month': 7},
-         {'satname': 'noaa18', 'year': 2009, 'month': 8},
-         {'satname': 'noaa18', 'year': 2009, 'month': 9},
-         {'satname': 'noaa18', 'year': 2009, 'month': 10},
-         {'satname': 'noaa18', 'year': 2009, 'month': 11},
-         {'satname': 'noaa18', 'year': 2009, 'month': 12}]
 CASES_V4test_NOAA18 =[{'satname': 'noaa18', 'year': 2006, 'month': 10},
          {'satname': 'noaa18', 'year': 2006, 'month': 11},
          {'satname': 'noaa18', 'year': 2006, 'month': 12}]
@@ -392,7 +380,18 @@ CASES =[{'satname': 'eos2', 'year': 2010, 'month': 1},
          {'satname': 'eos2', 'year': 2010, 'month': 10},
          {'satname': 'eos2', 'year': 2010, 'month': 11},
          {'satname': 'eos2', 'year': 2010, 'month': 12}]
-
+CASES =[{'satname': 'noaa18', 'year': 2009, 'month': 1},
+         {'satname': 'noaa18', 'year': 2009, 'month': 2},
+         {'satname': 'noaa18', 'year': 2009, 'month': 3},
+         {'satname': 'noaa18', 'year': 2009, 'month': 4},
+         {'satname': 'noaa18', 'year': 2009, 'month': 5},
+         {'satname': 'noaa18', 'year': 2009, 'month': 6},
+         {'satname': 'noaa18', 'year': 2009, 'month': 7},
+         {'satname': 'noaa18', 'year': 2009, 'month': 8},
+         {'satname': 'noaa18', 'year': 2009, 'month': 9},
+         {'satname': 'noaa18', 'year': 2009, 'month': 10},
+         {'satname': 'noaa18', 'year': 2009, 'month': 11},
+         {'satname': 'noaa18', 'year': 2009, 'month': 12}]
 #CASES =[{'satname': 'npp', 'year': 2012, 'month': 10}]
 
 #CASES = CASES_npp
