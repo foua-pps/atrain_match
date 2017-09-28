@@ -446,7 +446,7 @@ def add1kmTo5km(Obj1, Obj5):
     # COT to 1.0. Cloud base and cloud tp for this layer is calculated as averages from original levels (max height for
     # top and min height for base if there are more than one layer).This is a pragmatic solution to take care of a
     # weakness or bug in the CALIPSO retrieval of clouds below 4 km
-    Obj5.number_layers_found_1km = Obj5.number_layers_found.copy()
+    Obj5.number_layers_found_1km = 1.0*Obj5.number_layers_found.copy()
     for i in range(Obj5.profile_utc_time.shape[0]):
         cfc = 0.0
         for j in range(5):
