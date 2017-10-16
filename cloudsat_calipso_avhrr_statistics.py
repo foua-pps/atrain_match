@@ -289,7 +289,6 @@ def print_cpp_stats(cObj, statfile, val_subset):
     pps_ice = np.logical_and(pps_ice, val_subset)
     pps_water = np.logical_and(pps_water,val_subset)
 
-
     n_ice_ice = np.sum(
         np.logical_and(truth_ice,pps_ice))
     n_water_water = np.sum(
@@ -311,7 +310,7 @@ def print_cpp_stats(cObj, statfile, val_subset):
     if nice > 0:
         pod_ice = float(n_ice_ice)/nice
     hitrate = (n_ice_ice + n_water_water)*1.0/(nice+nwater)
-    statfile.write("CLOUD PAHSE %s-IMAGER TABLE: %s %s %s %s \n" % (cObj.truth_sat.upper(), n_ice_ice,n_ice_water,n_water_ice,n_water_water))
+    statfile.write("CLOUD PHASE %s-IMAGER TABLE: %s %s %s %s \n" % (cObj.truth_sat.upper(), n_ice_ice,n_ice_water,n_water_ice,n_water_water))
     statfile.write("CLOUD PHASE %s-IMAGER POD-WATER: %3.2f \n" % (cObj.truth_sat.upper(), pod_water*100))
     statfile.write("CLOUD PHASE %s-IMAGER POD-ICE: %3.2f \n" % (cObj.truth_sat.upper(), pod_ice*100))
     statfile.write("CLOUD PHASE %s-IMAGER Hitrate: %3.2f \n" % (cObj.truth_sat.upper(), hitrate))  

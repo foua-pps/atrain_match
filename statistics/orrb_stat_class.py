@@ -114,7 +114,8 @@ class OrrbStats():
                            "CLOUD TYPE %s-PPS TABLE"%(self.truth_sat.upper())]
         cty_stats_labels_missed = ["CLOUD TYPE %s-IMAGER TABLE MISSED"%(self.truth_sat.upper()),
                                   "CLOUD TYPE %s-PPS TABLE MISSED"%(self.truth_sat.upper())] 
-
+        cph_stats_labels = ["CLOUD PHASE %s-IMAGER TABLE"%(self.truth_sat.upper()),
+                            "CLOUD PAHSE %s-IMAGER TABLE"%(self.truth_sat.upper())]
         for datafile in self.results_files:
             data_dict = self.read_one_file(datafile)
             # Accumulate CALIOP/ISS/CLOUDSAT statistics CFC
@@ -139,7 +140,7 @@ class OrrbStats():
 
             # Accumulate CALIOP statistics CPH
             for key in data_dict.keys():
-                if  key in cfc_stats_labels:
+                if  key in cph_stats_labels:
                     cal_data = data_dict[key]
                     cal_data[cal_data<0] = 0
                     acu["n_ice_ice_cal"] += cal_data[0]
