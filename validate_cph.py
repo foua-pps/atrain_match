@@ -156,18 +156,27 @@ def get_bits(value, bits, shift=False):
         return selected >> min(bits)
     return selected
 
-
 def get_calipso_phase(calipso_filename, qual_min=CALIPSO_QUAL_VALUES['medium'],
                       max_layers=1, same_phase_in_top_three_lay=True):
     """
-    Returns Calipso cloud phase.    
-    Pixels with quality lower than *qual_min* are masked out.    
-    Screen out pixels with more than *max_layers* layers.    
+    Open Calipso file.
     """
     with h5py.File(calipso_filename,'r') as f:
         features = f['Feature_Classification_Flags'][:]
     if f:
         f.close()
+    return get_calipso_phase_inner(features, 
+                                   qual_min=qual_min,
+                                   max_layers=max_layers, 
+                                   same_phase_in_top_three_lay=same_phase_in_top_three_lay)
+
+def get_calipso_phase_inner(features, qual_min=CALIPSO_QUAL_VALUES['medium'],
+                            max_layers=1, same_phase_in_top_three_lay=True):
+    """
+    Returns Calipso cloud phase.    
+    Pixels with quality lower than *qual_min* are masked out.    
+    Screen out pixels with more than *max_layers* layers.    
+    """
     if same_phase_in_top_three_lay:
         phase1 = get_bits(features[:,0], CALIPSO_PHASE_BITS, shift=True)
         phase2 = get_bits(features[:,1], CALIPSO_PHASE_BITS, shift=True)

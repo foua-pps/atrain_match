@@ -101,6 +101,12 @@ class OrrbStats():
         acu["n_missed_cma_low"] = {}
         acu["n_missed_cma_medium"] = {}
         acu["n_missed_cma_high"] = {}
+        #CFC DATA
+        acu["n_ice_ice_cal"] = 0
+        acu["n_ice_water_cal"]  = 0
+        acu["n_water_ice_cal"]  = 0
+        acu["n_water_water_cal"]  = 0
+
         cfc_stats_labels = ["CLOUD MASK %s-IMAGER TABLE"%(self.truth_sat.upper()),
                            "CLOUD MASK %s-PPS TABLE"%(self.truth_sat.upper())]
         cfc_stats_labels_modis = ["CLOUD MASK %s-MODIS TABLE"%(self.truth_sat.upper())]
@@ -130,6 +136,16 @@ class OrrbStats():
                     acu["n_clear_cloudy_cal_MODIS"] += modis_data[1]
                     acu["n_cloudy_clear_cal_MODIS"] += modis_data[2]
                     acu["n_cloudy_cloudy_cal_MODIS"] += modis_data[3]
+
+            # Accumulate CALIOP statistics CPH
+            for key in data_dict.keys():
+                if  key in cfc_stats_labels:
+                    cal_data = data_dict[key]
+                    cal_data[cal_data<0] = 0
+                    acu["n_ice_ice_cal"] += cal_data[0]
+                    acu["n_ice_water_cal"] += cal_data[1]
+                    acu["n_water_ice_cal"] += cal_data[2]
+                    acu["n_water_water_cal"] += cal_data[3]
 
             # Accumulate CALIOP/ISS/CLOUDSAT statistics CTY    
             for key in data_dict.keys():

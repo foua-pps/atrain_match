@@ -107,6 +107,8 @@ class CloudFractionStats(OrrbStats):
             lines.append("")
         else:
             lines = []
+            if self.Num == 0:
+                return lines
             lines.append("Total number of matched scenes is: %s" % self.ac_data["scenes"])
             lines.append("")
             lines.append("Total number of %s matched FOVs: %d" % (self.truth_sat.upper(), self.Num))

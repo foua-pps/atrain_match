@@ -268,7 +268,49 @@ def find_truth_clear_cloudy(cObj, val_subset):
         truth_cloudy = np.logical_and(
             np.greater(cObj_truth_sat.cloud_fraction,0.5),val_subset)        
     return truth_clear, truth_cloudy    
-    
+
+def print_cpp_stats(cObj, statfile, val_subset):
+    # CLOUD PHASE EVALUATION
+    #=======================    
+    # CLOUD PHASE: CALIOP/ISS - IMAGER
+    from validate_cph import get_calipso_phase_inner, CALIPSO_PHASE_VALUES
+    cal_phase = get_calipso_phase_inner(
+        cObj.calipso.feature_classification_flags, 
+        max_layers=10,
+        same_phase_in_top_three_lay=True)
+    truth_water = np.equal(cal_phase, CALIPSO_PHASE_VALUES['water'])
+    truth_ice = np.logical_or(
+        np.equal(cal_phase, CALIPSO_PHASE_VALUES['ice']),
+        np.equal(cal_phase, CALIPSO_PHASE_VALUES['horizontal_oriented_ice']))
+    pps_water = np.equal(cObj.avhrr.cpp_phase,1)
+    pps_ice = np.equal(cObj.avhrr.cpp_phase,2)
+    pps_ice = np.logical_and(pps_ice, val_subset)
+    pps_water = np.logical_and(pps_water,val_subset)
+
+    n_ice_ice = np.repeat(
+        pps_ice,np.logical_and(truth_ice,pps_ice)).shape[0]
+    n_water_water = np.repeat(
+        pps_water,np.logical_and(truth_water,pps_water)).shape[0]
+    n_ice_water = np.repeat(
+        pps_water,np.logical_and(truth_ice,pps_water)).shape[0]
+    n_water_ice = np.repeat(
+        pps_ice,np.logical_and(truth_water,pps_ice)).shape[0]
+    nice = n_ice_ice + n_ice_water #np.repeat(truth_ice,truth_ice).shape[0]
+    nwater = n_water_water + n_water_ice #np.repeat(truth_water,truth_water).shape[0]
+    #nwater_pps = n_water_water+n_ice_water
+    #nice_pps = n_water_ice+n_ice_ice
+  
+    pod_water = -9.0
+    pod_ice = -9.0
+    if nwater > 0:
+        pod_water = float(n_water_water)/nwater
+    if nice > 0:
+        pod_ice = float(n_ice_ice)/nice
+ 
+    statfile.write("CLOUD PAHSE %s-IMAGER TABLE: %s %s %s %s \n" % (cObj.truth_sat.upper(), n_ice_ice,n_ice_water,n_water_ice,n_water_water))
+    statfile.write("CLOUD PHASE %s-IMAGER POD-WATER: %3.2f \n" % (cObj.truth_sat.upper(), pod_water*100))
+    statfile.write("CLOUD PHASE %s-IMAGER POD-ICE: %3.2f \n" % (cObj.truth_sat.upper(), pod_ice*100))
+            
 def print_cmask_stats(cObj, statfile, val_subset):
     # CLOUD MASK EVALUATION
     #=======================    
@@ -286,28 +328,24 @@ def print_cmask_stats(cObj, statfile, val_subset):
         pps_cloudy,np.logical_and(truth_clear,pps_cloudy)).shape[0]
     n_cloudy_clear = np.repeat(
         pps_clear,np.logical_and(truth_cloudy,pps_clear)).shape[0]
-    nclear = np.repeat(truth_clear,truth_clear).shape[0]
-    ncloudy = np.repeat(truth_cloudy,truth_cloudy).shape[0]
+    nclear = n_clear_clear+n_clear_cloudy #np.repeat(truth_clear,truth_clear).shape[0]
+    ncloudy = n_cloudy_cloudy+n_cloudy_clear#np.repeat(truth_cloudy,truth_cloudy).shape[0]
     ncloudy_pps = n_cloudy_cloudy+n_clear_cloudy
     nclear_pps = n_cloudy_clear+n_clear_clear
     
-    
+    pod_cloudy = -9.0
+    far_cloudy = -9.0
+    pod_clear = -9.0
+    far_clear = -9.0
     if ncloudy > 0:
         pod_cloudy = float(n_cloudy_cloudy)/ncloudy
-    else:
-        pod_cloudy = -9.0
     if ncloudy_pps > 0:
-        far_cloudy = float(n_clear_cloudy)/ncloudy_pps
-    else:
-        far_cloudy = -9.0
+        far_cloudy = float(n_clear_cloudy)/ncloudy_pps       
     if nclear > 0:
         pod_clear = float(n_clear_clear)/nclear
-    else:
-        pod_clear = -9.0
     if nclear_pps > 0:
         far_clear = float(n_cloudy_clear)/nclear_pps
-    else:
-        far_clear = -9.0
+        
     
     if (n_clear_clear+n_clear_cloudy+n_cloudy_clear+n_cloudy_cloudy) > 0:
         mean_caliop=((n_clear_clear+n_clear_cloudy)*0.0 + (n_cloudy_clear+n_cloudy_cloudy)*1.0)/(n_clear_clear+n_clear_cloudy+n_cloudy_clear+n_cloudy_cloudy)
@@ -775,6 +813,7 @@ def CalculateStatistics(mode, statfilename, caObj, clsatObj, issObj,
         print_modis_stats(caObj, statfile, val_subset,   caObj.calipso.cal_MODIS_cflag)
         print_calipso_stats_ctype(caObj, statfile, val_subset, low_medium_high_class)
         print_stats_ctop(caObj,  statfile, val_subset, low_medium_high_class) 
+        print_cpp_stats(caObj, statfile, val_subset)
         statfile.close()
     
     if issObj is not None:

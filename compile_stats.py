@@ -8,7 +8,7 @@ from config import (CASES, COMPILE_STATISTICS_TRUTH, RESOLUTION, _validation_res
                     DNT_FLAG, CONFIG_PATH, SURFACES,
                     COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC,
                     COMPILE_RESULTS_SEPARATELY_FOR_SEMI_AND_OPAQUE,
-                    ALSO_USE_5KM_FILES)
+                    ALSO_USE_5KM_FILES, VAL_CPP)
 
 import logging
 logging.basicConfig(level=logging.INFO) 
@@ -19,6 +19,7 @@ def compile_stats(results_files, write=True, outfile_cfc="merged_sat_file_cfc", 
     
     #print("=========== Cloud fraction ============")
     from statistics import orrb_CFC_stat
+    #read all results statistics only for cfc, resuse for cth, cty and cph
     cfc_stats = orrb_CFC_stat.CloudFractionStats(results_files=results_files, truth_sat=truth_sat)
     cfc_stats.write(outfile_cfc)
     
@@ -35,6 +36,12 @@ def compile_stats(results_files, write=True, outfile_cfc="merged_sat_file_cfc", 
         from statistics import orrb_CTY_stat
         cty_stats = orrb_CTY_stat.CloudTypeStats(ac_data=cfc_stats.ac_data, truth_sat=truth_sat)
         cty_stats.write(compiled_cty_file_name)
+    if VAL_CPP:
+        note = "========== Cloud phase ==========="
+        compiled_cph_file_name = outfile_cfc.replace('_cfc_','_cph_')
+        from statistics import orrb_CPH_stat
+        cth_stats = orrb_CPH_stat.CloudPhaseStats(ac_data=cfc_stats.ac_data, truth_sat=truth_sat)
+        cth_stats.write(compiled_cph_file_name)      
 
 if __name__ == '__main__':
 
@@ -119,6 +126,7 @@ if __name__ == '__main__':
               "following directories:")    
         print(RESOLUTION)
         #get result files for all cases
+        logger.info("PROCESS MODE {}".format(process_mode_dnt))
         for truth_sat in COMPILE_STATISTICS_TRUTH:
             results_files = []
             for case in CASES:
@@ -139,6 +147,9 @@ if __name__ == '__main__':
                     truth_sat=truth_sat)  
                 print("-> " + indata_dir)
                 results_files.extend(glob("%s/*%skm*%s*.dat" %(indata_dir, RESOLUTION, truth_sat.lower())))
+            if len(results_files) <1:
+                logger.info("PROCESS MODE {} have no results files".format(process_mode_dnt))  
+                continue
             #compile and write results    
             compiled_dir = config_options['compiled_stats_dir'].format(
                 val_dir=_validation_results_dir)
