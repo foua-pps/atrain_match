@@ -39,7 +39,10 @@ class CloudPhaseStats(OrrbStats):
         self.far_ice_cal = far_ice_cal
         self.cph_kuipers = kuipers
         self.cph_hitrate = hitrate
-        
+        self.n_water = n_water_water_cal+n_water_ice_cal
+        self.n_ice = n_ice_ice_cal+n_ice_water_cal
+        self.n_water_water = n_water_water_cal
+        self.n_ice_ice = n_ice_ice_cal
 
     def printout(self):
         lines = []
@@ -52,6 +55,11 @@ class CloudPhaseStats(OrrbStats):
         lines.append("POD ice: %.2f" % self.pod_ice_cal)
         lines.append("FAR ice: %.2f" % self.far_ice_cal)
         lines.append("CPH Hitrate: %.2f" % self.cph_hitrate)
+        lines.append("CPH Kuipers: %.2f" % self.cph_kuipers)
+        lines.append("CPH N Water: %.2f" % self.n_water)
+        lines.append("CPH N Ice: %.2f" % self.n_ice)
+        lines.append("CPH N Water ok: %.2f" % self.n_water_water)
+        lines.append("CPH N Ice ok: %.2f" % self.n_ice_ice)
         lines.append("")
         return lines
 
