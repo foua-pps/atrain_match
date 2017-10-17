@@ -282,8 +282,8 @@ def print_cpp_stats(cObj, statfile, val_subset):
     truth_ice = np.logical_or(
         np.equal(cal_phase, CALIPSO_PHASE_VALUES['ice']),
         np.equal(cal_phase, CALIPSO_PHASE_VALUES['horizontal_oriented_ice']))
-    truth_water = np.logical_and(truth_water, ~cal_phase.mask)
-    truth_ice = np.logical_and(truth_ice, ~cal_phase.mask)
+    truth_water = np.logical_and(truth_water.data, ~cal_phase.mask)
+    truth_ice = np.logical_and(truth_ice.data, ~cal_phase.mask)
     pps_water = np.equal(cObj.avhrr.cpp_phase,1)
     pps_ice = np.equal(cObj.avhrr.cpp_phase,2)
     pps_ice = np.logical_and(pps_ice, val_subset)
@@ -305,14 +305,16 @@ def print_cpp_stats(cObj, statfile, val_subset):
   
     pod_water = -9.0
     pod_ice = -9.0
+    hitrate = -9
     if nwater > 0:
-        pod_water = float(n_water_water)/nwater
+        pod_water = 100*float(n_water_water)/nwater
     if nice > 0:
-        pod_ice = float(n_ice_ice)/nice
-    hitrate = (n_ice_ice + n_water_water)*1.0/(nice+nwater)
+        pod_ice = 100*float(n_ice_ice)/nice
+    if nice + nwater >0:    
+        hitrate = (n_ice_ice + n_water_water)*1.0/(nice+nwater)
     statfile.write("CLOUD PHASE %s-IMAGER TABLE: %s %s %s %s \n" % (cObj.truth_sat.upper(), n_ice_ice,n_ice_water,n_water_ice,n_water_water))
-    statfile.write("CLOUD PHASE %s-IMAGER POD-WATER: %3.2f \n" % (cObj.truth_sat.upper(), pod_water*100))
-    statfile.write("CLOUD PHASE %s-IMAGER POD-ICE: %3.2f \n" % (cObj.truth_sat.upper(), pod_ice*100))
+    statfile.write("CLOUD PHASE %s-IMAGER POD-WATER: %3.2f \n" % (cObj.truth_sat.upper(), pod_water))
+    statfile.write("CLOUD PHASE %s-IMAGER POD-ICE: %3.2f \n" % (cObj.truth_sat.upper(), pod_ice))
     statfile.write("CLOUD PHASE %s-IMAGER Hitrate: %3.2f \n" % (cObj.truth_sat.upper(), hitrate))  
             
 def print_cmask_stats(cObj, statfile, val_subset):
