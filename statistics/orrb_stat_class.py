@@ -21,7 +21,7 @@ class OrrbStats():
 
 
     def read_one_file(self, datafile): 
-        print datafile
+        #print datafile
         data_dict = {}
         current_datafile = open(datafile, "r")
         for line in current_datafile:
@@ -114,8 +114,7 @@ class OrrbStats():
                            "CLOUD TYPE %s-PPS TABLE"%(self.truth_sat.upper())]
         cty_stats_labels_missed = ["CLOUD TYPE %s-IMAGER TABLE MISSED"%(self.truth_sat.upper()),
                                   "CLOUD TYPE %s-PPS TABLE MISSED"%(self.truth_sat.upper())] 
-        cph_stats_labels = ["CLOUD PHASE %s-IMAGER TABLE"%(self.truth_sat.upper()),
-                            "CLOUD PAHSE %s-IMAGER TABLE"%(self.truth_sat.upper())]
+        cph_stats_labels = ["CLOUD PHASE %s-IMAGER TABLE"%(self.truth_sat.upper())]
         for datafile in self.results_files:
             data_dict = self.read_one_file(datafile)
             # Accumulate CALIOP/ISS/CLOUDSAT statistics CFC
@@ -179,10 +178,8 @@ class OrrbStats():
 
             # Accumulate CALIOP/ISS/CLOUDSAT statistics CTH
             for key in data_dict.keys(): 
-                print key
                 if "HEIGHT" not in key:
                     continue 
-                print key
                 type_of_clouds = key.split(" ")[-2]      
                 cloud_level  = key.split(" ")[-1] 
                 data_one_cat = data_dict[key]   
