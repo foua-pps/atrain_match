@@ -107,11 +107,13 @@ def plot_pressure_modis_01(out_filenames,PLOT_DIR,month):
                       aggregated_data[ctth_label][30])
         plot_d = (aggregated_data[ctth_label][60] + 
                       aggregated_data[ctth_label][50])
+        plot_calipso = aggregated_data["CALIPSO"][0]
         plot_a = plot_a*100.0/np.sum(plot_a)
         plot_b = plot_b*100.0/np.sum(plot_b)
         plot_c = plot_c*100.0/np.sum(plot_c)
         plot_d = plot_d*100.0/np.sum(plot_d)
-        
+        plot_calipso = plot_calipso*100.0/np.sum(plot_calipso) 
+        plt.plot(pressure_plot[:-1], plot_calipso, 'b', alpha=0.2, label="CALIPSO") 
         plt.plot(pressure_plot[:-1], plot_a, '-k.', label="satz: 0-10")
         plt.plot(pressure_plot[:-1], plot_b, '-ks', label="satz: 10-30")
         plt.plot(pressure_plot[:-1], plot_c, '-k*', label="satz: 30-50")
@@ -211,11 +213,11 @@ def plot_pressure_modis_01(out_filenames,PLOT_DIR,month):
     plt.savefig(PLOT_DIR + "ctth_satz_pressure_%s_for_art_m%s.png"%('modis',month))
     plt.savefig(PLOT_DIR + "ctth_satz_pressure_%s_for_art_m%s.pdf"%('modis',month))
 def investigate_nn_ctth_satz():
-    month = '10'
+    month = '12'
     month_path = month
     month = '020406081012'
     month_path = '*'
-    PLOT_DIR = "/home/a001865/PICTURES_FROM_PYTHON/CTTH_LAPSE_RATE_INVESTIGATION/"
+    PLOT_DIR = "/home/a001865/PICTURES_FROM_PYTHON/CTTH_PLOTS/"
     out_filenames = glob("/home/a001865/DATA_MISC/satz_modis_01_investigation/*s_%s_*.txt"%(month_path))
     plot_pressure_modis_01(out_filenames,PLOT_DIR,month)
     out_filenames = glob("/home/a001865/git/atrain_match/satz_statistics_and_modis.txt")

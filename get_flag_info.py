@@ -210,8 +210,8 @@ def get_cloudsat_low_medium_high_classification(clsatObj):
     clsat_h = clsatObj.cloudsat.validation_height
     mlh_class['low_clouds'] = np.less_equal(clsat_h, clsatObj.avhrr.all_arrays['segment_nwp_h680'])
     mlh_class['medium_clouds'] = np.logical_and(np.greater(clsat_h, clsatObj.avhrr.all_arrays['segment_nwp_h680']),
-                                                np.less(clsat_h, clsatObj.avhrr.all_arrays['segment_nwp_h680']))
-    mlh_class['high_clouds'] = np.greater_equal(clsat_h, clsatObj.avhrr.all_arrays['segment_nwp_h680']) 
+                                                np.less(clsat_h, clsatObj.avhrr.all_arrays['segment_nwp_h440']))
+    mlh_class['high_clouds'] = np.greater_equal(clsat_h, clsatObj.avhrr.all_arrays['segment_nwp_h440']) 
     return mlh_class
 
 #cci FLAGS

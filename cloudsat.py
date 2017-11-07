@@ -22,17 +22,24 @@ def add_validation_ctth_cloudsat(cloudsat):
     #CLOUDSAT VALIDATION HEIGHT!
     #The restriction to use only pixels where imager and cloudsat
     #both is cloudy is done later. This makes it possbile to find also
-    #POD-cloudy for differnt cloud heights
-    validation_height= -9 + 0*np.zeros(cloudsat.latitude.shape)
+    #POD-cloudy for different cloud heights
+    LARGE_POSITIVE = 99999.0
+    validation_height = -9 + 0*np.zeros(cloudsat.latitude.shape)
+    validation_height_base =  LARGE_POSITIVE + 0*np.zeros(cloudsat.latitude.shape)
     for i in range(125):
         height = cloudsat.Height[:,i]
         cmask_ok = cloudsat.CPR_Cloud_mask[:,i]
         top_height = height+120
-        #top_height[height<240*4] = -9999 #Do not use not sure why these are not used Nina 20170317
+        #top_height[height<240*4] = -9999 #Do not use not sure why these were not used Nina 20170317
         is_cloudy = cmask_ok > CLOUDSAT_CLOUDY_THR
         top_height[~is_cloudy] = -9999
-        validation_height[validation_height<top_height] =  top_height[validation_height<top_height]
+        validation_height[validation_height<top_height] =  top_height[
+            validation_height<top_height]
         cloudsat.validation_height= validation_height
+        update_base = np.logical_and(top_height>0, validation_height_base>top_height)
+        validation_height_base[update_base] =  top_height[update_base]
+        cloudsat.validation_height_base = validation_height_base
+        cloudsat.validation_height_base[cloudsat.validation_height_base>=LARGE_POSITIVE] =-9 
     return cloudsat
 
 def add_cloudsat_cloud_fraction(cloudsat):
