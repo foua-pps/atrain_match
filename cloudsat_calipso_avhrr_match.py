@@ -452,12 +452,12 @@ def get_pps_file(avhrr_file, options, values, type_of_file, file_dir):
         logger.info("No %s file in cfg-file."%(type_of_file))
         return None
     date_time = values["date_time"]
-    cloudtype_name = insert_info_in_filename_or_path(options[type_of_file], 
+    pps_file_name = insert_info_in_filename_or_path(options[type_of_file], 
                                                      values, datetime_obj=date_time)                        
     path = insert_info_in_filename_or_path(options[file_dir], 
                                            values, datetime_obj=date_time)  
     try:
-        file_name = glob(os.path.join(path, cloudtype_name))[0]
+        file_name = glob(os.path.join(path, pps_file_name))[0]
         #logger.debug( type_of_file +": ", file_name)
         return file_name
     except IndexError:
@@ -475,16 +475,22 @@ def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
                                                  as_oldstyle=as_oldstyle)
     date_time = values["date_time"]
 
-    cloudtype_name = insert_info_in_filename_or_path(options['cloudtype_file'], 
-                                                     values, datetime_obj=date_time)
-    path = insert_info_in_filename_or_path(options['cloudtype_dir'], 
-                                           values, datetime_obj=date_time)
-    try:
-        #print os.path.join(path, cloudtype_name)
-        cloudtype_file = glob(os.path.join(path, cloudtype_name))[0]
-    except IndexError:
-        raise MatchupError("No cloudtype file found corresponding to %s." % avhrr_file)
-    logger.info("CLOUDTYPE: " + cloudtype_file)
+
+    if 'cloudtype_file' in options.keys():
+        cloudtype_name = insert_info_in_filename_or_path(options['cloudtype_file'], 
+                                                   values, datetime_obj=date_time)
+        path = insert_info_in_filename_or_path(options['cloudtype_dir'], 
+                                               values, datetime_obj=date_time)
+        try:
+            #print os.path.join(path, cloudtype_name)
+            cloudtype_file = glob(os.path.join(path, cloudtype_name))[0]
+        except IndexError:
+            raise MatchupError("No cloudtype file found corresponding to %s." % avhrr_file)
+        logger.info("CLOUDTYPE: " + cloudtype_file)
+    else:
+        cloudtype_file = None
+        logger.info("No cloudtype file in atrain_match.cfg")
+
     if 'cma_file' in options.keys():
         cma_name = insert_info_in_filename_or_path(options['cma_file'], 
                                                    values, datetime_obj=date_time)
@@ -496,28 +502,36 @@ def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
         except IndexError:
             raise MatchupError("No cma file found corresponding to %s." % avhrr_file)
         logger.info("CMA: " + cma_file)
+        if not config.USE_CMA_FOR_CFC_STATISTICS and cloudtype_file is None:
+            logger.error("Probably you shold set USE_CMA_FOR_CFC_STATISTICS=True!")
+            logger.error("As you have no cloudtype file in atrain_match.cfg")
+            raise MatchupError("Configure problems, see messages above.")
     else:
         cma_file = None
         logger.info("No cma file in atrain_match.cfg")
-    ctth_files = {}
-    for ctth_type in config.CTTH_TYPES:
-        values['ctth_type'] = ctth_type
-        ctth_name = insert_info_in_filename_or_path(options['ctth_file'], 
-                                                    values, 
-                                                    datetime_obj=date_time)
-        path =  insert_info_in_filename_or_path(options['ctth_dir'], 
-                                                values, datetime_obj=date_time)  
 
-        try:
-            ctth_files[ctth_type] = glob(os.path.join(path, ctth_name))[0]
+    if cma_file is None and cloudtype_file is None:
+        raise MatchupError("No cma or cloudtype file found atrain_match.cfg")
+
+    ctth_files = {}
+    if 'ctth_file' in options.keys():   
+        for ctth_type in config.CTTH_TYPES:
+            values['ctth_type'] = ctth_type
+            ctth_name = insert_info_in_filename_or_path(options['ctth_file'], 
+                                                        values, 
+                                                        datetime_obj=date_time)
+            path =  insert_info_in_filename_or_path(options['ctth_dir'], 
+                                                    values, datetime_obj=date_time)  
+
+            try:
+                ctth_files[ctth_type] = glob(os.path.join(path, ctth_name))[0]
             
-        except IndexError:
-            raise MatchupError(
-                "No ctth file found corresponding to %s-type %s." %(ctth_type, 
-                                                                    avhrr_file))
+            except IndexError:
+                raise MatchupError(
+                    "No ctth file found corresponding to %s-type %s." %(ctth_type, 
+                                                                        avhrr_file))
      
-    logger.info("CTTH: " + ctth_files[config.CTTH_TYPES[0]])                          
-    
+        logger.info("CTTH: " + ctth_files[config.CTTH_TYPES[0]])                          
     if VAL_CPP: 
         cpp_name = insert_info_in_filename_or_path(options['cpp_file'],
                                                    values, datetime_obj=date_time)
@@ -932,8 +946,9 @@ def add_modis_lvl2_clousat_(clsatObj, caObj):
 
 def add_elevation_corrected_imager_ctth(clsatObj, caObj, issObj):
     ## Cloudsat ##
-
-    if clsatObj is not None and clsatObj.avhrr.imager_ctth_m_above_seasurface is None:
+    if clsatObj is None or clsatObj.avhrr.ctth_height is None:
+        pass
+    elif  clsatObj.avhrr.imager_ctth_m_above_seasurface is None:
         # First make sure that PPS cloud top heights are converted to height
         # above sea level just as CloudSat height are defined. Use
         # corresponding DEM data.
@@ -956,7 +971,9 @@ def add_elevation_corrected_imager_ctth(clsatObj, caObj, issObj):
     ## Calipso ##        
     # First make sure that PPS cloud top heights are converted to height above sea level
     # just as CALIPSO heights are defined. Use corresponding DEM data.
-    if caObj is not None and caObj.avhrr.imager_ctth_m_above_seasurface is None:
+    if caObj is None or caObj.avhrr.ctth_height is None:
+        pass
+    elif  caObj.avhrr.imager_ctth_m_above_seasurface is None:
         cal_elevation = np.where(np.less_equal(caObj.calipso.elevation,0),
                                  0,caObj.calipso.elevation)
         num_cal_data_ok = len(caObj.calipso.elevation)
@@ -970,7 +987,9 @@ def add_elevation_corrected_imager_ctth(clsatObj, caObj, issObj):
             got_height = imager_ctth_m_above_seasurface>=0                    
             imager_ctth_m_above_seasurface[got_height] += cal_elevation[got_height]*1.0
         caObj.avhrr.imager_ctth_m_above_seasurface = imager_ctth_m_above_seasurface
-    if issObj is not None and issObj.avhrr.imager_ctth_m_above_seasurface is None:
+    if issObj is None or issObj.avhrr.ctth_height is None:
+        pass
+    elif  issObj.avhrr.imager_ctth_m_above_seasurface is None:
         iss_elevation = np.where(np.less_equal(issObj.iss.elevation,0),
                                  0,issObj.iss.elevation)
         num_iss_data_ok = len(issObj.iss.elevation)
@@ -1458,6 +1477,14 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     else:
         process_mode = process_mode_dnt
         dnt_flag = None
+
+    if not config.USE_CMA_FOR_CFC_STATISTICS and config.CMA_PROB_VALIDATION:
+        logger.error("Probably you should set USE_CMA_FOR_CFC_STATISTICS=True!")
+        logger.error("As you are validation CMA-prob you should not use CT-file"
+                     "for CFC-statistics")
+
+        raise MatchupError("Configure problems, see messages above.")
+
 
     #  Also get maximum and minimum time differences to AVHRR (in seconds)
     matchup_results = get_matchups(cross, config_options, reprocess)

@@ -7,7 +7,8 @@ import time
 import calendar
 from datetime import datetime
 logger = logging.getLogger(__name__)
-from config import NODATA, PPS_FORMAT_2012_OR_EARLIER, VAL_CPP, CTTH_TYPES
+from config import (NODATA, PPS_FORMAT_2012_OR_EARLIER, VAL_CPP, CTTH_TYPES, 
+                    CMA_PROB_VALIDATION, CMA_PROB_CLOUDY_LIMIT)
 ATRAIN_MATCH_NODATA = NODATA
 #logger.debug('Just so you know: this module has a logger...')
 
@@ -320,6 +321,9 @@ def read_cloudtype_nc(filename):
 def read_cma_h5(filename):
     h5file = h5py.File(filename, 'r')
     cma = CmaObj()
+    if 'cma_extended' not in h5file.keys():
+        if 'cloud_probability' in h5file.keys():
+            logger.error("Probably you shold set CMAP_PROB_VALIDATION=True!")
     cma.cma_ext = h5file['cma_extended'].value
     #try KeyError 'cma'
     h5file.close()
@@ -328,9 +332,13 @@ def read_cma_h5(filename):
 def read_cmaprob_h5(filename):
     h5file = h5py.File(filename, 'r')
     cma = CmaObj()
+    if 'cma_extended' in h5file.keys():
+        if 'cloud_probability' not in h5file.keys():
+            logger.error("Probably you shold set CMAP_PROB_VALIDATION=False!")
+            logger.error("This file looks lika a normal CMA-file {}".format(filename))
     cma.cma_prob = h5file['cloud_probability'].value
     cma.cma_ext = 0*cma.cma_prob
-    cma.cma_ext[cma.cma_prob>=50] = 1.0
+    cma.cma_ext[cma.cma_prob>=CMA_PROB_CLOUDY_LIMIT] = 1.0
     cma.cma_ext[cma.cma_prob<0] = 255.0
     ctype = CtypeObj()
     ctype.cloudtype = 0*cma.cma_prob
@@ -343,11 +351,14 @@ def read_cmaprob_h5(filename):
     ctth.pressure = 500.0 + 0*cma.cma_prob
     #try KeyError 'cma'
     h5file.close()
-    return cma, ctype, ctth
+    return cma
 
 def read_cma_nc(filename):
     pps_nc = netCDF4.Dataset(filename, 'r', format='NETCDF4')
     cma = CmaObj()
+    if 'cma_extended' not in pps_nc.variables.keys():
+        if 'cloud_probability' in pps_nc.variables.keys():
+            logger.error("Probably you shold set CMAP_PROB_VALIDATION=True!")
     cma.cma_ext = pps_nc.variables['cma_extended'][0,:,:]
     #cma.cma_testlist0 = pps_nc.variables['cma_testlist0'][0,:,:]
     #cma.cma_testlist1 = pps_nc.variables['cma_testlist1'][0,:,:]
@@ -397,6 +408,7 @@ def readImagerData_nc(pps_nc):
             else:
                 one_channel.data = data_temporary
             one_channel.des = image.description
+            print one_channel.des
             #Currently unpacked arrays later in calipso.py:
             #TODO: move this herealso for h5!
             one_channel.gain = 1.0 #data already scaled
@@ -928,11 +940,10 @@ def pps_read_all(pps_files, avhrr_file, cross):
             cpp = read_cpp_nc(pps_files.cpp)
         else:            
             cpp = read_cpp_h5(pps_files.cpp)
-
-    if ('prob' in pps_files.cloudtype and pps_files.ctth==pps_files.cma):
-        #special solution to have cma prob in Jenkins very fast
+    print pps_files.cloudtype, pps_files.ctth, pps_files.cma
+    if CMA_PROB_VALIDATION:
         logger.info("Read PPS Cloud mask prob")
-        cma, ctype, ctth = read_cmaprob_h5(pps_files.cma)
+        cma = read_cmaprob_h5(pps_files.cma)
     else:    
         logger.info("Read PPS Cloud mask")
         print pps_files.cma 
@@ -942,19 +953,21 @@ def pps_read_all(pps_files, avhrr_file, cross):
             cma = read_cma_nc(pps_files.cma)
         else:
             cma = read_cma_h5(pps_files.cma)        
-        logger.info("Read PPS Cloud Type")
-        if '.nc' in pps_files.cloudtype:
-            ctype = read_cloudtype_nc(pps_files.cloudtype)
-        else:
-            ctype = read_cloudtype_h5(pps_files.cloudtype)
-        logger.info("Read PPS CTTH")
-        if pps_files.ctth is None:
-            ctth = None
-        elif '.nc' in pps_files.ctth[CTTH_TYPES[0]]:
-            #read first ctth as primary one
-            ctth = read_ctth_nc(pps_files.ctth[CTTH_TYPES[0]])
-        else:            
-            ctth = read_ctth_h5(pps_files.ctth[CTTH_TYPES[0]])
+    logger.info("Read PPS Cloud Type")
+    if pps_files.cloudtype is None:
+        ctype = None
+    elif '.nc' in pps_files.cloudtype:
+        ctype = read_cloudtype_nc(pps_files.cloudtype)
+    else:
+        ctype = read_cloudtype_h5(pps_files.cloudtype)
+    logger.info("Read PPS CTTH")
+    if len(pps_files.ctth.keys())<1:
+        ctth = None
+    elif '.nc' in pps_files.ctth[CTTH_TYPES[0]]:
+        #read first ctth as primary one
+        ctth = read_ctth_nc(pps_files.ctth[CTTH_TYPES[0]])
+    else:            
+        ctth = read_ctth_h5(pps_files.ctth[CTTH_TYPES[0]])
 
     logger.info("Read PPS full resolution intermediate files")
     nwp_obj = read_all_intermediate_files(pps_files)

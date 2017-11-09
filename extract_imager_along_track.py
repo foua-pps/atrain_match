@@ -304,16 +304,17 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
     row_col = {'row': row_matched, 'col': col_matched} 
     npix = row_matched.shape[0]
 
-    #Find lat/lon and cloudtype
+
     value_track = [GeoObj.latitude[row_matched[idx], col_matched[idx]] 
-                     for idx in range(npix)]
+                   for idx in range(npix)]
     obt.avhrr.latitude = np.array(value_track)
     value_track = [GeoObj.longitude[row_matched[idx], col_matched[idx]]
                      for idx in range(npix)]
     obt.avhrr.longitude = np.array(value_track)
-    value_track = [ctype.cloudtype[row_matched[idx], col_matched[idx]]
-                 for idx in range(npix)]
-    obt.avhrr.cloudtype = np.array(value_track)
+    if ctype is not None:
+        value_track = [ctype.cloudtype[row_matched[idx], col_matched[idx]]
+                       for idx in range(npix)]
+        obt.avhrr.cloudtype = np.array(value_track)
     if cma is not None:
         value_track = [cma.cma_ext[row_matched[idx], col_matched[idx]]
                        for idx in range(npix)]
@@ -367,7 +368,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
         value_track = [ctype.qualityflag[row_matched[idx], col_matched[idx]]
                              for idx in range(npix)]
         obt.avhrr.cloudtype_qflag = np.array(value_track)
-    if  ctype.phaseflag is not None and PPS_VALIDATION:
+    if  hasattr(ctype, 'phaseflag') and PPS_VALIDATION:
         value_track = [ctype.phaseflag[row_matched[idx], col_matched[idx]]
                              for idx in range(npix)]
         obt.avhrr.cloudtype_pflag = np.array(value_track)

@@ -56,6 +56,7 @@ class OrrbStats():
         acu["n_cloudy_cloudy_cal_MODIS"]  = 0
         got_cloudsat_modis_flag = False
         #CTY
+
         acu["n_low_low"] = 0
         acu["n_low_medium"] = 0
         acu["n_low_high"] = 0

@@ -26,6 +26,7 @@ USE_ORBITS_THAT_STARTS_EXACTLY_AT_CROSS = str2bool(
 PPS_VALIDATION = str2bool(os.environ.get('PPS_VALIDATION', True))
 CCI_CLOUD_VALIDATION = str2bool(os.environ.get('CCI_CLOUD_VALIDATION', False))
 MAIA_CLOUD_VALIDATION = str2bool(os.environ.get('MAIA_CLOUD_VALIDATION', False))
+CMA_PROB_VALIDATION = str2bool(os.environ.get('CMAP_PROB_VALIDATION', True))
 
 # If set to True, program will fail if there are no match with 
 # CLOUDASAT, CALIPSO or ISS.
@@ -34,10 +35,9 @@ MAIA_CLOUD_VALIDATION = str2bool(os.environ.get('MAIA_CLOUD_VALIDATION', False))
 # will also fail, as it used to do.
 CLOUDSAT_REQUIRED = False
 CALIPSO_REQUIRED = False
-ISS_REQUIRED = False #True
+ISS_REQUIRED = False 
 
 # Turn off ISS and CLOUDSAT matching if never used
-# Notice can not be true if CLOUDSAT_REQUIRED is True
 ISS_MATCHING = False      #Notice can not be False if ISS_REQUIRED = True
 CLOUDSAT_MATCHING = False #Notice can not be False if CLOUDSAT_REQUIRED = True
 CALIPSO_MATCHING = True   #Notice can not be False if CALIPSO_REQUIRED = True
@@ -55,7 +55,7 @@ CALIPSO_version3 = True
 
 # Use cloudmask to buld cloud cover statistics. Traditionally
 # cloudtype is used.
-USE_CMA_FOR_CFC_STATISTICS = False
+USE_CMA_FOR_CFC_STATISTICS = True #Normally this should be true, but if cma file is missing False cloud be ok
 
 # Save imager data also for warmest and coldest pixels:
 SAVE_NEIGHBOUR_INFO = False
@@ -65,7 +65,8 @@ SAVE_NEIGHBOUR_INFO = False
 # really be set to 0.4, i.e., at least two 1 km columns should be cloudy!. 
     
 CALIPSO_CLOUDY_MIN_CFC = 0.5 #0.66 Tradition, KG used 0.5 for v2014 validation
-CALIPSO_CLEAR_MAX_CFC = 0.5  #0.34 Tradition, KG used 0.5, PPS development 0.1 or 0.2 
+CALIPSO_CLEAR_MAX_CFC = 0.0001  #0.34 Tradition, KG used 0.5, PPS development 0.1 or 0.2 
+CMA_PROB_CLOUDY_LIMIT = 50 #50% cloudy => cloud
 
 # Search also for MODIS lvl2 data
 MATCH_MODIS_LVL2 = False
@@ -259,6 +260,7 @@ ALLOWED_MODES = ['BASIC',
 #MIN_OPTICAL_DEPTH = [0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.60, 0.70, 0.80, 0.90, 1.00]
 MIN_OPTICAL_DEPTH = [0.1]
 AREA = "no_area" #matching are no longer done for an area
+AREA = "cea5km_test" #matching are no longer done for an area
 
 if RESOLUTION == 1:
     if IMAGER_INSTRUMENT == 'viirs':
@@ -392,7 +394,7 @@ CASES =[{'satname': 'noaa18', 'year': 2009, 'month': 1},
          {'satname': 'noaa18', 'year': 2009, 'month': 10},
          {'satname': 'noaa18', 'year': 2009, 'month': 11},
          {'satname': 'noaa18', 'year': 2009, 'month': 12}]
-#CASES =[{'satname': 'npp', 'year': 2012, 'month': 10}]
+#CASES =[{'satname': 'npp', 'year': 2015, 'month': 07}]
 
 #CASES = CASES_npp
 #CASES =[{'satname': 'metopa', 'year': 2015, 'month': 05}]

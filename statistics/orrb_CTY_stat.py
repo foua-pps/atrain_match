@@ -230,7 +230,7 @@ class CloudTypeStats(OrrbStats):
     
     def printout(self):
         lines = []
-        if self.Num == 0:
+        if self.Num == 0 or self.samples_tot==0:
             return lines
         lines.append( "Total pixels: %d" % self.Num)
         lines.append( "Common cloud-free: %d" % self.common_cloud_free)

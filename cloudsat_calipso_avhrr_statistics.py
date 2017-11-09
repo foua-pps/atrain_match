@@ -273,6 +273,9 @@ def print_cpp_stats(cObj, statfile, val_subset):
     # CLOUD PHASE EVALUATION
     #=======================    
     # CLOUD PHASE: CALIOP/ISS - IMAGER
+    if cObj.avhrr.cpp_phase is None:
+        logger.warning("There are no cpp data.")
+        return
     from validate_cph import get_calipso_phase_inner, CALIPSO_PHASE_VALUES
     cal_phase = get_calipso_phase_inner(
         cObj.calipso.feature_classification_flags, 
@@ -433,7 +436,9 @@ def print_calipso_stats_ctype(caObj, statfile, val_subset, low_medium_high_class
     if config.CCI_CLOUD_VALIDATION :
         logger.info("Cloudtype validation not useful for CCI validation")
         return
-    
+    if caObj.avhrr.cloudtype is None:
+        logger.warning("There are no cloudtype data.")
+        return
     # CLOUD TYPE EVALUATION - Based exclusively on CALIPSO data (Vertical Feature Mask)
     # =======================
     calipso_low = np.logical_and(low_medium_high_class['low_clouds'],
@@ -604,6 +609,9 @@ def print_height_all_low_medium_high(NAME, val_subset,  statfile,
     statfile.write("CLOUD HEIGHT %s HIGH: %s \n" % (NAME, out_stats))
 
 def print_stats_ctop(cObj, statfile, val_subset, low_medium_high_class):
+    if cObj.avhrr.ctth_height is None:
+        logger.warning("There are no ctth height data.")
+        return
 
     # CORRELATION: CALIOP - IMAGER HEIGHT
     # FIRST TOTAL FIGURES

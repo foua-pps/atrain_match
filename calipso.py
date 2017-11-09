@@ -129,8 +129,6 @@ def match_calipso_avhrr(values,
                                     nwp_segments=nwp_segments)
     if caObjAerosol is not None:
         retv.calipso_aerosol = calipso_track_from_matched(retv.calipso_aerosol, caObjAerosol, idx_match)
-    logger.info("AVHRR-PPS Cloud Type,latitude: shapes = %s %s",
-                retv.avhrr.cloudtype.shape,retv.avhrr.latitude.shape)
     max_cloud_top_calipso = np.maximum.reduce(retv.calipso.layer_top_altitude.ravel())
     logger.info("max_cloud_top_calipso: %2.1f",max_cloud_top_calipso)
     return retv
