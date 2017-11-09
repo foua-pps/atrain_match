@@ -26,7 +26,7 @@ USE_ORBITS_THAT_STARTS_EXACTLY_AT_CROSS = str2bool(
 PPS_VALIDATION = str2bool(os.environ.get('PPS_VALIDATION', True))
 CCI_CLOUD_VALIDATION = str2bool(os.environ.get('CCI_CLOUD_VALIDATION', False))
 MAIA_CLOUD_VALIDATION = str2bool(os.environ.get('MAIA_CLOUD_VALIDATION', False))
-CMA_PROB_VALIDATION = str2bool(os.environ.get('CMAP_PROB_VALIDATION', True))
+CMA_PROB_VALIDATION = str2bool(os.environ.get('CMA_PROB_VALIDATION', True))
 
 # If set to True, program will fail if there are no match with 
 # CLOUDASAT, CALIPSO or ISS.
