@@ -153,6 +153,10 @@ class NWPObj(object):
         self.snowa = None
         self.snowd = None
         self.seaice = None
+        self.r37 = None
+        self.landuse = None
+        self.fractionofland = None
+        self.elevation = None
         self.__dict__.update(array_dict) 
 
 class smallDataObject(object):
@@ -814,7 +818,7 @@ def read_all_intermediate_files(pps_files):
     else:
         logger.info("Not reading PPS seaice data")  
     if pps_files.physiography is None:
-        pass
+        logger.info("Not reading PPS physiography data") 
     elif '.nc' in pps_files.physiography:
         pps_nc_physiography = netCDF4.Dataset(pps_files.physiography, 'r', format='NETCDF4')
         nwp_dict["landuse"] = read_etc_nc(pps_nc_physiography, "landuse")
@@ -823,6 +827,15 @@ def read_all_intermediate_files(pps_files):
         pps_nc_physiography.close()
     else:
         logger.info("Not reading PPS physiography data") 
+    if pps_files.r37 is None:
+        pass
+    else:
+        pps_nc_r37 = netCDF4.Dataset(pps_files.r37, 'r', format='NETCDF4')
+        nwp_dict["r37"] = read_etc_nc(pps_nc_r37, "r37")
+        pps_nc_r37.close()
+
+        
+
     if pps_files.nwp_tsur is None:
         pass
     elif '.nc' in pps_files.nwp_tsur:

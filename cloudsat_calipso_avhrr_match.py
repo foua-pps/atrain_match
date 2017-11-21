@@ -571,6 +571,21 @@ def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
             physiography_file = None
             raise MatchupError("No physiography file found corresponding to %s." % pattern)
         logger.info("PHYSIOGRAPHY: " + physiography_file)
+    if not 'r37_file' in options:
+        logger.warning("No 3.7 reflectance file searched for!")
+        r37_file = None
+    else:
+        r37_name = insert_info_in_filename_or_path(options['r37_file'],
+                                                            values, datetime_obj=date_time)
+        path =insert_info_in_filename_or_path(options['r37_dir'], 
+                                              values, datetime_obj=date_time)
+        pattern = os.path.join(path, r37_name)
+        try:
+            r37_file = glob(pattern)[0]
+        except IndexError:
+            r37_file = None
+            raise MatchupError("No 3.7 reflectance file found corresponding to %s." % pattern)
+        logger.info("R-3.7: " + r37_file)
 
     if not 'nwp_tsur_file' in options:
         logger.warning("No surface temperature file searched for!")
@@ -625,6 +640,7 @@ def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
                            'cpp': cpp_file,
                            'nwp_tsur': nwp_tsur_file,
                            'sunsatangles': sunsatangles_file,
+                           'r37': r37_file,
                            'physiography': physiography_file})
 
     ppsfiles = ppsFiles(file_name_dict)
