@@ -194,6 +194,7 @@ class ImagerChannelData:
         self.des = ""
         self.gain = 1.0
         self.intercept = 0.0
+        self.SZA_corr_done = False
         self.data = None
 class CmaObj:
     #skeleton container for v2014 cma
@@ -412,6 +413,7 @@ def readImagerData_nc(pps_nc):
             else:
                 one_channel.data = data_temporary
             one_channel.des = image.description
+            one_channel.SZA_corr_done = pps_nc.variables[var].sun_zenith_angle_correction_applied
             print one_channel.des
             #Currently unpacked arrays later in calipso.py:
             #TODO: move this herealso for h5!

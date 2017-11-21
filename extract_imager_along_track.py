@@ -143,7 +143,7 @@ def get_channel_data_from_object(dataObj, chn_des, matched, nodata=-9):
     if chnum ==-1:
         #chnum = CHANNEL_MICRON_AVHRR_PPS[chn_des]
         if chnum ==-1:
-            return None
+            return None, ""
         logger.warning(  "Using pps channel numbers to find "
               "corresponding avhrr channel")
     temp = [channels[chnum].data[matched['row'][idx], 
@@ -151,7 +151,11 @@ def get_channel_data_from_object(dataObj, chn_des, matched, nodata=-9):
             for idx in range(matched['row'].shape[0])] 
     chdata_on_track = [channels[chnum].data[matched['row'][idx], matched['col'][idx]]
                        for idx in range(matched['row'].shape[0])]
-    return np.array(chdata_on_track)
+
+    extra_info = ""
+    if channels[chnum].SZA_corr_done.upper() in ["TRUE"] :
+        extra_info = "_sza_correction_done"
+    return np.array(chdata_on_track), extra_info
 
 
 def _interpolate_height_and_temperature_from_pressure(imagerObj,
@@ -451,27 +455,36 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
                                for idx in range(npix)]
                 setattr(obt.avhrr, emis, np.array(value_track))
     if dataObj is not None:
-        obt.avhrr.r06micron = get_channel_data_from_object(dataObj, '06', row_col)
+        temp_data, info = get_channel_data_from_object(dataObj, '06', row_col)
+        setattr(obt.avhrr, "r06micron" + info, temp_data) 
         # r09   
-        obt.avhrr.r09micron = get_channel_data_from_object(dataObj, '09', row_col)
+        temp_data, info =  get_channel_data_from_object(dataObj, '09', row_col)
+        setattr(obt.avhrr, "r09micron" + info, temp_data)
         # bt37   
-        obt.avhrr.bt37micron = get_channel_data_from_object(dataObj, '37', row_col)
+        temp_data, info =  get_channel_data_from_object(dataObj, '37', row_col)
+        setattr(obt.avhrr, "bt37micron" + info, temp_data)
         # b11
-        obt.avhrr.bt11micron = get_channel_data_from_object(dataObj, '11', row_col)
+        temp_data, info =  get_channel_data_from_object(dataObj, '11', row_col)
+        setattr(obt.avhrr, "bt11micron" + info, temp_data)
         # b12
-        obt.avhrr.bt12micron = get_channel_data_from_object(dataObj, '12', row_col)
+        temp_data, info =  get_channel_data_from_object(dataObj, '12', row_col)
+        setattr(obt.avhrr, "bt12micron" + info, temp_data)
         # b86
-        obt.avhrr.bt86micron = get_channel_data_from_object(dataObj, '86', row_col)
+        temp_data, info =  get_channel_data_from_object(dataObj, '86', row_col)
+        setattr(obt.avhrr, "bt86micron" + info, temp_data)
         # b16
-        obt.avhrr.r16micron = get_channel_data_from_object(dataObj, '16', row_col)
+        temp_data, info =  get_channel_data_from_object(dataObj, '16', row_col)
+        setattr(obt.avhrr, "r16micron" + info, temp_data)
         # b22
-        obt.avhrr.r22micron = get_channel_data_from_object(dataObj, '22', row_col)
+        temp_data, info =  get_channel_data_from_object(dataObj, '22', row_col)
+        setattr(obt.avhrr, "r22micron" + info, temp_data)
         #b13
-        obt.avhrr.r13micron = get_channel_data_from_object(dataObj, '13', row_col)
+        temp_data, info =  get_channel_data_from_object(dataObj, '13', row_col)
+        setattr(obt.avhrr, "r13micron" + info, temp_data)
         for modis_channel in CURRENTLY_UNUSED_MODIS_CHANNELS:
-            modis_track = get_channel_data_from_object(dataObj, 
+            modis_track, info = get_channel_data_from_object(dataObj, 
                                                        modis_channel, row_col)
-            setattr(obt.avhrr, modis_channel, modis_track)
+            setattr(obt.avhrr, modis_channel + info, modis_track)
     #Angles, scale with gain and intercept when reading
     obt.avhrr.satz = [AngObj.satz.data[row_matched[idx], col_matched[idx]] 
                       for idx in range(npix)]

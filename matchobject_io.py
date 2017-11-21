@@ -169,15 +169,24 @@ class ppsAvhrrObject(DataObject):
             #Imager channels currently used by pps
             'r06micron':  None,  #modis_1
             'r09micron':  None,  #modis_2
-            'bt37micron': None, #modis_20
-            'bt11micron': None, #modis 31
-            'bt12micron': None, #modis 32
-            'bt86micron': None, #modis 29
+            'bt37micron': None,  #modis_20
+            'bt11micron': None,  #modis 31
+            'bt12micron': None,  #modis 32
+            'bt86micron': None,  #modis 29
             'r22micron': None,
-            'r13micron': None, #modis 26
+            'r13micron': None,   #modis 26
             'r16micron':  None,  #moodis 6
+            'r06micron_sza_correction_done':  None,  #modis_1
+            'r09micron_sza_correction_done':  None,  #modis_2
+            'r13micron_sza_correction_done':  None,  #modis 26
+            'r16micron_sza_correction_done':  None,  #modis 6
+            'r22micron_sza_correction_done':  None,  #VIIRS
             #developing channels from modis change to pps_id_name i.e r12micron 
             #when introduced into pps
+            'modis_3_sza_correction_done':  None,
+            'modis_4_sza_correction_done':  None,
+            'modis_5_sza_correction_done':  None,
+            'modis_7_sza_correction_done':  None,
             'modis_3':  None,
             'modis_4':  None,
             'modis_5':  None,
