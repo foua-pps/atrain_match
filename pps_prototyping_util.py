@@ -62,12 +62,12 @@ def get_warmest_values(dataObj, matched):
     new_col_matched = np.array([new_col[matched['row'][idx], matched['col'][idx]]
                        for idx in range(matched['row'].shape[0])]) 
     new_row_col = {'row': new_row_matched, 'col': new_col_matched}
-    nobj.warmest_t11=get_channel_data_from_object(dataObj, '11', new_row_col)
-    nobj.warmest_t12=get_channel_data_from_object(dataObj, '12', new_row_col)
-    nobj.warmest_t37=get_channel_data_from_object(dataObj, '37', new_row_col)
-    nobj.warmest_r06=get_channel_data_from_object(dataObj, '06', new_row_col)
-    nobj.warmest_r16=get_channel_data_from_object(dataObj, '16', new_row_col)
-    nobj.warmest_r09=get_channel_data_from_object(dataObj, '09', new_row_col)
+    nobj.warmest_t11=get_channel_data_from_object(dataObj, '11', new_row_col)[0]
+    nobj.warmest_t12=get_channel_data_from_object(dataObj, '12', new_row_col)[0]
+    nobj.warmest_t37=get_channel_data_from_object(dataObj, '37', new_row_col)[0]
+    nobj.warmest_r06=get_channel_data_from_object(dataObj, '06', new_row_col)[0]
+    nobj.warmest_r16=get_channel_data_from_object(dataObj, '16', new_row_col)[0]
+    nobj.warmest_r09=get_channel_data_from_object(dataObj, '09', new_row_col)[0]
     return nobj
 
 def get_coldest_values(dataObj, matched):
@@ -92,12 +92,12 @@ def get_coldest_values(dataObj, matched):
     new_col_matched = np.array([new_col[matched['row'][idx], matched['col'][idx]]
                        for idx in range(matched['row'].shape[0])]) 
     new_row_col = {'row': new_row_matched, 'col': new_col_matched}
-    nobj.coldest_t11=get_channel_data_from_object(dataObj, '11', new_row_col)
-    nobj.coldest_t12=get_channel_data_from_object(dataObj, '12', new_row_col)
-    nobj.coldest_t37=get_channel_data_from_object(dataObj, '37', new_row_col)
-    nobj.coldest_r06=get_channel_data_from_object(dataObj, '06', new_row_col)
-    nobj.coldest_r16=get_channel_data_from_object(dataObj, '16', new_row_col)
-    nobj.coldest_r09=get_channel_data_from_object(dataObj, '09', new_row_col)
+    nobj.coldest_t11=get_channel_data_from_object(dataObj, '11', new_row_col)[0]
+    nobj.coldest_t12=get_channel_data_from_object(dataObj, '12', new_row_col)[0]
+    nobj.coldest_t37=get_channel_data_from_object(dataObj, '37', new_row_col)[0]
+    nobj.coldest_r06=get_channel_data_from_object(dataObj, '06', new_row_col)[0]
+    nobj.coldest_r16=get_channel_data_from_object(dataObj, '16', new_row_col)[0]
+    nobj.coldest_r09=get_channel_data_from_object(dataObj, '09', new_row_col)[0]
     return nobj
 
 def get_darkest_values(dataObj, matched):
@@ -124,12 +124,12 @@ def get_darkest_values(dataObj, matched):
     new_col_matched = np.array([new_col[matched['row'][idx], matched['col'][idx]]
                        for idx in range(matched['row'].shape[0])]) 
     new_row_col = {'row': new_row_matched, 'col': new_col_matched}
-    nobj.darkest_t11=get_channel_data_from_object(dataObj, '11', new_row_col)
-    nobj.darkest_t12=get_channel_data_from_object(dataObj, '12', new_row_col)
-    nobj.darkest_t37=get_channel_data_from_object(dataObj, '37', new_row_col)
-    nobj.darkest_r06=get_channel_data_from_object(dataObj, '06', new_row_col)
-    nobj.darkest_r16=get_channel_data_from_object(dataObj, '16', new_row_col)
-    nobj.darkest_r09=get_channel_data_from_object(dataObj, '09', new_row_col)
+    nobj.darkest_t11=get_channel_data_from_object(dataObj, '11', new_row_col)[0]
+    nobj.darkest_t12=get_channel_data_from_object(dataObj, '12', new_row_col)[0]
+    nobj.darkest_t37=get_channel_data_from_object(dataObj, '37', new_row_col)[0]
+    nobj.darkest_r06=get_channel_data_from_object(dataObj, '06', new_row_col)[0]
+    nobj.darkest_r16=get_channel_data_from_object(dataObj, '16', new_row_col)[0]
+    nobj.darkest_r09=get_channel_data_from_object(dataObj, '09', new_row_col)[0]
     return nobj
     
 def get_channel_data_from_objectfull_resolution(dataObj, chn_des, nodata=-9):
