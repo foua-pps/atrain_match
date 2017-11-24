@@ -64,15 +64,15 @@ elif isModis1km:
     files = files +glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/06/*.h5")
     files = files +glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/08/*.h5")
     files = files +glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/10/*.h5")
-    files = files +glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/05/*.h5")
+    #files = files +glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/05/*.h5")
     files = files +glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/11/*.h5")
     files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/01/*.h5")
-    files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/03/*.h5")
+    #files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/03/*.h5")
     files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/06/*.h5")
-    files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/07/*.h5")
+    #files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/07/*.h5")
     files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/09/*.h5")
-    files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/11/*.h5")
-    satellites = "eos_modis_v2014_1st_and_14th_all_non_training_font"
+    #files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/11/*.h5")
+    satellites = "eos_modis_v2014_1st_and_14th_all_val_test_font"
     print "files", files
 elif isModis1km_lvl2:
     num_files_to_read = 1
@@ -86,17 +86,17 @@ elif isModis1km_lvl2:
     files = files +glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/06/*.h5")
     files = files +glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/08/*.h5")
     files = files +glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/10/*.h5")
-    files = files +glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/05/*.h5")
+    #files = files +glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/05/*.h5")
     files = files +glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/11/*.h5")
     files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/01/*.h5")
-    files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/03/*.h5")
+    #files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/03/*.h5")
     files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/06/*.h5")
-    files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/07/*.h5")
+    #files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/07/*.h5")
     files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/09/*.h5")
-    files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/11/*.h5")
+    #files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/11/*.h5")
     #files = glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/*/*.h5")
     #files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/*/*.h5")
-    satellites = "eos_modis_lvl2_C6_1st_and_14th_all_non_training_font"
+    satellites = "eos_modis_lvl2_C6_1st_and_14th_all_val_test_font"
     
 elif isModis1km_nnctth:
     num_files_to_read = 1
@@ -117,15 +117,15 @@ elif isModis1km_nnctth:
     files = files +glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/06/*.h5")
     files = files +glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/08/*.h5")
     files = files +glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/10/*.h5")
-    files = files +glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/05/*.h5")
+    #files = files +glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/05/*.h5")
     files = files +glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/11/*.h5")
     files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/01/*.h5")
-    files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/03/*.h5")
+    #files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/03/*.h5")
     files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/06/*.h5")
-    files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/07/*.h5")
+    #files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/07/*.h5")
     files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/09/*.h5")
-    files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/11/*.h5")
-    satellites = "eos_modis_v2018_1st_and_14th_all_non_training_font"
+    #files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/11/*.h5")
+    satellites = "eos_modis_v2018_1st_and_14th_all_val_test_font_testing_offset"
 
 elif isNPP_v2014:
     num_files_to_read = 30
@@ -239,6 +239,12 @@ pplot_obj.flattice.calculate_hitrate()
 pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=0.5, score='Hitrate')
 pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=0.0, vmax=1000.0, score='Number_of')
 
+pplot_obj.flattice.calculate_t11ts_offset()
+pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-10.0, vmax=10.0, score='t11ts_offset')
+pplot_obj.flattice.calculate_t11t12_offset()
+pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-1.0, vmax=1.0, score='t11t12_offset')
+pplot_obj.flattice.calculate_t37t12_offset()
+pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-10.0, vmax=10.0, score='t37t12_offset')
 #start to calculate
 if 'modis' in satellites and 1==2:
     #needs surftemp

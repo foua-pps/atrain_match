@@ -29,6 +29,7 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
     def get_some_info_from_caobj(self, caObj):
         self.set_false_and_missed_cloudy_and_clear(caObj=caObj)
         self.set_r13_extratest(caObj=caObj)
+        self.get_thr_offset(caObj=caObj)
         self.get_lapse_rate(caObj=caObj)
         self.get_ctth_bias(caObj=caObj)
         self.get_ctth_bias_low(caObj=caObj)
@@ -149,7 +150,32 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
                                           isCloud_r13[self.use])
         self.new_false_clouds = new_false_clouds
         self.new_detected_clouds = new_detected_clouds
-        
+
+    def get_thr_offset(self, caObj):
+        if np.size(caObj.avhrr.all_arrays['surftemp'])==1 and caObj.avhrr.all_arrays['surftemp'] is None:
+            self.t11ts_offset = np.zeros(self.false_clouds.shape)
+            return
+        t11ts_offset = (caObj.avhrr.all_arrays['bt11micron'] - 
+                        caObj.avhrr.all_arrays['surftemp'] - 
+                        caObj.avhrr.all_arrays['thr_t11ts_inv'])
+        t11t12_offset = (caObj.avhrr.all_arrays['bt11micron'] - 
+                        caObj.avhrr.all_arrays['bt12micron'] - 
+                        caObj.avhrr.all_arrays['thr_t11t12'])
+        t37t12_offset = (caObj.avhrr.all_arrays['bt37micron'] - 
+                        caObj.avhrr.all_arrays['bt12micron'] - 
+                        caObj.avhrr.all_arrays['thr_t37t12'])
+        t11ts_offset = t11ts_offset[self.use]
+        t11ts_offset[self.detected_clouds] = 99999
+        t11ts_offset[self.undetected_clouds] = 99999
+        self.t11ts_offset = t11ts_offset
+        t11t12_offset = t11t12_offset[self.use]
+        t11t12_offset[self.detected_clouds] = -99999
+        t11t12_offset[self.undetected_clouds] = -99999
+        self.t11t12_offset = t11t12_offset
+        t37t12_offset = t37t12_offset[self.use]
+        t37t12_offset[self.detected_clouds] = -99999
+        t37t12_offset[self.undetected_clouds] = -99999
+        self.t37t12_offset = t37t12_offset
     def get_lapse_rate(self, caObj):
         if np.size(caObj.avhrr.all_arrays['surftemp'])==1 and caObj.avhrr.all_arrays['surftemp'] is None:
             self.lapse_rate = np.zeros(self.false_clouds.shape)
@@ -320,6 +346,9 @@ class ppsStatsOnFibLatticeObject(DataObject):
         self.N_detected_height_high = np.zeros(self.lats.shape)
         self.N_detected_height = np.zeros(self.lats.shape)
         self.N_detected_height_both = np.zeros(self.lats.shape)
+        self.Min_t11ts_offset = np.zeros(self.lats.shape)
+        self.Max_t11t12_offset = np.zeros(self.lats.shape)
+        self.Max_t37t12_offset = np.zeros(self.lats.shape)
         self.Sum_height_bias_type={}
         self.N_detected_height_type={}
         for cc_type in xrange(8):
@@ -561,6 +590,21 @@ class ppsStatsOnFibLatticeObject(DataObject):
         the_mask = self.Min_lapse_rate>-0.001
         lapse_rate = np.ma.masked_array(self.Min_lapse_rate, mask=the_mask)
         self.lapse_rate = lapse_rate
+    def calculate_t11ts_offset(self):
+        self.np_float_array()
+        the_mask =  self.N_clear<10
+        t11ts_offset = np.ma.masked_array(self.Min_t11ts_offset, mask=the_mask)
+        self.t11ts_offset = t11ts_offset
+    def calculate_t11t12_offset(self):
+        self.np_float_array()
+        the_mask =  self.N_clear<10
+        t11t12_offset = np.ma.masked_array(self.Max_t11t12_offset, mask=the_mask)
+        self.t11t12_offset = t11t12_offset
+    def calculate_t37t12_offset(self):
+        self.np_float_array()
+        the_mask =  self.N_clear<10
+        t37t12_offset = np.ma.masked_array(self.Max_t37t12_offset, mask=the_mask)
+        self.t37t12_offset = t37t12_offset
     def calculate_temperature_bias(self):
         self.np_float_array()
         the_mask = self.N_detected_height_low<10
@@ -767,6 +811,9 @@ class PerformancePlottingObject:
         self.flattice = ppsStatsOnFibLatticeObject()
     def add_detection_stats_on_fib_lattice(self, my_obj):
         #Start with the area and get lat and lon to calculate the stats:
+        if  len(my_obj.longitude) == 0:
+            print "Skipping file, no matches !"
+            return
         lats = self.flattice.lats[:]
         max_distance=self.flattice.radius_km*1000*2.5
         area_def = SwathDefinition(*(self.flattice.lons,
@@ -792,6 +839,9 @@ class PerformancePlottingObject:
         new_detected_clouds = my_obj.new_detected_clouds[valid_out]
         new_false_clouds = my_obj.new_false_clouds[valid_out]
         lapse_rate = my_obj.lapse_rate[valid_out]  
+        t11ts_offset = my_obj.t11ts_offset[valid_out] 
+        t11t12_offset = my_obj.t11t12_offset[valid_out] 
+        t37t12_offset = my_obj.t37t12_offset[valid_out] 
         height_bias_low = my_obj.height_bias_low[valid_out]
         height_bias = my_obj.height_bias[valid_out]
         height_mae_diff = my_obj.height_mae_diff[valid_out]
@@ -800,6 +850,7 @@ class PerformancePlottingObject:
         lapse_bias_low = my_obj.lapse_bias_low[valid_out]
         height_bias_high = my_obj.height_bias_high[valid_out]
         lapse_bias_high = my_obj.lapse_bias_high[valid_out]
+        is_clear = np.logical_or(detected_clear,false_clouds)
         #lets make things faster, I'm tired of waiting!
         cols[distances>max_distance]=-9 #don't use pixles matched too far away!
         import time        
@@ -831,6 +882,13 @@ class PerformancePlottingObject:
             self.flattice.Sum_ctth_bias_temperature_low_t11[d] += np.sum(temperature_bias_low_t11[ind])
             self.flattice.Min_lapse_rate[d] = np.min([self.flattice.Min_lapse_rate[d],
                                                       np.min(lapse_rate[ind])])  
+            if np.sum(is_clear[ind])>0:
+                self.flattice.Min_t11ts_offset[d] = np.min([self.flattice.Min_t11ts_offset[d],
+                                                            np.percentile(t11ts_offset[ind][is_clear[ind]], 5)])
+                self.flattice.Max_t11t12_offset[d] = np.max([self.flattice.Max_t11t12_offset[d],
+                                                             np.percentile(t11t12_offset[ind][is_clear[ind]], 95)])
+                self.flattice.Max_t37t12_offset[d] = np.max([self.flattice.Max_t37t12_offset[d],
+                                                             np.percentile(t37t12_offset[ind][is_clear[ind]], 95)])
             cc_type = 0
             self.flattice.Sum_height_bias_type[cc_type][d] += np.sum(my_obj.height_bias_type[cc_type][ind])
             self.flattice.N_detected_height_type[cc_type][d] += np.sum(my_obj.detected_height_type[cc_type][ind])
