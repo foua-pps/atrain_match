@@ -379,7 +379,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
     for nwp_info in ["surftemp", "t500", "t700", "t850", "t950", "ttro", "ciwv",
                      "t900", "t1000", "t800", "t250", "t2m", "ptro", "psur", 
                      "snowa", "snowd", "seaice", "landuse", "fractionofland", "elevation",
-                     "r37"]:
+                     "r37_sza_correction_done"]:
         if hasattr(nwp_obj, nwp_info):
             data = getattr(nwp_obj, nwp_info)
             if np.size(data)>1:
@@ -416,18 +416,21 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
                                for idx in range(npix)]
                 setattr(obt.avhrr, texture, np.array(value_track))
     if dataObj is not None and SAVE_NEIGHBOUR_INFO:
-        neighbour_obj =get_warmest_values(dataObj, row_col)
+        neighbour_obj = get_warmest_values(dataObj, row_col)
         for key in ["warmest_t11", "warmest_t12", "warmest_t37",
                     "warmest_r06", "warmest_r09", "warmest_r16"]:
-            setattr(obt.avhrr, key, np.array(getattr(neighbour_obj,key)))
-        neighbour_obj =get_darkest_values(dataObj, row_col)
+            setattr(obt.avhrr, key + neighbour_obj.extra_info_sza_corr, 
+                    np.array(getattr(neighbour_obj,key)))
+        neighbour_obj = get_darkest_values(dataObj, row_col)
         for key in ["darkest_t11", "darkest_t12", "darkest_t37",
                     "darkest_r06", "darkest_r09", "darkest_r16"]:
-            setattr(obt.avhrr, key, np.array(getattr(neighbour_obj,key)))
-        neighbour_obj =get_coldest_values(dataObj, row_col)
+            setattr(obt.avhrr, key + neighbour_obj.extra_info_sza_corr, 
+                    np.array(getattr(neighbour_obj,key)))
+        neighbour_obj = get_coldest_values(dataObj, row_col)
         for key in ["coldest_t11", "coldest_t12", "coldest_t37",
                     "coldest_r06", "coldest_r09", "coldest_r16"]:
-            setattr(obt.avhrr, key, np.array(getattr(neighbour_obj,key)))
+            setattr(obt.avhrr, key + neighbour_obj.extra_info_sza_corr, 
+                    np.array(getattr(neighbour_obj,key)))
     #Thresholds:    
     for thr in ["thr_t11ts_inv",
                 "thr_t85t11_inv",

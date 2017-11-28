@@ -836,7 +836,7 @@ def read_all_intermediate_files(pps_files):
         pass
     else:
         pps_nc_r37 = netCDF4.Dataset(pps_files.r37, 'r', format='NETCDF4')
-        nwp_dict["r37"] = read_etc_nc(pps_nc_r37, "r37")
+        nwp_dict["r37_sza_correction_done"] = read_etc_nc(pps_nc_r37, "r37")
         pps_nc_r37.close()
 
         

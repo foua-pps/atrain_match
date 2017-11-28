@@ -39,7 +39,7 @@ class NeighbourObj(object):
         self.coldest_r16 = None
         self.coldest_r09 = None
         self.coldest_r06 = None
-
+        self.extra_info_sza_corr = ""
 def get_warmest_values(dataObj, matched):
     nobj = NeighbourObj()
     t11 = get_channel_data_from_objectfull_resolution(dataObj, '11', nodata=-9)
@@ -65,9 +65,9 @@ def get_warmest_values(dataObj, matched):
     nobj.warmest_t11=get_channel_data_from_object(dataObj, '11', new_row_col)[0]
     nobj.warmest_t12=get_channel_data_from_object(dataObj, '12', new_row_col)[0]
     nobj.warmest_t37=get_channel_data_from_object(dataObj, '37', new_row_col)[0]
-    nobj.warmest_r06=get_channel_data_from_object(dataObj, '06', new_row_col)[0]
-    nobj.warmest_r16=get_channel_data_from_object(dataObj, '16', new_row_col)[0]
-    nobj.warmest_r09=get_channel_data_from_object(dataObj, '09', new_row_col)[0]
+    nobj.warmest_r06, nobj.extra_info_sza_corr = get_channel_data_from_object(dataObj, '06', new_row_col)
+    nobj.warmest_r16 =get_channel_data_from_object(dataObj, '16', new_row_col)[0]
+    nobj.warmest_r09 =get_channel_data_from_object(dataObj, '09', new_row_col)[0]
     return nobj
 
 def get_coldest_values(dataObj, matched):
@@ -95,7 +95,7 @@ def get_coldest_values(dataObj, matched):
     nobj.coldest_t11=get_channel_data_from_object(dataObj, '11', new_row_col)[0]
     nobj.coldest_t12=get_channel_data_from_object(dataObj, '12', new_row_col)[0]
     nobj.coldest_t37=get_channel_data_from_object(dataObj, '37', new_row_col)[0]
-    nobj.coldest_r06=get_channel_data_from_object(dataObj, '06', new_row_col)[0]
+    nobj.coldest_r06, nobj.extra_info_sza_corr = get_channel_data_from_object(dataObj, '06', new_row_col)
     nobj.coldest_r16=get_channel_data_from_object(dataObj, '16', new_row_col)[0]
     nobj.coldest_r09=get_channel_data_from_object(dataObj, '09', new_row_col)[0]
     return nobj
@@ -127,7 +127,7 @@ def get_darkest_values(dataObj, matched):
     nobj.darkest_t11=get_channel_data_from_object(dataObj, '11', new_row_col)[0]
     nobj.darkest_t12=get_channel_data_from_object(dataObj, '12', new_row_col)[0]
     nobj.darkest_t37=get_channel_data_from_object(dataObj, '37', new_row_col)[0]
-    nobj.darkest_r06=get_channel_data_from_object(dataObj, '06', new_row_col)[0]
+    nobj.darkest_r06, nobj.extra_info_sza_corr=get_channel_data_from_object(dataObj, '06', new_row_col)
     nobj.darkest_r16=get_channel_data_from_object(dataObj, '16', new_row_col)[0]
     nobj.darkest_r09=get_channel_data_from_object(dataObj, '09', new_row_col)[0]
     return nobj
