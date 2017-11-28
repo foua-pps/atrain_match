@@ -153,7 +153,7 @@ def get_channel_data_from_object(dataObj, chn_des, matched, nodata=-9):
                        for idx in range(matched['row'].shape[0])]
 
     extra_info = ""
-    if channels[chnum].SZA_corr_done.upper() in ["TRUE"] :
+    if channels[chnum].SZA_corr_done:
         extra_info = "_sza_correction_done"
     return np.array(chdata_on_track), extra_info
 

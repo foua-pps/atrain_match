@@ -413,7 +413,10 @@ def readImagerData_nc(pps_nc):
             else:
                 one_channel.data = data_temporary
             one_channel.des = image.description
-            one_channel.SZA_corr_done = pps_nc.variables[var].sun_zenith_angle_correction_applied
+            if hasattr(pps_nc.variables[var], "sun_zenith_angle_correction_applied"):
+                corr_done_attr = pps_nc.variables[var].sun_zenith_angle_correction_applied
+                if corr_done_attr.upper() in ["TRUE"]:
+                    one_channel.SZA_corr_done = True
             print one_channel.des
             #Currently unpacked arrays later in calipso.py:
             #TODO: move this herealso for h5!
