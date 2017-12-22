@@ -128,8 +128,11 @@ from cloudsat_calipso_avhrr_plot import (drawCalClsatAvhrrPlotTimeDiff,
 #All non-avhrr satellites need to be here. Avhrr is default.
 INSTRUMENT = {'npp': 'viirs',
               'noaa18': 'avhrr',
+              'meteosat9': 'seviri',
+              'noaa20': 'viirs',
               'eos1': 'modis',
               'eos2': 'modis'} 
+
 from datetime import datetime, timedelta
 from glob import glob
 
