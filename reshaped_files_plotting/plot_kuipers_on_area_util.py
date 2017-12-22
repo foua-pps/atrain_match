@@ -200,21 +200,25 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         if "modis_lvl2" in self.satellites:
             height_c = 1000*caObj.calipso.all_arrays[
                 'layer_top_altitude'][self.use,0]  
+
         height_pps = caObj.avhrr.all_arrays['ctth_height'][self.use]
         delta_h = height_pps - height_c
         self.height_bias = delta_h
         self.height_bias[~self.detected_height]=0
         
-        height_modis = caObj.modis.all_arrays["height"][self.use]   
-        delta_h_modis = height_modis - 1000*caObj.calipso.all_arrays[
-            'layer_top_altitude'][self.use,0] 
-        self.detected_height_both = np.logical_and(self.detected_height,height_modis>0) 
-        mae_pps = np.abs(self.height_bias.copy())
-        mae_modis = np.abs(delta_h_modis)
-        diff_mae = mae_modis - mae_pps 
-        diff_mae[~self.detected_height_both] = 0
+        self.detected_height_both = np.where(self.detected_height, False,self.detected_height)
+        self.height_mae_diff = 0*self.height_bias
+        if caObj.modis.all_arrays["height"] is not None:
+            height_modis = caObj.modis.all_arrays["height"][self.use]   
+            delta_h_modis = height_modis - 1000*caObj.calipso.all_arrays[
+                'layer_top_altitude'][self.use,0] 
+            self.detected_height_both = np.logical_and(self.detected_height,height_modis>0) 
+            mae_pps = np.abs(self.height_bias.copy())
+            mae_modis = np.abs(delta_h_modis)
+            diff_mae = mae_modis - mae_pps 
+            diff_mae[~self.detected_height_both] = 0
         
-        self.height_mae_diff = diff_mae
+            self.height_mae_diff = diff_mae
 
         try:
             #tsur = caObj.avhrr.all_arrays['surftemp']

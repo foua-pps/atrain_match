@@ -20,7 +20,7 @@ isGAC_v2014_morning_sat = False
 isGAC_v2014 = False
 cci_orbits = False
 method = 'Nina' #Nina or KG or BASIC==no filter
-DNT="all" #"all/day/night/twilight"
+DNT="day" #"all/day/night/twilight"
 filter_method = 'no' #no or satz
 radius_km = 250 #t.ex 75 250 500 300
 BASE_PLOT_DIR = "/home/a001865/PICTURES_FROM_PYTHON/ATRAIN_MATCH_KUIPERS_PLOT_CCI_PPS_BrBG_2"
@@ -72,7 +72,7 @@ elif isModis1km:
     #files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/07/*.h5")
     files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/09/*.h5")
     #files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/11/*.h5")
-    satellites = "eos_modis_v2014_1st_and_14th_all_val_test_font"
+    satellites = "eos_modis_v2014_1st_and_14th_all_val_test_font_testing_offset"
     print "files", files
 elif isModis1km_lvl2:
     num_files_to_read = 1
@@ -96,7 +96,7 @@ elif isModis1km_lvl2:
     #files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/11/*.h5")
     #files = glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/*/*.h5")
     #files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/*/*.h5")
-    satellites = "eos_modis_lvl2_C6_1st_and_14th_all_val_test_font"
+    satellites = "eos_modis_lvl2_C6_1st_and_14th_all_val_test_font_testing_offset"
     
 elif isModis1km_nnctth:
     num_files_to_read = 1
@@ -126,6 +126,14 @@ elif isModis1km_nnctth:
     files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/09/*.h5")
     #files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/11/*.h5")
     satellites = "eos_modis_v2018_1st_and_14th_all_val_test_font_testing_offset"
+
+    ROOT_DIR2 = "/home/a001865/DATA_MISC/reshaped_files/global_modis_14th_created20171121/"
+    files = glob(ROOT_DIR2 + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/*/*.h5")
+    satellites = "eos_modis_v2018_14th_all_testing_offset_rttov12"
+    ROOT_DIR2 = "/home/a001865/DATA_MISC/reshaped_files/global_modis_14th_created20170519/"
+    files = glob(ROOT_DIR2 + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/*/*.h5")
+    satellites = "eos_modis_v2018_14th_all_testing_offset"
+
 
 elif isNPP_v2014:
     num_files_to_read = 30
@@ -192,12 +200,12 @@ for filename in files:
                 caObj_new.modis.all_arrays["temperature"])       
             caObj_new.avhrr.all_arrays["ctth_height"] = (
                 caObj_new.modis.all_arrays["height"])
-        if "eos_modis_v2014" in satellites:
+        elif "eos_modis_v2014" in satellites and caObj_new.avhrr.all_arrays["ctthold_temperature"] is not None:
             caObj_new.avhrr.all_arrays["ctth_temperature"] = (
                 caObj_new.avhrr.all_arrays["ctthold_temperature"])       
             caObj_new.avhrr.all_arrays["ctth_height"] = (
                 caObj_new.avhrr.all_arrays["ctthold_height"])
-        if "eos_modis_v2018" in satellites:
+        elif "eos_modis_v2018" in satellites and caObj_new.avhrr.all_arrays["ctthnnant_temperature"] is not None:
             caObj_new.avhrr.all_arrays["ctth_temperature"] = (
                 caObj_new.avhrr.all_arrays["ctthnnant_temperature"])       
             caObj_new.avhrr.all_arrays["ctth_height"] = (
