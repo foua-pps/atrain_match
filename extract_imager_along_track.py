@@ -41,7 +41,7 @@ CHANNEL_MICRON_DESCRIPTIONS = {'11': ["avhrr channel 4 - 11um",
                                '16': [ "VIIRS M10",
                                        "AVHRR ch 3a",
                                        "3a",
-                                       "SEVIRI VIS_016",
+                                       "SEVIRI IR_016",
                                        "AVHRR ch3a",
                                        "AVHRR ch_3a",
                                        "AVHRR 3A",
@@ -142,22 +142,18 @@ def get_channel_data_from_object(dataObj, chn_des, matched, nodata=-9):
         channels = dataObj.channel
     
     numOfChannels = len(channels)
-    chnum=-1
+    chnum = -1
     for ich in range(numOfChannels):
         if channels[ich].des in CHANNEL_MICRON_DESCRIPTIONS[chn_des]:
             chnum = ich
-    if chnum ==-1:
+    if chnum == -1:
         #chnum = CHANNEL_MICRON_AVHRR_PPS[chn_des]
-        if chnum ==-1:
-            return None, ""
-        logger.warning(  "Using pps channel numbers to find "
-              "corresponding avhrr channel")
-    temp = [channels[chnum].data[matched['row'][idx], 
-                                 matched['col'][idx]]
-            for idx in range(matched['row'].shape[0])] 
-    chdata_on_track = [channels[chnum].data[matched['row'][idx], matched['col'][idx]]
-                       for idx in range(matched['row'].shape[0])]
-
+        if chnum == -1:
+            logger.warning("Did not find pps channel number for channel "
+                           "{:s}".format(chn_des))
+            return None, "" 
+    chdata_on_track = np.array([channels[chnum].data[matched['row'][idx], matched['col'][idx]]
+                       for idx in range(matched['row'].shape[0])])
     extra_info = ""
     if channels[chnum].SZA_corr_done:
         extra_info = "_sza_correction_done"
@@ -426,17 +422,17 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
         for key in ["warmest_t11", "warmest_t12", "warmest_t37",
                     "warmest_r06", "warmest_r09", "warmest_r16"]:
             setattr(obt.avhrr, key + neighbour_obj.extra_info_sza_corr, 
-                    np.array(getattr(neighbour_obj,key)))
+                    getattr(neighbour_obj,key))
         neighbour_obj = get_darkest_values(dataObj, row_col)
         for key in ["darkest_t11", "darkest_t12", "darkest_t37",
                     "darkest_r06", "darkest_r09", "darkest_r16"]:
             setattr(obt.avhrr, key + neighbour_obj.extra_info_sza_corr, 
-                    np.array(getattr(neighbour_obj,key)))
+                    getattr(neighbour_obj,key))
         neighbour_obj = get_coldest_values(dataObj, row_col)
         for key in ["coldest_t11", "coldest_t12", "coldest_t37",
                     "coldest_r06", "coldest_r09", "coldest_r16"]:
             setattr(obt.avhrr, key + neighbour_obj.extra_info_sza_corr, 
-                    np.array(getattr(neighbour_obj,key)))
+                    getattr(neighbour_obj,key))
     #Thresholds:    
     for thr in ["thr_t11ts_inv",
                 "thr_t85t11_inv",
