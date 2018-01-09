@@ -651,13 +651,13 @@ def print_stats_ctop(cObj, statfile, val_subset, low_medium_high_class):
             var_pressure = (ndimage.filters.maximum_filter1d(cObj.calipso.layer_top_pressure[:,0], size=9) - 
                             ndimage.filters.minimum_filter1d(cObj.calipso.layer_top_pressure[:,0], size=9))
             val_geo = np.logical_and(
-                val_subset, 
+                val_geo, 
                 var_pressure<200) #Pressure variation less than 200hPa
         if hasattr(cObj,'cloudsat'):
             var_height = (ndimage.filters.maximum_filter1d(truth_sat_validation_height, size=9) - 
                             ndimage.filters.minimum_filter1d(truth_sat_validation_height, size=9))
             val_geo = np.logical_and(
-                val_subset, 
+                val_geo, 
                 var_height<3000) # Height variation less than 3km
         average_height_truth = ndimage.filters.uniform_filter1d(truth_sat_validation_height*1.0, size=9)
         average_height_truth[truth_sat_validation_height<0] = -9
@@ -669,7 +669,17 @@ def print_stats_ctop(cObj, statfile, val_subset, low_medium_high_class):
                                          average_height_imager,
                                          average_height_truth,
                                          imager_is_cloudy)
-
+        val_geo = np.logical_and(
+            val_geo, 
+            np.greater_equal(cObj.calipso.feature_optical_depth_532_top_layer_5km,0.2))
+        statfile.write("CLOUD HEIGHT GEO-STYLE-EXCLUDE-THIN-PIXELS\n")
+        print_height_all_low_medium_high("CALIOP-GEO-STYLE-EXCLUDE-THIN-PIXELS", 
+                                         val_geo,
+                                         statfile, low_medium_high_class, 
+                                         average_height_imager,
+                                         average_height_truth,
+                                         imager_is_cloudy)
+ 
     if config.COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC:
         statfile.write("CLOUD HEIGHT SINGLE-LAYER\n")
         val_subset_single = np.logical_and(
