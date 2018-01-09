@@ -660,7 +660,9 @@ def print_stats_ctop(cObj, statfile, val_subset, low_medium_high_class):
                 val_subset, 
                 var_height<3000) # Height variation less than 3km
         average_height_truth = ndimage.filters.uniform_filter1d(truth_sat_validation_height*1.0, size=9)
+        average_height_truth[truth_sat_validation_height<0] = -9
         average_height_imager = ndimage.filters.uniform_filter1d(imager_ctth_m_above_seasurface*1.0, size=9)
+        average_height_imager[imager_ctth_m_above_seasurface<0] = -9
         print_height_all_low_medium_high("CALIOP-GEO-STYLE", 
                                          val_geo,
                                          statfile, low_medium_high_class, 
