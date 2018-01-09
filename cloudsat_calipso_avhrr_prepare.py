@@ -7,6 +7,8 @@ def CalipsoCloudOpticalDepth_new(calipso, min_optical_depth, use_old_method=Fals
                                  limit_ctop=OPTICAL_LIMIT_CLOUD_TOP):
     new_cloud_top = np.ones(calipso.layer_top_altitude.shape)*NODATA*1.0
     new_cloud_base = np.ones(calipso.layer_base_altitude.shape)*NODATA*1.0
+    new_cloud_top_pressure = np.ones(calipso.layer_top_altitude.shape)*NODATA*1.0
+    new_cloud_base_pressure = np.ones(calipso.layer_base_altitude.shape)*NODATA*1.0
     distance_down_in_cloud_we_see = np.ones(calipso.layer_base_altitude.shape)*NODATA*1.0
     new_cloud_fraction = np.zeros(calipso.cloud_fraction.shape)
     new_fcf = np.ones(calipso.feature_classification_flags.shape).astype(calipso.feature_classification_flags.dtype)
@@ -50,6 +52,8 @@ def CalipsoCloudOpticalDepth_new(calipso, min_optical_depth, use_old_method=Fals
         new_cloud_top[update, 0:(N10-layer_j)] = (calipso.layer_top_altitude[update, layer_j:] -
                                                   distance_down_in_cloud_we_see[update, layer_j:])
         new_cloud_base[update, 0:(N10-layer_j)] = calipso.layer_base_altitude[update, layer_j:]
+        new_cloud_top_pressure[update, 0:(N10-layer_j)] = (calipso.layer_top_pressure[update, layer_j:])
+        new_cloud_base_pressure[update, 0:(N10-layer_j)] = calipso.layer_base_pressure[update, layer_j:]
         new_fcf[update, 0:(N10-layer_j)] = calipso.feature_classification_flags[update, layer_j:]
         new_cloud_fraction[update] = calipso.cloud_fraction[update]
         already_detected[update] = True
@@ -63,7 +67,8 @@ def CalipsoCloudOpticalDepth_new(calipso, min_optical_depth, use_old_method=Fals
     new_validation_height = new_cloud_top[:,0].copy()
     new_validation_height[new_validation_height>=0] = new_validation_height[new_validation_height>=0]*1000
     new_validation_height[new_validation_height<0] = -9
-    return new_cloud_top, new_cloud_base, new_cloud_fraction, new_fcf, new_validation_height
+    return (new_cloud_top, new_cloud_base, new_cloud_fraction, new_fcf, new_validation_height, 
+            new_cloud_top_pressure, new_cloud_base_pressure)
 
 
 def CalipsoCloudOpticalDepth(cloud_top, cloud_base, optical_depth, cloud_fraction, fcf, min_optical_depth):
@@ -153,8 +158,9 @@ def CalipsoOpticalDepthHeightFiltering1km(CaObj):
 def detection_height_from_5km_data(Obj1, Obj5, limit_ctop=OPTICAL_LIMIT_CLOUD_TOP):
     if (Obj5.profile_utc_time[:,1] == Obj1.profile_utc_time[2::5]).sum() != Obj5.profile_utc_time.shape[0]:
         logger.warning("length mismatch")
-    cloud_top5km, dummy, dummy, dummy, detection_height = CalipsoCloudOpticalDepth_new(Obj5, 0.0, 
-                                                                                       limit_ctop=limit_ctop)
+    retv = CalipsoCloudOpticalDepth_new(Obj5, 0.0, 
+                                        limit_ctop=limit_ctop)
+    cloud_top5km, dummy, dummy, dummy, detection_height, dummy, dummy = retv
     #cloud_base1km = Obj1.layer_base_altitude[:,0]
     #cloud_top5km = np.repeat(cloud_top5km[:,0], 5, axis=0) 
     detection_height1km = np.repeat(detection_height, 5, axis=0) 

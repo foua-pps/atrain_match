@@ -633,6 +633,41 @@ def print_stats_ctop(cObj, statfile, val_subset, low_medium_high_class):
     if "CALIPSO" not in cObj.truth_sat.upper():
         print "WARNING WARNING WARNING only printing over all statistics for cloudtop for ISS"
         return
+    if  (config.COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC and 
+         cObj.avhrr.cloudtype is not None):
+        statfile.write("CLOUD HEIGHT GEO-STYLE\n")
+        from scipy import  ndimage
+        # GEO uses pixels with homogene CT in 9x9 pixels 
+        # Let us use 9 homogene CT pixels. Not fully the same, but similar.
+        # And variation (definition?) caliop pressure <200hPa
+        # And variation CPR height less than 3km
+        # And CALIPO clouds thinner than 0.2 removed.
+        maxct = ndimage.filters.maximum_filter1d(cObj.avhrr.cloudtype, size=9)
+        minct = ndimage.filters.minimum_filter1d(cObj.avhrr.cloudtype, size=9)
+        val_geo = np.logical_and(
+            val_subset, 
+            np.equal(maxct,minct)) 
+        if hasattr(cObj,'calipso'):
+            var_pressure = (ndimage.filters.maximum_filter1d(cObj.calipso.layer_top_pressure[:,0], size=9) - 
+                            ndimage.filters.minimum_filter1d(cObj.calipso.layer_top_pressure[:,0], size=9))
+            val_geo = np.logical_and(
+                val_subset, 
+                var_pressure<200) #Pressure variation less than 200hPa
+        if hasattr(cObj,'cloudsat'):
+            var_height = (ndimage.filters.maximum_filter1d(truth_sat_validation_height, size=9) - 
+                            ndimage.filters.minimum_filter1d(truth_sat_validation_height, size=9))
+            val_geo = np.logical_and(
+                val_subset, 
+                var_height<3000) # Height variation less than 3km
+        average_height_truth = ndimage.filters.uniform_filter1d(truth_sat_validation_height*1.0, size=9)
+        average_height_imager = ndimage.filters.uniform_filter1d(imager_ctth_m_above_seasurface*1.0, size=9)
+        print_height_all_low_medium_high("CALIOP-GEO-STYLE", 
+                                         val_geo,
+                                         statfile, low_medium_high_class, 
+                                         average_height_imager,
+                                         average_height_truth,
+                                         imager_is_cloudy)
+
     if config.COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC:
         statfile.write("CLOUD HEIGHT SINGLE-LAYER\n")
         val_subset_single = np.logical_and(

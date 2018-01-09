@@ -1532,6 +1532,8 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
         caObj.calipso.cloud_fraction = retv[2]
         caObj.calipso.feature_classification_flags = retv[3]
         caObj.calipso.validation_height = retv[4]
+        caObj.calipso.layer_top_pressure = retv[5]
+        caObj.calipso.layer_base_pressure = retv[6]
     if caObj is not None and process_mode == 'STANDARD' and RESOLUTION==5:
         #Remove this if-statement if you always want to do filtering!/KG  
         retv = CalipsoCloudOpticalDepth_new(caObj.calipso, 0.0)
@@ -1540,6 +1542,8 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
         caObj.calipso.cloud_fraction = retv[2]
         caObj.calipso.feature_classification_flags = retv[3]
         caObj.calipso.validation_height = retv[4]
+        caObj.calipso.layer_top_pressure = retv[5]
+        caObj.calipso.layer_base_pressure = retv[6]
     if (caObj is not None and 
         config.COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC and
         (config.ALSO_USE_5KM_FILES or config.RESOLUTION==5) and 
