@@ -85,7 +85,7 @@ def plot_pressure_local(out_filenames,PLOT_DIR):
     plot_one_subplot(aggregated_data, satz_step, pressure_plot,"MODIS-C6", "MODIS-C6")
 
     ax.set_xlabel('pressure (hPa)')
-    plt.savefig(PLOT_DIR + "ctth_satz_pressure_%s_second_try_.png"%('modis'))
+    plt.savefig(PLOT_DIR + "ctth_satz_pressure_%s_second_try_.png"%('modis'), bbox_inches='tight')
 
 def plot_pressure_modis_01(out_filenames,PLOT_DIR,month):
     plt.rc('text', usetex=True)
@@ -145,7 +145,7 @@ def plot_pressure_modis_01(out_filenames,PLOT_DIR,month):
     #ax.set_xlabel('pressure (hPa)')
     fig.text(0.5, 0.04, 'pressure (hPa)', ha='center',fontsize=20)
     fig.text(0.04, 0.5, 'percent of cloud top pressure results', va='center', rotation='vertical',fontsize=20)
-    plt.savefig(PLOT_DIR + "ctth_satz_pressure_%s_m%s.png"%('modis',month))
+    plt.savefig(PLOT_DIR + "ctth_satz_pressure_%s_m%s.png"%('modis',month), bbox_inches='tight')
 
 
     fig = plt.figure(figsize = (11,11))  
@@ -210,8 +210,8 @@ def plot_pressure_modis_01(out_filenames,PLOT_DIR,month):
     #ax.set_xlabel('pressure (hPa)')
     fig.text(0.5, 0.04, 'Pressure (hPa)', ha='center',fontsize=18)
     fig.text(0.04, 0.5, 'Percent of cloud top pressure results', va='center', rotation='vertical',fontsize=18)
-    plt.savefig(PLOT_DIR + "ctth_satz_pressure_%s_for_art_m%s.png"%('modis',month))
-    plt.savefig(PLOT_DIR + "ctth_satz_pressure_%s_for_art_m%s.pdf"%('modis',month))
+    plt.savefig(PLOT_DIR + "fig_02ctth_satz_pressure_%s_for_art_m%s.png"%('modis',month), bbox_inches='tight')
+    plt.savefig(PLOT_DIR + "fig_02ctth_satz_pressure_%s_for_art_m%s.pdf"%('modis',month), bbox_inches='tight')
 def investigate_nn_ctth_satz():
     month = '12'
     month_path = month

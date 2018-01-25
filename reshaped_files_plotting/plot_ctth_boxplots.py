@@ -98,7 +98,7 @@ def make_boxplot(caObj, name):
                 labels=["low","medium","high-all","high-thick\n od>0.4","high-thin \n 0.1<od<0.4","high-vthin\n od<0.1"],showmeans=True)
     ax.set_ylim(-14000,8000)
     plt.title("%s MAE = %3.0f"%(name,MAE))
-    plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/CTTH_LAPSE_RATE_INVESTIGATION/ctth_box_plot_%s_5_95_filt.png"%(name))
+    plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/CTTH_LAPSE_RATE_INVESTIGATION/ctth_box_2018_plot_%s_5_95_filt.png"%(name))
     #plt.show()
 
 
@@ -148,49 +148,56 @@ def investigate_nn_ctth():
     #make_compare(caobj_dict['nn20161130'],caobj_dict['nn20161125'],'test2')
 
 def investigate_nn_ctth_viirs():
-    ROOT_DIR_14bug_maia = (
-        "/home/a001865/DATA_MISC/reshaped_files/"
-        "NPP_FULL_ORBIT_2014/Reshaped_Files/")
+    ROOT_DIR_v2014 = (
+        "/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
+        "ATRAIN_RESULTS_NPP_v2014_20180110/Reshaped_Files/npp/1km/2015/07/*/")
+    ROOT_DIR_v2018 = (
+        "/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
+        "ATRAIN_RESULTS_NPP_v2018_20180110/Reshaped_Files/npp/1km/2015/07/*/")
+    #ROOT_DIR_14bug_maia = (
+    #    "/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
+    #    "NPP_FULL_ORBIT_2014/Reshaped_Files/")
     ROOT_DIR_14bug = (
-        "/home/a001865/DATA_MISC/reshaped_files/"
+        "/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
         "ATRAIN_RESULTS_NPP_v2014_before_ctthbug_correction/"
         "Reshaped_Files/npp/1km/2015/07/*/")
-    ROOT_DIR_v2014 = (
-        "/home/a001865/DATA_MISC/reshaped_files/"
+    ROOT_DIR_v2014_old = (
+        "/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
         "ATRAIN_RESULTS_NPP_v2014_bug_corrected_20170313/Reshaped_Files/npp/1km/2015/07/*/")
     ROOT_DIR_nn_avhrr = (
-        "/home/a001865/DATA_MISC/reshaped_files/"
+        "/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
         "ATRAIN_RESULTS_NPP_nnAVHRR_20170313/Reshaped_Files/npp/1km/2015/07/*/")
     ROOT_DIR_nn_avhrr_tuned = (
-        "/home/a001865/DATA_MISC/reshaped_files/"
+        "/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
         "ATRAIN_RESULTS_NPP_nnAVHRR_20170313_tuned/Reshaped_Files/npp/1km/2015/07/*/")
     ROOT_DIR_nn_avhrr1 = (
-        "/home/a001865/DATA_MISC/reshaped_files/"
+        "/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
         "ATRAIN_RESULTS_NPP_nnAVHRR1_20170313/Reshaped_Files/npp/1km/2015/07/*/")
     ROOT_DIR_nn_viirs = (
-        "/home/a001865/DATA_MISC/reshaped_files/"
+        "/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
         "ATRAIN_RESULTS_NPP_nnVIIRS_20170310/Reshaped_Files/npp/1km/2015/07/*/")
     ROOT_DIR_nn_viirs_new = (
-        "/home/a001865/DATA_MISC/reshaped_files/"
+        "/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
         "ATRAIN_RESULTS_NPP_nnVIIRS_20170313_new/Reshaped_Files/npp/1km/2015/07/*/")
     ROOT_DIR_nn_viirs_CLAY4 = (
-        "/home/a001865/DATA_MISC/reshaped_files/"
+        "/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
         "ATRAIN_RESULTS_NPP_nnVIIRS_20170310_CLAY4/Reshaped_Files/npp/1km/2015/07/*/")
     ROOT_DIR_nn_viirs_lm = (
-        "/home/a001865/DATA_MISC/reshaped_files/"
+        "/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
         "ATRAIN_RESULTS_NPP_viirs_lm/Reshaped_Files/npp/1km/2015/07/*/")
     ROOT_DIR_nn_avhrr_lm = (
-        "/home/a001865/DATA_MISC/reshaped_files/"
+        "/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
         "ATRAIN_RESULTS_NPP_avhrr_lm/Reshaped_Files/npp/1km/2015/07/*/")
     ROOT_DIR_nn_avhrr_wg = (
-        "/home/a001865/DATA_MISC/reshaped_files/"
+        "/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
         "ATRAIN_RESULTS_NPP_AVHRR_with_gac/Reshaped_Files/npp/1km/2015/07/*/")
     caobj_dict = {}
     for ROOT_DIR, name in zip(
-            [ROOT_DIR_nn_avhrr_wg, ROOT_DIR_nn_avhrr1,ROOT_DIR_nn_avhrr,ROOT_DIR_nn_avhrr_tuned, ROOT_DIR_v2014, ROOT_DIR_14bug, ROOT_DIR_14bug_maia, ROOT_DIR_nn_viirs, ROOT_DIR_nn_viirs_CLAY4, ROOT_DIR_nn_viirs_new,ROOT_DIR_nn_viirs_lm,ROOT_DIR_nn_avhrr_lm], 
-            ["npp_CTTHnn_AVHRR_with_gac", "npp_CTTHnn_AVHRR1","npp_CTTHnn_AVHRR","npp_CTTHnn_AVHRR_tuned", "npp_CTTHv2014","npp_CTTHv2014_buggy","npp_CTTHv2014_buggy_maia","npp_CTTHnn_VIIRS","npp_CTTHnn_VIIRS_C4","npp_CTTHnn_VIIRS_tuned", "npp_nnVIIRS_LessIsMore", "npp_nnAVHRR_LessIsMore"]):
-        #print ROOT_DIR
+            [ROOT_DIR_v2014, ROOT_DIR_v2018, ROOT_DIR_nn_avhrr_wg, ROOT_DIR_nn_avhrr1,ROOT_DIR_nn_avhrr,ROOT_DIR_nn_avhrr_tuned, ROOT_DIR_v2014_old, ROOT_DIR_14bug, ROOT_DIR_nn_viirs, ROOT_DIR_nn_viirs_CLAY4, ROOT_DIR_nn_viirs_new,ROOT_DIR_nn_viirs_lm,ROOT_DIR_nn_avhrr_lm], 
+            ["npp_CTTH-2014", "npp_CTTH-2018", "npp_CTTHnn_AVHRR_with_gac", "npp_CTTHnn_AVHRR1","npp_CTTHnn_AVHRR","npp_CTTHnn_AVHRR_tuned", "npp_CTTHv2014","npp_CTTHv2014_buggy","npp_CTTHnn_VIIRS","npp_CTTHnn_VIIRS_C4","npp_CTTHnn_VIIRS_tuned", "npp_nnVIIRS_LessIsMore", "npp_nnAVHRR_LessIsMore"]):
+        print ROOT_DIR
         files = glob(ROOT_DIR + "*.h5")
+        print files
         caObj = CalipsoAvhrrTrackObject()
         for filename in files:
             #print filename
