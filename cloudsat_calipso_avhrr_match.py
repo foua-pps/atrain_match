@@ -323,6 +323,14 @@ def find_iss_files(date_time, options, values):
         logger.info("No Iss file found within time window!")
     #raise MatchupError("Couldn't find iss matchup!")
     iss_files = sorted((iss_files))
+    #print iss_files
+    #CATS-ISS_L2O_?-M7.2-V?-??_05kmLay.2015-04-25T03-??-??*UTC.hdf5
+    #CATS-ISS_L2O_?-M7.2-V?-??_05kmLay.2015-04-25T03-??-??*UTC.hdf5
+    #Iss filenames haf D=day or N=night early in name
+    #Atrain-match require files to be sorted in time order
+    #Cut the file name at all '.' and use the second last part,
+    #this should be 2015-04-25T03-??-??*UTC
+    iss_files.sort(key=lambda x: x.rsplit('.')[-2])
     iss_basenames = [ os.path.basename(s) for s in iss_files ]
     logger.info("Iss files: " + str(iss_basenames))
     return iss_files
