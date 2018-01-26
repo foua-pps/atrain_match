@@ -53,7 +53,7 @@ def process_matchups(matchups, run_modes, reprocess=False, debug=False):
 #        if match.time1 < datetime.datetime(2008,01,01):
 #            continue
         for mode in run_modes:
-            logger.info("mode: %s"%(mode))
+            logger.info("Process mode: %s"%(mode))
             #import pdb
             #cloudsat_calipso_avhrr_match.run(match, mode, reprocess)
             #pdb.set_trace()
@@ -177,7 +177,7 @@ def main(args=None):
         matchups.append(Cross(satname, '', time, time, -999, -999))
     elif options.sno_file is not None:
         if config.USE_ORBITS_THAT_STARTS_EXACTLY_AT_CROSS:
-            print config.USE_ORBITS_THAT_STARTS_EXACTLY_AT_CROSS
+            #print config.USE_ORBITS_THAT_STARTS_EXACTLY_AT_CROSS
             raise InputError(
                 " Expected " +
                 "USE_ORBITS_THAT_STARTS_EXACTLY_AT_CROSS=False (config.py) ")
@@ -233,7 +233,7 @@ def main(args=None):
                 pass
             else: 
                 satname, time = parse_scenesfile_reshaped(line)
-                print time
+                #print time
                 matchups.append(Cross(satname, '', time, time, -999, -999))
 
     process_matchups(matchups, run_modes, reprocess, options.debug)

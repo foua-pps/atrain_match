@@ -7,7 +7,7 @@ import time
 import calendar
 from datetime import datetime
 logger = logging.getLogger(__name__)
-from config import (NODATA, PPS_FORMAT_2012_OR_EARLIER, VAL_CPP, CTTH_TYPES, 
+from config import (NODATA, PPS_FORMAT_2012_OR_EARLIER,  CTTH_TYPES, 
                     CMA_PROB_VALIDATION, CMA_PROB_CLOUDY_LIMIT)
 ATRAIN_MATCH_NODATA = NODATA
 #logger.debug('Just so you know: this module has a logger...')
@@ -85,7 +85,7 @@ def createAvhrrTime(Obt, values=None, Trust_sec_1970=False):
         diff_filename_infile_time = sec1970_start_filename-Obt.sec1970_start
         diff_hours= abs( diff_filename_infile_time/3600.0  )
         if (diff_hours<13):
-            logger.info("Time in file and filename do agree. Difference  %d hours."%diff_hours)
+            logger.debug("Time in file and filename do agree. Difference  %d hours."%diff_hours)
         if (diff_hours>13):
             """
             This if statement takes care of a bug in start and end time, 
@@ -266,7 +266,7 @@ def read_ctth_h5(filename):
     ctth.pressure[pmask] = ATRAIN_MATCH_NODATA    
     ctth.temperature[tmask] = ATRAIN_MATCH_NODATA 
 
-    logger.info("min-h: %d, max-h: %d, h_nodata: %d"%(
+    logger.debug("min-h: %d, max-h: %d, h_nodata: %d"%(
         np.min(ctth.height), np.max(ctth.height), ctth.h_nodata))
     h5file.close()
     return ctth
@@ -288,7 +288,7 @@ def read_ctth_nc(filename):
     ctth.h_nodata = pps_nc.variables['ctth_alti']._FillValue
     ctth.t_nodata = pps_nc.variables['ctth_tempe']._FillValue
     ctth.p_nodata = pps_nc.variables['ctth_pres']._FillValue
-    logger.info("min-h: %d, max-h: %d, h_nodata: %d"%(
+    logger.debug("min-h: %d, max-h: %d, h_nodata: %d"%(
         np.min(ctth.height), np.max(ctth.height.data), ctth.h_nodata))
     #already scaled
     if np.ma.is_masked(ctth.height):     
@@ -393,7 +393,7 @@ def read_cma_nc(filename):
             else:
                 setattr(cma, atrain_name, array)
         else:
-            logger.info("No  %s in cma file", var_name)
+            logger.info("No %s in cma file", var_name)
     pps_nc.close()    
     return cma
 
@@ -405,7 +405,8 @@ def readImagerData_nc(pps_nc):
             image = pps_nc.variables[var]
             if image.id_tag in ['satzenith', 'sunzenith', 'azimuthdiff']:
                 continue
-            logger.info("reading channel %s", image.description)
+                
+            logger.debug("reading channel %s", image.description)
             one_channel = ImagerChannelData()
             #channel = image.channel                     
             data_temporary = image[0,:,:]
@@ -419,7 +420,6 @@ def readImagerData_nc(pps_nc):
                 corr_done_attr = pps_nc.variables[var].sun_zenith_angle_correction_applied
                 if corr_done_attr.upper() in ["TRUE"]:
                     one_channel.SZA_corr_done = True
-            print one_channel.des
             #Currently unpacked arrays later in calipso.py:
             #TODO: move this herealso for h5!
             one_channel.gain = 1.0 #data already scaled
@@ -551,11 +551,11 @@ def read_pps_geoobj_nc(pps_nc):
                          time.gmtime(GeoObj.sec1970_start))
     tim2 = time.strftime("%Y%m%d %H:%M", 
                          time.gmtime(GeoObj.sec1970_end))
-    logger.info("Starttime: %s, end time: %s"%(tim1, tim2))
-    logger.info("Min lon: %s, max lon: %d"%(
+    logger.debug("Starttime: %s, end time: %s"%(tim1, tim2))
+    logger.debug("Min lon: %s, max lon: %d"%(
         np.min(GeoObj.longitude),
         np.max(GeoObj.longitude)))
-    logger.info("Min lat: %d, max lat: %d"%(
+    logger.debug("Min lat: %d, max lat: %d"%(
         np.min(GeoObj.latitude),np.max(GeoObj.latitude)))
     return  GeoObj
 
@@ -585,10 +585,10 @@ def read_pps_geoobj_h5(filename):
     tim2 = time.strftime("%Y%m%d %H:%M", 
                          time.gmtime(GeoObj.sec1970_end))
     logger.info("Starttime: %s, end time: %s"%(tim1, tim2))
-    logger.info("Min lon: %s, max lon: %d"%(
+    logger.debug("Min lon: %s, max lon: %d"%(
         np.min(GeoObj.longitude),
         np.max(GeoObj.longitude)))
-    logger.info("Min lat: %d, max lat: %d"%(
+    logger.debug("Min lat: %d, max lat: %d"%(
         np.min(GeoObj.latitude),np.max(GeoObj.latitude)))
     return  GeoObj
 
@@ -603,7 +603,7 @@ def read_cpp_h5(filename):
 
 def read_cpp_h5_one_var(h5file, cpp_key):
     if cpp_key in h5file.keys():
-        logger.info("Read %s"%(cpp_key))
+        logger.debug("Read %s"%(cpp_key))
         cpp_var_value = h5file[cpp_key].value
         nodata = h5file[cpp_key].attrs['_FillValue']  
         if cpp_key in ["cpp_phase", "cpp_phase_extended"]:
@@ -618,12 +618,12 @@ def read_cpp_h5_one_var(h5file, cpp_key):
                            ATRAIN_MATCH_NODATA) 
         return  cpp_data
     else:
-        logger.info("NO %s field, Continue "%(cpp_key))
+        logger.debug("NO %s field, Continue "%(cpp_key))
         return None
 
 def read_cpp_nc_one_var(ncFile, cpp_key):
     if cpp_key in ncFile.variables.keys():
-        logger.info("Read %s"%(cpp_key))
+        logger.debug("Read %s"%(cpp_key))
         cpp_var = ncFile.variables[cpp_key][0,:,:]
         if np.ma.is_masked(cpp_var):
             cpp_data = cpp_var.data.astype(np.float)
@@ -633,7 +633,7 @@ def read_cpp_nc_one_var(ncFile, cpp_key):
         
         return  cpp_data
     else:
-        logger.info("NO %s field, Continue "%(cpp_key))
+        logger.debug("NO %s field, Continue "%(cpp_key))
         return None
 
 
@@ -651,7 +651,7 @@ def read_nwp_h5(filename, nwp_key):
     import h5py 
     h5file = h5py.File(filename, 'r')
     if nwp_key in h5file.keys():
-        logger.info("Read NWP %s"%(nwp_key))
+        logger.debug("Read NWP %s"%(nwp_key))
         value = h5file[nwp_key].value
         gain = h5file[nwp_key].attrs['gain']
         intercept = h5file[nwp_key].attrs['intercept']
@@ -660,12 +660,12 @@ def read_nwp_h5(filename, nwp_key):
         h5file.close()
         return data    
     else:
-        logger.info("NO NWP %s File, Continue"%(nwp_key))
+        logger.debug("NO NWP %s File, Continue"%(nwp_key))
         return None
 
 def read_etc_nc(ncFile, etc_key):
     if etc_key in ncFile.variables.keys():
-        logger.info("Read %s"%(etc_key))
+        logger.debug("Read %s"%(etc_key))
         nwp_var = ncFile.variables[etc_key][0,:,:]
         if np.ma.is_masked(nwp_var):
             if 'emis' in etc_key:
@@ -674,7 +674,7 @@ def read_etc_nc(ncFile, etc_key):
             nwp_var = nwp_var.data
         return  nwp_var
     else:
-        logger.info("NO %s field, Continue "%(etc_key))
+        logger.debug("NO %s field, Continue "%(etc_key))
         return None
 
 def read_segment_data(filename):
@@ -688,7 +688,7 @@ def read_segment_data(filename):
             product[attribute] = h5file['satdef'].attrs[attribute]
         product['colidx'] = h5file['satdef']['colidx'].value
         product['rowidx'] = h5file['satdef']['rowidx'].value
-        logger.info("Read segment info moisture")
+        logger.debug("Read segment info moisture")
         for moist_data in ['moist', 'surfaceMoist']:
             data = h5file['segment_area'][moist_data]
             gain = h5file.attrs['m_gain']
@@ -696,7 +696,7 @@ def read_segment_data(filename):
             nodata = h5file.attrs['m_nodata']
             #data[data!=nodata] = data[data!=nodata] * (gain) + intercept
             product[moist_data] = data
-        logger.info("Read segment info pressure")
+        logger.debug("Read segment info pressure")
         for pressure_data in ['pressure', 'surfacePressure', 'ptro']:
             #pressure is in Pa in segments file
             data = h5file['segment_area'][pressure_data]
@@ -707,7 +707,7 @@ def read_segment_data(filename):
             data_float = np.array(data, dtype=np.float)
             data_float[data!=nodata] = data_float[data!=nodata] * (gain/100) + intercept/100 #Pa => hPa
             product[pressure_data] = data_float
-        logger.info("Read segment info height")
+        logger.debug("Read segment info height")
         for geoheight_data in ['geoheight', 'surfaceGeoHeight']:
             #geo height is in meters in segment file
             data = h5file['segment_area'][geoheight_data]
@@ -716,7 +716,7 @@ def read_segment_data(filename):
             nodata = h5file.attrs['h_nodata']
             data[data!=nodata] = data[data!=nodata] * gain + intercept
             product[geoheight_data] = data
-        logger.info("Read segment info temperature")
+        logger.debug("Read segment info temperature")
         for temperature_data in ['temp']:
             # temperature are measured in Kelvin in segmentfile
             data = h5file['segment_area'][temperature_data]
@@ -736,7 +736,7 @@ def read_segment_data(filename):
             product[temperature_data] = data_float
         for misc_data in ['meanElevation', 'fractionOfLand']:
             product[misc_data] = h5file['segment_area'][misc_data]
-        logger.info("Read segment info brightness temperature")
+        logger.debug("Read segment info brightness temperature")
         
         for tb_data in ['tb11clfree_sea',
                         'tb12clfree_sea',
@@ -784,12 +784,12 @@ def read_thr_h5(filename, h5_obj_type, thr_type):
                 product = value * gain + intercept
                 product[product<0] = 1.0
                 product[product>1.0] = 1.0
-                logger.info("Read EMIS: %s"%(thr_type))
+                logger.debug("Read EMIS: %s"%(thr_type))
             else:
                 logger.info("ERROR","Could not read %s File, Continue"%(thr_type))
             h5file.close()   
         else:
-            logger.info("NO EMIS %s File, Continue"%(thr_type))
+            logger.debug("NO EMIS %s File, Continue"%(thr_type))
         return product  
     if filename is not None: 
         h5file = h5py.File(filename, 'r')
@@ -798,12 +798,12 @@ def read_thr_h5(filename, h5_obj_type, thr_type):
             gain = h5file[h5_obj_type].attrs['gain']
             intercept = h5file[h5_obj_type].attrs['intercept']
             product = value * gain + intercept
-            logger.info("Read THR: %s"%(thr_type))
+            logger.debug("Read THR: %s"%(thr_type))
         else:
             logger.error("Could not read %s File, Continue"%(thr_type))
         h5file.close()   
     else:
-        logger.info("NO THR %s File, Continue"%(thr_type))
+        logger.debug("NO THR %s File, Continue"%(thr_type))
     return product
 
 
@@ -813,7 +813,7 @@ def readImagerData_h5(filename):
     for var in h5file.keys():
         if 'image' in var:
             image = h5file[var]
-            logger.info("reading channel %s", image.attrs['description'])
+            logger.debug("reading channel %s", image.attrs['description'])
             one_channel = ImagerChannelData()                   
             one_channel.data = image['data'].value
             one_channel.des = image.attrs['description']
@@ -835,7 +835,6 @@ def readImagerData_h5(filename):
 
 
 def read_all_intermediate_files(pps_files):
-    logger.info("Read PPS NWP data")
     nwp_dict={}
     if pps_files.seaice is None:
         pass
@@ -860,10 +859,7 @@ def read_all_intermediate_files(pps_files):
     else:
         pps_nc_r37 = netCDF4.Dataset(pps_files.r37, 'r', format='NETCDF4')
         nwp_dict["r37_sza_correction_done"] = read_etc_nc(pps_nc_r37, "r37")
-        pps_nc_r37.close()
-
-        
-
+        pps_nc_r37.close()        
     if pps_files.nwp_tsur is None:
         pass
     elif '.nc' in pps_files.nwp_tsur:
@@ -892,7 +888,6 @@ def read_all_intermediate_files(pps_files):
          nwp_dict['t950'] = read_nwp_h5(pps_files.nwp_t950, "t950")
          nwp_dict['ttro'] = read_nwp_h5(pps_files.nwp_ttro, "ttro")
          nwp_dict['ciwv'] = read_nwp_h5(pps_files.nwp_ciwv, "ciwv")
-
     if pps_files.text_t11 is None:
         pass
         logger.info("Not reading PPS texture data")  
@@ -946,7 +941,7 @@ def read_all_intermediate_files(pps_files):
     return nwp_obj
 
 def pps_read_all(pps_files, avhrr_file, cross):
-    logger.info("Read IMAGER geolocation data")
+    logger.info("Read Imager geolocation data")
     if '.nc' in avhrr_file:
         pps_nc = netCDF4.Dataset(avhrr_file, 'r', format='NETCDF4')
         imagerGeoObj = read_pps_geoobj_nc(pps_nc)
@@ -956,7 +951,7 @@ def pps_read_all(pps_files, avhrr_file, cross):
     #create time info for each pixel  
     values = get_satid_datetime_orbit_from_fname_pps(avhrr_file)  
     imagerGeoObj = createAvhrrTime(imagerGeoObj, values)
-    logger.info("Read IMAGER Sun -and Satellites Angles data")
+    logger.info("Read sun and satellites angles data")
     if '.nc' in pps_files.sunsatangles:
         pps_nc_ang = netCDF4.Dataset(pps_files.sunsatangles, 'r', format='NETCDF4')
         avhrrAngObj = read_pps_angobj_nc(pps_nc_ang)
@@ -964,37 +959,36 @@ def pps_read_all(pps_files, avhrr_file, cross):
     else:
         #use mpop?
         avhrrAngObj = read_pps_angobj_h5(pps_files.sunsatangles)
-    logger.info("Read Imagerdata data")
+    logger.info("Read Imager data")
     if '.nc' in avhrr_file:
         avhrrObj = readImagerData_nc(pps_nc)
         pps_nc.close()
     else:
         avhrrObj = readImagerData_h5(avhrr_file)
 
-    cpp = None
-    if VAL_CPP:    
+    if pps_files.cpp is None:
+        pass
+    else:
         logger.info("Read CPP data")
         logger.warning("Warning lwp is read in kg/m2")
-        if pps_files.cpp is None:
-            pass
-        elif '.nc' in pps_files.cpp:          
+        if '.nc' in pps_files.cpp:          
             cpp = read_cpp_nc(pps_files.cpp)
         else:            
             cpp = read_cpp_h5(pps_files.cpp)
-    print pps_files.cloudtype, pps_files.ctth, pps_files.cma
+    logger.debug(pps_files.cloudtype, pps_files.ctth, pps_files.cma)
     if CMA_PROB_VALIDATION:
         logger.info("Read PPS Cloud mask prob")
         cma = read_cmaprob_h5(pps_files.cma)
     else:    
         logger.info("Read PPS Cloud mask")
-        print pps_files.cma 
+        logger.debug(pps_files.cma )
         if pps_files.cma is None:
             cma = None
         elif '.nc' in pps_files.cma:
             cma = read_cma_nc(pps_files.cma)
         else:
             cma = read_cma_h5(pps_files.cma)        
-    logger.info("Read PPS Cloud Type")
+    logger.info("Read PPS Cloud type")
     if pps_files.cloudtype is None:
         ctype = None
     elif '.nc' in pps_files.cloudtype:

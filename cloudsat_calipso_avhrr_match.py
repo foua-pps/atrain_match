@@ -65,8 +65,7 @@ import sys
 
 import numpy as np
 from numpy import NaN
-from config import (VAL_CPP,
-                    IMAGER_INSTRUMENT,
+from config import (IMAGER_INSTRUMENT,
                     NODATA,
                     PLOT_ONLY_PNG,
                     CCI_CLOUD_VALIDATION,
@@ -285,12 +284,12 @@ def find_calipso_files(date_time, options, values):
         time_window = (tdelta_before, tdelta)
         calipso_files = find_calipso_files_inner(date_time, time_window, options, values)
         if len(calipso_files) > 1:
-            logger.info("More than one Calipso file found within time window!")
+            logger.debug("More than one Calipso file found within time window!")
         #elif len(calipso_files) == 0:
         #    raise MatchupError("Couldn't find calipso matchup!")
         calipso_files = sorted(require_h5(calipso_files))
-        calipso_basenames = [ os.path.basename(s) for s in calipso_files ]
-        logger.info("Calipso files: " + str(calipso_basenames))
+        calipso_basenames = [ "\n          " + os.path.basename(s) for s in calipso_files ]
+        logger.info("Calipso files: " + " ".join(calipso_basenames))
         return calipso_files
 
 def find_cloudsat_files(date_time, options, values):
@@ -301,13 +300,13 @@ def find_cloudsat_files(date_time, options, values):
     time_window = (tdelta_before, tdelta)
     cloudsat_files = find_cloudsat_files_inner(date_time, time_window, options, values)
     if len(cloudsat_files) > 1:
-        logger.info("More than one Cloudsat file found within time window!")
+        logger.debug("More than one Cloudsat file found within time window!")
     elif len(cloudsat_files) == 0:
         logger.info("No Cloudsat file found within time window!")
         #raise MatchupError("Couldn't find cloudsat matchup!")
     cloudsat_files = sorted(require_h5(cloudsat_files))
-    cloudsat_basenames = [ os.path.basename(s) for s in cloudsat_files ]
-    logger.info("Cloudsat files: " + str(cloudsat_basenames))
+    cloudsat_basenames = [ "\n          " + os.path.basename(s) for s in cloudsat_files ]
+    logger.info("Cloudsat files: " + " ".join(cloudsat_basenames))
     return cloudsat_files
 
 def find_iss_files(date_time, options, values):
@@ -318,7 +317,7 @@ def find_iss_files(date_time, options, values):
     time_window = (tdelta_before, tdelta)
     iss_files = find_iss_files_inner(date_time, time_window, options, values)
     if len(iss_files) > 1:
-        logger.info("More than one Iss file found within time window!")
+        logger.debug("More than one Iss file found within time window!")
     elif len(iss_files) == 0:
         logger.info("No Iss file found within time window!")
     #raise MatchupError("Couldn't find iss matchup!")
@@ -331,8 +330,8 @@ def find_iss_files(date_time, options, values):
     #Cut the file name at all '.' and use the second last part,
     #this should be 2015-04-25T03-??-??*UTC
     iss_files.sort(key=lambda x: x.rsplit('.')[-2])
-    iss_basenames = [ os.path.basename(s) for s in iss_files ]
-    logger.info("Iss files: " + str(iss_basenames))
+    iss_basenames = [ "\n          " + os.path.basename(s) for s in iss_files ]
+    logger.info("Iss files: " + " ".join(iss_basenames))
     return iss_files
    
 # -----------------------------------------------------
@@ -355,8 +354,8 @@ def get_time_list_and_cross_time(cross):
         ddt2=timedelta(seconds=0)
     time_low = cross_time - ddt
     time_high = cross_time + ddt2
-    logger.info("Searching for avhrr/viirs file with start time  between" 
-              ": %s and %s  "%(time_low.strftime("%d %H:%M"),time_high.strftime("%d %H:%M"))) 
+    logger.info("Searching for imager file with start time between" 
+              ": %s and %s  "%(time_low.strftime("%dth %H:%M"),time_high.strftime("%dth %H:%M"))) 
     time_window = (ddt, ddt2)
     # Make list of file times to search from:
     tlist = get_time_list(cross_time, time_window, delta_t_in_seconds=60)
@@ -393,8 +392,8 @@ def find_avhrr_file(cross, filedir_pattern, filename_pattern, values=None):
         values = {}
     (tlist, cross_time, cross_satellite) = get_time_list_and_cross_time(cross)
     time_window=cross.time_window
-    logger.info("Time window: %s", time_window)
-    logger.info("Cross time: {cross_time}".format(cross_time=cross_time))
+    logger.debug("Time window: %s", time_window)
+    logger.debug("Cross time: {cross_time}".format(cross_time=cross_time))
     values["satellite"] = cross_satellite
     found_dir = None
     no_files_found = True
@@ -458,8 +457,13 @@ def require_h5(files):
     
     return h5_files
 
-def get_pps_file(avhrr_file, options, values, type_of_file, file_dir):
-    if not type_of_file in options:              
+def get_pps_file(avhrr_file, options, values, type_of_file, file_dir, 
+                 OnlyPrintInDebugMode=False, 
+                 FailIfRequestedAndMissing=False):
+    if not type_of_file in options and OnlyPrintInDebugMode:
+        logger.debug("No %s file in cfg-file."%(type_of_file))
+        return None  
+    elif not type_of_file in options:              
         logger.info("No %s file in cfg-file."%(type_of_file))
         return None
     date_time = values["date_time"]
@@ -470,10 +474,17 @@ def get_pps_file(avhrr_file, options, values, type_of_file, file_dir):
     try:
         file_name = glob(os.path.join(path, pps_file_name))[0]
         #logger.debug( type_of_file +": ", file_name)
+        if FailIfRequestedAndMissing:
+            #This is and important file, tell the user where it was read:
+            logger.info("{:s}-dir : {:s}".format(type_of_file.upper().replace('_FILE',''), os.path.dirname(file_name)))
+            logger.info("{:s}-file: {:s}".format(type_of_file.upper().replace('_FILE',''), os.path.basename(file_name)))
         return file_name
     except IndexError:
-        logger.info("No %s file found corresponding to %s." %( type_of_file, avhrr_file))
-        return None
+        if FailIfRequestedAndMissing:
+            raise MatchupError("No {:s} file found.".format(type_of_file))
+        else:
+            logger.info("No %s file found corresponding to %s." %( type_of_file, avhrr_file))
+            return None
 
 def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
     """
@@ -485,175 +496,80 @@ def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
     values = get_satid_datetime_orbit_from_fname(avhrr_file,
                                                  as_oldstyle=as_oldstyle)
     date_time = values["date_time"]
-
-
-    if 'cloudtype_file' in options.keys():
-        cloudtype_name = insert_info_in_filename_or_path(options['cloudtype_file'], 
-                                                   values, datetime_obj=date_time)
-        path = insert_info_in_filename_or_path(options['cloudtype_dir'], 
-                                               values, datetime_obj=date_time)
-        try:
-            #print os.path.join(path, cloudtype_name)
-            cloudtype_file = glob(os.path.join(path, cloudtype_name))[0]
-        except IndexError:
-            raise MatchupError("No cloudtype file found corresponding to %s." % avhrr_file)
-        logger.info("CLOUDTYPE: " + cloudtype_file)
-    else:
-        cloudtype_file = None
-        logger.info("No cloudtype file in atrain_match.cfg")
-
-    if 'cma_file' in options.keys():
-        cma_name = insert_info_in_filename_or_path(options['cma_file'], 
-                                                   values, datetime_obj=date_time)
-        path = insert_info_in_filename_or_path(options['cma_dir'], 
-                                               values, datetime_obj=date_time)
-        try:
-            #print os.path.join(path, cma_name)
-            cma_file = glob(os.path.join(path, cma_name))[0]
-        except IndexError:
-            raise MatchupError("No cma file found corresponding to %s." % avhrr_file)
-        logger.info("CMA: " + cma_file)
-        if not config.USE_CMA_FOR_CFC_STATISTICS and cloudtype_file is None:
+    file_name_dict={}
+    cma_file =  get_pps_file(avhrr_file, options, values, 
+                             'cma_file', 'cma_dir', 
+                             FailIfRequestedAndMissing=True)
+    cloudtype_file = get_pps_file(avhrr_file, options, values, 
+                                  'cloudtype_file', 'cloudtype_dir', 
+                                  FailIfRequestedAndMissing=True)
+    #Check configuration
+    if cma_file is None and cloudtype_file is None:
+        raise MatchupError("No cma or cloudtype file found atrain_match.cfg")
+    if not config.USE_CMA_FOR_CFC_STATISTICS and cloudtype_file is None:   
             logger.error("Probably you shold set USE_CMA_FOR_CFC_STATISTICS=True!")
             logger.error("As you have no cloudtype file in atrain_match.cfg")
             raise MatchupError("Configure problems, see messages above.")
-    else:
-        cma_file = None
-        logger.info("No cma file in atrain_match.cfg")
-
-    if cma_file is None and cloudtype_file is None:
-        raise MatchupError("No cma or cloudtype file found atrain_match.cfg")
-
     ctth_files = {}
     if 'ctth_file' in options.keys():   
         for ctth_type in config.CTTH_TYPES:
             values['ctth_type'] = ctth_type
-            ctth_name = insert_info_in_filename_or_path(options['ctth_file'], 
-                                                        values, 
-                                                        datetime_obj=date_time)
-            path =  insert_info_in_filename_or_path(options['ctth_dir'], 
-                                                    values, datetime_obj=date_time)  
+            ctth_files[ctth_type] = get_pps_file(avhrr_file, options, values, 
+                                                 'ctth_file', 'ctth_dir', 
+                                                 FailIfRequestedAndMissing=True)
+    file_name_dict.update({'cloudtype': cloudtype_file,
+                           'cma': cma_file,
+                           'ctth': ctth_files})
+    file_name_dict['cpp'] = get_pps_file(avhrr_file, options, values, 'cpp_file', 'cpp_dir', 
+                                         FailIfRequestedAndMissing=True)                         
+    file_name_dict['sunsatangles'] = get_pps_file(avhrr_file, options, values, 'sunsatangles_file', 
+                                                  'sunsatangles_dir', 
+                                                  FailIfRequestedAndMissing=True)
+    file_name_dict['physiography'] = get_pps_file(avhrr_file, options, values, 'physiography_file', 
+                                                  'physiography_dir', 
+                                                  FailIfRequestedAndMissing=True)
+    file_name_dict['r37'] = get_pps_file(avhrr_file, options, values, 'r37_file', 'r37_dir', 
+                                         FailIfRequestedAndMissing=True)
 
-            try:
-                ctth_files[ctth_type] = glob(os.path.join(path, ctth_name))[0]
-            
-            except IndexError:
-                raise MatchupError(
-                    "No ctth file found corresponding to %s-type %s." %(ctth_type, 
-                                                                        avhrr_file))
-     
-        logger.info("CTTH: " + ctth_files[config.CTTH_TYPES[0]])                          
-    if VAL_CPP: 
-        cpp_name = insert_info_in_filename_or_path(options['cpp_file'],
-                                                   values, datetime_obj=date_time)
-        path = insert_info_in_filename_or_path(options['cpp_dir'],
-                                               values, datetime_obj=date_time)
-        try:
-            cpp_file = glob(os.path.join(path, cpp_name))[0]
-        except IndexError:
-            raise MatchupError("No cpp file found corresponding to %s." % avhrr_file)
-        logger.info("CPP: " + cpp_file)
-    else:     
-       logger.info("Not validation of CPP ")
-       cpp_file = None
-    sunsatangles_name = insert_info_in_filename_or_path(options['sunsatangles_file'],
-                                                        values, datetime_obj=date_time)
-    path =insert_info_in_filename_or_path(options['sunsatangles_dir'], 
-                                          values, datetime_obj=date_time)
-    try:
-        sunsatangles_file = glob(os.path.join(path, sunsatangles_name))[0]
-    except IndexError:
-        sunsatangles_file = None
-        raise MatchupError("No sunsatangles file found corresponding to %s." % avhrr_file)
-    logger.info("SUNSATANGLES: " + sunsatangles_file)
+    file_name_dict['nwp_tsur'] = get_pps_file(avhrr_file, options, values, 
+                                              'nwp_tsur_file', 'nwp_nwp_dir', 
+                                              FailIfRequestedAndMissing=True)
+    file_name_dict['emis'] = get_pps_file(avhrr_file, options, values, 
+                                          'emis_file', 'emis_dir', 
+                                          FailIfRequestedAndMissing=True)
 
-    if not 'physiography_file' in options:
-        logger.warning("No physiography file searched for!")
-        physiography_file = None
-    else:
-        physiography_name = insert_info_in_filename_or_path(options['physiography_file'],
-                                                            values, datetime_obj=date_time)
-        path =insert_info_in_filename_or_path(options['physiography_dir'], 
-                                              values, datetime_obj=date_time)
-        pattern = os.path.join(path, physiography_name)
-        try:
-            physiography_file = glob(pattern)[0]
-        except IndexError:
-            physiography_file = None
-            raise MatchupError("No physiography file found corresponding to %s." % pattern)
-        logger.info("PHYSIOGRAPHY: " + physiography_file)
-    if not 'r37_file' in options:
-        logger.warning("No 3.7 reflectance file searched for!")
-        r37_file = None
-    else:
-        r37_name = insert_info_in_filename_or_path(options['r37_file'],
-                                                            values, datetime_obj=date_time)
-        path =insert_info_in_filename_or_path(options['r37_dir'], 
-                                              values, datetime_obj=date_time)
-        pattern = os.path.join(path, r37_name)
-        try:
-            r37_file = glob(pattern)[0]
-        except IndexError:
-            r37_file = None
-            raise MatchupError("No 3.7 reflectance file found corresponding to %s." % pattern)
-        logger.info("R-3.7: " + r37_file)
-
-    if not 'nwp_tsur_file' in options:
-        logger.warning("No surface temperature file searched for!")
-        nwp_tsur_file=None
-    else:
-        nwp_tsur_name = insert_info_in_filename_or_path(options['nwp_tsur_file'],
-                                                        values, datetime_obj=date_time)
-        path = insert_info_in_filename_or_path(options['nwp_nwp_dir'],
-                                               values, datetime_obj=date_time)
-        pattern = os.path.join(path, nwp_tsur_name)
-        try:
-            nwp_tsur_file = glob(pattern)[0]
-        except IndexError:
-            raise MatchupError("No nwp_tsur file found corresponding to %s." % pattern)
-        logger.info("NWP_TSUR: " + nwp_tsur_file)
-
-    file_name_dict={}
-    for nwp_file in ['nwp_tsur','nwp_t500','nwp_t700',
+    file_name_dict['seaice'] = get_pps_file(avhrr_file, options, values, 
+                                            'seaice_file', 'seaice_dir', 
+                                            FailIfRequestedAndMissing=True)
+    #Textures and Thresholds:
+    file_name_dict['text_t11'] = get_pps_file(avhrr_file, options, values, 
+                                              'text_t11_file', 'text_dir', 
+                                              FailIfRequestedAndMissing=True)
+    file_name_dict['thr_t11ts'] = get_pps_file(avhrr_file, options, values, 
+                                               'thr_t11ts_file', 'thr_dir', 
+                                               FailIfRequestedAndMissing=True)
+    ####More NWP, textures and thresholds for v2014:
+    for nwp_file in ['nwp_t500','nwp_t700',
                      'nwp_t850','nwp_t950', 'nwp_ciwv', 'nwp_ttro']:   
         file_name_dict[nwp_file] = get_pps_file(avhrr_file, options, values, 
-                                                 nwp_file+'_file', 'nwp_nwp_dir')
-
-    emis_file = get_pps_file(avhrr_file, options, values, 
-                                           'emis_file', 'emis_dir')
-    file_name_dict['emis'] = emis_file
-    seaice_file = get_pps_file(avhrr_file, options, values, 
-                               'seaice_file', 'seaice_dir')
-    file_name_dict['seaice'] = seaice_file
-
-    for text_file in ['text_r06', 'text_t11', 'text_t37t12', 'text_t37']:
+                                                 nwp_file+'_file', 'nwp_nwp_dir', 
+                                                 OnlyPrintInDebugMode=True)
+    for text_file in ['text_r06',  'text_t37t12', 'text_t37']:
         file_name_dict[text_file] = get_pps_file(avhrr_file, options, values, 
-                                                 text_file+'_file', 'text_dir')
+                                                 text_file+'_file', 'text_dir', 
+                                                 OnlyPrintInDebugMode=True)
 
     for thr_file in ['thr_t11ts_inv', 'thr_t11t37_inv', 
                      'thr_t37t12_inv', 'thr_t11t12_inv', 
                      'thr_t11ts', 'thr_t11t37', 'thr_t37t12', 'thr_t11t12',
-                     'thr_r09', 'thr_r06']:
+                     'thr_r09', 'thr_r06', 'thr_t85t11_inv', 'thr_t85t11']:
         file_name_dict[thr_file] = get_pps_file(avhrr_file, options, values, 
-                                                thr_file+'_file', 'thr_dir')
-    if (values['satellite'] in ('npp', 'eos1', 'eos2')):
-        for thr_file in ['thr_t85t11_inv', 'thr_t85t11']:
-            file_name_dict[thr_file] = get_pps_file(avhrr_file, options,
-                                                    values, 
-                                                    thr_file+'_file', 'thr_dir')
-
+                                                thr_file+'_file', 'thr_dir', 
+                                                OnlyPrintInDebugMode=True)   
     file_name_dict['nwp_segments'] = get_pps_file(avhrr_file, options,
                                                   values, 
                                                   'segment_file', 'segment_dir') 
-    file_name_dict.update({'cloudtype': cloudtype_file,
-                           'cma': cma_file,
-                           'ctth': ctth_files,
-                           'cpp': cpp_file,
-                           'nwp_tsur': nwp_tsur_file,
-                           'sunsatangles': sunsatangles_file,
-                           'r37': r37_file,
-                           'physiography': physiography_file})
-
+    ######################################## 
     ppsfiles = ppsFiles(file_name_dict)
     return  ppsfiles
 
@@ -674,6 +590,7 @@ def get_cloudsat_matchups(cloudsat_files, avhrrGeoObj, avhrrObj,
                         "\t***************************************************\n")
         raise MatchupError(my_info_text)
     cloudsat = reshapeCloudsat(cloudsat_files, avhrrGeoObj)
+    logger.debug("Matching CloudSat with avhrr")
     cl_matchup = match_cloudsat_avhrr(cloudsat,
                                       avhrrGeoObj, avhrrObj, ctype, cma,
                                       ctth, nwp_obj, avhrrAngObj, cpp, nwp_segments)
@@ -827,7 +744,7 @@ def get_calipso_matchups(calipso_files, values,
     calipso1km = None
     calipso5km = None
         
-    logger.info("Matching with avhrr")
+    logger.debug("Matching CALIPSO with avhrr")
     ca_matchup = match_calipso_avhrr(values, calipso, calipso_aerosol,
                               avhrrGeoObj, avhrrObj, ctype, cma,
                               ctth, cpp, nwp_obj, avhrrAngObj, 
@@ -982,7 +899,7 @@ def add_elevation_corrected_imager_ctth(clsatObj, caObj, issObj):
         elevation = np.where(np.less_equal(clsatObj.cloudsat.elevation,0),
                              0,clsatObj.cloudsat.elevation)		
         num_csat_data_ok = len(clsatObj.cloudsat.elevation)
-        logger.info("Length of CLOUDSAT array: %d", num_csat_data_ok )
+        logger.debug("Length of CLOUDSAT array: %d", num_csat_data_ok )
         imager_ctth_m_above_seasurface = np.array(clsatObj.avhrr.ctth_height).copy().ravel()
         if CCI_CLOUD_VALIDATION: 
             #ctth already relative mean sea level
@@ -1004,9 +921,9 @@ def add_elevation_corrected_imager_ctth(clsatObj, caObj, issObj):
         cal_elevation = np.where(np.less_equal(caObj.calipso.elevation,0),
                                  0,caObj.calipso.elevation)
         num_cal_data_ok = len(caObj.calipso.elevation)
-        logger.info("Length of CALIOP array: %d", num_cal_data_ok)
+        logger.debug("Length of CALIOP array: %d", num_cal_data_ok)
         imager_ctth_m_above_seasurface = np.array(caObj.avhrr.ctth_height).copy().ravel()
-        print CCI_CLOUD_VALIDATION
+        logger.debug("CCI_CLOUD_VALIDATION", CCI_CLOUD_VALIDATION)
         if CCI_CLOUD_VALIDATION: 
             #ctth relative mean sea level
             imager_ctth_m_above_seasurface = caObj.avhrr.ctth_height
@@ -1079,7 +996,6 @@ def get_matchups_from_data(cross, config_options):
 
     if (PPS_VALIDATION and config.CLOUDSAT_MATCHING):
         cloudsat_files = find_cloudsat_files(date_time, config_options, values)
-        print cloudsat_files
         if (isinstance(cloudsat_files, str) == True or 
             (isinstance(cloudsat_files, list) and len(cloudsat_files) != 0)):
             logger.info("Read CLOUDSAT %s data" % config.CLOUDSAT_TYPE)
@@ -1192,7 +1108,7 @@ def get_matchups_from_data(cross, config_options):
         writeCloudsatAvhrrMatchObj(cl_match_file, cl_matchup, 
                                    avhrr_obj_name = avhrr_obj_name)
     else:
-        logger.info('CloudSat is not defined. No CloudSat Match File created')
+        logger.debug('No CloudSat Match File created')
 
     # Write iss matchup   
     if iss_matchup is not None:
@@ -1201,7 +1117,7 @@ def get_matchups_from_data(cross, config_options):
         writeIssAvhrrMatchObj(is_match_file, iss_matchup, 
                                    avhrr_obj_name = avhrr_obj_name)
     else:
-        logger.info('Iss is not defined. No Iss Match File created')
+        logger.debug('No Iss Match File created')
      
     # Write calipso matchup
     if ca_matchup is not None:
@@ -1484,7 +1400,6 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     
     """    
     logger.info("Case: %s" % str(cross))
-    logger.info("Process mode: %s" % process_mode_dnt)
 
     sno_satname = cross.satellite1.lower()
     if sno_satname in ['calipso', 'cloudsat']:

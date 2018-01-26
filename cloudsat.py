@@ -141,7 +141,7 @@ def match_cloudsat_avhrr(cloudsatObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,i
         retv.avhrr.sec_1970 = imagerGeoObj.time[cal_on_avhrr]
     retv.diff_sec_1970 = retv.cloudsat.sec_1970 - retv.avhrr.sec_1970
     do_some_logging(retv, cloudsatObj)
-    logger.info("Generate the latitude,cloudtype tracks!")
+    logger.debug("Generate the latitude,cloudtype tracks!")
     retv = avhrr_track_from_matched(retv, imagerGeoObj, imagerObj, imagerAngObj, 
                                     nwp, ctth, ctype, cma, cal_on_avhrr, cap_on_avhrr, 
                                     cpp=cpp, nwp_segments=nwp_segments)

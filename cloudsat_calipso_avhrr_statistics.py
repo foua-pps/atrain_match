@@ -376,6 +376,10 @@ def print_modis_stats(cObj, statfile, val_subset, cal_MODIS_cflag):
     truth_clear, truth_cloudy = find_truth_clear_cloudy(cObj, val_subset)
     if cal_MODIS_cflag is None:
         return
+    if len(val_subset) != len(cal_MODIS_cflag):
+        logger.error("Lenght mismatch error for cal_MODIS_cflag")
+        return
+ 
     modis_clear = np.logical_and(
         np.logical_or(np.equal(cal_MODIS_cflag,1),
                       np.equal(cal_MODIS_cflag,0)),val_subset)
@@ -630,8 +634,10 @@ def print_stats_ctop(cObj, statfile, val_subset, low_medium_high_class):
                                      truth_sat_validation_height, 
                                      imager_is_cloudy)
     
-    if "CALIPSO" not in cObj.truth_sat.upper():
-        print "WARNING WARNING WARNING only printing over all statistics for cloudtop for ISS"
+    if cObj.truth_sat.upper() not in ["CALIPSO"]:
+        if cObj.truth_sat.upper() in ["ISS"]:
+            logger.warning("WARNING WARNING WARNING only printing over all statistics "
+                           "for cloudtop for ISS")
         return
     if  (config.COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC and 
          cObj.avhrr.cloudtype is not None):
@@ -641,7 +647,8 @@ def print_stats_ctop(cObj, statfile, val_subset, low_medium_high_class):
         # Let us use 9 homogene CT pixels. Not fully the same, but similar.
         # And variation (definition?) caliop pressure <200hPa
         # And variation CPR height less than 3km
-        # And CALIPO clouds thinner than 0.2 removed.
+        # And CALIPO clouds thinner than 0.2 removed. however pixel kept
+        # For 1km data we have to either keep or fully remove the pixel
         maxct = ndimage.filters.maximum_filter1d(cObj.avhrr.cloudtype, size=9)
         minct = ndimage.filters.minimum_filter1d(cObj.avhrr.cloudtype, size=9)
         val_geo = np.logical_and(
@@ -832,16 +839,16 @@ def CalculateStatistics(mode, statfilename, caObj, clsatObj, issObj,
         (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag) = get_day_night_info(cObj)
         
         if dnt_flag is None:
-            logger.info('dnt_flag = %s' %'NO DNT FLAG -> ALL PIXELS')
+            logger.debug('dnt_flag = %s' %'NO DNT FLAG -> ALL PIXELS')
             dnt_subset = np.logical_and(val_subset, all_dnt_flag)
         elif dnt_flag.upper() == 'DAY':
-            logger.info('dnt_flag = %s' %dnt_flag.upper())
+            logger.debug('dnt_flag = %s' %dnt_flag.upper())
             dnt_subset = np.logical_and(val_subset, day_flag)
         elif dnt_flag.upper() == 'NIGHT':
-            logger.info('dnt_flag = %s' %dnt_flag.upper())
+            logger.debug('dnt_flag = %s' %dnt_flag.upper())
             dnt_subset = np.logical_and(val_subset, night_flag)
         elif dnt_flag.upper() == 'TWILIGHT':
-            logger.info('dnt_flag = %s' %dnt_flag.upper())
+            logger.debug('dnt_flag = %s' %dnt_flag.upper())
             dnt_subset = np.logical_and(val_subset, twilight_flag)
         else:
             print('dnt_flag = %s' %dnt_flag.upper())

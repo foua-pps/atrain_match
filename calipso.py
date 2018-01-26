@@ -63,14 +63,14 @@ def calipso_track_from_matched(retv_calipso, calipso, idx_match):
     return retv_calipso
 
 def do_some_logging(retv, cObj):
-    logger.info("Start and end times: %s %s",
+    logger.debug("Start and end times: %s %s",
               tm.gmtime(cObj.sec_1970[0]),
               tm.gmtime(cObj.sec_1970[-1]))
-    logger.info("Maximum and minimum time differences in sec (imager-reference): %d %d",
+    logger.debug("Maximum and minimum time differences in sec (imager-reference): %d %d",
           np.max(retv.diff_sec_1970),np.min(retv.diff_sec_1970))
-    logger.info("AVHRR observation time of first imager-reference match: %s",
+    logger.debug("AVHRR observation time of first imager-reference match: %s",
           tm.gmtime(retv.avhrr.sec_1970[0]))
-    logger.info("AVHRR observation time of last imager-reference match: %s",
+    logger.debug("AVHRR observation time of last imager-reference match: %s",
           tm.gmtime(retv.avhrr.sec_1970[-1]))
 
 def match_calipso_avhrr(values, 
@@ -121,7 +121,7 @@ def match_calipso_avhrr(values,
         retv.avhrr.sec_1970 = imagerGeoObj.time[cal_on_avhrr]
     retv.diff_sec_1970 = retv.calipso.sec_1970 - retv.avhrr.sec_1970
     do_some_logging(retv, caObj)
-    logger.info("Generate the latitude,cloudtype tracks!")
+    logger.debug("Generate the latitude,cloudtype tracks!")
     from extract_imager_along_track import avhrr_track_from_matched
     retv = avhrr_track_from_matched(retv, imagerGeoObj, imagerObj, avhrrAngObj, 
                                     nwp_obj, ctth, ctype, cma,  cal_on_avhrr, 
@@ -130,7 +130,7 @@ def match_calipso_avhrr(values,
     if caObjAerosol is not None:
         retv.calipso_aerosol = calipso_track_from_matched(retv.calipso_aerosol, caObjAerosol, idx_match)
     max_cloud_top_calipso = np.maximum.reduce(retv.calipso.layer_top_altitude.ravel())
-    logger.info("max_cloud_top_calipso: %2.1f",max_cloud_top_calipso)
+    logger.debug("max_cloud_top_calipso: %2.1f",max_cloud_top_calipso)
     return retv
 
 def get_calipso(filename, res, ALAY=False):
@@ -217,7 +217,7 @@ def read_calipso_the_single_shot_info(retv, h5file):
 def read_calipso(filename, res, ALAY=False):
     import h5py
     import pdb, sys
-    logger.info("Reading file %s"%(filename))
+    logger.debug("Reading file %s"%(filename))
     scip_these_larger_variables_until_needed = {
         # if any of these are needed just rempve them from the dictionary!
         "Spacecraft_Position": True, #3D-variable
@@ -288,7 +288,7 @@ def discardCalipsoFilesOutsideTimeRange(calipsofiles_list, avhrrGeoObj, values, 
             pass
             #print "skipping file %s outside time_limits"%(current_file)
         else:
-            logger.info("Keeping file %s inside time_limits"%(os.path.basename(current_file)))
+            logger.debug("Keeping file %s inside time_limits"%(os.path.basename(current_file)))
             calipso_within_time_range.append(current_file)
     return calipso_within_time_range
 
@@ -346,7 +346,7 @@ def time_reshape_calipso(startCalipso,
     return cal
 
 def adjust5kmTo1kmresolution(calipso5km):
-    logger.info("Repeat 5km calipso data to fit 1km resoluiton")
+    logger.debug("Repeat 5km calipso data to fit 1km resoluiton")
     calipso= CalipsoObject()
     for arname, value in calipso5km.all_arrays.items(): 
         if value is not None:
@@ -356,7 +356,7 @@ def adjust5kmTo1kmresolution(calipso5km):
     return calipso 
 
 def add5kmVariablesTo1kmresolution(calipso1km, calipso5km):
-    logger.info("Repeat 5km calipso data to fit 1km resoluiton")
+    logger.debug("Repeat 5km calipso data to fit 1km resoluiton")
     for variable in ["cfc_single_shots_1km_from_5km_file"]:
         if hasattr(calipso5km, variable):
             cfc_single_shot_1km_from_5km_file = getattr(calipso5km, variable)

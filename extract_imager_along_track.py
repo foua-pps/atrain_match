@@ -149,8 +149,8 @@ def get_channel_data_from_object(dataObj, chn_des, matched, nodata=-9):
     if chnum == -1:
         #chnum = CHANNEL_MICRON_AVHRR_PPS[chn_des]
         if chnum == -1:
-            logger.warning("Did not find pps channel number for channel "
-                           "{:s}".format(chn_des))
+            logger.debug("Did not find pps channel number for channel "
+                         "{:s}".format(chn_des))
             return None, "" 
     chdata_on_track = np.array([channels[chnum].data[matched['row'][idx], matched['col'][idx]]
                        for idx in range(matched['row'].shape[0])])
@@ -281,8 +281,8 @@ def insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt):
         #Remove nodata and not used upper part of atmosphere   
         N = obt.avhrr.segment_nwp_pressure.shape[1]
         pressure_n_to_keep = np.sum(np.max(obt.avhrr.segment_nwp_pressure,axis=0)>50)
-        logger.info("Not saving upper %d levels of 3-D nwp from segment file"%(N-pressure_n_to_keep))
-        logger.info("Keeping %d lower levels of 3-D nwp from segment file"%(pressure_n_to_keep))
+        logger.debug("Not saving upper %d levels of 3-D nwp from segment file"%(N-pressure_n_to_keep))
+        logger.debug("Keeping %d lower levels of 3-D nwp from segment file"%(pressure_n_to_keep))
         for data_set in ['segment_nwp_moist', 'segment_nwp_pressure', 
                           'segment_nwp_geoheight', 'segment_nwp_temp']:
             data = getattr(obt.avhrr, data_set) 
@@ -389,7 +389,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
                                for idx in range(npix)]
                 setattr(obt.avhrr, nwp_info, np.array(value_track))
         else:
-            print "missing", nwp_info
+            logger.debug("missing", nwp_info)
     if len(CTTH_TYPES)>1:        
         for ctth_type in CTTH_TYPES[1:]:
             ctth_obj = getattr(nwp_obj,ctth_type)
@@ -419,19 +419,25 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
                 setattr(obt.avhrr, texture, np.array(value_track))
     if dataObj is not None and SAVE_NEIGHBOUR_INFO:
         neighbour_obj = get_warmest_values(dataObj, row_col)
-        for key in ["warmest_t11", "warmest_t12", "warmest_t37",
-                    "warmest_r06", "warmest_r09", "warmest_r16"]:
+        for key in ["warmest_r06", "warmest_r09", "warmest_r16"]:
             setattr(obt.avhrr, key + neighbour_obj.extra_info_sza_corr, 
+                    getattr(neighbour_obj,key))
+        for key in ["warmest_t11", "warmest_t12", "warmest_t37"]:
+            setattr(obt.avhrr, key, 
                     getattr(neighbour_obj,key))
         neighbour_obj = get_darkest_values(dataObj, row_col)
-        for key in ["darkest_t11", "darkest_t12", "darkest_t37",
-                    "darkest_r06", "darkest_r09", "darkest_r16"]:
+        for key in ["darkest_r06", "darkest_r09", "darkest_r16"]:
             setattr(obt.avhrr, key + neighbour_obj.extra_info_sza_corr, 
                     getattr(neighbour_obj,key))
+        for key in ["darkest_t11", "darkest_t12", "darkest_t37"]:
+            setattr(obt.avhrr, key, 
+                    getattr(neighbour_obj,key))
         neighbour_obj = get_coldest_values(dataObj, row_col)
-        for key in ["coldest_t11", "coldest_t12", "coldest_t37",
-                    "coldest_r06", "coldest_r09", "coldest_r16"]:
+        for key in ["coldest_r06", "coldest_r09", "coldest_r16"]:
             setattr(obt.avhrr, key + neighbour_obj.extra_info_sza_corr, 
+                    getattr(neighbour_obj,key))
+        for key in ["coldest_t11", "coldest_t12", "coldest_t37"]:
+            setattr(obt.avhrr, key, 
                     getattr(neighbour_obj,key))
     #Thresholds:    
     for thr in ["thr_t11ts_inv",
@@ -501,7 +507,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
     if ctth is None:
         logger.info("Not extracting ctth")
     else:
-        logger.info("Extracting ctth along track ")
+        logger.debug("Extracting ctth along track ")
         #scale with gain and intercept when reading!
         obt.avhrr.ctth_height = [ctth.height[row_matched[idx], col_matched[idx]]
                                  for idx in range(npix)]
@@ -519,9 +525,9 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
     if nwp_segments is not None:
         obt = insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt)
     if cpp is None:    
-        logger.info("Not extracting cpp")
+        logger.debug("Not extracting cpp")
     else:
-        logger.info("Extracting cpp along track ")
+        logger.debug("Extracting cpp along track ")
         for data_set_name in cpp.__dict__.keys():
             data = getattr(cpp, data_set_name)
             if data is not None:
