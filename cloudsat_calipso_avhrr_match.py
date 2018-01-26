@@ -921,9 +921,9 @@ def add_elevation_corrected_imager_ctth(clsatObj, caObj, issObj):
         cal_elevation = np.where(np.less_equal(caObj.calipso.elevation,0),
                                  0,caObj.calipso.elevation)
         num_cal_data_ok = len(caObj.calipso.elevation)
-        logger.debug("Length of CALIOP array: %d", num_cal_data_ok)
+        logger.debug("Length of CALIOP array:  {:d}".format(num_cal_data_ok))
         imager_ctth_m_above_seasurface = np.array(caObj.avhrr.ctth_height).copy().ravel()
-        logger.debug("CCI_CLOUD_VALIDATION", CCI_CLOUD_VALIDATION)
+        logger.debug("CCI_CLOUD_VALIDATION {:s}".format(str(CCI_CLOUD_VALIDATION)))
         if CCI_CLOUD_VALIDATION: 
             #ctth relative mean sea level
             imager_ctth_m_above_seasurface = caObj.avhrr.ctth_height

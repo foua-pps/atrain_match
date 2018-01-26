@@ -975,7 +975,9 @@ def pps_read_all(pps_files, avhrr_file, cross):
             cpp = read_cpp_nc(pps_files.cpp)
         else:            
             cpp = read_cpp_h5(pps_files.cpp)
-    logger.debug(pps_files.cloudtype, pps_files.ctth, pps_files.cma)
+    logger.debug("{:s} {:s} {:s}".format(pps_files.cloudtype, 
+                                         pps_files.ctth, 
+                                         pps_files.cma))
     if CMA_PROB_VALIDATION:
         logger.info("Read PPS Cloud mask prob")
         cma = read_cmaprob_h5(pps_files.cma)
