@@ -967,7 +967,7 @@ def pps_read_all(pps_files, avhrr_file, cross):
         avhrrObj = readImagerData_h5(avhrr_file)
 
     if pps_files.cpp is None:
-        pass
+        cpp = None
     else:
         logger.info("Read CPP data")
         logger.warning("Warning lwp is read in kg/m2")
