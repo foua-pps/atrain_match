@@ -5,7 +5,10 @@ from glob import glob
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
+matplotlib.rcParams.update(matplotlib.rcParamsDefault)
 matplotlib.rcParams.update({'font.size': 18})
+plt.rc('text', usetex=True)
+plt.rc('font', family='serif')
 
 from read_cloudproducts_and_nwp_pps import (read_ctth_nc, read_pps_angobj_nc)
 import matplotlib
@@ -210,8 +213,8 @@ def plot_pressure_modis_01(out_filenames,PLOT_DIR,month):
     #ax.set_xlabel('pressure (hPa)')
     fig.text(0.5, 0.04, 'Pressure (hPa)', ha='center',fontsize=18)
     fig.text(0.04, 0.5, 'Percent of cloud top pressure results', va='center', rotation='vertical',fontsize=18)
-    plt.savefig(PLOT_DIR + "fig_02ctth_satz_pressure_%s_for_art_m%s.png"%('modis',month), bbox_inches='tight')
-    plt.savefig(PLOT_DIR + "fig_02ctth_satz_pressure_%s_for_art_m%s.pdf"%('modis',month), bbox_inches='tight')
+    plt.savefig(PLOT_DIR + "fig_01ctth_satz_pressure_%s_for_art_m%s.png"%('modis',month), bbox_inches='tight')
+    plt.savefig(PLOT_DIR + "fig_01ctth_satz_pressure_%s_for_art_m%s.pdf"%('modis',month), bbox_inches='tight')
 def investigate_nn_ctth_satz():
     month = '12'
     month_path = month

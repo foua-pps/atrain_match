@@ -13,10 +13,21 @@ from plot_kuipers_on_area_util import (PerformancePlottingObject,
                                        ppsMatch_Imager_CalipsoObject)
 import matplotlib.pyplot as plt
 import matplotlib
+matplotlib.rcParams.update(matplotlib.rcParamsDefault)
 matplotlib.rcParams.update({'font.size': 18})
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
-plt.rcParams["font.family"] = "Times New Roman"
+#plt.rc('serif', "Times New Roman")
+#plt.rcParams["font.serif"] = "times new roman"
+#from matplotlib import rc
+print matplotlib.rcParams
+#rc('text', usetex=True)
+#rc('mathtext', usetex=True)
+#rc('font', size=18)
+#rc('text.latex', preamble=r'\usepackage{times}')
+
+
+
 from get_flag_info import get_calipso_clouds_of_type_i
 from get_flag_info import (get_semi_opaque_info_pps2014,
                            get_calipso_high_clouds,
@@ -153,7 +164,7 @@ def extract_data(cObj, sat='cloudsat'):
     use_all = use.copy()
     for var in ['ctthnnant_height','ctthnna1nt_height','ctthnnvnt_height','ctthnnm2nt_height','ctthnnmintnco2_height', 'ctthnnmint_height', 'ctthold_height']:
         name = var.replace('_height', '').replace('ctth', 'pressure_')
-        print name
+        #print name
         pltObj.all_arrays[name] = 0.01*cObj.avhrr.all_arrays[var.replace('height','pressure')]
         update = pltObj.all_arrays[name] > 0.01*cObj.avhrr.all_arrays['psur']
         if 'old' not in name:
@@ -282,7 +293,7 @@ def print_stats(pltObj, month, day_strm, sat='CLOUDSAT_OR_CALIPSO'):
                                          len(bias_v[medium_print])*100/n_all,
                                          len(bias_v[high_print])*100/n_all)
 
-def print_data_for_figure_1(pltObj, month, day_str, sat='calipso'):
+def print_data_for_figure_2(pltObj, month, day_str, sat='calipso'):
     out_filename = "data_fig1_%s.txt"%(month)
     if sat.lower() in ["cloudsat"]:
         out_file_h = open(out_filename,'w')
@@ -326,7 +337,7 @@ def print_data_for_figure_1(pltObj, month, day_str, sat='calipso'):
     out_file_h.write(out_text)
     out_file_h.write("\n") 
 
-def replot_figure1_from_saved_data(month):
+def replot_figure2_from_saved_data(month):
     filename = "data_fig1_%s.txt"%(month)
     in_file_h = open(filename,'r')
     from matplotlib import rcParams
@@ -339,7 +350,7 @@ def replot_figure1_from_saved_data(month):
               'calipso_Medium':  "(d) Medium clouds",
               'calipso_Low':     "(f) Low clouds"}
 
-    def plot_one(x_data, y_data, sat, cloudc, legend=False):
+    def plot_one(ax, x_data, y_data, sat, cloudc, legend=False):
         text_i = text_d[sat+"_"+cloudc]
         print_sat = sat.upper()
         if print_sat in ["CLOUDSAT"]:
@@ -357,9 +368,10 @@ def replot_figure1_from_saved_data(month):
         if sat in ["cloudsat"]:    
             plt.ylabel("Percent of data")
         if legend:
+            pass
             plt.legend(fancybox=True, loc=1,  numpoints=4, bbox_to_anchor=(1.25, 1.1), framealpha=1.0,edgecolor='w', fontsize=18)
         ax.grid(True)
-        plt.text(0.03, 0.90, text_i, fontsize=18,transform=ax.transAxes, bbox=dict(facecolor='w', edgecolor='w', alpha=1.0))
+        plt.text(0.025, 0.90, text_i, fontsize=18,transform=ax.transAxes, bbox=dict(facecolor='w', edgecolor='w', alpha=1.0))
 
     x_data = {}
     y_data = {}
@@ -379,14 +391,14 @@ def replot_figure1_from_saved_data(month):
         data = line.split(" ")
         info = data.pop(0)
         info_list = info.split("_")
-        print info_list
+        #print info_list
         algorithm = info_list[0]
-        cloudc = info_list[1]
+        cloudc = info_list[1]        
         sat = info_list[2]
         if '_x ' in line:
-            x_data[sat][cloudc][algorithm] = data
+            x_data[sat][cloudc][algorithm] = np.array([np.float(s) for s in data])
         if '_y' in line:
-            y_data[sat][cloudc][algorithm] = data
+            y_data[sat][cloudc][algorithm] = np.array([np.float(s) for s in data])
 
 
   
@@ -399,7 +411,7 @@ def replot_figure1_from_saved_data(month):
     plt.yticks(np.arange(0,4,0.5))                      
     ax.set_xlim(-11.5,11.5)
     ax.set_ylim(0,4.0)
-    plot_one(x_data, y_data, "cloudsat", "High")
+    plot_one(ax, x_data, y_data, "cloudsat", "High")
     ax = fig.add_subplot(322)
     plt.xticks(np.arange(-12,12,2.0))
     for label in ax.xaxis.get_ticklabels()[::]:
@@ -410,38 +422,38 @@ def replot_figure1_from_saved_data(month):
     plt.yticks(np.arange(0,4,0.5))                      
     ax.set_xlim(-11.5,11.5)
     ax.set_ylim(0,4.0)
-    plot_one(x_data, y_data, "calipso", "High", True)
+    plot_one(ax, x_data, y_data, "calipso", "High", True)
     ax = fig.add_subplot(323)
     plt.xticks(np.arange(-8,8,2.0))
     plt.yticks(np.arange(0,12,1.0))
     ax.set_xlim(-7,7)
     ax.set_ylim(0,6.5)
-    plot_one(x_data, y_data, "cloudsat", "Medium")
+    plot_one(ax, x_data, y_data, "cloudsat", "Medium")
     ax = fig.add_subplot(324)
     plt.xticks(np.arange(-8,8,2.0))
     plt.yticks(np.arange(0,12,1.0))
     ax.set_xlim(-7,7)
     ax.set_ylim(0,6.5)
-    plot_one(x_data, y_data, "calipso", "Medium")
+    plot_one(ax, x_data, y_data, "calipso", "Medium")
     ax = fig.add_subplot(325)
     plt.xticks(np.arange(-5,5,1.0))
     plt.yticks(np.arange(0,14,2.0))
     ax.set_xlim(-4.5,4.5)
     ax.set_ylim(0,12.0)
-    plot_one(x_data, y_data, "cloudsat", "Low")
+    plot_one(ax, x_data, y_data, "cloudsat", "Low")
     ax = fig.add_subplot(326)
     plt.xticks(np.arange(-5,5,1.0))
     plt.yticks(np.arange(0,14,2.0))
     ax.set_xlim(-4.5,4.5)
     ax.set_ylim(0,12.0)
-    plot_one(x_data, y_data, "calipso", "Low")
+    plot_one(ax, x_data, y_data, "calipso", "Low")
 
-    plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/CTTH_PLOTS/fig01_%s.pdf"%(month), bbox_inches='tight')
+    plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/CTTH_PLOTS/fig02_%s.pdf"%(month), bbox_inches='tight')
     plt.close("all")
    
 def make_profileplot(pltObj, month, day_str, sat='calipso'):
     print_stats(pltObj, month, day_str, sat=sat)
-    print_data_for_figure_1(pltObj, month, day_str, sat=sat)
+    print_data_for_figure_2(pltObj, month, day_str, sat=sat)
     use =  pltObj.use
     low = np.logical_and(pltObj.low_clouds,use)
     medium = np.logical_and(pltObj.medium_clouds,use)
@@ -563,11 +575,11 @@ def investigate_nn_ctth_modis_lvl2():
         
 if __name__ == "__main__":
     for month in ["02", "04","06", "08","10","12", "020406081012"]:
-        replot_figure1_from_saved_data(month)
+        replot_figure2_from_saved_data(month)
         print "hej"
 
    
-    investigate_nn_ctth_modis_lvl2_cloudsat()
-    investigate_nn_ctth_modis_lvl2()
+    #investigate_nn_ctth_modis_lvl2_cloudsat()
+    #investigate_nn_ctth_modis_lvl2()
 
 

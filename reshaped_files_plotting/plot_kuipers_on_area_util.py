@@ -9,9 +9,23 @@ from scipy import ndimage
 import matplotlib
 import matplotlib.pyplot as plt
 #matplotlib.use("TkAgg")
+from matplotlib import rc
+print matplotlib.rcParams
+#matplotlib.rcParams.update({'font.size': 30})
+#matplotlib.rcParams.update({'font.family': 'sans-serif'})
+#matplotlib.rcParams.update({'font.sans-serif': ['Verdana']})
+#rc('font', size=30)
+#rc('text.latex', preamble=r'\usepackage{times}')
+#rc('text', usetex=True)
+
+matplotlib.rcParams.update(matplotlib.rcParamsDefault)
 matplotlib.rcParams.update({'font.size': 30})
+plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
 
+print matplotlib.rcParams
+#plt.rc('font', family='sans serif')
+#plt.rcParams["font.family"] = "Verdana"
 
 from matchobject_io import DataObject        
 class ppsMatch_Imager_CalipsoObject(DataObject):
@@ -118,6 +132,37 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
                                          caObj.avhrr.all_arrays['ctth_height']>-9)
         detected_height = np.logical_and(detected_height,
                                          caObj.avhrr.all_arrays['ctth_height']<45000)
+
+        #settings for article eos_modis:
+        detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['warmest_t12']>-9)
+        detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['coldest_t12']>-9)
+        detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['psur']>-9) 
+        detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['surftemp']>-9)
+        detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['t950']>-9)
+        detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['t850']>-9)
+        detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['t700']>-9)
+        detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['t500']>-9)
+        detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['t250']>-9)        
+        detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['text_t11']>-9) #without this 1793146 pixels
+        detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['text_t11t12']>-9) 
+        detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['warmest_t11']>-9)
+        detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['coldest_t11']>-9)                                             
+        detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['modis_27']>-1)
+        detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['modis_28']>-1)
+        detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['modis_33']>-1)
+        detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['text_t37']>-9)
+        detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['warmest_t37']>-9)
+        detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['coldest_t37']>-9)
+        detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['bt11micron']>-1)
+        detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['bt12micron']>-1)
+        detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['bt37micron']>-1)
+        detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['bt86micron']>-1)
+        detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['ciwv']>-9)
+        detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays["ctthold_height"]>-9)
+        detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays["ctthnnant_height"]>-9)
+        detected_height = np.logical_and(detected_height, caObj.modis.all_arrays["height"]>-9)
+
+
         detected_height = np.logical_and(detected_height,
                                          caObj.calipso.all_arrays['layer_top_altitude'][:,0]>-1)
         detected_temperature = np.logical_and(detected_clouds,
@@ -418,7 +463,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
             matplotlib.rcParams['image.cmap']= "Reds"
         else:
             matplotlib.rcParams['image.cmap']= "BrBG"
-        plot_label =score    
+        plot_label =score.replace('_','-')    
         if "mae" in score:
             plot_label =""
         pr.plot.save_quicklook(self.PLOT_DIR_SCORE + self.PLOT_FILENAME_START+
@@ -510,7 +555,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
         my_cmap.set_over(color='0.5',alpha=1)
         zi = griddata((x, y), z, (xi, yi), method='nearest')
         im1 = my_proj1.pcolormesh(xi, yi, zi, cmap=my_cmap,
-                           vmin=vmin, vmax=vmax, latlon=True)
+                           vmin=vmin, vmax=vmax, latlon=True,  rasterized=True)
         im1.set_clim([vmin,vmax]) #to get nice ticks in the colorbar
         #draw som lon/lat lines
         my_proj1.drawparallels(np.arange(-90.,90.,30.))
@@ -523,7 +568,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
         cb.ax.yaxis.set_major_locator(matplotlib.ticker.AutoLocator())
         cb.update_ticks()   
         if not "mae" in score:
-            ax.set_title(score)
+            ax.set_title(score.replace('_','-'), usetex=True)
         if score in ["ctth_mae"]:
             text_i = "(b)"
             if "v2014" in self.PLOT_FILENAME_START:
@@ -533,7 +578,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
             plt.text(0.01, 0.95, text_i, fontsize=36,transform=ax.transAxes, bbox=dict(facecolor='w', edgecolor='w', alpha=1.0))
                 
         plt.savefig(self.PLOT_DIR_SCORE + self.PLOT_FILENAME_START+
-                    '_robinson_' +'.png', bbox_inches='tight')
+                    '_robinson_' +'.pdf', bbox_inches='tight')
         #plt.savefig(self.PLOT_DIR_SCORE + self.PLOT_FILENAME_START+
         #            '_robinson_' +'.pdf', bbox_inches='tight')
         plt.close('all')
