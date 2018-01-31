@@ -56,10 +56,82 @@ def add_cloudsat_cloud_fraction(cloudsat):
 
 def get_cloudsat(filename):
     # Read CLOUDSAT Radar data for calipso something is done in this function:
-    cloudsat = read_cloudsat(filename)
+    if '.h5' in filename: 
+        cloudsat = read_cloudsat(filename)
+    else:
+        cloudsat = read_cloudsat_hdf4(filename)
     cloudsat = add_validation_ctth_cloudsat(cloudsat)
     cloudsat = add_cloudsat_cloud_fraction(cloudsat)      
     return cloudsat
+
+def clsat_name_conversion(dataset_name_in_cloudsat_file):
+    am_name = dataset_name_in_cloudsat_file
+    if dataset_name_in_cloudsat_file == 'DEM_elevation':
+        am_name = 'elevation'
+    if dataset_name_in_cloudsat_file == 'Sigma-Zero':
+        am_name = 'SigmaZero'
+    if dataset_name_in_cloudsat_file == 'Longitude':
+        am_name = 'longitude'
+    if dataset_name_in_cloudsat_file == 'Latitude':
+        am_name = 'latitude'
+    return am_name    
+def read_cloudsat_hdf4(filename):
+    from pyhdf.SD import SD, SDC
+    from pyhdf.HDF import HDF, HC
+    import pyhdf.VS 
+    def convert_data(data):
+        if len(data.shape) == 2:
+            if data.shape[1] == 1:
+                return data[:, 0]
+            elif data.shape[0] == 1:
+                return data[0, :]
+        return data
+    retv = CloudsatObject()
+    h4file = SD(filename, SDC.READ)
+    datasets = h4file.datasets()
+    attributes = h4file.attributes()
+    #for idx,attr in enumerate(attributes.keys()):
+    #    print idx, attr
+    for idx,sds in enumerate(datasets.keys()):
+        #print idx, sds
+        data = h4file.select(sds).get()
+        #print h4file.select(sds).attributes().keys()
+        retv.all_arrays[sds] = convert_data(data)
+        #print h4file.select(sds).info()
+        
+
+    h4file = HDF(filename, SDC.READ)
+    vs = h4file.vstart()
+    data_info_list = vs.vdatainfo()
+    for item in data_info_list:
+        name = item[0]
+        data_handle = vs.attach(name)
+        data = np.array(data_handle[:])
+        attrinfo_dic = data_handle.attrinfo()
+        factor = data_handle.findattr('factor')
+        offset = data_handle.findattr('offset')
+        #print data_handle.factor
+        am_name = clsat_name_conversion(name)
+        if factor is None and offset is None:
+            retv.all_arrays[am_name] = convert_data(data)
+        else:
+            if factor is None:
+                factor = 1.0
+            if offset is None:
+                offset = 0.0
+            raise MatchupError("Not default offset and factor. Fix code")
+            #The code below is probably ok, but make sure:
+            the_data_scaled = convert_data(data)*factor + offset
+            retv.all_arrays[am_name] = the_data_scaled 
+        
+        
+        data_handle.detach()
+    #print data_handle.attrinfo()
+    h4file.close()
+    # Convert from TAI time to UTC in seconds since 1970:
+    dsec = time.mktime((1993,1,1,0,0,0,0,0,0)) - time.timezone
+    retv.sec_1970 = retv.Profile_time.ravel() + retv.TAI_start + dsec
+    return retv
 
 def read_cloudsat(filename):
     import h5py 

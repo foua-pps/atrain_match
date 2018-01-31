@@ -304,7 +304,7 @@ def find_cloudsat_files(date_time, options, values):
     elif len(cloudsat_files) == 0:
         logger.info("No Cloudsat file found within time window!")
         #raise MatchupError("Couldn't find cloudsat matchup!")
-    cloudsat_files = sorted(require_h5(cloudsat_files))
+    cloudsat_files = sorted(cloudsat_files)
     cloudsat_basenames = [ "\n          " + os.path.basename(s) for s in cloudsat_files ]
     logger.info("Cloudsat files: " + " ".join(cloudsat_basenames))
     return cloudsat_files
