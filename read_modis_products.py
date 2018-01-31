@@ -21,8 +21,12 @@ def add_modis_06(ca_matchup, pps_imager_file, options):
 
     mfile = find_modis_lvl2_file_from_pps(pps_imager_file, options)
     modis_06 = read_modis_h5(mfile)
-    row_matched = ca_matchup.calipso.avhrr_linnum
-    col_matched = ca_matchup.calipso.avhrr_pixnum
+    if hasattr(ca_matchup, 'calipso'):
+        row_matched = ca_matchup.calipso.avhrr_linnum
+        col_matched = ca_matchup.calipso.avhrr_pixnum
+    else:
+        row_matched = ca_matchup.cloudsat.avhrr_linnum
+        col_matched = ca_matchup.cloudsat.avhrr_pixnum 
     index = zip(row_matched,col_matched)
     index_5km = zip(np.floor(row_matched/5).astype(np.int),np.floor(col_matched/5).astype(np.int))
     npix = len(row_matched)
