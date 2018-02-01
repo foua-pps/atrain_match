@@ -39,6 +39,7 @@ def get_iss(filename):
     #2 cloud only
     #3 cloud and aerosol    
     iss.cloud_fraction = np.where(iss.sky_condition_fore_fov>1.5, 1.0,0.0)
+    #print "iss cf", iss.cloud_fraction
     logger.warning("Currently using sky_condition_fore_fov to set cloudfraction, use cloud_phase_fore_fov instead?")
 
     #used for cloud height validation, at cirtain modis it might be updated.
@@ -91,7 +92,7 @@ def read_iss(filename):
         h5file.close()
         retv.latitude = retv.cats_fore_fov_latitude[:,1]
         retv.longitude = retv.cats_fore_fov_longitude[:,1] 
-        print retv.longitude.shape
+        #logger.debug(retv.longitude.shape)
         # Elevation is given in km's. Convert to meters:
         retv.elevation = retv.dem_surface_altitude_fore_fov*1000.0 
         seconds_per_day = datetime.timedelta(days=1).total_seconds()

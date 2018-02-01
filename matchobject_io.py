@@ -181,6 +181,8 @@ class ppsAvhrrObject(DataObject):
             'r13micron_sza_correction_done':  None,  #modis 26
             'r16micron_sza_correction_done':  None,  #modis 6
             'r22micron_sza_correction_done':  None,  #VIIRS
+            'r37_sza_correction_done':  None,  #VIIRS
+            'r37': None,
             #developing channels from modis change to pps_id_name i.e r12micron 
             #when introduced into pps
             'modis_3_sza_correction_done':  None,

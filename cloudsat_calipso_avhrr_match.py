@@ -507,8 +507,12 @@ def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
     if cma_file is None and cloudtype_file is None:
         raise MatchupError("No cma or cloudtype file found atrain_match.cfg")
     if not config.USE_CMA_FOR_CFC_STATISTICS and cloudtype_file is None:   
-            logger.error("Probably you shold set USE_CMA_FOR_CFC_STATISTICS=True!")
+            logger.error("Probably you should set USE_CMA_FOR_CFC_STATISTICS=True!")
             logger.error("As you have no cloudtype file in atrain_match.cfg")
+            raise MatchupError("Configure problems, see messages above.")
+    if config.USE_CMA_FOR_CFC_STATISTICS and cma_file is None:   
+            logger.error("Probably you should set USE_CMA_FOR_CFC_STATISTICS=False!")
+            logger.error("As you have no cma file in atrain_match.cfg")
             raise MatchupError("Configure problems, see messages above.")
     ctth_files = {}
     if 'ctth_file' in options.keys():   

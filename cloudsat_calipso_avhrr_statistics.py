@@ -78,124 +78,132 @@ def calculate_ctth_stats(val_subset, imager_ctth_m_above_seasurface, truth_sat_v
                                                n_only_truth_had_height_both_had_cloud,
                                                MAE)
 
-def get_subset_for_mode(caObj, mode):
-  # First prepare possible subsetting of CALIOP datasets according to NSIDC
+def get_subset_for_mode(cObj, mode):
+    cObj_truth_sat = getattr(cObj, cObj.truth_sat)
+    latitude_abs = np.abs(getattr(cObj_truth_sat, 'latitude'))
+    if cObj.truth_sat.lower() in ['calipso']: 
+        nsidc_st = getattr(cObj_truth_sat, 'nsidc_surface_type')
+        igbp_st = getattr(cObj_truth_sat, 'igbp_surface_type')
+    else :
+        nsidc_st = None
+        igbp_st = None
+ 
+    # First prepare possible subsetting of CALIOP/CLOUDSAT/ISS without NSIDC
     # and IGBP surface types  
-    if mode == 'ICE_COVER_SEA':
+    if mode == 'BASIC':
+        cal_subset = np.bool_(np.ones(latitude_abs.shape))
+    elif mode == 'OPTICAL_DEPTH':
+        cal_subset = np.bool_(np.ones(latitude_abs.shape))
+    elif mode == 'STANDARD':
+        cal_subset = np.bool_(np.ones(latitude_abs.shape))
+    elif mode == 'OPTICAL_DEPTH_THIN_IS_CLEAR':
+        cal_subset = np.bool_(np.ones(latitude_abs.shape))
+    elif mode == 'TROPIC_ZONE':
+        cal_subset = latitude_abs <= 10    
+    elif mode == 'SUB_TROPIC_ZONE':
+        cal_subset = np.logical_and((latitude_abs > 10), 
+                                    (latitude_abs <= 45))     
+    elif mode == 'HIGH-LATITUDES':
+        cal_subset = np.logical_and((latitude_abs > 45), 
+                                    (latitude_abs <= 75))
+    elif mode == 'POLAR':
+        cal_subset = latitude_abs > 75
+    elif nsidc_st is None and igbp_st is None:
+        cal_subset = np.bool_(np.zeros(latitude_abs.shape))
+        logger.warning("Will not run igbp/nsidc dependent mode={:s} for {:s}".format(mode, cObj.truth_sat))
+        return None
+    # Then prepare possible subsetting of CALIOP datasets according to NSIDC
+    # and IGBP surface types  if we have them
+    elif mode == 'ICE_COVER_SEA':
         cal_subset = np.logical_and(
-            np.logical_and(np.less_equal(caObj.calipso.nsidc_surface_type,100),
-                           np.greater(caObj.calipso.nsidc_surface_type,10)),
-            np.equal(caObj.calipso.igbp_surface_type,17))
+            np.logical_and(np.less_equal(nsidc_st,100), np.greater(nsidc_st,10)),
+            np.equal(igbp_st,17))
     elif mode == 'ICE_FREE_SEA':
-        cal_subset = np.logical_and(np.equal(caObj.calipso.nsidc_surface_type,0),np.equal(caObj.calipso.igbp_surface_type,17))
+        cal_subset = np.logical_and(np.equal(nsidc_st,0),np.equal(igbp_st,17))
     elif mode == 'SNOW_COVER_LAND':
         cal_subset = np.logical_and(
-            np.logical_and(np.less(caObj.calipso.nsidc_surface_type,104),
-                           np.greater(caObj.calipso.nsidc_surface_type,10)),
-            np.not_equal(caObj.calipso.igbp_surface_type,17))
+            np.logical_and(np.less(nsidc_st,104), np.greater(nsidc_st,10)),
+            np.not_equal(igbp_st,17))
         # Notice that some uncertainty remains about the meaning of IGBP category 15 = "snow and ice". Can this possibly include also the Arctic ice sheet? We hope that it is not!!! However, if it is, the whole classification here might be wrong since this will affect also the definition of IGBP category 17./KG 
     elif mode == 'SNOW_FREE_LAND':
-        cal_subset = np.logical_and(np.equal(caObj.calipso.nsidc_surface_type,0),
-                                    np.not_equal(caObj.calipso.igbp_surface_type,17))
+        cal_subset = np.logical_and(np.equal(nsidc_st,0),
+                                    np.not_equal(igbp_st,17))
     elif mode == 'COASTAL_ZONE':
-        cal_subset = np.equal(caObj.calipso.nsidc_surface_type,255)
-    
-    elif mode == 'TROPIC_ZONE':
-        cal_subset = np.abs(caObj.calipso.latitude) <= 10
+        cal_subset = np.equal(nsidc_st,255)    
     elif mode == 'TROPIC_ZONE_SNOW_FREE_LAND':
-        cal_subset_lat = np.logical_and(np.equal(caObj.calipso.nsidc_surface_type,0),
-                                        np.not_equal(caObj.calipso.igbp_surface_type,17))
-        cal_subset_area = np.abs(caObj.calipso.latitude) <= 10
+        cal_subset_lat = np.logical_and(np.equal(nsidc_st,0),
+                                        np.not_equal(igbp_st,17))
+        cal_subset_area = latitude_abs <= 10
         cal_subset = np.logical_and(cal_subset_lat, cal_subset_area)
     elif mode == 'TROPIC_ZONE_ICE_FREE_SEA':
-        cal_subset_lat = np.logical_and(np.equal(caObj.calipso.nsidc_surface_type,0),
-                                        np.equal(caObj.calipso.igbp_surface_type,17))
-        cal_subset_area = np.abs(caObj.calipso.latitude) <= 10
-        cal_subset = np.logical_and(cal_subset_lat, cal_subset_area)
-    
-    elif mode == 'SUB_TROPIC_ZONE':
-        cal_subset = np.logical_and((np.abs(caObj.calipso.latitude) > 10), 
-                                    (np.abs(caObj.calipso.latitude) <= 45))    
+        cal_subset_lat = np.logical_and(np.equal(nsidc_st,0),
+                                        np.equal(igbp_st,17))
+        cal_subset_area = latitude_abs <= 10
+        cal_subset = np.logical_and(cal_subset_lat, cal_subset_area)   
     elif mode == 'SUB_TROPIC_ZONE_SNOW_FREE_LAND':
-        cal_subset_lat = np.logical_and((np.abs(caObj.calipso.latitude) > 10), 
-                                        (np.abs(caObj.calipso.latitude) <= 45))
-        cal_subset_area = np.logical_and(np.equal(caObj.calipso.nsidc_surface_type,0),
-                                         np.not_equal(caObj.calipso.igbp_surface_type,17))
+        cal_subset_lat = np.logical_and((latitude_abs > 10), 
+                                        (latitude_abs <= 45))
+        cal_subset_area = np.logical_and(np.equal(nsidc_st,0),
+                                         np.not_equal(igbp_st,17))
         cal_subset = np.logical_and(cal_subset_lat, cal_subset_area)
     elif mode == 'SUB_TROPIC_ZONE_ICE_FREE_SEA':
-        cal_subset_lat = np.logical_and((np.abs(caObj.calipso.latitude) > 10), 
-                                        (np.abs(caObj.calipso.latitude) <= 45))
-        cal_subset_area = np.logical_and(np.equal(caObj.calipso.nsidc_surface_type,0),
-                                         np.equal(caObj.calipso.igbp_surface_type,17))
+        cal_subset_lat = np.logical_and((latitude_abs > 10), 
+                                        (latitude_abs <= 45))
+        cal_subset_area = np.logical_and(np.equal(nsidc_st,0),
+                                         np.equal(igbp_st,17))
         cal_subset = np.logical_and(cal_subset_lat, cal_subset_area)
-    
-    elif mode == 'HIGH-LATITUDES':
-        cal_subset = np.logical_and((np.abs(caObj.calipso.latitude) > 45), 
-                                    (np.abs(caObj.calipso.latitude) <= 75))
+
     elif mode == 'HIGH-LATITUDES_SNOW_FREE_LAND':
-        cal_subset_lat = np.logical_and(np.equal(caObj.calipso.nsidc_surface_type,0),
-                                        np.not_equal(caObj.calipso.igbp_surface_type,17))
-        cal_subset_area = np.logical_and((np.abs(caObj.calipso.latitude) > 45), 
-                                         (np.abs(caObj.calipso.latitude) <= 75))
+        cal_subset_lat = np.logical_and(np.equal(nsidc_st,0),
+                                        np.not_equal(igbp_st,17))
+        cal_subset_area = np.logical_and((latitude_abs > 45), 
+                                         (latitude_abs <= 75))
         cal_subset = np.logical_and(cal_subset_lat, cal_subset_area)
     elif mode == 'HIGH-LATITUDES_SNOW_COVER_LAND':
         cal_subset_lat = np.logical_and(
-            np.logical_and(np.less(caObj.calipso.nsidc_surface_type,104),
-                           np.greater(caObj.calipso.nsidc_surface_type,10)),
-            np.not_equal(caObj.calipso.igbp_surface_type,17))
-        cal_subset_area = np.logical_and((np.abs(caObj.calipso.latitude) > 45), (np.abs(caObj.calipso.latitude) <= 75))
+            np.logical_and(np.less(nsidc_st,104),
+                           np.greater(nsidc_st,10)),
+            np.not_equal(igbp_st,17))
+        cal_subset_area = np.logical_and((latitude_abs > 45), (latitude_abs <= 75))
         cal_subset = np.logical_and(cal_subset_lat, cal_subset_area)
     elif mode == 'HIGH-LATITUDES_ICE_FREE_SEA':
-        cal_subset_lat = np.logical_and(np.equal(caObj.calipso.nsidc_surface_type,0),
-                                        np.equal(caObj.calipso.igbp_surface_type,17))
-        cal_subset_area = np.logical_and((np.abs(caObj.calipso.latitude) > 45), 
-                                         (np.abs(caObj.calipso.latitude) <= 75))
+        cal_subset_lat = np.logical_and(np.equal(nsidc_st,0),
+                                        np.equal(igbp_st,17))
+        cal_subset_area = np.logical_and((latitude_abs > 45), 
+                                         (latitude_abs <= 75))
         cal_subset = np.logical_and(cal_subset_lat, cal_subset_area)
     elif mode == 'HIGH-LATITUDES_ICE_COVER_SEA':
         cal_subset_lat = np.logical_and(
-            np.logical_and(np.less_equal(caObj.calipso.nsidc_surface_type,100),
-                           np.greater(caObj.calipso.nsidc_surface_type,10)),
-            np.equal(caObj.calipso.igbp_surface_type,17))
-        cal_subset_area = np.logical_and((np.abs(caObj.calipso.latitude) > 45), 
-                                         (np.abs(caObj.calipso.latitude) <= 75))
-        cal_subset = np.logical_and(cal_subset_lat, cal_subset_area)
-    
-    
-    elif mode == 'POLAR':
-        cal_subset = np.abs(caObj.calipso.latitude) > 75
+            np.logical_and(np.less_equal(nsidc_st,100),
+                           np.greater(nsidc_st,10)),
+            np.equal(igbp_st,17))
+        cal_subset_area = np.logical_and((latitude_abs > 45), 
+                                         (latitude_abs <= 75))
+        cal_subset = np.logical_and(cal_subset_lat, cal_subset_area)        
     elif mode == 'POLAR_SNOW_FREE_LAND':
-        cal_subset_lat = np.logical_and(np.equal(caObj.calipso.nsidc_surface_type,0),
-                                        np.not_equal(caObj.calipso.igbp_surface_type,17))
-        cal_subset_area = np.abs(caObj.calipso.latitude) > 75
+        cal_subset_lat = np.logical_and(np.equal(nsidc_st,0),
+                                        np.not_equal(igbp_st,17))
+        cal_subset_area = latitude_abs > 75
         cal_subset = np.logical_and(cal_subset_lat, cal_subset_area)
     elif mode == 'POLAR_SNOW_COVER_LAND':
         cal_subset_lat = np.logical_and(
-            np.logical_and(np.less(caObj.calipso.nsidc_surface_type,104),
-                           np.greater(caObj.calipso.nsidc_surface_type,10)),
-            np.not_equal(caObj.calipso.igbp_surface_type,17))
-        cal_subset_area = np.abs(caObj.calipso.latitude) > 75
+            np.logical_and(np.less(nsidc_st,104),
+                           np.greater(nsidc_st,10)),
+            np.not_equal(igbp_st,17))
+        cal_subset_area = latitude_abs > 75
         cal_subset = np.logical_and(cal_subset_lat, cal_subset_area)
     elif mode == 'POLAR_ICE_FREE_SEA':
         cal_subset_lat = np.logical_and(
-            np.equal(caObj.calipso.nsidc_surface_type,0),np.equal(caObj.calipso.igbp_surface_type,17))
-        cal_subset_area = np.abs(caObj.calipso.latitude) > 75
+            np.equal(nsidc_st,0),np.equal(igbp_st,17))
+        cal_subset_area = latitude_abs > 75
         cal_subset = np.logical_and(cal_subset_lat, cal_subset_area)
     elif mode == 'POLAR_ICE_COVER_SEA':
         cal_subset_lat = np.logical_and(
-            np.logical_and(np.less_equal(caObj.calipso.nsidc_surface_type,100),
-                           np.greater(caObj.calipso.nsidc_surface_type,10)),
-            np.equal(caObj.calipso.igbp_surface_type,17))
-        cal_subset_area = np.abs(caObj.calipso.latitude) > 75
-        cal_subset = np.logical_and(cal_subset_lat, cal_subset_area)
-    
-    elif mode == 'BASIC':
-        cal_subset = np.bool_(np.ones(caObj.calipso.igbp_surface_type.shape))
-    elif mode == 'OPTICAL_DEPTH':
-        cal_subset = np.bool_(np.ones(caObj.calipso.igbp_surface_type.shape))
-    elif mode == 'STANDARD':
-        cal_subset = np.bool_(np.ones(caObj.calipso.igbp_surface_type.shape))
-    elif mode == 'OPTICAL_DEPTH_THIN_IS_CLEAR':
-        cal_subset = np.bool_(np.ones(caObj.calipso.igbp_surface_type.shape))
+            np.logical_and(np.less_equal(nsidc_st,100),
+                           np.greater(nsidc_st,10)),
+            np.equal(igbp_st,17))
+        cal_subset_area = latitude_abs > 75
+        cal_subset = np.logical_and(cal_subset_lat, cal_subset_area)    
     else:
         print('The mode %s is not added in statistic file' %mode)
         sys.exit()
@@ -264,9 +272,9 @@ def find_truth_clear_cloudy(cObj, val_subset):
             np.greater(cObj_truth_sat.cloud_fraction,config.CALIPSO_CLOUDY_MIN_CFC),val_subset)        
     else:
         truth_clear = np.logical_and(
-            np.less_equal(cObj_truth_sat.cloud_fraction,0.5),val_subset)
+            np.less_equal(cObj_truth_sat.cloud_fraction,0.5), val_subset)
         truth_cloudy = np.logical_and(
-            np.greater(cObj_truth_sat.cloud_fraction,0.5),val_subset)        
+            np.greater(cObj_truth_sat.cloud_fraction,0.5), val_subset)       
     return truth_clear, truth_cloudy    
 
 def print_cpp_stats(cObj, statfile, val_subset):
@@ -325,7 +333,6 @@ def print_cmask_stats(cObj, statfile, val_subset):
     #=======================    
     # CORRELATION CLOUD MASK: CALIOP/ISS - IMAGER
     truth_clear, truth_cloudy = find_truth_clear_cloudy(cObj, val_subset)
-
     pps_clear, pps_cloudy = find_imager_clear_cloudy(cObj)
     pps_clear = np.logical_and(pps_clear, val_subset)
     pps_cloudy = np.logical_and(pps_cloudy,val_subset)
@@ -342,10 +349,10 @@ def print_cmask_stats(cObj, statfile, val_subset):
     ncloudy_pps = n_cloudy_cloudy+n_clear_cloudy
     nclear_pps = n_cloudy_clear+n_clear_clear
     
-    pod_cloudy = -9.0
-    far_cloudy = -9.0
-    pod_clear = -9.0
-    far_clear = -9.0
+    pod_cloudy = -9.0*0.01
+    far_cloudy = -9.0*0.01
+    pod_clear = -9.0*0.01
+    far_clear = -9.0*0.01
     if ncloudy > 0:
         pod_cloudy = float(n_cloudy_cloudy)/ncloudy
     if ncloudy_pps > 0:
@@ -361,7 +368,7 @@ def print_cmask_stats(cObj, statfile, val_subset):
         mean_pps=((n_clear_clear+n_cloudy_clear)*0.0 + (n_cloudy_cloudy+n_clear_cloudy)*1.0)/(n_clear_clear+n_clear_cloudy+n_cloudy_clear+n_cloudy_cloudy)
         bias=mean_pps-mean_caliop
     else:
-        bias = -9.0
+        bias = -9.0*0.01
 
     statfile.write("CLOUD MASK %s-IMAGER TABLE: %s %s %s %s \n" % (cObj.truth_sat.upper(), n_clear_clear,n_clear_cloudy,n_cloudy_clear,n_cloudy_cloudy))
     #statfile.write("CLOUD MASK %s-IMAGER PROB:%3.2f \n" % (cObj.truth_sat.upper(), pod_cloudy,pod_clear,far_cloudy,far_clear,bias))
@@ -854,42 +861,46 @@ def CalculateStatistics(mode, statfilename, caObj, clsatObj, issObj,
             print('dnt_flag = %s' %dnt_flag.upper())
             print('statistic calculation is not prepared for this dnt_flag')
             sys.exit()
-        return dnt_subset    
-            
-    if clsatObj is not None:
+        return dnt_subset  
+  
+ 
+    if clsatObj is not None and not SkipThisModeForCloudsat:
         logger.info("Cloudsat Statistics")
-        val_subset = np.bool_(np.ones(clsatObj.cloudsat.elevation.shape))
-        val_subset = get_day_night_subset(clsatObj, val_subset)
-        #curretnly only mode BASIC
-        low_medium_high_class = get_cloudsat_low_medium_high_classification(clsatObj)
-        statfile = open(statfilename.replace('xxx','cloudsat'),"w")
-        print_main_stats(clsatObj, statfile)
-        print_cmask_stats(clsatObj, statfile, val_subset)
-        print_modis_stats(clsatObj, statfile, val_subset, clsatObj.cloudsat.MODIS_cloud_flag)
-        print_stats_ctop(clsatObj,  statfile, val_subset, low_medium_high_class)
-        statfile.close()
+        val_subset = get_subset_for_mode(clObj, mode)
+        if val_subset is not None:
+            val_subset = get_day_night_subset(clsatObj, val_subset)
+            #curretnly only mode BASIC
+            low_medium_high_class = get_cloudsat_low_medium_high_classification(clsatObj)
+            statfile = open(statfilename.replace('xxx','cloudsat'),"w")
+            print_main_stats(clsatObj, statfile)
+            print_cmask_stats(clsatObj, statfile, val_subset)
+            print_modis_stats(clsatObj, statfile, val_subset, clsatObj.cloudsat.MODIS_cloud_flag)
+            print_stats_ctop(clsatObj,  statfile, val_subset, low_medium_high_class)
+            statfile.close()
     
     if caObj is not None:
         logger.info("Calipo Statistics")
         statfile = open(statfilename.replace('xxx','calipso'),"w")
         val_subset = get_subset_for_mode(caObj, mode)
-        low_medium_high_class = get_calipso_low_medium_high_classification(caObj)
-        #semi_flag, opaque_flag = get_semi_opaque_info(caObj)
-        val_subset = get_day_night_subset(caObj, val_subset)
-        print_main_stats(caObj, statfile)
-        print_cmask_stats(caObj, statfile, val_subset)
-        print_modis_stats(caObj, statfile, val_subset,   caObj.calipso.cal_MODIS_cflag)
-        print_calipso_stats_ctype(caObj, statfile, val_subset, low_medium_high_class)
-        print_stats_ctop(caObj,  statfile, val_subset, low_medium_high_class) 
-        print_cpp_stats(caObj, statfile, val_subset)
-        statfile.close()
+        if val_subset is not None:
+            low_medium_high_class = get_calipso_low_medium_high_classification(caObj)
+            #semi_flag, opaque_flag = get_semi_opaque_info(caObj)
+            val_subset = get_day_night_subset(caObj, val_subset)
+            print_main_stats(caObj, statfile)
+            print_cmask_stats(caObj, statfile, val_subset)
+            print_modis_stats(caObj, statfile, val_subset,   caObj.calipso.cal_MODIS_cflag)
+            print_calipso_stats_ctype(caObj, statfile, val_subset, low_medium_high_class)
+            print_stats_ctop(caObj,  statfile, val_subset, low_medium_high_class) 
+            print_cpp_stats(caObj, statfile, val_subset)
+            statfile.close()
     
     if issObj is not None:
         statfile = open(statfilename.replace('xxx','iss'),"w")
-        val_subset = np.bool_(np.ones(issObj.iss.elevation.shape))
-        val_subset = get_day_night_subset(issObj, val_subset)
-        print_main_stats(issObj, statfile)
-        print_cmask_stats(issObj, statfile, val_subset)
-        #print_calipso_stats_ctype(issObj, statfile, val_subset, cal_vert_feature)
-        print_stats_ctop(issObj, statfile, val_subset, None)
-        statfile.close()
+        val_subset = get_subset_for_mode(issObj, mode)
+        if val_subset is not None:
+            val_subset = get_day_night_subset(issObj, val_subset)
+            print_main_stats(issObj, statfile)
+            print_cmask_stats(issObj, statfile, val_subset)
+            #print_calipso_stats_ctype(issObj, statfile, val_subset, cal_vert_feature)
+            print_stats_ctop(issObj, statfile, val_subset, None)
+            statfile.close()
