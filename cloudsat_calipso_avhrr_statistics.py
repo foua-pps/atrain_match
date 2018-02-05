@@ -866,7 +866,7 @@ def CalculateStatistics(mode, statfilename, caObj, clsatObj, issObj,
  
     if clsatObj is not None:
         logger.info("Cloudsat Statistics")
-        val_subset = get_subset_for_mode(clObj, mode)
+        val_subset = get_subset_for_mode(clsatObj, mode)
         if val_subset is not None:
             val_subset = get_day_night_subset(clsatObj, val_subset)
             #curretnly only mode BASIC
