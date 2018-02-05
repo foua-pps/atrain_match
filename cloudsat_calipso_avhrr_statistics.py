@@ -864,7 +864,7 @@ def CalculateStatistics(mode, statfilename, caObj, clsatObj, issObj,
         return dnt_subset  
   
  
-    if clsatObj is not None and not SkipThisModeForCloudsat:
+    if clsatObj is not None:
         logger.info("Cloudsat Statistics")
         val_subset = get_subset_for_mode(clObj, mode)
         if val_subset is not None:
@@ -880,9 +880,9 @@ def CalculateStatistics(mode, statfilename, caObj, clsatObj, issObj,
     
     if caObj is not None:
         logger.info("Calipo Statistics")
-        statfile = open(statfilename.replace('xxx','calipso'),"w")
         val_subset = get_subset_for_mode(caObj, mode)
         if val_subset is not None:
+            statfile = open(statfilename.replace('xxx','calipso'),"w")
             low_medium_high_class = get_calipso_low_medium_high_classification(caObj)
             #semi_flag, opaque_flag = get_semi_opaque_info(caObj)
             val_subset = get_day_night_subset(caObj, val_subset)
@@ -895,9 +895,9 @@ def CalculateStatistics(mode, statfilename, caObj, clsatObj, issObj,
             statfile.close()
     
     if issObj is not None:
-        statfile = open(statfilename.replace('xxx','iss'),"w")
         val_subset = get_subset_for_mode(issObj, mode)
         if val_subset is not None:
+            statfile = open(statfilename.replace('xxx','iss'),"w")
             val_subset = get_day_night_subset(issObj, val_subset)
             print_main_stats(issObj, statfile)
             print_cmask_stats(issObj, statfile, val_subset)
