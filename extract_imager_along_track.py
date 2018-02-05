@@ -152,6 +152,9 @@ def get_channel_data_from_object(dataObj, chn_des, matched, nodata=-9):
             logger.debug("Did not find pps channel number for channel "
                          "{:s}".format(chn_des))
             return None, "" 
+    if matched is None:
+        return channels[chnum].data, ""
+    
     chdata_on_track = np.array([channels[chnum].data[matched['row'][idx], matched['col'][idx]]
                        for idx in range(matched['row'].shape[0])])
     extra_info = ""
