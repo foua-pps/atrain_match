@@ -579,7 +579,7 @@ if __name__ == "__main__":
         print "hej"
 
    
-    #investigate_nn_ctth_modis_lvl2_cloudsat()
-    #investigate_nn_ctth_modis_lvl2()
+    investigate_nn_ctth_modis_lvl2_cloudsat()
+    investigate_nn_ctth_modis_lvl2()
 
 
