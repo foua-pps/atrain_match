@@ -485,7 +485,6 @@ def add1kmTo5km(Obj1, Obj5):
 
 def addSingleShotTo5km_old(Obj5): # Valid only for CALIPSO-CALIOP version 4.10
     print "Making use of new Single Shot cloud cleared information"
-
     #First making a preliminary check of the differences in fraction of cloudy calipso columns in 5 km and single shot data.
     #pdb.set_trace()
     cfc_5km = 0
@@ -541,25 +540,31 @@ def addSingleShotTo5km_old(Obj5): # Valid only for CALIPSO-CALIOP version 4.10
 
 def addSingleShotTo5km(Obj5): # Valid only for CALIPSO-CALIOP version 4.10
     logger.info("Making use of new Single Shot cloud cleared information")
-
     cfc_5km = 0
     cfc_Single_Shot = 0
     len_5km = Obj5.profile_utc_time.shape[0]
     len_single_shot = Obj5.Number_cloudy_single_shots.shape[0]
+    cloudy_5km = np.greater(Obj5.number_layers_found,0)
+    cloudy_singleshot = np.greater_equal(Obj5.Number_cloudy_single_shots*1.0, 
+                                         15.0*CALIPSO_CLOUDY_MIN_CFC)
     if len_5km == len_single_shot:
-        cfc_5km = np.sum(np.greater(Obj5.number_layers_found,0))
-        cfc_from_Single_Shot = np.sum(np.greater_equal(Obj5.Number_cloudy_single_shots,15.0*CALIPSO_CLOUDY_MIN_CFC))
+        cfc_5km = np.sum(cloudy_5km)
+        cfc_Single_Shot = np.sum(cloudy_singleshot)
+        cfc_combined = np.sum(np.logical_or(cloudy_5km.ravel(), 
+                                            cloudy_singleshot.ravel())) 
     else:
         logger.warning("Different array length for 5 km and Single Shot data!")
         #sys.exit(-9)
-    logger.info("*****CHECKING CLOUD FREQUENCY DIFFERENCES IN SINGLE SHOT AND 5KM DATASETS:\n"+
-                " hej" +
-                " \t Number of 5 km FOVS: {:d}\n".format(len_5km) +
-                " \t Number of cloudy 5 km FOVS:  {:d}\n".format( cfc_5km) +
-                " \t Cloudy fraction 5 km:  {:3.2f}\n".format(float(cfc_5km)/float(len_5km)) +
-                " \t Number of Single shot FOVS:  {:d}\n".format( len_single_shot) +
-                " \t Number of cloudy Single shot FOVS:  {:d}\n".format(cfc_Single_Shot) + 
-                " \t Cloudy fraction Single Shots: {:3.2f}\n".format(float(cfc_Single_Shot)/float(len_single_shot)))    
+    logger.info("*****CHECKING CLOUD FREQUENCY DIFFERENCES IN SINGLE SHOT AND 5KM DATASETS:\n" +
+                " \t \t Number of 5 km FOVS: {:d}\n".format(len_5km) +
+                " \t \t Number of cloudy 5 km FOVS:  {:d}\n".format( cfc_5km) +
+                " \t \t Cloudy fraction 5 km:  {:3.2f}\n".format(float(cfc_5km)/float(len_5km)) +
+                " \t \t Number of Single shot FOVS:  {:d}\n".format( len_single_shot) +
+                " \t \t Number of cloudy Single shot FOVS:  {:d}\n".format(cfc_Single_Shot) + 
+                " \t \t Cloudy fraction Single Shots: {:3.2f}\n".format(float(cfc_Single_Shot)/float(len_single_shot)) + 
+                " \t \t Number of Combined FOVS:  {:d}\n".format(len_single_shot) +
+                " \t \t Number of cloudy combined FOVS:  {:d}\n".format(cfc_combined) + 
+                " \t \t Cloudy fraction combined: {:3.2f}\n".format(float(cfc_combined)/float(len_single_shot))) 
     # Now calculate the cloud fraction in 5 km data from single shot data (fraction of 15 FOVs declared cloudy).
     # In addition, if there are cloud layers in 5 km data but nothing in single shot data, set cloud fraction to 1.0.
     # This latter case represents when very thin cloud layers are being detected over longer distances.
