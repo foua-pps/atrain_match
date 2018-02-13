@@ -180,7 +180,7 @@ def read_calipso_the_single_shot_info(retv, h5file):
     single_shot_cloud_cleared_array = 15-single_shot_cloud_cleared_array #Number of cloudy
     name = "Number_cloudy_single_shots" # New name used here
     #pdb.set_trace()
-    setattr(retv, name, single_shot_cloud_cleared_array)
+    setattr(retv, name, np.array(single_shot_cloud_cleared_array))
     #We need also average cloud top and cloud base for single_shot clouds
     data = h5file["Single_Shot_Detection/ssLayer_Base_Altitude"].value
     data = np.array(data)
@@ -274,6 +274,9 @@ def read_calipso(filename, res, ALAY=False):
             retv.elevation = retv.dem_surface_elevation[:,2]*1000.0    
         setattr(retv, "sec_1970", retv.profile_time_tai + dsec)
         h5file.close()
+        #for array_name, array in retv.all_arrays.items():
+        #    if getattr(retv, array_name) is not None and len(array.shape)==2 and array.shape[1]==1:
+        #        setattr(retv,array_name, array.ravel())
     return retv  
 
 def discardCalipsoFilesOutsideTimeRange(calipsofiles_list, avhrrGeoObj, values, res=resolution, ALAY=False):
@@ -564,15 +567,16 @@ def addSingleShotTo5km(Obj5): # Valid only for CALIPSO-CALIOP version 4.10
     # COT to 1.0. Cloud base and cloud tp for this layer is calculated as averages from original levels (max height for
     # top and min height for base if there are more than one layer).This is a pragmatic solution to take care of a
     # weakness or bug in the (CALIPSO-Version3?) retrieval of clouds below 4 km
-    cfc = Obj5.Number_cloudy_single_shots/15.0
-    print cfc
+    cfc = Obj5.Number_cloudy_single_shots.ravel()/15.0
+    layers_found_5km = Obj5.number_layers_found.ravel()
     cfc[np.equal(cfc, 1.0)] = 0.99
-    cfc[np.greater(Obj5.number_layers_found, 0)] = 1.0
+    cfc[np.greater(layers_found_5km, 0)] = 1.0
     update_these = np.logical_and(np.greater(cfc, 0.001),
-                                  np.equal(Obj5.number_layers_found, 0))
+                                  np.equal(layers_found_5km, 0))
     Obj5.number_layers_found[update_these] = 1
-    Obj5.layer_top_altitude[update_these, 0] = Obj5.Average_cloud_top_single_shots[update_these] # Averaged from single shot data
-    Obj5.layer_base_altitude[update_these, 0] = Obj5.Average_cloud_base_single_shots[update_these] # Averaged from single shot data
+
+    Obj5.layer_top_altitude[update_these, 0] = Obj5.Average_cloud_top_single_shots[update_these].ravel() # Averaged from single shot data
+    Obj5.layer_base_altitude[update_these, 0] = Obj5.Average_cloud_base_single_shots[update_these].ravel() # Averaged from single shot data
     Obj5.feature_optical_depth_532[update_these, 0] = 1.0 #Just put it safely away from the thinnest cloud layers - the best we can do!
     Obj5.cloud_fraction = cfc
     return Obj5
