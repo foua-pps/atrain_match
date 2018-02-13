@@ -965,100 +965,108 @@ def get_matchups_from_data(cross, config_options):
     Retrieve Cloudsat- and Calipso-AVHRR matchups from Cloudsat, Calipso, and
     PPS files.
     """
-    import os #@Reimport
+    #STEP 1 get imager files
     if (PPS_VALIDATION ):
         avhrr_file, tobj = find_radiance_file(cross, config_options)
-        values = get_satid_datetime_orbit_from_fname(avhrr_file)
-        if not avhrr_file:
-            raise MatchupError("No avhrr file found!\ncross = " + str(cross))
-        pps_files = find_files_from_avhrr(avhrr_file, config_options)   
-        retv =read_pps_data(pps_files, avhrr_file, cross)
-        (avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, 
-         nwp_obj, cpp, nwp_segments, cma )= retv
-        date_time = values["date_time"]
+        pps_files = find_files_from_avhrr(avhrr_file, config_options) 
     if (CCI_CLOUD_VALIDATION):
         avhrr_file, tobj = find_cci_cloud_file(cross, config_options)
-        #avhrr_file = "20080613002200-ESACCI-L2_CLOUD-CLD_PRODUCTS-AVHRRGAC-NOAA18-fv1.0.nc"
-        values = get_satid_datetime_orbit_from_fname(avhrr_file)
-        avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, surftemp, cpp =read_cloud_cci(avhrr_file)
-        nwp_segments = None
-        nwp_obj = NWPObj({'surftemp':surftemp})        
-        avhrrGeoObj.satellite = values["satellite"];
-        date_time = values["date_time"]
     if (MAIA_CLOUD_VALIDATION):
         avhrr_file, tobj = find_maia_cloud_file(cross, config_options)
-        #viiCT_npp_DB_20120817_S035411_E035535_DES_N_La052_Lo-027_00001.h5
-        values = get_satid_datetime_orbit_from_fname(avhrr_file)
-        avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, surftemp, cpp, cma =read_cloud_maia(avhrr_file)
-        nwp_segments = None
-        nwp_obj = NWPObj({'surftemp':surftemp})        
-        avhrrGeoObj.satellite = values["satellite"];
-        date_time = values["date_time"]
+    if not avhrr_file:
+        raise MatchupError("No avhrr file found!\ncross = " + str(cross))
+    values = get_satid_datetime_orbit_from_fname(avhrr_file)
+    date_time = values["date_time"]
 
+    #Step 2 get truth satellite files
     #CLOUDSAT:  
-    cl_matchup = None
-
+    cloudsat_files = None
     if (PPS_VALIDATION and config.CLOUDSAT_MATCHING):
         cloudsat_files = find_cloudsat_files(date_time, config_options, values)
-        if (isinstance(cloudsat_files, str) == True or 
-            (isinstance(cloudsat_files, list) and len(cloudsat_files) != 0)):
-            logger.info("Read CLOUDSAT %s data" % config.CLOUDSAT_TYPE)
-            cl_matchup = get_cloudsat_matchups(cloudsat_files, 
-                                               avhrrGeoObj, avhrrObj, ctype, cma,
-                                               ctth, nwp_obj, avhrrAngObj, cpp, 
-                                               nwp_segments, config_options)
-        else:
+        if  len(cloudsat_files) == 0:
+            cloudsat_files = None
             logger.info("NO CLOUDSAT File, Continue")
     elif CCI_CLOUD_VALIDATION:
         logger.info("NO CLOUDSAT File,"
-                    "CCI-cloud validation only for calipso, Continue",
+                    "CCI-cloud validation only for calipso, Continue"
                     "It might be working though ...")
     elif not config.CLOUDSAT_MATCHING:
         logger.info("NO CLOUDSAT File, CLOUDSAT matching not requested config.CLOUDSAT_MATCHING=False")     
- 
     #ISS:  
-    iss_matchup = None
+    iss_files = None
     if (PPS_VALIDATION and config.ISS_MATCHING):
         iss_files = find_iss_files(date_time, config_options, values)
-        print iss_files
-        if (isinstance(iss_files, str) == True or 
-            (isinstance(iss_files, list) and len(iss_files) != 0)):
-            logger.info("Read ISS %s data")
-            iss_matchup = get_iss_matchups(iss_files, 
-                                               avhrrGeoObj, avhrrObj, ctype, cma,
-                                               ctth, nwp_obj, avhrrAngObj, cpp, 
-                                               nwp_segments, config_options)
-        else:
+        if len(iss_files) == 0:
+            iss_files = None
             logger.info("NO ISS File, Continue")
     elif CCI_CLOUD_VALIDATION:
-        logger.info("NO ISS File,"
-                    "CCI-cloud validation only for calipso, Continue",
+        logger.info("NO ISS File," 
+                    "CCI-cloud validation only for calipso, Continue" 
                     "It might be working though ...")
     elif not config.ISS_MATCHING:
-        logger.info("NO ISS File, ISS matching not requested config.ISS_MATCHING=False")     
- 
+        logger.info("NO ISS File, ISS matching not requested config.ISS_MATCHING=False")             
     #CALIPSO:
-    ca_matchup = None
+    calipso_files = None
     if config.CALIPSO_MATCHING:
         calipso_files = find_calipso_files(date_time, config_options, values)
-        if (isinstance(calipso_files, str) == True or 
-            (isinstance(calipso_files, list) and len(calipso_files) != 0)):
+        if len(calipso_files) != 0:
             extra_files = get_additional_calipso_files_if_requested(calipso_files)
             calipso5km, calipso1km, calipso5km_aerosol  = extra_files
-      
-            logger.info("Read CALIPSO data")        
-            ca_matchup= get_calipso_matchups(calipso_files, 
-                                             values,
-                                             avhrrGeoObj, avhrrObj, 
-                                             ctype, cma, ctth, 
-                                             nwp_obj, avhrrAngObj, 
-                                             config_options, cpp,
-                                             nwp_segments,
-                                             calipso1km, calipso5km, calipso5km_aerosol)
-        else:
+        else:  
+            calipso_files = None
             logger.info("NO CALIPSO File, Continue")
     else:
         logger.info("NO CALIPSO File, CALIPSO matching not requested config.CALIPSO_MATCHING=False")     
+
+    if calipso_files is None and cloudsat_files is None and iss_files is None:      
+        raise MatchupError(
+                "Couldn't find any matching CALIPSO/CLoudSat/ISS data")
+
+    #STEP 3 Read imager data:    
+    if (PPS_VALIDATION ):
+        retv =read_pps_data(pps_files, avhrr_file, cross)
+        (avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, 
+         nwp_obj, cpp, nwp_segments, cma )= retv
+    if (CCI_CLOUD_VALIDATION):
+        avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, surftemp, cpp, cma = read_cloud_cci(avhrr_file)
+        nwp_segments = None
+        nwp_obj = NWPObj({'surftemp':surftemp}) 
+        avhrrGeoObj.satellite = values["satellite"]
+    if (MAIA_CLOUD_VALIDATION):
+        avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, surftemp, cpp, cma = read_cloud_maia(avhrr_file)
+        nwp_segments = None
+        nwp_obj = NWPObj({'surftemp':surftemp})   
+        avhrrGeoObj.satellite = values["satellite"]
+
+    #STEP 4 get matchups 
+    #ClloudSat
+    cl_matchup = None
+    if (PPS_VALIDATION and config.CLOUDSAT_MATCHING and cloudsat_files is not None):
+        logger.info("Read CLOUDSAT %s data" % config.CLOUDSAT_TYPE)
+        cl_matchup = get_cloudsat_matchups(cloudsat_files, 
+                                           avhrrGeoObj, avhrrObj, ctype, cma,
+                                           ctth, nwp_obj, avhrrAngObj, cpp, 
+                                           nwp_segments, config_options) 
+    #ISS:  
+    iss_matchup = None
+    if (PPS_VALIDATION and config.ISS_MATCHING and iss_files is not None):
+        logger.info("Read ISS %s data")
+        iss_matchup = get_iss_matchups(iss_files, 
+                                       avhrrGeoObj, avhrrObj, ctype, cma,
+                                       ctth, nwp_obj, avhrrAngObj, cpp, 
+                                       nwp_segments, config_options)
+    #CALIPSO:
+    ca_matchup = None
+    if config.CALIPSO_MATCHING and calipso_files is not None:
+        logger.info("Read CALIPSO data")        
+        ca_matchup= get_calipso_matchups(calipso_files, 
+                                         values,
+                                         avhrrGeoObj, avhrrObj, 
+                                         ctype, cma, ctth, 
+                                         nwp_obj, avhrrAngObj, 
+                                         config_options, cpp,
+                                         nwp_segments,
+                                         calipso1km, calipso5km, calipso5km_aerosol)
  
 
     # Get satellite name, time, and orbit number from avhrr_file
@@ -1155,7 +1163,6 @@ def get_matchups(cross, options, reprocess=False):
         date_time_cross = cross.time2
 
     if reprocess is False or USE_EXISTING_RESHAPED_FILES:
-        import os #@Reimport
         diff_avhrr_seconds=None
         avhrr_file=None
         if not USE_EXISTING_RESHAPED_FILES:
@@ -1280,7 +1287,6 @@ def get_matchups(cross, options, reprocess=False):
         values['basename'] = basename
         values['month']="%02d"%(date_time.month)
 
-    #Currently not possible to match wihtout calipso 
     if config.USE_EXISTING_RESHAPED_FILES:
         if caObj is None and config.CALIPSO_REQUIRED:
             raise MatchupError(
