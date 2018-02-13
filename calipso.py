@@ -480,7 +480,7 @@ def add1kmTo5km(Obj1, Obj5):
             Obj5.cloud_fraction[i] = cfc
     return Obj5
 
-def addSingleShotTo5km(Obj5): # Valid only for CALIPSO-CALIOP version 4.10
+def addSingleShotTo5km_old(Obj5): # Valid only for CALIPSO-CALIOP version 4.10
     print "Making use of new Single Shot cloud cleared information"
 
     #First making a preliminary check of the differences in fraction of cloudy calipso columns in 5 km and single shot data.
@@ -501,7 +501,6 @@ def addSingleShotTo5km(Obj5): # Valid only for CALIPSO-CALIOP version 4.10
     else:
         print "Different array length for 5 km and Single Shot data!"
         #sys.exit(-9)
-
     print "*****CHECKING CLOUD FREQUENCY DIFFERENCES IN SINGLE SHOT AND 5KM DATASETS:"
     print " "
     print "Number of 5 km FOVS: ", len_5km
@@ -511,9 +510,7 @@ def addSingleShotTo5km(Obj5): # Valid only for CALIPSO-CALIOP version 4.10
     print "Number of cloudy Single shot FOVS:", cfc_Single_Shot 
     print "Cloudy fraction Single Shots: ", float(cfc_Single_Shot)/float(len_single_shot)
     print " "
-    #pdb.set_trace()
-
-    
+    #pdb.set_trace()                
     # Now calculate the cloud fraction in 5 km data from single shot data (fraction of 15 FOVs declared cloudy).
     # In addition, if there are cloud layers in 5 km data but nothing in single shot data, set cloud fraction to 1.0.
     # This latter case represents when very thin cloud layers are being detected over longer distances.
@@ -521,7 +518,6 @@ def addSingleShotTo5km(Obj5): # Valid only for CALIPSO-CALIOP version 4.10
     # COT to 1.0. Cloud base and cloud tp for this layer is calculated as averages from original levels (max height for
     # top and min height for base if there are more than one layer).This is a pragmatic solution to take care of a
     # weakness or bug in the CALIPSO retrieval of clouds below 4 km
-
     for i in range(Obj5.profile_utc_time.shape[0]):
         cfc = Obj5.Number_cloudy_single_shots[i]/15.0 
         if cfc == 1.0:
@@ -537,6 +533,48 @@ def addSingleShotTo5km(Obj5): # Valid only for CALIPSO-CALIOP version 4.10
 ##             feature_array = np.asarray(feature_array_list)
 ##             Obj5.feature_classification_flags[i, 0] = np.median(feature_array[:]) However, let's take the median value
             Obj5.cloud_fraction[i] = cfc
+    return Obj5
+
+
+def addSingleShotTo5km(Obj5): # Valid only for CALIPSO-CALIOP version 4.10
+    logger.info("Making use of new Single Shot cloud cleared information")
+
+    cfc_5km = 0
+    cfc_Single_Shot = 0
+    len_5km = Obj5.profile_utc_time.shape[0]
+    len_single_shot = Obj5.Number_cloudy_single_shots.shape[0]
+    if len_5km == len_single_shot:
+        cfc_5km = np.sum(np.greater(Obj5.number_layers_found,0))
+        cfc_from_Single_Shot = np.sum(np.greater(Obj5.Number_cloudy_single_shots,15.0*CALIPSO_CLOUDY_MIN_CFC))
+    else:
+        logger.warning("Different array length for 5 km and Single Shot data!")
+        #sys.exit(-9)
+    logger.info("*****CHECKING CLOUD FREQUENCY DIFFERENCES IN SINGLE SHOT AND 5KM DATASETS:")
+    logger.info(" ")
+    logger.info("Number of 5 km FOVS: {:d}".format(len_5km))
+    logger.info("Number of cloudy 5 km FOVS:  {:d}".format( cfc_5km))
+    logger.info("Cloudy fraction 5 km:  {:3.2f}".format(float(cfc_5km)/float(len_5km)))
+    logger.info("Number of Single shot FOVS:  {:d}".format( len_single_shot))
+    logger.info("Number of cloudy Single shot FOVS:  {:d}".format(cfc_Single_Shot)) 
+    logger.info("Cloudy fraction Single Shots: {:3.2f}".format(float(cfc_Single_Shot)/float(len_single_shot)))    
+    # Now calculate the cloud fraction in 5 km data from single shot data (fraction of 15 FOVs declared cloudy).
+    # In addition, if there are cloud layers in 5 km data but nothing in single shot data, set cloud fraction to 1.0.
+    # This latter case represents when very thin cloud layers are being detected over longer distances.
+    # Finally, if there are cloud layers in single shot data but not in 5 km data, add a layer to 5 km data and set corresponding
+    # COT to 1.0. Cloud base and cloud tp for this layer is calculated as averages from original levels (max height for
+    # top and min height for base if there are more than one layer).This is a pragmatic solution to take care of a
+    # weakness or bug in the (CALIPSO-Version3?) retrieval of clouds below 4 km
+    cfc = Obj5.Number_cloudy_single_shots/15.0
+    print cfc
+    cfc[np.equal(cfc, 1.0)] = 0.99
+    cfc[np.greater(Obj5.number_layers_found, 0)] = 1.0
+    update_these = np.logical_and(np.greater(cfc, 0.001),
+                                  np.equal(Obj5.number_layers_found, 0))
+    Obj5.number_layers_found[update_these] = 1
+    Obj5.layer_top_altitude[update_these, 0] = Obj5.Average_cloud_top_single_shots[update_these] # Averaged from single shot data
+    Obj5.layer_base_altitude[update_these, 0] = Obj5.Average_cloud_base_single_shots[update_these] # Averaged from single shot data
+    Obj5.feature_optical_depth_532[update_these, 0] = 1.0 #Just put it safely away from the thinnest cloud layers - the best we can do!
+    Obj5.cloud_fraction = cfc
     return Obj5
 
 
