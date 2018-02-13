@@ -130,6 +130,10 @@ CURRENTLY_UNUSED_MODIS_CHANNELS = ['modis_3',
                                    'modis_35',
                                    'modis_36']
 
+def get_data_from_array(array, matched):
+    return np.array([array[matched['row'][idx], matched['col'][idx]]
+                     for idx in range(matched['row'].shape[0])]) 
+
 def get_channel_data_from_object(dataObj, chn_des, matched, nodata=-9):
     """Get the AVHRR/VIIRS channel data on the track
 
@@ -155,8 +159,9 @@ def get_channel_data_from_object(dataObj, chn_des, matched, nodata=-9):
     if matched is None:
         return channels[chnum].data, ""
     
-    chdata_on_track = np.array([channels[chnum].data[matched['row'][idx], matched['col'][idx]]
-                       for idx in range(matched['row'].shape[0])])
+    chdata_on_track = get_data_from_array(channels[chnum].data, matched)
+    #np.array([channels[chnum].data[matched['row'][idx], matched['col'][idx]]
+    #                   for idx in range(matched['row'].shape[0])])
     extra_info = ""
     if channels[chnum].SZA_corr_done:
         extra_info = "_sza_correction_done"
