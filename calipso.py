@@ -548,18 +548,18 @@ def addSingleShotTo5km(Obj5): # Valid only for CALIPSO-CALIOP version 4.10
     len_single_shot = Obj5.Number_cloudy_single_shots.shape[0]
     if len_5km == len_single_shot:
         cfc_5km = np.sum(np.greater(Obj5.number_layers_found,0))
-        cfc_from_Single_Shot = np.sum(np.greater(Obj5.Number_cloudy_single_shots,15.0*CALIPSO_CLOUDY_MIN_CFC))
+        cfc_from_Single_Shot = np.sum(np.greater_equal(Obj5.Number_cloudy_single_shots,15.0*CALIPSO_CLOUDY_MIN_CFC))
     else:
         logger.warning("Different array length for 5 km and Single Shot data!")
         #sys.exit(-9)
-    logger.info("*****CHECKING CLOUD FREQUENCY DIFFERENCES IN SINGLE SHOT AND 5KM DATASETS:")
-    logger.info(" ")
-    logger.info("Number of 5 km FOVS: {:d}".format(len_5km))
-    logger.info("Number of cloudy 5 km FOVS:  {:d}".format( cfc_5km))
-    logger.info("Cloudy fraction 5 km:  {:3.2f}".format(float(cfc_5km)/float(len_5km)))
-    logger.info("Number of Single shot FOVS:  {:d}".format( len_single_shot))
-    logger.info("Number of cloudy Single shot FOVS:  {:d}".format(cfc_Single_Shot)) 
-    logger.info("Cloudy fraction Single Shots: {:3.2f}".format(float(cfc_Single_Shot)/float(len_single_shot)))    
+    logger.info("*****CHECKING CLOUD FREQUENCY DIFFERENCES IN SINGLE SHOT AND 5KM DATASETS:\n"+
+                " hej" +
+                " \t Number of 5 km FOVS: {:d}\n".format(len_5km) +
+                " \t Number of cloudy 5 km FOVS:  {:d}\n".format( cfc_5km) +
+                " \t Cloudy fraction 5 km:  {:3.2f}\n".format(float(cfc_5km)/float(len_5km)) +
+                " \t Number of Single shot FOVS:  {:d}\n".format( len_single_shot) +
+                " \t Number of cloudy Single shot FOVS:  {:d}\n".format(cfc_Single_Shot) + 
+                " \t Cloudy fraction Single Shots: {:3.2f}\n".format(float(cfc_Single_Shot)/float(len_single_shot)))    
     # Now calculate the cloud fraction in 5 km data from single shot data (fraction of 15 FOVs declared cloudy).
     # In addition, if there are cloud layers in 5 km data but nothing in single shot data, set cloud fraction to 1.0.
     # This latter case represents when very thin cloud layers are being detected over longer distances.
