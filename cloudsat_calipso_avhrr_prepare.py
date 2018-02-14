@@ -148,11 +148,9 @@ def CalipsoOpticalDepthHeightFiltering1km(CaObj):
     clouds_to_update = np.logical_and(
         CaObj.calipso.layer_top_altitude[:,0]*1000>CaObj.calipso.detection_height_5km,
         np.not_equal(CaObj.calipso.detection_height_5km, -9))
-    CaObj.calipso.validation_height = np.where(
-        clouds_to_update,
-        new_cloud_tops,
-        CaObj.calipso.validation_height)
-    return CaObj
+    return np.where(clouds_to_update,
+                    new_cloud_tops,
+                    CaObj.calipso.validation_height)
 
 
 def detection_height_from_5km_data(Obj1, Obj5, limit_ctop=OPTICAL_LIMIT_CLOUD_TOP):
@@ -175,9 +173,11 @@ def CalipsoOpticalDepthSetThinToClearFiltering1km(CaObj):
     set_to_clear = np.logical_and(
         CaObj.calipso.number_layers_found>0,
         isThin_clouds)
-    CaObj.calipso.cloud_fraction[set_to_clear] = 0.00001
-    CaObj.calipso.validation_height[set_to_clear] = -9
-    return CaObj
+    cloud_fraction =  CaObj.calipso.cloud_fraction
+    validation_height = CaObj.calipso.validation_height
+    cloud_fraction[set_to_clear] = 0.00001
+    validation_height[set_to_clear] = -9
+    return cloud_fraction, validation_height
  
 
 
