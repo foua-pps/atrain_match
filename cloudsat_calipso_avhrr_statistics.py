@@ -285,6 +285,9 @@ def print_cpp_stats(cObj, statfile, val_subset):
         logger.warning("There are no cpp data.")
         return
     from validate_cph import get_calipso_phase_inner, CALIPSO_PHASE_VALUES
+    val_subset = np.logical_and(
+        val_subset, 
+        cObj.calipso.cloud_fraction > config.CALIPSO_CLOUDY_MIN_CFC)
     cal_phase = get_calipso_phase_inner(
         cObj.calipso.feature_classification_flags, 
         max_layers=10,
@@ -627,11 +630,17 @@ def print_stats_ctop(cObj, statfile, val_subset, low_medium_high_class):
     # CORRELATION: CALIOP - IMAGER HEIGHT
     # FIRST TOTAL FIGURES
 
+
     cObj_imager = getattr(cObj, 'avhrr') #Same as cObj.avhrr
     cObj_truth_sat= getattr(cObj, cObj.truth_sat) #cObj.calipso or cObj.iss
     imager_ctth_m_above_seasurface = cObj_imager.imager_ctth_m_above_seasurface  
     truth_sat_validation_height = cObj_truth_sat.validation_height
     (dummy, imager_is_cloudy) = find_imager_clear_cloudy(cObj)
+                        
+    val_subset = np.logical_and(
+        val_subset, 
+        cObj_truth_sat.cloud_fraction > config.CALIPSO_CLOUDY_MIN_CFC)
+
  
     #print "ALL CLOUDS:" 
     print_height_all_low_medium_high(cObj.truth_sat.upper(),

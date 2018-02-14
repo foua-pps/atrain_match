@@ -1562,5 +1562,5 @@ def run(cross, run_modes, config_options, reprocess=False):
     #We are done, free some memory:        
     caObj = None
     clsatObj = None
-    isObj = None
+    issObj = None
 
