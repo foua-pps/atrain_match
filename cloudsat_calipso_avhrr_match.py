@@ -727,7 +727,7 @@ def get_calipso_matchups(calipso_files, values,
                                        end_break=endBreak) 
         calipso = total_and_top_layer_optical_depth_5km(calipso, resolution=5)
     else:
-        logger.info("Standard method used (no additional resolutions or layers)!")
+        logger.warning("Old metod, only one resolution used, expect bad results!")
         calipso = time_reshape_calipso(calipso,  
                                        start_break=startBreak, 
                                        end_break=endBreak)
