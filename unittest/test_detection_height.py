@@ -6,9 +6,44 @@
 import numpy as np
 import unittest
 from cloudsat_calipso_avhrr_prepare import  (detection_height_from_5km_data,
-                                             CalipsoCloudOpticalDepth_new,
-                                             CalipsoCloudOpticalDepth)
+                                             CalipsoCloudOpticalDepth_new)
 from matchobject_io import CalipsoObject
+
+
+def CalipsoCloudOpticalDepth(cloud_top, cloud_base, optical_depth, cloud_fraction, fcf, min_optical_depth):
+    from config import MIN_OPTICAL_DEPTH
+    new_cloud_top = np.ones(cloud_top.shape,'d')*np.min(cloud_top)
+    new_cloud_base = np.ones(cloud_base.shape,'d')*np.min(cloud_base)
+    new_cloud_fraction = np.zeros(cloud_fraction.shape,'d')
+    new_fcf = np.ones(fcf.shape).astype(fcf.dtype)
+    for pixel_i in range(optical_depth.shape[0]):
+        depthsum = 0 #Used to sum the optical_depth
+        for layer_j in range(optical_depth.shape[1]):
+            # Just stops the for loop when there are no more valid value 
+            if optical_depth[pixel_i, layer_j] < 0:
+                break
+            else:
+                depthsum = depthsum + optical_depth[pixel_i, layer_j]
+                if depthsum >= min_optical_depth:
+                    new_cloud_top[pixel_i, 0:(optical_depth.shape[1]-layer_j)] = cloud_top[pixel_i, layer_j:]
+                    new_cloud_base[pixel_i, 0:(optical_depth.shape[1]-layer_j)] = cloud_base[pixel_i, layer_j:]
+                    new_cloud_fraction[pixel_i] = cloud_fraction[pixel_i] 
+                    new_fcf[pixel_i, 0:(fcf.shape[1]-layer_j)] = fcf[pixel_i, layer_j:]
+                    for k in range(new_cloud_top.shape[1]):
+                        if new_cloud_top[pixel_i, k] < 0:
+                            break
+                        else:
+                            new_cloud_top[pixel_i, k] = new_cloud_base[pixel_i, k] + \
+                            ((new_cloud_top[pixel_i, k] - new_cloud_base[pixel_i, k]) * 1/2.)
+                    break
+    new_validation_height = new_cloud_top[:,0].copy()
+    new_validation_height[new_validation_height>=0] *= 1000
+    new_validation_height[new_validation_height<0] = -9
+    return new_cloud_top, new_cloud_base, new_cloud_fraction, new_fcf, new_validation_height
+
+
+
+
 class test_detection_height(unittest.TestCase): 
 
     def setUp(self):

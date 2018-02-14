@@ -5,9 +5,27 @@
 #
 import numpy as np
 import unittest
-from calipso import  (addSingleShotTo5km,
-                      addSingleShotTo5km_old)
+from calipso import  (addSingleShotTo5km)
 from matchobject_io import CalipsoObject
+
+
+def addSingleShotTo5km_old(Obj5): # Valid only for CALIPSO-CALIOP version 4.10
+    # weakness or bug in the CALIPSO retrieval of clouds below 4 km
+    for i in range(Obj5.profile_utc_time.shape[0]):
+        cfc = Obj5.Number_cloudy_single_shots[i]/15.0 
+        if cfc == 1.0:
+            cfc = 0.99
+        if (Obj5.number_layers_found[i] > 0):
+            Obj5.cloud_fraction[i] = 1.0
+        if ((cfc > 0.01) and (Obj5.number_layers_found[i] == 0)):
+            Obj5.number_layers_found[i] = 1
+            Obj5.layer_top_altitude[i, 0] = Obj5.Average_cloud_top_single_shots[i]
+            Obj5.layer_base_altitude[i, 0] = Obj5.Average_cloud_base_single_shots[i]
+            Obj5.feature_optical_depth_532[i, 0] = 1.0
+            Obj5.cloud_fraction[i] = cfc
+    return Obj5
+
+
 class test_addSingleShot(unittest.TestCase): 
 
     def setUp(self):

@@ -71,51 +71,6 @@ def CalipsoCloudOpticalDepth_new(calipso, min_optical_depth, use_old_method=Fals
             new_cloud_top_pressure, new_cloud_base_pressure)
 
 
-def CalipsoCloudOpticalDepth(cloud_top, cloud_base, optical_depth, cloud_fraction, fcf, min_optical_depth):
-    # DEPRICATED! #20170913
-    # Use CalipsoCloudOpticalDepth_new(calipso, min_optical_depth, use_old_method=True,
-    #                             limit_ctop=OPTICAL_LIMIT_CLOUD_TOP)
-    # ... if the old method is wanted!
-    # I will keep the code for a while to be able to compare with unit test that it does the same thing
-
-    from config import MIN_OPTICAL_DEPTH
-
-    new_cloud_top = np.ones(cloud_top.shape,'d')*np.min(cloud_top)
-    new_cloud_base = np.ones(cloud_base.shape,'d')*np.min(cloud_base)
-    new_cloud_fraction = np.zeros(cloud_fraction.shape,'d')
-    new_fcf = np.ones(fcf.shape).astype(fcf.dtype)
-    
-    for pixel_i in range(optical_depth.shape[0]):
-
-        depthsum = 0 #Used to sum the optical_depth
-        for layer_j in range(optical_depth.shape[1]):
-            # Just stops the for loop when there are no more valid value 
-            if optical_depth[pixel_i, layer_j] < 0:
-                break
-            else:
-                depthsum = depthsum + optical_depth[pixel_i, layer_j]
-            
-                # Removes the cloud values for all pixels that have a optical depth (integrated from the top) below MIN_OPTICAL_DEPTH and moves the first valid value to the first column and so on.
-                #if depthsum >= MIN_OPTICAL_DEPTh:
-                if depthsum >= min_optical_depth:
-                    new_cloud_top[pixel_i, 0:(optical_depth.shape[1]-layer_j)] = cloud_top[pixel_i, layer_j:]
-                    new_cloud_base[pixel_i, 0:(optical_depth.shape[1]-layer_j)] = cloud_base[pixel_i, layer_j:]
-                    # new_cloud_fraction[pixel_i] = 1
-                    new_cloud_fraction[pixel_i] = cloud_fraction[pixel_i] # Let's still trust in what is seen in 1 km data/KG
-                    new_fcf[pixel_i, 0:(fcf.shape[1]-layer_j)] = fcf[pixel_i, layer_j:]
-                    #extrra to get a cloud top that corresponds better to avhrr
-                    for k in range(new_cloud_top.shape[1]):
-                        if new_cloud_top[pixel_i, k] < 0:
-                            break
-                        else:
-                            new_cloud_top[pixel_i, k] = new_cloud_base[pixel_i, k] + \
-                            ((new_cloud_top[pixel_i, k] - new_cloud_base[pixel_i, k]) * 1/2.)
-                    break
-    new_validation_height = new_cloud_top[:,0].copy()
-    new_validation_height[new_validation_height>=0] *= 1000
-    new_validation_height[new_validation_height<0] = -9
-    return new_cloud_top, new_cloud_base, new_cloud_fraction, new_fcf, new_validation_height
-
 def check_total_optical_depth_and_warn(caObj):
     obj = caObj.calipso
     if  (obj.total_optical_depth_5km is not None and 

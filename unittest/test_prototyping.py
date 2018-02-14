@@ -52,11 +52,11 @@ class test_prototyping_utils(unittest.TestCase):
         out_c = retv['col']
         out_r2, out_c2 = get_warmest_index_old(self.t11, self.matched)
 
-        self.assertEqual(out_r[0:4], [0,0,0,0])
-        self.assertEqual(out_c[0:4], [1,1,1,1])
-        self.assertEqual(out_r[4:7], [2,2,2])
-        self.assertEqual(out_c[4:7], [4,4,4])
-        self.assertEqual(out_c[7:10], [9,9,9])
+        self.assertTrue((out_r[0:4]== [0,0,0,0]).all())
+        self.assertTrue((out_c[0:4] ==[1,1,1,1]).all())
+        self.assertTrue((out_r[4:7] ==[2,2,2]).all())
+        self.assertTrue((out_c[4:7] ==[4,4,4]).all())
+        self.assertTrue((out_c[7:10] ==[9,9,9]).all())
         self.assertTrue((out_c ==  out_c2).all())
         self.assertTrue((out_r == out_r2).all())
 def suite():
