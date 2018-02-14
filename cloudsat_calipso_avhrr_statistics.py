@@ -463,7 +463,7 @@ def print_calipso_stats_ctype(caObj, statfile, val_subset, low_medium_high_class
                                  val_subset)
 
     if  caObj.avhrr.cloudtype_conditions is not None: 
-        logger.info("Assuming cloudtype structure from pps v2014")
+        logger.debug("Assuming cloudtype structure from pps v2014")
         avhrr_low = np.logical_and(
             np.logical_and(np.greater_equal(caObj.avhrr.cloudtype,5),
                            np.less_equal(caObj.avhrr.cloudtype,6)),
@@ -483,7 +483,7 @@ def print_calipso_stats_ctype(caObj, statfile, val_subset, low_medium_high_class
                                     val_subset)
 
     else:
-        logger.info("Assuming cloudtype structure from pps v2012")
+        logger.warning("Assuming cloudtype structure from pps v2012")
         avhrr_low = np.logical_and(
             np.logical_and(np.greater_equal(caObj.avhrr.cloudtype,5),
                            np.less_equal(caObj.avhrr.cloudtype,8)),
