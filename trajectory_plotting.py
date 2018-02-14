@@ -13,7 +13,7 @@ def plotSatelliteTrajectory(longitude,
     if 'trajectory_plot_area'  in options:
         area_id = options['trajectory_plot_area']
     else:
-        area_id = "mill10km_test"
+        area_id = "pc_world" # Global area
     print area_id    
         
     track = np.ones(latitude.shape)
@@ -24,7 +24,7 @@ def plotSatelliteTrajectory(longitude,
     area_def = pr.utils.load_area(area_config_file, area_id)
 
     result = pr.kd_tree.resample_nearest(swath_def, track, area_def,
-                                         radius_of_influence=20000, fill_value=None)
+                                         radius_of_influence=20*1000, fill_value=None)
 
     import matplotlib.pyplot as plt
     import pylab

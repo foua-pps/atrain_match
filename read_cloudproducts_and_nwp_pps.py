@@ -8,10 +8,15 @@ import calendar
 from datetime import datetime
 logger = logging.getLogger(__name__)
 from config import (NODATA, PPS_FORMAT_2012_OR_EARLIER,  CTTH_TYPES, 
-                    CMA_PROB_VALIDATION, CMA_PROB_CLOUDY_LIMIT)
+                    CMA_PROB_VALIDATION, CMA_PROB_CLOUDY_LIMIT, RESOLUTION)
 ATRAIN_MATCH_NODATA = NODATA
 #logger.debug('Just so you know: this module has a logger...')
 
+DSEC_PER_AVHRR_SCALINE = 1.0/6. * 4 # A "work for the time being" solution.
+if RESOLUTION == 1:
+    DSEC_PER_AVHRR_SCALINE = 1.0/6. # Full scan period, i.e. the time
+                                    # interval between two consecutive
+                                    # lines (sec)
 def get_satid_datetime_orbit_from_fname_pps(avhrr_filename,as_oldstyle=False):
     #import runutils
     #satname, _datetime, orbit = runutils.parse_scene(avhrr_filename)
@@ -53,7 +58,7 @@ def get_satid_datetime_orbit_from_fname_pps(avhrr_filename,as_oldstyle=False):
 def createAvhrrTime(Obt, values=None, Trust_sec_1970=False):
     """ Function to make crate a matrix with time for each pixel 
     from objects start adn end time """
-    from config import DSEC_PER_AVHRR_SCALINE, IMAGER_INSTRUMENT 
+    from config import IMAGER_INSTRUMENT 
     #filename = os.path.basename(filename)
     # Ex.: npp_20120827_2236_04321_satproj_00000_04607_cloudtype.h5
     if IMAGER_INSTRUMENT == 'viirs':
@@ -79,6 +84,7 @@ def createAvhrrTime(Obt, values=None, Trust_sec_1970=False):
             scanlines multiplied with the estimate scan time for the instrument. 
             This estimation is not that correct but what to do?
             """
+            logger.warning("I need DSEC_PER_AVHRR_SCALINE, to continue ")
             Obt.sec1970_end = int(DSEC_PER_AVHRR_SCALINE * Obt.num_of_lines + Obt.sec1970_start)
         datetime=values["date_time"]
         sec1970_start_filename = calendar.timegm(datetime.timetuple())
