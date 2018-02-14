@@ -2,6 +2,8 @@
 # python cloudsat_calipso_avhrr_prepare.py 
 import numpy as np
 from config import OPTICAL_DETECTION_LIMIT, OPTICAL_LIMIT_CLOUD_TOP, NODATA
+import logging
+logger = logging.getLogger(__name__)
 
 def CalipsoCloudOpticalDepth_new(calipso, min_optical_depth, use_old_method=False,
                                  limit_ctop=OPTICAL_LIMIT_CLOUD_TOP):
@@ -40,7 +42,6 @@ def CalipsoCloudOpticalDepth_new(calipso, min_optical_depth, use_old_method=Fals
             fraction_into_cloud = 0.5
         #For KGs method set fraction_into_cloud = 0.5 always
         distance_down_in_cloud_we_see[:,layer_j] = geometrical_distance_cloud*fraction_into_cloud 
-
     for layer_j in xrange(N10):
         total_optical_depth_layers_above = depthsum.copy()
         this_layer_optical_depth = calipso.feature_optical_depth_532[:, layer_j].ravel()
