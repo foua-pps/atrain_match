@@ -7,7 +7,6 @@ from config import (CASES, COMPILE_STATISTICS_TRUTH, RESOLUTION, _validation_res
                     MIN_OPTICAL_DEPTH, CCI_CLOUD_VALIDATION,
                     DNT_FLAG, CONFIG_PATH, SURFACES,
                     COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC,
-                    COMPILE_RESULTS_SEPARATELY_FOR_SEMI_AND_OPAQUE,
                     ALSO_USE_5KM_FILES, VAL_CPP)
 
 import logging
