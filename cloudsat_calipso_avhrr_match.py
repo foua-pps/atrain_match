@@ -1440,12 +1440,13 @@ def process_one_mode(process_mode_dnt, caObj, clsatObj, issObj,
     statfilename = os.path.join(result_path, result_file)                           
     #=============================================================
     # Draw plot
+    logger.debug("Plotting")
     if process_mode_dnt in config.PLOT_MODES:
         plot_some_figures(clsatObj, caObj, values, basename, process_mode, 
                           config_options)
     #==============================================================
     #Calculate Statistics
-    logger.info("Calculating statistics")
+    logger.debug("Calculating statistics")
     CalculateStatistics(process_mode, statfilename, caObj, clsatObj, issObj,
                         dnt_flag)
     #=============================================================
