@@ -12,6 +12,8 @@ import datetime
 import logging
 logger = logging.getLogger(__name__)
 import time
+from config import NODATA
+ATRAIN_MATCH_NODATA = NODATA
 #import h5py
 #from mpop.satin.nwcsaf_pps import NwcSafPpsChannel
 def get_satid_datetime_orbit_from_fname_cci(avhrr_filename):
@@ -233,62 +235,38 @@ def read_cci_ctth(cci_nc):
     ctth = CtthObj()
     cth = cci_nc.variables['cth'][::]
     if hasattr(cth, 'mask'):
-        cth_data = np.where(cth.mask, -999, cth.data)
+        cth_data = np.where(cth.mask, ATRAIN_MATCH_NODATA, cth.data)
     else:
-        cth_data = cth.data   #*cci_nc.variables['cth'].scale_factor+cci_nc.variables['cth'].add_offset)
+        cth_data = cth.data # already scaled!
     
-    ctth.h_gain = 200.0
+    ctth.h_gain = 1.0
     ctth.h_intercept = 0.0
-    ctth.h_nodata = 255
-    ctth.h_valid_max = 254
-    ctth.h_valid_min = 0
+    ctth.h_nodata = ATRAIN_MATCH_NODATA
     data = (1/ctth.h_gain)*(1000*cth_data-ctth.h_intercept) #*1000 data in km
-    ctth.height = np.where(cth.mask, ctth.h_nodata, data)
-    
-    
+    ctth.height = 1000*cth_data
+        
     ctt = cci_nc.variables['ctt'][::]
     if hasattr(ctt, 'mask'):
-        ctt_data = np.where(ctt.mask, -999, ctt.data)
+        ctt_data = np.where(ctt.mask, ATRAIN_MATCH_NODATA, ctt.data)
     else:
         ctt_data = ctt.data
     #*cci_nc.variables['cth'].scale_factor+cci_nc.variables['cth'].add_offset)
     ctth.t_gain = 1.0
-    ctth.t_intercept = 100
-    ctth.t_nodata = 255
-    ctth.t_valid_max = 254
-    ctth.t_valid_min = 0
-    data = (1/ctth.t_gain)*(ctt_data-ctth.t_intercept)
-    ctth.temperature = np.where(ctt.mask, ctth.t_nodata, data)
+    ctth.t_intercept = 0.0
+    ctth.t_nodata = ATRAIN_MATCH_NODATA
+    ctth.temperature = ctt_data
     
-
     ctp = cci_nc.variables['ctp'][::]
     if hasattr(ctp, 'mask'):
-        ctp_data = np.where(ctp.mask, -999, ctp.data)#Upscaled
+        ctp_data = np.where(ctp.mask,  ATRAIN_MATCH_NODATA, ctp.data)#Upscaled
     else:
         ctp_data = ctp.data
     #*cci_nc.variables['cth'].scale_factor+cci_nc.variables['cth'].add_offset)
-    ctth.p_gain = 25.0
+    ctth.p_gain = 1.0
     ctth.p_intercept = 0.0
-    ctth.p_nodata = 255
-    ctth.p_valid_max = 254
-    ctth.p_valid_min = 0
-    data = (1/ctth.p_gain)*(ctp_data-ctth.p_intercept)
-    ctth.pressure =  np.where(ctp.mask, ctth.p_nodata, data)
+    ctth.p_nodata =  ATRAIN_MATCH_NODATA
+    ctth.pressure =  ctp_data
 
-
-    ctth.des = "CLOUD CCI Cloud Top Temperature & Height"
-    ctth.ctt_des = "This is the ctt_des description"
-    ctth.cth_des = "This is the cth_des description"
-    ctth.ctp_des = "This is the ctp_des description"
-    ctth.cloudiness_des = "This is the cloudiness description"
-    ctth.processingflag_des = "This is the processingflag description"
-    ctth.sec_1970 = "Is this used in atrain_match???"
-    ctth.satellite_id = "???"
-
-    ctth.processingflag_lut = []
-
-    ctth.c_nodata = 255
-    ctth.cloudiness = None
     return ctth
 
 if __name__ == "__main__":
