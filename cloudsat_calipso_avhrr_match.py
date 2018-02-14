@@ -1402,23 +1402,8 @@ def plot_some_figures(clsatObj, caObj, values, basename, process_mode,
                                  data_okcwc, 
                                  plotpath, basename, phase,
                                  instrument=IMAGER_INSTRUMENT)
-                                
-def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=False):
 
-    """
-    The main work horse.
-    
-    """    
-    logger.info("Case: %s" % str(cross))
-
-    sno_satname = cross.satellite1.lower()
-    if sno_satname in ['calipso', 'cloudsat']:
-        sno_satname = cross.satellite2.lower()
-    sensor = INSTRUMENT.get(sno_satname, 'avhrr')
-    if sensor.lower() != IMAGER_INSTRUMENT.lower() :
-        logger.error("Uncertain of sensor: %s or %s?" %(sensor.upper(), IMAGER_INSTRUMENT.upper() )  )
-
-    # split process_mode_dnt into two parts. One with process_mode and one dnt_flag
+def split_process_mode_and_dnt_part(process_mode_dnt):        
     mode_dnt = process_mode_dnt.split('_')
     if len(mode_dnt) == 1:
         process_mode = process_mode_dnt
@@ -1429,76 +1414,19 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     else:
         process_mode = process_mode_dnt
         dnt_flag = None
+    return process_mode, dnt_flag
+ 
 
-    if not config.USE_CMA_FOR_CFC_STATISTICS and config.CMA_PROB_VALIDATION:
-        logger.error("Probably you should set USE_CMA_FOR_CFC_STATISTICS=True!")
-        logger.error("As you are validation CMA-prob you should not use CT-file"
-                     "for CFC-statistics")
-
-        raise MatchupError("Configure problems, see messages above.")
-
-
-    #  Also get maximum and minimum time differences to AVHRR (in seconds)
-    matchup_results = get_matchups(cross, config_options, reprocess)
-    caObj = matchup_results['calipso']
-    issObj = matchup_results['iss']
-    clsatObj = matchup_results['cloudsat']
-    values = matchup_results['values']
-    basename = matchup_results['basename']
-    if caObj is not None and caObj.calipso.cloudsat_index is None:
-        logger.info("Adding some stuff that might not be in older reshaped files")
-        clsatObj, caObj = add_additional_clousat_calipso_index_vars(clsatObj, caObj)
-    logger.info("Adding validation height that might not be in older reshaped files")
-    clsatObj, caObj = add_validation_ctth(clsatObj, caObj)
-    #Calculate hight from sea surface 
-    clsatObj, caObj, issObj = add_elevation_corrected_imager_ctth(clsatObj, caObj, issObj)
-    # If mode = OPTICAL_DEPTH -> Change cloud -top and -base profile
-    if caObj is not None and process_mode == 'OPTICAL_DEPTH':
-        #Remove this if-statement if you always want to do filtering!/KG 
-        use_old_method = config.KG_OLD_METHOD_CLOUD_CENTER_AS_HEIGHT
-        retv = CalipsoCloudOpticalDepth_new(
-            caObj.calipso,
-            min_optical_depth,
-            use_old_method=use_old_method)
-        caObj.calipso.layer_top_altitude = retv[0]
-        caObj.calipso.layer_base_altitude = retv[1]
-        caObj.calipso.cloud_fraction = retv[2]
-        caObj.calipso.feature_classification_flags = retv[3]
-        caObj.calipso.validation_height = retv[4]
-        caObj.calipso.layer_top_pressure = retv[5]
-        caObj.calipso.layer_base_pressure = retv[6]
-    if caObj is not None and process_mode == 'STANDARD' and RESOLUTION==5:
-        #Remove this if-statement if you always want to do filtering!/KG  
-        retv = CalipsoCloudOpticalDepth_new(caObj.calipso, 0.0)
-        caObj.calipso.layer_top_altitude = retv[0]
-        caObj.calipso.layer_base_altitude = retv[1]
-        caObj.calipso.cloud_fraction = retv[2]
-        caObj.calipso.feature_classification_flags = retv[3]
-        caObj.calipso.validation_height = retv[4]
-        caObj.calipso.layer_top_pressure = retv[5]
-        caObj.calipso.layer_base_pressure = retv[6]
-    if (caObj is not None and 
-        config.COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC and
-        (config.ALSO_USE_5KM_FILES or config.RESOLUTION==5) and 
-        caObj.calipso.total_optical_depth_5km is None):
-        logger.warning("Rematched_file is missing total_optical_depth_5km field")
-        logger.info("Consider reprocessing with: ")
-        logger.info("COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC=True")
-        logger.info("ALSO_USE_5KM_FILES=True or RESOLUTION==5")
-    if caObj is not None:    
-        check_total_optical_depth_and_warn(caObj)
-    if  caObj is not None and 'STANDARD' in process_mode and RESOLUTION==1:
-        caObj = CalipsoOpticalDepthHeightFiltering1km(caObj)
-    if  caObj is not None and process_mode == 'OPTICAL_DEPTH_THIN_IS_CLEAR' and RESOLUTION==1:
-        logger.info("Setting thin clouds to clear"
-                  ", using 5km data in mode OPTICAL_DEPTH_THIN_IS_CLEAR")
-        caObj = CalipsoOpticalDepthSetThinToClearFiltering1km(caObj) 
+def process_one_mode(process_mode_dnt, caObj, clsatObj, issObj, 
+                     min_optical_depth, values, config_options, basename):
+    
+    #Get result filename
     #=============================================================
-    #Get result filename    
-    min_depth_to_file_name=""
+    process_mode, dnt_flag = split_process_mode_and_dnt_part(process_mode_dnt)
+    min_depth_to_file_name = ""
     if process_mode == 'OPTICAL_DEPTH':
         min_depth_to_file_name="-%.2f"%(min_optical_depth)
-    values['mode']= process_mode_dnt+min_depth_to_file_name
+    values['mode']= process_mode_dnt + min_depth_to_file_name
     result_path = insert_info_in_filename_or_path(config_options['result_dir'], 
                                                   values, 
                                                   datetime_obj=values['date_time'])
@@ -1520,6 +1448,96 @@ def run(cross, process_mode_dnt, config_options, min_optical_depth, reprocess=Fa
     CalculateStatistics(process_mode, statfilename, caObj, clsatObj, issObj,
                         dnt_flag)
     #=============================================================
+
+
+                               
+def run(cross, run_modes, config_options, reprocess=False):
+    """
+    The main work horse.    
+    """    
+    logger.info("Case: %s" % str(cross))
+    sno_satname = cross.satellite1.lower()
+    if sno_satname in ['calipso', 'cloudsat']:
+        sno_satname = cross.satellite2.lower()
+    sensor = INSTRUMENT.get(sno_satname, 'avhrr')
+    if sensor.lower() != IMAGER_INSTRUMENT.lower() :
+        logger.error("Uncertain of sensor: %s or %s?" %(sensor.upper(), IMAGER_INSTRUMENT.upper() )  )
+    if not config.USE_CMA_FOR_CFC_STATISTICS and config.CMA_PROB_VALIDATION:
+        logger.error("Probably you should set USE_CMA_FOR_CFC_STATISTICS=True!")
+        logger.error("As you are validation CMA-prob you should not use CT-file"
+                     "for CFC-statistics")
+        raise MatchupError("Configure problems, see messages above.")
+
+    #Get the data that we need:
+    matchup_results = get_matchups(cross, config_options, reprocess)
+    caObj = matchup_results['calipso']
+    issObj = matchup_results['iss']
+    clsatObj = matchup_results['cloudsat']
+    values = matchup_results['values']
+    basename = matchup_results['basename']
+    if caObj is not None and caObj.calipso.cloudsat_index is None:
+        logger.info("Adding some stuff that might not be in older reshaped files")
+        clsatObj, caObj = add_additional_clousat_calipso_index_vars(clsatObj, caObj)
+    logger.info("Adding validation height that might not be in older reshaped files")
+    clsatObj, caObj = add_validation_ctth(clsatObj, caObj)
+    #Calculate hight from sea surface 
+    clsatObj, caObj, issObj = add_elevation_corrected_imager_ctth(clsatObj, caObj, issObj)
+
+    #For each mode, do the statistics:
+    for process_mode_dnt in run_modes:
+        logger.info("Process mode: %s"%(process_mode_dnt))
+        optical_depths = [None]         #Update this if you always want to do filtering!/Nina
+        if process_mode_dnt in ["OPTICAL_DEPTH","OPTICAL_DEPTH_DAY",
+                                "OPTICAL_DEPTH_NIGHT","OPTICAL_DEPTH_TWILIGHT"]:
+            optical_depths = config.MIN_OPTICAL_DEPTH           
+            
+        # split process_mode_dnt into two parts. One with process_mode and one dnt_flag
+        process_mode, dnt_flag = split_process_mode_and_dnt_part(process_mode_dnt)
+        for min_optical_depth in optical_depths:
+            # If mode = OPTICAL_DEPTH -> Change cloud -top and -base profile
+            if caObj is not None and process_mode == 'OPTICAL_DEPTH': 
+                use_old_method = config.KG_OLD_METHOD_CLOUD_CENTER_AS_HEIGHT
+                retv = CalipsoCloudOpticalDepth_new(
+                    caObj.calipso,
+                    min_optical_depth,
+                    use_old_method=use_old_method)
+                caObj.calipso.layer_top_altitude = retv[0]
+                caObj.calipso.layer_base_altitude = retv[1]
+                caObj.calipso.cloud_fraction = retv[2]
+                caObj.calipso.feature_classification_flags = retv[3]
+                caObj.calipso.validation_height = retv[4]
+                caObj.calipso.layer_top_pressure = retv[5]
+                caObj.calipso.layer_base_pressure = retv[6]
+            if caObj is not None and process_mode == 'STANDARD' and RESOLUTION==5:
+                retv = CalipsoCloudOpticalDepth_new(caObj.calipso, 0.0)
+                caObj.calipso.layer_top_altitude = retv[0]
+                caObj.calipso.layer_base_altitude = retv[1]
+                caObj.calipso.cloud_fraction = retv[2]
+                caObj.calipso.feature_classification_flags = retv[3]
+                caObj.calipso.validation_height = retv[4]
+                caObj.calipso.layer_top_pressure = retv[5]
+                caObj.calipso.layer_base_pressure = retv[6]
+            if (caObj is not None and 
+                config.COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC and
+                (config.ALSO_USE_5KM_FILES or config.RESOLUTION==5) and 
+                caObj.calipso.total_optical_depth_5km is None):
+                logger.warning("Rematched_file is missing total_optical_depth_5km field")
+                logger.info("Consider reprocessing with: ")
+                logger.info("COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC=True")
+                logger.info("ALSO_USE_5KM_FILES=True or RESOLUTION==5")
+            if caObj is not None:    
+                check_total_optical_depth_and_warn(caObj)
+                if  caObj is not None and 'STANDARD' in process_mode and RESOLUTION==1:
+                    caObj = CalipsoOpticalDepthHeightFiltering1km(caObj)
+            if  caObj is not None and process_mode == 'OPTICAL_DEPTH_THIN_IS_CLEAR' and RESOLUTION==1:
+                logger.info("Setting thin clouds to clear"
+                            ", using 5km data in mode OPTICAL_DEPTH_THIN_IS_CLEAR")
+                caObj = CalipsoOpticalDepthSetThinToClearFiltering1km(caObj) 
+            #Time to process results files for one mode:    
+            process_one_mode(process_mode_dnt, caObj, clsatObj, issObj, 
+                             min_optical_depth, values, config_options, basename)
+    #We are done, free some memory:        
     caObj = None
     clsatObj = None
     isObj = None
+

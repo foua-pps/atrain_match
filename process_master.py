@@ -47,61 +47,22 @@ def process_matchups(matchups, run_modes, reprocess=False, debug=False):
     no_matchup_files = []
     outstatus = 0
     for match in sorted(matchups):
-
-#        match = matchups[i + 50]
-#        import datetime
-#        if match.time1 < datetime.datetime(2008,01,01):
-#            continue
-        for mode in run_modes:
-            logger.info("Process mode: %s"%(mode))
-            #import pdb
-            #cloudsat_calipso_avhrr_match.run(match, mode, reprocess)
-            #pdb.set_trace()
-            if mode in ["OPTICAL_DEPTH","OPTICAL_DEPTH_DAY",
-                        "OPTICAL_DEPTH_NIGHT","OPTICAL_DEPTH_TWILIGHT"]:
-                for min_optical_depth in config.MIN_OPTICAL_DEPTH:
-                    try:
-                        cloudsat_calipso_avhrr_match.run(
-                            match, mode, OPTIONS, min_optical_depth, 
-                            reprocess)
-                    except MatchupError, err:
-                        logger.warning("Matchup problem: %s" % str(err))
-                        no_matchup_files.append(match)
-                        outstatus = 5
-                        break
-                    except:
-                        problematic.add(match)
-                        outstatus = 5
-                        logger.warning(
-                            "Couldn't run cloudsat_calipso_avhrr_match.")
-                        if debug is True:
-                            raise
-                        break
-            else:
-                min_optical_depth = None 
-                #min_optical_depth = 0.35 
-                #Assuming this in_optical_depth the detection limit /KG 13/12 2012
-                #But you also need to modify basic python module and config.py
-                #if you want to filter for all cases!
-                try:
-                    cloudsat_calipso_avhrr_match.run(match, mode,  OPTIONS, min_optical_depth, reprocess)
-                except MatchupError, err:
-                    logger.warning("Matchup problem: %s" % str(err))
-                    import traceback
-                    traceback.print_exc()
-                    no_matchup_files.append(match)
-                    outstatus = 5
-                    break
-                except:
-                    import traceback
-                    outstatus = 5
-                    traceback.print_exc()
-                    problematic.add(match)
-                    logger.warning("Couldn't run cloudsat_calipso_avhrr_match.")
-                    if debug is True:
-                        raise
-                    break
-
+        try:
+            cloudsat_calipso_avhrr_match.run(match, run_modes,  OPTIONS, reprocess)
+        except MatchupError, err:
+            logger.warning("Matchup problem: %s" % str(err))
+            import traceback
+            traceback.print_exc()
+            no_matchup_files.append(match)
+            outstatus = 5
+        except:
+            import traceback
+            outstatus = 5
+            traceback.print_exc()
+            problematic.add(match)
+            logger.warning("Couldn't run cloudsat_calipso_avhrr_match.")
+            if debug is True:
+                raise
                 
     if len(no_matchup_files) > 0:
         logger.warning(
