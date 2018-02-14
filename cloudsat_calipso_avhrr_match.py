@@ -1185,7 +1185,7 @@ def get_matchups(cross, options, reprocess=False):
         cl_match_file, tobj = find_avhrr_file(cross, options['reshape_dir'], options['reshape_file'], values=values)
         if not cl_match_file:
             logger.info("No processed CloudSat match files found." + 
-                      " Generating from source data.")
+                      " Generating from source data if required.")
             clObj = None
             date_time=date_time_cross
         elif not config.CLOUDSAT_MATCHING:
@@ -1218,7 +1218,7 @@ def get_matchups(cross, options, reprocess=False):
         is_match_file, tobj = find_avhrr_file(cross, options['reshape_dir'], options['reshape_file'], values=values)
         if not is_match_file:
             logger.info("No processed Iss match files found." + 
-                      " Generating from source data.")
+                      " Generating from source data if required.")
             isObj = None
             date_time=date_time_cross
         elif not config.ISS_MATCHING:
