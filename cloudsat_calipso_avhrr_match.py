@@ -664,7 +664,7 @@ def get_calipso_matchups(calipso_files, values,
     calipso  = reshapeCalipso(calipso_files)
     #find time breakpoints, but don't cut the data yet ..
     startBreak, endBreak = find_break_points(calipso,  avhrrGeoObj)
-    if cafiles1km is not None and CALIPSO_version3:
+    if cafiles1km is not None and CALIPSO_version3 and RESOLUTION == 5:
         #RESOLUTION 5km also have 1km data
         logger.info("Calipso version 3 data used and old 1 km restore method!")
         calipso1km = reshapeCalipso(cafiles1km, res=1)
@@ -674,7 +674,7 @@ def get_calipso_matchups(calipso_files, values,
                                        start_break=startBreak, end_break=endBreak) 
         calipso = total_and_top_layer_optical_depth_5km(calipso, resolution=5)
 
-    elif cafiles5km is not None and CALIPSO_version4:
+    elif cafiles5km is not None and CALIPSO_version4  and RESOLUTION == 1:
         #RESOLUTION 1km also have 5km data calipso version 4
         logger.info("Calipso version 4, single shot fraction and "
                     "old 5km restored optical depth method used!")
@@ -690,7 +690,7 @@ def get_calipso_matchups(calipso_files, values,
                                        start_break=startBreak, 
                                        end_break=endBreak) 
 
-    elif cafiles5km is not None and CALIPSO_version3:
+    elif cafiles5km is not None and CALIPSO_version3 and RESOLUTION == 1:
         #RESOLUTION 1km also have 5km data calipso version 3
         logger.info("Calipso version 3 data used and old 5 km restored optical depth method!")
         calipso1km = calipso
