@@ -502,9 +502,9 @@ def print_calipso_stats_ctype(caObj, statfile, val_subset, low_medium_high_class
             val_subset)
 
     calipso_clear = np.logical_and(
-        np.less(caObj.calipso.cloud_fraction,CALIPSO_CLEAR_MAX_CFC),val_subset)
+        np.less(caObj.calipso.cloud_fraction,config.CALIPSO_CLEAR_MAX_CFC),val_subset)
     calipso_cloudy = np.logical_and(
-        np.greater_equal(caObj.calipso.cloud_fraction,CALIPSO_CLOUDY_MIN_CFC),val_subset)
+        np.greater_equal(caObj.calipso.cloud_fraction,config.CALIPSO_CLOUDY_MIN_CFC),val_subset)
     avhrr_clear = np.logical_and(
         np.logical_and(np.less_equal(caObj.avhrr.cloudtype,4),
                        np.greater(caObj.avhrr.cloudtype,0)),
