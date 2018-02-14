@@ -106,7 +106,8 @@ from calipso import (reshapeCalipso,
                      match_calipso_avhrr, 
                      find_break_points, 
                      time_reshape_calipso)
-from matchobject_io import (writeCaliopAvhrrMatchObj, 
+from matchobject_io import (CalipsoObject,
+                            writeCaliopAvhrrMatchObj, 
                             readCaliopAvhrrMatchObj,
                             writeCloudsatAvhrrMatchObj, 
                             readCloudsatAvhrrMatchObj,
@@ -1482,6 +1483,15 @@ def run(cross, run_modes, config_options, reprocess=False):
     clsatObj, caObj = add_validation_ctth(clsatObj, caObj)
     #Calculate hight from sea surface 
     clsatObj, caObj, issObj = add_elevation_corrected_imager_ctth(clsatObj, caObj, issObj)
+    calipso_original = CalipsoObject()
+    #Save data orignal data that we might edit for some modes
+    calipso_original.layer_top_altitude = caObj.calipso.layer_top_altitude.copy()
+    calipso_original.layer_base_altitude = caObj.calipso.layer_base_altitude.copy()
+    calipso_original.cloud_fraction = caObj.calipso.cloud_fraction.copy()
+    calipso_original.feature_classification_flags = caObj.calipso.feature_classification_flags.copy()
+    calipso_original.validation_height = caObj.calipso.validation_height.copy()
+    calipso_original.layer_top_pressure = caObj.calipso.layer_top_pressure.copy()
+    calipso_original.layer_base_pressure = caObj.calipso.layer_base_pressure.copy()
 
     #For each mode, do the statistics:
     for process_mode_dnt in run_modes:
@@ -1494,6 +1504,16 @@ def run(cross, run_modes, config_options, reprocess=False):
         # split process_mode_dnt into two parts. One with process_mode and one dnt_flag
         process_mode, dnt_flag = split_process_mode_and_dnt_part(process_mode_dnt)
         for min_optical_depth in optical_depths:
+            #For some modes these are updated, so reset calipso data to original
+            #########################################################################
+            caObj.calipso.layer_top_altitude = calipso_original.layer_top_altitude.copy()
+            caObj.calipso.layer_base_altitude = calipso_original.layer_base_altitude.copy()
+            caObj.calipso.cloud_fraction = calipso_original.cloud_fraction.copy()
+            caObj.calipso.feature_classification_flags = calipso_original.feature_classification_flags.copy()
+            caObj.calipso.validation_height = calipso_original.validation_height.copy()
+            caObj.calipso.layer_top_pressure = calipso_original.layer_top_pressure.copy()
+            caObj.calipso.layer_base_pressure = calipso_original.layer_base_pressure.copy()
+            #########################################################################
             # If mode = OPTICAL_DEPTH -> Change cloud -top and -base profile
             if caObj is not None and process_mode == 'OPTICAL_DEPTH': 
                 use_old_method = config.KG_OLD_METHOD_CLOUD_CENTER_AS_HEIGHT
@@ -1508,6 +1528,7 @@ def run(cross, run_modes, config_options, reprocess=False):
                 caObj.calipso.validation_height = retv[4]
                 caObj.calipso.layer_top_pressure = retv[5]
                 caObj.calipso.layer_base_pressure = retv[6]
+           # If mode = STANDARD -> Change cloud -top and -base profile
             if caObj is not None and process_mode == 'STANDARD' and RESOLUTION==5:
                 retv = CalipsoCloudOpticalDepth_new(caObj.calipso, 0.0)
                 caObj.calipso.layer_top_altitude = retv[0]
@@ -1528,11 +1549,13 @@ def run(cross, run_modes, config_options, reprocess=False):
             if caObj is not None:    
                 check_total_optical_depth_and_warn(caObj)
                 if  caObj is not None and 'STANDARD' in process_mode and RESOLUTION==1:
-                    caObj = CalipsoOpticalDepthHeightFiltering1km(caObj)
+                    caObj.calipso.validation_height = CalipsoOpticalDepthHeightFiltering1km(caObj)
             if  caObj is not None and process_mode == 'OPTICAL_DEPTH_THIN_IS_CLEAR' and RESOLUTION==1:
                 logger.info("Setting thin clouds to clear"
                             ", using 5km data in mode OPTICAL_DEPTH_THIN_IS_CLEAR")
-                caObj = CalipsoOpticalDepthSetThinToClearFiltering1km(caObj) 
+                retv = CalipsoOpticalDepthSetThinToClearFiltering1km(caObj) 
+                caObj.calipso.cloud_fraction = retv[0]
+                caObj.calipso.validation_height = retv[1]
             #Time to process results files for one mode:    
             process_one_mode(process_mode_dnt, caObj, clsatObj, issObj, 
                              min_optical_depth, values, config_options, basename)
