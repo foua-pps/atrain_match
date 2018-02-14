@@ -267,9 +267,9 @@ def find_truth_clear_cloudy(cObj, val_subset):
     cObj_truth_sat = getattr(cObj, cObj.truth_sat)
     if 'CALIPSO' in cObj.truth_sat.upper():
         truth_clear = np.logical_and(
-            np.less_equal(cObj_truth_sat.cloud_fraction,config.CALIPSO_CLEAR_MAX_CFC),val_subset)
+            np.less(cObj_truth_sat.cloud_fraction,config.CALIPSO_CLEAR_MAX_CFC),val_subset)
         truth_cloudy = np.logical_and(
-            np.greater(cObj_truth_sat.cloud_fraction,config.CALIPSO_CLOUDY_MIN_CFC),val_subset)        
+            np.greater_equal(cObj_truth_sat.cloud_fraction,config.CALIPSO_CLOUDY_MIN_CFC),val_subset)        
     else:
         truth_clear = np.logical_and(
             np.less_equal(cObj_truth_sat.cloud_fraction,0.5), val_subset)
@@ -287,7 +287,7 @@ def print_cpp_stats(cObj, statfile, val_subset):
     from validate_cph import get_calipso_phase_inner, CALIPSO_PHASE_VALUES
     val_subset = np.logical_and(
         val_subset, 
-        cObj.calipso.cloud_fraction > config.CALIPSO_CLOUDY_MIN_CFC)
+        cObj.calipso.cloud_fraction >= config.CALIPSO_CLOUDY_MIN_CFC)
     cal_phase = get_calipso_phase_inner(
         cObj.calipso.feature_classification_flags, 
         max_layers=10,
@@ -502,9 +502,9 @@ def print_calipso_stats_ctype(caObj, statfile, val_subset, low_medium_high_class
             val_subset)
 
     calipso_clear = np.logical_and(
-        np.less(caObj.calipso.cloud_fraction,0.34),val_subset)
+        np.less(caObj.calipso.cloud_fraction,CALIPSO_CLEAR_MAX_CFC),val_subset)
     calipso_cloudy = np.logical_and(
-        np.greater(caObj.calipso.cloud_fraction,0.66),val_subset)
+        np.greater_equal(caObj.calipso.cloud_fraction,CALIPSO_CLOUDY_MIN_CFC),val_subset)
     avhrr_clear = np.logical_and(
         np.logical_and(np.less_equal(caObj.avhrr.cloudtype,4),
                        np.greater(caObj.avhrr.cloudtype,0)),
@@ -639,7 +639,7 @@ def print_stats_ctop(cObj, statfile, val_subset, low_medium_high_class):
                         
     val_subset = np.logical_and(
         val_subset, 
-        cObj_truth_sat.cloud_fraction > config.CALIPSO_CLOUDY_MIN_CFC)
+        cObj_truth_sat.cloud_fraction >= config.CALIPSO_CLOUDY_MIN_CFC)
 
  
     #print "ALL CLOUDS:" 
