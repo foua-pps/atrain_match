@@ -2,13 +2,13 @@
   Use this module to read cci cloudproducts
   2013 SMHI, N.Hakansson a001865
 """
-from read_cloudproducts_and_nwp_pps import (CtypeObj, CtthObj, CppObj, 
+from read_cloudproducts_and_nwp_pps import (CtypeObj, CtthObj, CppObj, CmaObj, 
                                             imagerAngObj, imagerGeoObj)
-
+import os
 import netCDF4	
 import numpy as np
 import calendar
-import datetime
+import datetime 
 import logging
 logger = logging.getLogger(__name__)
 import time
@@ -18,7 +18,7 @@ def get_satid_datetime_orbit_from_fname_cci(avhrr_filename):
     # Get satellite name, time, and orbit number from avhrr_file
     #avhrr_file = "20080613002200-ESACCI-L2_CLOUD-CLD_PRODUCTS-AVHRRGAC-NOAA18-fv1.0.nc"
     sl_ = os.path.basename(avhrr_filename).split('-')
-    date_time = datetime.strptime(sl_[0], '%Y%m%d%H%M%S')
+    date_time = datetime.datetime.strptime(sl_[0], '%Y%m%d%H%M%S')
     
     sat_id = "noaa18"#sl_[5]_lower,
     values= {"satellite": sat_id,
@@ -72,7 +72,7 @@ def cci_read_all(filename):
     logger.info("Reading angles ...")
     avhrrAngObj = read_cci_angobj(cci_nc)
     logger.info("Reading cloud type ...")
-    ctype = read_cci_ctype(cci_nc, avhrrAngObj)
+    cma = read_cci_cma(cci_nc, avhrrAngObj)
     logger.info("Reading longitude, latitude and time ...")
     avhrrGeoObj = read_cci_geoobj(cci_nc)
     logger.info("Not reading surface temperature")
@@ -83,7 +83,9 @@ def cci_read_all(filename):
     avhrrObj = None  
     if cci_nc:
         cci_nc.close()
-    return avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, surft, cppLwp, cppCph
+    ctype = None    
+    return avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, surft, cpp, cma 
+
 
 def cci_read_prod(filename, prod_type='ctth'):
     """Read geolocation, angles info, ctth, and cloudtype
@@ -112,7 +114,7 @@ def cci_read_prod(filename, prod_type='ctth'):
         logger.info("Reading angles ...")
         avhrrAngObj =  read_cci_angobj(cci_nc)
         logger.info("Reading cloud type ...")
-        retv = read_cci_ctype(cci_nc, avhrrAngObj)
+        retv = read_cci_cma(cci_nc, avhrrAngObj)
         if cci_nc:
             cci_nc.close()
         return  retv
@@ -130,44 +132,19 @@ def cci_read_prod(filename, prod_type='ctth'):
         return retv    
     return None
 
-def read_cci_ctype(cci_nc,avhrrAngObj):
+def read_cci_cma(cci_nc, avhrrAngObj):
     """Read cloudtype and flag info from filename
     """
+    cma = CmaObj()
     #cci_nc.variables['cc_total'][:])
     #cci_nc.variables['ls_flag'][:])
-    ctype = CtypeObj()
-
-
-    #pps 1: cloudfree land 2:cloudfree sea
+    #ctype = CtypeObj()
+    #pps 0 cloudfree 3 cloudfree snow 1: cloudy, 2:cloudy
     #cci lsflag 0:sea 1:land
-    #logger.warning("Making skeleton cloudtype quality flag using "
-    #          "sun zenith angels. "
-    #          "This is ok for now, but will have to change "
-    #          "when cloudtype flags are changed in pps v 2014!")
-    #ctype.ct_conditions = cci_nc.variables['lsflag'][::] 
-    #ctype.ct_conditions = ctype.ct_conditions + 1024
-    #Setting all_satellite_channels_available When got day if we set nothing day pixels
-    #over sea will have flag value == 0 and not be included.
-
-    #ctype.ct_conditions = np.where(
-    #    np.logical_and(
-    #        np.greater(avhrrAngObj.sunz.data,80),
-    #        np.less(avhrrAngObj.sunz.data,95)),
-    #    #np.equal(cci_nc.variables['illum'][::],2),#Twilight
-    #    ctype.ct_conditions+6,#Twilight
-    #    ctype.ct_conditions)
-    #ctype.ct_conditions = np.where(
-    #        np.greater_equal(avhrrAngObj.sunz.data,95),
-    #        #np.equal(cci_nc.variables['illum'][::],3),#Night
-    #        ctype.ct_conditions+2,#Night
-    #        ctype.ct_conditions)
-    #if cloud cover over 0.5 set ctype to 6: Medium level cumiliform cloud
-    ctype.cloudtype = 2 - cci_nc.variables['lsflag'][::]
-    ctype.cloudtype[cci_nc.variables['cc_total'][::]>0.5] = 6
-    ctype.phaseflag = None
-    ctype.ct_conditions = None
-    ctype.landseaflag = cci_nc.variables['lsflag'][::]
-    return ctype
+    cma.cma_ext = 0*cci_nc.variables['lsflag'][::]
+    cma.cma_ext[cci_nc.variables['cc_total'][::]>0.5] = 1
+    #ctype.landseaflag = cci_nc.variables['lsflag'][::]
+    return cma
 
 def read_cci_angobj(cci_nc):
     """Read angles info from filename
@@ -181,7 +158,8 @@ def read_cci_phase(cci_nc):
     """Read angles info from filename
     """
     cpp_obj = CppObj()
-    cpp_obj["cpp_phase"] = cci_nc.variables['phase'][::] 
+    data = cci_nc.variables['phase'][::] 
+    setattr(cpp_obj, 'cpp_pahse', data)
     #if hasattr(phase, 'mask'):
     #    phase_out = np.where(phase.mask, -999, phase.data)
     #else:

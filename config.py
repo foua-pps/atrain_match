@@ -190,7 +190,7 @@ ALWAYS_USE_AVHRR_ORBIT_THAT_STARTS_BEFORE_CROSS = False
 #========== Plotting ==========#
 #: Processing modes for which plotting should also be performed
 PLOT_MODES = ['No Plot']
-PLOT_MODES = ['BASIC']
+#PLOT_MODES = ['BASIC']
 PLOT_ONLY_PNG = True
 #: MAXHEIGHT is used in the plotting. 
 #: If None the maxheight is calculated from the highest cloud
