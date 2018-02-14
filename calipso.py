@@ -13,7 +13,6 @@ from common import MatchupError, TimeMatchError, elements_within_range
 from config import RESOLUTION as resolution
 from config import (
                     ALSO_USE_5KM_FILES,
-                    USE_5KM_FILES_TO_FILTER_CALIPSO_DATA,
                     PPS_VALIDATION,
                     CALIPSO_version4,
                     CALIPSO_version3,

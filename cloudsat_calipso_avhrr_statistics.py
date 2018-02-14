@@ -753,75 +753,7 @@ def print_stats_ctop(cObj, statfile, val_subset, low_medium_high_class):
                                          truth_sat_validation_height, 
                                          imager_is_cloudy)
            
-    """    
-    if (config.COMPILE_RESULTS_SEPARATELY_FOR_SEMI_AND_OPAQUE and 
-        semi_flag is not None and
-        opaque_flag is not None):
-            
-        #Opaque stats
-        statfile.write("CLOUD HEIGHT OPAQUE\n")
-        val_subset_opaque_pps = np.logical_and(val_subset, opaque_flag)
-        print_height_all_low_medium_high("CALIOP-OPAQUE", 
-                                         val_subset_opaque_pps,  
-                                         statfile, low_medium_high_class, 
-                                         imager_ctth_m_above_seasurface, truth_sat_validation_height)
-
-        #Semi-transparent stats
-        statfile.write("CLOUD HEIGHT SEMI\n")
-        val_subset_semi_pps = np.logical_and(val_subset, semi_flag)
-        print_height_all_low_medium_high("CALIOP-SEMI", 
-                                         val_subset_semi_pps,  
-                                         statfile, low_medium_high_class, 
-                                         imager_ctth_m_above_seasurface, truth_sat_validation_height)
-
-
-    if (config.COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC and
-        (config.ALSO_USE_5KM_FILES or config.RESOLUTION==5) and
-        config.COMPILE_RESULTS_SEPARATELY_FOR_SEMI_AND_OPAQUE and 
-        semi_flag is not None and
-        opaque_flag is not None):
-            
-        #Thin top layer
-        #Opaque stats
-        lim=config.OPTICAL_DETECTION_LIMIT
-        statfile.write("CLOUD HEIGHT OPAQUE TOP LAYER VERY NOT-THIN\n")
-        val_subset_opaque_pps_not_thin = np.logical_and(
-            np.logical_and(val_subset, opaque_flag),
-            np.greater(cObj.calipso.feature_optical_depth_532_top_layer_5km,lim))
-        print_height_all_low_medium_high("CALIOP-OPAQUE-TOP-LAYER>%f"%(lim), 
-                                         val_subset_opaque_pps_not_thin,  
-                                         statfile, low_medium_high_class, 
-                                         imager_ctth_m_above_seasurface, truth_sat_validation_height)
-        #Semi-transparent stats
-        statfile.write("CLOUD HEIGHT SEMI TOP LAYER VERY NOT-THIN\n")
-        val_subset_semi_pps_not_thin = np.logical_and(
-            np.logical_and(val_subset, semi_flag),
-            np.greater(cObj.calipso.feature_optical_depth_532_top_layer_5km,lim))
-        print_height_all_low_medium_high("CALIOP-SEMI-TOP-LAYER>%f"%(lim), 
-                                         val_subset_semi_pps_not_thin,  
-                                         statfile, low_medium_high_class, 
-                                         imager_ctth_m_above_seasurface, truth_sat_validation_height)
-        #Not thin top layer
-        #Opaque stats
-        lim=config.OPTICAL_DETECTION_LIMIT
-        statfile.write("CLOUD HEIGHT OPAQUE TOP LAYER VERY THIN\n")
-        val_subset_opaque_pps_thin = np.logical_and(
-            np.logical_and(val_subset, opaque_flag),
-            np.less_equal(cObj.calipso.feature_optical_depth_532_top_layer_5km,lim))
-        print_height_all_low_medium_high("CALIOP-OPAQUE-TOP-LAYER<=%f"%(lim), 
-                                         val_subset_opaque_pps_thin,  
-                                         statfile, low_medium_high_class, 
-                                         imager_ctth_m_above_seasurface, truth_sat_validation_height)
-        #Semi-transparent stats
-        statfile.write("CLOUD HEIGHT SEMI TOP LAYER VERY THIN\n")
-        val_subset_semi_pps_thin = np.logical_and(
-            np.logical_and(val_subset, semi_flag),
-            np.less_equal(cObj.calipso.feature_optical_depth_532_top_layer_5km,lim))
-        print_height_all_low_medium_high("CALIOP-SEMI-TOP-LAYER<=%f"%(lim), 
-                                         val_subset_semi_pps_thin,  
-                                         statfile, low_medium_high_class, 
-                                         imager_ctth_m_above_seasurface, truth_sat_validation_height)
-    """
+   
 def print_main_stats(cObj, statfile):
     val_object = getattr(cObj,cObj.truth_sat)
     num_val_data_ok = len(getattr(val_object,'elevation'))

@@ -74,7 +74,7 @@ from config import (IMAGER_INSTRUMENT,
                     CALIPSO_version4,
                     CALIPSO_version3,
                     ALWAYS_USE_AVHRR_ORBIT_THAT_STARTS_BEFORE_CROSS,
-                    USE_5KM_FILES_TO_FILTER_CALIPSO_DATA,
+                    CALCULATE_DETECTION_HEIGHT_FROM_5KM_DATA,
                     ALSO_USE_1KM_FILES,
                     ALSO_USE_SINGLE_SHOT_CLOUD_CLEARED,
                     PPS_FORMAT_2012_OR_EARLIER,
@@ -683,7 +683,7 @@ def get_calipso_matchups(calipso_files, values,
         calipso5km = addSingleShotTo5km(calipso5km) 
         calipso5km = total_and_top_layer_optical_depth_5km(calipso5km, resolution=5)
         calipso1km = add5kmVariablesTo1kmresolution(calipso1km, calipso5km)
-        if USE_5KM_FILES_TO_FILTER_CALIPSO_DATA:
+        if CALCULATE_DETECTION_HEIGHT_FROM_5KM_DATA:
             logger.info("Find detection height using 5km data")
             calipso1km = detection_height_from_5km_data(calipso1km, calipso5km)
         calipso = time_reshape_calipso(calipso1km,  
@@ -697,7 +697,7 @@ def get_calipso_matchups(calipso_files, values,
         calipso5km = reshapeCalipso(cafiles5km, res=5)
         calipso5km = total_and_top_layer_optical_depth_5km(calipso5km, resolution=5)
         calipso1km = add5kmVariablesTo1kmresolution(calipso1km, calipso5km)
-        if USE_5KM_FILES_TO_FILTER_CALIPSO_DATA:
+        if CALCULATE_DETECTION_HEIGHT_FROM_5KM_DATA:
             logger.info("Find detection height using 5km data")
             calipso1km = detection_height_from_5km_data(calipso1km, calipso5km)
         calipso = time_reshape_calipso(calipso1km,  
@@ -1495,6 +1495,15 @@ def run(cross, run_modes, config_options, reprocess=False):
     calipso_original.layer_base_pressure = caObj.calipso.layer_base_pressure.copy()
 
     #For each mode, do the statistics:
+    if (caObj is not None and 
+        config.COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC and
+        (config.ALSO_USE_5KM_FILES or config.RESOLUTION==5) and 
+        caObj.calipso.total_optical_depth_5km is None):
+        logger.warning("Rematched_file is missing total_optical_depth_5km field")
+        logger.info("Consider reprocessing with: ")
+        logger.info("COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC=True")
+        logger.info("ALSO_USE_5KM_FILES=True or RESOLUTION==5")
+        
     for process_mode_dnt in run_modes:
         logger.info("Process mode: %s"%(process_mode_dnt))
         optical_depths = [None]         #Update this if you always want to do filtering!/Nina
@@ -1539,19 +1548,11 @@ def run(cross, run_modes, config_options, reprocess=False):
                 caObj.calipso.validation_height = retv[4]
                 caObj.calipso.layer_top_pressure = retv[5]
                 caObj.calipso.layer_base_pressure = retv[6]
-            if (caObj is not None and 
-                config.COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC and
-                (config.ALSO_USE_5KM_FILES or config.RESOLUTION==5) and 
-                caObj.calipso.total_optical_depth_5km is None):
-                logger.warning("Rematched_file is missing total_optical_depth_5km field")
-                logger.info("Consider reprocessing with: ")
-                logger.info("COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC=True")
-                logger.info("ALSO_USE_5KM_FILES=True or RESOLUTION==5")
             if caObj is not None:    
                 check_total_optical_depth_and_warn(caObj)
                 if  caObj is not None and 'STANDARD' in process_mode and RESOLUTION==1:
                     caObj.calipso.validation_height = CalipsoOpticalDepthHeightFiltering1km(caObj)
-            if  caObj is not None and process_mode == 'OPTICAL_DEPTH_THIN_IS_CLEAR' and RESOLUTION==1:
+            if  caObj is not None and process_mode == 'OPTICAL_DEPTH_THIN_IS_CLEAR':
                 logger.info("Setting thin clouds to clear"
                             ", using 5km data in mode OPTICAL_DEPTH_THIN_IS_CLEAR")
                 retv = CalipsoOpticalDepthSetThinToClearFiltering1km(caObj) 
