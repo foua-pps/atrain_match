@@ -152,11 +152,7 @@ def get_channel_data_from_object(dataObj, chn_des, matched, nodata=-9):
     matched: dict of matched indices (row, col)
 
     """
-    try:
-        channels = dataObj.channels
-    except:
-        channels = dataObj.channel
-    
+    channels = dataObj.channel    
     numOfChannels = len(channels)
     chnum = -1
     for ich in range(numOfChannels):
