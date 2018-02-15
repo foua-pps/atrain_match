@@ -141,6 +141,8 @@ CURRENTLY_UNUSED_MODIS_CHANNELS = ['modis_3',
                                    'modis_36']
 
 def get_data_from_array(array, matched):
+    if array is None:
+        return None
     return np.array([array[matched['row'][idx], matched['col'][idx]]
                      for idx in range(matched['row'].shape[0])]) 
 
@@ -324,78 +326,28 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
                              row_matched, col_matched, 
                              cpp=None,
                              nwp_segments=None):
-    value_track = []
     row_col = {'row': row_matched, 'col': col_matched} 
-    npix = row_matched.shape[0]
+    obt.avhrr.latitude = get_data_from_array(GeoObj.latitude, row_col)
+    obt.avhrr.longitude = get_data_from_array(GeoObj.longitude, row_col)
+    obt.avhrr.cloudtype = get_data_from_array(ctype.cloudtype, row_col)
+    obt.avhrr.cloudmask = get_data_from_array(cma.cma_ext, row_col)
 
-
-    value_track = [GeoObj.latitude[row_matched[idx], col_matched[idx]] 
-                   for idx in range(npix)]
-    obt.avhrr.latitude = np.array(value_track)
-    value_track = [GeoObj.longitude[row_matched[idx], col_matched[idx]]
-                     for idx in range(npix)]
-    obt.avhrr.longitude = np.array(value_track)
-    if ctype is not None:
-        value_track = [ctype.cloudtype[row_matched[idx], col_matched[idx]]
-                       for idx in range(npix)]
-        obt.avhrr.cloudtype = np.array(value_track)
-    if cma is not None:
-        value_track = [cma.cma_ext[row_matched[idx], col_matched[idx]]
-                       for idx in range(npix)]
-        obt.avhrr.cloudmask = np.array(value_track)
-    #cma flags or cma prob
-    if hasattr(cma, 'cma_prob') and cma.cma_prob is not None:
-        obt.avhrr.cma_prob = np.array(
-            [cma.cma_prob[row_matched[idx], col_matched[idx]]
-             for idx in range(npix)])
-    if hasattr(cma, 'cma_aerosolflag') and cma.cma_aerosolflag is not None:
-        obt.avhrr.cma_aerosolflag = np.array(
-            [cma.cma_aerosolflag[row_matched[idx], col_matched[idx]]
-             for idx in range(npix)])
-    if hasattr(cma, 'cma_testlist0') and cma.cma_testlist0 is not None:
-        obt.avhrr.cma_testlist0 = np.array(
-            [cma.cma_testlist0[row_matched[idx], col_matched[idx]]
-            for idx in range(npix)])
-        obt.avhrr.cma_testlist1 = np.array(
-            [cma.cma_testlist1[row_matched[idx], col_matched[idx]]
-             for idx in range(npix)])
-        obt.avhrr.cma_testlist2 = np.array(
-            [cma.cma_testlist2[row_matched[idx], col_matched[idx]]
-             for idx in range(npix)])
-        obt.avhrr.cma_testlist3 = np.array(
-            [cma.cma_testlist3[row_matched[idx], col_matched[idx]]
-             for idx in range(npix)])
-        obt.avhrr.cma_testlist4 = np.array(
-            [cma.cma_testlist4[row_matched[idx], col_matched[idx]]
-            for idx in range(npix)])
-        obt.avhrr.cma_testlist5 = np.array(
-            [cma.cma_testlist5[row_matched[idx], col_matched[idx]]
-             for idx in range(npix)])
-    #cloud-type and ctth flags
-    if hasattr(ctype, 'ct_quality') and PPS_VALIDATION and ctype.ct_quality is not None:
-        value_track = [ctype.ct_quality[row_matched[idx], col_matched[idx]]
-                             for idx in range(npix)]
-        obt.avhrr.cloudtype_quality = np.array(value_track)
-    if hasattr(ctype, 'ct_conditions') and ctype.ct_conditions is not None:
-        value_track = [ctype.ct_conditions[row_matched[idx], col_matched[idx]]
-                             for idx in range(npix)]
-        obt.avhrr.cloudtype_conditions = np.array(value_track)
-    if hasattr(ctype, 'ct_statusflag') and PPS_VALIDATION and ctype.ct_statusflag is not None:
-        value_track = [ctype.ct_statusflag[row_matched[idx], col_matched[idx]]
-                             for idx in range(npix)]
-        obt.avhrr.cloudtype_status = np.array(value_track)
-    if hasattr(ctth, 'ctth_statusflag') and PPS_VALIDATION and ctth.ctth_statusflag is not None:
-        value_track = [ctth.ctth_statusflag[row_matched[idx], col_matched[idx]]
-                                       for idx in range(npix)]
-        obt.avhrr.ctth_status = np.array(value_track)
-    if hasattr(ctype, 'qualityflag') and PPS_VALIDATION and ctype.ct_qualityflag is not None:
-        value_track = [ctype.qualityflag[row_matched[idx], col_matched[idx]]
-                             for idx in range(npix)]
-        obt.avhrr.cloudtype_qflag = np.array(value_track)
-    if  hasattr(ctype, 'phaseflag') and PPS_VALIDATION and ctype.phaseflag is not None:
-        value_track = [ctype.phaseflag[row_matched[idx], col_matched[idx]]
-                             for idx in range(npix)]
-        obt.avhrr.cloudtype_pflag = np.array(value_track)
+    for varname in ['cma_testlist0','cma_testlist1', 'cma_testlist2',
+                    'cma_testlist3','cma_testlist4', 'cma_testlist5',
+                    'cma_prob', 'cma_aerosolflag']:
+        if hasattr(cma, varname):
+            setattr(obt.avhrr, varname, 
+                    get_data_from_array(getattr(cma, varname), row_col))
+                                
+    #cloud-type flags
+    for (variable, outname) in  zip(
+            ['ct_quality', 'ct_conditions', 'ct_statusflag', 
+             'qualityflag', 'phaseflag'],
+            ['cloudtype_quality', 'cloudtype_conditions', 'cloudtype_status', 
+             'cloudtype_qflag', 'cloudtype_pflag'] ):
+        if hasattr(ctype, variable) and PPS_VALIDATION:
+            setattr(obt.avhrr, outname, 
+                    get_data_from_array(getattr(ctype,variable), row_col))
     for nwp_info in ["surftemp", "t500", "t700", "t850", "t950", "ttro", "ciwv",
                      "t900", "t1000", "t800", "t250", "t2m", "ptro", "psur", 
                      "snowa", "snowd", "seaice", "landuse", "fractionofland", "elevation",
@@ -403,9 +355,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
         if hasattr(nwp_obj, nwp_info):
             data = getattr(nwp_obj, nwp_info)
             if np.size(data)>1:
-                value_track = [data[row_matched[idx], col_matched[idx]]
-                               for idx in range(npix)]
-                setattr(obt.avhrr, nwp_info, np.array(value_track))
+                setattr(obt.avhrr, nwp_info, get_data_from_array(data, row_col))
         else:
             logger.debug("missing {:s}".format(nwp_info))
     if len(CTTH_TYPES)>1 and PPS_VALIDATION:        
@@ -413,28 +363,20 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
             ctth_obj = getattr(nwp_obj,ctth_type)
             for data_set in ["pressure", "temperature", "height"]:
                 data = getattr(ctth_obj, data_set)
-                value_track = [data[row_matched[idx], col_matched[idx]]
-                               for idx in range(npix)]
                 name = "%s_%s"%(ctth_type.lower(),data_set)
-                setattr(obt.avhrr, name, np.array(value_track))
-            
-        
+                setattr(obt.avhrr, name, get_data_from_array(data, row_col))
     from pps_prototyping_util import (get_t11t12_texture_data_from_object,
                                       get_coldest_values,get_darkest_values,
                                       get_warmest_values)
     if dataObj is not None:
-        nwp_obj = get_t11t12_texture_data_from_object(dataObj, nwp_obj, '11','12', 
-                                                      'text_t11t12_square') 
-        nwp_obj = get_t11t12_texture_data_from_object(dataObj, nwp_obj, '37','12',
-                                                      'text_t37t12_square')
+        pass
+        #nwp_obj = get_t11t12_texture_data_from_object(dataObj, nwp_obj, '11','12', 
+        #                                              'text_t11t12_square??') 
     for texture in ["text_r06", "text_t11", "text_t37", "text_t37t12", 
                     "text_t37t12_square", "text_t11t12_square", "text_t11t12"]:
         if hasattr(nwp_obj, texture):
             data = getattr(nwp_obj, texture)
-            if np.size(data)>1:
-                value_track = [data[row_matched[idx], col_matched[idx]]
-                               for idx in range(npix)]
-                setattr(obt.avhrr, texture, np.array(value_track))
+            setattr(obt.avhrr, texture, get_data_from_array(data, row_col))
     if dataObj is not None and SAVE_NEIGHBOUR_INFO:
         neighbour_obj = get_warmest_values(dataObj, row_col)
         for key in ["warmest_r06", "warmest_r09", "warmest_r16"]:
@@ -472,17 +414,11 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
                 "thr_r09"]:
         if hasattr(nwp_obj, thr):
             data = getattr(nwp_obj, thr)
-            if np.size(data)>1:
-                value_track = [data[row_matched[idx], col_matched[idx]]
-                               for idx in range(npix)]
-                setattr(obt.avhrr, thr, np.array(value_track))
+            setattr(obt.avhrr, thr,  get_data_from_array(data, row_col))
     for emis in ["emis1", "emis6", "emis8", "emis9"]:
         if hasattr(nwp_obj, emis):
             data = getattr(nwp_obj, emis)
-            if np.size(data)>1:
-                value_track = [data[row_matched[idx], col_matched[idx]]
-                               for idx in range(npix)]
-                setattr(obt.avhrr, emis, np.array(value_track))
+            setattr(obt.avhrr, emis, get_data_from_array(data, row_col))
     if dataObj is not None:
         temp_data, info = get_channel_data_from_object(dataObj, '06', row_col)
         setattr(obt.avhrr, "r06micron" + info, temp_data) 
@@ -519,30 +455,21 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
                                                        seviri_channel, row_col)
             setattr(obt.avhrr, seviri_channel + info, seviri_track)
     #Angles, scale with gain and intercept when reading
-    obt.avhrr.satz = [AngObj.satz.data[row_matched[idx], col_matched[idx]] 
-                      for idx in range(npix)]
-    obt.avhrr.sunz = [AngObj.sunz.data[row_matched[idx], col_matched[idx]] 
-                      for idx in range(npix)]
-    if AngObj.azidiff is not None:
-        obt.avhrr.azidiff = [AngObj.azidiff.data[row_matched[idx], col_matched[idx]] 
-                             for idx in range(npix)]
+    for angle in ['satz', 'sunz', 'azidiff']:
+        data = getattr(AngObj, angle)
+        setattr(obt.avhrr, angle,  get_data_from_array(data.data, row_col))
     if ctth is None:
         logger.info("Not extracting ctth")
     else:
         logger.debug("Extracting ctth along track ")
-        #scale with gain and intercept when reading!
-        obt.avhrr.ctth_height = [ctth.height[row_matched[idx], col_matched[idx]]
-                                 for idx in range(npix)]
-        obt.avhrr.ctth_temperature = [ctth.temperature[row_matched[idx], col_matched[idx]]
-                                      for idx in range(npix)]
-        obt.avhrr.ctth_pressure = [ctth.pressure[row_matched[idx], col_matched[idx]]
-                                   for idx in range(npix)]
-
+        if hasattr(ctth, 'ctth_statusflag') and PPS_VALIDATION:
+            obt.avhrr.ctth_status =  get_data_from_array(ctth.ctth_statusflag, row_col)
+        for ctth_product in ['height', 'temperature', 'pressure']:
+            data = getattr(ctth, ctth_product)
+            setattr(obt.avhrr, "ctth_" + ctth_product, get_data_from_array(data, row_col)) 
         if (PPS_VALIDATION and hasattr(ctth, 'processingflag')):
             is_opaque = np.bitwise_and(np.right_shift(ctth.processingflag, 2), 1)
-            value_track = [is_opaque[row_matched[idx], col_matched[idx]]
-                           for idx in range(npix)]
-            obt.avhrr.ctth_opaque = np.array(value_track)
+            obt.avhrr.ctth_opaque = get_data_from_array(is_opaque, row_col)
     #NWP on ctth resolution        
     if nwp_segments is not None:
         obt = insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt)
@@ -553,9 +480,8 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
         for data_set_name in cpp.__dict__.keys():
             data = getattr(cpp, data_set_name)
             if data is not None:
-                extracted_data = [data[row_matched[idx], col_matched[idx]] 
-                                  for idx in range(npix)]
-                setattr(obt.avhrr, data_set_name, extracted_data)
+                setattr(obt.avhrr, data_set_name,  
+                        get_data_from_array(data, row_col))
 
     return obt
 
