@@ -251,7 +251,7 @@ def read_ctth_h5(filename):
     ctth.temperature = h5file['ctth_tempe'].value.astype(np.float)
     ctth.pressure = h5file['ctth_pres'].value.astype(np.float)
     ctth.ctth_statusflag = h5file['ctth_status_flag'].value
-    #Currently unpacked arrays later in calipso.py
+    #Currently unpacked arrays later
     #TODO: move this here also for h5!
     ctth.h_gain = h5file['ctth_alti'].attrs['scale_factor']
     ctth.h_intercept = h5file['ctth_alti'].attrs['add_offset']
@@ -547,10 +547,15 @@ def read_pps_geoobj_nc(pps_nc):
     GeoObj.latitude = pps_nc.variables['lat'][::]
     GeoObj.num_of_lines = GeoObj.latitude.shape[0]
     time_temp = pps_nc.variables['time'].units #to 1970 s
-    time_obj = time.strptime(time_temp,'seconds since %Y-%m-%d %H:%M:%S.%f +00:00')
+    seconds = pps_nc.variables['time'][::] #from PPS often 0
+    if 'T' in time_temp:
+        time_obj = time.strptime(time_temp,'seconds since %Y-%m-%dT%H:%M:%S+00:00')
+    else:
+        time_obj = time.strptime(time_temp,'seconds since %Y-%m-%d %H:%M:%S.%f +00:00')
+ 
     sec_since_1970 = calendar.timegm(time_obj)
-    GeoObj.sec1970_start = sec_since_1970 + np.min(pps_nc.variables['time_bnds'][::])
-    GeoObj.sec1970_end = sec_since_1970 + np.max(pps_nc.variables['time_bnds'][::])
+    GeoObj.sec1970_start = sec_since_1970 + np.min(pps_nc.variables['time_bnds'][::]) + seconds
+    GeoObj.sec1970_end = sec_since_1970 + np.max(pps_nc.variables['time_bnds'][::]) + seconds
     GeoObj.sec1970_start = int(GeoObj.sec1970_start) 
     GeoObj.sec1970_end = int(GeoObj.sec1970_end)
     tim1 = time.strftime("%Y%m%d %H:%M", 

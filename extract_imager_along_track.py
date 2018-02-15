@@ -58,7 +58,13 @@ CHANNEL_MICRON_DESCRIPTIONS = {'11': ["avhrr channel 4 - 11um",
                                '13': [ "VIIRS M09",
                                        "MODIS 26"],
                                '86': [ "VIIRS M14",
+                                       "SEVIRI_87",
                                        "MODIS 29"],
+                               'seviri_bt73': ['SEVIRI WV_073'],
+                               'seviri_bt134': ['SEVIRI IR_134'],
+                               'seviri_bt97': ['SEVIRI IR_097'],
+                               'seviri_bt62': ['SEVIRI WV_062'],
+
                                'modis_3': ['MODIS 3'],
                                'modis_4': ['MODIS 4'],
                                'modis_5': ['MODIS 5'],
@@ -98,7 +104,11 @@ CHANNEL_MICRON_AVHRR_PPS = {'11': 3,
                             '86': -1,               
                             '16': 5,
                             '22': -1,
-                            '13': -1}  
+                            '13': -1} 
+CURRENTLY_UNUSED_SEVIRI_CHANNELS = ['seviri_bt73',
+                                    'seviri_bt134',
+                                    'seviri_bt97',
+                                    'seviri_bt62']
 CURRENTLY_UNUSED_MODIS_CHANNELS = ['modis_3',
                                    'modis_4',
                                    'modis_5',
@@ -504,6 +514,10 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
             modis_track, info = get_channel_data_from_object(dataObj, 
                                                        modis_channel, row_col)
             setattr(obt.avhrr, modis_channel + info, modis_track)
+        for seviri_channel in CURRENTLY_UNUSED_SEVIRI_CHANNELS:
+            seviri_track, info = get_channel_data_from_object(dataObj, 
+                                                       seviri_channel, row_col)
+            setattr(obt.avhrr, seviri_channel + info, seviri_track)
     #Angles, scale with gain and intercept when reading
     obt.avhrr.satz = [AngObj.satz.data[row_matched[idx], col_matched[idx]] 
                       for idx in range(npix)]
