@@ -329,8 +329,10 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
     row_col = {'row': row_matched, 'col': col_matched} 
     obt.avhrr.latitude = get_data_from_array(GeoObj.latitude, row_col)
     obt.avhrr.longitude = get_data_from_array(GeoObj.longitude, row_col)
-    obt.avhrr.cloudtype = get_data_from_array(ctype.cloudtype, row_col)
-    obt.avhrr.cloudmask = get_data_from_array(cma.cma_ext, row_col)
+    if ctype is not None:
+        obt.avhrr.cloudtype = get_data_from_array(ctype.cloudtype, row_col)
+    if cma is not None:
+        obt.avhrr.cloudmask = get_data_from_array(cma.cma_ext, row_col)
 
     for varname in ['cma_testlist0','cma_testlist1', 'cma_testlist2',
                     'cma_testlist3','cma_testlist4', 'cma_testlist5',
