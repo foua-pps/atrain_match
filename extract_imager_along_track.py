@@ -459,7 +459,8 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
     #Angles, scale with gain and intercept when reading
     for angle in ['satz', 'sunz', 'azidiff']:
         data = getattr(AngObj, angle)
-        setattr(obt.avhrr, angle,  get_data_from_array(data.data, row_col))
+        if data is not None:
+            setattr(obt.avhrr, angle,  get_data_from_array(data.data, row_col))
     if ctth is None:
         logger.info("Not extracting ctth")
     else:
