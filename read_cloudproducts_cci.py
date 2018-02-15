@@ -22,7 +22,7 @@ def get_satid_datetime_orbit_from_fname_cci(avhrr_filename):
     sl_ = os.path.basename(avhrr_filename).split('-')
     date_time = datetime.datetime.strptime(sl_[0], '%Y%m%d%H%M%S')
     
-    sat_id = "noaa18"#sl_[5]_lower,
+    sat_id = sl_[5].lower()
     values= {"satellite": sat_id,
              "date_time": date_time,
              "orbit": "99999",
