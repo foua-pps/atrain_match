@@ -1,7 +1,7 @@
 import numpy as np
 import logging
 logger = logging.getLogger(__name__)
-from config import PPS_VALIDATION, SAVE_NEIGHBOUR_INFO, CTTH_TYPES
+from config import PPS_VALIDATION, SAVE_NEIGHBOUR_INFO, CTTH_TYPES, IMAGER_INSTRUMENT
 CHANNEL_MICRON_DESCRIPTIONS = {'11': ["avhrr channel 4 - 11um",
                                       "Avhrr channel channel4.",
                                       "AVHRR ch4",
@@ -154,16 +154,19 @@ def get_channel_data_from_object(dataObj, chn_des, matched, nodata=-9):
     """
     channels = dataObj.channel    
     numOfChannels = len(channels)
-    chnum = -1
-    for ich in range(numOfChannels):
-        if channels[ich].des in CHANNEL_MICRON_DESCRIPTIONS[chn_des]:
-            chnum = ich
-    if chnum == -1:
+    #for ich in range(numOfChannels):
+    #    if channels[ich].des in CHANNEL_MICRON_DESCRIPTIONS[chn_des]:
+    #        chnum = ich
+    chnum = [ich for ich in range(numOfChannels) 
+             if channels[ich].des in CHANNEL_MICRON_DESCRIPTIONS[chn_des]]       
+            
+    if len(chnum) == 0:
         #chnum = CHANNEL_MICRON_AVHRR_PPS[chn_des]
-        if chnum == -1:
-            logger.debug("Did not find pps channel number for channel "
-                         "{:s}".format(chn_des))
-            return None, "" 
+        logger.debug("Did not find pps channel number for channel "
+                     "{:s}".format(chn_des))
+        return None, "" 
+    else:
+        chnum = chnum[0]
     if matched is None:
         return channels[chnum].data, ""
     
@@ -444,14 +447,16 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
         #b13
         temp_data, info =  get_channel_data_from_object(dataObj, '13', row_col)
         setattr(obt.avhrr, "r13micron" + info, temp_data)
-        for modis_channel in CURRENTLY_UNUSED_MODIS_CHANNELS:
-            modis_track, info = get_channel_data_from_object(dataObj, 
-                                                       modis_channel, row_col)
-            setattr(obt.avhrr, modis_channel + info, modis_track)
-        for seviri_channel in CURRENTLY_UNUSED_SEVIRI_CHANNELS:
-            seviri_track, info = get_channel_data_from_object(dataObj, 
-                                                       seviri_channel, row_col)
-            setattr(obt.avhrr, seviri_channel + info, seviri_track)
+        if IMAGER_INSTRUMENT.lower() in ['modis']:
+            for modis_channel in CURRENTLY_UNUSED_MODIS_CHANNELS:
+                modis_track, info = get_channel_data_from_object(dataObj, 
+                                                                 modis_channel, row_col)
+                setattr(obt.avhrr, modis_channel + info, modis_track)
+        if IMAGER_INSTRUMENT.lower() in ['seviri']:
+            for seviri_channel in CURRENTLY_UNUSED_SEVIRI_CHANNELS:
+                seviri_track, info = get_channel_data_from_object(dataObj, 
+                                                                  seviri_channel, row_col)
+                setattr(obt.avhrr, seviri_channel + info, seviri_track)
     #Angles, scale with gain and intercept when reading
     for angle in ['satz', 'sunz', 'azidiff']:
         data = getattr(AngObj, angle)
