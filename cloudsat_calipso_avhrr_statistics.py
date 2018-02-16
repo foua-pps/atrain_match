@@ -3,6 +3,8 @@ import config
 import logging
 logger = logging.getLogger(__name__)
 import numpy as np
+from common import ProcessingError
+
 from get_flag_info import (
     get_calipso_low_medium_high_classification,
     get_cloudsat_low_medium_high_classification,
@@ -485,6 +487,13 @@ def print_calipso_stats_ctype(caObj, statfile, val_subset, low_medium_high_class
         avhrr_high = avhrr_high_op #np.logical_or(avhrr_high_op,avhrr_high_semi)
         avhrr_frac = np.logical_and(np.equal(caObj.avhrr.cloudtype,10), 
                                     val_subset)
+        #avhrr_medium = np.logical_or(avhrr_medium,
+        #                             np.logical_and(avhrr_cirrus,caObj.avhrr.ctth_pressure>440))
+        #avhrr_high = avhrr_high_op #np.logical_or(avhrr_high_op,avhrr_high_semi)
+        #avhrr_high = np.logical_or(avhrr_high,
+        #                           np.logical_and(avhrr_cirrus,caObj.avhrr.ctth_pressure<440))
+        #avhrr_cirrus = np.where(avhrr_cirrus, False, False)
+
 
     else:
         logger.warning("Assuming cloudtype structure from pps v2012")
