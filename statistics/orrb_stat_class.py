@@ -69,6 +69,9 @@ class OrrbStats():
         acu["n_frac_low"] = 0
         acu["n_frac_medium"] = 0
         acu["n_frac_high"] = 0
+        acu["n_cirrus_low"] = 0
+        acu["n_cirrus_medium"] = 0
+        acu["n_cirrus_high"] = 0
         acu["n_clear_low"] = 0
         acu["n_clear_medium"] = 0
         acu["n_clear_high"] = 0
@@ -76,7 +79,7 @@ class OrrbStats():
         acu["n_medium_clear"] = 0
         acu["n_high_clear"] = 0
         acu["n_frac_clear"] = 0
-
+        acu["n_cirrus_clear"] = 0
         #CTH
         acu["cal_all_samples"] = {}
         acu["cal_low_samples"] = {}
@@ -166,7 +169,9 @@ class OrrbStats():
                     acu["n_frac_low"] += cal_data[9]
                     acu["n_frac_medium"] += cal_data[10]
                     acu["n_frac_high"] += cal_data[11]
-
+                    acu["n_cirrus_low"] += cal_data[12]
+                    acu["n_cirrus_medium"] += cal_data[13]
+                    acu["n_cirrus_high"] += cal_data[14]
                 if  key in cty_stats_labels_missed:
                     cal_data_missed = data_dict[key] 
                     cal_data_missed[cal_data_missed<0] = 0
@@ -177,7 +182,7 @@ class OrrbStats():
                     acu["n_medium_clear"] += cal_data_missed[4]
                     acu["n_high_clear"] += cal_data_missed[5]
                     acu["n_frac_clear"] += cal_data_missed[6]
-
+                    acu["n_cirrus_clear"] += cal_data_missed[6]
             # Accumulate CALIOP/ISS/CLOUDSAT statistics CTH
             for key in data_dict.keys(): 
                 if "HEIGHT" not in key:

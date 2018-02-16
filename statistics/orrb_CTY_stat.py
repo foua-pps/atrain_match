@@ -33,6 +33,9 @@ class CloudTypeStats(OrrbStats):
         n_frac_low = self.ac_data["n_frac_low"] 
         n_frac_medium = self.ac_data["n_frac_medium"] 
         n_frac_high = self.ac_data["n_frac_high"] 
+        n_cirrus_low = self.ac_data["n_cirrus_low"] 
+        n_cirrus_medium = self.ac_data["n_cirrus_medium"] 
+        n_cirrus_high = self.ac_data["n_cirrus_high"] 
         # This is really CMA buisness!
         pps_undetected_low = self.ac_data["n_clear_low"] 
         pps_undetected_medium = self.ac_data["n_clear_medium"] 
@@ -41,77 +44,67 @@ class CloudTypeStats(OrrbStats):
         pps_false_medium = self.ac_data["n_medium_clear"] 
         pps_false_high = self.ac_data["n_high_clear"] 
         pps_false_frac = self.ac_data["n_frac_clear"] 
-
+        pps_false_cirrus = self.ac_data["n_cirrus_clear"] 
         pps_false = (pps_false_low + pps_false_medium + 
-                     pps_false_high + pps_false_frac )
+                     pps_false_high + pps_false_frac + pps_false_cirrus )
         pps_undetected = (pps_undetected_low + pps_undetected_medium + 
                           pps_undetected_high)
+        number_excluded_cirrus_medium = n_cirrus_medium 
+        #n_cirrus_medium = 0 # Lets not include these!
         common_cloud_free = self.ac_data["n_clear_clear_cal"]
    
         pps_frac = n_frac_low + n_frac_medium + n_frac_high
-   
-        Num_ct = (n_low_low + n_low_medium + n_low_high + 
-               n_medium_low + n_medium_medium + n_medium_high + 
-               n_high_low + n_high_medium + n_high_high + 
-               n_frac_low + n_frac_medium +n_frac_high)
+        pps_cirrus = n_cirrus_low + n_cirrus_medium + n_cirrus_high
+      
 
-        N_low_cal = n_low_low + n_medium_low + n_high_low + n_frac_low
+        Num_ct = (n_low_low + n_low_medium + n_low_high + 
+                  n_medium_low + n_medium_medium + n_medium_high + 
+                  n_high_low + n_high_medium + n_high_high + 
+                  n_frac_low + n_frac_medium +n_frac_high +
+                  n_cirrus_low + n_cirrus_medium +n_cirrus_high)
+
+        N_low_cal = (n_low_low + n_medium_low + n_high_low 
+                     + n_frac_low + n_cirrus_low)
         N_medium_cal = (n_low_medium + n_medium_medium + n_high_medium + 
-                        n_frac_medium)
-        N_high_cal = n_low_high + n_medium_high + n_high_high + n_frac_high
+                        n_frac_medium + n_cirrus_medium)
+        N_high_cal = (n_low_high + n_medium_high + n_high_high + 
+                      n_frac_high + n_cirrus_high)
      
         N_low_pps = (n_low_low + n_low_medium + n_low_high +
                      n_frac_low + n_frac_medium + n_frac_high)
-        N_medium_pps = n_medium_low + n_medium_medium + n_medium_high
-        N_high_pps = n_high_low + n_high_medium + n_high_high
+        N_medium_pps = (n_medium_low + n_medium_medium + 
+                        n_medium_high + n_cirrus_medium)
+        N_high_pps = (n_high_low + n_high_medium + n_high_high + 
+                      n_cirrus_low + n_cirrus_high) #n_cirrus_medium belong to medium class!
     
      
         # numpy.divide handles potential division by zero
         pod_low = 100.0 * np.divide(float(n_low_low + n_frac_low), N_low_cal)
         far_low = 100.0 * np.divide(float(n_low_medium + n_frac_medium + 
-                                  n_low_high + n_frac_high), N_low_pps)
-        pod_medium = 100.0 * np.divide(float(n_medium_medium), N_medium_cal)
-        far_medium = 100.0 * np.divide(float(n_medium_low + n_medium_high), N_medium_pps)
-        pod_high = 100.0 * np.divide(float(n_high_high), N_high_cal)
-        far_high = 100.0 * np.divide(float(n_high_low + n_high_medium), N_high_pps)
+                                          n_low_high + n_frac_high), N_low_pps)
+        pod_medium = 100.0 * np.divide(
+            float(n_medium_medium + n_cirrus_medium), N_medium_cal)
+        far_medium = 100.0 * np.divide(
+            float(n_medium_low + n_medium_high), N_medium_pps)
+        pod_high = 100.0 * np.divide(float(n_high_high + n_cirrus_high), N_high_cal)
+        far_high = 100.0 * np.divide(
+            float(n_high_low + n_high_medium + n_cirrus_low), N_high_pps)
     
-        low_fraction_pps_rel = np.divide(
-            float(n_low_low + n_low_medium + n_low_high + pps_frac),
-            float(Num_ct)) * 100.0
-        low_fraction_cal_rel = np.divide(
-            float(N_low_cal), float(Num_ct)) * 100.0
-        medium_fraction_pps_rel = np.divide(
-            float(n_medium_medium + n_medium_low + n_medium_high),
-            float(Num_ct)) * 100.0
-        medium_fraction_cal_rel = np.divide(float(N_medium_cal),
-                                            float(Num_ct)) * 100.0
-        high_fraction_pps_rel = np.divide(
-            float(n_high_high + n_high_low + n_high_medium),
-            float(Num_ct)) * 100.0
-        high_fraction_cal_rel = np.divide(float(N_high_cal),
-                                          float(Num_ct)) * 100.0
-        frac_fraction_pps_rel = np.divide(
-            float(n_frac_low + n_frac_medium + n_frac_high),
-            float(Num_ct)) * 100.0
+        low_fraction_pps_rel = np.divide(float(N_low_pps), Num_ct) * 100.0
+        low_fraction_cal_rel = np.divide(float(N_low_cal), Num_ct) * 100.0
+        medium_fraction_pps_rel = np.divide(float(N_medium_pps), Num_ct) * 100.0
+        medium_fraction_cal_rel = np.divide(float(N_medium_cal), Num_ct) * 100.0
+        high_fraction_pps_rel = np.divide(float(N_high_pps), Num_ct) * 100.0
+        high_fraction_cal_rel = np.divide(float(N_high_cal), Num_ct) * 100.0
+        frac_fraction_pps_rel = np.divide(pps_frac, Num_ct) * 100.0
 
-        low_fraction_pps_abs = np.divide(
-            float(n_low_low + n_low_medium + n_low_high + pps_frac),
-            float(Num_ct)) * CFC_PPS
-        low_fraction_cal_abs = np.divide(float(N_low_cal),
-                                         float(Num_ct)) * CFC_TRUTH
-        medium_fraction_pps_abs = np.divide(
-            float(n_medium_medium + n_medium_low + n_medium_high),
-            float(Num_ct)) * CFC_PPS
-        medium_fraction_cal_abs = np.divide(float(N_medium_cal), 
-                                            float(Num_ct)) * CFC_TRUTH
-        high_fraction_pps_abs = np.divide(
-            float(n_high_high + n_high_low + n_high_medium),
-            float(Num_ct)) * CFC_PPS
-        high_fraction_cal_abs = np.divide(float(N_high_cal),
-                                          float(Num_ct)) * CFC_TRUTH
-        frac_fraction_pps_abs = np.divide(
-            float(n_frac_low + n_frac_medium + n_frac_high),
-            float(Num_ct)) * CFC_PPS
+        low_fraction_pps_abs = low_fraction_pps_rel * 0.01 *CFC_PPS
+        low_fraction_cal_abs = low_fraction_cal_rel * 0.01 *CFC_TRUTH
+        medium_fraction_pps_abs = medium_fraction_pps_rel * 0.01 *CFC_PPS
+        medium_fraction_cal_abs = medium_fraction_cal_rel * 0.01 *CFC_TRUTH
+        high_fraction_pps_abs = high_fraction_pps_rel * 0.01 *CFC_PPS
+        high_fraction_cal_abs = high_fraction_cal_rel * 0.01 *CFC_TRUTH
+        frac_fraction_pps_abs =  frac_fraction_pps_rel * 0.01 *CFC_PPS
         
         bias_low = low_fraction_pps_abs - low_fraction_cal_abs
         bias_low_noperc = bias_low / 100.0
@@ -146,6 +139,7 @@ class CloudTypeStats(OrrbStats):
     
         self.Num_cma = Num_cma
         self.common_cloud_free = common_cloud_free
+        self.number_excluded_cirrus_medium = number_excluded_cirrus_medium
         self.Num_ct = Num_ct
         self.pod_low = pod_low
         self.pod_medium = pod_medium
@@ -197,6 +191,8 @@ class CloudTypeStats(OrrbStats):
         lines.append( "Common cloud-free: %d" % self.common_cloud_free)
         lines.append("Total number of matched scenes is: %s" % self.ac_data["scenes"])
         lines.append("Total number of matched cloud types: %d" % self.Num_ct)
+        lines.append("Some %d pixels in the category PPS-cirrus CALIPSO-clear are not excluded\n" 
+                     %self.number_excluded_cirrus_medium)
         lines.append("")
         lines.append("Note: There is a separate script to get CT-statitcs for validaion report.")
         lines.append("Probability of detecting LOW, MEDIUM and HIGH: %.2f %.2f %.2f" % \
