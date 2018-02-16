@@ -14,7 +14,6 @@ from cloudsat_calipso_avhrr_match import (find_calipso_files,
 
 import numpy as np
 from amsr_avhrr.util import get_avhrr_time
-from read_cloudproducts_cci import cci_read_prod
 import time
 import h5py
 import logging

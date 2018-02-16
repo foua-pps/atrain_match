@@ -17,7 +17,7 @@ class OrrbStats():
         if self.results_files is not None:
             self.accumulate_data(results_files)        
         if self.results_files is not None or ac_data is not None:
-             self.do_stats()
+            self.do_stats()
 
 
     def read_one_file(self, datafile): 
@@ -113,8 +113,9 @@ class OrrbStats():
         cfc_stats_labels_modis = ["CLOUD MASK %s-MODIS TABLE"%(self.truth_sat.upper())]
         cty_stats_labels = ["CLOUD TYPE %s-IMAGER TABLE"%(self.truth_sat.upper()),
                            "CLOUD TYPE %s-PPS TABLE"%(self.truth_sat.upper())]
-        cty_stats_labels_missed = ["CLOUD TYPE %s-IMAGER TABLE MISSED"%(self.truth_sat.upper()),
-                                  "CLOUD TYPE %s-PPS TABLE MISSED"%(self.truth_sat.upper())] 
+        cty_stats_labels_missed = [
+            "CLOUD TYPE %s-IMAGER TABLE MISSED"%(self.truth_sat.upper()),
+            "CLOUD TYPE %s-PPS TABLE MISSED"%(self.truth_sat.upper())] 
         cph_stats_labels = ["CLOUD PHASE %s-IMAGER TABLE"%(self.truth_sat.upper())]
         for datafile in self.results_files:
             data_dict = self.read_one_file(datafile)
@@ -188,9 +189,9 @@ class OrrbStats():
                     print "no pixels!"
                     continue
                 if data_one_cat[3]<=0:
-                   data_one_cat[3]=0 
+                    data_one_cat[3]=0 
                 if cloud_level == "MEDIUM":
-                    if type_of_clouds not in acu["cal_medium_samples"].keys():                        
+                    if type_of_clouds not in acu["cal_medium_samples"].keys():
                         acu["cal_medium_samples"][type_of_clouds] = 0
                         acu["mean_error_cal_medium_sum"][type_of_clouds] = 0
                         acu["rms_error_cal_medium_sum"][type_of_clouds] = 0
@@ -198,7 +199,7 @@ class OrrbStats():
                         acu["n_missed_ctth_medium"][type_of_clouds] = 0
                         acu["n_missed_cma_medium"][type_of_clouds] = 0
                     acu["n_missed_ctth_medium"][type_of_clouds] += data_one_cat[5]
-                    acu["n_missed_cma_medium"][type_of_clouds] += data_one_cat[4]                    
+                    acu["n_missed_cma_medium"][type_of_clouds] += data_one_cat[4]  
                     acu["cal_medium_samples"][type_of_clouds] += data_one_cat[3]
                     acu["mean_error_cal_medium_sum"][type_of_clouds] += data_one_cat[3]*data_one_cat[1]
                     acu["rms_error_cal_medium_sum"][type_of_clouds] += data_one_cat[3]*data_one_cat[2]*data_one_cat[2] 
