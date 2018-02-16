@@ -4,6 +4,8 @@ Created on Oct 19, 2010
 @author: a001696
 '''
 import numpy as np
+import logging
+logger = logging.getLogger(__name__)
 
 class MatchupError(Exception):
     """This exception is used when a problem matching AVHRR data with 
@@ -20,27 +22,17 @@ class InputError(Exception):
     not match what is expected."""
     pass
 
+class ProcessingError(Exception):
+    """This exception is used when the processing fails."""
+    pass
+
 def elements_within_range(compare, base, _range):
     """Compare arrays *compare* and *base*, elementwise. Returns an array with
     elements set to True if compare[i] is within (base[i]-_range, base[i]+_range),
     otherwise false."""
-    import numpy
-    
-    c = numpy.array(compare)
-    b = numpy.array(base)
-    return numpy.logical_and(c > b - _range, c < b + _range)
-
-
-def attach_subdir_from_config(finder):
-    """Attach ``config.subdir`` to file finder *finder*."""
-    import config
-    
-    try:
-        subdir = config.subdir
-        finder.set_subdir_method(subdir)
-    except AttributeError:
-        pass
-
+    c = np.array(compare)
+    b = np.array(base)
+    return np.logical_and(c > b - _range, c < b + _range)
 
 def map_avhrr(avhrr, lon, lat, radius_of_influence):
     """
@@ -55,7 +47,8 @@ def map_avhrr(avhrr, lon, lat, radius_of_influence):
     source = (avhrr.longitude, avhrr.latitude)
     target = (lon, lat)
     #if avhrr.longitude.dtype != lon.dtype or  avhrr.latitude.dtype != lat.dtype:
-    source = (avhrr.longitude.astype(np.float64), avhrr.latitude.astype(np.float64))
+    source = (avhrr.longitude.astype(np.float64), 
+              avhrr.latitude.astype(np.float64))
     target = (lon.astype(np.float64), lat.astype(np.float64))   
     #print avhrr.longitude.dtype, lon.dtype, avhrr.latitude.dtype,  lat.dtype    
     mapper = match_lonlat(source, target, radius_of_influence, n_neighbours=1)

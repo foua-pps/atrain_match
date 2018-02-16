@@ -201,7 +201,7 @@ def read_calipso_the_single_shot_info(retv, h5file):
 
 def read_calipso(filename, res, ALAY=False):
     import h5py
-    logger.debug("Reading file %s"%(filename))
+    logger.debug("Reading file %s", filename)
     scip_these_larger_variables_until_needed = {
         # if any of these are needed just rempve them from the dictionary!
         "Spacecraft_Position": True, #3D-variable
@@ -274,7 +274,7 @@ def discardCalipsoFilesOutsideTimeRange(calipsofiles_list, avhrrGeoObj, values, 
             pass
             #print "skipping file %s outside time_limits"%(current_file)
         else:
-            logger.debug("Keeping file %s inside time_limits"%(os.path.basename(current_file)))
+            logger.debug("Keeping file %s inside time_limits", os.path.basename(current_file))
             calipso_within_time_range.append(current_file)
     return calipso_within_time_range
 
@@ -287,7 +287,7 @@ def reshapeCalipso(calipsofiles, res=RESOLUTION, ALAY=False):
         cal_start_all = startCalipso.profile_time_tai 
         cal_new_all = newCalipso.profile_time_tai      
         if not cal_start_all[0] < cal_new_all[0]:
-            raise InputError("Calipso files are in the wrong order!")
+            raise ProcessingError("Calipso files are in the wrong order!")
         # Concatenate the feature values
         for arname, value in startCalipso.all_arrays.items(): 
             if value is not None:
@@ -498,15 +498,15 @@ def addSingleShotTo5km(Obj5): # Valid only for CALIPSO-CALIOP version 4.10
         raise InputError("Different array length: 5km and Single Shot data!")
     logger.info(
         "*CHECKING CLOUD FREQUENCY DIFFERENCES SINGLE SHOT AND 5KM DATASETS:\n"
-        " \t \t Number of 5 km FOVS: {:d}\n"
-        " \t \t Number of cloudy 5 km FOVS:  {:d}\n"
-        " \t \t Cloudy fraction 5 km:  {:3.2f}\n"
-        " \t \t Number of Single shot FOVS:  {:d}\n"
-        " \t \t Number of cloudy Single shot FOVS:  {:d}\n"
-        " \t \t Cloudy fraction Single Shots: {:3.2f}\n"
-        " \t \t Number of Combined FOVS:  {:d}\n"
-        " \t \t Number of cloudy combined FOVS:  {:d}\n"
-        " \t \t Cloudy fraction combined: {:3.2f}\n".format(
+        " \t \t Number of 5 km FOVS:                 %d\n"
+        " \t \t Number of cloudy 5 km FOVS:          %d\n"
+        " \t \t Cloudy fraction 5 km:             %3.2f\n"
+        " \t \t Number of Single shot FOVS:          %d\n"
+        " \t \t Number of cloudy Single shot FOVS:   %d\n"
+        " \t \t Cloudy fraction Single Shots:     %3.2f\n"
+        " \t \t Number of Combined FOVS:             %d\n"
+        " \t \t Number of cloudy combined FOVS:      %d\n"
+        " \t \t Cloudy fraction combined:         %3.2f\n",
             len_5km,
             cfc_5km,
             float(cfc_5km)/float(len_5km),
@@ -515,7 +515,7 @@ def addSingleShotTo5km(Obj5): # Valid only for CALIPSO-CALIOP version 4.10
             float(cfc_Single_Shot)/float(len_single_shot),
             len_single_shot,
             cfc_combined,
-            float(cfc_combined)/float(len_single_shot)))
+            float(cfc_combined)/float(len_single_shot))
     # Now calculate the cloud fraction in 5 km data from single shot data 
     # (fraction of 15 FOVs declared cloudy).
     # In addition, if there are cloud layers in 5 km data but nothing in 

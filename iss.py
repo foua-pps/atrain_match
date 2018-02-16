@@ -10,7 +10,7 @@ from matchobject_io import (DataObject,
 from config import (AREA, sec_timeThr, RESOLUTION,
                     NODATA,
                     _validation_results_dir)
-from common import (MatchupError, 
+from common import (MatchupError, ProcessingError,
                     elements_within_range)
 from extract_imager_along_track import avhrr_track_from_matched
 
@@ -40,7 +40,8 @@ def get_iss(filename):
     #3 cloud and aerosol    
     iss.cloud_fraction = np.where(iss.sky_condition_fore_fov>1.5, 1.0,0.0)
     #print "iss cf", iss.cloud_fraction
-    logger.warning("Currently using sky_condition_fore_fov to set cloudfraction, use cloud_phase_fore_fov instead?")
+    logger.warning("Currently using sky_condition_fore_fov to set cloudfraction,"
+                   "\n \t use cloud_phase_fore_fov instead?")
 
     #used for cloud height validation, at cirtain modis it might be updated.
     # Start from bottom and find hight of highest cloud. 
@@ -54,7 +55,8 @@ def get_iss(filename):
         is_cloudy = np.logical_and(is_cloudy, is_not_very_thin)
         height_layer = iss.layer_top_altitude_fore_fov[:,layer]
         iss.validation_height[is_cloudy] = height_layer[is_cloudy]
-    logger.warning("Currently not considering cloudheight for cloud layers thinner than %3.2f (feature_optical_depth_1064_fore_fov)"%(limit))
+    logger.warning("Currently not considering cloudheight for cloud layers "
+                   "thinner than %3.2f (feature_optical_depth_1064_fore_fov)", limit)
     iss.validation_height[iss.validation_height>=0] = iss.validation_height[iss.validation_height>=0]*1000
     iss.validation_height[iss.validation_height<0] = -9
     iss.validation_height[iss.cloud_fraction<0.5] = -9 #should not be needed
@@ -64,7 +66,7 @@ def get_iss(filename):
 def read_iss(filename):
     import h5py
     import pdb, sys
-    logger.info("Reading file %s"%(filename))
+    logger.info("Reading file %s", filename)
     scip_these_larger_variables_until_needed = {
         # if any of these are needed remove them from the dictionary!  
         # might need more work as they are 3D or 4D variables.
@@ -92,7 +94,6 @@ def read_iss(filename):
         h5file.close()
         retv.latitude = retv.cats_fore_fov_latitude[:,1]
         retv.longitude = retv.cats_fore_fov_longitude[:,1] 
-        #logger.debug(retv.longitude.shape)
         # Elevation is given in km's. Convert to meters:
         retv.elevation = retv.dem_surface_altitude_fore_fov*1000.0 
         seconds_per_day = datetime.timedelta(days=1).total_seconds()
@@ -173,9 +174,7 @@ def reshapeIss(issfiles, avhrr):
         iss_start_all = iss.sec_1970.ravel()
         iss_new_all = newIss.sec_1970.ravel()
         if not iss_start_all[0]<iss_new_all[0]:
-            print "iss files are in the wrong order"
-            print("Program iss.py at line %i" %(inspect.currentframe().f_lineno+1))
-            sys.exit(-9)
+            raise ProcessingError("Iss files are in the wrong order")
         iss_break = np.argmin(np.abs(iss_start_all - iss_new_all[0]))+1
         # Concatenate the feature values
         #arname = array name from issObj

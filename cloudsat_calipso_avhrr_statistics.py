@@ -1,6 +1,5 @@
 #Program cloudsat_calipso_avhrr_statistics.py
 import config
-import sys
 import logging
 logger = logging.getLogger(__name__)
 import numpy as np
@@ -110,7 +109,8 @@ def get_subset_for_mode(cObj, mode):
         cal_subset = latitude_abs > 75
     elif nsidc_st is None and igbp_st is None:
         cal_subset = np.bool_(np.zeros(latitude_abs.shape))
-        logger.warning("Will not run igbp/nsidc dependent mode={:s} for {:s}".format(mode, cObj.truth_sat))
+        logger.warning("Will not run igbp/nsidc dependent mode: %s for %s", 
+                       mode, cObj.truth_sat)
         return None
     # Then prepare possible subsetting of CALIOP datasets according to NSIDC
     # and IGBP surface types  if we have them
@@ -124,7 +124,11 @@ def get_subset_for_mode(cObj, mode):
         cal_subset = np.logical_and(
             np.logical_and(np.less(nsidc_st,104), np.greater(nsidc_st,10)),
             np.not_equal(igbp_st,17))
-        # Notice that some uncertainty remains about the meaning of IGBP category 15 = "snow and ice". Can this possibly include also the Arctic ice sheet? We hope that it is not!!! However, if it is, the whole classification here might be wrong since this will affect also the definition of IGBP category 17./KG 
+        #: Notice that some uncertainty remains about the meaning of IGBP 
+        #: category 15 = "snow and ice". Can this possibly include also 
+        #: the Arctic ice sheet? We hope that it is not! 
+        #: However, if it is, the whole classification here might be wrong 
+        #: since this will affect also the definition of IGBP category 17./KG 
     elif mode == 'SNOW_FREE_LAND':
         cal_subset = np.logical_and(np.equal(nsidc_st,0),
                                     np.not_equal(igbp_st,17))
@@ -205,8 +209,8 @@ def get_subset_for_mode(cObj, mode):
         cal_subset_area = latitude_abs > 75
         cal_subset = np.logical_and(cal_subset_lat, cal_subset_area)    
     else:
-        print('The mode %s is not added in statistic file' %mode)
-        sys.exit()
+        raise ProcessingError('Unknown mode')
+
     return cal_subset     
 
 def get_day_night_info(cObj):
@@ -228,9 +232,9 @@ def get_day_night_info(cObj):
         daynight_flags = get_day_night_twilight_info_cci2014(
         cObj_imager.sunz)
     (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag) = daynight_flags
-    if (no_qflag.sum() + night_flag.sum() + twilight_flag.sum() + day_flag.sum()) != cObj_truth_sat.longitude.size:          
-        print('something wrong with quality flags. It does not sum up. See beginning of statistic file')
-        sys.exit()
+    if (no_qflag.sum() + night_flag.sum() + twilight_flag.sum() + 
+        day_flag.sum()) != cObj_truth_sat.longitude.size:          
+        raise ProcessingError("Something wrong with quality flags. It does not sum up.")
     return daynight_flags
     
 def get_semi_opaque_info(caObj):
@@ -780,30 +784,24 @@ def print_main_stats(cObj, statfile):
 def CalculateStatistics(mode, statfilename, caObj, clsatObj, issObj,
                         dnt_flag=None):
 
-
-    import sys
-
     def get_day_night_subset(cObj, val_subset):
         (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag) = get_day_night_info(cObj)
         
         if dnt_flag is None:
-            logger.debug('dnt_flag = %s' %'NO DNT FLAG -> ALL PIXELS')
+            logger.debug('dnt_flag = %s', 'ALL PIXELS')
             dnt_subset = np.logical_and(val_subset, all_dnt_flag)
         elif dnt_flag.upper() == 'DAY':
-            logger.debug('dnt_flag = %s' %dnt_flag.upper())
+            logger.debug('dnt_flag = %s', dnt_flag.upper())
             dnt_subset = np.logical_and(val_subset, day_flag)
         elif dnt_flag.upper() == 'NIGHT':
-            logger.debug('dnt_flag = %s' %dnt_flag.upper())
+            logger.debug('dnt_flag = %s', dnt_flag.upper())
             dnt_subset = np.logical_and(val_subset, night_flag)
         elif dnt_flag.upper() == 'TWILIGHT':
-            logger.debug('dnt_flag = %s' %dnt_flag.upper())
+            logger.debug('dnt_flag = %s', dnt_flag.upper())
             dnt_subset = np.logical_and(val_subset, twilight_flag)
         else:
-            print('dnt_flag = %s' %dnt_flag.upper())
-            print('statistic calculation is not prepared for this dnt_flag')
-            sys.exit()
+            raise ProcessingError("Unknown DNT-flag %s"%(dnt_flag.upper()))
         return dnt_subset  
-  
  
     if clsatObj is not None:
         logger.info("Cloudsat Statistics")

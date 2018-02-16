@@ -3,11 +3,10 @@
 # This program calculates basic statistics for the cloud amount (CFC) product for
 # each month
 
-import string
 import math
 import numpy as np
 
-from orrb_stat_class import OrrbStats
+from statistics.orrb_stat_class import OrrbStats
 
 # -----------------------------------------------------
 class CloudFractionStats(OrrbStats):
@@ -51,14 +50,27 @@ class CloudFractionStats(OrrbStats):
                                 n_cloudy_clear_cal*(-1.0-bias_modis)**2 + \
                                 n_clear_cloudy_cal*(1.0-bias_modis)**2
             rms_modis = 100.0*math.sqrt(np.divide(square_sum_modis, Num-1.))
-            pod_cloudy_cal_MODIS = np.divide(100.0*n_cloudy_cloudy_cal_MODIS, n_cloudy_cloudy_cal_MODIS+n_cloudy_clear_cal_MODIS)
-            pod_clear_cal_MODIS = np.divide(100.0*n_clear_clear_cal_MODIS, n_clear_clear_cal_MODIS+n_clear_cloudy_cal_MODIS)
-            far_cloudy_cal_MODIS = np.divide(100.0*n_clear_cloudy_cal_MODIS, n_cloudy_cloudy_cal_MODIS+n_clear_cloudy_cal_MODIS)
-            far_clear_cal_MODIS = np.divide(100.0*n_cloudy_clear_cal_MODIS, n_clear_clear_cal_MODIS+n_cloudy_clear_cal_MODIS)
-            kuipers_MODIS = np.divide(1.0*(n_clear_clear_cal_MODIS*n_cloudy_cloudy_cal_MODIS-n_cloudy_clear_cal_MODIS*n_clear_cloudy_cal_MODIS),
-                                      ((n_clear_clear_cal_MODIS+n_clear_cloudy_cal_MODIS)*(n_cloudy_clear_cal_MODIS+n_cloudy_cloudy_cal_MODIS)))        
-            hitrate_MODIS = np.divide(1.0*(n_clear_clear_cal_MODIS+n_cloudy_cloudy_cal_MODIS),
-                                      (n_clear_clear_cal_MODIS+n_clear_cloudy_cal_MODIS+n_cloudy_clear_cal_MODIS+ n_cloudy_cloudy_cal_MODIS))
+            pod_cloudy_cal_MODIS = np.divide(
+                100.0 * n_cloudy_cloudy_cal_MODIS, 
+                n_cloudy_cloudy_cal_MODIS + n_cloudy_clear_cal_MODIS)
+            pod_clear_cal_MODIS = np.divide(
+                100.0 * n_clear_clear_cal_MODIS, 
+                n_clear_clear_cal_MODIS + n_clear_cloudy_cal_MODIS)
+            far_cloudy_cal_MODIS = np.divide(
+                100.0 * n_clear_cloudy_cal_MODIS, 
+                n_cloudy_cloudy_cal_MODIS+n_clear_cloudy_cal_MODIS)
+            far_clear_cal_MODIS = np.divide(
+                100.0 * n_cloudy_clear_cal_MODIS, 
+                n_clear_clear_cal_MODIS+n_cloudy_clear_cal_MODIS)
+            kuipers_MODIS = np.divide(
+                1.0 * (n_clear_clear_cal_MODIS * n_cloudy_cloudy_cal_MODIS - 
+                     n_cloudy_clear_cal_MODIS * n_clear_cloudy_cal_MODIS),
+                ((n_clear_clear_cal_MODIS + n_clear_cloudy_cal_MODIS) * 
+                 (n_cloudy_clear_cal_MODIS + n_cloudy_cloudy_cal_MODIS)))        
+            hitrate_MODIS = np.divide(
+                1.0 * (n_clear_clear_cal_MODIS + n_cloudy_cloudy_cal_MODIS),
+                (n_clear_clear_cal_MODIS + n_clear_cloudy_cal_MODIS + 
+                 n_cloudy_clear_cal_MODIS + n_cloudy_cloudy_cal_MODIS))
         
         # Store values of interest as attributes
         if self.ac_data["got_cloudsat_modis_flag"]:

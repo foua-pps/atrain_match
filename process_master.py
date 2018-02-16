@@ -50,7 +50,7 @@ def process_matchups(matchups, run_modes, reprocess=False, debug=False):
         try:
             cloudsat_calipso_avhrr_match.run(match, run_modes,  OPTIONS, reprocess)
         except MatchupError, err:
-            logger.warning("Matchup problem: %s" % str(err))
+            logger.warning("Matchup problem: %s", str(err))
             import traceback
             traceback.print_exc()
             no_matchup_files.append(match)
@@ -66,16 +66,16 @@ def process_matchups(matchups, run_modes, reprocess=False, debug=False):
                 
     if len(no_matchup_files) > 0:
         logger.warning(
-                  "%d of %d cases had no matchups in region, within the time window:\n%s" % \
-                  (len(no_matchup_files), len(matchups),
-                   '\n'.join([str(m) for m in no_matchup_files])))
+            "%d of %d cases had no matchups in region, within the time window:\n%s",
+            len(no_matchup_files), len(matchups),
+            '\n'.join([str(m) for m in no_matchup_files]))
     if len(problematic) > 0:
-        logger.warning("%d of %d cases had unknown problems:\n%s" % \
-                  (len(problematic), len(matchups),
-                   '\n'.join([str(m) for m in problematic])))    
+        logger.warning("%d of %d cases had unknown problems:\n%s",
+                       len(problematic), len(matchups),
+                       '\n'.join([str(m) for m in problematic]))
     return outstatus
 
-def main(args=None):
+def main():
     """
     Process command line options and run matchup and validation.
     
@@ -125,7 +125,6 @@ def main(args=None):
 
     config.DEBUG = options.debug
     if options.debug:
-        import logging
         logging.getLogger().setLevel(logging.DEBUG)
 
     matchups = []
@@ -134,7 +133,7 @@ def main(args=None):
         from find_crosses import Cross
         from runutils import parse_scene
         scene = options.pps_okay_scene
-        satname, time, orbit = parse_scene(scene) #@UnusedVariable
+        satname, time, orbit = parse_scene(scene) 
         matchups.append(Cross(satname, '', time, time, -999, -999))
     elif options.sno_file is not None:
         if config.USE_ORBITS_THAT_STARTS_EXACTLY_AT_CROSS:
@@ -145,8 +144,8 @@ def main(args=None):
         sno_output_file = options.sno_file
         found_matchups = find_crosses.parse_crosses_file(sno_output_file)
         if len(found_matchups) == 0:
-            logger.warning("No matchups found in SNO output file %s" %
-                      sno_output_file)
+            logger.warning("No matchups found in SNO output file %s",
+                           sno_output_file)
             if options.debug is True:
                 raise Warning()
         else:

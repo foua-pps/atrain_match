@@ -3,14 +3,11 @@ import time
 import numpy as np
 import logging
 logger = logging.getLogger(__name__)
-from matchobject_io import (DataObject,
-                            ppsAvhrrObject,
-                            CloudsatObject,
+from matchobject_io import (CloudsatObject,
                             CloudsatAvhrrTrackObject)                            
-from config import (AREA, sec_timeThr, RESOLUTION,
-                    NODATA, CLOUDSAT_CLOUDY_THR, 
-                    _validation_results_dir)
-from common import (MatchupError, 
+from config import (sec_timeThr, RESOLUTION,
+                    NODATA, CLOUDSAT_CLOUDY_THR)
+from common import (MatchupError, ProcessingError,
                     elements_within_range)
 from extract_imager_along_track import avhrr_track_from_matched
 
@@ -18,7 +15,6 @@ from calipso import (find_break_points, calipso_track_from_matched,
                      time_reshape_calipso, do_some_logging)
 
 def add_validation_ctth_cloudsat(cloudsat):
-    import config
     #CLOUDSAT VALIDATION HEIGHT!
     #The restriction to use only pixels where imager and cloudsat
     #both is cloudy is done later. This makes it possbile to find also
@@ -98,8 +94,6 @@ def read_cloudsat_hdf4(filename):
         #print h4file.select(sds).attributes().keys()
         retv.all_arrays[sds] = convert_data(data)
         #print h4file.select(sds).info()
-        
-
     h4file = HDF(filename, SDC.READ)
     vs = h4file.vstart()
     data_info_list = vs.vdatainfo()
@@ -121,10 +115,8 @@ def read_cloudsat_hdf4(filename):
                 offset = 0.0
             raise MatchupError("Not default offset and factor. Fix code")
             #The code below is probably ok, but make sure:
-            the_data_scaled = convert_data(data)*factor + offset
-            retv.all_arrays[am_name] = the_data_scaled 
-        
-        
+            #the_data_scaled = convert_data(data)*factor + offset
+            #retv.all_arrays[am_name] = the_data_scaled 
         data_handle.detach()
     #print data_handle.attrinfo()
     h4file.close()
@@ -172,8 +164,6 @@ def read_cloudsat(filename):
 
 def match_cloudsat_avhrr(cloudsatObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,imagerAngObj, 
                          cpp, nwp_segments):
-    import string
-    import os
     retv = CloudsatAvhrrTrackObject()
     lonCloudsat = cloudsatObj.longitude.ravel()
     latCloudsat = cloudsatObj.latitude.ravel()
@@ -220,25 +210,23 @@ def match_cloudsat_avhrr(cloudsatObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,i
     return retv
 
 def reshapeCloudsat(cloudsatfiles, avhrr):
-    import sys
-    avhrr_end = avhrr.sec1970_end
-    avhrr_start = avhrr.sec1970_start
+    #avhrr_end = avhrr.sec1970_end
+    #avhrr_start = avhrr.sec1970_start
     clsat = get_cloudsat(cloudsatfiles[0])
     for i in range(len(cloudsatfiles)-1):
         newCloudsat = get_cloudsat(cloudsatfiles[i+1])
         clsat_start_all = clsat.sec_1970.ravel()
         clsat_new_all = newCloudsat.sec_1970.ravel()
         if not clsat_start_all[0]<clsat_new_all[0]:
-            print "cloudsat files are in the wrong order"
-            print("Program cloudsat.py at line %i" %(inspect.currentframe().f_lineno+1))
-            sys.exit(-9)
+            raise ProcessingError("CloudSat files are in the wrong order!")
         clsat_break = np.argmin(np.abs(clsat_start_all - clsat_new_all[0]))+1
         # Concatenate the feature values
         #arname = array name from cloudsatObj
         for arname, value in clsat.all_arrays.items(): 
             if value is not None:
                 if value.size != 1:
-                    clsat.all_arrays[arname] = np.concatenate((value[0:clsat_break,...],newCloudsat.all_arrays[arname]))
+                    clsat.all_arrays[arname] = np.concatenate((value[0:clsat_break,...],
+                                                               newCloudsat.all_arrays[arname]))
     # Finds Break point
     startBreak, endBreak = find_break_points(clsat, avhrr)
     clsat = time_reshape_calipso(clsat, startBreak, endBreak)
@@ -247,30 +235,6 @@ def reshapeCloudsat(cloudsatfiles, avhrr):
     
 
 if __name__ == "__main__":
-    # Testing:
-#    import string
-#    import epshdf
-#    import pps_io
-    
-    from config import CLOUDSAT_DIR
-    cloudsatfile = "%s/2007151082929_05796_CS_2B-GEOPROF_GRANULE_P_R04_E02.h5"%(CLOUDSAT_DIR)
+    # Testing not tested for many years! 
+    pass 
 
-    # --------------------------------------------------------------------
-    logger.info("Read CLOUDSAT data")
-    # Read CLOUDSAT Radar data:
-    cloudsat = get_cloudsat(cloudsatfile)
-    #cloudsat = read_cloudsat(cloudsatfile)
-
-    lonCloudsat = cloudsat.longitude.ravel()
-    latCloudsat = cloudsat.latitude.ravel()
-
-    # Test:
-    ndim = lonCloudsat.ravel().shape[0]
-    idx_match = np.zeros((ndim,),'b')
-    idx_match[0:10] = 1
-
-    x = np.repeat(cloudsat.Height[::,0],idx_match)
-    for i in range(1,125):
-        x = np.concatenate((x,np.repeat(cloudsat.Height[::,i],idx_match)))
-    N = x.shape[0]/125
-    cloudsat.Height = np.reshape(x,(125,N))

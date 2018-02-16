@@ -147,7 +147,7 @@ if __name__ == '__main__':
                 print("-> " + indata_dir)
                 results_files.extend(glob("%s/*%skm*%s*.dat" %(indata_dir, RESOLUTION, truth_sat.lower())))
             if len(results_files) <1:
-                logger.info("PROCESS MODE {} have no results files".format(process_mode_dnt))  
+                logger.info("PROCESS MODE %s have no results files", process_mode_dnt)  
                 continue
             #compile and write results    
             compiled_dir = config_options['compiled_stats_dir'].format(

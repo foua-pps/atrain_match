@@ -9,6 +9,8 @@ from datetime import datetime
 logger = logging.getLogger(__name__)
 from config import (NODATA, PPS_FORMAT_2012_OR_EARLIER,  CTTH_TYPES, 
                     CMA_PROB_VALIDATION, CMA_PROB_CLOUDY_LIMIT, RESOLUTION)
+from runutils import do_some_geo_obj_logging
+from common import InputError
 ATRAIN_MATCH_NODATA = NODATA
 #logger.debug('Just so you know: this module has a logger...')
 
@@ -35,7 +37,10 @@ def get_satid_datetime_orbit_from_fname_pps(avhrr_filename,as_oldstyle=False):
                  "lines_lines": "*",
                  "time":sl_[2],
                  "ppsfilename":avhrr_filename}
-        values['basename'] = values["satellite"] + "_" + values["date"] + "_" + values["time"] + "_" + values["orbit"]
+        values['basename'] = (values["satellite"] + 
+                              "_" + values["date"] + 
+                              "_" + values["time"] + 
+                              "_" + values["orbit"])
     else: #PPS v2014-filenames
         sl_ = os.path.basename(avhrr_filename).split('_')
         date_time= datetime.strptime(sl_[5], '%Y%m%dT%H%M%S%fZ')
@@ -49,7 +54,10 @@ def get_satid_datetime_orbit_from_fname_pps(avhrr_filename,as_oldstyle=False):
                  "lines_lines": "*",
                  "time":date_time.strftime("%H%M"),
                  "ppsfilename":avhrr_filename}
-        values['basename'] = values["satellite"] + "_" + values["date"] + "_" + values["time"] + "_" + values["orbit"]
+        values['basename'] = (values["satellite"] + 
+                              "_" + values["date"] + 
+                              "_" + values["time"] + 
+                              "_" + values["orbit"])
     values["jday"]=date_time.timetuple().tm_yday
 
     return values    
@@ -91,7 +99,7 @@ def createAvhrrTime(Obt, values=None, Trust_sec_1970=False):
         diff_filename_infile_time = sec1970_start_filename-Obt.sec1970_start
         diff_hours= abs( diff_filename_infile_time/3600.0  )
         if (diff_hours<13):
-            logger.debug("Time in file and filename do agree. Difference  %d hours."%diff_hours)
+            logger.debug("Time in file and filename do agree. Difference  %d hours.", diff_hours)
         if (diff_hours>13):
             """
             This if statement takes care of a bug in start and end time, 
@@ -114,8 +122,8 @@ def createAvhrrTime(Obt, values=None, Trust_sec_1970=False):
             diff_filename_infile_time = sec1970_start_filename-Obt.sec1970_start
             diff_hours= abs( diff_filename_infile_time/3600.0)
             if (diff_hours>20):
-                logger.error("Time in file and filename do not agree! Difference  %d hours.", diff_hours)
-                raise TimeMatchError("Time in file and filename do not agree.")        
+                raise InputError("Time in file and filename do not agree.",
+                                 " %d s diff"%(diff_hours*60.0))        
         Obt.time = np.linspace(Obt.sec1970_start, Obt.sec1970_end, Obt.num_of_lines)
     return Obt
     
@@ -251,8 +259,6 @@ def read_ctth_h5(filename):
     ctth.temperature = h5file['ctth_tempe'].value.astype(np.float)
     ctth.pressure = h5file['ctth_pres'].value.astype(np.float)
     ctth.ctth_statusflag = h5file['ctth_status_flag'].value
-    #Currently unpacked arrays later
-    #TODO: move this here also for h5!
     ctth.h_gain = h5file['ctth_alti'].attrs['scale_factor']
     ctth.h_intercept = h5file['ctth_alti'].attrs['add_offset']
     ctth.t_gain = h5file['ctth_tempe'].attrs['scale_factor']
@@ -272,8 +278,8 @@ def read_ctth_h5(filename):
     ctth.pressure[pmask] = ATRAIN_MATCH_NODATA    
     ctth.temperature[tmask] = ATRAIN_MATCH_NODATA 
 
-    logger.debug("min-h: %d, max-h: %d, h_nodata: %d"%(
-        np.min(ctth.height), np.max(ctth.height), ctth.h_nodata))
+    logger.debug("min-h: %d, max-h: %d, h_nodata: %d",
+                 np.min(ctth.height), np.max(ctth.height), ctth.h_nodata)
     h5file.close()
     return ctth
 
@@ -294,8 +300,8 @@ def read_ctth_nc(filename):
     ctth.h_nodata = pps_nc.variables['ctth_alti']._FillValue
     ctth.t_nodata = pps_nc.variables['ctth_tempe']._FillValue
     ctth.p_nodata = pps_nc.variables['ctth_pres']._FillValue
-    logger.debug("min-h: %d, max-h: %d, h_nodata: %d"%(
-        np.min(ctth.height), np.max(ctth.height.data), ctth.h_nodata))
+    logger.debug("min-h: %d, max-h: %d, h_nodata: %d",
+                 np.min(ctth.height), np.max(ctth.height.data), ctth.h_nodata)
     #already scaled
     if np.ma.is_masked(ctth.height):     
         ctth.height.data[ctth.height.mask]  = ATRAIN_MATCH_NODATA
@@ -345,8 +351,8 @@ def read_cmaprob_h5(filename):
     cma = CmaObj()
     if 'cma_extended' in h5file.keys():
         if 'cloud_probability' not in h5file.keys():
-            logger.error("Probably you shold set CMAP_PROB_VALIDATION=False!")
-            logger.error("This file looks lika a normal CMA-file {}".format(filename))
+            logger.error("\n Note: CMAP_PROB_VALIDATION=True!"
+                         "\n This file looks lika a normal CMA-file %s", filename)
     cma.cma_prob = h5file['cloud_probability'].value
     cma.cma_ext = 0*cma.cma_prob
     cma.cma_ext[cma.cma_prob>=CMA_PROB_CLOUDY_LIMIT] = 1.0
@@ -426,8 +432,6 @@ def readImagerData_nc(pps_nc):
                 corr_done_attr = pps_nc.variables[var].sun_zenith_angle_correction_applied
                 if corr_done_attr.upper() in ["TRUE"]:
                     one_channel.SZA_corr_done = True
-            #Currently unpacked arrays later in calipso.py:
-            #TODO: move this herealso for h5!
             one_channel.gain = 1.0 #data already scaled
             one_channel.intercept = 0.0 #data already scaled
             imager_data.channel.append(one_channel) 
@@ -558,16 +562,7 @@ def read_pps_geoobj_nc(pps_nc):
     GeoObj.sec1970_end = sec_since_1970 + np.max(pps_nc.variables['time_bnds'][::]) + seconds
     GeoObj.sec1970_start = int(GeoObj.sec1970_start) 
     GeoObj.sec1970_end = int(GeoObj.sec1970_end)
-    tim1 = time.strftime("%Y%m%d %H:%M", 
-                         time.gmtime(GeoObj.sec1970_start))
-    tim2 = time.strftime("%Y%m%d %H:%M", 
-                         time.gmtime(GeoObj.sec1970_end))
-    logger.debug("Starttime: %s, end time: %s"%(tim1, tim2))
-    logger.debug("Min lon: %s, max lon: %d"%(
-        np.min(GeoObj.longitude),
-        np.max(GeoObj.longitude)))
-    logger.debug("Min lat: %d, max lat: %d"%(
-        np.min(GeoObj.latitude),np.max(GeoObj.latitude)))
+    do_some_geo_obj_logging(GeoObj)
     return  GeoObj
 
 def read_pps_geoobj_h5(filename):
@@ -591,16 +586,8 @@ def read_pps_geoobj_h5(filename):
     GeoObj.num_of_lines = GeoObj.latitude.shape[0]
     GeoObj.sec1970_start = h5file['how'].attrs['startepochs']
     GeoObj.sec1970_end =  h5file['how'].attrs['endepochs']
-    tim1 = time.strftime("%Y%m%d %H:%M", 
-                         time.gmtime(GeoObj.sec1970_start))
-    tim2 = time.strftime("%Y%m%d %H:%M", 
-                         time.gmtime(GeoObj.sec1970_end))
-    logger.info("Starttime: %s, end time: %s"%(tim1, tim2))
-    logger.debug("Min lon: %s, max lon: %d"%(
-        np.min(GeoObj.longitude),
-        np.max(GeoObj.longitude)))
-    logger.debug("Min lat: %d, max lat: %d"%(
-        np.min(GeoObj.latitude),np.max(GeoObj.latitude)))
+    do_some_geo_obj_logging(GeoObj)
+
     return  GeoObj
 
 def read_cpp_h5(filename):
@@ -614,7 +601,7 @@ def read_cpp_h5(filename):
 
 def read_cpp_h5_one_var(h5file, cpp_key):
     if cpp_key in h5file.keys():
-        logger.debug("Read %s"%(cpp_key))
+        logger.debug("Read %s", cpp_key)
         cpp_var_value = h5file[cpp_key].value
         nodata = h5file[cpp_key].attrs['_FillValue']  
         if cpp_key in ["cpp_phase", "cpp_phase_extended"]:
@@ -629,12 +616,12 @@ def read_cpp_h5_one_var(h5file, cpp_key):
                            ATRAIN_MATCH_NODATA) 
         return  cpp_data
     else:
-        logger.debug("NO %s field, Continue "%(cpp_key))
+        logger.debug("NO %s field, Continue ", cpp_key)
         return None
 
 def read_cpp_nc_one_var(ncFile, cpp_key):
     if cpp_key in ncFile.variables.keys():
-        logger.debug("Read %s"%(cpp_key))
+        logger.debug("Read %s", cpp_key)
         cpp_var = ncFile.variables[cpp_key][0,:,:]
         if np.ma.is_masked(cpp_var):
             cpp_data = cpp_var.data.astype(np.float)
@@ -644,7 +631,7 @@ def read_cpp_nc_one_var(ncFile, cpp_key):
         
         return  cpp_data
     else:
-        logger.debug("NO %s field, Continue "%(cpp_key))
+        logger.debug("NO %s field, Continue ", cpp_key)
         return None
 
 
@@ -662,7 +649,7 @@ def read_nwp_h5(filename, nwp_key):
     import h5py 
     h5file = h5py.File(filename, 'r')
     if nwp_key in h5file.keys():
-        logger.debug("Read NWP %s"%(nwp_key))
+        logger.debug("Read NWP %s", nwp_key)
         value = h5file[nwp_key].value
         gain = h5file[nwp_key].attrs['gain']
         intercept = h5file[nwp_key].attrs['intercept']
@@ -671,12 +658,12 @@ def read_nwp_h5(filename, nwp_key):
         h5file.close()
         return data    
     else:
-        logger.debug("NO NWP %s File, Continue"%(nwp_key))
+        logger.debug("NO NWP %s File, Continue", nwp_key)
         return None
 
 def read_etc_nc(ncFile, etc_key):
     if etc_key in ncFile.variables.keys():
-        logger.debug("Read %s"%(etc_key))
+        logger.debug("Read %s", etc_key)
         nwp_var = ncFile.variables[etc_key][0,:,:]
         if np.ma.is_masked(nwp_var):
             if 'emis' in etc_key:
@@ -685,7 +672,7 @@ def read_etc_nc(ncFile, etc_key):
             nwp_var = nwp_var.data
         return  nwp_var
     else:
-        logger.debug("NO %s field, Continue "%(etc_key))
+        logger.debug("NO %s field, Continue ", etc_key)
         return None
 
 def read_segment_data(filename):
@@ -778,7 +765,7 @@ def read_segment_data(filename):
         h5file.close()
         return product
     else:
-        logger.info("NO segment %s File, Continue"%(filename))
+        logger.info("NO segment %s File, Continue", filename)
         return None
 
 
@@ -795,12 +782,12 @@ def read_thr_h5(filename, h5_obj_type, thr_type):
                 product = value * gain + intercept
                 product[product<0] = 1.0
                 product[product>1.0] = 1.0
-                logger.debug("Read EMIS: %s"%(thr_type))
+                logger.debug("Read EMIS: %s", thr_type)
             else:
-                logger.info("ERROR","Could not read %s File, Continue"%(thr_type))
+                logger.info("ERROR","Couldn't read %s file, Continue", thr_type)
             h5file.close()   
         else:
-            logger.debug("NO EMIS %s File, Continue"%(thr_type))
+            logger.debug("NO EMIS %s File, Continue", thr_type)
         return product  
     if filename is not None: 
         h5file = h5py.File(filename, 'r')
@@ -811,10 +798,10 @@ def read_thr_h5(filename, h5_obj_type, thr_type):
             product = value * gain + intercept
             logger.debug("Read THR: %s"%(thr_type))
         else:
-            logger.error("Could not read %s File, Continue"%(thr_type))
+            logger.error("Could not read %s File, Continue", thr_type)
         h5file.close()   
     else:
-        logger.debug("NO THR %s File, Continue"%(thr_type))
+        logger.debug("NO THR %s File, Continue", thr_type)
     return product
 
 
@@ -1023,3 +1010,6 @@ def pps_read_all(pps_files, avhrr_file, cross):
     logger.info("Read PPS NWP segment resolution data") 
     segment_data_object = read_segment_data(getattr(pps_files,'nwp_segments'))
     return avhrrAngObj, ctth, imagerGeoObj, ctype, avhrrObj, nwp_obj, cpp, segment_data_object, cma 
+
+if __name__ == "__main__":
+    pass

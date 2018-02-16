@@ -8,9 +8,10 @@ Utilities
 import numpy as np
 import logging
 logger = logging.getLogger(__name__)
-from read_cloudproducts_cci import cci_read_prod
+import read_cloudproducts_cci  as read_cci
 import h5py
 from datetime import datetime
+import netCDF4	
 TAI93 = datetime(1993, 1, 1)
 
 #: h5py compression settings (True, or an integer in range(10))
@@ -68,8 +69,9 @@ def get_avhrr_lonlat_and_time_cci(filename):
     """
     Get (lon, lat) from CCI AVHRR file .
     
-    """    
-    geo = cci_read_prod(filename, 'geotime')
+    """ 
+    cci_nc = netCDF4.Dataset(filename, 'r', format='NETCDF4')
+    geo = read_cci.cci_read_prod(filename, 'geotime')
     n_scanlines = geo.longitude.shape[0]
     sec1970 = np.linspace(geo.sec1970_start, geo.sec1970_end, n_scanlines)
     return (geo.longitude, geo.latitude), sec1970
@@ -152,7 +154,8 @@ def get_cpp_product(filename, product):
 
 def get_cpp_product_cci(filename, product):
     """Get *product* from CPP file *filename*."""
-    cpp_cph = cci_read_prod(filename, 'phase')
+    cci_nc = netCDF4.Dataset(filename, 'r', format='NETCDF4')
+    cpp_cph = read_cci.read_cci_phase(cci_nc)
     return cpp_cph
 
 def reduce_cpp_lwp_data(lwp, sunsat_filename, dcwp, flag=None):

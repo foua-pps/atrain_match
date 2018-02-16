@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 from read_cloudproducts_and_nwp_pps import (CtypeObj, CtthObj, CmaObj,
                                             createAvhrrTime,
                                             imagerAngObj, imagerGeoObj)
+from runutils import do_some_geo_obj_logging
 from config import NODATA
 ATRAIN_MATCH_NODATA = NODATA
 from get_flag_info import get_maia_ct_flag, get_day_night_twilight_info_maia
@@ -51,7 +52,7 @@ def maia_read_all(filename):
     if unzipped:
         filename = unzipped
 
-    logger.info("Opening file %s" % (filename))
+    logger.info("Opening file %s", filename)
     with h5py.File(filename, 'r') as maia_h5:
         logger.info("Reading angles ...")
         avhrrAngObj = read_maia_angobj(maia_h5)
@@ -162,23 +163,7 @@ def read_maia_geoobj(maia_h5, filename):
     GeoObj.num_of_lines = GeoObj.latitude.shape[0]
 
     GeoObj = createAvhrrTime(GeoObj, values={}, Trust_sec_1970=True)
-    tim1 = time.strftime("%Y%m%d %H:%M",
-                         time.gmtime(GeoObj.sec1970_start))
-    tim2 = time.strftime("%Y%m%d %H:%M",
-                         time.gmtime(GeoObj.sec1970_end))
-    logger.info("Starttime: %s, end time: %s" % (tim1, tim2))
-    logger.info("Min lon: %f, max lon: %d" % (
-        np.min(np.where(
-                np.equal(GeoObj.longitude, GeoObj.nodata),
-                99999,
-                GeoObj.longitude)),
-        np.max(GeoObj.longitude)))
-    logger.info("Min lat: %d, max lat: %d" % (
-        np.min(np.where(
-                np.equal(GeoObj.latitude, GeoObj.nodata),
-                99999,
-                GeoObj.latitude)),
-        np.max(GeoObj.latitude)))
+    do_some_geo_obj_logging(GeoObj)
 
     return GeoObj
 

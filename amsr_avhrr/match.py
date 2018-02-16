@@ -145,7 +145,7 @@ def match_lonlat(source, target,
     #lon = np.around(lon, decimals=4)
     source_def = SwathDefinition(*(lon,lat))
     target_def = SwathDefinition(*target)
-    logger.debug("Matching %d nearest neighbours" % n_neighbours)
+    logger.debug("Matching %d nearest neighbours", n_neighbours)
     valid_in, valid_out, indices, distances = get_neighbour_info(
         source_def, target_def, radius_of_influence, neighbours=n_neighbours)
     #Use pyresampe code to find colmun and row numbers for each pixel
@@ -249,29 +249,8 @@ def match(amsr_filename, avhrr_filename, sunsat_filename, radius_of_influence=1e
     mapper.time_diff = time_diff
     mapper.time_threshold = time_threshold
     
-    logger.debug("Time diff (min, max): %r" % ((time_diff.min(),
-                                                time_diff.max()),))
+    logger.debug("Time diff (min, max): %3.1f, %3.1f", 
+                 time_diff.min(),time_diff.max())
     
     return mapper
-
-def find_amsr(avhrr_filename):
-    """
-    Find AMSR-E files matching *avhrr_filename*. Returns a list of file paths.
-    
-    """
-    from file_finders import AmsrFileFinder
-    from cloudsat_calipso_avhrr_match import get_satid_datetime_orbit_from_fname
-    #pps_finder = PpsFileFinder()
-    #parsed = pps_finder.parse(avhrr_filename)
-    values = get_satid_datetime_orbit_from_fname(avhrr_filename,
-                                                 as_oldstyle=True)
-    date_time = values["date_time"]
-
-    
-    # Limit matching to AMSR-E files starting 45 min (duration of one half
-    # orbit) before up to 20 min (duration of one EARS AVHRR swath) after the
-    # start of the AVHRR swath
-    amsr_finder = AmsrFileFinder(time_window=(-45 * 60, 20 * 60))
-    # Todo: implement a way to find amsr-files without using file_finders
-    return amsr_finder.find(date_time) #parsed['datetime'])
 

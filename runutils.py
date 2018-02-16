@@ -6,7 +6,7 @@ Utilities for running matching
 import os
 import logging
 logger = logging.getLogger(__name__)
-
+import numpy as np
 
 def unzip_file(filename):
     """Unzip the file if file is bzipped = ending with 'bz2'"""
@@ -195,3 +195,25 @@ def parse_scenesfile_reshaped(filename):
     satname, date_s, time_s = match.groups()
     _datetime = datetime.strptime(date_s + time_s, '%Y%m%d%H%M')
     return satname, _datetime
+
+
+def do_some_geo_obj_logging(GeoObj):
+    import time
+    tim1 = time.strftime("%Y%m%d %H:%M",
+                         time.gmtime(GeoObj.sec1970_start))
+    tim2 = time.strftime("%Y%m%d %H:%M",
+                         time.gmtime(GeoObj.sec1970_end))
+    logger.debug("Starttime: %s, end time: %s", tim1, tim2)
+    logger.debug("Min lon: %f, max lon: %d",
+                 np.min(np.where(
+                     np.equal(GeoObj.longitude, GeoObj.nodata),
+                     99999,
+                     GeoObj.longitude)),
+                 np.max(GeoObj.longitude))
+    logger.debug("Min lat: %d, max lat: %d",
+                 np.min(np.where(
+                     np.equal(GeoObj.latitude, GeoObj.nodata),
+                     99999,
+                     GeoObj.latitude)),
+                 np.max(GeoObj.latitude))
+    
