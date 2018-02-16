@@ -579,24 +579,29 @@ def print_calipso_stats_ctype(caObj, statfile, val_subset, low_medium_high_class
 
     if (n_low_low+n_medium_low+n_high_low+n_frac_low) > 0:
         pod_low = float(n_low_low + n_frac_low)/(n_low_low+n_medium_low+n_high_low+n_frac_low)
-        far_low = float(n_medium_low+n_high_low)/(n_low_low+n_medium_low+n_high_low+n_frac_low)
+        far_low = float(n_low_medium+n_low_high)/(n_low_low+n_low_medium+n_low_high  +
+                                                  n_frac_low+n_frac_medium+n_frac_high )
     else:
         pod_low = -9.0
         far_low = -9.0
     if (n_low_medium+n_medium_medium+n_high_medium+n_frac_medium) > 0:
         pod_medium = float(n_medium_medium)/(n_low_medium+n_medium_medium+n_high_medium+n_frac_medium)
-        far_medium = float(n_low_medium+n_high_medium+n_frac_medium)/(n_low_medium+n_medium_medium+n_high_medium+n_frac_medium)
+        far_medium = float(n_medium_low+n_medium_high)/(n_medium_low + n_medium_medium+n_medium_high)
     else:
         pod_medium =-9.0
         far_medium =-9.0
     if (n_low_high+n_medium_high+n_high_high+n_frac_high) > 0:
         pod_high = float(n_high_high)/(n_low_high+n_medium_high+n_high_high+n_frac_high)
-        far_high = float(n_low_high+n_medium_high+n_frac_high)/(n_low_high+n_medium_high+n_high_high+n_frac_high)
+        far_high = float(n_high_low+n_high_medium)/(n_high_low + n_high_medium +n_high_high)
     else:
         pod_high =-9.0
         far_high =-9.0
 
-    statfile.write("CLOUD TYPE %s-IMAGER TABLE: %s %s %s %s %s %s %s %s %s %s %s %s \n" % (caObj.truth_sat.upper(),n_low_low,n_low_medium,n_low_high,n_medium_low,n_medium_medium,n_medium_high,n_high_low,n_high_medium,n_high_high,n_frac_low,n_frac_medium,n_frac_high))
+    statfile.write("CLOUD TYPE %s-IMAGER TABLE: %s %s %s %s %s %s %s %s %s %s %s %s \n" % (
+        caObj.truth_sat.upper(), n_low_low, n_low_medium, n_low_high,
+        n_medium_low, n_medium_medium, n_medium_high, 
+        n_high_low, n_high_medium, n_high_high,
+        n_frac_low, n_frac_medium, n_frac_high))
     statfile.write("CLOUD TYPE %s-IMAGER PROB: %f %f %f %f %f %f \n" % (caObj.truth_sat.upper(),pod_low,pod_medium,pod_high,far_low,far_medium,far_high))
     statfile.write("CLOUD TYPE %s-IMAGER TABLE MISSED: %s %s %s %s %s %s %s \n" % (caObj.truth_sat.upper(),n_clear_low,n_clear_medium,n_clear_high,n_low_clear,n_medium_clear,n_high_clear,n_frac_clear))
             
