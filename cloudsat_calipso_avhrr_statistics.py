@@ -328,7 +328,7 @@ def print_cpp_stats(cObj, statfile, val_subset):
     if cObj.avhrr.cpp_phase is None:
         logger.warning("There are no cpp data.")
         return
-    from validate_cph import get_calipso_phase_inner, CALIPSO_PHASE_VALUES
+    from validate_cph_util import get_calipso_phase_inner, CALIPSO_PHASE_VALUES
     val_subset = np.logical_and(
         val_subset, 
         cObj.calipso.cloud_fraction >= config.CALIPSO_CLOUDY_MIN_CFC)
