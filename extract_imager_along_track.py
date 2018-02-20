@@ -146,6 +146,16 @@ def get_data_from_array(array, matched):
     return np.array([array[matched['row'][idx], matched['col'][idx]]
                      for idx in range(matched['row'].shape[0])]) 
 
+def get_data_from_array_nneigh(array, matched):
+    if array is None:
+        return None
+    out = np.zeros(matched['row'].shape)
+    for i in xrange(matched['row'].shape[1]):
+        matched_i = {'row': matched['row'][:,i],
+                     'col': matched['col'][:,i]}
+        out[:, i] = get_data_from_array(array, matched_i)
+    return out
+
 def get_channel_data_from_object(dataObj, chn_des, matched, nodata=-9):
     """Get the AVHRR/VIIRS channel data on the track
 
@@ -322,10 +332,13 @@ def insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt):
 #---------------------------------------------------------------------------
 def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj, 
                              nwp_obj, ctth, ctype, cma, 
-                             row_matched, col_matched, 
                              cpp=None,
-                             nwp_segments=None):
-    row_col = {'row': row_matched, 'col': col_matched} 
+                             nwp_segments=None,
+                             extract_some_data_for_x_neighbours=False):
+    truth = getattr(obt, obt.truth_sat)
+    row_matched = truth.imager_linnum
+    col_matched = truth.imager_pixnum
+    row_col = {'row': row_matched, 'col': col_matched}
     obt.avhrr.latitude = get_data_from_array(GeoObj.latitude, row_col)
     obt.avhrr.longitude = get_data_from_array(GeoObj.longitude, row_col)
     if ctype is not None:
@@ -479,6 +492,20 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
         obt = insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt)
     if cpp is None:    
         logger.debug("Not extracting cpp")
+    elif extract_some_data_for_x_neighbours:
+        truth = getattr(obt, obt.truth_sat)
+        row_matched_nneigh = truth.imager_linnum_nneigh
+        col_matched_nneigh = truth.imager_pixnum_nneigh
+        row_col_nneigh = {'row': row_matched_nneigh, 'col': col_matched_nneigh}
+        for data_set_name in cpp.__dict__.keys():
+            data = getattr(cpp, data_set_name)
+            if data is not None:
+                setattr(obt.avhrr, data_set_name,  
+                        get_data_from_array_nneigh(data, row_col_nneigh))
+        for nwp_info in ["landuse", "fractionofland"]:
+            data = getattr(nwp_obj, nwp_info)
+            setattr(obt.avhrr, nwp_info, get_data_from_array_nneigh(data, row_col_nneigh))
+            
     else:
         logger.debug("Extracting cpp along track ")
         for data_set_name in cpp.__dict__.keys():

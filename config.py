@@ -48,14 +48,17 @@ CCI_CLOUD_VALIDATION = str2bool(os.environ.get('CCI_CLOUD_VALIDATION', False))
 MAIA_CLOUD_VALIDATION = str2bool(os.environ.get('MAIA_CLOUD_VALIDATION', False))
 CMA_PROB_VALIDATION = str2bool(os.environ.get('CMA_PROB_VALIDATION', False))
 #: Turn off ISS and CLOUDSAT matching if never used
-ISS_MATCHING = False      #Notice can not be False if ISS_REQUIRED = True
-CLOUDSAT_MATCHING = False #Notice can not be False if CLOUDSAT_REQUIRED = True
 CALIPSO_MATCHING = True   #Notice can not be False if CALIPSO_REQUIRED = True
+CLOUDSAT_MATCHING = True #Notice can not be False if CLOUDSAT_REQUIRED = True
+ISS_MATCHING = False      #Notice can not be False if ISS_REQUIRED = True
+AMSR_MATCHING = False      #Notice can not be False if AMSR_REQUIRED = True
+
 #: Require matching. It is OK to have all False. Matching is still done
 #: but program will not crach if it finds only CALIPSO data but not CloudSat.
-CLOUDSAT_REQUIRED = False # Make progam fail if there is no CloudSat match
 CALIPSO_REQUIRED = False # Make progam fail if there is no CALIPSO match 
+CLOUDSAT_REQUIRED = False # Make progam fail if there is no CloudSat match
 ISS_REQUIRED = False # Make progam fail if there is no ISS match
+AMSR_REQUIRED = False # Make progam fail if there is no ISS match
 
 #========== Extra settings, to get things to reshaped file  ==========#
 #: Save imager data also for warmest and coldest pixels:
@@ -178,6 +181,7 @@ CLOUDSAT_CLOUDY_THR = 30.0
 CALIPSO_FILE_LENGTH = 60*60 #calipso files are shorter 60 minutes
 CLOUDSAT_FILE_LENGTH = 120*60 #cloudsat files are shorter 120 minutes
 ISS_FILE_LENGTH = 60*60 #iss files are shorter 60 minutes 
+AMSR_FILE_LENGTH = 60*60 #iss files are shorter 60 minutes 
 #: Cloudsat data type (currently 'GEOPROF' are supported)
 #: Traditionally also  'CWC-RVOD' where supported
 CLOUDSAT_TYPE = 'GEOPROF'
@@ -198,7 +202,7 @@ PLOT_ONLY_PNG = True
 MAXHEIGHT = 18000
 
 #========== Statistics setup ==========#
-COMPILE_STATISTICS_TRUTH = ['iss','calipso','cloudsat']
+COMPILE_STATISTICS_TRUTH = ['iss','calipso','cloudsat', 'amsr']
 #: DNT which statistics should be summarized 
 #DNT_FLAG = ['ALL']
 DNT_FLAG = ['ALL', 'DAY', 'NIGHT', 'TWILIGHT']

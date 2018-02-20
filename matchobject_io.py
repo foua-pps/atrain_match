@@ -315,8 +315,8 @@ class CalipsoObject(DataObject):
         self.all_arrays = {
             'cal_MODIS_cflag': None,
             'cloudsat_index': None,
-            'avhrr_linnum': None,
-            'avhrr_pixnum': None,
+            'imager_linnum': None,
+            'imager_pixnum': None,
             'elevation': None,
             'longitude': None,
             'latitude': None,
@@ -474,11 +474,42 @@ class IssObject(DataObject):
             #"attenuated_backscatter_statistics_532_fore_fov": None, #(2319, 10, 4)
             #"attenuated_total_color_ratio_statistics_fore_fov": None, #(2319, 10, 4)
             #"volume_depolarization_ratio_statistics_1064_fore_fov": None, #(2319, 10, 4)
-
-
-
-  
         }
+
+class AmsrObject(DataObject):
+    def __init__(self):
+        DataObject.__init__(self)                            
+        self.all_arrays = {
+            'longitude': None,
+            'latitude': None,
+            'avhrr_linnum': None,
+            'avhrr_pixnum': None,
+            'sec_1970': None,
+            'lwp': None}
+
+class AmsrAvhrrTrackObject:
+    def __init__(self):
+        self.avhrr = ppsAvhrrObject()
+        #self.modis = ModisObject()
+        self.amsr = AmsrObject()
+        self.diff_sec_1970 = None
+        self.truth_sat = 'amsr' #Satellite is EOS-Aqua or EOS-Terra
+                                #As we also use MODIS data from those
+                                #Name the truth_sat after the instrument
+    def __add__(self, other):
+        """Concatenating two objects together"""
+        self.avhrr = self.avhrr + other.avhrr
+        self.amsr = self.amsr + other.amsr
+        #self.modis = self.modis + other.modis
+        try:
+            self.diff_sec_1970 = np.concatenate([self.diff_sec_1970,
+                                                 other.diff_sec_1970])
+        except ValueError, e:
+            #print "Don't concatenate member diff_sec_1970... " + str(e)
+            self.diff_sec_1970 = other.diff_sec_1970
+
+        return self
+
 class IssAvhrrTrackObject:
     def __init__(self):
         self.avhrr=ppsAvhrrObject()
@@ -717,11 +748,30 @@ def readIssAvhrrMatchObj(filename):
     h5file.close()
     return retv
 
+def readAmsrAvhrrMatchObj(filename): 
+    retv = AmsrAvhrrTrackObject()    
+    h5file = h5py.File(filename, 'r')
+    (h5_groups, data_objects) =  get_stuff_to_read_from_a_reshaped_file(h5file, retv)
+    for group, data_obj in zip(h5_groups, data_objects):
+        for dataset in group.keys():        
+            if dataset in data_obj.all_arrays.keys():
+                data_obj.all_arrays[dataset] = group[dataset].value 
+    retv.diff_sec_1970 = h5file['diff_sec_1970'].value
+    h5file.close()
+    return retv
+
 def writeIssAvhrrMatchObj(filename,iss_obj, avhrr_obj_name = 'pps'):
     groups = {'iss': iss_obj.iss.all_arrays,
               'modis_lvl2': iss_obj.modis.all_arrays,
               avhrr_obj_name: iss_obj.avhrr.all_arrays}
     write_match_objects(filename, iss_obj.diff_sec_1970, groups)    
+    status = 1
+    return status
+
+def writeAmsrAvhrrMatchObj(filename,amsr_obj, avhrr_obj_name = 'pps'):
+    groups = {'amsr': amsr_obj.amsr.all_arrays,
+              avhrr_obj_name: amsr_obj.avhrr.all_arrays}
+    write_match_objects(filename, amsr_obj.diff_sec_1970, groups)    
     status = 1
     return status
 

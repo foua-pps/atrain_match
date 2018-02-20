@@ -40,8 +40,13 @@ def compile_stats(results_files, write=True, outfile_cfc="merged_sat_file_cfc", 
     compiled_cph_file_name = outfile_cfc.replace('_cfc_','_cph_')
     from statistics import orrb_CPH_stat
     cth_stats = orrb_CPH_stat.CloudPhaseStats(ac_data=cfc_stats.ac_data, truth_sat=truth_sat)
-    cth_stats.write(compiled_cph_file_name)      
-
+    cth_stats.write(compiled_cph_file_name)     
+ 
+    note = "========== Cloud lwp ==========="
+    compiled_lwp_file_name = outfile_cfc.replace('_cfc_','_lwp_')
+    from statistics import orrb_LWP_stat
+    cth_stats = orrb_LWP_stat.CloudLwpStats(ac_data=cfc_stats.ac_data, truth_sat=truth_sat)
+    cth_stats.write(compiled_lwp_file_name)
 if __name__ == '__main__':
 
     import os

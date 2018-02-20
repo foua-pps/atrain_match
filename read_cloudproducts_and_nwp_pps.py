@@ -560,8 +560,8 @@ def read_pps_geoobj_nc(pps_nc):
     sec_since_1970 = calendar.timegm(time_obj)
     GeoObj.sec1970_start = sec_since_1970 + np.min(pps_nc.variables['time_bnds'][::]) + seconds
     GeoObj.sec1970_end = sec_since_1970 + np.max(pps_nc.variables['time_bnds'][::]) + seconds
-    GeoObj.sec1970_start = int(GeoObj.sec1970_start) 
-    GeoObj.sec1970_end = int(GeoObj.sec1970_end)
+    GeoObj.sec1970_start = GeoObj.sec1970_start 
+    GeoObj.sec1970_end = GeoObj.sec1970_end
     do_some_geo_obj_logging(GeoObj)
     return  GeoObj
 
@@ -620,11 +620,14 @@ def read_cpp_h5_one_var(h5file, cpp_key):
         return None
 
 def read_cpp_nc_one_var(ncFile, cpp_key):
+    density = 1e3
     if cpp_key in ncFile.variables.keys():
         logger.debug("Read %s", cpp_key)
         cpp_var = ncFile.variables[cpp_key][0,:,:]
         if np.ma.is_masked(cpp_var):
             cpp_data = cpp_var.data.astype(np.float)
+            if cpp_key in ["cpp_lwp"]:
+                cpp_data *= density  #Convert from kg/m2 to g/m2
             cpp_data[cpp_var.mask] = ATRAIN_MATCH_NODATA
         else:
             cpp_data = cpp_var
@@ -919,7 +922,7 @@ def read_all_intermediate_files(pps_files):
             thr_type = 'thr_' + h5_obj_type
             nwp_dict[thr_type] = read_thr_h5(getattr(pps_files,thr_type), 
                                              h5_obj_type, thr_type)
-    if pps_files.thr_t11ts is None:
+    if pps_files.emis is None:
         pass
         logger.info("Not reading PPS Emissivity data") 
     elif '.nc' in pps_files.emis:
@@ -973,9 +976,7 @@ def pps_read_all(pps_files, avhrr_file, cross):
             cpp = read_cpp_nc(pps_files.cpp)
         else:            
             cpp = read_cpp_h5(pps_files.cpp)
-    logger.debug("{:s} {:s} {:s}".format(pps_files.cloudtype, 
-                                         pps_files.ctth, 
-                                         pps_files.cma))
+    logger.debug("%s, %s, %s", pps_files.cloudtype, pps_files.ctth, pps_files.cma)
     if CMA_PROB_VALIDATION:
         logger.info("Read PPS Cloud mask prob")
         cma = read_cmaprob_h5(pps_files.cma)

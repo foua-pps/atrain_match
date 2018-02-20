@@ -34,7 +34,7 @@ def elements_within_range(compare, base, _range):
     b = np.array(base)
     return np.logical_and(c > b - _range, c < b + _range)
 
-def map_avhrr(avhrr, lon, lat, radius_of_influence):
+def map_avhrr(avhrr, lon, lat, radius_of_influence, n_neighbours=1):
     """
     Map AVHRR object *avhrr* to (lon, lat).
     
@@ -51,13 +51,15 @@ def map_avhrr(avhrr, lon, lat, radius_of_influence):
               avhrr.latitude.astype(np.float64))
     target = (lon.astype(np.float64), lat.astype(np.float64))   
     #print avhrr.longitude.dtype, lon.dtype, avhrr.latitude.dtype,  lat.dtype    
-    mapper = match_lonlat(source, target, radius_of_influence, n_neighbours=1)
-    
+    mapper = match_lonlat(source, target, radius_of_influence, 
+                          n_neighbours=n_neighbours)    
     # Return the nearest (and the only calculated) neighbour
     #return mapper.rows.filled(NODATA)[:, 0], mapper.cols.filled(NODATA)[:, 0]
     # Nina 2016-01-19 changed mapper.rows to be 1D arrays not 2D-arrays with 
     # one column as that is mostly "needed for array magic."
+
     return mapper.rows.filled(NODATA)[:], mapper.cols.filled(NODATA)[:]
+
 
 def write_match_objects(filename, diff_sec_1970, groups):
     """
@@ -107,3 +109,6 @@ def write_match_objects(filename, diff_sec_1970, groups):
                                      compression=COMPRESS_LVL)
 
 
+
+if __name__ == "__main__":
+    pass

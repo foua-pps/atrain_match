@@ -196,6 +196,17 @@ def get_calipso_medium_clouds(caObj):
         get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=5))    
     return calipso_high 
 
+def get_calipso_medium_and_high_clouds_tp(caObj):
+    #type 0,1,2, 3 are low cloudtypes
+    calipso_transp =   np.logical_or(
+        get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=4),
+        get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=6))    
+    return calipso_transp
+
+  
+
+
+
 def get_calipso_low_medium_high_classification(caObj):
     mlh_class = {}
     mlh_class['low_clouds'] = get_calipso_low_clouds(caObj)

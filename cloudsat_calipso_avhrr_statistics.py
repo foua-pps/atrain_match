@@ -239,6 +239,7 @@ def get_day_night_info(cObj):
         raise ProcessingError("Something wrong with quality flags. It does not sum up.")
     return daynight_flags
     
+"""
 def get_semi_opaque_info(caObj):
     semi_flag = None    
     opaque_flag = None
@@ -253,7 +254,7 @@ def get_semi_opaque_info(caObj):
             semi_flag, opaque_flag = get_semi_opaque_info_pps2014(
                 caObj.avhrr.ctth_status)
     return semi_flag, opaque_flag
-
+"""
 
 def find_imager_clear_cloudy(cObj):
     imager_clear =np.logical_and(np.less_equal(cObj.avhrr.cloudtype,4),np.greater(cObj.avhrr.cloudtype,0))
@@ -282,6 +283,43 @@ def find_truth_clear_cloudy(cObj, val_subset):
         truth_cloudy = np.logical_and(
             np.greater(cObj_truth_sat.cloud_fraction,0.5), val_subset)       
     return truth_clear, truth_cloudy    
+
+def print_cpp_lwp_stats(aObj, statfile, val_subset):
+    # CLOUD LEP EVALUATION
+    #=======================    
+    # AMSR-E - IMAGER
+    if aObj.avhrr.cpp_lwp is None:
+        logger.warning("There are no cpp data.")
+        return
+    from amsr_avhrr.validate_lwp_util import get_lwp_diff, plot_hist_lwp    
+    lwp_diff =  get_lwp_diff(aObj)
+    #plot_hist_lwp(lwp_diff)
+
+    #screened.append('CPP lwp < 0')
+    #print('=' * 40)
+    #print("CPP cwp - AMSR-E lwp")
+    #print("Number of pixels in comparison: %d" % len(lwp_diff))
+    #print("bias:    %.4g" % np.mean(lwp_diff))
+    #print("std:     %.4g" % np.std(lwp_diff))
+    #print("rel std: %.4g %%" % abs(100. * np.std(lwp_diff) / np.mean(lwp_diff)))
+    if len(lwp_diff)> 0:
+        bias = np.mean(lwp_diff)
+        diff_squared = lwp_diff*lwp_diff
+        RMS_difference = np.sqrt(np.mean(diff_squared))
+        N = len(lwp_diff)
+    else :
+        bias = -9
+        diff_squared = -9
+        N =0
+
+    statfile.write("CLOUD LWP %s-IMAGER TABLE: %3.2f %3.2f %d\n" %(
+        aObj.truth_sat.upper(), bias, RMS_difference, N))
+    statfile.write("CLOUD LWP %s-IMAGER bias: %3.2f \n" % (
+        aObj.truth_sat.upper(), bias))
+    statfile.write("CLOUD LWP %s-IMAGER std: %3.2f \n" % (
+        aObj.truth_sat.upper(), RMS_difference))
+
+      
 
 def print_cpp_stats(cObj, statfile, val_subset):
     # CLOUD PHASE EVALUATION
@@ -799,7 +837,7 @@ def print_stats_ctop(cObj, statfile, val_subset, low_medium_high_class):
    
 def print_main_stats(cObj, statfile):
     val_object = getattr(cObj,cObj.truth_sat)
-    num_val_data_ok = len(getattr(val_object,'elevation'))
+    num_val_data_ok = len(cObj.diff_sec_1970)
     statfile.write("%s min and max time diff: %3.2f %3.2f \n" %(
         cObj.truth_sat.upper(),
         cObj.diff_sec_1970.min(),
@@ -820,11 +858,12 @@ def print_main_stats(cObj, statfile):
         num_val_data_ok))
 
 
-def CalculateStatistics(mode, statfilename, caObj, clsatObj, issObj,
+def CalculateStatistics(mode, statfilename, caObj, clsatObj, issObj, amObj,
                         dnt_flag=None):
 
     def get_day_night_subset(cObj, val_subset):
-        (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag) = get_day_night_info(cObj)
+        (no_qflag, night_flag, twilight_flag, 
+         day_flag, all_dnt_flag) = get_day_night_info(cObj)
         
         if dnt_flag is None:
             logger.debug('dnt_flag = %s', 'ALL PIXELS')
@@ -841,13 +880,13 @@ def CalculateStatistics(mode, statfilename, caObj, clsatObj, issObj,
         else:
             raise ProcessingError("Unknown DNT-flag %s"%(dnt_flag.upper()))
         return dnt_subset  
- 
+
+
     if clsatObj is not None:
         logger.info("Cloudsat Statistics")
         val_subset = get_subset_for_mode(clsatObj, mode)
         if val_subset is not None:
             val_subset = get_day_night_subset(clsatObj, val_subset)
-            #curretnly only mode BASIC
             low_medium_high_class = get_cloudsat_low_medium_high_classification(clsatObj)
             statfile = open(statfilename.replace('xxx','cloudsat'),"w")
             print_main_stats(clsatObj, statfile)
@@ -881,4 +920,14 @@ def CalculateStatistics(mode, statfilename, caObj, clsatObj, issObj,
             print_cmask_stats(issObj, statfile, val_subset)
             #print_calipso_stats_ctype(issObj, statfile, val_subset, cal_vert_feature)
             print_stats_ctop(issObj, statfile, val_subset, None)
+            statfile.close()
+
+    if amObj is not None:
+        logger.info("AMSR-E Statistics")
+        val_subset = get_subset_for_mode(amObj, mode)
+        if val_subset is not None:
+            val_subset = get_day_night_subset(amObj, val_subset)                        
+            statfile = open(statfilename.replace('xxx','amsr'),"w")
+            print_main_stats(amObj, statfile)
+            print_cpp_lwp_stats(amObj, statfile, val_subset)
             statfile.close()

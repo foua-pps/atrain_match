@@ -4,7 +4,9 @@ import numpy as np
 import logging
 logger = logging.getLogger(__name__)
 
-from common import MatchupError, TimeMatchError, InputError, elements_within_range
+from common import (MatchupError, TimeMatchError, 
+                    InputError, ProcessingError, 
+                    elements_within_range)
 from config import (_validation_results_dir, 
                     sec_timeThr, 
                     COMPRESS_LVL, 
@@ -21,6 +23,7 @@ from config import (_validation_results_dir,
 import time as tm
 from matchobject_io import (CalipsoAvhrrTrackObject,
                             CalipsoObject)
+from runutils import do_some_logging
 
 def add_validation_ctth_calipso(calipso):
     calipso.validation_height = calipso.layer_top_altitude[:,0].copy()
@@ -46,16 +49,6 @@ def calipso_track_from_matched(retv_calipso, calipso, idx_match):
                 retv_calipso.all_arrays[arnameca] = valueca
     return retv_calipso
 
-def do_some_logging(retv, cObj):
-    logger.debug("Start and end times: %s %s",
-              tm.gmtime(cObj.sec_1970[0]),
-              tm.gmtime(cObj.sec_1970[-1]))
-    logger.debug("Maximum and minimum time differences in sec (imager-reference): %d %d",
-          np.max(retv.diff_sec_1970),np.min(retv.diff_sec_1970))
-    logger.debug("AVHRR observation time of first imager-reference match: %s",
-          tm.gmtime(retv.avhrr.sec_1970[0]))
-    logger.debug("AVHRR observation time of last imager-reference match: %s",
-          tm.gmtime(retv.avhrr.sec_1970[-1]))
 
 def match_calipso_avhrr(values, 
                         caObj, caObjAerosol, 
@@ -63,15 +56,13 @@ def match_calipso_avhrr(values,
                         ctype, cma, ctth, cpp, nwp_obj,
                         avhrrAngObj, nwp_segments, options, res=RESOLUTION):
 
-    #import string
     from common import map_avhrr
- 
     retv = CalipsoAvhrrTrackObject()
-    lonCalipso = caObj.longitude.ravel()
-    latCalipso = caObj.latitude.ravel()
     
     #Nina 20150313 Swithcing to mapping without area as in cpp. Following suggestion from Jakob
-    cal, cap = map_avhrr(imagerGeoObj, lonCalipso.ravel(), latCalipso.ravel(),
+    cal, cap = map_avhrr(imagerGeoObj, 
+                         caObj.longitude.ravel(),
+                         caObj.latitude.ravel(),
                          radius_of_influence=RESOLUTION*0.7*1000.0) # somewhat larger than radius...
     #warn if no matches
     calnan = np.where(cal == NODATA, np.nan, cal)
@@ -89,27 +80,18 @@ def match_calipso_avhrr(values,
         raise MatchupError("No matches in region within time threshold %d s." % sec_timeThr)
     retv.calipso = calipso_track_from_matched(retv.calipso, caObj, idx_match)
     
-    cal_on_avhrr = np.repeat(cal, idx_match)
-    cap_on_avhrr = np.repeat(cap, idx_match)
-    retv.calipso.avhrr_linnum = cal_on_avhrr.astype('i')
-    retv.calipso.avhrr_pixnum = cap_on_avhrr.astype('i')
-    #logger.info("calipso matched with avhrr shape: %s",cap_on_avhrr.shape)
-
     # Calipso line,pixel inside AVHRR swath:
-    cal_on_avhrr = np.repeat(cal, idx_match)
-    cap_on_avhrr = np.repeat(cap, idx_match)
+    retv.calipso.imager_linnum = np.repeat(cal, idx_match).astype('i')
+    retv.calipso.imager_pixnum = np.repeat(cap, idx_match).astype('i')
+
     # Imager time
-    if len(imagerGeoObj.time.shape)>1:
-        retv.avhrr.sec_1970= [imagerGeoObj.time[line,pixel] for line, pixel in zip(cal_on_avhrr,cap_on_avhrr)]
-    else:
-        retv.avhrr.sec_1970 = imagerGeoObj.time[cal_on_avhrr]
+    retv.avhrr.sec_1970 = np.repeat(imager_lines_sec_1970, idx_match)
     retv.diff_sec_1970 = retv.calipso.sec_1970 - retv.avhrr.sec_1970
     do_some_logging(retv, caObj)
     logger.debug("Generate the latitude,cloudtype tracks!")
     from extract_imager_along_track import avhrr_track_from_matched
     retv = avhrr_track_from_matched(retv, imagerGeoObj, imagerObj, avhrrAngObj, 
-                                    nwp_obj, ctth, ctype, cma,  cal_on_avhrr, 
-                                    cap_on_avhrr, cpp=cpp, 
+                                    nwp_obj, ctth, ctype, cma, cpp=cpp, 
                                     nwp_segments=nwp_segments)
     if caObjAerosol is not None:
         retv.calipso_aerosol = calipso_track_from_matched(retv.calipso_aerosol, caObjAerosol, 

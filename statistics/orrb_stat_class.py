@@ -105,11 +105,15 @@ class OrrbStats():
         acu["n_missed_cma_low"] = {}
         acu["n_missed_cma_medium"] = {}
         acu["n_missed_cma_high"] = {}
-        #CFC DATA
+        #CPH DATA
         acu["n_ice_ice_cal"] = 0
         acu["n_ice_water_cal"]  = 0
         acu["n_water_ice_cal"]  = 0
         acu["n_water_water_cal"]  = 0
+        #LWP
+        acu["amsr_all_samples"] = 0
+        acu["mean_error_amsr_all_sum"] = 0
+        acu["rms_error_amsr_all_sum"] = 0
 
         cfc_stats_labels = ["CLOUD MASK %s-IMAGER TABLE"%(self.truth_sat.upper()),
                            "CLOUD MASK %s-PPS TABLE"%(self.truth_sat.upper())]
@@ -120,9 +124,11 @@ class OrrbStats():
             "CLOUD TYPE %s-IMAGER TABLE MISSED"%(self.truth_sat.upper()),
             "CLOUD TYPE %s-PPS TABLE MISSED"%(self.truth_sat.upper())] 
         cph_stats_labels = ["CLOUD PHASE %s-IMAGER TABLE"%(self.truth_sat.upper())]
+        lwp_stats_labels = ["CLOUD LWP %s-IMAGER TABLE"%(self.truth_sat.upper())]
+
         for datafile in self.results_files:
             data_dict = self.read_one_file(datafile)
-            # Accumulate CALIOP/ISS/CLOUDSAT statistics CFC
+            # Accumulate CALIOP/ISS/CLOUDSAT/AMSR-E statistics CFC
             for key in data_dict.keys():
                 #If reprocessing old results files make sure to extract the right lines!
                 #Ie do not use CLOUDSAT info when compiling stats for CALIPSO
@@ -152,6 +158,13 @@ class OrrbStats():
                     acu["n_water_ice_cal"] += cal_data[2]
                     acu["n_water_water_cal"] += cal_data[3]
 
+            for key in data_dict.keys():
+                if  key in lwp_stats_labels:
+                    cal_data = data_dict[key]
+                    acu["amsr_all_samples"] += cal_data[2]
+                    acu["mean_error_amsr_all_sum"] += cal_data[2]*cal_data[0]
+                    acu["rms_error_amsr_all_sum"]  += cal_data[2]*cal_data[1]*cal_data[1]
+ 
             # Accumulate CALIOP/ISS/CLOUDSAT statistics CTY    
             for key in data_dict.keys():
                 if  key in cty_stats_labels:

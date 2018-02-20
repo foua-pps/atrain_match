@@ -15,7 +15,8 @@ from common import (MatchupError, ProcessingError,
 from extract_imager_along_track import avhrr_track_from_matched
 
 from calipso import (find_break_points, calipso_track_from_matched,
-                     time_reshape_calipso, do_some_logging)
+                     time_reshape_calipso)
+from runutils import do_some_logging
 import time
 import datetime
 import calendar

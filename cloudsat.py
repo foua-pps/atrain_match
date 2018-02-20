@@ -12,7 +12,8 @@ from common import (MatchupError, ProcessingError,
 from extract_imager_along_track import avhrr_track_from_matched
 
 from calipso import (find_break_points, calipso_track_from_matched,
-                     time_reshape_calipso, do_some_logging)
+                     time_reshape_calipso)
+from runutils import do_some_logging
 
 def add_validation_ctth_cloudsat(cloudsat):
     #CLOUDSAT VALIDATION HEIGHT!
@@ -51,7 +52,7 @@ def add_cloudsat_cloud_fraction(cloudsat):
     return cloudsat
 
 def get_cloudsat(filename):
-    # Read CLOUDSAT Radar data for calipso something is done in this function:
+    # Read CLOUDSAT Radar data and add some variables
     if '.h5' in filename: 
         cloudsat = read_cloudsat(filename)
     else:
@@ -165,13 +166,12 @@ def read_cloudsat(filename):
 def match_cloudsat_avhrr(cloudsatObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,imagerAngObj, 
                          cpp, nwp_segments):
     retv = CloudsatAvhrrTrackObject()
-    lonCloudsat = cloudsatObj.longitude.ravel()
-    latCloudsat = cloudsatObj.latitude.ravel()
-    timeCloudsat = cloudsatObj.sec_1970.ravel()
 
     #Nina 20150313 Swithcing to mapping without area as in cpp. Following suggestion from Jakob
     from common import map_avhrr
-    cal, cap = map_avhrr(imagerGeoObj, lonCloudsat.ravel(), latCloudsat.ravel(),
+    cal, cap = map_avhrr(imagerGeoObj, 
+                         cloudsatObj.longitude.ravel(),
+                         cloudsatObj.latitude.ravel(),
                          radius_of_influence=RESOLUTION*0.7*1000.0) # somewhat larger than radius...
     calnan = np.where(cal == NODATA, np.nan, cal)
     if (~np.isnan(calnan)).sum() == 0:
@@ -190,22 +190,17 @@ def match_cloudsat_avhrr(cloudsatObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,i
 
     retv.cloudsat = calipso_track_from_matched(retv.cloudsat, cloudsatObj, idx_match)
  
-    # Cloudsat line,pixel inside AVHRR swath:
-    cal_on_avhrr = np.repeat(cal, idx_match)
-    cap_on_avhrr = np.repeat(cap, idx_match)
-    retv.cloudsat.avhrr_linnum = cal_on_avhrr.astype('i')
-    retv.cloudsat.avhrr_pixnum = cap_on_avhrr.astype('i')
+    # Cloudsat line,pixel inside IMAGER swath:
+    retv.cloudsat.imager_linnum = np.repeat(cal, idx_match).astype('i')
+    retv.cloudsat.imager_pixnum = np.repeat(cap, idx_match).astype('i')
 
-   # Imager time
-    if len(imagerGeoObj.time.shape)>1:
-        retv.avhrr.sec_1970= [imagerGeoObj.time[line,pixel] for line, pixel in zip(cal_on_avhrr,cap_on_avhrr)]
-    else:
-        retv.avhrr.sec_1970 = imagerGeoObj.time[cal_on_avhrr]
+    # Imager time
+    retv.avhrr.sec_1970 = np.repeat(imager_lines_sec_1970, idx_match)
     retv.diff_sec_1970 = retv.cloudsat.sec_1970 - retv.avhrr.sec_1970
     do_some_logging(retv, cloudsatObj)
     logger.debug("Generate the latitude,cloudtype tracks!")
     retv = avhrr_track_from_matched(retv, imagerGeoObj, imagerObj, imagerAngObj, 
-                                    nwp, ctth, ctype, cma, cal_on_avhrr, cap_on_avhrr, 
+                                    nwp, ctth, ctype, cma, 
                                     cpp=cpp, nwp_segments=nwp_segments)
     return retv
 
