@@ -105,24 +105,12 @@ def read_iss(filename):
 
 def match_iss_avhrr(issObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,imagerAngObj, 
                          cpp, nwp_segments):
-    import string
-    import os
     retv = IssAvhrrTrackObject()
-    lonIss = issObj.longitude.ravel()
-    latIss = issObj.latitude.ravel()
-    timeIss = issObj.sec_1970.ravel()
-
     from common import map_avhrr
-    cal, cap = map_avhrr(imagerGeoObj, lonIss.ravel(), latIss.ravel(),
+    cal, cap = map_avhrr(imagerGeoObj, issObj.longitude.ravel(),
+                         issObj.latitude.ravel(),
                          radius_of_influence=RESOLUTION*0.7*1000.0) # larger than radius...
     calnan = np.where(cal == NODATA, np.nan, cal)
-
-    import matplotlib.pyplot as plt
-    print lonIss.ravel(), latIss.ravel()
-    plt.plot(lonIss.ravel(), latIss.ravel(),'b.')
-    plt.plot(imagerGeoObj.longitude.ravel(), imagerGeoObj.latitude.ravel(),'r.')
-
-    plt.savefig('iss.png')
 
     if (~np.isnan(calnan)).sum() == 0:
         raise MatchupError("No matches within region.")
@@ -141,25 +129,18 @@ def match_iss_avhrr(issObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,imagerAngOb
                            % sec_timeThr)  
 
     retv.iss = calipso_track_from_matched(retv.iss, issObj, idx_match)
- 
-    # Iss line,pixel inside AVHRR swath:
-    cal_on_avhrr = np.repeat(cal, idx_match)
-    cap_on_avhrr = np.repeat(cap, idx_match)
-    retv.iss.avhrr_linnum = cal_on_avhrr.astype('i')
-    retv.iss.avhrr_pixnum = cap_on_avhrr.astype('i')
 
-   # Imager time
-    if len(imagerGeoObj.time.shape)>1:
-        retv.avhrr.sec_1970= [imagerGeoObj.time[line,pixel] for line, pixel 
-                              in zip(cal_on_avhrr,cap_on_avhrr)]
-    else:
-        retv.avhrr.sec_1970 = imagerGeoObj.time[cal_on_avhrr]
-    retv.diff_sec_1970 = retv.iss.sec_1970 - retv.avhrr.sec_1970
+     # Calipso line,pixel inside AVHRR swath:
+    retv.iss.imager_linnum = np.repeat(cal, idx_match).astype('i')
+    retv.iss.imager_pixnum = np.repeat(cap, idx_match).astype('i')
+    # Imager time
+    retv.avhrr.sec_1970 = np.repeat(imager_lines_sec_1970, idx_match)
+    retv.diff_sec_1970 = retv.iss.sec_1970 - retv.avhrr.sec_1970                        
 
     do_some_logging(retv, issObj)
     logger.info("Generate the latitude,cloudtype tracks!")
     retv = avhrr_track_from_matched(retv, imagerGeoObj, imagerObj, imagerAngObj, 
-                                    nwp, ctth, ctype, cma, cal_on_avhrr, cap_on_avhrr, 
+                                    nwp, ctth, ctype, cma,  
                                     cpp=cpp, nwp_segments=nwp_segments)
     return retv
 
