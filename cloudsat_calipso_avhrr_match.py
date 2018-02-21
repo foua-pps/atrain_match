@@ -273,33 +273,6 @@ def find_truth_files(date_time, options, values, truth='calipso'):
     logger.info("%s files:  %s",truth.upper(), "\n ".join(truth_basenames))
     return t_files
 
-                
-def get_time_list_and_cross_time(cross):
-    """
-    Find the *satellite* avhrr file closest to *datetime*.
-    """
-    if cross.satellite1.lower() in ['cloudsat', 'calipso', 'iss']:
-        cross_satellite = cross.satellite2.lower()
-        cross_time = cross.time2
-    else:
-        cross_satellite = cross.satellite1.lower()
-        cross_time = cross.time1   
-    ddt = timedelta(seconds=config.SAT_ORBIT_DURATION + config.sec_timeThr)
-    ddt2 = ddt
-    if ALWAYS_USE_AVHRR_ORBIT_THAT_STARTS_BEFORE_CROSS:
-        ddt2=timedelta(seconds=0)
-    if config.USE_ORBITS_THAT_STARTS_EXACTLY_AT_CROSS:
-        ddt=timedelta(seconds=0)
-        ddt2=timedelta(seconds=0)
-    time_low = cross_time - ddt
-    time_high = cross_time + ddt2
-    logger.info("Searching for imager file with start time between: %s and %s  ", 
-                time_low.strftime("%dth %H:%M"),
-                time_high.strftime("%dth %H:%M"))
-    time_window = (ddt, ddt2)
-    # Make list of file times to search from:
-    tlist = get_time_list(cross_time, time_window, delta_t_in_seconds=60)
-    return tlist, cross_time, cross_satellite
 
 def find_radiance_file(cross, options):
     found_file, tobj= find_avhrr_file(cross, 
@@ -330,10 +303,12 @@ def find_maia_cloud_file(cross, options):
 def find_avhrr_file(cross, filedir_pattern, filename_pattern, values=None):
     if values is None:
         values = {}
-    (tlist, cross_time, cross_satellite) = get_time_list_and_cross_time(cross)
-    time_window=cross.time_window
-    logger.debug("Cross time: %s, Time window: %s", cross_time, time_window)
-    values["satellite"] = cross_satellite
+        
+    #tlist = get_time_list(cross.time, 
+    #                      (timedelta(seconds=0), timedelta(seconds=0)), 
+    #                      delta_t_in_seconds=60)
+    tlist = [cross.time]
+    values["satellite"] = cross.satellite1
     found_dir = None
     no_files_found = True
     checked_dir = {}
@@ -709,9 +684,9 @@ def read_cloud_maia(avhrr_file):
     from read_cloudproducts_maia import maia_read_all
     return maia_read_all(avhrr_file)
 
-def read_pps_data(pps_files, avhrr_file, cross):
+def read_pps_data(pps_files, avhrr_file):
     from read_cloudproducts_and_nwp_pps import pps_read_all
-    return pps_read_all(pps_files, avhrr_file, cross)
+    return pps_read_all(pps_files, avhrr_file)
 
 def get_additional_calipso_files_if_requested(calipso_files):
     import glob
@@ -974,7 +949,7 @@ def get_matchups_from_data(cross, config_options):
 
     #STEP 3 Read imager data:    
     if (PPS_VALIDATION ):
-        retv =read_pps_data(pps_files, avhrr_file, cross)
+        retv =read_pps_data(pps_files, avhrr_file)
         (avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, 
          nwp_obj, cpp, nwp_segments, cma )= retv
     if (CCI_CLOUD_VALIDATION):
@@ -1122,14 +1097,9 @@ def get_matchups(cross, options, reprocess=False):
     values = {}
     try:
         values["satellite"] = cross.satellite1.lower()
-        date_time_cross = cross.time1
     except AttributeError:
-        raise ValueError('cross is not a valid SNO cross. (cross: %s)' % cross)
+        raise ValueError('Need satellite1 and time (cross: %s)' % cross)
     
-    if values["satellite"] in ['calipso', 'cloudsat']:
-        values["satellite"] = cross.satellite2.lower()
-        date_time_cross = cross.time2
-
     if reprocess is False or USE_EXISTING_RESHAPED_FILES:
         diff_avhrr_seconds=None
         avhrr_file=None
@@ -1142,7 +1112,7 @@ def get_matchups(cross, options, reprocess=False):
             if avhrr_file is not None:
                 values_avhrr = get_satid_datetime_orbit_from_fname(avhrr_file)
                 date_time_avhrr = values_avhrr["date_time"]
-                td = date_time_avhrr-date_time_cross
+                td = date_time_avhrr-cross.time
                 diff_avhrr_seconds=abs(td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
 
 
@@ -1157,7 +1127,7 @@ def get_matchups(cross, options, reprocess=False):
             if not cl_match_file:
                 logger.info("No processed CloudSat match files found. "  
                             "Generating from source data if required.")
-                date_time=date_time_cross
+                date_time=cross.time
             else:
                 clObj = readCloudsatAvhrrMatchObj(cl_match_file) 
                 basename = '_'.join(os.path.basename(cl_match_file).split('_')[1:5])
@@ -1173,7 +1143,7 @@ def get_matchups(cross, options, reprocess=False):
             if not is_match_file:
                 logger.info("No processed Iss match files found."  
                             " Generating from source data if required.")
-                date_time=date_time_cross
+                date_time=cross.time
             else:
                 isObj = readIssAvhrrMatchObj(is_match_file) 
                 basename = '_'.join(os.path.basename(is_match_file).split('_')[1:5])
@@ -1189,7 +1159,7 @@ def get_matchups(cross, options, reprocess=False):
             if not am_match_file:
                 logger.info("No processed Amsr match files found."  
                             " Generating from source data if required.")
-                date_time=date_time_cross
+                date_time=cross.time
             else:              
                 amObj = readAmsrAvhrrMatchObj(am_match_file) 
                 basename = '_'.join(os.path.basename(am_match_file).split('_')[1:5])
@@ -1205,7 +1175,7 @@ def get_matchups(cross, options, reprocess=False):
                 logger.info( 
                     ("No processed CALIPSO match files found. "
                      "Generating from source data."))
-                date_time=date_time_cross
+                date_time=cross.time
             else:            
                 caObj = readCaliopAvhrrMatchObj(ca_match_file)
                 basename = '_'.join(os.path.basename(ca_match_file).split('_')[1:5])
@@ -1392,10 +1362,7 @@ def run(cross, run_modes, config_options, reprocess=False):
     The main work horse.    
     """    
     logger.info("Case: %s", str(cross))
-    sno_satname = cross.satellite1.lower()
-    if sno_satname in ['calipso', 'cloudsat']:
-        sno_satname = cross.satellite2.lower()
-    sensor = INSTRUMENT.get(sno_satname, 'avhrr')
+    sensor = INSTRUMENT.get(cross.satellite1.lower(), 'avhrr')
     if sensor.lower() != IMAGER_INSTRUMENT.lower() :
         logger.error("Uncertain of sensor: %s or %s?", 
                      sensor.upper(), IMAGER_INSTRUMENT.upper())

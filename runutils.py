@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 import numpy as np
 import time
 
+
 def unzip_file(filename):
     """Unzip the file if file is bzipped = ending with 'bz2'"""
 

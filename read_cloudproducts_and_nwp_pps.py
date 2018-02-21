@@ -941,7 +941,7 @@ def read_all_intermediate_files(pps_files):
     nwp_obj = NWPObj(nwp_dict)
     return nwp_obj
 
-def pps_read_all(pps_files, avhrr_file, cross):
+def pps_read_all(pps_files, avhrr_file):
     logger.info("Read Imager geolocation data")
     if '.nc' in avhrr_file:
         pps_nc = netCDF4.Dataset(avhrr_file, 'r', format='NETCDF4')

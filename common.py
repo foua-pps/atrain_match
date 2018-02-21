@@ -7,6 +7,17 @@ import numpy as np
 import logging
 logger = logging.getLogger(__name__)
 
+class Cross:
+    """A cross where two satellites (almost) meet."""
+    def __init__(self, satellite,  time):
+        self.satellite1 = satellite
+        self.satellite2 = 'xxx'
+        self.time = time
+    def __repr__(self):
+        return "Cross: %s at time %s" %(self.satellite1, self.time)
+    def __str__(self):
+        return self.__repr__()
+
 class MatchupError(Exception):
     """This exception is used when a problem matching AVHRR data with 
     Cloudsat / CALIPSO data has occured."""

@@ -15,22 +15,28 @@ through a set of SNO matchups.
 import logging
 logging.basicConfig(level=logging.INFO) 
 logger = logging.getLogger(__name__)
-
+from common import (InputError, MatchupError)
 import config
-from common import InputError
+import cloudsat_calipso_avhrr_match
+from common import Cross
+from runutils import  parse_scenesfile_reshaped
+from runutils import  parse_scenesfile_maia
+from runutils import parse_scene
+from runutils import  parse_scenesfile_cci
+from runutils import  parse_scenesfile_v2014
+
 
 def process_matchups(matchups, run_modes, reprocess=False, debug=False):
     """
     Run the given SNO *matchups* through the validation system.
     
-    *matchups* should be a list of :class:`find_crosses.Cross` instances.
+    *matchups* should be a list of :class:`common.Cross` instances.
     
     If *reprocess* is True, disregard any previously generated Cloudsat- and
     Calipso-AVHRR matchup files.
     
     """
-    import cloudsat_calipso_avhrr_match
-    from common import MatchupError
+
     import os
     import ConfigParser
     from config import CONFIG_PATH
@@ -85,7 +91,6 @@ def main():
     For a complete usage description, run 'python process_master -h'.
     
     """
-    import find_crosses
     import argparse
     parser = argparse.ArgumentParser()
     group = parser.add_mutually_exclusive_group(required=True)
@@ -109,7 +114,7 @@ def main():
                       help="Interpret arguments as inputfile with "  
                       "list of maia files")
     group.add_argument('--sno_file', '-sf', 
-                      help="Interpret arguments as sno_output_file")
+                      help="Depricated")
     group.add_argument('--reshaped_product_file', '-rf', 
                       help="Interpret arguments as reshaped_output_file")
     options = parser.parse_args()
@@ -130,29 +135,10 @@ def main():
     matchups = []
     if options.pps_okay_scene:
         # Simulate crosses from PPS scenes
-        from find_crosses import Cross
-        from runutils import parse_scene
         scene = options.pps_okay_scene
         satname, time, orbit = parse_scene(scene) 
-        matchups.append(Cross(satname, '', time, time, -999, -999))
-    elif options.sno_file is not None:
-        if config.USE_ORBITS_THAT_STARTS_EXACTLY_AT_CROSS:
-            #print config.USE_ORBITS_THAT_STARTS_EXACTLY_AT_CROSS
-            raise InputError(
-                " Expected " +
-                "USE_ORBITS_THAT_STARTS_EXACTLY_AT_CROSS=False (config.py) ")
-        sno_output_file = options.sno_file
-        found_matchups = find_crosses.parse_crosses_file(sno_output_file)
-        if len(found_matchups) == 0:
-            logger.warning("No matchups found in SNO output file %s",
-                           sno_output_file)
-            if options.debug is True:
-                raise Warning()
-        else:
-            matchups.extend(found_matchups)
+        matchups.append(Cross(satname, time))
     elif options.pps_product_file is not None:
-        from find_crosses import Cross
-        from runutils import  parse_scenesfile_v2014
         pps_output_file = options.pps_product_file
         read_from_file = open(pps_output_file,'r')
         for line in read_from_file:      
@@ -160,10 +146,8 @@ def main():
                 pass
             else:   
                 satname, time = parse_scenesfile_v2014(line)
-                matchups.append(Cross(satname, '', time, time, -999, -999))
+                matchups.append(Cross(satname, time))
     elif options.cci_product_file is not None:
-        from find_crosses import Cross
-        from runutils import  parse_scenesfile_cci
         cci_output_file = options.cci_product_file
         read_from_file = open(cci_output_file,'r')
         for line in read_from_file:
@@ -171,10 +155,8 @@ def main():
                 pass
             else:    
                 satname, time = parse_scenesfile_cci(line)
-                matchups.append(Cross(satname, '', time, time, -999, -999))
+                matchups.append(Cross(satname, time))
     elif options.maia_product_file is not None:
-        from find_crosses import Cross
-        from runutils import  parse_scenesfile_maia
         maia_output_file = options.maia_product_file
         read_from_file = open(maia_output_file,'r')
         for line in read_from_file:
@@ -182,10 +164,8 @@ def main():
                 pass
             else:    
                 satname, time = parse_scenesfile_maia(line)
-                matchups.append(Cross(satname, '', time, time, -999, -999))
+                matchups.append(Cross(satname, time))
     elif options.reshaped_product_file is not None:
-        from find_crosses import Cross
-        from runutils import  parse_scenesfile_reshaped
         reshaped_output_file = options.reshaped_product_file
         read_from_file = open(reshaped_output_file,'r')
         for line in read_from_file:
@@ -194,7 +174,7 @@ def main():
             else: 
                 satname, time = parse_scenesfile_reshaped(line)
                 #print time
-                matchups.append(Cross(satname, '', time, time, -999, -999))
+                matchups.append(Cross(satname, time))
 
     process_matchups(matchups, run_modes, reprocess, options.debug)
     
