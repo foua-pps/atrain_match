@@ -742,8 +742,8 @@ def get_additional_calipso_files_if_requested(calipso_files):
             calipso_files = sorted(calipso5km)
             calipso5km = None
 
-            if len(calipso_files) == 0:
-                raise MatchupError("Did not find any matching 5km and 1km calipso files")
+            if len(calipso1km) == 0:
+                raise MatchupError("Did not find any matching 1km calipso files")
 
             if len(calipso_files) != len(calipso1km):
                 raise MatchupError("Inconsistent number of calipso files...\n" + 
@@ -771,8 +771,8 @@ def get_additional_calipso_files_if_requested(calipso_files):
             calipso5km = sorted(require_h5(calipso5km))
             calipso_files = sorted(calipso1km)
             calipso1km = None
-            if len(calipso_files) == 0:
-                raise MatchupError("Did not find any matching 5km and 1km calipso files")
+            if len(calipso5km) == 0:
+                raise MatchupError("Did not find any matching 5km calipso files")
             if len(calipso_files) != len(calipso5km):
                 raise MatchupError("Inconsistent number of calipso files...\n" + 
                                    "\tlen(calipso_files) = %d\n" % len(calipso_files) + 
@@ -960,7 +960,7 @@ def get_matchups_from_data(cross, config_options):
     calipso_files = None
     if config.CALIPSO_MATCHING:
         calipso_files = find_truth_files(date_time, config_options, values)
-        if len(calipso_files) != 0:
+        if calipso_files is not None:
             extra_files = get_additional_calipso_files_if_requested(calipso_files)
             calipso5km, calipso1km, calipso5km_aerosol  = extra_files
     else:
@@ -1247,7 +1247,7 @@ def get_matchups(cross, options, reprocess=False):
         out_dict =  get_matchups_from_data(cross, options)
     else:
         out_dict = {'calipso': caObj, 'cloudsat': clObj,  
-                    'iss': isObj, 'amrs': amObj,
+                    'iss': isObj, 'amsr': amObj,
                     'basename': basename,'values':values}
     if out_dict['cloudsat'] is None and config.CLOUDSAT_REQUIRED:
         raise MatchupError("Couldn't find cloudsat matchup and "
