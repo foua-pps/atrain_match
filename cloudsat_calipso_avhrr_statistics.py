@@ -293,7 +293,7 @@ def print_cpp_lwp_stats(aObj, statfile, val_subset):
         return
     from amsr_avhrr.validate_lwp_util import get_lwp_diff, plot_hist_lwp    
     lwp_diff =  get_lwp_diff(aObj)
-    #plot_hist_lwp(lwp_diff)
+
 
     #screened.append('CPP lwp < 0')
     #print('=' * 40)

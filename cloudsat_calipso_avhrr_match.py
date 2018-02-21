@@ -86,7 +86,11 @@ import config
 from common import MatchupError, ProcessingError
 
 from cloudsat_calipso_avhrr_statistics import (CalculateStatistics)
-from trajectory_plotting import plotSatelliteTrajectory
+from plotting.trajectory_plotting import plotSatelliteTrajectory
+from plotting.along_track_plotting import (drawCalClsatAvhrrPlotTimeDiff,
+                                           drawCalClsatGEOPROFAvhrrPlot, 
+                                           drawCalClsatAvhrrPlotSATZ,
+                                           drawCalClsatCWCAvhrrPlot)
 from cloudsat_calipso_avhrr_prepare import (CalipsoCloudOpticalDepth_new,
                                             check_total_optical_depth_and_warn,
                                             CalipsoOpticalDepthHeightFiltering1km,
@@ -121,10 +125,7 @@ from calipso import  (add1kmTo5km,
                       adjust5kmTo1kmresolution,
                       add_validation_ctth_calipso)
 
-from cloudsat_calipso_avhrr_plot import (drawCalClsatAvhrrPlotTimeDiff,
-                                         drawCalClsatGEOPROFAvhrrPlot, 
-                                         drawCalClsatAvhrrPlotSATZ,
-                                         drawCalClsatCWCAvhrrPlot)
+
 #All non-avhrr satellites need to be here. Avhrr is default.
 INSTRUMENT = {'npp': 'viirs',
               'noaa18': 'avhrr',
@@ -1264,36 +1265,29 @@ def get_matchups(cross, options, reprocess=False):
     return out_dict
 
 def plot_some_figures(clsatObj, caObj, values, basename, process_mode, 
-                      config_options):
+                      config_options, amObj = None):
 
     logger.info("Plotting")
-    file_type = ['eps', 'png']
+    file_type = ['eps', 'png', 'pdf']
+    #if PLOT_ONLY_PDF==True:
+    #    file_type = ['pdf']
     if PLOT_ONLY_PNG==True:
-        file_type = ['png']
+        file_type = ['pdf']   
         
     plotpath = insert_info_in_filename_or_path(config_options['plot_dir'], values,
                                                datetime_obj=values['date_time'])  
     ##TRAJECTORY
     if caObj is not None:
-        """
-        if clsatObj is not None and config.CLOUDSAT_TYPE == 'GEOPROF':
-            cllon = clsatObj.cloudsat.longitude.copy()
-            cllat = clsatObj.cloudsat.latitude.copy()
-        elif clsatObj is not None and config.CLOUDSAT_TYPE == 'CWC-RVOD':
-            cllon = clsatObj.cloudsat.longitude.copy()
-            cllat = clsatObj.cloudsat.latitude.copy()
-            return
-        """
-        calon = caObj.calipso.longitude.copy()
-        calat = caObj.calipso.latitude.copy()
+        imlon = caObj.avhrr.longitude.copy()
+        imlat = caObj.avhrr.latitude.copy()
         trajectorypath = os.path.join(plotpath, "trajectory_plot")
         if not os.path.exists(trajectorypath):
             os.makedirs(trajectorypath)
         trajectoryname = os.path.join(trajectorypath, 
                                       "%skm_%s_trajectory" % (int(config.RESOLUTION),
                                                               values['basename']))
-        plotSatelliteTrajectory(calon, 
-                                calat,
+        plotSatelliteTrajectory(imlon, 
+                                imlat,
                                 trajectoryname, 
                                 config.AREA_CONFIG_FILE, 
                                 file_type,
@@ -1383,7 +1377,7 @@ def process_one_mode(process_mode_dnt, caObj, clsatObj, issObj, amObj,
     logger.debug("Plotting")
     if process_mode_dnt in config.PLOT_MODES:
         plot_some_figures(clsatObj, caObj, values, basename, process_mode, 
-                          config_options)
+                          config_options, amObj=amObj)
     #==============================================================
     #Calculate Statistics
     logger.debug("Calculating statistics")
