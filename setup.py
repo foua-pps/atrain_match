@@ -14,36 +14,39 @@ dist_version = git_version.get_git_version()
 
 from setuptools import setup
 
-lib_modules = ['common', 'find_crosses', 'runutils', 'track_correlation',
+lib_modules = ['common',  'runutils', 
                'calipso',
-               'cloudsat_calipso_avhrr_match', 'cloudsat_calipso_avhrr_plot',
-               'cloudsat_calipso_avhrr_prepare', 'cloudsat_calipso_avhrr_statistics',
-               'cloudsat_calipso_process_master', 'cloudsat_cwc', 'cloudsat',
-               'cloudsat5km_cwc',
-               'common', 'runutils', 'track_correlation',
-               'filtfunc', 'radiance_tb_tables_kgtest', 'trajectory_plot',
-               #'config', # config should not be installed, but must be present
-               # on the PYTHONPATH at runtime.
+               'cloudsat_calipso_avhrr_match', 
+               'cloudsat_calipso_avhrr_prepare', 
+               'cloudsat_calipso_avhrr_statistics',
+               'cloudsat','amsr', 'iss',
+               'extract_imager_along_track',
+               'get_flag_info',
+               'matchobject_io',
+               'validate_cph_util',
+               'read_modis_products',
+               'read_cloudproducts_maia',
+               'read_cloudproducts_cci',
+               'read_cloudproducts_and_nwp_pps',
                ]
-script_modules = ['merge_tles', 'amsr_avhrr_match', 'amsr_avhrr_validate',
-                  'validate_cph', 'validate_cph_all',
-                  'clean_sno_results', 'collect_last_day', 'fetch_nwp',
-                  'nwp_profile', 'process_master', 'run_aapp_on_ears',
+script_modules = ['process_master',
                   'compile_stats']
 
 setup(name='atrain_match',
       description="Library modules used in matching satellite swaths",
       author=("Jakob Malm <jakob.malm@smhi.se>, "
               "Erik Johansson <erik.johansson@smhi.se>, "
+              "Nina Hakansson <nina.hakansson@smhi.se>, "
               "Karl-Göran Karlsson <kgkarl@smhi.se>"),
       author_email="FoUa@smhi.se",
-      url='http://nwcsaf.org',
       long_description='long description',
-      license='EUMETSAT NWCSAF license (?)',
+      license='(?)',
       version=dist_version,
       provides=['atrain_match'],
       py_modules=lib_modules + script_modules,
-      packages=['amsr_avhrr', 'statistics'],
-      install_requires=['pyephem', 'numpy', 'scipy'],
+      packages=['amsr_avhrr', 'statistics', 'plotting',
+                'reshaped_files_plotting',
+                'reshaped_files_analyze_scripts'],
+      install_requires=['numpy', 'h5py'],
       zip_safe=False
       )
