@@ -1034,7 +1034,8 @@ def get_matchups_from_data(cross, config_options):
             ca_matchup = add_modis_06(ca_matchup, avhrr_file, config_options) 
         if cl_matchup is not None:
             cl_matchup = add_modis_06(cl_matchup, avhrr_file, config_options) 
-                                                       
+        if amsr_matchup is not None:
+            amsr_matchup = add_modis_06(amsr_matchup, avhrr_file, config_options)                                                
     #add additional vars to cloudsat and calipso objects and print them to file:
     cl_matchup, ca_matchup = add_additional_clousat_calipso_index_vars(cl_matchup, ca_matchup)
     cl_matchup, ca_matchup, iss_matchup = add_elevation_corrected_imager_ctth(cl_matchup, ca_matchup, iss_matchup)
