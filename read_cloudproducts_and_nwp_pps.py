@@ -626,12 +626,12 @@ def read_cpp_nc_one_var(ncFile, cpp_key):
         cpp_var = ncFile.variables[cpp_key][0,:,:]
         if np.ma.is_masked(cpp_var):
             cpp_data = cpp_var.data.astype(np.float)
-            if cpp_key in ["cpp_lwp"]:
-                cpp_data *= density  #Convert from kg/m2 to g/m2
             cpp_data[cpp_var.mask] = ATRAIN_MATCH_NODATA
         else:
             cpp_data = cpp_var
-        
+        if cpp_key in ["cpp_lwp"]:
+            logger.info("Convert from CPP-lwp from to g/m-2")
+            cpp_data[cpp_data>0] = density * cpp_data[cpp_data>0] 
         return  cpp_data
     else:
         logger.debug("NO %s field, Continue ", cpp_key)
@@ -971,7 +971,6 @@ def pps_read_all(pps_files, avhrr_file, cross):
         cpp = None
     else:
         logger.info("Read CPP data")
-        logger.warning("Warning lwp is read in kg/m2")
         if '.nc' in pps_files.cpp:          
             cpp = read_cpp_nc(pps_files.cpp)
         else:            
