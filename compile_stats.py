@@ -16,18 +16,19 @@ logger = logging.getLogger(__name__)
 def compile_stats(results_files, write=True, outfile_cfc="merged_sat_file_cfc", truth_sat='calipso'):
     """Run through all summary statistics."""
     
+    #Always do CFC statistics, as it then that we read data
     #print("=========== Cloud fraction ============")
     from statistics import orrb_CFC_stat
     #read all results statistics only for cfc, resuse for cth, cty and cph
     cfc_stats = orrb_CFC_stat.CloudFractionStats(results_files=results_files, truth_sat=truth_sat)
     cfc_stats.write(outfile_cfc)
-    
-    compiled_cth_file_name = outfile_cfc.replace('_cfc_','_cth_')
-    # First all clouds, then split results
-    note = "========== Cloud top height ==========="
-    from statistics import orrb_CTH_stat
-    cth_stats = orrb_CTH_stat.CloudTopStats(ac_data=cfc_stats.ac_data, truth_sat=truth_sat)
-    cth_stats.write(compiled_cth_file_name)
+
+    if truth_sat not in ['amsr']: 
+        note = "========== Cloud top height ==========="
+        compiled_cth_file_name = outfile_cfc.replace('_cfc_','_cth_')
+        from statistics import orrb_CTH_stat
+        cth_stats = orrb_CTH_stat.CloudTopStats(ac_data=cfc_stats.ac_data, truth_sat=truth_sat)
+        cth_stats.write(compiled_cth_file_name)
     
     if not CCI_CLOUD_VALIDATION:
         #print("============= Cloud type ==============")
@@ -36,17 +37,20 @@ def compile_stats(results_files, write=True, outfile_cfc="merged_sat_file_cfc", 
         cty_stats = orrb_CTY_stat.CloudTypeStats(ac_data=cfc_stats.ac_data, truth_sat=truth_sat)
         cty_stats.write(compiled_cty_file_name)
 
-    note = "========== Cloud phase ==========="
-    compiled_cph_file_name = outfile_cfc.replace('_cfc_','_cph_')
-    from statistics import orrb_CPH_stat
-    cth_stats = orrb_CPH_stat.CloudPhaseStats(ac_data=cfc_stats.ac_data, truth_sat=truth_sat)
-    cth_stats.write(compiled_cph_file_name)     
- 
-    note = "========== Cloud lwp ==========="
-    compiled_lwp_file_name = outfile_cfc.replace('_cfc_','_lwp_')
-    from statistics import orrb_LWP_stat
-    cth_stats = orrb_LWP_stat.CloudLwpStats(ac_data=cfc_stats.ac_data, truth_sat=truth_sat)
-    cth_stats.write(compiled_lwp_file_name)
+    if truth_sat not in ['amsr']:  
+        note = "========== Cloud phase ==========="
+        compiled_cph_file_name = outfile_cfc.replace('_cfc_','_cph_')
+        from statistics import orrb_CPH_stat
+        cth_stats = orrb_CPH_stat.CloudPhaseStats(ac_data=cfc_stats.ac_data, truth_sat=truth_sat)
+        cth_stats.write(compiled_cph_file_name)     
+
+    #LWP only for AMSR-E currently    
+    if truth_sat in ['amsr']:
+        note = "========== Cloud lwp ==========="
+        compiled_lwp_file_name = outfile_cfc.replace('_cfc_','_lwp_')
+        from statistics import orrb_LWP_stat
+        cth_stats = orrb_LWP_stat.CloudLwpStats(ac_data=cfc_stats.ac_data, truth_sat=truth_sat)
+        cth_stats.write(compiled_lwp_file_name)
 if __name__ == '__main__':
 
     import os
@@ -126,12 +130,12 @@ if __name__ == '__main__':
         parser.print_help()
     #For each mode calcualte the statistics            
     for process_mode_dnt in modes_dnt_list:
-        print("Gathering statistics from all validation results files in the "
-              "following directories:")    
         print(RESOLUTION)
         #get result files for all cases
-        logger.info("PROCESS MODE {}".format(process_mode_dnt))
         for truth_sat in COMPILE_STATISTICS_TRUTH:
+            logger.info("PROCESS MODE %s, truth: %s", process_mode_dnt, truth_sat.upper())
+            print("Gathering statistics from all validation results files in the "
+                  "following directories:")    
             results_files = []
             for case in CASES:
                 indata_dir = config_options['result_dir'].format(

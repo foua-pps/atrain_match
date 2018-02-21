@@ -235,7 +235,7 @@ def get_land_coast_sea_info_cci2014(lsflag):
     return (no_qflag, land_flag, sea_flag, coast_flag, all_lsc_flag)
 def get_day_night_twilight_info_cci2014(sunz):
     sunz = np.array(sunz)
-    logger.info("Assuming CCI v2014")
+    logger.info("Getting day/night info from sunz")
     no_qflag = np.zeros(sunz.shape)
     day_flag = np.where(np.less_equal(sunz,80),1,0)
     night_flag =  np.where(np.greater_equal(sunz,95),1,0)

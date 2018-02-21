@@ -19,7 +19,6 @@ def get_lwp_diff(aObj, threshold=LWP_THRESHOLD):
     
     Returns array with the differences for used selected pixels.    
     """
-    density = 1e3
     use_sea = np.logical_or(aObj.avhrr.fractionofland <=0,
                             aObj.amsr.imager_linnum_nneigh <=0) # might have less than 8 neighbours                          
     use_phase = np.logical_or(aObj.avhrr.cpp_phase == 1,
@@ -37,7 +36,7 @@ def get_lwp_diff(aObj, threshold=LWP_THRESHOLD):
     cpp_lwp[cpp_lwp<0] = 0
     n_cpp = np.sum(cpp_lwp>0, axis=-1)
     sum_cpp = np.sum(cpp_lwp, axis=-1)
-    cpp_mean = sum_cpp * 1.0/ n_cpp * density  #Convert from kg/m2 to g/m2
+    cpp_mean = sum_cpp * 1.0/ n_cpp 
 
     lwp_diff = cpp_mean - aObj.amsr.lwp 
 
