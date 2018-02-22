@@ -306,7 +306,8 @@ class ModisObject(DataObject):
             'height': None,
             'temperature': None,
             'pressure': None,
-            'cloud_emissivity': None}
+            'cloud_emissivity': None,
+            'lwp': None}
 
         
 class CalipsoObject(DataObject):
@@ -484,6 +485,8 @@ class AmsrObject(DataObject):
             'latitude': None,
             'imager_linnum': None,
             'imager_pixnum': None,
+            'imager_linnum_nneigh': None,
+            'imager_pixnum_nneigh': None,
             'sec_1970': None,
             'lwp': None}
 
@@ -670,6 +673,9 @@ def get_stuff_to_read_from_a_reshaped_file(h5file, retv):
     if 'iss' in  h5file.keys():
         h5_groups.append(h5file['/iss'])
         data_objects.append(retv.iss)
+    if 'amsr' in  h5file.keys():
+        h5_groups.append(h5file['/amsr'])
+        data_objects.append(retv.amsr)
     return (h5_groups, data_objects)
     
 def readCaliopAvhrrMatchObjNewFormat(h5file, retv, var_to_read=None, var_to_skip=None):

@@ -580,15 +580,6 @@ def print_calipso_stats_ctype(caObj, statfile, val_subset, low_medium_high_class
     n_high_high = np.repeat(
         avhrr_high,
         np.logical_and(calipso_high,avhrr_high)).shape[0]
-    n_frac_low = np.repeat(
-        avhrr_frac,
-        np.logical_and(calipso_low,avhrr_frac)).shape[0]
-    n_frac_medium = np.repeat(
-        avhrr_frac,
-        np.logical_and(calipso_medium,avhrr_frac)).shape[0]
-    n_frac_high = np.repeat(
-        avhrr_frac,
-        np.logical_and(calipso_high,avhrr_frac)).shape[0]
     n_cirrus_low = np.repeat(
         avhrr_cirrus,
         np.logical_and(calipso_low,avhrr_cirrus)).shape[0]
@@ -622,9 +613,6 @@ def print_calipso_stats_ctype(caObj, statfile, val_subset, low_medium_high_class
     n_high_clear = np.repeat(
         avhrr_high,
         np.logical_and(calipso_clear,avhrr_high)).shape[0]
-    n_frac_clear = np.repeat(
-        avhrr_frac,
-        np.logical_and(calipso_clear,avhrr_frac)).shape[0]
     n_cirrus_clear = np.repeat(
         avhrr_cirrus,
         np.logical_and(calipso_clear,avhrr_cirrus)).shape[0]
@@ -632,22 +620,22 @@ def print_calipso_stats_ctype(caObj, statfile, val_subset, low_medium_high_class
 
     pod_low = -9.0
     far_low = -9.0
-    pod_low = -9.0
-    far_low = -9.0
+    pod_medium = -9.0
+    far_medium = -9.0
     pod_high =-9.0
     far_high =-9.0
     far_cirrus =-9.0
-    N_cal_low = n_low_low + n_medium_low + n_high_low + n_frac_low + n_cirrus_low
-    N_pps_low = (n_low_low + n_low_medium+n_low_high + n_frac_low + n_frac_medium+n_frac_high)
-    N_cal_medium = n_low_medium+n_medium_medium+n_high_medium+n_frac_medium + n_cirrus_medium_tp + n_cirrus_medium_op
+    N_cal_low = n_low_low + n_medium_low + n_high_low + n_cirrus_low
+    N_pps_low = (n_low_low + n_low_medium+n_low_high)
+    N_cal_medium = n_low_medium+n_medium_medium+n_high_medium + n_cirrus_medium_tp + n_cirrus_medium_op
     N_pps_medium = n_medium_low + n_medium_medium+n_medium_high 
-    N_cal_high = n_low_high+n_medium_high+n_high_high+n_frac_high + n_cirrus_high_op + n_cirrus_high_tp
+    N_cal_high = n_low_high+n_medium_high+n_high_high + n_cirrus_high_op + n_cirrus_high_tp
     N_pps_high = n_high_low + n_high_medium +n_high_high 
     N_pps_cirrus = n_cirrus_high_op + n_cirrus_high_tp + n_cirrus_low + n_cirrus_medium_op + n_cirrus_medium_tp 
     if (N_cal_low) > 0:
-        pod_low = float(n_low_low + n_frac_low) / N_cal_low
+        pod_low = float(n_low_low) / N_cal_low
     if (N_pps_low) > 0:    
-        far_low = float(N_pps_low - n_low_low - n_frac_low)/ N_pps_low
+        far_low = float(N_pps_low - n_low_low)/ N_pps_low
 
     if N_cal_medium>0:
         pod_medium = float(n_medium_medium + n_cirrus_medium_tp)/N_cal_medium
@@ -670,9 +658,9 @@ def print_calipso_stats_ctype(caObj, statfile, val_subset, low_medium_high_class
         n_cirrus_low, 
         n_cirrus_medium_tp, n_cirrus_high_tp, 
         n_cirrus_medium_op, n_cirrus_high_op))
-    statfile.write("CLOUD TYPE %s-IMAGER PROB: %f %f %f %f %f %f \n" % (
+    statfile.write("CLOUD TYPE %s-IMAGER PROB: %0.2f %0.2f %0.2f %0.2f %0.2f %0.2f %0.2f \n" % (
         caObj.truth_sat.upper(), 
-        pod_low, pod_medium, pod_high, far_low, far_medium, far_high))
+        pod_low, pod_medium, pod_high, far_low, far_medium, far_high, far_cirrus))
     statfile.write("CLOUD TYPE %s-IMAGER TABLE MISSED: %s %s %s %s %s %s %s \n" % (
         caObj.truth_sat.upper(),
         n_clear_low, n_clear_medium, n_clear_high, 
