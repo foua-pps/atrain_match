@@ -8,8 +8,7 @@ from matchobject_io import (DataObject,
                             IssObject,
                             IssAvhrrTrackObject)                            
 from config import (AREA, sec_timeThr, RESOLUTION,
-                    NODATA,
-                    _validation_results_dir)
+                    NODATA, ISS_REQUIRED)
 from common import (MatchupError, ProcessingError,
                     elements_within_range)
 from extract_imager_along_track import avhrr_track_from_matched
@@ -113,7 +112,11 @@ def match_iss_avhrr(issObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,imagerAngOb
     calnan = np.where(cal == NODATA, np.nan, cal)
 
     if (~np.isnan(calnan)).sum() == 0:
-        raise MatchupError("No matches within region.")
+        if ISS_REQUIRED:
+            raise MatchupError("No matches within region.")
+        else:
+            logger.warning("No matches within region.")
+            return None
     #check if it is within time limits:
     if len(imagerGeoObj.time.shape)>1:
         imager_time_vector = [imagerGeoObj.time[line,pixel] for line, pixel 
@@ -125,8 +128,12 @@ def match_iss_avhrr(issObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,imagerAngOb
     idx_match = elements_within_range(issObj.sec_1970, imager_lines_sec_1970, sec_timeThr)
 
     if idx_match.sum() == 0:
-        raise MatchupError("No matches in region within time threshold %d s." 
-                           % sec_timeThr)  
+        if ISS_REQUIRED:
+            raise MatchupError("No matches in region within time threshold %d s." 
+                               % sec_timeThr) 
+        else:
+            logger.warning("No matches in region within time threshold %d s.", sec_timeThr)
+            return None
 
     retv.iss = calipso_track_from_matched(retv.iss, issObj, idx_match)
 

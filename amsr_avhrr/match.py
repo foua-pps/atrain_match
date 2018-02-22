@@ -138,7 +138,7 @@ def match_lonlat(source, target,
                                                        valid_in, valid_out,
                                                        indices[:,i]) 
             test = (distances[:,0] - distances[:,i])
-            if  np.max(test[~np.isnan(test)]) > 0:
+            if  sum(~np.isnan(test))>0 and np.max(test[~np.isnan(test)]) > 0:
                 raise ValueError(
                     'We count on the first neighbour beeing the closest')
             

@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 from matchobject_io import (CloudsatObject,
                             CloudsatAvhrrTrackObject)                            
 from config import (sec_timeThr, RESOLUTION,
-                    NODATA, CLOUDSAT_CLOUDY_THR)
+                    NODATA, CLOUDSAT_CLOUDY_THR, CLOUDSAT_REQUIRED)
 from common import (MatchupError, ProcessingError,
                     elements_within_range)
 from extract_imager_along_track import avhrr_track_from_matched
@@ -175,7 +175,11 @@ def match_cloudsat_avhrr(cloudsatObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,i
                          radius_of_influence=RESOLUTION*0.7*1000.0) # somewhat larger than radius...
     calnan = np.where(cal == NODATA, np.nan, cal)
     if (~np.isnan(calnan)).sum() == 0:
-        raise MatchupError("No matches within region.")
+        if CLOUDSAT_REQUIRED:
+            raise MatchupError("No matches within region.")
+        else:
+            logger.warning("No matches within region.")
+            return None
     #check if it is within time limits:
     if len(imagerGeoObj.time.shape)>1:
         imager_time_vector = [imagerGeoObj.time[line,pixel] for line, pixel in zip(cal,cap)]
@@ -186,8 +190,11 @@ def match_cloudsat_avhrr(cloudsatObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,i
     idx_match = elements_within_range(cloudsatObj.sec_1970, imager_lines_sec_1970, sec_timeThr)
 
     if idx_match.sum() == 0:
-        raise MatchupError("No matches in region within time threshold %d s." % sec_timeThr)  
-
+        if CLOUDSAT_REQUIRED:            
+            raise MatchupError("No matches in region within time threshold %d s." % sec_timeThr)  
+        else:
+            logger.warning("No matches in region within time threshold %d s.", sec_timeThr)
+            return None
     retv.cloudsat = calipso_track_from_matched(retv.cloudsat, cloudsatObj, idx_match)
  
     # Cloudsat line,pixel inside IMAGER swath:

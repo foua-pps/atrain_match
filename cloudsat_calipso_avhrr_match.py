@@ -1001,6 +1001,17 @@ def get_matchups_from_data(cross, config_options):
                                          nwp_segments,
                                          calipso1km, calipso5km, calipso5km_aerosol)
  
+    if ca_matchup is None and config.CALIPSO_REQUIRED:
+        raise MatchupError("No matches with CALIPSO.")
+    elif cl_matchup is None and config.CLOUDSAT_REQUIRED:
+        raise MatchupError("No matches with CLOUDAT.")
+    elif iss_matchup is None and config.ISS_REQUIRED:
+        raise MatchupError("No matches with ISS.")
+    elif amsr_matchup is None and config.AMSR_REQUIRED:
+        raise MatchupError("No matches with AMSR.")
+    elif  ca_matchup is None and cl_matchup is None and iss_matchup is None and amsr_matchup is None:
+        raise MatchupError("No matches with any truth.")
+
 
     # Get satellite name, time, and orbit number from avhrr_file
     date_time = values["date_time"]
@@ -1207,7 +1218,7 @@ def get_matchups(cross, options, reprocess=False):
             raise MatchupError(
                 "Couldn't find amsr already processed matchup file," 
                 "USE_EXISTING_RESHAPED_FILES = True!") 
-    if  caObj is None and clObj is None and isObj is None:
+    if  caObj is None and clObj is None and isObj is None and amObj is None:
         out_dict = get_matchups_from_data(cross, options) 
     elif caObj is None and config.CALIPSO_REQUIRED:
         out_dict = get_matchups_from_data(cross, options)
@@ -1264,7 +1275,7 @@ def plot_some_figures(clsatObj, caObj, values, basename, process_mode,
                                 file_type,
                                 **config_options)
 
-    if clsatObj is None or config.CLOUDSAT_TYPE=='GEOPROF':
+    if (clsatObj is None or config.CLOUDSAT_TYPE=='GEOPROF') and caObj is not None:
         #HEIGHT
         drawCalClsatGEOPROFAvhrrPlot(clsatObj, 
                                      caObj, 

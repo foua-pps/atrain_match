@@ -3,7 +3,7 @@ import numpy as np
 from datetime import datetime
 from calendar import timegm
 TAI93 = datetime(1993, 1, 1)
-from config import (RESOLUTION, sec_timeThr, NODATA)
+from config import (RESOLUTION, sec_timeThr, NODATA, AMSR_REQUIRED)
 from read_cloudproducts_and_nwp_pps import NWPObj
 from matchobject_io import (AmsrAvhrrTrackObject, 
                             AmsrObject)
@@ -77,6 +77,12 @@ def reshapeAmsr(amsrfiles, avhrr):
 def match_amsr_avhrr(amsrObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
                      imagerAngObj, cpp, nwp_segments):
     retv = AmsrAvhrrTrackObject()
+
+    if (getattr(cpp, "cpp_lwp")<0).all() and AMSR_REQUIRED:
+        logger.warning("Not matching AMSR-E with scene with no lwp.")
+        return None
+        #return MatchupError("No imager Lwp.") # if only LWP matching?
+
     from common import map_avhrr
     cal, cap = map_avhrr(imagerGeoObj, 
                          amsrObj.longitude.ravel(), 
@@ -88,7 +94,11 @@ def match_amsr_avhrr(amsrObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
 
     calnan = np.where(cal_1 == NODATA, np.nan, cal_1)
     if (~np.isnan(calnan)).sum() == 0:
-        raise MatchupError("No matches within region.")
+        if AMSR_REQUIRED:
+            raise MatchupError("No matches within region.")
+        else:
+            logger.warning("No matches within region.")
+            return None   
     #check if it is within time limits:
     if len(imagerGeoObj.time.shape)>1:
         imager_time_vector = [imagerGeoObj.time[line,pixel] for line, pixel in zip(cal_1,cap_1)]
@@ -99,8 +109,11 @@ def match_amsr_avhrr(amsrObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
     idx_match = elements_within_range(amsrObj.sec_1970, imager_lines_sec_1970, sec_timeThr)
 
     if idx_match.sum() == 0:
-        raise MatchupError("No matches in region within time threshold %d s." % sec_timeThr)  
-
+        if AMSR_REQUIRED:
+            raise MatchupError("No matches in region within time threshold %d s." % sec_timeThr)  
+        else:
+            logger.warning("No matches in region within time threshold %d s.", sec_timeThr)
+            return None
     retv.amsr = calipso_track_from_matched(retv.amsr, amsrObj, idx_match)
  
     # Amsr line,pixel inside AVHRR swath (one neighbour):
@@ -118,7 +131,8 @@ def match_amsr_avhrr(amsrObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
     
     nwp_small = NWPObj({'fractionofland': getattr(nwp,'fractionofland') ,
                         'landuse': getattr(nwp, 'landuse')})
-                    
+
+    
     retv = avhrr_track_from_matched(retv, imagerGeoObj, None, imagerAngObj, 
                                     #nwp, ctth, ctype, cma,  
                                     nwp_small, None, None, cma,

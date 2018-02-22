@@ -18,7 +18,8 @@ from config import (_validation_results_dir,
                     CALIPSO_version3,
                     CALIPSO_CLOUDY_MIN_CFC,
                     IMAGER_INSTRUMENT,
-                    PPS_FORMAT_2012_OR_EARLIER)
+                    PPS_FORMAT_2012_OR_EARLIER,
+                    CALIPSO_REQUIRED)
 
 import time as tm
 from matchobject_io import (CalipsoAvhrrTrackObject,
@@ -67,8 +68,11 @@ def match_calipso_avhrr(values,
     #warn if no matches
     calnan = np.where(cal == NODATA, np.nan, cal)
     if (~np.isnan(calnan)).sum() == 0:
-        raise MatchupError("No matches within region.")
-
+        if CALIPSO_REQUIRED:
+            raise MatchupError("No matches within region.")
+        else:
+            logger.warning("No matches within region.")
+            return None
     #check if it is within time limits:
     if len(imagerGeoObj.time.shape)>1:
         imager_time_vector = [imagerGeoObj.time[line,pixel] for line, pixel in zip(cal,cap)]
@@ -77,7 +81,11 @@ def match_calipso_avhrr(values,
         imager_lines_sec_1970 = np.where(cal != NODATA, imagerGeoObj.time[cal], np.nan)
     idx_match = elements_within_range(caObj.sec_1970, imager_lines_sec_1970, sec_timeThr) 
     if idx_match.sum() == 0:
-        raise MatchupError("No matches in region within time threshold %d s." % sec_timeThr)
+        if CALIPSO_REQUIRED:
+            raise MatchupError("No matches in region within time threshold %d s." % sec_timeThr)
+        else:
+            logger.warning("No matches in region within time threshold %d s.", sec_timeThr)
+            return None    
     retv.calipso = calipso_track_from_matched(retv.calipso, caObj, idx_match)
     
     # Calipso line,pixel inside AVHRR swath:
