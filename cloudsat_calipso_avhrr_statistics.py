@@ -310,7 +310,8 @@ def print_cpp_lwp_stats(aObj, statfile, val_subset):
     else :
         bias = -9
         diff_squared = -9
-        N =0
+        RMS_difference  = -9
+        N = 0
 
     statfile.write("CLOUD LWP %s-IMAGER TABLE: %3.2f %3.2f %d\n" %(
         aObj.truth_sat.upper(), bias, RMS_difference, N))
