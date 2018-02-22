@@ -505,7 +505,15 @@ def print_calipso_stats_ctype(caObj, statfile, val_subset, low_medium_high_class
     calipso_medium = np.logical_and(low_medium_high_class['medium_clouds'],
                                     val_subset)
     calipso_high = np.logical_and(low_medium_high_class['high_clouds'],
-                                 val_subset)
+                                  val_subset)
+    calipso_medium_tp = np.logical_and(low_medium_high_class['medium_clouds_tp'],
+                                    val_subset)
+    calipso_high_tp = np.logical_and(low_medium_high_class['high_clouds_tp'],
+                                  val_subset)
+    calipso_medium_op = np.logical_and(low_medium_high_class['medium_clouds_op'],
+                                    val_subset)
+    calipso_high_op = np.logical_and(low_medium_high_class['high_clouds_op'],
+                                  val_subset)
 
     if  caObj.avhrr.cloudtype_conditions is not None: 
         logger.debug("Assuming cloudtype structure from pps v2014")
@@ -526,32 +534,11 @@ def print_calipso_stats_ctype(caObj, statfile, val_subset, low_medium_high_class
         avhrr_high = avhrr_high_op #np.logical_or(avhrr_high_op,avhrr_high_semi)
         avhrr_frac = np.logical_and(np.equal(caObj.avhrr.cloudtype,10), 
                                     val_subset)
-        #avhrr_medium = np.logical_or(avhrr_medium,
-        #                             np.logical_and(avhrr_cirrus,caObj.avhrr.ctth_pressure>440))
-        #avhrr_high = avhrr_high_op #np.logical_or(avhrr_high_op,avhrr_high_semi)
-        #avhrr_high = np.logical_or(avhrr_high,
-        #                           np.logical_and(avhrr_cirrus,caObj.avhrr.ctth_pressure<440))
-        #avhrr_cirrus = np.where(avhrr_cirrus, False, False)
+        avhrr_low = np.logical_or(avhrr_low, avhrr_frac)
 
 
     else:
-        logger.warning("Assuming cloudtype structure from pps v2012")
-        avhrr_low = np.logical_and(
-            np.logical_and(np.greater_equal(caObj.avhrr.cloudtype,5),
-                           np.less_equal(caObj.avhrr.cloudtype,8)),
-            val_subset)
-        avhrr_medium = np.logical_and(
-            np.logical_and(np.greater_equal(caObj.avhrr.cloudtype,9),
-                           np.less_equal(caObj.avhrr.cloudtype,10)),
-            val_subset)
-        avhrr_high = np.logical_and(
-            np.logical_and(np.greater_equal(caObj.avhrr.cloudtype,11),
-                           np.less_equal(caObj.avhrr.cloudtype,18)),
-            val_subset)
-        avhrr_frac = np.logical_and(
-            np.logical_and(np.greater_equal(caObj.avhrr.cloudtype,19),
-                           np.less_equal(caObj.avhrr.cloudtype,19)),
-            val_subset)
+        logger.error("Assuming cloudtype structure from pps v2012")
 
     calipso_clear = np.logical_and(
         np.less(caObj.calipso.cloud_fraction,config.CALIPSO_CLEAR_MAX_CFC),val_subset)
@@ -605,13 +592,18 @@ def print_calipso_stats_ctype(caObj, statfile, val_subset, low_medium_high_class
     n_cirrus_low = np.repeat(
         avhrr_cirrus,
         np.logical_and(calipso_low,avhrr_cirrus)).shape[0]
-    n_cirrus_medium = np.repeat(
+    n_cirrus_medium_tp = np.repeat(
         avhrr_cirrus,
-        np.logical_and(calipso_medium,avhrr_cirrus)).shape[0]
-    n_cirrus_high = np.repeat(
+        np.logical_and(calipso_medium_tp,avhrr_cirrus)).shape[0]
+    n_cirrus_high_tp = np.repeat(
         avhrr_cirrus,
-        np.logical_and(calipso_high,avhrr_cirrus)).shape[0]
-
+        np.logical_and(calipso_high_tp,avhrr_cirrus)).shape[0]
+    n_cirrus_medium_op = np.repeat(
+        avhrr_cirrus,
+        np.logical_and(calipso_medium_op,avhrr_cirrus)).shape[0]
+    n_cirrus_high_op = np.repeat(
+        avhrr_cirrus,
+        np.logical_and(calipso_high_op,avhrr_cirrus)).shape[0]
     n_clear_low = np.repeat(
         avhrr_clear,
         np.logical_and(calipso_low,avhrr_clear)).shape[0]
@@ -637,46 +629,54 @@ def print_calipso_stats_ctype(caObj, statfile, val_subset, low_medium_high_class
         avhrr_cirrus,
         np.logical_and(calipso_clear,avhrr_cirrus)).shape[0]
 
-    if (n_low_low+n_medium_low+n_high_low+n_frac_low + n_cirrus_low) > 0:
-        pod_low = float(n_low_low + n_frac_low) / (
-            n_low_low + n_medium_low+n_high_low+n_frac_low + n_cirrus_low)
-        far_low = float(n_low_medium+n_low_high)/(
-            n_low_low + n_low_medium+n_low_high  +
-            n_frac_low + n_frac_medium+n_frac_high )
-    else:
-        pod_low = -9.0
-        far_low = -9.0
-    if (n_low_medium+n_medium_medium+n_high_medium+n_frac_medium + n_cirrus_medium) > 0:
-        pod_medium = float(n_medium_medium + n_cirrus_medium)/(
-            n_low_medium + n_medium_medium + n_high_medium + 
-            n_frac_medium + n_cirrus_medium)
-        far_medium = float(n_medium_low+n_medium_high)/(
-            n_medium_low + n_medium_medium+n_medium_high + n_cirrus_medium)
-    else:
-        pod_medium =-9.0
-        far_medium =-9.0
-    if (n_low_high+n_medium_high+n_high_high+n_frac_high + n_cirrus_high) > 0:
-        pod_high = float(n_high_high+n_cirrus_high)/(n_low_high+n_medium_high+n_high_high+n_frac_high + n_cirrus_high)
-        far_high = float(n_high_low+n_high_medium +n_cirrus_low)/(n_high_low + n_high_medium +n_high_high 
-                                                                  + n_cirrus_high +n_cirrus_low)
-    else:
-        pod_high =-9.0
-        far_high =-9.0
 
-    statfile.write("CLOUD TYPE %s-IMAGER TABLE: %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n" % (
+    pod_low = -9.0
+    far_low = -9.0
+    pod_low = -9.0
+    far_low = -9.0
+    pod_high =-9.0
+    far_high =-9.0
+    far_cirrus =-9.0
+    N_cal_low = n_low_low + n_medium_low + n_high_low + n_frac_low + n_cirrus_low
+    N_pps_low = (n_low_low + n_low_medium+n_low_high + n_frac_low + n_frac_medium+n_frac_high)
+    N_cal_medium = n_low_medium+n_medium_medium+n_high_medium+n_frac_medium + n_cirrus_medium_tp + n_cirrus_medium_op
+    N_pps_medium = n_medium_low + n_medium_medium+n_medium_high 
+    N_cal_high = n_low_high+n_medium_high+n_high_high+n_frac_high + n_cirrus_high_op + n_cirrus_high_tp
+    N_pps_high = n_high_low + n_high_medium +n_high_high 
+    N_pps_cirrus = n_cirrus_high_op + n_cirrus_high_tp + n_cirrus_low + n_cirrus_medium_op + n_cirrus_medium_tp 
+    if (N_cal_low) > 0:
+        pod_low = float(n_low_low + n_frac_low) / N_cal_low
+    if (N_pps_low) > 0:    
+        far_low = float(N_pps_low - n_low_low - n_frac_low)/ N_pps_low
+
+    if N_cal_medium>0:
+        pod_medium = float(n_medium_medium + n_cirrus_medium_tp)/N_cal_medium
+    if N_pps_medium>0:
+        far_medium = float(n_medium_low+n_medium_high)/N_pps_medium
+
+    if N_cal_high >0:
+        pod_high = float(n_high_high+n_cirrus_high_tp)/N_cal_high
+    if N_pps_high >0:
+        far_high = float(n_high_low+n_high_medium)/N_pps_high
+    if N_pps_cirrus >0:
+        far_cirrus = float(n_cirrus_low+n_cirrus_medium_op +n_cirrus_high_op)/N_pps_cirrus
+
+
+    statfile.write("CLOUD TYPE %s-IMAGER TABLE: %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n" % (
         caObj.truth_sat.upper(), 
         n_low_low, n_low_medium, n_low_high,
         n_medium_low, n_medium_medium, n_medium_high, 
         n_high_low, n_high_medium, n_high_high,
-        n_frac_low, n_frac_medium, n_frac_high,
-        n_cirrus_low, n_cirrus_medium, n_cirrus_high))
+        n_cirrus_low, 
+        n_cirrus_medium_tp, n_cirrus_high_tp, 
+        n_cirrus_medium_op, n_cirrus_high_op))
     statfile.write("CLOUD TYPE %s-IMAGER PROB: %f %f %f %f %f %f \n" % (
         caObj.truth_sat.upper(), 
         pod_low, pod_medium, pod_high, far_low, far_medium, far_high))
-    statfile.write("CLOUD TYPE %s-IMAGER TABLE MISSED: %s %s %s %s %s %s %s %s \n" % (
+    statfile.write("CLOUD TYPE %s-IMAGER TABLE MISSED: %s %s %s %s %s %s %s \n" % (
         caObj.truth_sat.upper(),
         n_clear_low, n_clear_medium, n_clear_high, 
-        n_low_clear, n_medium_clear, n_high_clear, n_frac_clear, n_cirrus_clear))
+        n_low_clear, n_medium_clear, n_high_clear, n_cirrus_clear))
             
 
 def print_height_all_low_medium_high(NAME, val_subset,  statfile, 

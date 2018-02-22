@@ -30,12 +30,11 @@ class CloudTypeStats(OrrbStats):
         n_high_low = self.ac_data["n_high_low"] 
         n_high_medium = self.ac_data["n_high_medium"] 
         n_high_high = self.ac_data["n_high_high"] 
-        n_frac_low = self.ac_data["n_frac_low"] 
-        n_frac_medium = self.ac_data["n_frac_medium"] 
-        n_frac_high = self.ac_data["n_frac_high"] 
         n_cirrus_low = self.ac_data["n_cirrus_low"] 
-        n_cirrus_medium = self.ac_data["n_cirrus_medium"] 
-        n_cirrus_high = self.ac_data["n_cirrus_high"] 
+        n_cirrus_medium_tp = self.ac_data["n_cirrus_medium_tp"] 
+        n_cirrus_high_tp = self.ac_data["n_cirrus_high_tp"]
+        n_cirrus_medium_op = self.ac_data["n_cirrus_medium_op"] 
+        n_cirrus_high_op = self.ac_data["n_cirrus_high_op"] 
         # This is really CMA buisness!
         pps_undetected_low = self.ac_data["n_clear_low"] 
         pps_undetected_medium = self.ac_data["n_clear_medium"] 
@@ -43,53 +42,52 @@ class CloudTypeStats(OrrbStats):
         pps_false_low = self.ac_data["n_low_clear"] # This is really CMA buisness!
         pps_false_medium = self.ac_data["n_medium_clear"] 
         pps_false_high = self.ac_data["n_high_clear"] 
-        pps_false_frac = self.ac_data["n_frac_clear"] 
         pps_false_cirrus = self.ac_data["n_cirrus_clear"] 
         pps_false = (pps_false_low + pps_false_medium + 
-                     pps_false_high + pps_false_frac + pps_false_cirrus )
+                     pps_false_high + pps_false_cirrus )
         pps_undetected = (pps_undetected_low + pps_undetected_medium + 
                           pps_undetected_high)
-        number_excluded_cirrus_medium = n_cirrus_medium 
-        #n_cirrus_medium = 0 # Lets not include these!
         common_cloud_free = self.ac_data["n_clear_clear_cal"]
    
-        pps_frac = n_frac_low + n_frac_medium + n_frac_high
-        pps_cirrus = n_cirrus_low + n_cirrus_medium + n_cirrus_high
+
+        pps_cirrus = (n_cirrus_low + 
+                      n_cirrus_medium_op + n_cirrus_medium_tp + 
+                      n_cirrus_high_op + n_cirrus_high_tp)
       
 
         Num_ct = (n_low_low + n_low_medium + n_low_high + 
                   n_medium_low + n_medium_medium + n_medium_high + 
                   n_high_low + n_high_medium + n_high_high + 
-                  n_frac_low + n_frac_medium +n_frac_high +
-                  n_cirrus_low + n_cirrus_medium +n_cirrus_high)
+                  n_cirrus_low + 
+                  n_cirrus_medium_op +n_cirrus_high_op + 
+                  n_cirrus_medium_tp +n_cirrus_high_tp )
 
         N_low_cal = (n_low_low + n_medium_low + n_high_low 
-                     + n_frac_low + n_cirrus_low)
+                     + n_cirrus_low)
         N_medium_cal = (n_low_medium + n_medium_medium + n_high_medium + 
-                        n_frac_medium + n_cirrus_medium)
+                        + n_cirrus_medium_tp + + n_cirrus_medium_op)
         N_high_cal = (n_low_high + n_medium_high + n_high_high + 
-                      n_frac_high + n_cirrus_high)
+                       + n_cirrus_high_op + n_cirrus_high_tp)
      
-        N_low_pps = (n_low_low + n_low_medium + n_low_high +
-                     n_frac_low + n_frac_medium + n_frac_high)
+        N_low_pps = (n_low_low + n_low_medium + n_low_high )
         N_medium_pps = (n_medium_low + n_medium_medium + 
-                        n_medium_high)# + n_cirrus_medium)
+                        n_medium_high)
         N_high_pps = (n_high_low + n_high_medium + n_high_high) 
-                      #n_cirrus_low + n_cirrus_high) #n_cirrus_medium belong to medium class!
+
         N_cirrus_pps = pps_cirrus              
      
         # numpy.divide handles potential division by zero
-        pod_low = 100.0 * np.divide(float(n_low_low + n_frac_low), N_low_cal)
-        far_low = 100.0 * np.divide(float(n_low_medium + n_frac_medium + 
-                                          n_low_high + n_frac_high), N_low_pps)
+        pod_low = 100.0 * np.divide(float(n_low_low), N_low_cal)
+        far_low = 100.0 * np.divide(float(n_low_medium + 
+                                          n_low_high), N_low_pps)
         pod_medium = 100.0 * np.divide(
-            float(n_medium_medium + n_cirrus_medium), N_medium_cal)
+            float(n_medium_medium + n_cirrus_medium_tp), N_medium_cal)
         far_medium = 100.0 * np.divide(
-            float(n_medium_low + n_medium_high), N_medium_pps)
-        pod_high = 100.0 * np.divide(float(n_high_high + n_cirrus_high), N_high_cal)
+            float(n_medium_low + n_medium_high +  n_cirrus_medium_op), N_medium_pps)
+        pod_high = 100.0 * np.divide(float(n_high_high + n_cirrus_high_tp), N_high_cal)
         far_high = 100.0 * np.divide(
-            float(n_high_low + n_high_medium), N_high_pps)
-        far_cirrus = 100.0 * np.divide(float(n_cirrus_low), N_cirrus_pps)
+            float(n_high_low + n_high_medium + n_cirrus_high_op), N_high_pps)
+        far_cirrus = 100.0 * np.divide(float(n_cirrus_low + n_cirrus_high_op + n_cirrus_medium_op ), N_cirrus_pps)
 
 
     
@@ -99,7 +97,6 @@ class CloudTypeStats(OrrbStats):
         medium_fraction_cal_rel = np.divide(float(N_medium_cal), Num_ct) * 100.0
         high_fraction_pps_rel = np.divide(float(N_high_pps), Num_ct) * 100.0
         high_fraction_cal_rel = np.divide(float(N_high_cal), Num_ct) * 100.0
-        frac_fraction_pps_rel = np.divide(float(pps_frac), Num_ct) * 100.0
         cirrus_fraction_pps_rel = np.divide(float(pps_cirrus), Num_ct) * 100.0
 
         low_fraction_pps_abs = low_fraction_pps_rel * 0.01 *CFC_PPS
@@ -108,35 +105,23 @@ class CloudTypeStats(OrrbStats):
         medium_fraction_cal_abs = medium_fraction_cal_rel * 0.01 *CFC_TRUTH
         high_fraction_pps_abs = high_fraction_pps_rel * 0.01 *CFC_PPS
         high_fraction_cal_abs = high_fraction_cal_rel * 0.01 *CFC_TRUTH
-        frac_fraction_pps_abs =  frac_fraction_pps_rel * 0.01 *CFC_PPS
         cirrus_fraction_pps_abs = cirrus_fraction_pps_rel * 0.01 *CFC_PPS
           
-        bias_low = low_fraction_pps_abs - low_fraction_cal_abs
-        bias_low_noperc = bias_low / 100.0
-        bias_medium = medium_fraction_pps_abs - medium_fraction_cal_abs
-        bias_medium_noperc = bias_medium / 100.0
-        bias_high = high_fraction_pps_abs - high_fraction_cal_abs
-        bias_high_noperc = bias_high / 100.0
+
 
         #Removed bc-RMS Not sure how ot interpret it                     
         
         #POD,FAR,HR and KSS calculations =============================================================
 
         hitrate = np.divide(
-            100.0*(n_low_low + n_frac_low + n_medium_medium + n_high_high),
+            100.0*(
+                n_low_low + n_medium_medium + n_high_high + 
+                n_cirrus_medium_tp + n_cirrus_high_tp),
             Num_ct)
         
-        #Finally, calculate distribution of CALIOP categories among the PPS Fractional category
-  
-                     
-        cal_low_fractional = np.divide(100.0 * n_frac_low, pps_frac )
-        cal_medium_fractional = np.divide(100.0 * n_frac_medium, pps_frac)
-        cal_high_fractional = np.divide(100.0 * n_frac_high, pps_frac)
-   
-    
+       
         self.Num_cma = Num_cma
         self.common_cloud_free = common_cloud_free
-        self.number_excluded_cirrus_medium = number_excluded_cirrus_medium
         self.Num_ct = Num_ct
         self.pod_low = pod_low
         self.pod_medium = pod_medium
@@ -150,19 +135,14 @@ class CloudTypeStats(OrrbStats):
         self.medium_fraction_cal_rel = medium_fraction_cal_rel
         self.high_fraction_pps_rel = high_fraction_pps_rel
         self.high_fraction_cal_rel = high_fraction_cal_rel
-        self.frac_fraction_pps_rel = frac_fraction_pps_rel
         self.low_fraction_pps_abs = low_fraction_pps_abs
         self.low_fraction_cal_abs = low_fraction_cal_abs
         self.medium_fraction_pps_abs = medium_fraction_pps_abs
         self.medium_fraction_cal_abs = medium_fraction_cal_abs
         self.high_fraction_pps_abs = high_fraction_pps_abs
         self.high_fraction_cal_abs = high_fraction_cal_abs
-        self.frac_fraction_pps_abs = frac_fraction_pps_abs
         self.cirrus_fraction_pps_rel = cirrus_fraction_pps_rel
         self.cirrus_fraction_pps_abs = cirrus_fraction_pps_abs
-        self.bias_low = bias_low
-        self.bias_medium = bias_medium
-        self.bias_high = bias_high
         self.pod_low = pod_low
         self.pod_medium = pod_medium
         self.pod_high = pod_high
@@ -171,9 +151,6 @@ class CloudTypeStats(OrrbStats):
         self.far_high = far_high
         self.far_cirrus = far_cirrus
         self.hitrate = hitrate
-        self.cal_low_fractional = cal_low_fractional
-        self.cal_medium_fractional = cal_medium_fractional
-        self.cal_high_fractional = cal_high_fractional 
         self.pps_undetected = pps_undetected
         self.pps_undetected_low = pps_undetected_low
         self.pps_undetected_medium = pps_undetected_medium
@@ -182,7 +159,7 @@ class CloudTypeStats(OrrbStats):
         self.pps_false_low = pps_false_low
         self.pps_false_medium = pps_false_medium
         self.pps_false_high = pps_false_high
-        self.pps_false_frac = pps_false_frac
+        self.pps_false_cirrus = pps_false_cirrus
     def printout(self):
         lines = []
         if self.Num_cma == 0 or self.Num_ct==0:
@@ -191,14 +168,12 @@ class CloudTypeStats(OrrbStats):
         lines.append( "Common cloud-free: %d" % self.common_cloud_free)
         lines.append("Total number of matched scenes is: %s" % self.ac_data["scenes"])
         lines.append("Total number of matched cloud types: %d" % self.Num_ct)
-        lines.append("Some %d pixels in the category PPS-cirrus CALIPSO-clear are not excluded\n" 
-                     %self.number_excluded_cirrus_medium)
         lines.append("")
         lines.append("Note: There is a separate script to get CT-statitcs for validaion report.")
         lines.append("Probability of detecting LOW, MEDIUM and HIGH: %.2f %.2f %.2f" % \
                      (self.pod_low, self.pod_medium, self.pod_high))
-        lines.append("False alarm rate LOW, MEDIUM and HIGH: %.2f %.2f %.2f" % \
-                     (self.far_low, self.far_medium, self.far_high))
+        lines.append("False alarm rate LOW, MEDIUM and HIGH: %.2f %.2f %.2f %.2f" % \
+                     (self.far_low, self.far_medium, self.far_high, self.far_cirrus))
 
         lines.append("Rel. Fraction LOW for PPS and for %s: %.2f %.2f" % \
                      (self.truth_sat.upper(), self.low_fraction_pps_rel, self.low_fraction_cal_rel))
@@ -206,7 +181,6 @@ class CloudTypeStats(OrrbStats):
                      (self.truth_sat.upper(),self.medium_fraction_pps_rel, self.medium_fraction_cal_rel))
         lines.append("Rel. Fraction HIGH for PPS and for %s: %.2f %.2f" % \
                      (self.truth_sat.upper(),self.high_fraction_pps_rel, self.high_fraction_cal_rel))
-        lines.append("Rel. Fraction FRACTIONAL for PPS: %.2f" % self.frac_fraction_pps_rel)
         lines.append("Rel. Fraction CIRRUS for PPS: %.2f" % self.cirrus_fraction_pps_rel)
 
         lines.append("Abs. Fraction LOW for PPS and for %s: %.2f %.2f" % \
@@ -215,23 +189,17 @@ class CloudTypeStats(OrrbStats):
                      (self.truth_sat.upper(),self.medium_fraction_pps_abs, self.medium_fraction_cal_abs))
         lines.append("Abs. Fraction HIGH for PPS and for %s: %.2f %.2f" % \
                      (self.truth_sat.upper(),self.high_fraction_pps_abs, self.high_fraction_cal_abs))
-        lines.append("Abs. Fraction FRACTIONAL for PPS: %.2f" % self.frac_fraction_pps_abs)
         lines.append("Abs. Fraction CIRRUS for PPS: %.2f" % self.cirrus_fraction_pps_abs)
-        lines.append("Bias Low: %.2f" % self.bias_low)
-        lines.append("Bias Medium: %.2f" % self.bias_medium)
-        lines.append("Bias High: %.2f" % self.bias_high)
         lines.append("POD (Low, Medium, High): %.2f %.2f %.2f" % \
                      (self.pod_low, self.pod_medium, self.pod_high))
         lines.append("FAR (Low, Medium, High, Cirrus): %.2f %.2f %.2f %.2f" % \
                      (self.far_low, self.far_medium, self.far_high, self.far_cirrus))
         lines.append("HR: %.3f " % (self.hitrate))
-        lines.append("%s parts of Fractional (Low, Medium, High): %.2f %.2f %.2f" % \
-                     (self.truth_sat.upper(), self.cal_low_fractional, self.cal_medium_fractional, self.cal_high_fractional))
         lines.append("This is really CMA buisness here!")
-        lines.append("Missclassified cloudy: %d (low:%d, medium:%d, high:%d, frac:%d)" % \
+        lines.append("Missclassified cloudy: %d (low:%d, medium:%d, high:%d, cirrus:%d)" % \
                      (self.pps_false, self.pps_false_low,
                       self.pps_false_medium, self.pps_false_high,
-                      self.pps_false_frac))
+                      self.pps_false_cirrus))
         lines.append("Missclassified clear: %d (low:%d, medium:%d, high:%d)" % \
                      (self.pps_undetected, self.pps_undetected_low,
                       self.pps_undetected_medium, self.pps_undetected_high))

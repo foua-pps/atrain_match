@@ -66,12 +66,11 @@ class OrrbStats():
         acu["n_high_low"] = 0
         acu["n_high_medium"] = 0
         acu["n_high_high"] = 0
-        acu["n_frac_low"] = 0
-        acu["n_frac_medium"] = 0
-        acu["n_frac_high"] = 0
         acu["n_cirrus_low"] = 0
-        acu["n_cirrus_medium"] = 0
-        acu["n_cirrus_high"] = 0
+        acu["n_cirrus_medium_tp"] = 0
+        acu["n_cirrus_high_tp"] = 0
+        acu["n_cirrus_medium_op"] = 0
+        acu["n_cirrus_high_op"] = 0
         acu["n_clear_low"] = 0
         acu["n_clear_medium"] = 0
         acu["n_clear_high"] = 0
@@ -179,12 +178,11 @@ class OrrbStats():
                     acu["n_high_low"] += cal_data[6]
                     acu["n_high_medium"] += cal_data[7]
                     acu["n_high_high"] += cal_data[8]
-                    acu["n_frac_low"] += cal_data[9]
-                    acu["n_frac_medium"] += cal_data[10]
-                    acu["n_frac_high"] += cal_data[11]
-                    acu["n_cirrus_low"] += cal_data[12]
-                    acu["n_cirrus_medium"] += cal_data[13]
-                    acu["n_cirrus_high"] += cal_data[14]
+                    acu["n_cirrus_low"] += cal_data[9]
+                    acu["n_cirrus_medium_tp"] += cal_data[10]
+                    acu["n_cirrus_high_tp"] += cal_data[11]
+                    acu["n_cirrus_medium_op"] += cal_data[12]
+                    acu["n_cirrus_high_op"] += cal_data[13]
                 if  key in cty_stats_labels_missed:
                     cal_data_missed = data_dict[key] 
                     cal_data_missed[cal_data_missed<0] = 0
@@ -193,8 +191,7 @@ class OrrbStats():
                     acu["n_clear_high"] += cal_data_missed[2]
                     acu["n_low_clear"] += cal_data_missed[3]
                     acu["n_medium_clear"] += cal_data_missed[4]
-                    acu["n_high_clear"] += cal_data_missed[5]
-                    acu["n_frac_clear"] += cal_data_missed[6]
+                    acu["n_high_clear"] += cal_data_missed[5]    
                     acu["n_cirrus_clear"] += cal_data_missed[6]
             # Accumulate CALIOP/ISS/CLOUDSAT statistics CTH
             for key in data_dict.keys(): 
