@@ -800,10 +800,17 @@ def add_additional_clousat_calipso_index_vars(clsatObj, caObj):
         clsatObj.cloudsat.calipso_index = mapper.rows.filled(NODATA).ravel()
 
         # Transfer CloudSat MODIS cloud flag to CALIPSO representation
-        caObj.calipso.cal_MODIS_cflag = np.zeros(len(caObj.calipso.elevation),'b')
-        caObj.calipso.cal_MODIS_cflag = clsatObj.cloudsat.MODIS_cloud_flag[caObj.calipso.cloudsat_index]
+        caObj.calipso.cal_MODIS_cflag = np.where(
+            caObj.calipso.cloudsat_index>0, 
+            clsatObj.cloudsat.MODIS_cloud_flag[caObj.calipso.cloudsat_index],
+            -9)
+        
     if clsatObj is not None and caObj is not None:
-        clsatObj.cloudsat.calipso_feature_classification_flags = caObj.calipso.feature_classification_flags[clsatObj.cloudsat.calipso_index,0]
+        clsatObj.cloudsat.calipso_feature_classification_flags= np.where(
+            clsatObj.cloudsat.calipso_index>0,
+            caObj.calipso.feature_classification_flags[
+                clsatObj.cloudsat.calipso_index,0],
+            -9)
     return clsatObj, caObj
 
 def add_modis_lvl2_clousat_(clsatObj, caObj):
@@ -1218,6 +1225,7 @@ def get_matchups(cross, options, reprocess=False):
             raise MatchupError(
                 "Couldn't find amsr already processed matchup file," 
                 "USE_EXISTING_RESHAPED_FILES = True!") 
+
     if  caObj is None and clObj is None and isObj is None and amObj is None:
         out_dict = get_matchups_from_data(cross, options) 
     elif caObj is None and config.CALIPSO_REQUIRED:
@@ -1232,6 +1240,7 @@ def get_matchups(cross, options, reprocess=False):
         out_dict = {'calipso': caObj, 'cloudsat': clObj,  
                     'iss': isObj, 'amsr': amObj,
                     'basename': basename,'values':values}
+
     if out_dict['cloudsat'] is None and config.CLOUDSAT_REQUIRED:
         raise MatchupError("Couldn't find cloudsat matchup and "
                            "CLOUDSAT_REQUIRED is True!")
