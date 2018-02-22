@@ -212,6 +212,10 @@ def get_calipso_low_medium_high_classification(caObj):
     mlh_class['low_clouds'] = get_calipso_low_clouds(caObj)
     mlh_class['medium_clouds'] = get_calipso_medium_clouds(caObj)
     mlh_class['high_clouds'] = get_calipso_high_clouds(caObj)
+    mlh_class['medium_clouds_tp'] = get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=4)
+    mlh_class['medium_clouds_op'] = get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=5)
+    mlh_class['high_clouds_tp'] = get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=6)
+    mlh_class['high_clouds_op'] = get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=7)
     return mlh_class
 
 def get_cloudsat_low_medium_high_classification(clsatObj):
