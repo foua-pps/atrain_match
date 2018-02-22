@@ -361,8 +361,8 @@ class CloudsatObject(DataObject):
             'clsat_max_height':None,
             'longitude': None,
             'latitude': None,
-            'avhrr_linnum': None,
-            'avhrr_pixnum': None,
+            'imager_linnum': None,
+            'imager_pixnum': None,
             'cloud_fraction': None,
             'validation_height': None,
             'validation_height_base': None,
@@ -414,8 +414,8 @@ class IssObject(DataObject):
         self.all_arrays = {
             'longitude': None,
             'latitude': None,
-            'avhrr_linnum': None,
-            'avhrr_pixnum': None,
+            'imager_linnum': None,
+            'imager_pixnum': None,
             'sec_1970': None,
             'elevation': None,
             'cloud_fraction': None,
@@ -482,15 +482,15 @@ class AmsrObject(DataObject):
         self.all_arrays = {
             'longitude': None,
             'latitude': None,
-            'avhrr_linnum': None,
-            'avhrr_pixnum': None,
+            'imager_linnum': None,
+            'imager_pixnum': None,
             'sec_1970': None,
             'lwp': None}
 
 class AmsrAvhrrTrackObject:
     def __init__(self):
         self.avhrr = ppsAvhrrObject()
-        #self.modis = ModisObject()
+        self.modis = ModisObject()
         self.amsr = AmsrObject()
         self.diff_sec_1970 = None
         self.truth_sat = 'amsr' #Satellite is EOS-Aqua or EOS-Terra
@@ -770,6 +770,7 @@ def writeIssAvhrrMatchObj(filename,iss_obj, avhrr_obj_name = 'pps'):
 
 def writeAmsrAvhrrMatchObj(filename,amsr_obj, avhrr_obj_name = 'pps'):
     groups = {'amsr': amsr_obj.amsr.all_arrays,
+              'modis_lvl2': amsr_obj.modis.all_arrays,
               avhrr_obj_name: amsr_obj.avhrr.all_arrays}
     write_match_objects(filename, amsr_obj.diff_sec_1970, groups)    
     status = 1
