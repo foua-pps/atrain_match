@@ -800,16 +800,19 @@ def add_additional_clousat_calipso_index_vars(clsatObj, caObj):
         clsatObj.cloudsat.calipso_index = mapper.rows.filled(NODATA).ravel()
 
         # Transfer CloudSat MODIS cloud flag to CALIPSO representation
+        index = caObj.calipso.cloudsat_index.copy()
+        index[index<0] = 0
         caObj.calipso.cal_MODIS_cflag = np.where(
-            caObj.calipso.cloudsat_index>0, 
-            clsatObj.cloudsat.MODIS_cloud_flag[caObj.calipso.cloudsat_index],
+            caObj.calipso.cloudsat_index>=0, 
+            clsatObj.cloudsat.MODIS_cloud_flag[index],
             -9)
         
     if clsatObj is not None and caObj is not None:
+        index = clsatObj.cloudsat.calipso_index.copy()
+        index[index<0] = 0
         clsatObj.cloudsat.calipso_feature_classification_flags= np.where(
-            clsatObj.cloudsat.calipso_index>0,
-            caObj.calipso.feature_classification_flags[
-                clsatObj.cloudsat.calipso_index,0],
+            clsatObj.cloudsat.calipso_index>=0,
+            caObj.calipso.feature_classification_flags[index,0],
             -9)
     return clsatObj, caObj
 
