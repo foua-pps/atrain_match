@@ -23,6 +23,8 @@ USE_ORBITS_THAT_STARTS_EXACTLY_AT_CROSS = True
 #: available any more. For normal processing let it be False.
 USE_EXISTING_RESHAPED_FILES =  str2bool(
   os.environ.get('USE_EXISTING_RESHAPED_FILES', False))
+WRITE_ONLY_THE_MOST_IMPORTANT_STUFF_TO_FILE = True #to reduce disk usage
+
 #: Use cloudmask to build cloud cover statistics. Traditionally CT was used.
 USE_CMA_FOR_CFC_STATISTICS = True 
 
@@ -51,7 +53,7 @@ CMA_PROB_VALIDATION = str2bool(os.environ.get('CMA_PROB_VALIDATION', False))
 CALIPSO_MATCHING = True   #Notice can not be False if CALIPSO_REQUIRED = True
 CLOUDSAT_MATCHING = True #Notice can not be False if CLOUDSAT_REQUIRED = True
 ISS_MATCHING = False      #Notice can not be False if ISS_REQUIRED = True
-AMSR_MATCHING = False      #Notice can not be False if AMSR_REQUIRED = True
+AMSR_MATCHING = False     #Notice can not be False if AMSR_REQUIRED = True
 
 #: Require matching. It is OK to have all False. Matching is still done
 #: but program will not crach if it finds only CALIPSO data but not CloudSat.

@@ -894,8 +894,8 @@ def add_validation_ctth(clsatObj, caObj):
         if clsatObj.cloudsat.cloud_fraction is None:   
             clsatObj.cloudsat = add_cloudsat_cloud_fraction(clsatObj.cloudsat) 
     if caObj is not None:
-        if caObj.calipso.validation_height is None
-        caObj.calipso = add_validation_ctth_calipso(caObj.calipso)
+        if caObj.calipso.validation_height is None:
+            caObj.calipso = add_validation_ctth_calipso(caObj.calipso)
     return clsatObj, caObj
     
 def get_matchups_from_data(cross, config_options):

@@ -95,8 +95,9 @@ def write_match_objects(filename, diff_sec_1970, groups):
     >>> diff_sec_1970, groups = read_match_objects('match.h5')
     
     """
-    from config import COMPRESS_LVL
+    from config import COMPRESS_LVL, WRITE_ONLY_THE_MOST_IMPORTANT_STUFF_TO_FILE
     import h5py
+    from matchobject_io import the_used_variables 
     with h5py.File(filename, 'w') as f:
         f.create_dataset('diff_sec_1970', data=diff_sec_1970,
                          compression=COMPRESS_LVL)
@@ -105,7 +106,11 @@ def write_match_objects(filename, diff_sec_1970, groups):
             g = f.create_group(group_name)
             for array_name, array in group_object.items():
                 if array is None:
-                    #print "empty array", array_name
+                    continue
+                if (WRITE_ONLY_THE_MOST_IMPORTANT_STUFF_TO_FILE and 
+                    array_name not in the_used_variables):
+                    logger.debug("Not writing unimportant %s to file", 
+                                 array_name)
                     continue
                 try:
                     if len(array) == 0:
