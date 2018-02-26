@@ -889,9 +889,12 @@ def add_elevation_corrected_imager_ctth(clsatObj, caObj, issObj):
 
 def add_validation_ctth(clsatObj, caObj):
     if clsatObj is not None:
-        clsatObj.cloudsat = add_validation_ctth_cloudsat(clsatObj.cloudsat)
-        clsatObj.cloudsat = add_cloudsat_cloud_fraction(clsatObj.cloudsat) 
+        if clsatObj.cloudsat.validation_height is None:
+            clsatObj.cloudsat = add_validation_ctth_cloudsat(clsatObj.cloudsat)
+        if clsatObj.cloudsat.cloud_fraction is None:   
+            clsatObj.cloudsat = add_cloudsat_cloud_fraction(clsatObj.cloudsat) 
     if caObj is not None:
+        if caObj.calipso.validation_height is None
         caObj.calipso = add_validation_ctth_calipso(caObj.calipso)
     return clsatObj, caObj
     
