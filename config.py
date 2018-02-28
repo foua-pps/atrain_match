@@ -53,7 +53,7 @@ CMA_PROB_VALIDATION = str2bool(os.environ.get('CMA_PROB_VALIDATION', False))
 CALIPSO_MATCHING = True   #Notice can not be False if CALIPSO_REQUIRED = True
 CLOUDSAT_MATCHING = True #Notice can not be False if CLOUDSAT_REQUIRED = True
 ISS_MATCHING = False      #Notice can not be False if ISS_REQUIRED = True
-AMSR_MATCHING = False     #Notice can not be False if AMSR_REQUIRED = True
+AMSR_MATCHING = True    #Notice can not be False if AMSR_REQUIRED = True
 
 #: Require matching. It is OK to have all False. Matching is still done
 #: but program will not crach if it finds only CALIPSO data but not CloudSat.
@@ -121,9 +121,9 @@ OPTICAL_DETECTION_LIMIT = 0.2 # MODE: OPTICAL_DEPTH_THIN_IS_CLEAR 1km. STATS: CF
                               # This should be the optical detection limit
 #: Threshold for optical thickness. If optical thickness is below this 
 #: value it will be filtered out in mode OPTICAL_DEPTH 
-#MIN_OPTICAL_DEPTH = [0.20] # New formulation - allowing a set of values
-MIN_OPTICAL_DEPTH = [0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 
-                     0.50, 0.60, 0.70, 0.80, 0.90, 1.00] #MODE:OPTICAL_DEPTH, STATS:CFC 
+MIN_OPTICAL_DEPTH = [0.20, 0.5, 1.0] # New formulation - allowing a set of values
+#MIN_OPTICAL_DEPTH = [0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 
+#                     0.50, 0.60, 0.70, 0.80, 0.90, 1.00] #MODE:OPTICAL_DEPTH, STATS:CFC 
 
 #========== RESOLUTION-1 settings ==========#
 #: For 5km processing these settings should have no effect
@@ -144,6 +144,9 @@ CPP_REDUCE_PIXELS = int(os.environ.get('CPP_REDUCE_PIXELS', 0))
 #========== Process modes ==========#
 #: Processing modes which can be handled for all resolutions
 ALLOWED_MODES = ['BASIC', 'STANDARD']
+if AMSR_MATCHING:
+  ALLOWED_MODES.append('SATZ_HIGH')
+  ALLOWED_MODES.append('SATZ_LOW')
 if RESOLUTION == 1:
   if CALCULATE_DETECTION_HEIGHT_FROM_5KM_DATA:
     ALLOWED_MODES.append('OPTICAL_DEPTH_THIN_IS_CLEAR')    

@@ -7,47 +7,22 @@ from matchobject_io import (readCaliopAvhrrMatchObj,
                             CalipsoAvhrrTrackObject)
 
 
-ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/global_modis_14th_created20161108/Reshaped_Files/eos2/1km/%s/%s/*/*.h5"
+instrument = "seviri"
+day = "14"
+day_long = "14th"
+satellite = "meteosat9"
 
-OUT_DIR = "/home/a001865/DATA_MISC/reshaped_files/global_modis_14th_created20161108/Reshaped_Files/merged/"
-ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_MODIS_NOVEMBER/Reshaped_Files/eos2/1km/%s/%s/*/*.h5"
-OUT_DIR = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_MODIS_NOVEMBER/Reshaped_Files/merged/"
-ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_MODIS_MAY/Reshaped_Files/eos2/1km/%s/%s/*/*.h5"
-OUT_DIR = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_MODIS_MAY/Reshaped_Files/merged/"
-ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_MODIS_MAY_nnviirs_20161205/Reshaped_Files/eos2/1km/%s/%s/*/*.h5"
-OUT_DIR = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_MODIS_MAY_nnviirs_20161205/Reshaped_Files/merged/"
-ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_MODIS_NOVEMBER_nnviirs_20161205/Reshaped_Files/eos2/1km/%s/%s/*/*.h5"
-OUT_DIR = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_MODIS_NOVEMBER_nnviirs_20161205/Reshaped_Files/merged/"
-ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_MODIS_MAY_nnmersi2_20161206/Reshaped_Files/eos2/1km/%s/%s/*/*.h5"
-OUT_DIR = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_MODIS_MAY_nnmersi2_20161206/Reshaped_Files/merged/"
-ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_MODIS_MAY_AEROSOL/Reshaped_Files/eos2/1km/%s/%s/*/*.h5"
-OUT_DIR = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_MODIS_MAY_AEROSOL/Reshaped_Files/merged/"
-ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_MODIS_NOVEMBER_AEROSOL/Reshaped_Files/eos2/1km/%s/%s/*/*.h5"
-OUT_DIR = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_MODIS_NOVEMBER_AEROSOL/Reshaped_Files/merged/"
-ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_MODIS_NOVEMBER_AEROSOL_SMOKE/Reshaped_Files/eos2/1km/%s/%s/*/*.h5"
-OUT_DIR = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_MODIS_NOVEMBER_AEROSOL_SMOKE/Reshaped_Files/merged/"
-ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_MODIS_MAY_AEROSOL_SMOKE/Reshaped_Files/eos2/1km/%s/%s/*/*.h5"
-OUT_DIR = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_MODIS_MAY_AEROSOL_SMOKE/Reshaped_Files/merged/"
+BASE_DIR = "/home/a001865/DATA_MISC/reshaped_files/global_{instrument}_{day_long}_created20180222".format(
+    day_long = day_long,
+    instrument=instrument)
+ROOT_DIR = BASE_DIR + "/Reshaped_Files/{satellite}/1km/2010/%s/*/*caliop*.h5".format(
+    satellite=satellite)
+OUT_DIR_TEMPLATE = BASE_DIR + "/Reshaped_Files_merged_calipso_cbase/{satellite}/1km/2010/%s/".format(
+    satellite=satellite)
+outfile_template = "1km_%s_{satellite}_2010%s{day}_0000_00000_caliop_{instrument}_match.h5".format(
+    satellite=satellite, day=day, instrument = instrument)
 
-BASE_DIR = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_MODIS_NOVEMBER_nnMERSI2"
-BASE_DIR = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_MODIS_NOVEMBER_nnAVHRR_20170315"
-BASE_DIR = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_MODIS_NOVEMBER_nnVIIRS_20170315"
-
-BASE_DIR = "/home/a001865/DATA_MISC/reshaped_files/global_modis_14th_created20170330"
-#BASE_DIR = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_MODIS_NOVEMBER_nnAVHRR_with_gac"
-ROOT_DIR = BASE_DIR + "/Reshaped_Files/eos2/1km/2010/%s/*/*caliop*.h5"
-OUT_DIR_TEMPLATE = BASE_DIR + "/Reshaped_Files_merged/eos2/1km/2010/%s/"
-outfile_template = "1km_%s_eos2_2010%s14_0000_00000_caliop_modis_match.h5"
-
-BASE_DIR = "/home/a001865/DATA_MISC/reshaped_files/global_modis_01st_created20170519"
-ROOT_DIR = BASE_DIR + "/Reshaped_Files/eos2/1km/2010/%s/*/*caliop*.h5"
-OUT_DIR_TEMPLATE = BASE_DIR + "/Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/%s/"
-outfile_template = "1km_%s_eos2_2010%s01_0000_00000_caliop_modis_match.h5"
-
-BASE_DIR = "/home/a001865/DATA_MISC/reshaped_files/global_modis_14th_created20171121"
-ROOT_DIR = BASE_DIR + "/Reshaped_Files/eos2/1km/2010/%s/*/*caliop*.h5"
-OUT_DIR_TEMPLATE = BASE_DIR + "/Reshaped_Files_merged_calipso_cbase//eos2/1km/2010/%s/"
-outfile_template = "1km_%s_eos2_2010%s14_0000_00000_caliop_modis_match.h5"
+print ROOT_DIR
 
 
 caObj_night = CalipsoAvhrrTrackObject()

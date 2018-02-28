@@ -66,6 +66,9 @@ if __name__ == '__main__':
     parser.add_argument('--basic', '-b',  const=True, nargs='?', 
                         required=False,  
                         help="Calculate the statistic for mode BASIC")
+    parser.add_argument('--satz', '-z',  const=True, nargs='?', 
+                        required=False,  
+                        help="Calculate the statistic for mode BASIC")
     parser.add_argument('--standard', '-t', const=True, nargs='?', 
                         required=False,  
                         help="Calculate the statistic for mode STANDARD")
@@ -105,6 +108,10 @@ if __name__ == '__main__':
         modes_list.append('BASIC')
     if options.standard == True:
         modes_list.append('STANDARD')
+    if options.satz == True:
+        modes_list.append('SATZ_LOW')
+    if options.satz == True:
+        modes_list.append('SATZ_HIGH')
     if options.odticfilter == True: # I prefer this one! /KG
         print('Will calculate statistic for mode OPTICAL_DEPTH_THIN_IS_CLEAR')
         modes_list.append('OPTICAL_DEPTH_THIN_IS_CLEAR')

@@ -93,6 +93,10 @@ def get_subset_for_mode(cObj, mode):
     # and IGBP surface types  
     if mode == 'BASIC':
         cal_subset = np.bool_(np.ones(latitude_abs.shape))
+    elif mode == 'SATZ_LOW':
+        cal_subset = cObj.avhrr.all_arrays['satz']<20
+    elif mode == 'SATZ_HIGH':
+        cal_subset = cObj.avhrr.all_arrays['satz'] >=20
     elif mode == 'OPTICAL_DEPTH':
         cal_subset = np.bool_(np.ones(latitude_abs.shape))
     elif mode == 'STANDARD':
@@ -292,8 +296,8 @@ def print_cpp_lwp_stats(aObj, statfile, val_subset):
         logger.warning("There are no cpp data.")
         return
     from amsr_avhrr.validate_lwp_util import get_lwp_diff, plot_hist_lwp    
-    lwp_diff =  get_lwp_diff(aObj)
-
+    lwp_diff =  get_lwp_diff(aObj, val_subset)
+    
 
     #screened.append('CPP lwp < 0')
     #print('=' * 40)

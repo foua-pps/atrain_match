@@ -13,7 +13,7 @@ LWP_THRESHOLD = 170
 LWP_THRESHOLD_CPP = 3000
 DO_PLOT = False
 
-def get_lwp_diff(aObj, threshold=LWP_THRESHOLD):
+def get_lwp_diff(aObj, val_subset, threshold=LWP_THRESHOLD):
     """
     Screen lwp pixels based on *sea* mask, amsr < threshold, and cpp_lwp < 0.
     
@@ -31,6 +31,7 @@ def get_lwp_diff(aObj, threshold=LWP_THRESHOLD):
     use = np.logical_and(use, use_lwp)
     use = np.logical_and(use, use_lwp_upper)
     selection = use.all(axis=-1)
+    selection = np.logical_and(val_subset, selection)
     #import pdb; pdb.set_trace()
     cpp_lwp = aObj.avhrr.cpp_lwp
     cpp_lwp[cpp_lwp<0] = 0
@@ -50,7 +51,7 @@ def get_lwp_diff(aObj, threshold=LWP_THRESHOLD):
 
 
 def plot_hist_lwp(lwp_diff):
-    from .plotting import plot_hist, density, distribution_map
+    from .plotting import plot_hist
     hist_range = (np.percentile(lwp_diff, 1),
                   np.percentile(lwp_diff, 99))
     fig = plot_hist(lwp_diff, bins=500, range=hist_range)
@@ -62,6 +63,7 @@ def plot_hist_lwp(lwp_diff):
 
 """
 def validate_all(filenames):
+    from .plotting import plot_hist, density, distribution_map
     mean = lwp_diff.mean()
     median = np.median(lwp_diff)
     std = lwp_diff.std()
