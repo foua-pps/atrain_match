@@ -162,7 +162,7 @@ def parse_scenesfile_cci(filename):
     date_s, time_s, satname = match.groups()
     _datetime = datetime.strptime(date_s + time_s, '%Y%m%d%H%M')
 
-    return satname, _datetime
+    return satname.lower(), _datetime
 
 
 def parse_scenesfile_maia(filename):
