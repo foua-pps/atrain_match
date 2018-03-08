@@ -97,6 +97,7 @@ def plot_pressure_modis_01(out_filenames,PLOT_DIR,month):
     step = 50#hPa read this!!!
     #["CTTHold", "CTTHnnAvhrr", "CTTHnnAvhrrNoRTTOV"]):     
     fig = plt.figure(figsize = (19,10))  
+    plt.subplots_adjust(wspace=0, hspace=0)
     plt.suptitle('CTTH pressure dependence on satzenith angle', fontsize=22)
     def plot_one_subplot(aggregated_data, satz_step,pressure_plot,  ctth_label, desc, legend=False):
         ax.text(300,11.5, desc, bbox={'facecolor':'blue', 'alpha':0.0, 'pad':1})
@@ -206,7 +207,7 @@ def plot_pressure_modis_01(out_filenames,PLOT_DIR,month):
     ax = fig.add_subplot(337)
     plot_one_subplot(aggregated_data, satz_step, pressure_plot, "CTTHnnm2NT", "(f) NN-MERSI-2")
     ax = fig.add_subplot(338)
-    plot_one_subplot(aggregated_data, satz_step, pressure_plot,"CTTHnnmINTnco2", "(g) NN-MetImage-$NoCO_2$")
+    plot_one_subplot(aggregated_data, satz_step, pressure_plot,"CTTHnnmINTnco2", "(g) NN-MetImage-NoCO$_2$")
     ax = fig.add_subplot(339)
     plot_one_subplot(aggregated_data, satz_step, pressure_plot,"CTTHnnmINT", "(h) NN-MetImage")
 

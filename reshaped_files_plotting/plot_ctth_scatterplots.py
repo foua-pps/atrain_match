@@ -28,7 +28,7 @@ tag_dict = {"old": "(a) PPS-v2014",
             "nnvnt": "(e) NN-VIIRS",
             "nnm2nt": "(f) NN-MERSI-2",
             "nnmint": "(h) NN-MetImage",
-            "nnmintnco2": "(g) NN-MetImage-$NoCO_2$",
+            "nnmintnco2": "(g) NN-MetImage-NoCO$_2$",
 
 }
 
@@ -188,6 +188,7 @@ def do_the_scatter_plot(plt_obj_cali_new, plt_obj_csat_new, month):
 
 
     fig = plt.figure(figsize=(11, 11))
+
     ax = fig.add_subplot(331, aspect='equal')
     do_one_subplot(plt_obj_cali_new, ax, fig, 'height_old', vmax=vmax, height_calipso=True)
     ax = fig.add_subplot(332, aspect='equal')
@@ -211,6 +212,7 @@ def do_the_scatter_plot(plt_obj_cali_new, plt_obj_csat_new, month):
     plt.close("all")
 
     fig = plt.figure(figsize=(11, 11))
+
     ax = fig.add_subplot(331, aspect='equal')
     do_one_subplot(plt_obj_cali_new, ax, fig, 'pressure_old', vmax=vmax, truth='pressure_c')
     ax = fig.add_subplot(332, aspect='equal')
@@ -237,6 +239,7 @@ def do_the_scatter_plot(plt_obj_cali_new, plt_obj_csat_new, month):
         vmax = 1250*2
 
     fig = plt.figure(figsize=(11, 11))
+
     ax = fig.add_subplot(331, aspect='equal')
     do_one_subplot(plt_obj_csat_new, ax, fig, 'height_old', vmax=vmax)
     ax = fig.add_subplot(332, aspect='equal')
