@@ -69,6 +69,7 @@ def cci_read_all(filename):
     avhrrAngObj = read_cci_angobj(cci_nc)
     logger.debug("Reading cloud type ...")
     cma = read_cci_cma(cci_nc)
+
     logger.debug("Reading longitude, latitude and time ...")
     avhrrGeoObj = read_cci_geoobj(cci_nc)
     logger.debug("Not reading surface temperature")
@@ -119,6 +120,8 @@ def read_cci_phase(cci_nc):
     return cpp_obj
 
 def read_cci_geoobj(cci_nc):
+ 
+
     """Read geolocation and time info from filename
     """
     GeoObj = imagerGeoObj()
@@ -171,17 +174,33 @@ def read_cci_ctth(cci_nc):
         cth_data = np.where(cth.mask, ATRAIN_MATCH_NODATA, cth.data)
     else:
         cth_data = cth.data # already scaled!
-    
+  
+    logger.info("Setting ctth for non cloudy pixels do nodata ...")
+    cth_data[cci_nc.variables['cc_total'][::]<0.5]= ATRAIN_MATCH_NODATA
+   
+
+    cth_corr = cci_nc.variables['cth_corrected'][::]
+    if hasattr(cth_corr, 'mask'):
+        cth_data_corr = np.where(cth_corr.mask, ATRAIN_MATCH_NODATA, cth_corr.data)
+    else:
+        cth_data_corr = cth_corr.data # already scaled! 
+    logger.debug("Setting ctth for non cloudy pixels do nodata ...")
+    cth_data_corr[cci_nc.variables['cc_total'][::]<0.5]= ATRAIN_MATCH_NODATA
+   
     ctth.h_gain = 1.0
     ctth.h_intercept = 0.0
     ctth.h_nodata = ATRAIN_MATCH_NODATA
     ctth.height = 1000*cth_data
+    ctth.height_corr = 1000*cth_data_corr
         
     ctt = cci_nc.variables['ctt'][::]
     if hasattr(ctt, 'mask'):
         ctt_data = np.where(ctt.mask, ATRAIN_MATCH_NODATA, ctt.data)
     else:
         ctt_data = ctt.data
+    logger.debug("Setting ctth for non cloudy pixels do nodata ...")
+    ctt_data[cci_nc.variables['cc_total'][::]<0.5]= ATRAIN_MATCH_NODATA
+   
     ctth.t_gain = 1.0
     ctth.t_intercept = 0.0
     ctth.t_nodata = ATRAIN_MATCH_NODATA
@@ -195,8 +214,11 @@ def read_cci_ctth(cci_nc):
     ctth.p_gain = 1.0
     ctth.p_intercept = 0.0
     ctth.p_nodata =  ATRAIN_MATCH_NODATA
+    logger.debug("Setting ctth for non cloudy pixels do nodata ...")
+    ctp_data[cci_nc.variables['cc_total'][::]<0.5]= ATRAIN_MATCH_NODATA
     ctth.pressure =  ctp_data
-
+ 
+   
     return ctth
 
 if __name__ == "__main__":

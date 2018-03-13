@@ -708,6 +708,8 @@ def print_stats_ctop(cObj, statfile, val_subset, low_medium_high_class):
     cObj_imager = getattr(cObj, 'avhrr') #Same as cObj.avhrr
     cObj_truth_sat= getattr(cObj, cObj.truth_sat) #cObj.calipso or cObj.iss
     imager_ctth_m_above_seasurface = cObj_imager.imager_ctth_m_above_seasurface  
+    imager_ctth_m_above_seasurface[cObj_imager.cloudmask==0] = -9
+    imager_ctth_m_above_seasurface[cObj_imager.cloudmask==3] = -9
     truth_sat_validation_height = cObj_truth_sat.validation_height
     (dummy, imager_is_cloudy) = find_imager_clear_cloudy(cObj)
                         

@@ -235,6 +235,7 @@ class CtthObj:
     #skeleton container for v2014 cloudtype
     def __init__(self):
         self.height = None
+        self.height_corr = None
         self.temperature = None
         self.pressure = None
         self.ctth_statusflag = None

@@ -481,8 +481,10 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
         logger.debug("Extracting ctth along track ")
         if hasattr(ctth, 'ctth_statusflag') and PPS_VALIDATION:
             obt.avhrr.ctth_status =  get_data_from_array(ctth.ctth_statusflag, row_col)
-        for ctth_product in ['height', 'temperature', 'pressure']:
+        for ctth_product in ['height', 'temperature', 'pressure', 'height_corr']:
             data = getattr(ctth, ctth_product)
+            if data is None:
+                continue
             setattr(obt.avhrr, "ctth_" + ctth_product, get_data_from_array(data, row_col)) 
         if (PPS_VALIDATION and hasattr(ctth, 'processingflag')):
             is_opaque = np.bitwise_and(np.right_shift(ctth.processingflag, 2), 1)
