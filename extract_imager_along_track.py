@@ -372,9 +372,12 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
                 setattr(obt.avhrr, nwp_info, get_data_from_array(data, row_col))
         else:
             logger.debug("missing {:s}".format(nwp_info))
-    if len(CTTH_TYPES)>1 and PPS_VALIDATION and hasattr(nwp_obj,ctth_type):        
+    if len(CTTH_TYPES)>1 and PPS_VALIDATION:        
         for ctth_type in CTTH_TYPES[1:]:
-            ctth_obj = getattr(nwp_obj,ctth_type)
+            if hasattr(nwp_obj,ctth_type):
+                ctth_obj = getattr(nwp_obj,ctth_type)
+            else:
+                continue
             for data_set in ["pressure", "temperature", "height"]:
                 data = getattr(ctth_obj, data_set)
                 name = "%s_%s"%(ctth_type.lower(),data_set)
