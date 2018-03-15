@@ -250,18 +250,27 @@ def plot_hist(data, **kwargs):
     mean = data.mean()
     median = np.median(data)
     std = data.std()
-    
+    from reshaped_files_plotting.plot_ctth_print_bias_and_std_stats import half_sample_mode, my_iqr
+    mode = half_sample_mode(data)
+    iqr = my_iqr(data)
+    q1 = np.percentile(data,25)
     fig = plt.figure()
     ax = fig.add_subplot(111)
     n, bins, bars = ax.hist(data, **kwargs) #@UnusedVariable
+    #plt.hist(data, **kwargs)
     ax.set_ylabel('frequency')
     ax.axvline(mean, label='mean = %.2f' % mean, color='r')
     ax.axvline(median, label='median = %.2f' % median, color='r',
                linestyle='--')
+    ax.axvline(mode, label='mode = %.2f' % mode, color='r',
+               linestyle=':')
     ax.hlines(n.max() / 2, mean - std, mean + std,
               label='std = %.2f' % std, colors='r', linestyles='dashdot')
+    ax.hlines(n.max() / 4, q1, q1 + iqr,
+              label='iqr = %.2f' % iqr, colors='r', linestyle=':')
     ax.grid()
     ax.legend()
+    print np.median(data), np.percentile(data,25), np.percentile(data,75)
     
     return fig
 

@@ -138,6 +138,8 @@ def get_inversion_info_pps2012(cloudtype_qflag):
 #5 = polluted dust
 #6 = smoke
 #7 = other
+
+
 def get_calipso_aerosol_of_type_i(caObj, atype=0):
     #bits 10-12, start at 1 counting
     cflag = caObj.calipso_aerosol.feature_classification_flags[::,0]
@@ -160,9 +162,8 @@ def get_calipso_aerosol_of_type_i(caObj, atype=0):
 #5 = altostratus (opaque)
 #6 = cirrus (transparent)
 #7 = deep convective (opaque)
-def get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=0):
+def get_calipso_clouds_of_type_i_feature_classification_flags_one_layer(cflag, calipso_cloudtype=0):
     #bits 10-12, start at 1 counting
-    cflag = caObj.calipso.feature_classification_flags[::,0]
     cal_vert_feature = np.zeros(cflag.shape)-9.0
     feature_array = (4*np.bitwise_and(np.right_shift(cflag,11),1) + 
                      2*np.bitwise_and(np.right_shift(cflag,10),1) + 
@@ -172,6 +173,12 @@ def get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=0):
 
     is_requested_type =  cal_vert_feature == calipso_cloudtype
     return is_requested_type 
+
+def get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=0):
+    #bits 10-12, start at 1 counting
+    cflag = caObj.calipso.feature_classification_flags[::,0]
+    return get_calipso_clouds_of_type_i_feature_classification_flags_one_layer(cflag, calipso_cloudtype=calipso_cloudtype)
+ 
 
 def get_calipso_low_clouds(caObj):
     #type 0,1,2, 3 are low cloudtypes

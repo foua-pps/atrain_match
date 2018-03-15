@@ -50,15 +50,6 @@ def get_lwp_diff(aObj, val_subset, threshold=LWP_THRESHOLD):
     return lwp_diff[selection]
 
 
-def plot_hist_lwp(lwp_diff):
-    from .plotting import plot_hist
-    hist_range = (np.percentile(lwp_diff, 1),
-                  np.percentile(lwp_diff, 99))
-    fig = plot_hist(lwp_diff, bins=500, range=hist_range)
-    fig.axes[0].set_xlabel('lwp difference (g m**-2)')
-    fig.suptitle("CPP cwp - AMSR-E lwp npix: %d"% lwp_diff.size)
-    fig.savefig('validate_all.pdf')
-
 
 
 """
