@@ -559,10 +559,14 @@ def read_pps_geoobj_nc(pps_nc):
         time_obj = time.strptime(time_temp,'seconds since %Y-%m-%d %H:%M:%S.%f +00:00')
  
     sec_since_1970 = calendar.timegm(time_obj)
-    GeoObj.sec1970_start = sec_since_1970 + np.min(pps_nc.variables['time_bnds'][::]) + seconds
-    GeoObj.sec1970_end = sec_since_1970 + np.max(pps_nc.variables['time_bnds'][::]) + seconds
-    GeoObj.sec1970_start = GeoObj.sec1970_start 
-    GeoObj.sec1970_end = GeoObj.sec1970_end
+    GeoObj.sec1970_start = np.float(sec_since_1970 + 
+                                    np.min(pps_nc.variables['time_bnds'][::]) + 
+                                    seconds)
+    GeoObj.sec1970_end = np.float(sec_since_1970 + 
+                                  np.max(pps_nc.variables['time_bnds'][::]) + 
+                                  seconds)
+    #GeoObj.sec1970_start = GeoObj.sec1970_start 
+    #GeoObj.sec1970_end = GeoObj.sec1970_end
     do_some_geo_obj_logging(GeoObj)
     return  GeoObj
 
