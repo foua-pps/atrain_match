@@ -12,15 +12,15 @@ from plot_kuipers_on_area_util import (PerformancePlottingObject,
                                        ppsMatch_Imager_CalipsoObject)
 isGAC_CCI = False
 isGAC_CCI_morning = False
-isModis1km = True
+isModis1km = False
 isModis1km_lvl2 = False
-isModis1km_nnctth = False
+isModis1km_nnctth = True
 isNPP_v2014 = False
 isGAC_v2014_morning_sat = False
 isGAC_v2014 = False
 cci_orbits = False
 method = 'Nina' #Nina or KG or BASIC==no filter
-DNT="all" #"all/day/night/twilight"
+DNT="night" #"all/day/night/twilight"
 filter_method = 'no' #no or satz
 radius_km = 250 #t.ex 75 250 500 300
 BASE_PLOT_DIR = "/home/a001865/PICTURES_FROM_PYTHON/ATRAIN_MATCH_KUIPERS_PLOT_CCI_PPS_BrBG_2"
@@ -129,10 +129,10 @@ elif isModis1km_nnctth:
 
     #ROOT_DIR2 = "/home/a001865/DATA_MISC/reshaped_files/global_modis_14th_created20171121/"
     #files = glob(ROOT_DIR2 + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/*/*.h5")
-    #satellites = "eos_modis_v2018_14th_all_testing_offset_rttov12"
-    #ROOT_DIR2 = "/home/a001865/DATA_MISC/reshaped_files/global_modis_14th_created20170519/"
-    #files = glob(ROOT_DIR2 + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/*/*.h5")
-    #satellites = "eos_modis_v2018_14th_all_testing_offset"
+    #satellites = "eos_modis_v2018_14th_all_14_offset_rttov12"
+    ROOT_DIR2 = "/home/a001865/DATA_MISC/reshaped_files/global_modis_14th_created20170519/"
+    files = glob(ROOT_DIR2 + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/*/*.h5")
+    satellites = "eos_modis_v2018_14th_all_14_offset_rttov9"
 
 
 elif isNPP_v2014:
@@ -246,7 +246,8 @@ pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=0.0, score='Kuipe
 pplot_obj.flattice.calculate_hitrate()
 pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=0.5, score='Hitrate')
 pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=0.0, vmax=1000.0, score='Number_of')
-
+pplot_obj.flattice.calculate_t11t37_offset()
+pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-2.0, vmax=2.0, score='t11t37_offset')
 pplot_obj.flattice.calculate_t11ts_offset()
 pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-10.0, vmax=10.0, score='t11ts_offset')
 pplot_obj.flattice.calculate_t11t12_offset()

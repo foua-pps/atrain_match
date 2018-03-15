@@ -25,7 +25,7 @@ print matplotlib.rcParams
 #rc('mathtext', usetex=True)
 #rc('font', size=18)
 #rc('text.latex', preamble=r'\usepackage{times}')
-
+delta_h = 100.0
 
 
 from get_flag_info import get_calipso_clouds_of_type_i
@@ -47,6 +47,7 @@ class PlotAndDataObject(DataObject):
             'satz': None,
             'height_old': None,
             'height_pps': None,
+            'cflag': None,
             #'bias_nnant': None,
             'pressure_c': None,
             'height_nna1nt': None,
@@ -93,16 +94,16 @@ def extract_data(cObj, sat='cloudsat'):
     if sat.lower() in 'cloudsat':
         pltObj.height_c2 = cObj.cloudsat.all_arrays['clsat_max_height']
         clsat_max_height = -9 + 0*np.zeros(cObj.cloudsat.latitude.shape)
-        for i in range(125):
-            height = cObj.cloudsat.Height[:,i]
-            cmask_ok = cObj.cloudsat.CPR_Cloud_mask[:,i]
-            top_height = height+120
-            #top_height[height<240*4] = -9999 #Do not use not sure why these are not used Nina 20170317
-            is_cloudy = cmask_ok > 30
-            top_height[~is_cloudy] = -9999
-            clsat_max_height[clsat_max_height<top_height] =  top_height[clsat_max_height<top_height]
-        height_c =  clsat_max_height  
-        
+        #for i in range(125):
+        #    height = cObj.cloudsat.Height[:,i]
+        #    cmask_ok = cObj.cloudsat.CPR_Cloud_mask[:,i]
+        #    top_height = height+120
+        #    #top_height[height<240*4] = -9999 #Do not use not sure why these are not used Nina 20170317
+        #    is_cloudy = cmask_ok > 30
+        #    top_height[~is_cloudy] = -9999
+        #    clsat_max_height[clsat_max_height<top_height] =  top_height[clsat_max_height<top_height]
+        #height_c =  clsat_max_height  
+        height_c = cObj.cloudsat.validation_height
 
         pltObj.low_clouds = np.logical_and(height_c<cObj.avhrr.all_arrays['segment_nwp_h680'], height_c>-9)
         pltObj.medium_clouds = np.logical_and(height_c>=cObj.avhrr.all_arrays['segment_nwp_h680'], 
@@ -113,7 +114,7 @@ def extract_data(cObj, sat='cloudsat'):
     elif  sat.lower() in 'calipso': 
         height_c = 1000*cObj.calipso.all_arrays['layer_top_altitude'][:,0]
         pltObj.pressure_c = cObj.calipso.all_arrays['layer_top_pressure'][:,0]
-        pltObj. low_clouds = get_calipso_low_clouds(cObj)
+        pltObj.low_clouds = get_calipso_low_clouds(cObj)
         pltObj.high_clouds = get_calipso_high_clouds(cObj)
         pltObj.medium_clouds = get_calipso_medium_clouds(cObj)
         elevation = cObj.calipso.all_arrays['elevation']
@@ -146,7 +147,7 @@ def extract_data(cObj, sat='cloudsat'):
             high = np.logical_and(height_c>8000,use_part)
 
         
-
+        pltObj.cflag =  cObj.calipso.feature_classification_flags[::,0]
     pltObj.height_c = height_c
     pltObj.height_mlvl2 = cObj.modis.all_arrays['height']#+elevation #??
     pltObj.pressure_mlvl2 = cObj.modis.all_arrays['pressure']
@@ -310,8 +311,7 @@ def print_data_for_figure_2(pltObj, month, day_str, sat='calipso'):
     high = np.logical_and(pltObj.high_clouds,use)
     pps_bias = pltObj.pps_bias
     old_bias = pltObj.old_bias
-    mlvl2_bias = pltObj.mlvl2_bias
-    delta_h = 100.0   
+    mlvl2_bias = pltObj.mlvl2_bias   
     out_text = "" 
     def print_one(out_text, bias_v, selection,  label, cloudc):
         bmin = -20
@@ -330,6 +330,7 @@ def print_data_for_figure_2(pltObj, month, day_str, sat='calipso'):
         out_text +=  formated_y + "\n"
         out_text +=  "%s_%s_%s_bias %3.4f \n"%(label, cloudc, sat, 0.001*np.mean(bias_v[selection]))
         out_text +=  "%s_%s_%s_median %3.4f \n"%(label, cloudc, sat, 0.001*np.median(bias_v[selection]))
+        out_text +=  "%s_%s_%s_std %3.4f \n"%(label, cloudc, sat, 0.001*np.std(bias_v[selection]))
         return out_text  
    
     out_text = print_one(out_text, pps_bias, high,   "NN-AVHRR", "High")
@@ -486,7 +487,7 @@ def plot_medium_bias_plot_from_saved_data(month):
                 "(d) Medium clouds",
                "(f) Low clouds"}
 
-    def plot_one(ax, x_data, y_data, median_data, bias_data, sat, cloudc, imager, text_i, maxx, maxy, legend=False):
+    def plot_one(ax, x_data, y_data, median_data, bias_data, std_data, sat, cloudc, imager, text_i, maxx, maxy, legend=False):
         #text_i = text_d[sat+"_"+imager]
         print_sat = sat.upper()
         if print_sat in ["CLOUDSAT"]:
@@ -504,6 +505,17 @@ def plot_medium_bias_plot_from_saved_data(month):
             color1 = "-b"
             color2 = ":b"
             color3 = "--b"
+
+        n_pix =  10000000   
+        temp_data = np.random.normal(1000*bias_data[sat][cloudc][imager],  1000*std_data[sat][cloudc][imager], n_pix)
+        bmin = -20
+        bmax = 20
+        bins = np.arange(bmin*1000,bmax*1000,delta_h)
+        hist_heights,bins = np.histogram(temp_data,bins=bins)
+        hist_heights = hist_heights*100.0/n_pix
+
+        ax.fill(x_data[sat][cloudc][imager], hist_heights, color='silver',  label='Gaussian')
+        #plt.plot(x_data[sat][cloudc][imager], hist_heights, 0.1,  label='Gaussian')
         plt.plot(x_data[sat][cloudc][imager], y_data[sat][cloudc][imager],
                  color1,label=imager)
         yind_bias = np.argmin(np.abs(x_data[sat][cloudc][imager] - bias_data[sat][cloudc][imager]))
@@ -538,17 +550,19 @@ def plot_medium_bias_plot_from_saved_data(month):
     y_data = {}
     bias_data = {}
     median_data = {}
+    std_data = {}
     for sat in ["calipso", "cloudsat"]:
         x_data[sat] = {}
         y_data[sat] = {}
         bias_data[sat] = {}
         median_data[sat] = {}
+        std_data[sat] = {}
         for cloudc in ["All", "Low", "Medium",  "High"]:
             y_data[sat][cloudc] = {}
             x_data[sat][cloudc] = {}
             bias_data[sat][cloudc] = {}
             median_data[sat][cloudc] = {}
-
+            std_data[sat][cloudc] = {}
 
     for line in in_file_h:
         line = line.rstrip()
@@ -571,6 +585,8 @@ def plot_medium_bias_plot_from_saved_data(month):
             print bias_data[sat][cloudc][algorithm]
         if '_median' in line:
             median_data[sat][cloudc][algorithm] = np.array([np.float(s) for s in data])[0]
+        if '_std' in line:
+            std_data[sat][cloudc][algorithm] = np.array([np.float(s) for s in data])[0]
     for cloudc, maxx, maxy, in zip(["All", "Low", "Medium", "High"],
                                    [4.5,4.5,7.0,8.5],
                                    [6.5,12.0,6.5,4.0]):        
@@ -579,21 +595,21 @@ def plot_medium_bias_plot_from_saved_data(month):
             plt.suptitle(cloudc)
 
         ax = fig.add_subplot(321)
-        plot_one(ax, x_data, y_data, median_data, bias_data,  "cloudsat", cloudc, "PPS-v2014", " (a) ", maxx, maxy)#, True)
+        plot_one(ax, x_data, y_data, median_data, bias_data, std_data, "cloudsat", cloudc, "PPS-v2014", " (a) ", maxx, maxy)#, True)
         ax = fig.add_subplot(323)
-        plot_one(ax, x_data, y_data, median_data, bias_data,  "cloudsat", cloudc, "MODIS-C6", " (c) ", maxx, maxy)#,True)
+        plot_one(ax, x_data, y_data, median_data, bias_data, std_data,  "cloudsat", cloudc, "MODIS-C6", " (c) ", maxx, maxy)#,True)
         ax = fig.add_subplot(325)
-        plot_one(ax, x_data, y_data, median_data, bias_data,  "cloudsat", cloudc, "NN-AVHRR", " (e) ", maxx, maxy)#,True)
+        plot_one(ax, x_data, y_data, median_data, bias_data, std_data,  "cloudsat", cloudc, "NN-AVHRR", " (e) ", maxx, maxy)#,True)
 
         #plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/CTTH_PLOTS/figxx_cloudsat_bias_median_%s.pdf"%(month), bbox_inches='tight')
         #plt.close("all")
         #fig = plt.figure(figsize=(9, 11))    
         ax = fig.add_subplot(322)
-        plot_one(ax, x_data, y_data, median_data, bias_data,  "calipso", cloudc, "PPS-v2014", " (b) ", maxx, maxy,True)
+        plot_one(ax, x_data, y_data, median_data, bias_data, std_data,  "calipso", cloudc, "PPS-v2014", " (b) ", maxx, maxy,True)
         ax = fig.add_subplot(324)
-        plot_one(ax, x_data, y_data, median_data, bias_data,  "calipso", cloudc, "MODIS-C6", " (d) ", maxx, maxy,True)
+        plot_one(ax, x_data, y_data, median_data, bias_data, std_data,  "calipso", cloudc, "MODIS-C6", " (d) ", maxx, maxy,True)
         ax = fig.add_subplot(326)
-        plot_one(ax, x_data, y_data, median_data, bias_data,  "calipso", cloudc, "NN-AVHRR", " (f) ", maxx, maxy,True)
+        plot_one(ax, x_data, y_data, median_data, bias_data,  std_data, "calipso", cloudc, "NN-AVHRR", " (f) ", maxx, maxy,True)
 
         plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/CTTH_PLOTS/fig08_bias_median_%s_%s.pdf"%(cloudc, month), bbox_inches='tight')
         plt.close("all")

@@ -209,6 +209,9 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         t37t12_offset = (caObj.avhrr.all_arrays['bt37micron'] - 
                         caObj.avhrr.all_arrays['bt12micron'] - 
                         caObj.avhrr.all_arrays['thr_t37t12'])
+        t11t37_offset = (caObj.avhrr.all_arrays['bt11micron'] - 
+                        caObj.avhrr.all_arrays['bt37micron'] - 
+                        caObj.avhrr.all_arrays['thr_t11t37'])
         t11ts_offset = t11ts_offset[self.use]
         t11ts_offset[self.detected_clouds] = 99999
         t11ts_offset[self.undetected_clouds] = 99999
@@ -221,6 +224,10 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         t37t12_offset[self.detected_clouds] = -99999
         t37t12_offset[self.undetected_clouds] = -99999
         self.t37t12_offset = t37t12_offset
+        t11t37_offset = t11t37_offset[self.use]
+        t11t37_offset[self.detected_clouds] = -99999
+        t11t37_offset[self.undetected_clouds] = -99999
+        self.t11t37_offset = t11t37_offset
     def get_lapse_rate(self, caObj):
         if np.size(caObj.avhrr.all_arrays['surftemp'])==1 and caObj.avhrr.all_arrays['surftemp'] is None:
             self.lapse_rate = np.zeros(self.false_clouds.shape)
@@ -398,12 +405,14 @@ class ppsStatsOnFibLatticeObject(DataObject):
         self.Min_t11ts_offset = np.zeros(self.lats.shape)
         self.Max_t11t12_offset = np.zeros(self.lats.shape)
         self.Max_t37t12_offset = np.zeros(self.lats.shape)
+        self.Max_t11t37_offset = np.zeros(self.lats.shape)
         self.Sum_height_bias_type={}
         self.N_detected_height_type={}
         for cc_type in xrange(8):
             self.Sum_height_bias_type[cc_type] = 1.0*np.zeros(self.lats.shape)
             self.N_detected_height_type[cc_type] = 1.0*np.zeros(self.lats.shape)
     def np_float_array(self):
+
         self.Sum_ctth_mae_low = 1.0*np.array(self.Sum_ctth_mae_low)
         self.Sum_ctth_mae_high = 1.0*np.array(self.Sum_ctth_mae_high)
         self.Sum_ctth_mae = 1.0*np.array(self.Sum_ctth_mae)
@@ -597,9 +606,9 @@ class ppsStatsOnFibLatticeObject(DataObject):
                 #'cea5km_test'
                 #'euro_arctic',
                 #'ease_world_test'
-                'euro_arctic',
-                'antarctica',
-                'npole',
+                #'euro_arctic', #good
+                #'antarctica', #good
+                #'npole', #good
                 'ease_nh_test',
                 'ease_sh_test' ]:
             self._remap_a_score_on_an_area(plot_area_name=plot_area_name, 
@@ -654,6 +663,11 @@ class ppsStatsOnFibLatticeObject(DataObject):
         the_mask =  self.N_clear<10
         t37t12_offset = np.ma.masked_array(self.Max_t37t12_offset, mask=the_mask)
         self.t37t12_offset = t37t12_offset
+    def calculate_t11t37_offset(self):
+        self.np_float_array()
+        the_mask =  self.N_clear<10
+        t11t37_offset = np.ma.masked_array(self.Max_t11t37_offset, mask=the_mask)
+        self.t11t37_offset = t11t37_offset
     def calculate_temperature_bias(self):
         self.np_float_array()
         the_mask = self.N_detected_height_low<10
@@ -891,6 +905,7 @@ class PerformancePlottingObject:
         t11ts_offset = my_obj.t11ts_offset[valid_out] 
         t11t12_offset = my_obj.t11t12_offset[valid_out] 
         t37t12_offset = my_obj.t37t12_offset[valid_out] 
+        t11t37_offset = my_obj.t11t37_offset[valid_out] 
         height_bias_low = my_obj.height_bias_low[valid_out]
         height_bias = my_obj.height_bias[valid_out]
         height_mae_diff = my_obj.height_mae_diff[valid_out]
@@ -938,6 +953,8 @@ class PerformancePlottingObject:
                                                              np.percentile(t11t12_offset[ind][is_clear[ind]], 95)])
                 self.flattice.Max_t37t12_offset[d] = np.max([self.flattice.Max_t37t12_offset[d],
                                                              np.percentile(t37t12_offset[ind][is_clear[ind]], 95)])
+                self.flattice.Max_t11t37_offset[d] = np.max([self.flattice.Max_t11t37_offset[d],
+                                                             np.percentile(t11t37_offset[ind][is_clear[ind]], 95)])
             cc_type = 0
             self.flattice.Sum_height_bias_type[cc_type][d] += np.sum(my_obj.height_bias_type[cc_type][ind])
             self.flattice.N_detected_height_type[cc_type][d] += np.sum(my_obj.detected_height_type[cc_type][ind])

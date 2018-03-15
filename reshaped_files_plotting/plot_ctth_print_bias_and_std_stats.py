@@ -11,9 +11,10 @@ from matchobject_io import (readCaliopAvhrrMatchObj,
                             CalipsoAvhrrTrackObject)
 from plot_kuipers_on_area_util import (PerformancePlottingObject,
                                        ppsMatch_Imager_CalipsoObject)
+from get_flag_info import get_calipso_clouds_of_type_i_feature_classification_flags_one_layer
 import matplotlib.pyplot as plt
 import matplotlib
-from scipy.stats import kurtosis, skewtest, skew, mode
+from scipy.stats import kurtosis, skewtest, skew, mode, kurtosis
 matplotlib.rcParams.update(matplotlib.rcParamsDefault)
 matplotlib.rcParams.update({'font.size': 18})
 plt.rc('text', usetex=True)
@@ -32,6 +33,26 @@ tag_dict = {"old": "(a) PPS-v2014",
             "nnmintnco2": "(g) NN-MetImage-$NoCO_2$",
 
 }
+#https://stats.stackexchange.com/questions/278237/half-sample-mode-estimate-of-sample-of-weighted-data
+def half_sample_mode(x, already_sorted=False):
+    if len(x) < 3:
+        return np.mean(x)
+    if already_sorted:
+        sorted_x = x # No need to sort
+    else:
+        sorted_x = np.sort(x)
+    half_idx = int((len(x) + 1) / 2) # Round up to include the middle value, in the case of an odd-length array
+
+    # Calculate all interesting ranges that span half of all data points
+    ranges = sorted_x[-half_idx:] - sorted_x[:half_idx]
+    smallest_range_idx = np.argmin(ranges)
+
+    # Now repeat the procedure on the half that spans the smallest range
+    x_subset = sorted_x[smallest_range_idx : (smallest_range_idx+half_idx)]
+    return half_sample_mode(x_subset, already_sorted=True)
+
+def my_iqr(data):
+    return np.percentile(data,75)- np.percentile(data,25)
 
 def my_mode(bias):
     bmin = -40
@@ -65,7 +86,7 @@ def print_for_one(plt_obj, compare, truth='height_c'):
                        'nna1nt': 'NN-AVHRR1',
                        'nnvnt': 'NN-VIIRS',
                        'nnm2nt': 'NN-MERSI-2',
-                       'nnmintnco2': 'NN-MetImage-NoCO$_\{text 2}$',
+                       'nnmintnco2': 'NN-MetImage-NoCO$_{\\text 2}$',
                        'nnmint': 'NN-MetImage'}
 
     compare_name = name_conversion[compare.split('_')[1]]
@@ -73,6 +94,60 @@ def print_for_one(plt_obj, compare, truth='height_c'):
     bias = y-x
     AE = np.abs(bias)    
     std = np.std(bias[use])
+
+    """
+    print "%s & %d & %d & %d & %d & %d & %d & %d & %d & %d & %3.2f  \\\\"%(
+        compare_name,
+        #np.sum(AE[use]<=1000)*100.0/len(AE[use]),
+        np.mean(AE[use]), 
+        np.median(bias[use]), 
+        #my_mode(bias[use]),
+        half_sample_mode(bias[use]),
+        np.mean(bias[use]),  
+        np.percentile(bias[use],75)- np.percentile(bias[use],25), 
+        np.median(np.abs(bias[use] - np.median(bias[use]))),
+        np.sum(AE[use]>1000)*100.0/len(AE[use]),
+        np.sqrt(np.mean((bias[use]**2))),
+        np.std(bias[use]), 
+        skew(bias[use])#,
+        #kurtosis(bias[use])
+        )
+    """
+    
+    if plt_obj.cflag is not None:
+        
+        print " %s %d &"%(compare_name, np.mean(AE[use])),
+        for ind in range(8):
+            use_i = np.logical_and(
+                use,
+                get_calipso_clouds_of_type_i_feature_classification_flags_one_layer(plt_obj.cflag,ind))
+            if np.sum(use_i)>0:
+                print "%d &"%(100.0*np.sum(use_i)/np.sum(use)),
+                #print " %d &"%(np.mean(AE[use_i ])),
+            else:
+                print "- &", 
+        print "\\\\"
+        """
+        print " %s %d &"%(compare_name, np.median(bias[use])),        
+        for ind in range(8):
+            use_i = np.logical_and(
+                use,
+                get_calipso_clouds_of_type_i_feature_classification_flags_one_layer(plt_obj.cflag,ind))
+            if np.sum(use_i)>0:
+                print " %d &"%(np.median(bias[use_i ])),
+            else:
+                print "- &", 
+        print "\\\\"
+        """
+        
+    else:    
+        print " %s & %d& %d& %d &  %d& %d& %d \\\\ "%(compare_name, #np.mean(AE[use]), 
+                                                      np.mean(AE[use_low]),  
+                                                      np.mean(AE[use_medium]), 
+                                                      np.mean(AE[use_high]),
+                                                      np.median(bias[use_low]),  
+                                                      np.median(bias[use_medium]), 
+                                                      np.median(bias[use_high]))
     """
     print "N   : %s %d %d %d  %d "%(compare_name, 
                                     len(AE[use]), 
@@ -126,7 +201,7 @@ def print_for_one(plt_obj, compare, truth='height_c'):
                                                      np.median(bias[use_medium]), 
                                                         np.median(bias[use_high]))
    """
-    
+    """
     lim = 4500
     print "%s & %3.1f & %3.1f & %3.1f &  %3.1f"%(
         compare_name,
@@ -135,17 +210,39 @@ def print_for_one(plt_obj, compare, truth='height_c'):
         np.sum(np.logical_and(use_medium, np.abs(bias)>lim))*100.0/np.sum(use_medium),
         np.sum(np.logical_and(use_high, np.abs(bias)>lim))*100.0/np.sum(use_high))
     
+    """
+    #print " precentile %3.4f & %d & %d & %d  & %d\\\\ "%(ind,
+    #                                                     np.percentile(bias[use],ind), 
+    #                                                     np.percentile(bias[use_low],ind),  
+    #                                                     np.percentile(bias[use_medium],ind), 
+    #                                                     np.percentile(bias[use_high],ind))  
+
+    #IQR
+    """
+    print "%s & %d & %d& %d  & %d\\\\ "%(compare_name,
+        np.percentile(bias[use],75)- 
+        np.percentile(bias[use],25), 
+        np.percentile(bias[use_low],75)-  
+        np.percentile(bias[use_low],25),  
+        np.percentile(bias[use_medium],75)- 
+        np.percentile(bias[use_medium],25), 
+        np.percentile(bias[use_high],75)-
+        np.percentile(bias[use_high],25)
+    )
+    """
+    #MAD
+    #print "%s & %d & %d& %d  & %d\\\\ "%(
+    #    compare_name,
+    #    np.median(np.abs(bias[use] - np.median(bias[use]))),
+    #    np.median(np.abs(bias[use_low] - np.median(bias[use_low]))), 
+    #    np.median(np.abs(bias[use_medium] - np.median(bias[use_medium]))), 
+    #    np.median(np.abs(bias[use_high] - np.median(bias[use_high])))
+    #)
 
     """
-    #for ind in [75, 80, 85, 90, 95]:
-    #    print " precentile %3.4f & %d & %d & %d  & %d\\\\ "%(ind,
-    #                                                      np.percentile(bias[use],ind), 
-    #                                                      np.percentile(bias[use_low],ind),  
-    #                                                      np.percentile(bias[use_medium],ind), 
-    #                                                      np.percentile(bias[use_high],ind))
-    #    lim = np.percentile(bias[use_low],ind)
-    #    print np.mean(bias[np.logical_and(use_low, bias>lim)]),
-    #    print np.std(bias[np.logical_and(use_low, bias<lim)]) 
+        lim = np.percentile(bias[use_low],ind)
+        print np.mean(bias[np.logical_and(use_low, bias>lim)]),
+        print np.std(bias[np.logical_and(use_low, bias<lim)]) 
     print "satz %3.2f, %3.2f"%(np.min(plt_obj.satz[use]),
                                np.max(plt_obj.satz[use]) ) 
     for lim in [1500, 4000]:
@@ -203,7 +300,8 @@ def get_plot_object_nn_ctth_modis_lvl2_cloudsat(month):
     day_str="01st"
     ROOT_DIR = (
         "/home/a001865/DATA_MISC/reshaped_files/"
-        "global_modis_%s_created20170519/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/*h5")
+        #"global_modis_%s_created20170519/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/*h5")
+        "global_modis_%s_created20180309/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/*h5")
         #"global_modis_%s_created20170330/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/*h5")
     #clsatObj = CloudsatAvhrrTrackObject()
     plt_obj = PlotAndDataObject()
@@ -220,7 +318,8 @@ def get_plot_object_nn_ctth_modis_lvl2(month):
     ROOT_DIR = (
         "/home/a001865/DATA_MISC/reshaped_files/"
         #"global_modis_%s_created20170504/Reshaped_Files_merged/eos2/1km/2010/%s/*h5")
-        "global_modis_%s_created20170519/Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/%s/*h5")
+        "global_modis_%s_created20180309/Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/%s/*h5")
+        #"global_modis_%s_created20170519/Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/%s/*h5")
     plt_obj = PlotAndDataObject()
     print ROOT_DIR%(day_str,month)
     files = glob(ROOT_DIR%(day_str,month))
