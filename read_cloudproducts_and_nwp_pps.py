@@ -67,6 +67,8 @@ def createAvhrrTime(Obt, values=None, Trust_sec_1970=False):
     """ Function to make crate a matrix with time for each pixel 
     from objects start adn end time """
     from config import IMAGER_INSTRUMENT 
+    Obt.sec1970_start = np.float(Obt.sec1970_start)
+    Obt.sec1970_end = np.float(Obt.sec1970_end)
     #filename = os.path.basename(filename)
     # Ex.: npp_20120827_2236_04321_satproj_00000_04607_cloudtype.h5
     if IMAGER_INSTRUMENT == 'viirs':
