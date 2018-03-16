@@ -295,7 +295,7 @@ def print_cpp_lwp_stats(aObj, statfile, val_subset):
     if aObj.avhrr.cpp_lwp is None:
         logger.warning("There are no cpp data.")
         return
-    from amsr_avhrr.validate_lwp_util import get_lwp_diff, plot_hist_lwp    
+    from amsr_avhrr.validate_lwp_util import get_lwp_diff
     lwp_diff =  get_lwp_diff(aObj, val_subset)
     
 
