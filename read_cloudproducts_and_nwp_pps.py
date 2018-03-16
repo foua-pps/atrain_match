@@ -67,8 +67,6 @@ def createAvhrrTime(Obt, values=None, Trust_sec_1970=False):
     """ Function to make crate a matrix with time for each pixel 
     from objects start adn end time """
     from config import IMAGER_INSTRUMENT 
-    Obt.sec1970_start = np.float(Obt.sec1970_start)
-    Obt.sec1970_end = np.float(Obt.sec1970_end)
     #filename = os.path.basename(filename)
     # Ex.: npp_20120827_2236_04321_satproj_00000_04607_cloudtype.h5
     if IMAGER_INSTRUMENT == 'viirs':
@@ -554,21 +552,23 @@ def read_pps_geoobj_nc(pps_nc):
     GeoObj.latitude = pps_nc.variables['lat'][::]
     GeoObj.num_of_lines = GeoObj.latitude.shape[0]
     time_temp = pps_nc.variables['time'].units #to 1970 s
-    seconds = pps_nc.variables['time'][::] #from PPS often 0
+    seconds = np.float64(pps_nc.variables['time'][::]) #from PPS often 0                        
     if 'T' in time_temp:
         time_obj = time.strptime(time_temp,'seconds since %Y-%m-%dT%H:%M:%S+00:00')
     else:
         time_obj = time.strptime(time_temp,'seconds since %Y-%m-%d %H:%M:%S.%f +00:00')
  
     sec_since_1970 = calendar.timegm(time_obj)
-    GeoObj.sec1970_start = (sec_since_1970 + 
-                            np.float(np.min(pps_nc.variables['time_bnds'][::])) + 
-                            np.float(seconds))
+
+    GeoObj.sec1970_start = (sec_since_1970 +
+                            np.float64(np.min(pps_nc.variables['time_bnds'][::])) + 
+                            seconds)
     GeoObj.sec1970_end = (sec_since_1970 + 
-                          np.float(np.max(pps_nc.variables['time_bnds'][::])) + 
-                          np.float(seconds))
-    #GeoObj.sec1970_start = GeoObj.sec1970_start 
-    #GeoObj.sec1970_end = GeoObj.sec1970_end
+                          np.float64(np.max(pps_nc.variables['time_bnds'][::])) + 
+                          seconds)
+    #print type(GeoObj.sec1970_start)
+    GeoObj.sec1970_start = np.float64(GeoObj.sec1970_start)
+    GeoObj.sec1970_end = np.float64(GeoObj.sec1970_end)
     do_some_geo_obj_logging(GeoObj)
     return  GeoObj
 
