@@ -205,8 +205,8 @@ def do_the_scatter_plot(plt_obj_cali_new, plt_obj_csat_new, month):
     do_one_subplot(plt_obj_cali_new, ax, fig, 'height_nnmintnco2', vmax=vmax, height_calipso=True)
     ax = fig.add_subplot(339, aspect='equal')
     do_one_subplot(plt_obj_cali_new, ax, fig, 'height_nnmint', vmax=vmax, height_calipso=True)
-    fig.text(0.5, 0.04, 'Cloud hegiht CALIPSO (km)', ha='center',fontsize=18)
-    fig.text(0.04, 0.5, 'Cloud height Imager (km)', va='center', rotation='vertical',fontsize=18)
+    fig.text(0.5, 0.04, 'Cloud height CALIOP (km)', ha='center',fontsize=18)
+    fig.text(0.04, 0.5, 'Retrieved height (km)', va='center', rotation='vertical',fontsize=18)
     plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/CTTH_PLOTS/fig_calipso_scatter_inferno_r_modified_max_height_%s.png"%(month), bbox_inches='tight')
     plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/CTTH_PLOTS/fig_calipso_scatter_inferno_r_modified_max_height_%s.pdf"%(month), bbox_inches='tight')
     plt.close("all")
@@ -229,8 +229,8 @@ def do_the_scatter_plot(plt_obj_cali_new, plt_obj_csat_new, month):
     do_one_subplot(plt_obj_cali_new, ax, fig, 'pressure_nnmintnco2', vmax=vmax, truth='pressure_c')
     ax = fig.add_subplot(339, aspect='equal')
     do_one_subplot(plt_obj_cali_new, ax, fig, 'pressure_nnmint', vmax=vmax, truth='pressure_c')
-    fig.text(0.5, 0.04, 'Cloud pressure CALIPSO (hPa)', ha='center',fontsize=18)
-    fig.text(0.04, 0.5, 'Cloud pressure Imager (hPa)', va='center', rotation='vertical',fontsize=18)
+    fig.text(0.5, 0.04, 'Cloud top pressure CALIOP (hPa)', ha='center',fontsize=18)
+    fig.text(0.04, 0.5, 'Retrieved cloud top pressure (hPa)', va='center', rotation='vertical',fontsize=18)
     plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/CTTH_PLOTS/fig04_scatter_inferno_r_modified_max_pressure_%s.png"%(month), bbox_inches='tight')
     plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/CTTH_PLOTS/fig04_%s.pdf"%(month), bbox_inches='tight')
     vmax = 200
@@ -256,8 +256,8 @@ def do_the_scatter_plot(plt_obj_cali_new, plt_obj_csat_new, month):
     do_one_subplot(plt_obj_csat_new, ax, fig, 'height_nnmintnco2', vmax=vmax)
     ax = fig.add_subplot(339, aspect='equal')
     do_one_subplot(plt_obj_csat_new, ax, fig, 'height_nnmint', vmax=vmax)
-    fig.text(0.5, 0.04, 'Cloud height CloudSat (km)', ha='center',fontsize=18)
-    fig.text(0.04, 0.5, 'Cloud height Imager (km)', va='center', rotation='vertical',fontsize=18)
+    fig.text(0.5, 0.04, 'Cloud top height CPR (CloudSat) (km)', ha='center',fontsize=18)
+    fig.text(0.04, 0.5, 'Retrieved cloud top height (km)', va='center', rotation='vertical',fontsize=18)
     plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/CTTH_PLOTS/fig03_cloudsat_scatter_inferno_r_modified_max_height_%s.png"%(month), bbox_inches='tight')
     plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/CTTH_PLOTS/fig03_%s.pdf"%(month), bbox_inches='tight')
 
@@ -265,7 +265,7 @@ def get_plot_object_nn_ctth_modis_lvl2_cloudsat(month):
     day_str="01st"
     ROOT_DIR = (
         "/home/a001865/DATA_MISC/reshaped_files/"
-        "global_modis_%s_created20170519/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/*h5")
+        "global_modis_%s_created20180316/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/*h5")
         #"global_modis_%s_created20170330/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/*h5")
     #clsatObj = CloudsatAvhrrTrackObject()
     plt_obj = PlotAndDataObject()
@@ -282,7 +282,7 @@ def get_plot_object_nn_ctth_modis_lvl2(month):
     ROOT_DIR = (
         "/home/a001865/DATA_MISC/reshaped_files/"
         #"global_modis_%s_created20170504/Reshaped_Files_merged/eos2/1km/2010/%s/*h5")
-        "global_modis_%s_created20170519/Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/%s/*h5")
+        "global_modis_%s_created20180316/Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/%s/*h5")
     plt_obj = PlotAndDataObject()
     print ROOT_DIR%(day_str,month)
     files = glob(ROOT_DIR%(day_str,month))

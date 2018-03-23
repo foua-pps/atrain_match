@@ -55,14 +55,20 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
             self.get_ctth_bias_type(caObj=caObj, calipso_cloudtype=cc_type)
 
     def set_false_and_missed_cloudy_and_clear(self, caObj):
-        if "cci" in self.satellites:
-            print "re-calculating optical-depth"
-            temp_od = caObj.calipso.all_arrays['feature_optical_depth_532']
-            temp_od[temp_od<-999]=0
-            caObj.calipso.all_arrays['total_optical_depth_5km'] = np.sum(
-                temp_od, axis=1.0) 
         lat = caObj.avhrr.all_arrays['latitude']
         lon = caObj.avhrr.all_arrays['longitude']
+        if caObj.avhrr.all_arrays['cloudmask'] is not None:
+            isCloudyPPS = np.logical_or(caObj.avhrr.all_arrays['cloudmask']==1,
+                                        caObj.avhrr.all_arrays['cloudmask']==2) 
+            isClearPPS = np.logical_or(caObj.avhrr.all_arrays['cloudmask']==0,
+                                       caObj.avhrr.all_arrays['cloudmask']==3)
+        else:
+            isCloudyPPS = np.logical_and(caObj.avhrr.all_arrays['cloudtype']>4,
+                                         caObj.avhrr.all_arrays['cloudtype']<21) 
+            isClearPPS = np.logical_and(caObj.avhrr.all_arrays['cloudtype']>0,
+                                        caObj.avhrr.all_arrays['cloudtype']<5)
+
+
         isCloudyPPS = np.logical_and(caObj.avhrr.all_arrays['cloudtype']>4,
                                      caObj.avhrr.all_arrays['cloudtype']<21) 
         isClearPPS = np.logical_and(caObj.avhrr.all_arrays['cloudtype']>0,
@@ -326,12 +332,16 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         from get_flag_info import get_calipso_low_clouds
         low_clouds = get_calipso_low_clouds(caObj)
         detected_low = np.logical_and(self.detected_height, low_clouds[self.use])
-        temperature_c = 273.15 + caObj.calipso.all_arrays['midlayer_temperature'][self.use,0]
         temperature_pps = caObj.avhrr.all_arrays['ctth_temperature'][self.use]
-        delta_t = temperature_pps - temperature_c
-        delta_t[~detected_low]=0
-        delta_t[temperature_c<0]=0
-        delta_t[temperature_pps<0]=0
+        try:
+            temperature_c = 273.15 + caObj.calipso.all_arrays['midlayer_temperature'][self.use,0]
+            
+            delta_t = temperature_pps - temperature_c
+            delta_t[~detected_low]=0
+            delta_t[temperature_c<0]=0
+            delta_t[temperature_pps<0]=0
+        except:
+            delta_t = 0*temperature_pps
         try:
             temperature_pps = caObj.avhrr.all_arrays['bt11micron'][self.use]
             delta_t_t11 = temperature_pps - temperature_c

@@ -177,7 +177,7 @@ def plot_pressure_modis_01(out_filenames,PLOT_DIR,month):
         plot_40_60 = plot_40_60*100.0/np.sum(plot_40_60)
         plot_60_80 = plot_60_80*100.0/np.sum(plot_60_80)
         plot_calipso = plot_calipso*100.0/np.sum(plot_calipso) 
-        plt.plot(pressure_plot[:-1], plot_calipso, 'b', alpha=0.2, label="CALIPSO") 
+        plt.plot(pressure_plot[:-1], plot_calipso, 'b', alpha=0.2, label="CALIOP") 
         plt.plot(pressure_plot[:-1], plot_00_20, '-k', label="satellite zenith angle: 0-20")
         plt.plot(pressure_plot[:-1], plot_20_40, '--k', label="satellite zenith angle: 20-40")
         plt.plot(pressure_plot[:-1], plot_40_60, '-.k', label="satellite zenith angle: 40-60")

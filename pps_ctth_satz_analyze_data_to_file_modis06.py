@@ -147,9 +147,9 @@ def investigate_nn_ctth_satz():
 
     if True:
         for month in ['02','04','06','08','10','12']:
-            ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/global_modis_01st_created20170504/Reshaped_Files_merged/eos2/1km/2010/%s/"%(month)
+            ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/global_modis_01st_created20180316/Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/%s/"%(month)
             match_files =  glob(ROOT_DIR + "/*caliop*.h5")
-            out_filename = "satz_statistics_%s_and_calipso.txt"%(month)
+            out_filename = "satz_statistics_%s_and_calipso4.txt"%(month)
             out_file_h = open(out_filename,'w')   
             print_data_file_pressure_calipso(out_file_h,match_files)
 

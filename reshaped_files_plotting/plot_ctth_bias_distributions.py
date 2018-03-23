@@ -365,7 +365,9 @@ def replot_figure2_from_saved_data(month):
         text_i = text_d[sat+"_"+cloudc]
         print_sat = sat.upper()
         if print_sat in ["CLOUDSAT"]:
-            print_sat = "CloudSat"
+            print_sat = "CPR (CloudSat)"
+        if print_sat in ["CALIPSO"]:
+            print_sat = "CALIOP"
         ax.spines['right'].set_visible(False)
         ax.spines['top'].set_visible(False)
         plt.plot(x_data[sat][cloudc]["PPS-v2014"], y_data[sat][cloudc]["PPS-v2014"],
@@ -376,7 +378,7 @@ def replot_figure2_from_saved_data(month):
                  "-r",label="NN-AVHRR")
         
         if cloudc in ["Low"]:
-            plt.xlabel(" Retrieved height - %s height (km) "%(print_sat))
+            plt.xlabel(" Retrieved height - %s (km) "%(print_sat))
         if sat in ["cloudsat"]:    
             plt.ylabel("Percent of data")
         if legend:
@@ -491,7 +493,9 @@ def plot_medium_bias_plot_from_saved_data(month):
         #text_i = text_d[sat+"_"+imager]
         print_sat = sat.upper()
         if print_sat in ["CLOUDSAT"]:
-            print_sat = "CloudSat"
+            print_sat = "CPR (CloudSat)"
+        if print_sat in ["CALIPSO"]:
+            print_sat = "CALIOP"
         ax.spines['right'].set_visible(False)
         ax.spines['top'].set_visible(False)
         color1 = "-k"
@@ -528,7 +532,7 @@ def plot_medium_bias_plot_from_saved_data(month):
         #plt.show()
 
         if imager in ["NN-AVHRR"]:
-            plt.xlabel(" Retrieved height - %s height (km) "%(print_sat))
+            plt.xlabel(" Retrieved height - %s (km) "%(print_sat))
         if sat in ["cloudsat"]:    
             plt.ylabel("Percent of data")
         if legend:
@@ -633,7 +637,7 @@ def make_profileplot(pltObj, month, day_str, sat='calipso'):
     text3 = "(f) Low clouds"
     print_sat = sat.upper()
     if print_sat in ["CLOUDSAT"]:
-        print_sat = "CloudSat"
+        print_sat = "CPR (CloudSat)"
         text1 = text1.replace("(b)", "(a)")
         text2 = text2.replace("(d)", "(c)")
         text3 = text3.replace("(f)", "(e)")
@@ -644,7 +648,7 @@ def make_profileplot(pltObj, month, day_str, sat='calipso'):
        hist_heights = hist_heights*100.0/n_pix
        plt.plot(0.001*(bins[0:-1]+delta_h*0.5), hist_heights,
                 color,label=label) 
-       plt.xlabel(" Retrieved height - %s height (km) "%(print_sat))
+       plt.xlabel(" Retrieved height - %s (km) "%(print_sat))
        plt.ylabel("Percent of data")
        ax.set_xlim(bmin,bmax)
     fig = plt.figure(figsize = (5.5,12))        
@@ -697,7 +701,7 @@ def investigate_nn_ctth_modis_lvl2_cloudsat():
     day_str="01st"
     ROOT_DIR = (
         "/home/a001865/DATA_MISC/reshaped_files/"
-        "global_modis_%s_created20170519/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/*h5")
+        "global_modis_%s_created20180316/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/*h5")
         #"global_modis_%s_created20170330/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/*h5")
     #clsatObj = CloudsatAvhrrTrackObject()
     plt_obj = PlotAndDataObject()
@@ -720,7 +724,7 @@ def investigate_nn_ctth_modis_lvl2():
     ROOT_DIR = (
         "/home/a001865/DATA_MISC/reshaped_files/"
         #"global_modis_%s_created20170504/Reshaped_Files_merged/eos2/1km/2010/%s/*h5")
-        "global_modis_%s_created20170519/Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/%s/*h5")
+        "global_modis_%s_created20180316/Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/%s/*h5")
     plt_obj = PlotAndDataObject()
     name=""
     for month in [  "02", "04","06", "08","10","12"]:# ["01", "03","05", "07","09", "11"]: # #[ "06", "09"]:    

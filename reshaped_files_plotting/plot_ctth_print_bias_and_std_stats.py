@@ -91,31 +91,53 @@ def print_for_one(plt_obj, compare, truth='height_c'):
 
     compare_name = name_conversion[compare.split('_')[1]]
 
-    bias = y-x
+    bias = y-x#+1465
     AE = np.abs(bias)    
     std = np.std(bias[use])
 
-    """
-    print "%s & %d & %d & %d & %d & %d & %d & %d & %d & %d & %3.2f  \\\\"%(
+    use_i = use_high
+    print "%s & %d & %d & %d & %d & %d & %d & %d & %d & %d & %d & %3.2f  \\\\"%(
         compare_name,
-        #np.sum(AE[use]<=1000)*100.0/len(AE[use]),
-        np.mean(AE[use]), 
-        np.median(bias[use]), 
-        #my_mode(bias[use]),
-        half_sample_mode(bias[use]),
-        np.mean(bias[use]),  
-        np.percentile(bias[use],75)- np.percentile(bias[use],25), 
-        np.median(np.abs(bias[use] - np.median(bias[use]))),
-        np.sum(AE[use]>1000)*100.0/len(AE[use]),
-        np.sqrt(np.mean((bias[use]**2))),
-        np.std(bias[use]), 
-        skew(bias[use])#,
-        #kurtosis(bias[use])
+        #np.sum(AE[use_i]<=1000)*100.0/len(AE[use_i]),
+        np.mean(AE[use_i]), 
+        np.percentile(bias[use_i],75)- np.percentile(bias[use_i],25), 
+        np.sqrt(np.mean((bias[use_i]**2))),
+        np.std(bias[use_i]),
+        np.sum(AE[use_i]>500)*100.0/len(AE[use_i]),
+        np.sum(AE[use_i]>1000)*100.0/len(AE[use_i]),
+        np.sum(AE[use_i]>2500)*100.0/len(AE[use_i]),
+        np.median(bias[use_i]), 
+        #my_mode(bias[use_i]),
+        half_sample_mode(bias[use_i]),
+        np.mean(bias[use_i]),  
+        skew(bias[use_i])#,
+        #kurtosis(bias[use_i])
         )
+    
+
+    """
+    print "%s & %d & %d & %d & %d & %d & %d & %d & %d & %d & %d &  %d & %d & %d & %d & %d &   \\\\"%(
+        compare_name,
+        np.mean(AE[use_low]),
+        np.mean(AE[use_medium]),
+        np.mean(AE[use_high]),
+        np.mean(bias[use_low]),
+        np.mean(bias[use_medium]),
+        np.mean(bias[use_high]),
+        np.median(bias[use_low]),
+        np.median(bias[use_medium]),
+        np.median(bias[use_high]),
+        np.percentile(bias[use_low],75)- np.percentile(bias[use_low],25),
+        np.percentile(bias[use_medium],75)- np.percentile(bias[use_medium],25),
+        np.percentile(bias[use_high],75)- np.percentile(bias[use_high],25),
+        np.sqrt(np.mean((bias[use_low]**2))),
+        np.sqrt(np.mean((bias[use_medium]**2))),
+        np.sqrt(np.mean((bias[use_high]**2))))
     """
     
     if plt_obj.cflag is not None:
-        
+        pass
+        """
         print " %s %d &"%(compare_name, np.mean(AE[use])),
         for ind in range(8):
             use_i = np.logical_and(
@@ -123,10 +145,11 @@ def print_for_one(plt_obj, compare, truth='height_c'):
                 get_calipso_clouds_of_type_i_feature_classification_flags_one_layer(plt_obj.cflag,ind))
             if np.sum(use_i)>0:
                 print "%d &"%(100.0*np.sum(use_i)/np.sum(use)),
-                #print " %d &"%(np.mean(AE[use_i ])),
+                print " %d &"%(np.mean(AE[use_i ])),
             else:
-                print "- &", 
+               print "- &", 
         print "\\\\"
+        """
         """
         print " %s %d &"%(compare_name, np.median(bias[use])),        
         for ind in range(8):
@@ -139,7 +162,7 @@ def print_for_one(plt_obj, compare, truth='height_c'):
                 print "- &", 
         print "\\\\"
         """
-        
+    """    
     else:    
         print " %s & %d& %d& %d &  %d& %d& %d \\\\ "%(compare_name, #np.mean(AE[use]), 
                                                       np.mean(AE[use_low]),  
@@ -148,12 +171,15 @@ def print_for_one(plt_obj, compare, truth='height_c'):
                                                       np.median(bias[use_low]),  
                                                       np.median(bias[use_medium]), 
                                                       np.median(bias[use_high]))
-    """
+ 
+    
     print "N   : %s %d %d %d  %d "%(compare_name, 
                                     len(AE[use]), 
                                     len(AE[use_low]),  
                                     len(AE[use_medium]), 
                                     len(AE[use_high]))
+
+
     print "MAE : %s & %3.1f& %3.1f& %3.1f & %3.1f\\\\ "%(compare_name, np.mean(AE[use]), 
                                                 np.mean(AE[use_low]),  
                                                 np.mean(AE[use_medium]), 
@@ -167,8 +193,8 @@ def print_for_one(plt_obj, compare, truth='height_c'):
                                                np.std(bias[use_low]),  
                                                np.std(bias[use_medium]), 
                                                np.std(bias[use_high]))
+    
     """
-
     """
     print "%s & %d & %d & %d &  %d"%(compare_name, np.mean(bias[use]), 
                                                 np.mean(bias[use_low]),  
@@ -276,15 +302,15 @@ def print_all(plt_obj_cali_new, plt_obj_csat_new, month):
     print_for_one(plt_obj_cali_new,  'height_nnmint')
     print_for_one(plt_obj_cali_new,  'height_nna1nt')
 
-    print "CALIOP pressure", month
-    print_for_one(plt_obj_cali_new,  'pressure_old', truth='pressure_c')
-    print_for_one(plt_obj_cali_new,  'pressure_mlvl2', truth='pressure_c')
-    print_for_one(plt_obj_cali_new,  'pressure_nnant', truth='pressure_c')
-    print_for_one(plt_obj_cali_new,  'pressure_nnvnt', truth='pressure_c')
-    print_for_one(plt_obj_cali_new,  'pressure_nnm2nt', truth='pressure_c')
-    print_for_one(plt_obj_cali_new,  'pressure_nnmintnco2', truth='pressure_c')
-    print_for_one(plt_obj_cali_new,  'pressure_nnmint', truth='pressure_c')
-    print_for_one(plt_obj_cali_new,  'pressure_nna1nt', truth='pressure_c')
+    #print "CALIOP pressure", month
+    #print_for_one(plt_obj_cali_new,  'pressure_old', truth='pressure_c')
+    #print_for_one(plt_obj_cali_new,  'pressure_mlvl2', truth='pressure_c')
+    #print_for_one(plt_obj_cali_new,  'pressure_nnant', truth='pressure_c')
+    #print_for_one(plt_obj_cali_new,  'pressure_nnvnt', truth='pressure_c')
+    #print_for_one(plt_obj_cali_new,  'pressure_nnm2nt', truth='pressure_c')
+    #print_for_one(plt_obj_cali_new,  'pressure_nnmintnco2', truth='pressure_c')
+    #print_for_one(plt_obj_cali_new,  'pressure_nnmint', truth='pressure_c')
+    #print_for_one(plt_obj_cali_new,  'pressure_nna1nt', truth='pressure_c')
 
     print "CloudSat height", month
     print_for_one(plt_obj_csat_new,  'height_old')
@@ -301,7 +327,7 @@ def get_plot_object_nn_ctth_modis_lvl2_cloudsat(month):
     ROOT_DIR = (
         "/home/a001865/DATA_MISC/reshaped_files/"
         #"global_modis_%s_created20170519/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/*h5")
-        "global_modis_%s_created20180309/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/*h5")
+        "global_modis_%s_created20180316/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/*h5")
         #"global_modis_%s_created20170330/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/*h5")
     #clsatObj = CloudsatAvhrrTrackObject()
     plt_obj = PlotAndDataObject()
@@ -318,7 +344,7 @@ def get_plot_object_nn_ctth_modis_lvl2(month):
     ROOT_DIR = (
         "/home/a001865/DATA_MISC/reshaped_files/"
         #"global_modis_%s_created20170504/Reshaped_Files_merged/eos2/1km/2010/%s/*h5")
-        "global_modis_%s_created20180309/Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/%s/*h5")
+        "global_modis_%s_created20180316/Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/%s/*h5")
         #"global_modis_%s_created20170519/Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/%s/*h5")
     plt_obj = PlotAndDataObject()
     print ROOT_DIR%(day_str,month)
