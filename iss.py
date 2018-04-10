@@ -24,42 +24,71 @@ def get_iss(filename):
     # Read ISS Radar data for calipso something is done in this function:
     limit = 0.02
     iss = read_iss(filename)
+    iss.cloud_fraction = 0.0 + 0*iss.cloud_phase_fore_fov[:,0].copy()
+    iss.total_optical_depth_5km = 0.0 + 0*iss.cloud_phase_fore_fov[:,0].copy()
+    iss.validation_height = -9 + 0 * iss.cloud_fraction.copy()
+    #  feature_optical_depth_1064_fore_fov
+    #1.       Handle layers with values -1 och -999.9 as optical thick (= 5)
+    #2.       Check that each layer is a cloud layer (variable Feature_Type)
+    #3.       For safty, check also Feature_Type_Score (>5.0) and Extinction_QC_Flag_1064==0
+
+    #used for cloud height validation, at certain modes it might be updated.
+    # Start from bottom and find hight of highest cloud. 
+    # Remember that layer_top_altitude contain also aerosols
+    # This was not the case for CALIPSO-data
+    # There can be a thin aerosol layer above the highest cloud!
+    for layer in range(9,-1,-1): #layer index 9.0
+        #is_cloudy = np.greater(iss.cloud_phase_fore_fov[:,layer],0)
+        is_cloudy = np.equal(iss.feature_type_fore_fov[:,layer],1)
+        is_cloudy = np.logical_and(
+            is_cloudy,
+            np.equal(iss.extinction_qc_flag_1064_fore_fov[:,layer],0))
+        is_cloudy = np.logical_and(
+            is_cloudy,
+            np.greater(iss.feature_type_score_fore_fov[:,layer],5))
+        od_layer = iss.feature_optical_depth_1064_fore_fov[:,layer].copy()
+        od_layer[od_layer==-1] = 5.0
+        od_layer[od_layer==-999.9] = 5.0
+        od_layer[od_layer<0] = 0.0
+        iss.total_optical_depth_5km += od_layer
+        is_not_very_thin = np.greater(od_layer, limit)
+        #is_cloudy = np.logical_and(is_cloudy, is_not_very_thin) 
+        height_layer = iss.layer_top_altitude_fore_fov[:,layer]
+        iss.validation_height[is_cloudy] = height_layer[is_cloudy]
+
+    logger.warning("Currently not considering cloudheight for cloud layers "
+                   "thinner than %3.2f (feature_optical_depth_1064_fore_fov)", limit)
+    iss.validation_height[iss.validation_height>=0] = iss.validation_height[iss.validation_height>=0]*1000
+    iss.validation_height[iss.validation_height<0] = -9
+    #  --- cloud_phase_fore_fov ---
     #0 clear or aerosol layer.
     #1 water cloud
     #2 unkknown phase
     #3 ice cloud
-    iss.cloud_fraction = 0*iss.cloud_phase_fore_fov[:,0].copy()
-    for layer in range(9,-1,-1): #layer index 9.0
-        is_cloudy = np.greater(iss.cloud_phase_fore_fov[:,layer],0)
-        is_not_very_thin = np.greater(iss.feature_optical_depth_1064_fore_fov[:,layer], limit)
-        is_cloudy = np.logical_and(is_cloudy, is_not_very_thin) 
-        iss.cloud_fraction[is_cloudy] = 1.0
-    #0 clear
-    #1 aersol only
-    #2 cloud only
-    #3 cloud and aerosol    
+    # --- feature_type_score ---
+    #| 10 | = high confidence
+    #| 1 | = low confidence
+    #0 = zero confidence
+    # --- feature_type ---
+    #0 = invalid
+    #1 = cloud    
+    #2 = undetermined    
+    #3 = aerosol
+    # --- sky_condition_fore_fov ---
+    #0 = clean skies (no clouds/aerosols)
+    #1 = clear skies (no clouds)       
+    #2 = cloudy skies (no aerosols)       
+    #3 = hazy/cloudy (both clouds/aerosols)
     iss.cloud_fraction = np.where(iss.sky_condition_fore_fov>1.5, 1.0,0.0)
     #print "iss cf", iss.cloud_fraction
     logger.warning("Currently using sky_condition_fore_fov to set cloudfraction,"
                    "\n \t use cloud_phase_fore_fov instead?")
 
-    #used for cloud height validation, at cirtain modis it might be updated.
-    # Start from bottom and find hight of highest cloud. 
-    # Remember that layer_top_altitude contain also aerosols
-    # This was not the case for CALIPSO-data
-    # There can be a thin aerosol layer above the highest cloud!
-    iss.validation_height = -9 + 0 * iss.cloud_fraction.copy()
-    for layer in range(9,-1,-1): #layer index 9..0
-        is_cloudy = np.greater(iss.cloud_phase_fore_fov[:,layer],0)
-        is_not_very_thin = np.greater(iss.feature_optical_depth_1064_fore_fov[:,layer], limit)
-        is_cloudy = np.logical_and(is_cloudy, is_not_very_thin)
-        height_layer = iss.layer_top_altitude_fore_fov[:,layer]
-        iss.validation_height[is_cloudy] = height_layer[is_cloudy]
-    logger.warning("Currently not considering cloudheight for cloud layers "
-                   "thinner than %3.2f (feature_optical_depth_1064_fore_fov)", limit)
-    iss.validation_height[iss.validation_height>=0] = iss.validation_height[iss.validation_height>=0]*1000
-    iss.validation_height[iss.validation_height<0] = -9
     iss.validation_height[iss.cloud_fraction<0.5] = -9 #should not be needed
+
+
+
+
     return iss
 
 
