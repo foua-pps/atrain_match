@@ -362,11 +362,11 @@ def read_cmaprob_h5(filename):
     h5file.close()
     return cma
 
-def read_cmaprob_h5(filename):
+def read_cmaprob_nc(filename):
     pps_nc = netCDF4.Dataset(filename, 'r', format='NETCDF4')
     cma = CmaObj()
-    if 'cma_extended' in h5file.keys():
-        if 'cmaprob' not in h5file.keys():
+    if 'cma_extended' in pps_nc.variables.keys():
+        if 'cmaprob' not in pps_nc.variables.keys():
             logger.error("\n Note: CMAP_PROB_VALIDATION=True!"
                          "\n This file looks lika a normal CMA-file %s", filename)
     cma.cma_prob = pps_nc.variables['cmaprob'][0,:,:]
