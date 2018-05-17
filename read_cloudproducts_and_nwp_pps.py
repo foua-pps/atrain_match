@@ -357,18 +357,24 @@ def read_cmaprob_h5(filename):
     cma.cma_prob = h5file['cloud_probability'].value
     cma.cma_ext = 0*cma.cma_prob
     cma.cma_ext[cma.cma_prob>=CMA_PROB_CLOUDY_LIMIT] = 1.0
-    cma.cma_ext[cma.cma_prob<0] = 255.0
-    ctype = CtypeObj()
-    ctype.cloudtype = 0*cma.cma_prob
-    ctype.cloudtype[cma.cma_prob>=50] = 9 #low clouds
-    ctype.cloudtype[cma.cma_prob<50] = 1
-    ctype.cloudtype[cma.cma_prob<0] = 255
-    ctth = CtthObj()
-    ctth.height = 5000.0 +0*cma.cma_prob
-    ctth.temperature = 280.0 + 0*cma.cma_prob
-    ctth.pressure = 500.0 + 0*cma.cma_prob
+    cma.cma_ext[cma.cma_prob<0] = -9
     #try KeyError 'cma'
     h5file.close()
+    return cma
+
+def read_cmaprob_h5(filename):
+    pps_nc = netCDF4.Dataset(filename, 'r', format='NETCDF4')
+    cma = CmaObj()
+    if 'cma_extended' in h5file.keys():
+        if 'cmaprob' not in h5file.keys():
+            logger.error("\n Note: CMAP_PROB_VALIDATION=True!"
+                         "\n This file looks lika a normal CMA-file %s", filename)
+    cma.cma_prob = pps_nc.variables['cmaprob'][0,:,:]
+    cma.cma_ext = 0*cma.cma_prob
+    cma.cma_ext[cma.cma_prob>=CMA_PROB_CLOUDY_LIMIT] = 1.0
+    cma.cma_ext[cma.cma_prob==65535] = -9
+    #try KeyError 'cma'
+    pps_nc.close()
     return cma
 
 def read_cma_nc(filename):
@@ -985,7 +991,10 @@ def pps_read_all(pps_files, avhrr_file):
     logger.debug("%s, %s, %s", pps_files.cloudtype, pps_files.ctth, pps_files.cma)
     if CMA_PROB_VALIDATION:
         logger.info("Read PPS Cloud mask prob")
-        cma = read_cmaprob_h5(pps_files.cma)
+        if '.nc' in pps_files.cma:
+            cma = read_cmaprob_nc(pps_files.cma)
+        else:
+            cma = read_cmaprob_h5(pps_files.cma)
     else:    
         logger.info("Read PPS Cloud mask")
         logger.debug(pps_files.cma )
