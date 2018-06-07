@@ -95,14 +95,17 @@ def print_for_one(plt_obj, compare, truth='height_c'):
     AE = np.abs(bias)    
     std = np.std(bias[use])
 
-    use_i = use_high
-    print "%s & %d & %d & %d & %d & %d & %d & %d & %d & %d & %d & %3.2f  \\\\"%(
+    use_i = use_low
+    print "%s & %d & %d & %d(%d)(%d) & %d & %d & %d & %d & %d & %d & %d & %d & %3.1f  \\\\"%(
         compare_name,
         #np.sum(AE[use_i]<=1000)*100.0/len(AE[use_i]),
         np.mean(AE[use_i]), 
         np.percentile(bias[use_i],75)- np.percentile(bias[use_i],25), 
         np.sqrt(np.mean((bias[use_i]**2))),
+        #np.sqrt(np.mean((bias[np.logical_and(use_i, AE<=2000)]**2))),
+        #np.mean((AE[np.logical_and(use_i, AE>2000)])),
         np.std(bias[use_i]),
+        np.sum(AE[use_i]>250)*100.0/len(AE[use_i]),
         np.sum(AE[use_i]>500)*100.0/len(AE[use_i]),
         np.sum(AE[use_i]>1000)*100.0/len(AE[use_i]),
         np.sum(AE[use_i]>2500)*100.0/len(AE[use_i]),
@@ -113,7 +116,7 @@ def print_for_one(plt_obj, compare, truth='height_c'):
         skew(bias[use_i])#,
         #kurtosis(bias[use_i])
         )
-    
+
 
     """
     print "%s & %d & %d & %d & %d & %d & %d & %d & %d & %d & %d &  %d & %d & %d & %d & %d &   \\\\"%(
@@ -137,6 +140,19 @@ def print_for_one(plt_obj, compare, truth='height_c'):
     
     if plt_obj.cflag is not None:
         pass
+        """
+        print " %s & %d &"%(compare_name, np.sum(AE[use]>500)*100.0/len(AE[use])),
+        for ind in range(8):
+            use_i = np.logical_and(
+                use,
+                get_calipso_clouds_of_type_i_feature_classification_flags_one_layer(plt_obj.cflag,ind))
+            if np.sum(use_i)>0:
+                print "%d &"%(np.sum(AE[use_i]>500)*100.0/len(AE[use_i])),
+                #print " %d &"%(np.mean(AE[use_i ])),
+            else:
+               print "- &", 
+        print "\\\\"
+        """
         """
         print " %s %d &"%(compare_name, np.mean(AE[use])),
         for ind in range(8):

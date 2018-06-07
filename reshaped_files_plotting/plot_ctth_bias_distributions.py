@@ -148,6 +148,9 @@ def extract_data(cObj, sat='cloudsat'):
 
         
         pltObj.cflag =  cObj.calipso.feature_classification_flags[::,0]
+
+    elevation = cObj.calipso.all_arrays['elevation']
+    elevation[elevation<0] = 0
     pltObj.height_c = height_c
     pltObj.height_mlvl2 = cObj.modis.all_arrays['height']#+elevation #??
     pltObj.pressure_mlvl2 = cObj.modis.all_arrays['pressure']
