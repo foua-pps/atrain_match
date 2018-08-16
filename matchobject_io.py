@@ -1035,7 +1035,10 @@ the_used_variables = [
     'clsat_max_height',
     'validation_height_base',
     'MODIS_Cloud_Fraction',
-    'MODIS_cloud_flag'
+    'MODIS_cloud_flag',
+    'column_optical_depth_cloud_532',
+    'column_optical_depth_cloud_uncertainty_532',
+    'Number_cloudy_single_shots'
 ]
 
 
