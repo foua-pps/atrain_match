@@ -464,9 +464,7 @@ def read_pps_angobj_nc(pps_nc):
                        'azimuthdiff', 
                        'sunazimuth', 
                        'satazimuth']:
-            print this_is
             this_is = varname
-            print this_is
         else:    
             #some times we got angels in imager file
             #they are then named imageX as varname
