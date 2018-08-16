@@ -474,7 +474,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
                                                                   seviri_channel, row_col)
                 setattr(obt.avhrr, seviri_channel + info, seviri_track)
     #Angles, scale with gain and intercept when reading
-    for angle in ['satz', 'sunz', 'azidiff']:
+    for angle in ['satz', 'sunz', 'azidiff', 'sunazimuth', 'satazimuth']:
         data = getattr(AngObj, angle)
         if data is not None:
             setattr(obt.avhrr, angle,  get_data_from_array(data.data, row_col))

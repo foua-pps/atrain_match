@@ -184,6 +184,8 @@ class imagerAngObj(object):
     def __init__(self):        
         self.satz = smallDataObject()
         self.sunz = smallDataObject()
+        self.satazimuth = smallDataObject()
+        self.sunazimuth = smallDataObject()
         self.azidiff = smallDataObject()
 
 class imagerGeoObj(object):
@@ -422,7 +424,9 @@ def readImagerData_nc(pps_nc):
     for var in pps_nc.variables.keys():
         if 'image' in var:
             image = pps_nc.variables[var]
-            if image.id_tag in ['satzenith', 'sunzenith', 'azimuthdiff']:
+            if image.id_tag in ['satzenith', 'sunzenith', 
+                                'azimuthdiff', 
+                                'sunazimuth', 'satazimuth']:
                 continue
                 
             logger.debug("reading channel %s", image.description)
@@ -453,38 +457,47 @@ def read_pps_angobj_nc(pps_nc):
     """Read angles info from filename
     """
     AngObj = imagerAngObj()
-    if 'satzenith' in pps_nc.variables.keys():
-        AngObj.satz.data = pps_nc.variables['satzenith'][0,:,:].astype(np.float)
-        AngObj.sunz.data = pps_nc.variables['sunzenith'][0,:,:].astype(np.float)
-        AngObj.azidiff.data = pps_nc.variables['azimuthdiff'][0,:,:].astype(np.float)
-        AngObj.satz.no_data = pps_nc.variables['satzenith']._FillValue
-        AngObj.sunz.no_data = pps_nc.variables['sunzenith']._FillValue
-        AngObj.azidiff.no_data = pps_nc.variables['azimuthdiff']._FillValue
-        AngObj.satz.intercept = pps_nc.variables['satzenith'].add_offset
-        AngObj.sunz.intercept = pps_nc.variables['sunzenith'].add_offset
-        AngObj.azidiff.intercept = pps_nc.variables['azimuthdiff'].add_offset
-        AngObj.satz.gain = pps_nc.variables['satzenith'].scale_factor
-        AngObj.sunz.gain = pps_nc.variables['sunzenith'].scale_factor
-        AngObj.azidiff.gain = pps_nc.variables['azimuthdiff'].scale_factor
-    else: 
-        for varname in pps_nc.variables.keys():
-            if not hasattr(pps_nc.variables[varname], 'id_tag'):
-                continue
-            if pps_nc.variables[varname].id_tag in['satzenith']:
-                AngObj.satz.data = pps_nc.variables[varname][0,:,:].astype(np.float)
-                AngObj.satz.no_data = pps_nc.variables[varname]._FillValue
-                AngObj.satz.intercept = pps_nc.variables[varname].add_offset
-                AngObj.satz.gain = pps_nc.variables[varname].scale_factor
-            elif pps_nc.variables[varname].id_tag in['sunzenith']:
-                AngObj.sunz.data = pps_nc.variables[varname][0,:,:].astype(np.float)
-                AngObj.sunz.no_data = pps_nc.variables[varname]._FillValue
-                AngObj.sunz.intercept = pps_nc.variables[varname].add_offset
-                AngObj.sunz.gain = pps_nc.variables[varname].scale_factor
-            elif pps_nc.variables[varname].id_tag in['azimuthdiff']:
-                AngObj.azidiff.data = pps_nc.variables[varname][0,:,:].astype(np.float)
-                AngObj.azidiff.no_data = pps_nc.variables[varname]._FillValue
-                AngObj.azidiff.intercept = pps_nc.variables[varname].add_offset
-                AngObj.azidiff.gain = pps_nc.variables[varname].scale_factor
+    for varname in pps_nc.variables.keys():
+        this_is = "non_angle_variable"
+        if varname in ['satzenith', 
+                       'sunzenith', 
+                       'azimuthdiff', 
+                       'sunazimuth', 
+                       'satazimuth']:
+            print this_is
+            this_is = varname
+            print this_is
+        else:    
+            #some times we got angels in imager file
+            #they are then named imageX as varname
+            if hasattr(pps_nc.variables[varname], 'id_tag'):
+                this_is = pps_nc.variables[varname].id_tag 
+ 
+        if this_is in['satzenith']:
+            AngObj.satz.data = pps_nc.variables[varname][0,:,:].astype(np.float)
+            AngObj.satz.no_data = pps_nc.variables[varname]._FillValue
+            AngObj.satz.intercept = pps_nc.variables[varname].add_offset
+            AngObj.satz.gain = pps_nc.variables[varname].scale_factor
+        elif this_is in['sunzenith']:
+            AngObj.sunz.data = pps_nc.variables[varname][0,:,:].astype(np.float)
+            AngObj.sunz.no_data = pps_nc.variables[varname]._FillValue
+            AngObj.sunz.intercept = pps_nc.variables[varname].add_offset
+            AngObj.sunz.gain = pps_nc.variables[varname].scale_factor
+        elif this_is in['azimuthdiff']:
+            AngObj.azidiff.data = pps_nc.variables[varname][0,:,:].astype(np.float)
+            AngObj.azidiff.no_data = pps_nc.variables[varname]._FillValue
+            AngObj.azidiff.intercept = pps_nc.variables[varname].add_offset
+            AngObj.azidiff.gain = pps_nc.variables[varname].scale_factor
+        elif this_is in['sunazimuth']:
+            AngObj.sunazimuth.data = pps_nc.variables[varname][0,:,:].astype(np.float)
+            AngObj.sunazimuth.no_data = pps_nc.variables[varname]._FillValue
+            AngObj.sunazimuth.intercept = pps_nc.variables[varname].add_offset
+            AngObj.sunazimuth.gain = pps_nc.variables[varname].scale_factor
+        elif this_is in['satazimuth']:
+            AngObj.satazimuth.data = pps_nc.variables[varname][0,:,:].astype(np.float)
+            AngObj.satazimuth.no_data = pps_nc.variables[varname]._FillValue
+            AngObj.satazimuth.intercept = pps_nc.variables[varname].add_offset
+            AngObj.satazimuth.gain = pps_nc.variables[varname].scale_factor
  
     #already scaled
     if np.ma.is_masked(AngObj.sunz.data):        
@@ -496,6 +509,12 @@ def read_pps_angobj_nc(pps_nc):
     if np.ma.is_masked(AngObj.azidiff.data): 
         AngObj.azidiff.data[AngObj.azidiff.data.mask] = ATRAIN_MATCH_NODATA
         AngObj.azidiff.data = AngObj.azidiff.data.data
+    if np.ma.is_masked(AngObj.sunazimuth.data): 
+        AngObj.sunazimuth.data[AngObj.sunazimuth.data.mask] = ATRAIN_MATCH_NODATA
+        AngObj.sunazimuth.data = AngObj.sunazimuth.data.data
+    if np.ma.is_masked(AngObj.satazimuth.data): 
+        AngObj.satazimuth.data[AngObj.satazimuth.data.mask] = ATRAIN_MATCH_NODATA
+        AngObj.satazimuth.data = AngObj.satazimuth.data.data
     return AngObj
 
 def read_pps_angobj_h5(filename):
