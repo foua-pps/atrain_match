@@ -143,6 +143,7 @@ class ppsFiles(object):
         self.ctth = None
         self.cpp = None
         self.cma = None
+        self.cmaprob = None
         self.sunsatangles = None
         self.physiography = None
         self.nwp_tsur = None
@@ -347,6 +348,8 @@ def require_h5(files):
     
     """
     from config import H4H5_EXECUTABLE
+    if not H4H5_EXECUTABLE:
+        return files
     h5_files = []
     for f in files:
         if f.endswith('.h5'):
@@ -435,6 +438,8 @@ def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
     file_name_dict.update({'cloudtype': cloudtype_file,
                            'cma': cma_file,
                            'ctth': ctth_files})
+    file_name_dict['cmaprob'] = get_pps_file(avhrr_file, options, values, 'cmaprob_file', 'cmaprob_dir', 
+                                         FailIfRequestedAndMissing=True) 
     file_name_dict['cpp'] = get_pps_file(avhrr_file, options, values, 'cpp_file', 'cpp_dir', 
                                          FailIfRequestedAndMissing=True)                         
     file_name_dict['sunsatangles'] = get_pps_file(avhrr_file, options, values, 'sunsatangles_file', 
@@ -904,7 +909,7 @@ def get_matchups_from_data(cross, config_options):
     PPS files.
     """
     #STEP 1 get imager files
-    if (PPS_VALIDATION ):
+    if (PPS_VALIDATION):
         avhrr_file, tobj = find_radiance_file(cross, config_options)
         pps_files = find_files_from_avhrr(avhrr_file, config_options) 
     if (CCI_CLOUD_VALIDATION):

@@ -41,17 +41,16 @@ _validation_results_dir = os.environ.get(
   'VALIDATION_RESULTS_DIR', 
   "/nobackup/smhid12/sm_kgkar/atrain_match_test_CALIPSOv4")
 CONFIG_PATH = os.environ.get('ATRAINMATCH_CONFIG_DIR', './etc')
-H4H5_EXECUTABLE = os.environ.get('H4H5_EXECUTABLE','h4toh5')
+H4H5_EXECUTABLE = os.environ.get('H4H5_EXECUTABLE',False)
 
 #========== Select imager and truth to validate ==========#
 #: Choose one to validate
 PPS_VALIDATION = str2bool(os.environ.get('PPS_VALIDATION', True))
 CCI_CLOUD_VALIDATION = str2bool(os.environ.get('CCI_CLOUD_VALIDATION', False))
 MAIA_CLOUD_VALIDATION = str2bool(os.environ.get('MAIA_CLOUD_VALIDATION', False))
-CMA_PROB_VALIDATION = str2bool(os.environ.get('CMA_PROB_VALIDATION', False))
 #: Turn off ISS and CLOUDSAT matching if never used
-CALIPSO_MATCHING = True   #Notice can not be False if CALIPSO_REQUIRED = True
-CLOUDSAT_MATCHING = True #Notice can not be False if CLOUDSAT_REQUIRED = True
+CALIPSO_MATCHING = True  #Notice can not be False if CALIPSO_REQUIRED = True
+CLOUDSAT_MATCHING = False #Notice can not be False if CLOUDSAT_REQUIRED = True
 ISS_MATCHING = False      #Notice can not be False if ISS_REQUIRED = True
 AMSR_MATCHING = True    #Notice can not be False if AMSR_REQUIRED = True
 
@@ -84,12 +83,11 @@ MATCH_AEROSOL_CALIPSO = False
 CALIPSO_CLOUDY_MIN_CFC = 0.5 #Tradition 0.64, KG used 0.5 for v2014 validation
 CALIPSO_CLEAR_MAX_CFC = 0.5  #Tradition 0.33, KG used 0.5, 
                              #PPS development use low value 
-CMA_PROB_CLOUDY_LIMIT = 50   #50% cloudy => cloud
 
 #========== Select calipso version ==========#
 #: Choose CALIPSO-CALIOP version
-CALIPSO_version4 = False
-CALIPSO_version3 = True
+CALIPSO_version4 = True
+CALIPSO_version3 = False
 
 #: Only relevent for RESOLUTION-5. 
 #: Both should not be True, but both can be False
@@ -174,6 +172,11 @@ for surface in PROCESS_SURFACES:
 for mode in list(ALLOWED_MODES):
   for DNT in ['_DAY', '_NIGHT', '_TWILIGHT']:
     ALLOWED_MODES.append(mode + DNT) 
+
+#========== Currently not used ==========#
+# Note CMA-prob validated with
+CMA_PROB_VALIDATION = False #Should be FALSE
+CMA_PROB_CLOUDY_LIMIT = 50   #50% cloudy => cloud,
     
 #========== Often not changed ==========#
 AREA = "no_area" #matching are no longer done for an area
@@ -265,7 +268,7 @@ CASES = [ {'satname': 'noaa18', 'year': 2013, 'month': 6},
          {'satname': 'noaa18', 'year': 2009, 'month': 11},
          {'satname': 'noaa18', 'year': 2009, 'month': 12}]
 
-CASES_npp =  [{'satname': 'npp', 'year': 2012, 'month': 6},
+CASES_npp =  [{'satname': 'npp', 'year': 2015, 'month': 2},
                        {'satname': 'npp', 'year': 2012, 'month': 7},
                        {'satname': 'npp', 'year': 2012, 'month': 8},
                        {'satname': 'npp', 'year': 2012, 'month': 9},
@@ -309,6 +312,6 @@ CASES =[{'satname': 'noaa18', 'year': 2009, 'month': 1},
          {'satname': 'noaa18', 'year': 2009, 'month': 11},
          {'satname': 'noaa18', 'year': 2009, 'month': 12}]
 
-CASES = CASES_modis
+CASES = CASES_npp
 
 

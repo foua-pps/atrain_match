@@ -116,6 +116,10 @@ class OrrbStats():
 
         cfc_stats_labels = ["CLOUD MASK %s-IMAGER TABLE"%(self.truth_sat.upper()),
                            "CLOUD MASK %s-PPS TABLE"%(self.truth_sat.upper())]
+        cfcprob_stats_labels_clear = [ "CLOUD MASK PROB %s-IMAGER TABLE CLEAR"%(self.truth_sat.upper())]
+        cfcprob_stats_labels_cloudy = [ "CLOUD MASK PROB %s-IMAGER TABLE CLOUDY"%(self.truth_sat.upper())]
+        cfcprob_stats_labels_step = [ "CLOUD MASK PROB %s-IMAGER TABLE STEP"%(self.truth_sat.upper())]
+
         cfc_stats_labels_modis = ["CLOUD MASK %s-MODIS TABLE"%(self.truth_sat.upper())]
         cty_stats_labels = ["CLOUD TYPE %s-IMAGER TABLE"%(self.truth_sat.upper()),
                            "CLOUD TYPE %s-PPS TABLE"%(self.truth_sat.upper())]
@@ -131,17 +135,35 @@ class OrrbStats():
             for key in data_dict.keys():
                 #If reprocessing old results files make sure to extract the right lines!
                 #Ie do not use CLOUDSAT info when compiling stats for CALIPSO
+                cal_data = data_dict[key]
+                cal_data[cal_data<0] = 0
                 if  key in cfc_stats_labels:
-                    cal_data = data_dict[key]
-                    cal_data[cal_data<0] = 0
                     acu["n_clear_clear_cal"] += cal_data[0]
                     acu["n_clear_cloudy_cal"] += cal_data[1]
                     acu["n_cloudy_clear_cal"] += cal_data[2]
                     acu["n_cloudy_cloudy_cal"] += cal_data[3]
+                if  key in cfcprob_stats_labels_clear:
+                    if "step_cmaprob" not in acu.keys():
+                        acu["step_cmaprob"] = cal_data[0] 
+                    elif acu["step_cmaprob"] != cal_data[0]:
+                        print("the same step in cma prob is not used for every file!")
+                        raise ValueError
+                if  key in cfcprob_stats_labels_clear:
+                    if "n_clear_cmaprob" not in acu.keys():
+                        acu["n_clear_cmaprob"] = cal_data
+                    else:
+                        acu["n_clear_cmaprob"] = [acu["n_clear_cmaprob"][i] + cal_data[i] for i in range(len(cal_data))]
+                if  key in cfcprob_stats_labels_cloudy:
+                    if "n_cloudy_cmaprob" not in acu.keys():
+                        acu["n_cloudy_cmaprob"] = cal_data
+                    else:
+                        acu["n_cloudy_cmaprob"] = [acu["n_cloudy_cmaprob"][i] + cal_data[i] for i in range(len(cal_data))]
+
+
                 if  key in cfc_stats_labels_modis:
+                    got_cloudsat_modis_flag = True
                     modis_data = data_dict[key]
                     modis_data[modis_data<0] = 0
-                    got_cloudsat_modis_flag = True
                     acu["n_clear_clear_cal_MODIS"] += modis_data[0]
                     acu["n_clear_cloudy_cal_MODIS"] += modis_data[1]
                     acu["n_cloudy_clear_cal_MODIS"] += modis_data[2]
@@ -157,6 +179,7 @@ class OrrbStats():
                     acu["n_water_ice_cal"] += cal_data[2]
                     acu["n_water_water_cal"] += cal_data[3]
 
+            # Accumulate CALIOP statistics AMSRE
             for key in data_dict.keys():
                 if  key in lwp_stats_labels:
                     cal_data = data_dict[key]
@@ -193,6 +216,7 @@ class OrrbStats():
                     acu["n_medium_clear"] += cal_data_missed[4]
                     acu["n_high_clear"] += cal_data_missed[5]    
                     acu["n_cirrus_clear"] += cal_data_missed[6]
+
             # Accumulate CALIOP/ISS/CLOUDSAT statistics CTH
             for key in data_dict.keys(): 
                 if "HEIGHT" not in key:

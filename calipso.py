@@ -111,7 +111,7 @@ def match_calipso_avhrr(values,
 def get_calipso(filename, res, ALAY=False):
     from scipy import ndimage
     # Read CALIPSO Lidar (CALIOP) data:
-    cal = read_calipso(filename, res, ALAY=ALAY)
+    cal = read_calipso(filename)
     cal = add_validation_ctth_calipso(cal)
     if res == 1 and not ALAY:
         lon = cal.longitude.ravel()
@@ -138,13 +138,34 @@ def get_calipso(filename, res, ALAY=False):
         # Strange - this will give 0 cloud fraction in points with no data, wouldn't it????/KG
     return cal
 
-def read_calipso_the_single_shot_info(retv, h5file):
+
+#READING DATA FROM CALIOP:
+scip_these_larger_variables_until_needed = {
+    # if any of these are needed just rempve them from the dictionary!
+    "Spacecraft_Position": True, #3D-variable
+    #2-D variable with second dimension larger than 40:
+    "Attenuated_Backscatter_Statistics_1064" : True,
+    "Attenuated_Backscatter_Statistics_532" : True,
+    "Attenuated_Total_Color_Ratio_Statistics" : True,
+    "Volume_Depolarization_Ratio_Statistics" : True,
+    "Particulate_Depolarization_Ratio_Statistics" : True,
+    "Cirrus_Shape_Parameter" : True,
+    "Cirrus_Shape_Parameter_Invalid_Points" : True,
+    "Cirrus_Shape_Parameter_Uncertainty" : True
+}
+atrain_match_names = {
+    #Use version 3 "nsidc_surface_type" as name for sea/ice info
+    "Snow_Ice_Surface_Type": "nsidc_surface_type",
+    #Add "_tai" to the profile_time name to not forget it is tai time           
+    "Profile_Time": "profile_time_tai"}
+
+def rearrange_calipso_the_single_shot_info(retv, singleshotdata):
+
     # Extract number of cloudy single shots (max 15)
     # plus average cloud base and top
     # in 5 km FOV
-    logger.info("Reading single shot information")
     name = "ssNumber_Layers_Found"
-    data = h5file["Single_Shot_Detection/ssNumber_Layers_Found"].value
+    data = singleshotdata[name]
     data = np.array(data)
     data_reshaped_15 = data.reshape(-1,15)
     single_shot_cloud_cleared_array = np.sum(data_reshaped_15==0,axis=1) #Number of clear
@@ -153,7 +174,7 @@ def read_calipso_the_single_shot_info(retv, h5file):
     #pdb.set_trace()
     setattr(retv, name, np.array(single_shot_cloud_cleared_array))
     #We need also average cloud top and cloud base for single_shot clouds
-    data = h5file["Single_Shot_Detection/ssLayer_Base_Altitude"].value
+    data = singleshotdata["ssLayer_Base_Altitude"]
     data = np.array(data)
     data_reshaped_5 = data.reshape(-1,5)
     base_array = data_reshaped_5[:,0]
@@ -164,7 +185,7 @@ def read_calipso_the_single_shot_info(retv, h5file):
                          -9.0) #Calculate average cloud base
     name = "Average_cloud_base_single_shots"
     setattr(retv, name, base_mean)
-    data = h5file["Single_Shot_Detection/ssLayer_Top_Altitude"].value
+    data = singleshotdata["ssLayer_Top_Altitude"]
     data = np.array(data)
     data_reshaped_5 = data.reshape(-1,5)
     top_array = data_reshaped_5[:,0]
@@ -179,7 +200,7 @@ def read_calipso_the_single_shot_info(retv, h5file):
     #extract less information for 1km matching
     if RESOLUTION == 1:
         # create 1km  singel shot cfc
-        data = h5file["Single_Shot_Detection/ssNumber_Layers_Found"].value
+        data = singleshotdata["ssNumber_Layers_Found"]
         data = np.array(data).reshape(-1,3)
         data_reshaped_3 = data.reshape(-1,3)
         single_shot_num_clear_array = np.sum(data_reshaped_3==0,axis=1) #Number of clear
@@ -189,40 +210,95 @@ def read_calipso_the_single_shot_info(retv, h5file):
         setattr(retv, name, cfc_single_shots)
     return retv
 
-def read_calipso(filename, res, ALAY=False):
-    import h5py
+def read_calipso(filename):
     logger.debug("Reading file %s", filename)
-    scip_these_larger_variables_until_needed = {
-        # if any of these are needed just rempve them from the dictionary!
-        "Spacecraft_Position": True, #3D-variable
-        #2-D variable with second dimension larger than 40:
-        "Attenuated_Backscatter_Statistics_1064" : True,
-        "Attenuated_Backscatter_Statistics_532" : True,
-        "Attenuated_Total_Color_Ratio_Statistics" : True,
-        "Volume_Depolarization_Ratio_Statistics" : True,
-        "Particulate_Depolarization_Ratio_Statistics" : True,
-        "Cirrus_Shape_Parameter" : True,
-        "Cirrus_Shape_Parameter_Invalid_Points" : True,
-        "Cirrus_Shape_Parameter_Uncertainty" : True
-        }
-    atrain_match_names = {
-        #Use version 3 "nsidc_surface_type" as name for sea/ice info
-        "Snow_Ice_Surface_Type": "nsidc_surface_type",
-        #Add "_tai" to the profile_time name to not forget it is tai time           
-        "Profile_Time": "profile_time_tai"}
     retv = CalipsoObject()
     if filename is not None:
+        if "hdf" in filename:
+            retv = read_calipso_hdf4(filename, retv)
+        else:
+            retv = read_calipso_h5(filename, retv)
+    #Adopt some variables     
+    dsec = tm.mktime((1993,1,1,0,0,0,0,0,0)) - tm.timezone
+    #1km
+    if retv.profile_time_tai.shape == retv.number_layers_found.shape: 
+        retv.latitude = retv.latitude[:,0]
+        retv.longitude = retv.longitude [:,0]
+        retv.profile_time_tai = retv.profile_time_tai[:,0]
+        # Elevation is given in km's. Convert to meters:
+        retv.elevation = retv.dem_surface_elevation[:,0]*1000.0 
+    #5km
+    else:
+        retv.latitude = retv.latitude[:,1]
+        retv.longitude = retv.longitude[:,1] 
+        retv.profile_time_tai = retv.profile_time_tai[:,1]
+        # Elevation is given in km's. Convert to meters:
+        retv.elevation = retv.dem_surface_elevation[:,2]*1000.0    
+    setattr(retv, "sec_1970", retv.profile_time_tai + dsec)
+    return retv        
+
+def read_calipso_hdf4(filename, retv):
+    from pyhdf.SD import SD, SDC
+    from pyhdf.HDF import HDF, HC
+    import pyhdf.VS 
+    def convert_data(data):
+        if len(data.shape) == 2:
+            if data.shape[1] == 1:
+                return data[:, 0]
+            elif data.shape[0] == 1:
+                return data[0, :]
+        return data
+    if filename is not None:
+        h4file = SD(filename, SDC.READ)
+        datasets = h4file.datasets()
+        attributes = h4file.attributes()
+        singleshotdata = {}
+        for idx, dataset in enumerate(datasets.keys()):
+            #non-goups
+            if dataset in scip_these_larger_variables_until_needed.keys():        
+                continue
+            elif dataset[0:8] == 'Surface_':
+                continue
+            if dataset in ["ssNumber_Layers_Found", 
+                           "ssLayer_Base_Altitude", 
+                           "ssLayer_Top_Altitude"]:
+                singleshotdata[dataset] = h4file.select(dataset).get()
+            if dataset[0:2] == "ss":
+                #already saved temporarly what we need
+                continue            
+            name = dataset.lower()
+            #print idx, dataset
+            if dataset in atrain_match_names.keys():
+                name = atrain_match_names[dataset]
+            data = np.array(h4file.select(dataset).get())
+            setattr(retv, name, data) 
+        if "ssNumber_Layers_Found" in singleshotdata.keys():
+            # Extract number of cloudy single shots (max 15)
+            # plus average cloud base and top
+            # in 5 km FOV
+            logger.info("Reading single shot information")
+            retv = rearrange_calipso_the_single_shot_info(
+                retv,
+                singleshotdata)
+    return retv 
+
+def read_calipso_h5(filename):
+    import h5py
+    if filename is not None:
         h5file = h5py.File(filename, 'r')
+        if "Single_Shot_Detection" in h5file.keys():
+            # Extract number of cloudy single shots (max 15)
+            # plus average cloud base and top
+            # in 5 km FOV
+            logger.info("Reading single shot information")
+            retv = rearrange_calipso_the_single_shot_info(
+                retv, 
+                {"ssNumber_Layers_Found": h5file["Single_Shot_Detection/ssNumber_Layers_Found"].value,
+                 "ssLayer_Base_Altitude": h5file["Single_Shot_Detection/ssLayer_Base_Altitude"].value,
+                 "ssLayer_Top_Altitude": h5file["Single_Shot_Detection/ssLayer_Top_Altitude"].value})
         for dataset in h5file.keys():
-            if dataset == "Lidar_Surface_Detection": # New group V4
-                continue
-            if dataset == "Single_Shot_Detection": # New group V4
-                # Extract number of cloudy single shots (max 15)
-                # plus average cloud base and top
-                # in 5 km FOV
-                retv = read_calipso_the_single_shot_info(retv, h5file)
-                continue
-            if dataset in "metadata_t":
+            if dataset in ["Lidar_Surface_Detection", # New group V4
+                           "metadata_t"]:
                 continue
             if dataset in scip_these_larger_variables_until_needed.keys():
                 continue
@@ -232,25 +308,7 @@ def read_calipso(filename, res, ALAY=False):
             data = h5file[dataset].value
             data = np.array(data)
             setattr(retv, name, data) 
-        #Adopt some variables     
-        dsec = tm.mktime((1993,1,1,0,0,0,0,0,0)) - tm.timezone
-        if retv.profile_time_tai.shape == retv.number_layers_found.shape:
-            retv.latitude = retv.latitude[:,0]
-            retv.longitude = retv.longitude [:,0]
-            retv.profile_time_tai = retv.profile_time_tai[:,0]
-            # Elevation is given in km's. Convert to meters:
-            retv.elevation = retv.dem_surface_elevation[:,0]*1000.0 
-        else:
-            retv.latitude = retv.latitude[:,1]
-            retv.longitude = retv.longitude[:,1] 
-            retv.profile_time_tai = retv.profile_time_tai[:,1]
-            # Elevation is given in km's. Convert to meters:
-            retv.elevation = retv.dem_surface_elevation[:,2]*1000.0    
-        setattr(retv, "sec_1970", retv.profile_time_tai + dsec)
         h5file.close()
-        #for array_name, array in retv.all_arrays.items():
-        #    if getattr(retv, array_name) is not None and len(array.shape)==2 and array.shape[1]==1:
-        #        setattr(retv,array_name, array.ravel())
     return retv  
 
 def discardCalipsoFilesOutsideTimeRange(calipsofiles_list, avhrrGeoObj, values, res=RESOLUTION, ALAY=False):

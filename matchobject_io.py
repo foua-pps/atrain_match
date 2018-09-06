@@ -130,6 +130,7 @@ class ppsAvhrrObject(DataObject):
             'cloudtype': None,
             'cloudmask': None,
             'cma_aerosolflag':None,
+            'cma_prob': None,
             'cma_testlist0':None,
             'cma_testlist1':None,
             'cma_testlist2':None,
@@ -834,6 +835,7 @@ the_used_variables = [
     'ctth_opaque',  # True if opaque retrieval was applied
     'cloudtype',
     'cloudmask',
+    'cma_prob',
     'cma_aerosolflag',
     'cma_testlist0',
     'cma_testlist1',
@@ -841,6 +843,7 @@ the_used_variables = [
     'cma_testlist3',
     'cma_testlist4',
     'cma_testlist5',
+    'cma_prob',
     'cpp_cot',
     'cpp_cwp',
     'cpp_dcot',

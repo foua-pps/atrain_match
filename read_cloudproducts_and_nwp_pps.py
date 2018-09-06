@@ -8,7 +8,7 @@ import calendar
 from datetime import datetime
 logger = logging.getLogger(__name__)
 from config import (NODATA, PPS_FORMAT_2012_OR_EARLIER,  CTTH_TYPES, 
-                    CMA_PROB_VALIDATION, CMA_PROB_CLOUDY_LIMIT, RESOLUTION)
+                    RESOLUTION)
 from runutils import do_some_geo_obj_logging
 from common import InputError
 ATRAIN_MATCH_NODATA = NODATA
@@ -343,38 +343,38 @@ def read_cma_h5(filename):
     cma = CmaObj()
     if 'cma_extended' not in h5file.keys():
         if 'cloud_probability' in h5file.keys():
-            logger.error("Probably you shold set CMAP_PROB_VALIDATION=True!")
+            logger.error("This CMA-file seem lika a CMAPROB file!")
     cma.cma_ext = h5file['cma_extended'].value
     #try KeyError 'cma'
     h5file.close()
     return cma
 
-def read_cmaprob_h5(filename):
+def read_cmaprob_h5(filename, cma):
     h5file = h5py.File(filename, 'r')
-    cma = CmaObj()
+    if cma is None:
+        cma = CmaObj()
     if 'cma_extended' in h5file.keys():
         if 'cloud_probability' not in h5file.keys():
-            logger.error("\n Note: CMAP_PROB_VALIDATION=True!"
-                         "\n This file looks lika a normal CMA-file %s", filename)
+            logger.error("\n This file looks like a normal CMA-file (not CMAPROB) %s", filename)
     cma.cma_prob = h5file['cloud_probability'].value
-    cma.cma_ext = 0*cma.cma_prob
-    cma.cma_ext[cma.cma_prob>=CMA_PROB_CLOUDY_LIMIT] = 1.0
-    cma.cma_ext[cma.cma_prob<0] = -9
+    #cma.cma_ext = 0*cma.cma_prob
+    #cma.cma_ext[cma.cma_prob>=CMA_PROB_CLOUDY_LIMIT] = 1.0
+    #cma.cma_ext[cma.cma_prob<0] = -9
     #try KeyError 'cma'
     h5file.close()
     return cma
 
-def read_cmaprob_nc(filename):
+def read_cmaprob_nc(filename, cma):
     pps_nc = netCDF4.Dataset(filename, 'r', format='NETCDF4')
-    cma = CmaObj()
+    if cma is None:
+        cma = CmaObj()
     if 'cma_extended' in pps_nc.variables.keys():
         if 'cmaprob' not in pps_nc.variables.keys():
-            logger.error("\n Note: CMAP_PROB_VALIDATION=True!"
-                         "\n This file looks lika a normal CMA-file %s", filename)
+            logger.error("\n This file looks not like a CMAPROB-file like a normal CMA-file %s", filename)
     cma.cma_prob = pps_nc.variables['cmaprob'][0,:,:]
-    cma.cma_ext = 0*cma.cma_prob
-    cma.cma_ext[cma.cma_prob>=CMA_PROB_CLOUDY_LIMIT] = 1.0
-    cma.cma_ext[cma.cma_prob==65535] = -9
+    #cma.cma_ext = 0*cma.cma_prob
+    #cma.cma_ext[cma.cma_prob>=CMA_PROB_CLOUDY_LIMIT] = 1.0
+    #cma.cma_ext[cma.cma_prob==65535] = -9
     #try KeyError 'cma'
     pps_nc.close()
     return cma
@@ -1006,21 +1006,26 @@ def pps_read_all(pps_files, avhrr_file):
         else:            
             cpp = read_cpp_h5(pps_files.cpp)
     logger.debug("%s, %s, %s", pps_files.cloudtype, pps_files.ctth, pps_files.cma)
-    if CMA_PROB_VALIDATION:
-        logger.info("Read PPS Cloud mask prob")
-        if '.nc' in pps_files.cma:
-            cma = read_cmaprob_nc(pps_files.cma)
-        else:
-            cma = read_cmaprob_h5(pps_files.cma)
-    else:    
+
+    cma = None
+    if pps_files.cma is not None:
         logger.info("Read PPS Cloud mask")
         logger.debug(pps_files.cma )
-        if pps_files.cma is None:
-            cma = None
-        elif '.nc' in pps_files.cma:
+        if '.nc' in pps_files.cma:
             cma = read_cma_nc(pps_files.cma)
         else:
-            cma = read_cma_h5(pps_files.cma)        
+            cma = read_cma_h5(pps_files.cma)  
+    #CMAPROB
+    if pps_files.cmaprob is None:
+        pass
+    else:
+        logger.info("Read PPS Cloud mask prob")
+        if '.nc' in pps_files.cmaprob:
+            cma = read_cmaprob_nc(pps_files.cmaprob, cma)
+        else:
+            cma = read_cmaprob_h5(pps_files.cmaprob, cma)
+
+      
     logger.info("Read PPS Cloud type")
     if pps_files.cloudtype is None:
         ctype = None

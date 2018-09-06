@@ -90,7 +90,7 @@ def read_cloudsat_hdf4(filename):
     #for idx,attr in enumerate(attributes.keys()):
     #    print idx, attr
     for idx,sds in enumerate(datasets.keys()):
-        #print idx, sds
+        #2D data, print idx, sds 
         data = h4file.select(sds).get()
         #print h4file.select(sds).attributes().keys()
         retv.all_arrays[sds] = convert_data(data)
@@ -99,6 +99,7 @@ def read_cloudsat_hdf4(filename):
     vs = h4file.vstart()
     data_info_list = vs.vdatainfo()
     for item in data_info_list:
+        #1D data compound/Vdata
         name = item[0]
         data_handle = vs.attach(name)
         data = np.array(data_handle[:])
