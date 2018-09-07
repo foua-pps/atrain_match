@@ -42,7 +42,7 @@ class CloudFractionStats(OrrbStats):
             pod_clear_prob = [100.0/Num_clear_tot*
                               np.sum(n_clear_cmaprob[max_prob<limit])                                                  
                               for limit in limit_v]
-            hitrate_prob = [100.0/(Num_cloudy_tot+Num_clear_tot)*
+            hitrate_prob = [1.0/(Num_cloudy_tot+Num_clear_tot)*
                             (np.sum(n_cloudy_cmaprob[min_prob>=limit]) + 
                              np.sum(n_clear_cmaprob[max_prob<limit]))
                             for limit in limit_v]
@@ -159,7 +159,7 @@ class CloudFractionStats(OrrbStats):
             lines.append("Results for CMAPROB")   
             lines.append('Limit  POD-cloudy  POD-clear  Hitrate(%)  Kuipers   ')   
             for ind, limit in enumerate(self.min_prob):
-                lines.append("L{:3.0f}: {:9.2f} {:9.2f} {:9.2f} {:9.3f}".format(
+                lines.append("L{:3.0f}: {:9.2f} {:9.2f} {:9.3f} {:9.3f}".format(
                     limit,
                     self.pod_cloudy_prob[ind],  
                     self.pod_clear_prob[ind],
