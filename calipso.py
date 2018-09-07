@@ -299,7 +299,8 @@ def read_calipso_h5(filename, retv):
         for dataset in h5file.keys():
             if dataset in ["Lidar_Surface_Detection", # New group V4
                            "Single_Shot_Detection", #Handeled above
-                           "metadata_t"]: 
+                           "metadata_t", 
+                           "metadata"]: 
                 #skip all groups
                 continue
             if dataset in scip_these_larger_variables_until_needed.keys():
