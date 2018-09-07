@@ -261,20 +261,24 @@ def get_semi_opaque_info(caObj):
 """
 
 def find_imager_clear_cloudy(cObj):
-    imager_clear =np.logical_and(np.less_equal(cObj.avhrr.cloudtype,4),np.greater(cObj.avhrr.cloudtype,0))
-    imager_cloudy = np.logical_and(np.greater(cObj.avhrr.cloudtype,4),np.less(cObj.avhrr.cloudtype,20))
     if config.USE_CMA_FOR_CFC_STATISTICS:
         imager_clear = np.logical_or(np.equal(cObj.avhrr.cloudmask,3),
                                      np.equal(cObj.avhrr.cloudmask,0))
         imager_cloudy = np.logical_or(np.equal(cObj.avhrr.cloudmask,1),
                                       np.equal(cObj.avhrr.cloudmask,2))
-    if config.CMA_PROB_VALIDATION and 1==2:  
+    elif config.USE_CT_FOR_CFC_STATISTICS:
+        imager_clear =np.logical_and(np.less_equal(cObj.avhrr.cloudtype,4),np.greater(cObj.avhrr.cloudtype,0))
+        imager_cloudy = np.logical_and(np.greater(cObj.avhrr.cloudtype,4),np.less(cObj.avhrr.cloudtype,20))
+    elif config.USE_CMAPROB_FOR_CFC_STATISTICS:
         CMA_PROB_CLOUDY_LIMIT = config.CMA_PROB_CLOUDY_LIMIT
         imager_clear = np.logical_and(np.less(cObj.avhrr.cma_prob,CMA_PROB_CLOUDY_LIMIT),
                                      np.greater_equal(cObj.avhrr.cma_prob,0))
         imager_cloudy = np.logical_and(np.greater_equal(cObj.avhrr.cma_prob,CMA_PROB_CLOUDY_LIMIT),
                                       np.less_equal(cObj.avhrr.cma_prob,100.0))
     
+    else: 
+        raise ProcessingError("You need at least one of USE_*_FOR_CFC_STATISICS"
+                              " in config.py to True.") 
     return imager_clear, imager_cloudy
 
 def find_truth_clear_cloudy(cObj, val_subset):

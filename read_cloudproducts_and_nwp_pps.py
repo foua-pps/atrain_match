@@ -357,10 +357,6 @@ def read_cmaprob_h5(filename, cma):
         if 'cloud_probability' not in h5file.keys():
             logger.error("\n This file looks like a normal CMA-file (not CMAPROB) %s", filename)
     cma.cma_prob = h5file['cloud_probability'].value
-    #cma.cma_ext = 0*cma.cma_prob
-    #cma.cma_ext[cma.cma_prob>=CMA_PROB_CLOUDY_LIMIT] = 1.0
-    #cma.cma_ext[cma.cma_prob<0] = -9
-    #try KeyError 'cma'
     h5file.close()
     return cma
 
@@ -372,10 +368,6 @@ def read_cmaprob_nc(filename, cma):
         if 'cmaprob' not in pps_nc.variables.keys():
             logger.error("\n This file looks not like a CMAPROB-file like a normal CMA-file %s", filename)
     cma.cma_prob = pps_nc.variables['cmaprob'][0,:,:]
-    #cma.cma_ext = 0*cma.cma_prob
-    #cma.cma_ext[cma.cma_prob>=CMA_PROB_CLOUDY_LIMIT] = 1.0
-    #cma.cma_ext[cma.cma_prob==65535] = -9
-    #try KeyError 'cma'
     pps_nc.close()
     return cma
 
@@ -997,16 +989,17 @@ def pps_read_all(pps_files, avhrr_file):
     else:
         avhrrObj = readImagerData_h5(avhrr_file)
 
-    if pps_files.cpp is None:
-        cpp = None
-    else:
+    logger.debug("%s, %s, %s", pps_files.cloudtype, pps_files.ctth, pps_files.cma)
+
+    #CPP
+    cpp = None
+    if pps_files.cpp is not None:
         logger.info("Read CPP data")
         if '.nc' in pps_files.cpp:          
             cpp = read_cpp_nc(pps_files.cpp)
         else:            
-            cpp = read_cpp_h5(pps_files.cpp)
-    logger.debug("%s, %s, %s", pps_files.cloudtype, pps_files.ctth, pps_files.cma)
-
+            cpp = read_cpp_h5(pps_files.cpp)    
+    #CMA
     cma = None
     if pps_files.cma is not None:
         logger.info("Read PPS Cloud mask")
@@ -1016,31 +1009,29 @@ def pps_read_all(pps_files, avhrr_file):
         else:
             cma = read_cma_h5(pps_files.cma)  
     #CMAPROB
-    if pps_files.cmaprob is None:
-        pass
-    else:
+    if pps_files.cmaprob is not None:
         logger.info("Read PPS Cloud mask prob")
         if '.nc' in pps_files.cmaprob:
             cma = read_cmaprob_nc(pps_files.cmaprob, cma)
         else:
             cma = read_cmaprob_h5(pps_files.cmaprob, cma)
-
-      
-    logger.info("Read PPS Cloud type")
-    if pps_files.cloudtype is None:
-        ctype = None
-    elif '.nc' in pps_files.cloudtype:
-        ctype = read_cloudtype_nc(pps_files.cloudtype)
-    else:
-        ctype = read_cloudtype_h5(pps_files.cloudtype)
-    logger.info("Read PPS CTTH")
-    if len(pps_files.ctth.keys())<1:
-        ctth = None
-    elif '.nc' in pps_files.ctth[CTTH_TYPES[0]]:
-        #read first ctth as primary one
-        ctth = read_ctth_nc(pps_files.ctth[CTTH_TYPES[0]])
-    else:            
-        ctth = read_ctth_h5(pps_files.ctth[CTTH_TYPES[0]])
+    #CTYPE
+    ctype = None
+    if pps_files.cloudtype is not None:
+        logger.info("Read PPS Cloud type")        
+        if '.nc' in pps_files.cloudtype:
+            ctype = read_cloudtype_nc(pps_files.cloudtype)
+        else:
+            ctype = read_cloudtype_h5(pps_files.cloudtype)
+    #CTTH        
+    ctth = None
+    if len(pps_files.ctth.keys())>=1:
+        logger.info("Read PPS CTTH")
+        if '.nc' in pps_files.ctth[CTTH_TYPES[0]]:
+            #read first ctth as primary one
+            ctth = read_ctth_nc(pps_files.ctth[CTTH_TYPES[0]])
+        else:            
+            ctth = read_ctth_h5(pps_files.ctth[CTTH_TYPES[0]])
 
     logger.info("Read PPS full resolution intermediate files")
     nwp_obj = read_all_intermediate_files(pps_files)

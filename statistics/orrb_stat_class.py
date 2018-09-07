@@ -142,7 +142,7 @@ class OrrbStats():
                     acu["n_clear_cloudy_cal"] += cal_data[1]
                     acu["n_cloudy_clear_cal"] += cal_data[2]
                     acu["n_cloudy_cloudy_cal"] += cal_data[3]
-                if  key in cfcprob_stats_labels_clear:
+                if  key in cfcprob_stats_labels_step:
                     if "step_cmaprob" not in acu.keys():
                         acu["step_cmaprob"] = cal_data[0] 
                     elif acu["step_cmaprob"] != cal_data[0]:

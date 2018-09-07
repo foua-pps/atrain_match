@@ -398,6 +398,31 @@ def get_pps_file(avhrr_file, options, values, type_of_file, file_dir,
             logger.info("No %s file found corresponding to %s.", type_of_file, avhrr_file)
             return None
 
+def check_cfc_configuration(file_name_dict):
+    if  (file_name_dict['cma'] is None and 
+         file_name_dict['cloudtype'] is None and 
+         file_name_dict['cmaprob'] is None):
+        raise MatchupError("No cma, cloudtype or cmaprob file "
+                           "found atrain_match.cfg")
+    if (config.USE_CT_FOR_CFC_STATISTICS and 
+        file_name_dict['cloudtype'] is None):   
+        logger.error(
+            "\n\tError: USE_CT_FOR_CFC_STATISTICS=True, but ..."
+            "\n\t... no cloudtype file in atrain_match.cfg")
+        raise MatchupError("Configure problems, see messages above.")
+    if (config.USE_CMA_FOR_CFC_STATISTICS and 
+        file_name_dict['cma'] is None):   
+        logger.error(
+            "\n\tError: USE_CMA_FOR_CFC_STATISTICS=True, but..."
+            "\n\t... no cma file in atrain_match.cfg")
+        raise MatchupError("Configure problems, see messages above.")
+    if (config.USE_CMAPROB_FOR_CFC_STATISTICS and 
+        file_name_dict['cmaprob'] is None):   
+        logger.error(
+            "\n\tError: USE_CMAPROB_FOR_CFC_STATISTICS=True, but..."
+            "\n\t... no cmaprob file in atrain_match.cfg")
+        raise MatchupError("Configure problems, see messages above.")
+
 def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
     """
     Find all files needed to process matchup from source data files.
@@ -409,25 +434,17 @@ def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
                                                  as_oldstyle=as_oldstyle)
     date_time = values["date_time"]
     file_name_dict={}
-    cma_file =  get_pps_file(avhrr_file, options, values, 
+    file_name_dict['cma'] =  get_pps_file(avhrr_file, options, values, 
                              'cma_file', 'cma_dir', 
                              FailIfRequestedAndMissing=True)
-    cloudtype_file = get_pps_file(avhrr_file, options, values, 
+    file_name_dict['cloudtype'] = get_pps_file(avhrr_file, options, values, 
                                   'cloudtype_file', 'cloudtype_dir', 
                                   FailIfRequestedAndMissing=True)
-    #Check configuration
-    if cma_file is None and cloudtype_file is None:
-        raise MatchupError("No cma or cloudtype file found atrain_match.cfg")
-    if not config.USE_CMA_FOR_CFC_STATISTICS and cloudtype_file is None:   
-        logger.error(
-            "\n\tProbably you should set USE_CMA_FOR_CFC_STATISTICS=True!"
-            "\n\tAs you have no cloudtype file in atrain_match.cfg")
-        raise MatchupError("Configure problems, see messages above.")
-    if config.USE_CMA_FOR_CFC_STATISTICS and cma_file is None:   
-            logger.error(
-                "\n\tProbably you should set USE_CMA_FOR_CFC_STATISTICS=False!"
-                "\n\tAs you have no cma file in atrain_match.cfg")
-            raise MatchupError("Configure problems, see messages above.")
+    file_name_dict['cmaprob'] = get_pps_file(avhrr_file, options, values, 'cmaprob_file', 'cmaprob_dir', 
+                                         FailIfRequestedAndMissing=True) 
+    #Check cfc configuration
+    check_cfc_configuration(file_name_dict)
+    # For CTTH can have several files:    
     ctth_files = {}
     if 'ctth_file' in options.keys():   
         for ctth_type in config.CTTH_TYPES:
@@ -435,11 +452,8 @@ def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
             ctth_files[ctth_type] = get_pps_file(avhrr_file, options, values, 
                                                  'ctth_file', 'ctth_dir', 
                                                  FailIfRequestedAndMissing=True)
-    file_name_dict.update({'cloudtype': cloudtype_file,
-                           'cma': cma_file,
-                           'ctth': ctth_files})
-    file_name_dict['cmaprob'] = get_pps_file(avhrr_file, options, values, 'cmaprob_file', 'cmaprob_dir', 
-                                         FailIfRequestedAndMissing=True) 
+    file_name_dict.update({'ctth': ctth_files})
+
     file_name_dict['cpp'] = get_pps_file(avhrr_file, options, values, 'cpp_file', 'cpp_dir', 
                                          FailIfRequestedAndMissing=True)                         
     file_name_dict['sunsatangles'] = get_pps_file(avhrr_file, options, values, 'sunsatangles_file', 
@@ -1398,11 +1412,13 @@ def run(cross, run_modes, config_options, reprocess=False):
     if sensor.lower() != IMAGER_INSTRUMENT.lower() :
         logger.error("Uncertain of sensor: %s or %s?", 
                      sensor.upper(), IMAGER_INSTRUMENT.upper())
-    if not config.USE_CMA_FOR_CFC_STATISTICS and config.CMA_PROB_VALIDATION:
+    if (not config.USE_CMA_FOR_CFC_STATISTICS and 
+        not config.USE_CT_FOR_CFC_STATISTICS and
+        not config.USE_CMAPROB_FOR_CFC_STATISTICS):
         logger.error(
-            "\n\tProbably you should set USE_CMA_FOR_CFC_STATISTICS=True!"
-            "\n\tAs you are validation CMA-prob you should not use CT-file"
-            "for CFC-statistics")
+            "\n###########################"
+            "\n\tSet one of USE_*_FOR_CFC_STATISTICS=True in config.py!"
+            "\n###########################")
         raise MatchupError("Configure problems, see messages above.")
 
     #Get the data that we need:

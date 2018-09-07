@@ -25,8 +25,16 @@ USE_EXISTING_RESHAPED_FILES =  str2bool(
   os.environ.get('USE_EXISTING_RESHAPED_FILES', False))
 WRITE_ONLY_THE_MOST_IMPORTANT_STUFF_TO_FILE = True #to reduce disk usage
 
-#: Use cloudmask to build cloud cover statistics. Traditionally CT was used.
-USE_CMA_FOR_CFC_STATISTICS = True 
+#========== Choose CFC stats input ==========#
+# Note: CT and CMAPROB is have sepearate statistics.
+# But if the normal CMA file is missing it is possible
+# to use CMAPROB or CT for the overall global cfc statistics.
+# Traditionally CT was always used.
+USE_CMA_FOR_CFC_STATISTICS = True #Normally True
+USE_CT_FOR_CFC_STATISTICS = False #Normally False, traditionally True
+USE_CMAPROB_FOR_CFC_STATISTICS = False #Only True if CMA and CT files are missing!
+# Note CMA-prob validated with
+CMA_PROB_CLOUDY_LIMIT = 50 #50% cloudy => cloud, only active if CMA_PROB_VALIDATION
 
 #========== Important time settings ==========#
 #: Constant: Approximate duration of a satellite orbit in seconds 
@@ -50,7 +58,7 @@ CCI_CLOUD_VALIDATION = str2bool(os.environ.get('CCI_CLOUD_VALIDATION', False))
 MAIA_CLOUD_VALIDATION = str2bool(os.environ.get('MAIA_CLOUD_VALIDATION', False))
 #: Turn off ISS and CLOUDSAT matching if never used
 CALIPSO_MATCHING = True  #Notice can not be False if CALIPSO_REQUIRED = True
-CLOUDSAT_MATCHING = False #Notice can not be False if CLOUDSAT_REQUIRED = True
+CLOUDSAT_MATCHING = True #Notice can not be False if CLOUDSAT_REQUIRED = True
 ISS_MATCHING = False      #Notice can not be False if ISS_REQUIRED = True
 AMSR_MATCHING = True    #Notice can not be False if AMSR_REQUIRED = True
 
@@ -172,11 +180,6 @@ for surface in PROCESS_SURFACES:
 for mode in list(ALLOWED_MODES):
   for DNT in ['_DAY', '_NIGHT', '_TWILIGHT']:
     ALLOWED_MODES.append(mode + DNT) 
-
-#========== Currently not used ==========#
-# Note CMA-prob validated with
-CMA_PROB_VALIDATION = False #Should be FALSE
-CMA_PROB_CLOUDY_LIMIT = 50   #50% cloudy => cloud,
     
 #========== Often not changed ==========#
 AREA = "no_area" #matching are no longer done for an area
