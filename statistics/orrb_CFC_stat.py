@@ -24,38 +24,47 @@ class CloudFractionStats(OrrbStats):
 
         if "step_cmaprob" in self.ac_data.keys ():
             step_cmaprob = int(self.ac_data["step_cmaprob"])
-            n_clear_cmaprob = self.ac_data["n_clear_cmaprob"]
-            n_cloudy_cmaprob = self.ac_data["n_cloudy_cmaprob"]        
+            n_clear_cmaprob = np.array(self.ac_data["n_clear_cmaprob"])
+            n_cloudy_cmaprob = np.array(self.ac_data["n_cloudy_cmaprob"])        
             min_prob = np.array([percent*1.0 for percent in xrange(0,100,step_cmaprob)])
             max_prob = np.array([percent*1.0 for percent in xrange(step_cmaprob,100 + step_cmaprob,step_cmaprob)])
             limit_v =  np.array([percent*1.0 for percent in xrange(0,101,step_cmaprob)])
-            max_prob[-1] = 101
+            max_prob[-1] = 100
             Num_cloudy_tot = np.sum(n_cloudy_cmaprob)
             Num_clear_tot = np.sum(n_clear_cmaprob)
             percent_cloudy_prob = np.array([100.0/Num_cloudy_tot*np.int(nc) for nc in n_cloudy_cmaprob])
             print percent_cloudy_prob, Num_cloudy_tot, n_cloudy_cmaprob
             percent_clear_prob =  np.array([100.0/Num_clear_tot*np.int(nc)  for nc in n_clear_cmaprob])
             print percent_clear_prob
-            pod_cloudy_prob = [100.0/Num_cloudy_tot*
-                               np.sum(n_cloudy_cmaprob[min_prob>=limit])
-                               for limit in limit_v ]
-            pod_clear_prob = [100.0/Num_clear_tot*
-                              np.sum(n_clear_cmaprob[max_prob<limit])                                                  
-                              for limit in limit_v]
-            hitrate_prob = [1.0/(Num_cloudy_tot+Num_clear_tot)*
-                            (np.sum(n_cloudy_cmaprob[min_prob>=limit]) + 
-                             np.sum(n_clear_cmaprob[max_prob<limit]))
-                            for limit in limit_v]
+            
+
+            detected_clouds = np.array([np.sum(n_cloudy_cmaprob[min_prob>=limit]) for limit in limit_v])
+            undetected_clouds = np.array([np.sum(n_cloudy_cmaprob[min_prob<limit]) for limit in limit_v])
+            detected_clear = np.array([np.sum(n_clear_cmaprob[max_prob<=limit]) for limit in limit_v])
+            false_clouds = np.array([np.sum(n_clear_cmaprob[max_prob>limit]) for limit in limit_v])
+
+            print max_prob
+            print limit_v
+
+            print false_clouds
+            print detected_clear
+            print detected_clouds
+            print undetected_clouds
+
+            pod_cloudy_prob = 100.0/Num_cloudy_tot*detected_clouds
+            pod_clear_prob = 100.0/Num_clear_tot*detected_clear
+            far_cloudy_prob = 100.0*false_clouds/(false_clouds + detected_clouds)
+            far_clear_prob = 100.0*undetected_clouds/(undetected_clouds + detected_clear)
+
+            hitrate_prob = (1.0/(Num_cloudy_tot + Num_clear_tot) * 
+                            (detected_clouds + detected_clear))
             if Num_cloudy_tot*Num_clear_tot ==0:
                 kuipers_prob = [-9  for limit in limit_v]  
             else:    
-                kuipers_prob = [
-                    1.0/(Num_cloudy_tot*Num_clear_tot) *
-                    ( ( np.sum(n_cloudy_cmaprob[min_prob>=limit]) *
-                        np.sum(n_clear_cmaprob[max_prob<limit]) ) -
-                      ( (Num_cloudy_tot - np.sum(n_cloudy_cmaprob[min_prob>=limit]) ) *
-                        (Num_clear_tot  - np.sum(n_clear_cmaprob[max_prob<limit]))))
-                for limit in limit_v]
+                kuipers_prob = (
+                    1.0 *(detected_clouds * detected_clear - undetected_clouds * false_clouds)/
+                    (Num_cloudy_tot*Num_clear_tot)) 
+            
                             
 
         Num = self.ac_data["Num"]
@@ -131,6 +140,8 @@ class CloudFractionStats(OrrbStats):
         if "step_cmaprob" in self.ac_data.keys():
             self.pod_clear_prob = pod_clear_prob
             self.pod_cloudy_prob = pod_cloudy_prob
+            self.far_clear_prob = far_clear_prob
+            self.far_cloudy_prob = far_cloudy_prob
             self.min_prob = min_prob
             self.max_prob = max_prob
             self.hitrate_prob = hitrate_prob
@@ -157,12 +168,14 @@ class CloudFractionStats(OrrbStats):
         lines.append("")
         if "step_cmaprob" in self.ac_data.keys():
             lines.append("Results for CMAPROB")   
-            lines.append('Limit  POD-cloudy  POD-clear  Hitrate(%)  Kuipers   ')   
-            for ind, limit in enumerate(self.min_prob):
-                lines.append("L{:3.0f}: {:9.2f} {:9.2f} {:9.3f} {:9.3f}".format(
+            lines.append('Limit  POD-cloudy  POD-clear FAR-cloudy  FAR-clear Hitrate(%)  Kuipers   ')   
+            for ind, limit in enumerate(np.append(self.min_prob, [100])):
+                lines.append("L{:3.0f}: {:9.2f} {:9.2f} {:9.2f} {:9.2f} {:9.3f} {:9.3f}".format(
                     limit,
                     self.pod_cloudy_prob[ind],  
                     self.pod_clear_prob[ind],
+                    self.far_cloudy_prob[ind],  
+                    self.far_clear_prob[ind],
                     self.hitrate_prob[ind],  
                     self.kuipers_prob[ind]))
             lines.append('CMAPROB-interval   Truth Clouds(%)  Truth Clears(%)')   
