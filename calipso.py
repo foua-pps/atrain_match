@@ -282,7 +282,7 @@ def read_calipso_hdf4(filename, retv):
                 singleshotdata)
     return retv 
 
-def read_calipso_h5(filename):
+def read_calipso_h5(filename, retv):
     import h5py
     if filename is not None:
         h5file = h5py.File(filename, 'r')
