@@ -134,15 +134,16 @@ class OrrbStats():
             # Accumulate CALIOP/ISS/CLOUDSAT/AMSR-E statistics CFC
             for key in data_dict.keys():
                 #If reprocessing old results files make sure to extract the right lines!
-                #Ie do not use CLOUDSAT info when compiling stats for CALIPSO
+                #Ie do not use CLOUDSAT info when compiling stats for CALIPSO   
                 cal_data = data_dict[key]
-                cal_data[cal_data<0] = 0
                 if  key in cfc_stats_labels:
+                    cal_data[cal_data<0] = 0
                     acu["n_clear_clear_cal"] += cal_data[0]
                     acu["n_clear_cloudy_cal"] += cal_data[1]
                     acu["n_cloudy_clear_cal"] += cal_data[2]
                     acu["n_cloudy_cloudy_cal"] += cal_data[3]
                 if  key in cfcprob_stats_labels_step:
+                    
                     if "step_cmaprob" not in acu.keys():
                         acu["step_cmaprob"] = cal_data[0] 
                     elif acu["step_cmaprob"] != cal_data[0]:
