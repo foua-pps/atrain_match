@@ -173,7 +173,7 @@ def print_common_stats(caObj, use, name_dict, mints, maxts, surface_type, illumi
         #print var
         for bit_nr in xrange(0,16):
             if bit_nr not in name_dict[var].keys():
-                #print "not using", var, bit_nr
+                print "not using", var, bit_nr
                 continue   
             test_is_on = get_pixels_where_test_is_passed(
                 caObj.avhrr.all_arrays[var], bit_nr=bit_nr)
@@ -231,9 +231,10 @@ def print_common_stats(caObj, use, name_dict, mints, maxts, surface_type, illumi
                 all_out_text += "%s test_bit: %s"%(var, str(bit_nr).rjust(2,' ') )
 
             clear_test=False    
-            if (var ==  'cma_testlist5' and bit_nr<9) or (var == 'cma_testlist4' and bit_nr>1) or (var ==  'cma_testlist5' and bit_nr>=12) :
+            if (var ==  'cma_testlist5' and bit_nr<9) or (var == 'cma_testlist4' and bit_nr>1) or (var ==  'cma_testlist5' and bit_nr==12)  or (var ==  'cma_testlist5' and bit_nr==13):
                 clear_test=True
-            num_passed =  np.sum(use_this_test)   
+            num_passed =  np.sum(use_this_test)
+            print num_passed, name_dict[var][bit_nr]
             if clear_test and 'now' in name_dict[var][bit_nr] and num_passed>0:
                 all_out_text += "N: %s POD-clear: %s FAR-clear: %s POD-snow: %s FAR_not_clouds %s LOSTsnow %s MISScloudy: %s (%s) %s \n"%(
                     str(num_passed).rjust(8,' '), 
@@ -306,6 +307,9 @@ ROOT_DIR_NPP2 = ("/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
 ROOT_DIR_NPP2 = ("/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
                 "ATRAIN_RESULTS_NPP_fine_snow/Reshaped_Files"
                 "/npp/1km/2015/07/")
+ROOT_DIR_NPP2 = ("/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
+                "ATRAIN_RESULTS_NPP_C4_build15/Reshaped_Files"
+                "/npp/1km/2015/07/")
 ROOT_DIR_GAC9 = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_GAC_tuned_nnAVHRR/Reshaped_Files/noaa18/5km/2009/*/"
 #ROOT_DIR_GAC = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_GAC_thr_wvp/Reshaped_Files/noaa18/5km/2009/*/"
 ROOT_DIR_GAC = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_GAC_rttov12/Reshaped_Files/noaa18/5km/2009/*/"
@@ -329,11 +333,10 @@ ROOT_DIR_GAC = "/home/a001865/DATA_MISC/reshaped_files_jenkins_gac/ATRAIN_RESULT
 #files = glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/*/*h5")
 #files = glob(ROOT_DIR_GAC + "5km/20??/*/*/*h5")
 #files = glob(ROOT_DIR_GAC  + "/*/*h5")
-files = glob(ROOT_DIR_NPP2  + "*/*h5")
 
 files = glob(ROOT_DIR_NPP2 + "*/*h5")
 test_list_file = "/home/a001865/git/acpg_develop/acpg/pges/cloudmask/pps_pge01_cmasktests.h"
-test_list_file = "pps_pge01_cmasktests.h"
+#test_list_file = "pps_pge01_cmasktests.h"
 TEST_NAMEFILE = open(test_list_file, 'r')
 name_dict = {'cma_testlist0': {},
              'cma_testlist1': {},
@@ -363,8 +366,8 @@ for illumination in ["dnt", "day", "night", "twilight"]:
     for surface_type in [ "noemiss_coast","noemiss_land", "land", "sea", "all", "coast", "emiss_land", "emiss_coast"]:
         #for mints, maxts in zip([190, 190, 240, 260,260, 270,280, 290, 280, 300, 320,  190, 270],
         #                        [380,240, 260, 280,270, 280, 290, 300, 300, 320, 380,  270,380 ]): 
-        for mints, maxts in zip([190, 190, 270, 190, 260, 280, 290, 300],
-                                [380, 270, 380, 260, 280, 290, 300, 380 ]):
+        for mints, maxts in zip([190, 190, 270],# 190, 260, 280, 290, 300],
+                                [380, 270, 380]):#, 260, 280, 290, 300, 380 ]):
             pass
             print_common_stats(caObjPPS, use, name_dict, mints, maxts, surface_type, illumination, basename_outfile=basename_outfile)
 #for surface_type in [ "all","land", "sea",]:

@@ -378,7 +378,14 @@ if __name__ == "__main__":
                         "ATRAIN_RESULTS_GAC_v2014_C4/Reshaped_Files/noaa18/")
     ROOT_DIR_GAC_nn = ("/home/a001865/Downloads/"
                        "ATRAIN_RESULTS_NPP_C4_2014/Reshaped_Files/npp/")
-    files = glob(ROOT_DIR_GAC_nn + "1km/2015/*/*/*h5")
+    ROOT_DIR_v2014 = (
+        "/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
+        "ATRAIN_RESULTS_NPP_C4_2014/Reshaped_Files/npp/1km/2015/07/*/")
+    ROOT_DIR_v2018 = (
+        "/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
+        "ATRAIN_RESULTS_NPP_C4/Reshaped_Files/npp/1km/2015/07/*/")
+
+    files = glob(ROOT_DIR_v2018 + "*h5")
    
 
     caObj = CalipsoAvhrrTrackObject()
@@ -390,7 +397,7 @@ if __name__ == "__main__":
     #table_5_per_illumination(caObj)
     plot_ct_table4(caObj)
     plot_ct_table2(caObj)
-    table_21_do_for_atbd_2(caObj)
+    #table_21_do_for_atbd_2(caObj)
     #plot_ct_table3(caObj)
     table_21_do_for_atbd(caObj)
     #plot_ct_table3(caObj)

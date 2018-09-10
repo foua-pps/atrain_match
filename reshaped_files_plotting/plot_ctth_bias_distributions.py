@@ -303,7 +303,7 @@ def print_stats(pltObj, month, day_strm, sat='CLOUDSAT_OR_CALIPSO'):
                                          len(bias_v[high_print])*100/n_all)
 
 def print_data_for_figure_2(pltObj, month, day_str, sat='calipso'):
-    out_filename = "data_fig1_%s.txt"%(month)
+    out_filename = "%s/data_fig1_%s.txt"%(MYPATH,month)
     if sat.lower() in ["cloudsat"]:
         out_file_h = open(out_filename,'w')
     else:
@@ -352,7 +352,7 @@ def print_data_for_figure_2(pltObj, month, day_str, sat='calipso'):
     out_file_h.write("\n") 
 
 def replot_figure2_from_saved_data(month):
-    filename = "data_fig1_%s.txt"%(month)
+    out_filename = "%s/data_fig1_%s.txt"%(MYPATH,month)
     in_file_h = open(filename,'r')
     from matplotlib import rcParams
     rcParams.update({'figure.autolayout': True})
@@ -481,6 +481,7 @@ def replot_figure2_from_saved_data(month):
 
 
 def plot_medium_bias_plot_from_saved_data(month):
+    out_filename = "%s/data_fig1_%s.txt"%(MYPATH,month)
     filename = "data_fig1_%s.txt"%(month)
     in_file_h = open(filename,'r')
     from matplotlib import rcParams
@@ -533,7 +534,7 @@ def plot_medium_bias_plot_from_saved_data(month):
         plt.plot([bias_data[sat][cloudc][imager],bias_data[sat][cloudc][imager]],[0, ylim_bias], color2, label="bias")
         #print bias_data[sat][cloudc]["NN-AVHRR"]
         #plt.show()
-
+        #plt.title("Non Gaussian error distributions ")
         if imager in ["NN-AVHRR"]:
             plt.xlabel(" Retrieved height - %s (km) "%(print_sat))
         if sat in ["cloudsat"]:    
@@ -600,7 +601,6 @@ def plot_medium_bias_plot_from_saved_data(month):
         fig = plt.figure(figsize=(9, 11))
         if cloudc not in ["All"]:
             plt.suptitle(cloudc)
-
         ax = fig.add_subplot(321)
         plot_one(ax, x_data, y_data, median_data, bias_data, std_data, "cloudsat", cloudc, "PPS-v2014", " (a) ", maxx, maxy)#, True)
         ax = fig.add_subplot(323)
@@ -620,8 +620,11 @@ def plot_medium_bias_plot_from_saved_data(month):
 
         plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/CTTH_PLOTS/fig08_bias_median_%s_%s.pdf"%(cloudc, month), bbox_inches='tight')
         plt.close("all")
+        fig = plt.figure(figsize=(9, 11))
+        ax = fig.add_subplot(111)
+        plot_one(ax, x_data, y_data, median_data, bias_data, std_data,  "cloudsat", cloudc, "NN-AVHRR", " (e) ", maxx, maxy,True)
+        plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/CTTH_PLOTS/fig08_bias_median_%s_%s_e.pdf"%(cloudc, month), bbox_inches='tight')
 
-   
 def make_profileplot(pltObj, month, day_str, sat='calipso'):
     print_stats(pltObj, month, day_str, sat=sat)
     print_data_for_figure_2(pltObj, month, day_str, sat=sat)
