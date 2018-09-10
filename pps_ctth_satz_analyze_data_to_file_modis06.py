@@ -145,6 +145,7 @@ def investigate_nn_ctth_satz():
                                      modisfile_template=MODISFILE_TEMPLATE)
         out_file_h.close()
 
+    # calipso från reshaped files:    
     if True:
         for month in ['02','04','06','08','10','12']:
             ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/global_modis_01st_created20180316/Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/%s/"%(month)

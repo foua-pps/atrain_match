@@ -13,7 +13,7 @@ plt.rc('font', family='serif')
 from read_cloudproducts_and_nwp_pps import (read_ctth_nc, read_pps_angobj_nc)
 import matplotlib
 #matplotlib.use("TkAgg")
-
+#
 def read_satz_statistics_files(out_filenames):
     aggregated_data = {}
     for out_filename in out_filenames:
@@ -81,9 +81,9 @@ def plot_pressure_local(out_filenames,PLOT_DIR):
     ax = fig.add_subplot(221)
     plot_one_subplot(aggregated_data, satz_step, pressure_plot,"CTTHold", "CTTH old")
     ax = fig.add_subplot(222)
-    plot_one_subplot(aggregated_data, satz_step, pressure_plot, "CTTHnnAvhrr", "CTTH nn", label=True)
+    plot_one_subplot(aggregated_data, satz_step, pressure_plot, "CTTHnn", "CTTH nn with THR", label=True)
     ax = fig.add_subplot(223)
-    plot_one_subplot(aggregated_data, satz_step, pressure_plot,"CTTHnnAvhrrNoRTTOV", "CTTH nn no THR")
+    plot_one_subplot(aggregated_data, satz_step, pressure_plot,"CTTHnnaNT", "CTTH nn no THR")
     ax = fig.add_subplot(224)
     plot_one_subplot(aggregated_data, satz_step, pressure_plot,"MODIS-C6", "MODIS-C6")
 
@@ -224,7 +224,6 @@ def investigate_nn_ctth_satz():
     PLOT_DIR = "/home/a001865/PICTURES_FROM_PYTHON/CTTH_PLOTS/"
     out_filenames = glob("/home/a001865/DATA_MISC/satz_modis_01_investigation/*s_%s_*.txt"%(month_path))
     plot_pressure_modis_01(out_filenames,PLOT_DIR,month)
-    out_filenames = glob("/home/a001865/git/atrain_match/satz_statistics_and_modis.txt")
     plot_pressure_local(out_filenames,PLOT_DIR)
 if __name__ == "__main__":
     investigate_nn_ctth_satz()
