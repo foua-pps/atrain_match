@@ -356,7 +356,11 @@ def read_cmaprob_h5(filename, cma):
     if 'cma_extended' in h5file.keys():
         if 'cloud_probability' not in h5file.keys():
             logger.error("\n This file looks like a normal CMA-file (not CMAPROB) %s", filename)
-    cma.cma_prob = h5file['cloud_probability'].value
+    name = 'cloud_probability'
+    if name not in h5file.keys():
+        logger.info("This CMA-file is old.")
+        name = "cmaprob"
+    cma.cma_prob = h5file[name].value
     h5file.close()
     return cma
 
@@ -546,9 +550,6 @@ def read_pps_angobj_h5(filename):
                              AngObj.satz.data ==AngObj.satz.missing_data)
     diffmask = np.logical_or(AngObj.azidiff.data ==AngObj.azidiff.no_data,
                              AngObj.azidiff.data ==AngObj.azidiff.missing_data)
-    AngObj.sunz.data[~sunzmask] = AngObj.sunz.data[~sunzmask]*AngObj.sunz.gain + AngObj.sunz.intercept
-    AngObj.satz.data[~satzmask] = AngObj.satz.data[~satzmask]*AngObj.satz.gain + AngObj.satz.intercept
-    AngObj.azidiff.data[~diffmask] = AngObj.azidiff.data[~diffmask]*AngObj.azidiff.gain + AngObj.azidiff.intercept
     AngObj.sunz.data[~sunzmask] = AngObj.sunz.data[~sunzmask]*AngObj.sunz.gain + AngObj.sunz.intercept
     AngObj.satz.data[~satzmask] = AngObj.satz.data[~satzmask]*AngObj.satz.gain + AngObj.satz.intercept
     AngObj.azidiff.data[~diffmask] = AngObj.azidiff.data[~diffmask]*AngObj.azidiff.gain + AngObj.azidiff.intercept
