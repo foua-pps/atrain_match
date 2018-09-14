@@ -17,6 +17,7 @@ class MOD06Obj:
         self.temperature = None
         self.pressure = None
         self.cloud_emissivity = None
+        self.cloud_phase = None
         self.lwp = None
 
 def add_modis_06(ca_matchup, pps_imager_file, options):
@@ -37,6 +38,7 @@ def add_modis_06(ca_matchup, pps_imager_file, options):
     ca_matchup.modis.pressure = get_data_from_array( modis_06.pressure, index)
     ca_matchup.modis.lwp = get_data_from_array( modis_06.lwp, index)
     ca_matchup.modis.cloud_emissivity = get_data_from_array( modis_06.cloud_emissivity, index)
+    ca_matchup.modis.cloud_phase = get_data_from_array( modis_06.cloud_phase, index)
     ca_matchup.modis.latitude_5km = get_data_from_array( modis_06.latitude, index_5km)
     ca_matchup.modis.longitude_5km = get_data_from_array( modis_06.longitude, index_5km)
     return ca_matchup
@@ -89,6 +91,7 @@ def read_modis_h5(filename):
     modis_06.temperature[tmask] = ATRAIN_MATCH_NODATA 
     modis_06.lwp[lwpmask] = ATRAIN_MATCH_NODATA 
     modis_06.cloud_emissivity = h5file['mod06']['Data Fields']['cloud_emissivity_1km'].value.astype(np.float)
+    modis_06.cloud_phase = h5file['mod06']['Data Fields']['Cloud_Phase_Infrared_1km'].value.astype(np.int)
     modis_06.latitude = h5file['mod06']['Geolocation Fields']['Latitude'].value.astype(np.float)
     modis_06.longitude = h5file['mod06']['Geolocation Fields']['Longitude'].value.astype(np.float)
     h5file.close()

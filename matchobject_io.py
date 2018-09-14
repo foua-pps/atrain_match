@@ -318,6 +318,7 @@ class ModisObject(DataObject):
             'temperature': None,
             'pressure': None,
             'cloud_emissivity': None,
+            'cloud_phase':None,
             'lwp': None}
 
         
@@ -1007,6 +1008,7 @@ the_used_variables = [
     'temperature',
     'pressure',
     'cloud_emissivity',
+    'cloud_phase',
     'lwp',
     #AMSR
     'lwp',        
@@ -1017,6 +1019,7 @@ the_used_variables = [
     'cal_MODIS_cflag',
     'cloudsat_index',
     #CALIPSO only (ISS?)
+    'profile_id',
     'layer_top_altitude',
     'layer_top_altitude_fore_fov',
     'layer_top_temperature',

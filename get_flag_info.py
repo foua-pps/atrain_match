@@ -178,6 +178,29 @@ def get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=0):
     #bits 10-12, start at 1 counting
     cflag = caObj.calipso.feature_classification_flags[::,0]
     return get_calipso_clouds_of_type_i_feature_classification_flags_one_layer(cflag, calipso_cloudtype=calipso_cloudtype)
+
+def get_calipso_op(caObj):
+    #type 1,2,5,7 are low cloudtypes
+    calipso_low =  np.logical_or(
+        np.logical_or(
+            get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=1),
+            get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=2)),
+        np.logical_or(
+            get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=5),
+            get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=7)))    
+    return calipso_low
+    #type 0,1,2, 3 are low cloudtypes
+def get_calipso_tp(caObj):
+    calipso_low =  np.logical_or(
+        np.logical_or(
+            get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=0),
+            get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=3)),
+        np.logical_or(
+            get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=4),
+            get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=6)))    
+    return calipso_low
+
+
  
 
 def get_calipso_low_clouds(caObj):
@@ -189,7 +212,21 @@ def get_calipso_low_clouds(caObj):
         np.logical_or(
             get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=2),
             get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=3)))    
-    return calipso_low  
+    return calipso_low
+
+def get_calipso_low_clouds_tp(caObj):
+    #type 0,1,2, 3 are low cloudtypes
+    calipso_low =  np.logical_or(
+            get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=0),
+            get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=3))
+    return calipso_low
+def get_calipso_low_clouds_op(caObj):
+    #type 0,1,2, 3 are low cloudtypes
+    calipso_low =  np.logical_or(
+            get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=1),
+            get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=2))
+    return calipso_low 
+
 def get_calipso_high_clouds(caObj):
     #type 6,7 are high cloudtypes
     calipso_high =   np.logical_or(
@@ -216,9 +253,13 @@ def get_calipso_medium_and_high_clouds_tp(caObj):
 
 def get_calipso_low_medium_high_classification(caObj):
     mlh_class = {}
+    mlh_class['clouds_op'] = get_calipso_op(caObj)
+    mlh_class['clouds_tp'] = get_calipso_tp(caObj)
     mlh_class['low_clouds'] = get_calipso_low_clouds(caObj)
     mlh_class['medium_clouds'] = get_calipso_medium_clouds(caObj)
     mlh_class['high_clouds'] = get_calipso_high_clouds(caObj)
+    mlh_class['low_clouds_op'] = get_calipso_low_clouds_op(caObj)
+    mlh_class['low_clouds_tp'] = get_calipso_low_clouds_tp(caObj)
     mlh_class['medium_clouds_tp'] = get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=4)
     mlh_class['medium_clouds_op'] = get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=5)
     mlh_class['high_clouds_tp'] = get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=6)
