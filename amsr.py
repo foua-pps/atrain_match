@@ -17,34 +17,89 @@ import logging
 logger = logging.getLogger(__name__)
 AMSR_RADIUS = 10e3
 def get_amsr(filename):
-    retv = AmsrObject()
-    with h5py.File(filename, 'r') as f:
-        #ravel AMSR-E data to 1 dimension
 
-        lon = f['Swath1/Geolocation Fields/Longitude'][:] 
-        lat = f['Swath1/Geolocation Fields/Latitude'][:]
-        n_lat_scans = lat.shape[1] #= 242!
-        sec1993 = f['Swath1/Geolocation Fields/Time']['Time'][:]
-        #if lon.shape[1]>0:
-        #    print "Warning, expected 1D vectors"
-        density = 1e3 # Density of water [kg m**-3]
-        lwp_mm = f['Swath1/Data Fields/High_res_cloud'][:]
-                            #description='lwp (mm)',
-        lwp_gain = f['Swath1/Data Fields/High_res_cloud'].attrs['Scale']#.ravel()   
+    if ".h5" in filename:
+        retv = read_amsr_h5(filename)
+    else:
+        #hdf4 file:
+        retv = read_amsr_hdf4(filename)
+
+    density = 1e3 # Density of water [kg m**-3]
+    n_lat_scans = len(retv.latitude)*1.0/(len(retv.sec1993)) #= 242!
+    print n_lat_scans
     epoch_diff = timegm(TAI93.utctimetuple())    
-    nadir_sec_1970 = sec1993 + epoch_diff
+    nadir_sec_1970 = retv.sec1993 + epoch_diff
     retv.sec_1970 = np.repeat(nadir_sec_1970.ravel(), n_lat_scans)
-    retv.longitude = lon.ravel()
-    retv.latitude = lat.ravel()
-    retv.lwp = lwp_mm.ravel() *  lwp_gain * density # [mm * kg m**-3 = g m**-2]
-    if f:
-        f.close()   
+    retv.sec1993 = None
+    retv.lwp = retv.lwp_mm.ravel() * density # [mm * kg m**-3 = g m**-2]
+
     logger.info("Extract AMSR-E lwp between 0 and %d g/m-2", LWP_THRESHOLD)
     use_amsr = np.logical_and(retv.lwp >0 ,
                               retv.lwp < LWP_THRESHOLD)
     retv = calipso_track_from_matched(retv, retv, use_amsr)
-
     return retv 
+
+def read_amsr_h5(filename):
+    retv = AmsrObject()
+
+    with h5py.File(filename, 'r') as f:
+        #ravel AMSR-E data to 1 dimension
+        retv.longitude = f['Swath1/Geolocation Fields/Longitude'][:].ravel() 
+        retv.latitude = f['Swath1/Geolocation Fields/Latitude'][:].ravel()                        
+        retv.sec1993 = f['Swath1/Geolocation Fields/Time']['Time'][:]
+        #description='lwp (mm)',
+        lwp_gain = f['Swath1/Data Fields/High_res_cloud'].attrs['Scale']#.ravel() 
+        retv.lwp_mm = f['Swath1/Data Fields/High_res_cloud'][:].ravel() * lwp_gain
+    if f:
+        f.close() 
+    return retv
+
+def read_amsr_hdf4(filename):
+    from pyhdf.SD import SD, SDC
+    from pyhdf.HDF import HDF, HC
+    import pyhdf.VS 
+
+    retv = AmsrObject()
+    h4file = SD(filename, SDC.READ)
+    datasets = h4file.datasets()
+    attributes = h4file.attributes()
+    for idx,attr in enumerate(attributes.keys()):
+        print idx, attr
+    for sds in ["Longitude", "Latitude", "High_res_cloud"]:
+        data = h4file.select(sds).get()
+        if sds in ["Longitude", "Latitude"]:
+            retv.all_arrays[sds.lower()] = data.ravel()
+        elif sds in ["High_res_cloud"]:
+            lwp_gain = h4file.select(sds).attributes()['Scale']
+            retv.all_arrays["lwp_mm"] = data.ravel() * lwp_gain
+
+        #print h4file.select(sds).info()
+    h4file = HDF(filename, SDC.READ)
+    vs = h4file.vstart()
+    data_info_list = vs.vdatainfo()
+    print "1D data compound/Vdata"
+    for item in data_info_list:
+        #1D data compound/Vdata
+        name = item[0]
+        print name
+        if name in ["Time"]:
+            data_handle = vs.attach(name)
+            data = np.array(data_handle[:])
+            retv.all_arrays["sec1993"] = data 
+            data_handle.detach()
+        else:
+            print name
+        #data = np.array(data_handle[:])
+        #attrinfo_dic = data_handle.attrinfo()
+        #factor = data_handle.findattr('factor')
+        #offset = data_handle.findattr('offset')
+        #print data_handle.factor
+        #data_handle.detach()
+    #print data_handle.attrinfo()
+    h4file.close()
+    for key in retv.all_arrays.keys():
+        print key, retv.all_arrays[key]
+    return retv
 
 
 def reshapeAmsr(amsrfiles, avhrr):
