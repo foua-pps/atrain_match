@@ -841,11 +841,15 @@ def readImagerData_h5(filename):
     imager_data = NewImagerData()
     for var in h5file.keys():
         if 'image' in var:
-            image = h5file[var]
-            logger.debug("reading channel %s", image.attrs['description'])
+            image = h5file[var]            
+            if 'description' not in image.attrs.keys() and "modis" in filename:
+                my_description = "MODIS %s"%(image.attrs['channel'])
+            else:
+                my_description = image.attrs['description']
+            logger.debug("reading channel %s", my_description )
             one_channel = ImagerChannelData()                   
             one_channel.data = image['data'].value
-            one_channel.des = image.attrs['description']
+            one_channel.des = my_description
             one_channel.gain = 1.0
             one_channel.intercept = 0.0
             gain = image['what'].attrs['gain']
