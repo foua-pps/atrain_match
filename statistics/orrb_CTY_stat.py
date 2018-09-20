@@ -83,10 +83,10 @@ class CloudTypeStats(OrrbStats):
         pod_medium = 100.0 * np.divide(
             float(n_medium_medium + n_cirrus_medium_tp), N_medium_cal)
         far_medium = 100.0 * np.divide(
-            float(n_medium_low + n_medium_high +  n_cirrus_medium_op), N_medium_pps)
+            float(n_medium_low + n_medium_high), N_medium_pps)
         pod_high = 100.0 * np.divide(float(n_high_high + n_cirrus_high_tp), N_high_cal)
         far_high = 100.0 * np.divide(
-            float(n_high_low + n_high_medium + n_cirrus_high_op), N_high_pps)
+            float(n_high_low + n_high_medium), N_high_pps)
         far_cirrus = 100.0 * np.divide(float(n_cirrus_low + n_cirrus_high_op + n_cirrus_medium_op ), N_cirrus_pps)
 
 
