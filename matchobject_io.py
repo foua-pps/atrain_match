@@ -354,6 +354,8 @@ class CalipsoObject(DataObject):
             'feature_optical_depth_532': None,
             'single_shot_cloud_cleared_fraction': None,
             'cfc_single_shots_1km_from_5km_file': None,
+            'column_optical_depth_tropospheric_aerosols_532': None,
+            'column_optical_depth_tropospheric_aerosols_532_5km': None,
             'profile_id':None,
             #If a combination of 5 and 1km data are used for RESOLUTION=1
             #A vector with the corresponding optical thickness for 5km data
@@ -1046,6 +1048,8 @@ the_used_variables = [
     'MODIS_cloud_flag',
     'column_optical_depth_cloud_532',
     'column_optical_depth_cloud_uncertainty_532',
+    'column_optical_depth_tropospheric_aerosols_532_5km',
+    'column_optical_depth_tropospheric_aerosols_532',
     'Number_cloudy_single_shots'
 ]
 
