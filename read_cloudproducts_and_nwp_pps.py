@@ -614,10 +614,14 @@ def read_pps_geoobj_h5(filename):
     return  GeoObj
 
 def read_cpp_h5(filename):
+    density = 1e3
     h5file = h5py.File(filename, 'r')
     cpp_obj = CppObj()    
     for cpp_key in cpp_obj.__dict__.keys():
         data = read_cpp_h5_one_var(h5file, cpp_key)
+        if cpp_key in ["cpp_lwp"]:
+            logger.debug("Convert from CPP-lwp from to g/m-2")
+            data[data>0] = density * data[data>0] 
         setattr(cpp_obj, cpp_key, data)
     h5file.close()    
     return cpp_obj 
@@ -653,7 +657,7 @@ def read_cpp_nc_one_var(ncFile, cpp_key):
         else:
             cpp_data = cpp_var
         if cpp_key in ["cpp_lwp"]:
-            logger.info("Convert from CPP-lwp from to g/m-2")
+            logger.debug("Convert from CPP-lwp from to g/m-2")
             cpp_data[cpp_data>0] = density * cpp_data[cpp_data>0] 
         return  cpp_data
     else:
@@ -672,6 +676,7 @@ def read_cpp_nc(filename):
 
 
 def read_nwp_h5(filename, nwp_key):
+
     import h5py 
     h5file = h5py.File(filename, 'r')
     if nwp_key in h5file.keys():
