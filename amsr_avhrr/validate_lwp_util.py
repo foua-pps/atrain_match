@@ -35,8 +35,9 @@ def get_lwp_diff_inner(aObj, val_subset, threshold=LWP_THRESHOLD):
     use_lwp_upper = np.logical_or(aObj.avhrr.cpp_lwp<LWP_THRESHOLD_CPP,
                                   aObj.amsr.imager_linnum_nneigh <=0)
 
+    use = use_sea
     use = np.logical_and(use_sea, use_phase)
-    #use = np.logical_and(use, use_lwp)
+    use = np.logical_and(use, use_lwp)
     #use = np.logical_and(use, use_lwp_upper)
     selection = use.all(axis=-1)
     selection = np.logical_and(val_subset, selection)
