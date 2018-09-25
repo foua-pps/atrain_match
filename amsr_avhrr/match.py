@@ -92,7 +92,7 @@ def match_lonlat(source, target,
 
     lon, lat = source
     mask_out_lat = np.logical_or(lat<-90, lat>90)
-    mask_out_lon = np.logical_or(lon>180, lat<-180)
+    mask_out_lon = np.logical_or(lon>180, lon<-180)
     mask_out = np.logical_or(mask_out_lat, mask_out_lon)
     lat = np.ma.masked_array(lat, mask=mask_out)
     lon = np.ma.masked_array(lon, mask=mask_out)
@@ -118,7 +118,7 @@ def match_lonlat(source, target,
                                           valid_in, valid_out,
                                           first_indices)
     rows = get_sample_from_neighbour_info('nn', target_def.shape,
-                                         rows_matrix,
+                                          rows_matrix,
                                           valid_in, valid_out,
                                           first_indices)
     if n_neighbours > 1:
@@ -158,7 +158,8 @@ def match_lonlat(source, target,
     rows[rows >= source_def.shape[0]] = NODATA
     cols[cols >= source_def.shape[1]] = NODATA
     mask = distances > radius_of_influence
-    return MatchMapper(rows, cols, mask)
+    distances[distances > radius_of_influence] =-9
+    return MatchMapper(rows, cols, mask), distances
 
 
 

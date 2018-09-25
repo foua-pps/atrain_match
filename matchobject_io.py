@@ -1013,7 +1013,8 @@ the_used_variables = [
     'cloud_phase',
     'lwp',
     #AMSR
-    'lwp',        
+    'lwp',   
+    'imager_amsr_dist',
     #Cloudsat 
     'cloud_fraction',
     'validation_height',

@@ -83,6 +83,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 import config
+print config.__file__
 from common import MatchupError, ProcessingError
 
 from cloudsat_calipso_avhrr_statistics import (CalculateStatistics)
@@ -809,13 +810,13 @@ def add_additional_clousat_calipso_index_vars(clsatObj, caObj):
                   clsatObj.cloudsat.latitude.astype(np.float64).reshape(-1,1))
         target = (caObj.calipso.longitude.astype(np.float64).reshape(-1,1), 
                   caObj.calipso.latitude.astype(np.float64).reshape(-1,1))
-        mapper = match_lonlat(source, target, radius_of_influence=1000, n_neighbours=1)
+        mapper, dummy = match_lonlat(source, target, radius_of_influence=1000, n_neighbours=1)
         caObj.calipso.cloudsat_index = mapper.rows.filled(NODATA).ravel()
         target = (clsatObj.cloudsat.longitude.astype(np.float64).reshape(-1,1), 
                   clsatObj.cloudsat.latitude.astype(np.float64).reshape(-1,1))
         source = (caObj.calipso.longitude.astype(np.float64).reshape(-1,1), 
                   caObj.calipso.latitude.astype(np.float64).reshape(-1,1))
-        mapper = match_lonlat(source, target, radius_of_influence=1000, n_neighbours=1)
+        mapper, dummy = match_lonlat(source, target, radius_of_influence=1000, n_neighbours=1)
         clsatObj.cloudsat.calipso_index = mapper.rows.filled(NODATA).ravel()
 
         # Transfer CloudSat MODIS cloud flag to CALIPSO representation

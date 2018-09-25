@@ -15,7 +15,7 @@ from extract_imager_along_track import avhrr_track_from_matched
 from amsr_avhrr.validate_lwp_util import LWP_THRESHOLD
 import logging
 logger = logging.getLogger(__name__)
-AMSR_RADIUS = 3.7e3
+AMSR_RADIUS = 5.4e3 #3.7e3 to include 5km pixels parly overlapping amsr-e footprint
 def get_amsr(filename):
 
     if ".h5" in filename:
@@ -26,7 +26,7 @@ def get_amsr(filename):
 
     density = 1e3 # Density of water [kg m**-3]
     n_lat_scans = len(retv.latitude)*1.0/(len(retv.sec1993)) #= 242!
-    print n_lat_scans
+    #print n_lat_scans
     epoch_diff = timegm(TAI93.utctimetuple())    
     nadir_sec_1970 = retv.sec1993 + epoch_diff
     retv.sec_1970 = np.repeat(nadir_sec_1970.ravel(), n_lat_scans)
@@ -37,6 +37,9 @@ def get_amsr(filename):
     use_amsr = np.logical_and(retv.lwp >=0 ,
                               retv.lwp < LWP_THRESHOLD*100)
     retv = calipso_track_from_matched(retv, retv, use_amsr)
+    #import matplotlib.pyplot as plt
+    #plt.plot(retv.longitude, retv.latitude, '.')
+    #plt.savefig('map_test.png')
     return retv 
 
 def read_amsr_h5(filename):
@@ -63,8 +66,8 @@ def read_amsr_hdf4(filename):
     h4file = SD(filename, SDC.READ)
     datasets = h4file.datasets()
     attributes = h4file.attributes()
-    for idx,attr in enumerate(attributes.keys()):
-        print idx, attr
+    #for idx,attr in enumerate(attributes.keys()):
+    #    print idx, attr
     for sds in ["Longitude", "Latitude", "High_res_cloud"]:
         data = h4file.select(sds).get()
         if sds in ["Longitude", "Latitude"]:
@@ -77,18 +80,19 @@ def read_amsr_hdf4(filename):
     h4file = HDF(filename, SDC.READ)
     vs = h4file.vstart()
     data_info_list = vs.vdatainfo()
-    print "1D data compound/Vdata"
+    #print "1D data compound/Vdata"
     for item in data_info_list:
         #1D data compound/Vdata
         name = item[0]
-        print name
+        #print name
         if name in ["Time"]:
             data_handle = vs.attach(name)
             data = np.array(data_handle[:])
             retv.all_arrays["sec1993"] = data 
             data_handle.detach()
         else:
-            print name
+            pass
+            #print name
         #data = np.array(data_handle[:])
         #attrinfo_dic = data_handle.attrinfo()
         #factor = data_handle.findattr('factor')
@@ -97,8 +101,8 @@ def read_amsr_hdf4(filename):
         #data_handle.detach()
     #print data_handle.attrinfo()
     h4file.close()
-    for key in retv.all_arrays.keys():
-        print key, retv.all_arrays[key]
+    #for key in retv.all_arrays.keys():
+    #    print key, retv.all_arrays[key]
     return retv
 
 
@@ -138,15 +142,17 @@ def match_amsr_avhrr(amsrObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
         return None
         #return MatchupError("No imager Lwp.") # if only LWP matching?
 
-    from common import map_avhrr
+    from common import map_avhrr_distances
     n_neighbours = 8
     if RESOLUTION == 5:
-        n_neighbours = 4
-    cal, cap = map_avhrr(imagerGeoObj, 
-                         amsrObj.longitude.ravel(), 
-                         amsrObj.latitude.ravel(),
-                         radius_of_influence=AMSR_RADIUS,
-                         n_neighbours=n_neighbours)
+        n_neighbours = 5
+    mapper_and_dist = map_avhrr_distances(imagerGeoObj, 
+                                          amsrObj.longitude.ravel(), 
+                                          amsrObj.latitude.ravel(),
+                                          radius_of_influence=AMSR_RADIUS,
+                                          n_neighbours=n_neighbours)
+    cal, cap = mapper_and_dist["mapper"]
+    distances = mapper_and_dist["distances"]
     cal_1 = cal[:,0]
     cap_1 = cap[:,0]
 
@@ -164,13 +170,16 @@ def match_amsr_avhrr(amsrObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
     else:
         imager_lines_sec_1970 = np.where(cal_1 != NODATA, imagerGeoObj.time[cal_1], np.nan)
     # Find all matching Amsr pixels within +/- sec_timeThr from the AVHRR data
-    idx_match = elements_within_range(amsrObj.sec_1970, imager_lines_sec_1970, sec_timeThr)
+    imager_sunz_vector = [imagerAngObj.sunz.data[line,pixel] for line, pixel in zip(cal_1,cap_1)]
+    idx_match = np.logical_and(
+        elements_within_range(amsrObj.sec_1970, imager_lines_sec_1970, sec_timeThr),
+        imager_sunz_vector<=84) #something larger than 84 (max for lwp)
 
     if idx_match.sum() == 0:
         if AMSR_REQUIRED:
-            raise MatchupError("No matches in region within time threshold %d s." % sec_timeThr)  
+            raise MatchupError("No light(sunz<84) matches in region within time threshold %d s." % sec_timeThr)  
         else:
-            logger.warning("No matches in region within time threshold %d s.", sec_timeThr)
+            logger.warning("No light (sunz<84)  matches in region within time threshold %d s.", sec_timeThr)
             return None
     retv.amsr = calipso_track_from_matched(retv.amsr, amsrObj, idx_match)
  
@@ -179,6 +188,7 @@ def match_amsr_avhrr(amsrObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
     retv.amsr.imager_pixnum = np.repeat(cap_1, idx_match).astype('i')
     retv.amsr.imager_linnum_nneigh = np.repeat(cal, idx_match, axis=0)
     retv.amsr.imager_pixnum_nneigh = np.repeat(cap, idx_match, axis=0)
+    retv.amsr.imager_amsr_dist = np.repeat(distances, idx_match, axis=0)
 
     # Imager time
     retv.avhrr.sec_1970 = np.repeat(imager_lines_sec_1970, idx_match)
