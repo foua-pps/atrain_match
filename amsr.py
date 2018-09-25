@@ -15,7 +15,7 @@ from extract_imager_along_track import avhrr_track_from_matched
 from amsr_avhrr.validate_lwp_util import LWP_THRESHOLD
 import logging
 logger = logging.getLogger(__name__)
-AMSR_RADIUS = 10e3
+AMSR_RADIUS = 3.7e3
 def get_amsr(filename):
 
     if ".h5" in filename:
@@ -34,8 +34,8 @@ def get_amsr(filename):
     retv.lwp = retv.lwp_mm.ravel() * density # [mm * kg m**-3 = g m**-2]
 
     logger.info("Extract AMSR-E lwp between 0 and %d g/m-2", LWP_THRESHOLD)
-    use_amsr = np.logical_and(retv.lwp >0 ,
-                              retv.lwp < LWP_THRESHOLD)
+    use_amsr = np.logical_and(retv.lwp >=0 ,
+                              retv.lwp < LWP_THRESHOLD*100)
     retv = calipso_track_from_matched(retv, retv, use_amsr)
     return retv 
 
@@ -139,11 +139,14 @@ def match_amsr_avhrr(amsrObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
         #return MatchupError("No imager Lwp.") # if only LWP matching?
 
     from common import map_avhrr
+    n_neighbours = 8
+    if RESOLUTION == 5:
+        n_neighbours = 4
     cal, cap = map_avhrr(imagerGeoObj, 
                          amsrObj.longitude.ravel(), 
                          amsrObj.latitude.ravel(),
                          radius_of_influence=AMSR_RADIUS,
-                         n_neighbours=8)
+                         n_neighbours=n_neighbours)
     cal_1 = cal[:,0]
     cap_1 = cap[:,0]
 

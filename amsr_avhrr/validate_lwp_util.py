@@ -14,6 +14,9 @@ LWP_THRESHOLD_CPP = 3000
 DO_PLOT = False
 
 def get_lwp_diff(aObj, val_subset, threshold=LWP_THRESHOLD):
+    return get_lwp_diff_inner[0]
+
+def get_lwp_diff_inner(aObj, val_subset, threshold=LWP_THRESHOLD):
     """
     Screen lwp pixels based on *sea* mask, amsr < threshold, and cpp_lwp < 0.
     
@@ -22,32 +25,37 @@ def get_lwp_diff(aObj, val_subset, threshold=LWP_THRESHOLD):
     use_sea = np.logical_or(aObj.avhrr.fractionofland <=0,
                             aObj.amsr.imager_linnum_nneigh <=0) # might have less than 8 neighbours                          
     use_phase = np.logical_or(aObj.avhrr.cpp_phase == 1,
-                              aObj.amsr.imager_linnum_nneigh <=0) # might have less than 8 neighbours   
-    use_lwp = np.logical_or(aObj.avhrr.cpp_lwp>0,
+                              aObj.amsr.imager_linnum_nneigh <=0) # might have less than 8 neighbours
+    #exclude very high values
+    aObj.avhrr.cpp_lwp[aObj.avhrr.cpp_lwp>LWP_THRESHOLD_CPP] = -9
+
+    use_lwp = np.logical_or(aObj.avhrr.cpp_lwp>=0,
                             aObj.amsr.imager_linnum_nneigh <=0)  # might have less than 8 neighbours 
     use_lwp_upper = np.logical_or(aObj.avhrr.cpp_lwp<LWP_THRESHOLD_CPP,
-                            aObj.amsr.imager_linnum_nneigh <=0)
+                                  aObj.amsr.imager_linnum_nneigh <=0)
+
     use = np.logical_and(use_sea, use_phase)
-    use = np.logical_and(use, use_lwp)
-    use = np.logical_and(use, use_lwp_upper)
+    #use = np.logical_and(use, use_lwp)
+    #use = np.logical_and(use, use_lwp_upper)
     selection = use.all(axis=-1)
     selection = np.logical_and(val_subset, selection)
     #import pdb; pdb.set_trace()
     cpp_lwp = aObj.avhrr.cpp_lwp
+    n_cpp = np.sum(cpp_lwp>=0, axis=-1) #before
     cpp_lwp[cpp_lwp<0] = 0
-    n_cpp = np.sum(cpp_lwp>0, axis=-1)
+    cpp_lwp[np.isnan(cpp_lwp)] = 0 
     sum_cpp = np.sum(cpp_lwp, axis=-1)
+    n_cpp[n_cpp==0] = 1.0
     cpp_mean = sum_cpp * 1.0/ n_cpp 
-
-    lwp_diff = cpp_mean - aObj.amsr.lwp 
-
-    use_amsr = np.logical_and(aObj.amsr.lwp >0 ,
+    lwp_diff = cpp_mean - aObj.amsr.lwp
+    use_amsr = np.logical_and(aObj.amsr.lwp >=0 ,
                               aObj.amsr.lwp < threshold)
     selection = np.logical_and(use_amsr,  selection)
+    selection = np.logical_and(cpp_mean>=0,  selection)
     selection = np.logical_and(cpp_mean<LWP_THRESHOLD_CPP,  selection)
     selection = np.logical_and(aObj.avhrr.sunz<72,  selection)
     
-    return lwp_diff[selection]
+    return lwp_diff[selection], cpp_mean[selection], aObj.amsr.lwp[selection],  selection
 
 
 
