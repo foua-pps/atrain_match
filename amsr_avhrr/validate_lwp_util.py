@@ -14,13 +14,14 @@ LWP_THRESHOLD_CPP = 3000
 DO_PLOT = False
 
 def get_lwp_diff(aObj, val_subset, threshold=LWP_THRESHOLD):
-    return get_lwp_diff_inner[0]
+    retv = get_lwp_diff_inner(aObj, val_subset, threshold=LWP_THRESHOLD)
+    return retv[0]
 
 def get_lwp_diff_inner(aObj, val_subset, threshold=LWP_THRESHOLD):
     """
-    Screen lwp pixels based on *sea* mask, amsr < threshold, and cpp_lwp < 0.
-    
-    Returns array with the differences for used selected pixels.    
+     Screen lwp pixels based on *sea* mask, amsr < threshold, and cpp_lwp < 0.
+
+     Returns array with the differences for used selected pixels.    
     """
     use_sea = np.logical_or(aObj.avhrr.fractionofland <=0,
                             aObj.amsr.imager_linnum_nneigh <=0) # might have less than 8 neighbours                          
@@ -55,7 +56,7 @@ def get_lwp_diff_inner(aObj, val_subset, threshold=LWP_THRESHOLD):
     selection = np.logical_and(cpp_mean<LWP_THRESHOLD_CPP,  selection)
     selection = np.logical_and(aObj.avhrr.sunz<72,  selection)
     
-    return lwp_diff[selection], cpp_mean[selection], aObj.amsr.lwp[selection],  selection
+    return [lwp_diff[selection], cpp_mean[selection], aObj.amsr.lwp[selection],  selection]
 
 
 
