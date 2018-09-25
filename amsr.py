@@ -170,7 +170,7 @@ def match_amsr_avhrr(amsrObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
     else:
         imager_lines_sec_1970 = np.where(cal_1 != NODATA, imagerGeoObj.time[cal_1], np.nan)
     # Find all matching Amsr pixels within +/- sec_timeThr from the AVHRR data
-    imager_sunz_vector = [imagerAngObj.sunz.data[line,pixel] for line, pixel in zip(cal_1,cap_1)]
+    imager_sunz_vector = np.array([imagerAngObj.sunz.data[line,pixel] for line, pixel in zip(cal_1,cap_1)])
     idx_match = np.logical_and(
         elements_within_range(amsrObj.sec_1970, imager_lines_sec_1970, sec_timeThr),
         imager_sunz_vector<=84) #something larger than 84 (max for lwp)
