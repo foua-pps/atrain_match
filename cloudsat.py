@@ -1,6 +1,7 @@
 #Change log is found in git
 import time
 import numpy as np
+import os
 import logging
 logger = logging.getLogger(__name__)
 from matchobject_io import (CloudsatObject,
@@ -53,24 +54,31 @@ def add_cloudsat_cloud_fraction(cloudsat):
 
 def get_cloudsat(filename):
     # Read CLOUDSAT Radar data and add some variables
-    if '.h5' in filename: 
+    if '.hdf':
+        cloudsat = read_cloudsat_hdf4(filename)
+    elif '.h5': 
         cloudsat = read_cloudsat(filename)
     else:
-        cloudsat = read_cloudsat_hdf4(filename)
-    cloudsat = add_validation_ctth_cloudsat(cloudsat)
-    cloudsat = add_cloudsat_cloud_fraction(cloudsat)      
+        raise MatchupError(
+            "Missing reader for CloudSat file type {:s}".format(
+                os.path.basename(fielname)))    
+    if 'GEOPROF' in os.path.basename(filename):     
+        cloudsat = add_validation_ctth_cloudsat(cloudsat)
+        cloudsat = add_cloudsat_cloud_fraction(cloudsat)      
     return cloudsat
 
-def clsat_name_conversion(dataset_name_in_cloudsat_file):
+def clsat_name_conversion(dataset_name_in_cloudsat_file, retv):
     am_name = dataset_name_in_cloudsat_file
     if dataset_name_in_cloudsat_file == 'DEM_elevation':
         am_name = 'elevation'
-    if dataset_name_in_cloudsat_file == 'Sigma-Zero':
+    elif dataset_name_in_cloudsat_file == 'Sigma-Zero':
         am_name = 'SigmaZero'
-    if dataset_name_in_cloudsat_file == 'Longitude':
+    elif dataset_name_in_cloudsat_file == 'Longitude':
         am_name = 'longitude'
-    if dataset_name_in_cloudsat_file == 'Latitude':
+    elif dataset_name_in_cloudsat_file == 'Latitude':
         am_name = 'latitude'
+    elif am_name.lower() in retv.all_arrays.keys():    
+        am_name = am_name.lower()    
     return am_name    
 def read_cloudsat_hdf4(filename):
     from pyhdf.SD import SD, SDC
@@ -93,7 +101,9 @@ def read_cloudsat_hdf4(filename):
         #2D data, print idx, sds 
         data = h4file.select(sds).get()
         #print h4file.select(sds).attributes().keys()
-        retv.all_arrays[sds] = convert_data(data)
+        am_name = clsat_name_conversion(sds, retv)
+        if am_name in retv.all_arrays.keys():
+            retv.all_arrays[am_name] = convert_data(data)
         #print h4file.select(sds).info()
     h4file = HDF(filename, SDC.READ)
     vs = h4file.vstart()
@@ -107,18 +117,23 @@ def read_cloudsat_hdf4(filename):
         factor = data_handle.findattr('factor')
         offset = data_handle.findattr('offset')
         #print data_handle.factor
-        am_name = clsat_name_conversion(name)
-        if factor is None and offset is None:
-            retv.all_arrays[am_name] = convert_data(data)
-        else:
-            if factor is None:
-                factor = 1.0
-            if offset is None:
-                offset = 0.0
-            raise MatchupError("Not default offset and factor. Fix code")
-            #The code below is probably ok, but make sure:
-            #the_data_scaled = convert_data(data)*factor + offset
-            #retv.all_arrays[am_name] = the_data_scaled 
+        am_name = clsat_name_conversion(name, retv)
+        if am_name in retv.all_arrays.keys():
+            #To save RAM and disk only read what we use!
+            if factor is None and offset is None:
+                retv.all_arrays[am_name] = convert_data(data)
+            elif np.float(factor.get()) == 1.0 and np.float(offset.get()) == 0.0:
+                retv.all_arrays[am_name] = convert_data(data)
+            else:
+                if factor is None:
+                    factor = 1.0
+                if offset is None:
+                    offset = 0.0
+
+                raise MatchupError("Not default offset and factor. Fix code")
+                #The code below is probably ok, but make sure:
+                #the_data_scaled = convert_data(data)*factor + offset
+                #retv.all_arrays[am_name] = the_data_scaled 
         data_handle.detach()
     #print data_handle.attrinfo()
     h4file.close()
@@ -129,7 +144,9 @@ def read_cloudsat_hdf4(filename):
 
 def read_cloudsat(filename):
     import h5py 
-    from config import CLOUDSAT_TYPE
+    CLOUDSAT_TYPE = "GEOPROF"
+    if 'CWC-RVOD' in os.path.basename(filename):
+        CLOUDSAT_TYPE = 'CWC-RVOD'
     def get_data(dataset):
         type_name = dataset.value.dtype.names
         try:
@@ -211,6 +228,27 @@ def match_cloudsat_avhrr(cloudsatObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,i
                                     nwp, ctth, ctype, cma, 
                                     cpp=cpp, nwp_segments=nwp_segments)
     return retv
+
+def mergeCloudsat(cloudsat, cloudsatlwp):
+    #map cloudsat_lwp to cloudsat
+    from amsr_avhrr.match import match_lonlat
+    source = (cloudsatlwp.longitude.astype(np.float64).reshape(-1,1), 
+              cloudsatlwp.latitude.astype(np.float64).reshape(-1,1))
+    target = (cloudsat.longitude.astype(np.float64).reshape(-1,1), 
+              cloudsat.latitude.astype(np.float64).reshape(-1,1))
+    mapper, dummy = match_lonlat(source, target, radius_of_influence=10, n_neighbours=1)
+    cloudsat_lwp_index = mapper.rows.filled(NODATA).ravel()
+    # Transfer CloudSat LWP to ordinary cloudsat obj
+    index = cloudsat_lwp_index.copy()
+    index[index<0] = 0
+    cloudsat.RVOD_liq_water_path = np.where(
+        cloudsat_lwp_index>=0, 
+        cloudsatlwp.RVOD_liq_water_path[index],-9)
+    cloudsat.RVOD_ice_water_path = np.where(
+        cloudsat_lwp_index>=0, 
+        cloudsatlwp.RVOD_ice_water_path[index],-9)
+    return cloudsat
+
 
 def reshapeCloudsat(cloudsatfiles, avhrr):
     #avhrr_end = avhrr.sec1970_end

@@ -404,9 +404,10 @@ class CloudsatObject(DataObject):
             #'sem_NoiseFloor': None,
             #'sem_NoiseFloorVar': None,
             #'sem_NoiseGate': None,
-            #'RVOD_liq_water_path': None,
+            'RVOD_liq_water_path': None,
+            'RVOD_ice_water_path': None,
             #'RVOD_liq_water_path_uncertainty': None,
-            #'RVOD_ice_water_path': None,
+            'RVOD_ice_water_path': None,
             #'RVOD_ice_water_path_uncertainty': None,
             #'LO_RVOD_liquid_water_path': None,
             #'LO_RVOD_liquid_water_path_uncertainty': None,
@@ -1018,6 +1019,8 @@ the_used_variables = [
     #Cloudsat 
     'cloud_fraction',
     'validation_height',
+    'RVOD_liq_water_path',
+    'RVOD_ice_water_path',
     #CALIPSO write to not combine
     'cal_MODIS_cflag',
     'cloudsat_index',

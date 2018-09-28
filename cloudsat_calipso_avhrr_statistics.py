@@ -300,23 +300,23 @@ def find_truth_clear_cloudy(cObj, val_subset):
     return truth_clear, truth_cloudy    
 
 def print_cpp_lwp_stats(aObj, statfile, val_subset):
-    # CLOUD LEP EVALUATION
+    # CLOUD LWP EVALUATION
     #=======================    
     # AMSR-E - IMAGER
+    # OR CLOUDSAT CWC-RVOD- IMAGER
     if aObj.avhrr.cpp_lwp is None:
         logger.warning("There are no cpp data.")
         return
-    from amsr_avhrr.validate_lwp_util import get_lwp_diff
-    lwp_diff =  get_lwp_diff(aObj, val_subset)
-    
-
-    #screened.append('CPP lwp < 0')
-    #print('=' * 40)
-    #print("CPP cwp - AMSR-E lwp")
-    #print("Number of pixels in comparison: %d" % len(lwp_diff))
-    #print("bias:    %.4g" % np.mean(lwp_diff))
-    #print("std:     %.4g" % np.std(lwp_diff))
-    #print("rel std: %.4g %%" % abs(100. * np.std(lwp_diff) / np.mean(lwp_diff)))
+    if "amsr" in aObj.truth_sat:
+        from amsr_avhrr.validate_lwp_util import get_lwp_diff
+        lwp_diff =  get_lwp_diff(aObj, val_subset)
+    elif "cloudsat"  in aObj.truth_sat:
+        selection = np.logical_and(aObj.avhrr.cpp_lwp>=0,
+                                   aObj.cloudsat.RVOD_liq_water_path>=0)
+        selection = np.logical_and(val_subset, selection)
+        lwp_diff = aObj.avhrr.cpp_lwp - aObj.cloudsat.RVOD_liq_water_path
+        lwp_diff = lwp_diff[selection]
+ 
     if len(lwp_diff)> 0:
         bias = np.mean(lwp_diff)
         diff_squared = lwp_diff*lwp_diff
@@ -926,13 +926,16 @@ def CalculateStatistics(mode, statfilename, caObj, clsatObj, issObj, amObj,
         val_subset = get_subset_for_mode(clsatObj, mode)
         if val_subset is not None:
             val_subset = get_day_night_subset(clsatObj, val_subset)
-            low_medium_high_class = get_cloudsat_low_medium_high_classification(clsatObj)
             statfile = open(statfilename.replace('xxx','cloudsat'),"w")
-            print_main_stats(clsatObj, statfile)
-            print_cmask_stats(clsatObj, statfile, val_subset)
-            print_cmask_prob_stats(clsatObj, statfile, val_subset)
-            print_modis_stats(clsatObj, statfile, val_subset, clsatObj.cloudsat.MODIS_cloud_flag)
-            print_stats_ctop(clsatObj,  statfile, val_subset, low_medium_high_class)
+            if clsatObj.cloudsat.all_arrays['cloud_fraction'] is not None:
+                low_medium_high_class = get_cloudsat_low_medium_high_classification(clsatObj)
+                print_main_stats(clsatObj, statfile)
+                print_cmask_stats(clsatObj, statfile, val_subset)
+                print_cmask_prob_stats(clsatObj, statfile, val_subset)
+                print_modis_stats(clsatObj, statfile, val_subset, clsatObj.cloudsat.MODIS_cloud_flag)
+                print_stats_ctop(clsatObj,  statfile, val_subset, low_medium_high_class)
+            if clsatObj.cloudsat.all_arrays['RVOD_liq_water_path'] is not None:    
+                print_cpp_lwp_stats(clsatObj, statfile, val_subset)
             statfile.close()
     
     if caObj is not None:

@@ -5,10 +5,12 @@ logger = logging.getLogger(__name__)
 
 def my_hist(data, use, bmin=-3000, bmax=3000, delta_h=5, 
             return_also_corresponding_gaussian=False):
+    if use is None:
+        use = np.ones(data.shape, dtype=bool)
     n_pix = len(data[use])
     bins = np.arange(bmin,bmax,delta_h)
-    x_ = [item+delta_h*0.5 for item in bins[0:-1]]
-    hist_heights,bins = np.histogram(data[use],bins=bins)
+    x_ = np.array([item+delta_h*0.5 for item in bins[0:-1]])
+    hist_heights, bins = np.histogram(data[use],bins=bins)
     hist_heights = hist_heights*100.0/n_pix
 
     hist_heights_gaussian = None
@@ -18,7 +20,7 @@ def my_hist(data, use, bmin=-3000, bmax=3000, delta_h=5,
         hist_heights_gaussian,bins = np.histogram(temp_data,bins=bins)       
         hist_heights_gaussian =  hist_heights_gaussian *100.0/n_pix_g
     return hist_heights, x_, hist_heights_gaussian
-    
+
 
 def my_iqr(data):
     return np.percentile(data,75)- np.percentile(data,25)
@@ -47,19 +49,21 @@ def half_sample_mode(x, already_sorted=False):
     x_subset = sorted_x[smallest_range_idx : (smallest_range_idx+half_idx)]
     return half_sample_mode(x_subset, already_sorted=True)
 
+def my_pex(data, x):
+    return len(data[np.abs(data)>x])*100.0/len(data)
 
 def my_pe250m(data):
-    return len(data[np.abs(data)>250])*100.0/len(data)
+    return my_pex(data, 250)
 def my_pe500m(data):
-    return len(data[np.abs(data)>500])*100.0/len(data)
+    return my_pex(data, 500)
 def my_pe1000m(data):
-    return len(data[np.abs(data)>1000])*100.0/len(data)
-def my_pe2000(data):
-    return len(data[np.abs(data)>2000])*100.0/len(data)
-def my_pe2500(data):
-    return len(data[np.abs(data)>2500])*100.0/len(data)
-def my_pe5000(data):
-    return len(data[np.abs(data)>5000])*100.0/len(data)
+    return my_pex(data, 1000)
+def my_pe2000m(data):
+    return my_pex(data, 2000)
+def my_pe2500m(data):
+    return my_pex(data, 2500)
+def my_pe5000m(data):
+    return my_pex(data, 5000)
 
 def my_mode(bias):
     bmin = -40

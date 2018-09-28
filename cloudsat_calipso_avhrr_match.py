@@ -102,7 +102,8 @@ from read_cloudproducts_and_nwp_pps import NWPObj
 from cloudsat import (reshapeCloudsat, 
                       match_cloudsat_avhrr ,
                       add_validation_ctth_cloudsat,
-                      add_cloudsat_cloud_fraction)
+                      add_cloudsat_cloud_fraction,
+                      mergeCloudsat)
 from amsr import (reshapeAmsr, match_amsr_avhrr)
 from iss import reshapeIss, match_iss_avhrr
 from calipso import (reshapeCalipso, 
@@ -508,23 +509,25 @@ def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
     ppsfiles = ppsFiles(file_name_dict)
     return  ppsfiles
 
-def get_cloudsat_matchups(cloudsat_files, avhrrGeoObj, avhrrObj,
+def get_cloudsat_matchups(cloudsat_files, cloudsat_files_lwp, avhrrGeoObj, avhrrObj,
                           ctype, cma, ctth, nwp_obj, avhrrAngObj, 
                           cpp, nwp_segments,  config_options):
     """
     Read Cloudsat data and match with the given PPS data.
     """
-    if config.CLOUDSAT_TYPE == 'CWC-RVOD':
-        my_info_text = ("Can't match cloudsat for type CWC-RVOD!\n\n"
-                        "\t***************************************************\n"
-                        "\tConfiguration CLOUDSAT_TYPE = CWC-RVOD is not working. \n"
-                        "\tWrite readers, etc for cloudsat CWC-RVOD if needed.\n"
-                        "\tInclude them in cloudsat.py or in cloudsat_cwc.py.\n"
-                        "\tConsider using only cloudsat.py and matchobject_io.py.\n"
-                        "\tMost things should be similar to functions already in cloudsat.py.\n"
-                        "\t***************************************************\n")
-        raise MatchupError(my_info_text)
-    cloudsat = reshapeCloudsat(cloudsat_files, avhrrGeoObj)
+    cloudsat_lwp = None
+    cloudsat = None
+    if cloudsat_files is not None:   
+        logger.debug("Reading cloudsat for type GEOPROF.")
+        cloudsat = reshapeCloudsat(cloudsat_files, avhrrGeoObj)
+    if cloudsat_files_lwp is not None: 
+        logger.debug("Reading cloudsat for type CWC-RVOD.")
+        cloudsat_lwp = reshapeCloudsat(cloudsat_files_lwp, avhrrGeoObj)    
+    if cloudsat is not None and cloudsat_lwp is not None:
+        logger.info("Merging CloudSat GEOPROF and CWC-RVOD data to one object")
+        cloudsat = mergeCloudsat(cloudsat, cloudsat_lwp)
+    elif cloudsat is None:
+        cloudsat = cloudsat_lwp        
     logger.debug("Matching CloudSat with avhrr")
     cl_matchup = match_cloudsat_avhrr(cloudsat,
                                       avhrrGeoObj, avhrrObj, ctype, cma,
@@ -946,7 +949,17 @@ def get_matchups_from_data(cross, config_options):
                     "\nIt might be working for CloudSat though ...")
     elif not config.CLOUDSAT_MATCHING:
         logger.info("NO CLOUDSAT File, CLOUDSAT matching not requested "
-                    "config.CLOUDSAT_MATCHING=False")     
+                    "config.CLOUDSAT_MATCHING=False")  
+    #CLOUDSAT LWP from CWC-RVOD:  
+    cloudsat_files_lwp = None
+    if (PPS_VALIDATION and config.CLOUDSAT_MATCHING and 'cloudsat_lwp_file' in config_options.keys()):
+        cloudsat_files_lwp = find_truth_files(date_time, config_options, values, truth='cloudsat_lwp')
+    elif CCI_CLOUD_VALIDATION:
+        logger.info("\nCCI-cloud validation only for calipso, Continue"
+                    "\nIt might be working for CloudSat though ...")
+    elif not config.CLOUDSAT_MATCHING:
+        logger.info("NO CLOUDSAT File, CLOUDSAT matching not requested "
+                    "config.CLOUDSAT_MATCHING=False")  
     #ISS:  
     iss_files = None
     if (PPS_VALIDATION and config.ISS_MATCHING):
@@ -976,6 +989,7 @@ def get_matchups_from_data(cross, config_options):
         logger.info("CALIPSO matching not requested config.CALIPSO_MATCHING=False")     
 
     if (calipso_files is None and cloudsat_files is None and 
+        cloudsat_files_lwp is None and
         iss_files is None and amsr_files is None):      
         raise MatchupError(
                 "Couldn't find any matching CALIPSO/CLoudSat/ISS data")
@@ -1000,8 +1014,8 @@ def get_matchups_from_data(cross, config_options):
     #ClloudSat
     cl_matchup = None
     if (PPS_VALIDATION and config.CLOUDSAT_MATCHING and cloudsat_files is not None):
-        logger.info("Read CLOUDSAT %s data", config.CLOUDSAT_TYPE)
-        cl_matchup = get_cloudsat_matchups(cloudsat_files, 
+        logger.info("Read CLOUDSAT data")
+        cl_matchup = get_cloudsat_matchups(cloudsat_files, cloudsat_files_lwp, 
                                            avhrrGeoObj, avhrrObj, ctype, cma,
                                            ctth, nwp_obj, avhrrAngObj, cpp, 
                                            nwp_segments, config_options) 
@@ -1094,7 +1108,7 @@ def get_matchups_from_data(cross, config_options):
     # Write cloudsat matchup 
     if cl_matchup is not None:
         cl_match_file = rematched_file_base.replace(
-            'atrain_datatype', 'cloudsat-%s' % config.CLOUDSAT_TYPE)
+            'atrain_datatype', 'cloudsat')
         writeCloudsatAvhrrMatchObj(cl_match_file, cl_matchup, 
                                    avhrr_obj_name = avhrr_obj_name)
     else:
@@ -1165,8 +1179,8 @@ def get_matchups(cross, options, reprocess=False):
         if not config.CLOUDSAT_MATCHING:
             logger.info("CloudSat matching turned off config.ISS_MATCHING.")
         else:    
-            values["atrain_sat"] = "cloudsat-%s" % config.CLOUDSAT_TYPE
-            values["atrain_datatype"] = "cloudsat-%s" % config.CLOUDSAT_TYPE
+            values["atrain_sat"] = "cloudsat" 
+            values["atrain_datatype"] = "cloudsat" 
             cl_match_file,  date_time = find_avhrr_file(cross, options['reshape_dir'], 
                                                   options['reshape_file'], values=values)
             if not cl_match_file:
@@ -1310,7 +1324,8 @@ def plot_some_figures(clsatObj, caObj, values, basename, process_mode,
                                 file_type,
                                 **config_options)
 
-    if (clsatObj is None or config.CLOUDSAT_TYPE=='GEOPROF') and caObj is not None:
+    if ("CPR_Cloud_mask" in clsatObj.cloudsat.all_arrays.keys() and 
+        caObj is not None):
         #HEIGHT
         drawCalClsatGEOPROFAvhrrPlot(clsatObj, 
                                      caObj, 
@@ -1331,27 +1346,24 @@ def plot_some_figures(clsatObj, caObj, values, basename, process_mode,
                                   plotpath, basename, 
                                   config.RESOLUTION, file_type,
                                   instrument=IMAGER_INSTRUMENT)
-    if clsatObj is not None and config.CLOUDSAT_TYPE=='CWC-RVOD':       
-        if config.RESOLUTION == 1:
-            elevationcwc = np.where(np.less_equal(clsatObj.cloudsatcwc.elevation,0),
-                                    -9, clsatObj.cloudsatcwc.elevation)
-            data_okcwc = np.ones(clsatObj.cloudsatcwc.elevation.shape,'b')                
-            ### 5 KM DATA CWC-RVOD ###                       
-        elif config.RESOLUTION == 5: 
-            elevationcwc = np.where(np.less_equal(clsatObj.cloudsat5kmcwc.elevation,0),
-                                    -9, clsatObj.cloudsat5kmcwc.elevation,-9)
-            data_okcwc = np.ones(clsatObj.cloudsat5kmcwc.elevation.shape,'b')
+
+    if ('RVOD_liq_water_path' in clsatObj.cloudsat.all_arrays.keys()):
+
+        elevationcwc = np.where(np.less_equal(clsatObj.cloudsat.elevation,0),
+                                -9, clsatObj.cloudsat.elevation)
+        data_ok = np.ones(clsatObj.cloudsat.elevation.shape,'b')                
+
         phase='LW'  
         drawCalClsatCWCAvhrrPlot(clsatObj, 
-                                 elevationcwc, 
-                                 data_okcwc, 
+                                 elevation, 
+                                 data_ok, 
                                  plotpath, basename, 
                                  phase,
                                  instrument=IMAGER_INSTRUMENT)
         phase='IW'  
         drawCalClsatCWCAvhrrPlot(clsatObj, 
-                                 elevationcwc, 
-                                 data_okcwc, 
+                                 elevation, 
+                                 data_ok, 
                                  plotpath, basename, phase,
                                  instrument=IMAGER_INSTRUMENT)
 
