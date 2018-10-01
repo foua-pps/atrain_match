@@ -8,6 +8,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 import matplotlib 
+import matplotlib.pyplot as plt
 try:
     matplotlib.use('agg', warn=False)
 except TypeError: # For some reason, I don't always have 'warn'
@@ -292,6 +293,68 @@ def density(x, y, bins=None, log=True):
     fig.colorbar(im)
     
     return fig
+
+def atrain_scatter(fig, ax, x, y, binsize, xymin = None,  xymax=None, vmax=250, 
+                   do_colorbar=True, to_km=1.0, ptype='scatter'):
+    import copy
+
+    if xymax is None:
+        xymax = np.max([np.max(x),np.max(y)])
+    if xymin is None:
+        xymin = np.min([np.min(x),np.min(y)])
+    n_edges = int((xymax-xymin)*1.0/binsize)+1
+    edgesx= np.linspace(xymin, xymax, n_edges)
+    edgesy= np.linspace(xymin, xymax, n_edges)
+    H, xe, ye = np.histogram2d(x, y, bins=[edgesx,edgesy])
+    xi = np.searchsorted(edgesx, x)# - edgesx[0])/(n_edges+1)).astype(np.int)               
+    yi = np.searchsorted(edgesy, y)#np.floor((y - edgesy[0])/(n_edges+1)).astype(np.int)  #-1?
+    xi = xi-1
+    yi = yi-1
+    #################################
+    #Move pixels out side in side ?:
+    yi[yi==n_edges] = n_edges-1 
+    xi[xi==n_edges] = n_edges-1
+        #yi(yi==2)==1 This is what we need!?
+    yi[yi==n_edges-1] = n_edges-2
+    xi[xi==n_edges-1] = n_edges-2
+    #################################
+    z = H[xi,yi] 
+    idx = z.argsort()
+    my_cmap = copy.copy(matplotlib.cm.get_cmap("inferno_r", lut=100))
+    cmap_vals = my_cmap(np.arange(100)) #extractvalues as an array
+    #print cmap_vals[0]
+    cmap_vals[0:5] = cmap_vals[5] #change the first values to less white
+    my_cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
+        "new_inferno_r", cmap_vals) 
+
+    if ptype in ['hexbin']:
+        b =plt.hexbin(to_km*x,to_km*y, gridsize=binsize,  cmap=my_cmap,  
+                      vmin=10, vmax=vmax)
+    if ptype in ['hist2d']:
+        b =plt.hist2d(to_km*x,to_km*y,bins=binsize,  cmap=my_cmap,  
+                      vmin=1, vmax=vmax)
+    if ptype in ['scatter']:
+        b = plt.scatter(to_km*x[idx], to_km*y[idx], c=z[idx], 
+                        edgecolor='', cmap=my_cmap, vmin=1, vmax=vmax, 
+                        alpha=1.0, marker='.', edgecolors=None,  rasterized=True)
+
+    ax.set_ylim(xymin,to_km*xymax)
+    ax.set_xlim(xymin,to_km*xymax) 
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    #if 'pressure' in truth:        
+    #    plt.gca().invert_xaxis()
+    #    plt.gca().invert_yaxis()
+    #    plt.xticks([950, 550, 150])
+    #    plt.yticks([950, 550, 150])
+    #else:  
+    #    plt.xticks([5, 10, 15])
+    #    plt.yticks([0, 5, 10, 15])
+        
+    if do_colorbar and ptype in ['scatter']:
+        cax = fig.add_axes([0.80, 0.65, 0.06, 0.22])
+        cbar = fig.colorbar(b, cax=cax, )
+        
 
 
 def distribution_map(lon, lat):

@@ -27,6 +27,8 @@ from get_flag_info import (
     get_mountin_info_pps2012,
     get_inversion_info_pps2012)
 
+from stat_util import my_iqr
+
 def calculate_ctth_stats(val_subset, imager_ctth_m_above_seasurface, truth_sat_validation_height, imager_is_cloudy):
 
     imager_have_hight_for_selection = np.logical_and(
@@ -313,6 +315,7 @@ def print_cpp_lwp_stats(aObj, statfile, val_subset):
     elif "cloudsat"  in aObj.truth_sat:
         selection = np.logical_and(aObj.avhrr.cpp_lwp>=0,
                                    aObj.cloudsat.RVOD_liq_water_path>=0)
+        selection = np.logical_and(selection, aObj.avhrr.cpp_phase == 1)
         selection = np.logical_and(val_subset, selection)
         lwp_diff = aObj.avhrr.cpp_lwp - aObj.cloudsat.RVOD_liq_water_path
         lwp_diff = lwp_diff[selection]
@@ -322,16 +325,23 @@ def print_cpp_lwp_stats(aObj, statfile, val_subset):
         diff_squared = lwp_diff*lwp_diff
         RMS_difference = np.sqrt(np.mean(diff_squared))
         N = len(lwp_diff)
+        median = np.median(lwp_diff)
+        iqr = my_iqr(lwp_diff)
     else :
         bias = -9
         diff_squared = -9
         RMS_difference  = -9
         N = 0
+        my_iqr = -9
 
     statfile.write("CLOUD LWP %s-IMAGER TABLE: %3.2f %3.2f %d\n" %(
         aObj.truth_sat.upper(), bias, RMS_difference, N))
     statfile.write("CLOUD LWP %s-IMAGER bias: %3.2f \n" % (
         aObj.truth_sat.upper(), bias))
+    statfile.write("CLOUD LWP %s-IMAGER median: %3.2f \n" % (
+        aObj.truth_sat.upper(), median))
+    statfile.write("CLOUD LWP %s-IMAGER IQR: %3.2f \n" % (
+        aObj.truth_sat.upper(), iqr))
     statfile.write("CLOUD LWP %s-IMAGER std: %3.2f \n" % (
         aObj.truth_sat.upper(), RMS_difference))
 

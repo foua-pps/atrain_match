@@ -1,8 +1,5 @@
 """
-TODO: The following description needs updating. atrain_match is now run via
-process_master.py.
-
-Program cloudsat_calipso_avhrr_match.py
+Program cloudsat_calipso_avhrr_match.py is run via process_master.py.
 
 This program is used to process and output statistics for the inter-comparison
 of AVHRR PPS results and CloudSat/CALIPSO observations. It may be run
@@ -11,13 +8,27 @@ repeatedly and supervised by program process_master.py.
 This particular version of Adam's original CloudSat/CALIPSO matchup and
 analysis program has been complemented with the following:
 
- * Adjusted scales between CloudSat and CALIPSO datasets. The previous
-   assumption that both datasets had 1 km resolution resulted in that datasets
-   went out of phase for distances longer than about 1000 km. An empirical
-   scale factor (CLOUDSAT_TRACK_RESOLUTION) of 1.076 is used to get the most
-   optimal match.
+ * Program is updated wo be able to use CALIOP-CALIPSO, CPR (CloudSat), AMSR_E 
+   or CATS (ISS) as truth. Modules used to handle the truths:
+      cloudsat.py
+      calipso.py
+      amsr.py
+      iss.py
 
- * AVHRR cloud top height datasets have been recalculated to heights above mean
+ * Program can read satellite data from: PPS, CCI and MAIA. When satllite data 
+   comes from PPS-MODIS also modis lvl-2 data can be matched.
+   Files to read imager satellite data:
+      read_cloudproducts_and_nwp_pps.py  
+      read_cloudproducts_maia.py
+      read_cloudproducts_cci.py          
+      read_modis_products.py
+
+ * Format of matchup files, and reading and writing can be found in matchobject_io.py.
+
+ * The main running program is: process_master.py and compile_stat.py will 
+   accumulate statistics.
+
+ * Iamger cloud top height datasets have been recalculated to heights above mean
    sea level using CloudSat and CALIPSO elevation data
 
  * The MODIS cloud flag has been added to the extracted CALIPSO dataset. This
@@ -32,9 +43,8 @@ analysis program has been complemented with the following:
  * The National Snow and Ice Data Center (NSIDC) ice and snow mapping results
    have been added to the extracted Calipso parameters. Together with the IGBP
    land use classification it is then possible to isolate the study to focus on
-   one of the following categories:
+   one of the several surface categories.
 
-       ICE_COVER_SEA, ICE_FREE_SEA, SNOW_COVER_LAND, SNOW_FREE_LAND or COASTAL_ZONE
 
 RUNNING INSTRUCTIONS
 --------------------
@@ -48,12 +58,12 @@ Software now fully independent of ACPG/AHAMAP
 
 Dependencies: For a successful run of the program the following supporting
               python modules must be available in the default run directory:
-
               cloudsat.py
               calipso.py
-              cloudsat_calipso_avhrr_matchup.py
-Updated 20150930 
-Nina och KG
+              cloudsat_calipso_avhrr_match.py
+
+Updated 20181001 
+Nina
 
 
 """

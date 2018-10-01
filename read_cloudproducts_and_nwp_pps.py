@@ -620,7 +620,7 @@ def read_cpp_h5(filename):
     for cpp_key in cpp_obj.__dict__.keys():
         data = read_cpp_h5_one_var(h5file, cpp_key)
         if cpp_key in ["cpp_lwp"]:
-            logger.debug("Convert from CPP-lwp from to g/m-2")
+            logger.debug("Convert from CPP-lwp from kg/m-2 to g/m-2")
             data[data>0] = density * data[data>0] 
         setattr(cpp_obj, cpp_key, data)
     h5file.close()    
