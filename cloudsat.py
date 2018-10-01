@@ -247,6 +247,12 @@ def mergeCloudsat(cloudsat, cloudsatlwp):
     cloudsat.RVOD_ice_water_path = np.where(
         cloudsat_lwp_index>=0, 
         cloudsatlwp.RVOD_ice_water_path[index],-9)
+    cloudsat.LO_RVOD_liq_water_path = np.where(
+        cloudsat_lwp_index>=0, 
+        cloudsatlwp.LO_RVOD_liq_water_path[index],-9)
+    cloudsat.IO_RVOD_ice_water_path = np.where(
+        cloudsat_lwp_index>=0, 
+        cloudsatlwp.IO_RVOD_ice_water_path[index],-9)
     return cloudsat
 
 
