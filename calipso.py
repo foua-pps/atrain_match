@@ -125,13 +125,14 @@ def get_calipso(filename, res, ALAY=False):
         # This filtering of single clear/cloud pixels is questionable.
         # Minor investigation (45 scenes npp), shows small decrease in results if removed.
         cloud_fraction_temp =  ndimage.filters.uniform_filter1d(calipso_clmask*1.0, size=winsz)
+        #Se low cloudfraction on clear 1km pixels that might be cloudy.
         #don't use filter to set cloudy pixels to clear
-        #If winsz=3: 1clear 2cloudy => cfc = 0.66
-        #   winsz=3; 2clear 1cloudy => cfc = 0.33
+        #If winsz=3: 1clear 2cloudy => cfc = 0.066
+        #   winsz=3; 2clear 1cloudy => cfc = 0.033
         cal.cloud_fraction = np.where(
             np.logical_and(cal.cloud_fraction<1.0,
                            cloud_fraction_temp>0.01),            
-            cloud_fraction_temp,cal.cloud_fraction)
+            0.01*cloud_fraction_temp,cal.cloud_fraction)
        ##############################################################
     elif res == 5 and  not ALAY:
         cal.cloud_fraction = np.where(cal.layer_top_altitude[:,0] > 0, 1, 0).astype('d')
