@@ -334,13 +334,6 @@ def print_cpp_lwp_stats(aObj, statfile, val_subset):
         N = len(lwp_diff)
         median = np.median(lwp_diff)
         iqr = my_iqr(lwp_diff)
-    if len(lwp_diff_lo)> 0:
-        bias_lo = np.mean(lwp_diff_lo)
-        diff_squared_lo = lwp_diff_lo*lwp_diff_lo
-        RMS_difference_lo = np.sqrt(np.mean(diff_squared_lo))
-        N_lo = len(lwp_diff_lo)
-        median_lo = np.median(lwp_diff_lo)
-        iqr_lo = my_iqr(lwp_diff_lo)
     else :
         bias = -9
         diff_squared = -9
@@ -348,6 +341,14 @@ def print_cpp_lwp_stats(aObj, statfile, val_subset):
         N = 0
         median = -9
         iqr = -9
+    if len(lwp_diff_lo)> 0:
+        bias_lo = np.mean(lwp_diff_lo)
+        diff_squared_lo = lwp_diff_lo*lwp_diff_lo
+        RMS_difference_lo = np.sqrt(np.mean(diff_squared_lo))
+        N_lo = len(lwp_diff_lo)
+        median_lo = np.median(lwp_diff_lo)
+        iqr_lo = my_iqr(lwp_diff_lo)
+    else:
         bias_lo = -9
         diff_squared_lo = -9
         RMS_difference_lo  = -9
@@ -366,15 +367,15 @@ def print_cpp_lwp_stats(aObj, statfile, val_subset):
     statfile.write("CLOUD LWP %s-IMAGER IQR: %3.2f \n" % (
         aObj.truth_sat.upper(), iqr))
     statfile.write("CLOUD LWP %s-IMAGER std: %3.2f \n" % (
-        aObj.truth_sat.upper(), RMS_difference_lo))
-    statfile.write("CLOUD LWP %s-IMAGER std lo: %3.2f \n" % (
-        aObj.truth_sat.upper(), RMS_difference_lo))
+        aObj.truth_sat.upper(), RMS_difference))
     statfile.write("CLOUD LWP %s-IMAGER bias lo: %3.2f \n" % (
         aObj.truth_sat.upper(), bias_lo))
     statfile.write("CLOUD LWP %s-IMAGER median lo: %3.2f \n" % (
         aObj.truth_sat.upper(), median_lo))
     statfile.write("CLOUD LWP %s-IMAGER IQR lo: %3.2f \n" % (
         aObj.truth_sat.upper(), iqr_lo))
+    statfile.write("CLOUD LWP %s-IMAGER std lo: %3.2f \n" % (
+        aObj.truth_sat.upper(), RMS_difference_lo))
 
 
 
