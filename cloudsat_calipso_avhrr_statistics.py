@@ -345,12 +345,12 @@ def print_cpp_lwp_stats(aObj, statfile, val_subset):
         diff_squared = -9
         RMS_difference  = -9
         N = 0
-        my_iqr = -9
+        iqr = -9
         bias_lo = -9
         diff_squared_lo = -9
         RMS_difference_lo  = -9
         N_lo = 0
-        my_iqr_lo = -9
+        iqr_lo = -9
 
     statfile.write("CLOUD LWP %s-IMAGER TABLE: %3.2f %3.2f %d\n" %(
         aObj.truth_sat.upper(), bias, RMS_difference, N))
