@@ -321,10 +321,10 @@ def print_cpp_lwp_stats(aObj, statfile, val_subset):
         lwp_diff = lwp_diff[selection]
 
         selection = np.logical_and(aObj.avhrr.cpp_lwp>=0,
-                                   aObj.cloudsat.LO_RVOD_liq_water_path>=0)
+                                   aObj.cloudsat.LO_RVOD_liquid_water_path>=0)
         selection = np.logical_and(selection, aObj.avhrr.cpp_phase == 1)
         selection = np.logical_and(val_subset, selection)
-        lwp_diff_lo = aObj.avhrr.cpp_lwp - aObj.cloudsat.LO_RVOD_liq_water_path
+        lwp_diff_lo = aObj.avhrr.cpp_lwp - aObj.cloudsat.LO_RVOD_liquid_water_path
         lwp_diff_lo = lwp_diff_lo[selection]
  
     if len(lwp_diff)> 0:
