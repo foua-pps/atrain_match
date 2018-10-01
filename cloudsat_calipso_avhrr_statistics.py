@@ -341,7 +341,7 @@ def print_cpp_lwp_stats(aObj, statfile, val_subset):
         N = 0
         median = -9
         iqr = -9
-    if len(lwp_diff_lo)> 0:
+    if "cloudsat" in aObj.truth_sat and len(lwp_diff_lo)> 0:
         bias_lo = np.mean(lwp_diff_lo)
         diff_squared_lo = lwp_diff_lo*lwp_diff_lo
         RMS_difference_lo = np.sqrt(np.mean(diff_squared_lo))
