@@ -348,7 +348,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
 
     for varname in ['cma_testlist0','cma_testlist1', 'cma_testlist2',
                     'cma_testlist3','cma_testlist4', 'cma_testlist5',
-                    'cma_prob', 'cma_aerosolflag']:
+                    'cma_prob', 'cma_aerosolflag', 'cma_dust']:
         if hasattr(cma, varname):
             setattr(obt.avhrr, varname, 
                     get_data_from_array(getattr(cma, varname), row_col))

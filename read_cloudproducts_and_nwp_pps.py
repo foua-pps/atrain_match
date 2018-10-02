@@ -391,6 +391,7 @@ def read_cma_nc(filename):
     for var_name in [
             'cma_aerosol', #new updated name
             'cma_aerosolflag',
+            'cma_dust',
             'cma_testlist0',
             'cma_testlist1',
             'cma_testlist2',
