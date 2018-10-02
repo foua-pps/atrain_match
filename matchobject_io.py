@@ -407,6 +407,7 @@ class CloudsatObject(DataObject):
             #'sem_NoiseGate': None,
             'RVOD_liq_water_path': None,
             'RVOD_ice_water_path': None,
+            'RVOD_CWC_status': None,
             'LO_RVOD_liquid_water_path': None,
             'IO_RVOD_ice_water_path': None,
             #'RVOD_liq_water_path_uncertainty': None,
@@ -1026,6 +1027,7 @@ the_used_variables = [
     'RVOD_ice_water_path',
     'LO_RVOD_liquid_water_path',
     'IO_RVOD_ice_water_path',
+    'RVOD_CWC_status',
     #CALIPSO write to not combine
     'cal_MODIS_cflag',
     'cloudsat_index',
