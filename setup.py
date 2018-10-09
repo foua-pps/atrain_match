@@ -14,8 +14,10 @@ dist_version = git_version.get_git_version()
 
 from setuptools import setup
 
-lib_modules = ['common',  'runutils', 
+lib_modules = ['common',  
+               'runutils', 
                'calipso',
+               'config',
                'cloudsat_calipso_avhrr_match', 
                'cloudsat_calipso_avhrr_prepare', 
                'cloudsat_calipso_avhrr_statistics',
@@ -24,6 +26,8 @@ lib_modules = ['common',  'runutils',
                'get_flag_info',
                'matchobject_io',
                'validate_cph_util',
+               'stat_util',
+               'pps_prototyping_util',
                'read_modis_products',
                'read_cloudproducts_maia',
                'read_cloudproducts_cci',
@@ -35,15 +39,17 @@ script_modules = ['process_master',
 setup(name='atrain_match',
       description="Library modules used in matching satellite swaths",
       author=("Jakob Malm <jakob.malm@smhi.se>, "
+              "Adam Dybbroe <adam.dybbroe@smhi.se>, "
               "Erik Johansson <erik.johansson@smhi.se>, "
               "Nina Hakansson <nina.hakansson@smhi.se>, "
               "Karl-Göran Karlsson <kgkarl@smhi.se>"),
       author_email="FoUa@smhi.se",
-      long_description='long description',
+      long_description='Software for matching imager data with lidar/radar and other truths',
       license='(?)',
       version=dist_version,
       provides=['atrain_match'],
       py_modules=lib_modules + script_modules,
+      data_files=[('cfg', ['etc/atrain_match.cfg']), ],
       packages=['amsr_avhrr', 'statistics', 'plotting',
                 'reshaped_files_plotting',
                 'reshaped_files_analyze_scripts'],

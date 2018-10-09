@@ -1,8 +1,7 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # Author: Douglas Creager <dcreager@dcreager.net>
 # This file is placed into the public domain.
-#
-# Edited by Jakob Malm <jakob.malm@smhi.se>
 
 # Calculates the current version number.  If possible, this is the
 # output of “git describe”, modified to conform to the versioning
@@ -33,14 +32,15 @@
 #
 #   include RELEASE-VERSION
 
-__all__ = ("get_git_version")
+__all__ = ["get_git_version"]
 
 from subprocess import Popen, PIPE
 
 
 def call_git_describe(abbrev=4, prefix='v'):
     try:
-        p = Popen(['git', 'describe', '--abbrev=%d' % abbrev, '--tags', '--match=%s[0-9].*' % prefix],
+        p = Popen(['git', 'describe', '--abbrev={:d}'.format(abbrev),
+                   '--tags', '--match={:s}[0-9].*'.format(prefix)],
                   stdout=PIPE, stderr=PIPE)
         p.stderr.close()
         line = p.stdout.readlines()[0]
@@ -67,7 +67,7 @@ def read_release_version():
 
 def write_release_version(version):
     f = open("RELEASE-VERSION", "w")
-    f.write("%s\n" % version)
+    f.write("{:s}\n".format(version))
     f.close()
 
 
@@ -89,7 +89,9 @@ def get_git_version(abbrev=4, prefix='v'):
     # If we still don't have anything, that's an error.
 
     if version is None:
-        raise ValueError("Cannot find the version number!")
+        #raise ValueError("Cannot find the version number!")
+        print("Cannot find the version number! Will use default.")
+        version = "xxx"
 
     # If the current version is different from what's in the
     # RELEASE-VERSION file, update the file to be current.
@@ -103,4 +105,4 @@ def get_git_version(abbrev=4, prefix='v'):
 
 
 if __name__ == "__main__":
-    print get_git_version()
+    print(get_git_version())
