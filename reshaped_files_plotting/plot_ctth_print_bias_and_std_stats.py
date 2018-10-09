@@ -95,8 +95,8 @@ def print_for_one(plt_obj, compare, truth='height_c'):
     AE = np.abs(bias)    
     std = np.std(bias[use])
 
-    use_i = use_low
-    print "%s & %d & %d & %d(%d)(%d) & %d & %d & %d & %d & %d & %d & %d & %d & %3.1f  \\\\"%(
+    use_i = use
+    print "%s & %d & %d & %d & %d & %d & %d & %d & %d & %d & %d & %d & %d & %3.1f  \\\\"%(
         compare_name,
         #np.sum(AE[use_i]<=1000)*100.0/len(AE[use_i]),
         np.mean(AE[use_i]), 
@@ -108,6 +108,7 @@ def print_for_one(plt_obj, compare, truth='height_c'):
         np.sum(AE[use_i]>250)*100.0/len(AE[use_i]),
         np.sum(AE[use_i]>500)*100.0/len(AE[use_i]),
         np.sum(AE[use_i]>1000)*100.0/len(AE[use_i]),
+        np.sum(AE[use_i]>2000)*100.0/len(AE[use_i]),
         np.sum(AE[use_i]>2500)*100.0/len(AE[use_i]),
         np.median(bias[use_i]), 
         #my_mode(bias[use_i]),

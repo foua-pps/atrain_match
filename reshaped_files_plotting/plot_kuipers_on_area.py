@@ -13,19 +13,21 @@ from plot_kuipers_on_area_util import (PerformancePlottingObject,
 isGAC_CCI = False
 isGAC_CCI_morning = False
 isModis1km = False
-isModis1km_lvl2 = True
+isModis1km_lvl2 = False
+isModisAllv2018 = True
+isModisAllv2014 = False
 isModis1km_nnctth = False
 isNPP_v2014 = False
 isGAC_v2014_morning_sat = False
 isGAC_v2014 = False
 cci_orbits = False
-method = 'Nina' #Nina or KG or BASIC==no filter
+method = 'BASIC' #Nina or KG or BASIC==no filter
 DNT="all" #"all/day/night/twilight"
 filter_method = 'no' #no or satz
 radius_km = 250 #t.ex 75 250 500 300
 BASE_PLOT_DIR = "/home/a001865/PICTURES_FROM_PYTHON/ATRAIN_MATCH_KUIPERS_PLOT_CCI_PPS_BrBG_2"
 
-
+PROCES_FOR_ART= False
 onlyCirrus=False
 isACPGv2012=False
 if isGAC_CCI:
@@ -44,36 +46,32 @@ elif isGAC_CCI_morning:
     files = glob(ROOT_DIR + "metopa/*/????/??/*/*.h5")
     ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/cci_reshaped_tgz/"
     files = files + glob(ROOT_DIR + "noaa17/*/????/??/*/*.h5")
-elif isModis1km:
+if isGAC_CCI:
+    num_files_to_read = 90
+    isGAC=True
+    satellites = "cci_noaa18_noaa19"
+    ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/cci_reshaped_tgz/"
+    files = glob(ROOT_DIR + "noaa19/*/????/??/*/*.h5")
+    ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/cci_reshaped_tgz/"
+    files = files + glob(ROOT_DIR + "noaa18/*/????/??/*/*.h5")
+elif isModisAllv2018:
     print "isModis1km"
     num_files_to_read = 1
     isGAC=False
-    satellites = "eos_modis_v2014_1steven"
-    #ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/global_modis_01st_created20170504/"
-    ##files = glob(ROOT_DIR + "Reshaped_Files/eos?/1km/????/12/2010??14_*/*h5")
-    #files = glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/*2/*.h5")
-    #files = files +glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/04/*.h5")
-    #files = files +glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/06/*.h5")
-    #files = files +glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/08/*.h5")
-    #files = files +glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/10/*.h5")
-    ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/global_modis_01st_created20180316/"
-    ROOT_DIR2 = "/home/a001865/DATA_MISC/reshaped_files/global_modis_14th_created20180316/"
-    #files = glob(ROOT_DIR + "Reshaped_Files/eos?/1km/????/12/2010??14_*/*h5")
-    files = glob(ROOT_DIR + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/*2/*.h5")
-    files = files +glob(ROOT_DIR + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/04/*.h5")
-    files = files +glob(ROOT_DIR + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/06/*.h5")
-    files = files +glob(ROOT_DIR + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/08/*.h5")
-    files = files +glob(ROOT_DIR + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/10/*.h5")
-    #files = files +glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/05/*.h5")
-    files = files +glob(ROOT_DIR + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/11/*.h5")
-    files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/01/*.h5")
-    #files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/03/*.h5")
-    files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/06/*.h5")
-    #files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/07/*.h5")
-    files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/09/*.h5")
-    #files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/11/*.h5")
-    satellites = "eos_modis_v2014_1st_and_14th_all_val_test_font_testing_offset_calipso4"
-    print "files", files
+    satellites = "eos_modis_calipso4_v2018_all"
+    ROOT_DIR = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/"
+                "global_modis_v2018_created20180920/"
+                "Reshaped_Files_merged_caliop/eos2/1km/2010/*/*h5")
+    files = glob(ROOT_DIR)
+elif isModisAllv2014:
+    print "isModis1km"
+    num_files_to_read = 1
+    isGAC=False
+    satellites = "eos_modis_calipso4_v2014_all"
+    ROOT_DIR = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/"
+                "global_modis_v2014_created20180920/"
+                "Reshaped_Files_merged_caliop/eos2/1km/2010/*/*h5")
+    files = glob(ROOT_DIR)
 elif isModis1km_lvl2:
     num_files_to_read = 1
     isGAC=False
@@ -217,12 +215,12 @@ for filename in files:
         continue
     if num_files_to_read==1:
         print "Get info from one file!"
-        temp_obj.get_some_info_from_caobj(caObj_new)
+        temp_obj.get_some_info_from_caobj(caObj_new, PROCES_FOR_ART=PROCES_FOR_ART)
         print "Got info, now remap to the lattice"
         pplot_obj.add_detection_stats_on_fib_lattice(temp_obj)     
     elif num >num_files_to_read:
         print "Get info from some %d files!"%(num_files_to_read)
-        temp_obj.get_some_info_from_caobj(caObj)
+        temp_obj.get_some_info_from_caobj(caObj, PROCES_FOR_ART=PROCES_FOR_ART)
         print "got info, now remap to the lattice"
         pplot_obj.add_detection_stats_on_fib_lattice(temp_obj) 
         print "Got info from some files!"
@@ -234,7 +232,7 @@ for filename in files:
 #Get info from the last files too 
 if num_files_to_read!=1:
     print "Get info from last files!"
-    temp_obj.get_some_info_from_caobj(caObj)
+    temp_obj.get_some_info_from_caobj(caObj, PROCES_FOR_ART=PROCES_FOR_ART)
     pplot_obj.add_detection_stats_on_fib_lattice(temp_obj) 
 
 pplot_obj.flattice.calculate_bias()

@@ -24,15 +24,18 @@ def plotSatelliteTrajectory(longitude,
     area_def = pr.utils.load_area(area_config_file, area_id)
 
     result = pr.kd_tree.resample_nearest(swath_def, track, area_def,
-                                         radius_of_influence=20*1000, fill_value=None)
+                                         radius_of_influence=50*1000, fill_value=None)
 
     import matplotlib.pyplot as plt
     import pylab
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
 
     bmap = pr.plot.area_def2basemap(area_def)
     bmng = bmap.bluemarble()
-    col = bmap.imshow(result, cmap=pylab.get_cmap('rainbow'), origin='upper')
-    plt.title('Calipso matchup track')
+    #col = bmap.imshow(result, cmap=pylab.get_cmap('rainbow'), origin='upper')
+    col = bmap.imshow(result,  origin='upper', cmap=pylab.get_cmap('autumn'))
+    #plt.title('Calipso matchup track')
 
     for figt in fig_type:
         figname = trajectoryname + '.' + figt

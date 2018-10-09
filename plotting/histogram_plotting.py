@@ -350,11 +350,10 @@ def atrain_scatter(fig, ax, x, y, binsize, xymin = None,  xymax=None, vmax=250,
     #else:  
     #    plt.xticks([5, 10, 15])
     #    plt.yticks([0, 5, 10, 15])
-        
     if do_colorbar and ptype in ['scatter']:
         cax = fig.add_axes([0.80, 0.65, 0.06, 0.22])
         cbar = fig.colorbar(b, cax=cax, )
-        
+    return b    
 
 
 def distribution_map(lon, lat):

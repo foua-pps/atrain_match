@@ -299,7 +299,36 @@ def find_truth_clear_cloudy(cObj, val_subset):
             np.less_equal(cObj_truth_sat.cloud_fraction,0.5), val_subset)
         truth_cloudy = np.logical_and(
             np.greater(cObj_truth_sat.cloud_fraction,0.5), val_subset)       
-    return truth_clear, truth_cloudy    
+    return truth_clear, truth_cloudy  
+
+def  get_lwp_diff_inner_cloudsat(aObj, val_subset, wide_selection=False):
+    selection = np.logical_and(aObj.avhrr.cpp_lwp>=0,
+                               aObj.cloudsat.RVOD_liq_water_path>=0)
+    selection = np.logical_and(selection, aObj.avhrr.cpp_phase == 1)
+
+    if wide_selection:
+        pass
+    else:
+        #exclude risk for precipitation contamination
+        selection = np.logical_and(selection, np.bitwise_and(np.right_shift(aObj.cloudsat.RVOD_CWC_status,2),1)==0)
+        #exclude not seen in GEOPROF
+        selection = np.logical_and(selection, np.bitwise_and(np.right_shift(aObj.cloudsat.RVOD_CWC_status,0),10)==0) # clear geoprof
+        #exclude cloudsat ice water path
+        selection = np.logical_and(selection, aObj.cloudsat.RVOD_ice_water_path<=0)
+
+    selection = np.logical_and(val_subset, selection)
+    lwp_diff = aObj.avhrr.cpp_lwp - aObj.cloudsat.RVOD_liq_water_path
+    lwp_diff = lwp_diff[selection]
+
+    selection1 = np.logical_and(aObj.avhrr.cpp_lwp>=0,
+                               aObj.cloudsat.LO_RVOD_liquid_water_path>=0)
+    selection1 = np.logical_and(selection1, aObj.avhrr.cpp_phase == 1)
+    selection1 = np.logical_and(selection1, aObj.cloudsat.cloud_fraction >0)
+    #selection = np.logical_and(selection, aObj.avhrr.fractionofland <=0)
+    selection1 = np.logical_and(val_subset, selection1)
+    lwp_diff_lo = aObj.avhrr.cpp_lwp - aObj.cloudsat.LO_RVOD_liquid_water_path
+    lwp_diff_lo = lwp_diff_lo[selection1]
+    return lwp_diff, lwp_diff_lo,  aObj.avhrr.cpp_lwp, aObj.cloudsat.RVOD_liq_water_path, selection 
 
 def print_cpp_lwp_stats(aObj, statfile, val_subset):
     # CLOUD LWP EVALUATION
@@ -313,19 +342,7 @@ def print_cpp_lwp_stats(aObj, statfile, val_subset):
         from amsr_avhrr.validate_lwp_util import get_lwp_diff
         lwp_diff =  get_lwp_diff(aObj, val_subset)
     elif "cloudsat"  in aObj.truth_sat:
-        selection = np.logical_and(aObj.avhrr.cpp_lwp>=0,
-                                   aObj.cloudsat.RVOD_liq_water_path>=0)
-        selection = np.logical_and(selection, aObj.avhrr.cpp_phase == 1)
-        selection = np.logical_and(val_subset, selection)
-        lwp_diff = aObj.avhrr.cpp_lwp - aObj.cloudsat.RVOD_liq_water_path
-        lwp_diff = lwp_diff[selection]
-
-        selection = np.logical_and(aObj.avhrr.cpp_lwp>=0,
-                                   aObj.cloudsat.LO_RVOD_liquid_water_path>=0)
-        selection = np.logical_and(selection, aObj.avhrr.cpp_phase == 1)
-        selection = np.logical_and(val_subset, selection)
-        lwp_diff_lo = aObj.avhrr.cpp_lwp - aObj.cloudsat.LO_RVOD_liquid_water_path
-        lwp_diff_lo = lwp_diff_lo[selection]
+        lwp_diff, lwp_diff_lo, dummy, dummy2, dummy3 = get_lwp_diff_inner_cloudsat(aObj, val_subset)
  
     if len(lwp_diff)> 0:
         bias = np.mean(lwp_diff)

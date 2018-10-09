@@ -64,7 +64,7 @@ def drawCalClsatGEOPROFAvhrrPlot(clsatObj,
             #TODO Fix colors!
             ax.vlines(pixel_position[clsatObj.cloudsat.calipso_index[plot_these]],
                       base_height[plot_these], top_height[plot_these], 'm',#color = colors[nidx], \
-                      linestyle = 'solid', linewidth = 1)    
+                      linestyle = 'solid', linewidth = 1,  rasterized=True)    
             clsat_max_height[clsat_max_height<top_height] = top_height[clsat_max_height<top_height]
         title = "%s-CloudSat-CALIOP Cloud Top Heights" % instrument.upper()
     else:
@@ -90,30 +90,30 @@ def drawCalClsatGEOPROFAvhrrPlot(clsatObj,
             ax.vlines(pixel_position[all_thick], 
                       base_ok[all_thick], top_ok[all_thick], linewidth=0.5,  
                       colors="g", linestyle='solid', 
-                      alpha=0.5 )  
+                      alpha=0.5 ,  rasterized=True)  
         else:
             ax.vlines(pixel_position[all_thick], 
                       base_ok[all_thick], top_ok[all_thick],
                       colors="g", linewidth=0.5, linestyle='solid', 
-                      alpha=0.5, label='caliop')
+                      alpha=0.5, label='caliop',  rasterized=True)
             caliop_label_set = True
         ax.vlines(pixel_position[all_thin], 
                   base_ok[all_thin], top_ok[all_thin], linewidth=0.5,  
                   colors="y", linestyle='solid', 
-                  alpha=0.5)   
+                  alpha=0.5,  rasterized=True)   
         ax.vlines(pixel_position[half_thin], 
                   calipso_val_h[half_thin], top_ok[half_thin], linewidth=0.5,  
                   colors="y", linestyle='solid', 
-                  alpha=0.5)    
+                  alpha=0.5,  rasterized=True)    
         ax.vlines(pixel_position[half_thin], 
                   base_ok[half_thin], calipso_val_h[half_thin], linewidth=0.5,  
                   colors="g", linestyle='solid', 
-                  alpha=0.5)    
+                  alpha=0.5,  rasterized=True)    
 
     #: Plot Imager   
     got_height = imager_ctth_m_above_seasurface>=0
     ax.plot(pixel_position[got_height], imager_ctth_m_above_seasurface[got_height], 'b+', 
-            label=instrument.upper())
+            label=instrument.upper(),  rasterized=True)
     ax.set_ylim(0, maxheight)
     #plt.show()
     ax.set_title(title)
