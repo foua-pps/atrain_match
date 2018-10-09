@@ -4,3 +4,4 @@
 *.tgz
 log_files/*.txt
 log_files/old_logs/*
+run_dat_files/*
