@@ -32,30 +32,7 @@ cc_type_name={
 }
 ct_min_v =[1,2,3,4,5,10,7,8,11]
 ct_max_v= [1,2,3,4,6,10,7,9,20]
-
-def plot_ct_table(caObj):
-
-    from get_flag_info import get_calipso_clouds_of_type_i
-
-    print "N,          0     clear clear clear clear very-low, low, medium, high very-high, fractional, cirrus,  cirrus, cirrus,  cirrus-above-low"
-
-    for type_i in xrange(0,8):
-       if type_i ==1:
-           continue
-       is_type_i = get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=type_i)
-       pps_ctype = caObj.avhrr.all_arrays['cloudtype']
-       use = np.logical_and(pps_ctype>0,pps_ctype<23)
-       is_type_i =np.logical_and(is_type_i, use)
-       N = np.sum(is_type_i)
-       print "N", ("%d"%(N)).rjust(9,' '),
-       for ind_ct in xrange(15):
-           these = np.logical_and(is_type_i,pps_ctype== ind_ct)
-           print ("%3.1f"%(np.sum(these)*1.0/N*100)).rjust(5,' '),
-           if type_i==2 and ind_ct==2:
-               plt.plot(caObj.avhrr.all_arrays['longitude'][these], caObj.avhrr.all_arrays['latitude'][these],'b.',alpha=0.4, label="cal-%d,pps-%d"%(type_i,ind_ct))
-               plt.legend()
-               plt.show()
-       print cc_type_name[type_i]  
+  
        
 def plot_ct_table2(caObj):
 
@@ -79,35 +56,7 @@ def plot_ct_table2(caObj):
             np.logical_and(these,
                            caObj.calipso.all_arrays['layer_top_pressure'][:,0]>0)],0.1) 
 
-def plot_ct_table3(caObj):
 
-    from get_flag_info import get_calipso_clouds_of_type_i
-    fig = plt.figure(figsize = (30,64))
-
-    print "N,          0     clear clear clear clear very-low, low, medium, high very-high, fractional, cirrus,  cirrus, cirrus,  cirrus-above-low"
-    for type_i in xrange(0,8):
-       if type_i ==1:
-           continue
-       is_type_i = get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=type_i)
-       pps_ctype = caObj.avhrr.all_arrays['cloudtype']
-       use = np.logical_and(pps_ctype>0,pps_ctype<23)
-       is_type_i =np.logical_and(is_type_i, use)
-       N = np.sum(is_type_i)
-       print "N", ("%d"%(N)).rjust(9,' '),
-       for ind_ct in xrange(0,9):
-           pps_ok = np.logical_and(pps_ctype >= ct_min_v[ind_ct], pps_ctype <= ct_max_v[ind_ct])
-           these = np.logical_and(is_type_i, pps_ok)
-           #if type_i==2 and ind_ct==2:
-           sub_ind = type_i 
-           if sub_ind > 0:
-               sub_ind -=1
-           ax = fig.add_subplot(7,9,sub_ind*9+ind_ct+1)
-           frame1 = plt.gca()
-           frame1.axes.get_xaxis().set_ticks([])
-           frame1.axes.get_yaxis().set_ticks([])
-           plt.plot(caObj.avhrr.all_arrays['longitude'][these], caObj.avhrr.all_arrays['latitude'][these],'b.',alpha=0.4, label="cal-%d,pps-%d-%d"%(type_i, ct_min_v[ind_ct], ct_max_v[ind_ct]))
-           #plt.legend()
-    plt.show()  
 
 def plot_ct_table4(caObj, use_in=None):
 
@@ -115,8 +64,8 @@ def plot_ct_table4(caObj, use_in=None):
     fig = plt.figure(figsize = (30,64))
     print "N,           land, sea, snow, ice, low, frac, medium, high, cirrus"
     for type_i in xrange(0,8):
-        if type_i ==1:
-            continue
+        #if type_i ==1:
+        #    continue
         is_type_i = get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=type_i)
         pps_ctype = caObj.avhrr.all_arrays['cloudtype']
         use = np.logical_and(pps_ctype>0,pps_ctype<23)
@@ -152,69 +101,6 @@ def plot_ct_table5(caObj, use_in=None):
         print ("%3.1f"%(np.sum(these)*1.0/N*100)).rjust(5,' '),
         print cc_type_name[type_i]
 
-def plot_ct_table6(caObj, use_in=None):
-
-    from get_flag_info import get_calipso_clouds_of_type_i
-    fig = plt.figure(figsize = (30,64))
-    pps_ctype = caObj.avhrr.all_arrays['cloudtype']
-    use = np.logical_and(pps_ctype>0,pps_ctype<23)
-    use = np.logical_and(use, use_in)
-    use = np.logical_and(use,caObj.calipso.all_arrays['cloud_fraction']>0.9)
-    #for type_i in [0,2,3,4,5,6,7]:
-    #    print cc_type_name[type_i].replace(' ','_'),
-    print "N      ", 
-    for type_i in [0,2,3,4,5,6,7]:
-        is_type_i = get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=type_i)
-        is_type_i =np.logical_and(is_type_i, use)
-        N = np.sum(is_type_i)
-        print ("%d"%(N)).rjust(5,' '),
-    print ""
-    print "clear: ",
-    for type_i in [0,2,3,4,5,6,7]:
-        is_type_i = get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=type_i)
-        is_type_i =np.logical_and(is_type_i, use)
-        N = np.sum(is_type_i)
-        if N<50:
-            print ("---").rjust(5,' '),
-        else:    
-            these = np.logical_and(is_type_i, pps_ctype <5)
-            print ("%3.1f"%(np.sum(these)*1.0/N*100)).rjust(5,' '),
-    print ""
-    print "cloudy:",
-    for type_i in [0,2,3,4,5,6,7]:
-        is_type_i = get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=type_i)
-        is_type_i =np.logical_and(is_type_i, use)
-        N = np.sum(is_type_i)
-        if N<50:
-            print ("---").rjust(5,' '),
-        else:    
-            these = np.logical_and(is_type_i, pps_ctype >4)
-            print ("%3.1f"%(np.sum(these)*1.0/N*100)).rjust(5,' '),
-    print ""
-
-def table_5_per_illumination(caObj):
-    cloudtype_conditions = caObj.avhrr.all_arrays[ 'cloudtype_conditions']
-    cloudtype_status = caObj.avhrr.all_arrays[ 'cloudtype_status']
-    (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag) =     get_day_night_twilight_info_pps2014(cloudtype_conditions)
-    (no_qflag, land_flag, sea_flag, coast_flag, all_lsc_flag) = get_land_coast_sea_info_pps2014(cloudtype_conditions)
-    flag_all = caObj.avhrr.all_arrays[ 'sunz']
-    rough_terrain = get_mountin_info_pps2014(cloudtype_conditions)
-    inversion = get_inversion_info_pps2014(cloudtype_status)
-    light_flag = caObj.avhrr.all_arrays[ 'sunz']<90
-    dark_flag = caObj.avhrr.all_arrays[ 'sunz']>=90  
-    snow = caObj.calipso.all_arrays['nsidc_surface_type']>50
-    snow_free = caObj.calipso.all_arrays['nsidc_surface_type']<50
-    
-    #for use, name in zip( [ night_flag, twilight_flag, day_flag],
-    #                      ["night", "twilight","day"]):
-    for use3, name3 in zip( [ snow, snow_free,  all_dnt_flag],
-                            ["snow", "snow_free","all"]):
-        for use, name in zip( [ light_flag, dark_flag],
-                              ["light", "dark"]):
-            for use2, name2 in zip( [  land_flag, sea_flag, coast_flag],
-                                    ["land", "sea","coast"]):
-                print name, name2, name3
-                plot_ct_table6(caObj, np.logical_and(np.logical_and(use,use2),use3))
 
 def table_21_do_for_atbd(caObj):
     cloudtype_conditions = caObj.avhrr.all_arrays[ 'cloudtype_conditions']
@@ -232,10 +118,19 @@ def table_21_do_for_atbd(caObj):
     pps_ctype = caObj.avhrr.all_arrays['cloudtype']
     use = np.logical_and(pps_ctype>4,pps_ctype<23)
     use = np.logical_and(use, np.logical_and(caliop_ok,caObj.calipso.all_arrays['cloud_fraction']>0.99))
+    pps_very_low = [pps_ctype_i in [5] for pps_ctype_i in pps_ctype]
     pps_low = [pps_ctype_i in [5,6,10] for pps_ctype_i in pps_ctype]
     pps_medium = [pps_ctype_i in [7] for pps_ctype_i in pps_ctype] 
     pps_high = [pps_ctype_i in [8,9] for pps_ctype_i in pps_ctype] 
-    pps_cirrus =  [pps_ctype_i in [11,12,13,14,15,16,17,18] for pps_ctype_i in pps_ctype] 
+    pps_cirrus =  [pps_ctype_i in [11,12,13,14,15,16,17,18] for pps_ctype_i in pps_ctype]
+    height_ = caObj.calipso.all_arrays['validation_height']
+    elevation = caObj.calipso.all_arrays['elevation']
+    height_[elevation>0] = height_[elevation>0] - elevation[elevation>0]
+    pod_very_low = np.sum(np.logical_and(np.logical_and(use,pps_very_low), height_<500))*100.0/np.sum(np.logical_and(use,height_<500))
+    far_very_low = np.sum(np.logical_and(np.logical_and(use,pps_very_low), height_>=500))*100.0/np.sum(np.logical_and(use,pps_low))
+    print "pod_very_low", pod_very_low
+    print "far_very_low", far_very_low
+        
     #print "POD low medium high FAR low medium high" 
     print "|POD-low| POD-m| POD-high| (POD-cirrus)| FAR-low | FAR-m| FAR-high FAR-cirrus|"
     for use_i, name in zip( [ all_dnt_flag, day_flag, night_flag, twilight_flag ],
@@ -302,60 +197,9 @@ def table_21_do_for_atbd(caObj):
 
         #print "%3.1f %3.1f %3.1f (%3.1f) %3.1f %3.1f %3.1f %3.1f"%(POD_low, POD_medium, POD_high, POD_cirrus,
         #                                                         FAR_low, FAR_medium, FAR_high, FAR_cirrus)
-        print "|%3.1f| %3.1f| %3.1f| (%3.1f)| %3.1f| %3.1f| %3.1f| %3.1f|"%(POD_low, POD_medium, POD_high, POD_cirrus,
-                                                                 FAR_low, FAR_medium, FAR_high, FAR_cirrus)
+        print "|%3.1f| %3.1f| %3.1f| (%3.1f)| %3.1f| %3.1f| %3.1f| %3.1f| %d"%(POD_low, POD_medium, POD_high, POD_cirrus,
+                                                                               FAR_low, FAR_medium, FAR_high, FAR_cirrus, np.sum(use_this))
 
-
-def table_21_do_for_atbd_2(caObj):
-    cloudtype_conditions = caObj.avhrr.all_arrays[ 'cloudtype_conditions']
-    cloudtype_status = caObj.avhrr.all_arrays[ 'cloudtype_status']
-    (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag) =     get_day_night_twilight_info_pps2014(cloudtype_conditions)
-    low_clouds = get_calipso_low_clouds(caObj)
-    high_clouds = get_calipso_clouds_of_type_i(caObj, 7)
-    medium_clouds = get_calipso_clouds_of_type_i(caObj, 5)
-    cirrus_clouds = get_calipso_medium_and_high_clouds_tp(caObj)
-    caliop_ok = np.logical_or(np.logical_or(cirrus_clouds, low_clouds),
-                              np.logical_or(high_clouds,medium_clouds))
-    pps_ctype = caObj.avhrr.all_arrays['cloudtype']
-    use = np.logical_and(pps_ctype>4,pps_ctype<23)
-    use = np.logical_and(use, np.logical_and(caliop_ok,caObj.calipso.all_arrays['cloud_fraction']>0.9))
-    pps_low = [pps_ctype_i in [5,6,10] for pps_ctype_i in pps_ctype]
-    pps_medium = [pps_ctype_i in [7] for pps_ctype_i in pps_ctype] 
-    pps_high = [pps_ctype_i in [8,9] for pps_ctype_i in pps_ctype] 
-    pps_cirrus =  [pps_ctype_i in [11,12,13,14,15,16,17,18] for pps_ctype_i in pps_ctype] 
-    print "|POD-low| POD-m| POD-high| (POD-cirrus)| FAR-low | FAR-m| FAR-high FAR-cirrus|"
-    for use_i, name in zip( [ all_dnt_flag, day_flag, night_flag, twilight_flag ],
-                          ["all", "day", "night", "twilight"]):
-        
-
-
-        use_this = np.logical_and(use, use_i)
-        pps_cirrus_i = np.logical_and(pps_cirrus,use_this)
-        cirrus_clouds_i =  np.logical_and(cirrus_clouds,use_this)
-        n_cirrus_ok = 1.0*np.sum(np.logical_and(pps_cirrus_i,cirrus_clouds_i))
-        POD_cirrus =  100*n_cirrus_ok/np.sum(cirrus_clouds_i)
-        FAR_cirrus = 100*(np.sum(pps_cirrus_i)-n_cirrus_ok)/np.sum(pps_cirrus_i)  
-
-        pps_low_i = np.logical_and(pps_low,use_this)
-        low_clouds_i =  np.logical_and(low_clouds,use_this)
-        n_low_ok = 1.0*np.sum(np.logical_and(pps_low_i,low_clouds_i))
-        POD_low =  100*n_low_ok/np.sum(low_clouds_i)
-        FAR_low =  100*(np.sum(pps_low_i)-n_low_ok)*1.0/np.sum(pps_low_i) 
-
-        pps_medium_i = np.logical_and(pps_medium,use_this)
-        medium_clouds_i =  np.logical_and(medium_clouds, use_this)
-        n_medium_ok = 1.0*np.sum(np.logical_and(pps_medium_i,medium_clouds_i)) 
-        POD_medium =  100*(n_medium_ok )/np.sum(medium_clouds_i)        
-        FAR_medium =  100*(np.sum(pps_medium_i)-n_medium_ok)/np.sum(pps_medium_i)
-
-        pps_high_i = np.logical_and(pps_high,use_this)
-        high_clouds_i =  np.logical_and(high_clouds,use_this)
-        n_high_ok = 1.0*np.sum(np.logical_and(pps_high_i,high_clouds_i))
-        POD_high =  100*(n_high_ok)/np.sum(high_clouds_i)
-        FAR_high = 100*(np.sum(pps_high_i)-n_high_ok)/np.sum(pps_high_i) 
-        
-        print "|%3.1f| %3.1f| %3.1f| (%3.1f)| %3.1f| %3.1f| %3.1f| %3.1f|"%(POD_low, POD_medium, POD_high, POD_cirrus,
-                                                                 FAR_low, FAR_medium, FAR_high, FAR_cirrus)
 
 
 
@@ -385,7 +229,21 @@ if __name__ == "__main__":
         "/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
         "ATRAIN_RESULTS_NPP_C4/Reshaped_Files/npp/1km/2015/07/*/")
 
-    files = glob(ROOT_DIR_v2018 + "*h5")
+
+
+    ROOT_DIR_v2014 = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/global_modis_v2014_created20180920/Reshaped_Files_merged_caliop/eos2/1km/2010/*/*%s*h5")
+    ROOT_DIR_v2018 = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/global_modis_v2018_created20180920/Reshaped_Files_merged_caliop/eos2/1km/2010/*/*%s*h5")
+    ROOT_DIR = ROOT_DIR_v2018
+    files = glob(ROOT_DIR%("20100201"))
+    files = files + glob(ROOT_DIR%("20100401"))             
+    files = files + glob(ROOT_DIR%("20100601")) 
+    files = files + glob(ROOT_DIR%("20100801")) 
+    files = files + glob(ROOT_DIR%("20101001")) 
+    files = files + glob(ROOT_DIR%("20101201")) 
+
+    ROOT_DIR_v2014 = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/global_viirs_v2014_created20180914/Reshaped_Files_merged_caliop/npp/1km/2015/*/")
+    ROOT_DIR_v2018 = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/global_viirs_v2018_created20180907/Reshaped_Files_merged_caliop/npp/1km/2015/*/")
+    #files = glob(ROOT_DIR_v2018 + "*h5")
    
 
     caObj = CalipsoAvhrrTrackObject()
@@ -394,10 +252,7 @@ if __name__ == "__main__":
         caObj +=readCaliopAvhrrMatchObj(filename, var_to_skip='segment')
 
 
-    #table_5_per_illumination(caObj)
     plot_ct_table4(caObj)
     plot_ct_table2(caObj)
-    #table_21_do_for_atbd_2(caObj)
-    #plot_ct_table3(caObj)
     table_21_do_for_atbd(caObj)
-    #plot_ct_table3(caObj)
+
