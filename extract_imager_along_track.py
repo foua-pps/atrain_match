@@ -142,19 +142,33 @@ CURRENTLY_UNUSED_MODIS_CHANNELS = ['modis_3',
 
 def get_data_from_array(array, matched):
     if array is None:
-        return None
+        return None        
     return np.array([array[matched['row'][idx], matched['col'][idx]]
-                     for idx in range(matched['row'].shape[0])]) 
-
+                    for idx in range(matched['row'].shape[0])]) 
+    
 def get_data_from_array_nneigh(array, matched):
     if array is None:
         return None
     out = np.zeros(matched['row'].shape)
     for i in xrange(matched['row'].shape[1]):
-        matched_i = {'row': matched['row'][:,i],
-                     'col': matched['col'][:,i]}
-        out[:, i] = get_data_from_array(array, matched_i)
+        nodata = matched['row'][:,i] < 0
+        matched_i = {'row': matched['row'][:,i].copy(),
+                     'col': matched['col'][:,i].copy()}
+        matched_i['row'][nodata] = 0
+        matched_i['col'][nodata] = 0        
+        out[:,i] = get_data_from_array(array, matched_i)
+        out[nodata,i] = -9
     return out
+
+def get_mean_data_from_array_nneigh(array, matched):
+    if array is None:
+        return None
+    out_all = get_data_from_array_nneigh(array, matched)
+    n_ok = np.sum(out_all>=0, axis=-1) #before
+    out_all[out_all<0] = 0
+    sum_out_all = np.sum(out_all, axis=-1)
+    return sum_out_all*1.0/n_ok
+
 
 def get_channel_data_from_object(dataObj, chn_des, matched, nodata=-9):
     """Get the AVHRR/VIIRS channel data on the track
@@ -334,24 +348,35 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
                              nwp_obj, ctth, ctype, cma, 
                              cpp=None,
                              nwp_segments=None,
-                             extract_some_data_for_x_neighbours=False):
+                             extract_some_data_for_x_neighbours=False,
+                             find_mean_data_for_x_neighbours=False):
     truth = getattr(obt, obt.truth_sat)
     row_matched = truth.imager_linnum
     col_matched = truth.imager_pixnum
     row_col = {'row': row_matched, 'col': col_matched}
+    if extract_some_data_for_x_neighbours or find_mean_data_for_x_neighbours:
+        truth = getattr(obt, obt.truth_sat)
+        row_matched_nneigh = truth.imager_linnum_nneigh
+        col_matched_nneigh = truth.imager_pixnum_nneigh
+        row_col_nneigh = {'row': row_matched_nneigh, 'col': col_matched_nneigh}
+
     obt.avhrr.latitude = get_data_from_array(GeoObj.latitude, row_col)
     obt.avhrr.longitude = get_data_from_array(GeoObj.longitude, row_col)
     if ctype is not None:
         obt.avhrr.cloudtype = get_data_from_array(ctype.cloudtype, row_col)
     if cma is not None:
         obt.avhrr.cloudmask = get_data_from_array(cma.cma_ext, row_col)
-
+        if find_mean_data_for_x_neighbours:
+            obt.avhrr.cfc_mean = get_mean_data_from_array_nneigh(cma.cma_bin, row_col_nneigh)
+            
     for varname in ['cma_testlist0','cma_testlist1', 'cma_testlist2',
                     'cma_testlist3','cma_testlist4', 'cma_testlist5',
                     'cma_prob', 'cma_aerosolflag', 'cma_dust']:
         if hasattr(cma, varname):
             setattr(obt.avhrr, varname, 
                     get_data_from_array(getattr(cma, varname), row_col))
+            if find_mean_data_for_x_neighbours and varname=='cma_prob':
+                obt.avhrr.cma_prob_mean = get_mean_data_from_array_nneigh(cma.cma_prob, row_col_nneigh)   
                                 
     #cloud-type flags
     for (variable, outname) in  zip(
@@ -498,10 +523,6 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
     if cpp is None:    
         logger.debug("Not extracting cpp")
     elif extract_some_data_for_x_neighbours:
-        truth = getattr(obt, obt.truth_sat)
-        row_matched_nneigh = truth.imager_linnum_nneigh
-        col_matched_nneigh = truth.imager_pixnum_nneigh
-        row_col_nneigh = {'row': row_matched_nneigh, 'col': col_matched_nneigh}
         for data_set_name in cpp.__dict__.keys():
             data = getattr(cpp, data_set_name)
             if data is not None:
@@ -510,7 +531,6 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
         for nwp_info in ["landuse", "fractionofland"]:
             data = getattr(nwp_obj, nwp_info)
             setattr(obt.avhrr, nwp_info, get_data_from_array_nneigh(data, row_col_nneigh))
-            
     else:
         logger.debug("Extracting cpp along track ")
         for data_set_name in cpp.__dict__.keys():

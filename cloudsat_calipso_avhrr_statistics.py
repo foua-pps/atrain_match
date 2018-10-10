@@ -263,7 +263,10 @@ def get_semi_opaque_info(caObj):
 """
 
 def find_imager_clear_cloudy(cObj):
-    if config.USE_CMA_FOR_CFC_STATISTICS:
+    if 'SYNOP' in  cObj.truth_sat.upper():
+        imager_clear =  cObj.avhrr.cfc_mean <config.PPS_SYNOP_CLEAR_MAX_CFC
+        imager_cloudy =  cObj.avhrr.cfc_mean >=config.PPS_SYNOP_CLOUDY_MIN_CFC
+    elif config.USE_CMA_FOR_CFC_STATISTICS:
         imager_clear = np.logical_or(np.equal(cObj.avhrr.cloudmask,3),
                                      np.equal(cObj.avhrr.cloudmask,0))
         imager_cloudy = np.logical_or(np.equal(cObj.avhrr.cloudmask,1),
@@ -293,7 +296,12 @@ def find_truth_clear_cloudy(cObj, val_subset):
         truth_clear = np.logical_and(
             np.less(cObj_truth_sat.cloud_fraction,config.CALIPSO_CLEAR_MAX_CFC),val_subset)
         truth_cloudy = np.logical_and(
-            np.greater_equal(cObj_truth_sat.cloud_fraction,config.CALIPSO_CLOUDY_MIN_CFC),val_subset)        
+            np.greater_equal(cObj_truth_sat.cloud_fraction,config.CALIPSO_CLOUDY_MIN_CFC),val_subset) 
+    elif 'SYNOP' in  cObj.truth_sat.upper():
+        truth_clear = np.logical_and(
+            np.less(cObj_truth_sat.cloud_fraction,config.SYNOP_CLEAR_MAX_CFC),val_subset)
+        truth_cloudy = np.logical_and(
+            np.greater_equal(cObj_truth_sat.cloud_fraction,config.SYNOP_CLOUDY_MIN_CFC),val_subset) 
     else:
         truth_clear = np.logical_and(
             np.less_equal(cObj_truth_sat.cloud_fraction,0.5), val_subset)
@@ -509,6 +517,10 @@ def print_cmask_prob_stats(cObj, statfile, val_subset):
     # CORRELATION CLOUD MASK: CALIOP/ISS - IMAGER
     if cObj.avhrr.cma_prob is None:
         return
+    if 'SYNOP' in  cObj.truth_sat.upper():
+        cma_prob = cObj.avhrr.cma_prob_mean
+    else:
+        cma_prob = cObj.avhrr.cma_prob 
     truth_clear, truth_cloudy = find_truth_clear_cloudy(cObj, val_subset)
 
     #selection:
@@ -521,8 +533,8 @@ def print_cmask_prob_stats(cObj, statfile, val_subset):
         upper = lower + step
         if upper == 100:
             upper = 101
-        pps_in_interval = np.logical_and(cObj.avhrr.cma_prob>=lower, 
-                                         cObj.avhrr.cma_prob<upper)
+        pps_in_interval = np.logical_and(cma_prob>=lower, 
+                                         cma_prob<upper)
         n_clear = np.sum(np.logical_and(truth_clear, pps_in_interval))
         n_cloudy= np.sum(np.logical_and(truth_cloudy, pps_in_interval))
         clear_string += "%s "%(n_clear)
@@ -958,7 +970,7 @@ def print_main_stats(cObj, statfile):
         num_val_data_ok))
 
 
-def CalculateStatistics(mode, statfilename, caObj, clsatObj, issObj, amObj,
+def CalculateStatistics(mode, statfilename, caObj, clsatObj, issObj, amObj, syObj,
                         dnt_flag=None):
 
     def get_day_night_subset(cObj, val_subset):
@@ -1036,4 +1048,15 @@ def CalculateStatistics(mode, statfilename, caObj, clsatObj, issObj, amObj,
             statfile = open(statfilename.replace('xxx','amsr'),"w")
             print_main_stats(amObj, statfile)
             print_cpp_lwp_stats(amObj, statfile, val_subset)
+            statfile.close()
+
+    if syObj is not None:
+        logger.info("SYNOP Statistics")
+        val_subset = get_subset_for_mode(syObj, mode)
+        if val_subset is not None:
+            val_subset = get_day_night_subset(syObj, val_subset)                        
+            statfile = open(statfilename.replace('xxx','synop'),"w")
+            print_main_stats(syObj, statfile)
+            print_cmask_stats(syObj, statfile, val_subset)
+            print_cmask_prob_stats(syObj, statfile, val_subset)
             statfile.close()

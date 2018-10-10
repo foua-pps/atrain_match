@@ -38,7 +38,7 @@ CMA_PROB_CLOUDY_LIMIT = 50 #50% cloudy => cloud, only active if CMA_PROB_VALIDAT
 
 #========== Important time settings ==========#
 #: Constant: Approximate duration of a satellite orbit in seconds 
-SAT_ORBIT_DURATION = 50*60 #Not to large 
+SAT_ORBIT_DURATION = 95*60 #Not to large GAC orbit 95min
 #: Allowed time deviation in seconds between AVHRR and CALIPSO/CloudSat matchup
 sec_timeThr = 60*3
 
@@ -58,16 +58,18 @@ CCI_CLOUD_VALIDATION = str2bool(os.environ.get('CCI_CLOUD_VALIDATION', False))
 MAIA_CLOUD_VALIDATION = str2bool(os.environ.get('MAIA_CLOUD_VALIDATION', False))
 #: Turn off ISS and CLOUDSAT matching if never used
 CALIPSO_MATCHING = True  #Notice can not be False if CALIPSO_REQUIRED = True
-CLOUDSAT_MATCHING = True #Notice can not be False if CLOUDSAT_REQUIRED = True
+CLOUDSAT_MATCHING = False #Notice can not be False if CLOUDSAT_REQUIRED = True
 ISS_MATCHING = False      #Notice can not be False if ISS_REQUIRED = True
-AMSR_MATCHING = True    #Notice can not be False if AMSR_REQUIRED = True
+AMSR_MATCHING = False   #Notice can not be False if AMSR_REQUIRED = True
+SYNOP_MATCHING = False    #Notice can not be False if SYNOP_REQUIRED = True
 
 #: Require matching. It is OK to have all False. Matching is still done
 #: but program will not crach if it finds only CALIPSO data but not CloudSat.
 CALIPSO_REQUIRED = False # Make progam fail if there is no CALIPSO match 
 CLOUDSAT_REQUIRED = False # Make progam fail if there is no CloudSat match
 ISS_REQUIRED = False # Make progam fail if there is no ISS match
-AMSR_REQUIRED = False # Make progam fail if there is no ISS match
+AMSR_REQUIRED = False # Make progam fail if there is no AMSR match
+SYNOP_REQUIRED = False # Make progam fail if there is no SYNOP match
 
 #========== Extra settings, to get things to reshaped file  ==========#
 #: Save imager data also for warmest and coldest pixels:
@@ -88,9 +90,17 @@ MATCH_AEROSOL_CALIPSO = False
 #: For calipso-v4  0, 1/15, 2/15 .. 1.0 is possible     
 #: CLOUDS: pixels with cloud_fraction higher or equal to CALIPSO_CLOUDY_MIN_CFC
 #: CLEAR:  pixels with cloud_fraction lower than CALIPSO_CLEAR_MAX_CFC
-CALIPSO_CLOUDY_MIN_CFC = 0.5 #Tradition 0.64, KG used 0.5 for v2014 validation
-CALIPSO_CLEAR_MAX_CFC = 0.5  #Tradition 0.33, KG used 0.5, 
+CALIPSO_CLOUDY_MIN_CFC = 0.5 #>=Tradition 0.64, KG used 0.5 for v2014 validation
+CALIPSO_CLEAR_MAX_CFC = 0.5  #<Tradition 0.33, KG used 0.5, 
                              #PPS development use low value 
+#========== SYNOP stuff ==========#
+SYNOP_RADIUS = 10.e3 
+SYNOP_CLOUDY_MIN_CFC = 0.75 #>=tradition 7/8
+SYNOP_CLEAR_MAX_CFC = 0.25  #<tradition 3/8 
+PPS_SYNOP_CLOUDY_MIN_CFC = 0.75 #>=tradition 11/16
+PPS_SYNOP_CLEAR_MAX_CFC = 0.25  #<tradition 5/16                         
+sec_timeThr_synop = 60*30
+
 
 #========== Select calipso version ==========#
 #: Choose CALIPSO-CALIOP version
@@ -139,14 +149,6 @@ if (COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC or
     CALCULATE_DETECTION_HEIGHT_FROM_5KM_DATA):
     ALSO_USE_5KM_FILES = True #5km data is required also for 1km processing
 
-#========== Only for the separate CPP validation ==========#
-#: important for cph_validate.py
-VALIDATE_FOR_CPP_PIXELS = True # means validating for cloudtype only for 
-                               # pixels where we also got cpp.cph values
-CPP_REDUCE_PIXELS = int(os.environ.get('CPP_REDUCE_PIXELS', 0))
-#: 1 means validate on a sub-set of the pixels, according to settings in
-#:   util.py/reduce_cpp_data
-
 #========== Process modes ==========#
 #: Processing modes which can be handled for all resolutions
 ALLOWED_MODES = ['BASIC', 'STANDARD']
@@ -193,9 +195,8 @@ CALIPSO_FILE_LENGTH = 60*60 #calipso files are shorter 60 minutes
 CLOUDSAT_FILE_LENGTH = 120*60 #cloudsat files are shorter 120 minutes
 ISS_FILE_LENGTH = 60*60 #iss files are shorter 60 minutes 
 AMSR_FILE_LENGTH = 60*60 #iss files are shorter 60 minutes 
-#: Cloudsat data type (currently 'GEOPROF' are supported)
-#: Traditionally also  'CWC-RVOD' where supported
-CLOUDSAT_TYPE = 'GEOPROF'
+SYNOP_FILE_LENGTH = 24*60 #Our synop data comes in 1 day files
+
 #: Region configuaration file with area definitons
 AREA_CONFIG_FILE = os.environ.get('AREA_CONFIG_FILE', './areas.def')
 PPS_FORMAT_2012_OR_EARLIER = False
@@ -204,16 +205,17 @@ ALWAYS_USE_AVHRR_ORBIT_THAT_STARTS_BEFORE_CROSS = False
 
 #========== Plotting ==========#
 #: Processing modes for which plotting should also be performed
-PLOT_MODES = ['No Plot']
-#PLOT_MODES = ['BASIC']
-PLOT_ONLY_PNG = True
+#PLOT_MODES = ['No Plot']
+PLOT_MODES = ['BASIC']
+#PLOT_TYPES = ['eps', 'png', 'pdf']
+PLOT_TYPES =['png']
 #: MAXHEIGHT is used in the plotting. 
 #: If None the maxheight is calculated from the highest cloud
 #MAXHEIGHT = None
 MAXHEIGHT = 18000
 
 #========== Statistics setup ==========#
-COMPILE_STATISTICS_TRUTH = ['iss','calipso','cloudsat', 'amsr']
+COMPILE_STATISTICS_TRUTH = ['iss','calipso','cloudsat', 'amsr', 'synop']
 #: DNT which statistics should be summarized 
 #DNT_FLAG = ['ALL']
 DNT_FLAG = ['ALL', 'DAY', 'NIGHT', 'TWILIGHT']
@@ -272,17 +274,18 @@ CASES = [ {'satname': 'noaa18', 'year': 2013, 'month': 6},
          {'satname': 'noaa18', 'year': 2009, 'month': 12}]
 
 CASES_npp =  [{'satname': 'npp', 'year': 2015, 'month': 2},
-                       {'satname': 'npp', 'year': 2012, 'month': 7},
-                       {'satname': 'npp', 'year': 2012, 'month': 8},
-                       {'satname': 'npp', 'year': 2012, 'month': 9},
-                       {'satname': 'npp', 'year': 2012, 'month': 10},
-                       {'satname': 'npp', 'year': 2012, 'month': 11},
-                       {'satname': 'npp', 'year': 2012, 'month': 12},
-                       {'satname': 'npp', 'year': 2013, 'month': 01},
-                       {'satname': 'npp', 'year': 2013, 'month': 02},
-                       {'satname': 'npp', 'year': 2013, 'month': 03},
-                       {'satname': 'npp', 'year': 2013, 'month': 04},
-                       {'satname': 'npp', 'year': 2013, 'month': 05}]
+              {'satname': 'npp', 'year': 2015, 'month': 7},
+              {'satname': 'npp', 'year': 2015, 'month': 8},
+              {'satname': 'npp', 'year': 2015, 'month': 9},
+              {'satname': 'npp', 'year': 2015, 'month': 10},
+              {'satname': 'npp', 'year': 2015, 'month': 11},
+              {'satname': 'npp', 'year': 2015, 'month': 12},
+              {'satname': 'npp', 'year': 2015, 'month': 01},
+              {'satname': 'npp', 'year': 2015, 'month': 03},
+              {'satname': 'npp', 'year': 2015, 'month': 04},
+              {'satname': 'npp', 'year': 2015, 'month': 06},
+              {'satname': 'npp', 'year': 2015, 'month': 05}]
+
 CASES_V4test_NOAA18 =[{'satname': 'noaa18', 'year': 2006, 'month': 10},
          {'satname': 'noaa18', 'year': 2006, 'month': 11},
          {'satname': 'noaa18', 'year': 2006, 'month': 12}]
@@ -301,7 +304,14 @@ CASES_modis =[{'satname': 'eos2', 'year': 2010, 'month': 1},
               {'satname': 'eos2', 'year': 2010, 'month': 10},
               {'satname': 'eos2', 'year': 2010, 'month': 11},
               {'satname': 'eos2', 'year': 2010, 'month': 12}]
-
+CASES_modis_even =[
+              {'satname': 'eos2', 'year': 2010, 'month': 2},
+              {'satname': 'eos2', 'year': 2010, 'month': 4},
+              {'satname': 'eos2', 'year': 2010, 'month': 6},
+              {'satname': 'eos2', 'year': 2010, 'month': 8},
+              {'satname': 'eos2', 'year': 2010, 'month': 10},
+              {'satname': 'eos2', 'year': 2010, 'month': 12}]
+ 
 CASES =[{'satname': 'noaa18', 'year': 2009, 'month': 1},
          {'satname': 'noaa18', 'year': 2009, 'month': 2},
          {'satname': 'noaa18', 'year': 2009, 'month': 3},
@@ -315,6 +325,6 @@ CASES =[{'satname': 'noaa18', 'year': 2009, 'month': 1},
          {'satname': 'noaa18', 'year': 2009, 'month': 11},
          {'satname': 'noaa18', 'year': 2009, 'month': 12}]
 
-CASES = CASES_npp
+CASES = CASES_modis_even
 
 

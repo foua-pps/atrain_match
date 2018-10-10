@@ -129,10 +129,12 @@ class ppsAvhrrObject(DataObject):
             'ctth_opaque': None,  # True if opaque retrieval was applied
             'cloudtype': None,
             'cloudmask': None,
+            'cfc_mean': None,
             'cma_aerosolflag':None,
             'cma_aerosol':None,
             'cma_dust': None,
             'cma_prob': None,
+            'cma_prob_mean': None,
             'cma_testlist0':None,
             'cma_testlist1':None,
             'cma_testlist2':None,
@@ -508,6 +510,49 @@ class AmsrObject(DataObject):
             'sec_1970': None,
             'lwp': None}
 
+class SynopObject(DataObject):
+    def __init__(self):
+        DataObject.__init__(self)                            
+        self.all_arrays = {
+            'longitude': None,
+            'latitude': None,
+            'imager_linnum': None,
+            'imager_pixnum': None,
+            'imager_linnum_nneigh': None,
+            'imager_pixnum_nneigh': None,
+            'total_cloud_cover': None,
+            'cloud_fraction': None,
+            'nh':None,
+            'cl': None,
+            'cm': None,
+            'ch': None,
+            'vvv': None,
+            'ww': None,
+            'temp': None,
+            'dtemp': None,
+            'sec_1970': None,
+            'pressure': None}
+
+class SynopAvhrrTrackObject:
+    def __init__(self):
+        self.avhrr = ppsAvhrrObject()
+        self.modis = ModisObject()
+        self.synop = SynopObject()
+        self.diff_sec_1970 = None
+        self.truth_sat = 'synop' # Well not a satelite, but ...
+    def __add__(self, other):
+        """Concatenating two objects together"""
+        self.avhrr = self.avhrr + other.avhrr
+        self.synop = self.synop + other.synop
+        #self.modis = self.modis + other.modis
+        try:
+            self.diff_sec_1970 = np.concatenate([self.diff_sec_1970,
+                                                 other.diff_sec_1970])
+        except ValueError, e:
+            #print "Don't concatenate member diff_sec_1970... " + str(e)
+            self.diff_sec_1970 = other.diff_sec_1970
+        return self
+
 class AmsrAvhrrTrackObject:
     def __init__(self):
         self.avhrr = ppsAvhrrObject()
@@ -727,7 +772,31 @@ def readCaliopAvhrrMatchObj(filename, var_to_read=None, var_to_skip=None):
     #retv.make_nsidc_surface_type_texture()
     return retv
 
-# ----------------------------------------
+def readTruthAvhrrMatchObj(filename, retv):
+    h5file = h5py.File(filename, 'r')
+    (h5_groups, data_objects) =  get_stuff_to_read_from_a_reshaped_file(h5file, retv)
+    for group, data_obj in zip(h5_groups, data_objects):
+        for dataset in group.keys():        
+            if dataset in data_obj.all_arrays.keys():
+                data_obj.all_arrays[dataset] = group[dataset].value 
+    retv.diff_sec_1970 = h5file['diff_sec_1970'].value
+    h5file.close()
+    return retv
+
+def readCloudsatAvhrrMatchObj(filename):
+    retv = CloudsatAvhrrTrackObject()  
+    return readTruthAvhrrMatchObj(filename, retv)
+def readIssAvhrrMatchObj(filename): 
+    retv = IssAvhrrTrackObject()   
+    return readTruthAvhrrMatchObj(filename, retv)
+def readAmsrAvhrrMatchObj(filename): 
+    retv = AmsrAvhrrTrackObject()   
+    return readTruthAvhrrMatchObj(filename, retv)
+def readSynopAvhrrMatchObj(filename): 
+    retv = SynopAvhrrTrackObject()   
+    return readTruthAvhrrMatchObj(filename, retv)
+
+# write matchup files
 def writeCaliopAvhrrMatchObj(filename, ca_obj, avhrr_obj_name = 'pps'):
     """
     Write *ca_obj* to *filename*.    
@@ -740,18 +809,6 @@ def writeCaliopAvhrrMatchObj(filename, ca_obj, avhrr_obj_name = 'pps'):
     status = 1
     return status
 
-def readCloudsatAvhrrMatchObj(filename):
-    retv = CloudsatAvhrrTrackObject()    
-    h5file = h5py.File(filename, 'r')
-    (h5_groups, data_objects) =  get_stuff_to_read_from_a_reshaped_file(h5file, retv)
-    for group, data_obj in zip(h5_groups, data_objects):
-        for dataset in group.keys():        
-            if dataset in data_obj.all_arrays.keys():
-                data_obj.all_arrays[dataset] = group[dataset].value 
-    retv.diff_sec_1970 = h5file['diff_sec_1970'].value
-    h5file.close()
-    return retv
-
 def writeCloudsatAvhrrMatchObj(filename,cl_obj, avhrr_obj_name = 'pps'):    
     groups = {'cloudsat': cl_obj.cloudsat.all_arrays,
               'modis_lvl2': cl_obj.modis.all_arrays,
@@ -759,30 +816,6 @@ def writeCloudsatAvhrrMatchObj(filename,cl_obj, avhrr_obj_name = 'pps'):
     write_match_objects(filename, cl_obj.diff_sec_1970, groups)    
     status = 1
     return status
-
-def readIssAvhrrMatchObj(filename): 
-    retv = IssAvhrrTrackObject()    
-    h5file = h5py.File(filename, 'r')
-    (h5_groups, data_objects) =  get_stuff_to_read_from_a_reshaped_file(h5file, retv)
-    for group, data_obj in zip(h5_groups, data_objects):
-        for dataset in group.keys():        
-            if dataset in data_obj.all_arrays.keys():
-                data_obj.all_arrays[dataset] = group[dataset].value 
-    retv.diff_sec_1970 = h5file['diff_sec_1970'].value
-    h5file.close()
-    return retv
-
-def readAmsrAvhrrMatchObj(filename): 
-    retv = AmsrAvhrrTrackObject()    
-    h5file = h5py.File(filename, 'r')
-    (h5_groups, data_objects) =  get_stuff_to_read_from_a_reshaped_file(h5file, retv)
-    for group, data_obj in zip(h5_groups, data_objects):
-        for dataset in group.keys():        
-            if dataset in data_obj.all_arrays.keys():
-                data_obj.all_arrays[dataset] = group[dataset].value 
-    retv.diff_sec_1970 = h5file['diff_sec_1970'].value
-    h5file.close()
-    return retv
 
 def writeIssAvhrrMatchObj(filename,iss_obj, avhrr_obj_name = 'pps'):
     groups = {'iss': iss_obj.iss.all_arrays,
@@ -797,6 +830,14 @@ def writeAmsrAvhrrMatchObj(filename,amsr_obj, avhrr_obj_name = 'pps'):
               'modis_lvl2': amsr_obj.modis.all_arrays,
               avhrr_obj_name: amsr_obj.avhrr.all_arrays}
     write_match_objects(filename, amsr_obj.diff_sec_1970, groups)    
+    status = 1
+    return status
+
+def writeSynopAvhrrMatchObj(filename,synop_obj, avhrr_obj_name = 'pps'):
+    groups = {'synop': synop_obj.synop.all_arrays,
+              'modis_lvl2': synop_obj.modis.all_arrays,
+              avhrr_obj_name: synop_obj.avhrr.all_arrays}
+    write_match_objects(filename, synop_obj.diff_sec_1970, groups)    
     status = 1
     return status
 
@@ -844,6 +885,8 @@ the_used_variables = [
     'cloudtype',
     'cloudmask',
     'cma_prob',
+    'cfc_mean',
+    'cma_prob_mean',
     'cma_aerosolflag',
     'cma_aerosol',
     'cma_dust',

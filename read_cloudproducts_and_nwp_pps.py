@@ -345,6 +345,12 @@ def read_cma_h5(filename):
         if 'cloud_probability' in h5file.keys():
             logger.error("This CMA-file seem lika a CMAPROB file!")
     cma.cma_ext = h5file['cma_extended'].value
+    cma.cma_bin = 0*cma.cma_ext.copy()
+    cma.cma_bin[cma.cma_ext==1] = 1.0
+    cma.cma_bin[cma.cma_ext==2] = 1.0
+    cma.cma_bin[cma.cma_ext<0] =  ATRAIN_MATCH_NODATA
+    cma.cma_bin[cma.cma_ext>10] =  ATRAIN_MATCH_NODATA
+
     #try KeyError 'cma'
     h5file.close()
     return cma
@@ -382,6 +388,12 @@ def read_cma_nc(filename):
         if 'cloud_probability' in pps_nc.variables.keys():
             logger.error("Probably you shold set CMAP_PROB_VALIDATION=True!")
     cma.cma_ext = pps_nc.variables['cma_extended'][0,:,:]
+    cma.cma_bin = 0*cma.cma_ext.copy()
+    cma.cma_bin[cma.cma_ext==1] = 1.0
+    cma.cma_bin[cma.cma_ext==2] = 1.0
+    cma.cma_bin[cma.cma_ext<0] =  ATRAIN_MATCH_NODATA
+    cma.cma_bin[cma.cma_ext>10] =  ATRAIN_MATCH_NODATA
+
     #cma.cma_testlist0 = pps_nc.variables['cma_testlist0'][0,:,:]
     #cma.cma_testlist1 = pps_nc.variables['cma_testlist1'][0,:,:]
     #cma.cma_testlist2 = pps_nc.variables['cma_testlist2'][0,:,:]

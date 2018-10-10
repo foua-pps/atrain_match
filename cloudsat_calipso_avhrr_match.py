@@ -75,7 +75,7 @@ import sys
 import numpy as np
 from config import (IMAGER_INSTRUMENT,
                     NODATA,
-                    PLOT_ONLY_PNG,
+                    PLOT_TYPES, 
                     CCI_CLOUD_VALIDATION,
                     MAIA_CLOUD_VALIDATION,
                     PPS_VALIDATION,
@@ -115,6 +115,7 @@ from cloudsat import (reshapeCloudsat,
                       add_cloudsat_cloud_fraction,
                       mergeCloudsat)
 from amsr import (reshapeAmsr, match_amsr_avhrr)
+from synop import (reshapeSynop, match_synop_avhrr)
 from iss import reshapeIss, match_iss_avhrr
 from calipso import (reshapeCalipso, 
                      discardCalipsoFilesOutsideTimeRange,
@@ -129,7 +130,9 @@ from matchobject_io import (CalipsoObject,
                             writeIssAvhrrMatchObj, 
                             readIssAvhrrMatchObj,
                             writeAmsrAvhrrMatchObj, 
-                            readAmsrAvhrrMatchObj
+                            readAmsrAvhrrMatchObj,
+                            writeSynopAvhrrMatchObj, 
+                            readSynopAvhrrMatchObj
                         )
 from calipso import  (add1kmTo5km,
                       addSingleShotTo5km,
@@ -261,7 +264,8 @@ def find_truth_files(date_time, options, values, truth='calipso'):
         TRUTH_FILE_LENGTH = config.ISS_FILE_LENGTH
     if truth in ['amsr']:
         TRUTH_FILE_LENGTH = config.AMSR_FILE_LENGTH
-
+    if truth in ['synop']:
+        TRUTH_FILE_LENGTH = config.SYNOP_FILE_LENGTH
     #might need to geth this in before looking for matchups
     tdelta_before = timedelta(seconds = (TRUTH_FILE_LENGTH +
                                          config.sec_timeThr))
@@ -567,6 +571,18 @@ def get_amsr_matchups(amsr_files, avhrrGeoObj, avhrrObj,
                                   avhrrGeoObj, avhrrObj, ctype, cma,
                                   ctth, nwp_obj, avhrrAngObj, cpp, nwp_segments)
     return am_matchup
+
+def get_synop_matchups(synop_files, avhrrGeoObj, avhrrObj,
+                       ctype, cma, ctth, nwp_obj, avhrrAngObj, 
+                       cpp, nwp_segments,  config_options):
+    """
+    Read Synop data and match with the given PPS data.
+    """
+    synop = reshapeSynop(synop_files, avhrrGeoObj)
+    synop_matchup = match_synop_avhrr(synop,
+                                  avhrrGeoObj, avhrrObj, ctype, cma,
+                                  ctth, nwp_obj, avhrrAngObj, cpp, nwp_segments)
+    return synop_matchup
 
 def total_and_top_layer_optical_depth_5km(calipso, resolution=5):
     logger.info("Find total optical depth from 5km data")
@@ -985,9 +1001,18 @@ def get_matchups_from_data(cross, config_options):
         amsr_files = find_truth_files(date_time, config_options, values, truth='amsr')
     elif CCI_CLOUD_VALIDATION:
         logger.info("\nCCI-cloud validation only for calipso, Continue" 
-                    "\nIt might be working for ISS though ...")
-    elif not config.ISS_MATCHING:
-        logger.info("AMSR matching not requested config.ISS_MATCHING=False")   
+                    "\nIt might be working for AMSR though ...")
+    elif not config.AMSR_MATCHING:
+        logger.info("AMSR matching not requested config.AMSR_MATCHING=False")   
+    #AMSR:  
+    synop_files = None
+    if (PPS_VALIDATION and config.SYNOP_MATCHING):
+        synop_files = find_truth_files(date_time, config_options, values, truth='synop')
+    elif CCI_CLOUD_VALIDATION:
+        logger.info("\nCCI-cloud validation only for calipso, Continue" 
+                    "\nIt might be working for SYNOP though ...")
+    elif not config.SYNOP_MATCHING:
+        logger.info("SYNOP matching not requested config.SYNOP_MATCHING=False")   
     #CALIPSO:
     calipso_files = None
     if config.CALIPSO_MATCHING:
@@ -999,7 +1024,7 @@ def get_matchups_from_data(cross, config_options):
         logger.info("CALIPSO matching not requested config.CALIPSO_MATCHING=False")     
 
     if (calipso_files is None and cloudsat_files is None and 
-        cloudsat_files_lwp is None and
+        cloudsat_files_lwp is None and synop_files is None and
         iss_files is None and amsr_files is None):      
         raise MatchupError(
                 "Couldn't find any matching CALIPSO/CLoudSat/ISS data")
@@ -1045,6 +1070,14 @@ def get_matchups_from_data(cross, config_options):
                                          avhrrGeoObj, avhrrObj, ctype, cma,
                                          ctth, nwp_obj, avhrrAngObj, cpp, 
                                          nwp_segments, config_options)
+    #SYNOP
+    synop_matchup = None
+    if (PPS_VALIDATION and config.SYNOP_MATCHING and synop_files is not None):
+        logger.info("Read SYNOP data")
+        synop_matchup = get_synop_matchups(synop_files, 
+                                           avhrrGeoObj, avhrrObj, ctype, cma,
+                                           ctth, nwp_obj, avhrrAngObj, cpp, 
+                                           nwp_segments, config_options)
     #CALIPSO:
     ca_matchup = None
     if config.CALIPSO_MATCHING and calipso_files is not None:
@@ -1066,7 +1099,10 @@ def get_matchups_from_data(cross, config_options):
         raise MatchupError("No matches with ISS.")
     elif amsr_matchup is None and config.AMSR_REQUIRED:
         raise MatchupError("No matches with AMSR.")
-    elif  ca_matchup is None and cl_matchup is None and iss_matchup is None and amsr_matchup is None:
+    elif synop_matchup is None and config.SYNOP_REQUIRED:
+        raise MatchupError("No matches with SYNOP.")
+    elif (ca_matchup is None and cl_matchup is None and iss_matchup is None 
+          and amsr_matchup is None and synop_matchup is None):
         raise MatchupError("No matches with any truth.")
 
 
@@ -1103,7 +1139,9 @@ def get_matchups_from_data(cross, config_options):
         if cl_matchup is not None:
             cl_matchup = add_modis_06(cl_matchup, avhrr_file, config_options) 
         if amsr_matchup is not None:
-            amsr_matchup = add_modis_06(amsr_matchup, avhrr_file, config_options)                                                
+            amsr_matchup = add_modis_06(amsr_matchup, avhrr_file, config_options)
+        if synop_matchup is not None:
+            synop_matchup = add_modis_06(synop_matchup, avhrr_file, config_options)  
     #add additional vars to cloudsat and calipso objects and print them to file:
     cl_matchup, ca_matchup = add_additional_clousat_calipso_index_vars(cl_matchup, ca_matchup)
     cl_matchup, ca_matchup, iss_matchup = add_elevation_corrected_imager_ctth(cl_matchup, ca_matchup, iss_matchup)
@@ -1141,6 +1179,15 @@ def get_matchups_from_data(cross, config_options):
                                avhrr_obj_name = avhrr_obj_name)
     else:
         logger.debug('No Amsr Match File created')
+
+    # Write synop matchup   
+    if synop_matchup is not None:
+        am_match_file = rematched_file_base.replace(
+            'atrain_datatype', 'synop')
+        writeSynopAvhrrMatchObj(am_match_file, synop_matchup, 
+                               avhrr_obj_name = avhrr_obj_name)
+    else:
+        logger.debug('No Synop Match File created')
      
     # Write calipso matchup
     if ca_matchup is not None:
@@ -1150,6 +1197,7 @@ def get_matchups_from_data(cross, config_options):
     nwp_obj = None
     return {'cloudsat': cl_matchup, 'calipso': ca_matchup, 
             'iss': iss_matchup, 'amsr': amsr_matchup,
+            'synop': synop_matchup, 
             'basename': basename, 'values':values}
 
 
@@ -1163,6 +1211,7 @@ def get_matchups(cross, options, reprocess=False):
     clObj = None
     isObj = None
     amObj = None
+    syObj = None
     values = {}
     try:
         values["satellite"] = cross.satellite1.lower()
@@ -1232,6 +1281,24 @@ def get_matchups(cross, options, reprocess=False):
             else:              
                 amObj = readAmsrAvhrrMatchObj(am_match_file) 
                 basename = '_'.join(os.path.basename(am_match_file).split('_')[1:5])
+
+
+        #SYNOP
+        if not config.SYNOP_MATCHING:
+            logger.info("SYNOP matching turned off config.SYNOP_MATCHING.")
+        else:    
+            values["atrain_sat"] = "synop"
+            values["atrain_datatype"] = "synop"
+            synop_match_file, date_time = find_avhrr_file(cross, options['reshape_dir'], 
+                                                       options['reshape_file'], values=values)
+            if not synop_match_file:
+                logger.info("No processed Synop match files found."  
+                            " Generating from source data if required.")
+                date_time=cross.time
+            else:              
+                syObj = readSynopAvhrrMatchObj(synop_match_file) 
+                basename = '_'.join(os.path.basename(synop_match_file).split('_')[1:5])
+
         #CALIPSO               
         if not config.CALIPSO_MATCHING:
             logger.info("Calipso matching turned off config.AMSR_MATCHING.")
@@ -1250,7 +1317,8 @@ def get_matchups(cross, options, reprocess=False):
                 basename = '_'.join(os.path.basename(ca_match_file).split('_')[1:5])
 
 
-    if caObj is None and clObj is None and isObj is None and amObj is None:
+    if (caObj is None and clObj is None and isObj is None and 
+        amObj is None and syObj is None):
         pass
     else:
         values['date_time'] = date_time 
@@ -1275,8 +1343,13 @@ def get_matchups(cross, options, reprocess=False):
             raise MatchupError(
                 "Couldn't find amsr already processed matchup file," 
                 "USE_EXISTING_RESHAPED_FILES = True!") 
+        if syObj is None and config.SYNOP_REQUIRED:
+            raise MatchupError(
+                "Couldn't find synop already processed matchup file," 
+                "USE_EXISTING_RESHAPED_FILES = True!") 
 
-    if  caObj is None and clObj is None and isObj is None and amObj is None:
+    if (caObj is None and clObj is None and isObj is None and 
+        amObj is None  and syObj is None):
         out_dict = get_matchups_from_data(cross, options) 
     elif caObj is None and config.CALIPSO_REQUIRED:
         out_dict = get_matchups_from_data(cross, options)
@@ -1286,9 +1359,12 @@ def get_matchups(cross, options, reprocess=False):
         out_dict =  get_matchups_from_data(cross, options)
     elif amObj is None and config.AMSR_REQUIRED:
         out_dict =  get_matchups_from_data(cross, options)
+    elif syObj is None and config.SYNOP_REQUIRED:
+        out_dict =  get_matchups_from_data(cross, options)
     else:
         out_dict = {'calipso': caObj, 'cloudsat': clObj,  
                     'iss': isObj, 'amsr': amObj,
+                    'synop': syObj,
                     'basename': basename,'values':values}
 
     if out_dict['cloudsat'] is None and config.CLOUDSAT_REQUIRED:
@@ -1303,20 +1379,21 @@ def get_matchups(cross, options, reprocess=False):
     if out_dict['amsr'] is None and config.AMSR_REQUIRED:
         raise MatchupError("Couldn't find amsr matchup!"
                            "AMSR_REQUIRED is True!") 
+    if out_dict['synop'] is None and config.SYNOP_REQUIRED:
+        raise MatchupError("Couldn't find synop matchup!"
+                           "SYNOP_REQUIRED is True!") 
     return out_dict
 
 def plot_some_figures(clsatObj, caObj, values, basename, process_mode, 
-                      config_options, amObj = None):
+                      config_options, amObj = None, synopObj = None):
 
     logger.info("Plotting")
     file_type = ['eps', 'png', 'pdf']
-    #if PLOT_ONLY_PDF==True:
-    #    file_type = ['pdf']
-    if PLOT_ONLY_PNG==True:
-        file_type = ['pdf']   
+    file_type = PLOT_TYPES 
         
     plotpath = insert_info_in_filename_or_path(config_options['plot_dir'], values,
                                                datetime_obj=values['date_time'])  
+
     ##TRAJECTORY
     if caObj is not None:
         imlon = caObj.avhrr.longitude.copy()
@@ -1334,7 +1411,8 @@ def plot_some_figures(clsatObj, caObj, values, basename, process_mode,
                                 file_type,
                                 **config_options)
 
-    if ("CPR_Cloud_mask" in clsatObj.cloudsat.all_arrays.keys() and 
+    if (clsatObj is not None and 
+        "CPR_Cloud_mask" in clsatObj.cloudsat.all_arrays.keys() and 
         caObj is not None):
         #HEIGHT
         drawCalClsatGEOPROFAvhrrPlot(clsatObj, 
@@ -1357,7 +1435,8 @@ def plot_some_figures(clsatObj, caObj, values, basename, process_mode,
                                   config.RESOLUTION, file_type,
                                   instrument=IMAGER_INSTRUMENT)
 
-    if ('RVOD_liq_water_path' in clsatObj.cloudsat.all_arrays.keys()):
+    if (clsatObj is not None and 
+        'RVOD_liq_water_path' in clsatObj.cloudsat.all_arrays.keys()):
 
         elevationcwc = np.where(np.less_equal(clsatObj.cloudsat.elevation,0),
                                 -9, clsatObj.cloudsat.elevation)
@@ -1391,7 +1470,7 @@ def split_process_mode_and_dnt_part(process_mode_dnt):
     return process_mode, dnt_flag
  
 
-def process_one_mode(process_mode_dnt, caObj, clsatObj, issObj, amObj,
+def process_one_mode(process_mode_dnt, caObj, clsatObj, issObj, amObj,syObj,
                      min_optical_depth, values, config_options, basename):
     
     #Get result filename
@@ -1421,7 +1500,7 @@ def process_one_mode(process_mode_dnt, caObj, clsatObj, issObj, amObj,
     #Calculate Statistics
     logger.debug("Calculating statistics")
     CalculateStatistics(process_mode, statfilename, caObj, clsatObj, 
-                        issObj, amObj, dnt_flag)
+                        issObj, amObj, syObj, dnt_flag)
     #=============================================================
 
 
@@ -1449,6 +1528,7 @@ def run(cross, run_modes, config_options, reprocess=False):
     caObj = matchup_results['calipso']
     issObj = matchup_results['iss']
     amObj = matchup_results['amsr']
+    syObj = matchup_results['synop']
     clsatObj = matchup_results['cloudsat']
     values = matchup_results['values']
     basename = matchup_results['basename']
@@ -1536,7 +1616,8 @@ def run(cross, run_modes, config_options, reprocess=False):
                 caObj.calipso.cloud_fraction = retv[0]
                 caObj.calipso.validation_height = retv[1]
             #Time to process results files for one mode:    
-            process_one_mode(process_mode_dnt, caObj, clsatObj, issObj, amObj,   
+            process_one_mode(process_mode_dnt, 
+                             caObj, clsatObj, issObj, amObj, syObj,   
                              min_optical_depth, values, 
                              config_options, basename)
     #We are done, free some memory:        
