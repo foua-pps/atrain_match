@@ -576,10 +576,24 @@ def read_pps_geoobj_nc(pps_nc):
     """Read geolocation and time info from filename
     """
     GeoObj = imagerGeoObj()
-    GeoObj.longitude = pps_nc.variables['lon'][::]
+
+
+    longitude = pps_nc.variables['lon'][::]
+    if np.ma.is_masked(longitude):
+        GeoObj.longitude = pps_nc.variables['lon'][::].data
+        GeoObj.longitude[longitude.mask] = -999.0
+    else: 
+        GeoObj.longitude = longitude
+    latitude = pps_nc.variables['lat'][::]
+    if np.ma.is_masked(latitude):
+        GeoObj.latitude = pps_nc.variables['lat'][::].data
+        GeoObj.latitude[latitude.mask] = -999.0
+    else: 
+        GeoObj.latitude = latitude
     GeoObj.nodata = pps_nc.variables['lon']._FillValue
-    GeoObj.latitude = pps_nc.variables['lat'][::]
     GeoObj.num_of_lines = GeoObj.latitude.shape[0]
+    #import pdb
+    #pdb.set_trace()
     time_temp = pps_nc.variables['time'].units #to 1970 s
     seconds = np.float64(pps_nc.variables['time'][::]) #from PPS often 0                        
     if 'T' in time_temp:

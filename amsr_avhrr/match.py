@@ -115,7 +115,8 @@ def match_lonlat(source, target,
 
     cols = get_sample_from_neighbour_info('nn', target_def.shape,
                                           cols_matrix,
-                                          valid_in, valid_out,
+                                          valid_in,
+                                          valid_out,
                                           first_indices)
     rows = get_sample_from_neighbour_info('nn', target_def.shape,
                                           rows_matrix,
@@ -154,11 +155,16 @@ def match_lonlat(source, target,
         indices = np.array(indices,dtype=np.int64)
     """
     # Make sure all indices are valid
-    #import ipdb; ipdb.set_trace()
+    #import pdb; pdb.set_trace()
     rows[rows >= source_def.shape[0]] = NODATA
     cols[cols >= source_def.shape[1]] = NODATA
-    mask = distances > radius_of_influence
+    mask = np.logical_or(distances > radius_of_influence, 
+                         indices >= len(valid_in))
     distances[distances > radius_of_influence] =-9
+    #import pdb; ipdb.set_trace()
+    rows[mask] = NODATA
+    cols[mask] = NODATA
+    #import pdb; pdb.set_trace()
     return MatchMapper(rows, cols, mask), distances
 
 
