@@ -257,6 +257,7 @@ def insert_info_in_filename_or_path(file_or_name_path, values, datetime_obj=None
     return name
 
 def find_truth_files(date_time, options, values, truth='calipso'):
+    my_sec_THR = config.sec_timeThr
     TRUTH_FILE_LENGTH = config.CALIPSO_FILE_LENGTH 
     if truth in ['cloudsat']:
         TRUTH_FILE_LENGTH = config.CLOUDSAT_FILE_LENGTH
@@ -266,11 +267,13 @@ def find_truth_files(date_time, options, values, truth='calipso'):
         TRUTH_FILE_LENGTH = config.AMSR_FILE_LENGTH
     if truth in ['synop']:
         TRUTH_FILE_LENGTH = config.SYNOP_FILE_LENGTH
+        my_sec_THR = config.sec_timeThr_synop
     #might need to geth this in before looking for matchups
     tdelta_before = timedelta(seconds = (TRUTH_FILE_LENGTH +
-                                         config.sec_timeThr))
+                                         my_sec_THR))
     tdelta = timedelta(
-        seconds = (config.SAT_ORBIT_DURATION + config.sec_timeThr))
+        seconds = (config.SAT_ORBIT_DURATION +  my_sec_THR))
+
     time_window = (tdelta_before, tdelta)
     t_files = find_truth_files_inner(date_time, time_window, options, 
                                      values, truth=truth)
