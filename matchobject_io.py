@@ -739,6 +739,9 @@ def get_stuff_to_read_from_a_reshaped_file(h5file, retv):
     if 'amsr' in  h5file.keys():
         h5_groups.append(h5file['/amsr'])
         data_objects.append(retv.amsr)
+    if 'synop' in  h5file.keys():
+        h5_groups.append(h5file['/synop'])
+        data_objects.append(retv.synop)
     return (h5_groups, data_objects)
     
 def readCaliopAvhrrMatchObjNewFormat(h5file, retv, var_to_read=None, var_to_skip=None):
@@ -782,6 +785,7 @@ def readTruthAvhrrMatchObj(filename, retv):
     retv.diff_sec_1970 = h5file['diff_sec_1970'].value
     h5file.close()
     return retv
+
 
 def readCloudsatAvhrrMatchObj(filename):
     retv = CloudsatAvhrrTrackObject()  
