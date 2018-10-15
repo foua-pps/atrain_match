@@ -5,6 +5,8 @@ import numpy as np
 from config import MAXHEIGHT, CLOUDSAT_CLOUDY_THR,\
     RESOLUTION
 
+from matplotlib import pyplot as plt
+
 # -----------------------------------------------------
 def drawCalClsatGEOPROFAvhrrPlot(clsatObj, 
                                  caObj,  
@@ -19,8 +21,6 @@ def drawCalClsatGEOPROFAvhrrPlot(clsatObj,
         instrument = options['instrument']
     else:
         instrument = 'avhrr'
-
-    from matplotlib import pyplot as plt
 
     caliop_height = caObj.calipso.layer_top_altitude*1000
     caliop_base = caObj.calipso.layer_base_altitude*1000
@@ -54,18 +54,12 @@ def drawCalClsatGEOPROFAvhrrPlot(clsatObj,
             colors.append(np.divide([255, 50, 50], 255.))
         
         # Plot CloudSat
-        clsat_max_height = -9 + np.zeros(clsatObj.cloudsat.latitude.shape) 
-        for i in range(125):
-            height = clsatObj.cloudsat.Height[:,i]
-            cmask_ok = clsatObj.cloudsat.CPR_Cloud_mask[:,i] > CLOUDSAT_CLOUDY_THR
-            base_height = height-120
-            top_height = height+120
-            plot_these =np.logical_and(cmask_ok, height>240*4)
-            #TODO Fix colors!
-            ax.vlines(pixel_position[clsatObj.cloudsat.calipso_index[plot_these]],
-                      base_height[plot_these], top_height[plot_these], 'm',#color = colors[nidx], \
-                      linestyle = 'solid', linewidth = 1,  rasterized=True)    
-            clsat_max_height[clsat_max_height<top_height] = top_height[clsat_max_height<top_height]
+        base_height = clsatObj.cloudsat.validation_height_base
+        top_height = clsatObj.cloudsat.validation_height
+        plot_these = top_height>0
+        ax.vlines(pixel_position[clsatObj.cloudsat.calipso_index[plot_these]],
+                  base_height[plot_these], top_height[plot_these], 'm',#color = colors[nidx], \
+                  linestyle = 'solid', linewidth = 1,  rasterized=True, label='CPR (CloudSat)')   
         title = "%s-CloudSat-CALIOP Cloud Top Heights" % instrument.upper()
     else:
         title = "%s-CALIOP Cloud Top Heights" % instrument.upper()
@@ -105,10 +99,10 @@ def drawCalClsatGEOPROFAvhrrPlot(clsatObj,
                   calipso_val_h[half_thin], top_ok[half_thin], linewidth=0.5,  
                   colors="y", linestyle='solid', 
                   alpha=0.5,  rasterized=True)    
-        ax.vlines(pixel_position[half_thin], 
-                  base_ok[half_thin], calipso_val_h[half_thin], linewidth=0.5,  
-                  colors="g", linestyle='solid', 
-                  alpha=0.5,  rasterized=True)    
+        #ax.vlines(pixel_position[half_thin], 
+        #          base_ok[half_thin], calipso_val_h[half_thin], linewidth=0.5,  
+        #          colors="g", linestyle='solid', 
+        #          alpha=0.5,  rasterized=True)    
 
     #: Plot Imager   
     got_height = imager_ctth_m_above_seasurface>=0
@@ -147,7 +141,6 @@ def drawCalPPSHeightPlot_PrototypePPSHeight(caObj_calipso,
         instrument = options['instrument']
     else:
         instrument = 'avhrr'
-    from matplotlib import pyplot as plt
     # Prepare for Avhrr
     caliop_height = caObj_calipso.layer_top_altitude*1000
     caliop_base = caObj_calipso.layer_base_altitude*1000
@@ -229,114 +222,32 @@ def drawCalPPSHeightPlot_PrototypePPSHeight(caObj_calipso,
 def drawCalClsatCWCAvhrrPlot(clsatObj, elevationcwc, data_okcwc, 
                              plotpath, basename, phase, **options):
 
-    CLOUDSAT_TRACK_RESOLUTION = 1.076
     if 'instrument' in options:
         instrument = options['instrument']
     else:
         instrument = 'avhrr'
-
-    from matplotlib import pyplot as plt
-    
-    # -----------------------------------------------------------------
-    # Create environment for plotting LWP and IWP
-    # pixel_position_plain=np.arange(dummy)
-    
     if phase=='IW':
-        dataP=clsatObj.cloudsatcwc.RVOD_ice_water_path
-        dataC=clsatObj.cloudsatcwc.RVOD_ice_water_content
+        y1=clsatObj.cloudsat.RVOD_ice_water_path
+        #dataC=clsatObj.cloudsat.RVOD_ice_water_content
+        y2 = clsatObj.avhrr.cpp_iwp
     else:
-        dataP=clsatObj.cloudsatcwc.RVOD_liq_water_path
-        dataC=clsatObj.cloudsatcwc.RVOD_liq_water_content
-
-    # Decides the size of the array latitude:
-    storlek_x=clsatObj.cloudsatcwc.latitude.shape[0]
-    # Changes the resolution with a factor of 1.076:			
-    andrad_storlek_x = int(storlek_x*CLOUDSAT_TRACK_RESOLUTION)
-    # Creates an array with numbers 0 -> storlek_x
-    pixel_position=np.arange(storlek_x)
-    # Creates an array with size geometric_range_CloudSatcwc numbers from 0->size
-    andrad_pixel_position=np.arange(andrad_storlek_x)
-    # Creates an array with size andrad_storlek_x Filled with zeros of type double
-    andrad_y_zeros=np.zeros(andrad_storlek_x,'d')
-    andrad_dataP=np.ones(andrad_storlek_x)*-1
-    for iP in range(storlek_x):
-        niP=int(iP*CLOUDSAT_TRACK_RESOLUTION)
-        andrad_dataP[niP]=dataP[iP]
-
-    y=andrad_y_zeros.copy()
-
-    for i, temp_data_i in enumerate(andrad_dataP):
-        if (remp_data_i<=0):
-            y[i]=float('nan')
-        else:
-            y[i]=temp_data_i
-    
-    # Findes max value and add 100
-    maxvalue=int(max(dataP)+100)							
+        y1=clsatObj.cloudsat.RVOD_liq_water_path
+        #dataC=clsatObj.cloudsat.RVOD_liq_water_content
+        y2 = clsatObj.avhrr.cpp_lwp
+    pixel_position=np.arange(clsatObj.cloudsat.latitude.shape[0]) 
+    use = np.logical_and(y1>=0, y2>=0)
+    # Findes max value and add 100							
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    ax.plot(andrad_pixel_position[::], y, "ko")
-    ax.set_ylim(0, maxvalue)
+    ax.plot(pixel_position[use], y1[use], "k." ,label='RVOD')
+    ax.plot(pixel_position[use], y2[use], "b.", label='PPS')
+    #ax.set_ylim(0, maxvalue)
     ax.set_xlabel("Track Position")
     ax.set_ylabel("%sP [g/m^2]" %(phase))
     ax.set_title("CloudSat %sP"%(phase))
-    filename = "%s/%ikm_%s_calipso_%sP."%(plotpath, RESOLUTION, basename, phase)
-    fig.savefig(filename + 'eps')
+    filename = "%s/%ikm_%s_cloudsat_rvod_%sP."%(plotpath, RESOLUTION, basename, phase)
     fig.savefig(filename + 'png')
     # -------------------------------------------------------
-    
-    # Create environment for plotting LWC and IWC
-    fig1 = plt.figure()
-    ax1 = fig1.add_subplot(111)
-    filename = "%s/%ikm_%s_calipso_%sC."%(plotpath, RESOLUTION, basename, phase)
-    clsatcwc_max_height=np.zeros([1,storlek_x],'d')
-    y_adjust=andrad_y_zeros
-    test=andrad_y_zeros
-    for it in range(storlek_x):
-        test[it]=int(pixel_position[it]*CLOUDSAT_TRACK_RESOLUTION)
-
-    for i in range(andrad_storlek_x): #Just extend original elevation array
-        elevation_index = int(i/CLOUDSAT_TRACK_RESOLUTION + 0.5)
-        y_adjust[i] = elevationcwc[elevation_index] # Scales elevation
-    
-    ax1.plot(andrad_pixel_position[::], y_adjust, 'k')
-
-    # Makes the surface black
-    for i in range(andrad_storlek_x): #Let's also plot elevation in the vertical
-        if y_adjust[i] > 0.0:
-            ax1.vlines(i, 0.0, y_adjust[i], color="black", linestyle='solid', linewidth=1)
-
-    # Takes lowest Height
-    clsatcwc_max_height[0,:]=np.repeat(clsatObj.cloudsatcwc.Height[124,::],data_okcwc)
-    for i in range(125):
-        heightcwc = clsatObj.cloudsatcwc.Height[i,::]
-        RVOD_IWC = dataC[i,::]
-        for idx in range(storlek_x):
-            nidx = int(RVOD_IWC[idx]+0.5)
-            if nidx == 0:	# If there are no value dont do anything
-                continue
-            # Treschold when measurements are valid
-            if heightcwc[idx] < 240*4 or heightcwc[idx] > MAXHEIGHT:
-                continue
-            base_heightcwc = heightcwc[idx]-120
-            top_heightcwc = heightcwc[idx]+120
-            if nidx >= int(CLOUDSAT_CLOUDY_THR):
-                ax1.vlines(int(pixel_position[idx] * CLOUDSAT_TRACK_RESOLUTION), \
-                               base_heightcwc, top_heightcwc, color="red", \
-                               linestyle='solid', linewidth=1)
-                clsatcwc_max_height[0,idx] = max(clsatcwc_max_height[0,idx],top_heightcwc) 
-    
-    ax1.set_xlabel("Track Position")
-    ax1.set_ylabel("%sC Height"%(phase))
-    ax1.set_title("CloudSat-%sC"%(phase))
-    if MAXHEIGHT is None:
-        maxheight = np.max(top_heightcwc) + 1000
-    else:
-        maxheight = MAXHEIGHT
-    ax1.set_ylim(0, maxheight)
-    fig1.savefig(filename + 'eps')
-    fig1.savefig(filename + 'png')
-
     return
 
 # -----------------------------------------------------
@@ -345,7 +256,6 @@ def drawCalClsatAvhrrPlotTimeDiff(clsatObj,
                                   plotpath, basename, 
                                   resolution, file_type='png',
                                   **options):
-    from matplotlib import pyplot as plt
     if 'instrument' in options:
         instrument = options['instrument']
     else:
@@ -396,7 +306,6 @@ def drawCalClsatAvhrrPlotSATZ(clsatObj,
                               file_type='eps', 
                               **options):
 
-    from matplotlib import pyplot as plt
     if 'instrument' in options:
         instrument = options['instrument']
     else:
@@ -428,7 +337,6 @@ def map_avhrr_track(avhrr_lonlat, track_lonlat):
     Plot *avhrr_lonlat* and *track_lonlat* on global map and return the figure.
     
     """
-    from matplotlib.pyplot import figure
     from mpl_toolkits.basemap import Basemap
     
     fig = figure()

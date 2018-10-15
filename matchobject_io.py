@@ -359,6 +359,8 @@ class CalipsoObject(DataObject):
             'cfc_single_shots_1km_from_5km_file': None,
             'column_optical_depth_tropospheric_aerosols_532': None,
             'column_optical_depth_tropospheric_aerosols_532_5km': None,
+            'column_optical_depth_aerosols_532': None,
+            'column_optical_depth_aerosols_532_5km': None,
             'profile_id':None,
             #If a combination of 5 and 1km data are used for RESOLUTION=1
             #A vector with the corresponding optical thickness for 5km data
@@ -412,6 +414,8 @@ class CloudsatObject(DataObject):
             'RVOD_CWC_status': None,
             'LO_RVOD_liquid_water_path': None,
             'IO_RVOD_ice_water_path': None,
+            'RVOD_liq_water_content': None,
+            'RVOD_ice_water_content': None,
             #'RVOD_liq_water_path_uncertainty': None,
             #'RVOD_ice_water_path_uncertainty': None,
             #'LO_RVOD_liquid_water_path': None,
@@ -427,6 +431,9 @@ class CloudsatObject(DataObject):
             #'IO_RVOD_ice_water_content': None,
             #'IO_RVOD_ice_water_content_uncertainty': None,
             #'RVOD_CWC_status': None
+            'calipso_layer_base_altitude': None,
+            'calipso_layer_top_altitude': None,
+            'calipso_feature_classification_flags': None
                            }
 
 class IssObject(DataObject):
@@ -786,7 +793,6 @@ def readTruthAvhrrMatchObj(filename, retv):
     h5file.close()
     return retv
 
-
 def readCloudsatAvhrrMatchObj(filename):
     retv = CloudsatAvhrrTrackObject()  
     return readTruthAvhrrMatchObj(filename, retv)
@@ -800,6 +806,29 @@ def readSynopAvhrrMatchObj(filename):
     retv = SynopAvhrrTrackObject()   
     return readTruthAvhrrMatchObj(filename, retv)
 
+def read_files(files, truth='calipso'):
+    if 'cali' in truth:
+        tObj = CalipsoAvhrrTrackObject()  
+    if 'cloudsat' in  truth:
+        tObj = CloudsatAvhrrTrackObject()  
+    if 'iss' in  truth:
+        tObj = IssAvhrrTrackObject()  
+    if 'amsr' in  truth:
+        tObj = AmsrAvhrrTrackObject()  
+    if 'synop' in  truth:
+        tObj = SynopAvhrrTrackObject()  
+    for filename in files:
+        if 'cali' in truth:
+            tObj += readCaliopAvhrrMatchObj(filename)  
+        if 'cloudsat' in  truth:
+            tObj += readCloudsatAvhrrMatchObj(filename)  
+        if 'iss' in  truth:
+            tObj += readIssAvhrrMatchObj(filename)  
+        if 'amsr' in  truth:
+            tObj += readAmsrAvhrrMatchObj(filename)  
+        if 'synop' in  truth:
+            tObj += readSynopAvhrrMatchObj(filename)
+    return tObj 
 # write matchup files
 def writeCaliopAvhrrMatchObj(filename, ca_obj, avhrr_obj_name = 'pps'):
     """
@@ -1098,18 +1127,23 @@ the_used_variables = [
     'cfc_single_shots_1km_from_5km_file',
     'feature_optical_depth_532_top_layer_5km',
     'total_optical_depth_5km',
-    'detection_height_5km',            
+    'detection_height_5km',         
+    'column_optical_depth_cloud_532',
+    'column_optical_depth_cloud_uncertainty_532',
+    'column_optical_depth_tropospheric_aerosols_532_5km',
+    'column_optical_depth_tropospheric_aerosols_532',
+    'column_optical_depth_aerosols_532_5km',
+    'column_optical_depth_aerosols_532',
+    'Number_cloudy_single_shots',
     #CLOUDSAT only
     'clsat_max_height',
     'validation_height_base',
     'MODIS_Cloud_Fraction',
     'MODIS_cloud_flag',
-    'column_optical_depth_cloud_532',
-    'column_optical_depth_cloud_uncertainty_532',
-    'column_optical_depth_tropospheric_aerosols_532_5km',
-    'column_optical_depth_tropospheric_aerosols_532',
-    'Number_cloudy_single_shots'
-]
+    'calipso_layer_base_altitude',
+    'calipso_layer_top_altitude',
+    'calipso_feature_classification_flags']
+
 
 
 # ----------------------------------------

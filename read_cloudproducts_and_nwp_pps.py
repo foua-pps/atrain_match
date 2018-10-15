@@ -938,6 +938,9 @@ def read_all_intermediate_files(pps_files):
         nwp_dict['ptro'] = read_etc_nc(pps_nc_nwp, "ptro")
         nwp_dict['psur'] = read_etc_nc(pps_nc_nwp, "psur")
         nwp_dict['t2m'] = read_etc_nc(pps_nc_nwp, "t2m")
+        nwp_dict['h2m'] = read_etc_nc(pps_nc_nwp, "h2m")
+        nwp_dict['u10m'] = read_etc_nc(pps_nc_nwp, "u10m")
+        nwp_dict['v10m'] = read_etc_nc(pps_nc_nwp, "v10m") 
         nwp_dict['snowa'] = read_etc_nc(pps_nc_nwp, "snowa")
         nwp_dict['snowd'] = read_etc_nc(pps_nc_nwp, "snowd")
     else:   

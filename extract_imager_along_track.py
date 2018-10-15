@@ -389,6 +389,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
                     get_data_from_array(getattr(ctype,variable), row_col))
     for nwp_info in ["surftemp", "t500", "t700", "t850", "t950", "ttro", "ciwv",
                      "t900", "t1000", "t800", "t250", "t2m", "ptro", "psur", 
+                     "h2m", "u10m", "v10m", "t2m",
                      "snowa", "snowd", "seaice", "landuse", "fractionofland", "elevation",
                      "r37_sza_correction_done"]:
         if hasattr(nwp_obj, nwp_info):

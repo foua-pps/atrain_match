@@ -866,6 +866,36 @@ def add_additional_clousat_calipso_index_vars(clsatObj, caObj):
             clsatObj.cloudsat.calipso_index>=0,
             caObj.calipso.feature_classification_flags[index,0],
             -9)
+        # first bas layer use height not pressure as cloudsat uses height
+        clsatObj.cloudsat.calipso_layer_base_altitude = np.where(
+            clsatObj.cloudsat.calipso_index>=0,
+            caObj.calipso.layer_base_altitude[index,0],
+            -9)
+        for layer in xrange(1,10):
+            clsatObj.cloudsat.calipso_layer_base_altitude = np.where(
+                np.logical_and(np.logical_and(clsatObj.cloudsat.calipso_index>=0,
+                                              caObj.calipso.layer_base_altitude[index,layer]>0),
+                               caObj.calipso.layer_base_altitude[index,layer]< 
+                               caObj.calipso.layer_base_altitude[index,layer-1]),
+                
+                caObj.calipso.layer_base_altitude[index,layer],
+            clsatObj.cloudsat.calipso_layer_base_altitude)
+        clsatObj.cloudsat.calipso_layer_base_altitude[clsatObj.cloudsat.calipso_layer_base_altitude<-999] = -9.0
+        # first bas layer use height not pressure as cloudsat uses height
+        clsatObj.cloudsat.calipso_layer_top_altitude = np.where(
+            clsatObj.cloudsat.calipso_index>=0,
+            caObj.calipso.layer_top_altitude[index,0],
+            -9)
+        for layer in xrange(1,10):
+            clsatObj.cloudsat.calipso_layer_top_altitude = np.where(
+                np.logical_and(np.logical_and(clsatObj.cloudsat.calipso_index>=0,
+                                              caObj.calipso.layer_top_altitude[index,layer]>0),
+                               caObj.calipso.layer_top_altitude[index,layer]> 
+                               caObj.calipso.layer_top_altitude[index,layer-1]),
+                
+                caObj.calipso.layer_top_altitude[index,layer],
+            clsatObj.cloudsat.calipso_layer_top_altitude)
+        clsatObj.cloudsat.calipso_layer_top_altitude[clsatObj.cloudsat.calipso_layer_top_altitude<-999] = -9.0
     return clsatObj, caObj
 
 def add_modis_lvl2_clousat_(clsatObj, caObj):
@@ -1441,8 +1471,8 @@ def plot_some_figures(clsatObj, caObj, values, basename, process_mode,
     if (clsatObj is not None and 
         'RVOD_liq_water_path' in clsatObj.cloudsat.all_arrays.keys()):
 
-        elevationcwc = np.where(np.less_equal(clsatObj.cloudsat.elevation,0),
-                                -9, clsatObj.cloudsat.elevation)
+        elevation = np.where(np.less_equal(clsatObj.cloudsat.elevation,0),
+                             -9, clsatObj.cloudsat.elevation)
         data_ok = np.ones(clsatObj.cloudsat.elevation.shape,'b')                
 
         phase='LW'  

@@ -405,9 +405,11 @@ def add5kmVariablesTo1kmresolution(calipso1km, calipso5km):
             #"feature_optical_depth_532",
             #"feature_optical_depth_uncertainty_532"
     ]:                
-        if not hasattr(calipso5km, variable_5km) and CALIPSO_version3:
+        if CALIPSO_version3:
+            if not hasattr(calipso5km, variable_5km) or getattr(calipso5km, variable_5km) is None:
             #in version 3 names were different
-            variable_5km = variable_5km.replace('tropospheric_','') 
+                variable_5km = variable_5km.replace('tropospheric_','')    
+        
         data = getattr(calipso5km, variable_5km)
         new_data = np.repeat(data, 5, axis=0)    
         setattr(calipso1km, variable_5km +"_5km", new_data)      

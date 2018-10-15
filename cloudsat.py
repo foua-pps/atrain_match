@@ -37,7 +37,7 @@ def add_validation_ctth_cloudsat(cloudsat):
         update_base = np.logical_and(top_height>0, validation_height_base>top_height)
         validation_height_base[update_base] =  top_height[update_base]
         cloudsat.validation_height_base = validation_height_base
-        cloudsat.validation_height_base[cloudsat.validation_height_base>=LARGE_POSITIVE] =-9 
+    cloudsat.validation_height_base[cloudsat.validation_height_base>=LARGE_POSITIVE] =-9 
     return cloudsat
 
 def add_cloudsat_cloud_fraction(cloudsat):
@@ -54,9 +54,9 @@ def add_cloudsat_cloud_fraction(cloudsat):
 
 def get_cloudsat(filename):
     # Read CLOUDSAT Radar data and add some variables
-    if '.hdf':
+    if '.hdf' in filename:
         cloudsat = read_cloudsat_hdf4(filename)
-    elif '.h5': 
+    elif '.h5' in filename: 
         cloudsat = read_cloudsat(filename)
     else:
         raise MatchupError(
