@@ -156,6 +156,8 @@ if __name__ == '__main__':
                     truth_sat=truth_sat,
                     min_opt_depth="")  
                 indata_dir =indata_dir.replace("%d_%H","*")
+                indata_dir =indata_dir.replace("%d","*")
+                indata_dir =indata_dir.replace("%H","*")
                 indata_file = config_options['result_file'].format(
                     resolution=str(RESOLUTION),
                     basename="*",
