@@ -15,6 +15,7 @@ from get_flag_info import get_calipso_clouds_of_type_i_feature_classification_fl
 import matplotlib.pyplot as plt
 import matplotlib
 from get_flag_info import (get_calipso_low_medium_high_classification,
+                           get_inversion_info_pps2014,
                            get_calipso_clouds_of_type_i,
                            get_calipso_high_clouds,
                            get_calipso_medium_clouds,
@@ -316,6 +317,8 @@ def print_all(cObj, compare, compare_name = "unknown"):
     use = np.logical_and(x>=0, np.logical_and(y>-9,y<65000))
     use = np.logical_and(use, np.not_equal(cObj.calipso.all_arrays['feature_classification_flags'][:,0],1))
     mhl["all"] =use
+    use_inversion = get_inversion_info_pps2014(cObj.avhrr.all_arrays["cloudtype_status"])
+
     mhl["high_clouds_tp_thin"] = np.logical_and(
         mhl["high_clouds_tp"],
         np.logical_and(cObj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>=0,
@@ -444,7 +447,10 @@ def print_all(cObj, compare, compare_name = "unknown"):
         my_print_one_line(out_file_h, bias, x, y, use_i, compare_name, "")
     for flag_key in my_list:        
         use_i = np.logical_and(use, np.logical_and(mhl[flag_key], use))
-        my_print_one_line(out_file_h, bias, x, y, use_i, "all", flag_key)  
+        my_print_one_line(out_file_h, bias, x, y, use_i, "all", flag_key)
+    for flag_key in my_list:        
+        use_i = np.logical_and(use, np.logical_and(mhl[flag_key], use_inversion))
+        my_print_one_line(out_file_h, bias, x, y, use_i, "all", flag_key+'inversion')
     use_i = np.logical_and(use, np.logical_and(mhl["all_clouds_tp_bad2"], use))
     my_print_one_line(out_file_h, bias_second_layer,  x2, y, use_i, "all", "all_clouds_tp_bad2")
     plt.close('all')
@@ -467,17 +473,21 @@ def read_files(my_files):
 
 if __name__ == "__main__":
 
-    ROOT_DIR_v2014 = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/global_modis_v2014_created20180920/Reshaped_Files_merged_caliop/eos2/1km/2010/*/*%s*h5")
-    ROOT_DIR_v2014_clsat = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/global_modis_v2014_created20180920/Reshaped_Files_merged_cloudsat/eos2/1km/2010/*/*%s*h5")
-    ROOT_DIR_v2018 = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/global_modis_v2018_created20180920/Reshaped_Files_merged_caliop/eos2/1km/2010/*/*%s*h5")
-    ROOT_DIR_v2018_clsat = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/global_modis_v2018_created20180920/Reshaped_Files_merged_cloudsat/eos2/1km/2010/*/*%s*h5")
+    from matchobject_io import read_files
+    BASE_DIR = "/home/a001865/DATA_MISC/reshaped_files_validation_2018/"
+    ROOT_DIR_v2014 = (BASE_DIR + "global_modis_v2014_created20180920/Reshaped_Files_merged_caliop/eos2/1km/2010/*/*%s*h5")
+    ROOT_DIR_v2014_clsat = (BASE_DIR + "global_modis_v2014_created20180920/Reshaped_Files_merged_cloudsat/eos2/1km/2010/*/*%s*h5")
+    ROOT_DIR_v2018 = (BASE_DIR + "global_modis_v2018_created20180920/Reshaped_Files_merged_caliop/eos2/1km/2010/*/*%s*h5")
+    ROOT_DIR_v2018_clsat = (BASE_DIR + "global_modis_v2018_created20180920/Reshaped_Files_merged_cloudsat/eos2/1km/2010/*/*%s*h5")
 
-    ROOT_DIR_v2014_NPP = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/global_viirs_v2014_created20180914/Reshaped_Files_merged_caliop/npp/1km/2015/*/*h5")
-    ROOT_DIR_v2018_NPP = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/global_viirs_v2018_created20180907/Reshaped_Files_merged_caliop/npp/1km/2015/*/*h5")
-    ROOT_DIR_v2014_GAC = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/global_gac_v2014_created20180927/Reshaped_Files/noaa18/5km/%s/*cali*h5")
-    ROOT_DIR_v2018_GAC = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/global_gac_v2018_created20180927/Reshaped_Files/noaa18/5km/%s/*cali*h5")
-    ROOT_DIR_v2014_GAC_clsat = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/global_gac_v2014_created20180927/Reshaped_Files/noaa18/5km/2009/*clouds*h5")
-    ROOT_DIR_v2018_GAC_clsat = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/global_gac_v2018_created20180927/Reshaped_Files/noaa18/5km/2009/*clouds*h5")
+    ROOT_DIR_v2014_NPP = (BASE_DIR + "global_viirs_v2014_created20180914/Reshaped_Files_merged_caliop/npp/1km/2015/*/*h5")
+    ROOT_DIR_v2018_NPP = (BASE_DIR + "global_viirs_v2018_created20180907/Reshaped_Files_merged_caliop/npp/1km/2015/*/*h5")
+    ROOT_DIR_v2014_NPP_clsat = (BASE_DIR + "global_viirs_v2014_created20180914/Reshaped_Files_merged_cloudsat/npp/1km/2015/*/*h5")
+    ROOT_DIR_v2018_NPP_clsat = (BASE_DIR + "global_viirs_v2018_created20181002_new_cmaprobv5/Reshaped_Files_merged_cloudsat/npp/1km/2015/*/*h5")
+    ROOT_DIR_v2014_GAC = (BASE_DIR + "global_gac_v2014_created20180927/Reshaped_Files/noaa18/5km/%s/*cali*h5")
+    ROOT_DIR_v2018_GAC = (BASE_DIR + "global_gac_v2018_created20180927/Reshaped_Files/noaa18/5km/%s/*cali*h5")
+    ROOT_DIR_v2014_GAC_clsat = (BASE_DIR + "global_gac_v2014_created20180927/Reshaped_Files/noaa18/5km/2009/*clouds*h5")
+    ROOT_DIR_v2018_GAC_clsat = (BASE_DIR + "global_gac_v2018_created20180927/Reshaped_Files/noaa18/5km/2009/*clouds*h5")
 
     files = glob(ROOT_DIR_v2014_GAC%("2006"))
     files = files + glob(ROOT_DIR_v2014_GAC%("2009"))
@@ -491,15 +501,24 @@ if __name__ == "__main__":
     print_all(cObj, None, "GACv2018")
     #a=b
 
-    files = glob(ROOT_DIR_v2014_GAC_clsat)
+    files = glob(ROOT_DIR_v2014_GAC_clsat) #only 2009
     out_file_h.write("GAc-v2014\n")    
-    cObj = read_files_cloudsat(files)
+    cObj = read_files(files, truth='cloudsat')
     print_all_cloudsat(cObj, None, "GACv2014")
-    files = glob(ROOT_DIR_v2018_GAC_clsat)
+    files = glob(ROOT_DIR_v2018_GAC_clsat) #only 2009
     out_file_h.write("GAC-v2018\n")    
-    cObj = read_files_cloudsat(files)
+    cObj = read_files(files, truth='cloudsat')
     print_all_cloudsat(cObj, None, "GACv2018")
 
+
+    files = glob(ROOT_DIR_v2018_NPP_clsat)
+    out_file_h.write("NPP-v2018\n")    
+    cObj = read_files(files, truth='cloudsat')
+    print_all_cloudsat(cObj, None, "NPPv2018")
+    files = glob(ROOT_DIR_v2014_NPP_clsat)
+    out_file_h.write("NPP-v2014\n")    
+    cObj = read_files(files, truth='cloudsat')
+    print_all_cloudsat(cObj, None, "NPPv2014")
 
     ROOT_DIR = ROOT_DIR_v2014_clsat
     files = glob(ROOT_DIR%("20100201"))
@@ -509,9 +528,8 @@ if __name__ == "__main__":
     files = files + glob(ROOT_DIR%("20101001")) 
     files = files + glob(ROOT_DIR%("20101201")) 
     out_file_h.write("MODIS-v2014\n")    
-    cObj = read_files_cloudsat(files)
+    cObj = read_files(files, truth='cloudsat')
     print_all_cloudsat(cObj, None, "MODISv2014")
-
 
     ROOT_DIR = ROOT_DIR_v2018_clsat
     files = glob(ROOT_DIR%("20100201"))
@@ -521,7 +539,7 @@ if __name__ == "__main__":
     files = files + glob(ROOT_DIR%("20101001")) 
     files = files + glob(ROOT_DIR%("20101201")) 
     out_file_h.write("MODIS-v2018\n")    
-    cObj = read_files_cloudsat(files)
+    cObj = read_files(files, truth='cloudsat')
     print_all_cloudsat(cObj, None, "MODISv2018")
 
 
@@ -530,7 +548,6 @@ if __name__ == "__main__":
     cObj = read_files(files)
     print_all(cObj, None, "NPPv2018")
     
-
     files = glob(ROOT_DIR_v2014_NPP)
     out_file_h.write("NPP-v2014\n")    
     cObj = read_files(files)
