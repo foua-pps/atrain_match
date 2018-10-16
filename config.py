@@ -61,7 +61,8 @@ CALIPSO_MATCHING = True  #Notice can not be False if CALIPSO_REQUIRED = True
 CLOUDSAT_MATCHING = False #Notice can not be False if CLOUDSAT_REQUIRED = True
 ISS_MATCHING = False      #Notice can not be False if ISS_REQUIRED = True
 AMSR_MATCHING = False   #Notice can not be False if AMSR_REQUIRED = True
-SYNOP_MATCHING = False    #Notice can not be False if SYNOP_REQUIRED = True
+SYNOP_MATCHING = False   #Notice can not be False if SYNOP_REQUIRED = True
+MORA_MATCHING = False   #Notice can not be False if SYNOP_REQUIRED = True
 
 #: Require matching. It is OK to have all False. Matching is still done
 #: but program will not crach if it finds only CALIPSO data but not CloudSat.
@@ -70,6 +71,7 @@ CLOUDSAT_REQUIRED = False # Make progam fail if there is no CloudSat match
 ISS_REQUIRED = False # Make progam fail if there is no ISS match
 AMSR_REQUIRED = False # Make progam fail if there is no AMSR match
 SYNOP_REQUIRED = False # Make progam fail if there is no SYNOP match
+MORA_REQUIRED = False # Make progam fail if there is no SYNOP match
 
 #========== Extra settings, to get things to reshaped file  ==========#
 #: Save imager data also for warmest and coldest pixels:
@@ -194,8 +196,9 @@ CLOUDSAT_CLOUDY_THR = 30.0
 CALIPSO_FILE_LENGTH = 60*60 #calipso files are shorter 60 minutes
 CLOUDSAT_FILE_LENGTH = 120*60 #cloudsat files are shorter 120 minutes
 ISS_FILE_LENGTH = 60*60 #iss files are shorter 60 minutes 
-AMSR_FILE_LENGTH = 60*60 #iss files are shorter 60 minutes 
+AMSR_FILE_LENGTH = 60*60 #AMSR-E files are shorter 60 minutes 
 SYNOP_FILE_LENGTH = 24*60 #Our synop data comes in 1 day files
+MORA_FILE_LENGTH = 24*60 #Our MORA data comes in 1 day files
 
 #: Region configuaration file with area definitons
 AREA_CONFIG_FILE = os.environ.get('AREA_CONFIG_FILE', './areas.def')

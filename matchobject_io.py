@@ -167,6 +167,9 @@ class ppsAvhrrObject(DataObject):
             't950': None,
             't1000': None,
             't2m': None,
+            'h2m': None,
+            'u10m': None,
+            'v10m': None,
             'ttro': None,
             'ptro': None,
             'psur': None,
@@ -517,6 +520,17 @@ class AmsrObject(DataObject):
             'sec_1970': None,
             'lwp': None}
 
+class MoraObject(DataObject):
+    def __init__(self):
+        DataObject.__init__(self)                            
+        self.all_arrays = {
+            'longitude': None,
+            'latitude': None,
+            'imager_linnum': None,
+            'imager_pixnum': None,
+            'cloud_base_height': None,
+            'sec_1970': None}
+
 class SynopObject(DataObject):
     def __init__(self):
         DataObject.__init__(self)                            
@@ -573,6 +587,30 @@ class AmsrAvhrrTrackObject:
         """Concatenating two objects together"""
         self.avhrr = self.avhrr + other.avhrr
         self.amsr = self.amsr + other.amsr
+        #self.modis = self.modis + other.modis
+        try:
+            self.diff_sec_1970 = np.concatenate([self.diff_sec_1970,
+                                                 other.diff_sec_1970])
+        except ValueError, e:
+            #print "Don't concatenate member diff_sec_1970... " + str(e)
+            self.diff_sec_1970 = other.diff_sec_1970
+
+        return self
+
+
+class MoraAvhrrTrackObject:
+    def __init__(self):
+        self.avhrr = ppsAvhrrObject()
+        self.modis = ModisObject()
+        self.mora = MoraObject()
+        self.diff_sec_1970 = None
+        self.truth_sat = 'mora' #Satellite is EOS-Aqua or EOS-Terra
+                                #As we also use MODIS data from those
+                                #Name the truth_sat after the instrument
+    def __add__(self, other):
+        """Concatenating two objects together"""
+        self.avhrr = self.avhrr + other.avhrr
+        self.mora = self.mora + other.mora
         #self.modis = self.modis + other.modis
         try:
             self.diff_sec_1970 = np.concatenate([self.diff_sec_1970,
@@ -746,6 +784,9 @@ def get_stuff_to_read_from_a_reshaped_file(h5file, retv):
     if 'amsr' in  h5file.keys():
         h5_groups.append(h5file['/amsr'])
         data_objects.append(retv.amsr)
+    if 'mora' in  h5file.keys():
+        h5_groups.append(h5file['/mora'])
+        data_objects.append(retv.mora)
     if 'synop' in  h5file.keys():
         h5_groups.append(h5file['/synop'])
         data_objects.append(retv.synop)
@@ -802,6 +843,9 @@ def readIssAvhrrMatchObj(filename):
 def readAmsrAvhrrMatchObj(filename): 
     retv = AmsrAvhrrTrackObject()   
     return readTruthAvhrrMatchObj(filename, retv)
+def readMoraAvhrrMatchObj(filename): 
+    retv = MoraAvhrrTrackObject()   
+    return readTruthAvhrrMatchObj(filename, retv)
 def readSynopAvhrrMatchObj(filename): 
     retv = SynopAvhrrTrackObject()   
     return readTruthAvhrrMatchObj(filename, retv)
@@ -815,6 +859,8 @@ def read_files(files, truth='calipso'):
         tObj = IssAvhrrTrackObject()  
     if 'amsr' in  truth:
         tObj = AmsrAvhrrTrackObject()  
+    if 'mora' in  truth:
+        tObj = MoraAvhrrTrackObject() 
     if 'synop' in  truth:
         tObj = SynopAvhrrTrackObject()  
     for filename in files:
@@ -825,7 +871,9 @@ def read_files(files, truth='calipso'):
         if 'iss' in  truth:
             tObj += readIssAvhrrMatchObj(filename)  
         if 'amsr' in  truth:
-            tObj += readAmsrAvhrrMatchObj(filename)  
+            tObj += readAmsrAvhrrMatchObj(filename)
+        if 'mora' in  truth:
+            tObj += readMoraAvhrrMatchObj(filename)
         if 'synop' in  truth:
             tObj += readSynopAvhrrMatchObj(filename)
     return tObj 
@@ -863,6 +911,14 @@ def writeAmsrAvhrrMatchObj(filename,amsr_obj, avhrr_obj_name = 'pps'):
               'modis_lvl2': amsr_obj.modis.all_arrays,
               avhrr_obj_name: amsr_obj.avhrr.all_arrays}
     write_match_objects(filename, amsr_obj.diff_sec_1970, groups)    
+    status = 1
+    return status
+
+def writeMoraAvhrrMatchObj(filename,mora_obj, avhrr_obj_name = 'pps'):
+    groups = {'mora': mora_obj.mora.all_arrays,
+              'modis_lvl2': mora_obj.modis.all_arrays,
+              avhrr_obj_name: mora_obj.avhrr.all_arrays}
+    write_match_objects(filename, mora_obj.diff_sec_1970, groups)    
     status = 1
     return status
 
@@ -956,6 +1012,9 @@ the_used_variables = [
     't950',
     't1000',
     't2m',
+    'h2m',
+    'u10m',
+    'v10m',
     'ttro',
     'ptro',
     'psur',
@@ -1096,6 +1155,8 @@ the_used_variables = [
     #AMSR
     'lwp',   
     'imager_amsr_dist',
+    #MORA
+    'cloud_base_height',   
     #Cloudsat 
     'cloud_fraction',
     'validation_height',

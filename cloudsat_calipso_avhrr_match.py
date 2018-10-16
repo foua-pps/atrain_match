@@ -115,6 +115,7 @@ from cloudsat import (reshapeCloudsat,
                       add_cloudsat_cloud_fraction,
                       mergeCloudsat)
 from amsr import (reshapeAmsr, match_amsr_avhrr)
+from mora import (reshapeMora, match_mora_avhrr)
 from synop import (reshapeSynop, match_synop_avhrr)
 from iss import reshapeIss, match_iss_avhrr
 from calipso import (reshapeCalipso, 
@@ -131,6 +132,8 @@ from matchobject_io import (CalipsoObject,
                             readIssAvhrrMatchObj,
                             writeAmsrAvhrrMatchObj, 
                             readAmsrAvhrrMatchObj,
+                            writeMoraAvhrrMatchObj, 
+                            readMoraAvhrrMatchObj,
                             writeSynopAvhrrMatchObj, 
                             readSynopAvhrrMatchObj
                         )
@@ -265,6 +268,8 @@ def find_truth_files(date_time, options, values, truth='calipso'):
         TRUTH_FILE_LENGTH = config.ISS_FILE_LENGTH
     if truth in ['amsr']:
         TRUTH_FILE_LENGTH = config.AMSR_FILE_LENGTH
+    if truth in ['mora']:
+        TRUTH_FILE_LENGTH = config.MORA_FILE_LENGTH
     if truth in ['synop']:
         TRUTH_FILE_LENGTH = config.SYNOP_FILE_LENGTH
         my_sec_THR = config.sec_timeThr_synop
@@ -586,6 +591,18 @@ def get_synop_matchups(synop_files, avhrrGeoObj, avhrrObj,
                                   avhrrGeoObj, avhrrObj, ctype, cma,
                                   ctth, nwp_obj, avhrrAngObj, cpp, nwp_segments)
     return synop_matchup
+
+def get_mora_matchups(mora_files, avhrrGeoObj, avhrrObj,
+                       ctype, cma, ctth, nwp_obj, avhrrAngObj, 
+                       cpp, nwp_segments,  config_options):
+    """
+    Read Mora data and match with the given PPS data.
+    """
+    mora = reshapeMora(mora_files, avhrrGeoObj)
+    mora_matchup = match_mora_avhrr(mora,
+                                  avhrrGeoObj, avhrrObj, ctype, cma,
+                                  ctth, nwp_obj, avhrrAngObj, cpp, nwp_segments)
+    return mora_matchup
 
 def total_and_top_layer_optical_depth_5km(calipso, resolution=5):
     logger.info("Find total optical depth from 5km data")
@@ -1038,7 +1055,7 @@ def get_matchups_from_data(cross, config_options):
                     "\nIt might be working for AMSR though ...")
     elif not config.AMSR_MATCHING:
         logger.info("AMSR matching not requested config.AMSR_MATCHING=False")   
-    #AMSR:  
+    #SYNOP:  
     synop_files = None
     if (PPS_VALIDATION and config.SYNOP_MATCHING):
         synop_files = find_truth_files(date_time, config_options, values, truth='synop')
@@ -1046,7 +1063,18 @@ def get_matchups_from_data(cross, config_options):
         logger.info("\nCCI-cloud validation only for calipso, Continue" 
                     "\nIt might be working for SYNOP though ...")
     elif not config.SYNOP_MATCHING:
-        logger.info("SYNOP matching not requested config.SYNOP_MATCHING=False")   
+        logger.info("SYNOP matching not requested config.SYNOP_MATCHING=False")
+
+    #MORA:  
+    mora_files = None
+    if (PPS_VALIDATION and config.MORA_MATCHING):
+        mora_files = find_truth_files(date_time, config_options, values, truth='mora')
+    elif CCI_CLOUD_VALIDATION:
+        logger.info("\nCCI-cloud validation only for calipso, Continue" 
+                    "\nIt might be working for MORA though ...")
+    elif not config.MORA_MATCHING:
+        logger.info("MORA matching not requested config.MORA_MATCHING=False")
+
     #CALIPSO:
     calipso_files = None
     if config.CALIPSO_MATCHING:
@@ -1059,7 +1087,7 @@ def get_matchups_from_data(cross, config_options):
 
     if (calipso_files is None and cloudsat_files is None and 
         cloudsat_files_lwp is None and synop_files is None and
-        iss_files is None and amsr_files is None):      
+        iss_files is None and amsr_files is None and mora_files is None):      
         raise MatchupError(
                 "Couldn't find any matching CALIPSO/CLoudSat/ISS data")
 
@@ -1112,6 +1140,14 @@ def get_matchups_from_data(cross, config_options):
                                            avhrrGeoObj, avhrrObj, ctype, cma,
                                            ctth, nwp_obj, avhrrAngObj, cpp, 
                                            nwp_segments, config_options)
+    #MORA
+    mora_matchup = None
+    if (PPS_VALIDATION and config.MORA_MATCHING and mora_files is not None):
+        logger.info("Read MORA data")
+        mora_matchup = get_mora_matchups(mora_files, 
+                                           avhrrGeoObj, avhrrObj, ctype, cma,
+                                           ctth, nwp_obj, avhrrAngObj, cpp, 
+                                           nwp_segments, config_options)
     #CALIPSO:
     ca_matchup = None
     if config.CALIPSO_MATCHING and calipso_files is not None:
@@ -1128,15 +1164,18 @@ def get_matchups_from_data(cross, config_options):
     if ca_matchup is None and config.CALIPSO_REQUIRED:
         raise MatchupError("No matches with CALIPSO.")
     elif cl_matchup is None and config.CLOUDSAT_REQUIRED:
-        raise MatchupError("No matches with CLOUDAT.")
+        raise MatchupError("No matches with CLOUSDAT.")
     elif iss_matchup is None and config.ISS_REQUIRED:
         raise MatchupError("No matches with ISS.")
     elif amsr_matchup is None and config.AMSR_REQUIRED:
         raise MatchupError("No matches with AMSR.")
     elif synop_matchup is None and config.SYNOP_REQUIRED:
         raise MatchupError("No matches with SYNOP.")
+    elif mora_matchup is None and config.MORA_REQUIRED:
+        raise MatchupError("No matches with MORA.")
     elif (ca_matchup is None and cl_matchup is None and iss_matchup is None 
-          and amsr_matchup is None and synop_matchup is None):
+          and amsr_matchup is None and synop_matchup is None 
+          and mora_matchup is None):
         raise MatchupError("No matches with any truth.")
 
 
@@ -1222,6 +1261,16 @@ def get_matchups_from_data(cross, config_options):
                                avhrr_obj_name = avhrr_obj_name)
     else:
         logger.debug('No Synop Match File created')
+
+    # Write mora matchup   
+    if mora_matchup is not None:
+        am_match_file = rematched_file_base.replace(
+            'atrain_datatype', 'mora')
+        writeMoraAvhrrMatchObj(am_match_file, mora_matchup, 
+                               avhrr_obj_name = avhrr_obj_name)
+    else:
+        logger.debug('No Mora Match File created')
+     
      
     # Write calipso matchup
     if ca_matchup is not None:
@@ -1232,6 +1281,7 @@ def get_matchups_from_data(cross, config_options):
     return {'cloudsat': cl_matchup, 'calipso': ca_matchup, 
             'iss': iss_matchup, 'amsr': amsr_matchup,
             'synop': synop_matchup, 
+            'mora': mora_matchup, 
             'basename': basename, 'values':values}
 
 
@@ -1246,6 +1296,7 @@ def get_matchups(cross, options, reprocess=False):
     isObj = None
     amObj = None
     syObj = None
+    moObj = None
     values = {}
     try:
         values["satellite"] = cross.satellite1.lower()
@@ -1333,6 +1384,22 @@ def get_matchups(cross, options, reprocess=False):
                 syObj = readSynopAvhrrMatchObj(synop_match_file) 
                 basename = '_'.join(os.path.basename(synop_match_file).split('_')[1:5])
 
+        #MORA
+        if not config.MORA_MATCHING:
+            logger.info("MORA matching turned off config.MORA_MATCHING.")
+        else:    
+            values["atrain_sat"] = "mora"
+            values["atrain_datatype"] = "mora"
+            mora_match_file, date_time = find_avhrr_file(cross, options['reshape_dir'], 
+                                                       options['reshape_file'], values=values)
+            if not mora_match_file:
+                logger.info("No processed Mora match files found."  
+                            " Generating from source data if required.")
+                date_time=cross.time
+            else:              
+                moObj = readMoraAvhrrMatchObj(mora_match_file) 
+                basename = '_'.join(os.path.basename(mora_match_file).split('_')[1:5])
+
         #CALIPSO               
         if not config.CALIPSO_MATCHING:
             logger.info("Calipso matching turned off config.AMSR_MATCHING.")
@@ -1352,7 +1419,7 @@ def get_matchups(cross, options, reprocess=False):
 
 
     if (caObj is None and clObj is None and isObj is None and 
-        amObj is None and syObj is None):
+        amObj is None and syObj is None and moObj is None):
         pass
     else:
         values['date_time'] = date_time 
@@ -1381,6 +1448,10 @@ def get_matchups(cross, options, reprocess=False):
             raise MatchupError(
                 "Couldn't find synop already processed matchup file," 
                 "USE_EXISTING_RESHAPED_FILES = True!") 
+        if moObj is None and config.MORA_REQUIRED:
+            raise MatchupError(
+                "Couldn't find mora already processed matchup file," 
+                "USE_EXISTING_RESHAPED_FILES = True!") 
 
     if (caObj is None and clObj is None and isObj is None and 
         amObj is None  and syObj is None):
@@ -1395,10 +1466,12 @@ def get_matchups(cross, options, reprocess=False):
         out_dict =  get_matchups_from_data(cross, options)
     elif syObj is None and config.SYNOP_REQUIRED:
         out_dict =  get_matchups_from_data(cross, options)
+    elif moObj is None and config.MORA_REQUIRED:
+        out_dict =  get_matchups_from_data(cross, options)
     else:
         out_dict = {'calipso': caObj, 'cloudsat': clObj,  
                     'iss': isObj, 'amsr': amObj,
-                    'synop': syObj,
+                    'synop': syObj,  'mora': syObj,
                     'basename': basename,'values':values}
 
     if out_dict['cloudsat'] is None and config.CLOUDSAT_REQUIRED:
@@ -1416,10 +1489,13 @@ def get_matchups(cross, options, reprocess=False):
     if out_dict['synop'] is None and config.SYNOP_REQUIRED:
         raise MatchupError("Couldn't find synop matchup!"
                            "SYNOP_REQUIRED is True!") 
+    if out_dict['mora'] is None and config.MORA_REQUIRED:
+        raise MatchupError("Couldn't find mora matchup!"
+                           "MORA_REQUIRED is True!")
     return out_dict
 
 def plot_some_figures(clsatObj, caObj, values, basename, process_mode, 
-                      config_options, amObj = None, synopObj = None):
+                      config_options, amObj = None, synopObj = None, moObj= None):
 
     logger.info("Plotting")
     file_type = ['eps', 'png', 'pdf']
@@ -1563,6 +1639,7 @@ def run(cross, run_modes, config_options, reprocess=False):
     issObj = matchup_results['iss']
     amObj = matchup_results['amsr']
     syObj = matchup_results['synop']
+    moObj = matchup_results['mora']
     clsatObj = matchup_results['cloudsat']
     values = matchup_results['values']
     basename = matchup_results['basename']
