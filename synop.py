@@ -38,11 +38,7 @@ def reshapeSynop(synopfiles, avhrr):
 #    clmask_sat = np.logical_and(
 #        matchups['sat'] > 5. / 16., matchups['sat'] < 10. / 16.)
 
-
     retv.sec_1970 = np.array([calendar.timegm(tobj.timetuple()) for tobj in panda_synops['date']])
-
-    logger.warning("v2014 synop matching software divided cloud_cover by 8.0 ?!?.")
-    #synopdata['cloud_cover'] = float(total_cloud_cover) / 8.0 ??
     return retv
 
 def match_synop_avhrr(synopObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
@@ -55,9 +51,10 @@ def match_synop_avhrr(synopObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
         n_neighbours = 16
     mapper_and_dist = map_avhrr_distances(imagerGeoObj, 
                                           synopObj.longitude.ravel(), 
-                                          synopObj.latitude.ravel(),
-                                          radius_of_influence=SYNOP_RADIUS,
+                                          synopObj.latitude.ravel(), 
+                                          radius_of_influence=SYNOP_RADIUS, 
                                           n_neighbours=n_neighbours)
+    #pdb.set_trace()
     cal, cap = mapper_and_dist["mapper"]
     distances = mapper_and_dist["distances"]
     cal_1 = cal[:,0]
