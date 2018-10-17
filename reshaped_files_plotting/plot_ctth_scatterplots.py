@@ -22,9 +22,9 @@ from plot_ctth_bias_distributions import PlotAndDataObject, extract_data
 
 tag_dict = {"old": "(a) PPS-v2014",
             "mlvl2": "(b) MODIS-C6",
-            "nnant": "(c) NN-IMAGER",
-            "pps": "(c) NN-IMAGER",
-            "nna1nt": "(d) NN-IMAGER1",
+            "nnant": "(c) NN-AVHRR",
+            "pps": "(c) NN-AVHRR",
+            "nna1nt": "(d) NN-AVHRR1",
             "nnvnt": "(e) NN-VIIRS",
             "nnm2nt": "(f) NN-MERSI-2",
             "nnmint": "(h) NN-MetImage",

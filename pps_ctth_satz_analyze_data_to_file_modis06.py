@@ -136,12 +136,12 @@ def investigate_nn_ctth_satz():
     ANGLE_DIR = "/home/a001865/SAFNWC_PPS/import/ANC_data/remapped"
     MODISFILE_TEMPLATE = "/home/a001865/DATA_MISC/modis/MYD06/MYD06_L2.A%Y%j.%H%M.006.*.h5"
     if False:
-        nn_files =  glob(ROOT_DIR + "/*CTTHnnImagerNoRTTOV_*20100114*.nc")
+        nn_files =  glob(ROOT_DIR + "/*CTTHnnAvhrrNoRTTOV_*20100114*.nc")
         out_filename = "satz_statistics_and_modis.txt"
         out_file_h = open(out_filename,'w')
-        for ctth_label in  ["MODIS-C6", "CTTHold", "CTTHnnImager", "CTTHnnImagerNoRTTOV"]:
+        for ctth_label in  ["MODIS-C6", "CTTHold", "CTTHnnAvhrr", "CTTHnnAvhrrNoRTTOV"]:
             print_data_file_pressure(out_file_h, nn_files,  ANGLE_DIR, 
-                                     ctth_label=ctth_label, glob_ctth_label="CTTHnnImagerNoRTTOV",  
+                                     ctth_label=ctth_label, glob_ctth_label="CTTHnnAvhrrNoRTTOV",  
                                      modisfile_template=MODISFILE_TEMPLATE)
         out_file_h.close()
 
