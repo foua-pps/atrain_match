@@ -3,7 +3,7 @@ import numpy as np
 from datetime import datetime
 from calendar import timegm
 TAI93 = datetime(1993, 1, 1)
-from config import (RESOLUTION, sec_timeThr, NODATA, AMSR_REQUIRED)
+import config
 from read_cloudproducts_and_nwp_pps import NWPObj
 from matchobject_io import (AmsrImagerTrackObject, 
                             AmsrObject)
@@ -134,17 +134,17 @@ def reshapeAmsr(amsrfiles, imager):
 
 
 def match_amsr_imager(amsrObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
-                     imagerAngObj, cpp, nwp_segments):
+                     imagerAngObj, cpp, nwp_segments, SETTINGS):
     retv = AmsrImagerTrackObject()
 
-    if (getattr(cpp, "cpp_lwp")<0).all() and AMSR_REQUIRED:
+    if (getattr(cpp, "cpp_lwp")<0).all():
         logger.warning("Not matching AMSR-E with scene with no lwp.")
         return None
         #return MatchupError("No imager Lwp.") # if only LWP matching?
 
     from common import map_imager_distances
     n_neighbours = 8
-    if RESOLUTION == 5:
+    if config.RESOLUTION == 5:
         n_neighbours = 5
     mapper_and_dist = map_imager_distances(imagerGeoObj, 
                                           amsrObj.longitude.ravel(), 
@@ -156,31 +156,25 @@ def match_amsr_imager(amsrObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
     cal_1 = cal[:,0]
     cap_1 = cap[:,0]
 
-    calnan = np.where(cal_1 == NODATA, np.nan, cal_1)
+    calnan = np.where(cal_1 == config.NODATA, np.nan, cal_1)
     if (~np.isnan(calnan)).sum() == 0:
-        if AMSR_REQUIRED:
-            raise MatchupError("No matches within region.")
-        else:
-            logger.warning("No matches within region.")
-            return None   
+        logger.warning("No matches within region.")
+        return None   
     #check if it is within time limits:
     if len(imagerGeoObj.time.shape)>1:
         imager_time_vector = [imagerGeoObj.time[line,pixel] for line, pixel in zip(cal_1,cap_1)]
-        imager_lines_sec_1970 = np.where(cal_1 != NODATA, imager_time_vector, np.nan)
+        imager_lines_sec_1970 = np.where(cal_1 != config.NODATA, imager_time_vector, np.nan)
     else:
-        imager_lines_sec_1970 = np.where(cal_1 != NODATA, imagerGeoObj.time[cal_1], np.nan)
+        imager_lines_sec_1970 = np.where(cal_1 != config.NODATA, imagerGeoObj.time[cal_1], np.nan)
     # Find all matching Amsr pixels within +/- sec_timeThr from the IMAGER data
     imager_sunz_vector = np.array([imagerAngObj.sunz.data[line,pixel] for line, pixel in zip(cal_1,cap_1)])
     idx_match = np.logical_and(
-        elements_within_range(amsrObj.sec_1970, imager_lines_sec_1970, sec_timeThr),
+        elements_within_range(amsrObj.sec_1970, imager_lines_sec_1970, SETTINGS["sec_timeThr"]),
         imager_sunz_vector<=84) #something larger than 84 (max for lwp)
 
     if idx_match.sum() == 0:
-        if AMSR_REQUIRED:
-            raise MatchupError("No light(sunz<84) matches in region within time threshold %d s." % sec_timeThr)  
-        else:
-            logger.warning("No light (sunz<84)  matches in region within time threshold %d s.", sec_timeThr)
-            return None
+        logger.warning("No light (sunz<84)  matches in region within time threshold %d s.", SETTINGS["sec_timeThr"])
+        return None
     retv.amsr = calipso_track_from_matched(retv.amsr, amsrObj, idx_match)
  
     # Amsr line,pixel inside IMAGER swath (one neighbour):
@@ -201,7 +195,8 @@ def match_amsr_imager(amsrObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
                         'landuse': getattr(nwp, 'landuse')})
 
     
-    retv = imager_track_from_matched(retv, imagerGeoObj, None, imagerAngObj, 
+    retv = imager_track_from_matched(retv, SETTINGS,
+                                     imagerGeoObj, None, imagerAngObj, 
                                     #nwp, ctth, ctype, cma,  
                                     nwp_small, None, None, cma,
                                     cpp=cpp, nwp_segments=None,

@@ -12,8 +12,8 @@ import datetime
 import logging
 logger = logging.getLogger(__name__)
 import time
-from config import NODATA
-ATRAIN_MATCH_NODATA = NODATA
+import config
+ATRAIN_MATCH_NODATA = config.NODATA
 from runutils import do_some_geo_obj_logging
 
 def get_satid_datetime_orbit_from_fname_cci(imager_filename):

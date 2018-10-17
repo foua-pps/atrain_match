@@ -16,8 +16,8 @@ from read_cloudproducts_and_nwp_pps import (CtypeObj, CtthObj, CmaObj,
                                             createImagerTime,
                                             imagerAngObj, imagerGeoObj)
 from runutils import do_some_geo_obj_logging
-from config import NODATA
-ATRAIN_MATCH_NODATA = NODATA
+import config 
+ATRAIN_MATCH_NODATA = config.NODATA
 from get_flag_info import get_maia_ct_flag, get_day_night_twilight_info_maia
 
 

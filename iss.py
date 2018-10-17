@@ -7,8 +7,7 @@ from matchobject_io import (DataObject,
                             ppsImagerObject,
                             IssObject,
                             IssImagerTrackObject)                            
-from config import (AREA, sec_timeThr, RESOLUTION,
-                    NODATA, ISS_REQUIRED)
+import config
 from common import (MatchupError, ProcessingError,
                     elements_within_range)
 from extract_imager_along_track import imager_track_from_matched
@@ -132,37 +131,30 @@ def read_iss(filename):
 
 
 def match_iss_imager(issObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,imagerAngObj, 
-                         cpp, nwp_segments):
+                         cpp, nwp_segments, SETTINGS):
     retv = IssImagerTrackObject()
     from common import map_imager
     cal, cap = map_imager(imagerGeoObj, issObj.longitude.ravel(),
                          issObj.latitude.ravel(),
-                         radius_of_influence=RESOLUTION*0.7*1000.0) # larger than radius...
-    calnan = np.where(cal == NODATA, np.nan, cal)
+                         radius_of_influence=config.RESOLUTION*0.7*1000.0) # larger than radius...
+    calnan = np.where(cal == config.NODATA, np.nan, cal)
 
     if (~np.isnan(calnan)).sum() == 0:
-        if ISS_REQUIRED:
-            raise MatchupError("No matches within region.")
-        else:
-            logger.warning("No matches within region.")
-            return None
+        logger.warning("No matches within region.")
+        return None
     #check if it is within time limits:
     if len(imagerGeoObj.time.shape)>1:
         imager_time_vector = [imagerGeoObj.time[line,pixel] for line, pixel 
                               in zip(cal,cap)]
-        imager_lines_sec_1970 = np.where(cal != NODATA, imager_time_vector, np.nan)
+        imager_lines_sec_1970 = np.where(cal != config.NODATA, imager_time_vector, np.nan)
     else:
-        imager_lines_sec_1970 = np.where(cal != NODATA, imagerGeoObj.time[cal], np.nan)
+        imager_lines_sec_1970 = np.where(cal != config.NODATA, imagerGeoObj.time[cal], np.nan)
     # Find all matching Iss pixels within +/- sec_timeThr from the IMAGER data
-    idx_match = elements_within_range(issObj.sec_1970, imager_lines_sec_1970, sec_timeThr)
+    idx_match = elements_within_range(issObj.sec_1970, imager_lines_sec_1970, SETTINGS["sec_timeThr"])
 
     if idx_match.sum() == 0:
-        if ISS_REQUIRED:
-            raise MatchupError("No matches in region within time threshold %d s." 
-                               % sec_timeThr) 
-        else:
-            logger.warning("No matches in region within time threshold %d s.", sec_timeThr)
-            return None
+        logger.warning("No matches in region within time threshold %d s.", SETTINGS["sec_timeThr"])
+        return None
 
     retv.iss = calipso_track_from_matched(retv.iss, issObj, idx_match)
 
@@ -175,7 +167,7 @@ def match_iss_imager(issObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,imagerAngO
 
     do_some_logging(retv, issObj)
     logger.info("Generate the latitude,cloudtype tracks!")
-    retv = imager_track_from_matched(retv, imagerGeoObj, imagerObj, imagerAngObj, 
+    retv = imager_track_from_matched(retv, SETTINGS, imagerGeoObj, imagerObj, imagerAngObj, 
                                     nwp, ctth, ctype, cma,  
                                     cpp=cpp, nwp_segments=nwp_segments)
     return retv

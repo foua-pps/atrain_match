@@ -28,33 +28,23 @@ from runutils import  parse_scenesfile_v2014
 
 def process_matchups(matchups, run_modes, reprocess=False, debug=False):
     """
-    Run the given SNO *matchups* through the validation system.
+    Run the given *matchups* through the validation system.
     
     *matchups* should be a list of :class:`common.Cross` instances.
     
-    If *reprocess* is True, disregard any previously generated Cloudsat- and
-    Calipso-IMAGER matchup files.
+    If *reprocess* is True, disregard any previously generated matchup files.
     
     """
 
-    import os
-    import ConfigParser
-    from config import CONFIG_PATH
-    CONF = ConfigParser.ConfigParser()
-    config_file = os.path.join(CONFIG_PATH, "atrain_match.cfg")
-    if not os.path.isfile(config_file):
-        raise IOError("Couldn't find config file %s."%(config_file))
-    CONF.read(config_file)
-    OPTIONS = {}    
-    for option, value in CONF.items('general', raw = True):
-        OPTIONS[option] = value
+    from runutils import read_config_info
+    AM_PATHS, SETTINGS = read_config_info()
 
     problematic = set()
     no_matchup_files = []
     outstatus = 0
     for match in sorted(matchups):
         try:
-            truth_imager_match.run(match, run_modes,  OPTIONS, reprocess)
+            truth_imager_match.run(match, run_modes,  AM_PATHS, SETTINGS, reprocess)
         except MatchupError, err:
             logger.warning("Matchup problem: %s", str(err))
             import traceback

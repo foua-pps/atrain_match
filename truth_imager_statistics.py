@@ -221,22 +221,22 @@ def get_subset_for_mode(cObj, mode):
 
     return cal_subset     
 
-def get_day_night_info(cObj):
+def get_day_night_info(cObj, SETTINGS):
     daynight_flags = None
     cObj_imager = getattr(cObj, 'imager') #Same as cObj.imager
     cObj_truth_sat= getattr(cObj, cObj.truth_sat) #cObj.calipso or cObj.iss
-    if config.CCI_CLOUD_VALIDATION or config.MAIA_CLOUD_VALIDATION:
+    if SETTINGS["CCI_CLOUD_VALIDATION"] or SETTINGS["MAIA_VALIDATION"] :
         daynight_flags = get_day_night_twilight_info_cci2014(
         cObj_imager.sunz)
-    if config.PPS_VALIDATION and  hasattr(cObj_imager, 'cloudtype_qflag'):
+    if SETTINGS["PPS_VALIDATION"]  and  hasattr(cObj_imager, 'cloudtype_qflag'):
         if cObj_imager.cloudtype_qflag is not None:
             daynight_flags = get_day_night_twilight_info_pps2012(
                 cObj_imager.cloudtype_qflag)
-    if config.PPS_VALIDATION and  hasattr(cObj_imager, 'cloudtype_conditions'):
+    if SETTINGS["PPS_VALIDATION"]  and  hasattr(cObj_imager, 'cloudtype_conditions'):
         if cObj_imager.cloudtype_conditions is not None:
             daynight_flags = get_day_night_twilight_info_pps2014(
                 cObj_imager.cloudtype_conditions)     
-    if config.PPS_VALIDATION and daynight_flags is None:
+    if SETTINGS["PPS_VALIDATION"]  and daynight_flags is None:
         daynight_flags = get_day_night_twilight_info_cci2014(
         cObj_imager.sunz)
     (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag) = daynight_flags
@@ -262,20 +262,20 @@ def get_semi_opaque_info(caObj):
     return semi_flag, opaque_flag
 """
 
-def find_imager_clear_cloudy(cObj):
+def find_imager_clear_cloudy(cObj, SETTINGS):
     if 'SYNOP' in  cObj.truth_sat.upper():
-        imager_clear =  cObj.imager.cfc_mean <config.PPS_SYNOP_CLEAR_MAX_CFC
-        imager_cloudy =  cObj.imager.cfc_mean >=config.PPS_SYNOP_CLOUDY_MIN_CFC
-    elif config.USE_CMA_FOR_CFC_STATISTICS:
+        imager_clear =  cObj.imager.cfc_mean <SETTINGS["PPS_SYNOP_CLEAR_MAX_CFC"]
+        imager_cloudy =  cObj.imager.cfc_mean >=SETTINGS["PPS_SYNOP_CLOUDY_MIN_CFC"]
+    elif SETTINGS["USE_CMA_FOR_CFC_STATISTICS"]:
         imager_clear = np.logical_or(np.equal(cObj.imager.cloudmask,3),
                                      np.equal(cObj.imager.cloudmask,0))
         imager_cloudy = np.logical_or(np.equal(cObj.imager.cloudmask,1),
                                       np.equal(cObj.imager.cloudmask,2))
-    elif config.USE_CT_FOR_CFC_STATISTICS:
+    elif SETTINGS["USE_CT_FOR_CFC_STATISTICS"]:
         imager_clear =np.logical_and(np.less_equal(cObj.imager.cloudtype,4),np.greater(cObj.imager.cloudtype,0))
         imager_cloudy = np.logical_and(np.greater(cObj.imager.cloudtype,4),np.less(cObj.imager.cloudtype,20))
-    elif config.USE_CMAPROB_FOR_CFC_STATISTICS:
-        CMA_PROB_CLOUDY_LIMIT = config.CMA_PROB_CLOUDY_LIMIT
+    elif SETTINGS["USE_CMAPROB_FOR_CFC_STATISTICS"]:
+        CMA_PROB_CLOUDY_LIMIT = SETTINGS["CMA_PROB_CLOUDY_LIMIT"]
         imager_clear = np.logical_and(np.less(cObj.imager.cma_prob,CMA_PROB_CLOUDY_LIMIT),
                                      np.greater_equal(cObj.imager.cma_prob,0))
         imager_cloudy = np.logical_and(np.greater_equal(cObj.imager.cma_prob,CMA_PROB_CLOUDY_LIMIT),
@@ -283,10 +283,10 @@ def find_imager_clear_cloudy(cObj):
     
     else: 
         raise ProcessingError("You need at least one of USE_*_FOR_CFC_STATISICS"
-                              " in config.py to True.") 
+                              " in atrain_match.cfg to True.") 
     return imager_clear, imager_cloudy
 
-def find_truth_clear_cloudy(cObj, val_subset):
+def find_truth_clear_cloudy(cObj, val_subset, SETTINGS):
 
     # For the combined 1km + 5km dataset cloud_fraction can only have values (0.0, 0.2, 0.4, 0.6, 0.8, 1.0). So the threshold should
     # really be set to 0.4, i.e., at least two 1 km columns should be cloudy!. 
@@ -294,14 +294,14 @@ def find_truth_clear_cloudy(cObj, val_subset):
     cObj_truth_sat = getattr(cObj, cObj.truth_sat)
     if 'CALIPSO' in cObj.truth_sat.upper():
         truth_clear = np.logical_and(
-            np.less(cObj_truth_sat.cloud_fraction,config.CALIPSO_CLEAR_MAX_CFC),val_subset)
+            np.less(cObj_truth_sat.cloud_fraction,SETTINGS["CALIPSO_CLEAR_MAX_CFC"]),val_subset)
         truth_cloudy = np.logical_and(
-            np.greater_equal(cObj_truth_sat.cloud_fraction,config.CALIPSO_CLOUDY_MIN_CFC),val_subset) 
+            np.greater_equal(cObj_truth_sat.cloud_fraction,SETTINGS["CALIPSO_CLOUDY_MIN_CFC"]),val_subset) 
     elif 'SYNOP' in  cObj.truth_sat.upper():
         truth_clear = np.logical_and(
-            np.less(cObj_truth_sat.cloud_fraction,config.SYNOP_CLEAR_MAX_CFC),val_subset)
+            np.less(cObj_truth_sat.cloud_fraction,SETTINGS["SYNOP_CLEAR_MAX_CFC"]),val_subset)
         truth_cloudy = np.logical_and(
-            np.greater_equal(cObj_truth_sat.cloud_fraction,config.SYNOP_CLOUDY_MIN_CFC),val_subset) 
+            np.greater_equal(cObj_truth_sat.cloud_fraction,SETTINGS["SYNOP_CLOUDY_MIN_CFC"]),val_subset) 
     else:
         truth_clear = np.logical_and(
             np.less_equal(cObj_truth_sat.cloud_fraction,0.5), val_subset)
@@ -406,7 +406,7 @@ def print_cpp_lwp_stats(aObj, statfile, val_subset):
 
       
 
-def print_cpp_stats(cObj, statfile, val_subset):
+def print_cpp_stats(cObj, statfile, val_subset, SETTINGS):
     # CLOUD PHASE EVALUATION
     #=======================    
     # CLOUD PHASE: CALIOP/ISS - IMAGER
@@ -416,7 +416,7 @@ def print_cpp_stats(cObj, statfile, val_subset):
     from validate_cph_util import get_calipso_phase_inner, CALIPSO_PHASE_VALUES
     val_subset = np.logical_and(
         val_subset, 
-        cObj.calipso.cloud_fraction >= config.CALIPSO_CLOUDY_MIN_CFC)
+        cObj.calipso.cloud_fraction >= SETTINGS["CALIPSO_CLOUDY_MIN_CFC"])
     cal_phase = get_calipso_phase_inner(
         cObj.calipso.feature_classification_flags, 
         max_layers=10,
@@ -460,12 +460,12 @@ def print_cpp_stats(cObj, statfile, val_subset):
     statfile.write("CLOUD PHASE %s-IMAGER POD-ICE: %3.2f \n" % (cObj.truth_sat.upper(), pod_ice))
     statfile.write("CLOUD PHASE %s-IMAGER Hitrate: %3.2f \n" % (cObj.truth_sat.upper(), hitrate))  
             
-def print_cmask_stats(cObj, statfile, val_subset):
+def print_cmask_stats(cObj, statfile, val_subset, SETTINGS):
     # CLOUD MASK EVALUATION
     #=======================    
     # CORRELATION CLOUD MASK: CALIOP/ISS - IMAGER
-    truth_clear, truth_cloudy = find_truth_clear_cloudy(cObj, val_subset)
-    pps_clear, pps_cloudy = find_imager_clear_cloudy(cObj)
+    truth_clear, truth_cloudy = find_truth_clear_cloudy(cObj, val_subset, SETTINGS)
+    pps_clear, pps_cloudy = find_imager_clear_cloudy(cObj, SETTINGS)
     pps_clear = np.logical_and(pps_clear, val_subset)
     pps_cloudy = np.logical_and(pps_cloudy,val_subset)
     n_clear_clear = np.repeat(
@@ -511,7 +511,7 @@ def print_cmask_stats(cObj, statfile, val_subset):
     statfile.write("CLOUD MASK %s-IMAGER BIAS percent: %3.2f \n" %  (cObj.truth_sat.upper(), bias*100))
 
 
-def print_cmask_prob_stats(cObj, statfile, val_subset):
+def print_cmask_prob_stats(cObj, statfile, val_subset, SETTINGS):
     # CLOUD MASK PROB EVALUATION
     #=======================    
     # CORRELATION CLOUD MASK: CALIOP/ISS - IMAGER
@@ -521,7 +521,7 @@ def print_cmask_prob_stats(cObj, statfile, val_subset):
         cma_prob = cObj.imager.cma_prob_mean
     else:
         cma_prob = cObj.imager.cma_prob 
-    truth_clear, truth_cloudy = find_truth_clear_cloudy(cObj, val_subset)
+    truth_clear, truth_cloudy = find_truth_clear_cloudy(cObj, val_subset, SETTINGS)
 
     #selection:
     truth_clear = np.logical_and(truth_clear, val_subset)
@@ -544,9 +544,9 @@ def print_cmask_prob_stats(cObj, statfile, val_subset):
     statfile.write("CLOUD MASK PROB %s-IMAGER TABLE CLOUDY: %s \n" % (cObj.truth_sat.upper(), cloudy_string))               
 
 
-def print_modis_stats(cObj, statfile, val_subset, cal_MODIS_cflag):    
+def print_modis_stats(cObj, statfile, val_subset, cal_MODIS_cflag, SETTINGS):    
     # CORRELATION CLOUD MASK: CALIOP - MODIS
-    truth_clear, truth_cloudy = find_truth_clear_cloudy(cObj, val_subset)
+    truth_clear, truth_cloudy = find_truth_clear_cloudy(cObj, val_subset, SETTINGS)
     if cal_MODIS_cflag is None:
         return
     if len(val_subset) != len(cal_MODIS_cflag):
@@ -609,8 +609,8 @@ def print_modis_stats(cObj, statfile, val_subset, cal_MODIS_cflag):
     statfile.write("CLOUD MASK %s-MODIS FROM CLOUDSAT FLAG BIAS percent: %3.2f \n" % (cObj.truth_sat.upper(),  bias*100))    
     
     
-def print_calipso_stats_ctype(caObj, statfile, val_subset, low_medium_high_class):
-    if config.CCI_CLOUD_VALIDATION :
+def print_calipso_stats_ctype(caObj, statfile, val_subset, low_medium_high_class, SETTINGS):
+    if SETTINGS["CCI_CLOUD_VALIDATION"] :
         logger.info("Cloudtype validation not useful for CCI validation")
         return
     if caObj.imager.cloudtype is None:
@@ -659,9 +659,9 @@ def print_calipso_stats_ctype(caObj, statfile, val_subset, low_medium_high_class
         logger.error("Assuming cloudtype structure from pps v2012")
 
     calipso_clear = np.logical_and(
-        np.less(caObj.calipso.cloud_fraction,config.CALIPSO_CLEAR_MAX_CFC),val_subset)
+        np.less(caObj.calipso.cloud_fraction,SETTINGS["CALIPSO_CLEAR_MAX_CFC"]),val_subset)
     calipso_cloudy = np.logical_and(
-        np.greater_equal(caObj.calipso.cloud_fraction,config.CALIPSO_CLOUDY_MIN_CFC),val_subset)
+        np.greater_equal(caObj.calipso.cloud_fraction,SETTINGS["CALIPSO_CLOUDY_MIN_CFC"]),val_subset)
     imager_clear = np.logical_and(
         np.logical_and(np.less_equal(caObj.imager.cloudtype,4),
                        np.greater(caObj.imager.cloudtype,0)),
@@ -810,7 +810,7 @@ def print_height_all_low_medium_high(NAME, val_subset,  statfile,
                                      truth_sat_validation_height, imager_is_cloudy) 
     statfile.write("CLOUD HEIGHT %s HIGH: %s \n" % (NAME, out_stats))
 
-def print_stats_ctop(cObj, statfile, val_subset, low_medium_high_class):
+def print_stats_ctop(cObj, statfile, val_subset, low_medium_high_class, SETTINGS):
     if cObj.imager.ctth_height is None:
         logger.warning("There are no ctth height data.")
         return
@@ -823,7 +823,7 @@ def print_stats_ctop(cObj, statfile, val_subset, low_medium_high_class):
     cObj_truth_sat= getattr(cObj, cObj.truth_sat) #cObj.calipso or cObj.iss
     imager_ctth_m_above_seasurface = cObj_imager.imager_ctth_m_above_seasurface  
     logger.warning("WARNING Only validating CTTH for cloudy pixels!")
-    (dummy, imager_is_cloudy) = find_imager_clear_cloudy(cObj)
+    (dummy, imager_is_cloudy) = find_imager_clear_cloudy(cObj, SETTINGS)
     imager_ctth_m_above_seasurface[~imager_is_cloudy] = -9
     #imager_ctth_m_above_seasurface[cObj_imager.cloudmask==0] = -9
     #imager_ctth_m_above_seasurface[cObj_imager.cloudmask==3] = -9
@@ -832,7 +832,7 @@ def print_stats_ctop(cObj, statfile, val_subset, low_medium_high_class):
                         
     val_subset = np.logical_and(
         val_subset, 
-        cObj_truth_sat.cloud_fraction >= config.CALIPSO_CLOUDY_MIN_CFC)
+        cObj_truth_sat.cloud_fraction >= SETTINGS["CALIPSO_CLOUDY_MIN_CFC"])
 
  
     #print "ALL CLOUDS:" 
@@ -848,7 +848,7 @@ def print_stats_ctop(cObj, statfile, val_subset, low_medium_high_class):
             logger.warning("WARNING WARNING WARNING only printing over all statistics "
                            "for cloudtop for ISS")
         return
-    if  (config.COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC and 
+    if  (SETTINGS["COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC"] and 
          cObj.imager.cloudtype is not None):
         statfile.write("CLOUD HEIGHT GEO-STYLE\n")
         from scipy import  ndimage
@@ -896,7 +896,7 @@ def print_stats_ctop(cObj, statfile, val_subset, low_medium_high_class):
                                          average_height_truth,
                                          imager_is_cloudy)
  
-    if config.COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC:
+    if SETTINGS["COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC"]:
         statfile.write("CLOUD HEIGHT SINGLE-LAYER\n")
         val_subset_single = np.logical_and(
             val_subset, 
@@ -908,10 +908,10 @@ def print_stats_ctop(cObj, statfile, val_subset, low_medium_high_class):
                                          truth_sat_validation_height, 
                                          imager_is_cloudy)
 
-    if (config.COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC and
-        (config.ALSO_USE_5KM_FILES or config.RESOLUTION==5)): 
+    if (SETTINGS["COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC"] and
+        (SETTINGS["ALSO_USE_5KM_FILES"] or config.RESOLUTION==5)): 
         statfile.write("CLOUD HEIGHT SINGLE-LAYER, NOT THIN\n")
-        lim=2*config.OPTICAL_DETECTION_LIMIT
+        lim=2*SETTINGS["OPTICAL_DETECTION_LIMIT"]
         val_subset_single_not_thinnest = np.logical_and(
             val_subset_single, 
             np.greater_equal(cObj.calipso.feature_optical_depth_532_top_layer_5km,lim))
@@ -923,7 +923,7 @@ def print_stats_ctop(cObj, statfile, val_subset, low_medium_high_class):
                                          imager_is_cloudy)
         
         statfile.write("CLOUD HEIGHT NOT VERY THIN TOP LAYER\n")
-        lim=config.OPTICAL_DETECTION_LIMIT
+        lim=SETTINGS["OPTICAL_DETECTION_LIMIT"]
         val_subset_not_thinnest_top_layer = np.logical_and(
             val_subset, 
             np.greater_equal(cObj.calipso.feature_optical_depth_532_top_layer_5km,lim))
@@ -934,7 +934,7 @@ def print_stats_ctop(cObj, statfile, val_subset, low_medium_high_class):
                                          truth_sat_validation_height, 
                                          imager_is_cloudy)
 
-        lim=config.OPTICAL_DETECTION_LIMIT
+        lim=SETTINGS["OPTICAL_DETECTION_LIMIT"]
         statfile.write("CLOUD HEIGHT VERY THIN TOP LAYER\n")
         val_subset_thinnest_top_layer = np.logical_and(
             val_subset, 
@@ -971,11 +971,12 @@ def print_main_stats(cObj, statfile):
 
 
 def CalculateStatistics(mode, statfilename, caObj, clsatObj, issObj, amObj, syObj,
+                        SETTINGS,
                         dnt_flag=None):
 
-    def get_day_night_subset(cObj, val_subset):
+    def get_day_night_subset(cObj, val_subset, SETTINGS):
         (no_qflag, night_flag, twilight_flag, 
-         day_flag, all_dnt_flag) = get_day_night_info(cObj)
+         day_flag, all_dnt_flag) = get_day_night_info(cObj, SETTINGS)
         
         if dnt_flag is None:
             logger.debug('dnt_flag = %s', 'ALL PIXELS')
@@ -998,14 +999,14 @@ def CalculateStatistics(mode, statfilename, caObj, clsatObj, issObj, amObj, syOb
         logger.info("Cloudsat Statistics")
         val_subset = get_subset_for_mode(clsatObj, mode)
         if val_subset is not None:
-            val_subset = get_day_night_subset(clsatObj, val_subset)
+            val_subset = get_day_night_subset(clsatObj, val_subset, SETTINGS)
             statfile = open(statfilename.replace('xxx','cloudsat'),"w")
             if clsatObj.cloudsat.all_arrays['cloud_fraction'] is not None:
                 low_medium_high_class = get_cloudsat_low_medium_high_classification(clsatObj)
                 print_main_stats(clsatObj, statfile)
                 print_cmask_stats(clsatObj, statfile, val_subset)
-                print_cmask_prob_stats(clsatObj, statfile, val_subset)
-                print_modis_stats(clsatObj, statfile, val_subset, clsatObj.cloudsat.MODIS_cloud_flag)
+                print_cmask_prob_stats(clsatObj, statfile, val_subset, SETTINGS)
+                print_modis_stats(clsatObj, statfile, val_subset, clsatObj.cloudsat.MODIS_cloud_flag, SETTINGS)
                 print_stats_ctop(clsatObj,  statfile, val_subset, low_medium_high_class)
             if clsatObj.cloudsat.all_arrays['RVOD_liq_water_path'] is not None:    
                 print_cpp_lwp_stats(clsatObj, statfile, val_subset)
@@ -1018,33 +1019,33 @@ def CalculateStatistics(mode, statfilename, caObj, clsatObj, issObj, amObj, syOb
             statfile = open(statfilename.replace('xxx','calipso'),"w")
             low_medium_high_class = get_calipso_low_medium_high_classification(caObj)
             #semi_flag, opaque_flag = get_semi_opaque_info(caObj)
-            val_subset = get_day_night_subset(caObj, val_subset)
+            val_subset = get_day_night_subset(caObj, val_subset, SETTINGS)
             print_main_stats(caObj, statfile)
-            print_cmask_stats(caObj, statfile, val_subset)
-            print_cmask_prob_stats(caObj, statfile, val_subset)
-            print_modis_stats(caObj, statfile, val_subset,   caObj.calipso.cal_MODIS_cflag)
-            print_calipso_stats_ctype(caObj, statfile, val_subset, low_medium_high_class)
-            print_stats_ctop(caObj,  statfile, val_subset, low_medium_high_class) 
-            print_cpp_stats(caObj, statfile, val_subset)
+            print_cmask_stats(caObj, statfile, val_subset, SETTINGS)
+            print_cmask_prob_stats(caObj, statfile, val_subset, SETTINGS)
+            print_modis_stats(caObj, statfile, val_subset,   caObj.calipso.cal_MODIS_cflag, SETTINGS)
+            print_calipso_stats_ctype(caObj, statfile, val_subset, low_medium_high_class, SETTINGS)
+            print_stats_ctop(caObj,  statfile, val_subset, low_medium_high_class, SETTINGS) 
+            print_cpp_stats(caObj, statfile, val_subset, SETTINGS)
             statfile.close()
     
     if issObj is not None:
         val_subset = get_subset_for_mode(issObj, mode)
         if val_subset is not None:
             statfile = open(statfilename.replace('xxx','iss'),"w")
-            val_subset = get_day_night_subset(issObj, val_subset)
+            val_subset = get_day_night_subset(issObj, val_subset, SETTINGS)
             print_main_stats(issObj, statfile)
-            print_cmask_stats(issObj, statfile, val_subset)
-            print_cmask_prob_stats(issObj, statfile, val_subset)
+            print_cmask_stats(issObj, statfile, val_subset, SETTINGS)
+            print_cmask_prob_stats(issObj, statfile, val_subset, SETTINGS)
             #print_calipso_stats_ctype(issObj, statfile, val_subset, cal_vert_feature)
-            print_stats_ctop(issObj, statfile, val_subset, None)
+            print_stats_ctop(issObj, statfile, val_subset, None, SETTINGS)
             statfile.close()
 
     if amObj is not None:
         logger.info("AMSR-E Statistics")
         val_subset = get_subset_for_mode(amObj, mode)
         if val_subset is not None:
-            val_subset = get_day_night_subset(amObj, val_subset)                        
+            val_subset = get_day_night_subset(amObj, val_subset, SETTINGS)                        
             statfile = open(statfilename.replace('xxx','amsr'),"w")
             print_main_stats(amObj, statfile)
             print_cpp_lwp_stats(amObj, statfile, val_subset)
@@ -1052,11 +1053,11 @@ def CalculateStatistics(mode, statfilename, caObj, clsatObj, issObj, amObj, syOb
 
     if syObj is not None:
         logger.info("SYNOP Statistics")
-        val_subset = get_subset_for_mode(syObj, mode)
+        val_subset = get_subset_for_mode(syObj, mode, SETTINGS)
         if val_subset is not None:
             val_subset = get_day_night_subset(syObj, val_subset)                        
             statfile = open(statfilename.replace('xxx','synop'),"w")
             print_main_stats(syObj, statfile)
-            print_cmask_stats(syObj, statfile, val_subset)
-            print_cmask_prob_stats(syObj, statfile, val_subset)
+            print_cmask_stats(syObj, statfile, val_subset, SETTINGS)
+            print_cmask_prob_stats(syObj, statfile, val_subset, SETTINGS)
             statfile.close()

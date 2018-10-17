@@ -29,7 +29,7 @@ def imshow_lwps(amsr_lwp, cpp_lwp, time_diff, sea, title=None, lwp_max=None):
     #Comment: utility_functions is a separate package, created by J.Malm,
     #but which we can not find. If we want to run this part of the code, it
     #might be changed to something from matplotlib instead.
-    #By calling amsr_imager_match without '-p', this part of the code is not
+    #By calling match_util_match without '-p', this part of the code is not
     #executed.
     #Sara Hornquist 2015-03-12
 

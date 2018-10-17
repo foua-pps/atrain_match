@@ -2,8 +2,7 @@
 #Program truth_imager_plot.py
 
 import numpy as np
-from config import MAXHEIGHT, CLOUDSAT_CLOUDY_THR,\
-    RESOLUTION
+from config import RESOLUTION
 
 from matplotlib import pyplot as plt
 
@@ -29,13 +28,13 @@ def drawCalClsatGEOPROFImagerPlot(clsatObj,
     caliop_height[caliop_height<0]=-9
     pixel_position = np.arange(caObj.calipso.latitude.shape[0])                            
     # Calculates Hihest Cloud Top   
-    if MAXHEIGHT is None:
+    if SETTINGS("MAXHEIGHT") is None:
         maxheight_calipso = np.nanmax(caliop_height)
         maxheight_imager = np.nanmax(imager_ctth_m_above_seasurface)
         max_height_sat = [maxheight_calipso, maxheight_imager]
         maxheight = maxheight + 1000
     else:
-        maxheight = MAXHEIGHT
+        maxheight = SETTINGS("MAXHEIGHT")
     #PLOT    
     fig = plt.figure()
     #Plot ground

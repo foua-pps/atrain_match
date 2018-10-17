@@ -1,7 +1,6 @@
 import numpy as np
 import logging
 logger = logging.getLogger(__name__)
-from config import PPS_VALIDATION, SAVE_NEIGHBOUR_INFO, CTTH_TYPES
 CHANNEL_MICRON_DESCRIPTIONS = {'11': ["avhrr channel 4 - 11um",
                                       "Avhrr channel channel4.",
                                       "AVHRR ch4",
@@ -344,12 +343,13 @@ def insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt):
         return obt
 
 #---------------------------------------------------------------------------
-def imager_track_from_matched(obt, GeoObj, dataObj, AngObj, 
-                             nwp_obj, ctth, ctype, cma, 
-                             cpp=None,
-                             nwp_segments=None,
-                             extract_some_data_for_x_neighbours=False,
-                             find_mean_data_for_x_neighbours=False):
+def imager_track_from_matched(obt, SETTINGS, 
+                              GeoObj, dataObj, AngObj, 
+                              nwp_obj, ctth, ctype, cma, 
+                              cpp=None,
+                              nwp_segments=None,
+                              extract_some_data_for_x_neighbours=False,
+                              find_mean_data_for_x_neighbours=False):
     truth = getattr(obt, obt.truth_sat)
     row_matched = truth.imager_linnum
     col_matched = truth.imager_pixnum
@@ -384,7 +384,7 @@ def imager_track_from_matched(obt, GeoObj, dataObj, AngObj,
              'qualityflag', 'phaseflag'],
             ['cloudtype_quality', 'cloudtype_conditions', 'cloudtype_status', 
              'cloudtype_qflag', 'cloudtype_pflag'] ):
-        if hasattr(ctype, variable) and PPS_VALIDATION:
+        if hasattr(ctype, variable) and SETTINGS["PPS_VALIDATION"]:
             setattr(obt.imager, outname, 
                     get_data_from_array(getattr(ctype,variable), row_col))
     for nwp_info in ["surftemp", "t500", "t700", "t850", "t950", "ttro", "ciwv",
@@ -398,7 +398,8 @@ def imager_track_from_matched(obt, GeoObj, dataObj, AngObj,
                 setattr(obt.imager, nwp_info, get_data_from_array(data, row_col))
         else:
             logger.debug("missing {:s}".format(nwp_info))
-    if len(CTTH_TYPES)>1 and PPS_VALIDATION:        
+    CTTH_TYPES = SETTINGS["CTTH_TYPES"]
+    if len(CTTH_TYPES)>1 and SETTINGS["PPS_VALIDATION"]:        
         for ctth_type in CTTH_TYPES[1:]:
             if hasattr(nwp_obj,ctth_type):
                 ctth_obj = getattr(nwp_obj,ctth_type)
@@ -420,7 +421,7 @@ def imager_track_from_matched(obt, GeoObj, dataObj, AngObj,
         if hasattr(nwp_obj, texture):
             data = getattr(nwp_obj, texture)
             setattr(obt.imager, texture, get_data_from_array(data, row_col))
-    if dataObj is not None and SAVE_NEIGHBOUR_INFO:
+    if dataObj is not None and SETTINGS["SAVE_NEIGHBOUR_INFO"]:
         neighbour_obj = get_warmest_values(dataObj, row_col)
         for key in ["warmest_r06", "warmest_r09", "warmest_r16"]:
             setattr(obt.imager, key + neighbour_obj.extra_info_sza_corr, 
@@ -508,14 +509,14 @@ def imager_track_from_matched(obt, GeoObj, dataObj, AngObj,
         logger.info("Not extracting ctth")
     else:
         logger.debug("Extracting ctth along track ")
-        if hasattr(ctth, 'ctth_statusflag') and PPS_VALIDATION:
+        if hasattr(ctth, 'ctth_statusflag') and SETTINGS["PPS_VALIDATION"]:
             obt.imager.ctth_status =  get_data_from_array(ctth.ctth_statusflag, row_col)
         for ctth_product in ['height', 'temperature', 'pressure', 'height_corr']:
             data = getattr(ctth, ctth_product)
             if data is None:
                 continue
             setattr(obt.imager, "ctth_" + ctth_product, get_data_from_array(data, row_col)) 
-        if (PPS_VALIDATION and hasattr(ctth, 'processingflag')):
+        if (SETTINGS["PPS_VALIDATION"] and hasattr(ctth, 'processingflag')):
             is_opaque = np.bitwise_and(np.right_shift(ctth.processingflag, 2), 1)
             obt.imager.ctth_opaque = get_data_from_array(is_opaque, row_col)
     #NWP on ctth resolution        

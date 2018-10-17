@@ -7,15 +7,14 @@ import time
 import calendar
 from datetime import datetime
 logger = logging.getLogger(__name__)
-from config import (NODATA, PPS_FORMAT_2012_OR_EARLIER,  CTTH_TYPES, 
-                    RESOLUTION)
+import config
 from runutils import do_some_geo_obj_logging
 from common import InputError
-ATRAIN_MATCH_NODATA = NODATA
+ATRAIN_MATCH_NODATA = config.NODATA
 #logger.debug('Just so you know: this module has a logger...')
 
 DSEC_PER_AVHRR_SCALINE = 1.0/6. * 4 # A "work for the time being" solution.
-if RESOLUTION == 1:
+if config.RESOLUTION == 1:
     DSEC_PER_AVHRR_SCALINE = 1.0/6. # Full scan period, i.e. the time
                                     # interval between two consecutive
                                     # lines (sec)
@@ -24,7 +23,7 @@ def get_satid_datetime_orbit_from_fname_pps(imager_filename,as_oldstyle=False):
     #satname, _datetime, orbit = runutils.parse_scene(imager_filename)
     #returnd orbit as int, loosing leeding zeros, use %05d to get it right.
     # Get satellite name, time, and orbit number from imager_file
-    if PPS_FORMAT_2012_OR_EARLIER or as_oldstyle:
+    if config.PPS_FORMAT_2012_OR_EARLIER or as_oldstyle:
         sl_ = os.path.basename(imager_filename).split('_')
         date_time= datetime.strptime(sl_[1] + sl_[2], '%Y%m%d%H%M')
         values= {"satellite": sl_[0],
@@ -841,7 +840,9 @@ def readImagerData_h5(filename):
     return imager_data
 
 
-def read_all_intermediate_files(pps_files):
+def read_all_intermediate_files(pps_files, SETTINGS):
+
+    CTTH_TYPES = SETTINGS['CTTH_TYPES']
     nwp_dict={}
     if pps_files.seaice is None:
         pass
@@ -950,7 +951,7 @@ def read_all_intermediate_files(pps_files):
     nwp_obj = NWPObj(nwp_dict)
     return nwp_obj
 
-def pps_read_all(pps_files, imager_file):
+def pps_read_all(pps_files, imager_file, SETTINGS):
     logger.info("Read Imager geolocation data")
     if '.nc' in imager_file:
         pps_nc = netCDF4.Dataset(imager_file, 'r', format='NETCDF4')
@@ -1015,6 +1016,7 @@ def pps_read_all(pps_files, imager_file):
             ctype = read_cloudtype_h5(pps_files.cloudtype)
     #CTTH        
     ctth = None
+    CTTH_TYPES = SETTINGS["CTTH_TYPES"]
     if len(pps_files.ctth.keys())>=1:
         logger.info("Read PPS CTTH")
         if '.nc' in pps_files.ctth[CTTH_TYPES[0]]:
@@ -1024,7 +1026,7 @@ def pps_read_all(pps_files, imager_file):
             ctth = read_ctth_h5(pps_files.ctth[CTTH_TYPES[0]])
 
     logger.info("Read PPS full resolution intermediate files")
-    nwp_obj = read_all_intermediate_files(pps_files)
+    nwp_obj = read_all_intermediate_files(pps_files, SETTINGS)
   
     logger.info("Read PPS NWP segment resolution data") 
     segment_data_object = read_segment_data(getattr(pps_files,'nwp_segments'))

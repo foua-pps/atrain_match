@@ -85,7 +85,7 @@ def map_imager(imager, lon, lat, radius_of_influence, n_neighbours=1):
     return retv["mapper"]
 
 
-def write_match_objects(filename, datasets, groups, group_attrs_dict):
+def write_match_objects(filename, datasets, groups, group_attrs_dict, SETTINGS):
     """
     Write match objects to HDF5 file *filename*.
     
@@ -108,7 +108,7 @@ def write_match_objects(filename, datasets, groups, group_attrs_dict):
     >>> diff_sec_1970, groups = read_match_objects('match.h5')
     
     """
-    from config import COMPRESS_LVL, WRITE_ONLY_THE_MOST_IMPORTANT_STUFF_TO_FILE
+    from config import COMPRESS_LVL
     import h5py
     from matchobject_io import the_used_variables 
     with h5py.File(filename, 'w') as f:
@@ -127,7 +127,7 @@ def write_match_objects(filename, datasets, groups, group_attrs_dict):
             for array_name, array in group_object.items():
                 if array is None:
                     continue
-                if (WRITE_ONLY_THE_MOST_IMPORTANT_STUFF_TO_FILE and 
+                if (SETTINGS["WRITE_ONLY_THE_MOST_IMPORTANT_STUFF_TO_FILE"] and 
                     array_name not in the_used_variables):
                     logger.debug("Not writing unimportant %s to file", 
                                  array_name)

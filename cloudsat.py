@@ -6,8 +6,7 @@ import logging
 logger = logging.getLogger(__name__)
 from matchobject_io import (CloudsatObject,
                             CloudsatImagerTrackObject)                            
-from config import (sec_timeThr, RESOLUTION,
-                    NODATA, CLOUDSAT_CLOUDY_THR, CLOUDSAT_REQUIRED)
+import config
 from common import (MatchupError, ProcessingError,
                     elements_within_range)
 from extract_imager_along_track import imager_track_from_matched
@@ -29,7 +28,7 @@ def add_validation_ctth_cloudsat(cloudsat):
         cmask_ok = cloudsat.CPR_Cloud_mask[:,i]
         top_height = height+120
         #top_height[height<240*4] = -9999 #Do not use not sure why these were not used Nina 20170317
-        is_cloudy = cmask_ok > CLOUDSAT_CLOUDY_THR
+        is_cloudy = cmask_ok > config.CLOUDSAT_CLOUDY_THR
         top_height[~is_cloudy] = -9999
         validation_height[validation_height<top_height] =  top_height[
             validation_height<top_height]
@@ -43,7 +42,7 @@ def add_validation_ctth_cloudsat(cloudsat):
 def add_cloudsat_cloud_fraction(cloudsat):
     cloudsat_cloud_mask = cloudsat.CPR_Cloud_mask
     cloudsat_cloud_mask = np.greater_equal(cloudsat_cloud_mask, 
-                                           CLOUDSAT_CLOUDY_THR)
+                                           config.CLOUDSAT_CLOUDY_THR)
     cloudsat_cloud_fraction = np.zeros(cloudsat.latitude.shape[0])
     sum_cloudsat_cloud_mask = np.sum(cloudsat_cloud_mask, axis=1)
     if len(sum_cloudsat_cloud_mask) != (len(cloudsat_cloud_fraction)):
@@ -182,7 +181,7 @@ def read_cloudsat(filename):
 
 
 def match_cloudsat_imager(cloudsatObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,imagerAngObj, 
-                         cpp, nwp_segments):
+                          cpp, nwp_segments, SETTINGS):
     retv = CloudsatImagerTrackObject()
 
     #Nina 20150313 Swithcing to mapping without area as in cpp. Following suggestion from Jakob
@@ -190,29 +189,23 @@ def match_cloudsat_imager(cloudsatObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,
     cal, cap = map_imager(imagerGeoObj, 
                          cloudsatObj.longitude.ravel(),
                          cloudsatObj.latitude.ravel(),
-                         radius_of_influence=RESOLUTION*0.7*1000.0) # somewhat larger than radius...
-    calnan = np.where(cal == NODATA, np.nan, cal)
+                         radius_of_influence=config.RESOLUTION*0.7*1000.0) # somewhat larger than radius...
+    calnan = np.where(cal == config.NODATA, np.nan, cal)
     if (~np.isnan(calnan)).sum() == 0:
-        if CLOUDSAT_REQUIRED:
-            raise MatchupError("No matches within region.")
-        else:
-            logger.warning("No matches within region.")
-            return None
+        logger.warning("No matches within region.")
+        return None
     #check if it is within time limits:
     if len(imagerGeoObj.time.shape)>1:
         imager_time_vector = [imagerGeoObj.time[line,pixel] for line, pixel in zip(cal,cap)]
-        imager_lines_sec_1970 = np.where(cal != NODATA, imager_time_vector, np.nan)
+        imager_lines_sec_1970 = np.where(cal != config.NODATA, imager_time_vector, np.nan)
     else:
-        imager_lines_sec_1970 = np.where(cal != NODATA, imagerGeoObj.time[cal], np.nan)
+        imager_lines_sec_1970 = np.where(cal != config.NODATA, imagerGeoObj.time[cal], np.nan)
     # Find all matching Cloudsat pixels within +/- sec_timeThr from the IMAGER data
-    idx_match = elements_within_range(cloudsatObj.sec_1970, imager_lines_sec_1970, sec_timeThr)
+    idx_match = elements_within_range(cloudsatObj.sec_1970, imager_lines_sec_1970, SETTINGS["sec_timeThr"])
 
     if idx_match.sum() == 0:
-        if CLOUDSAT_REQUIRED:            
-            raise MatchupError("No matches in region within time threshold %d s." % sec_timeThr)  
-        else:
-            logger.warning("No matches in region within time threshold %d s.", sec_timeThr)
-            return None
+        logger.warning("No matches in region within time threshold %d s.", SETTINGS["sec_timeThr"])
+        return None
     retv.cloudsat = calipso_track_from_matched(retv.cloudsat, cloudsatObj, idx_match)
  
     # Cloudsat line,pixel inside IMAGER swath:
@@ -224,9 +217,10 @@ def match_cloudsat_imager(cloudsatObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,
     retv.diff_sec_1970 = retv.cloudsat.sec_1970 - retv.imager.sec_1970
     do_some_logging(retv, cloudsatObj)
     logger.debug("Generate the latitude,cloudtype tracks!")
-    retv = imager_track_from_matched(retv, imagerGeoObj, imagerObj, imagerAngObj, 
-                                    nwp, ctth, ctype, cma, 
-                                    cpp=cpp, nwp_segments=nwp_segments)
+    retv = imager_track_from_matched(retv, SETTINGS,
+                                     imagerGeoObj, imagerObj, imagerAngObj, 
+                                     nwp, ctth, ctype, cma, 
+                                     cpp=cpp, nwp_segments=nwp_segments)
     return retv
 
 def mergeCloudsat(cloudsat, cloudsatlwp):
@@ -237,7 +231,7 @@ def mergeCloudsat(cloudsat, cloudsatlwp):
     target = (cloudsat.longitude.astype(np.float64).reshape(-1,1), 
               cloudsat.latitude.astype(np.float64).reshape(-1,1))
     mapper, dummy = match_lonlat(source, target, radius_of_influence=10, n_neighbours=1)
-    cloudsat_lwp_index = mapper.rows.filled(NODATA).ravel()
+    cloudsat_lwp_index = mapper.rows.filled(config.NODATA).ravel()
     # Transfer CloudSat LWP to ordinary cloudsat obj
     index = cloudsat_lwp_index.copy()
     index[index<0] = 0

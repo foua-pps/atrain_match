@@ -5,7 +5,6 @@ import calendar
 from datetime import datetime, timedelta
 from calendar import timegm
 TAI93 = datetime(1993, 1, 1)
-from config import (RESOLUTION, NODATA, MORA_REQUIRED, sec_timeThr_synop)
 from matchobject_io import (MoraImagerTrackObject, 
                             MoraObject)
 from calipso import (find_break_points, calipso_track_from_matched,
@@ -54,7 +53,7 @@ def reshapeMora(morafiles, imager):
     panda_moras = pd.concat(items, ignore_index=True)
     #import pdb
     #pdb.set_trace()
-    dt_ = timedelta(seconds=sec_timeThr_synop)
+    dt_ = timedelta(seconds=SETTINGS["sec_timeThr_synop"])
     newmoras = panda_moras[panda_moras['date'] < end_t + dt_]
     panda_moras = newmoras[newmoras['date']  >  start_t - dt_ ]
     retv = MoraObject()
@@ -66,33 +65,27 @@ def reshapeMora(morafiles, imager):
     return retv
 
 def match_mora_imager(moraObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
-                     imagerAngObj, cpp, nwp_segments):
+                     imagerAngObj, cpp, nwp_segments, SETTINGS):
     retv = MoraImagerTrackObject()
     from common import map_imager
     cal, cap = map_imager(imagerGeoObj, 
                          moraObj.longitude.ravel(),
                          moraObj.latitude.ravel(),
-                         radius_of_influence=RESOLUTION*0.7*1000.0)
-    calnan = np.where(cal == NODATA, np.nan, cal)
+                         radius_of_influence=config.RESOLUTION*0.7*1000.0)
+    calnan = np.where(cal == config.NODATA, np.nan, cal)
     if (~np.isnan(calnan)).sum() == 0:
-        if MORA_REQUIRED:
-            raise MatchupError("No matches within region.")
-        else:
-            logger.warning("No matches within region.")
-            return None   
+        logger.warning("No matches within region.")
+        return None   
     #check if it is within time limits:
     if len(imagerGeoObj.time.shape)>1:
         imager_time_vector = [imagerGeoObj.time[line,pixel] for line, pixel in zip(cal,cap)]
-        imager_lines_sec_1970 = np.where(cal != NODATA, imager_time_vector, np.nan)
+        imager_lines_sec_1970 = np.where(cal != config.NODATA, imager_time_vector, np.nan)
     else:
-        imager_lines_sec_1970 = np.where(cal != NODATA, imagerGeoObj.time[cal], np.nan)
-    idx_match = elements_within_range(moraObj.sec_1970, imager_lines_sec_1970, sec_timeThr_synop)
+        imager_lines_sec_1970 = np.where(cal != config.NODATA, imagerGeoObj.time[cal], np.nan)
+    idx_match = elements_within_range(moraObj.sec_1970, imager_lines_sec_1970, SETTINGS["sec_timeThr_synop"])
     if idx_match.sum() == 0:
-        if MORA_REQUIRED:
-            raise MatchupError("No within time threshold %d s." % sec_timeThr_synop)  
-        else:
-            logger.warning("No matches in region within time threshold %d s.", sec_timeThr_synop)
-            return None
+        logger.warning("No matches in region within time threshold %d s.", SETTINGS["sec_timeThr_synop"])
+        return None
     retv.mora = calipso_track_from_matched(retv.mora, moraObj, idx_match)
     # Mora line,pixel inside IMAGER swath (one nearest neighbour):
     retv.mora.imager_linnum = np.repeat(cal, idx_match).astype('i')
@@ -104,9 +97,10 @@ def match_mora_imager(moraObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
     do_some_logging(retv, moraObj)
     logger.debug("Extract imager along track!")
     
-    retv = imager_track_from_matched(retv, imagerGeoObj, imagerObj, imagerAngObj, 
-                                    nwp, ctth, ctype, cma,  
-                                    cpp=cpp, nwp_segments=None)
+    retv = imager_track_from_matched(retv, SETTINGS,
+                                     imagerGeoObj, imagerObj, imagerAngObj, 
+                                     nwp, ctth, ctype, cma,  
+                                     cpp=cpp, nwp_segments=None)
     return retv
 
 if __name__ == "__main__":

@@ -8,7 +8,48 @@ import logging
 logger = logging.getLogger(__name__)
 import numpy as np
 import time
+import re
 
+def read_config_info():
+    import os
+    import ConfigParser
+    CONF = ConfigParser.ConfigParser()
+    ATRAIN_MATCH_CONFIG_PATH = os.environ.get('ATRAINMATCH_CONFIG_DIR', './etc')
+    config_file = os.path.join(ATRAIN_MATCH_CONFIG_PATH, "atrain_match.cfg")
+    if not os.path.isfile(config_file):
+        raise IOError("Couldn't find config file %s."%(config_file))
+    CONF.read(config_file)
+    AM_PATHS = {}    
+    for option, value in CONF.items('files', raw = True):
+        AM_PATHS[option] = value
+    SETTINGS = {}    
+    for name, value in CONF.items('general', raw = True):
+        name = name.upper()
+        while ' ' in value:
+            value = value.replace(' ', '')
+        values = value.split(',')
+        if name in ['MIN_OPTICAL_DEPTH']:
+           value_ = [ np.float(val_i) for val_i in values]
+        elif name in ["COMPILE_STATISTICS_TRUTH", "PLOT_MODES", "PLOT_TYPES", "CTTH_TYPES"]:
+           value_ = values
+           print name, values
+        elif len(values)==1 and 'true' in values[0].lower():
+            value_ = True
+        elif len(values)==1 and 'false' in values[0].lower():
+            value_ = False
+        elif len(values)==1  and re.match("\d+.*\d*",values[0]):
+            value_ = np.float(values[0])
+
+        SETTINGS[name.upper()] = value_
+
+    if (SETTINGS['COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC'] or 
+        SETTINGS['CALCULATE_DETECTION_HEIGHT_FROM_5KM_DATA']):
+        SETTINGS['ALSO_USE_5KM_FILES'] = True #5km data is required also for 1km processing
+    SETTINGS['sec_timeThr'] = SETTINGS['MINUTES_TIMETHR']*60.0
+    SETTINGS['sec_timeThr_synop'] = SETTINGS['MINUTES_TIMETHR_SYNOP']*60.0
+    SETTINGS['SAT_ORBIT_DURATION'] = SETTINGS['SAT_ORBIT_DURATION_MINUTES']*60.0
+    return AM_PATHS, SETTINGS     
+    
 
 def unzip_file(filename):
     """Unzip the file if file is bzipped = ending with 'bz2'"""

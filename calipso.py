@@ -1,26 +1,16 @@
 import pdb
 import os
 import numpy as np
+import time as tm
 import logging
 logger = logging.getLogger(__name__)
 
+
+import config
 from common import (MatchupError, TimeMatchError, 
                     InputError, ProcessingError, 
                     elements_within_range)
-from config import (_validation_results_dir, 
-                    sec_timeThr, 
-                    COMPRESS_LVL, 
-                    RESOLUTION,
-                    NODATA,
-                    ALSO_USE_5KM_FILES,
-                    PPS_VALIDATION,
-                    CALIPSO_version4,
-                    CALIPSO_version3,
-                    CALIPSO_CLOUDY_MIN_CFC,
-                    PPS_FORMAT_2012_OR_EARLIER,
-                    CALIPSO_REQUIRED)
 
-import time as tm
 from matchobject_io import (CalipsoImagerTrackObject,
                             CalipsoObject)
 from runutils import do_some_logging
@@ -54,7 +44,7 @@ def match_calipso_imager(values,
                         caObj, caObjAerosol, 
                         imagerGeoObj, imagerObj, 
                         ctype, cma, ctth, cpp, nwp_obj,
-                        imagerAngObj, nwp_segments, options, res=RESOLUTION):
+                        imagerAngObj, nwp_segments, SETTINGS, res=config.RESOLUTION):
 
     from common import map_imager
     retv = CalipsoImagerTrackObject()
@@ -63,28 +53,22 @@ def match_calipso_imager(values,
     cal, cap = map_imager(imagerGeoObj, 
                          caObj.longitude.ravel(),
                          caObj.latitude.ravel(),
-                         radius_of_influence=RESOLUTION*0.7*1000.0) # somewhat larger than radius...
+                         radius_of_influence=config.RESOLUTION*0.7*1000.0) # somewhat larger than radius...
     #warn if no matches
-    calnan = np.where(cal == NODATA, np.nan, cal)
+    calnan = np.where(cal == config.NODATA, np.nan, cal)
     if (~np.isnan(calnan)).sum() == 0:
-        if CALIPSO_REQUIRED:
-            raise MatchupError("No matches within region.")
-        else:
-            logger.warning("No matches within region.")
-            return None
+        logger.warning("No matches within region.")
+        return None
     #check if it is within time limits:
     if len(imagerGeoObj.time.shape)>1:
         imager_time_vector = [imagerGeoObj.time[line,pixel] for line, pixel in zip(cal,cap)]
-        imager_lines_sec_1970 = np.where(cal != NODATA, imager_time_vector, np.nan)
+        imager_lines_sec_1970 = np.where(cal != config.NODATA, imager_time_vector, np.nan)
     else:
-        imager_lines_sec_1970 = np.where(cal != NODATA, imagerGeoObj.time[cal], np.nan)
-    idx_match = elements_within_range(caObj.sec_1970, imager_lines_sec_1970, sec_timeThr) 
+        imager_lines_sec_1970 = np.where(cal != config.NODATA, imagerGeoObj.time[cal], np.nan)
+    idx_match = elements_within_range(caObj.sec_1970, imager_lines_sec_1970, SETTINGS["sec_timeThr"]) 
     if idx_match.sum() == 0:
-        if CALIPSO_REQUIRED:
-            raise MatchupError("No matches in region within time threshold %d s." % sec_timeThr)
-        else:
-            logger.warning("No matches in region within time threshold %d s.", sec_timeThr)
-            return None    
+        logger.warning("No matches in region within time threshold %d s.", SETTINGS["sec_timeThr"])
+        return None    
     retv.calipso = calipso_track_from_matched(retv.calipso, caObj, idx_match)
     
     # Calipso line,pixel inside IMAGER swath:
@@ -97,9 +81,10 @@ def match_calipso_imager(values,
     do_some_logging(retv, caObj)
     logger.debug("Generate the latitude,cloudtype tracks!")
     from extract_imager_along_track import imager_track_from_matched
-    retv = imager_track_from_matched(retv, imagerGeoObj, imagerObj, imagerAngObj, 
-                                    nwp_obj, ctth, ctype, cma, cpp=cpp, 
-                                    nwp_segments=nwp_segments)
+    retv = imager_track_from_matched(retv, SETTINGS, 
+                                     imagerGeoObj, imagerObj, imagerAngObj, 
+                                     nwp_obj, ctth, ctype, cma, cpp=cpp, 
+                                     nwp_segments=nwp_segments)
     if caObjAerosol is not None:
         retv.calipso_aerosol = calipso_track_from_matched(retv.calipso_aerosol, caObjAerosol, 
                                                           idx_match)
@@ -198,7 +183,7 @@ def rearrange_calipso_the_single_shot_info(retv, singleshotdata):
     #pdb.set_trace()
     setattr(retv, name, top_mean)
     #extract less information for 1km matching
-    if RESOLUTION == 1:
+    if config.RESOLUTION == 1:
         # create 1km  singel shot cfc
         data = singleshotdata["ssNumber_Layers_Found"]
         data = np.array(data).reshape(-1,3)
@@ -314,14 +299,14 @@ def read_calipso_h5(filename, retv):
         h5file.close()
     return retv  
 
-def discardCalipsoFilesOutsideTimeRange(calipsofiles_list, imagerGeoObj, values, res=RESOLUTION, ALAY=False):
+def discardCalipsoFilesOutsideTimeRange(calipsofiles_list, imagerGeoObj, values, SETTINGS, res=config.RESOLUTION, ALAY=False):
     imager_end = imagerGeoObj.sec1970_end
     imager_start = imagerGeoObj.sec1970_start
     calipso_within_time_range = []
     for current_file in calipsofiles_list:
         newCalipso = get_calipso(current_file, res, ALAY=ALAY)
         cal_new_all = newCalipso.sec_1970
-        if cal_new_all[0]>imager_end + sec_timeThr or  cal_new_all[-1] + sec_timeThr<imager_start:
+        if cal_new_all[0]>imager_end + SETTINGS["sec_timeThr"] or  cal_new_all[-1] + SETTINGS["sec_timeThr"]<imager_start:
             pass
             #print "skipping file %s outside time_limits"%(current_file)
         else:
@@ -329,7 +314,7 @@ def discardCalipsoFilesOutsideTimeRange(calipsofiles_list, imagerGeoObj, values,
             calipso_within_time_range.append(current_file)
     return calipso_within_time_range
 
-def reshapeCalipso(calipsofiles, res=RESOLUTION, ALAY=False):
+def reshapeCalipso(calipsofiles, res=config.RESOLUTION, ALAY=False):
     #concatenate and reshape calipso files
     startCalipso = get_calipso(calipsofiles[0], res, ALAY=ALAY)
     # Concatenate the data from the different files
@@ -346,7 +331,7 @@ def reshapeCalipso(calipsofiles, res=RESOLUTION, ALAY=False):
                                                                   newCalipso.all_arrays[arname]))          
     return startCalipso 
 
-def find_break_points(startCalipso, imagerGeoObj):
+def find_break_points(startCalipso, imagerGeoObj, SETTINGS):
     """
     Find the start and end point where calipso and imager matches is within 
     time limits.
@@ -355,9 +340,9 @@ def find_break_points(startCalipso, imagerGeoObj):
     imager_start = imagerGeoObj.sec1970_start
     # Finds Break point
     start_break = np.argmin((np.abs((startCalipso.sec_1970) 
-                                    - (imager_start - sec_timeThr))))
+                                    - (imager_start - SETTINGS["sec_timeThr"]))))
     end_break = np.argmin((np.abs((startCalipso.sec_1970) 
-                                  - (imager_end + sec_timeThr)))) + 2    # Plus two to get one extra, just to be certain    
+                                  - (imager_end + SETTINGS["sec_timeThr"])))) + 2    # Plus two to get one extra, just to be certain    
     if start_break != 0:
         start_break = start_break - 1 # Minus one to get one extra, just to be certain
     return start_break, end_break
@@ -388,7 +373,7 @@ def adjust5kmTo1kmresolution(calipso5km):
             calipso.all_arrays[arname] = new_values                    
     return calipso 
 
-def add5kmVariablesTo1kmresolution(calipso1km, calipso5km):
+def add5kmVariablesTo1kmresolution(calipso1km, calipso5km, CALIPSO_version):
     logger.debug("Repeat 5km calipso data to fit 1km resoluiton")
     for variable in ["cfc_single_shots_1km_from_5km_file"]:
         if hasattr(calipso5km, variable):
@@ -404,7 +389,7 @@ def add5kmVariablesTo1kmresolution(calipso1km, calipso5km):
             #"feature_optical_depth_532",
             #"feature_optical_depth_uncertainty_532"
     ]:                
-        if CALIPSO_version3:
+        if CALIPSO_version == 3:
             if not hasattr(calipso5km, variable_5km) or getattr(calipso5km, variable_5km) is None:
             #in version 3 names were different
                 variable_5km = variable_5km.replace('tropospheric_','')    
@@ -435,7 +420,7 @@ def add5kmVariablesTo1kmresolution(calipso1km, calipso5km):
     #For now just set all of them to 0.15.
     calipso1km.cloud_fraction[
         isCloudOnlyIn5km] = 0.15 
-    if CALIPSO_version4:
+    if CALIPSO_version == 4:
         isCloudOnlyIn300m = np.logical_and(calipso1km.cloud_fraction<=0,
                                            cfc_single_shot_1km_from_5km_file>0)    
         calipso1km.cloud_fraction[
@@ -533,7 +518,7 @@ def add1kmTo5km(Obj1, Obj5):
     return Obj5
 
 
-def addSingleShotTo5km(Obj5): # Valid only for CALIPSO-CALIOP version 4.10
+def addSingleShotTo5km(Obj5, SETTINGS): # Valid only for CALIPSO-CALIOP version 4.10
     logger.info("Making use of new Single Shot cloud cleared information")
     cfc_5km = 0
     cfc_Single_Shot = 0
@@ -541,7 +526,7 @@ def addSingleShotTo5km(Obj5): # Valid only for CALIPSO-CALIOP version 4.10
     len_single_shot = Obj5.Number_cloudy_single_shots.shape[0]
     cloudy_5km = np.greater(Obj5.number_layers_found,0)
     cloudy_singleshot = np.greater_equal(Obj5.Number_cloudy_single_shots*1.0, 
-                                         15.0*CALIPSO_CLOUDY_MIN_CFC)
+                                         15.0*SETTINGS['CALIPSO_CLOUDY_MIN_CFC'])
     if len_5km == len_single_shot:
         cfc_5km = np.sum(cloudy_5km)
         cfc_Single_Shot = np.sum(cloudy_singleshot)
@@ -599,6 +584,138 @@ def addSingleShotTo5km(Obj5): # Valid only for CALIPSO-CALIOP version 4.10
     Obj5.feature_optical_depth_532[update_these, 0] = 1.0 #not very thin 
     Obj5.cloud_fraction = cfc
     return Obj5
+
+def CalipsoCloudOpticalDepth_new(calipso, min_optical_depth, use_old_method=False,
+                                 limit_ctop=0.2):
+    new_cloud_top = np.ones(calipso.layer_top_altitude.shape)*config.NODATA*1.0
+    new_cloud_base = np.ones(calipso.layer_base_altitude.shape)*config.NODATA*1.0
+    new_cloud_top_pressure = np.ones(calipso.layer_top_altitude.shape)*config.NODATA*1.0
+    new_cloud_base_pressure = np.ones(calipso.layer_base_altitude.shape)*config.NODATA*1.0
+    distance_down_in_cloud_we_see = np.ones(calipso.layer_base_altitude.shape)*config.NODATA*1.0
+    new_cloud_fraction = np.zeros(calipso.cloud_fraction.shape)
+    new_fcf = np.ones(calipso.feature_classification_flags.shape).astype(calipso.feature_classification_flags.dtype)
+    depthsum = 0.0*new_cloud_fraction.copy()
+    already_detected = depthsum > 99999 #None from the start! All False
+    already_detected[calipso.layer_top_altitude[:,0]<0] = True # don't bother with clear pixels
+    #to_thin_to_see_at_all = calipso.total_optical_depth_5km < min_optical_depth
+    N10 = new_cloud_top.shape[1]
+    for layer_j in xrange(N10):
+        #Filter OPTICAL_LIMIT_CLOUD_TOP down in EACH layer
+        #Notice even if top of layer i is always above layer i-1,
+        #it is NOT the case that base of layer i is always above layer i-1!
+        # We could have the situation:
+        # layer 0 base at 2km top at 0km optical thickness 0.1
+        # layer 1 base at 8km top at 9km optical thickness 10
+        # Or the situation:
+        # layer 0 base at 2km top at 0km optical thickness 0.5
+        # layer 1 base at 8km top at 9km optical thickness 0.5
+        this_layer_optical_depth = calipso.feature_optical_depth_532[:, layer_j].ravel()
+        cloud_base = calipso.layer_base_altitude[:,layer_j]
+        cloud_top = calipso.layer_top_altitude[:,layer_j]
+        geometrical_distance_cloud = cloud_top-cloud_base
+        geometrical_distance_cloud[cloud_base<0] = 0
+        geometrical_distance_cloud[cloud_top<0] = 0                                         
+        fraction_into_cloud = (limit_ctop*1.0)/this_layer_optical_depth
+        fraction_into_cloud[fraction_into_cloud<0] = 0
+        fraction_into_cloud[fraction_into_cloud>1.0] = 1.0
+        if use_old_method:
+            fraction_into_cloud = 0.5
+        #For KGs method set fraction_into_cloud = 0.5 always
+        distance_down_in_cloud_we_see[:,layer_j] = geometrical_distance_cloud*fraction_into_cloud 
+    for layer_j in xrange(N10):
+        total_optical_depth_layers_above = depthsum.copy()
+        this_layer_optical_depth = calipso.feature_optical_depth_532[:, layer_j].ravel()
+        depthsum += this_layer_optical_depth 
+        #this_is_the_top_most_layer_we_detect
+        update = np.logical_and(
+            depthsum >= min_optical_depth,
+            np.equal(already_detected,False))
+        new_cloud_top[update, 0:(N10-layer_j)] = (calipso.layer_top_altitude[update, layer_j:] -
+                                                  distance_down_in_cloud_we_see[update, layer_j:])
+        new_cloud_base[update, 0:(N10-layer_j)] = calipso.layer_base_altitude[update, layer_j:]
+        new_cloud_top_pressure[update, 0:(N10-layer_j)] = (calipso.layer_top_pressure[update, layer_j:])
+        new_cloud_base_pressure[update, 0:(N10-layer_j)] = calipso.layer_base_pressure[update, layer_j:]
+        new_fcf[update, 0:(N10-layer_j)] = calipso.feature_classification_flags[update, layer_j:]
+        new_cloud_fraction[update] = calipso.cloud_fraction[update]
+        already_detected[update] = True
+    if use_old_method:
+        pass
+    else:    
+        for layer_j in xrange(N10):
+            filtered_to_low = new_cloud_top[:,0]< new_cloud_top[:,layer_j]
+            new_cloud_top[filtered_to_low,0] = new_cloud_top[filtered_to_low,layer_j]
+        
+    new_validation_height = new_cloud_top[:,0].copy()
+    new_validation_height[new_validation_height>=0] = new_validation_height[new_validation_height>=0]*1000
+    new_validation_height[new_validation_height<0] = -9
+    return (new_cloud_top, new_cloud_base, new_cloud_fraction, new_fcf, new_validation_height, 
+            new_cloud_top_pressure, new_cloud_base_pressure)
+
+
+def check_total_optical_depth_and_warn(caObj):
+    obj = caObj.calipso
+    if  (obj.total_optical_depth_5km is not None and 
+         (obj.total_optical_depth_5km < obj.feature_optical_depth_532_top_layer_5km).any()):
+        badPix=np.less(obj.total_optical_depth_5km+0.001, 
+                       obj.feature_optical_depth_532_top_layer_5km)
+        diff=obj.total_optical_depth_5km- obj.feature_optical_depth_532_top_layer_5km
+        print "warning", len(obj.total_optical_depth_5km)  
+        print len(obj.total_optical_depth_5km[badPix])
+        print obj.total_optical_depth_5km[badPix]
+        print obj.feature_optical_depth_532_top_layer_5km[badPix] 
+        print diff[badPix]
+        print obj.number_layers_found[badPix]
+        if obj.detection_height_5km is not None:
+            print obj.detection_height_5km[badPix] 
+        print np.where(badPix)
+        print obj.layer_top_altitude[0,badPix]
+        print obj.layer_base_altitude[0,badPix]
+
+def CalipsoOpticalDepthHeightFiltering1km(CaObj):
+    #Should all layers be updated???
+    new_cloud_tops = np.where(
+        CaObj.calipso.layer_top_altitude[:,0]*1000 > CaObj.calipso.detection_height_5km,
+        CaObj.calipso.detection_height_5km,
+        CaObj.calipso.layer_top_altitude[:,0]*1000)
+    new_cloud_tops = np.where(
+        CaObj.calipso.layer_base_altitude[:,0]*1000 > CaObj.calipso.detection_height_5km,
+        CaObj.calipso.layer_base_altitude[:,0]*1000,
+        new_cloud_tops)
+    clouds_to_update = np.logical_and(
+        CaObj.calipso.layer_top_altitude[:,0]*1000>CaObj.calipso.detection_height_5km,
+        np.not_equal(CaObj.calipso.detection_height_5km, -9))
+    return np.where(clouds_to_update,
+                    new_cloud_tops,
+                    CaObj.calipso.validation_height)
+
+
+def detection_height_from_5km_data(Obj1, Obj5, limit_ctop=0.2):
+    if (Obj5.profile_utc_time[:,1] == Obj1.profile_utc_time[2::5]).sum() != Obj5.profile_utc_time.shape[0]:
+        logger.warning("length mismatch")
+    retv = CalipsoCloudOpticalDepth_new(Obj5, 0.0, 
+                                        limit_ctop=limit_ctop)
+    cloud_top5km, dummy, dummy, dummy, detection_height, dummy, dummy = retv
+    #cloud_base1km = Obj1.layer_base_altitude[:,0]
+    #cloud_top5km = np.repeat(cloud_top5km[:,0], 5, axis=0) 
+    detection_height1km = np.repeat(detection_height, 5, axis=0) 
+    #detection_height1km[cloud_top5km<cloud_base1km] = -9
+    Obj1.detection_height_5km = detection_height1km
+    return Obj1    
+
+def CalipsoOpticalDepthSetThinToClearFiltering1km(CaObj, SETTINGS):
+    isThin_clouds = np.logical_and(
+        CaObj.calipso.total_optical_depth_5km < SETTINGS['OPTICAL_DETECTION_LIMIT'],
+        np.not_equal(CaObj.calipso.total_optical_depth_5km,-9))
+    #>0.0 important. Some clouds are missing in 5km data set but present in 1km data set!
+    set_to_clear = np.logical_and(
+        CaObj.calipso.number_layers_found>0,
+        isThin_clouds)
+    cloud_fraction =  CaObj.calipso.cloud_fraction
+    validation_height = CaObj.calipso.validation_height
+    cloud_fraction[set_to_clear] = 0.00001
+    validation_height[set_to_clear] = -9
+    return cloud_fraction, validation_height
+
 
 
 if __name__ == "__main__":

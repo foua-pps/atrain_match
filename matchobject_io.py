@@ -699,65 +699,6 @@ class CalipsoImagerTrackObject:
 
         return self
 
-"""
-These variables belonging to calipso object now have new names.
-They now keep their name from the calipso file.
-Except for the varaible profile_time which is called profile_time_tai.
-So not to forget it is tai time in it.
-Here we remember what names they used to have to be able to 
-reprocess old reshaped-files.
-When reprocessing old reshaped-files,
-which we might want to do, these are needed.
-"""
-traditional_atrain_match_to_new_names ={
-    #"time":                      "profile_time_tai",
-    #"utc_time":                  "profile_utc_time",
-    #these were never used:
-    #"optical_depth_uncertainty": "feature_optical_depth_uncertainty_532",
-
-    "cloud_mid_temperature": "midlayer_temperature",
-    #"ice_water_path5km": "ice_water_path",
-    #"ice_water_path_uncertainty5km": "ice_water_path_uncertainty",
-    #"horizontal_averaging5km",: "horizontal_averaging",
-    #"opacity5km: "opacity_flag",
-
-    "cloud_top_profile_pressure": "layer_top_pressure",
-    "cloud_top_profile":          "layer_top_altitude",
-    "cloud_base_profile":         "layer_base_altitude",
-    "number_of_layers_found":     "number_layers_found",
-    "igbp":                       "igbp_surface_type",
-    "nsidc":                      "nsidc_surface_type",
-    "optical_depth":              "feature_optical_depth_532",
-    "optical_depth_top_layer5km": "feature_optical_depth_532_top_layer_5km"
-    }
-  
-        
-def readCaliopImagerMatchObjOldFormat(h5file, retv, var_to_read=None):
-    #print "OLD FORMAT"
-    for group, data_obj in [(h5file['/calipso'], retv.calipso),
-                            (h5file['/imager'], retv.imager)]:
-        for dataset in group.keys():  
-            atrain_match_name = dataset
-            if (dataset in traditional_atrain_match_to_new_names.keys()):
-                atrain_match_name = traditional_atrain_match_to_new_names[dataset]  
-            if atrain_match_name in data_obj.all_arrays.keys():
-                the_data = group[dataset].value
-                if dataset in ["cloud_top_profile",
-                               "cloud_base_profile",
-                               "cloud_base_profile_pressure",
-                               "cloud_mid_temperature",
-                               #"horizontal_averaging5km",
-                               #"ice_water_path5km",
-                               #"ice_water_path_uncertainty5km",
-                               #"opacity5km",
-                               #"optical_depth_uncertainty",
-                               "optical_depth",
-                               "single_shot_cloud_cleared_fraction",
-                               "lidar_surface_elevation",
-                               "feature_classification_flags"]:
-                    the_data = the_data.transpose()
-                data_obj.all_arrays[atrain_match_name] = the_data
-    return retv
 
 def get_stuff_to_read_from_a_reshaped_file(h5file, retv):
     h5_groups = []
@@ -797,94 +738,43 @@ def get_stuff_to_read_from_a_reshaped_file(h5file, retv):
         data_objects.append(retv.synop)
     return (h5_groups, data_objects)
     
-def readCaliopImagerMatchObjNewFormat(h5file, retv, var_to_read=None, var_to_skip=None):
-    (h5_groups, data_objects) =  get_stuff_to_read_from_a_reshaped_file(h5file, retv)
-    for group, data_obj in zip(h5_groups, data_objects):
-        for dataset in group.keys():  
-            atrain_match_name = dataset
-            if atrain_match_name in data_obj.all_arrays.keys():
-                if var_to_read is not None:
-                  if atrain_match_name not in var_to_read:  
-                      continue
-                if var_to_skip is not None:
-                    if var_to_skip in atrain_match_name:
-                        #print "skipping",atrain_match_name 
-                        continue  
-                if atrain_match_name in ["snow_ice_surface_type"]:
-                    atrain_match_name = "nsidc_surface_type"
-                data_obj.all_arrays[atrain_match_name] = group[dataset].value
-    return retv            
-
-def readCaliopImagerMatchObj(filename, var_to_read=None, var_to_skip=None):
-    retv = CalipsoImagerTrackObject()    
-    h5file = h5py.File(filename, 'r')
-    if "cloud_top_profile" in h5file['/calipso'].keys():
-        retv = readCaliopImagerMatchObjOldFormat(h5file, retv, var_to_read=None)
-        #print "OLD FORMAT"
-    else:
-        retv = readCaliopImagerMatchObjNewFormat(h5file, retv, var_to_read=None, var_to_skip=var_to_skip)
-    retv.diff_sec_1970 = h5file['diff_sec_1970'].value
-    h5file.close()
-    #retv.make_nsidc_surface_type_texture()
-    return retv
-
-def readTruthImagerMatchObj(filename, retv):
+          
+def readTruthImagerMatchObj(filename, truth='calipso'):
+    if 'calipso' in truth:
+        retv = CalipsoImagerTrackObject()  
+    if 'cloudsat' in truth:
+        retv = CloudsatImagerTrackObject()  
+    if 'iss' in truth: 
+        retv = IssImagerTrackObject()   
+    if 'amsr' in truth: 
+        retv = AmsrImagerTrackObject()   
+    if 'mora' in truth: 
+        retv = MoraImagerTrackObject()   
+    if 'synop' in truth: 
+        retv = SynopImagerTrackObject()   
+  
     h5file = h5py.File(filename, 'r')
     (h5_groups, data_objects) =  get_stuff_to_read_from_a_reshaped_file(h5file, retv)
     for group, data_obj in zip(h5_groups, data_objects):
         for dataset in group.keys():        
             if dataset in data_obj.all_arrays.keys():
+                atrain_match_name = dataset
+                if atrain_match_name in ["snow_ice_surface_type"]:
+                    atrain_match_name = "nsidc_surface_type"
                 data_obj.all_arrays[dataset] = group[dataset].value 
     retv.diff_sec_1970 = h5file['diff_sec_1970'].value
     h5file.close()
     return retv
 
-def readCloudsatImagerMatchObj(filename):
-    retv = CloudsatImagerTrackObject()  
-    return readTruthImagerMatchObj(filename, retv)
-def readIssImagerMatchObj(filename): 
-    retv = IssImagerTrackObject()   
-    return readTruthImagerMatchObj(filename, retv)
-def readAmsrImagerMatchObj(filename): 
-    retv = AmsrImagerTrackObject()   
-    return readTruthImagerMatchObj(filename, retv)
-def readMoraImagerMatchObj(filename): 
-    retv = MoraImagerTrackObject()   
-    return readTruthImagerMatchObj(filename, retv)
-def readSynopImagerMatchObj(filename): 
-    retv = SynopImagerTrackObject()   
-    return readTruthImagerMatchObj(filename, retv)
-
 def read_files(files, truth='calipso'):
-    if 'cali' in truth:
-        tObj = CalipsoImagerTrackObject()  
-    if 'cloudsat' in  truth:
-        tObj = CloudsatImagerTrackObject()  
-    if 'iss' in  truth:
-        tObj = IssImagerTrackObject()  
-    if 'amsr' in  truth:
-        tObj = AmsrImagerTrackObject()  
-    if 'mora' in  truth:
-        tObj = MoraImagerTrackObject() 
-    if 'synop' in  truth:
-        tObj = SynopImagerTrackObject()  
-    for filename in files:
-        if 'cali' in truth:
-            tObj += readCaliopImagerMatchObj(filename)  
-        if 'cloudsat' in  truth:
-            tObj += readCloudsatImagerMatchObj(filename)  
-        if 'iss' in  truth:
-            tObj += readIssImagerMatchObj(filename)  
-        if 'amsr' in  truth:
-            tObj += readAmsrImagerMatchObj(filename)
-        if 'mora' in  truth:
-            tObj += readMoraImagerMatchObj(filename)
-        if 'synop' in  truth:
-            tObj += readSynopImagerMatchObj(filename)
+    tObj = readTruthImagerMatchObj(files.pop(), truth='calipso')
+    if len(files)>0:
+        for filename in files:
+            tObj += readCaliopImagerMatchObj(filename, truth=truth)  
     return tObj 
 
 # write matchup files
-def writeTruthImagerMatchObj(filename, match_obj, imager_obj_name = 'pps'):
+def writeTruthImagerMatchObj(filename, match_obj, SETTINGS, imager_obj_name = 'pps'):
     """
     Write *match_obj* to *filename*.    
     """
@@ -896,7 +786,7 @@ def writeTruthImagerMatchObj(filename, match_obj, imager_obj_name = 'pps'):
                  'amsr', 'synop', 'mora', 'cloudsat']:
         if hasattr(match_obj, name):
             groups[name] = getattr(match_obj, name).all_arrays
-    write_match_objects(filename, datasets, groups, groups_attrs)
+    write_match_objects(filename, datasets, groups, groups_attrs, SETTINGS)
     return 1
 
 

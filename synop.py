@@ -5,7 +5,7 @@ import calendar
 from datetime import datetime, timedelta
 from calendar import timegm
 TAI93 = datetime(1993, 1, 1)
-from config import (RESOLUTION, NODATA, SYNOP_REQUIRED, SYNOP_RADIUS, sec_timeThr_synop)
+import  config
 from matchobject_io import (SynopImagerTrackObject, 
                             SynopObject)
 from calipso import (find_break_points, calipso_track_from_matched,
@@ -25,7 +25,7 @@ def reshapeSynop(synopfiles, imager):
     panda_synops = pd.concat(items, ignore_index=True)
     #import pdb
     #pdb.set_trace()
-    dt_ = timedelta(seconds=sec_timeThr_synop)
+    dt_ = timedelta(seconds=SETTINGS["sec_timeThr_synop"])
     newsynops = panda_synops[panda_synops['date'] < end_t + dt_]
     panda_synops = newsynops[newsynops['date']  >  start_t - dt_ ]
     retv = SynopObject()
@@ -42,17 +42,17 @@ def reshapeSynop(synopfiles, imager):
     return retv
 
 def match_synop_imager(synopObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
-                     imagerAngObj, cpp, nwp_segments):
+                       imagerAngObj, cpp, nwp_segments, SETTINGS):
     retv = SynopImagerTrackObject()
 
     from common import map_imager_distances
     n_neighbours = 250
-    if RESOLUTION == 5:
+    if config.RESOLUTION == 5:
         n_neighbours = 16
     mapper_and_dist = map_imager_distances(imagerGeoObj, 
                                           synopObj.longitude.ravel(), 
                                           synopObj.latitude.ravel(), 
-                                          radius_of_influence=SYNOP_RADIUS, 
+                                          radius_of_influence=SETTINGS["SYNOP_RADIUS"], 
                                           n_neighbours=n_neighbours)
     #pdb.set_trace()
     cal, cap = mapper_and_dist["mapper"]
@@ -60,26 +60,20 @@ def match_synop_imager(synopObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
     cal_1 = cal[:,0]
     cap_1 = cap[:,0]
 
-    calnan = np.where(cal_1 == NODATA, np.nan, cal_1)
+    calnan = np.where(cal_1 == config.NODATA, np.nan, cal_1)
     if (~np.isnan(calnan)).sum() == 0:
-        if SYNOP_REQUIRED:
-            raise MatchupError("No matches within region.")
-        else:
-            logger.warning("No matches within region.")
-            return None   
+        logger.warning("No matches within region.")
+        return None   
     #check if it is within time limits:
     if len(imagerGeoObj.time.shape)>1:
         imager_time_vector = [imagerGeoObj.time[line,pixel] for line, pixel in zip(cal_1,cap_1)]
-        imager_lines_sec_1970 = np.where(cal_1 != NODATA, imager_time_vector, np.nan)
+        imager_lines_sec_1970 = np.where(cal_1 != config.NODATA, imager_time_vector, np.nan)
     else:
-        imager_lines_sec_1970 = np.where(cal_1 != NODATA, imagerGeoObj.time[cal_1], np.nan)
-    idx_match = elements_within_range(synopObj.sec_1970, imager_lines_sec_1970, sec_timeThr_synop)
+        imager_lines_sec_1970 = np.where(cal_1 != config.NODATA, imagerGeoObj.time[cal_1], np.nan)
+    idx_match = elements_within_range(synopObj.sec_1970, imager_lines_sec_1970, SETTINGS["sec_timeThr_synop"])
     if idx_match.sum() == 0:
-        if SYNOP_REQUIRED:
-            raise MatchupError("No  within time threshold %d s." % sec_timeThr)  
-        else:
-            logger.warning("No  matches in region within time threshold %d s.", sec_timeThr)
-            return None
+        logger.warning("No  matches in region within time threshold %d s.", SETTINGS["sec_timeThr_synop"])
+        return None
     retv.synop = calipso_track_from_matched(retv.synop, synopObj, idx_match)
  
     # Synop line,pixel inside IMAGER swath (one nearest neighbour):
@@ -97,9 +91,10 @@ def match_synop_imager(synopObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
     do_some_logging(retv, synopObj)
     logger.debug("Extract imager along track!")
     
-    retv = imager_track_from_matched(retv, imagerGeoObj, imagerObj, imagerAngObj, 
-                                    nwp, ctth, ctype, cma,  
-                                    #nwp_small, ctth, ctype, cma,
-                                    cpp=cpp, nwp_segments=None,
-                                    find_mean_data_for_x_neighbours=True)
+    retv = imager_track_from_matched(retv, SETTINGS,
+                                     imagerGeoObj, imagerObj, imagerAngObj, 
+                                     nwp, ctth, ctype, cma,  
+                                     #nwp_small, ctth, ctype, cma,
+                                     cpp=cpp, nwp_segments=None,
+                                     find_mean_data_for_x_neighbours=True)
     return retv

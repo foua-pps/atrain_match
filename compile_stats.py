@@ -3,11 +3,7 @@ Created on Oct 13, 2010
 
 @author: a001696
 '''
-from config import (CASES, COMPILE_STATISTICS_TRUTH, RESOLUTION, _validation_results_dir, AREA,
-                    MIN_OPTICAL_DEPTH, CCI_CLOUD_VALIDATION,
-                    DNT_FLAG, CONFIG_PATH, SURFACES,
-                    COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC,
-                    ALSO_USE_5KM_FILES)
+from config import (RESOLUTION, _validation_results_dir,  DNT_FLAG, SURFACES)
 
 import logging
 logging.basicConfig(level=logging.INFO) 
@@ -30,7 +26,7 @@ def compile_stats(results_files, write=True, outfile_cfc="merged_sat_file_cfc", 
         cth_stats = orrb_CTH_stat.CloudTopStats(ac_data=cfc_stats.ac_data, truth_sat=truth_sat)
         cth_stats.write(compiled_cth_file_name)
     
-    if not CCI_CLOUD_VALIDATION:
+    if truth_sat not in ['amsr']:
         #print("============= Cloud type ==============")
         compiled_cty_file_name = outfile_cfc.replace('_cfc_','_cty_')
         from statistics import orrb_CTY_stat
@@ -89,12 +85,10 @@ if __name__ == '__main__':
                          help="Depricated: write results to file")
     (options) = parser.parse_args()
 
-    #Get filename-templates form atrain_match.cfg
-    CONF = ConfigParser.ConfigParser()
-    CONF.read(os.path.join(CONFIG_PATH, "atrain_match.cfg"))
-    config_options = {}
-    for option, value in CONF.items('general', raw = True):
-        config_options[option] = value
+
+    from runutils import read_config_info
+    AM_PATHS, SETTINGS = read_config_info()
+
         
     #Find all wanted modes (dnt)    
     modes_list =[]
@@ -128,7 +122,7 @@ if __name__ == '__main__':
     if options.cotfilter == True:
         print('Will calculate statistic for mode COT-filter')
         for dnt in New_DNT_FLAG:
-            for cot in MIN_OPTICAL_DEPTH:
+            for cot in SETTINGD["MIN_OPTICAL_DEPTH"]:
                 #modes_list.append("OPTICAL_DEPTH-%0.2_%sf"(dnt,cot))# if like this
                 modes_dnt_list.append("OPTICAL_DEPTH%s-%0.2f"%(dnt,cot))
 
@@ -139,17 +133,16 @@ if __name__ == '__main__':
     for process_mode_dnt in modes_dnt_list:
         print(RESOLUTION)
         #get result files for all cases
-        for truth_sat in COMPILE_STATISTICS_TRUTH:
+        for truth_sat in SETTINGS["COMPILE_STATISTICS_TRUTH"]:
             logger.info("PROCESS MODE %s, truth: %s", process_mode_dnt, truth_sat.upper())
             print("Gathering statistics from all validation results files in the "
                   "following directories:")    
             results_files = []
-            for case in CASES:
-                indata_dir = config_options['result_dir'].format(
+            for case in SETTINGS["CASES"]:
+                indata_dir = AM_PATHS['result_dir'].format(
                     val_dir=_validation_results_dir,
                     satellite=case['satname'],
                     resolution=str(RESOLUTION),
-                    area=AREA,
                     month="%02d"%(case['month']),
                     year=case['year'],
                     mode=process_mode_dnt,
@@ -158,7 +151,7 @@ if __name__ == '__main__':
                 indata_dir =indata_dir.replace("%d_%H","*")
                 indata_dir =indata_dir.replace("%d","*")
                 indata_dir =indata_dir.replace("%H","*")
-                indata_file = config_options['result_file'].format(
+                indata_file = AM_PATHS['result_file'].format(
                     resolution=str(RESOLUTION),
                     basename="*",
                     truth_sat=truth_sat)  
@@ -168,14 +161,13 @@ if __name__ == '__main__':
                 logger.info("PROCESS MODE %s have no results files", process_mode_dnt)  
                 continue
             #compile and write results    
-            compiled_dir = config_options['compiled_stats_dir'].format(
+            compiled_dir = AM_PATHS['compiled_stats_dir'].format(
                 val_dir=_validation_results_dir)
             if not os.path.exists(compiled_dir):
                 os.makedirs(compiled_dir)
-            compiled_file_cfc = config_options['compiled_stats_filename'].format(
+            compiled_file_cfc = AM_PATHS['compiled_stats_filename'].format(
                 satellite=case['satname'],
                 resolution=str(RESOLUTION),
-                area=AREA,
                 month=case['month'],
                 year=case['year'], 
                 mode=process_mode_dnt,
