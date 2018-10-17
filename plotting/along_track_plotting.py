@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#Program cloudsat_calipso_imager_plot.py
+#Program truth_imager_plot.py
 
 import numpy as np
 from config import MAXHEIGHT, CLOUDSAT_CLOUDY_THR,\

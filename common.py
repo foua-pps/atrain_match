@@ -54,7 +54,7 @@ def map_imager_distances(imager, lon, lat, radius_of_influence, n_neighbours=1):
     
     """
     from config import NODATA
-    from amsr_imager.match import match_lonlat
+    from match_util.match import match_lonlat
     source = (imager.longitude, imager.latitude)
     target = (lon, lat)
     #if imager.longitude.dtype != lon.dtype or  imager.latitude.dtype != lat.dtype:
@@ -85,7 +85,7 @@ def map_imager(imager, lon, lat, radius_of_influence, n_neighbours=1):
     return retv["mapper"]
 
 
-def write_match_objects(filename, diff_sec_1970, groups):
+def write_match_objects(filename, datasets, groups, group_attrs_dict):
     """
     Write match objects to HDF5 file *filename*.
     
@@ -112,11 +112,18 @@ def write_match_objects(filename, diff_sec_1970, groups):
     import h5py
     from matchobject_io import the_used_variables 
     with h5py.File(filename, 'w') as f:
-        f.create_dataset('diff_sec_1970', data=diff_sec_1970,
+        for name in datasets.keys():
+            f.create_dataset(name, data=datasets[name],
                          compression=COMPRESS_LVL)
         
         for group_name, group_object in groups.items():
+            try:
+                attrs_dict = group_attrs_dict[group_name]
+            except KeyError:
+                attrs_dict = {}
             g = f.create_group(group_name)
+            for key in attrs_dict: 
+                g.attrs[key] = attrs_dict[key]
             for array_name, array in group_object.items():
                 if array is None:
                     continue

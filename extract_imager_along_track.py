@@ -489,12 +489,12 @@ def imager_track_from_matched(obt, GeoObj, dataObj, AngObj,
         #b13
         temp_data, info =  get_channel_data_from_object(dataObj, '13', row_col)
         setattr(obt.imager, "r13micron" + info, temp_data)
-        if obt.imager.instrument.lower() in ['modis']:
+        if dataObj.instrument.lower() in ['modis']:
             for modis_channel in CURRENTLY_UNUSED_MODIS_CHANNELS:
                 modis_track, info = get_channel_data_from_object(dataObj, 
                                                                  modis_channel, row_col)
                 setattr(obt.imager, modis_channel + info, modis_track)
-        if obt.imager.instrument.lower() in ['seviri']:
+        if dataObj.instrument.lower() in ['seviri']:
             for seviri_channel in CURRENTLY_UNUSED_SEVIRI_CHANNELS:
                 seviri_track, info = get_channel_data_from_object(dataObj, 
                                                                   seviri_channel, row_col)
@@ -540,7 +540,7 @@ def imager_track_from_matched(obt, GeoObj, dataObj, AngObj,
                 setattr(obt.imager, data_set_name,  
                         get_data_from_array(data, row_col))
            
-    obt.imager.attrs ={'instrument': obt.imager.instrument.lower()}
+    obt.imager_instrument = dataObj.instrument.lower()
     return obt
 
 

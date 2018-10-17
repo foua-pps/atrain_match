@@ -51,7 +51,7 @@ for year in [2010]:#2012/02","2012/05", "2012/08", "2013/07", "2014/02", "2014/0
                     print "problem with lwp is None", os.path.basename(filename)
                     continue
                 
-                from amsr_imager.validate_lwp_util import get_lwp_diff_inner
+                from match_util.validate_lwp_util import get_lwp_diff_inner
                 diff, pps_lwp, amsr_lwp, selection = get_lwp_diff_inner(aObj_new, True)
 
       

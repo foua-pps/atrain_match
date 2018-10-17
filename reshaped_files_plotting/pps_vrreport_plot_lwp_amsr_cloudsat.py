@@ -6,8 +6,8 @@ from matchobject_io import (readAmsrImagerMatchObj,
                             readCloudsatImagerMatchObj,
                             CloudsatImagerTrackObject)
 import matplotlib.pyplot as plt 
-from amsr_imager.validate_lwp_util import get_lwp_diff_inner
-from cloudsat_calipso_imager_statistics import get_lwp_diff_inner_cloudsat
+from match_util.validate_lwp_util import get_lwp_diff_inner
+from truth_imager_statistics import get_lwp_diff_inner_cloudsat
 
 from histogram_plotting import atrain_scatter
 from stat_util import (my_hist, my_iqr, my_rms, my_pex, my_mae)

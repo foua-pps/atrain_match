@@ -5,7 +5,7 @@ import numpy as np
 from scipy import ndimage
 from matchobject_io import (readCaliopImagerMatchObj,
                             CalipsoImagerTrackObject)
-from cloudsat_calipso_imager_plot import (drawCalClsatGEOPROFImagerPlot,
+from truth_imager_plot import (drawCalClsatGEOPROFImagerPlot,
                                          drawCalPPSHeightPlot_PrototypePPSHeight  ) 
 ROOT_DIR = ("/home/a001865/DATA_MISC/reshaped_files/"
             "global_modis_14th_created20161108/")

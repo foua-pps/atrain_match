@@ -4,7 +4,7 @@ This module is the main entry point for matching noaa and/or metop data with
 Cloudsat and Calipso data, and produce statistics for validation of PPS
 cloud mask, cloud type and cloud top temperature and height products.
 
-It is really a wrapper to :func:`cloudsat_calipso_imager_match.run`, for running
+It is really a wrapper to :func:`truth_imager_match.run`, for running
 through a set of files with SNO matchups.
 
 .. note::
@@ -13,11 +13,11 @@ through a set of files with SNO matchups.
 
 """
 import logging
-logging.basicConfig(level=logging.INFO) 
+logging.basicConfig(level=logging.DEBUG) 
 logger = logging.getLogger(__name__)
 from common import (InputError, MatchupError)
 import config
-import cloudsat_calipso_imager_match
+import truth_imager_match
 from common import Cross
 from runutils import  parse_scenesfile_reshaped
 from runutils import  parse_scenesfile_maia
@@ -54,7 +54,7 @@ def process_matchups(matchups, run_modes, reprocess=False, debug=False):
     outstatus = 0
     for match in sorted(matchups):
         try:
-            cloudsat_calipso_imager_match.run(match, run_modes,  OPTIONS, reprocess)
+            truth_imager_match.run(match, run_modes,  OPTIONS, reprocess)
         except MatchupError, err:
             logger.warning("Matchup problem: %s", str(err))
             import traceback
@@ -66,7 +66,7 @@ def process_matchups(matchups, run_modes, reprocess=False, debug=False):
             outstatus = 5
             traceback.print_exc()
             problematic.add(match)
-            logger.warning("Couldn't run cloudsat_calipso_imager_match.")
+            logger.warning("Couldn't run truth_imager_match.")
             if debug is True:
                 raise
                 

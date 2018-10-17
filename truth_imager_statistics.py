@@ -1,4 +1,4 @@
-#Program cloudsat_calipso_imager_statistics.py
+#Program truth_imager_statistics.py
 import config
 import logging
 logger = logging.getLogger(__name__)

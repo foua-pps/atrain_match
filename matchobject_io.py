@@ -561,6 +561,8 @@ class SynopImagerTrackObject:
         self.synop = SynopObject()
         self.diff_sec_1970 = None
         self.truth_sat = 'synop' # Well not a satelite, but ...
+        self.imager_instrument = 'imager'
+
     def __add__(self, other):
         """Concatenating two objects together"""
         self.imager = self.imager + other.imager
@@ -583,6 +585,7 @@ class AmsrImagerTrackObject:
         self.truth_sat = 'amsr' #Satellite is EOS-Aqua or EOS-Terra
                                 #As we also use MODIS data from those
                                 #Name the truth_sat after the instrument
+        self.imager_instrument = 'imager'
     def __add__(self, other):
         """Concatenating two objects together"""
         self.imager = self.imager + other.imager
@@ -604,9 +607,8 @@ class MoraImagerTrackObject:
         self.modis = ModisObject()
         self.mora = MoraObject()
         self.diff_sec_1970 = None
-        self.truth_sat = 'mora' #Satellite is EOS-Aqua or EOS-Terra
-                                #As we also use MODIS data from those
-                                #Name the truth_sat after the instrument
+        self.truth_sat = 'mora' 
+        self.imager_instrument = 'imager'
     def __add__(self, other):
         """Concatenating two objects together"""
         self.imager = self.imager + other.imager
@@ -628,6 +630,7 @@ class IssImagerTrackObject:
         self.iss=IssObject()
         self.diff_sec_1970=None
         self.truth_sat = 'iss'
+        self.imager_instrument = 'imager'
     def __add__(self, other):
         """Concatenating two objects together"""
         self.imager = self.imager + other.imager
@@ -649,6 +652,7 @@ class CloudsatImagerTrackObject:
         self.cloudsat=CloudsatObject()
         self.diff_sec_1970=None
         self.truth_sat = 'cloudsat'
+        self.imager_instrument = 'imager'
     def __add__(self, other):
         """Concatenating two objects together"""
         self.imager = self.imager + other.imager
@@ -671,6 +675,7 @@ class CalipsoImagerTrackObject:
         self.calipso_aerosol = CalipsoObject()
         self.diff_sec_1970 = None
         self.truth_sat = 'calipso'
+        self.imager_instrument = 'imager'
 
     def make_nsidc_surface_type_texture(self, kernel_sz = 51):
         """Derive the stdv of the ice dataset"""
@@ -877,58 +882,23 @@ def read_files(files, truth='calipso'):
         if 'synop' in  truth:
             tObj += readSynopImagerMatchObj(filename)
     return tObj 
+
 # write matchup files
-def writeCaliopImagerMatchObj(filename, ca_obj, imager_obj_name = 'pps'):
+def writeTruthImagerMatchObj(filename, match_obj, imager_obj_name = 'pps'):
     """
-    Write *ca_obj* to *filename*.    
+    Write *match_obj* to *filename*.    
     """
-    groups = {'calipso': ca_obj.calipso.all_arrays,
-              'calipso_aerosol': ca_obj.calipso_aerosol.all_arrays,
-              imager_obj_name: ca_obj.imager.all_arrays,
-              'modis_lvl2': ca_obj.modis.all_arrays }
-    write_match_objects(filename, ca_obj.diff_sec_1970, groups)    
-    status = 1
-    return status
+    datasets = {'diff_sec_1970': match_obj.diff_sec_1970}
+    groups = {imager_obj_name: match_obj.imager.all_arrays}
+    imager_attrs = {'imager_instrument': match_obj.imager_instrument}
+    groups_attrs = {imager_obj_name: imager_attrs}
+    for name in ['calipso', 'calipso_aerosol', 'iss',
+                 'amsr', 'synop', 'mora', 'cloudsat']:
+        if hasattr(match_obj, name):
+            groups[name] = getattr(match_obj, name).all_arrays
+    write_match_objects(filename, datasets, groups, groups_attrs)
+    return 1
 
-def writeCloudsatImagerMatchObj(filename,cl_obj, imager_obj_name = 'pps'):    
-    groups = {'cloudsat': cl_obj.cloudsat.all_arrays,
-              'modis_lvl2': cl_obj.modis.all_arrays,
-              imager_obj_name: cl_obj.imager.all_arrays}
-    write_match_objects(filename, cl_obj.diff_sec_1970, groups)    
-    status = 1
-    return status
-
-def writeIssImagerMatchObj(filename,iss_obj, imager_obj_name = 'pps'):
-    groups = {'iss': iss_obj.iss.all_arrays,
-              'modis_lvl2': iss_obj.modis.all_arrays,
-              imager_obj_name: iss_obj.imager.all_arrays}
-    write_match_objects(filename, iss_obj.diff_sec_1970, groups)    
-    status = 1
-    return status
-
-def writeAmsrImagerMatchObj(filename,amsr_obj, imager_obj_name = 'pps'):
-    groups = {'amsr': amsr_obj.amsr.all_arrays,
-              'modis_lvl2': amsr_obj.modis.all_arrays,
-              imager_obj_name: amsr_obj.imager.all_arrays}
-    write_match_objects(filename, amsr_obj.diff_sec_1970, groups)    
-    status = 1
-    return status
-
-def writeMoraImagerMatchObj(filename,mora_obj, imager_obj_name = 'pps'):
-    groups = {'mora': mora_obj.mora.all_arrays,
-              'modis_lvl2': mora_obj.modis.all_arrays,
-              imager_obj_name: mora_obj.imager.all_arrays}
-    write_match_objects(filename, mora_obj.diff_sec_1970, groups)    
-    status = 1
-    return status
-
-def writeSynopImagerMatchObj(filename,synop_obj, imager_obj_name = 'pps'):
-    groups = {'synop': synop_obj.synop.all_arrays,
-              'modis_lvl2': synop_obj.modis.all_arrays,
-              imager_obj_name: synop_obj.imager.all_arrays}
-    write_match_objects(filename, synop_obj.diff_sec_1970, groups)    
-    status = 1
-    return status
 
 def sliding_std(x, size=5):
     """derive a sliding standard deviation of a data array"""

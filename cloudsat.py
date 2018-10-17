@@ -231,7 +231,7 @@ def match_cloudsat_imager(cloudsatObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,
 
 def mergeCloudsat(cloudsat, cloudsatlwp):
     #map cloudsat_lwp to cloudsat
-    from amsr_imager.match import match_lonlat
+    from match_util.match import match_lonlat
     source = (cloudsatlwp.longitude.astype(np.float64).reshape(-1,1), 
               cloudsatlwp.latitude.astype(np.float64).reshape(-1,1))
     target = (cloudsat.longitude.astype(np.float64).reshape(-1,1), 

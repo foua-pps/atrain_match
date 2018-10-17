@@ -40,7 +40,8 @@ def get_satid_datetime_orbit_from_fname_pps(imager_filename,as_oldstyle=False):
     else: #PPS v2014-filenames
         sl_ = os.path.basename(imager_filename).split('_')
         date_time = datetime.strptime(sl_[5], '%Y%m%dT%H%M%S%fZ')
-        date_time_end = datetime.strptime(sl_[6], '%Y%m%dT%H%M%S%fZ')
+        date_time_end = datetime.strptime(sl_[6].split('Z')[0], '%Y%m%dT%H%M%S%f')
+ 
         values= {"satellite": sl_[3],
                  "date_time": date_time,
                  "date_time_end": date_time_end,
@@ -66,7 +67,7 @@ def createImagerTime(Obt, values=None, Trust_sec_1970=False):
     from objects start anf end time """
     if Obt.sec1970_start < 0:
         Obt.sec1970_start = calendar.timegm(values['date_time'])
-    if: Obt.sec1970_end < Obt.sec1970_start:
+    if Obt.sec1970_end < Obt.sec1970_start:
         Obt.sec1970_end = calendar.timegm(values['date_time_end'])
     Obt.time = np.linspace(Obt.sec1970_start, Obt.sec1970_end, Obt.num_of_lines)
     return Obt
@@ -975,8 +976,8 @@ def pps_read_all(pps_files, imager_file):
     else:
         imagerObj = readImagerData_h5(imager_file)
     for imager in ["avhrr", "viirs", "modis", "seviri"]:
-        if imager in os.path.basename(imager_file)
-        imagerObj.instrument = imager
+        if imager in os.path.basename(imager_file):
+            imagerObj.instrument = imager
 
     logger.debug("%s, %s, %s", pps_files.cloudtype, pps_files.ctth, pps_files.cma)
 

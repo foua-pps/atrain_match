@@ -12,7 +12,7 @@ from calipso import (find_break_points, calipso_track_from_matched,
 
 from common import (ProcessingError, MatchupError, elements_within_range)
 from extract_imager_along_track import imager_track_from_matched
-from amsr_imager.validate_lwp_util import LWP_THRESHOLD
+from match_util.validate_lwp_util import LWP_THRESHOLD
 import logging
 logger = logging.getLogger(__name__)
 AMSR_RADIUS = 5.4e3 #3.7e3 to include 5km pixels parly overlapping amsr-e footprint

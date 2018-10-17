@@ -1,5 +1,5 @@
 """
-Program cloudsat_calipso_imager_match.py is run via process_master.py.
+Program truth_imager_match.py is run via process_master.py.
 
 This program is used to process and output statistics for the inter-comparison
 of IMAGER PPS results and CloudSat/CALIPSO observations. It may be run
@@ -60,7 +60,7 @@ Dependencies: For a successful run of the program the following supporting
               python modules must be available in the default run directory:
               cloudsat.py
               calipso.py
-              cloudsat_calipso_imager_match.py
+              truth_imager_match.py
 
 Updated 20181001 
 Nina
@@ -73,7 +73,7 @@ import os
 import sys
 
 import numpy as np
-from config import (IMAGER_INSTRUMENT,
+from config import (
                     NODATA,
                     PLOT_TYPES, 
                     CCI_CLOUD_VALIDATION,
@@ -96,13 +96,13 @@ import config
 print config.__file__
 from common import MatchupError, ProcessingError
 
-from cloudsat_calipso_imager_statistics import (CalculateStatistics)
+from truth_imager_statistics import (CalculateStatistics)
 from plotting.trajectory_plotting import plotSatelliteTrajectory
 from plotting.along_track_plotting import (drawCalClsatImagerPlotTimeDiff,
                                            drawCalClsatGEOPROFImagerPlot, 
                                            drawCalClsatImagerPlotSATZ,
                                            drawCalClsatCWCImagerPlot)
-from cloudsat_calipso_imager_prepare import (CalipsoCloudOpticalDepth_new,
+from truth_imager_prepare import (CalipsoCloudOpticalDepth_new,
                                             check_total_optical_depth_and_warn,
                                             CalipsoOpticalDepthHeightFiltering1km,
                                             detection_height_from_5km_data,
@@ -114,7 +114,7 @@ from cloudsat import (reshapeCloudsat,
                       add_validation_ctth_cloudsat,
                       add_cloudsat_cloud_fraction,
                       mergeCloudsat)
-from amsr import (reshapeAmsr, match_match_util)
+from amsr import (reshapeAmsr, match_amsr_imager)
 from mora import (reshapeMora, match_mora_imager)
 from synop import (reshapeSynop, match_synop_imager)
 from iss import reshapeIss, match_iss_imager
@@ -124,17 +124,12 @@ from calipso import (reshapeCalipso,
                      find_break_points, 
                      time_reshape_calipso)
 from matchobject_io import (CalipsoObject,
-                            writeCaliopImagerMatchObj, 
+                            writeTruthImagerMatchObj, 
                             readCaliopImagerMatchObj,
-                            writeCloudsatImagerMatchObj, 
                             readCloudsatImagerMatchObj,
-                            writeIssImagerMatchObj, 
                             readIssImagerMatchObj,
-                            writeAmsrImagerMatchObj, 
                             readAmsrImagerMatchObj,
-                            writeMoraImagerMatchObj, 
                             readMoraImagerMatchObj,
-                            writeSynopImagerMatchObj, 
                             readSynopImagerMatchObj
                         )
 from calipso import  (add1kmTo5km,
@@ -146,7 +141,7 @@ from calipso import  (add1kmTo5km,
 
 #All non-imager satellites need to be here. Imager is default.
 INSTRUMENT = {'npp': 'viirs',
-              'noaa18': 'imager',
+              'noaa18': 'avhrr',
               'meteosat9': 'seviri',
               'noaa20': 'viirs',
               'eos1': 'modis',
@@ -244,7 +239,7 @@ def insert_info_in_filename_or_path(file_or_name_path, values, datetime_obj=None
         ctth_type=values.get("ctth_type",""),
         satellite=satellite,
         orbit=values.get("orbit","*"),
-        instrument = INSTRUMENT.get(satellite,"imager"),
+        instrument = INSTRUMENT.get(satellite,"avhrr"),
         resolution=config.RESOLUTION,
         area=config.AREA,
         lines_lines=values.get("lines_lines", "*"),
@@ -575,7 +570,7 @@ def get_amsr_matchups(amsr_files, imagerGeoObj, imagerObj,
     Read Amsr data and match with the given PPS data.
     """
     amsr = reshapeAmsr(amsr_files, imagerGeoObj)
-    am_matchup = match_match_util(amsr,
+    am_matchup = match_amsr_imager(amsr,
                                   imagerGeoObj, imagerObj, ctype, cma,
                                   ctth, nwp_obj, imagerAngObj, cpp, nwp_segments)
     return am_matchup
@@ -1194,7 +1189,7 @@ def get_matchups_from_data(cross, config_options):
             satellite=values["satellite"],
             orbit=values["orbit"],
             resolution=str(config.RESOLUTION),
-            instrument=INSTRUMENT.get(values["satellite"],'imager'),
+            instrument=INSTRUMENT.get(values["satellite"],'avhrr'),
             atrain_datatype="atrain_datatype"
             ))
     rematched_file_base = rematched_path + rematched_file
@@ -1205,15 +1200,15 @@ def get_matchups_from_data(cross, config_options):
         os.makedirs(os.path.dirname(rematched_path))
 
     #add modis lvl2    
-    if config.MATCH_MODIS_LVL2 and config.IMAGER_INSTRUMENT.lower() in ['modis']:
+    if config.MATCH_MODIS_LVL2:
         from read_modis_products import add_modis_06  
-        if ca_matchup is not None:
+        if ca_matchup is not None and ca_matchup.imager_instrument in ['modis']:
             ca_matchup = add_modis_06(ca_matchup, imager_file, config_options) 
-        if cl_matchup is not None:
+        if cl_matchup is not None and cl_matchup.imager_instrument in ['modis']:
             cl_matchup = add_modis_06(cl_matchup, imager_file, config_options) 
-        if amsr_matchup is not None:
+        if amsr_matchup is not None and amsr_matchup.imager_instrument in ['modis']:
             amsr_matchup = add_modis_06(amsr_matchup, imager_file, config_options)
-        if synop_matchup is not None:
+        if synop_matchup is not None and synop_matchup.imager_instrument in ['modis']:
             synop_matchup = add_modis_06(synop_matchup, imager_file, config_options)  
     #add additional vars to cloudsat and calipso objects and print them to file:
     cl_matchup, ca_matchup = add_additional_clousat_calipso_index_vars(cl_matchup, ca_matchup)
@@ -1226,63 +1221,29 @@ def get_matchups_from_data(cross, config_options):
     if config.MAIA_CLOUD_VALIDATION:
         imager_obj_name = 'maia'
 
-    # Write cloudsat matchup 
-    if cl_matchup is not None:
-        cl_match_file = rematched_file_base.replace(
-            'atrain_datatype', 'cloudsat')
-        writeCloudsatImagerMatchObj(cl_match_file, cl_matchup, 
-                                   imager_obj_name = imager_obj_name)
-    else:
-        logger.debug('No CloudSat Match File created')
+    #write matchups
+    for matchup, name in zip([cl_matchup, iss_matchup, amsr_matchup, 
+                              synop_matchup, mora_matchup, ca_matchup],
+                             ['CloudSat', 'ISS', 'AMSR-E',
+                              'SYNOP', 'MORA', 'CALIPSO']):
+        if matchup is None:
+            logger.debug("No {:s} Match File created".format(name))
+        else:    
+            truth_sat = matchup.truth_sat
+            match_file = rematched_file_base.replace(
+                'atrain_datatype', truth_sat)
+            writeTruthImagerMatchObj(match_file, matchup, 
+                                     imager_obj_name = imager_obj_name)
 
-    # Write iss matchup   
-    if iss_matchup is not None:
-        is_match_file = rematched_file_base.replace(
-            'atrain_datatype', 'iss')
-        writeIssImagerMatchObj(is_match_file, iss_matchup, 
-                                   imager_obj_name = imager_obj_name)
-    else:
-        logger.debug('No Iss Match File created')
-
-    # Write amsr matchup   
-    if amsr_matchup is not None:
-        am_match_file = rematched_file_base.replace(
-            'atrain_datatype', 'amsr')
-        writeAmsrImagerMatchObj(am_match_file, amsr_matchup, 
-                               imager_obj_name = imager_obj_name)
-    else:
-        logger.debug('No Amsr Match File created')
-
-    # Write synop matchup   
-    if synop_matchup is not None:
-        am_match_file = rematched_file_base.replace(
-            'atrain_datatype', 'synop')
-        writeSynopImagerMatchObj(am_match_file, synop_matchup, 
-                               imager_obj_name = imager_obj_name)
-    else:
-        logger.debug('No Synop Match File created')
-
-    # Write mora matchup   
-    if mora_matchup is not None:
-        am_match_file = rematched_file_base.replace(
-            'atrain_datatype', 'mora')
-        writeMoraImagerMatchObj(am_match_file, mora_matchup, 
-                               imager_obj_name = imager_obj_name)
-    else:
-        logger.debug('No Mora Match File created')
-     
-     
-    # Write calipso matchup
-    if ca_matchup is not None:
-        ca_match_file = rematched_file_base.replace('atrain_datatype', 'caliop')
-        writeCaliopImagerMatchObj(ca_match_file, ca_matchup, 
-                                 imager_obj_name = imager_obj_name) 
     nwp_obj = None
-    return {'cloudsat': cl_matchup, 'calipso': ca_matchup, 
-            'iss': iss_matchup, 'amsr': amsr_matchup,
+    return {'cloudsat': cl_matchup, 
+            'calipso': ca_matchup, 
+            'iss': iss_matchup, 
+            'amsr': amsr_matchup,
             'synop': synop_matchup, 
             'mora': mora_matchup, 
-            'basename': basename, 'values':values}
+            'basename': basename, 
+            'values':values}
 
 
 def get_matchups(cross, options, reprocess=False):
@@ -1521,29 +1482,27 @@ def plot_some_figures(clsatObj, caObj, values, basename, process_mode,
                                 file_type,
                                 **config_options)
 
-    if (clsatObj is not None and 
-        "CPR_Cloud_mask" in clsatObj.cloudsat.all_arrays.keys() and 
-        caObj is not None):
+    if (caObj is not None):
         #HEIGHT
         drawCalClsatGEOPROFImagerPlot(clsatObj, 
-                                     caObj, 
-                                     caObj.imager.imager_ctth_m_above_seasurface, 
-                                     plotpath,
-                                     basename, 
-                                     process_mode, 
-                                     file_type,
-                                     instrument=IMAGER_INSTRUMENT)
+                                      caObj, 
+                                      caObj.imager.imager_ctth_m_above_seasurface, 
+                                      plotpath,
+                                      basename, 
+                                      process_mode, 
+                                      file_type,
+                                      instrument=caObj.imager_instrument)
         #TIME DIFF SATZ 
         drawCalClsatImagerPlotTimeDiff(clsatObj, 
                                       caObj,
                                       plotpath, basename, 
                                       config.RESOLUTION,
-                                      instrument=IMAGER_INSTRUMENT)
+                                      instrument=caObj.imager_instrument)
         drawCalClsatImagerPlotSATZ(clsatObj, 
                                   caObj,
                                   plotpath, basename, 
                                   config.RESOLUTION, file_type,
-                                  instrument=IMAGER_INSTRUMENT)
+                                  instrument=caObj.imager_instrument)
 
     if (clsatObj is not None and 
         'RVOD_liq_water_path' in clsatObj.cloudsat.all_arrays.keys()):
@@ -1558,13 +1517,13 @@ def plot_some_figures(clsatObj, caObj, values, basename, process_mode,
                                  data_ok, 
                                  plotpath, basename, 
                                  phase,
-                                 instrument=IMAGER_INSTRUMENT)
+                                 instrument=clsatObj.imager_instrument)
         phase='IW'  
         drawCalClsatCWCImagerPlot(clsatObj, 
                                  elevation, 
                                  data_ok, 
                                  plotpath, basename, phase,
-                                 instrument=IMAGER_INSTRUMENT)
+                                 instrument=clsatObj.imager_instrument)
 
 def split_process_mode_and_dnt_part(process_mode_dnt):        
     mode_dnt = process_mode_dnt.split('_')
@@ -1621,9 +1580,7 @@ def run(cross, run_modes, config_options, reprocess=False):
     """    
     logger.info("Case: %s", str(cross))
     sensor = INSTRUMENT.get(cross.satellite1.lower(), 'imager')
-    if sensor.lower() != IMAGER_INSTRUMENT.lower() :
-        logger.error("Uncertain of sensor: %s or %s?", 
-                     sensor.upper(), IMAGER_INSTRUMENT.upper())
+
     if (not config.USE_CMA_FOR_CFC_STATISTICS and 
         not config.USE_CT_FOR_CFC_STATISTICS and
         not config.USE_CMAPROB_FOR_CFC_STATISTICS):
