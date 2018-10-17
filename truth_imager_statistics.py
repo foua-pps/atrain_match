@@ -347,7 +347,7 @@ def print_cpp_lwp_stats(aObj, statfile, val_subset):
         logger.warning("There are no cpp data.")
         return
     if "amsr" in aObj.truth_sat:
-        from amsr_imager.validate_lwp_util import get_lwp_diff
+        from match_util.validate_lwp_util import get_lwp_diff
         lwp_diff =  get_lwp_diff(aObj, val_subset)
     elif "cloudsat"  in aObj.truth_sat:
         lwp_diff, lwp_diff_lo, dummy, dummy2, dummy3 = get_lwp_diff_inner_cloudsat(aObj, val_subset)

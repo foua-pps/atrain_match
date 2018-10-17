@@ -114,7 +114,7 @@ from cloudsat import (reshapeCloudsat,
                       add_validation_ctth_cloudsat,
                       add_cloudsat_cloud_fraction,
                       mergeCloudsat)
-from amsr import (reshapeAmsr, match_amsr_imager)
+from amsr import (reshapeAmsr, match_match_util)
 from mora import (reshapeMora, match_mora_imager)
 from synop import (reshapeSynop, match_synop_imager)
 from iss import reshapeIss, match_iss_imager
@@ -575,7 +575,7 @@ def get_amsr_matchups(amsr_files, imagerGeoObj, imagerObj,
     Read Amsr data and match with the given PPS data.
     """
     amsr = reshapeAmsr(amsr_files, imagerGeoObj)
-    am_matchup = match_amsr_imager(amsr,
+    am_matchup = match_match_util(amsr,
                                   imagerGeoObj, imagerObj, ctype, cma,
                                   ctth, nwp_obj, imagerAngObj, cpp, nwp_segments)
     return am_matchup
@@ -855,7 +855,7 @@ def add_additional_clousat_calipso_index_vars(clsatObj, caObj):
     if clsatObj is not None and caObj is not None:
         caObj.calipso.cal_MODIS_cflag = None
         #map cloudsat to calipso and the other way around!
-        from amsr_imager.match import match_lonlat
+        from match_util.match import match_lonlat
         source = (clsatObj.cloudsat.longitude.astype(np.float64).reshape(-1,1), 
                   clsatObj.cloudsat.latitude.astype(np.float64).reshape(-1,1))
         target = (caObj.calipso.longitude.astype(np.float64).reshape(-1,1), 
