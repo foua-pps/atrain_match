@@ -14,18 +14,18 @@ from common import InputError
 ATRAIN_MATCH_NODATA = NODATA
 #logger.debug('Just so you know: this module has a logger...')
 
-DSEC_PER_AVHRR_SCALINE = 1.0/6. * 4 # A "work for the time being" solution.
+DSEC_PER_IMAGER_SCALINE = 1.0/6. * 4 # A "work for the time being" solution.
 if RESOLUTION == 1:
-    DSEC_PER_AVHRR_SCALINE = 1.0/6. # Full scan period, i.e. the time
+    DSEC_PER_IMAGER_SCALINE = 1.0/6. # Full scan period, i.e. the time
                                     # interval between two consecutive
                                     # lines (sec)
-def get_satid_datetime_orbit_from_fname_pps(avhrr_filename,as_oldstyle=False):
+def get_satid_datetime_orbit_from_fname_pps(imager_filename,as_oldstyle=False):
     #import runutils
-    #satname, _datetime, orbit = runutils.parse_scene(avhrr_filename)
+    #satname, _datetime, orbit = runutils.parse_scene(imager_filename)
     #returnd orbit as int, loosing leeding zeros, use %05d to get it right.
-    # Get satellite name, time, and orbit number from avhrr_file
+    # Get satellite name, time, and orbit number from imager_file
     if PPS_FORMAT_2012_OR_EARLIER or as_oldstyle:
-        sl_ = os.path.basename(avhrr_filename).split('_')
+        sl_ = os.path.basename(imager_filename).split('_')
         date_time= datetime.strptime(sl_[1] + sl_[2], '%Y%m%d%H%M')
         values= {"satellite": sl_[0],
                  "date_time": date_time,
@@ -36,13 +36,13 @@ def get_satid_datetime_orbit_from_fname_pps(avhrr_filename,as_oldstyle=False):
                  #"lines_lines": sl_[5] + "_" + sl_[6],
                  "lines_lines": "*",
                  "time":sl_[2],
-                 "ppsfilename":avhrr_filename}
+                 "ppsfilename":imager_filename}
         values['basename'] = (values["satellite"] + 
                               "_" + values["date"] + 
                               "_" + values["time"] + 
                               "_" + values["orbit"])
     else: #PPS v2014-filenames
-        sl_ = os.path.basename(avhrr_filename).split('_')
+        sl_ = os.path.basename(imager_filename).split('_')
         date_time= datetime.strptime(sl_[5], '%Y%m%dT%H%M%S%fZ')
         values= {"satellite": sl_[3],
                  "date_time": date_time,
@@ -53,7 +53,7 @@ def get_satid_datetime_orbit_from_fname_pps(avhrr_filename,as_oldstyle=False):
                  "month":"%02d"%(date_time.month),  
                  "lines_lines": "*",
                  "time":date_time.strftime("%H%M"),
-                 "ppsfilename":avhrr_filename}
+                 "ppsfilename":imager_filename}
         values['basename'] = (values["satellite"] + 
                               "_" + values["date"] + 
                               "_" + values["time"] + 
@@ -63,7 +63,7 @@ def get_satid_datetime_orbit_from_fname_pps(avhrr_filename,as_oldstyle=False):
     return values    
         
 
-def createAvhrrTime(Obt, values=None, Trust_sec_1970=False):
+def createImagerTime(Obt, values=None, Trust_sec_1970=False):
     """ Function to make crate a matrix with time for each pixel 
     from objects start adn end time """
     from config import IMAGER_INSTRUMENT 
@@ -92,8 +92,8 @@ def createAvhrrTime(Obt, values=None, Trust_sec_1970=False):
             scanlines multiplied with the estimate scan time for the instrument. 
             This estimation is not that correct but what to do?
             """
-            logger.warning("I need DSEC_PER_AVHRR_SCALINE, to continue ")
-            Obt.sec1970_end = int(DSEC_PER_AVHRR_SCALINE * Obt.num_of_lines + Obt.sec1970_start)
+            logger.warning("I need DSEC_PER_IMAGER_SCALINE, to continue ")
+            Obt.sec1970_end = int(DSEC_PER_IMAGER_SCALINE * Obt.num_of_lines + Obt.sec1970_start)
         datetime=values["date_time"]
         sec1970_start_filename = calendar.timegm(datetime.timetuple())
         diff_filename_infile_time = sec1970_start_filename-Obt.sec1970_start
@@ -1003,31 +1003,31 @@ def read_all_intermediate_files(pps_files):
     nwp_obj = NWPObj(nwp_dict)
     return nwp_obj
 
-def pps_read_all(pps_files, avhrr_file):
+def pps_read_all(pps_files, imager_file):
     logger.info("Read Imager geolocation data")
-    if '.nc' in avhrr_file:
-        pps_nc = netCDF4.Dataset(avhrr_file, 'r', format='NETCDF4')
+    if '.nc' in imager_file:
+        pps_nc = netCDF4.Dataset(imager_file, 'r', format='NETCDF4')
         imagerGeoObj = read_pps_geoobj_nc(pps_nc)
     else:    
         #use mpop?
-        imagerGeoObj = read_pps_geoobj_h5(avhrr_file)  
+        imagerGeoObj = read_pps_geoobj_h5(imager_file)  
     #create time info for each pixel  
-    values = get_satid_datetime_orbit_from_fname_pps(avhrr_file)  
-    imagerGeoObj = createAvhrrTime(imagerGeoObj, values)
+    values = get_satid_datetime_orbit_from_fname_pps(imager_file)  
+    imagerGeoObj = createImagerTime(imagerGeoObj, values)
     logger.info("Read sun and satellites angles data")
     if '.nc' in pps_files.sunsatangles:
         pps_nc_ang = netCDF4.Dataset(pps_files.sunsatangles, 'r', format='NETCDF4')
-        avhrrAngObj = read_pps_angobj_nc(pps_nc_ang)
+        imagerAngObj = read_pps_angobj_nc(pps_nc_ang)
         pps_nc_ang.close()
     else:
         #use mpop?
-        avhrrAngObj = read_pps_angobj_h5(pps_files.sunsatangles)
+        imagerAngObj = read_pps_angobj_h5(pps_files.sunsatangles)
     logger.info("Read Imager data")
-    if '.nc' in avhrr_file:
-        avhrrObj = readImagerData_nc(pps_nc)
+    if '.nc' in imager_file:
+        imagerObj = readImagerData_nc(pps_nc)
         pps_nc.close()
     else:
-        avhrrObj = readImagerData_h5(avhrr_file)
+        imagerObj = readImagerData_h5(imager_file)
 
     logger.debug("%s, %s, %s", pps_files.cloudtype, pps_files.ctth, pps_files.cma)
 
@@ -1078,7 +1078,7 @@ def pps_read_all(pps_files, avhrr_file):
   
     logger.info("Read PPS NWP segment resolution data") 
     segment_data_object = read_segment_data(getattr(pps_files,'nwp_segments'))
-    return avhrrAngObj, ctth, imagerGeoObj, ctype, avhrrObj, nwp_obj, cpp, segment_data_object, cma 
+    return imagerAngObj, ctth, imagerGeoObj, ctype, imagerObj, nwp_obj, cpp, segment_data_object, cma 
 
 if __name__ == "__main__":
     pass

@@ -4,8 +4,8 @@
 import os
 from glob import glob
 import numpy as np
-from matchobject_io import (readCaliopAvhrrMatchObj,
-                            CalipsoAvhrrTrackObject)
+from matchobject_io import (readCaliopImagerMatchObj,
+                            CalipsoImagerTrackObject)
 
 import matplotlib.pyplot as plt
 from get_flag_info import (get_semi_opaque_info_pps2014,
@@ -58,15 +58,15 @@ def plot_cfc_table(caObj,cfc_limit=0.9,sat="modis"):
     
     cfc = caObj.calipso.all_arrays['cloud_fraction']
     od = caObj.calipso.all_arrays['total_optical_depth_5km']
-    cma = np.logical_or(caObj.avhrr.all_arrays['cloudmask']==1,
-                         caObj.avhrr.all_arrays['cloudmask']==2)
-    cl = np.logical_or(caObj.avhrr.all_arrays['cloudmask']==0,
-                         caObj.avhrr.all_arrays['cloudmask']==3)
-    pps_snowi =  caObj.avhrr.all_arrays['cloudmask']==3
-    if caObj.avhrr.all_arrays['cloudmask'] is None:
-        cl =np.logical_and(np.less_equal(caObj.avhrr.cloudtype,4),np.greater(caObj.avhrr.cloudtype,0))
-        cma = np.logical_and(np.greater(caObj.avhrr.cloudtype,4),np.less(caObj.avhrr.cloudtype,20))
-        pps_snowi =np.logical_and(np.less_equal(caObj.avhrr.cloudtype,4),np.greater(caObj.avhrr.cloudtype,2))
+    cma = np.logical_or(caObj.imager.all_arrays['cloudmask']==1,
+                         caObj.imager.all_arrays['cloudmask']==2)
+    cl = np.logical_or(caObj.imager.all_arrays['cloudmask']==0,
+                         caObj.imager.all_arrays['cloudmask']==3)
+    pps_snowi =  caObj.imager.all_arrays['cloudmask']==3
+    if caObj.imager.all_arrays['cloudmask'] is None:
+        cl =np.logical_and(np.less_equal(caObj.imager.cloudtype,4),np.greater(caObj.imager.cloudtype,0))
+        cma = np.logical_and(np.greater(caObj.imager.cloudtype,4),np.less(caObj.imager.cloudtype,20))
+        pps_snowi =np.logical_and(np.less_equal(caObj.imager.cloudtype,4),np.greater(caObj.imager.cloudtype,2))
 
         
     calipso_cfc = cfc.copy()
@@ -79,13 +79,13 @@ def plot_cfc_table(caObj,cfc_limit=0.9,sat="modis"):
 
     
     
-    europe = np.logical_and(caObj.avhrr.all_arrays['longitude']<60,
-                            caObj.avhrr.all_arrays['longitude']>-25)
-    europe = np.logical_and(europe,caObj.avhrr.all_arrays['latitude']<72)
-    europe = np.logical_and(europe,caObj.avhrr.all_arrays['latitude']>35)
+    europe = np.logical_and(caObj.imager.all_arrays['longitude']<60,
+                            caObj.imager.all_arrays['longitude']>-25)
+    europe = np.logical_and(europe,caObj.imager.all_arrays['latitude']<72)
+    europe = np.logical_and(europe,caObj.imager.all_arrays['latitude']>35)
     (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag
-    ) = get_day_night_twilight_info_pps2014(caObj.avhrr.all_arrays['cloudtype_conditions'])
-    non_polar_night = np.logical_or(~night_flag, np.abs(caObj.avhrr.all_arrays['latitude'])<75)
+    ) = get_day_night_twilight_info_pps2014(caObj.imager.all_arrays['cloudtype_conditions'])
+    non_polar_night = np.logical_or(~night_flag, np.abs(caObj.imager.all_arrays['latitude'])<75)
     measures = my_measures(calipso_cfc, pps_cfc, thin, use)
     measures_d = my_measures(calipso_cfc, pps_cfc, thin, np.logical_and(use,day_flag))
     measures_n = my_measures(calipso_cfc, pps_cfc, thin, np.logical_and(use, night_flag))

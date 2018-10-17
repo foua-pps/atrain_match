@@ -13,7 +13,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from read_cloudproducts_and_nwp_pps import (CtypeObj, CtthObj, CmaObj,
-                                            createAvhrrTime,
+                                            createImagerTime,
                                             imagerAngObj, imagerGeoObj)
 from runutils import do_some_geo_obj_logging
 from config import NODATA
@@ -21,10 +21,10 @@ ATRAIN_MATCH_NODATA = NODATA
 from get_flag_info import get_maia_ct_flag, get_day_night_twilight_info_maia
 
 
-def get_satid_datetime_orbit_from_fname_maia(avhrr_filename):
-    # Get satellite name, time, and orbit number from avhrr_file
+def get_satid_datetime_orbit_from_fname_maia(imager_filename):
+    # Get satellite name, time, and orbit number from imager_file
     # viiCT_npp_DB_20120817_S035411_E035535_DES_N_La052_Lo-027_00001.h5
-    sl_ = os.path.basename(avhrr_filename).split('_')
+    sl_ = os.path.basename(imager_filename).split('_')
     date_time = datetime.strptime(sl_[3] + sl_[4], '%Y%m%dS%H%M%S')
 
     sat_id = sl_[1].lower()
@@ -36,7 +36,7 @@ def get_satid_datetime_orbit_from_fname_maia(avhrr_filename):
               "month": "%02d" % (date_time.month),
               "time": date_time.strftime("%H%M"),
               #"basename":sat_id + "_" + date_time.strftime("%Y%m%d_%H%M_99999"),#"20080613002200-ESACCI",
-              "ccifilename": avhrr_filename,
+              "ccifilename": imager_filename,
               "ppsfilename": None}
     values['basename'] = values["satellite"] + "_" + \
         values["date"] + "_" + values["time"] + "_" + values["orbit"]
@@ -55,23 +55,23 @@ def maia_read_all(filename):
     logger.info("Opening file %s", filename)
     with h5py.File(filename, 'r') as maia_h5:
         logger.info("Reading angles ...")
-        avhrrAngObj = read_maia_angobj(maia_h5)
+        imagerAngObj = read_maia_angobj(maia_h5)
         logger.info("Reading cloud type ...")
-        # , avhrrAngObj)
+        # , imagerAngObj)
         ctype, cma, ctth = read_maia_ctype_cmask_ctth(maia_h5)
         logger.info("Reading longitude, latitude and time ...")
-        avhrrGeoObj = read_maia_geoobj(maia_h5, filename)
+        imagerGeoObj = read_maia_geoobj(maia_h5, filename)
         logger.info("Reading surface temperature")
         surft = read_maia_surftemp(maia_h5)
         logger.info("Not reading cloud microphysical properties")
         cpp = None
         logger.info("Not reading channel data")
-        avhrrObj = None
+        imagerObj = None
 
     if unzipped:
         os.remove(unzipped)
 
-    return avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, surft, cpp, cma
+    return imagerAngObj, ctth, imagerGeoObj, ctype, imagerObj, surft, cpp, cma
 
 
 def read_maia_ctype_cmask_ctth(maia_h5):
@@ -118,20 +118,20 @@ def read_maia_ctype_cmask_ctth(maia_h5):
 def read_maia_angobj(maia_h5):
     """Read angles info from filename
     """
-    avhrrAngObj = imagerAngObj()
-    avhrrAngObj.satz.data = 0.01 * maia_h5['DATA']['Sat_zenith'].value
-    avhrrAngObj.sunz.data = ATRAIN_MATCH_NODATA + 0 * avhrrAngObj.satz.data
-    avhrrAngObj.azidiff.data = ATRAIN_MATCH_NODATA + 0 * avhrrAngObj.satz.data
+    imagerAngObj = imagerAngObj()
+    imagerAngObj.satz.data = 0.01 * maia_h5['DATA']['Sat_zenith'].value
+    imagerAngObj.sunz.data = ATRAIN_MATCH_NODATA + 0 * imagerAngObj.satz.data
+    imagerAngObj.azidiff.data = ATRAIN_MATCH_NODATA + 0 * imagerAngObj.satz.data
     maia_cma_bitflag = maia_h5['DATA']['CloudMask'].value
     daynight_flags = get_day_night_twilight_info_maia(maia_cma_bitflag)
     (no_qflag, night_flag, twilight_flag,
      day_flag, all_dnt_flag) = daynight_flags
     # Since we dont have sunz angle, set proxy for them using illumination flag
     # This to not include object in reshaped file just for maia!
-    avhrrAngObj.sunz.data[night_flag == 1] = 120
-    avhrrAngObj.sunz.data[twilight_flag == 1] = 85
-    avhrrAngObj.sunz.data[day_flag == 1] = 00
-    return avhrrAngObj
+    imagerAngObj.sunz.data[night_flag == 1] = 120
+    imagerAngObj.sunz.data[twilight_flag == 1] = 85
+    imagerAngObj.sunz.data[day_flag == 1] = 00
+    return imagerAngObj
 
 
 def read_maia_surftemp(maia_h5):
@@ -162,7 +162,7 @@ def read_maia_geoobj(maia_h5, filename):
     GeoObj.sec1970_end = calendar.timegm(date_time_end.timetuple())
     GeoObj.num_of_lines = GeoObj.latitude.shape[0]
 
-    GeoObj = createAvhrrTime(GeoObj, values={}, Trust_sec_1970=True)
+    GeoObj = createImagerTime(GeoObj, values={}, Trust_sec_1970=True)
     do_some_geo_obj_logging(GeoObj)
 
     return GeoObj

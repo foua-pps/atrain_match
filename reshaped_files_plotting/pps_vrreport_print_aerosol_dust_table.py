@@ -20,8 +20,8 @@ import os
 import numpy as np
 from scipy import histogram
 import re
-from matchobject_io import (readCaliopAvhrrMatchObj,
-                            CalipsoAvhrrTrackObject)
+from matchobject_io import (readCaliopImagerMatchObj,
+                            CalipsoImagerTrackObject)
 import matplotlib.pyplot as plt
 
 #ROOT_DIR = "/home/a001865/git/atrain_match/modis_merged_05.h5"
@@ -38,25 +38,25 @@ files = glob(ROOT_DIR+"*.h5")
 from get_flag_info import get_calipso_aerosol_of_type_i
 
 def get_pps_aerosl(caObj):
-    sunz = caObj.avhrr.all_arrays['sunz']
-    ts = caObj.avhrr.all_arrays['surftemp']
-    t950 = caObj.avhrr.all_arrays['t950']
-    t850 = caObj.avhrr.all_arrays['t850']
-    t700 = caObj.avhrr.all_arrays['t700']
-    r06 = caObj.avhrr.all_arrays['r06micron']
-    r09 = caObj.avhrr.all_arrays['r09micron']
-    r13 = caObj.avhrr.all_arrays['r13micron']
-    t37 = caObj.avhrr.all_arrays['bt37micron']
-    t11 = caObj.avhrr.all_arrays['bt11micron']
-    t12 = caObj.avhrr.all_arrays['bt12micron']
-    t86 = caObj.avhrr.all_arrays['bt86micron']
-    ctype = caObj.avhrr.all_arrays['cloudtype']
-    thr_t11t12 = caObj.avhrr.all_arrays['thr_t11t12']
-    thr_r06 = 100*caObj.avhrr.all_arrays['thr_r06']
+    sunz = caObj.imager.all_arrays['sunz']
+    ts = caObj.imager.all_arrays['surftemp']
+    t950 = caObj.imager.all_arrays['t950']
+    t850 = caObj.imager.all_arrays['t850']
+    t700 = caObj.imager.all_arrays['t700']
+    r06 = caObj.imager.all_arrays['r06micron']
+    r09 = caObj.imager.all_arrays['r09micron']
+    r13 = caObj.imager.all_arrays['r13micron']
+    t37 = caObj.imager.all_arrays['bt37micron']
+    t11 = caObj.imager.all_arrays['bt11micron']
+    t12 = caObj.imager.all_arrays['bt12micron']
+    t86 = caObj.imager.all_arrays['bt86micron']
+    ctype = caObj.imager.all_arrays['cloudtype']
+    thr_t11t12 = caObj.imager.all_arrays['thr_t11t12']
+    thr_r06 = 100*caObj.imager.all_arrays['thr_r06']
 
-    thr_t11t12_inv = caObj.avhrr.all_arrays['thr_t11t12_inv']
-    thr_t11ts = caObj.avhrr.all_arrays['thr_t11ts']
-    thr_t11ts_inv = caObj.avhrr.all_arrays['thr_t11ts_inv']
+    thr_t11t12_inv = caObj.imager.all_arrays['thr_t11t12_inv']
+    thr_t11ts = caObj.imager.all_arrays['thr_t11ts']
+    thr_t11ts_inv = caObj.imager.all_arrays['thr_t11ts_inv']
     feature1 = t11-t12-thr_t11t12+0.25*(thr_t11t12-thr_t11t12_inv)>0
     feature2 = t11-t12-thr_t11t12_inv-0.25*(thr_t11t12-thr_t11t12_inv)<0
     feature3 = t11> ts#+thr_t11ts>0
@@ -106,31 +106,31 @@ def get_calipso_cloudy_and_aerosl(caObj):
 
 def is_pps_aerosol(caObj ,atype=None):
    print atype 
-   cf_flag =  caObj.avhrr.all_arrays['cloudtype_status']
-   sunz =  caObj.avhrr.all_arrays['sunz']
+   cf_flag =  caObj.imager.all_arrays['cloudtype_status']
+   sunz =  caObj.imager.all_arrays['sunz']
    #isPPSAerosol = cf_flag>=62 #egentligen bit 5 betyder aerosol se upp för fler bitar senare!
    #isPPSAerosol = np.logical_or(isPPSAerosol,get_pps_aerosl(caObj))
-   isPPSDust = caObj.avhrr.cma_dust
-   print len(caObj.avhrr.cma_dust)
-   print len(caObj.avhrr.cma_aerosolflag)
+   isPPSDust = caObj.imager.cma_dust
+   print len(caObj.imager.cma_dust)
+   print len(caObj.imager.cma_aerosolflag)
 
-   isPPSAerosol_all = caObj.avhrr.cma_aerosolflag 
+   isPPSAerosol_all = caObj.imager.cma_aerosolflag 
 
    isCloudy, isClear, isAerosol_ncm, isMix, isDust, isCleanMarine = get_calipso_cloudy_and_aerosl(caObj)
 
    
-   use = caObj.avhrr.all_arrays['sunz']<20000
-   use_e = np.logical_and(use,caObj.avhrr.all_arrays['latitude']>-15)
-   use_e = np.logical_and(use_e,caObj.avhrr.all_arrays['latitude']<45)
-   use_e = np.logical_and(use_e,caObj.avhrr.all_arrays['longitude']>-30)
-   use_e = np.logical_and(use_e,caObj.avhrr.all_arrays['longitude']<60)
+   use = caObj.imager.all_arrays['sunz']<20000
+   use_e = np.logical_and(use,caObj.imager.all_arrays['latitude']>-15)
+   use_e = np.logical_and(use_e,caObj.imager.all_arrays['latitude']<45)
+   use_e = np.logical_and(use_e,caObj.imager.all_arrays['longitude']>-30)
+   use_e = np.logical_and(use_e,caObj.imager.all_arrays['longitude']<60)
     
    use_d = np.logical_and(sunz<=70, use)
    use_n = np.logical_and(sunz>=95, use)
    use_t = np.logical_and(np.logical_and(sunz>70,sunz<95), use)
    use_de = np.logical_and(sunz<=70, use_e)
    use_ne = np.logical_and(sunz>=90, use_e)
-   #use = np.logical_and(use,caObj.avhrr.all_arrays['surftemp']>273.15)
+   #use = np.logical_and(use,caObj.imager.all_arrays['surftemp']>273.15)
    print "all days"
    print len(sunz), len(sunz<90)
    print caObj.calipso_aerosol.feature_classification_flags.shape
@@ -201,22 +201,22 @@ def make_optical_depth_hist(caObj):
    plt.bar(center, hist, align='center', width=width)
    plt.show()
 
-caObj = CalipsoAvhrrTrackObject()
+caObj = CalipsoImagerTrackObject()
 for filename in files:
     print os.path.basename(filename)
-    newObj = readCaliopAvhrrMatchObj(filename)
-    if len(newObj.avhrr.cma_dust) != len(newObj.avhrr.longitude):
+    newObj = readCaliopImagerMatchObj(filename)
+    if len(newObj.imager.cma_dust) != len(newObj.imager.longitude):
         print "skipping", os.path.basename(filename)
         continue
 
-    if caObj.avhrr.cma_dust is None:
+    if caObj.imager.cma_dust is None:
         for var_name in ['number_layers_found', 
                          'layer_top_altitude', 'feature_classification_flags']:
             
             caObj.calipso.all_arrays[var_name] = newObj.calipso.all_arrays[var_name]
             caObj.calipso_aerosol.all_arrays[var_name] = newObj.calipso_aerosol.all_arrays[var_name]
         for var_name in ['cma_dust', 'cma_aerosolflag', 'sunz', 'longitude', 'latitude']:
-            caObj.avhrr.all_arrays[var_name] = newObj.avhrr.all_arrays[var_name]
+            caObj.imager.all_arrays[var_name] = newObj.imager.all_arrays[var_name]
 
 
     else:    
@@ -227,8 +227,8 @@ for filename in files:
             caObj.calipso_aerosol.all_arrays[var_name] = np.concatenate([caObj.calipso_aerosol.all_arrays[var_name],
                                                                           newObj.calipso_aerosol.all_arrays[var_name]])
         for var_name in ['cma_dust', 'cma_aerosolflag', 'sunz', 'longitude', 'latitude']:
-            caObj.avhrr.all_arrays[var_name] = np.concatenate([caObj.avhrr.all_arrays[var_name],
-                                                                newObj.avhrr.all_arrays[var_name]])
+            caObj.imager.all_arrays[var_name] = np.concatenate([caObj.imager.all_arrays[var_name],
+                                                                newObj.imager.all_arrays[var_name]])
 
 
 #make_optical_depth_hist(caObj)

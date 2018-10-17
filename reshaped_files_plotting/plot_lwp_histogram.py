@@ -4,11 +4,11 @@ import os
 import re
 from glob import glob
 import numpy as np
-from matchobject_io import (readAmsrAvhrrMatchObj,
+from matchobject_io import (readAmsrImagerMatchObj,
                             DataObject,
-                            AmsrAvhrrTrackObject)
+                            AmsrImagerTrackObject)
 
-from amsr_avhrr.validate_lwp_util import ( get_lwp_diff)
+from amsr_imager.validate_lwp_util import ( get_lwp_diff)
 def plot_hist_lwp(lwp_diff, filename):
     from histogram_plotting import plot_hist
     hist_range = (np.percentile(lwp_diff, 1),
@@ -23,7 +23,7 @@ filename = "/home/a001865/FromCollegues/forJanFokke/for_JanFokke/before_sza/1km_
 #filename = "/home/a001865/FromCollegues/forJanFokke/for_JanFokke/before_sza/1km_meteosat9_20100414_1045_99999_amsr_seviri_match.h5"
 
 if __name__ == "__main__":
-    aObj = readAmsrAvhrrMatchObj(filename)
+    aObj = readAmsrImagerMatchObj(filename)
     val_subset = np.bool_(np.ones(aObj.amsr.latitude.shape))
     lwp_diff = get_lwp_diff(aObj, val_subset)
     plot_hist_lwp(lwp_diff,filename)

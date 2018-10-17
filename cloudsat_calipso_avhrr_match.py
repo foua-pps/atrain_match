@@ -1,8 +1,8 @@
 """
-Program cloudsat_calipso_avhrr_match.py is run via process_master.py.
+Program cloudsat_calipso_imager_match.py is run via process_master.py.
 
 This program is used to process and output statistics for the inter-comparison
-of AVHRR PPS results and CloudSat/CALIPSO observations. It may be run
+of IMAGER PPS results and CloudSat/CALIPSO observations. It may be run
 repeatedly and supervised by program process_master.py.
 
 This particular version of Adam's original CloudSat/CALIPSO matchup and
@@ -60,7 +60,7 @@ Dependencies: For a successful run of the program the following supporting
               python modules must be available in the default run directory:
               cloudsat.py
               calipso.py
-              cloudsat_calipso_avhrr_match.py
+              cloudsat_calipso_imager_match.py
 
 Updated 20181001 
 Nina
@@ -81,7 +81,7 @@ from config import (IMAGER_INSTRUMENT,
                     PPS_VALIDATION,
                     CALIPSO_version4,
                     CALIPSO_version3,
-                    ALWAYS_USE_AVHRR_ORBIT_THAT_STARTS_BEFORE_CROSS,
+                    ALWAYS_USE_IMAGER_ORBIT_THAT_STARTS_BEFORE_CROSS,
                     CALCULATE_DETECTION_HEIGHT_FROM_5KM_DATA,
                     ALSO_USE_1KM_FILES,
                     ALSO_USE_SINGLE_SHOT_CLOUD_CLEARED,
@@ -96,13 +96,13 @@ import config
 print config.__file__
 from common import MatchupError, ProcessingError
 
-from cloudsat_calipso_avhrr_statistics import (CalculateStatistics)
+from cloudsat_calipso_imager_statistics import (CalculateStatistics)
 from plotting.trajectory_plotting import plotSatelliteTrajectory
-from plotting.along_track_plotting import (drawCalClsatAvhrrPlotTimeDiff,
-                                           drawCalClsatGEOPROFAvhrrPlot, 
-                                           drawCalClsatAvhrrPlotSATZ,
-                                           drawCalClsatCWCAvhrrPlot)
-from cloudsat_calipso_avhrr_prepare import (CalipsoCloudOpticalDepth_new,
+from plotting.along_track_plotting import (drawCalClsatImagerPlotTimeDiff,
+                                           drawCalClsatGEOPROFImagerPlot, 
+                                           drawCalClsatImagerPlotSATZ,
+                                           drawCalClsatCWCImagerPlot)
+from cloudsat_calipso_imager_prepare import (CalipsoCloudOpticalDepth_new,
                                             check_total_optical_depth_and_warn,
                                             CalipsoOpticalDepthHeightFiltering1km,
                                             detection_height_from_5km_data,
@@ -110,32 +110,32 @@ from cloudsat_calipso_avhrr_prepare import (CalipsoCloudOpticalDepth_new,
 
 from read_cloudproducts_and_nwp_pps import NWPObj
 from cloudsat import (reshapeCloudsat, 
-                      match_cloudsat_avhrr ,
+                      match_cloudsat_imager ,
                       add_validation_ctth_cloudsat,
                       add_cloudsat_cloud_fraction,
                       mergeCloudsat)
-from amsr import (reshapeAmsr, match_amsr_avhrr)
-from mora import (reshapeMora, match_mora_avhrr)
-from synop import (reshapeSynop, match_synop_avhrr)
-from iss import reshapeIss, match_iss_avhrr
+from amsr import (reshapeAmsr, match_amsr_imager)
+from mora import (reshapeMora, match_mora_imager)
+from synop import (reshapeSynop, match_synop_imager)
+from iss import reshapeIss, match_iss_imager
 from calipso import (reshapeCalipso, 
                      discardCalipsoFilesOutsideTimeRange,
-                     match_calipso_avhrr, 
+                     match_calipso_imager, 
                      find_break_points, 
                      time_reshape_calipso)
 from matchobject_io import (CalipsoObject,
-                            writeCaliopAvhrrMatchObj, 
-                            readCaliopAvhrrMatchObj,
-                            writeCloudsatAvhrrMatchObj, 
-                            readCloudsatAvhrrMatchObj,
-                            writeIssAvhrrMatchObj, 
-                            readIssAvhrrMatchObj,
-                            writeAmsrAvhrrMatchObj, 
-                            readAmsrAvhrrMatchObj,
-                            writeMoraAvhrrMatchObj, 
-                            readMoraAvhrrMatchObj,
-                            writeSynopAvhrrMatchObj, 
-                            readSynopAvhrrMatchObj
+                            writeCaliopImagerMatchObj, 
+                            readCaliopImagerMatchObj,
+                            writeCloudsatImagerMatchObj, 
+                            readCloudsatImagerMatchObj,
+                            writeIssImagerMatchObj, 
+                            readIssImagerMatchObj,
+                            writeAmsrImagerMatchObj, 
+                            readAmsrImagerMatchObj,
+                            writeMoraImagerMatchObj, 
+                            readMoraImagerMatchObj,
+                            writeSynopImagerMatchObj, 
+                            readSynopImagerMatchObj
                         )
 from calipso import  (add1kmTo5km,
                       addSingleShotTo5km,
@@ -144,9 +144,9 @@ from calipso import  (add1kmTo5km,
                       add_validation_ctth_calipso)
 
 
-#All non-avhrr satellites need to be here. Avhrr is default.
+#All non-imager satellites need to be here. Imager is default.
 INSTRUMENT = {'npp': 'viirs',
-              'noaa18': 'avhrr',
+              'noaa18': 'imager',
               'meteosat9': 'seviri',
               'noaa20': 'viirs',
               'eos1': 'modis',
@@ -227,7 +227,7 @@ def get_satid_datetime_orbit_from_fname(filename,as_oldstyle=False):
     from read_cloudproducts_and_nwp_pps import get_satid_datetime_orbit_from_fname_pps
     from read_cloudproducts_cci import get_satid_datetime_orbit_from_fname_cci
     from read_cloudproducts_maia import get_satid_datetime_orbit_from_fname_maia
-    #Get satellite name, time, and orbit number from avhrr_file
+    #Get satellite name, time, and orbit number from imager_file
     if PPS_VALIDATION:
         values = get_satid_datetime_orbit_from_fname_pps(filename, as_oldstyle=as_oldstyle)  
     if CCI_CLOUD_VALIDATION:
@@ -244,7 +244,7 @@ def insert_info_in_filename_or_path(file_or_name_path, values, datetime_obj=None
         ctth_type=values.get("ctth_type",""),
         satellite=satellite,
         orbit=values.get("orbit","*"),
-        instrument = INSTRUMENT.get(satellite,"avhrr"),
+        instrument = INSTRUMENT.get(satellite,"imager"),
         resolution=config.RESOLUTION,
         area=config.AREA,
         lines_lines=values.get("lines_lines", "*"),
@@ -300,7 +300,7 @@ def find_truth_files(date_time, options, values, truth='calipso'):
 
 
 def find_radiance_file(cross, options):
-    found_file, tobj= find_avhrr_file(cross, 
+    found_file, tobj= find_imager_file(cross, 
                                       options['radiance_dir'], 
                                       options['radiance_file'])
     if not found_file:
@@ -308,7 +308,7 @@ def find_radiance_file(cross, options):
                            "Searching for %s %s" % (options['radiance_dir'],options['radiance_file']))
     return found_file, tobj
 def find_cci_cloud_file(cross, options):
-    found_file, tobj= find_avhrr_file(cross, 
+    found_file, tobj= find_imager_file(cross, 
                                       options['cci_dir'], 
                                       options['cci_file'])
     if not found_file:
@@ -316,7 +316,7 @@ def find_cci_cloud_file(cross, options):
                            "Searching under %s" % options['cci_dir'])
     return found_file, tobj
 def find_maia_cloud_file(cross, options):
-    found_file, tobj= find_avhrr_file(cross, 
+    found_file, tobj= find_imager_file(cross, 
                                       options['maia_dir'], 
                                       options['maia_file'])
     if not found_file:
@@ -325,7 +325,7 @@ def find_maia_cloud_file(cross, options):
     return found_file, tobj
 
 
-def find_avhrr_file(cross, filedir_pattern, filename_pattern, values=None):
+def find_imager_file(cross, filedir_pattern, filename_pattern, values=None):
     if values is None:
         values = {}
         
@@ -339,18 +339,18 @@ def find_avhrr_file(cross, filedir_pattern, filename_pattern, values=None):
     checked_dir = {}
     for tobj in tlist:
         #print values
-        avhrr_dir = insert_info_in_filename_or_path(filedir_pattern,
+        imager_dir = insert_info_in_filename_or_path(filedir_pattern,
                                                     values, datetime_obj=tobj)
-        #print avhrr_dir
-        if os.path.exists(avhrr_dir):
-            found_dir = avhrr_dir
-            if avhrr_dir not in checked_dir.keys():
-                checked_dir[avhrr_dir] = 1
+        #print imager_dir
+        if os.path.exists(imager_dir):
+            found_dir = imager_dir
+            if imager_dir not in checked_dir.keys():
+                checked_dir[imager_dir] = 1
                 logger.info("Found directory %s", found_dir)
         else:
-            if not found_dir and avhrr_dir not in checked_dir.keys():
-                checked_dir[avhrr_dir] = 1
-                logger.info("This directory does not exist, pattern: %s", avhrr_dir)
+            if not found_dir and imager_dir not in checked_dir.keys():
+                checked_dir[imager_dir] = 1
+                logger.info("This directory does not exist, pattern: %s", imager_dir)
             continue    
         file_pattern = insert_info_in_filename_or_path(filename_pattern,
                                                        values, datetime_obj=tobj)
@@ -392,7 +392,7 @@ def require_h5(files):
             raise ValueError("File format of %r not recognized" % f)    
     return h5_files
 
-def get_pps_file(avhrr_file, options, values, type_of_file, file_dir, 
+def get_pps_file(imager_file, options, values, type_of_file, file_dir, 
                  OnlyPrintInDebugMode=False, 
                  FailIfRequestedAndMissing=False):
     if not type_of_file in options and OnlyPrintInDebugMode:
@@ -419,7 +419,7 @@ def get_pps_file(avhrr_file, options, values, type_of_file, file_dir,
         if FailIfRequestedAndMissing:
             raise MatchupError("No {:s} file found.".format(type_of_file))
         else:
-            logger.info("No %s file found corresponding to %s.", type_of_file, avhrr_file)
+            logger.info("No %s file found corresponding to %s.", type_of_file, imager_file)
             return None
 
 def check_cfc_configuration(file_name_dict):
@@ -447,24 +447,24 @@ def check_cfc_configuration(file_name_dict):
             "\n\t... no cmaprob file in atrain_match.cfg")
         raise MatchupError("Configure problems, see messages above.")
 
-def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
+def find_files_from_imager(imager_file, options, as_oldstyle=False):
     """
     Find all files needed to process matchup from source data files.
     """
     # Let's get the satellite and the date-time of the pps radiance
-    # (avhrr/viirs) file:
-    logger.debug("IMAGER: %s", avhrr_file)
-    values = get_satid_datetime_orbit_from_fname(avhrr_file,
+    # (imager/viirs) file:
+    logger.debug("IMAGER: %s", imager_file)
+    values = get_satid_datetime_orbit_from_fname(imager_file,
                                                  as_oldstyle=as_oldstyle)
     date_time = values["date_time"]
     file_name_dict={}
-    file_name_dict['cma'] =  get_pps_file(avhrr_file, options, values, 
+    file_name_dict['cma'] =  get_pps_file(imager_file, options, values, 
                              'cma_file', 'cma_dir', 
                              FailIfRequestedAndMissing=True)
-    file_name_dict['cloudtype'] = get_pps_file(avhrr_file, options, values, 
+    file_name_dict['cloudtype'] = get_pps_file(imager_file, options, values, 
                                   'cloudtype_file', 'cloudtype_dir', 
                                   FailIfRequestedAndMissing=True)
-    file_name_dict['cmaprob'] = get_pps_file(avhrr_file, options, values, 'cmaprob_file', 'cmaprob_dir', 
+    file_name_dict['cmaprob'] = get_pps_file(imager_file, options, values, 'cmaprob_file', 'cmaprob_dir', 
                                          FailIfRequestedAndMissing=True) 
     #Check cfc configuration
     check_cfc_configuration(file_name_dict)
@@ -473,47 +473,47 @@ def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
     if 'ctth_file' in options.keys():   
         for ctth_type in config.CTTH_TYPES:
             values['ctth_type'] = ctth_type
-            ctth_files[ctth_type] = get_pps_file(avhrr_file, options, values, 
+            ctth_files[ctth_type] = get_pps_file(imager_file, options, values, 
                                                  'ctth_file', 'ctth_dir', 
                                                  FailIfRequestedAndMissing=True)
     file_name_dict.update({'ctth': ctth_files})
 
-    file_name_dict['cpp'] = get_pps_file(avhrr_file, options, values, 'cpp_file', 'cpp_dir', 
+    file_name_dict['cpp'] = get_pps_file(imager_file, options, values, 'cpp_file', 'cpp_dir', 
                                          FailIfRequestedAndMissing=True)                         
-    file_name_dict['sunsatangles'] = get_pps_file(avhrr_file, options, values, 'sunsatangles_file', 
+    file_name_dict['sunsatangles'] = get_pps_file(imager_file, options, values, 'sunsatangles_file', 
                                                   'sunsatangles_dir', 
                                                   FailIfRequestedAndMissing=True)
-    file_name_dict['physiography'] = get_pps_file(avhrr_file, options, values, 'physiography_file', 
+    file_name_dict['physiography'] = get_pps_file(imager_file, options, values, 'physiography_file', 
                                                   'physiography_dir', 
                                                   FailIfRequestedAndMissing=True)
-    file_name_dict['r37'] = get_pps_file(avhrr_file, options, values, 'r37_file', 'r37_dir', 
+    file_name_dict['r37'] = get_pps_file(imager_file, options, values, 'r37_file', 'r37_dir', 
                                          FailIfRequestedAndMissing=True)
 
-    file_name_dict['nwp_tsur'] = get_pps_file(avhrr_file, options, values, 
+    file_name_dict['nwp_tsur'] = get_pps_file(imager_file, options, values, 
                                               'nwp_tsur_file', 'nwp_nwp_dir', 
                                               FailIfRequestedAndMissing=True)
-    file_name_dict['emis'] = get_pps_file(avhrr_file, options, values, 
+    file_name_dict['emis'] = get_pps_file(imager_file, options, values, 
                                           'emis_file', 'emis_dir', 
                                           FailIfRequestedAndMissing=True)
 
-    file_name_dict['seaice'] = get_pps_file(avhrr_file, options, values, 
+    file_name_dict['seaice'] = get_pps_file(imager_file, options, values, 
                                             'seaice_file', 'seaice_dir', 
                                             FailIfRequestedAndMissing=True)
     #Textures and Thresholds:
-    file_name_dict['text_t11'] = get_pps_file(avhrr_file, options, values, 
+    file_name_dict['text_t11'] = get_pps_file(imager_file, options, values, 
                                               'text_t11_file', 'text_dir', 
                                               FailIfRequestedAndMissing=True)
-    file_name_dict['thr_t11ts'] = get_pps_file(avhrr_file, options, values, 
+    file_name_dict['thr_t11ts'] = get_pps_file(imager_file, options, values, 
                                                'thr_t11ts_file', 'thr_dir', 
                                                FailIfRequestedAndMissing=True)
     ####More NWP, textures and thresholds for v2014:
     for nwp_file in ['nwp_t500','nwp_t700',
                      'nwp_t850','nwp_t950', 'nwp_ciwv', 'nwp_ttro']:   
-        file_name_dict[nwp_file] = get_pps_file(avhrr_file, options, values, 
+        file_name_dict[nwp_file] = get_pps_file(imager_file, options, values, 
                                                  nwp_file+'_file', 'nwp_nwp_dir', 
                                                  OnlyPrintInDebugMode=True)
     for text_file in ['text_r06',  'text_t37t12', 'text_t37']:
-        file_name_dict[text_file] = get_pps_file(avhrr_file, options, values, 
+        file_name_dict[text_file] = get_pps_file(imager_file, options, values, 
                                                  text_file+'_file', 'text_dir', 
                                                  OnlyPrintInDebugMode=True)
 
@@ -521,18 +521,18 @@ def find_files_from_avhrr(avhrr_file, options, as_oldstyle=False):
                      'thr_t37t12_inv', 'thr_t11t12_inv', 
                      'thr_t11ts', 'thr_t11t37', 'thr_t37t12', 'thr_t11t12',
                      'thr_r09', 'thr_r06', 'thr_t85t11_inv', 'thr_t85t11']:
-        file_name_dict[thr_file] = get_pps_file(avhrr_file, options, values, 
+        file_name_dict[thr_file] = get_pps_file(imager_file, options, values, 
                                                 thr_file+'_file', 'thr_dir', 
                                                 OnlyPrintInDebugMode=True)   
-    file_name_dict['nwp_segments'] = get_pps_file(avhrr_file, options,
+    file_name_dict['nwp_segments'] = get_pps_file(imager_file, options,
                                                   values, 
                                                   'segment_file', 'segment_dir') 
     ######################################## 
     ppsfiles = ppsFiles(file_name_dict)
     return  ppsfiles
 
-def get_cloudsat_matchups(cloudsat_files, cloudsat_files_lwp, avhrrGeoObj, avhrrObj,
-                          ctype, cma, ctth, nwp_obj, avhrrAngObj, 
+def get_cloudsat_matchups(cloudsat_files, cloudsat_files_lwp, imagerGeoObj, imagerObj,
+                          ctype, cma, ctth, nwp_obj, imagerAngObj, 
                           cpp, nwp_segments,  config_options):
     """
     Read Cloudsat data and match with the given PPS data.
@@ -541,67 +541,67 @@ def get_cloudsat_matchups(cloudsat_files, cloudsat_files_lwp, avhrrGeoObj, avhrr
     cloudsat = None
     if cloudsat_files is not None:   
         logger.debug("Reading cloudsat for type GEOPROF.")
-        cloudsat = reshapeCloudsat(cloudsat_files, avhrrGeoObj)
+        cloudsat = reshapeCloudsat(cloudsat_files, imagerGeoObj)
     if cloudsat_files_lwp is not None: 
         logger.debug("Reading cloudsat for type CWC-RVOD.")
-        cloudsat_lwp = reshapeCloudsat(cloudsat_files_lwp, avhrrGeoObj)    
+        cloudsat_lwp = reshapeCloudsat(cloudsat_files_lwp, imagerGeoObj)    
     if cloudsat is not None and cloudsat_lwp is not None:
         logger.info("Merging CloudSat GEOPROF and CWC-RVOD data to one object")
         cloudsat = mergeCloudsat(cloudsat, cloudsat_lwp)
     elif cloudsat is None:
         cloudsat = cloudsat_lwp        
-    logger.debug("Matching CloudSat with avhrr")
-    cl_matchup = match_cloudsat_avhrr(cloudsat,
-                                      avhrrGeoObj, avhrrObj, ctype, cma,
-                                      ctth, nwp_obj, avhrrAngObj, cpp, nwp_segments)
+    logger.debug("Matching CloudSat with imager")
+    cl_matchup = match_cloudsat_imager(cloudsat,
+                                      imagerGeoObj, imagerObj, ctype, cma,
+                                      ctth, nwp_obj, imagerAngObj, cpp, nwp_segments)
     return cl_matchup
 
-def get_iss_matchups(iss_files, avhrrGeoObj, avhrrObj,
-                     ctype, cma, ctth, nwp_obj, avhrrAngObj, 
+def get_iss_matchups(iss_files, imagerGeoObj, imagerObj,
+                     ctype, cma, ctth, nwp_obj, imagerAngObj, 
                      cpp, nwp_segments,  config_options):
     """
     Read Iss data and match with the given PPS data.
     """
-    iss = reshapeIss(iss_files, avhrrGeoObj)
-    cl_matchup = match_iss_avhrr(iss,
-                                 avhrrGeoObj, avhrrObj, ctype, cma,
-                                 ctth, nwp_obj, avhrrAngObj, cpp, nwp_segments)
+    iss = reshapeIss(iss_files, imagerGeoObj)
+    cl_matchup = match_iss_imager(iss,
+                                 imagerGeoObj, imagerObj, ctype, cma,
+                                 ctth, nwp_obj, imagerAngObj, cpp, nwp_segments)
     return cl_matchup
 
-def get_amsr_matchups(amsr_files, avhrrGeoObj, avhrrObj,
-                     ctype, cma, ctth, nwp_obj, avhrrAngObj, 
+def get_amsr_matchups(amsr_files, imagerGeoObj, imagerObj,
+                     ctype, cma, ctth, nwp_obj, imagerAngObj, 
                      cpp, nwp_segments,  config_options):
     """
     Read Amsr data and match with the given PPS data.
     """
-    amsr = reshapeAmsr(amsr_files, avhrrGeoObj)
-    am_matchup = match_amsr_avhrr(amsr,
-                                  avhrrGeoObj, avhrrObj, ctype, cma,
-                                  ctth, nwp_obj, avhrrAngObj, cpp, nwp_segments)
+    amsr = reshapeAmsr(amsr_files, imagerGeoObj)
+    am_matchup = match_amsr_imager(amsr,
+                                  imagerGeoObj, imagerObj, ctype, cma,
+                                  ctth, nwp_obj, imagerAngObj, cpp, nwp_segments)
     return am_matchup
 
-def get_synop_matchups(synop_files, avhrrGeoObj, avhrrObj,
-                       ctype, cma, ctth, nwp_obj, avhrrAngObj, 
+def get_synop_matchups(synop_files, imagerGeoObj, imagerObj,
+                       ctype, cma, ctth, nwp_obj, imagerAngObj, 
                        cpp, nwp_segments,  config_options):
     """
     Read Synop data and match with the given PPS data.
     """
-    synop = reshapeSynop(synop_files, avhrrGeoObj)
-    synop_matchup = match_synop_avhrr(synop,
-                                  avhrrGeoObj, avhrrObj, ctype, cma,
-                                  ctth, nwp_obj, avhrrAngObj, cpp, nwp_segments)
+    synop = reshapeSynop(synop_files, imagerGeoObj)
+    synop_matchup = match_synop_imager(synop,
+                                  imagerGeoObj, imagerObj, ctype, cma,
+                                  ctth, nwp_obj, imagerAngObj, cpp, nwp_segments)
     return synop_matchup
 
-def get_mora_matchups(mora_files, avhrrGeoObj, avhrrObj,
-                       ctype, cma, ctth, nwp_obj, avhrrAngObj, 
+def get_mora_matchups(mora_files, imagerGeoObj, imagerObj,
+                       ctype, cma, ctth, nwp_obj, imagerAngObj, 
                        cpp, nwp_segments,  config_options):
     """
     Read Mora data and match with the given PPS data.
     """
-    mora = reshapeMora(mora_files, avhrrGeoObj)
-    mora_matchup = match_mora_avhrr(mora,
-                                  avhrrGeoObj, avhrrObj, ctype, cma,
-                                  ctth, nwp_obj, avhrrAngObj, cpp, nwp_segments)
+    mora = reshapeMora(mora_files, imagerGeoObj)
+    mora_matchup = match_mora_imager(mora,
+                                  imagerGeoObj, imagerObj, ctype, cma,
+                                  ctth, nwp_obj, imagerAngObj, cpp, nwp_segments)
     return mora_matchup
 
 def total_and_top_layer_optical_depth_5km(calipso, resolution=5):
@@ -628,8 +628,8 @@ def total_and_top_layer_optical_depth_5km(calipso, resolution=5):
     return calipso 
 
 def get_calipso_matchups(calipso_files, values, 
-                         avhrrGeoObj, avhrrObj, ctype, cma,  ctth, 
-                         nwp_obj, avhrrAngObj, options, cpp=None, 
+                         imagerGeoObj, imagerObj, ctype, cma,  ctth, 
+                         nwp_obj, imagerAngObj, options, cpp=None, 
                          nwp_segments=None, cafiles1km=None, cafiles5km=None, 
                          cafiles5km_aerosol=None):
     """
@@ -640,20 +640,20 @@ def get_calipso_matchups(calipso_files, values,
     #before cutting the data that fits the time condition.
     #It is unnessecary to do this for files where no-pixel will match!
     calipso_files = discardCalipsoFilesOutsideTimeRange(
-        calipso_files, avhrrGeoObj, values)
+        calipso_files, imagerGeoObj, values)
     if cafiles1km is not None:
         cafiles1km = discardCalipsoFilesOutsideTimeRange(
-            cafiles1km, avhrrGeoObj, values, res=1)
+            cafiles1km, imagerGeoObj, values, res=1)
     if cafiles5km is not None:
         cafiles5km = discardCalipsoFilesOutsideTimeRange(
-            cafiles5km, avhrrGeoObj, values, res=5)
+            cafiles5km, imagerGeoObj, values, res=5)
     if cafiles5km_aerosol is not None:
         cafiles5km_aerosol = discardCalipsoFilesOutsideTimeRange(
-            cafiles5km_aerosol, avhrrGeoObj, values, res=5, ALAY=True)
+            cafiles5km_aerosol, imagerGeoObj, values, res=5, ALAY=True)
         
     calipso  = reshapeCalipso(calipso_files)
     #find time breakpoints, but don't cut the data yet ..
-    startBreak, endBreak = find_break_points(calipso,  avhrrGeoObj)
+    startBreak, endBreak = find_break_points(calipso,  imagerGeoObj)
     if cafiles1km is not None and CALIPSO_version3 and RESOLUTION == 5:
         #RESOLUTION 5km also have 1km data
         logger.info("Calipso version 3 data used and old 1 km restore method!")
@@ -739,23 +739,23 @@ def get_calipso_matchups(calipso_files, values,
     calipso1km = None
     calipso5km = None
         
-    logger.debug("Matching CALIPSO with avhrr")
-    ca_matchup = match_calipso_avhrr(values, calipso, calipso_aerosol,
-                              avhrrGeoObj, avhrrObj, ctype, cma,
-                              ctth, cpp, nwp_obj, avhrrAngObj, 
+    logger.debug("Matching CALIPSO with imager")
+    ca_matchup = match_calipso_imager(values, calipso, calipso_aerosol,
+                              imagerGeoObj, imagerObj, ctype, cma,
+                              ctth, cpp, nwp_obj, imagerAngObj, 
                               nwp_segments, options)
     return ca_matchup
-def read_cloud_cci(avhrr_file):
+def read_cloud_cci(imager_file):
     from read_cloudproducts_cci import cci_read_all
-    return cci_read_all(avhrr_file)
+    return cci_read_all(imager_file)
 
-def read_cloud_maia(avhrr_file):
+def read_cloud_maia(imager_file):
     from read_cloudproducts_maia import maia_read_all
-    return maia_read_all(avhrr_file)
+    return maia_read_all(imager_file)
 
-def read_pps_data(pps_files, avhrr_file):
+def read_pps_data(pps_files, imager_file):
     from read_cloudproducts_and_nwp_pps import pps_read_all
-    return pps_read_all(pps_files, avhrr_file)
+    return pps_read_all(pps_files, imager_file)
 
 def get_additional_calipso_files_if_requested(calipso_files):
     import glob
@@ -855,7 +855,7 @@ def add_additional_clousat_calipso_index_vars(clsatObj, caObj):
     if clsatObj is not None and caObj is not None:
         caObj.calipso.cal_MODIS_cflag = None
         #map cloudsat to calipso and the other way around!
-        from amsr_avhrr.match import match_lonlat
+        from amsr_imager.match import match_lonlat
         source = (clsatObj.cloudsat.longitude.astype(np.float64).reshape(-1,1), 
                   clsatObj.cloudsat.latitude.astype(np.float64).reshape(-1,1))
         target = (caObj.calipso.longitude.astype(np.float64).reshape(-1,1), 
@@ -930,9 +930,9 @@ def add_modis_lvl2_clousat_(clsatObj, caObj):
 
 def add_elevation_corrected_imager_ctth(clsatObj, caObj, issObj):
     ## Cloudsat ##
-    if clsatObj is None or clsatObj.avhrr.ctth_height is None:
+    if clsatObj is None or clsatObj.imager.ctth_height is None:
         pass
-    elif  clsatObj.avhrr.imager_ctth_m_above_seasurface is None:
+    elif  clsatObj.imager.imager_ctth_m_above_seasurface is None:
         # First make sure that PPS cloud top heights are converted to height
         # above sea level just as CloudSat height are defined. Use
         # corresponding DEM data.
@@ -940,51 +940,51 @@ def add_elevation_corrected_imager_ctth(clsatObj, caObj, issObj):
                              0,clsatObj.cloudsat.elevation)		
         num_csat_data_ok = len(clsatObj.cloudsat.elevation)
         logger.debug("Length of CLOUDSAT array: %d", num_csat_data_ok )
-        imager_ctth_m_above_seasurface = np.array(clsatObj.avhrr.ctth_height).copy().ravel()
+        imager_ctth_m_above_seasurface = np.array(clsatObj.imager.ctth_height).copy().ravel()
         if CCI_CLOUD_VALIDATION: 
             #ctth already relative mean sea level
-            imager_ctth_m_above_seasurface = caObj.avhrr.ctth_height
+            imager_ctth_m_above_seasurface = caObj.imager.ctth_height
         else: #ctth relative topography
             got_height = imager_ctth_m_above_seasurface>=0                    
             imager_ctth_m_above_seasurface[got_height] += elevation[got_height]*1.0
-        clsatObj.avhrr.imager_ctth_m_above_seasurface = imager_ctth_m_above_seasurface
+        clsatObj.imager.imager_ctth_m_above_seasurface = imager_ctth_m_above_seasurface
         if num_csat_data_ok == 0:
             logger.info("Processing stopped: Zero lenght of matching arrays!")
             raise ProcessingError("Zero lenght of matching arrays!")
     ## Calipso ##        
     # First make sure that PPS cloud top heights are converted to height above sea level
     # just as CALIPSO heights are defined. Use corresponding DEM data.
-    if caObj is None or caObj.avhrr.ctth_height is None:
+    if caObj is None or caObj.imager.ctth_height is None:
         pass
-    elif  caObj.avhrr.imager_ctth_m_above_seasurface is None:
+    elif  caObj.imager.imager_ctth_m_above_seasurface is None:
         cal_elevation = np.where(np.less_equal(caObj.calipso.elevation,0),
                                  0,caObj.calipso.elevation)
         num_cal_data_ok = len(caObj.calipso.elevation)
         logger.debug("Length of CALIOP array: %d", num_cal_data_ok)
-        imager_ctth_m_above_seasurface = np.array(caObj.avhrr.ctth_height).copy().ravel()
+        imager_ctth_m_above_seasurface = np.array(caObj.imager.ctth_height).copy().ravel()
         logger.debug("CCI_CLOUD_VALIDATION %s", str(CCI_CLOUD_VALIDATION))
         if CCI_CLOUD_VALIDATION: 
             #ctth relative mean sea level
-            imager_ctth_m_above_seasurface = caObj.avhrr.ctth_height
+            imager_ctth_m_above_seasurface = caObj.imager.ctth_height
         else: #ctth relative topography
             got_height = imager_ctth_m_above_seasurface>=0                    
             imager_ctth_m_above_seasurface[got_height] += cal_elevation[got_height]*1.0
-        caObj.avhrr.imager_ctth_m_above_seasurface = imager_ctth_m_above_seasurface
-    if issObj is None or issObj.avhrr.ctth_height is None:
+        caObj.imager.imager_ctth_m_above_seasurface = imager_ctth_m_above_seasurface
+    if issObj is None or issObj.imager.ctth_height is None:
         pass
-    elif  issObj.avhrr.imager_ctth_m_above_seasurface is None:
+    elif  issObj.imager.imager_ctth_m_above_seasurface is None:
         iss_elevation = np.where(np.less_equal(issObj.iss.elevation,0),
                                  0,issObj.iss.elevation)
         num_iss_data_ok = len(issObj.iss.elevation)
         logger.info("Length of ISS array: %d", num_iss_data_ok)
-        imager_ctth_m_above_seasurface = np.array(issObj.avhrr.ctth_height).copy().ravel()
+        imager_ctth_m_above_seasurface = np.array(issObj.imager.ctth_height).copy().ravel()
         if CCI_CLOUD_VALIDATION: 
             #ctth relative mean sea level
             pass
         else: #ctth relative topography
             got_height = imager_ctth_m_above_seasurface>=0                    
             imager_ctth_m_above_seasurface[got_height] += iss_elevation[got_height]*1.0
-        issObj.avhrr.imager_ctth_m_above_seasurface = imager_ctth_m_above_seasurface
+        issObj.imager.imager_ctth_m_above_seasurface = imager_ctth_m_above_seasurface
     return clsatObj, caObj, issObj
 
 def add_validation_ctth(clsatObj, caObj):
@@ -1000,20 +1000,20 @@ def add_validation_ctth(clsatObj, caObj):
     
 def get_matchups_from_data(cross, config_options):
     """
-    Retrieve Cloudsat- and Calipso-AVHRR matchups from Cloudsat, Calipso, and
+    Retrieve Cloudsat- and Calipso-IMAGER matchups from Cloudsat, Calipso, and
     PPS files.
     """
     #STEP 1 get imager files
     if (PPS_VALIDATION):
-        avhrr_file, tobj = find_radiance_file(cross, config_options)
-        pps_files = find_files_from_avhrr(avhrr_file, config_options) 
+        imager_file, tobj = find_radiance_file(cross, config_options)
+        pps_files = find_files_from_imager(imager_file, config_options) 
     if (CCI_CLOUD_VALIDATION):
-        avhrr_file, tobj = find_cci_cloud_file(cross, config_options)
+        imager_file, tobj = find_cci_cloud_file(cross, config_options)
     if (MAIA_CLOUD_VALIDATION):
-        avhrr_file, tobj = find_maia_cloud_file(cross, config_options)
-    if not avhrr_file:
-        raise MatchupError("No avhrr file found!\ncross = " + str(cross))
-    values = get_satid_datetime_orbit_from_fname(avhrr_file)
+        imager_file, tobj = find_maia_cloud_file(cross, config_options)
+    if not imager_file:
+        raise MatchupError("No imager file found!\ncross = " + str(cross))
+    values = get_satid_datetime_orbit_from_fname(imager_file)
     date_time = values["date_time"]
 
     #Step 2 get truth satellite files
@@ -1093,19 +1093,19 @@ def get_matchups_from_data(cross, config_options):
 
     #STEP 3 Read imager data:    
     if (PPS_VALIDATION ):
-        retv =read_pps_data(pps_files, avhrr_file)
-        (avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, 
+        retv =read_pps_data(pps_files, imager_file)
+        (imagerAngObj, ctth, imagerGeoObj, ctype, imagerObj, 
          nwp_obj, cpp, nwp_segments, cma )= retv
     if (CCI_CLOUD_VALIDATION):
-        avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, surftemp, cpp, cma = read_cloud_cci(avhrr_file)
+        imagerAngObj, ctth, imagerGeoObj, ctype, imagerObj, surftemp, cpp, cma = read_cloud_cci(imager_file)
         nwp_segments = None
         nwp_obj = NWPObj({'surftemp':surftemp}) 
-        avhrrGeoObj.satellite = values["satellite"]
+        imagerGeoObj.satellite = values["satellite"]
     if (MAIA_CLOUD_VALIDATION):
-        avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, surftemp, cpp, cma = read_cloud_maia(avhrr_file)
+        imagerAngObj, ctth, imagerGeoObj, ctype, imagerObj, surftemp, cpp, cma = read_cloud_maia(imager_file)
         nwp_segments = None
         nwp_obj = NWPObj({'surftemp':surftemp})   
-        avhrrGeoObj.satellite = values["satellite"]
+        imagerGeoObj.satellite = values["satellite"]
 
     #STEP 4 get matchups 
     #ClloudSat
@@ -1113,40 +1113,40 @@ def get_matchups_from_data(cross, config_options):
     if (PPS_VALIDATION and config.CLOUDSAT_MATCHING and cloudsat_files is not None):
         logger.info("Read CLOUDSAT data")
         cl_matchup = get_cloudsat_matchups(cloudsat_files, cloudsat_files_lwp, 
-                                           avhrrGeoObj, avhrrObj, ctype, cma,
-                                           ctth, nwp_obj, avhrrAngObj, cpp, 
+                                           imagerGeoObj, imagerObj, ctype, cma,
+                                           ctth, nwp_obj, imagerAngObj, cpp, 
                                            nwp_segments, config_options) 
     #ISS:  
     iss_matchup = None
     if (PPS_VALIDATION and config.ISS_MATCHING and iss_files is not None):
         logger.info("Read ISS data")
         iss_matchup = get_iss_matchups(iss_files, 
-                                       avhrrGeoObj, avhrrObj, ctype, cma,
-                                       ctth, nwp_obj, avhrrAngObj, cpp, 
+                                       imagerGeoObj, imagerObj, ctype, cma,
+                                       ctth, nwp_obj, imagerAngObj, cpp, 
                                        nwp_segments, config_options)
     #AMSR
     amsr_matchup = None
     if (PPS_VALIDATION and config.AMSR_MATCHING and amsr_files is not None):
         logger.info("Read AMSR data")
         amsr_matchup = get_amsr_matchups(amsr_files, 
-                                         avhrrGeoObj, avhrrObj, ctype, cma,
-                                         ctth, nwp_obj, avhrrAngObj, cpp, 
+                                         imagerGeoObj, imagerObj, ctype, cma,
+                                         ctth, nwp_obj, imagerAngObj, cpp, 
                                          nwp_segments, config_options)
     #SYNOP
     synop_matchup = None
     if (PPS_VALIDATION and config.SYNOP_MATCHING and synop_files is not None):
         logger.info("Read SYNOP data")
         synop_matchup = get_synop_matchups(synop_files, 
-                                           avhrrGeoObj, avhrrObj, ctype, cma,
-                                           ctth, nwp_obj, avhrrAngObj, cpp, 
+                                           imagerGeoObj, imagerObj, ctype, cma,
+                                           ctth, nwp_obj, imagerAngObj, cpp, 
                                            nwp_segments, config_options)
     #MORA
     mora_matchup = None
     if (PPS_VALIDATION and config.MORA_MATCHING and mora_files is not None):
         logger.info("Read MORA data")
         mora_matchup = get_mora_matchups(mora_files, 
-                                           avhrrGeoObj, avhrrObj, ctype, cma,
-                                           ctth, nwp_obj, avhrrAngObj, cpp, 
+                                           imagerGeoObj, imagerObj, ctype, cma,
+                                           ctth, nwp_obj, imagerAngObj, cpp, 
                                            nwp_segments, config_options)
     #CALIPSO:
     ca_matchup = None
@@ -1154,9 +1154,9 @@ def get_matchups_from_data(cross, config_options):
         logger.info("Read CALIPSO data")        
         ca_matchup= get_calipso_matchups(calipso_files, 
                                          values,
-                                         avhrrGeoObj, avhrrObj, 
+                                         imagerGeoObj, imagerObj, 
                                          ctype, cma, ctth, 
-                                         nwp_obj, avhrrAngObj, 
+                                         nwp_obj, imagerAngObj, 
                                          config_options, cpp,
                                          nwp_segments,
                                          calipso1km, calipso5km, calipso5km_aerosol)
@@ -1179,10 +1179,10 @@ def get_matchups_from_data(cross, config_options):
         raise MatchupError("No matches with any truth.")
 
 
-    # Get satellite name, time, and orbit number from avhrr_file
+    # Get satellite name, time, and orbit number from imager_file
     date_time = values["date_time"]
-    #basename = '_'.join(os.path.basename(avhrr_file).split('_')[:4])
-    values = get_satid_datetime_orbit_from_fname(avhrr_file)
+    #basename = '_'.join(os.path.basename(imager_file).split('_')[:4])
+    values = get_satid_datetime_orbit_from_fname(imager_file)
     basename = values["basename"]
     rematched_path = date_time.strftime(config_options['reshape_dir'].format(
             val_dir=config._validation_results_dir,
@@ -1194,7 +1194,7 @@ def get_matchups_from_data(cross, config_options):
             satellite=values["satellite"],
             orbit=values["orbit"],
             resolution=str(config.RESOLUTION),
-            instrument=INSTRUMENT.get(values["satellite"],'avhrr'),
+            instrument=INSTRUMENT.get(values["satellite"],'imager'),
             atrain_datatype="atrain_datatype"
             ))
     rematched_file_base = rematched_path + rematched_file
@@ -1208,30 +1208,30 @@ def get_matchups_from_data(cross, config_options):
     if config.MATCH_MODIS_LVL2 and config.IMAGER_INSTRUMENT.lower() in ['modis']:
         from read_modis_products import add_modis_06  
         if ca_matchup is not None:
-            ca_matchup = add_modis_06(ca_matchup, avhrr_file, config_options) 
+            ca_matchup = add_modis_06(ca_matchup, imager_file, config_options) 
         if cl_matchup is not None:
-            cl_matchup = add_modis_06(cl_matchup, avhrr_file, config_options) 
+            cl_matchup = add_modis_06(cl_matchup, imager_file, config_options) 
         if amsr_matchup is not None:
-            amsr_matchup = add_modis_06(amsr_matchup, avhrr_file, config_options)
+            amsr_matchup = add_modis_06(amsr_matchup, imager_file, config_options)
         if synop_matchup is not None:
-            synop_matchup = add_modis_06(synop_matchup, avhrr_file, config_options)  
+            synop_matchup = add_modis_06(synop_matchup, imager_file, config_options)  
     #add additional vars to cloudsat and calipso objects and print them to file:
     cl_matchup, ca_matchup = add_additional_clousat_calipso_index_vars(cl_matchup, ca_matchup)
     cl_matchup, ca_matchup, iss_matchup = add_elevation_corrected_imager_ctth(cl_matchup, ca_matchup, iss_matchup)
 
     #imager_name
-    avhrr_obj_name = 'pps'
+    imager_obj_name = 'pps'
     if config.CCI_CLOUD_VALIDATION:
-        avhrr_obj_name = 'cci'
+        imager_obj_name = 'cci'
     if config.MAIA_CLOUD_VALIDATION:
-        avhrr_obj_name = 'maia'
+        imager_obj_name = 'maia'
 
     # Write cloudsat matchup 
     if cl_matchup is not None:
         cl_match_file = rematched_file_base.replace(
             'atrain_datatype', 'cloudsat')
-        writeCloudsatAvhrrMatchObj(cl_match_file, cl_matchup, 
-                                   avhrr_obj_name = avhrr_obj_name)
+        writeCloudsatImagerMatchObj(cl_match_file, cl_matchup, 
+                                   imager_obj_name = imager_obj_name)
     else:
         logger.debug('No CloudSat Match File created')
 
@@ -1239,8 +1239,8 @@ def get_matchups_from_data(cross, config_options):
     if iss_matchup is not None:
         is_match_file = rematched_file_base.replace(
             'atrain_datatype', 'iss')
-        writeIssAvhrrMatchObj(is_match_file, iss_matchup, 
-                                   avhrr_obj_name = avhrr_obj_name)
+        writeIssImagerMatchObj(is_match_file, iss_matchup, 
+                                   imager_obj_name = imager_obj_name)
     else:
         logger.debug('No Iss Match File created')
 
@@ -1248,8 +1248,8 @@ def get_matchups_from_data(cross, config_options):
     if amsr_matchup is not None:
         am_match_file = rematched_file_base.replace(
             'atrain_datatype', 'amsr')
-        writeAmsrAvhrrMatchObj(am_match_file, amsr_matchup, 
-                               avhrr_obj_name = avhrr_obj_name)
+        writeAmsrImagerMatchObj(am_match_file, amsr_matchup, 
+                               imager_obj_name = imager_obj_name)
     else:
         logger.debug('No Amsr Match File created')
 
@@ -1257,8 +1257,8 @@ def get_matchups_from_data(cross, config_options):
     if synop_matchup is not None:
         am_match_file = rematched_file_base.replace(
             'atrain_datatype', 'synop')
-        writeSynopAvhrrMatchObj(am_match_file, synop_matchup, 
-                               avhrr_obj_name = avhrr_obj_name)
+        writeSynopImagerMatchObj(am_match_file, synop_matchup, 
+                               imager_obj_name = imager_obj_name)
     else:
         logger.debug('No Synop Match File created')
 
@@ -1266,8 +1266,8 @@ def get_matchups_from_data(cross, config_options):
     if mora_matchup is not None:
         am_match_file = rematched_file_base.replace(
             'atrain_datatype', 'mora')
-        writeMoraAvhrrMatchObj(am_match_file, mora_matchup, 
-                               avhrr_obj_name = avhrr_obj_name)
+        writeMoraImagerMatchObj(am_match_file, mora_matchup, 
+                               imager_obj_name = imager_obj_name)
     else:
         logger.debug('No Mora Match File created')
      
@@ -1275,8 +1275,8 @@ def get_matchups_from_data(cross, config_options):
     # Write calipso matchup
     if ca_matchup is not None:
         ca_match_file = rematched_file_base.replace('atrain_datatype', 'caliop')
-        writeCaliopAvhrrMatchObj(ca_match_file, ca_matchup, 
-                                 avhrr_obj_name = avhrr_obj_name) 
+        writeCaliopImagerMatchObj(ca_match_file, ca_matchup, 
+                                 imager_obj_name = imager_obj_name) 
     nwp_obj = None
     return {'cloudsat': cl_matchup, 'calipso': ca_matchup, 
             'iss': iss_matchup, 'amsr': amsr_matchup,
@@ -1287,7 +1287,7 @@ def get_matchups_from_data(cross, config_options):
 
 def get_matchups(cross, options, reprocess=False):
     """
-    Retrieve Cloudsat- and Calipso-AVHRR matchups. If *reprocess* is False, and if
+    Retrieve Cloudsat- and Calipso-IMAGER matchups. If *reprocess* is False, and if
     matchup files exist, get matchups directly from the processed files.
     Otherwise process Cloudsat, Calipso, and PPS files first.
     """
@@ -1304,19 +1304,19 @@ def get_matchups(cross, options, reprocess=False):
         raise ValueError('Need satellite1 and time (cross: %s)' % cross)
     
     if reprocess is False or USE_EXISTING_RESHAPED_FILES:
-        diff_avhrr_seconds=None
-        avhrr_file=None
+        diff_imager_seconds=None
+        imager_file=None
         if not USE_EXISTING_RESHAPED_FILES:
             if (PPS_VALIDATION ):
-                avhrr_file, tobj = find_radiance_file(cross, options)
-                values_avhrr = get_satid_datetime_orbit_from_fname(avhrr_file)
+                imager_file, tobj = find_radiance_file(cross, options)
+                values_imager = get_satid_datetime_orbit_from_fname(imager_file)
             if (CCI_CLOUD_VALIDATION):
-                avhrr_file, tobj = find_cci_cloud_file(cross, options)
-            if avhrr_file is not None:
-                values_avhrr = get_satid_datetime_orbit_from_fname(avhrr_file)
-                date_time_avhrr = values_avhrr["date_time"]
-                td = date_time_avhrr-cross.time
-                diff_avhrr_seconds=abs(td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
+                imager_file, tobj = find_cci_cloud_file(cross, options)
+            if imager_file is not None:
+                values_imager = get_satid_datetime_orbit_from_fname(imager_file)
+                date_time_imager = values_imager["date_time"]
+                td = date_time_imager-cross.time
+                diff_imager_seconds=abs(td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
 
 
         #CLOUDSAT
@@ -1325,14 +1325,14 @@ def get_matchups(cross, options, reprocess=False):
         else:    
             values["atrain_sat"] = "cloudsat" 
             values["atrain_datatype"] = "cloudsat" 
-            cl_match_file,  date_time = find_avhrr_file(cross, options['reshape_dir'], 
+            cl_match_file,  date_time = find_imager_file(cross, options['reshape_dir'], 
                                                   options['reshape_file'], values=values)
             if not cl_match_file:
                 logger.info("No processed CloudSat match files found. "  
                             "Generating from source data if required.")
                 date_time=cross.time
             else:
-                clObj = readCloudsatAvhrrMatchObj(cl_match_file) 
+                clObj = readCloudsatImagerMatchObj(cl_match_file) 
                 basename = '_'.join(os.path.basename(cl_match_file).split('_')[1:5])
 
         #ISS
@@ -1341,14 +1341,14 @@ def get_matchups(cross, options, reprocess=False):
         else:    
             values["atrain_sat"] = "iss"
             values["atrain_datatype"] = "iss"
-            is_match_file, date_time = find_avhrr_file(cross, options['reshape_dir'], 
+            is_match_file, date_time = find_imager_file(cross, options['reshape_dir'], 
                                                   options['reshape_file'], values=values)
             if not is_match_file:
                 logger.info("No processed Iss match files found."  
                             " Generating from source data if required.")
                 date_time=cross.time
             else:
-                isObj = readIssAvhrrMatchObj(is_match_file) 
+                isObj = readIssImagerMatchObj(is_match_file) 
                 basename = '_'.join(os.path.basename(is_match_file).split('_')[1:5])
 
         #AMSR
@@ -1357,14 +1357,14 @@ def get_matchups(cross, options, reprocess=False):
         else:    
             values["atrain_sat"] = "amsr"
             values["atrain_datatype"] = "amsr"
-            am_match_file, date_time = find_avhrr_file(cross, options['reshape_dir'], 
+            am_match_file, date_time = find_imager_file(cross, options['reshape_dir'], 
                                                   options['reshape_file'], values=values)
             if not am_match_file:
                 logger.info("No processed Amsr match files found."  
                             " Generating from source data if required.")
                 date_time=cross.time
             else:              
-                amObj = readAmsrAvhrrMatchObj(am_match_file) 
+                amObj = readAmsrImagerMatchObj(am_match_file) 
                 basename = '_'.join(os.path.basename(am_match_file).split('_')[1:5])
 
 
@@ -1374,14 +1374,14 @@ def get_matchups(cross, options, reprocess=False):
         else:    
             values["atrain_sat"] = "synop"
             values["atrain_datatype"] = "synop"
-            synop_match_file, date_time = find_avhrr_file(cross, options['reshape_dir'], 
+            synop_match_file, date_time = find_imager_file(cross, options['reshape_dir'], 
                                                        options['reshape_file'], values=values)
             if not synop_match_file:
                 logger.info("No processed Synop match files found."  
                             " Generating from source data if required.")
                 date_time=cross.time
             else:              
-                syObj = readSynopAvhrrMatchObj(synop_match_file) 
+                syObj = readSynopImagerMatchObj(synop_match_file) 
                 basename = '_'.join(os.path.basename(synop_match_file).split('_')[1:5])
 
         #MORA
@@ -1390,14 +1390,14 @@ def get_matchups(cross, options, reprocess=False):
         else:    
             values["atrain_sat"] = "mora"
             values["atrain_datatype"] = "mora"
-            mora_match_file, date_time = find_avhrr_file(cross, options['reshape_dir'], 
+            mora_match_file, date_time = find_imager_file(cross, options['reshape_dir'], 
                                                        options['reshape_file'], values=values)
             if not mora_match_file:
                 logger.info("No processed Mora match files found."  
                             " Generating from source data if required.")
                 date_time=cross.time
             else:              
-                moObj = readMoraAvhrrMatchObj(mora_match_file) 
+                moObj = readMoraImagerMatchObj(mora_match_file) 
                 basename = '_'.join(os.path.basename(mora_match_file).split('_')[1:5])
 
         #CALIPSO               
@@ -1406,7 +1406,7 @@ def get_matchups(cross, options, reprocess=False):
         else:        
             values["atrain_sat"] = "caliop"
             values["atrain_datatype"] = "caliop"
-            ca_match_file, date_time = find_avhrr_file(cross, options['reshape_dir'], 
+            ca_match_file, date_time = find_imager_file(cross, options['reshape_dir'], 
                                                   options['reshape_file'], values=values)
             if not  ca_match_file:
                 logger.info( 
@@ -1414,7 +1414,7 @@ def get_matchups(cross, options, reprocess=False):
                      "Generating from source data."))
                 date_time=cross.time
             else:            
-                caObj = readCaliopAvhrrMatchObj(ca_match_file)
+                caObj = readCaliopImagerMatchObj(ca_match_file)
                 basename = '_'.join(os.path.basename(ca_match_file).split('_')[1:5])
 
 
@@ -1506,8 +1506,8 @@ def plot_some_figures(clsatObj, caObj, values, basename, process_mode,
 
     ##TRAJECTORY
     if caObj is not None:
-        imlon = caObj.avhrr.longitude.copy()
-        imlat = caObj.avhrr.latitude.copy()
+        imlon = caObj.imager.longitude.copy()
+        imlat = caObj.imager.latitude.copy()
         trajectorypath = os.path.join(plotpath, "trajectory_plot")
         if not os.path.exists(trajectorypath):
             os.makedirs(trajectorypath)
@@ -1525,21 +1525,21 @@ def plot_some_figures(clsatObj, caObj, values, basename, process_mode,
         "CPR_Cloud_mask" in clsatObj.cloudsat.all_arrays.keys() and 
         caObj is not None):
         #HEIGHT
-        drawCalClsatGEOPROFAvhrrPlot(clsatObj, 
+        drawCalClsatGEOPROFImagerPlot(clsatObj, 
                                      caObj, 
-                                     caObj.avhrr.imager_ctth_m_above_seasurface, 
+                                     caObj.imager.imager_ctth_m_above_seasurface, 
                                      plotpath,
                                      basename, 
                                      process_mode, 
                                      file_type,
                                      instrument=IMAGER_INSTRUMENT)
         #TIME DIFF SATZ 
-        drawCalClsatAvhrrPlotTimeDiff(clsatObj, 
+        drawCalClsatImagerPlotTimeDiff(clsatObj, 
                                       caObj,
                                       plotpath, basename, 
                                       config.RESOLUTION,
                                       instrument=IMAGER_INSTRUMENT)
-        drawCalClsatAvhrrPlotSATZ(clsatObj, 
+        drawCalClsatImagerPlotSATZ(clsatObj, 
                                   caObj,
                                   plotpath, basename, 
                                   config.RESOLUTION, file_type,
@@ -1553,14 +1553,14 @@ def plot_some_figures(clsatObj, caObj, values, basename, process_mode,
         data_ok = np.ones(clsatObj.cloudsat.elevation.shape,'b')                
 
         phase='LW'  
-        drawCalClsatCWCAvhrrPlot(clsatObj, 
+        drawCalClsatCWCImagerPlot(clsatObj, 
                                  elevation, 
                                  data_ok, 
                                  plotpath, basename, 
                                  phase,
                                  instrument=IMAGER_INSTRUMENT)
         phase='IW'  
-        drawCalClsatCWCAvhrrPlot(clsatObj, 
+        drawCalClsatCWCImagerPlot(clsatObj, 
                                  elevation, 
                                  data_ok, 
                                  plotpath, basename, phase,
@@ -1620,7 +1620,7 @@ def run(cross, run_modes, config_options, reprocess=False):
     The main work horse.    
     """    
     logger.info("Case: %s", str(cross))
-    sensor = INSTRUMENT.get(cross.satellite1.lower(), 'avhrr')
+    sensor = INSTRUMENT.get(cross.satellite1.lower(), 'imager')
     if sensor.lower() != IMAGER_INSTRUMENT.lower() :
         logger.error("Uncertain of sensor: %s or %s?", 
                      sensor.upper(), IMAGER_INSTRUMENT.upper())

@@ -2,7 +2,7 @@ import numpy as np
 import logging
 logger = logging.getLogger(__name__)
 
-from extract_imager_along_track import CHANNEL_MICRON_AVHRR_PPS, CHANNEL_MICRON_DESCRIPTIONS
+from extract_imager_along_track import CHANNEL_MICRON_IMAGER_PPS, CHANNEL_MICRON_DESCRIPTIONS
 from extract_imager_along_track import get_channel_data_from_object, get_data_from_array
 
 def get_t11t12_texture_data_from_object(dataObj, nwp_obj, ch11, ch12, text_name):
@@ -124,7 +124,7 @@ def get_darkest_values(dataObj, matched):
     return nobj
     
 def get_channel_data_from_objectfull_resolution(dataObj, chn_des, nodata=-9):
-    """Get the AVHRR/VIIRS channel data on the track
+    """Get the IMAGER/VIIRS channel data on the track
     matched: dict of matched indices (row, col)
     """
     try:

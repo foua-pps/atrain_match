@@ -5,12 +5,12 @@ import os
 import logging
 logger = logging.getLogger(__name__)
 from matchobject_io import (CloudsatObject,
-                            CloudsatAvhrrTrackObject)                            
+                            CloudsatImagerTrackObject)                            
 from config import (sec_timeThr, RESOLUTION,
                     NODATA, CLOUDSAT_CLOUDY_THR, CLOUDSAT_REQUIRED)
 from common import (MatchupError, ProcessingError,
                     elements_within_range)
-from extract_imager_along_track import avhrr_track_from_matched
+from extract_imager_along_track import imager_track_from_matched
 
 from calipso import (find_break_points, calipso_track_from_matched,
                      time_reshape_calipso)
@@ -181,13 +181,13 @@ def read_cloudsat(filename):
     return retv
 
 
-def match_cloudsat_avhrr(cloudsatObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,imagerAngObj, 
+def match_cloudsat_imager(cloudsatObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,imagerAngObj, 
                          cpp, nwp_segments):
-    retv = CloudsatAvhrrTrackObject()
+    retv = CloudsatImagerTrackObject()
 
     #Nina 20150313 Swithcing to mapping without area as in cpp. Following suggestion from Jakob
-    from common import map_avhrr
-    cal, cap = map_avhrr(imagerGeoObj, 
+    from common import map_imager
+    cal, cap = map_imager(imagerGeoObj, 
                          cloudsatObj.longitude.ravel(),
                          cloudsatObj.latitude.ravel(),
                          radius_of_influence=RESOLUTION*0.7*1000.0) # somewhat larger than radius...
@@ -204,7 +204,7 @@ def match_cloudsat_avhrr(cloudsatObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,i
         imager_lines_sec_1970 = np.where(cal != NODATA, imager_time_vector, np.nan)
     else:
         imager_lines_sec_1970 = np.where(cal != NODATA, imagerGeoObj.time[cal], np.nan)
-    # Find all matching Cloudsat pixels within +/- sec_timeThr from the AVHRR data
+    # Find all matching Cloudsat pixels within +/- sec_timeThr from the IMAGER data
     idx_match = elements_within_range(cloudsatObj.sec_1970, imager_lines_sec_1970, sec_timeThr)
 
     if idx_match.sum() == 0:
@@ -220,18 +220,18 @@ def match_cloudsat_avhrr(cloudsatObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,i
     retv.cloudsat.imager_pixnum = np.repeat(cap, idx_match).astype('i')
 
     # Imager time
-    retv.avhrr.sec_1970 = np.repeat(imager_lines_sec_1970, idx_match)
-    retv.diff_sec_1970 = retv.cloudsat.sec_1970 - retv.avhrr.sec_1970
+    retv.imager.sec_1970 = np.repeat(imager_lines_sec_1970, idx_match)
+    retv.diff_sec_1970 = retv.cloudsat.sec_1970 - retv.imager.sec_1970
     do_some_logging(retv, cloudsatObj)
     logger.debug("Generate the latitude,cloudtype tracks!")
-    retv = avhrr_track_from_matched(retv, imagerGeoObj, imagerObj, imagerAngObj, 
+    retv = imager_track_from_matched(retv, imagerGeoObj, imagerObj, imagerAngObj, 
                                     nwp, ctth, ctype, cma, 
                                     cpp=cpp, nwp_segments=nwp_segments)
     return retv
 
 def mergeCloudsat(cloudsat, cloudsatlwp):
     #map cloudsat_lwp to cloudsat
-    from amsr_avhrr.match import match_lonlat
+    from amsr_imager.match import match_lonlat
     source = (cloudsatlwp.longitude.astype(np.float64).reshape(-1,1), 
               cloudsatlwp.latitude.astype(np.float64).reshape(-1,1))
     target = (cloudsat.longitude.astype(np.float64).reshape(-1,1), 
@@ -259,9 +259,9 @@ def mergeCloudsat(cloudsat, cloudsatlwp):
     return cloudsat
 
 
-def reshapeCloudsat(cloudsatfiles, avhrr):
-    #avhrr_end = avhrr.sec1970_end
-    #avhrr_start = avhrr.sec1970_start
+def reshapeCloudsat(cloudsatfiles, imager):
+    #imager_end = imager.sec1970_end
+    #imager_start = imager.sec1970_start
     clsat = get_cloudsat(cloudsatfiles[0])
     for i in range(len(cloudsatfiles)-1):
         newCloudsat = get_cloudsat(cloudsatfiles[i+1])
@@ -278,7 +278,7 @@ def reshapeCloudsat(cloudsatfiles, avhrr):
                     clsat.all_arrays[arname] = np.concatenate((value[0:clsat_break,...],
                                                                newCloudsat.all_arrays[arname]))
     # Finds Break point
-    startBreak, endBreak = find_break_points(clsat, avhrr)
+    startBreak, endBreak = find_break_points(clsat, imager)
     clsat = time_reshape_calipso(clsat, startBreak, endBreak)
     return clsat
     

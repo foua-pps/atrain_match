@@ -6,19 +6,19 @@ from datetime import datetime, timedelta
 from calendar import timegm
 TAI93 = datetime(1993, 1, 1)
 from config import (RESOLUTION, NODATA, SYNOP_REQUIRED, SYNOP_RADIUS, sec_timeThr_synop)
-from matchobject_io import (SynopAvhrrTrackObject, 
+from matchobject_io import (SynopImagerTrackObject, 
                             SynopObject)
 from calipso import (find_break_points, calipso_track_from_matched,
                      do_some_logging)
 
 from common import (ProcessingError, MatchupError, elements_within_range)
-from extract_imager_along_track import avhrr_track_from_matched
+from extract_imager_along_track import imager_track_from_matched
 import logging
 logger = logging.getLogger(__name__)
 
-def reshapeSynop(synopfiles, avhrr):
-    start_t = datetime.utcfromtimestamp(avhrr.sec1970_start)
-    end_t = datetime.utcfromtimestamp(avhrr.sec1970_end)
+def reshapeSynop(synopfiles, imager):
+    start_t = datetime.utcfromtimestamp(imager.sec1970_start)
+    end_t = datetime.utcfromtimestamp(imager.sec1970_end)
     #datetime.datetime.fromtimestamp(
     from read_synop_dwd import get_synop_data
     items = [get_synop_data(filename) for filename in synopfiles]
@@ -41,15 +41,15 @@ def reshapeSynop(synopfiles, avhrr):
     retv.sec_1970 = np.array([calendar.timegm(tobj.timetuple()) for tobj in panda_synops['date']])
     return retv
 
-def match_synop_avhrr(synopObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
+def match_synop_imager(synopObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
                      imagerAngObj, cpp, nwp_segments):
-    retv = SynopAvhrrTrackObject()
+    retv = SynopImagerTrackObject()
 
-    from common import map_avhrr_distances
+    from common import map_imager_distances
     n_neighbours = 250
     if RESOLUTION == 5:
         n_neighbours = 16
-    mapper_and_dist = map_avhrr_distances(imagerGeoObj, 
+    mapper_and_dist = map_imager_distances(imagerGeoObj, 
                                           synopObj.longitude.ravel(), 
                                           synopObj.latitude.ravel(), 
                                           radius_of_influence=SYNOP_RADIUS, 
@@ -82,22 +82,22 @@ def match_synop_avhrr(synopObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
             return None
     retv.synop = calipso_track_from_matched(retv.synop, synopObj, idx_match)
  
-    # Synop line,pixel inside AVHRR swath (one nearest neighbour):
+    # Synop line,pixel inside IMAGER swath (one nearest neighbour):
     retv.synop.imager_linnum = np.repeat(cal_1, idx_match).astype('i')
     retv.synop.imager_pixnum = np.repeat(cap_1, idx_match).astype('i')
-    # Synop line,pixel inside AVHRR swath (several neighbours):
+    # Synop line,pixel inside IMAGER swath (several neighbours):
     retv.synop.imager_linnum_nneigh = np.repeat(cal, idx_match, axis=0)
     retv.synop.imager_pixnum_nneigh = np.repeat(cap, idx_match, axis=0)
     retv.synop.imager_synop_dist = np.repeat(distances, idx_match, axis=0)
 
     # Imager time
-    retv.avhrr.sec_1970 = np.repeat(imager_lines_sec_1970, idx_match)
-    retv.diff_sec_1970 = retv.synop.sec_1970 - retv.avhrr.sec_1970
+    retv.imager.sec_1970 = np.repeat(imager_lines_sec_1970, idx_match)
+    retv.diff_sec_1970 = retv.synop.sec_1970 - retv.imager.sec_1970
 
     do_some_logging(retv, synopObj)
     logger.debug("Extract imager along track!")
     
-    retv = avhrr_track_from_matched(retv, imagerGeoObj, imagerObj, imagerAngObj, 
+    retv = imager_track_from_matched(retv, imagerGeoObj, imagerObj, imagerAngObj, 
                                     nwp, ctth, ctype, cma,  
                                     #nwp_small, ctth, ctype, cma,
                                     cpp=cpp, nwp_segments=None,

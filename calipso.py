@@ -22,7 +22,7 @@ from config import (_validation_results_dir,
                     CALIPSO_REQUIRED)
 
 import time as tm
-from matchobject_io import (CalipsoAvhrrTrackObject,
+from matchobject_io import (CalipsoImagerTrackObject,
                             CalipsoObject)
 from runutils import do_some_logging
 
@@ -34,7 +34,7 @@ def add_validation_ctth_calipso(calipso):
     return calipso
 
 def calipso_track_from_matched(retv_calipso, calipso, idx_match):
-    # Calipso line,pixel inside AVHRR swath:
+    # Calipso line,pixel inside IMAGER swath:
     for arnameca, valueca in calipso.all_arrays.items(): 
         if valueca is not None:
             if valueca.size != 1:
@@ -51,17 +51,17 @@ def calipso_track_from_matched(retv_calipso, calipso, idx_match):
     return retv_calipso
 
 
-def match_calipso_avhrr(values, 
+def match_calipso_imager(values, 
                         caObj, caObjAerosol, 
                         imagerGeoObj, imagerObj, 
                         ctype, cma, ctth, cpp, nwp_obj,
-                        avhrrAngObj, nwp_segments, options, res=RESOLUTION):
+                        imagerAngObj, nwp_segments, options, res=RESOLUTION):
 
-    from common import map_avhrr
-    retv = CalipsoAvhrrTrackObject()
+    from common import map_imager
+    retv = CalipsoImagerTrackObject()
     
     #Nina 20150313 Swithcing to mapping without area as in cpp. Following suggestion from Jakob
-    cal, cap = map_avhrr(imagerGeoObj, 
+    cal, cap = map_imager(imagerGeoObj, 
                          caObj.longitude.ravel(),
                          caObj.latitude.ravel(),
                          radius_of_influence=RESOLUTION*0.7*1000.0) # somewhat larger than radius...
@@ -88,17 +88,17 @@ def match_calipso_avhrr(values,
             return None    
     retv.calipso = calipso_track_from_matched(retv.calipso, caObj, idx_match)
     
-    # Calipso line,pixel inside AVHRR swath:
+    # Calipso line,pixel inside IMAGER swath:
     retv.calipso.imager_linnum = np.repeat(cal, idx_match).astype('i')
     retv.calipso.imager_pixnum = np.repeat(cap, idx_match).astype('i')
 
     # Imager time
-    retv.avhrr.sec_1970 = np.repeat(imager_lines_sec_1970, idx_match)
-    retv.diff_sec_1970 = retv.calipso.sec_1970 - retv.avhrr.sec_1970
+    retv.imager.sec_1970 = np.repeat(imager_lines_sec_1970, idx_match)
+    retv.diff_sec_1970 = retv.calipso.sec_1970 - retv.imager.sec_1970
     do_some_logging(retv, caObj)
     logger.debug("Generate the latitude,cloudtype tracks!")
-    from extract_imager_along_track import avhrr_track_from_matched
-    retv = avhrr_track_from_matched(retv, imagerGeoObj, imagerObj, avhrrAngObj, 
+    from extract_imager_along_track import imager_track_from_matched
+    retv = imager_track_from_matched(retv, imagerGeoObj, imagerObj, imagerAngObj, 
                                     nwp_obj, ctth, ctype, cma, cpp=cpp, 
                                     nwp_segments=nwp_segments)
     if caObjAerosol is not None:
@@ -315,14 +315,14 @@ def read_calipso_h5(filename, retv):
         h5file.close()
     return retv  
 
-def discardCalipsoFilesOutsideTimeRange(calipsofiles_list, avhrrGeoObj, values, res=RESOLUTION, ALAY=False):
-    avhrr_end = avhrrGeoObj.sec1970_end
-    avhrr_start = avhrrGeoObj.sec1970_start
+def discardCalipsoFilesOutsideTimeRange(calipsofiles_list, imagerGeoObj, values, res=RESOLUTION, ALAY=False):
+    imager_end = imagerGeoObj.sec1970_end
+    imager_start = imagerGeoObj.sec1970_start
     calipso_within_time_range = []
     for current_file in calipsofiles_list:
         newCalipso = get_calipso(current_file, res, ALAY=ALAY)
         cal_new_all = newCalipso.sec_1970
-        if cal_new_all[0]>avhrr_end + sec_timeThr or  cal_new_all[-1] + sec_timeThr<avhrr_start:
+        if cal_new_all[0]>imager_end + sec_timeThr or  cal_new_all[-1] + sec_timeThr<imager_start:
             pass
             #print "skipping file %s outside time_limits"%(current_file)
         else:
@@ -347,18 +347,18 @@ def reshapeCalipso(calipsofiles, res=RESOLUTION, ALAY=False):
                                                                   newCalipso.all_arrays[arname]))          
     return startCalipso 
 
-def find_break_points(startCalipso, avhrrGeoObj):
+def find_break_points(startCalipso, imagerGeoObj):
     """
-    Find the start and end point where calipso and avhrr matches is within 
+    Find the start and end point where calipso and imager matches is within 
     time limits.
     """
-    avhrr_end = avhrrGeoObj.sec1970_end
-    avhrr_start = avhrrGeoObj.sec1970_start
+    imager_end = imagerGeoObj.sec1970_end
+    imager_start = imagerGeoObj.sec1970_start
     # Finds Break point
     start_break = np.argmin((np.abs((startCalipso.sec_1970) 
-                                    - (avhrr_start - sec_timeThr))))
+                                    - (imager_start - sec_timeThr))))
     end_break = np.argmin((np.abs((startCalipso.sec_1970) 
-                                  - (avhrr_end + sec_timeThr)))) + 2    # Plus two to get one extra, just to be certain    
+                                  - (imager_end + sec_timeThr)))) + 2    # Plus two to get one extra, just to be certain    
     if start_break != 0:
         start_break = start_break - 1 # Minus one to get one extra, just to be certain
     return start_break, end_break
@@ -366,7 +366,7 @@ def find_break_points(startCalipso, avhrrGeoObj):
 def time_reshape_calipso(startCalipso,
                          start_break, end_break):
     """
-    Cut the calipso data at the point where matches with avhrr is within 
+    Cut the calipso data at the point where matches with imager is within 
     time limits.
     """
     # Cut the feature values

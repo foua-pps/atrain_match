@@ -4,7 +4,7 @@ This module is the main entry point for matching noaa and/or metop data with
 Cloudsat and Calipso data, and produce statistics for validation of PPS
 cloud mask, cloud type and cloud top temperature and height products.
 
-It is really a wrapper to :func:`cloudsat_calipso_avhrr_match.run`, for running
+It is really a wrapper to :func:`cloudsat_calipso_imager_match.run`, for running
 through a set of files with SNO matchups.
 
 .. note::
@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 from common import (InputError, MatchupError)
 import config
-import cloudsat_calipso_avhrr_match
+import cloudsat_calipso_imager_match
 from common import Cross
 from runutils import  parse_scenesfile_reshaped
 from runutils import  parse_scenesfile_maia
@@ -33,7 +33,7 @@ def process_matchups(matchups, run_modes, reprocess=False, debug=False):
     *matchups* should be a list of :class:`common.Cross` instances.
     
     If *reprocess* is True, disregard any previously generated Cloudsat- and
-    Calipso-AVHRR matchup files.
+    Calipso-IMAGER matchup files.
     
     """
 
@@ -54,7 +54,7 @@ def process_matchups(matchups, run_modes, reprocess=False, debug=False):
     outstatus = 0
     for match in sorted(matchups):
         try:
-            cloudsat_calipso_avhrr_match.run(match, run_modes,  OPTIONS, reprocess)
+            cloudsat_calipso_imager_match.run(match, run_modes,  OPTIONS, reprocess)
         except MatchupError, err:
             logger.warning("Matchup problem: %s", str(err))
             import traceback
@@ -66,7 +66,7 @@ def process_matchups(matchups, run_modes, reprocess=False, debug=False):
             outstatus = 5
             traceback.print_exc()
             problematic.add(match)
-            logger.warning("Couldn't run cloudsat_calipso_avhrr_match.")
+            logger.warning("Couldn't run cloudsat_calipso_imager_match.")
             if debug is True:
                 raise
                 
@@ -98,7 +98,7 @@ def main():
                       help=("Run validation software in MODE "))
     parser.add_argument('--reprocess', '-r', const=True, nargs='?', required=False,
                         help="Disregard any previously generated Cloudsat- and "
-                        "Calipso-AVHRR matchup files.")
+                        "Calipso-IMAGER matchup files.")
     parser.add_argument('-d', '--debug', const=True, nargs='?', required=False, 
                         help="Get debug logging")
     group.add_argument( '--pps_okay_scene', '-os', 

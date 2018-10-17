@@ -2,9 +2,9 @@
 import numpy as np
 from glob import glob
 import os
-from matchobject_io import (readCaliopAvhrrMatchObj,
-                            writeCaliopAvhrrMatchObj,
-                            CalipsoAvhrrTrackObject)
+from matchobject_io import (readCaliopImagerMatchObj,
+                            writeCaliopImagerMatchObj,
+                            CalipsoImagerTrackObject)
 
 
 instrument = "seviri"
@@ -25,8 +25,8 @@ outfile_template = "1km_%s_{satellite}_2010%s{day}_0000_00000_caliop_{instrument
 print ROOT_DIR
 
 
-caObj_night = CalipsoAvhrrTrackObject()
-caObj_day = CalipsoAvhrrTrackObject()
+caObj_night = CalipsoImagerTrackObject()
+caObj_day = CalipsoImagerTrackObject()
 
 for year in ["2010"]:#2012/02","2012/05", "2012/08", "2013/07", "2014/02", "2014/04", "2014/09"]:
     #for month in ["01","02","03","04","05","06","07","08","09","10","11","12"]:
@@ -43,8 +43,8 @@ for year in ["2010"]:#2012/02","2012/05", "2012/08", "2013/07", "2014/02", "2014
         num_d = 0
         for filename in files:
             print  os.path.basename(filename)
-            caObj_new=readCaliopAvhrrMatchObj(filename) 
-            if np.nanmax(caObj_new.avhrr.all_arrays['sunz']>=90):
+            caObj_new=readCaliopImagerMatchObj(filename) 
+            if np.nanmax(caObj_new.imager.all_arrays['sunz']>=90):
                 num_n +=1
                 print "reading",os.path.basename(filename)
                 caObj_night = caObj_night + caObj_new
@@ -55,12 +55,12 @@ for year in ["2010"]:#2012/02","2012/05", "2012/08", "2013/07", "2014/02", "2014
         if num_n>0:
             filename_night = outfile_template%("night",month)
             outfile = os.path.join(OUT_DIR, filename_night)
-            writeCaliopAvhrrMatchObj(
-                  outfile, caObj_night, avhrr_obj_name = 'pps')   
-            caObj_night = CalipsoAvhrrTrackObject()    
+            writeCaliopImagerMatchObj(
+                  outfile, caObj_night, imager_obj_name = 'pps')   
+            caObj_night = CalipsoImagerTrackObject()    
         if num_d>0:
             filename_day = outfile_template%("day",month)
             outfile = os.path.join(OUT_DIR, filename_day)
-            writeCaliopAvhrrMatchObj(
-                outfile, caObj_day, avhrr_obj_name = 'pps')   
-            caObj_day = CalipsoAvhrrTrackObject()   
+            writeCaliopImagerMatchObj(
+                outfile, caObj_day, imager_obj_name = 'pps')   
+            caObj_day = CalipsoImagerTrackObject()   

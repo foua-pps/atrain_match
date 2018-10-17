@@ -19,7 +19,7 @@ class Cross:
         return self.__repr__()
 
 class MatchupError(Exception):
-    """This exception is used when a problem matching AVHRR data with 
+    """This exception is used when a problem matching IMAGER data with 
     Cloudsat / CALIPSO data has occured."""
     pass
 
@@ -45,23 +45,23 @@ def elements_within_range(compare, base, _range):
     b = np.array(base)
     return np.logical_and(c > b - _range, c < b + _range)
 
-def map_avhrr_distances(avhrr, lon, lat, radius_of_influence, n_neighbours=1):
+def map_imager_distances(imager, lon, lat, radius_of_influence, n_neighbours=1):
     """
-    Map AVHRR object *avhrr* to (lon, lat).
+    Map IMAGER object *imager* to (lon, lat).
     
     A better use of this function would be to return *mapper*! But the calling
     functions would need some adjustment...
     
     """
     from config import NODATA
-    from amsr_avhrr.match import match_lonlat
-    source = (avhrr.longitude, avhrr.latitude)
+    from amsr_imager.match import match_lonlat
+    source = (imager.longitude, imager.latitude)
     target = (lon, lat)
-    #if avhrr.longitude.dtype != lon.dtype or  avhrr.latitude.dtype != lat.dtype:
-    source = (avhrr.longitude.astype(np.float64), 
-              avhrr.latitude.astype(np.float64))
+    #if imager.longitude.dtype != lon.dtype or  imager.latitude.dtype != lat.dtype:
+    source = (imager.longitude.astype(np.float64), 
+              imager.latitude.astype(np.float64))
     target = (lon.astype(np.float64), lat.astype(np.float64))   
-    #print avhrr.longitude.dtype, lon.dtype, avhrr.latitude.dtype,  lat.dtype    
+    #print imager.longitude.dtype, lon.dtype, imager.latitude.dtype,  lat.dtype    
     mapper, distances = match_lonlat(source, target, radius_of_influence, 
                                      n_neighbours=n_neighbours)    
     # Return the nearest (and the only calculated) neighbour
@@ -73,15 +73,15 @@ def map_avhrr_distances(avhrr, lon, lat, radius_of_influence, n_neighbours=1):
 
     return out
 
-def map_avhrr(avhrr, lon, lat, radius_of_influence, n_neighbours=1):
+def map_imager(imager, lon, lat, radius_of_influence, n_neighbours=1):
     """
-    Map AVHRR object *avhrr* to (lon, lat).
+    Map IMAGER object *imager* to (lon, lat).
     
     A better use of this function would be to return *mapper*! But the calling
     functions would need some adjustment...
     
     """
-    retv = map_avhrr_distances(avhrr, lon, lat, radius_of_influence, n_neighbours=1)
+    retv = map_imager_distances(imager, lon, lat, radius_of_influence, n_neighbours=1)
     return retv["mapper"]
 
 
@@ -100,7 +100,7 @@ def write_match_objects(filename, diff_sec_1970, groups):
     E.g. to write a calipso match:
     
     >>> groups = {'calipso': ca_obj.calipso.all_arrays,
-    ...           'avhrr': ca_obj.avhrr.all_arrays}
+    ...           'imager': ca_obj.imager.all_arrays}
     >>> write_match_objects('match.h5', ca_obj.diff_sec_1970, groups)
     
     The match object data can then be read using `read_match_objects`:

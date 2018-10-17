@@ -29,13 +29,13 @@ def print_data_file_pressure_calipso(out_file_h, reshaped_files):
 
     satz_step = 10
     satz_v = np.array(xrange(0,80,satz_step))
-    from matchobject_io import (readCaliopAvhrrMatchObj,
-                                CalipsoAvhrrTrackObject)
+    from matchobject_io import (readCaliopImagerMatchObj,
+                                CalipsoImagerTrackObject)
 
     for filename in reshaped_files:
         print filename
         out_text += "CALIPSO %s\n"%(filename)
-        caObj=readCaliopAvhrrMatchObj(filename)
+        caObj=readCaliopImagerMatchObj(filename)
         ca_pressure = caObj.calipso.all_arrays['layer_top_pressure'][:,0] #hPa nodata -9999
         use_ok = ca_pressure>0
         out_text += "CALIPSO satz00_00 "
@@ -136,12 +136,12 @@ def investigate_nn_ctth_satz():
     ANGLE_DIR = "/home/a001865/SAFNWC_PPS/import/ANC_data/remapped"
     MODISFILE_TEMPLATE = "/home/a001865/DATA_MISC/modis/MYD06/MYD06_L2.A%Y%j.%H%M.006.*.h5"
     if False:
-        nn_files =  glob(ROOT_DIR + "/*CTTHnnAvhrrNoRTTOV_*20100114*.nc")
+        nn_files =  glob(ROOT_DIR + "/*CTTHnnImagerNoRTTOV_*20100114*.nc")
         out_filename = "satz_statistics_and_modis.txt"
         out_file_h = open(out_filename,'w')
-        for ctth_label in  ["MODIS-C6", "CTTHold", "CTTHnnAvhrr", "CTTHnnAvhrrNoRTTOV"]:
+        for ctth_label in  ["MODIS-C6", "CTTHold", "CTTHnnImager", "CTTHnnImagerNoRTTOV"]:
             print_data_file_pressure(out_file_h, nn_files,  ANGLE_DIR, 
-                                     ctth_label=ctth_label, glob_ctth_label="CTTHnnAvhrrNoRTTOV",  
+                                     ctth_label=ctth_label, glob_ctth_label="CTTHnnImagerNoRTTOV",  
                                      modisfile_template=MODISFILE_TEMPLATE)
         out_file_h.close()
 

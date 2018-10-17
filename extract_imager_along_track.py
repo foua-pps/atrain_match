@@ -96,7 +96,7 @@ CHANNEL_MICRON_DESCRIPTIONS = {'11': ["avhrr channel 4 - 11um",
                                'modis_35': ['MODIS 35'],
                                'modis_36': ['MODIS 36']                     
                                }
-CHANNEL_MICRON_AVHRR_PPS = {'11': 3,
+CHANNEL_MICRON_IMAGER_PPS = {'11': 3,
                             '12': 4,
                             '06': 0,
                             '09': 1,
@@ -171,7 +171,7 @@ def get_mean_data_from_array_nneigh(array, matched):
 
 
 def get_channel_data_from_object(dataObj, chn_des, matched, nodata=-9):
-    """Get the AVHRR/VIIRS channel data on the track
+    """Get the IMAGER/VIIRS channel data on the track
 
     matched: dict of matched indices (row, col)
 
@@ -185,7 +185,7 @@ def get_channel_data_from_object(dataObj, chn_des, matched, nodata=-9):
              if channels[ich].des in CHANNEL_MICRON_DESCRIPTIONS[chn_des]]       
             
     if len(chnum) == 0:
-        #chnum = CHANNEL_MICRON_AVHRR_PPS[chn_des]
+        #chnum = CHANNEL_MICRON_IMAGER_PPS[chn_des]
         logger.debug("Did not find pps channel number for channel "
                      "{:s}".format(chn_des))
         return None, "" 
@@ -245,26 +245,26 @@ def _interpolate_height_and_temperature_from_pressure(imagerObj,
 def insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt):
         npix = row_matched.shape[0]
         """
-        #obt.avhrr.segment_nwgeoheight
-        obt.avhrr.segment_nwp_moist
-        obt.avhrr.segment_nwp_pressure
-        obt.avhrr.segment_nwp_temp
-        obt.avhrr.segment_surfaceLandTemp
-        obt.avhrr.segment_surfaceSeaTemp
-        obt.avhrr.segment_surfaceGeoHeight
-        obt.avhrr.segment_surfaceMoist
-        obt.avhrr.segment_surfacePressure
-        obt.avhrr.segment_fractionOfLand
-        obt.avhrr.segment_meanElevation
-        obt.avhrr.segment_ptro
-        obt.avhrr.segment_ttro
-        #obt.avhrr.segment_t850
-        obt.avhrr.segment_tb11clfree_sea
-        obt.avhrr.segment_tb12clfree_sea
-        obt.avhrr.segment_tb11clfree_land
-        obt.avhrr.segment_tb12clfree_land
-        obt.avhrr.segment_tb11cloudy_surface
-        obt.avhrr.segment_tb12cloudy_surface  
+        #obt.imager.segment_nwgeoheight
+        obt.imager.segment_nwp_moist
+        obt.imager.segment_nwp_pressure
+        obt.imager.segment_nwp_temp
+        obt.imager.segment_surfaceLandTemp
+        obt.imager.segment_surfaceSeaTemp
+        obt.imager.segment_surfaceGeoHeight
+        obt.imager.segment_surfaceMoist
+        obt.imager.segment_surfacePressure
+        obt.imager.segment_fractionOfLand
+        obt.imager.segment_meanElevation
+        obt.imager.segment_ptro
+        obt.imager.segment_ttro
+        #obt.imager.segment_t850
+        obt.imager.segment_tb11clfree_sea
+        obt.imager.segment_tb12clfree_sea
+        obt.imager.segment_tb11clfree_land
+        obt.imager.segment_tb12clfree_land
+        obt.imager.segment_tb11cloudy_surface
+        obt.imager.segment_tb12cloudy_surface  
         """
         def get_segment_row_col_idx(nwp_segments, row_matched, col_matched):
             segment_colidx = nwp_segments['colidx']
@@ -309,7 +309,7 @@ def insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt):
             if data_set in nwp_segments.keys():
                 #'tb11cloudy_surface',
                 #'tb12cloudy_surface ',
-                setattr(obt.avhrr,'segment_nwp_' + data_set, 
+                setattr(obt.imager,'segment_nwp_' + data_set, 
                         np.array([nwp_segments[data_set][seg_row[idx], seg_col[idx]]
                                   for idx in range(npix)]))
             elif 'clfree' in data_set or 'lowcloud' in data_set:
@@ -318,33 +318,33 @@ def insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt):
 
                 
         for data_set in ['moist', 'pressure', 'geoheight', 'temp']:
-            setattr(obt.avhrr,'segment_nwp_' + data_set, 
+            setattr(obt.imager,'segment_nwp_' + data_set, 
                               np.array([nwp_segments[data_set][seg_row[idx], seg_col[idx]]
                                         for idx in range(npix)]))
         #Remove nodata and not used upper part of atmosphere   
-        N = obt.avhrr.segment_nwp_pressure.shape[1]
-        pressure_n_to_keep = np.sum(np.max(obt.avhrr.segment_nwp_pressure,axis=0)>50)
+        N = obt.imager.segment_nwp_pressure.shape[1]
+        pressure_n_to_keep = np.sum(np.max(obt.imager.segment_nwp_pressure,axis=0)>50)
         logger.debug("Not saving upper %d levels of 3-D nwp from segment file"%(N-pressure_n_to_keep))
         logger.debug("Keeping %d lower levels of 3-D nwp from segment file"%(pressure_n_to_keep))
         for data_set in ['segment_nwp_moist', 'segment_nwp_pressure', 
                           'segment_nwp_geoheight', 'segment_nwp_temp']:
-            data = getattr(obt.avhrr, data_set) 
-            setattr(obt.avhrr, data_set, data[:,0:pressure_n_to_keep])
+            data = getattr(obt.imager, data_set) 
+            setattr(obt.imager, data_set, data[:,0:pressure_n_to_keep])
 
         
 
-        #obt.avhrr.segment_nwp_geoheight = np.array([nwp_segments['geoheight'][seg_row[idx], seg_col[idx]]
+        #obt.imager.segment_nwp_geoheight = np.array([nwp_segments['geoheight'][seg_row[idx], seg_col[idx]]
         #                                            for idx in range(npix)])
         #Extract h440: hight at 440 hPa, and h680
-        data = _interpolate_height_and_temperature_from_pressure(obt.avhrr, 440)
-        setattr(obt.avhrr, 'segment_nwp_h440', data)
-        data = _interpolate_height_and_temperature_from_pressure(obt.avhrr, 680)
-        setattr(obt.avhrr, 'segment_nwp_h680', data)
+        data = _interpolate_height_and_temperature_from_pressure(obt.imager, 440)
+        setattr(obt.imager, 'segment_nwp_h440', data)
+        data = _interpolate_height_and_temperature_from_pressure(obt.imager, 680)
+        setattr(obt.imager, 'segment_nwp_h680', data)
         
         return obt
 
 #---------------------------------------------------------------------------
-def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj, 
+def imager_track_from_matched(obt, GeoObj, dataObj, AngObj, 
                              nwp_obj, ctth, ctype, cma, 
                              cpp=None,
                              nwp_segments=None,
@@ -360,23 +360,23 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
         col_matched_nneigh = truth.imager_pixnum_nneigh
         row_col_nneigh = {'row': row_matched_nneigh, 'col': col_matched_nneigh}
 
-    obt.avhrr.latitude = get_data_from_array(GeoObj.latitude, row_col)
-    obt.avhrr.longitude = get_data_from_array(GeoObj.longitude, row_col)
+    obt.imager.latitude = get_data_from_array(GeoObj.latitude, row_col)
+    obt.imager.longitude = get_data_from_array(GeoObj.longitude, row_col)
     if ctype is not None:
-        obt.avhrr.cloudtype = get_data_from_array(ctype.cloudtype, row_col)
+        obt.imager.cloudtype = get_data_from_array(ctype.cloudtype, row_col)
     if cma is not None:
-        obt.avhrr.cloudmask = get_data_from_array(cma.cma_ext, row_col)
+        obt.imager.cloudmask = get_data_from_array(cma.cma_ext, row_col)
         if find_mean_data_for_x_neighbours:
-            obt.avhrr.cfc_mean = get_mean_data_from_array_nneigh(cma.cma_bin, row_col_nneigh)
+            obt.imager.cfc_mean = get_mean_data_from_array_nneigh(cma.cma_bin, row_col_nneigh)
             
     for varname in ['cma_testlist0','cma_testlist1', 'cma_testlist2',
                     'cma_testlist3','cma_testlist4', 'cma_testlist5',
                     'cma_prob', 'cma_aerosolflag', 'cma_dust']:
         if hasattr(cma, varname):
-            setattr(obt.avhrr, varname, 
+            setattr(obt.imager, varname, 
                     get_data_from_array(getattr(cma, varname), row_col))
             if find_mean_data_for_x_neighbours and varname=='cma_prob':
-                obt.avhrr.cma_prob_mean = get_mean_data_from_array_nneigh(cma.cma_prob, row_col_nneigh)   
+                obt.imager.cma_prob_mean = get_mean_data_from_array_nneigh(cma.cma_prob, row_col_nneigh)   
                                 
     #cloud-type flags
     for (variable, outname) in  zip(
@@ -385,7 +385,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
             ['cloudtype_quality', 'cloudtype_conditions', 'cloudtype_status', 
              'cloudtype_qflag', 'cloudtype_pflag'] ):
         if hasattr(ctype, variable) and PPS_VALIDATION:
-            setattr(obt.avhrr, outname, 
+            setattr(obt.imager, outname, 
                     get_data_from_array(getattr(ctype,variable), row_col))
     for nwp_info in ["surftemp", "t500", "t700", "t850", "t950", "ttro", "ciwv",
                      "t900", "t1000", "t800", "t250", "t2m", "ptro", "psur", 
@@ -395,7 +395,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
         if hasattr(nwp_obj, nwp_info):
             data = getattr(nwp_obj, nwp_info)
             if np.size(data)>1:
-                setattr(obt.avhrr, nwp_info, get_data_from_array(data, row_col))
+                setattr(obt.imager, nwp_info, get_data_from_array(data, row_col))
         else:
             logger.debug("missing {:s}".format(nwp_info))
     if len(CTTH_TYPES)>1 and PPS_VALIDATION:        
@@ -407,7 +407,7 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
             for data_set in ["pressure", "temperature", "height"]:
                 data = getattr(ctth_obj, data_set)
                 name = "%s_%s"%(ctth_type.lower(),data_set)
-                setattr(obt.avhrr, name, get_data_from_array(data, row_col))
+                setattr(obt.imager, name, get_data_from_array(data, row_col))
     from pps_prototyping_util import (get_t11t12_texture_data_from_object,
                                       get_coldest_values,get_darkest_values,
                                       get_warmest_values)
@@ -419,28 +419,28 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
                     "text_t37t12_square", "text_t11t12_square", "text_t11t12"]:
         if hasattr(nwp_obj, texture):
             data = getattr(nwp_obj, texture)
-            setattr(obt.avhrr, texture, get_data_from_array(data, row_col))
+            setattr(obt.imager, texture, get_data_from_array(data, row_col))
     if dataObj is not None and SAVE_NEIGHBOUR_INFO:
         neighbour_obj = get_warmest_values(dataObj, row_col)
         for key in ["warmest_r06", "warmest_r09", "warmest_r16"]:
-            setattr(obt.avhrr, key + neighbour_obj.extra_info_sza_corr, 
+            setattr(obt.imager, key + neighbour_obj.extra_info_sza_corr, 
                     getattr(neighbour_obj,key))
         for key in ["warmest_t11", "warmest_t12", "warmest_t37"]:
-            setattr(obt.avhrr, key, 
+            setattr(obt.imager, key, 
                     getattr(neighbour_obj,key))
         neighbour_obj = get_darkest_values(dataObj, row_col)
         for key in ["darkest_r06", "darkest_r09", "darkest_r16"]:
-            setattr(obt.avhrr, key + neighbour_obj.extra_info_sza_corr, 
+            setattr(obt.imager, key + neighbour_obj.extra_info_sza_corr, 
                     getattr(neighbour_obj,key))
         for key in ["darkest_t11", "darkest_t12", "darkest_t37"]:
-            setattr(obt.avhrr, key, 
+            setattr(obt.imager, key, 
                     getattr(neighbour_obj,key))
         neighbour_obj = get_coldest_values(dataObj, row_col)
         for key in ["coldest_r06", "coldest_r09", "coldest_r16"]:
-            setattr(obt.avhrr, key + neighbour_obj.extra_info_sza_corr, 
+            setattr(obt.imager, key + neighbour_obj.extra_info_sza_corr, 
                     getattr(neighbour_obj,key))
         for key in ["coldest_t11", "coldest_t12", "coldest_t37"]:
-            setattr(obt.avhrr, key, 
+            setattr(obt.imager, key, 
                     getattr(neighbour_obj,key))
     #Thresholds:    
     for thr in ["thr_t11ts_inv",
@@ -457,67 +457,67 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
                 "thr_r09"]:
         if hasattr(nwp_obj, thr):
             data = getattr(nwp_obj, thr)
-            setattr(obt.avhrr, thr,  get_data_from_array(data, row_col))
+            setattr(obt.imager, thr,  get_data_from_array(data, row_col))
     for emis in ["emis1", "emis6", "emis8", "emis9"]:
         if hasattr(nwp_obj, emis):
             data = getattr(nwp_obj, emis)
-            setattr(obt.avhrr, emis, get_data_from_array(data, row_col))
+            setattr(obt.imager, emis, get_data_from_array(data, row_col))
     if dataObj is not None:
         temp_data, info = get_channel_data_from_object(dataObj, '06', row_col)
-        setattr(obt.avhrr, "r06micron" + info, temp_data) 
+        setattr(obt.imager, "r06micron" + info, temp_data) 
         # r09   
         temp_data, info =  get_channel_data_from_object(dataObj, '09', row_col)
-        setattr(obt.avhrr, "r09micron" + info, temp_data)
+        setattr(obt.imager, "r09micron" + info, temp_data)
         # bt37   
         temp_data, info =  get_channel_data_from_object(dataObj, '37', row_col)
-        setattr(obt.avhrr, "bt37micron" + info, temp_data)
+        setattr(obt.imager, "bt37micron" + info, temp_data)
         # b11
         temp_data, info =  get_channel_data_from_object(dataObj, '11', row_col)
-        setattr(obt.avhrr, "bt11micron" + info, temp_data)
+        setattr(obt.imager, "bt11micron" + info, temp_data)
         # b12
         temp_data, info =  get_channel_data_from_object(dataObj, '12', row_col)
-        setattr(obt.avhrr, "bt12micron" + info, temp_data)
+        setattr(obt.imager, "bt12micron" + info, temp_data)
         # b86
         temp_data, info =  get_channel_data_from_object(dataObj, '86', row_col)
-        setattr(obt.avhrr, "bt86micron" + info, temp_data)
+        setattr(obt.imager, "bt86micron" + info, temp_data)
         # b16
         temp_data, info =  get_channel_data_from_object(dataObj, '16', row_col)
-        setattr(obt.avhrr, "r16micron" + info, temp_data)
+        setattr(obt.imager, "r16micron" + info, temp_data)
         # b22
         temp_data, info =  get_channel_data_from_object(dataObj, '22', row_col)
-        setattr(obt.avhrr, "r22micron" + info, temp_data)
+        setattr(obt.imager, "r22micron" + info, temp_data)
         #b13
         temp_data, info =  get_channel_data_from_object(dataObj, '13', row_col)
-        setattr(obt.avhrr, "r13micron" + info, temp_data)
+        setattr(obt.imager, "r13micron" + info, temp_data)
         if IMAGER_INSTRUMENT.lower() in ['modis']:
             for modis_channel in CURRENTLY_UNUSED_MODIS_CHANNELS:
                 modis_track, info = get_channel_data_from_object(dataObj, 
                                                                  modis_channel, row_col)
-                setattr(obt.avhrr, modis_channel + info, modis_track)
+                setattr(obt.imager, modis_channel + info, modis_track)
         if IMAGER_INSTRUMENT.lower() in ['seviri']:
             for seviri_channel in CURRENTLY_UNUSED_SEVIRI_CHANNELS:
                 seviri_track, info = get_channel_data_from_object(dataObj, 
                                                                   seviri_channel, row_col)
-                setattr(obt.avhrr, seviri_channel + info, seviri_track)
+                setattr(obt.imager, seviri_channel + info, seviri_track)
     #Angles, scale with gain and intercept when reading
     for angle in ['satz', 'sunz', 'azidiff', 'sunazimuth', 'satazimuth']:
         data = getattr(AngObj, angle)
         if data is not None:
-            setattr(obt.avhrr, angle,  get_data_from_array(data.data, row_col))
+            setattr(obt.imager, angle,  get_data_from_array(data.data, row_col))
     if ctth is None:
         logger.info("Not extracting ctth")
     else:
         logger.debug("Extracting ctth along track ")
         if hasattr(ctth, 'ctth_statusflag') and PPS_VALIDATION:
-            obt.avhrr.ctth_status =  get_data_from_array(ctth.ctth_statusflag, row_col)
+            obt.imager.ctth_status =  get_data_from_array(ctth.ctth_statusflag, row_col)
         for ctth_product in ['height', 'temperature', 'pressure', 'height_corr']:
             data = getattr(ctth, ctth_product)
             if data is None:
                 continue
-            setattr(obt.avhrr, "ctth_" + ctth_product, get_data_from_array(data, row_col)) 
+            setattr(obt.imager, "ctth_" + ctth_product, get_data_from_array(data, row_col)) 
         if (PPS_VALIDATION and hasattr(ctth, 'processingflag')):
             is_opaque = np.bitwise_and(np.right_shift(ctth.processingflag, 2), 1)
-            obt.avhrr.ctth_opaque = get_data_from_array(is_opaque, row_col)
+            obt.imager.ctth_opaque = get_data_from_array(is_opaque, row_col)
     #NWP on ctth resolution        
     if nwp_segments is not None:
         obt = insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt)
@@ -527,17 +527,17 @@ def avhrr_track_from_matched(obt, GeoObj, dataObj, AngObj,
         for data_set_name in cpp.__dict__.keys():
             data = getattr(cpp, data_set_name)
             if data is not None:
-                setattr(obt.avhrr, data_set_name,  
+                setattr(obt.imager, data_set_name,  
                         get_data_from_array_nneigh(data, row_col_nneigh))
         for nwp_info in ["landuse", "fractionofland"]:
             data = getattr(nwp_obj, nwp_info)
-            setattr(obt.avhrr, nwp_info, get_data_from_array_nneigh(data, row_col_nneigh))
+            setattr(obt.imager, nwp_info, get_data_from_array_nneigh(data, row_col_nneigh))
     else:
         logger.debug("Extracting cpp along track ")
         for data_set_name in cpp.__dict__.keys():
             data = getattr(cpp, data_set_name)
             if data is not None:
-                setattr(obt.avhrr, data_set_name,  
+                setattr(obt.imager, data_set_name,  
                         get_data_from_array(data, row_col))
 
     return obt

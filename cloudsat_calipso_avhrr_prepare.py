@@ -1,5 +1,5 @@
-# Program cloudsat_calipso_avhrr_prepare.py
-# python cloudsat_calipso_avhrr_prepare.py 
+# Program cloudsat_calipso_imager_prepare.py
+# python cloudsat_calipso_imager_prepare.py 
 import numpy as np
 from config import OPTICAL_DETECTION_LIMIT, OPTICAL_LIMIT_CLOUD_TOP, NODATA
 import logging

@@ -2,8 +2,8 @@ import os
 from glob import glob
 import numpy as np
 from scipy import ndimage
-from matchobject_io import (readCaliopAvhrrMatchObj,
-                            CalipsoAvhrrTrackObject)
+from matchobject_io import (readCaliopImagerMatchObj,
+                            CalipsoImagerTrackObject)
 from get_flag_info import get_pixels_where_test_is_passed
 
 def print_common_stats(caObj, use, name_dict):
@@ -36,10 +36,10 @@ def print_common_stats(caObj, use, name_dict):
 
 def test_1(caObj, isCloudy, isClear):
     test_is_on = get_pixels_where_test_is_passed(
-        caObj.avhrr.all_arrays['cma_testlist1'], bit_nr=5)
+        caObj.imager.all_arrays['cma_testlist1'], bit_nr=5)
     import matplotlib.pyplot as plt
-    feature1 = caObj.avhrr.all_arrays['text_t11t12']
-    feature2 = caObj.avhrr.all_arrays['bt11micron']
+    feature1 = caObj.imager.all_arrays['text_t11t12']
+    feature2 = caObj.imager.all_arrays['bt11micron']
     bad = np.logical_and(test_is_on, isClear)
     good = np.logical_and(test_is_on, isCloudy)
     fig = plt.figure()
@@ -50,10 +50,10 @@ def test_1(caObj, isCloudy, isClear):
 
 def test_2(caObj, isCloudy, isClear):
     test_is_on = get_pixels_where_test_is_passed(
-        caObj.avhrr.all_arrays['cma_testlist1'], bit_nr=11)
+        caObj.imager.all_arrays['cma_testlist1'], bit_nr=11)
     import matplotlib.pyplot as plt
-    feature1 = caObj.avhrr.all_arrays['bt11micron'] - caObj.avhrr.all_arrays['bt37micron']
-    feature2 = caObj.avhrr.all_arrays['bt37micron']
+    feature1 = caObj.imager.all_arrays['bt11micron'] - caObj.imager.all_arrays['bt37micron']
+    feature2 = caObj.imager.all_arrays['bt37micron']
     bad = np.logical_and(test_is_on, isClear)
     good = np.logical_and(test_is_on, isCloudy)
     fig = plt.figure()
@@ -64,10 +64,10 @@ def test_2(caObj, isCloudy, isClear):
 
 def test_3(caObj, isCloudy, isClear):
     test_is_on = get_pixels_where_test_is_passed(
-        caObj.avhrr.all_arrays['cma_testlist1'], bit_nr=12)
+        caObj.imager.all_arrays['cma_testlist1'], bit_nr=12)
     import matplotlib.pyplot as plt
-    feature1 = caObj.avhrr.all_arrays['text_t11t12']
-    feature2 = caObj.avhrr.all_arrays['bt11micron']
+    feature1 = caObj.imager.all_arrays['text_t11t12']
+    feature2 = caObj.imager.all_arrays['bt11micron']
     bad = np.logical_and(test_is_on, isClear)
     good = np.logical_and(test_is_on, isCloudy)
     fig = plt.figure()
@@ -78,10 +78,10 @@ def test_3(caObj, isCloudy, isClear):
 
 def test_4(caObj, isCloudy, isClear):
     test_is_on = get_pixels_where_test_is_passed(
-        caObj.avhrr.all_arrays['cma_testlist2'], bit_nr=4)
+        caObj.imager.all_arrays['cma_testlist2'], bit_nr=4)
     import matplotlib.pyplot as plt
-    feature1 = caObj.avhrr.all_arrays['bt11micron'] - caObj.avhrr.all_arrays['bt12micron']
-    feature2 = caObj.avhrr.all_arrays['surftemp']
+    feature1 = caObj.imager.all_arrays['bt11micron'] - caObj.imager.all_arrays['bt12micron']
+    feature2 = caObj.imager.all_arrays['surftemp']
     bad = np.logical_and(test_is_on, isClear)
     good = np.logical_and(test_is_on, isCloudy)
     fig = plt.figure()
@@ -115,9 +115,9 @@ for line in TEST_NAMEFILE:
         name_dict[var][int(bit)] =  name
 
     
-caObjPPS = CalipsoAvhrrTrackObject()
+caObjPPS = CalipsoImagerTrackObject()
 for filename in files:
-    caObjPPS +=  readCaliopAvhrrMatchObj(filename) 
+    caObjPPS +=  readCaliopImagerMatchObj(filename) 
     print "Scene %s"%(os.path.basename(filename))
-    use = caObjPPS.avhrr.all_arrays['bt11micron']>-9
+    use = caObjPPS.imager.all_arrays['bt11micron']>-9
 print_common_stats(caObjPPS, use, name_dict)

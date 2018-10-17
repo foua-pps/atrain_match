@@ -2,9 +2,9 @@
 import numpy as np
 from glob import glob
 import os
-from matchobject_io import (readCloudsatAvhrrMatchObj,
-                            writeCloudsatAvhrrMatchObj,
-                            CloudsatAvhrrTrackObject)
+from matchobject_io import (readCloudsatImagerMatchObj,
+                            writeCloudsatImagerMatchObj,
+                            CloudsatImagerTrackObject)
 
 
 ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/global_modis_14th_created20161108/Reshaped_Files/eos2/1km/%s/%s/*/*.h5"
@@ -30,11 +30,11 @@ ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_MODIS_MAY_AERO
 OUT_DIR = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_MODIS_MAY_AEROSOL_SMOKE/Reshaped_Files/merged/"
 
 BASE_DIR = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_MODIS_NOVEMBER_nnMERSI2"
-BASE_DIR = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_MODIS_NOVEMBER_nnAVHRR_20170315"
+BASE_DIR = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_MODIS_NOVEMBER_nnIMAGER_20170315"
 BASE_DIR = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_MODIS_NOVEMBER_nnVIIRS_20170315"
 
 BASE_DIR = "/home/a001865/DATA_MISC/reshaped_files/global_modis_14th_created20170330"
-#BASE_DIR = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_MODIS_NOVEMBER_nnAVHRR_with_gac"
+#BASE_DIR = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_MODIS_NOVEMBER_nnIMAGER_with_gac"
 ROOT_DIR = BASE_DIR + "/Reshaped_Files/eos2/1km/2010/%s/*/*cloudsat*.h5"
 OUT_DIR_TEMPLATE = BASE_DIR + "/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/"
 outfile_template = "1km_%s_eos2_2010%s14_0000_00000_cloudsat-GEOPROF_modis_match.h5"
@@ -49,8 +49,8 @@ outfile_template = "1km_%s_eos2_2010%s01_0000_00000_cloudsat-GEOPROF_modis_match
 #OUT_DIR_TEMPLATE = BASE_DIR + "/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/"
 #outfile_template = "1km_%s_eos2_2010%s14_0000_00000_cloudsat-GEOPROF_modis_match.h5"
 
-clsatObj_night = CloudsatAvhrrTrackObject()
-clsatObj_day = CloudsatAvhrrTrackObject()
+clsatObj_night = CloudsatImagerTrackObject()
+clsatObj_day = CloudsatImagerTrackObject()
 
 for year in ["2010"]:#2012/02","2012/05", "2012/08", "2013/07", "2014/02", "2014/04", "2014/09"]:
     #for month in ["01","02","03","04","05","06","07","08","09","10","11","12"]:
@@ -67,8 +67,8 @@ for year in ["2010"]:#2012/02","2012/05", "2012/08", "2013/07", "2014/02", "2014
         num_d = 0
         for filename in files:
             print  os.path.basename(filename)
-            clsatObj_new=readCloudsatAvhrrMatchObj(filename) 
-            if np.nanmax(clsatObj_new.avhrr.all_arrays['sunz']>=90):
+            clsatObj_new=readCloudsatImagerMatchObj(filename) 
+            if np.nanmax(clsatObj_new.imager.all_arrays['sunz']>=90):
                 num_n +=1
                 print "reading",os.path.basename(filename)
                 clsatObj_night = clsatObj_night + clsatObj_new
@@ -79,12 +79,12 @@ for year in ["2010"]:#2012/02","2012/05", "2012/08", "2013/07", "2014/02", "2014
         if num_n>0:
             filename_night = outfile_template%("night",month)
             outfile = os.path.join(OUT_DIR, filename_night)
-            writeCloudsatAvhrrMatchObj(
+            writeCloudsatImagerMatchObj(
                   outfile, clsatObj_night)   
-            clsatObj_night = CloudsatAvhrrTrackObject()    
+            clsatObj_night = CloudsatImagerTrackObject()    
         if num_d>0:
             filename_day = outfile_template%("day",month)
             outfile = os.path.join(OUT_DIR, filename_day)
-            writeCloudsatAvhrrMatchObj(
+            writeCloudsatImagerMatchObj(
                 outfile, clsatObj_day)   
-            clsatObj_day = CloudsatAvhrrTrackObject()   
+            clsatObj_day = CloudsatImagerTrackObject()   

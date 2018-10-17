@@ -4,8 +4,8 @@
 import os
 from glob import glob
 import numpy as np
-from matchobject_io import (readCaliopAvhrrMatchObj,
-                            CalipsoAvhrrTrackObject)
+from matchobject_io import (readCaliopImagerMatchObj,
+                            CalipsoImagerTrackObject)
 
 import matplotlib.pyplot as plt
 from get_flag_info import get_calipso_clouds_of_type_i
@@ -43,7 +43,7 @@ def plot_ct_table2(caObj):
         #if type_i ==1:
         #    continue
         is_type_i = get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=type_i)
-        pps_ctype = caObj.avhrr.all_arrays['cloudtype']
+        pps_ctype = caObj.imager.all_arrays['cloudtype']
         use = np.logical_and(pps_ctype>4,pps_ctype<23)
         is_type_i =np.logical_and(is_type_i, use)
         N = np.sum(is_type_i)
@@ -67,7 +67,7 @@ def plot_ct_table4(caObj, use_in=None):
         #if type_i ==1:
         #    continue
         is_type_i = get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=type_i)
-        pps_ctype = caObj.avhrr.all_arrays['cloudtype']
+        pps_ctype = caObj.imager.all_arrays['cloudtype']
         use = np.logical_and(pps_ctype>0,pps_ctype<23)
         if use_in is not None:
             use = np.logical_and(use, use_in)
@@ -84,7 +84,7 @@ def plot_ct_table5(caObj, use_in=None):
 
     from get_flag_info import get_calipso_clouds_of_type_i
     fig = plt.figure(figsize = (30,64))
-    pps_ctype = caObj.avhrr.all_arrays['cloudtype']
+    pps_ctype = caObj.imager.all_arrays['cloudtype']
     use = np.logical_and(pps_ctype>0,pps_ctype<23)
     use = np.logical_and(use, use_in)
     for type_i in [0,2,3,4,5,6,7]:
@@ -103,8 +103,8 @@ def plot_ct_table5(caObj, use_in=None):
 
 
 def table_21_do_for_atbd(caObj):
-    cloudtype_conditions = caObj.avhrr.all_arrays[ 'cloudtype_conditions']
-    cloudtype_status = caObj.avhrr.all_arrays[ 'cloudtype_status']
+    cloudtype_conditions = caObj.imager.all_arrays[ 'cloudtype_conditions']
+    cloudtype_status = caObj.imager.all_arrays[ 'cloudtype_status']
     (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag) =     get_day_night_twilight_info_pps2014(cloudtype_conditions)
     low_clouds = get_calipso_low_clouds(caObj)
     high_clouds_tp = get_calipso_clouds_of_type_i(caObj, 6)
@@ -115,7 +115,7 @@ def table_21_do_for_atbd(caObj):
     cirrus_clouds = get_calipso_medium_and_high_clouds_tp(caObj)
     caliop_ok = np.logical_or(np.logical_or(cirrus_clouds, low_clouds),
                               np.logical_or(high_clouds,medium_clouds))
-    pps_ctype = caObj.avhrr.all_arrays['cloudtype']
+    pps_ctype = caObj.imager.all_arrays['cloudtype']
     use = np.logical_and(pps_ctype>4,pps_ctype<23)
     use = np.logical_and(use, np.logical_and(caliop_ok,caObj.calipso.all_arrays['cloud_fraction']>0.99))
     pps_very_low = [pps_ctype_i in [5] for pps_ctype_i in pps_ctype]
@@ -211,7 +211,7 @@ if __name__ == "__main__":
     isGAC_v2014_morning_sat = False
     isGAC_v2014 = True
 
-    #ATRAIN_RESULTS_GAC_nnavhrr_20161202
+    #ATRAIN_RESULTS_GAC_nnimager_20161202
     ROOT_DIR_GAC_nn = ("/home/a001865/DATA_MISC/reshaped_files_jenkins_gac/"
                        "ATRAIN_RESULTS_GAC_fine_snow2/Reshaped_Files/noaa18/")
     ROOT_DIR_GAC_nn = ("/home/a001865/DATA_MISC/reshaped_files_jenkins_gac/"
@@ -246,10 +246,10 @@ if __name__ == "__main__":
     #files = glob(ROOT_DIR_v2018 + "*h5")
    
 
-    caObj = CalipsoAvhrrTrackObject()
+    caObj = CalipsoImagerTrackObject()
     for filename in files:
         print  os.path.basename(filename)
-        caObj +=readCaliopAvhrrMatchObj(filename, var_to_skip='segment')
+        caObj +=readCaliopImagerMatchObj(filename, var_to_skip='segment')
 
 
     plot_ct_table4(caObj)

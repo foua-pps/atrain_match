@@ -1,5 +1,5 @@
 """
-Plotting functions for AMSR-E AVHRR matching / validation
+Plotting functions for AMSR-E IMAGER matching / validation
 
 """
 
@@ -29,12 +29,12 @@ def imshow_lwps(amsr_lwp, cpp_lwp, time_diff, sea, title=None, lwp_max=None):
     #Comment: utility_functions is a separate package, created by J.Malm,
     #but which we can not find. If we want to run this part of the code, it
     #might be changed to something from matplotlib instead.
-    #By calling amsr_avhrr_match without '-p', this part of the code is not
+    #By calling amsr_imager_match without '-p', this part of the code is not
     #executed.
     #Sara Hornquist 2015-03-12
 
     
-    # Use average of all AVHRR pixels in AMSR footprint
+    # Use average of all IMAGER pixels in AMSR footprint
     if len(cpp_lwp) == 3:
         cpp_lwp = cpp_lwp.mean(axis=-1)
     

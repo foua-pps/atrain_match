@@ -2,9 +2,9 @@
 import numpy as np
 from glob import glob
 import os
-from matchobject_io import (readAmsrAvhrrMatchObj,
-                            writeAmsrAvhrrMatchObj,
-                            AmsrAvhrrTrackObject)
+from matchobject_io import (readAmsrImagerMatchObj,
+                            writeAmsrImagerMatchObj,
+                            AmsrImagerTrackObject)
 
 
 instrument = "gac"
@@ -23,7 +23,7 @@ outfile_template = "5km_{satellite}_00000000_0000_00000_{truth}_{instrument}_mat
 print ROOT_DIR
 
 
-aObj = AmsrAvhrrTrackObject()
+aObj = AmsrImagerTrackObject()
 
 for year in [2010]:#2012/02","2012/05", "2012/08", "2013/07", "2014/02", "2014/04", "2014/09"]:
     #for month in ["01","02","03","04","05","06","07","08","09","10","11","12"]:
@@ -41,41 +41,41 @@ for year in [2010]:#2012/02","2012/05", "2012/08", "2013/07", "2014/02", "2014/0
             for filename in files:
                 print  os.path.basename(filename)
                 try:
-                    aObj_new=readAmsrAvhrrMatchObj(filename) 
+                    aObj_new=readAmsrImagerMatchObj(filename) 
 
                 except:
                     print "problem with", os.path.basename(filename)
                     continue
 
-                if aObj_new.avhrr.all_arrays["cpp_lwp"] is None:
+                if aObj_new.imager.all_arrays["cpp_lwp"] is None:
                     print "problem with lwp is None", os.path.basename(filename)
                     continue
                 
-                from amsr_avhrr.validate_lwp_util import get_lwp_diff_inner
+                from amsr_imager.validate_lwp_util import get_lwp_diff_inner
                 diff, pps_lwp, amsr_lwp, selection = get_lwp_diff_inner(aObj_new, True)
 
       
                 if aObj.diff_sec_1970 is not None and len(diff)>0:
                     aObj.diff_sec_1970 = np.concatenate([aObj.diff_sec_1970, aObj_new.diff_sec_1970[selection]], 0)
-                    aObj.avhrr.cpp_lwp =  np.concatenate([aObj.avhrr.cpp_lwp, pps_lwp.ravel()], 0)
+                    aObj.imager.cpp_lwp =  np.concatenate([aObj.imager.cpp_lwp, pps_lwp.ravel()], 0)
                     aObj.amsr.lwp = np.concatenate([aObj.amsr.lwp, np.array(amsr_lwp).ravel()],0)
                     for name in ["satz", "sunz", "longitude", "latitude"]:
-                        aObj.avhrr.all_arrays[name] = np.concatenate([aObj.avhrr.all_arrays[name], 
-                                                                      aObj_new.avhrr.all_arrays[name][selection]],
+                        aObj.imager.all_arrays[name] = np.concatenate([aObj.imager.all_arrays[name], 
+                                                                      aObj_new.imager.all_arrays[name][selection]],
                                                                      0)                                                   
                 elif len(diff)>0:
                     aObj.diff_sec_1970 = aObj_new.diff_sec_1970[selection]
-                    aObj.avhrr.cpp_lwp =  pps_lwp.ravel()
+                    aObj.imager.cpp_lwp =  pps_lwp.ravel()
                     aObj.amsr.lwp = np.array(amsr_lwp).ravel()
                     for name in ["satz", "sunz", "longitude", "latitude"]:
-                        aObj.avhrr.all_arrays[name] = aObj_new.avhrr.all_arrays[name][selection]
+                        aObj.imager.all_arrays[name] = aObj_new.imager.all_arrays[name][selection]
 
 
                 num_n +=1
             if num_n>0:
                 filename_night = outfile_template
                 outfile = os.path.join(OUT_DIR, filename_night)
-                writeAmsrAvhrrMatchObj(
-                    outfile, aObj, avhrr_obj_name = 'pps')   
-                aObj = AmsrAvhrrTrackObject()    
+                writeAmsrImagerMatchObj(
+                    outfile, aObj, imager_obj_name = 'pps')   
+                aObj = AmsrImagerTrackObject()    
 

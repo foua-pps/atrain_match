@@ -104,7 +104,7 @@ def get_calipso_phase_inner(features, qual_min=CALIPSO_QUAL_VALUES['medium'],
 
 
 
-    #from amsr_avhrr.plotting import distribution_map
+    #from amsr_imager.plotting import distribution_map
     #fig = distribution_map(lon, lat)
     #fig.suptitle("Distribution of valid pixels in cloud phase validation\n" +
     #              "Number of Pixels: %d" % lon.size)

@@ -112,7 +112,7 @@ def parse_scenesfile_v2014(filename):
 
 def parse_scenesfile_cci(filename):
     """
-    Parse cci file: 20080613002200-ESACCI-L2_CLOUD-CLD_PRODUCTS-AVHRRGAC-NOAA18-fv1.0.nc
+    Parse cci file: 20080613002200-ESACCI-L2_CLOUD-CLD_PRODUCTS-IMAGERGAC-NOAA18-fv1.0.nc
     """
     from datetime import datetime
     import re
@@ -120,7 +120,7 @@ def parse_scenesfile_cci(filename):
     if not filename:
         raise ValueError("No file %r" % filename)
     match = re.match(
-        r"(\d\d\d\d\d\d\d\d)(\d\d\d\d).+AVHRRGAC-([^-]+)-", filename)
+        r"(\d\d\d\d\d\d\d\d)(\d\d\d\d).+IMAGERGAC-([^-]+)-", filename)
     if not match:
         raise ValueError("Couldn't parse cci file %r" % filename)
     date_s, time_s, satname = match.groups()
@@ -148,7 +148,7 @@ def parse_scenesfile_maia(filename):
 
 def parse_scenesfile_reshaped(filename):
     """
-    Parse maia file:  #5km_noaa18_20090328_1855_99999_caliop_avhrr_match.h5
+    Parse maia file:  #5km_noaa18_20090328_1855_99999_caliop_imager_match.h5
     """
     from datetime import datetime
     import re
@@ -189,10 +189,10 @@ def do_some_logging(retv, cObj):
               time.gmtime(cObj.sec_1970[-1]))
     logger.debug("Maximum and minimum time differences in sec (imager-reference): %d %d",
           np.max(retv.diff_sec_1970),np.min(retv.diff_sec_1970))
-    logger.debug("AVHRR observation time of first imager-reference match: %s",
-          time.gmtime(retv.avhrr.sec_1970[0]))
-    logger.debug("AVHRR observation time of last imager-reference match: %s",
-          time.gmtime(retv.avhrr.sec_1970[-1]))
+    logger.debug("IMAGER observation time of first imager-reference match: %s",
+          time.gmtime(retv.imager.sec_1970[0]))
+    logger.debug("IMAGER observation time of last imager-reference match: %s",
+          time.gmtime(retv.imager.sec_1970[-1]))
 
     
 if __name__ == "__main__":

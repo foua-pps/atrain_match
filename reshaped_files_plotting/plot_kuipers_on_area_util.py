@@ -65,24 +65,24 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
             self.get_ctth_bias_type(caObj=caObj, calipso_cloudtype=cc_type)
 
     def set_false_and_missed_cloudy_and_clear(self, caObj, PROCES_FOR_ART):
-        lat = caObj.avhrr.all_arrays['latitude']
-        lon = caObj.avhrr.all_arrays['longitude']
-        if caObj.avhrr.all_arrays['cloudmask'] is not None:
-            isCloudyPPS = np.logical_or(caObj.avhrr.all_arrays['cloudmask']==1,
-                                        caObj.avhrr.all_arrays['cloudmask']==2) 
-            isClearPPS = np.logical_or(caObj.avhrr.all_arrays['cloudmask']==0,
-                                       caObj.avhrr.all_arrays['cloudmask']==3)
+        lat = caObj.imager.all_arrays['latitude']
+        lon = caObj.imager.all_arrays['longitude']
+        if caObj.imager.all_arrays['cloudmask'] is not None:
+            isCloudyPPS = np.logical_or(caObj.imager.all_arrays['cloudmask']==1,
+                                        caObj.imager.all_arrays['cloudmask']==2) 
+            isClearPPS = np.logical_or(caObj.imager.all_arrays['cloudmask']==0,
+                                       caObj.imager.all_arrays['cloudmask']==3)
         else:
-            isCloudyPPS = np.logical_and(caObj.avhrr.all_arrays['cloudtype']>4,
-                                         caObj.avhrr.all_arrays['cloudtype']<21) 
-            isClearPPS = np.logical_and(caObj.avhrr.all_arrays['cloudtype']>0,
-                                        caObj.avhrr.all_arrays['cloudtype']<5)
+            isCloudyPPS = np.logical_and(caObj.imager.all_arrays['cloudtype']>4,
+                                         caObj.imager.all_arrays['cloudtype']<21) 
+            isClearPPS = np.logical_and(caObj.imager.all_arrays['cloudtype']>0,
+                                        caObj.imager.all_arrays['cloudtype']<5)
 
 
-        isCloudyPPS = np.logical_and(caObj.avhrr.all_arrays['cloudtype']>4,
-                                     caObj.avhrr.all_arrays['cloudtype']<21) 
-        isClearPPS = np.logical_and(caObj.avhrr.all_arrays['cloudtype']>0,
-                                    caObj.avhrr.all_arrays['cloudtype']<5)
+        isCloudyPPS = np.logical_and(caObj.imager.all_arrays['cloudtype']>4,
+                                     caObj.imager.all_arrays['cloudtype']<21) 
+        isClearPPS = np.logical_and(caObj.imager.all_arrays['cloudtype']>0,
+                                    caObj.imager.all_arrays['cloudtype']<5)
         nlay =np.where(caObj.calipso.all_arrays['number_layers_found']>0,1,0)
         meancl=ndimage.filters.uniform_filter1d(nlay*1.0, size=3)
         if self.cc_method == 'BASIC' and self.isGAC:
@@ -123,9 +123,9 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
                                         np.logical_and(lon>=-180, lat<=180))
         isCloudyPPS = np.logical_and(isCloudyPPS,  use_ok_lat_lon)
         isClearPPS =  np.logical_and(isClearPPS,  use_ok_lat_lon)
-        sunz = caObj.avhrr.all_arrays['sunz']
+        sunz = caObj.imager.all_arrays['sunz']
         if self.filter_method == "satz":
-            satz = caObj.avhrr.all_arrays['satz']
+            satz = caObj.imager.all_arrays['satz']
             isCloudyPPS = np.logical_and(isCloudyPPS,  satz<=30)
             isClearPPS =  np.logical_and(isClearPPS,  satz<=30) 
         if self.DNT in ["day"]:
@@ -148,67 +148,67 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         use = np.logical_or(np.logical_or(detected_clouds, detected_clear),
                             np.logical_or(false_clouds, undetected_clouds))
         detected_height = np.logical_and(detected_clouds,
-                                         caObj.avhrr.all_arrays['ctth_height']>-9)
+                                         caObj.imager.all_arrays['ctth_height']>-9)
         detected_height = np.logical_and(detected_height,
-                                         caObj.avhrr.all_arrays['ctth_height']<45000)
+                                         caObj.imager.all_arrays['ctth_height']<45000)
 
         #settings for article eos_modis:
         if PROCES_FOR_ART:
-            detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['warmest_t12']>-9)
-            detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['coldest_t12']>-9)
-            detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['psur']>-9) 
-            detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['surftemp']>-9)
-            detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['t950']>-9)
-            detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['t850']>-9)
-            detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['t700']>-9)
-            detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['t500']>-9)
-            detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['t250']>-9)        
-            detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['text_t11']>-9) #without this 1793146 pixels
-            detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['text_t11t12']>-9) 
-            detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['warmest_t11']>-9)
-            detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['coldest_t11']>-9)                                             
-            detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['modis_27']>-1)
-            detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['modis_28']>-1)
-            detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['modis_33']>-1)
-            detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['text_t37']>-9)
-            detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['warmest_t37']>-9)
-            detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['coldest_t37']>-9)
-            detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['bt11micron']>-1)
-            detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['bt12micron']>-1)
-            detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['bt37micron']>-1)
-            detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['bt86micron']>-1)
-            detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays['ciwv']>-9)
-            detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays["ctthold_height"]>-9) #only included in art
-            detected_height = np.logical_and(detected_height, caObj.avhrr.all_arrays["ctthnnant_height"]>-9) #only included in art
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['warmest_t12']>-9)
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['coldest_t12']>-9)
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['psur']>-9) 
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['surftemp']>-9)
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['t950']>-9)
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['t850']>-9)
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['t700']>-9)
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['t500']>-9)
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['t250']>-9)        
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['text_t11']>-9) #without this 1793146 pixels
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['text_t11t12']>-9) 
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['warmest_t11']>-9)
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['coldest_t11']>-9)                                             
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['modis_27']>-1)
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['modis_28']>-1)
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['modis_33']>-1)
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['text_t37']>-9)
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['warmest_t37']>-9)
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['coldest_t37']>-9)
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['bt11micron']>-1)
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['bt12micron']>-1)
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['bt37micron']>-1)
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['bt86micron']>-1)
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['ciwv']>-9)
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays["ctthold_height"]>-9) #only included in art
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays["ctthnnant_height"]>-9) #only included in art
             detected_height = np.logical_and(detected_height, caObj.modis.all_arrays["height"]>-9)
 
 
         detected_height = np.logical_and(detected_height,
                                          caObj.calipso.all_arrays['layer_top_altitude'][:,0]>-1)
         detected_temperature = np.logical_and(detected_clouds,
-                                       caObj.avhrr.all_arrays['ctth_temperature']>-9)
+                                       caObj.imager.all_arrays['ctth_temperature']>-9)
 
         self.false_clouds = false_clouds[use]
         self.detected_clouds = detected_clouds[use]
         self.undetected_clouds = undetected_clouds[use]
         self.detected_clear = detected_clear[use]
-        self.latitude = caObj.avhrr.latitude[use]
-        self.longitude = caObj.avhrr.longitude[use] 
+        self.latitude = caObj.imager.latitude[use]
+        self.longitude = caObj.imager.longitude[use] 
         self.use = use
         self.detected_height = detected_height[use]
         self.detected_temperature = detected_temperature[use]
 
     def set_r13_extratest(self,caObj):
-        if np.size(caObj.avhrr.all_arrays['r13micron'])==1 and caObj.avhrr.all_arrays['r13micron'] is None:
+        if np.size(caObj.imager.all_arrays['r13micron'])==1 and caObj.imager.all_arrays['r13micron'] is None:
             self.new_false_clouds = np.zeros(self.false_clouds.shape)
             self.new_detected_clouds = np.zeros(self.false_clouds.shape)  
             return
-        r13 = caObj.avhrr.all_arrays['r13micron']
-        sunz =  caObj.avhrr.all_arrays['sunz']
+        r13 = caObj.imager.all_arrays['r13micron']
+        sunz =  caObj.imager.all_arrays['sunz']
         sunz_cos = sunz.copy()
         sunz_cos[sunz>87] =87    
         r13[sunz<90] = r13[sunz<90]/np.cos(np.radians(sunz_cos[sunz<90]))
-        isCloud_r13 = np.logical_and(r13>2.0, caObj.avhrr.all_arrays['ciwv']>3)
+        isCloud_r13 = np.logical_and(r13>2.0, caObj.imager.all_arrays['ciwv']>3)
         new_detected_clouds = np.logical_and(self.detected_clouds,
                                              isCloud_r13[self.use])
         new_false_clouds = np.logical_and(self.detected_clear,
@@ -217,24 +217,24 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         self.new_detected_clouds = new_detected_clouds
 
     def get_thr_offset(self, caObj):
-        if np.size(caObj.avhrr.all_arrays['surftemp'])==1 and caObj.avhrr.all_arrays['surftemp'] is None:
+        if np.size(caObj.imager.all_arrays['surftemp'])==1 and caObj.imager.all_arrays['surftemp'] is None:
             self.t11ts_offset = np.zeros(self.false_clouds.shape)
             self.t11t12_offset = np.zeros(self.false_clouds.shape)
             self.t11t37_offset = np.zeros(self.false_clouds.shape)
             self.t37t12_offset = np.zeros(self.false_clouds.shape)
             return
-        t11ts_offset = (caObj.avhrr.all_arrays['bt11micron'] - 
-                        caObj.avhrr.all_arrays['surftemp'] - 
-                        caObj.avhrr.all_arrays['thr_t11ts_inv'])
-        t11t12_offset = (caObj.avhrr.all_arrays['bt11micron'] - 
-                        caObj.avhrr.all_arrays['bt12micron'] - 
-                        caObj.avhrr.all_arrays['thr_t11t12'])
-        t37t12_offset = (caObj.avhrr.all_arrays['bt37micron'] - 
-                        caObj.avhrr.all_arrays['bt12micron'] - 
-                        caObj.avhrr.all_arrays['thr_t37t12'])
-        t11t37_offset = (caObj.avhrr.all_arrays['bt11micron'] - 
-                        caObj.avhrr.all_arrays['bt37micron'] - 
-                        caObj.avhrr.all_arrays['thr_t11t37'])
+        t11ts_offset = (caObj.imager.all_arrays['bt11micron'] - 
+                        caObj.imager.all_arrays['surftemp'] - 
+                        caObj.imager.all_arrays['thr_t11ts_inv'])
+        t11t12_offset = (caObj.imager.all_arrays['bt11micron'] - 
+                        caObj.imager.all_arrays['bt12micron'] - 
+                        caObj.imager.all_arrays['thr_t11t12'])
+        t37t12_offset = (caObj.imager.all_arrays['bt37micron'] - 
+                        caObj.imager.all_arrays['bt12micron'] - 
+                        caObj.imager.all_arrays['thr_t37t12'])
+        t11t37_offset = (caObj.imager.all_arrays['bt11micron'] - 
+                        caObj.imager.all_arrays['bt37micron'] - 
+                        caObj.imager.all_arrays['thr_t11t37'])
         t11ts_offset = t11ts_offset[self.use]
         t11ts_offset[self.detected_clouds] = 99999
         t11ts_offset[self.undetected_clouds] = 99999
@@ -252,13 +252,13 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         t11t37_offset[self.undetected_clouds] = -99999
         self.t11t37_offset = t11t37_offset
     def get_lapse_rate(self, caObj):
-        if np.size(caObj.avhrr.all_arrays['surftemp'])==1 and caObj.avhrr.all_arrays['surftemp'] is None:
+        if np.size(caObj.imager.all_arrays['surftemp'])==1 and caObj.imager.all_arrays['surftemp'] is None:
             self.lapse_rate = np.zeros(self.false_clouds.shape)
             return
         from get_flag_info import get_calipso_low_clouds
         low_clouds = get_calipso_low_clouds(caObj)
         delta_h = caObj.calipso.all_arrays['layer_top_altitude'][:,0] - 0.001*caObj.calipso.all_arrays['elevation'][:]
-        delta_t = (273.15 + caObj.calipso.all_arrays['layer_top_temperature'][:,0] - caObj.avhrr.all_arrays['surftemp'][:])
+        delta_t = (273.15 + caObj.calipso.all_arrays['layer_top_temperature'][:,0] - caObj.imager.all_arrays['surftemp'][:])
         lapse_rate = delta_t/delta_h
         lapse_rate[caObj.calipso.all_arrays['layer_top_temperature'][:,0]<-500] = 0
         lapse_rate[caObj.calipso.all_arrays['layer_top_altitude'][:,0]>35.0] = 0
@@ -276,7 +276,7 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
             height_c = 1000*caObj.calipso.all_arrays[
                 'layer_top_altitude'][self.use,0]  
 
-        height_pps = caObj.avhrr.all_arrays['ctth_height'][self.use]
+        height_pps = caObj.imager.all_arrays['ctth_height'][self.use]
         delta_h = height_pps - height_c
         self.height_bias = delta_h
         self.height_bias[~self.detected_height]=0
@@ -296,10 +296,10 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
             self.height_mae_diff = diff_mae
 
         try:
-            #tsur = caObj.avhrr.all_arrays['surftemp']
-            tsur = caObj.avhrr.all_arrays['segment_nwp_temp'][:,0] 
-            #temperature_pps = caObj.avhrr.all_arrays['ctth_temperature']
-            temperature_pps = caObj.avhrr.all_arrays['bt12micron']
+            #tsur = caObj.imager.all_arrays['surftemp']
+            tsur = caObj.imager.all_arrays['segment_nwp_temp'][:,0] 
+            #temperature_pps = caObj.imager.all_arrays['ctth_temperature']
+            temperature_pps = caObj.imager.all_arrays['bt12micron']
             temp_diff = temperature_pps - tsur
             rate_neg = -1.0/6.5
             rate_pos = +1.0/3.0
@@ -307,10 +307,10 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
             new_pps_h[temp_diff>0] = rate_pos*temp_diff[temp_diff>0]*1000 
             new_pps_h[new_pps_h<100] = 100
             keep = (
-                (tsur - caObj.avhrr.all_arrays['ctth_temperature'])/
-                (tsur - caObj.avhrr.all_arrays['ttro']))>0.33
+                (tsur - caObj.imager.all_arrays['ctth_temperature'])/
+                (tsur - caObj.imager.all_arrays['ttro']))>0.33
             keep = new_pps_h>3000
-            new_pps_h[keep] = caObj.avhrr.all_arrays['ctth_height'][keep]
+            new_pps_h[keep] = caObj.imager.all_arrays['ctth_height'][keep]
             self.lapse_bias = new_pps_h[self.use] - height_c
             self.lapse_bias[~self.detected_height]=0
             self.lapse_bias[temperature_pps<0]=0
@@ -349,7 +349,7 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         from get_flag_info import get_calipso_low_clouds
         low_clouds = get_calipso_low_clouds(caObj)
         detected_low = np.logical_and(self.detected_height, low_clouds[self.use])
-        temperature_pps = caObj.avhrr.all_arrays['ctth_temperature'][self.use]
+        temperature_pps = caObj.imager.all_arrays['ctth_temperature'][self.use]
         try:
             temperature_c = 273.15 + caObj.calipso.all_arrays['midlayer_temperature'][self.use,0]
             
@@ -360,7 +360,7 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         except:
             delta_t = 0*temperature_pps
         try:
-            temperature_pps = caObj.avhrr.all_arrays['bt11micron'][self.use]
+            temperature_pps = caObj.imager.all_arrays['bt11micron'][self.use]
             delta_t_t11 = temperature_pps - temperature_c
             delta_t_t11[~detected_low]=0
             delta_t_t11[temperature_c<0]=0

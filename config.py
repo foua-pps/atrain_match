@@ -39,7 +39,7 @@ CMA_PROB_CLOUDY_LIMIT = 50 #50% cloudy => cloud, only active if CMA_PROB_VALIDAT
 #========== Important time settings ==========#
 #: Constant: Approximate duration of a satellite orbit in seconds 
 SAT_ORBIT_DURATION = 95*60 #Not to large GAC orbit 95min
-#: Allowed time deviation in seconds between AVHRR and CALIPSO/CloudSat matchup
+#: Allowed time deviation in seconds between IMAGER and CALIPSO/CloudSat matchup
 sec_timeThr = 60*3
 
 #========== Some paths and stuff ==========#
@@ -203,8 +203,8 @@ MORA_FILE_LENGTH = 24*60 #Our MORA data comes in 1 day files
 #: Region configuaration file with area definitons
 AREA_CONFIG_FILE = os.environ.get('AREA_CONFIG_FILE', './areas.def')
 PPS_FORMAT_2012_OR_EARLIER = False
-#: Set to true if you always want an avhrr orbit that starts before the cross
-ALWAYS_USE_AVHRR_ORBIT_THAT_STARTS_BEFORE_CROSS = False
+#: Set to true if you always want an imager orbit that starts before the cross
+ALWAYS_USE_IMAGER_ORBIT_THAT_STARTS_BEFORE_CROSS = False
 
 #========== Plotting ==========#
 #: Processing modes for which plotting should also be performed

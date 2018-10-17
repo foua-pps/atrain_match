@@ -4,12 +4,12 @@ import os
 import re
 from glob import glob
 import numpy as np
-from matchobject_io import (readCaliopAvhrrMatchObj,
+from matchobject_io import (readCaliopImagerMatchObj,
                             DataObject,
                             CalipsoObject,
-                            CloudsatAvhrrTrackObject,
-                            readCloudsatAvhrrMatchObj,
-                            CalipsoAvhrrTrackObject)
+                            CloudsatImagerTrackObject,
+                            readCloudsatImagerMatchObj,
+                            CalipsoImagerTrackObject)
 
 from get_flag_info import get_calipso_clouds_of_type_i_feature_classification_flags_one_layer
 import matplotlib.pyplot as plt
@@ -285,7 +285,7 @@ def my_print_one_line(out_file_h, bias, x, y, use_ind, compare_name, flag_key):
 def print_all_cloudsat(cObj, compare, compare_name = "unknown"):
     from get_flag_info import get_cloudsat_low_medium_high_classification
     x = cObj.cloudsat.all_arrays['validation_height']
-    y = cObj.avhrr.all_arrays['imager_ctth_m_above_seasurface']
+    y = cObj.imager.all_arrays['imager_ctth_m_above_seasurface']
     mhl = get_cloudsat_low_medium_high_classification(cObj)
     use = np.logical_and(x>=0, np.logical_and(y>-9,y<65000))
     if mhl is None:
@@ -306,7 +306,7 @@ def print_all(cObj, compare, compare_name = "unknown"):
 
     x = cObj.calipso.all_arrays['validation_height']
     x2 = cObj.calipso.all_arrays['layer_top_altitude'][:,1]*1000 #+ elevation!
-    y = cObj.avhrr.all_arrays['imager_ctth_m_above_seasurface']
+    y = cObj.imager.all_arrays['imager_ctth_m_above_seasurface']
     print np.max(y), np.max(y[y<65000])
     #pressure_c = cObj.calipso.all_arrays['layer_top_pressure'][:,0]
     low_clouds = get_calipso_low_clouds(cObj)
@@ -317,7 +317,7 @@ def print_all(cObj, compare, compare_name = "unknown"):
     use = np.logical_and(x>=0, np.logical_and(y>-9,y<65000))
     use = np.logical_and(use, np.not_equal(cObj.calipso.all_arrays['feature_classification_flags'][:,0],1))
     mhl["all"] =use
-    use_inversion = get_inversion_info_pps2014(cObj.avhrr.all_arrays["cloudtype_status"])
+    use_inversion = get_inversion_info_pps2014(cObj.imager.all_arrays["cloudtype_status"])
 
     mhl["high_clouds_tp_thin"] = np.logical_and(
         mhl["high_clouds_tp"],
@@ -369,8 +369,8 @@ def print_all(cObj, compare, compare_name = "unknown"):
     my_make_plot_example_aprox(bias, use, compare_name, cObj)
 
     from scipy import  ndimage
-    maxct = ndimage.filters.maximum_filter1d(cObj.avhrr.cloudtype, size=9)
-    minct = ndimage.filters.minimum_filter1d(cObj.avhrr.cloudtype, size=9)
+    maxct = ndimage.filters.maximum_filter1d(cObj.imager.cloudtype, size=9)
+    minct = ndimage.filters.minimum_filter1d(cObj.imager.cloudtype, size=9)
     val_geo = np.equal(maxct,minct)
     #cObj.calipso.layer_top_pressure[:,0][cObj.calipso.layer_top_pressure[:,0]<0] =1200
     #cObj.calipso.layer_top_altitude[:,0][cObj.calipso.layer_top_altitude[:,0]<0] =0
@@ -385,7 +385,7 @@ def print_all(cObj, compare, compare_name = "unknown"):
     var_height = (ndimage.filters.maximum_filter1d(cObj.calipso.layer_top_altitude[:,0]*1000, size=9) - 
                   ndimage.filters.minimum_filter1d(cObj.calipso.layer_top_altitude[:,0]*1000, size=9))
     val_geo2 = var_pressure<100
-    sunz = np.array(cObj.avhrr.all_arrays['sunz'])
+    sunz = np.array(cObj.imager.all_arrays['sunz'])
 
 
     """
@@ -456,17 +456,17 @@ def print_all(cObj, compare, compare_name = "unknown"):
     plt.close('all')
 
 def read_files_cloudsat(my_files):
-    caObj = CloudsatAvhrrTrackObject()
+    caObj = CloudsatImagerTrackObject()
     for filename in my_files:
         print filename
-        caObj += readCloudsatAvhrrMatchObj(filename)  
+        caObj += readCloudsatImagerMatchObj(filename)  
     return caObj
 
 def read_files(my_files):
-    caObj = CalipsoAvhrrTrackObject()
+    caObj = CalipsoImagerTrackObject()
     for filename in my_files:
         print filename
-        caObj += readCaliopAvhrrMatchObj(filename)  
+        caObj += readCaliopImagerMatchObj(filename)  
         print("Setting calipso_aerosol = None")
         caObj.calipso_aerosol = CalipsoObject()
     return caObj

@@ -1,13 +1,13 @@
 import numpy as np
 from glob import glob
 import os
-from matchobject_io import (readAmsrAvhrrMatchObj,
-                            AmsrAvhrrTrackObject,
-                            readCloudsatAvhrrMatchObj,
-                            CloudsatAvhrrTrackObject)
+from matchobject_io import (readAmsrImagerMatchObj,
+                            AmsrImagerTrackObject,
+                            readCloudsatImagerMatchObj,
+                            CloudsatImagerTrackObject)
 import matplotlib.pyplot as plt 
-from amsr_avhrr.validate_lwp_util import get_lwp_diff_inner
-from cloudsat_calipso_avhrr_statistics import get_lwp_diff_inner_cloudsat
+from amsr_imager.validate_lwp_util import get_lwp_diff_inner
+from cloudsat_calipso_imager_statistics import get_lwp_diff_inner_cloudsat
 
 from histogram_plotting import atrain_scatter
 from stat_util import (my_hist, my_iqr, my_rms, my_pex, my_mae)
@@ -34,7 +34,7 @@ def my_label(data):
 
 def do_the_printing(aObj, name):
     conditions = {}
-    if "amsr" in  aObj.truth_sat and len(aObj.avhrr.cpp_lwp.shape)==2:
+    if "amsr" in  aObj.truth_sat and len(aObj.imager.cpp_lwp.shape)==2:
         xymax=170
         diff, x, y, use = get_lwp_diff_inner(aObj, True)
         lon = aObj.amsr.all_arrays["longitude"]
@@ -46,9 +46,9 @@ def do_the_printing(aObj, name):
         scatter_bin_size=5.0
     elif "amsr" in  aObj.truth_sat:    
         y = aObj.amsr.lwp
-        x = aObj.avhrr.cpp_lwp
-        lon = aObj.avhrr.all_arrays["longitude"]
-        lat = aObj.avhrr.all_arrays["latitude"]
+        x = aObj.imager.cpp_lwp
+        lon = aObj.imager.all_arrays["longitude"]
+        lat = aObj.imager.all_arrays["latitude"]
         xymax=170
         diff = x-y
         use = np.ones(diff.shape, dtype=bool)
@@ -66,11 +66,11 @@ def do_the_printing(aObj, name):
         conditions["no_cloudsat_iwp"] =  aObj.cloudsat.RVOD_ice_water_path<=0
         conditions["no_cloudsat_precip"] =  np.bitwise_and(np.right_shift(aObj.cloudsat.RVOD_CWC_status,2),1)==0
         conditions["geoprof_cloudy"] = np.bitwise_and(np.right_shift(aObj.cloudsat.RVOD_CWC_status,0),10)==0
-        conditions["without_zeros"] = np.logical_and(aObj.avhrr.cpp_lwp>0,
+        conditions["without_zeros"] = np.logical_and(aObj.imager.cpp_lwp>0,
                                                     aObj.cloudsat.RVOD_liq_water_path>0)
 
-        use_sea = np.logical_and(use,aObj.avhrr.fractionofland <=0)
-        use_land = np.logical_and(use,aObj.avhrr.fractionofland >0)
+        use_sea = np.logical_and(use,aObj.imager.fractionofland <=0)
+        use_land = np.logical_and(use,aObj.imager.fractionofland >0)
         use_surfs = [use, use_sea, use_land]
         surf_names = ["all", "sea", "land"]
         scatter_bin_size=5.0
@@ -181,24 +181,24 @@ if __name__ == "__main__":
     name = files[0].split('global_')[1][0:11]
     
     if "amsr" in  os.path.basename(files[0]):
-        aObj = AmsrAvhrrTrackObject()
+        aObj = AmsrImagerTrackObject()
         for filename in files:
             print  os.path.basename(filename)
-            aObj += readAmsrAvhrrMatchObj(filename)
+            aObj += readAmsrImagerMatchObj(filename)
     else: 
-        aObj = CloudsatAvhrrTrackObject()
+        aObj = CloudsatImagerTrackObject()
         for filename in files:
             print  os.path.basename(filename)
             if os.path.basename(filename) in [
-                    "5km_noaa18_20071202_1600_99999_cloudsat_avhrr_match.h5"
+                    "5km_noaa18_20071202_1600_99999_cloudsat_imager_match.h5"
             ]:
 
                 continue
 
-            aObj_new = readCloudsatAvhrrMatchObj(filename) 
+            aObj_new = readCloudsatImagerMatchObj(filename) 
             if aObj_new.cloudsat.RVOD_liq_water_path is None:
                 print  os.path.basename(filename)
-            if len(aObj_new.cloudsat.RVOD_liq_water_path) == len(aObj_new.avhrr.cpp_lwp):
+            if len(aObj_new.cloudsat.RVOD_liq_water_path) == len(aObj_new.imager.cpp_lwp):
                 print "ok",  os.path.basename(filename)
                 aObj += aObj_new     
     do_the_printing(aObj, name)

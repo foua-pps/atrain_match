@@ -4,8 +4,8 @@ import os
 import re
 from glob import glob
 import numpy as np
-from matchobject_io import (readCaliopAvhrrMatchObj,
-                            CalipsoAvhrrTrackObject)
+from matchobject_io import (readCaliopImagerMatchObj,
+                            CalipsoImagerTrackObject)
 from plot_kuipers_on_area_util import (PerformancePlottingObject,
                                        ppsMatch_Imager_CalipsoObject)
 import matplotlib.pyplot as plt
@@ -31,7 +31,7 @@ def make_boxplot(caObj, name):
                  caObj.calipso.all_arrays['elevation'])
     height_c4 = (1000*caObj.calipso.all_arrays['layer_top_altitude'][:,3] - 
                  caObj.calipso.all_arrays['elevation'])
-    height_pps = caObj.avhrr.all_arrays['ctth_height']
+    height_pps = caObj.imager.all_arrays['ctth_height']
     bias_1 =  height_pps - height_c1
     bias_2 =  height_pps - height_c2
     bias_3 =  height_pps - height_c3
@@ -124,30 +124,30 @@ def investigate_nn_ctth():
                                 "ATRAIN_RESULTS_GAC_v2014_12x12/Reshaped_Files/noaa18/")
     ROOT_DIR_GAC_nn_new = ("/home/a001865/DATA_MISC/reshaped_files/"
                            "ATRAIN_RESULTS_GAC_nn20161125/Reshaped_Files/noaa18/")
-    ROOT_DIR_GAC_nn_avhrr = ("/home/a001865/DATA_MISC/reshaped_files/"
+    ROOT_DIR_GAC_nn_imager = ("/home/a001865/DATA_MISC/reshaped_files/"
                            "ATRAIN_RESULTS_GAC_nn20161130/Reshaped_Files/noaa18/")
-    ROOT_DIR_GAC_nn_avhrr_tuned = ("/home/a001865/DATA_MISC/reshaped_files/"
-                           "ATRAIN_RESULTS_GAC_tuned_nnAVHRR/Reshaped_Files/noaa18/")
-    ROOT_DIR_GAC_nn_avhrr1_tuned = ("/home/a001865/DATA_MISC/reshaped_files/"
-                           "ATRAIN_RESULTS_GAC_nnAVHRR1/Reshaped_Files/noaa18/")
-    ROOT_DIR_GAC_nn_avhrr_with_gac = ("/home/a001865/DATA_MISC/reshaped_files/"
-                           "ATRAIN_RESULTS_GAC_AVHRR_with_gac/Reshaped_Files/noaa18/")
+    ROOT_DIR_GAC_nn_imager_tuned = ("/home/a001865/DATA_MISC/reshaped_files/"
+                           "ATRAIN_RESULTS_GAC_tuned_nnIMAGER/Reshaped_Files/noaa18/")
+    ROOT_DIR_GAC_nn_imager1_tuned = ("/home/a001865/DATA_MISC/reshaped_files/"
+                           "ATRAIN_RESULTS_GAC_nnIMAGER1/Reshaped_Files/noaa18/")
+    ROOT_DIR_GAC_nn_imager_with_gac = ("/home/a001865/DATA_MISC/reshaped_files/"
+                           "ATRAIN_RESULTS_GAC_IMAGER_with_gac/Reshaped_Files/noaa18/")
     re_name = re.compile("_RESULTS_GAC_(\w+)\/")
     caobj_dict = {}
     for ROOT_DIR, name in zip([ROOT_DIR_GAC_nnNina, ROOT_DIR_GAC_nn, ROOT_DIR_GAC_old, ROOT_DIR_GAC_v2014, 
-                               ROOT_DIR_GAC_nn_new, ROOT_DIR_GAC_nn_avhrr, 
-                               ROOT_DIR_GAC_nn_avhrr_tuned, ROOT_DIR_GAC_nn_avhrr1_tuned, 
+                               ROOT_DIR_GAC_nn_new, ROOT_DIR_GAC_nn_imager, 
+                               ROOT_DIR_GAC_nn_imager_tuned, ROOT_DIR_GAC_nn_imager1_tuned, 
                                ROOT_DIR_GAC_v2014_12x12,
                                ROOT_DIR_GAC_oldCTTH_12x12,
-                               ROOT_DIR_GAC_nn_avhrr_with_gac],
+                               ROOT_DIR_GAC_nn_imager_with_gac],
                               ["gac_nnLessIsMore","gac_nn21", "gac_CTTHold","gac_2014", 
-                               "gac_nn20161125", "gac_nnAVHRR", 
-                               "gac_nnAVHRR_tuned", "gac_nnAVHRR1_tuned", 
+                               "gac_nn20161125", "gac_nnIMAGER", 
+                               "gac_nnIMAGER_tuned", "gac_nnIMAGER1_tuned", 
                                "gac_v2014_12x12","gac_CTTHold_12x12", "gac_17var_modis_noaa19"]):
         files = glob(ROOT_DIR + "5km/2009/*/*/*h5")
-        caObj = CalipsoAvhrrTrackObject()
+        caObj = CalipsoImagerTrackObject()
         for filename in files:
-            caObj +=  readCaliopAvhrrMatchObj(filename) 
+            caObj +=  readCaliopImagerMatchObj(filename) 
         caobj_dict[name] = caObj    
         make_boxplot(caObj, name) 
     #make_compare(caobj_dict['old'],caobj_dict['nn20161125'],'test')
@@ -170,15 +170,15 @@ def investigate_nn_ctth_viirs():
     ROOT_DIR_v2014_old = (
         "/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
         "ATRAIN_RESULTS_NPP_v2014_bug_corrected_20170313/Reshaped_Files/npp/1km/2015/07/*/")
-    ROOT_DIR_nn_avhrr = (
+    ROOT_DIR_nn_imager = (
         "/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
-        "ATRAIN_RESULTS_NPP_nnAVHRR_20170313/Reshaped_Files/npp/1km/2015/07/*/")
-    ROOT_DIR_nn_avhrr_tuned = (
+        "ATRAIN_RESULTS_NPP_nnIMAGER_20170313/Reshaped_Files/npp/1km/2015/07/*/")
+    ROOT_DIR_nn_imager_tuned = (
         "/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
-        "ATRAIN_RESULTS_NPP_nnAVHRR_20170313_tuned/Reshaped_Files/npp/1km/2015/07/*/")
-    ROOT_DIR_nn_avhrr1 = (
+        "ATRAIN_RESULTS_NPP_nnIMAGER_20170313_tuned/Reshaped_Files/npp/1km/2015/07/*/")
+    ROOT_DIR_nn_imager1 = (
         "/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
-        "ATRAIN_RESULTS_NPP_nnAVHRR1_20170313/Reshaped_Files/npp/1km/2015/07/*/")
+        "ATRAIN_RESULTS_NPP_nnIMAGER1_20170313/Reshaped_Files/npp/1km/2015/07/*/")
     ROOT_DIR_nn_viirs = (
         "/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
         "ATRAIN_RESULTS_NPP_nnVIIRS_20170310/Reshaped_Files/npp/1km/2015/07/*/")
@@ -191,23 +191,23 @@ def investigate_nn_ctth_viirs():
     ROOT_DIR_nn_viirs_lm = (
         "/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
         "ATRAIN_RESULTS_NPP_viirs_lm/Reshaped_Files/npp/1km/2015/07/*/")
-    ROOT_DIR_nn_avhrr_lm = (
+    ROOT_DIR_nn_imager_lm = (
         "/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
-        "ATRAIN_RESULTS_NPP_avhrr_lm/Reshaped_Files/npp/1km/2015/07/*/")
-    ROOT_DIR_nn_avhrr_wg = (
+        "ATRAIN_RESULTS_NPP_imager_lm/Reshaped_Files/npp/1km/2015/07/*/")
+    ROOT_DIR_nn_imager_wg = (
         "/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
-        "ATRAIN_RESULTS_NPP_AVHRR_with_gac/Reshaped_Files/npp/1km/2015/07/*/")
+        "ATRAIN_RESULTS_NPP_IMAGER_with_gac/Reshaped_Files/npp/1km/2015/07/*/")
     caobj_dict = {}
     for ROOT_DIR, name in zip(
-            [ROOT_DIR_v2014, ROOT_DIR_v2018, ROOT_DIR_nn_avhrr_wg, ROOT_DIR_nn_avhrr1,ROOT_DIR_nn_avhrr,ROOT_DIR_nn_avhrr_tuned, ROOT_DIR_v2014_old, ROOT_DIR_14bug, ROOT_DIR_nn_viirs, ROOT_DIR_nn_viirs_CLAY4, ROOT_DIR_nn_viirs_new,ROOT_DIR_nn_viirs_lm,ROOT_DIR_nn_avhrr_lm], 
-            ["npp_CTTH-2014-C4", "npp_CTTH-2018-C4", "npp_CTTHnn_AVHRR_with_gac", "npp_CTTHnn_AVHRR1","npp_CTTHnn_AVHRR","npp_CTTHnn_AVHRR_tuned", "npp_CTTHv2014","npp_CTTHv2014_buggy","npp_CTTHnn_VIIRS","npp_CTTHnn_VIIRS_C4","npp_CTTHnn_VIIRS_tuned", "npp_nnVIIRS_LessIsMore", "npp_nnAVHRR_LessIsMore"]):
+            [ROOT_DIR_v2014, ROOT_DIR_v2018, ROOT_DIR_nn_imager_wg, ROOT_DIR_nn_imager1,ROOT_DIR_nn_imager,ROOT_DIR_nn_imager_tuned, ROOT_DIR_v2014_old, ROOT_DIR_14bug, ROOT_DIR_nn_viirs, ROOT_DIR_nn_viirs_CLAY4, ROOT_DIR_nn_viirs_new,ROOT_DIR_nn_viirs_lm,ROOT_DIR_nn_imager_lm], 
+            ["npp_CTTH-2014-C4", "npp_CTTH-2018-C4", "npp_CTTHnn_IMAGER_with_gac", "npp_CTTHnn_IMAGER1","npp_CTTHnn_IMAGER","npp_CTTHnn_IMAGER_tuned", "npp_CTTHv2014","npp_CTTHv2014_buggy","npp_CTTHnn_VIIRS","npp_CTTHnn_VIIRS_C4","npp_CTTHnn_VIIRS_tuned", "npp_nnVIIRS_LessIsMore", "npp_nnIMAGER_LessIsMore"]):
         print ROOT_DIR
         files = glob(ROOT_DIR + "*.h5")
         print files
-        caObj = CalipsoAvhrrTrackObject()
+        caObj = CalipsoImagerTrackObject()
         for filename in files:
             #print filename
-            caObj +=  readCaliopAvhrrMatchObj(filename) 
+            caObj +=  readCaliopImagerMatchObj(filename) 
         caobj_dict[name] = caObj    
         make_boxplot(caObj, name) 
 
@@ -233,16 +233,16 @@ def investigate_nn_ctth_modis_may():
     for ROOT_DIR, name in zip(
             [ROOT_DIR_MODIS_nn, ROOT_DIR_MODIS_nn_viirs, 
              ROOT_DIR_MODIS_nn_mersi2, ROOT_DIR_MODIS_old], 
-            ["modis_november_CTTHnn_AVHRR",
+            ["modis_november_CTTHnn_IMAGER",
              "modis_november_CTTHnn_VIIRS",
              "modis_november_CTTHnn_MERSI2",
              "modis_november_CTTHold"]):
         print name
         files = glob(ROOT_DIR + "/*11*.h5")
-        caObj = CalipsoAvhrrTrackObject()
+        caObj = CalipsoImagerTrackObject()
         for filename in files:
             #print filename
-            caObj +=  readCaliopAvhrrMatchObj(filename) 
+            caObj +=  readCaliopImagerMatchObj(filename) 
         caobj_dict[name] = caObj    
         make_boxplot(caObj, name) 
     #make_compare(caobj_dict["modis_nn18var"],
@@ -252,7 +252,7 @@ def investigate_nn_ctth_modis_may():
 
 def investigate_nn_ctth_modis_november():
     #november
-    ROOT_DIR_MODIS_nn_avhrr = (
+    ROOT_DIR_MODIS_nn_imager = (
         "/home/a001865/DATA_MISC/reshaped_files/"
         "ATRAIN_RESULTS_MODIS_NOVEMBER/Reshaped_Files/merged/")
     ROOT_DIR_MODIS_nn_viirs = (
@@ -267,9 +267,9 @@ def investigate_nn_ctth_modis_november():
     ROOT_DIR_MODIS_nn_mersi2_tuned = (
         "/home/a001865/DATA_MISC/reshaped_files/"
         "ATRAIN_RESULTS_MODIS_NOVEMBER_nnMERSI2/Reshaped_Files/merged/")
-    ROOT_DIR_MODIS_nn_avhrr_tuned = (
+    ROOT_DIR_MODIS_nn_imager_tuned = (
         "/home/a001865/DATA_MISC/reshaped_files/"
-        "ATRAIN_RESULTS_MODIS_NOVEMBER_nnAVHRR_20170315/Reshaped_Files/merged/")
+        "ATRAIN_RESULTS_MODIS_NOVEMBER_nnIMAGER_20170315/Reshaped_Files/merged/")
 
     ROOT_DIR_MODIS_old = (
         "/home/a001865/DATA_MISC/reshaped_files/"
@@ -277,27 +277,27 @@ def investigate_nn_ctth_modis_november():
 
     caobj_dict = {}
     for ROOT_DIR, name in zip(
-            [ROOT_DIR_MODIS_nn_avhrr, 
+            [ROOT_DIR_MODIS_nn_imager, 
              ROOT_DIR_MODIS_nn_viirs, 
              ROOT_DIR_MODIS_nn_mersi2, 
              ROOT_DIR_MODIS_old,
              ROOT_DIR_MODIS_nn_viirs_tuned,  
              ROOT_DIR_MODIS_nn_mersi2_tuned,
-             ROOT_DIR_MODIS_nn_avhrr_tuned], 
-            ["modis_nov_nnAVHRR",
+             ROOT_DIR_MODIS_nn_imager_tuned], 
+            ["modis_nov_nnIMAGER",
              "modis_nov_nnVIIRS",
              "modis_nov_nnMERSI2",
              "modis_nov_CTTHold",
 
              "modis_nov_nnVIIRS_tuned",
              "modis_nov_nnMERSI2_tuned",
-             "modis_nov_nnAVHRR_tuned",
+             "modis_nov_nnIMAGER_tuned",
 ]):
         files = glob(ROOT_DIR + "/*11*.h5")
-        caObj = CalipsoAvhrrTrackObject()
+        caObj = CalipsoImagerTrackObject()
         for filename in files:
             #print filename
-            caObj +=  readCaliopAvhrrMatchObj(filename) 
+            caObj +=  readCaliopImagerMatchObj(filename) 
         caobj_dict[name] = caObj    
         make_boxplot(caObj, name) 
     #make_compare(caobj_dict["modis_nn18var"],

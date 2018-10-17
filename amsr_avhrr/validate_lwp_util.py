@@ -23,16 +23,16 @@ def get_lwp_diff_inner(aObj, val_subset, threshold=LWP_THRESHOLD):
 
      Returns array with the differences for used selected pixels.    
     """
-    use_sea = np.logical_or(aObj.avhrr.fractionofland <=0,
+    use_sea = np.logical_or(aObj.imager.fractionofland <=0,
                             aObj.amsr.imager_linnum_nneigh <=0) # might have less than 8 neighbours                          
-    use_phase = np.logical_or(aObj.avhrr.cpp_phase == 1,
+    use_phase = np.logical_or(aObj.imager.cpp_phase == 1,
                               aObj.amsr.imager_linnum_nneigh <=0) # might have less than 8 neighbours
     #exclude very high values
-    aObj.avhrr.cpp_lwp[aObj.avhrr.cpp_lwp>LWP_THRESHOLD_CPP] = -9
+    aObj.imager.cpp_lwp[aObj.imager.cpp_lwp>LWP_THRESHOLD_CPP] = -9
 
-    use_lwp = np.logical_or(aObj.avhrr.cpp_lwp>=0,
+    use_lwp = np.logical_or(aObj.imager.cpp_lwp>=0,
                             aObj.amsr.imager_linnum_nneigh <=0)  # might have less than 8 neighbours 
-    use_lwp_upper = np.logical_or(aObj.avhrr.cpp_lwp<LWP_THRESHOLD_CPP,
+    use_lwp_upper = np.logical_or(aObj.imager.cpp_lwp<LWP_THRESHOLD_CPP,
                                   aObj.amsr.imager_linnum_nneigh <=0)
 
     #use = use_sea
@@ -42,7 +42,7 @@ def get_lwp_diff_inner(aObj, val_subset, threshold=LWP_THRESHOLD):
     selection = use.all(axis=-1)
     selection = np.logical_and(val_subset, selection)
     #import pdb; pdb.set_trace()
-    cpp_lwp = aObj.avhrr.cpp_lwp
+    cpp_lwp = aObj.imager.cpp_lwp
     n_cpp = np.sum(cpp_lwp>=0, axis=-1) #before
     cpp_lwp[cpp_lwp<0] = 0
     cpp_lwp[np.isnan(cpp_lwp)] = 0 
@@ -55,7 +55,7 @@ def get_lwp_diff_inner(aObj, val_subset, threshold=LWP_THRESHOLD):
     selection = np.logical_and(use_amsr,  selection)
     selection = np.logical_and(cpp_mean>=0,  selection)
     selection = np.logical_and(cpp_mean<LWP_THRESHOLD_CPP,  selection)
-    selection = np.logical_and(aObj.avhrr.sunz<72,  selection)
+    selection = np.logical_and(aObj.imager.sunz<72,  selection)
     
     return [lwp_diff[selection], cpp_mean[selection], aObj.amsr.lwp[selection],  selection]
 

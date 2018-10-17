@@ -16,10 +16,10 @@ from config import NODATA
 ATRAIN_MATCH_NODATA = NODATA
 from runutils import do_some_geo_obj_logging
 
-def get_satid_datetime_orbit_from_fname_cci(avhrr_filename):
-    # Get satellite name, time, and orbit number from avhrr_file
-    #avhrr_file = "20080613002200-ESACCI-L2_CLOUD-CLD_PRODUCTS-AVHRRGAC-NOAA18-fv1.0.nc"
-    sl_ = os.path.basename(avhrr_filename).split('-')
+def get_satid_datetime_orbit_from_fname_cci(imager_filename):
+    # Get satellite name, time, and orbit number from imager_file
+    #imager_file = "20080613002200-ESACCI-L2_CLOUD-CLD_PRODUCTS-IMAGERGAC-NOAA18-fv1.0.nc"
+    sl_ = os.path.basename(imager_filename).split('-')
     date_time = datetime.datetime.strptime(sl_[0], '%Y%m%d%H%M%S')
     
     sat_id = sl_[5].lower()
@@ -31,7 +31,7 @@ def get_satid_datetime_orbit_from_fname_cci(avhrr_filename):
              "month":"%02d"%(date_time.month),    
              "time":date_time.strftime("%H%M"),
              #"basename":sat_id + "_" + date_time.strftime("%Y%m%d_%H%M_99999"),#"20080613002200-ESACCI",
-             "ccifilename":avhrr_filename,
+             "ccifilename":imager_filename,
              "ppsfilename":None}
     values['basename'] = values["satellite"] + "_" + values["date"] + "_" + values["time"] + "_" + values["orbit"]
     return values
@@ -66,22 +66,22 @@ def cci_read_all(filename):
     logger.debug("Reading ctth ...")
     ctth = read_cci_ctth(cci_nc)
     logger.debug("Reading angles ...")
-    avhrrAngObj = read_cci_angobj(cci_nc)
+    imagerAngObj = read_cci_angobj(cci_nc)
     logger.debug("Reading cloud type ...")
     cma = read_cci_cma(cci_nc)
 
     logger.debug("Reading longitude, latitude and time ...")
-    avhrrGeoObj = read_cci_geoobj(cci_nc)
+    imagerGeoObj = read_cci_geoobj(cci_nc)
     logger.debug("Not reading surface temperature")
     surft = None
     logger.debug("Reading cloud phase")
     cpp = read_cci_phase(cci_nc)
     logger.debug("Not reading channel data")
-    avhrrObj = None  
+    imagerObj = None  
     if cci_nc:
         cci_nc.close()
     ctype = None    
-    return avhrrAngObj, ctth, avhrrGeoObj, ctype, avhrrObj, surft, cpp, cma 
+    return imagerAngObj, ctth, imagerGeoObj, ctype, imagerObj, surft, cpp, cma 
 
 
 def read_cci_cma(cci_nc):
@@ -101,11 +101,11 @@ def read_cci_cma(cci_nc):
 def read_cci_angobj(cci_nc):
     """Read angles info from filename
     """
-    avhrrAngObj = imagerAngObj()
-    avhrrAngObj.satz.data = cci_nc.variables['satellite_zenith_view_no1'][::] 
-    avhrrAngObj.sunz.data = cci_nc.variables['solar_zenith_view_no1'][::]
-    avhrrAngObj.azidiff = None #cci_nc.variables['rel_azimuth_view_no1']??
-    return avhrrAngObj
+    imagerAngObj = imagerAngObj()
+    imagerAngObj.satz.data = cci_nc.variables['satellite_zenith_view_no1'][::] 
+    imagerAngObj.sunz.data = cci_nc.variables['solar_zenith_view_no1'][::]
+    imagerAngObj.azidiff = None #cci_nc.variables['rel_azimuth_view_no1']??
+    return imagerAngObj
 def read_cci_phase(cci_nc):
     """Read angles info from filename
     """
@@ -222,6 +222,6 @@ def read_cci_ctth(cci_nc):
     return ctth
 
 if __name__ == "__main__":
-    my_filename="20080613002200-ESACCI-L2_CLOUD-CLD_PRODUCTS-AVHRRGAC-NOAA18-fv1.0.nc"
+    my_filename="20080613002200-ESACCI-L2_CLOUD-CLD_PRODUCTS-IMAGERGAC-NOAA18-fv1.0.nc"
     PPS_OBJECTS =  read_cci_ctth(my_filename)
     print PPS_OBJECTS

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#Program cloudsat_calipso_avhrr_plot.py
+#Program cloudsat_calipso_imager_plot.py
 
 import numpy as np
 from config import MAXHEIGHT, CLOUDSAT_CLOUDY_THR,\
@@ -8,7 +8,7 @@ from config import MAXHEIGHT, CLOUDSAT_CLOUDY_THR,\
 from matplotlib import pyplot as plt
 
 # -----------------------------------------------------
-def drawCalClsatGEOPROFAvhrrPlot(clsatObj, 
+def drawCalClsatGEOPROFImagerPlot(clsatObj, 
                                  caObj,  
                                  imager_ctth_m_above_seasurface, 
                                  plotpath, 
@@ -20,7 +20,7 @@ def drawCalClsatGEOPROFAvhrrPlot(clsatObj,
     if 'instrument' in options:
         instrument = options['instrument']
     else:
-        instrument = 'avhrr'
+        instrument = 'imager'
 
     caliop_height = caObj.calipso.layer_top_altitude*1000
     caliop_base = caObj.calipso.layer_base_altitude*1000
@@ -31,8 +31,8 @@ def drawCalClsatGEOPROFAvhrrPlot(clsatObj,
     # Calculates Hihest Cloud Top   
     if MAXHEIGHT is None:
         maxheight_calipso = np.nanmax(caliop_height)
-        maxheight_avhrr = np.nanmax(imager_ctth_m_above_seasurface)
-        max_height_sat = [maxheight_calipso, maxheight_avhrr]
+        maxheight_imager = np.nanmax(imager_ctth_m_above_seasurface)
+        max_height_sat = [maxheight_calipso, maxheight_imager]
         maxheight = maxheight + 1000
     else:
         maxheight = MAXHEIGHT
@@ -140,22 +140,22 @@ def drawCalPPSHeightPlot_PrototypePPSHeight(caObj_calipso,
     if 'instrument' in options:
         instrument = options['instrument']
     else:
-        instrument = 'avhrr'
-    # Prepare for Avhrr
+        instrument = 'imager'
+    # Prepare for Imager
     caliop_height = caObj_calipso.layer_top_altitude*1000
     caliop_base = caObj_calipso.layer_base_altitude*1000
     caliop_base[caliop_base<0]=-9
     caliop_height[caliop_height<0]=-9
     pixel_position=np.arange(caObj_calipso.latitude.shape[0])
     pixel_position_ok = pixel_position[data_ok]
-    avhrr_ctth_ok1 = ctth_height1[data_ok]
-    avhrr_ctth_ok2 = ctth_height2[data_ok]  
+    imager_ctth_ok1 = ctth_height1[data_ok]
+    imager_ctth_ok2 = ctth_height2[data_ok]  
 #    # Calculates Hihest Cloud Top  
 
     if MAXHEIGHT is None:
         maxheight_calipso = np.nanmax(caliop_height)
-        maxheight_avhrr = np.nanmax(ctth_height1)
-        max_height_sat = [maxheight_calipso, maxheight_avhrr]
+        maxheight_imager = np.nanmax(ctth_height1)
+        max_height_sat = [maxheight_calipso, maxheight_imager]
         maxheight = maxheight + 1000
     else:
         maxheight = MAXHEIGHT
@@ -192,14 +192,14 @@ def drawCalPPSHeightPlot_PrototypePPSHeight(caObj_calipso,
                           alpha=1.0, label='caliop')
                 caliop_label_set = True
         ax.set_ylabel("Cloud Height (meter)", fontsize=22)
-    #: Plot Avhrr   
+    #: Plot Imager   
     ax = fig.add_subplot(211)
-    ax.plot(pixel_position_ok, avhrr_ctth_ok1, 'b+', linewidth=0.5, 
+    ax.plot(pixel_position_ok, imager_ctth_ok1, 'b+', linewidth=0.5, 
             label=instrument.upper() + " old-CTTH")
     plt.legend(fancybox=True, loc=1,  numpoints=4)
     ax.set_xlim(xmin, xmax)
     ax = fig.add_subplot(212)
-    ax.plot(pixel_position_ok, avhrr_ctth_ok2, 'b+', linewidth=0.5,  
+    ax.plot(pixel_position_ok, imager_ctth_ok2, 'b+', linewidth=0.5,  
             label=instrument.upper() + " nn-CTTH")
     plt.legend(fancybox=True, loc=1,  numpoints=4)
     ax.set_xlim(xmin,xmax)
@@ -219,21 +219,21 @@ def drawCalPPSHeightPlot_PrototypePPSHeight(caObj_calipso,
             fig.savefig(filename, format = filetype)
       
 # -----------------------------------------------------
-def drawCalClsatCWCAvhrrPlot(clsatObj, elevationcwc, data_okcwc, 
+def drawCalClsatCWCImagerPlot(clsatObj, elevationcwc, data_okcwc, 
                              plotpath, basename, phase, **options):
 
     if 'instrument' in options:
         instrument = options['instrument']
     else:
-        instrument = 'avhrr'
+        instrument = 'imager'
     if phase=='IW':
         y1=clsatObj.cloudsat.RVOD_ice_water_path
         #dataC=clsatObj.cloudsat.RVOD_ice_water_content
-        y2 = clsatObj.avhrr.cpp_iwp
+        y2 = clsatObj.imager.cpp_iwp
     else:
         y1=clsatObj.cloudsat.RVOD_liq_water_path
         #dataC=clsatObj.cloudsat.RVOD_liq_water_content
-        y2 = clsatObj.avhrr.cpp_lwp
+        y2 = clsatObj.imager.cpp_lwp
     pixel_position=np.arange(clsatObj.cloudsat.latitude.shape[0]) 
     use = np.logical_and(y1>=0, y2>=0)
     # Findes max value and add 100							
@@ -251,7 +251,7 @@ def drawCalClsatCWCAvhrrPlot(clsatObj, elevationcwc, data_okcwc,
     return
 
 # -----------------------------------------------------
-def drawCalClsatAvhrrPlotTimeDiff(clsatObj, 
+def drawCalClsatImagerPlotTimeDiff(clsatObj, 
                                   caObj, 
                                   plotpath, basename, 
                                   resolution, file_type='png',
@@ -259,7 +259,7 @@ def drawCalClsatAvhrrPlotTimeDiff(clsatObj,
     if 'instrument' in options:
         instrument = options['instrument']
     else:
-        instrument = 'avhrr'
+        instrument = 'imager'
     pixel_position=np.arange(caObj.calipso.latitude.shape[0])
     cal_diff_sec_1970 = caObj.diff_sec_1970/60.0
     # Plot time diff
@@ -299,7 +299,7 @@ def drawCalClsatAvhrrPlotTimeDiff(clsatObj,
     return
             
 # -----------------------------------------------------   
-def drawCalClsatAvhrrPlotSATZ(clsatObj, 
+def drawCalClsatImagerPlotSATZ(clsatObj, 
                               caObj, 
                               plotpath, basename, 
                               resolution, 
@@ -309,20 +309,20 @@ def drawCalClsatAvhrrPlotSATZ(clsatObj,
     if 'instrument' in options:
         instrument = options['instrument']
     else:
-        instrument = 'avhrr'
+        instrument = 'imager'
     pixel_position = np.arange(caObj.calipso.latitude.shape[0])
     # Plot Satellite Zenith Angle
     fig = plt.figure() 
     ax = fig.add_subplot(111) 
     if clsatObj is not None:
         ax.plot(pixel_position[clsatObj.cloudsat.calipso_index],
-                clsatObj.avhrr.satz,
+                clsatObj.imager.satz,
                 'r+', 
                 label = "%s satz - CloudSat" % instrument.upper())
     ax.set_xlabel("Track Position")
     ax.set_ylabel("satellite zenith angle [deg]")
     ax.set_title("%s SATZ" % instrument.upper())
-    ax.plot(caObj.avhrr.satz,"g", label = "%s - CALIPSO" % instrument.upper())
+    ax.plot(caObj.imager.satz,"g", label = "%s - CALIPSO" % instrument.upper())
     ax.legend(numpoints=4)
     if isinstance(file_type, str) == True:
         fig.savefig("%s/%skm_%s_satz.%s" % (plotpath, resolution, basename, file_type))
@@ -332,9 +332,9 @@ def drawCalClsatAvhrrPlotSATZ(clsatObj,
     return
 
 
-def map_avhrr_track(avhrr_lonlat, track_lonlat):
+def map_imager_track(imager_lonlat, track_lonlat):
     """
-    Plot *avhrr_lonlat* and *track_lonlat* on global map and return the figure.
+    Plot *imager_lonlat* and *track_lonlat* on global map and return the figure.
     
     """
     from mpl_toolkits.basemap import Basemap
@@ -347,12 +347,12 @@ def map_avhrr_track(avhrr_lonlat, track_lonlat):
     m.drawcoastlines(linewidth=.5, color='grey')
     
     # Don't draw each pixel, or the machine will choke!
-    npixels = avhrr_lonlat[0].size
+    npixels = imager_lonlat[0].size
     from math import sqrt
     step = int(round(sqrt(npixels / 1e5))) # Will give a total of about 1e5 pixels
     _slice_2d = (slice(None, None, step),) * 2
-    m.pcolormesh(avhrr_lonlat[0][_slice_2d], avhrr_lonlat[1][_slice_2d],
-                 avhrr_lonlat[1][_slice_2d], alpha=.5)
+    m.pcolormesh(imager_lonlat[0][_slice_2d], imager_lonlat[1][_slice_2d],
+                 imager_lonlat[1][_slice_2d], alpha=.5)
     m.plot(track_lonlat[0], track_lonlat[1], 'o', markersize=1, alpha=.1,
            label='track')
     

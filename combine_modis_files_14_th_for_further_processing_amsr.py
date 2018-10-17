@@ -2,9 +2,9 @@
 import numpy as np
 from glob import glob
 import os
-from matchobject_io import (readAmsrAvhrrMatchObj,
-                            writeAmsrAvhrrMatchObj,
-                            AmsrAvhrrTrackObject)
+from matchobject_io import (readAmsrImagerMatchObj,
+                            writeAmsrImagerMatchObj,
+                            AmsrImagerTrackObject)
 
 instrument = "seviri"
 day = "14"
@@ -26,8 +26,8 @@ outfile_template = "1km_%s_eos2_2010%s{day}_0000_00000_amsr_{instrument}_match.h
 #OUT_DIR_TEMPLATE = BASE_DIR + "/Reshaped_Files_merged_amsr/eos2/1km/2010/%s/"
 #outfile_template = "1km_%s_eos2_2010%s14_0000_00000_amsr-GEOPROF_modis_match.h5"
 
-clsatObj_night = AmsrAvhrrTrackObject()
-clsatObj_day = AmsrAvhrrTrackObject()
+clsatObj_night = AmsrImagerTrackObject()
+clsatObj_day = AmsrImagerTrackObject()
 
 for year in ["2010"]:#2012/02","2012/05", "2012/08", "2013/07", "2014/02", "2014/04", "2014/09"]:
     #for month in ["01","02","03","04","05","06","07","08","09","10","11","12"]:
@@ -44,8 +44,8 @@ for year in ["2010"]:#2012/02","2012/05", "2012/08", "2013/07", "2014/02", "2014
         num_d = 0
         for filename in files:
             print  os.path.basename(filename)
-            clsatObj_new=readAmsrAvhrrMatchObj(filename) 
-            if np.nanmax(clsatObj_new.avhrr.all_arrays['sunz']>=90):
+            clsatObj_new=readAmsrImagerMatchObj(filename) 
+            if np.nanmax(clsatObj_new.imager.all_arrays['sunz']>=90):
                 num_n +=1
                 print "reading",os.path.basename(filename)
                 clsatObj_night = clsatObj_night + clsatObj_new
@@ -56,12 +56,12 @@ for year in ["2010"]:#2012/02","2012/05", "2012/08", "2013/07", "2014/02", "2014
         if num_n>0:
             filename_night = outfile_template%("night",month)
             outfile = os.path.join(OUT_DIR, filename_night)
-            writeAmsrAvhrrMatchObj(
+            writeAmsrImagerMatchObj(
                   outfile, clsatObj_night)   
-            clsatObj_night = AmsrAvhrrTrackObject()    
+            clsatObj_night = AmsrImagerTrackObject()    
         if num_d>0:
             filename_day = outfile_template%("day",month)
             outfile = os.path.join(OUT_DIR, filename_day)
-            writeAmsrAvhrrMatchObj(
+            writeAmsrImagerMatchObj(
                 outfile, clsatObj_day)   
-            clsatObj_day = AmsrAvhrrTrackObject()   
+            clsatObj_day = AmsrImagerTrackObject()   

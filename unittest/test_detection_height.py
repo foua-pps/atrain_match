@@ -5,7 +5,7 @@
 #
 import numpy as np
 import unittest
-from cloudsat_calipso_avhrr_prepare import  (detection_height_from_5km_data,
+from cloudsat_calipso_imager_prepare import  (detection_height_from_5km_data,
                                              CalipsoCloudOpticalDepth_new)
 from matchobject_io import CalipsoObject
 

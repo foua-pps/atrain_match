@@ -5,8 +5,8 @@ import os
 from glob import glob
 import numpy as np
 from scipy import ndimage
-from matchobject_io import (readCaliopAvhrrMatchObj,
-                            CalipsoAvhrrTrackObject)
+from matchobject_io import (readCaliopImagerMatchObj,
+                            CalipsoImagerTrackObject)
 
 def get_clear_cloudy_vectors(caObj, use):#, both_have_ct):
     nlay =np.where(caObj.calipso.all_arrays['number_layers_found']>0,1,0)
@@ -21,11 +21,11 @@ def get_clear_cloudy_vectors(caObj, use):#, both_have_ct):
     isCalipsoClear = np.logical_and(
         isCalipsoClear, 
         caObj.calipso.all_arrays['total_optical_depth_5km']<0)
-    isCloudyPPSorMAIA = np.logical_and(caObj.avhrr.all_arrays['cloudtype']>4,
-                                       caObj.avhrr.all_arrays['cloudtype']<21) 
-    isClearPPSorMAIA = np.logical_and(caObj.avhrr.all_arrays['cloudtype']>0,
-                                      caObj.avhrr.all_arrays['cloudtype']<5)
-    nodata = np.sum(caObj.avhrr.all_arrays['cloudtype'][use]>200)
+    isCloudyPPSorMAIA = np.logical_and(caObj.imager.all_arrays['cloudtype']>4,
+                                       caObj.imager.all_arrays['cloudtype']<21) 
+    isClearPPSorMAIA = np.logical_and(caObj.imager.all_arrays['cloudtype']>0,
+                                      caObj.imager.all_arrays['cloudtype']<5)
+    nodata = np.sum(caObj.imager.all_arrays['cloudtype'][use]>200)
     use = np.logical_and(use, np.logical_or(isCloudyPPSorMAIA, isClearPPSorMAIA))
     use = np.logical_and(use, np.logical_or(isCalipsoCloudy, isCalipsoClear))
     #use = np.logical_and(use, both_have_ct)
@@ -83,13 +83,13 @@ def print_common_stats(caObjMAIA, caObjPPS, y_month, satellite, dnt='all'):
     maia_profile_id = caObjMAIA.calipso.profile_id
     pps_profile_id = caObjPPS.calipso.profile_id
 
-    #maia_ct = caObjMAIA.avhrr.all_arrays['cloudtype']
-    pps_bt11 = caObjPPS.avhrr.all_arrays['bt11micron']
+    #maia_ct = caObjMAIA.imager.all_arrays['cloudtype']
+    pps_bt11 = caObjPPS.imager.all_arrays['bt11micron']
     pps_profile_id[pps_bt11<0]=-9
-    pps_profile_id[caObjPPS.avhrr.all_arrays['cloudtype']<1]=-9
-    pps_profile_id[caObjPPS.avhrr.all_arrays['cloudtype']>20]=-9
-    maia_profile_id[caObjMAIA.avhrr.all_arrays['cloudtype']<1]=-9
-    maia_profile_id[caObjMAIA.avhrr.all_arrays['cloudtype']>20]=-9
+    pps_profile_id[caObjPPS.imager.all_arrays['cloudtype']<1]=-9
+    pps_profile_id[caObjPPS.imager.all_arrays['cloudtype']>20]=-9
+    maia_profile_id[caObjMAIA.imager.all_arrays['cloudtype']<1]=-9
+    maia_profile_id[caObjMAIA.imager.all_arrays['cloudtype']>20]=-9
     #profile_id_in_both = np.intersect1d(maia_profile_id,pps_profile_id) 
 
     use_pps = pps_sec_1970>0
@@ -107,7 +107,7 @@ def print_common_stats(caObjMAIA, caObjPPS, y_month, satellite, dnt='all'):
     use_maia[maia_profile_id<0] = False
     use_pps[pps_profile_id<0] = False
 
-    sunz = caObjPPS.avhrr.all_arrays['sunz']*100
+    sunz = caObjPPS.imager.all_arrays['sunz']*100
     #print sunz
     if dnt=='day and twilight':
         use_pps[sunz>=95.0]=False
@@ -126,8 +126,8 @@ def print_common_stats(caObjMAIA, caObjPPS, y_month, satellite, dnt='all'):
     #print np.sum(use_maia), np.sum(use_pps)
 
 
-    #both_have_ct = np.logical_and(caObjMAIA.avhrr.all_arrays['cloudtype']<20,
-    #                              caObjPPS.avhrr.all_arrays['cloudtype']<200)
+    #both_have_ct = np.logical_and(caObjMAIA.imager.all_arrays['cloudtype']<20,
+    #                              caObjPPS.imager.all_arrays['cloudtype']<200)
 
     if np.sum(use_maia)>50 and np.sum(use_pps)>50:
         print "MAIA",y_month, satellite, '-','-',
@@ -145,12 +145,12 @@ print "Algorithm time satellite min-sunz, max-sunz, N PODcloudy FARcloudy PODcle
 for y_month in ['2012/06','2012/07','2012/08','2012/10','2015/1201','2015/1207', '2015/07']:
     maia_files = glob(MAIA_ROOT_DIR + "%s/*/*h5"%(y_month))
     pps_files = glob(PPS_ROOT_DIR + "%s/*/*h5"%(y_month))
-    caObjMAIA = CalipsoAvhrrTrackObject()
-    caObjPPS = CalipsoAvhrrTrackObject()
+    caObjMAIA = CalipsoImagerTrackObject()
+    caObjPPS = CalipsoImagerTrackObject()
     for filename in maia_files:
-        caObjMAIA +=  readCaliopAvhrrMatchObj(filename)  
+        caObjMAIA +=  readCaliopImagerMatchObj(filename)  
     for filename in pps_files:
-        caObjPPS +=  readCaliopAvhrrMatchObj(filename) 
+        caObjPPS +=  readCaliopImagerMatchObj(filename) 
     satellite = 'Suomi-NPP'
 
 

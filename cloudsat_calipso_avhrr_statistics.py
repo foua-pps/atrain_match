@@ -1,4 +1,4 @@
-#Program cloudsat_calipso_avhrr_statistics.py
+#Program cloudsat_calipso_imager_statistics.py
 import config
 import logging
 logger = logging.getLogger(__name__)
@@ -49,22 +49,22 @@ def calculate_ctth_stats(val_subset, imager_ctth_m_above_seasurface, truth_sat_v
     n_only_truth_had_height_both_had_cloud = np.sum(np.logical_and(only_truth_had_height,
                                                                    imager_is_cloudy))
     #print "debug", np.sum(n_only_truth_had_height_both_had_cloud)
-    avhrr_height_work = np.repeat(imager_ctth_m_above_seasurface[::],val_subset)
+    imager_height_work = np.repeat(imager_ctth_m_above_seasurface[::],val_subset)
     truth_sat_validation_height_work = np.repeat(truth_sat_validation_height[::],val_subset)
 
-    corr_caliop_avhrr = -9.0
+    corr_caliop_imager = -9.0
     bias = -9.0
     RMS_difference = -9.0
     #        RMS_difference_biascorr = -9.0
     diff_squared_biascorr = np.array([-9.0])
     MAE = -9
     if len(truth_sat_validation_height_work) > 0:
-        if len(avhrr_height_work) > 20:
-            corr_caliop_avhrr = np.corrcoef(truth_sat_validation_height_work,
-                                            avhrr_height_work)[0,1]
+        if len(imager_height_work) > 20:
+            corr_caliop_imager = np.corrcoef(truth_sat_validation_height_work,
+                                            imager_height_work)[0,1]
         else:
-            corr_caliop_avhrr = -99.0
-        diff = avhrr_height_work-truth_sat_validation_height_work
+            corr_caliop_imager = -99.0
+        diff = imager_height_work-truth_sat_validation_height_work
         bias = np.mean(diff)
         MAE = np.mean(np.abs(diff))
         diff_squared = diff*diff
@@ -72,11 +72,11 @@ def calculate_ctth_stats(val_subset, imager_ctth_m_above_seasurface, truth_sat_v
         diff_squared_biascorr = (diff-bias)*(diff-bias)
 #        RMS_difference_biascorr = np.sqrt(np.mean(diff_squared_biascorr))
 
-    #return (corr_caliop_avhrr,bias,RMS_difference,avhrr_height_work,diff_squared_biascorr)
-    return "%3.2f %3.2f %3.2f %d %d %d %3.2f"%(corr_caliop_avhrr,
+    #return (corr_caliop_imager,bias,RMS_difference,imager_height_work,diff_squared_biascorr)
+    return "%3.2f %3.2f %3.2f %d %d %d %3.2f"%(corr_caliop_imager,
                                                bias,
                                                RMS_difference,
-                                               len(avhrr_height_work), 
+                                               len(imager_height_work), 
                                                n_only_truth_had_height,
                                                n_only_truth_had_height_both_had_cloud,
                                                MAE)
@@ -96,9 +96,9 @@ def get_subset_for_mode(cObj, mode):
     if mode == 'BASIC':
         cal_subset = np.bool_(np.ones(latitude_abs.shape))
     elif mode == 'SATZ_LOW':
-        cal_subset = cObj.avhrr.all_arrays['satz']<20
+        cal_subset = cObj.imager.all_arrays['satz']<20
     elif mode == 'SATZ_HIGH':
-        cal_subset = cObj.avhrr.all_arrays['satz'] >=20
+        cal_subset = cObj.imager.all_arrays['satz'] >=20
     elif mode == 'OPTICAL_DEPTH':
         cal_subset = np.bool_(np.ones(latitude_abs.shape))
     elif mode == 'STANDARD':
@@ -223,7 +223,7 @@ def get_subset_for_mode(cObj, mode):
 
 def get_day_night_info(cObj):
     daynight_flags = None
-    cObj_imager = getattr(cObj, 'avhrr') #Same as cObj.avhrr
+    cObj_imager = getattr(cObj, 'imager') #Same as cObj.imager
     cObj_truth_sat= getattr(cObj, cObj.truth_sat) #cObj.calipso or cObj.iss
     if config.CCI_CLOUD_VALIDATION or config.MAIA_CLOUD_VALIDATION:
         daynight_flags = get_day_night_twilight_info_cci2014(
@@ -249,37 +249,37 @@ def get_day_night_info(cObj):
 def get_semi_opaque_info(caObj):
     semi_flag = None    
     opaque_flag = None
-    if hasattr(caObj.avhrr, 'cloudtype_qflag'):
-        #print caObj.avhrr.ctth_opaque
-        if caObj.avhrr.ctth_opaque is not None:
+    if hasattr(caObj.imager, 'cloudtype_qflag'):
+        #print caObj.imager.ctth_opaque
+        if caObj.imager.ctth_opaque is not None:
             semi_flag, opaque_flag = get_semi_opaque_info_pps2012(
-                caObj.avhrr.ctth_opaque) 
-    if hasattr(caObj.avhrr, 'cloudtype_conditions'):
-        if caObj.avhrr.ctth_status is not None:
-            #print caObj.avhrr.ctth_status
+                caObj.imager.ctth_opaque) 
+    if hasattr(caObj.imager, 'cloudtype_conditions'):
+        if caObj.imager.ctth_status is not None:
+            #print caObj.imager.ctth_status
             semi_flag, opaque_flag = get_semi_opaque_info_pps2014(
-                caObj.avhrr.ctth_status)
+                caObj.imager.ctth_status)
     return semi_flag, opaque_flag
 """
 
 def find_imager_clear_cloudy(cObj):
     if 'SYNOP' in  cObj.truth_sat.upper():
-        imager_clear =  cObj.avhrr.cfc_mean <config.PPS_SYNOP_CLEAR_MAX_CFC
-        imager_cloudy =  cObj.avhrr.cfc_mean >=config.PPS_SYNOP_CLOUDY_MIN_CFC
+        imager_clear =  cObj.imager.cfc_mean <config.PPS_SYNOP_CLEAR_MAX_CFC
+        imager_cloudy =  cObj.imager.cfc_mean >=config.PPS_SYNOP_CLOUDY_MIN_CFC
     elif config.USE_CMA_FOR_CFC_STATISTICS:
-        imager_clear = np.logical_or(np.equal(cObj.avhrr.cloudmask,3),
-                                     np.equal(cObj.avhrr.cloudmask,0))
-        imager_cloudy = np.logical_or(np.equal(cObj.avhrr.cloudmask,1),
-                                      np.equal(cObj.avhrr.cloudmask,2))
+        imager_clear = np.logical_or(np.equal(cObj.imager.cloudmask,3),
+                                     np.equal(cObj.imager.cloudmask,0))
+        imager_cloudy = np.logical_or(np.equal(cObj.imager.cloudmask,1),
+                                      np.equal(cObj.imager.cloudmask,2))
     elif config.USE_CT_FOR_CFC_STATISTICS:
-        imager_clear =np.logical_and(np.less_equal(cObj.avhrr.cloudtype,4),np.greater(cObj.avhrr.cloudtype,0))
-        imager_cloudy = np.logical_and(np.greater(cObj.avhrr.cloudtype,4),np.less(cObj.avhrr.cloudtype,20))
+        imager_clear =np.logical_and(np.less_equal(cObj.imager.cloudtype,4),np.greater(cObj.imager.cloudtype,0))
+        imager_cloudy = np.logical_and(np.greater(cObj.imager.cloudtype,4),np.less(cObj.imager.cloudtype,20))
     elif config.USE_CMAPROB_FOR_CFC_STATISTICS:
         CMA_PROB_CLOUDY_LIMIT = config.CMA_PROB_CLOUDY_LIMIT
-        imager_clear = np.logical_and(np.less(cObj.avhrr.cma_prob,CMA_PROB_CLOUDY_LIMIT),
-                                     np.greater_equal(cObj.avhrr.cma_prob,0))
-        imager_cloudy = np.logical_and(np.greater_equal(cObj.avhrr.cma_prob,CMA_PROB_CLOUDY_LIMIT),
-                                      np.less_equal(cObj.avhrr.cma_prob,100.0))
+        imager_clear = np.logical_and(np.less(cObj.imager.cma_prob,CMA_PROB_CLOUDY_LIMIT),
+                                     np.greater_equal(cObj.imager.cma_prob,0))
+        imager_cloudy = np.logical_and(np.greater_equal(cObj.imager.cma_prob,CMA_PROB_CLOUDY_LIMIT),
+                                      np.less_equal(cObj.imager.cma_prob,100.0))
     
     else: 
         raise ProcessingError("You need at least one of USE_*_FOR_CFC_STATISICS"
@@ -310,9 +310,9 @@ def find_truth_clear_cloudy(cObj, val_subset):
     return truth_clear, truth_cloudy  
 
 def  get_lwp_diff_inner_cloudsat(aObj, val_subset, wide_selection=False):
-    selection = np.logical_and(aObj.avhrr.cpp_lwp>=0,
+    selection = np.logical_and(aObj.imager.cpp_lwp>=0,
                                aObj.cloudsat.RVOD_liq_water_path>=0)
-    selection = np.logical_and(selection, aObj.avhrr.cpp_phase == 1)
+    selection = np.logical_and(selection, aObj.imager.cpp_phase == 1)
 
     if wide_selection:
         pass
@@ -325,29 +325,29 @@ def  get_lwp_diff_inner_cloudsat(aObj, val_subset, wide_selection=False):
         selection = np.logical_and(selection, aObj.cloudsat.RVOD_ice_water_path<=0)
 
     selection = np.logical_and(val_subset, selection)
-    lwp_diff = aObj.avhrr.cpp_lwp - aObj.cloudsat.RVOD_liq_water_path
+    lwp_diff = aObj.imager.cpp_lwp - aObj.cloudsat.RVOD_liq_water_path
     lwp_diff = lwp_diff[selection]
 
-    selection1 = np.logical_and(aObj.avhrr.cpp_lwp>=0,
+    selection1 = np.logical_and(aObj.imager.cpp_lwp>=0,
                                aObj.cloudsat.LO_RVOD_liquid_water_path>=0)
-    selection1 = np.logical_and(selection1, aObj.avhrr.cpp_phase == 1)
+    selection1 = np.logical_and(selection1, aObj.imager.cpp_phase == 1)
     selection1 = np.logical_and(selection1, aObj.cloudsat.cloud_fraction >0)
-    #selection = np.logical_and(selection, aObj.avhrr.fractionofland <=0)
+    #selection = np.logical_and(selection, aObj.imager.fractionofland <=0)
     selection1 = np.logical_and(val_subset, selection1)
-    lwp_diff_lo = aObj.avhrr.cpp_lwp - aObj.cloudsat.LO_RVOD_liquid_water_path
+    lwp_diff_lo = aObj.imager.cpp_lwp - aObj.cloudsat.LO_RVOD_liquid_water_path
     lwp_diff_lo = lwp_diff_lo[selection1]
-    return lwp_diff, lwp_diff_lo,  aObj.avhrr.cpp_lwp, aObj.cloudsat.RVOD_liq_water_path, selection 
+    return lwp_diff, lwp_diff_lo,  aObj.imager.cpp_lwp, aObj.cloudsat.RVOD_liq_water_path, selection 
 
 def print_cpp_lwp_stats(aObj, statfile, val_subset):
     # CLOUD LWP EVALUATION
     #=======================    
     # AMSR-E - IMAGER
     # OR CLOUDSAT CWC-RVOD- IMAGER
-    if aObj.avhrr.cpp_lwp is None:
+    if aObj.imager.cpp_lwp is None:
         logger.warning("There are no cpp data.")
         return
     if "amsr" in aObj.truth_sat:
-        from amsr_avhrr.validate_lwp_util import get_lwp_diff
+        from amsr_imager.validate_lwp_util import get_lwp_diff
         lwp_diff =  get_lwp_diff(aObj, val_subset)
     elif "cloudsat"  in aObj.truth_sat:
         lwp_diff, lwp_diff_lo, dummy, dummy2, dummy3 = get_lwp_diff_inner_cloudsat(aObj, val_subset)
@@ -410,7 +410,7 @@ def print_cpp_stats(cObj, statfile, val_subset):
     # CLOUD PHASE EVALUATION
     #=======================    
     # CLOUD PHASE: CALIOP/ISS - IMAGER
-    if cObj.avhrr.cpp_phase is None:
+    if cObj.imager.cpp_phase is None:
         logger.warning("There are no cpp data.")
         return
     from validate_cph_util import get_calipso_phase_inner, CALIPSO_PHASE_VALUES
@@ -427,8 +427,8 @@ def print_cpp_stats(cObj, statfile, val_subset):
         np.equal(cal_phase, CALIPSO_PHASE_VALUES['horizontal_oriented_ice']))
     truth_water = np.logical_and(truth_water.data, ~cal_phase.mask)
     truth_ice = np.logical_and(truth_ice.data, ~cal_phase.mask)
-    pps_water = np.equal(cObj.avhrr.cpp_phase,1)
-    pps_ice = np.equal(cObj.avhrr.cpp_phase,2)
+    pps_water = np.equal(cObj.imager.cpp_phase,1)
+    pps_ice = np.equal(cObj.imager.cpp_phase,2)
     pps_ice = np.logical_and(pps_ice, val_subset)
     pps_water = np.logical_and(pps_water,val_subset)
 
@@ -515,12 +515,12 @@ def print_cmask_prob_stats(cObj, statfile, val_subset):
     # CLOUD MASK PROB EVALUATION
     #=======================    
     # CORRELATION CLOUD MASK: CALIOP/ISS - IMAGER
-    if cObj.avhrr.cma_prob is None:
+    if cObj.imager.cma_prob is None:
         return
     if 'SYNOP' in  cObj.truth_sat.upper():
-        cma_prob = cObj.avhrr.cma_prob_mean
+        cma_prob = cObj.imager.cma_prob_mean
     else:
-        cma_prob = cObj.avhrr.cma_prob 
+        cma_prob = cObj.imager.cma_prob 
     truth_clear, truth_cloudy = find_truth_clear_cloudy(cObj, val_subset)
 
     #selection:
@@ -613,7 +613,7 @@ def print_calipso_stats_ctype(caObj, statfile, val_subset, low_medium_high_class
     if config.CCI_CLOUD_VALIDATION :
         logger.info("Cloudtype validation not useful for CCI validation")
         return
-    if caObj.avhrr.cloudtype is None:
+    if caObj.imager.cloudtype is None:
         logger.warning("There are no cloudtype data.")
         return
     # CLOUD TYPE EVALUATION - Based exclusively on CALIPSO data (Vertical Feature Mask)
@@ -633,26 +633,26 @@ def print_calipso_stats_ctype(caObj, statfile, val_subset, low_medium_high_class
     calipso_high_op = np.logical_and(low_medium_high_class['high_clouds_op'],
                                   val_subset)
 
-    if  caObj.avhrr.cloudtype_conditions is not None: 
+    if  caObj.imager.cloudtype_conditions is not None: 
         logger.debug("Assuming cloudtype structure from pps v2014")
-        avhrr_low = np.logical_and(
-            np.logical_and(np.greater_equal(caObj.avhrr.cloudtype,5),
-                           np.less_equal(caObj.avhrr.cloudtype,6)),
+        imager_low = np.logical_and(
+            np.logical_and(np.greater_equal(caObj.imager.cloudtype,5),
+                           np.less_equal(caObj.imager.cloudtype,6)),
             val_subset)
-        avhrr_medium = np.logical_and(
-            np.equal(caObj.avhrr.cloudtype,7), val_subset)
-        avhrr_high_op = np.logical_and(
-            np.logical_and(np.greater_equal(caObj.avhrr.cloudtype,8),
-                           np.less_equal(caObj.avhrr.cloudtype,9)),
+        imager_medium = np.logical_and(
+            np.equal(caObj.imager.cloudtype,7), val_subset)
+        imager_high_op = np.logical_and(
+            np.logical_and(np.greater_equal(caObj.imager.cloudtype,8),
+                           np.less_equal(caObj.imager.cloudtype,9)),
             val_subset)
-        avhrr_cirrus = np.logical_and(
-            np.logical_and(np.greater_equal(caObj.avhrr.cloudtype,11),
-                           np.less_equal(caObj.avhrr.cloudtype,15)),
+        imager_cirrus = np.logical_and(
+            np.logical_and(np.greater_equal(caObj.imager.cloudtype,11),
+                           np.less_equal(caObj.imager.cloudtype,15)),
             val_subset)
-        avhrr_high = avhrr_high_op #np.logical_or(avhrr_high_op,avhrr_high_semi)
-        avhrr_frac = np.logical_and(np.equal(caObj.avhrr.cloudtype,10), 
+        imager_high = imager_high_op #np.logical_or(imager_high_op,imager_high_semi)
+        imager_frac = np.logical_and(np.equal(caObj.imager.cloudtype,10), 
                                     val_subset)
-        avhrr_low = np.logical_or(avhrr_low, avhrr_frac)
+        imager_low = np.logical_or(imager_low, imager_frac)
 
 
     else:
@@ -662,9 +662,9 @@ def print_calipso_stats_ctype(caObj, statfile, val_subset, low_medium_high_class
         np.less(caObj.calipso.cloud_fraction,config.CALIPSO_CLEAR_MAX_CFC),val_subset)
     calipso_cloudy = np.logical_and(
         np.greater_equal(caObj.calipso.cloud_fraction,config.CALIPSO_CLOUDY_MIN_CFC),val_subset)
-    avhrr_clear = np.logical_and(
-        np.logical_and(np.less_equal(caObj.avhrr.cloudtype,4),
-                       np.greater(caObj.avhrr.cloudtype,0)),
+    imager_clear = np.logical_and(
+        np.logical_and(np.less_equal(caObj.imager.cloudtype,4),
+                       np.greater(caObj.imager.cloudtype,0)),
         val_subset)
     
     
@@ -672,68 +672,68 @@ def print_calipso_stats_ctype(caObj, statfile, val_subset, low_medium_high_class
     # Here the PPS category is mentioned first and then the CALIOP category 
 
     n_low_low = np.repeat(
-        avhrr_low,
-        np.logical_and(calipso_low,avhrr_low)).shape[0]
+        imager_low,
+        np.logical_and(calipso_low,imager_low)).shape[0]
     n_low_medium = np.repeat(
-        avhrr_low,
-        np.logical_and(calipso_medium,avhrr_low)).shape[0]
+        imager_low,
+        np.logical_and(calipso_medium,imager_low)).shape[0]
     n_low_high = np.repeat(
-        avhrr_low,
-        np.logical_and(calipso_high,avhrr_low)).shape[0]
+        imager_low,
+        np.logical_and(calipso_high,imager_low)).shape[0]
     n_medium_low = np.repeat(
-        avhrr_medium,
-        np.logical_and(calipso_low,avhrr_medium)).shape[0]
+        imager_medium,
+        np.logical_and(calipso_low,imager_medium)).shape[0]
     n_medium_medium = np.repeat(
-        avhrr_medium,
-        np.logical_and(calipso_medium,avhrr_medium)).shape[0]
+        imager_medium,
+        np.logical_and(calipso_medium,imager_medium)).shape[0]
     n_medium_high = np.repeat(
-        avhrr_medium,
-        np.logical_and(calipso_high,avhrr_medium)).shape[0]
+        imager_medium,
+        np.logical_and(calipso_high,imager_medium)).shape[0]
     n_high_low = np.repeat(
-        avhrr_high, 
-        np.logical_and(calipso_low,avhrr_high)).shape[0]
+        imager_high, 
+        np.logical_and(calipso_low,imager_high)).shape[0]
     n_high_medium = np.repeat(
-        avhrr_high,
-        np.logical_and(calipso_medium,avhrr_high)).shape[0]
+        imager_high,
+        np.logical_and(calipso_medium,imager_high)).shape[0]
     n_high_high = np.repeat(
-        avhrr_high,
-        np.logical_and(calipso_high,avhrr_high)).shape[0]
+        imager_high,
+        np.logical_and(calipso_high,imager_high)).shape[0]
     n_cirrus_low = np.repeat(
-        avhrr_cirrus,
-        np.logical_and(calipso_low,avhrr_cirrus)).shape[0]
+        imager_cirrus,
+        np.logical_and(calipso_low,imager_cirrus)).shape[0]
     n_cirrus_medium_tp = np.repeat(
-        avhrr_cirrus,
-        np.logical_and(calipso_medium_tp,avhrr_cirrus)).shape[0]
+        imager_cirrus,
+        np.logical_and(calipso_medium_tp,imager_cirrus)).shape[0]
     n_cirrus_high_tp = np.repeat(
-        avhrr_cirrus,
-        np.logical_and(calipso_high_tp,avhrr_cirrus)).shape[0]
+        imager_cirrus,
+        np.logical_and(calipso_high_tp,imager_cirrus)).shape[0]
     n_cirrus_medium_op = np.repeat(
-        avhrr_cirrus,
-        np.logical_and(calipso_medium_op,avhrr_cirrus)).shape[0]
+        imager_cirrus,
+        np.logical_and(calipso_medium_op,imager_cirrus)).shape[0]
     n_cirrus_high_op = np.repeat(
-        avhrr_cirrus,
-        np.logical_and(calipso_high_op,avhrr_cirrus)).shape[0]
+        imager_cirrus,
+        np.logical_and(calipso_high_op,imager_cirrus)).shape[0]
     n_clear_low = np.repeat(
-        avhrr_clear,
-        np.logical_and(calipso_low,avhrr_clear)).shape[0]
+        imager_clear,
+        np.logical_and(calipso_low,imager_clear)).shape[0]
     n_clear_medium = np.repeat(
-        avhrr_clear,
-        np.logical_and(calipso_medium,avhrr_clear)).shape[0]
+        imager_clear,
+        np.logical_and(calipso_medium,imager_clear)).shape[0]
     n_clear_high = np.repeat(
-        avhrr_clear,
-        np.logical_and(calipso_high,avhrr_clear)).shape[0]
+        imager_clear,
+        np.logical_and(calipso_high,imager_clear)).shape[0]
     n_low_clear = np.repeat(
-        avhrr_low,
-        np.logical_and(calipso_clear,avhrr_low)).shape[0]
+        imager_low,
+        np.logical_and(calipso_clear,imager_low)).shape[0]
     n_medium_clear = np.repeat(
-        avhrr_medium,
-        np.logical_and(calipso_clear,avhrr_medium)).shape[0]
+        imager_medium,
+        np.logical_and(calipso_clear,imager_medium)).shape[0]
     n_high_clear = np.repeat(
-        avhrr_high,
-        np.logical_and(calipso_clear,avhrr_high)).shape[0]
+        imager_high,
+        np.logical_and(calipso_clear,imager_high)).shape[0]
     n_cirrus_clear = np.repeat(
-        avhrr_cirrus,
-        np.logical_and(calipso_clear,avhrr_cirrus)).shape[0]
+        imager_cirrus,
+        np.logical_and(calipso_clear,imager_cirrus)).shape[0]
 
 
     pod_low = -9.0
@@ -811,7 +811,7 @@ def print_height_all_low_medium_high(NAME, val_subset,  statfile,
     statfile.write("CLOUD HEIGHT %s HIGH: %s \n" % (NAME, out_stats))
 
 def print_stats_ctop(cObj, statfile, val_subset, low_medium_high_class):
-    if cObj.avhrr.ctth_height is None:
+    if cObj.imager.ctth_height is None:
         logger.warning("There are no ctth height data.")
         return
 
@@ -819,7 +819,7 @@ def print_stats_ctop(cObj, statfile, val_subset, low_medium_high_class):
     # FIRST TOTAL FIGURES
 
 
-    cObj_imager = getattr(cObj, 'avhrr') #Same as cObj.avhrr
+    cObj_imager = getattr(cObj, 'imager') #Same as cObj.imager
     cObj_truth_sat= getattr(cObj, cObj.truth_sat) #cObj.calipso or cObj.iss
     imager_ctth_m_above_seasurface = cObj_imager.imager_ctth_m_above_seasurface  
     logger.warning("WARNING Only validating CTTH for cloudy pixels!")
@@ -849,7 +849,7 @@ def print_stats_ctop(cObj, statfile, val_subset, low_medium_high_class):
                            "for cloudtop for ISS")
         return
     if  (config.COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC and 
-         cObj.avhrr.cloudtype is not None):
+         cObj.imager.cloudtype is not None):
         statfile.write("CLOUD HEIGHT GEO-STYLE\n")
         from scipy import  ndimage
         # GEO uses pixels with homogene CT in 9x9 pixels 
@@ -858,8 +858,8 @@ def print_stats_ctop(cObj, statfile, val_subset, low_medium_high_class):
         # And variation CPR height less than 3km
         # And CALIPO clouds thinner than 0.2 removed. however pixel kept
         # For 1km data we have to either keep or fully remove the pixel
-        maxct = ndimage.filters.maximum_filter1d(cObj.avhrr.cloudtype, size=9)
-        minct = ndimage.filters.minimum_filter1d(cObj.avhrr.cloudtype, size=9)
+        maxct = ndimage.filters.maximum_filter1d(cObj.imager.cloudtype, size=9)
+        minct = ndimage.filters.minimum_filter1d(cObj.imager.cloudtype, size=9)
         val_geo = np.logical_and(
             val_subset, 
             np.equal(maxct,minct)) 

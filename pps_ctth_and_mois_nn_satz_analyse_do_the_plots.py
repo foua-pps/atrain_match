@@ -51,7 +51,7 @@ def read_satz_statistics_files(out_filenames):
 def plot_pressure_local(out_filenames,PLOT_DIR):
     aggregated_data, satz_step,pressure_plot = read_satz_statistics_files(out_filenames)
     step = 50#hPa read this!!!
-    #["CTTHold", "CTTHnnAvhrr", "CTTHnnAvhrrNoRTTOV"]):     
+    #["CTTHold", "CTTHnnImager", "CTTHnnImagerNoRTTOV"]):     
     fig = plt.figure(figsize = (12,12))  
     plt.suptitle('CTTH pressure dependence on satzenith angle')
     def plot_one_subplot(aggregated_data, satz_step,pressure_plot,  ctth_label, desc, label=False):
@@ -95,7 +95,7 @@ def plot_pressure_modis_01(out_filenames,PLOT_DIR,month):
     plt.rc('font', family='serif')
     aggregated_data, satz_step,pressure_plot = read_satz_statistics_files(out_filenames)
     step = 50#hPa read this!!!
-    #["CTTHold", "CTTHnnAvhrr", "CTTHnnAvhrrNoRTTOV"]):     
+    #["CTTHold", "CTTHnnImager", "CTTHnnImagerNoRTTOV"]):     
     fig = plt.figure(figsize = (19,10))  
     plt.subplots_adjust(wspace=0, hspace=0)
     plt.suptitle('CTTH pressure dependence on satzenith angle', fontsize=22)
@@ -131,9 +131,9 @@ def plot_pressure_modis_01(out_filenames,PLOT_DIR,month):
     ax = fig.add_subplot(331)
     plot_one_subplot(aggregated_data, satz_step, pressure_plot,"CTTHold", "PPS-v2014")
     ax = fig.add_subplot(332)
-    plot_one_subplot(aggregated_data, satz_step, pressure_plot, "CTTHnnaNT", "NN-AVHRR")
+    plot_one_subplot(aggregated_data, satz_step, pressure_plot, "CTTHnnaNT", "NN-IMAGER")
     ax = fig.add_subplot(333)
-    plot_one_subplot(aggregated_data, satz_step, pressure_plot,"CTTHnna1NT", "NN-AVHRR1", legend=True)
+    plot_one_subplot(aggregated_data, satz_step, pressure_plot,"CTTHnna1NT", "NN-IMAGER1", legend=True)
     ax = fig.add_subplot(334)
     plot_one_subplot(aggregated_data, satz_step, pressure_plot,"CTTHnnvNT", "NN-VIIRS")
     ax = fig.add_subplot(335)
@@ -143,9 +143,9 @@ def plot_pressure_modis_01(out_filenames,PLOT_DIR,month):
     ax = fig.add_subplot(337)
     plot_one_subplot(aggregated_data, satz_step, pressure_plot,"CTTHnnmINTnco2", "NN-MetImage-NoCo2")
     ax = fig.add_subplot(338)
-    plot_one_subplot(aggregated_data, satz_step, pressure_plot,"CTTH", "NN-AVHRR THR")
+    plot_one_subplot(aggregated_data, satz_step, pressure_plot,"CTTH", "NN-IMAGER THR")
     ax = fig.add_subplot(339)
-    plot_one_subplot(aggregated_data, satz_step, pressure_plot,"CTTHnna1", "NN-AVHRR1 THR")
+    plot_one_subplot(aggregated_data, satz_step, pressure_plot,"CTTHnna1", "NN-IMAGER1 THR")
     #ax.set_xlabel('pressure (hPa)')
     fig.text(0.5, 0.04, 'pressure (hPa)', ha='center',fontsize=20)
     fig.text(0.04, 0.5, 'percent of cloud top pressure results', va='center', rotation='vertical',fontsize=20)
@@ -199,9 +199,9 @@ def plot_pressure_modis_01(out_filenames,PLOT_DIR,month):
     ax = fig.add_subplot(332)
     plot_one_subplot(aggregated_data, satz_step, pressure_plot,"MODIS-C6", "(b) MODIS-C6",legend=3)
     ax = fig.add_subplot(334)
-    plot_one_subplot(aggregated_data, satz_step, pressure_plot, "CTTHnnaNT", "(c) NN-AVHRR")
+    plot_one_subplot(aggregated_data, satz_step, pressure_plot, "CTTHnnaNT", "(c) NN-IMAGER")
     ax = fig.add_subplot(335)
-    plot_one_subplot(aggregated_data, satz_step, pressure_plot,"CTTHnna1NT", "(d) NN-AVHRR1")
+    plot_one_subplot(aggregated_data, satz_step, pressure_plot,"CTTHnna1NT", "(d) NN-IMAGER1")
     ax = fig.add_subplot(336)
     plot_one_subplot(aggregated_data, satz_step, pressure_plot,"CTTHnnvNT", "(e) NN-VIIRS")
     ax = fig.add_subplot(337)

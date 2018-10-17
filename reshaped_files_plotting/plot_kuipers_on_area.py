@@ -6,8 +6,8 @@
 import os
 from glob import glob
 import numpy as np
-from matchobject_io import (readCaliopAvhrrMatchObj,
-                            CalipsoAvhrrTrackObject)
+from matchobject_io import (readCaliopImagerMatchObj,
+                            CalipsoImagerTrackObject)
 from plot_kuipers_on_area_util import (PerformancePlottingObject,
                                        ppsMatch_Imager_CalipsoObject)
 isGAC_CCI = False
@@ -186,7 +186,7 @@ pplot_obj.flattice.filter_method = filter_method
 pplot_obj.flattice.cc_method = method
 pplot_obj.flattice.isGAC=isGAC
 
-caObj = CalipsoAvhrrTrackObject()
+caObj = CalipsoImagerTrackObject()
 temp_obj = ppsMatch_Imager_CalipsoObject()
 temp_obj.DNT = pplot_obj.flattice.DNT
 temp_obj.satellites = pplot_obj.flattice.satellites
@@ -200,24 +200,24 @@ for filename in files:
 
     num +=1
     try :
-        caObj_new=readCaliopAvhrrMatchObj(filename)#, var_to_skip='segment')
+        caObj_new=readCaliopImagerMatchObj(filename)#, var_to_skip='segment')
         if "modis_lvl2" in satellites:
-            caObj_new.avhrr.all_arrays["cloudtype"] = np.where(
+            caObj_new.imager.all_arrays["cloudtype"] = np.where(
                 caObj_new.modis.all_arrays["cloud_emissivity"]>100,1,7)
-            caObj_new.avhrr.all_arrays["ctth_temperature"] = (
+            caObj_new.imager.all_arrays["ctth_temperature"] = (
                 caObj_new.modis.all_arrays["temperature"])       
-            caObj_new.avhrr.all_arrays["ctth_height"] = (
+            caObj_new.imager.all_arrays["ctth_height"] = (
                 caObj_new.modis.all_arrays["height"])
-        elif "eos_modis_v2014" in satellites and caObj_new.avhrr.all_arrays["ctthold_temperature"] is not None:
-            caObj_new.avhrr.all_arrays["ctth_temperature"] = (
-                caObj_new.avhrr.all_arrays["ctthold_temperature"])       
-            caObj_new.avhrr.all_arrays["ctth_height"] = (
-                caObj_new.avhrr.all_arrays["ctthold_height"])
-        elif "eos_modis_v2018" in satellites and caObj_new.avhrr.all_arrays["ctthnnant_temperature"] is not None:
-            caObj_new.avhrr.all_arrays["ctth_temperature"] = (
-                caObj_new.avhrr.all_arrays["ctthnnant_temperature"])       
-            caObj_new.avhrr.all_arrays["ctth_height"] = (
-                caObj_new.avhrr.all_arrays["ctthnnant_height"])
+        elif "eos_modis_v2014" in satellites and caObj_new.imager.all_arrays["ctthold_temperature"] is not None:
+            caObj_new.imager.all_arrays["ctth_temperature"] = (
+                caObj_new.imager.all_arrays["ctthold_temperature"])       
+            caObj_new.imager.all_arrays["ctth_height"] = (
+                caObj_new.imager.all_arrays["ctthold_height"])
+        elif "eos_modis_v2018" in satellites and caObj_new.imager.all_arrays["ctthnnant_temperature"] is not None:
+            caObj_new.imager.all_arrays["ctth_temperature"] = (
+                caObj_new.imager.all_arrays["ctthnnant_temperature"])       
+            caObj_new.imager.all_arrays["ctth_height"] = (
+                caObj_new.imager.all_arrays["ctthnnant_height"])
 
          
     except:

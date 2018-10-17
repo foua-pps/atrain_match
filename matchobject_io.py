@@ -20,7 +20,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Read Calipso/VIIRS/AVHRR matchup data object from hdf5 file
+"""Read Calipso/VIIRS/IMAGER matchup data object from hdf5 file
 """
 
 import numpy as np
@@ -91,7 +91,7 @@ class DataObject(object):
                     print "cloud not mask %s"%(key)
             
             
-class ppsAvhrrObject(DataObject):
+class ppsImagerObject(DataObject):
     def __init__(self):
         DataObject.__init__(self)                            
         self.all_arrays = {
@@ -554,16 +554,16 @@ class SynopObject(DataObject):
             'sec_1970': None,
             'pressure': None}
 
-class SynopAvhrrTrackObject:
+class SynopImagerTrackObject:
     def __init__(self):
-        self.avhrr = ppsAvhrrObject()
+        self.imager = ppsImagerObject()
         self.modis = ModisObject()
         self.synop = SynopObject()
         self.diff_sec_1970 = None
         self.truth_sat = 'synop' # Well not a satelite, but ...
     def __add__(self, other):
         """Concatenating two objects together"""
-        self.avhrr = self.avhrr + other.avhrr
+        self.imager = self.imager + other.imager
         self.synop = self.synop + other.synop
         #self.modis = self.modis + other.modis
         try:
@@ -574,9 +574,9 @@ class SynopAvhrrTrackObject:
             self.diff_sec_1970 = other.diff_sec_1970
         return self
 
-class AmsrAvhrrTrackObject:
+class AmsrImagerTrackObject:
     def __init__(self):
-        self.avhrr = ppsAvhrrObject()
+        self.imager = ppsImagerObject()
         self.modis = ModisObject()
         self.amsr = AmsrObject()
         self.diff_sec_1970 = None
@@ -585,7 +585,7 @@ class AmsrAvhrrTrackObject:
                                 #Name the truth_sat after the instrument
     def __add__(self, other):
         """Concatenating two objects together"""
-        self.avhrr = self.avhrr + other.avhrr
+        self.imager = self.imager + other.imager
         self.amsr = self.amsr + other.amsr
         #self.modis = self.modis + other.modis
         try:
@@ -598,9 +598,9 @@ class AmsrAvhrrTrackObject:
         return self
 
 
-class MoraAvhrrTrackObject:
+class MoraImagerTrackObject:
     def __init__(self):
-        self.avhrr = ppsAvhrrObject()
+        self.imager = ppsImagerObject()
         self.modis = ModisObject()
         self.mora = MoraObject()
         self.diff_sec_1970 = None
@@ -609,7 +609,7 @@ class MoraAvhrrTrackObject:
                                 #Name the truth_sat after the instrument
     def __add__(self, other):
         """Concatenating two objects together"""
-        self.avhrr = self.avhrr + other.avhrr
+        self.imager = self.imager + other.imager
         self.mora = self.mora + other.mora
         #self.modis = self.modis + other.modis
         try:
@@ -621,16 +621,16 @@ class MoraAvhrrTrackObject:
 
         return self
 
-class IssAvhrrTrackObject:
+class IssImagerTrackObject:
     def __init__(self):
-        self.avhrr=ppsAvhrrObject()
+        self.imager=ppsImagerObject()
         self.modis = ModisObject()
         self.iss=IssObject()
         self.diff_sec_1970=None
         self.truth_sat = 'iss'
     def __add__(self, other):
         """Concatenating two objects together"""
-        self.avhrr = self.avhrr + other.avhrr
+        self.imager = self.imager + other.imager
         self.iss = self.iss + other.iss
         self.modis = self.modis + other.modis
         try:
@@ -642,16 +642,16 @@ class IssAvhrrTrackObject:
 
         return self
 
-class CloudsatAvhrrTrackObject:
+class CloudsatImagerTrackObject:
     def __init__(self):
-        self.avhrr=ppsAvhrrObject()
+        self.imager=ppsImagerObject()
         self.modis = ModisObject()
         self.cloudsat=CloudsatObject()
         self.diff_sec_1970=None
         self.truth_sat = 'cloudsat'
     def __add__(self, other):
         """Concatenating two objects together"""
-        self.avhrr = self.avhrr + other.avhrr
+        self.imager = self.imager + other.imager
         self.cloudsat = self.cloudsat + other.cloudsat
         self.modis = self.modis + other.modis
         try:
@@ -663,9 +663,9 @@ class CloudsatAvhrrTrackObject:
 
         return self
 
-class CalipsoAvhrrTrackObject:
+class CalipsoImagerTrackObject:
     def __init__(self):
-        self.avhrr = ppsAvhrrObject()
+        self.imager = ppsImagerObject()
         self.modis = ModisObject()
         self.calipso = CalipsoObject()
         self.calipso_aerosol = CalipsoObject()
@@ -681,7 +681,7 @@ class CalipsoAvhrrTrackObject:
     
     def __add__(self, other):
         """Concatenating two objects together"""
-        self.avhrr = self.avhrr + other.avhrr
+        self.imager = self.imager + other.imager
         self.calipso = self.calipso + other.calipso
         self.calipso_aerosol = self.calipso_aerosol + other.calipso_aerosol
         self.modis = self.modis + other.modis
@@ -727,10 +727,10 @@ traditional_atrain_match_to_new_names ={
     }
   
         
-def readCaliopAvhrrMatchObjOldFormat(h5file, retv, var_to_read=None):
+def readCaliopImagerMatchObjOldFormat(h5file, retv, var_to_read=None):
     #print "OLD FORMAT"
     for group, data_obj in [(h5file['/calipso'], retv.calipso),
-                            (h5file['/avhrr'], retv.avhrr)]:
+                            (h5file['/imager'], retv.imager)]:
         for dataset in group.keys():  
             atrain_match_name = dataset
             if (dataset in traditional_atrain_match_to_new_names.keys()):
@@ -765,13 +765,13 @@ def get_stuff_to_read_from_a_reshaped_file(h5file, retv):
         data_objects.append(retv.calipso_aerosol)
     if 'pps' in h5file.keys():
         h5_groups.append(h5file['/pps'])
-        data_objects.append(retv.avhrr)
+        data_objects.append(retv.imager)
     if 'cci' in h5file.keys():
         h5_groups.append(h5file['/cci'])
-        data_objects.append(retv.avhrr)
+        data_objects.append(retv.imager)
     if 'maia' in h5file.keys():
         h5_groups.append(h5file['/maia'])
-        data_objects.append(retv.avhrr)
+        data_objects.append(retv.imager)
     if 'modis_lvl2' in h5file.keys():
         h5_groups.append(h5file['/modis_lvl2'])
         data_objects.append(retv.modis)        
@@ -792,7 +792,7 @@ def get_stuff_to_read_from_a_reshaped_file(h5file, retv):
         data_objects.append(retv.synop)
     return (h5_groups, data_objects)
     
-def readCaliopAvhrrMatchObjNewFormat(h5file, retv, var_to_read=None, var_to_skip=None):
+def readCaliopImagerMatchObjNewFormat(h5file, retv, var_to_read=None, var_to_skip=None):
     (h5_groups, data_objects) =  get_stuff_to_read_from_a_reshaped_file(h5file, retv)
     for group, data_obj in zip(h5_groups, data_objects):
         for dataset in group.keys():  
@@ -810,20 +810,20 @@ def readCaliopAvhrrMatchObjNewFormat(h5file, retv, var_to_read=None, var_to_skip
                 data_obj.all_arrays[atrain_match_name] = group[dataset].value
     return retv            
 
-def readCaliopAvhrrMatchObj(filename, var_to_read=None, var_to_skip=None):
-    retv = CalipsoAvhrrTrackObject()    
+def readCaliopImagerMatchObj(filename, var_to_read=None, var_to_skip=None):
+    retv = CalipsoImagerTrackObject()    
     h5file = h5py.File(filename, 'r')
     if "cloud_top_profile" in h5file['/calipso'].keys():
-        retv = readCaliopAvhrrMatchObjOldFormat(h5file, retv, var_to_read=None)
+        retv = readCaliopImagerMatchObjOldFormat(h5file, retv, var_to_read=None)
         #print "OLD FORMAT"
     else:
-        retv = readCaliopAvhrrMatchObjNewFormat(h5file, retv, var_to_read=None, var_to_skip=var_to_skip)
+        retv = readCaliopImagerMatchObjNewFormat(h5file, retv, var_to_read=None, var_to_skip=var_to_skip)
     retv.diff_sec_1970 = h5file['diff_sec_1970'].value
     h5file.close()
     #retv.make_nsidc_surface_type_texture()
     return retv
 
-def readTruthAvhrrMatchObj(filename, retv):
+def readTruthImagerMatchObj(filename, retv):
     h5file = h5py.File(filename, 'r')
     (h5_groups, data_objects) =  get_stuff_to_read_from_a_reshaped_file(h5file, retv)
     for group, data_obj in zip(h5_groups, data_objects):
@@ -834,98 +834,98 @@ def readTruthAvhrrMatchObj(filename, retv):
     h5file.close()
     return retv
 
-def readCloudsatAvhrrMatchObj(filename):
-    retv = CloudsatAvhrrTrackObject()  
-    return readTruthAvhrrMatchObj(filename, retv)
-def readIssAvhrrMatchObj(filename): 
-    retv = IssAvhrrTrackObject()   
-    return readTruthAvhrrMatchObj(filename, retv)
-def readAmsrAvhrrMatchObj(filename): 
-    retv = AmsrAvhrrTrackObject()   
-    return readTruthAvhrrMatchObj(filename, retv)
-def readMoraAvhrrMatchObj(filename): 
-    retv = MoraAvhrrTrackObject()   
-    return readTruthAvhrrMatchObj(filename, retv)
-def readSynopAvhrrMatchObj(filename): 
-    retv = SynopAvhrrTrackObject()   
-    return readTruthAvhrrMatchObj(filename, retv)
+def readCloudsatImagerMatchObj(filename):
+    retv = CloudsatImagerTrackObject()  
+    return readTruthImagerMatchObj(filename, retv)
+def readIssImagerMatchObj(filename): 
+    retv = IssImagerTrackObject()   
+    return readTruthImagerMatchObj(filename, retv)
+def readAmsrImagerMatchObj(filename): 
+    retv = AmsrImagerTrackObject()   
+    return readTruthImagerMatchObj(filename, retv)
+def readMoraImagerMatchObj(filename): 
+    retv = MoraImagerTrackObject()   
+    return readTruthImagerMatchObj(filename, retv)
+def readSynopImagerMatchObj(filename): 
+    retv = SynopImagerTrackObject()   
+    return readTruthImagerMatchObj(filename, retv)
 
 def read_files(files, truth='calipso'):
     if 'cali' in truth:
-        tObj = CalipsoAvhrrTrackObject()  
+        tObj = CalipsoImagerTrackObject()  
     if 'cloudsat' in  truth:
-        tObj = CloudsatAvhrrTrackObject()  
+        tObj = CloudsatImagerTrackObject()  
     if 'iss' in  truth:
-        tObj = IssAvhrrTrackObject()  
+        tObj = IssImagerTrackObject()  
     if 'amsr' in  truth:
-        tObj = AmsrAvhrrTrackObject()  
+        tObj = AmsrImagerTrackObject()  
     if 'mora' in  truth:
-        tObj = MoraAvhrrTrackObject() 
+        tObj = MoraImagerTrackObject() 
     if 'synop' in  truth:
-        tObj = SynopAvhrrTrackObject()  
+        tObj = SynopImagerTrackObject()  
     for filename in files:
         if 'cali' in truth:
-            tObj += readCaliopAvhrrMatchObj(filename)  
+            tObj += readCaliopImagerMatchObj(filename)  
         if 'cloudsat' in  truth:
-            tObj += readCloudsatAvhrrMatchObj(filename)  
+            tObj += readCloudsatImagerMatchObj(filename)  
         if 'iss' in  truth:
-            tObj += readIssAvhrrMatchObj(filename)  
+            tObj += readIssImagerMatchObj(filename)  
         if 'amsr' in  truth:
-            tObj += readAmsrAvhrrMatchObj(filename)
+            tObj += readAmsrImagerMatchObj(filename)
         if 'mora' in  truth:
-            tObj += readMoraAvhrrMatchObj(filename)
+            tObj += readMoraImagerMatchObj(filename)
         if 'synop' in  truth:
-            tObj += readSynopAvhrrMatchObj(filename)
+            tObj += readSynopImagerMatchObj(filename)
     return tObj 
 # write matchup files
-def writeCaliopAvhrrMatchObj(filename, ca_obj, avhrr_obj_name = 'pps'):
+def writeCaliopImagerMatchObj(filename, ca_obj, imager_obj_name = 'pps'):
     """
     Write *ca_obj* to *filename*.    
     """
     groups = {'calipso': ca_obj.calipso.all_arrays,
               'calipso_aerosol': ca_obj.calipso_aerosol.all_arrays,
-              avhrr_obj_name: ca_obj.avhrr.all_arrays,
+              imager_obj_name: ca_obj.imager.all_arrays,
               'modis_lvl2': ca_obj.modis.all_arrays }
     write_match_objects(filename, ca_obj.diff_sec_1970, groups)    
     status = 1
     return status
 
-def writeCloudsatAvhrrMatchObj(filename,cl_obj, avhrr_obj_name = 'pps'):    
+def writeCloudsatImagerMatchObj(filename,cl_obj, imager_obj_name = 'pps'):    
     groups = {'cloudsat': cl_obj.cloudsat.all_arrays,
               'modis_lvl2': cl_obj.modis.all_arrays,
-              avhrr_obj_name: cl_obj.avhrr.all_arrays}
+              imager_obj_name: cl_obj.imager.all_arrays}
     write_match_objects(filename, cl_obj.diff_sec_1970, groups)    
     status = 1
     return status
 
-def writeIssAvhrrMatchObj(filename,iss_obj, avhrr_obj_name = 'pps'):
+def writeIssImagerMatchObj(filename,iss_obj, imager_obj_name = 'pps'):
     groups = {'iss': iss_obj.iss.all_arrays,
               'modis_lvl2': iss_obj.modis.all_arrays,
-              avhrr_obj_name: iss_obj.avhrr.all_arrays}
+              imager_obj_name: iss_obj.imager.all_arrays}
     write_match_objects(filename, iss_obj.diff_sec_1970, groups)    
     status = 1
     return status
 
-def writeAmsrAvhrrMatchObj(filename,amsr_obj, avhrr_obj_name = 'pps'):
+def writeAmsrImagerMatchObj(filename,amsr_obj, imager_obj_name = 'pps'):
     groups = {'amsr': amsr_obj.amsr.all_arrays,
               'modis_lvl2': amsr_obj.modis.all_arrays,
-              avhrr_obj_name: amsr_obj.avhrr.all_arrays}
+              imager_obj_name: amsr_obj.imager.all_arrays}
     write_match_objects(filename, amsr_obj.diff_sec_1970, groups)    
     status = 1
     return status
 
-def writeMoraAvhrrMatchObj(filename,mora_obj, avhrr_obj_name = 'pps'):
+def writeMoraImagerMatchObj(filename,mora_obj, imager_obj_name = 'pps'):
     groups = {'mora': mora_obj.mora.all_arrays,
               'modis_lvl2': mora_obj.modis.all_arrays,
-              avhrr_obj_name: mora_obj.avhrr.all_arrays}
+              imager_obj_name: mora_obj.imager.all_arrays}
     write_match_objects(filename, mora_obj.diff_sec_1970, groups)    
     status = 1
     return status
 
-def writeSynopAvhrrMatchObj(filename,synop_obj, avhrr_obj_name = 'pps'):
+def writeSynopImagerMatchObj(filename,synop_obj, imager_obj_name = 'pps'):
     groups = {'synop': synop_obj.synop.all_arrays,
               'modis_lvl2': synop_obj.modis.all_arrays,
-              avhrr_obj_name: synop_obj.avhrr.all_arrays}
+              imager_obj_name: synop_obj.imager.all_arrays}
     write_match_objects(filename, synop_obj.diff_sec_1970, groups)    
     status = 1
     return status
@@ -1217,7 +1217,7 @@ if __name__ == "__main__":
                             "1km_npp_20121012_1246_04968_caliop_viirs_match.h5")
     TESTFILE2 = os.path.join(TESTDIR,
                              "1km_npp_20121004_0700_04851_caliop_viirs_match.h5")
-    caObj = readCaliopAvhrrMatchObj(TESTFILE)
-    caObj2 = readCaliopAvhrrMatchObj(TESTFILE2)
+    caObj = readCaliopImagerMatchObj(TESTFILE)
+    caObj2 = readCaliopImagerMatchObj(TESTFILE2)
 
     caObj = caObj + caObj2

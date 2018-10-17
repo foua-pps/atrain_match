@@ -4,8 +4,8 @@ import os
 import re
 from glob import glob
 import numpy as np
-from matchobject_io import (readCloudsatAvhrrMatchObj,
-                            CloudsatAvhrrTrackObject)
+from matchobject_io import (readCloudsatImagerMatchObj,
+                            CloudsatImagerTrackObject)
 
 import matplotlib.pyplot as plt
 import matplotlib
@@ -20,8 +20,8 @@ def make_boxplot(clsatObj, name, month):
     medium_clouds = np.logical_and(height_c>=2500, height_c<=5000)
     high_clouds = np.logical_and(height_c>5000, height_c>-9)
     height_mlvl2 = clsatObj.modis.all_arrays['height']
-    height_pps = clsatObj.avhrr.all_arrays['imager_ctth_m_above_seasurface']
-    sunz = clsatObj.avhrr.all_arrays['sunz']
+    height_pps = clsatObj.imager.all_arrays['imager_ctth_m_above_seasurface']
+    sunz = clsatObj.imager.all_arrays['sunz']
     use = np.logical_and(height_pps >-1,
                          height_c>=0)
     use = np.logical_and(height_pps <45000,use)
@@ -178,7 +178,7 @@ def make_boxplot(clsatObj, name, month):
 def investigate_nn_ctth_modis_lvl2():
     #november
  
-    ROOT_DIR_MODIS_nn_avhrr = (
+    ROOT_DIR_MODIS_nn_imager = (
         "/home/a001865/DATA_MISC/reshaped_files/"
         "global_modis_14th_created20170324/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/*h5")
 
@@ -188,16 +188,16 @@ def investigate_nn_ctth_modis_lvl2():
 
     for month in [ "06", "09"]:#, "02","03","04","05","07","08","10","11","12","01"]:    
         for ROOT_DIR, name in zip(
-                [ROOT_DIR_MODIS_nn_avhrr],
+                [ROOT_DIR_MODIS_nn_imager],
                  #ROOT_DIR_MODIS_old], 
-                ["nnAVHRR"]):
+                ["nnIMAGER"]):
             #name = "%s_%s"%(name, month)
             print ROOT_DIR
             files = glob(ROOT_DIR%(month))
-            clsatObj = CloudsatAvhrrTrackObject()
+            clsatObj = CloudsatImagerTrackObject()
             for filename in files:
                 #print filename
-                clsatObj +=  readCloudsatAvhrrMatchObj(filename)
+                clsatObj +=  readCloudsatImagerMatchObj(filename)
             make_boxplot(clsatObj, name, month )
 
         

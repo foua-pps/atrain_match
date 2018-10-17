@@ -4,11 +4,11 @@ import os
 import re
 from glob import glob
 import numpy as np
-from matchobject_io import (readCaliopAvhrrMatchObj,
+from matchobject_io import (readCaliopImagerMatchObj,
                             DataObject,
-                            CloudsatAvhrrTrackObject,
-                            readCloudsatAvhrrMatchObj,
-                            CalipsoAvhrrTrackObject)
+                            CloudsatImagerTrackObject,
+                            readCloudsatImagerMatchObj,
+                            CalipsoImagerTrackObject)
 
 import matplotlib.pyplot as plt
 import matplotlib
@@ -27,13 +27,13 @@ matplotlib.rcParams.update({'font.size': 16})
 def get_land_sea(cObj):
 
     use = np.logical_and(cObj.modis.all_arrays["lwp"]>=0,
-                         cObj.avhrr.all_arrays["cpp_lwp"]>=0)
+                         cObj.imager.all_arrays["cpp_lwp"]>=0)
     use = np.logical_and(use,
-                         cObj.avhrr.all_arrays["cpp_phase"]==1)
+                         cObj.imager.all_arrays["cpp_phase"]==1)
     use = np.logical_and(cObj.modis.all_arrays["cloud_phase"]==1,
                          use)
     retv = get_land_coast_sea_info_pps2014(
-        cObj.avhrr.all_arrays['cloudtype_conditions'])
+        cObj.imager.all_arrays['cloudtype_conditions'])
     (no_qflag, land_flag, sea_flag, coast_flag, all_lsc_flag) =  retv
     use_land = np.logical_and(use, land_flag)
     use_coast = np.logical_and(use, coast_flag)
@@ -65,7 +65,7 @@ def my_label(data,use):
 def plot_all(cObj, density, my_str=""):
     use_land, use_sea, use_coast, use  = get_land_sea(cObj)
     x = cObj.modis.all_arrays["lwp"]
-    y = cObj.avhrr.all_arrays["cpp_lwp"]*density
+    y = cObj.imager.all_arrays["cpp_lwp"]*density
     error = y-x
     print x
     print np.max(y)
@@ -145,12 +145,12 @@ def get_ca_object_nn_ctth_modis_lvl2():
     if "v2014" in ROOT_DIR:
         density = 1e3
 
-    cObj = CalipsoAvhrrTrackObject()
+    cObj = CalipsoImagerTrackObject()
     print ROOT_DIR
 
     for filename in files:
         print filename
-        cObj += readCaliopAvhrrMatchObj(filename)  
+        cObj += readCaliopImagerMatchObj(filename)  
     return cObj, density
 
 def do_the_printing():

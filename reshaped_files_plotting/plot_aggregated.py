@@ -33,20 +33,20 @@ ROOT_DIR = "/local_disk/laptop/NowcastingSaf/FA/cloud_week_2013may/atrain_matchd
 
 files = glob(ROOT_DIR + "/2012/??/arctic_europe_1km/*h5")
 
-from matchobject_io import (readCaliopAvhrrMatchObj,
-                            CalipsoAvhrrTrackObject)
+from matchobject_io import (readCaliopImagerMatchObj,
+                            CalipsoImagerTrackObject)
 
-caObj = CalipsoAvhrrTrackObject()
+caObj = CalipsoImagerTrackObject()
 for filename in files:
     print os.path.basename(filename)
-    caObj = caObj + readCaliopAvhrrMatchObj(filename)
+    caObj = caObj + readCaliopImagerMatchObj(filename)
 
 isCloud = caObj.calipso.all_arrays['number_layers_found'] > 0
-r16 = caObj.avhrr.all_arrays['r16micron']
-t37 = caObj.avhrr.all_arrays['bt37micron']
-t86 = caObj.avhrr.all_arrays['bt86micron']
-t11 = caObj.avhrr.all_arrays['bt11micron']
-t12 = caObj.avhrr.all_arrays['bt12micron']
+r16 = caObj.imager.all_arrays['r16micron']
+t37 = caObj.imager.all_arrays['bt37micron']
+t86 = caObj.imager.all_arrays['bt86micron']
+t11 = caObj.imager.all_arrays['bt11micron']
+t12 = caObj.imager.all_arrays['bt12micron']
 
 # nsidc_surface_type 
 # 255 = Coast

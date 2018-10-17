@@ -4,14 +4,14 @@ import logging
 import numpy as np
 logger = logging.getLogger(__name__)
 from matchobject_io import (DataObject,
-                            ppsAvhrrObject,
+                            ppsImagerObject,
                             IssObject,
-                            IssAvhrrTrackObject)                            
+                            IssImagerTrackObject)                            
 from config import (AREA, sec_timeThr, RESOLUTION,
                     NODATA, ISS_REQUIRED)
 from common import (MatchupError, ProcessingError,
                     elements_within_range)
-from extract_imager_along_track import avhrr_track_from_matched
+from extract_imager_along_track import imager_track_from_matched
 
 from calipso import (find_break_points, calipso_track_from_matched,
                      time_reshape_calipso)
@@ -131,11 +131,11 @@ def read_iss(filename):
     return retv  
 
 
-def match_iss_avhrr(issObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,imagerAngObj, 
+def match_iss_imager(issObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,imagerAngObj, 
                          cpp, nwp_segments):
-    retv = IssAvhrrTrackObject()
-    from common import map_avhrr
-    cal, cap = map_avhrr(imagerGeoObj, issObj.longitude.ravel(),
+    retv = IssImagerTrackObject()
+    from common import map_imager
+    cal, cap = map_imager(imagerGeoObj, issObj.longitude.ravel(),
                          issObj.latitude.ravel(),
                          radius_of_influence=RESOLUTION*0.7*1000.0) # larger than radius...
     calnan = np.where(cal == NODATA, np.nan, cal)
@@ -153,7 +153,7 @@ def match_iss_avhrr(issObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,imagerAngOb
         imager_lines_sec_1970 = np.where(cal != NODATA, imager_time_vector, np.nan)
     else:
         imager_lines_sec_1970 = np.where(cal != NODATA, imagerGeoObj.time[cal], np.nan)
-    # Find all matching Iss pixels within +/- sec_timeThr from the AVHRR data
+    # Find all matching Iss pixels within +/- sec_timeThr from the IMAGER data
     idx_match = elements_within_range(issObj.sec_1970, imager_lines_sec_1970, sec_timeThr)
 
     if idx_match.sum() == 0:
@@ -166,26 +166,26 @@ def match_iss_avhrr(issObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,imagerAngOb
 
     retv.iss = calipso_track_from_matched(retv.iss, issObj, idx_match)
 
-     # Calipso line,pixel inside AVHRR swath:
+     # Calipso line,pixel inside IMAGER swath:
     retv.iss.imager_linnum = np.repeat(cal, idx_match).astype('i')
     retv.iss.imager_pixnum = np.repeat(cap, idx_match).astype('i')
     # Imager time
-    retv.avhrr.sec_1970 = np.repeat(imager_lines_sec_1970, idx_match)
-    retv.diff_sec_1970 = retv.iss.sec_1970 - retv.avhrr.sec_1970                        
+    retv.imager.sec_1970 = np.repeat(imager_lines_sec_1970, idx_match)
+    retv.diff_sec_1970 = retv.iss.sec_1970 - retv.imager.sec_1970                        
 
     do_some_logging(retv, issObj)
     logger.info("Generate the latitude,cloudtype tracks!")
-    retv = avhrr_track_from_matched(retv, imagerGeoObj, imagerObj, imagerAngObj, 
+    retv = imager_track_from_matched(retv, imagerGeoObj, imagerObj, imagerAngObj, 
                                     nwp, ctth, ctype, cma,  
                                     cpp=cpp, nwp_segments=nwp_segments)
     return retv
 
 
 
-def reshapeIss(issfiles, avhrr):
+def reshapeIss(issfiles, imager):
     import sys
-    avhrr_end = avhrr.sec1970_end
-    avhrr_start = avhrr.sec1970_start
+    imager_end = imager.sec1970_end
+    imager_start = imager.sec1970_start
     iss = get_iss(issfiles[0])
     for i in range(len(issfiles)-1):
         newIss = get_iss(issfiles[i+1])
@@ -202,7 +202,7 @@ def reshapeIss(issfiles, avhrr):
                     iss.all_arrays[arname] = np.concatenate((iss.all_arrays[arname],
                                                              newIss.all_arrays[arname]),axis=0)          
     # Finds Break point
-    startBreak, endBreak = find_break_points(iss, avhrr)
+    startBreak, endBreak = find_break_points(iss, imager)
     iss = time_reshape_calipso(iss, startBreak, endBreak)
     return iss
     

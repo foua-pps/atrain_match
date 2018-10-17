@@ -4,8 +4,8 @@ import os
 import re
 from glob import glob
 import numpy as np
-from matchobject_io import (readCaliopAvhrrMatchObj,
-                            CalipsoAvhrrTrackObject)
+from matchobject_io import (readCaliopImagerMatchObj,
+                            CalipsoImagerTrackObject)
 from plot_kuipers_on_area_util import (PerformancePlottingObject,
                                        ppsMatch_Imager_CalipsoObject)
 import matplotlib.pyplot as plt
@@ -27,7 +27,7 @@ def make_violinplot(caObj, name, modis_lvl2=False):
     if modis_lvl2:
         height_pps = caObj.modis.all_arrays['height']
     else:
-        height_pps = caObj.avhrr.all_arrays['ctth_height']
+        height_pps = caObj.imager.all_arrays['ctth_height']
         print "min/max height", np.min( height_pps), np.max(height_pps)
     thin = np.logical_and(caObj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']<0.30, 
                           caObj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>0) 
@@ -82,11 +82,11 @@ def make_violinplot_temperature(caObj, name, modis_lvl2=False):
     if modis_lvl2:
         temp_pps = caObj.modis.all_arrays['temperature']
     else:
-        temp_pps = caObj.avhrr.all_arrays['ctth_temperature']  
+        temp_pps = caObj.imager.all_arrays['ctth_temperature']  
     if modis_lvl2:
         height_pps = caObj.modis.all_arrays['height']
     else:
-        height_pps = caObj.avhrr.all_arrays['ctth_height']
+        height_pps = caObj.imager.all_arrays['ctth_height']
     thin = np.logical_and(caObj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']<0.30, 
                           caObj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>0) 
     very_thin = np.logical_and(caObj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']<0.10, 
@@ -138,11 +138,11 @@ def make_violinplot_pressure(caObj, name, modis_lvl2=False):
     if modis_lvl2:
         pressure_pps = caObj.modis.all_arrays['pressure']
     else:
-        pressure_pps = 0.01*caObj.avhrr.all_arrays['ctth_pressure']
+        pressure_pps = 0.01*caObj.imager.all_arrays['ctth_pressure']
     if modis_lvl2:
         height_pps = caObj.modis.all_arrays['height']
     else:
-        height_pps = caObj.avhrr.all_arrays['ctth_height']
+        height_pps = caObj.imager.all_arrays['ctth_height']
     thin = np.logical_and(caObj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']<0.30, 
                           caObj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>0) 
     very_thin = np.logical_and(caObj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']<0.10, 
@@ -190,7 +190,7 @@ def make_violinplot_pressure(caObj, name, modis_lvl2=False):
 def investigate_nn_ctth_modis_lvl2():
     #november
  
-    ROOT_DIR_MODIS_nn_avhrr = (
+    ROOT_DIR_MODIS_nn_imager = (
         "/home/a001865/DATA_MISC/reshaped_files/"
         "global_modis_14th_created20170324/Reshaped_Files_merged/eos2/1km/2010/%s/*h5")
 
@@ -200,19 +200,19 @@ def investigate_nn_ctth_modis_lvl2():
 
     for month in [ "06", "09", "01"]:    
         for ROOT_DIR, name in zip(
-                [ROOT_DIR_MODIS_nn_avhrr,
-                 ROOT_DIR_MODIS_nn_avhrr,
+                [ROOT_DIR_MODIS_nn_imager,
+                 ROOT_DIR_MODIS_nn_imager,
                  ROOT_DIR_MODIS_old], 
-                ["modis_nnAVHRR",
+                ["modis_nnIMAGER",
                  "modis_lvl2_C6",
                  "modis_CTTHold"]):
             name = "%s_%s"%(name, month)
             print ROOT_DIR
             files = glob(ROOT_DIR%(month))
-            caObj = CalipsoAvhrrTrackObject()
+            caObj = CalipsoImagerTrackObject()
             for filename in files:
                 #print filename
-                caObj +=  readCaliopAvhrrMatchObj(filename)
+                caObj +=  readCaliopImagerMatchObj(filename)
             modis_lvl2 = False
             if "modis_lvl2"  in name:
                 modis_lvl2 = True

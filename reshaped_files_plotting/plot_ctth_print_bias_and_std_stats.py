@@ -4,11 +4,11 @@ import os
 import re
 from glob import glob
 import numpy as np
-from matchobject_io import (readCaliopAvhrrMatchObj,
+from matchobject_io import (readCaliopImagerMatchObj,
                             DataObject,
-                            CloudsatAvhrrTrackObject,
-                            readCloudsatAvhrrMatchObj,
-                            CalipsoAvhrrTrackObject)
+                            CloudsatImagerTrackObject,
+                            readCloudsatImagerMatchObj,
+                            CalipsoImagerTrackObject)
 from plot_kuipers_on_area_util import (PerformancePlottingObject,
                                        ppsMatch_Imager_CalipsoObject)
 from get_flag_info import get_calipso_clouds_of_type_i_feature_classification_flags_one_layer
@@ -24,9 +24,9 @@ from plot_ctth_bias_distributions import PlotAndDataObject, extract_data
 
 tag_dict = {"old": "(a) PPS-v2014",
             "mlvl2": "(b) MODIS-C6",
-            "nnant": "(c) NN-AVHRR",
-            "pps": "(c) NN-AVHRR",
-            "nna1nt": "(d) NN-AVHRR1",
+            "nnant": "(c) NN-IMAGER",
+            "pps": "(c) NN-IMAGER",
+            "nna1nt": "(d) NN-IMAGER1",
             "nnvnt": "(e) NN-VIIRS",
             "nnm2nt": "(f) NN-MERSI-2",
             "nnmint": "(h) NN-MetImage",
@@ -81,9 +81,9 @@ def print_for_one(plt_obj, compare, truth='height_c'):
 
     name_conversion = {'old': 'PPS-v2014',
                        'mlvl2': 'MODIS-C6',
-                       'pps': 'NN-AVHRR',
-                       'nnant': 'NN-AVHRR',
-                       'nna1nt': 'NN-AVHRR1',
+                       'pps': 'NN-IMAGER',
+                       'nnant': 'NN-IMAGER',
+                       'nna1nt': 'NN-IMAGER1',
                        'nnvnt': 'NN-VIIRS',
                        'nnm2nt': 'NN-MERSI-2',
                        'nnmintnco2': 'NN-MetImage-NoCO$_{\\text 2}$',
@@ -346,13 +346,13 @@ def get_plot_object_nn_ctth_modis_lvl2_cloudsat(month):
         #"global_modis_%s_created20170519/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/*h5")
         "global_modis_%s_created20180316/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/*h5")
         #"global_modis_%s_created20170330/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/*h5")
-    #clsatObj = CloudsatAvhrrTrackObject()
+    #clsatObj = CloudsatImagerTrackObject()
     plt_obj = PlotAndDataObject()
     print ROOT_DIR%(day_str,month)
     files = glob(ROOT_DIR%(day_str,month))
     for filename in files:
         print filename
-        clsatObj_new =  readCloudsatAvhrrMatchObj(filename)
+        clsatObj_new =  readCloudsatImagerMatchObj(filename)
         plt_obj += extract_data(clsatObj_new, sat='cloudsat')
     return plt_obj
 
@@ -368,7 +368,7 @@ def get_plot_object_nn_ctth_modis_lvl2(month):
     files = glob(ROOT_DIR%(day_str,month))
     for filename in files:
         print filename
-        caObj_new = readCaliopAvhrrMatchObj(filename)  
+        caObj_new = readCaliopImagerMatchObj(filename)  
         plt_obj += extract_data(caObj_new, sat='calipso')
     return plt_obj
 

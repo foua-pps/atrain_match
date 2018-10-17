@@ -6,13 +6,13 @@ from datetime import datetime, timedelta
 from calendar import timegm
 TAI93 = datetime(1993, 1, 1)
 from config import (RESOLUTION, NODATA, MORA_REQUIRED, sec_timeThr_synop)
-from matchobject_io import (MoraAvhrrTrackObject, 
+from matchobject_io import (MoraImagerTrackObject, 
                             MoraObject)
 from calipso import (find_break_points, calipso_track_from_matched,
                      do_some_logging)
 
 from common import (ProcessingError, MatchupError, elements_within_range)
-from extract_imager_along_track import avhrr_track_from_matched
+from extract_imager_along_track import imager_track_from_matched
 import logging
 logger = logging.getLogger(__name__)
 
@@ -46,9 +46,9 @@ def get_mora_data(filename):
                          })
     return pd.DataFrame(data)
     
-def reshapeMora(morafiles, avhrr):
-    start_t = datetime.utcfromtimestamp(avhrr.sec1970_start)
-    end_t = datetime.utcfromtimestamp(avhrr.sec1970_end)
+def reshapeMora(morafiles, imager):
+    start_t = datetime.utcfromtimestamp(imager.sec1970_start)
+    end_t = datetime.utcfromtimestamp(imager.sec1970_end)
     #datetime.datetime.fromtimestamp(
     items = [get_mora_data(filename) for filename in morafiles]
     panda_moras = pd.concat(items, ignore_index=True)
@@ -65,11 +65,11 @@ def reshapeMora(morafiles, avhrr):
     retv.sec_1970 = np.array([calendar.timegm(tobj.timetuple()) for tobj in panda_moras['date']])
     return retv
 
-def match_mora_avhrr(moraObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
+def match_mora_imager(moraObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
                      imagerAngObj, cpp, nwp_segments):
-    retv = MoraAvhrrTrackObject()
-    from common import map_avhrr
-    cal, cap = map_avhrr(imagerGeoObj, 
+    retv = MoraImagerTrackObject()
+    from common import map_imager
+    cal, cap = map_imager(imagerGeoObj, 
                          moraObj.longitude.ravel(),
                          moraObj.latitude.ravel(),
                          radius_of_influence=RESOLUTION*0.7*1000.0)
@@ -94,17 +94,17 @@ def match_mora_avhrr(moraObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
             logger.warning("No matches in region within time threshold %d s.", sec_timeThr_synop)
             return None
     retv.mora = calipso_track_from_matched(retv.mora, moraObj, idx_match)
-    # Mora line,pixel inside AVHRR swath (one nearest neighbour):
+    # Mora line,pixel inside IMAGER swath (one nearest neighbour):
     retv.mora.imager_linnum = np.repeat(cal, idx_match).astype('i')
     retv.mora.imager_pixnum = np.repeat(cap, idx_match).astype('i')
     # Imager time
-    retv.avhrr.sec_1970 = np.repeat(imager_lines_sec_1970, idx_match)
-    retv.diff_sec_1970 = retv.mora.sec_1970 - retv.avhrr.sec_1970
+    retv.imager.sec_1970 = np.repeat(imager_lines_sec_1970, idx_match)
+    retv.diff_sec_1970 = retv.mora.sec_1970 - retv.imager.sec_1970
 
     do_some_logging(retv, moraObj)
     logger.debug("Extract imager along track!")
     
-    retv = avhrr_track_from_matched(retv, imagerGeoObj, imagerObj, imagerAngObj, 
+    retv = imager_track_from_matched(retv, imagerGeoObj, imagerObj, imagerAngObj, 
                                     nwp, ctth, ctype, cma,  
                                     cpp=cpp, nwp_segments=None)
     return retv

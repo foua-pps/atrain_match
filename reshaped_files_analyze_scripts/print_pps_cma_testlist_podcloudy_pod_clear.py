@@ -4,8 +4,8 @@ import os
 from glob import glob
 import numpy as np
 from scipy import ndimage
-from matchobject_io import (readCaliopAvhrrMatchObj,
-                            CalipsoAvhrrTrackObject)
+from matchobject_io import (readCaliopImagerMatchObj,
+                            CalipsoImagerTrackObject)
 import warnings
 warnings.filterwarnings("ignore")
 from get_flag_info import get_pixels_where_test_is_passed
@@ -14,9 +14,9 @@ v2014 = False
 
 def print_common_stats(caObj, use, name_dict, mints, maxts, surface_type, illumination, basename_outfile="basename_outfile"):
     if v2014:
-        sunz = 100*caObj.avhrr.all_arrays['sunz']
+        sunz = 100*caObj.imager.all_arrays['sunz']
     else:    
-        sunz = caObj.avhrr.all_arrays['sunz']
+        sunz = caObj.imager.all_arrays['sunz']
     print np.min(sunz), np.max(sunz)
 
     outfile=("/home/a001865/DATA_MISC/cma_log_files_can_be_removed_after_some_time"
@@ -58,49 +58,49 @@ def print_common_stats(caObj, use, name_dict, mints, maxts, surface_type, illumi
     isCalipsoNotSnowIce = np.logical_and(
         isCalipsoClear,
         caObj.calipso.all_arrays['nsidc_surface_type']<=0)
-    isClearPPS = np.logical_or(np.equal(caObj.avhrr.cloudmask,3),
-                                   np.equal(caObj.avhrr.cloudmask,0))
-    isCloudyPPS = np.logical_or(np.equal(caObj.avhrr.cloudmask,1),
-                                   np.equal(caObj.avhrr.cloudmask,2))
+    isClearPPS = np.logical_or(np.equal(caObj.imager.cloudmask,3),
+                                   np.equal(caObj.imager.cloudmask,0))
+    isCloudyPPS = np.logical_or(np.equal(caObj.imager.cloudmask,1),
+                                   np.equal(caObj.imager.cloudmask,2))
 
     gotLight = sunz<95
-    nodata = np.sum(caObj.avhrr.all_arrays['cloudtype'][use]>200)
+    nodata = np.sum(caObj.imager.all_arrays['cloudtype'][use]>200)
     use = np.logical_and(use, np.logical_or(isCloudyPPS, isClearPPS))
     use = np.logical_and(use, np.logical_or(isCalipsoCloudy, isCalipsoClear))
-    use = np.logical_and(use, caObj.avhrr.all_arrays['surftemp']<=maxts)
-    use = np.logical_and(use, caObj.avhrr.all_arrays['surftemp']>mints)
+    use = np.logical_and(use, caObj.imager.all_arrays['surftemp']<=maxts)
+    use = np.logical_and(use, caObj.imager.all_arrays['surftemp']>mints)
     from get_flag_info import  get_land_coast_sea_info_pps2014
     (no_qflag, land_flag, sea_flag, coast_flag, all_lsc_flag
-    ) = get_land_coast_sea_info_pps2014(caObj.avhrr.all_arrays['cloudtype_conditions'])
+    ) = get_land_coast_sea_info_pps2014(caObj.imager.all_arrays['cloudtype_conditions'])
     if surface_type in ["land"]:
         #use = np.logical_and(use,np.not_equal(caObj.calipso.igbp_surface_type,17))
         use = np.logical_and(use, land_flag)
     elif surface_type in ["emiss"]:
         #use = np.logical_and(use,np.not_equal(caObj.calipso.igbp_surface_type,17))
         use = np.logical_and(use, np.logical_or(land_flag,coast_flag))
-        use = np.logical_and(use, caObj.avhrr.all_arrays['emis1']<1.0)
+        use = np.logical_and(use, caObj.imager.all_arrays['emis1']<1.0)
     elif surface_type in ["emiss_coast"]:
         #use = np.logical_and(use,np.not_equal(caObj.calipso.igbp_surface_type,17))
         use = np.logical_and(use, coast_flag)
-        use = np.logical_and(use, caObj.avhrr.all_arrays['emis1']<1.0)
+        use = np.logical_and(use, caObj.imager.all_arrays['emis1']<1.0)
     elif surface_type in ["emiss_land"]:
         #use = np.logical_and(use,np.not_equal(caObj.calipso.igbp_surface_type,17))
         use = np.logical_and(use, land_flag)
-        use = np.logical_and(use, caObj.avhrr.all_arrays['emis1']<1.0)
+        use = np.logical_and(use, caObj.imager.all_arrays['emis1']<1.0)
     elif surface_type in ["noemiss_coast"]:
         #use = np.logical_and(use,np.not_equal(caObj.calipso.igbp_surface_type,17))
         use = np.logical_and(use, coast_flag)
-        use = np.logical_and(use, caObj.avhrr.all_arrays['emis1']==1.0)  
+        use = np.logical_and(use, caObj.imager.all_arrays['emis1']==1.0)  
     elif surface_type in ["noemiss_land"]:
         #use = np.logical_and(use,np.not_equal(caObj.calipso.igbp_surface_type,17))
         use = np.logical_and(use, land_flag)
-        use = np.logical_and(use, caObj.avhrr.all_arrays['emis1']==1.0)      
+        use = np.logical_and(use, caObj.imager.all_arrays['emis1']==1.0)      
     elif surface_type in ["noemiss"]:
         #use = np.logical_and(use,np.not_equal(caObj.calipso.igbp_surface_type,17))
         use = np.logical_and(use, np.logical_or(land_flag,coast_flag))
-        use = np.logical_and(use, caObj.avhrr.all_arrays['emis1']==1.0)  
+        use = np.logical_and(use, caObj.imager.all_arrays['emis1']==1.0)  
         import matplotlib.pyplot as plt
-        plt.plot(caObj.avhrr.all_arrays['longitude'][use],caObj.avhrr.all_arrays['latitude'][use], 'b.')
+        plt.plot(caObj.imager.all_arrays['longitude'][use],caObj.imager.all_arrays['latitude'][use], 'b.')
         plt.savefig('emiss_missing.png')
         #plt.show()
     elif surface_type in ["sea"]:
@@ -176,14 +176,14 @@ def print_common_stats(caObj, use, name_dict, mints, maxts, surface_type, illumi
                 print "not using", var, bit_nr
                 continue   
             test_is_on = get_pixels_where_test_is_passed(
-                caObj.avhrr.all_arrays[var], bit_nr=bit_nr)
+                caObj.imager.all_arrays[var], bit_nr=bit_nr)
             all_pix = np.logical_and(all_pix,np.equal(test_is_on,False))
             use_this_test = np.logical_and(use, test_is_on)
-            #caObj.avhrr.all_arrays[var].
+            #caObj.imager.all_arrays[var].
             #print np.sum(test_is_on), np.sum(all_pix), np.sum(use)
-            #print np.sum(caObj.avhrr.all_arrays[var]==4)
+            #print np.sum(caObj.imager.all_arrays[var]==4)
             #print np.sum(np.logical_and(~test_is_on, 
-            #                            caObj.avhrr.all_arrays[var]==4))
+            #                            caObj.imager.all_arrays[var]==4))
             PODcloudy = (np.sum(np.logical_and(isCalipsoCloudy[use_this_test], 
                                                isCloudyPPS[use_this_test]))*1.0
                          /np.sum(isCalipsoCloudy[use]))
@@ -291,7 +291,7 @@ ROOT_DIR_GAC = ("/home/a001865/DATA_MISC/reshaped_files/"
             "ATRAIN_RESULTS_GAC_oldctth/Reshaped_Files/noaa18/")
 ROOT_DIR_GAC = ("/home/a001865/DATA_MISC/reshaped_files/"
             "ATRAIN_RESULTS_GAC_oldctth_20161201/Reshaped_Files/noaa18/")
-ROOT_DIR_GAC = ("/home/a001865/NN_CTTH/data/validation_data/avhrr_gac_noaa19/")
+ROOT_DIR_GAC = ("/home/a001865/NN_CTTH/data/validation_data/imager_gac_noaa19/")
 ROOT_DIR_NPP1 = ("/home/a001865/DATA_MISC/reshaped_files/"
                 "ATRAIN_RESULTS_NPP_new_thr_alos_85/Reshaped_Files"
                 "/npp/1km/2015/07/no_area/")
@@ -310,7 +310,7 @@ ROOT_DIR_NPP2 = ("/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
 ROOT_DIR_NPP2 = ("/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
                 "ATRAIN_RESULTS_NPP_C4_build15/Reshaped_Files"
                 "/npp/1km/2015/07/")
-ROOT_DIR_GAC9 = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_GAC_tuned_nnAVHRR/Reshaped_Files/noaa18/5km/2009/*/"
+ROOT_DIR_GAC9 = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_GAC_tuned_nnIMAGER/Reshaped_Files/noaa18/5km/2009/*/"
 #ROOT_DIR_GAC = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_GAC_thr_wvp/Reshaped_Files/noaa18/5km/2009/*/"
 ROOT_DIR_GAC = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_GAC_rttov12/Reshaped_Files/noaa18/5km/2009/*/"
 #ROOT_DIR_GAC = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_GAC_percentile_thr/Reshaped_Files/noaa18/5km/2009/*/"
@@ -352,13 +352,13 @@ for line in TEST_NAMEFILE:
         name_dict[var][int(bit)] =  name
 
     
-caObjPPS = CalipsoAvhrrTrackObject()
+caObjPPS = CalipsoImagerTrackObject()
 for filename in files:
     print filename
-    caObjPPS +=  readCaliopAvhrrMatchObj(filename) 
+    caObjPPS +=  readCaliopImagerMatchObj(filename) 
     print "Scene %s"%(os.path.basename(filename))
-use = caObjPPS.avhrr.all_arrays['bt11micron']>-9
-#use = caObjPPS.avhrr.all_arrays['sunz']>95
+use = caObjPPS.imager.all_arrays['bt11micron']>-9
+#use = caObjPPS.imager.all_arrays['sunz']>95
 basename_outfile = filename.split("/Reshaped_Files")[0]
 basename_outfile = basename_outfile.split("/")[-1]
 print basename_outfile

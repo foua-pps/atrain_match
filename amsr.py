@@ -5,14 +5,14 @@ from calendar import timegm
 TAI93 = datetime(1993, 1, 1)
 from config import (RESOLUTION, sec_timeThr, NODATA, AMSR_REQUIRED)
 from read_cloudproducts_and_nwp_pps import NWPObj
-from matchobject_io import (AmsrAvhrrTrackObject, 
+from matchobject_io import (AmsrImagerTrackObject, 
                             AmsrObject)
 from calipso import (find_break_points, calipso_track_from_matched,
                      time_reshape_calipso, do_some_logging)
 
 from common import (ProcessingError, MatchupError, elements_within_range)
-from extract_imager_along_track import avhrr_track_from_matched
-from amsr_avhrr.validate_lwp_util import LWP_THRESHOLD
+from extract_imager_along_track import imager_track_from_matched
+from amsr_imager.validate_lwp_util import LWP_THRESHOLD
 import logging
 logger = logging.getLogger(__name__)
 AMSR_RADIUS = 5.4e3 #3.7e3 to include 5km pixels parly overlapping amsr-e footprint
@@ -106,9 +106,9 @@ def read_amsr_hdf4(filename):
     return retv
 
 
-def reshapeAmsr(amsrfiles, avhrr):
-    avhrr_end = avhrr.sec1970_end
-    avhrr_start = avhrr.sec1970_start
+def reshapeAmsr(amsrfiles, imager):
+    imager_end = imager.sec1970_end
+    imager_start = imager.sec1970_start
     amsr = get_amsr(amsrfiles[0])
     for i in range(len(amsrfiles)-1):
         newAmsr = get_amsr(amsrfiles[i+1])
@@ -127,26 +127,26 @@ def reshapeAmsr(amsrfiles, avhrr):
                          newAmsr.all_arrays[arname]),axis=0)          
     # Finds Break point
     #import pdb; pdb.set_trace()
-    startBreak, endBreak = find_break_points(amsr, avhrr)
+    startBreak, endBreak = find_break_points(amsr, imager)
     amsr = time_reshape_calipso(amsr, startBreak, endBreak)
     return amsr
 
 
 
-def match_amsr_avhrr(amsrObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
+def match_amsr_imager(amsrObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
                      imagerAngObj, cpp, nwp_segments):
-    retv = AmsrAvhrrTrackObject()
+    retv = AmsrImagerTrackObject()
 
     if (getattr(cpp, "cpp_lwp")<0).all() and AMSR_REQUIRED:
         logger.warning("Not matching AMSR-E with scene with no lwp.")
         return None
         #return MatchupError("No imager Lwp.") # if only LWP matching?
 
-    from common import map_avhrr_distances
+    from common import map_imager_distances
     n_neighbours = 8
     if RESOLUTION == 5:
         n_neighbours = 5
-    mapper_and_dist = map_avhrr_distances(imagerGeoObj, 
+    mapper_and_dist = map_imager_distances(imagerGeoObj, 
                                           amsrObj.longitude.ravel(), 
                                           amsrObj.latitude.ravel(),
                                           radius_of_influence=AMSR_RADIUS,
@@ -169,7 +169,7 @@ def match_amsr_avhrr(amsrObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
         imager_lines_sec_1970 = np.where(cal_1 != NODATA, imager_time_vector, np.nan)
     else:
         imager_lines_sec_1970 = np.where(cal_1 != NODATA, imagerGeoObj.time[cal_1], np.nan)
-    # Find all matching Amsr pixels within +/- sec_timeThr from the AVHRR data
+    # Find all matching Amsr pixels within +/- sec_timeThr from the IMAGER data
     imager_sunz_vector = np.array([imagerAngObj.sunz.data[line,pixel] for line, pixel in zip(cal_1,cap_1)])
     idx_match = np.logical_and(
         elements_within_range(amsrObj.sec_1970, imager_lines_sec_1970, sec_timeThr),
@@ -183,7 +183,7 @@ def match_amsr_avhrr(amsrObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
             return None
     retv.amsr = calipso_track_from_matched(retv.amsr, amsrObj, idx_match)
  
-    # Amsr line,pixel inside AVHRR swath (one neighbour):
+    # Amsr line,pixel inside IMAGER swath (one neighbour):
     retv.amsr.imager_linnum = np.repeat(cal_1, idx_match).astype('i')
     retv.amsr.imager_pixnum = np.repeat(cap_1, idx_match).astype('i')
     retv.amsr.imager_linnum_nneigh = np.repeat(cal, idx_match, axis=0)
@@ -191,8 +191,8 @@ def match_amsr_avhrr(amsrObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
     retv.amsr.imager_amsr_dist = np.repeat(distances, idx_match, axis=0)
 
     # Imager time
-    retv.avhrr.sec_1970 = np.repeat(imager_lines_sec_1970, idx_match)
-    retv.diff_sec_1970 = retv.amsr.sec_1970 - retv.avhrr.sec_1970
+    retv.imager.sec_1970 = np.repeat(imager_lines_sec_1970, idx_match)
+    retv.diff_sec_1970 = retv.amsr.sec_1970 - retv.imager.sec_1970
 
     do_some_logging(retv, amsrObj)
     logger.debug("Extract imager lwp along track!")
@@ -201,7 +201,7 @@ def match_amsr_avhrr(amsrObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
                         'landuse': getattr(nwp, 'landuse')})
 
     
-    retv = avhrr_track_from_matched(retv, imagerGeoObj, None, imagerAngObj, 
+    retv = imager_track_from_matched(retv, imagerGeoObj, None, imagerAngObj, 
                                     #nwp, ctth, ctype, cma,  
                                     nwp_small, None, None, cma,
                                     cpp=cpp, nwp_segments=None,
