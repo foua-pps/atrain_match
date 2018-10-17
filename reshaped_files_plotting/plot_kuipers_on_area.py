@@ -14,8 +14,9 @@ isGAC_CCI = False
 isGAC_CCI_morning = False
 isModis1km = False
 isModis1km_lvl2 = False
-isModisAllv2018 = True
+isModisAllv2018 = False
 isModisAllv2014 = False
+isModisAll_lvl2 = True
 isModis1km_nnctth = False
 isNPP_v2014 = False
 isGAC_v2014_morning_sat = False
@@ -59,6 +60,15 @@ elif isModisAllv2018:
     num_files_to_read = 1
     isGAC=False
     satellites = "eos_modis_calipso4_v2018_all"
+    ROOT_DIR = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/"
+                "global_modis_v2018_created20180920/"
+                "Reshaped_Files_merged_caliop/eos2/1km/2010/*/*h5")
+    files = glob(ROOT_DIR)
+elif isModisAll_lvl2:
+    print "isModis1km"
+    num_files_to_read = 1
+    isGAC=False
+    satellites = "eos_modis_lvl2_C6_all"
     ROOT_DIR = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/"
                 "global_modis_v2018_created20180920/"
                 "Reshaped_Files_merged_caliop/eos2/1km/2010/*/*h5")
@@ -234,6 +244,10 @@ if num_files_to_read!=1:
     print "Get info from last files!"
     temp_obj.get_some_info_from_caobj(caObj, PROCES_FOR_ART=PROCES_FOR_ART)
     pplot_obj.add_detection_stats_on_fib_lattice(temp_obj) 
+
+
+pplot_obj.flattice.calculate_ctth_pe1()
+pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=0, vmax=100.0, score='ctth_pe1')
 
 pplot_obj.flattice.calculate_bias()
 pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-25.0, vmax=25.0, score='Bias',  screen_out_valid=True)

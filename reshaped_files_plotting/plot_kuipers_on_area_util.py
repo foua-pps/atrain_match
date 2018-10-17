@@ -419,6 +419,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
         self.Sum_ctth_bias_temperature_low = np.zeros(self.lats.shape)
         self.Sum_ctth_bias_temperature_low_t11 = np.zeros(self.lats.shape)
         self.Min_lapse_rate = np.zeros(self.lats.shape)
+        self.N_ctth_error_above_1km = np.zeros(self.lats.shape) 
         self.N_new_false_clouds = np.zeros(self.lats.shape)
         self.N_new_detected_clouds = np.zeros(self.lats.shape)
         self.N_false_clouds = np.zeros(self.lats.shape)
@@ -552,6 +553,8 @@ class ppsStatsOnFibLatticeObject(DataObject):
             my_cmap=copy.copy(matplotlib.cm.BrBG)
         elif "mae" in score:
             my_cmap=copy.copy(matplotlib.cm.Reds)
+        elif "ctth_pe" in score:
+            my_cmap=copy.copy(matplotlib.cm.BrBG_r)
         else:    
             my_cmap=copy.copy(matplotlib.cm.BrBG)
         if score in "Bias" and screen_out_valid:
@@ -574,6 +577,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
             my_cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
                 "newBrBG", cmap_vals) 
             print my_cmap
+            
 
       
 
@@ -737,6 +741,13 @@ class ppsStatsOnFibLatticeObject(DataObject):
         self.ctth_mae_diff = ctth_mae_diff
         the_mask = self.N_detected_height_both<0
         self.N_detected_height_both = np.ma.masked_array(self.N_detected_height_both, mask=the_mask)
+
+    def calculate_ctth_pe1(self):
+        self.np_float_array()
+        the_mask = self.N_detected_height<10
+        ctth_pe1 = self.N_ctth_error_above_1km*100.0/self.N_detected_height
+        ctth_pe1 = np.ma.masked_array(ctth_pe1, mask=the_mask)
+        self.ctth_pe1 = ctth_pe1
 
     def calculate_height_bias_lapse(self):
         self.np_float_array()
@@ -964,6 +975,7 @@ class PerformancePlottingObject:
             self.flattice.Sum_ctth_bias_low[d] += np.sum(height_bias_low[ind])
             self.flattice.Sum_ctth_mae_low[d] += np.sum(np.abs(height_bias_low[ind]))
             self.flattice.Sum_ctth_mae[d] += np.sum(np.abs(height_bias[ind]))
+            self.flattice.N_ctth_error_above_1km[d] += np.sum(np.abs(height_bias[ind])>1000)
             self.flattice.Sum_ctth_mae_diff[d] += np.sum(height_mae_diff[ind])
             self.flattice.Sum_lapse_bias_low[d] += np.sum(lapse_bias_low[ind])
             self.flattice.Sum_ctth_bias_high[d] += np.sum(height_bias_high[ind])
