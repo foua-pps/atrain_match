@@ -37,15 +37,13 @@ def get_satid_datetime_orbit_from_fname_pps(imager_filename,as_oldstyle=False):
                  "lines_lines": "*",
                  "time":sl_[2],
                  "ppsfilename":imager_filename}
-        values['basename'] = (values["satellite"] + 
-                              "_" + values["date"] + 
-                              "_" + values["time"] + 
-                              "_" + values["orbit"])
     else: #PPS v2014-filenames
         sl_ = os.path.basename(imager_filename).split('_')
-        date_time= datetime.strptime(sl_[5], '%Y%m%dT%H%M%S%fZ')
+        date_time = datetime.strptime(sl_[5], '%Y%m%dT%H%M%S%fZ')
+        date_time_end = datetime.strptime(sl_[6], '%Y%m%dT%H%M%S%fZ')
         values= {"satellite": sl_[3],
                  "date_time": date_time,
+                 "date_time_end": date_time_end,
                  "orbit": sl_[4],
                  #"date":"%04d%02d%02d"%(date_time.year,dat_time.month, date_time.day),
                  "date": date_time.strftime("%Y%m%d"),
@@ -54,10 +52,10 @@ def get_satid_datetime_orbit_from_fname_pps(imager_filename,as_oldstyle=False):
                  "lines_lines": "*",
                  "time":date_time.strftime("%H%M"),
                  "ppsfilename":imager_filename}
-        values['basename'] = (values["satellite"] + 
-                              "_" + values["date"] + 
-                              "_" + values["time"] + 
-                              "_" + values["orbit"])
+    values['basename'] = (values["satellite"] + 
+                          "_" + values["date"] + 
+                          "_" + values["time"] + 
+                          "_" + values["orbit"])
     values["jday"]=date_time.timetuple().tm_yday
 
     return values    
@@ -65,66 +63,12 @@ def get_satid_datetime_orbit_from_fname_pps(imager_filename,as_oldstyle=False):
 
 def createImagerTime(Obt, values=None, Trust_sec_1970=False):
     """ Function to make crate a matrix with time for each pixel 
-    from objects start adn end time """
-    from config import IMAGER_INSTRUMENT 
-    #filename = os.path.basename(filename)
-    # Ex.: npp_20120827_2236_04321_satproj_00000_04607_cloudtype.h5
-    if IMAGER_INSTRUMENT == 'viirs':
-    #if filename.split('_')[0] == 'npp':
-        if Obt.sec1970_start < 0: #10800
-            logger.warning( 
-                      "NPP start time negative! " + str(Obt.sec1970_start))
-            datetime=values["date_time"]
-            Obt.sec1970_start = calendar.timegm(datetime.timetuple())
-            #Obt.sec1970_start = calendar.timegm((year, mon, day, hour, mins, sec)) + hundredSec
-        num_of_scan = np.int(Obt.num_of_lines / 16.)      
-        linetime = np.linspace(Obt.sec1970_start, Obt.sec1970_end, num_of_scan)
-        Obt.time = np.repeat(linetime, 16)
-        logger.info("NPP start time :  %s", time.gmtime(Obt.sec1970_start))
-        logger.info("NPP end time : %s", time.gmtime(Obt.sec1970_end))
-    elif Trust_sec_1970  :
-        Obt.time = np.linspace(Obt.sec1970_start, Obt.sec1970_end, Obt.num_of_lines)
-    else:
-        if Obt.sec1970_end < Obt.sec1970_start:
-            """
-            In some GAC edition the end time is negative. If so this if statement 
-            tries to estimate the endtime depending on the start time plus number of 
-            scanlines multiplied with the estimate scan time for the instrument. 
-            This estimation is not that correct but what to do?
-            """
-            logger.warning("I need DSEC_PER_AVHRR_SCALINE, to continue ")
-            Obt.sec1970_end = int(DSEC_PER_AVHRR_SCALINE * Obt.num_of_lines + Obt.sec1970_start)
-        datetime=values["date_time"]
-        sec1970_start_filename = calendar.timegm(datetime.timetuple())
-        diff_filename_infile_time = sec1970_start_filename-Obt.sec1970_start
-        diff_hours= abs( diff_filename_infile_time/3600.0  )
-        if (diff_hours<13):
-            logger.debug("Time in file and filename do agree. Difference  %d hours.", diff_hours)
-        if (diff_hours>13):
-            """
-            This if statement takes care of a bug in start and end time, 
-            that occurs when a file is cut at midnight
-            Former condition needed line number in file name:
-            if ((values["ppsfilename"].split('_')[-3] != '00000' and PPS_FORMAT_2012_OR_EARLIER) or
-            (values["ppsfilename"].split('_')[-2] != '00000' and not PPS_FORMAT_2012_OR_EARLIER)):
-            Now instead check if we aer more than 13 hours off. 
-            If we are this is probably the problem, do the check and make sure results are fine afterwards.
-            """
-            logger.warning("Time in file and filename do not agree! Difference  %d hours.", diff_hours)
-            timediff = Obt.sec1970_end - Obt.sec1970_start
-            old_start = time.gmtime(Obt.sec1970_start + (24 * 3600)) # Adds 24 h to get the next day in new start
-            new_start = calendar.timegm(time.strptime('%i %i %i' %(old_start.tm_year, \
-                                                                   old_start.tm_mon, \
-                                                                   old_start.tm_mday), \
-                                                                   '%Y %m %d'))
-            Obt.sec1970_start = new_start
-            Obt.sec1970_end = new_start + timediff
-            diff_filename_infile_time = sec1970_start_filename-Obt.sec1970_start
-            diff_hours= abs( diff_filename_infile_time/3600.0)
-            if (diff_hours>20):
-                raise InputError("Time in file and filename do not agree.",
-                                 " %d s diff"%(diff_hours*60.0))        
-        Obt.time = np.linspace(Obt.sec1970_start, Obt.sec1970_end, Obt.num_of_lines)
+    from objects start anf end time """
+    if Obt.sec1970_start < 0:
+        Obt.sec1970_start = calendar.timegm(values['date_time'])
+    if: Obt.sec1970_end < Obt.sec1970_start:
+        Obt.sec1970_end = calendar.timegm(values['date_time_end'])
+    Obt.time = np.linspace(Obt.sec1970_start, Obt.sec1970_end, Obt.num_of_lines)
     return Obt
     
 
@@ -203,6 +147,7 @@ class NewImagerData:
         self.nodata = -999
         self.missingdata = -999
         self.channel = []
+        self.instrument = "imager"
 
 class ImagerChannelData:
     def __init__(self):
@@ -213,9 +158,10 @@ class ImagerChannelData:
         self.SZA_corr_done = False
         self.data = None
 class CmaObj:
-    #skeleton container for v2014 cma
+    #skeleton container for v2018 cma
     def __init__(self):
         self.cma_ext = None
+        self.cma_bin = None
         self.cma_prob = None
         self.cma_aflag = None
         self.cma_testlist0 = None #new in v2018
@@ -1028,6 +974,9 @@ def pps_read_all(pps_files, imager_file):
         pps_nc.close()
     else:
         imagerObj = readImagerData_h5(imager_file)
+    for imager in ["avhrr", "viirs", "modis", "seviri"]:
+        if imager in os.path.basename(imager_file)
+        imagerObj.instrument = imager
 
     logger.debug("%s, %s, %s", pps_files.cloudtype, pps_files.ctth, pps_files.cma)
 

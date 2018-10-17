@@ -1,7 +1,7 @@
 import numpy as np
 import logging
 logger = logging.getLogger(__name__)
-from config import PPS_VALIDATION, SAVE_NEIGHBOUR_INFO, CTTH_TYPES, IMAGER_INSTRUMENT
+from config import PPS_VALIDATION, SAVE_NEIGHBOUR_INFO, CTTH_TYPES
 CHANNEL_MICRON_DESCRIPTIONS = {'11': ["avhrr channel 4 - 11um",
                                       "Avhrr channel channel4.",
                                       "AVHRR ch4",
@@ -489,12 +489,12 @@ def imager_track_from_matched(obt, GeoObj, dataObj, AngObj,
         #b13
         temp_data, info =  get_channel_data_from_object(dataObj, '13', row_col)
         setattr(obt.imager, "r13micron" + info, temp_data)
-        if IMAGER_INSTRUMENT.lower() in ['modis']:
+        if obt.imager.instrument.lower() in ['modis']:
             for modis_channel in CURRENTLY_UNUSED_MODIS_CHANNELS:
                 modis_track, info = get_channel_data_from_object(dataObj, 
                                                                  modis_channel, row_col)
                 setattr(obt.imager, modis_channel + info, modis_track)
-        if IMAGER_INSTRUMENT.lower() in ['seviri']:
+        if obt.imager.instrument.lower() in ['seviri']:
             for seviri_channel in CURRENTLY_UNUSED_SEVIRI_CHANNELS:
                 seviri_track, info = get_channel_data_from_object(dataObj, 
                                                                   seviri_channel, row_col)
@@ -539,7 +539,8 @@ def imager_track_from_matched(obt, GeoObj, dataObj, AngObj,
             if data is not None:
                 setattr(obt.imager, data_set_name,  
                         get_data_from_array(data, row_col))
-
+           
+    obt.imager.attrs ={'instrument': obt.imager.instrument.lower()}
     return obt
 
 

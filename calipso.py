@@ -17,7 +17,6 @@ from config import (_validation_results_dir,
                     CALIPSO_version4,
                     CALIPSO_version3,
                     CALIPSO_CLOUDY_MIN_CFC,
-                    IMAGER_INSTRUMENT,
                     PPS_FORMAT_2012_OR_EARLIER,
                     CALIPSO_REQUIRED)
 
