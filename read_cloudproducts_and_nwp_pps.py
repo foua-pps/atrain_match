@@ -14,9 +14,9 @@ from common import InputError
 ATRAIN_MATCH_NODATA = NODATA
 #logger.debug('Just so you know: this module has a logger...')
 
-DSEC_PER_IMAGER_SCALINE = 1.0/6. * 4 # A "work for the time being" solution.
+DSEC_PER_AVHRR_SCALINE = 1.0/6. * 4 # A "work for the time being" solution.
 if RESOLUTION == 1:
-    DSEC_PER_IMAGER_SCALINE = 1.0/6. # Full scan period, i.e. the time
+    DSEC_PER_AVHRR_SCALINE = 1.0/6. # Full scan period, i.e. the time
                                     # interval between two consecutive
                                     # lines (sec)
 def get_satid_datetime_orbit_from_fname_pps(imager_filename,as_oldstyle=False):
@@ -92,8 +92,8 @@ def createImagerTime(Obt, values=None, Trust_sec_1970=False):
             scanlines multiplied with the estimate scan time for the instrument. 
             This estimation is not that correct but what to do?
             """
-            logger.warning("I need DSEC_PER_IMAGER_SCALINE, to continue ")
-            Obt.sec1970_end = int(DSEC_PER_IMAGER_SCALINE * Obt.num_of_lines + Obt.sec1970_start)
+            logger.warning("I need DSEC_PER_AVHRR_SCALINE, to continue ")
+            Obt.sec1970_end = int(DSEC_PER_AVHRR_SCALINE * Obt.num_of_lines + Obt.sec1970_start)
         datetime=values["date_time"]
         sec1970_start_filename = calendar.timegm(datetime.timetuple())
         diff_filename_infile_time = sec1970_start_filename-Obt.sec1970_start
