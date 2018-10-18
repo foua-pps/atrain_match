@@ -45,7 +45,7 @@ def get_mora_data(filename):
                          })
     return pd.DataFrame(data)
     
-def reshapeMora(morafiles, imager):
+def reshapeMora(morafiles, imager,  SETTINGS):
     start_t = datetime.utcfromtimestamp(imager.sec1970_start)
     end_t = datetime.utcfromtimestamp(imager.sec1970_end)
     #datetime.datetime.fromtimestamp(
@@ -67,6 +67,7 @@ def reshapeMora(morafiles, imager):
 def match_mora_imager(moraObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
                      imagerAngObj, cpp, nwp_segments, SETTINGS):
     retv = MoraImagerTrackObject()
+    retv.imager_instrument = imagerObj.instrument.lower()
     from utils.common import map_imager
     cal, cap = map_imager(imagerGeoObj, 
                          moraObj.longitude.ravel(),

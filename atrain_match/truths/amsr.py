@@ -106,7 +106,7 @@ def read_amsr_hdf4(filename):
     return retv
 
 
-def reshapeAmsr(amsrfiles, imager):
+def reshapeAmsr(amsrfiles, imager, SETTINGS):
     imager_end = imager.sec1970_end
     imager_start = imager.sec1970_start
     amsr = get_amsr(amsrfiles[0])
@@ -127,15 +127,16 @@ def reshapeAmsr(amsrfiles, imager):
                          newAmsr.all_arrays[arname]),axis=0)          
     # Finds Break point
     #import pdb; pdb.set_trace()
-    startBreak, endBreak = find_break_points(amsr, imager)
+    startBreak, endBreak = find_break_points(amsr, imager, SETTINGS)
     amsr = time_reshape_calipso(amsr, startBreak, endBreak)
     return amsr
 
 
 
 def match_amsr_imager(amsrObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
-                     imagerAngObj, cpp, nwp_segments, SETTINGS):
+                      imagerAngObj, cpp, nwp_segments, SETTINGS):
     retv = AmsrImagerTrackObject()
+    retv.imager_instrument = imagerObj.instrument.lower()
 
     if (getattr(cpp, "cpp_lwp")<0).all():
         logger.warning("Not matching AMSR-E with scene with no lwp.")

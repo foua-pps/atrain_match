@@ -490,12 +490,12 @@ def imager_track_from_matched(obt, SETTINGS,
         #b13
         temp_data, info =  get_channel_data_from_object(dataObj, '13', row_col)
         setattr(obt.imager, "r13micron" + info, temp_data)
-        if dataObj.instrument.lower() in ['modis']:
+        if obt.imager_instrument.lower() in ['modis']:
             for modis_channel in CURRENTLY_UNUSED_MODIS_CHANNELS:
                 modis_track, info = get_channel_data_from_object(dataObj, 
                                                                  modis_channel, row_col)
                 setattr(obt.imager, modis_channel + info, modis_track)
-        if dataObj.instrument.lower() in ['seviri']:
+        if obt.imager_instrument.lower() in ['seviri']:
             for seviri_channel in CURRENTLY_UNUSED_SEVIRI_CHANNELS:
                 seviri_track, info = get_channel_data_from_object(dataObj, 
                                                                   seviri_channel, row_col)
@@ -541,7 +541,6 @@ def imager_track_from_matched(obt, SETTINGS,
                 setattr(obt.imager, data_set_name,  
                         get_data_from_array(data, row_col))
            
-    obt.imager_instrument = dataObj.instrument.lower()
     return obt
 
 

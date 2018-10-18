@@ -16,11 +16,11 @@ from libs.extract_imager_along_track import imager_track_from_matched
 import logging
 logger = logging.getLogger(__name__)
 
-def reshapeSynop(synopfiles, imager):
+def reshapeSynop(synopfiles, imager,  SETTINGS):
     start_t = datetime.utcfromtimestamp(imager.sec1970_start)
     end_t = datetime.utcfromtimestamp(imager.sec1970_end)
     #datetime.datetime.fromtimestamp(
-    from read_synop_dwd import get_synop_data
+    from truths.read_synop_dwd import get_synop_data
     items = [get_synop_data(filename) for filename in synopfiles]
     panda_synops = pd.concat(items, ignore_index=True)
     #import pdb
@@ -44,7 +44,7 @@ def reshapeSynop(synopfiles, imager):
 def match_synop_imager(synopObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
                        imagerAngObj, cpp, nwp_segments, SETTINGS):
     retv = SynopImagerTrackObject()
-
+    retv.imager_instrument = imagerObj.instrument.lower()
     from utils.common import map_imager_distances
     n_neighbours = 250
     if config.RESOLUTION == 5:

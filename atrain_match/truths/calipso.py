@@ -48,8 +48,8 @@ def match_calipso_imager(values,
 
     from utils.common import map_imager
     retv = CalipsoImagerTrackObject()
-    
-    #Nina 20150313 Swithcing to mapping without area as in cpp. Following suggestion from Jakob
+    retv.imager_instrument = imagerObj.instrument.lower()
+
     cal, cap = map_imager(imagerGeoObj, 
                          caObj.longitude.ravel(),
                          caObj.latitude.ravel(),

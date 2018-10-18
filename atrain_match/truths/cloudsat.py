@@ -183,7 +183,7 @@ def read_cloudsat(filename):
 def match_cloudsat_imager(cloudsatObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,imagerAngObj, 
                           cpp, nwp_segments, SETTINGS):
     retv = CloudsatImagerTrackObject()
-
+    retv.imager_instrument = imagerObj.instrument.lower()
     #Nina 20150313 Swithcing to mapping without area as in cpp. Following suggestion from Jakob
     from utils.common import map_imager
     cal, cap = map_imager(imagerGeoObj, 
@@ -253,7 +253,7 @@ def mergeCloudsat(cloudsat, cloudsatlwp):
     return cloudsat
 
 
-def reshapeCloudsat(cloudsatfiles, imager):
+def reshapeCloudsat(cloudsatfiles, imager,  SETTINGS):
     #imager_end = imager.sec1970_end
     #imager_start = imager.sec1970_start
     clsat = get_cloudsat(cloudsatfiles[0])
@@ -272,7 +272,7 @@ def reshapeCloudsat(cloudsatfiles, imager):
                     clsat.all_arrays[arname] = np.concatenate((value[0:clsat_break,...],
                                                                newCloudsat.all_arrays[arname]))
     # Finds Break point
-    startBreak, endBreak = find_break_points(clsat, imager)
+    startBreak, endBreak = find_break_points(clsat, imager, SETTINGS)
     clsat = time_reshape_calipso(clsat, startBreak, endBreak)
     return clsat
     

@@ -507,7 +507,7 @@ def find_files_from_imager(imager_file, AM_PATHS, SETTINGS, as_oldstyle=False):
 
 def get_cloudsat_matchups(cloudsat_files, cloudsat_files_lwp, imagerGeoObj, imagerObj,
                           ctype, cma, ctth, nwp_obj, imagerAngObj, 
-                          cpp, nwp_segments,  AM_PATHS):
+                          cpp, nwp_segments, SETTINGS):
     """
     Read Cloudsat data and match with the given PPS data.
     """
@@ -515,10 +515,10 @@ def get_cloudsat_matchups(cloudsat_files, cloudsat_files_lwp, imagerGeoObj, imag
     cloudsat = None
     if cloudsat_files is not None:   
         logger.debug("Reading cloudsat for type GEOPROF.")
-        cloudsat = reshapeCloudsat(cloudsat_files, imagerGeoObj)
+        cloudsat = reshapeCloudsat(cloudsat_files, imagerGeoObj,  SETTINGS)
     if cloudsat_files_lwp is not None: 
         logger.debug("Reading cloudsat for type CWC-RVOD.")
-        cloudsat_lwp = reshapeCloudsat(cloudsat_files_lwp, imagerGeoObj)    
+        cloudsat_lwp = reshapeCloudsat(cloudsat_files_lwp, imagerGeoObj),  SETTINGS    
     if cloudsat is not None and cloudsat_lwp is not None:
         logger.info("Merging CloudSat GEOPROF and CWC-RVOD data to one object")
         cloudsat = mergeCloudsat(cloudsat, cloudsat_lwp)
@@ -536,7 +536,7 @@ def get_iss_matchups(iss_files, imagerGeoObj, imagerObj,
     """
     Read Iss data and match with the given PPS data.
     """
-    iss = reshapeIss(iss_files, imagerGeoObj)
+    iss = reshapeIss(iss_files, imagerGeoObj,  SETTINGS)
     cl_matchup = match_iss_imager(iss,
                                  imagerGeoObj, imagerObj, ctype, cma,
                                  ctth, nwp_obj, imagerAngObj, cpp, nwp_segments,  SETTINGS)
@@ -548,7 +548,7 @@ def get_amsr_matchups(amsr_files, imagerGeoObj, imagerObj,
     """
     Read Amsr data and match with the given PPS data.
     """
-    amsr = reshapeAmsr(amsr_files, imagerGeoObj)
+    amsr = reshapeAmsr(amsr_files, imagerGeoObj,  SETTINGS)
     am_matchup = match_amsr_imager(amsr,
                                   imagerGeoObj, imagerObj, ctype, cma,
                                   ctth, nwp_obj, imagerAngObj, cpp, nwp_segments,  SETTINGS)
@@ -560,7 +560,7 @@ def get_synop_matchups(synop_files, imagerGeoObj, imagerObj,
     """
     Read Synop data and match with the given PPS data.
     """
-    synop = reshapeSynop(synop_files, imagerGeoObj)
+    synop = reshapeSynop(synop_files, imagerGeoObj,  SETTINGS)
     synop_matchup = match_synop_imager(synop,
                                   imagerGeoObj, imagerObj, ctype, cma,
                                   ctth, nwp_obj, imagerAngObj, cpp, nwp_segments,  SETTINGS)
@@ -572,7 +572,7 @@ def get_mora_matchups(mora_files, imagerGeoObj, imagerObj,
     """
     Read Mora data and match with the given PPS data.
     """
-    mora = reshapeMora(mora_files, imagerGeoObj)
+    mora = reshapeMora(mora_files, imagerGeoObj,  SETTINGS)
     mora_matchup = match_mora_imager(mora,
                                   imagerGeoObj, imagerObj, ctype, cma,
                                   ctth, nwp_obj, imagerAngObj, cpp, nwp_segments,  SETTINGS)
@@ -1003,6 +1003,7 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
     #Step 2 get truth satellite files 
     truth_files = {}
     for truth in ['cloudsat', 'amsr', 'iss', 'synop', 'mora', 'cloudsat_lwp', 'calipso']:
+        truth_files[truth] = None
         if (PPS_VALIDATION and SETTINGS[truth.replace("_lwp","").upper()+'_MATCHING'] and truth + '_file' in AM_PATHS.keys()):
             truth_files[truth] = find_truth_files(date_time, AM_PATHS, SETTINGS, values, truth=truth)
         elif not SETTINGS[truth.replace("_lwp","").upper()+'_MATCHING']:
@@ -1066,7 +1067,7 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
     #SYNOP
     synop_matchup = None
     if (PPS_VALIDATION and SETTINGS['SYNOP_MATCHING'] and 
-        truth_files['synop_files'] is not None):
+        truth_files['synop'] is not None):
         logger.info("Read SYNOP data")
         synop_matchup = get_synop_matchups(truth_files['synop'], 
                                            imagerGeoObj, imagerObj, ctype, cma,

@@ -133,6 +133,8 @@ def read_iss(filename):
 def match_iss_imager(issObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,imagerAngObj, 
                          cpp, nwp_segments, SETTINGS):
     retv = IssImagerTrackObject()
+    retv.imager_instrument = imagerObj.instrument.lower()
+
     from utils.common import map_imager
     cal, cap = map_imager(imagerGeoObj, issObj.longitude.ravel(),
                          issObj.latitude.ravel(),
