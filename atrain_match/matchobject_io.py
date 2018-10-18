@@ -52,7 +52,7 @@ class DataObject(object):
                 if self.all_arrays[key].ndim != self.all_arrays[key].ndim:
                     raise ValueError("Can't concatenate arrays " + 
                                      "of different dimensions!")
-            except AttributeError, e:
+            except AttributeError as e:
                 #print "Don't concatenate member " + key + "... " + str(e)
                 self.all_arrays[key] = other.all_arrays[key]
                 continue
@@ -73,7 +73,7 @@ class DataObject(object):
                         [self.all_arrays[key],
                          other.all_arrays[key]], 0)
                         
-            except ValueError, e:
+            except ValueError as e:
                 #print "Don't concatenate member " + key + "... " + str(e)
                 self.all_arrays[key] = other.all_arrays[key]
         return self
@@ -88,7 +88,7 @@ class DataObject(object):
                         self.all_arrays[key], 
                         mask = self.all_arrays[key]<=nodata)
                 except:
-                    print "cloud not mask %s"%(key)
+                    print("cloud not mask %s"%(key))
             
             
 class ppsImagerObject(DataObject):
@@ -571,7 +571,7 @@ class SynopImagerTrackObject:
         try:
             self.diff_sec_1970 = np.concatenate([self.diff_sec_1970,
                                                  other.diff_sec_1970])
-        except ValueError, e:
+        except ValueError as e:
             #print "Don't concatenate member diff_sec_1970... " + str(e)
             self.diff_sec_1970 = other.diff_sec_1970
         return self
@@ -594,7 +594,7 @@ class AmsrImagerTrackObject:
         try:
             self.diff_sec_1970 = np.concatenate([self.diff_sec_1970,
                                                  other.diff_sec_1970])
-        except ValueError, e:
+        except ValueError as e:
             #print "Don't concatenate member diff_sec_1970... " + str(e)
             self.diff_sec_1970 = other.diff_sec_1970
 
@@ -617,7 +617,7 @@ class MoraImagerTrackObject:
         try:
             self.diff_sec_1970 = np.concatenate([self.diff_sec_1970,
                                                  other.diff_sec_1970])
-        except ValueError, e:
+        except ValueError as e:
             #print "Don't concatenate member diff_sec_1970... " + str(e)
             self.diff_sec_1970 = other.diff_sec_1970
 
@@ -639,7 +639,7 @@ class IssImagerTrackObject:
         try:
             self.diff_sec_1970 = np.concatenate([self.diff_sec_1970,
                                                  other.diff_sec_1970])
-        except ValueError, e:
+        except ValueError as e:
             #print "Don't concatenate member diff_sec_1970... " + str(e)
             self.diff_sec_1970 = other.diff_sec_1970
 
@@ -661,7 +661,7 @@ class CloudsatImagerTrackObject:
         try:
             self.diff_sec_1970 = np.concatenate([self.diff_sec_1970,
                                                  other.diff_sec_1970])
-        except ValueError, e:
+        except ValueError as e:
             #print "Don't concatenate member diff_sec_1970... " + str(e)
             self.diff_sec_1970 = other.diff_sec_1970
 
@@ -693,7 +693,7 @@ class CalipsoImagerTrackObject:
         try:
             self.diff_sec_1970 = np.concatenate([self.diff_sec_1970,
                                                  other.diff_sec_1970])
-        except ValueError, e:
+        except ValueError as e:
             #print "Don't concatenate member diff_sec_1970... " + str(e)
             self.diff_sec_1970 = other.diff_sec_1970
 

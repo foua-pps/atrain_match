@@ -450,15 +450,17 @@ def add1kmTo5km(Obj1, Obj5):
         if Obj1.number_layers_found[i] > 0:
             cfc_1km = cfc_1km + 1
 
-    print "*****CHECKING CLOUD FREQUENCY DIFFERENCES IN 1KM AND 5KM DATASETS:"
-    print " "
-    print "Number of 5 km FOVS: ", len_5km
-    print "Number of cloudy 5 km FOVS:", cfc_5km
-    print "Cloudy fraction 5 km: ", float(cfc_5km)/float(len_5km)
-    print "Number of 1 km FOVS: ", len_1km
-    print "Number of cloudy 1 km FOVS:", cfc_1km 
-    print "Cloudy fraction 1 km: ", float(cfc_1km)/float(len_1km)
-    print " "
+    output = (
+        "*****CHECKING CLOUD FREQUENCY DIFFERENCES IN 1KM AND 5KM "
+        "DATASETS:"
+        "\n"
+        "\n Number of 5 km FOVS: {:d}".format(len_5km)+
+        "\n Number of cloudy 5 km FOVS: {3.3f}".format(cfc_5km)+
+        "\n Cloudy fraction 5 km: {3.3f}".format(float(cfc_5km)/float(len_5km))+
+        "\n Number of 1 km FOVS: {:d}".format(len_1km)+
+        "\n Number of cloudy 1 km FOVS:   {3.3f}".format(cfc_1km )+
+        "\n Cloudy fraction 1 km:  {3.3f}".format(float(cfc_1km)/float(len_1km)))
+    print(output)
     # Now calculate the cloud fraction in 5 km data from 1 km data 
     # (discretized to 0.0, 0.2, 0.4, 0.6, 0.8 and 1.0).
     # In addition, if there are cloud layers in 5 km data but nothing in 1 km 
@@ -599,7 +601,7 @@ def CalipsoCloudOpticalDepth_new(calipso, min_optical_depth, use_old_method=Fals
     already_detected[calipso.layer_top_altitude[:,0]<0] = True # don't bother with clear pixels
     #to_thin_to_see_at_all = calipso.total_optical_depth_5km < min_optical_depth
     N10 = new_cloud_top.shape[1]
-    for layer_j in xrange(N10):
+    for layer_j in range(N10):
         #Filter OPTICAL_LIMIT_CLOUD_TOP down in EACH layer
         #Notice even if top of layer i is always above layer i-1,
         #it is NOT the case that base of layer i is always above layer i-1!
@@ -622,7 +624,7 @@ def CalipsoCloudOpticalDepth_new(calipso, min_optical_depth, use_old_method=Fals
             fraction_into_cloud = 0.5
         #For KGs method set fraction_into_cloud = 0.5 always
         distance_down_in_cloud_we_see[:,layer_j] = geometrical_distance_cloud*fraction_into_cloud 
-    for layer_j in xrange(N10):
+    for layer_j in range(N10):
         total_optical_depth_layers_above = depthsum.copy()
         this_layer_optical_depth = calipso.feature_optical_depth_532[:, layer_j].ravel()
         depthsum += this_layer_optical_depth 
@@ -641,7 +643,7 @@ def CalipsoCloudOpticalDepth_new(calipso, min_optical_depth, use_old_method=Fals
     if use_old_method:
         pass
     else:    
-        for layer_j in xrange(N10):
+        for layer_j in range(N10):
             filtered_to_low = new_cloud_top[:,0]< new_cloud_top[:,layer_j]
             new_cloud_top[filtered_to_low,0] = new_cloud_top[filtered_to_low,layer_j]
         
@@ -659,17 +661,17 @@ def check_total_optical_depth_and_warn(caObj):
         badPix=np.less(obj.total_optical_depth_5km+0.001, 
                        obj.feature_optical_depth_532_top_layer_5km)
         diff=obj.total_optical_depth_5km- obj.feature_optical_depth_532_top_layer_5km
-        print "warning", len(obj.total_optical_depth_5km)  
-        print len(obj.total_optical_depth_5km[badPix])
-        print obj.total_optical_depth_5km[badPix]
-        print obj.feature_optical_depth_532_top_layer_5km[badPix] 
-        print diff[badPix]
-        print obj.number_layers_found[badPix]
-        if obj.detection_height_5km is not None:
-            print obj.detection_height_5km[badPix] 
-        print np.where(badPix)
-        print obj.layer_top_altitude[0,badPix]
-        print obj.layer_base_altitude[0,badPix]
+        print("warning {:d}".format(len(obj.total_optical_depth_5km)))
+        #print len(obj.total_optical_depth_5km[badPix])
+        #print obj.total_optical_depth_5km[badPix]
+        #print obj.feature_optical_depth_532_top_layer_5km[badPix] 
+        #print diff[badPix]
+        #print obj.number_layers_found[badPix]
+        #if obj.detection_height_5km is not None:
+        #    print obj.detection_height_5km[badPix] 
+        #print np.where(badPix)
+        #print obj.layer_top_altitude[0,badPix]
+        #print obj.layer_base_altitude[0,badPix]
 
 def CalipsoOpticalDepthHeightFiltering1km(CaObj):
     #Should all layers be updated???

@@ -76,7 +76,7 @@ def my_mode(bias):
     maxind = np.argmax(hist_heights)
     maxind2 = len(hist_heights)-1 - np.argmax(hist_heights[::-1])
     if maxind != maxind2:
-        print maxind, maxind2
+        print( maxind, maxind2)
         raise ValueError
     mode =bins[maxind] + delta_h*0.5
     return mode

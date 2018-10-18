@@ -149,7 +149,7 @@ def get_data_from_array_nneigh(array, matched):
     if array is None:
         return None
     out = np.zeros(matched['row'].shape)
-    for i in xrange(matched['row'].shape[1]):
+    for i in range(matched['row'].shape[1]):
         nodata = matched['row'][:,i] < 0
         matched_i = {'row': matched['row'][:,i].copy(),
                      'col': matched['col'][:,i].copy()}
@@ -217,8 +217,8 @@ def _interpolate_height_and_temperature_from_pressure(imagerObj,
     npix = pressure_v.shape[0]
     k = np.arange(npix)
     higher_index = np.array([nlev -1 - np.searchsorted(pressure_v[ind,:], level, side='right',
-                                                       sorter=xrange(nlev -1, -1, -1)) 
-                             for ind in xrange(npix)])
+                                                       sorter=range(nlev -1, -1, -1)) 
+                             for ind in range(npix)])
     higher_index[higher_index >= (nlev - 1)] = nlev - 2
     lower_index = higher_index + 1
     # update "lo" where level is between surface and first level in array
@@ -270,8 +270,8 @@ def insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt):
             segment_rowidx = nwp_segments['rowidx']
             seg_row = np.zeros(np.size(row_matched)) -9
             seg_col = np.zeros(np.size(col_matched)) -9
-            for s_col in xrange(nwp_segments['norows']):
-                for s_row in xrange(nwp_segments['nocols']):
+            for s_col in range(nwp_segments['norows']):
+                for s_row in range(nwp_segments['nocols']):
                     within_segment = np.logical_and(
                         np.logical_and(
                             row_matched >= (segment_rowidx[s_row,s_col] 

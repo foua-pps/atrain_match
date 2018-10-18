@@ -481,7 +481,7 @@ def read_pps_angobj_h5(filename):
             image = h5file[var]     
             if (image.attrs['description'] == "sun zenith angle" or
                 image.attrs['description'] == "Solar zenith angle"):
-                print "reading sunz"
+                #print "reading sunz"
                 AngObj.sunz.data = image['data'].value.astype(np.float)
                 AngObj.sunz.gain = image['what'].attrs['gain']
                 AngObj.sunz.intercept = image['what'].attrs['offset']

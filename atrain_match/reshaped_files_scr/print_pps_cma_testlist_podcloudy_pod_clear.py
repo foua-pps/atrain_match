@@ -171,7 +171,7 @@ def print_common_stats(caObj, use, name_dict, mints, maxts, surface_type, illumi
                 'cma_testlist5',
             ]:
         #print var
-        for bit_nr in xrange(0,16):
+        for bit_nr in range(0,16):
             if bit_nr not in name_dict[var].keys():
                 print "not using", var, bit_nr
                 continue   

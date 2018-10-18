@@ -529,7 +529,7 @@ def print_cmask_prob_stats(cObj, statfile, val_subset, SETTINGS):
     step = 5 #percents
     clear_string = ""
     cloudy_string = ""
-    for lower in xrange(0,100, step):
+    for lower in range(0,100, step):
         upper = lower + step
         if upper == 100:
             upper = 101

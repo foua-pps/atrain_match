@@ -190,7 +190,7 @@ def my_make_plot_example_aprox(bias, use, label_str, caObj):
     temp_data_gs = []
     temp_data_iqrs = []
     from utils.get_flag_info import get_calipso_clouds_of_type_i
-    for type_i in xrange(0,8):
+    for type_i in range(0,8):
         #if type_i ==1:
         #    continue
         is_type_i = np.logical_and(use, get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=type_i))

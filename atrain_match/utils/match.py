@@ -106,8 +106,8 @@ def match_lonlat(source, target,
     #import pdb; pdb.set_trace()
     #Use pyresampe code to find colmun and row numbers for each pixel
     #This is works also with no-data in imager lat/lon.
-    cols_matrix, rows_matrix = np.meshgrid(np.array(xrange(0,lat.shape[1])),
-                                           np.array(xrange(0,lat.shape[0])))
+    cols_matrix, rows_matrix = np.meshgrid(np.array(range(0,lat.shape[1])),
+                                           np.array(range(0,lat.shape[0])))
     if n_neighbours == 1:
         first_indices = indices
     else:

@@ -52,8 +52,6 @@ if __name__ == '__main__':
 
     import os
     from glob import glob
-    import ConfigParser
-
 
     import argparse
     parser = argparse.ArgumentParser()

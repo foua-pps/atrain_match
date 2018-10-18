@@ -296,9 +296,9 @@ def get_day_night_twilight_info_cci2014(sunz):
                        np.less(sunz,95)),
         1,0)
     no_qflag = np.where(np.isnan(sunz),1,0)
-    print "number of day", len(sunz[day_flag==True])
-    print "number of night", len(sunz[night_flag==True]) 
-    print "number of twilight", len(sunz[twilight_flag==True])
+    logger.debug("number of day {:d}".format(len(sunz[day_flag==True])))
+    logger.debug("number of night {:d}".format(len(sunz[night_flag==True]))) 
+    logger.debug("number of twilight {:d}".format(len(sunz[twilight_flag==True])))
     all_dnt_flag =  np.bool_(np.ones(sunz.shape))
     return (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag)
 
@@ -317,9 +317,9 @@ def get_day_night_twilight_info_maia(cm_flag):
     day_flag = np.where(maia_cm_flag==2,1,0) #include also sunglint in day ==3
     night_flag =  np.where(maia_cm_flag==0,1,0)
     twilight_flag =  np.where(maia_cm_flag==1,1,0)
-    print "number of day", len(maia_cm_flag[day_flag==True])
-    print "number of night", len(maia_cm_flag[night_flag==True]) 
-    print "number of twilight", len(maia_cm_flag[twilight_flag==True])
+    logger.debug("number of day {:d}".format(len(maia_cm_flag[day_flag==True])))
+    logger.debug("number of night {:d}".format(len(maia_cm_flag[night_flag==True]))) 
+    logger.debug("number of twilight {:d}".format(len(maia_cm_flag[twilight_flag==True])))
     all_dnt_flag =  np.ones(maia_cm_flag.shape)
     no_qflag = 0 * all_dnt_flag #dummy flag
     return (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag)

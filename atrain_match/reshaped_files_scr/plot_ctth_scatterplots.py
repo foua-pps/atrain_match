@@ -108,7 +108,7 @@ def do_one_subplot(plt_obj, ax, fig, compare, truth='height_c', vmax = 250, do_c
     #kde= gaussian_kde(points)
     #z=kde(points)
     idx = z.argsort()
-    #xc = np.array(xrange(xmin, xmax, 10))
+    #xc = np.array(range(xmin, xmax, 10))
     #y1 = xc
     #y2 = -xc
     #ax.fill_betweenx(xc, y2, y1, facecolor='green', alpha=0.3)

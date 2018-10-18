@@ -12,8 +12,8 @@ import re
 
 def read_config_info():
     import os
-    import ConfigParser
-    CONF = ConfigParser.ConfigParser()
+    from configparser import ConfigParser
+    CONF = ConfigParser()
     ATRAIN_MATCH_CONFIG_PATH = os.environ.get('ATRAINMATCH_CONFIG_DIR', './etc')
     config_file = os.path.join(ATRAIN_MATCH_CONFIG_PATH, "atrain_match.cfg")
     if not os.path.isfile(config_file):
@@ -31,10 +31,10 @@ def read_config_info():
         values = value.split(',')
         if name in ['MIN_OPTICAL_DEPTH']:
            value_ = [ np.float(val_i) for val_i in values]
-        elif name in ["COMPILE_STATISTICS_TRUTH", "PLOT_MODES", "PLOT_TYPES", "CTTH_TYPES", 
+        elif name in ["COMPILE_STATISTICS_TRUTH", "PLOT_MODES", 
+                      "PLOT_TYPES", "CTTH_TYPES", 
                       'SATELLITES', 'YEARS', 'MONTHS']:
            value_ = values
-           print name, values
         elif len(values)==1 and 'true' in values[0].lower():
             value_ = True
         elif len(values)==1 and 'false' in values[0].lower():

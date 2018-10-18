@@ -45,7 +45,7 @@ def process_matchups(matchups, run_modes, reprocess=False, debug=False):
     for match in sorted(matchups):
         try:
             truth_imager_match.run(match, run_modes,  AM_PATHS, SETTINGS, reprocess)
-        except MatchupError, err:
+        except MatchupError as err:
             logger.warning("Matchup problem: %s", str(err))
             import traceback
             traceback.print_exc()

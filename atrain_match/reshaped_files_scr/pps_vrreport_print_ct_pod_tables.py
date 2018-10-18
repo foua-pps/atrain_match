@@ -39,7 +39,7 @@ def plot_ct_table2(caObj):
     from utils.get_flag_info import get_calipso_clouds_of_type_i
     fig = plt.figure(figsize = (30,64))
     print "N,           low, frac, medium, high, cirrus"
-    for type_i in xrange(0,8):
+    for type_i in range(0,8):
         #if type_i ==1:
         #    continue
         is_type_i = get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=type_i)
@@ -48,7 +48,7 @@ def plot_ct_table2(caObj):
         is_type_i =np.logical_and(is_type_i, use)
         N = np.sum(is_type_i)
         print "N", ("%d"%(N)).rjust(9,' '),
-        for ind_ct in xrange(4,9):
+        for ind_ct in range(4,9):
             pps_ok = np.logical_and(pps_ctype >= ct_min_v[ind_ct], pps_ctype <= ct_max_v[ind_ct])
             these = np.logical_and(is_type_i, pps_ok)
             print ("%3.1f"%(np.sum(these)*1.0/N*100)).rjust(5,' '),
@@ -63,7 +63,7 @@ def plot_ct_table4(caObj, use_in=None):
     from utils.get_flag_info import get_calipso_clouds_of_type_i
     fig = plt.figure(figsize = (30,64))
     print "N,           land, sea, snow, ice, low, frac, medium, high, cirrus"
-    for type_i in xrange(0,8):
+    for type_i in range(0,8):
         #if type_i ==1:
         #    continue
         is_type_i = get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=type_i)
@@ -74,7 +74,7 @@ def plot_ct_table4(caObj, use_in=None):
         is_type_i =np.logical_and(is_type_i, use)
         N = np.sum(is_type_i)
         print "N", ("%d"%(N)).rjust(9,' '),
-        for ind_ct in xrange(0,9):
+        for ind_ct in range(0,9):
             pps_ok = np.logical_and(pps_ctype >= ct_min_v[ind_ct], pps_ctype <= ct_max_v[ind_ct])
             these = np.logical_and(is_type_i, pps_ok)
             print ("%3.1f"%(np.sum(these)*1.0/N*100)).rjust(5,' '),

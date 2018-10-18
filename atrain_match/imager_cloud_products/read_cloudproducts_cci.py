@@ -228,4 +228,4 @@ def read_cci_ctth(cci_nc):
 if __name__ == "__main__":
     my_filename="20080613002200-ESACCI-L2_CLOUD-CLD_PRODUCTS-IMAGERGAC-NOAA18-fv1.0.nc"
     PPS_OBJECTS =  read_cci_ctth(my_filename)
-    print PPS_OBJECTS
+    print(PPS_OBJECTS)

@@ -79,7 +79,7 @@ def validate_all(filenames):
     
     # Density plot
     fig2 = density(cwp, lwp,
-                   bins=xrange(0, 171))
+                   bins=range(0, 171))
     fig2.axes[0].set_xlabel('CPP cwp (g m**-2)')
     fig2.axes[0].set_ylabel('AMSR-E lwp (g m**-2)')
     fig2.suptitle("Restrictions: %s\nNumber of pixels: %d" %

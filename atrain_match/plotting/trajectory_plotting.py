@@ -14,7 +14,7 @@ def plotSatelliteTrajectory(longitude,
         area_id = options['trajectory_plot_area']
     else:
         area_id = "pc_world" # Global area
-    print area_id    
+    print(area_id)
         
     track = np.ones(latitude.shape)
 

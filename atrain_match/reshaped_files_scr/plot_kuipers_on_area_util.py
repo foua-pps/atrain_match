@@ -61,7 +61,7 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         self.get_ctth_bias_low_temperature(caObj=caObj)
         self.height_bias_type={}
         self.detected_height_type={}
-        for cc_type in xrange(8):
+        for cc_type in range(8):
             self.get_ctth_bias_type(caObj=caObj, calipso_cloudtype=cc_type)
 
     def set_false_and_missed_cloudy_and_clear(self, caObj, PROCES_FOR_ART):
@@ -436,7 +436,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
         self.Max_t11t37_offset = np.zeros(self.lats.shape)
         self.Sum_height_bias_type={}
         self.N_detected_height_type={}
-        for cc_type in xrange(8):
+        for cc_type in range(8):
             self.Sum_height_bias_type[cc_type] = 1.0*np.zeros(self.lats.shape)
             self.N_detected_height_type[cc_type] = 1.0*np.zeros(self.lats.shape)
     def np_float_array(self):
@@ -761,7 +761,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
         self.lapse_bias_high = lapse_bias_high
     def calculate_height_bias_type(self):
         self.np_float_array()
-        for cc_type in xrange(8):
+        for cc_type in range(8):
             the_mask = self.N_detected_height_type[cc_type]<10
             ctth_bias_type_i = self.Sum_height_bias_type[cc_type]*1.0/self.N_detected_height_type[cc_type]
             ctth_bias_type_i = np.ma.masked_array(ctth_bias_type_i, mask=the_mask)
@@ -925,7 +925,7 @@ class PerformancePlottingObject:
             area_def, target_def, radius_of_influence=max_distance, 
             epsilon=100, neighbours=1)
         cols = get_sample_from_neighbour_info('nn', target_def.shape,
-                                              np.array(xrange(0,len(lats))),
+                                              np.array(range(0,len(lats))),
                                               valid_in, valid_out,
                                               indices)
         cols = cols[valid_out]
@@ -1034,7 +1034,7 @@ def get_fibonacci_spread_points_on_earth(radius_km):
     #http://arxiv.org/pdf/0912.4540.pdf
     #Alvaro Gonzalez: Measurement of areas on sphere usig Fibonacci and latitude-longitude grid.
     #import math
-    lin_space = np.array(xrange(-n/2,n/2))
+    lin_space = np.array(range(-n/2,n/2))
     pi = 3.14
     theta = (1+np.sqrt(5))*0.5
     longitude = (lin_space % theta)*360/theta

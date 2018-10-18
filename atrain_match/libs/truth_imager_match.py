@@ -444,7 +444,6 @@ def find_files_from_imager(imager_file, AM_PATHS, SETTINGS, as_oldstyle=False):
     # For CTTH can have several files:    
     ctth_files = {}
     if 'ctth_file' in AM_PATHS.keys():  
-        print SETTINGS['CTTH_TYPES']
         for ctth_type in SETTINGS['CTTH_TYPES']:
             values['ctth_type'] = ctth_type
             ctth_files[ctth_type] = get_pps_file(imager_file, AM_PATHS, values, 
@@ -595,8 +594,8 @@ def total_and_top_layer_optical_depth_5km(calipso, resolution=5):
                 optical_depth_in[:, lay]>=0)
             total_o_depth[pixels] +=  optical_depth_in[pixels, lay]
     else:
-        print "ERROR this fuction is only for 5km data!"
-        print "These features can then added to 1km data set"
+        print("ERROR this fuction is only for 5km data!")
+        print("These features can then added to 1km data set")
     calipso.feature_optical_depth_532_top_layer_5km = o_depth_top_layer
     calipso.total_optical_depth_5km = total_o_depth       
     return calipso 
@@ -823,9 +822,11 @@ def get_additional_calipso_files_if_requested(calipso_files, SETTINGS):
                 files_found_aerosol = glob.glob(file5km_aerosol)
             if len(files_found_aerosol)>0: 
                 calipso5km_aerosol.append(files_found_aerosol[0]) 
-        print "found these aerosol files", calipso5km_aerosol             
+        logger.debug("found these aerosol files:") 
+        logger.debug("\n".join(calipso5km_aerosol))             
         calipso5km_aerosol = sorted(require_h5(calipso5km_aerosol, SETTINGS))
-        print "found these aerosol files", calipso5km_aerosol
+        logger.debug("found these aerosol files:") 
+        logger.debug("\n".join(calipso5km_aerosol)) 
     return calipso5km, calipso1km, calipso5km_aerosol              
 
 
@@ -869,7 +870,7 @@ def add_additional_clousat_calipso_index_vars(clsatObj, caObj):
             clsatObj.cloudsat.calipso_index>=0,
             caObj.calipso.layer_base_altitude[index,0],
             -9)
-        for layer in xrange(1,10):
+        for layer in range(1,10):
             clsatObj.cloudsat.calipso_layer_base_altitude = np.where(
                 np.logical_and(np.logical_and(clsatObj.cloudsat.calipso_index>=0,
                                               caObj.calipso.layer_base_altitude[index,layer]>0),
@@ -884,7 +885,7 @@ def add_additional_clousat_calipso_index_vars(clsatObj, caObj):
             clsatObj.cloudsat.calipso_index>=0,
             caObj.calipso.layer_top_altitude[index,0],
             -9)
-        for layer in xrange(1,10):
+        for layer in range(1,10):
             clsatObj.cloudsat.calipso_layer_top_altitude = np.where(
                 np.logical_and(np.logical_and(clsatObj.cloudsat.calipso_index>=0,
                                               caObj.calipso.layer_top_altitude[index,layer]>0),
