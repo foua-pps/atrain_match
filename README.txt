@@ -6,8 +6,8 @@ repeatedly and supervised by program process_master.py.
  * The main running program is: process_master.py will do matchups and result for
    each case. And compile_stat.py accumulates statistics.
    
- * The process_master.py will use: cloudsat_calipso_avhrr_match.py for matching
-   and cloudsat_calipso_avhrr_statistics.py for statistics.
+ * The process_master.py will use: truth_imager_match.py for matching
+   and truth_imager_statistics.py for statistics.
 
  * The compile_stat.py accumulates statistics uses the module statistics to
    accumulate statistics.  
@@ -18,6 +18,8 @@ repeatedly and supervised by program process_master.py.
       calipso.py
       amsr.py
       iss.py
+      synop.py
+      mora.py
 
  * Program can read satellite data from: PPS, CCI and MAIA. When satllite data 
    comes from PPS-MODIS also modis lvl-2 data can be matched.
@@ -46,7 +48,11 @@ repeatedly and supervised by program process_master.py.
    land use classification it is then possible to isolate the study to focus on
    one of the several surface categories.
 
- * Modules: reshaped_files_plotting and reshaped_files_analyze_scripts contains 
-   example script to plot things from reshaped files.
+ * Modules: reshaped_files_scr example script to plot things from reshaped files.
 
- * Configuration is done in the config.py and the etc/atrain_match.cfg.  
+ * Configuration in the etc/atrain_match.cfg. There are some enironment variables that need to be set:
+ 
+        ATRAINMATCH_CONFIG_DIR #path to atrain_match.cfg
+        AREA_CONFIG_FILE       #only for plotting
+        VALIDATION_RESULTS_DIR #path to validation main directory
+        ATRAIN_RESOLUTION      #1 or 5

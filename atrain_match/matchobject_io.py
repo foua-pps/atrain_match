@@ -774,7 +774,7 @@ def read_files(files, truth='calipso'):
     return tObj 
 
 # write matchup files
-def writeTruthImagerMatchObj(filename, match_obj, SETTINGS, imager_obj_name = 'pps'):
+def writeTruthImagerMatchObj(filename, match_obj, SETTINGS=None, imager_obj_name = 'pps'):
     """
     Write *match_obj* to *filename*.    
     """
@@ -786,7 +786,7 @@ def writeTruthImagerMatchObj(filename, match_obj, SETTINGS, imager_obj_name = 'p
                  'amsr', 'synop', 'mora', 'cloudsat']:
         if hasattr(match_obj, name):
             groups[name] = getattr(match_obj, name).all_arrays
-    write_match_objects(filename, datasets, groups, groups_attrs, SETTINGS)
+    write_match_objects(filename, datasets, groups, groups_attrs, SETTINGS=SETTINGS)
     return 1
 
 

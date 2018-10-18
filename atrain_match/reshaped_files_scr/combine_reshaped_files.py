@@ -2,65 +2,75 @@
 import numpy as np
 from glob import glob
 import os
-from matchobject_io import (readCaliopImagerMatchObj,
-                            writeCaliopImagerMatchObj,
-                            CalipsoImagerTrackObject)
+from matchobject_io import (readTruthImagerMatchObj,
+                            writeTruthImagerMatchObj)
 
 
-instrument = "seviri"
-day = "14"
-day_long = "14th"
-satellite = "meteosat9"
+instrument = "modis"
+satellite = "eos2"
+truth = "cloudsat"
+version = "v2018"
 
-BASE_DIR = "/home/a001865/DATA_MISC/reshaped_files/global_{instrument}_{day_long}_created20180222".format(
-    day_long = day_long,
-    instrument=instrument)
-ROOT_DIR = BASE_DIR + "/Reshaped_Files/{satellite}/1km/2010/%s/*/*caliop*.h5".format(
-    satellite=satellite)
-OUT_DIR_TEMPLATE = BASE_DIR + "/Reshaped_Files_merged_calipso_cbase/{satellite}/1km/2010/%s/".format(
-    satellite=satellite)
-outfile_template = "1km_%s_{satellite}_2010%s{day}_0000_00000_caliop_{instrument}_match.h5".format(
-    satellite=satellite, day=day, instrument = instrument)
+BASE_DIR = "/nobackup/smhid14/sm_ninha/atrain_matching/val_v2018_modis_{version}/global_{instrument}_{version}_created20181015_cloudsat_cbase/".format(instrument=instrument, version=version)
+ROOT_DIR = BASE_DIR + "/Reshaped_Files/{satellite}/1km/2010/%s/%s/*{truth}*.h5".format(
+    satellite=satellite, truth=truth)
+OUT_DIR_TEMPLATE = BASE_DIR + "/Reshaped_Files_merged_{truth}/{satellite}/1km/2010/%s/".format(
+    truth=truth,satellite=satellite)
+outfile_template = "1km_{satellite}_2010%s%s_%s00_00000_{truth}_{instrument}_match.h5".format(
+    satellite=satellite, truth=truth, instrument = instrument)
 
-print ROOT_DIR
+SETTINGS ={"WRITE_ONLY_THE_MOST_IMPORTANT_STUFF_TO_FILE": True}
 
-
-caObj_night = CalipsoImagerTrackObject()
-caObj_day = CalipsoImagerTrackObject()
-
-for year in ["2010"]:#2012/02","2012/05", "2012/08", "2013/07", "2014/02", "2014/04", "2014/09"]:
-    #for month in ["01","02","03","04","05","06","07","08","09","10","11","12"]:
-    #for month in ["06"]:
+caObj_night = None
+caObj_day = None
+for year in [2010]
     for month in ["02","03","04","05","06","07","08","09","10","11","12","01"]:
-        OUT_DIR = OUT_DIR_TEMPLATE%(month)
-        if not os.path.exists(OUT_DIR):
-            os.makedirs(OUT_DIR)
+        for day in ["14", "01"]:
+            OUT_DIR = OUT_DIR_TEMPLATE%(month)
+            if not os.path.exists(OUT_DIR):
+                os.makedirs(OUT_DIR)
 
-        files = glob(ROOT_DIR%(month))
-        if len(files)==0:
-            continue
-        num_n = 0  
-        num_d = 0
-        for filename in files:
-            print  os.path.basename(filename)
-            caObj_new=readCaliopImagerMatchObj(filename) 
-            if np.nanmax(caObj_new.imager.all_arrays['sunz']>=90):
-                num_n +=1
-                print "reading",os.path.basename(filename)
-                caObj_night = caObj_night + caObj_new
-            else :
-                num_d +=1
-                print "reading",os.path.basename(filename)
-                caObj_day = caObj_day + caObj_new
-        if num_n>0:
-            filename_night = outfile_template%("night",month)
-            outfile = os.path.join(OUT_DIR, filename_night)
-            writeCaliopImagerMatchObj(
-                  outfile, caObj_night, imager_obj_name = 'pps')   
-            caObj_night = CalipsoImagerTrackObject()    
-        if num_d>0:
-            filename_day = outfile_template%("day",month)
-            outfile = os.path.join(OUT_DIR, filename_day)
-            writeCaliopImagerMatchObj(
-                outfile, caObj_day, imager_obj_name = 'pps')   
-            caObj_day = CalipsoImagerTrackObject()   
+            files = glob(ROOT_DIR%(month,day))
+            if len(files)==0:
+                continue
+            num_n = 0  
+            num_d = 0
+            for filename in files:
+                print  os.path.basename(filename)
+                try:
+                    caObj_new=readTruthImagerMatchObj(filename, truth_read=truth) 
+                except:
+                    print "problem with", os.path.basename(filename)
+                    continue
+                #if caObj_new.cloudsat.RVOD_CWC_status is None or len(caObj_new.cloudsat.RVOD_CWC_status) != len(caObj_new.avhrr.cpp_lwp):
+                #    print("Missing RVOD_CWC_status")
+                #    continue
+                if int(os.path.basename(filename).split('_')[3][0:2])<12:
+                    #time between 0000 and 11:59                
+                    num_n +=1
+                    print "reading",os.path.basename(filename)
+                    if caObj_night is None:
+                        caObj_night =  caObj_new  
+                    else:    
+                        caObj_night = caObj_night + caObj_new             
+                else :
+                    num_d +=1
+                    print "reading",os.path.basename(filename)
+                    if caObj_day is None:
+                        caObj_day =  caObj_new  
+                    else:    
+                        caObj_day = caObj_day + caObj_new
+            if num_n>0:
+                filename_night = outfile_template%(month,day,"00")
+                outfile = os.path.join(OUT_DIR, filename_night)
+                writeTruthImagerMatchObj(
+                    outfile, caObj_night, SETTINGS, avhrr_obj_name = 'pps')   
+                caObj_night = None
+
+            if num_d>0:
+                filename_day = outfile_template%(month,day,"12")
+                outfile = os.path.join(OUT_DIR, filename_day)
+                writeCaliopAvhrrMatchObj(
+                    outfile, caObj_day, SETTINGS, avhrr_obj_name = 'pps')   
+                caObj_day = None 
+
