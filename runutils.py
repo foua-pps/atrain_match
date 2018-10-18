@@ -25,12 +25,14 @@ def read_config_info():
     SETTINGS = {}    
     for name, value in CONF.items('general', raw = True):
         name = name.upper()
+        value = value.strip()
         while ' ' in value:
             value = value.replace(' ', '')
         values = value.split(',')
         if name in ['MIN_OPTICAL_DEPTH']:
            value_ = [ np.float(val_i) for val_i in values]
-        elif name in ["COMPILE_STATISTICS_TRUTH", "PLOT_MODES", "PLOT_TYPES", "CTTH_TYPES"]:
+        elif name in ["COMPILE_STATISTICS_TRUTH", "PLOT_MODES", "PLOT_TYPES", "CTTH_TYPES", 
+                      'SATELLITES', 'YEARS', 'MONTHS']:
            value_ = values
            print name, values
         elif len(values)==1 and 'true' in values[0].lower():

@@ -126,6 +126,24 @@ if __name__ == '__main__':
                 #modes_list.append("OPTICAL_DEPTH-%0.2_%sf"(dnt,cot))# if like this
                 modes_dnt_list.append("OPTICAL_DEPTH%s-%0.2f"%(dnt,cot))
 
+    #get cases            
+    CASES = []
+    month_list = ["*"]
+    day_list = ["*"]
+    if "MONTH" in SETTINGS.keys() and len(SETTINGS["MONTHS"])>0:
+        month_list = ["{:02d}".format(int(ind)) for ind in SETTINGS["MONTHS"]] 
+    if "DAY" in SETTINGS.keys() and len(SETTINGS["DAYS"])>0:
+        day_list =  ["{:02d}".format(int(ind)) for ind in SETTINGS["DAYS"]] 
+    for sat in SETTINGS["SATELLITES"]:
+        for year in  SETTINGS["YEARS"]:
+            for month in month_list:
+                for day in day_list:
+                    CASES.append({'satname': sat,
+                                 'month': month,
+                                 'year': year,
+                                 'day': day})
+
+
     if len(modes_dnt_list)==0 :
         logger.warning("No modes selected!")
         parser.print_help()
@@ -138,25 +156,25 @@ if __name__ == '__main__':
             print("Gathering statistics from all validation results files in the "
                   "following directories:")    
             results_files = []
-            for case in SETTINGS["CASES"]:
+            for case in CASES:
                 indata_dir = AM_PATHS['result_dir'].format(
                     val_dir=_validation_results_dir,
                     satellite=case['satname'],
                     resolution=str(RESOLUTION),
-                    month="%02d"%(case['month']),
+                    month=case['month'],
                     year=case['year'],
+                    day=case['day'],
                     mode=process_mode_dnt,
                     truth_sat=truth_sat,
                     min_opt_depth="")  
-                indata_dir =indata_dir.replace("%d_%H","*")
-                indata_dir =indata_dir.replace("%d","*")
-                indata_dir =indata_dir.replace("%H","*")
+                indata_dir =indata_dir.replace("_%H","*")
                 indata_file = AM_PATHS['result_file'].format(
                     resolution=str(RESOLUTION),
                     basename="*",
                     truth_sat=truth_sat)  
                 print("-> " + indata_dir)
                 results_files.extend(glob("%s/*%skm*%s*.dat" %(indata_dir, RESOLUTION, truth_sat.lower())))
+                results_files = list(set(results_files))
             if len(results_files) <1:
                 logger.info("PROCESS MODE %s have no results files", process_mode_dnt)  
                 continue
