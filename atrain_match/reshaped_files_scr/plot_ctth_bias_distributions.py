@@ -28,8 +28,8 @@ print matplotlib.rcParams
 delta_h = 100.0
 
 
-from get_flag_info import get_calipso_clouds_of_type_i
-from get_flag_info import (get_semi_opaque_info_pps2014,
+from utils.get_flag_info import get_calipso_clouds_of_type_i
+from utils.get_flag_info import (get_semi_opaque_info_pps2014,
                            get_calipso_high_clouds,
                            get_calipso_medium_clouds,
                            get_calipso_low_clouds)

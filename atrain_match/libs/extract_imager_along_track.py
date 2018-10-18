@@ -409,7 +409,7 @@ def imager_track_from_matched(obt, SETTINGS,
                 data = getattr(ctth_obj, data_set)
                 name = "%s_%s"%(ctth_type.lower(),data_set)
                 setattr(obt.imager, name, get_data_from_array(data, row_col))
-    from pps_prototyping_util import (get_t11t12_texture_data_from_object,
+    from utils.pps_prototyping_util import (get_t11t12_texture_data_from_object,
                                       get_coldest_values,get_darkest_values,
                                       get_warmest_values)
     if dataObj is not None:

@@ -2,7 +2,7 @@
   Use this module to read cci cloudproducts
   2013 SMHI, N.Hakansson a001865
 """
-from read_cloudproducts_and_nwp_pps import (CtthObj, CppObj, CmaObj, 
+from imager_cloud_products.read_cloudproducts_and_nwp_pps import (CtthObj, CppObj, CmaObj, 
                                             imagerAngObj, imagerGeoObj)
 import os
 import netCDF4	
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 import time
 import config
 ATRAIN_MATCH_NODATA = config.NODATA
-from runutils import do_some_geo_obj_logging
+from utils.runutils import do_some_geo_obj_logging
 
 def get_satid_datetime_orbit_from_fname_cci(imager_filename):
     # Get satellite name, time, and orbit number from imager_file

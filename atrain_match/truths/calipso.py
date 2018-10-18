@@ -7,13 +7,13 @@ logger = logging.getLogger(__name__)
 
 
 import config
-from common import (MatchupError, TimeMatchError, 
+from utils.common import (MatchupError, TimeMatchError, 
                     InputError, ProcessingError, 
                     elements_within_range)
 
 from matchobject_io import (CalipsoImagerTrackObject,
                             CalipsoObject)
-from runutils import do_some_logging
+from utils.runutils import do_some_logging
 
 def add_validation_ctth_calipso(calipso):
     calipso.validation_height = calipso.layer_top_altitude[:,0].copy()
@@ -46,7 +46,7 @@ def match_calipso_imager(values,
                         ctype, cma, ctth, cpp, nwp_obj,
                         imagerAngObj, nwp_segments, SETTINGS, res=config.RESOLUTION):
 
-    from common import map_imager
+    from utils.common import map_imager
     retv = CalipsoImagerTrackObject()
     
     #Nina 20150313 Swithcing to mapping without area as in cpp. Following suggestion from Jakob
@@ -80,7 +80,7 @@ def match_calipso_imager(values,
     retv.diff_sec_1970 = retv.calipso.sec_1970 - retv.imager.sec_1970
     do_some_logging(retv, caObj)
     logger.debug("Generate the latitude,cloudtype tracks!")
-    from extract_imager_along_track import imager_track_from_matched
+    from libs.extract_imager_along_track import imager_track_from_matched
     retv = imager_track_from_matched(retv, SETTINGS, 
                                      imagerGeoObj, imagerObj, imagerAngObj, 
                                      nwp_obj, ctth, ctype, cma, cpp=cpp, 

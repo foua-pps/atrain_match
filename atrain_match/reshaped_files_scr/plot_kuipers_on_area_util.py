@@ -255,7 +255,7 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         if np.size(caObj.imager.all_arrays['surftemp'])==1 and caObj.imager.all_arrays['surftemp'] is None:
             self.lapse_rate = np.zeros(self.false_clouds.shape)
             return
-        from get_flag_info import get_calipso_low_clouds
+        from utils.get_flag_info import get_calipso_low_clouds
         low_clouds = get_calipso_low_clouds(caObj)
         delta_h = caObj.calipso.all_arrays['layer_top_altitude'][:,0] - 0.001*caObj.calipso.all_arrays['elevation'][:]
         delta_t = (273.15 + caObj.calipso.all_arrays['layer_top_temperature'][:,0] - caObj.imager.all_arrays['surftemp'][:])
@@ -319,7 +319,7 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
             self.lapse_bias = 0* height_c
 
     def get_ctth_bias_low(self, caObj):
-        from get_flag_info import get_calipso_low_clouds
+        from utils.get_flag_info import get_calipso_low_clouds
         low_clouds = get_calipso_low_clouds(caObj)
         detected_low = np.logical_and(self.detected_height, 
                                       low_clouds[self.use])
@@ -333,7 +333,7 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
  
 
     def get_ctth_bias_high(self, caObj):
-        from get_flag_info import get_calipso_high_clouds
+        from utils.get_flag_info import get_calipso_high_clouds
         high_clouds = get_calipso_high_clouds(caObj)
         detected_high = np.logical_and(self.detected_height, high_clouds[self.use])
         delta_h = self.height_bias.copy()
@@ -346,7 +346,7 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
 
 
     def get_ctth_bias_low_temperature(self, caObj):
-        from get_flag_info import get_calipso_low_clouds
+        from utils.get_flag_info import get_calipso_low_clouds
         low_clouds = get_calipso_low_clouds(caObj)
         detected_low = np.logical_and(self.detected_height, low_clouds[self.use])
         temperature_pps = caObj.imager.all_arrays['ctth_temperature'][self.use]
@@ -372,7 +372,7 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         self.temperature_bias_low_t11 = delta_t_t11
 
     def get_ctth_bias_type(self, caObj, calipso_cloudtype=0):
-        from get_flag_info import get_calipso_clouds_of_type_i
+        from utils.get_flag_info import get_calipso_clouds_of_type_i
         wanted_clouds = get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=calipso_cloudtype)
         detected_typei = np.logical_and(self.detected_height, wanted_clouds[self.use])
         delta_h = self.height_bias.copy()

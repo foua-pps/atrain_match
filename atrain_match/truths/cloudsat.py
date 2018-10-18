@@ -7,13 +7,13 @@ logger = logging.getLogger(__name__)
 from matchobject_io import (CloudsatObject,
                             CloudsatImagerTrackObject)                            
 import config
-from common import (MatchupError, ProcessingError,
+from utils.common import (MatchupError, ProcessingError,
                     elements_within_range)
-from extract_imager_along_track import imager_track_from_matched
+from libs.extract_imager_along_track import imager_track_from_matched
 
-from calipso import (find_break_points, calipso_track_from_matched,
+from truths.calipso import (find_break_points, calipso_track_from_matched,
                      time_reshape_calipso)
-from runutils import do_some_logging
+from utils.runutils import do_some_logging
 
 def add_validation_ctth_cloudsat(cloudsat):
     #CLOUDSAT VALIDATION HEIGHT!
@@ -185,7 +185,7 @@ def match_cloudsat_imager(cloudsatObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,
     retv = CloudsatImagerTrackObject()
 
     #Nina 20150313 Swithcing to mapping without area as in cpp. Following suggestion from Jakob
-    from common import map_imager
+    from utils.common import map_imager
     cal, cap = map_imager(imagerGeoObj, 
                          cloudsatObj.longitude.ravel(),
                          cloudsatObj.latitude.ravel(),
@@ -225,7 +225,7 @@ def match_cloudsat_imager(cloudsatObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,
 
 def mergeCloudsat(cloudsat, cloudsatlwp):
     #map cloudsat_lwp to cloudsat
-    from match_util.match import match_lonlat
+    from utils.match import match_lonlat
     source = (cloudsatlwp.longitude.astype(np.float64).reshape(-1,1), 
               cloudsatlwp.latitude.astype(np.float64).reshape(-1,1))
     target = (cloudsat.longitude.astype(np.float64).reshape(-1,1), 
@@ -265,7 +265,7 @@ def reshapeCloudsat(cloudsatfiles, imager):
             raise ProcessingError("CloudSat files are in the wrong order!")
         clsat_break = np.argmin(np.abs(clsat_start_all - clsat_new_all[0]))+1
         # Concatenate the feature values
-        #arname = array name from cloudsatObj
+        #arname = array name from truths.cloudsatObj
         for arname, value in clsat.all_arrays.items(): 
             if value is not None:
                 if value.size != 1:

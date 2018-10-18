@@ -15,15 +15,15 @@ through a set of files with SNO matchups.
 import logging
 logging.basicConfig(level=logging.DEBUG) 
 logger = logging.getLogger(__name__)
-from common import (InputError, MatchupError)
+from utils.common import (InputError, MatchupError)
 import config
-import truth_imager_match
-from common import Cross
-from runutils import  parse_scenesfile_reshaped
-from runutils import  parse_scenesfile_maia
-from runutils import parse_scene
-from runutils import  parse_scenesfile_cci
-from runutils import  parse_scenesfile_v2014
+from libs import truth_imager_match
+from utils.common import Cross
+from utils.runutils import  parse_scenesfile_reshaped
+from utils.runutils import  parse_scenesfile_maia
+from utils.runutils import parse_scene
+from utils.runutils import  parse_scenesfile_cci
+from utils.runutils import  parse_scenesfile_v2014
 
 
 def process_matchups(matchups, run_modes, reprocess=False, debug=False):
@@ -36,7 +36,7 @@ def process_matchups(matchups, run_modes, reprocess=False, debug=False):
     
     """
 
-    from runutils import read_config_info
+    from utils.runutils import read_config_info
     AM_PATHS, SETTINGS = read_config_info()
 
     problematic = set()

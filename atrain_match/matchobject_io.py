@@ -25,7 +25,7 @@
 
 import numpy as np
 import h5py   
-from common import write_match_objects
+from utils.common import write_match_objects
 
 class DataObject(object):
     """

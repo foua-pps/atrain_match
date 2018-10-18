@@ -35,7 +35,7 @@ import matplotlib.pyplot as plt
 #files = glob(ROOT_DIR+"*day*.h5")
 ROOT_DIR = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/global_modis_v2018_created20181001_cmap_osiice_dust/Reshaped_Files_merged_caliop/eos2/1km/*/*/*")
 files = glob(ROOT_DIR+"*.h5")
-from get_flag_info import get_calipso_aerosol_of_type_i
+from utils.get_flag_info import get_calipso_aerosol_of_type_i
 
 def get_pps_aerosl(caObj):
     sunz = caObj.imager.all_arrays['sunz']

@@ -6,11 +6,11 @@ from matchobject_io import (readAmsrImagerMatchObj,
                             readCloudsatImagerMatchObj,
                             CloudsatImagerTrackObject)
 import matplotlib.pyplot as plt 
-from match_util.validate_lwp_util import get_lwp_diff_inner
-from truth_imager_statistics import get_lwp_diff_inner_cloudsat
+from utils.validate_lwp_util import get_lwp_diff_inner
+from libs.truth_imager_statistics import get_lwp_diff_inner_cloudsat
 
 from histogram_plotting import atrain_scatter
-from stat_util import (my_hist, my_iqr, my_rms, my_pex, my_mae)
+from utils.stat_util import (my_hist, my_iqr, my_rms, my_pex, my_mae)
 
 def my_label(data):
     label = (#"{:s}\n"

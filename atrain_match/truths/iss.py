@@ -8,13 +8,13 @@ from matchobject_io import (DataObject,
                             IssObject,
                             IssImagerTrackObject)                            
 import config
-from common import (MatchupError, ProcessingError,
+from utils.common import (MatchupError, ProcessingError,
                     elements_within_range)
-from extract_imager_along_track import imager_track_from_matched
+from libs.extract_imager_along_track import imager_track_from_matched
 
-from calipso import (find_break_points, calipso_track_from_matched,
+from truths.calipso import (find_break_points, calipso_track_from_matched,
                      time_reshape_calipso)
-from runutils import do_some_logging
+from utils.runutils import do_some_logging
 import time
 import datetime
 import calendar
@@ -133,7 +133,7 @@ def read_iss(filename):
 def match_iss_imager(issObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,imagerAngObj, 
                          cpp, nwp_segments, SETTINGS):
     retv = IssImagerTrackObject()
-    from common import map_imager
+    from utils.common import map_imager
     cal, cap = map_imager(imagerGeoObj, issObj.longitude.ravel(),
                          issObj.latitude.ravel(),
                          radius_of_influence=config.RESOLUTION*0.7*1000.0) # larger than radius...
@@ -187,7 +187,7 @@ def reshapeIss(issfiles, imager):
             raise ProcessingError("Iss files are in the wrong order")
         iss_break = np.argmin(np.abs(iss_start_all - iss_new_all[0]))+1
         # Concatenate the feature values
-        #arname = array name from issObj
+        #arname = array name from truths.issObj
         for arname, value in iss.all_arrays.items(): 
             if value is not None:
                 if value.size != 1:

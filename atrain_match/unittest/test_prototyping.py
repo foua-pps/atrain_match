@@ -5,7 +5,7 @@
 #
 import numpy as np
 import unittest
-from pps_prototyping_util import  (get_warmest_or_coldest_index)
+from utils.pps_prototyping_util import  (get_warmest_or_coldest_index)
 from matchobject_io import CalipsoObject
 def get_warmest_index_old(t11,  matched):
     from scipy.ndimage.filters import generic_filter

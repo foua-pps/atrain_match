@@ -8,7 +8,7 @@ from matchobject_io import (readCaliopImagerMatchObj,
                             CalipsoImagerTrackObject)
 
 import matplotlib.pyplot as plt
-from get_flag_info import (get_semi_opaque_info_pps2014,
+from utils.get_flag_info import (get_semi_opaque_info_pps2014,
                            get_day_night_twilight_info_pps2014,
                            get_land_coast_sea_info_pps2014,
                            get_mountin_info_pps2014,
@@ -18,7 +18,7 @@ from get_flag_info import (get_semi_opaque_info_pps2014,
                            get_calipso_medium_and_high_clouds_tp,
                            get_calipso_clouds_of_type_i,
                            get_calipso_low_clouds)
-from stat_util import (HR_cma, K_cma, 
+from utils.stat_util import (HR_cma, K_cma, 
                        PODcy, FARcy, 
                        PODcl, FARcl)
 
@@ -54,7 +54,7 @@ def my_measures(calipso_cfc, pps_cfc, thin, use):
 
 def plot_cfc_table(caObj,cfc_limit=0.9,sat="modis"):
 
-    from get_flag_info import get_calipso_clouds_of_type_i
+    from utils.get_flag_info import get_calipso_clouds_of_type_i
     
     cfc = caObj.calipso.all_arrays['cloud_fraction']
     od = caObj.calipso.all_arrays['total_optical_depth_5km']

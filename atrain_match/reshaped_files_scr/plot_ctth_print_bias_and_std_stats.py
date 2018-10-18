@@ -11,7 +11,7 @@ from matchobject_io import (readCaliopImagerMatchObj,
                             CalipsoImagerTrackObject)
 from plot_kuipers_on_area_util import (PerformancePlottingObject,
                                        ppsMatch_Imager_CalipsoObject)
-from get_flag_info import get_calipso_clouds_of_type_i_feature_classification_flags_one_layer
+from utils.get_flag_info import get_calipso_clouds_of_type_i_feature_classification_flags_one_layer
 import matplotlib.pyplot as plt
 import matplotlib
 from scipy.stats import kurtosis, skewtest, skew, mode, kurtosis

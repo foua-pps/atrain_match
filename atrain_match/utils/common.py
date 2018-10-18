@@ -54,7 +54,7 @@ def map_imager_distances(imager, lon, lat, radius_of_influence, n_neighbours=1):
     
     """
     from config import NODATA
-    from match_util.match import match_lonlat
+    from utils.match import match_lonlat
     source = (imager.longitude, imager.latitude)
     target = (lon, lat)
     #if imager.longitude.dtype != lon.dtype or  imager.latitude.dtype != lat.dtype:

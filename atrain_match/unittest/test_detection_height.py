@@ -5,7 +5,7 @@
 #
 import numpy as np
 import unittest
-from truth_imager_prepare import  (detection_height_from_5km_data,
+from libs.truth_imager_prepare import  (detection_height_from_5km_data,
                                              CalipsoCloudOpticalDepth_new)
 from matchobject_io import CalipsoObject
 

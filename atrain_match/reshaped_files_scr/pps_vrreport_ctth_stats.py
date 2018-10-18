@@ -11,10 +11,10 @@ from matchobject_io import (readCaliopImagerMatchObj,
                             readCloudsatImagerMatchObj,
                             CalipsoImagerTrackObject)
 
-from get_flag_info import get_calipso_clouds_of_type_i_feature_classification_flags_one_layer
+from utils.get_flag_info import get_calipso_clouds_of_type_i_feature_classification_flags_one_layer
 import matplotlib.pyplot as plt
 import matplotlib
-from get_flag_info import (get_calipso_low_medium_high_classification,
+from utils.get_flag_info import (get_calipso_low_medium_high_classification,
                            get_inversion_info_pps2014,
                            get_calipso_clouds_of_type_i,
                            get_calipso_high_clouds,
@@ -23,7 +23,7 @@ from get_flag_info import (get_calipso_low_medium_high_classification,
 
 from scipy.stats import kurtosis, skewtest, skew, mode, kurtosis
 
-from stat_util import (my_hist,
+from utils.stat_util import (my_hist,
                        my_iqr, 
                        my_rms,
                        my_mae,
@@ -189,7 +189,7 @@ def my_make_plot_example_aprox(bias, use, label_str, caObj):
     N_all = np.sum(use)
     temp_data_gs = []
     temp_data_iqrs = []
-    from get_flag_info import get_calipso_clouds_of_type_i
+    from utils.get_flag_info import get_calipso_clouds_of_type_i
     for type_i in xrange(0,8):
         #if type_i ==1:
         #    continue
@@ -283,7 +283,7 @@ def my_print_one_line(out_file_h, bias, x, y, use_ind, compare_name, flag_key):
     print(out_line)  
 
 def print_all_cloudsat(cObj, compare, compare_name = "unknown"):
-    from get_flag_info import get_cloudsat_low_medium_high_classification
+    from utils.get_flag_info import get_cloudsat_low_medium_high_classification
     x = cObj.cloudsat.all_arrays['validation_height']
     y = cObj.imager.all_arrays['imager_ctth_m_above_seasurface']
     mhl = get_cloudsat_low_medium_high_classification(cObj)

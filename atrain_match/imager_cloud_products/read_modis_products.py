@@ -8,7 +8,7 @@ import calendar
 from datetime import datetime
 logger = logging.getLogger(__name__)
 from config import NODATA
-from extract_imager_along_track import get_data_from_array
+from libs.extract_imager_along_track import get_data_from_array
 ATRAIN_MATCH_NODATA = NODATA
 class MOD06Obj:
     #skeleton container for v2014 cloudtype
@@ -44,8 +44,8 @@ def add_modis_06(ca_matchup, pps_imager_file, options):
     return ca_matchup
 
 def find_modis_lvl2_file_from_pps(pps_imager_file, options):
-    from truth_imager_match import get_pps_file
-    from read_cloudproducts_and_nwp_pps import get_satid_datetime_orbit_from_fname_pps
+    from libs.truth_imager_match import get_pps_file
+    from imager_cloud_products.read_cloudproducts_and_nwp_pps import get_satid_datetime_orbit_from_fname_pps
     values = get_satid_datetime_orbit_from_fname_pps(pps_imager_file)
     modis_06_filename = get_pps_file(pps_imager_file, options, values, 'modis_06_file', 'modis_06_dir')
     logger.info("MODIS-C6 file:  %s", os.path.basename(modis_06_filename))

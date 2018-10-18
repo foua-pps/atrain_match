@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.rcParams.update({'font.size': 16})
 
-from get_flag_info import (get_semi_opaque_info_pps2014)
+from utils.get_flag_info import (get_semi_opaque_info_pps2014)
 
 def make_boxplot(clsatObj, name, month):
 

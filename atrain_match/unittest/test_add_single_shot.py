@@ -5,7 +5,7 @@
 #
 import numpy as np
 import unittest
-from calipso import  (addSingleShotTo5km)
+from truths.calipso import  (addSingleShotTo5km)
 from matchobject_io import CalipsoObject
 
 

@@ -87,7 +87,7 @@ if __name__ == '__main__':
     (options) = parser.parse_args()
 
 
-    from runutils import read_config_info
+    from utils.runutils import read_config_info
     AM_PATHS, SETTINGS = read_config_info()
 
         

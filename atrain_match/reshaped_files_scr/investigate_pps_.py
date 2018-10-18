@@ -4,7 +4,7 @@ import numpy as np
 from scipy import ndimage
 from matchobject_io import (readCaliopImagerMatchObj,
                             CalipsoImagerTrackObject)
-from get_flag_info import get_pixels_where_test_is_passed
+from utils.get_flag_info import get_pixels_where_test_is_passed
 
 def print_common_stats(caObj, use, name_dict):
     nlay =np.where(caObj.calipso.all_arrays['number_layers_found']>0,1,0)

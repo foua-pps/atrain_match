@@ -13,12 +13,12 @@ from matchobject_io import (readCaliopImagerMatchObj,
 import matplotlib.pyplot as plt
 import matplotlib
 
-from get_flag_info import (get_land_coast_sea_info_pps2014,
+from utils.get_flag_info import (get_land_coast_sea_info_pps2014,
                            get_calipso_low_medium_high_classification,
                            get_calipso_high_clouds,
                            get_calipso_medium_clouds,
                            get_calipso_low_clouds)
-from stat_util import (my_iqr, my_hist, my_rms, my_mae)
+from utils.stat_util import (my_iqr, my_hist, my_rms, my_mae)
 
 from scipy.stats import kurtosis, skewtest, skew, mode, kurtosis
 matplotlib.rcParams.update(matplotlib.rcParamsDefault)

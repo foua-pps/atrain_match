@@ -8,7 +8,7 @@ from matchobject_io import (readCaliopImagerMatchObj,
                             CalipsoImagerTrackObject)
 import warnings
 warnings.filterwarnings("ignore")
-from get_flag_info import get_pixels_where_test_is_passed
+from utils.get_flag_info import get_pixels_where_test_is_passed
 
 v2014 = False
 
@@ -69,7 +69,7 @@ def print_common_stats(caObj, use, name_dict, mints, maxts, surface_type, illumi
     use = np.logical_and(use, np.logical_or(isCalipsoCloudy, isCalipsoClear))
     use = np.logical_and(use, caObj.imager.all_arrays['surftemp']<=maxts)
     use = np.logical_and(use, caObj.imager.all_arrays['surftemp']>mints)
-    from get_flag_info import  get_land_coast_sea_info_pps2014
+    from utils.get_flag_info import  get_land_coast_sea_info_pps2014
     (no_qflag, land_flag, sea_flag, coast_flag, all_lsc_flag
     ) = get_land_coast_sea_info_pps2014(caObj.imager.all_arrays['cloudtype_conditions'])
     if surface_type in ["land"]:

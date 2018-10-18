@@ -3,9 +3,9 @@ import config
 import logging
 logger = logging.getLogger(__name__)
 import numpy as np
-from common import ProcessingError
+from utils.common import ProcessingError
 
-from get_flag_info import (
+from utils.get_flag_info import (
     get_calipso_low_medium_high_classification,
     get_cloudsat_low_medium_high_classification,
     get_semi_opaque_info_pps2014, 
@@ -27,7 +27,7 @@ from get_flag_info import (
     get_mountin_info_pps2012,
     get_inversion_info_pps2012)
 
-from stat_util import my_iqr
+from utils.stat_util import my_iqr
 
 def calculate_ctth_stats(val_subset, imager_ctth_m_above_seasurface, truth_sat_validation_height, imager_is_cloudy):
 
@@ -347,7 +347,7 @@ def print_cpp_lwp_stats(aObj, statfile, val_subset):
         logger.warning("There are no cpp data.")
         return
     if "amsr" in aObj.truth_sat:
-        from match_util.validate_lwp_util import get_lwp_diff
+        from utils.validate_lwp_util import get_lwp_diff
         lwp_diff =  get_lwp_diff(aObj, val_subset)
     elif "cloudsat"  in aObj.truth_sat:
         lwp_diff, lwp_diff_lo, dummy, dummy2, dummy3 = get_lwp_diff_inner_cloudsat(aObj, val_subset)
@@ -413,7 +413,7 @@ def print_cpp_stats(cObj, statfile, val_subset, SETTINGS):
     if cObj.imager.cpp_phase is None:
         logger.warning("There are no cpp data.")
         return
-    from validate_cph_util import get_calipso_phase_inner, CALIPSO_PHASE_VALUES
+    from utils.validate_cph_util import get_calipso_phase_inner, CALIPSO_PHASE_VALUES
     val_subset = np.logical_and(
         val_subset, 
         cObj.calipso.cloud_fraction >= SETTINGS["CALIPSO_CLOUDY_MIN_CFC"])

@@ -8,7 +8,7 @@ from matchobject_io import (readAmsrImagerMatchObj,
                             DataObject,
                             AmsrImagerTrackObject)
 
-from match_util.validate_lwp_util import ( get_lwp_diff)
+from utils.validate_lwp_util import ( get_lwp_diff)
 def plot_hist_lwp(lwp_diff, filename):
     from histogram_plotting import plot_hist
     hist_range = (np.percentile(lwp_diff, 1),

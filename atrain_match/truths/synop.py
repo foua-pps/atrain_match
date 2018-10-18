@@ -8,11 +8,11 @@ TAI93 = datetime(1993, 1, 1)
 import  config
 from matchobject_io import (SynopImagerTrackObject, 
                             SynopObject)
-from calipso import (find_break_points, calipso_track_from_matched,
+from truths.calipso import (find_break_points, calipso_track_from_matched,
                      do_some_logging)
 
-from common import (ProcessingError, MatchupError, elements_within_range)
-from extract_imager_along_track import imager_track_from_matched
+from utils.common import (ProcessingError, MatchupError, elements_within_range)
+from libs.extract_imager_along_track import imager_track_from_matched
 import logging
 logger = logging.getLogger(__name__)
 
@@ -45,7 +45,7 @@ def match_synop_imager(synopObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
                        imagerAngObj, cpp, nwp_segments, SETTINGS):
     retv = SynopImagerTrackObject()
 
-    from common import map_imager_distances
+    from utils.common import map_imager_distances
     n_neighbours = 250
     if config.RESOLUTION == 5:
         n_neighbours = 16

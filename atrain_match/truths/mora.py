@@ -7,11 +7,11 @@ from calendar import timegm
 TAI93 = datetime(1993, 1, 1)
 from matchobject_io import (MoraImagerTrackObject, 
                             MoraObject)
-from calipso import (find_break_points, calipso_track_from_matched,
+from truths.calipso import (find_break_points, calipso_track_from_matched,
                      do_some_logging)
 
-from common import (ProcessingError, MatchupError, elements_within_range)
-from extract_imager_along_track import imager_track_from_matched
+from utils.common import (ProcessingError, MatchupError, elements_within_range)
+from libs.extract_imager_along_track import imager_track_from_matched
 import logging
 logger = logging.getLogger(__name__)
 
@@ -67,7 +67,7 @@ def reshapeMora(morafiles, imager):
 def match_mora_imager(moraObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
                      imagerAngObj, cpp, nwp_segments, SETTINGS):
     retv = MoraImagerTrackObject()
-    from common import map_imager
+    from utils.common import map_imager
     cal, cap = map_imager(imagerGeoObj, 
                          moraObj.longitude.ravel(),
                          moraObj.latitude.ravel(),

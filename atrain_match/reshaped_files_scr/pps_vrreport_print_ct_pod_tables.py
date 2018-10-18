@@ -8,8 +8,8 @@ from matchobject_io import (readCaliopImagerMatchObj,
                             CalipsoImagerTrackObject)
 
 import matplotlib.pyplot as plt
-from get_flag_info import get_calipso_clouds_of_type_i
-from get_flag_info import (get_semi_opaque_info_pps2014,
+from utils.get_flag_info import get_calipso_clouds_of_type_i
+from utils.get_flag_info import (get_semi_opaque_info_pps2014,
                            get_day_night_twilight_info_pps2014,
                            get_land_coast_sea_info_pps2014,
                            get_mountin_info_pps2014,
@@ -36,7 +36,7 @@ ct_max_v= [1,2,3,4,6,10,7,9,20]
        
 def plot_ct_table2(caObj):
 
-    from get_flag_info import get_calipso_clouds_of_type_i
+    from utils.get_flag_info import get_calipso_clouds_of_type_i
     fig = plt.figure(figsize = (30,64))
     print "N,           low, frac, medium, high, cirrus"
     for type_i in xrange(0,8):
@@ -60,7 +60,7 @@ def plot_ct_table2(caObj):
 
 def plot_ct_table4(caObj, use_in=None):
 
-    from get_flag_info import get_calipso_clouds_of_type_i
+    from utils.get_flag_info import get_calipso_clouds_of_type_i
     fig = plt.figure(figsize = (30,64))
     print "N,           land, sea, snow, ice, low, frac, medium, high, cirrus"
     for type_i in xrange(0,8):
@@ -82,7 +82,7 @@ def plot_ct_table4(caObj, use_in=None):
 
 def plot_ct_table5(caObj, use_in=None):
 
-    from get_flag_info import get_calipso_clouds_of_type_i
+    from utils.get_flag_info import get_calipso_clouds_of_type_i
     fig = plt.figure(figsize = (30,64))
     pps_ctype = caObj.imager.all_arrays['cloudtype']
     use = np.logical_and(pps_ctype>0,pps_ctype<23)

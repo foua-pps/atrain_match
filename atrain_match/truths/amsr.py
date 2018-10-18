@@ -4,15 +4,15 @@ from datetime import datetime
 from calendar import timegm
 TAI93 = datetime(1993, 1, 1)
 import config
-from read_cloudproducts_and_nwp_pps import NWPObj
+from imager_cloud_products.read_cloudproducts_and_nwp_pps import NWPObj
 from matchobject_io import (AmsrImagerTrackObject, 
                             AmsrObject)
-from calipso import (find_break_points, calipso_track_from_matched,
+from truths.calipso import (find_break_points, calipso_track_from_matched,
                      time_reshape_calipso, do_some_logging)
 
-from common import (ProcessingError, MatchupError, elements_within_range)
-from extract_imager_along_track import imager_track_from_matched
-from match_util.validate_lwp_util import LWP_THRESHOLD
+from utils.common import (ProcessingError, MatchupError, elements_within_range)
+from libs.extract_imager_along_track import imager_track_from_matched
+from utils.validate_lwp_util import LWP_THRESHOLD
 import logging
 logger = logging.getLogger(__name__)
 AMSR_RADIUS = 5.4e3 #3.7e3 to include 5km pixels parly overlapping amsr-e footprint
@@ -118,7 +118,7 @@ def reshapeAmsr(amsrfiles, imager):
             raise ProcessingError("AMSR files are in the wrong order")
         amsr_break = np.argmin(np.abs(amsr_start_all - amsr_new_all[0]))+1
         # Concatenate the feature values
-        #arname = array name from amsrObj
+        #arname = array name from truths.amsrObj
         for arname, value in amsr.all_arrays.items(): 
             if value is not None:
                 if value.size != 1:
@@ -142,7 +142,7 @@ def match_amsr_imager(amsrObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
         return None
         #return MatchupError("No imager Lwp.") # if only LWP matching?
 
-    from common import map_imager_distances
+    from utils.common import map_imager_distances
     n_neighbours = 8
     if config.RESOLUTION == 5:
         n_neighbours = 5
