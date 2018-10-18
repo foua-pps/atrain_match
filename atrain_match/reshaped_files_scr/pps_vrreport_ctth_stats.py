@@ -4,11 +4,9 @@ import os
 import re
 from glob import glob
 import numpy as np
-from matchobject_io import (readCaliopImagerMatchObj,
-                            DataObject,
+from matchobject_io import (DataObject,
                             CalipsoObject,
                             CloudsatImagerTrackObject,
-                            readCloudsatImagerMatchObj,
                             CalipsoImagerTrackObject)
 
 from utils.get_flag_info import get_calipso_clouds_of_type_i_feature_classification_flags_one_layer
@@ -63,15 +61,15 @@ def my_make_plot2(y, x, x2, mhl,use):
     fig = plt.figure(figsize=(15, 11))
     ax = fig.add_subplot(321)
     use_k = use
-    print min(y[use_k]), len(use[use_k])
+    print(min(y[use_k]), len(use[use_k]))
     abias1 = np.abs(y[use_k]-x[use_k])
     abias2 = np.abs(y[use_k]-x2[use_k])
     dist = 0.5*np.abs(x2[use_k]-x[use_k])
     closer_to_top = np.logical_and(abias1<=abias2, np.logical_and(y[use_k]<=x[use_k], y[use_k]>=x2[use_k]))
     closer_to_2 = np.logical_and(abias1>abias2, np.logical_and(y[use_k]<=x[use_k], y[use_k]>=x2[use_k]))
     sort_ind = np.argsort(np.where(abias1<abias2, abias1, abias2))
-    print np.mean(np.where(abias1<abias2, abias1, abias2)), np.mean(abias1), np.mean(abias2)
-    print np.sum(np.where(abias1<abias2, abias1, abias2)<1000)*100.0/len(abias1)
+    print( np.mean(np.where(abias1<abias2, abias1, abias2)), np.mean(abias1), np.mean(abias2))
+    print( np.sum(np.where(abias1<abias2, abias1, abias2)<1000)*100.0/len(abias1))
 
     sort_ind_top = np.argsort(abias1[closer_to_top])
     sort_ind_2 = np.argsort(abias2[closer_to_2])
@@ -305,9 +303,9 @@ def print_all(cObj, compare, compare_name = "unknown"):
     #y = getattr(plt_obj, compare) 
 
     x = cObj.calipso.all_arrays['validation_height']
-    x2 = cObj.calipso.all_arrays['layer_top_altitude'][:,1]*1000 #+ elevation!
+    x2 = cObj.calipso.all_arrays['layer_top_altitude'][:,1]*1000 
     y = cObj.imager.all_arrays['imager_ctth_m_above_seasurface']
-    print np.max(y), np.max(y[y<65000])
+    print( np.max(y), np.max(y[y<65000]))
     #pressure_c = cObj.calipso.all_arrays['layer_top_pressure'][:,0]
     low_clouds = get_calipso_low_clouds(cObj)
     high_clouds = get_calipso_high_clouds(cObj)
@@ -455,21 +453,6 @@ def print_all(cObj, compare, compare_name = "unknown"):
     my_print_one_line(out_file_h, bias_second_layer,  x2, y, use_i, "all", "all_clouds_tp_bad2")
     plt.close('all')
 
-def read_files_cloudsat(my_files):
-    caObj = CloudsatImagerTrackObject()
-    for filename in my_files:
-        print filename
-        caObj += readCloudsatImagerMatchObj(filename)  
-    return caObj
-
-def read_files(my_files):
-    caObj = CalipsoImagerTrackObject()
-    for filename in my_files:
-        print filename
-        caObj += readCaliopImagerMatchObj(filename)  
-        print("Setting calipso_aerosol = None")
-        caObj.calipso_aerosol = CalipsoObject()
-    return caObj
 
 if __name__ == "__main__":
 
@@ -488,6 +471,31 @@ if __name__ == "__main__":
     ROOT_DIR_v2018_GAC = (BASE_DIR + "global_gac_v2018_created20180927/Reshaped_Files/noaa18/5km/%s/*cali*h5")
     ROOT_DIR_v2014_GAC_clsat = (BASE_DIR + "global_gac_v2014_created20180927/Reshaped_Files/noaa18/5km/2009/*clouds*h5")
     ROOT_DIR_v2018_GAC_clsat = (BASE_DIR + "global_gac_v2018_created20180927/Reshaped_Files/noaa18/5km/2009/*clouds*h5")
+    ROOT_DIR = ROOT_DIR_v2018_clsat
+    files = glob(ROOT_DIR%("20100201"))
+    files = files + glob(ROOT_DIR%("20100401"))             
+    files = files + glob(ROOT_DIR%("20100601")) 
+    files = files + glob(ROOT_DIR%("20100801")) 
+    files = files + glob(ROOT_DIR%("20101001")) 
+    files = files + glob(ROOT_DIR%("20101201")) 
+    out_file_h.write("MODIS-C6\n")    
+    cObj = read_files(files, truth='cloudsat')
+    cObj.imager.all_arrays['imager_ctth_m_above_seasurface'] = cObj.modis.all_arrays["height"]
+    print_all_cloudsat(cObj, None, "MODIS-C6")
+
+    b=a
+
+    ROOT_DIR = ROOT_DIR_v2018
+    files = glob(ROOT_DIR%("20100201"))
+    files = files + glob(ROOT_DIR%("20100401"))             
+    files = files + glob(ROOT_DIR%("20100601")) 
+    files = files + glob(ROOT_DIR%("20100801")) 
+    files = files + glob(ROOT_DIR%("20101001")) 
+    files = files + glob(ROOT_DIR%("20101201")) 
+    out_file_h.write("MODIS-C6\n")    
+    cObj = read_files(files)
+    cObj.imager.all_arrays['imager_ctth_m_above_seasurface'] = cObj.modis.all_arrays["height"]
+    print_all(cObj, None, "MODIS-C6")
 
     files = glob(ROOT_DIR_v2014_GAC%("2006"))
     files = files + glob(ROOT_DIR_v2014_GAC%("2009"))
@@ -575,3 +583,5 @@ if __name__ == "__main__":
     out_file_h.write("MODIS-v2018\n")    
     cObj = read_files(files)
     print_all(cObj, None, "eos2v2018")
+
+

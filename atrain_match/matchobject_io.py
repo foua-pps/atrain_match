@@ -767,10 +767,10 @@ def readTruthImagerMatchObj(filename, truth='calipso'):
     return retv
 
 def read_files(files, truth='calipso'):
-    tObj = readTruthImagerMatchObj(files.pop(), truth='calipso')
+    tObj = readTruthImagerMatchObj(files.pop(), truth=truth)
     if len(files)>0:
         for filename in files:
-            tObj += readCaliopImagerMatchObj(filename, truth=truth)  
+            tObj += readTruthImagerMatchObj(filename, truth=truth)  
     return tObj 
 
 # write matchup files
