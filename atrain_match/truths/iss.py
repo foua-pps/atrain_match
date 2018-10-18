@@ -133,7 +133,7 @@ def read_iss(filename):
 def match_iss_imager(issObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,imagerAngObj, 
                          cpp, nwp_segments, SETTINGS):
     retv = IssImagerTrackObject()
-    retv.imager_instrument = imagerObj.instrument.lower()
+    retv.imager_instrument = imagerGeoObj.instrument.lower()
 
     from utils.common import map_imager
     cal, cap = map_imager(imagerGeoObj, issObj.longitude.ravel(),
@@ -176,7 +176,7 @@ def match_iss_imager(issObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,imagerAngO
 
 
 
-def reshapeIss(issfiles, imager):
+def reshapeIss(issfiles, imager, SETTINGS):
     import sys
     imager_end = imager.sec1970_end
     imager_start = imager.sec1970_start
@@ -196,7 +196,7 @@ def reshapeIss(issfiles, imager):
                     iss.all_arrays[arname] = np.concatenate((iss.all_arrays[arname],
                                                              newIss.all_arrays[arname]),axis=0)          
     # Finds Break point
-    startBreak, endBreak = find_break_points(iss, imager)
+    startBreak, endBreak = find_break_points(iss, imager, SETTINGS)
     iss = time_reshape_calipso(iss, startBreak, endBreak)
     return iss
     

@@ -44,7 +44,7 @@ def reshapeSynop(synopfiles, imager,  SETTINGS):
 def match_synop_imager(synopObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
                        imagerAngObj, cpp, nwp_segments, SETTINGS):
     retv = SynopImagerTrackObject()
-    retv.imager_instrument = imagerObj.instrument.lower()
+    retv.imager_instrument = imagerGeoObj.instrument.lower()
     from utils.common import map_imager_distances
     n_neighbours = 250
     if config.RESOLUTION == 5:

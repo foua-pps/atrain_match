@@ -13,7 +13,7 @@ through a set of files with SNO matchups.
 
 """
 import logging
-logging.basicConfig(level=logging.DEBUG) 
+logging.basicConfig(level=logging.INFO) 
 logger = logging.getLogger(__name__)
 from utils.common import (InputError, MatchupError)
 import config

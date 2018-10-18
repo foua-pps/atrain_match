@@ -1004,10 +1004,10 @@ def CalculateStatistics(mode, statfilename, caObj, clsatObj, issObj, amObj, syOb
             if clsatObj.cloudsat.all_arrays['cloud_fraction'] is not None:
                 low_medium_high_class = get_cloudsat_low_medium_high_classification(clsatObj)
                 print_main_stats(clsatObj, statfile)
-                print_cmask_stats(clsatObj, statfile, val_subset)
+                print_cmask_stats(clsatObj, statfile, val_subset, SETTINGS)
                 print_cmask_prob_stats(clsatObj, statfile, val_subset, SETTINGS)
                 print_modis_stats(clsatObj, statfile, val_subset, clsatObj.cloudsat.MODIS_cloud_flag, SETTINGS)
-                print_stats_ctop(clsatObj,  statfile, val_subset, low_medium_high_class)
+                print_stats_ctop(clsatObj,  statfile, val_subset, low_medium_high_class, SETTINGS)
             if clsatObj.cloudsat.all_arrays['RVOD_liq_water_path'] is not None:    
                 print_cpp_lwp_stats(clsatObj, statfile, val_subset)
             statfile.close()
@@ -1053,9 +1053,9 @@ def CalculateStatistics(mode, statfilename, caObj, clsatObj, issObj, amObj, syOb
 
     if syObj is not None:
         logger.info("SYNOP Statistics")
-        val_subset = get_subset_for_mode(syObj, mode, SETTINGS)
+        val_subset = get_subset_for_mode(syObj, mode)
         if val_subset is not None:
-            val_subset = get_day_night_subset(syObj, val_subset)                        
+            val_subset = get_day_night_subset(syObj, val_subset, SETTINGS)                        
             statfile = open(statfilename.replace('xxx','synop'),"w")
             print_main_stats(syObj, statfile)
             print_cmask_stats(syObj, statfile, val_subset, SETTINGS)

@@ -136,7 +136,7 @@ def reshapeAmsr(amsrfiles, imager, SETTINGS):
 def match_amsr_imager(amsrObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
                       imagerAngObj, cpp, nwp_segments, SETTINGS):
     retv = AmsrImagerTrackObject()
-    retv.imager_instrument = imagerObj.instrument.lower()
+    retv.imager_instrument = imagerGeoObj.instrument.lower()
 
     if (getattr(cpp, "cpp_lwp")<0).all():
         logger.warning("Not matching AMSR-E with scene with no lwp.")

@@ -183,7 +183,7 @@ def read_cloudsat(filename):
 def match_cloudsat_imager(cloudsatObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,imagerAngObj, 
                           cpp, nwp_segments, SETTINGS):
     retv = CloudsatImagerTrackObject()
-    retv.imager_instrument = imagerObj.instrument.lower()
+    retv.imager_instrument = imagerGeoObj.instrument.lower()
     #Nina 20150313 Swithcing to mapping without area as in cpp. Following suggestion from Jakob
     from utils.common import map_imager
     cal, cap = map_imager(imagerGeoObj, 

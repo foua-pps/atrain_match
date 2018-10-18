@@ -123,7 +123,7 @@ if __name__ == '__main__':
     if options.cotfilter == True:
         print('Will calculate statistic for mode COT-filter')
         for dnt in New_DNT_FLAG:
-            for cot in SETTINGD["MIN_OPTICAL_DEPTH"]:
+            for cot in SETTINGS["MIN_OPTICAL_DEPTH"]:
                 #modes_list.append("OPTICAL_DEPTH-%0.2_%sf"(dnt,cot))# if like this
                 modes_dnt_list.append("OPTICAL_DEPTH%s-%0.2f"%(dnt,cot))
 

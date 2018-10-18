@@ -8,8 +8,8 @@ TAI93 = datetime(1993, 1, 1)
 from matchobject_io import (MoraImagerTrackObject, 
                             MoraObject)
 from truths.calipso import (find_break_points, calipso_track_from_matched,
-                     do_some_logging)
-
+                            do_some_logging)
+import config
 from utils.common import (ProcessingError, MatchupError, elements_within_range)
 from libs.extract_imager_along_track import imager_track_from_matched
 import logging
@@ -67,7 +67,7 @@ def reshapeMora(morafiles, imager,  SETTINGS):
 def match_mora_imager(moraObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
                      imagerAngObj, cpp, nwp_segments, SETTINGS):
     retv = MoraImagerTrackObject()
-    retv.imager_instrument = imagerObj.instrument.lower()
+    retv.imager_instrument = imagerGeoObj.instrument.lower()
     from utils.common import map_imager
     cal, cap = map_imager(imagerGeoObj, 
                          moraObj.longitude.ravel(),

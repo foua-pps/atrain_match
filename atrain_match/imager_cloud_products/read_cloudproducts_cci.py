@@ -3,7 +3,7 @@
   2013 SMHI, N.Hakansson a001865
 """
 from imager_cloud_products.read_cloudproducts_and_nwp_pps import (CtthObj, CppObj, CmaObj, 
-                                            imagerAngObj, imagerGeoObj)
+                                                                  imagerAngObj, imagerGeoObj)
 import os
 import netCDF4	
 import numpy as np
@@ -66,12 +66,16 @@ def cci_read_all(filename):
     logger.debug("Reading ctth ...")
     ctth = read_cci_ctth(cci_nc)
     logger.debug("Reading angles ...")
-    imagerAngObj = read_cci_angobj(cci_nc)
+    my_imagerAngObj = read_cci_angobj(cci_nc)
     logger.debug("Reading cloud type ...")
     cma = read_cci_cma(cci_nc)
 
     logger.debug("Reading longitude, latitude and time ...")
-    imagerGeoObj = read_cci_geoobj(cci_nc)
+    my_imagerGeoObj = read_cci_geoobj(cci_nc)
+    my_imagerGeoObj.instrument = "imager"
+    for imager in ["avhrr", "viirs", "modis", "seviri"]:
+        if imager in os.path.basename(filename).lower():
+            imagerGeoObj.instrument = imager
     logger.debug("Not reading surface temperature")
     surft = None
     logger.debug("Reading cloud phase")
@@ -81,7 +85,7 @@ def cci_read_all(filename):
     if cci_nc:
         cci_nc.close()
     ctype = None    
-    return imagerAngObj, ctth, imagerGeoObj, ctype, imagerObj, surft, cpp, cma 
+    return my_imagerAngObj, ctth, my_imagerGeoObj, ctype, imagerObj, surft, cpp, cma 
 
 
 def read_cci_cma(cci_nc):
@@ -101,11 +105,11 @@ def read_cci_cma(cci_nc):
 def read_cci_angobj(cci_nc):
     """Read angles info from filename
     """
-    imagerAngObj = imagerAngObj()
-    imagerAngObj.satz.data = cci_nc.variables['satellite_zenith_view_no1'][::] 
-    imagerAngObj.sunz.data = cci_nc.variables['solar_zenith_view_no1'][::]
-    imagerAngObj.azidiff = None #cci_nc.variables['rel_azimuth_view_no1']??
-    return imagerAngObj
+    my_imagerAngObj = imagerAngObj()
+    my_imagerAngObj.satz.data = cci_nc.variables['satellite_zenith_view_no1'][::] 
+    my_imagerAngObj.sunz.data = cci_nc.variables['solar_zenith_view_no1'][::]
+    my_imagerAngObj.azidiff = None #cci_nc.variables['rel_azimuth_view_no1']??
+    return my_imagerAngObj
 def read_cci_phase(cci_nc):
     """Read angles info from filename
     """

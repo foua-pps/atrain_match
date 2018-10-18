@@ -48,7 +48,7 @@ def match_calipso_imager(values,
 
     from utils.common import map_imager
     retv = CalipsoImagerTrackObject()
-    retv.imager_instrument = imagerObj.instrument.lower()
+    retv.imager_instrument = imagerGeoObj.instrument.lower()
 
     cal, cap = map_imager(imagerGeoObj, 
                          caObj.longitude.ravel(),

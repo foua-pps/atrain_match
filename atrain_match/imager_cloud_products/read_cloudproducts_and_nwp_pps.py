@@ -138,6 +138,7 @@ class imagerGeoObj(object):
         self.longitude = None
         self.azidiff = None
         self.num_of_lines = None
+        self.instrument = "imager"
 
 class NewImagerData:
     def __init__(self):
@@ -147,7 +148,6 @@ class NewImagerData:
         self.nodata = -999
         self.missingdata = -999
         self.channel = []
-        self.instrument = "imager"
 
 class ImagerChannelData:
     def __init__(self):
@@ -978,8 +978,7 @@ def pps_read_all(pps_files, imager_file, SETTINGS):
         imagerObj = readImagerData_h5(imager_file)
     for imager in ["avhrr", "viirs", "modis", "seviri"]:
         if imager in os.path.basename(imager_file):
-            imagerObj.instrument = imager
-
+            imagerGeoObj.instrument = imager
     logger.debug("%s, %s, %s", pps_files.cloudtype, pps_files.ctth, pps_files.cma)
 
     #CPP

@@ -193,7 +193,7 @@ def find_truth_files_inner(date_time, time_window, AM_PATHS, values, truth='cali
             values, 
             datetime_obj=tobj)
         tmplist = glob(os.path.join(calipso_dir, calipso_file_pattern))
-        #print "globbing", os.path.join(calipso_dir, calipso_file_pattern)
+        #print("globbing", os.path.join(calipso_dir, calipso_file_pattern))
         flist.extend([ s for s in tmplist if s not in flist ])      
     return flist
 
@@ -515,10 +515,10 @@ def get_cloudsat_matchups(cloudsat_files, cloudsat_files_lwp, imagerGeoObj, imag
     cloudsat = None
     if cloudsat_files is not None:   
         logger.debug("Reading cloudsat for type GEOPROF.")
-        cloudsat = reshapeCloudsat(cloudsat_files, imagerGeoObj,  SETTINGS)
+        cloudsat = reshapeCloudsat(cloudsat_files, imagerGeoObj, SETTINGS)
     if cloudsat_files_lwp is not None: 
         logger.debug("Reading cloudsat for type CWC-RVOD.")
-        cloudsat_lwp = reshapeCloudsat(cloudsat_files_lwp, imagerGeoObj),  SETTINGS    
+        cloudsat_lwp = reshapeCloudsat(cloudsat_files_lwp, imagerGeoObj, SETTINGS)    
     if cloudsat is not None and cloudsat_lwp is not None:
         logger.info("Merging CloudSat GEOPROF and CWC-RVOD data to one object")
         cloudsat = mergeCloudsat(cloudsat, cloudsat_lwp)
@@ -665,7 +665,7 @@ def get_calipso_matchups(calipso_files, values,
         calipso1km = calipso
         calipso5km = reshapeCalipso(cafiles5km, res=5)
         calipso5km = total_and_top_layer_optical_depth_5km(calipso5km, resolution=5)
-        calipso1km = add5kmVariablesTo1kmresolution(calipso1km, calipso5km)
+        calipso1km = add5kmVariablesTo1kmresolution(calipso1km, calipso5km, CALIPSO_version)
         if SETTINGS['CALCULATE_DETECTION_HEIGHT_FROM_5KM_DATA']:
             logger.info("Find detection height using 5km data")
             calipso1km = detection_height_from_5km_data(calipso1km, calipso5km, 
@@ -1004,7 +1004,7 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
     truth_files = {}
     for truth in ['cloudsat', 'amsr', 'iss', 'synop', 'mora', 'cloudsat_lwp', 'calipso']:
         truth_files[truth] = None
-        if (PPS_VALIDATION and SETTINGS[truth.replace("_lwp","").upper()+'_MATCHING'] and truth + '_file' in AM_PATHS.keys()):
+        if (SETTINGS[truth.replace("_lwp","").upper()+'_MATCHING'] and truth + '_file' in AM_PATHS.keys()):
             truth_files[truth] = find_truth_files(date_time, AM_PATHS, SETTINGS, values, truth=truth)
         elif not SETTINGS[truth.replace("_lwp","").upper()+'_MATCHING']:
             logger.info("NO {truth} File, {truth} matching not requested "
