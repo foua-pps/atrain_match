@@ -29,9 +29,13 @@ for filename in files:
         #line = line.replace("avhrr", "imager")
         #line = line.replace("AVHRR", "IMAGER")
         #line = line.replace("Avhrr", "Imager")
-        line = line.replace("nnImager", "nnAvhrr")
-        line = line.replace("nnavhrr", "nnimager")
-        line = line.replace("NN-IMAGER", "NN-AVHRR")
+        #line = line.replace("nnImager", "nnAvhrr")
+        #line = line.replace("nnavhrr", "nnimager")
+        #line = line.replace("NN-IMAGER", "NN-AVHRR")
+        line = line.replace("cloudsat_calipso_imager", "truth_imager")
+        #if "_amsr" not in line:
+        #    line = line.replace("amsr_imager", "match_util")
+        line = line.replace("match_match_util", "match_amsr_imager")
         #line = re.sub(r"\.elevation", '.DEM_surface_elevation',line)
         #if re.search("alipso\.elevation",line) and 1==2:
         #    line = line.rstrip()
