@@ -35,7 +35,7 @@ from utils.stat_util import (my_hist,
                        my_pe5000m)
 
 matplotlib.rcParams.update(matplotlib.rcParamsDefault)
-matplotlib.rcParams.update({'font.size': 18})
+matplotlib.rcParams.update({'font.size': 20})
 #plt.rc('text', usetex=True)
 #plt.rc('font', family='serif')
 #matplotlib.use('ps')
@@ -97,27 +97,35 @@ def my_make_plot2(y, x, x2, mhl,use):
 
         
 def my_adjust_axis(ax):
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
     ax.grid(True)
-    plt.legend(loc="upper right", markerscale=2., numpoints=1,scatterpoints=1, bbox_to_anchor=(1.1, 1.05))
+    leg = plt.legend(loc="upper right", markerscale=1., numpoints=1,scatterpoints=1, bbox_to_anchor=(1.2, 1.05), framealpha=1.0, frameon=True)
+    leg.get_frame().set_edgecolor('w')
+    leg.get_frame().set_facecolor('w')
+    #leg.get_frame().set_linewidth(0.0)
     ax.set_ylim(0,10)    
     ax.set_xlim(-4,6)
     plt.yticks(np.arange(0,9,2.0))
+    plt.yticks(np.arange(0,9,2.0))
+
+def my_legend_text_6(data, text = "text"):
+    #label1 = text
+    label2 = "bias={:d}m\n".format(np.int(np.mean(data)))
+    label3 = "STD={:d}m\n".format(np.int(np.std(data)))
+    label4 = "MAE={:d}m\nIQR={:d}m\nQ2={:d}m\nPE0.5={:d}".format(
+        #np.int(my_rms(data)),
+        np.int(my_mae(data)),
+        np.int(my_iqr(data)),
+        np.int(np.median(data)),
+        np.int(my_pe500m(data))
+    )
+    label = label2 + label3 + label4 +'%'
+    return label
 
 def my_make_plot_example(bias, use, label_str):
-    def my_legend_text(data, text = "text"):
-        #label1 = text
-        label2 = "bias={:d}m\n".format(np.int(np.mean(data)))
-        label3 = "bc-RMS={:d}m\n".format(np.int(np.std(data)))
-        label4 = "\nMAE={:d}m\nIQR={:d}m\nmedian={:d}m\nPE0.5={:d}".format(
-            #np.int(my_rms(data)),
-            np.int(my_mae(data)),
-            np.int(my_iqr(data)),
-            np.int(np.median(data)),
-            np.int(my_pe500m(data))
-        )
-        label = label2 + label3 + label4 +'%'
-        return label
-    fig = plt.figure(figsize=(15, 11))
+    plt.style.use('seaborn-white')
+    fig = plt.figure(figsize=(11, 9))
     #plt.suptitle("CTTH error distributions not well described by RMS and bias")
     n_pix = 1000000
     ax = fig.add_subplot(221)
@@ -129,36 +137,40 @@ def my_make_plot_example(bias, use, label_str):
     x_ = x_m*0.001
     ax = fig.add_subplot(221)
     #S1
-    ax.set_title('a) Gaussian example within threshold accuracy')
+    ax.set_title('a) Within threshold accuracy', loc='left')
     ax.fill(x_, hist_heights, color='silver',
-             label = my_legend_text(temp_data, "Gaussian"))
-    plt.plot([0.001*np.mean(temp_data),0.001*np.mean(temp_data)], [0,2.4], 'k:')
+             label = my_legend_text_6(temp_data, "Gaussian"))
+#    plt.plot([0.001*np.mean(temp_data),0.001*np.mean(temp_data)], [0,2.4], 'k:')
     ax.set_ylabel('Percent')                                                             
     my_adjust_axis(ax)
+    ax.set_xticklabels([])
     #S2
     ax = fig.add_subplot(222)
-    ax.set_title('b) Bi-modal within target accuracy')
+    ax.set_title('b) Within target accuracy', loc='left')
     ax.fill(x_, hist_heights2, color='grey',
-            label = my_legend_text(temp_data2, "Bi-modal"))
+            label = my_legend_text_6(temp_data2, "Bi-modal"))
     my_adjust_axis(ax)
+    ax.set_yticklabels([])
+    ax.set_xticklabels([])
     #S3
     ax = fig.add_subplot(223)
-    ax.set_title('c) PPSv-2018  is outside threshold accuracy...')
+    ax.set_title('c) Outside threshold accuracy', loc='left')
     bias_i = bias[use]
     plt.plot(x_, hist_heights3, "r-",  
-             label = my_legend_text(bias_i, "PPS S-NPP"))
-    plt.plot([0.001*np.mean(bias_i),0.001*np.mean(bias_i)], [0,3], 'r:')
+             label = my_legend_text_6(bias_i, "PPS S-NPP"))
+    #plt.plot([0.001*np.mean(bias_i),0.001*np.mean(bias_i)], [0,2], 'r:')
     my_adjust_axis(ax)
     ax.set_ylabel('Percent')
     ax.set_xlabel('error (km)')
     #S4
     ax = fig.add_subplot(224)
-    ax.set_title('d) ... but PPSv-2018 performs well.')
+    ax.set_title('d) The worst (in STD) is the best', loc='left')
     ax.fill(x_, hist_heights, color='silver',  label='Gaussian')
     ax.fill(x_, hist_heights2, color='grey',  label='Bimodal')
-    plt.plot(x_, hist_heights3, "r-", label='PPS S-NPP')
+    plt.plot(x_, hist_heights3, "r-", label='NN-CTTH')
     ax.set_xlabel('error (km)')
     my_adjust_axis(ax)
+    ax.set_yticklabels([])
     plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_ctth_error_dist_%s.png"%(label_str),bbox_inches='tight')
     plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_ctth_error_dist_%s.pdf"%(label_str),bbox_inches='tight')
     #plt.show()
@@ -167,9 +179,9 @@ def my_make_plot_example(bias, use, label_str):
 def my_make_plot_example_aprox(bias, use, label_str, caObj):
     def my_legend_text(data, text = "text"):
         #label1 = text
-        label2 = "bias={:d}m\n".format(np.int(np.mean(data)))
-        label3 = "bc-RMS={:d}m\n".format(np.int(np.std(data)))
-        label4 = "IQR={:d}m\nmedian={:d}m\n".format(
+        label2 = "bias: {:d}\n".format(np.int(np.mean(data)))
+        label3 = "STD: {:d}\n".format(np.int(np.std(data)))
+        label4 = "IQR: {:d}\nQ2: {:d}".format(
             #np.int(my_rms(data)),
             #np.int(my_mae(data)),
             np.int(my_iqr(data)),
@@ -179,11 +191,7 @@ def my_make_plot_example_aprox(bias, use, label_str, caObj):
         label = label2 + label3 + label4
         return label
     bias_i = bias[use]
-    fig = plt.figure(figsize=(15, 11))
-    #plt.suptitle("CTTH error distributions not well described by RMS and bias")
     n_pix = 1000000
-    ax = fig.add_subplot(221)
-
     N_all = np.sum(use)
     temp_data_gs = []
     temp_data_iqrs = []
@@ -215,27 +223,115 @@ def my_make_plot_example_aprox(bias, use, label_str, caObj):
     #hist_heights3, x_m, dummy = my_hist(bias, use, bmin=-20*1000, bmax=20*1000, delta_h=100.0)
     x_ = x_m*0.001
 
+    plt.style.use('seaborn-white')
+    fig = plt.figure(figsize=(7, 5))
+    #plt.suptitle("CTTH error distributions not well described by RMS and bias")
+    ax = fig.add_subplot(111)
+    #S1
+    #ax.set_title('PPS-v2018', loc='left',  zorder=30)
+    ax.fill(x_, hist_heights_g, color='silver',
+             label = "\nGaussian\n" + my_legend_text(temp_data_g, ))
+    plt.plot(x_, hist_heights_pps, "r-",  
+             label = "NN-CTTH\n"+my_legend_text(bias_i, "PPS"  ))
+    plt.plot([0.001*np.mean(bias_i),0.001*np.mean(bias_i)], [0,2], 'r:')
+    ax.set_xlim(-4,6)
+    ax.set_ylabel('Percent') 
+    ax.set_xlabel('Error (km)')                                       
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    ax.grid(True)
+    leg = plt.legend(loc="upper right", markerscale=2., numpoints=1,scatterpoints=1, bbox_to_anchor=(1.13, 1.2), framealpha=1.0, frameon=True)
+    leg.get_frame().set_facecolor('w')
+    leg.get_frame().set_linewidth(0.0)
+    #import pdb
+    #pdb.set_trace()
+    print("inside {:3.1f}".format(np.sum(hist_heights_pps[np.logical_and(x_>=-4, x_<=6)])))
+    print("gaussian inside {:3.1f}".format(np.sum(hist_heights_g[np.logical_and(x_>=-4, x_<=6)])))
+    #plt.legend(frameon=False)
+
+    ax.set_ylim(0,10)    
+    ax.set_xlim(-4,6)
+    plt.yticks(np.arange(0,9,2.0))
+    plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_ctth_error_and_gaussian_%s.png"%(label_str),bbox_inches='tight')
+    plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_ctth_error_and_gaussian_%s.pdf"%(label_str),bbox_inches='tight')
+
+
+    plt.style.use('seaborn-white')
+    fig = plt.figure(figsize=(12, 4.5))
+    #plt.suptitle("CTTH error distributions not well described by RMS and bias")
+    ax = fig.add_subplot(121)
+    #S1
+    ax.grid(True)
+    ax.set_title('PPS-v2018', loc='left',  zorder=30)
+    #ax.fill(x_, hist_heights_g, color='silver',
+    #         label = my_legend_text(temp_data_g, "Gaussian (STD)"))
+    plt.fill(x_, hist_heights_pps, "r-",   #alpha = 0.5,
+             label = my_legend_text_6(bias_i, "PPS"  ))
+    plt.plot(x_-0.001*np.mean(bias_i), hist_heights_pps, "b-")
+    ax.set_xlim(-4,6)
+    ax.set_ylabel('Percent') 
+    ax.set_xlabel('Error (km)')                                       
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+
+    leg = plt.legend(loc="upper right", markerscale=2., numpoints=1,scatterpoints=1, bbox_to_anchor=(1.13, 1.2),framealpha=1.0, frameon=True)
+    leg.get_frame().set_facecolor('w')
+    leg.get_frame().set_linewidth(0.0)
+    ax.set_ylim(0,10)    
+    ax.set_xlim(-4,6)
+    plt.yticks(np.arange(0,9,2.0))
+    ax = fig.add_subplot(122)
+    ax.grid(True)
+    #S1
+    ax.set_title('Bias "corrected"', loc='left',  zorder=30)
+    #ax.fill(x_-0.001*np.mean(temp_data_g), hist_heights_g, color='silver',
+    #         label = my_legend_text(temp_data_g-0.001*np.mean(temp_data_g), "Gaussian (STD)"))
+    plt.fill(x_-0.001*np.mean(bias_i), hist_heights_pps, "b-", #alpha = 0.5,  
+             label = my_legend_text_6(bias_i-np.mean(bias_i), "PPS"  ))
+    plt.plot(x_, hist_heights_pps, "r-")
+    ax.set_xlim(-4,6)
+    #ax.set_ylabel('Percent') 
+    ax.set_xlabel('Error (km)')                                       
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    leg = plt.legend(loc="upper right", markerscale=2., numpoints=1,scatterpoints=1, bbox_to_anchor=(1.13, 1.2),framealpha=1.0, frameon=True)
+    leg.get_frame().set_facecolor('w')
+    leg.get_frame().set_linewidth(0.0)
+    ax.set_ylim(0,10)    
+    ax.set_xlim(-4,6)
+    plt.yticks(np.arange(0,9,2.0))
+    plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_ctth_error_and_gaussian_and_biascorr_%s.png"%(label_str),bbox_inches='tight')
+    plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_ctth_error_and_gaussian_and_biascorr_%s.pdf"%(label_str),bbox_inches='tight')
+
+    plt.close()
+    plt.style.use('seaborn-white')
+    fig = plt.figure(figsize=(15, 11))
+    #plt.suptitle("CTTH error distributions not well described by RMS and bias")
+    ax = fig.add_subplot(221)
     #S1
     ax.set_title('a) Equal bias/std')
     ax.fill(x_, hist_heights_g, color='silver',
              label = my_legend_text(temp_data_g, "Gaussian (STD)"))
     plt.plot(x_, hist_heights_pps, "r-",  
-             label = my_legend_text(bias_i, "PPS"))
-    ax.set_ylabel('Percent')                                                             
+             label = "\n" + my_legend_text(bias_i, "PPS"))
+    ax.set_ylabel('Percent')  
     my_adjust_axis(ax)
+    ax.set_xticklabels([])
     #S2
     ax = fig.add_subplot(222)
     ax.set_title('b) Equal IQR/median')
     ax.fill(x_, hist_heights_iqr, color='grey',
-            label = my_legend_text(temp_data_iqr, "Gaussian (IQR)"))
-    plt.plot(x_, hist_heights_pps, "r-")#, label='PPS')
+            label = "\n" +my_legend_text(temp_data_iqr, "Gaussian (IQR)"))
+    plt.plot(x_,  hist_heights_pps, "r-")#, label='PPS')
     my_adjust_axis(ax)
+    ax.set_yticklabels([])
+    ax.set_xticklabels([])
     #S3
     ax = fig.add_subplot(223)
     ax.set_title('c) Equal bias/std, sum of types')
 
     plt.fill(x_, hist_heights_gs, color='silver',  
-             label = my_legend_text(temp_data_gs, "Gaussian \Sum (STD)"))
+             label = "\n" + my_legend_text(temp_data_gs, "Gaussian \Sum (STD)"))
     plt.plot(x_, hist_heights_pps, "r-")#, label='PPS')
     my_adjust_axis(ax)
     ax.set_ylabel('Percent')
@@ -244,11 +340,12 @@ def my_make_plot_example_aprox(bias, use, label_str, caObj):
     ax = fig.add_subplot(224)
     ax.set_title('d) Equal IQR/median, sum over cloud types')
     ax.fill(x_, hist_heights_iqrs, color='grey',  
-            label = my_legend_text(temp_data_iqrs, "Gaussian \Sum (IQR)"))
+            label = "\n" + my_legend_text(temp_data_iqrs, "Gaussian \Sum (IQR)"))
     plt.plot(x_, hist_heights_pps, "r-")#, label='PPS')
 
     ax.set_xlabel('error (km)')
     my_adjust_axis(ax)
+    ax.set_yticklabels([])
     plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_ctth_error_aprox_dist_%s.png"%(label_str),bbox_inches='tight')
     plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_ctth_error_aprox_dist_%s.pdf"%(label_str),bbox_inches='tight')
     #plt.show()
@@ -472,6 +569,14 @@ if __name__ == "__main__":
     ROOT_DIR_v2014_GAC_clsat = (BASE_DIR + "global_gac_v2014_created20180927/Reshaped_Files/noaa18/5km/2009/*clouds*h5")
     ROOT_DIR_v2018_GAC_clsat = (BASE_DIR + "global_gac_v2018_created20180927/Reshaped_Files/noaa18/5km/2009/*clouds*h5")
     ROOT_DIR = ROOT_DIR_v2018_clsat
+
+
+    files = glob(ROOT_DIR_v2018_NPP)
+    out_file_h.write("NPP-v2018\n")    
+    cObj = read_files(files)
+    print_all(cObj, None, "NPPv2018")
+    #b=a
+
     files = glob(ROOT_DIR%("20100201"))
     files = files + glob(ROOT_DIR%("20100401"))             
     files = files + glob(ROOT_DIR%("20100601")) 
@@ -483,7 +588,6 @@ if __name__ == "__main__":
     cObj.imager.all_arrays['imager_ctth_m_above_seasurface'] = cObj.modis.all_arrays["height"]
     print_all_cloudsat(cObj, None, "MODIS-C6")
 
-    b=a
 
     ROOT_DIR = ROOT_DIR_v2018
     files = glob(ROOT_DIR%("20100201"))
@@ -507,7 +611,6 @@ if __name__ == "__main__":
     out_file_h.write("GAC-v2018\n")    
     cObj = read_files(files)
     print_all(cObj, None, "GACv2018")
-    #a=b
 
     files = glob(ROOT_DIR_v2014_GAC_clsat) #only 2009
     out_file_h.write("GAc-v2014\n")    
@@ -551,10 +654,6 @@ if __name__ == "__main__":
     print_all_cloudsat(cObj, None, "MODISv2018")
 
 
-    files = glob(ROOT_DIR_v2018_NPP)
-    out_file_h.write("NPP-v2018\n")    
-    cObj = read_files(files)
-    print_all(cObj, None, "NPPv2018")
     
     files = glob(ROOT_DIR_v2014_NPP)
     out_file_h.write("NPP-v2014\n")    

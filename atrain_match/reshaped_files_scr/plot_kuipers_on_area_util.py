@@ -12,7 +12,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 #matplotlib.use("TkAgg")
 from matplotlib import rc
-print matplotlib.rcParams
+print(matplotlib.rcParams)
 matplotlib.rcParams.update({'image.cmap': "BrBG"})
 
 
@@ -33,7 +33,7 @@ matplotlib.rcParams.update({'font.size': 30})
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
 
-print matplotlib.rcParams
+print(matplotlib.rcParams)
 #plt.rc('font', family='sans serif')
 #plt.rcParams["font.family"] = "Verdana"
 
@@ -50,8 +50,9 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
             'new_false_clouds': None,
             'lats': None,
             'lons': None}
-    def get_some_info_from_caobj(self, caObj, PROCES_FOR_ART=False):
-        self.set_false_and_missed_cloudy_and_clear(caObj=caObj, PROCES_FOR_ART=PROCES_FOR_ART)
+    def get_some_info_from_caobj(self, caObj, PROCES_FOR_ART=False, PROCES_FOR_PRESSENTATIONS=False):
+        self.set_false_and_missed_cloudy_and_clear(caObj=caObj, PROCES_FOR_ART=PROCES_FOR_ART, 
+                                                   PROCES_FOR_PRESSENTATIONS = PROCES_FOR_PRESSENTATIONS)
         self.set_r13_extratest(caObj=caObj)
         self.get_thr_offset(caObj=caObj)
         self.get_lapse_rate(caObj=caObj)
@@ -64,7 +65,7 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         for cc_type in range(8):
             self.get_ctth_bias_type(caObj=caObj, calipso_cloudtype=cc_type)
 
-    def set_false_and_missed_cloudy_and_clear(self, caObj, PROCES_FOR_ART):
+    def set_false_and_missed_cloudy_and_clear(self, caObj, PROCES_FOR_ART, PROCES_FOR_PRESSENTATIONS):
         lat = caObj.imager.all_arrays['latitude']
         lon = caObj.imager.all_arrays['longitude']
         if caObj.imager.all_arrays['cloudmask'] is not None:
@@ -181,6 +182,31 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
             detected_height = np.logical_and(detected_height, caObj.imager.all_arrays["ctthold_height"]>-9) #only included in art
             detected_height = np.logical_and(detected_height, caObj.imager.all_arrays["ctthnnant_height"]>-9) #only included in art
             detected_height = np.logical_and(detected_height, caObj.modis.all_arrays["height"]>-9)
+
+        if PROCES_FOR_PRESSENTATIONS:
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['warmest_t12']>-9)
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['coldest_t12']>-9)
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['psur']>-9) 
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['surftemp']>-9)
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['t950']>-9)
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['t850']>-9)
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['t700']>-9)
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['t500']>-9)
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['t250']>-9)        
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['text_t11']>-9) #without this 1793146 pixels
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['text_t11t12']>-9) 
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['warmest_t11']>-9)
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['coldest_t11']>-9)                       
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['text_t37']>-9)
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['warmest_t37']>-9)
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['coldest_t37']>-9)
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['bt11micron']>-1)
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['bt12micron']>-1)
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['bt37micron']>-1)
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['bt86micron']>-1)
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['ciwv']>-9)
+            detected_height = np.logical_and(detected_height, caObj.modis.all_arrays["height"]>-9)
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays["ctth_height"]>-9) 
 
 
         detected_height = np.logical_and(detected_height,
@@ -469,7 +495,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
                                   score='Kuipers'):
         from pyresample import image, geometry
         area_def = utils.parse_area_file(
-            'reshaped_files_plotting/region_config_test.cfg',  
+            'reshaped_files_scr/region_config_test.cfg',  
             plot_area_name)[0]
         data = getattr(self, score)
         data = data.copy()
@@ -506,7 +532,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
             plot_label =""
         pr.plot.save_quicklook(self.PLOT_DIR_SCORE + self.PLOT_FILENAME_START+
                                plot_area_name +'.png',
-                               area_def, result, cmap = matplotlib.cm.BrBG, 
+                               area_def, result, 
                                vmin=vmin, vmax=vmax, label=plot_label)
 
     def _remap_a_score_on_an_robinson_projection(self, vmin=0.0, vmax=1.0, 
@@ -566,7 +592,6 @@ class ppsStatsOnFibLatticeObject(DataObject):
             cmap_vals[39:61] = [0.9, 0.9, 0.9, 1] #change the first value
             my_cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
                 "newBrBG", cmap_vals) 
-            print my_cmap
         if score in "RMS" and screen_out_valid:
             # This screens out values beteen 0 and 20%. 41/100=20%
             vmax=50
@@ -576,7 +601,6 @@ class ppsStatsOnFibLatticeObject(DataObject):
             cmap_vals[0:41] = [0.9, 0.9, 0.9, 1] #change the first value
             my_cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
                 "newBrBG", cmap_vals) 
-            print my_cmap
             
 
       
@@ -625,7 +649,6 @@ class ppsStatsOnFibLatticeObject(DataObject):
 
     def remap_and_plot_score_on_several_areas(self, vmin=0.0, vmax=1.0, 
                                               score='Kuipers', screen_out_valid=False):
-        print score
         self.PLOT_DIR_SCORE = self.PLOT_DIR + "/%s/%s/"%(score, self.satellites)
         self.PLOT_FILENAME_START = "fig_%s_ccm_%s_%sfilter_dnt_%s_%s_r%skm_"%(
             self.satellites,self.cc_method,self.filter_method,
@@ -890,7 +913,6 @@ class ppsStatsOnFibLatticeObject(DataObject):
         self.Bias_total_mean_polar = 100*(
             -np.sum(self.N_undetected_clouds[use]) + 
             np.sum(self.N_false_clouds[use]))*1.0/(np.sum(self.N[use]))
-        print "hej",self.Bias_total_mean_polar
         self.Bias = Bias
     def calculate_rms(self):
         self.np_float_array()
@@ -913,7 +935,7 @@ class PerformancePlottingObject:
     def add_detection_stats_on_fib_lattice(self, my_obj):
         #Start with the area and get lat and lon to calculate the stats:
         if  len(my_obj.longitude) == 0:
-            print "Skipping file, no matches !"
+            print("Skipping file, no matches !")
             return
         lats = self.flattice.lats[:]
         max_distance=self.flattice.radius_km*1000*2.5
@@ -1019,7 +1041,7 @@ class PerformancePlottingObject:
             self.flattice.Sum_height_bias_type[cc_type][d] += np.sum(my_obj.height_bias_type[cc_type][ind])
             self.flattice.N_detected_height_type[cc_type][d] += np.sum(my_obj.detected_height_type[cc_type][ind])
 
-        print "mapping took %1.4f seconds"%(time.time()-tic)   
+        print("mapping took %1.4f seconds"%(time.time()-tic)   )
 
 
 def get_fibonacci_spread_points_on_earth(radius_km):
@@ -1034,7 +1056,7 @@ def get_fibonacci_spread_points_on_earth(radius_km):
     #http://arxiv.org/pdf/0912.4540.pdf
     #Alvaro Gonzalez: Measurement of areas on sphere usig Fibonacci and latitude-longitude grid.
     #import math
-    lin_space = np.array(range(-n/2,n/2))
+    lin_space = np.array(range(-n//2,n//2))
     pi = 3.14
     theta = (1+np.sqrt(5))*0.5
     longitude = (lin_space % theta)*360/theta

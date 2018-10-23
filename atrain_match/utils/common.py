@@ -109,7 +109,7 @@ def write_match_objects(filename, datasets, groups, group_attrs_dict, SETTINGS=N
     
     """
     skip_some = False
-    if SETTING is not None:
+    if SETTINGS is not None:
         skip_some = SETTINGS["WRITE_ONLY_THE_MOST_IMPORTANT_STUFF_TO_FILE"]
     from config import COMPRESS_LVL
     import h5py
