@@ -7,7 +7,7 @@ from calendar import timegm
 TAI93 = datetime(1993, 1, 1)
 from matchobject_io import (MoraImagerTrackObject, 
                             MoraObject)
-from truths.calipso import (find_break_points, calipso_track_from_matched,
+from truths.calipso import (calipso_track_from_matched,
                             do_some_logging)
 import config
 from utils.common import (ProcessingError, MatchupError, elements_within_range)
@@ -19,8 +19,9 @@ TEST_FILE ="/home/a001865/DATA_MISC/atrain_match_testcases/mora/cb_2010.dat"
 
 def get_mora_data(filename):
 
-    convert_datefunc = lambda x: datetime.strptime(x, '%Y%m%dT%H%M')
-
+    convert_datefunc = lambda x: datetime.strptime(x.decode("utf-8"), '%Y%m%dT%H%M%S')
+    #convert_datefunc = lambda x: x.decode("utf-8")
+    
     dtype = [('station', '|S5'),
              ('lat', 'f8'), 
              ('lon', 'f8'),
@@ -43,6 +44,7 @@ def get_mora_data(filename):
                                      #7: lambda x: float(x) / 10.,
                                      #8: lambda x: float(x) / 10., 
                          })
+    
     return pd.DataFrame(data)
     
 def reshapeMora(morafiles, imager,  SETTINGS):
@@ -59,8 +61,7 @@ def reshapeMora(morafiles, imager,  SETTINGS):
     retv = MoraObject()
     retv.longitude = np.array(panda_moras['lon'])
     retv.latitude = np.array(panda_moras['lat'])
-    retv.cloud_fraction = np.array(panda_moras['cloud_base_height'])
-
+    retv.cloud_base_height = np.array(panda_moras['cloud_base_height'])
     retv.sec_1970 = np.array([calendar.timegm(tobj.timetuple()) for tobj in panda_moras['date']])
     return retv
 
@@ -69,10 +70,21 @@ def match_mora_imager(moraObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
     retv = MoraImagerTrackObject()
     retv.imager_instrument = imagerGeoObj.instrument.lower()
     from utils.common import map_imager
+
+    """
+    import matplotlib.pyplot as plt
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    from plotting.histogram_plotting import distribution_map
+    plt.plot(imagerGeoObj.longitude.ravel(),
+              imagerGeoObj.latitude.ravel(), 'r.')
+    plt.plot(moraObj.longitude.ravel(), moraObj.latitude.ravel(),'b.')
+    plt.show()
+    """
     cal, cap = map_imager(imagerGeoObj, 
                          moraObj.longitude.ravel(),
                          moraObj.latitude.ravel(),
-                         radius_of_influence=config.RESOLUTION*0.7*1000.0)
+                          radius_of_influence=config.RESOLUTION*0.7*1000.0)
     calnan = np.where(cal == config.NODATA, np.nan, cal)
     if (~np.isnan(calnan)).sum() == 0:
         logger.warning("No matches within region.")

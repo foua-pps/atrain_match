@@ -242,6 +242,7 @@ def find_truth_files(date_time, AM_PATHS, SETTINGS, values, truth='calipso'):
     if truth in ['amsr']:
         TRUTH_FILE_LENGTH = config.AMSR_FILE_LENGTH
     if truth in ['mora']:
+        my_sec_THR = SETTINGS['sec_timeThr_synop']
         TRUTH_FILE_LENGTH = config.MORA_FILE_LENGTH
     if truth in ['synop']:
         TRUTH_FILE_LENGTH = config.SYNOP_FILE_LENGTH

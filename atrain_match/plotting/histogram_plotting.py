@@ -271,7 +271,7 @@ def plot_hist(data, **kwargs):
               label='iqr = %.2f' % iqr, colors='r', linestyle=':')
     ax.grid()
     ax.legend()
-    print np.median(data), np.percentile(data,25), np.percentile(data,75)
+    print(np.median(data), np.percentile(data,25), np.percentile(data,75))
     
     return fig
 
