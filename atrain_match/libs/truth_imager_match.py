@@ -1231,13 +1231,14 @@ def get_matchups(cross, AM_PATHS, SETTINGS, reprocess=False):
                     AM_PATHS['reshape_dir'], 
                     AM_PATHS['reshape_file'], 
                     values=values)
-                if not match_file[truth]:
-                    logger.info("No processed CloudSat match files found. "  
-                                "Generating from source data if required.")
+                if match_file is None:
+                    logger.info(
+                        "No processed {:s} match files found. ".format(truth) +
+                        "Generating from source data if required.")
                     date_time = cross.time
                 else:
-                    Obj_dict[truth] = readCloudsatImagerMatchObj(match_file, truth = truth) 
-                    basename = '_'.join(os.path.basename(cl_match_file).split('_')[1:5])
+                    Obj_dict[truth] = readTruthImagerMatchObj(match_file, truth = truth) 
+                    basename = '_'.join(os.path.basename(match_file).split('_')[1:5])
 
 
     if  (all([obj_i is None for obj_i in Obj_dict.values()])):
