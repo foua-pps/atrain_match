@@ -193,14 +193,15 @@ def find_truth_files_inner(date_time, time_window, AM_PATHS, values, truth='cali
             values, 
             datetime_obj=tobj)
         tmplist = glob(os.path.join(calipso_dir, calipso_file_pattern))
-        #print("globbing", os.path.join(calipso_dir, calipso_file_pattern))
+        print("globbing", os.path.join(calipso_dir, calipso_file_pattern))
         flist.extend([ s for s in tmplist if s not in flist ])      
     return flist
 
-def get_satid_datetime_orbit_from_fname(filename, SETTINGS, as_oldstyle=False):
+def get_satid_datetime_orbit_from_fname(filename, SETTINGS, Cross=None, as_oldstyle=False):
     from imager_cloud_products.read_cloudproducts_and_nwp_pps import get_satid_datetime_orbit_from_fname_pps
     from imager_cloud_products.read_cloudproducts_cci import get_satid_datetime_orbit_from_fname_cci
     from imager_cloud_products.read_cloudproducts_maia import get_satid_datetime_orbit_from_fname_maia
+    from imager_cloud_products.read_cloudproducts_patmosx import get_satid_datetime_orbit_from_fname_patmosx
     #Get satellite name, time, and orbit number from imager_file
     if SETTINGS['PPS_VALIDATION']:
         values = get_satid_datetime_orbit_from_fname_pps(filename, as_oldstyle=as_oldstyle)  
@@ -208,6 +209,8 @@ def get_satid_datetime_orbit_from_fname(filename, SETTINGS, as_oldstyle=False):
         values = get_satid_datetime_orbit_from_fname_cci(filename)
     if SETTINGS['MAIA_VALIDATION']:
         values = get_satid_datetime_orbit_from_fname_maia(filename)
+    if SETTINGS['PATMOSX_VALIDATION']:
+        values = get_satid_datetime_orbit_from_fname_patmosx(filename, SETTINGS, Cross)
     return values
 
 
@@ -222,6 +225,7 @@ def insert_info_in_filename_or_path(file_or_name_path, values, datetime_obj=None
         resolution=config.RESOLUTION,
         lines_lines=values.get("lines_lines", "*"),
         val_dir=config._validation_results_dir,
+        extrai=values.get('extrai',""),
         year=values.get('year',"unknown"),
         month=values.get('month',"unknown"),
         mode=values.get('mode',"unknown"),
@@ -296,6 +300,15 @@ def find_maia_cloud_file(cross, AM_PATHS):
     if not found_file:
         raise MatchupError("No dir or file found with maia cloud data!\n" + 
                            "Searching under %s" % AM_PATHS['maia_dir'])
+    return found_file, tobj
+
+def find_patmosx_cloud_file(cross, AM_PATHS):
+    found_file, tobj= find_imager_file(cross, 
+                                       AM_PATHS['patmosx_dir'], 
+                                       AM_PATHS['patmosx_file'])
+    if not found_file:
+        raise MatchupError("No dir or file found with patmosx cloud data!\n" + 
+                           "Searching under %s" % AM_PATHS['patmosx_dir'])
     return found_file, tobj
 
 
@@ -429,6 +442,7 @@ def find_files_from_imager(imager_file, AM_PATHS, SETTINGS, as_oldstyle=False):
     logger.debug("IMAGER: %s", imager_file)
     values = get_satid_datetime_orbit_from_fname(imager_file,
                                                  SETTINGS,
+                                                 Cross=None, 
                                                  as_oldstyle=as_oldstyle)
     date_time = values["date_time"]
     file_name_dict={}
@@ -733,6 +747,11 @@ def read_cloud_maia(imager_file):
     from imager_cloud_products.read_cloudproducts_maia import maia_read_all
     return maia_read_all(imager_file)
 
+def read_cloud_patmosx(imager_file, Cross, SETTINGS):
+    from imager_cloud_products.read_cloudproducts_patmosx import patmosx_read_all
+    return patmosx_read_all(imager_file, Cross, SETTINGS)
+
+
 def read_pps_data(pps_files, imager_file, SETTINGS):
     from imager_cloud_products.read_cloudproducts_and_nwp_pps import pps_read_all
     return pps_read_all(pps_files, imager_file, SETTINGS)
@@ -987,6 +1006,7 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
     """
     PPS_VALIDATION = SETTINGS['PPS_VALIDATION']
     MAIA_VALIDATION = SETTINGS['MAIA_VALIDATION']
+    PATMOSX_VALIDATION = SETTINGS['PATMOSX_VALIDATION']
     CCI_CLOUD_VALIDATION = SETTINGS['CCI_CLOUD_VALIDATION']
 
     #STEP 1 get imager files
@@ -997,9 +1017,11 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
         imager_file, tobj = find_cci_cloud_file(cross, AM_PATHS)
     if MAIA_VALIDATION:
         imager_file, tobj = find_maia_cloud_file(cross, AM_PATHS)
+    if PATMOSX_VALIDATION:
+        imager_file, tobj = find_patmosx_cloud_file(cross, AM_PATHS)
     if not imager_file:
         raise MatchupError("No imager file found!\ncross = " + str(cross))
-    values = get_satid_datetime_orbit_from_fname(imager_file, SETTINGS)
+    values = get_satid_datetime_orbit_from_fname(imager_file, SETTINGS, cross)
     date_time = values["date_time"]
 
     #Step 2 get truth satellite files 
@@ -1036,7 +1058,13 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
         nwp_segments = None
         nwp_obj = NWPObj({'surftemp':surftemp})   
         imagerGeoObj.satellite = values["satellite"]
-
+    if (PATMOSX_VALIDATION):
+        imagerAngObj, ctth, imagerGeoObj, ctype, imagerObj, surftemp, cpp, cma = read_cloud_patmosx(
+            imager_file, cross, SETTINGS)
+        ctype = None
+        nwp_segments = None
+        nwp_obj = NWPObj({'surftemp':surftemp})   
+        imagerGeoObj.satellite = values["satellite"]
     #STEP 4 get matchups 
     #ClloudSat
     cloudsat_matchup = None
@@ -1118,7 +1146,7 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
     # Get satellite name, time, and orbit number from imager_file
     date_time = values["date_time"]
     #basename = '_'.join(os.path.basename(imager_file).split('_')[:4])
-    values = get_satid_datetime_orbit_from_fname(imager_file, SETTINGS)
+    values = get_satid_datetime_orbit_from_fname(imager_file, SETTINGS, cross)
     basename = values["basename"]
     rematched_path = date_time.strftime(AM_PATHS['reshape_dir'].format(
         val_dir=config._validation_results_dir,
@@ -1130,7 +1158,8 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
         orbit=values["orbit"],
         resolution=str(config.RESOLUTION),
         instrument=INSTRUMENT.get(values["satellite"],'avhrr'),
-        atrain_datatype="atrain_datatype"
+        atrain_datatype="atrain_datatype",
+        extrai=values.get("extrai","")
     ))
     rematched_file_base = rematched_path + rematched_file
     
@@ -1160,6 +1189,8 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
         imager_obj_name = 'cci'
     if SETTINGS['MAIA_VALIDATION']:
         imager_obj_name = 'maia'
+    if SETTINGS['PATMOSX_VALIDATION']:
+        imager_obj_name = 'patmosx'
 
     #write matchups
     for matchup, name in zip([cloudsat_matchup, iss_matchup, amsr_matchup, 
@@ -1209,11 +1240,10 @@ def get_matchups(cross, AM_PATHS, SETTINGS, reprocess=False):
         if not SETTINGS['USE_EXISTING_RESHAPED_FILES']:
             if SETTINGS['PPS_VALIDATION']:
                 imager_file, tobj = find_radiance_file(cross, AM_PATHS)
-                values_imager = get_satid_datetime_orbit_from_fname(imager_file, SETTINGS)
             if (SETTINGS['CCI_CLOUD_VALIDATION']):
                 imager_file, tobj = find_cci_cloud_file(cross, AM_PATHS)
             if imager_file is not None:
-                values_imager = get_satid_datetime_orbit_from_fname(imager_file, SETTINGS)
+                values_imager = get_satid_datetime_orbit_from_fname(imager_file, SETTINGS, Cross)
                 date_time_imager = values_imager["date_time"]
                 td = date_time_imager-cross.time
                 diff_imager_seconds=abs(td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6

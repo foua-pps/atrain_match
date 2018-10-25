@@ -225,7 +225,7 @@ def get_day_night_info(cObj, SETTINGS):
     daynight_flags = None
     cObj_imager = getattr(cObj, 'imager') #Same as cObj.imager
     cObj_truth_sat= getattr(cObj, cObj.truth_sat) #cObj.calipso or cObj.iss
-    if SETTINGS["CCI_CLOUD_VALIDATION"] or SETTINGS["MAIA_VALIDATION"] :
+    if not SETTINGS["PPS_VALIDATION"]:
         daynight_flags = get_day_night_twilight_info_cci2014(
         cObj_imager.sunz)
     if SETTINGS["PPS_VALIDATION"]  and  hasattr(cObj_imager, 'cloudtype_qflag'):

@@ -718,6 +718,9 @@ def get_stuff_to_read_from_a_reshaped_file(h5file, retv):
     if 'maia' in h5file.keys():
         h5_groups.append(h5file['/maia'])
         data_objects.append(retv.imager)
+    if 'patmosx' in h5file.keys():
+        h5_groups.append(h5file['/patmosx'])
+        data_objects.append(retv.imager)
     if 'modis_lvl2' in h5file.keys():
         h5_groups.append(h5file['/modis_lvl2'])
         data_objects.append(retv.modis)        
