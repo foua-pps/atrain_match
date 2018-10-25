@@ -942,7 +942,7 @@ def add_elevation_corrected_imager_ctth(clsatObj, caObj, issObj, SETTINGS):
         num_csat_data_ok = len(clsatObj.cloudsat.elevation)
         logger.debug("Length of CLOUDSAT array: %d", num_csat_data_ok )
         imager_ctth_m_above_seasurface = np.array(clsatObj.imager.ctth_height).copy().ravel()
-        if SETTINGS["CCI_CLOUD_VALIDATION"]: 
+        if SETTINGS["CCI_CLOUD_VALIDATION"] or SETTINGS["PATMOSX_VALIDATION"]: 
             #ctth already relative mean sea level
             imager_ctth_m_above_seasurface = caObj.imager.ctth_height
         else: #ctth relative topography

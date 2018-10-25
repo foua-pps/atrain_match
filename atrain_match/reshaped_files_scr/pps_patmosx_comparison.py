@@ -21,27 +21,42 @@ from utils.stat_util import (my_hist,
                        my_pe2500m,
                        my_pe5000m)
 
-def print_stats(cObjPPS, cObjPATMOSX):
+def crop_object(cObj, use_in=None):
+    y =cObj.imager.all_arrays['ctth_height']
+    if 'ctth_height_corr' in cObj.imager.all_arrays.keys() and   cObj.imager.all_arrays['ctth_height_corr'] is not None:
+        y =cObj.imager.all_arrays['ctth_height_corr']   
+    x = cObj.calipso.all_arrays['validation_height']
+    pps_profile_id = cObj.calipso.sec_1970#profile_id[:,0]
+    use = np.logical_and(y>0,x>0)
+    if use_in is not None:
+        use = np.logical_and(use,use_in)
+    for arnameca, valueca in cObj.calipso.all_arrays.items(): 
+        if cObj.calipso.all_arrays[arnameca] is None:
+            pass
+        elif arnameca in ['ctth_height','validation_height', 'sec_1970','imager_ctth_m_above_seasurface','ctth_height_corr']:
+            cObj.calipso.all_arrays[arnameca] = cObj.calipso.all_arrays[arnameca][use]
+        else:    
+            cObj.calipso.all_arrays[arnameca] = None
+    for arnameca, valueca in cObj.imager.all_arrays.items(): 
+        if cObj.imager.all_arrays[arnameca] is None:
+            pass
+        elif arnameca in ['ctth_height','validation_height', 'sec_1970','imager_ctth_m_above_seasurface','ctth_height_corr']:
+            cObj.imager.all_arrays[arnameca] = cObj.imager.all_arrays[arnameca][use]
+        else:    
+            cObj.imager.all_arrays[arnameca] = None
+    return cObj
+        
+        
+def remove_missing(cObjPPS, cObjPATMOSX, common_index):
 
     patmosx_profile_id = cObjPATMOSX.calipso.sec_1970#profile_id[:,0]
     pps_profile_id = cObjPPS.calipso.sec_1970#profile_id[:,0]
     
-    x = cObjPPS.calipso.all_arrays['validation_height']
-    x_patmosx = cObjPATMOSX.calipso.all_arrays['validation_height'] 
-    y_pps = cObjPPS.imager.all_arrays['imager_ctth_m_above_seasurface']
-    y_patmosx =cObjPATMOSX.imager.all_arrays['ctth_height']
-
-    use_pps = x>-9
-    use_patmosx = x_patmosx>-9
-    pps_profile_id[~use_pps]=-111 #remove nodata pps
-    patmosx_profile_id[~use_patmosx]=-333 #remove nodata patmosx
-    pps_profile_id[y_pps<0]=-111 #remove nodata pps
-    patmosx_profile_id[y_patmosx<0]=-333 #remove nodata patmosx
-    
-    use_patmosx_same_profile = np.array([p_id in pps_profile_id[use_pps] for p_id in patmosx_profile_id])
-    use_pps_same_profile =  np.array([p_id in patmosx_profile_id[use_patmosx] for p_id in pps_profile_id])
-    use_patmosx =  np.logical_and(use_patmosx, use_patmosx_same_profile)
-    use_pps =   np.logical_and(use_pps, use_pps_same_profile)
+    use_patmosx_same_profile = np.array([p_id in common_index for p_id in patmosx_profile_id])
+    use_pps_same_profile =  np.array([p_id in  common_index for p_id in pps_profile_id])
+    use_patmosx =  use_patmosx_same_profile
+    use_pps =    use_pps_same_profile
+    """
     pps_profile_id[~use_pps]=-111
     #remove doubles
     unique, index = np.unique(pps_profile_id, return_index=True)
@@ -58,10 +73,19 @@ def print_stats(cObjPPS, cObjPATMOSX):
     use_pps_same_profile =  np.array([p_id in patmosx_profile_id[use_patmosx] for p_id in pps_profile_id])
     use_patmosx =  np.logical_and(use_patmosx, use_patmosx_same_profile)
     use_pps =   np.logical_and(use_pps, use_pps_same_profile)
+    """
+    return use_pps, use_patmosx
 
-    
-    print(sorted(patmosx_profile_id[use_patmosx])[-10:])
-    print(sorted(pps_profile_id[use_pps])[-10:])
+def print_stats(cObjPPS, cObjPATMOSX, use_pps, use_patmosx):  
+ 
+    #print(sorted(patmosx_profile_id[use_patmosx])[-10:])
+    #print(sorted(pps_profile_id[use_pps])[-10:])
+    x = cObjPPS.calipso.all_arrays['validation_height']
+    x_patmosx = cObjPATMOSX.calipso.all_arrays['validation_height'] 
+    y_pps = cObjPPS.imager.all_arrays['imager_ctth_m_above_seasurface']
+    if 'ctth_height_corr' in cObjPPS.imager.all_arrays.keys() and   cObjPPS.imager.all_arrays['ctth_height_corr'] is not None:
+        y_pps =cObjPPS.imager.all_arrays['ctth_height_corr'] 
+    y_patmosx =cObjPATMOSX.imager.all_arrays['ctth_height']
 
     print(np.sum(use_pps), np.sum(use_patmosx))
 
@@ -73,30 +97,57 @@ def print_stats(cObjPPS, cObjPATMOSX):
     abias_pps = np.abs(bias_pps)
     abias_patmosx = np.abs(bias_patmosx)
 
-    print(" {:3.1f}, ({:3.1f}), {:3.1f}, ({:3.1f}), {:3.1f}, ({:3.1f}) {:3.1f}, ({:3.1f}) {:d}, ({:d})".format(np.mean(abias_pps),
-                                                                                       np.mean(abias_patmosx),
-                                                                                       my_pe500m(abias_pps),
-                                                                                       my_pe500m(abias_patmosx),
-                                                                                       np.median(bias_pps),
-                                                                                       np.median(bias_patmosx),
-                                                                                       my_iqr(bias_pps),
-                                                                                       my_iqr(bias_patmosx),
-                                                                                       len(bias_pps),
-                                                                                       len(bias_patmosx),
-
-                                             ))
+    print("MAE: {:3.1f}, ({:3.1f}), PE05: {:3.1f}, ({:3.1f}), Median: {:3.1f}, ({:3.1f}) IQR: {:3.1f}, ({:3.1f}) N: {:d}, ({:d}) BIAS: {:3.1f}, ({:3.1f}) STD:{:3.1f}, ({:3.1f})".format(
+        np.mean(abias_pps),
+        np.mean(abias_patmosx),
+        my_pe500m(abias_pps),
+        my_pe500m(abias_patmosx),
+        np.median(bias_pps),
+        np.median(bias_patmosx),
+        my_iqr(bias_pps),
+        my_iqr(bias_patmosx),
+        len(bias_pps),
+        len(bias_patmosx),
+        np.mean(bias_pps),
+        np.mean(bias_patmosx),
+        np.std(bias_pps),
+        np.std(bias_patmosx),                                        ))
     
 if __name__ == "__main__":
 
     PATMOSX_ROOT_DIR = ("/home/a001865/VALIDATION_PATMOSX/Reshaped_Files/noaa18/5km/2009/*/*h5")
                  
     PPS_ROOT_DIR = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/global_gac_v2018_created20180927/Reshaped_Files/noaa18/5km/2009/5km_noaa18_2009*cali*h5")
-    PPS_ROOT_DIR = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/global_gac_v2014_created20180927/Reshaped_Files/noaa18/5km/2009/5km_noaa18_2009*cali*h5")
-    PPS_ROOT_DIR = ("/home/a001865/DATA_MISC/reshaped_files_cci_noaa18_2009/V2/*h5")
+    PPS14_ROOT_DIR = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/global_gac_v2014_created20180927/Reshaped_Files/noaa18/5km/2009/5km_noaa18_2009*cali*h5")
+    CCI_ROOT_DIR = ("/home/a001865/DATA_MISC/reshaped_files_cci_noaa18_2009/V2/*2009*h5")
 
 
     patmosx_files = glob(PATMOSX_ROOT_DIR)
-    pps_files = glob(PPS_ROOT_DIR)
-    cObjPATMOSX =  read_files(patmosx_files)
-    cObjPPS =  read_files(pps_files)
-    print_stats(cObjPPS, cObjPATMOSX)
+
+    cObjPATMOSX =  read_files(glob(PATMOSX_ROOT_DIR))
+    cObjPATMOSX = crop_object(cObjPATMOSX, use_in=None)
+    cObjPPS =  read_files(glob(PPS_ROOT_DIR))
+    cObjPPS = crop_object(cObjPPS, use_in=None)
+    cObjPPS14 =  read_files(glob(PPS14_ROOT_DIR))
+    cObjPPS14 =  crop_object(cObjPPS14, use_in=None)
+    cObjCCI =  read_files(glob(CCI_ROOT_DIR))
+    cObjCCI =  crop_object(cObjCCI, use_in=None)
+ 
+    patmosx_profile_id = cObjPATMOSX.calipso.sec_1970#profile_id[:,0]
+    pps_profile_id = cObjPPS.calipso.sec_1970#profile_id[:,0]
+    pps14_profile_id = cObjPPS14.calipso.sec_1970#profile_id[:,0]
+    cci_profile_id = cObjCCI.calipso.sec_1970#profile_id[:,0]
+    common_index1 = np.intersect1d(patmosx_profile_id,  pps_profile_id)
+    common_index2 = np.intersect1d(cci_profile_id,  pps14_profile_id)
+    common_index = np.intersect1d(common_index1,common_index2)
+
+    use_pps_v14, use_patmosx = remove_missing(cObjPPS14, cObjPATMOSX, common_index)
+    use_pps, use_cci = remove_missing(cObjPPS, cObjCCI, common_index)
+
+
+    print("PPS-v2014")
+    print_stats(cObjPPS14, cObjPATMOSX, use_pps_v14, use_patmosx)
+    print("PPS-vCCI")
+    print_stats(cObjCCI, cObjPATMOSX, use_cci, use_patmosx)
+    print("PPS-v2018")
+    print_stats(cObjPPS, cObjPATMOSX, use_pps, use_patmosx)
