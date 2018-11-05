@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 from matchobject_io import (DataObject,
                             ppsImagerObject,
                             IssObject,
-                            IssImagerTrackObject)                            
+                            TruthImagerTrackObject)                            
 import config
 from utils.common import (MatchupError, ProcessingError,
                     elements_within_range)
@@ -132,7 +132,7 @@ def read_iss(filename):
 
 def match_iss_imager(issObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,imagerAngObj, 
                          cpp, nwp_segments, SETTINGS):
-    retv = IssImagerTrackObject()
+    retv = TruthImagerTrackObject(truth='iss')
     retv.imager_instrument = imagerGeoObj.instrument.lower()
 
     from utils.common import map_imager

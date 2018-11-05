@@ -73,8 +73,9 @@ import os
 import sys
 import numpy as np
 import logging
-from datetime import timedelta
+from datetime import timedelta, timezone, datetime
 from glob import glob
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -180,7 +181,29 @@ def get_time_list(cross_time, time_window, delta_t_in_seconds):
             tlist.append(tobj2)
             tobj2 = tobj2 - delta_t  
     return tlist 
-    
+
+def find_closest_nwp_file(imagerGeoObj, AM_PATHS, values, SETTINGS):
+    date_time = datetime.fromtimestamp((imagerGeoObj.sec1970_end*0.5 + 
+                                        imagerGeoObj.sec1970_start*0.5), timezone.utc)
+    delta_3h = timedelta(hours=SETTINGS['MAX_NWP_TDIFF_HOURS'])
+    tlist = get_time_list(date_time,  [delta_3h, delta_3h], 60*60) # time_window +/- 3h
+    for tobj in tlist: 
+        for prognosis_length in range(15):
+            values['plus_hours'] = "{:03d}".format(prognosis_length)
+            grib_datetime = tobj - timedelta(hours=prognosis_length)
+            grib_dir = insert_info_in_filename_or_path(
+                AM_PATHS['grib_dir'],
+                values, datetime_obj=grib_datetime)
+            grib_file_pattern = insert_info_in_filename_or_path(
+                AM_PATHS['grib_file'],
+                values, 
+                datetime_obj=grib_datetime)
+            print("globbing", os.path.join(grib_dir, grib_file_pattern))
+            tmplist = glob(os.path.join(grib_dir, grib_file_pattern))
+            if len(tmplist)>0:
+                return tmplist[0]
+    return None
+
 def find_truth_files_inner(date_time, time_window, AM_PATHS, values, truth='calipso'):
     """Find the matching Calipso file"""
     tlist = get_time_list(date_time, time_window, 600)
@@ -227,6 +250,7 @@ def insert_info_in_filename_or_path(file_or_name_path, values, datetime_obj=None
         lines_lines=values.get("lines_lines", "*"),
         val_dir=config._validation_results_dir,
         extrai=values.get('extrai',""),
+        plus_hours=values.get("plus_hours",""),
         year=values.get('year',"unknown"),
         month=values.get('month',"unknown"),
         mode=values.get('mode',"unknown"),
@@ -1023,6 +1047,7 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
         raise MatchupError(
             "Couldn't find any matching CALIPSO/CLoudSat/ISS data")
 
+   
     #STEP 3 Read imager data:    
     if (PPS_VALIDATION ):
         retv =read_pps_data(pps_files, imager_file, SETTINGS)
@@ -1053,7 +1078,7 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
         logger.info("Read CLOUDSAT data")
         cloudsat_matchup = get_cloudsat_matchups(truth_files['cloudsat'],
                                                  truth_files['cloudsat_lwp'],
-                                           imagerGeoObj, imagerObj, ctype, cma,
+                                                 imagerGeoObj, imagerObj, ctype, cma,
                                            ctth, nwp_obj, imagerAngObj, cpp, 
                                                  nwp_segments, SETTINGS) 
     #ISS:  
@@ -1148,21 +1173,45 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
         logger.info("Creating dir %s:", rematched_path)
         os.makedirs(os.path.dirname(rematched_path))
 
-    #add modis lvl2    
-    if SETTINGS['MATCH_MODIS_LVL2']:
-        from imager_cloud_products.read_modis_products import add_modis_06  
-        if calipso_matchup is not None and calipso_matchup.imager_instrument in ['modis']:
-            calipso_matchup = add_modis_06(calipso_matchup, imager_file, AM_PATHS) 
-        if cloudsat_matchup is not None and cloudsat_matchup.imager_instrument in ['modis']:
-            cloudsat_matchup = add_modis_06(cloudsat_matchup, imager_file, AM_PATHS) 
-        if amsr_matchup is not None and amsr_matchup.imager_instrument in ['modis']:
-            amsr_matchup = add_modis_06(amsr_matchup, imager_file, AM_PATHS)
-        if synop_matchup is not None and synop_matchup.imager_instrument in ['modis']:
-            synop_matchup = add_modis_06(synop_matchup, imager_file, AM_PATHS)  
+    for matchup, name in zip([cloudsat_matchup, iss_matchup, amsr_matchup, 
+                              synop_matchup, mora_matchup, calipso_matchup],
+                             ['CloudSat', 'ISS', 'AMSR-E',
+                              'SYNOP', 'MORA', 'CALIPSO']):
+        if matchup is None:
+            continue
+        #add modis lvl2    
+        if SETTINGS['MATCH_MODIS_LVL2']:
+            from imager_cloud_products.read_modis_products import add_modis_06  
+            if matchup.imager_instrument in ['modis']:
+                matchup = add_modis_06(matchup, imager_file, AM_PATHS) 
+        if SETTINGS['ADD_NWP']:
+            import pps_nwp
+            from libs.extract_imager_along_track import _interpolate_height_and_temperature_from_pressure
+            nwp_file = find_closest_nwp_file(imagerGeoObj, AM_PATHS, values, SETTINGS)
+            logger.debug(nwp_file)
+            if pps_nwp is None:
+                continue
+            gribfile = pps_nwp.GRIBFile(nwp_file, (matchup.imager.longitude,
+                                                   matchup.imager.latitude))
+            matchup.imager.nwp_height = gribfile.get_gh_vertical()[0,:,:].astype(np.float32).transpose()
+            matchup.imager.nwp_surface_h = gribfile.get_gh_surface()[:].astype(np.float32)
+            matchup.imager.nwp_psur = 0.01*gribfile.get_p_surface()[:].astype(np.float32)
+            matchup.imager.nwp_temperature = gribfile.get_t_vertical()[0,:,:].astype(np.float32).transpose()
+            field = gribfile.get_p_vertical()
+            if field.units =='Pa':
+                field = 0.01*field[:]
+                field.units = 'hPa'
+            matchup.imager.nwp_pressure = field[0,:,:].astype(np.float32).transpose()
+            data = _interpolate_height_and_temperature_from_pressure(matchup.imager, 440)
+            setattr(matchup.imager, 'nwp_h440', data)
+            data = _interpolate_height_and_temperature_from_pressure(matchup.imager, 680)
+            setattr(matchup.imager, 'nwp_h680', data)
+
     #add additional vars to cloudsat and calipso objects and print them to file:
     cloudsat_matchup, calipso_matchup = add_additional_clousat_calipso_index_vars(cloudsat_matchup, calipso_matchup)
     cloudsat_matchup, calipso_matchup, iss_matchup = add_elevation_corrected_imager_ctth(cloudsat_matchup, calipso_matchup, iss_matchup, SETTINGS)
 
+ 
     #imager_name
     imager_obj_name = 'pps'
     if SETTINGS['CCI_CLOUD_VALIDATION']:
@@ -1217,16 +1266,16 @@ def get_matchups(cross, AM_PATHS, SETTINGS, reprocess=False):
     if reprocess is False or SETTINGS['USE_EXISTING_RESHAPED_FILES']:
         diff_imager_seconds=None
         imager_file=None
-        if not SETTINGS['USE_EXISTING_RESHAPED_FILES']:
-            if SETTINGS['PPS_VALIDATION']:
-                imager_file, tobj = find_radiance_file(cross, AM_PATHS)
-            if (SETTINGS['CCI_CLOUD_VALIDATION']):
-                imager_file, tobj = find_cci_cloud_file(cross, AM_PATHS)
-            if imager_file is not None:
-                values_imager = get_satid_datetime_orbit_from_fname(imager_file, SETTINGS, Cross)
-                date_time_imager = values_imager["date_time"]
-                td = date_time_imager-cross.time
-                diff_imager_seconds=abs(td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
+        #if not SETTINGS['USE_EXISTING_RESHAPED_FILES']:
+        #    if SETTINGS['PPS_VALIDATION']:
+        #        imager_file, tobj = find_radiance_file(cross, AM_PATHS)
+        #    if (SETTINGS['CCI_CLOUD_VALIDATION']):
+        #        imager_file, tobj = find_cci_cloud_file(cross, AM_PATHS)
+        #    if imager_file is not None:
+        #        values_imager = get_satid_datetime_orbit_from_fname(imager_file, SETTINGS, Cross)
+        #        date_time_imager = values_imager["date_time"]
+        #        td = date_time_imager-cross.time
+        #        diff_imager_seconds=abs(td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
 
         
         for truth in ['cloudsat', 'amsr', 'iss', 'synop', 'mora', 'calipso']:

@@ -5,7 +5,7 @@ import calendar
 from datetime import datetime, timedelta
 from calendar import timegm
 TAI93 = datetime(1993, 1, 1)
-from matchobject_io import (MoraImagerTrackObject, 
+from matchobject_io import (TruthImagerTrackObject, 
                             MoraObject)
 from truths.calipso import (calipso_track_from_matched,
                             do_some_logging)
@@ -67,7 +67,7 @@ def reshapeMora(morafiles, imager,  SETTINGS):
 
 def match_mora_imager(moraObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
                      imagerAngObj, cpp, nwp_segments, SETTINGS):
-    retv = MoraImagerTrackObject()
+    retv = TruthImagerTrackObject('mora')
     retv.imager_instrument = imagerGeoObj.instrument.lower()
     from utils.common import map_imager
 

@@ -5,7 +5,7 @@ import os
 import logging
 logger = logging.getLogger(__name__)
 from matchobject_io import (CloudsatObject,
-                            CloudsatImagerTrackObject)                            
+                            TruthImagerTrackObject)                            
 import config
 from utils.common import (MatchupError, ProcessingError,
                     elements_within_range)
@@ -182,7 +182,7 @@ def read_cloudsat(filename):
 
 def match_cloudsat_imager(cloudsatObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,imagerAngObj, 
                           cpp, nwp_segments, SETTINGS):
-    retv = CloudsatImagerTrackObject()
+    retv = TruthImagerTrackObject(truth='cloudsat')
     retv.imager_instrument = imagerGeoObj.instrument.lower()
     #Nina 20150313 Swithcing to mapping without area as in cpp. Following suggestion from Jakob
     from utils.common import map_imager

@@ -5,7 +5,7 @@ from calendar import timegm
 TAI93 = datetime(1993, 1, 1)
 import config
 from imager_cloud_products.read_cloudproducts_and_nwp_pps import NWPObj
-from matchobject_io import (AmsrImagerTrackObject, 
+from matchobject_io import (TruthImagerTrackObject, 
                             AmsrObject)
 from truths.calipso import (find_break_points, calipso_track_from_matched,
                      time_reshape_calipso, do_some_logging)
@@ -135,7 +135,7 @@ def reshapeAmsr(amsrfiles, imager, SETTINGS):
 
 def match_amsr_imager(amsrObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
                       imagerAngObj, cpp, nwp_segments, SETTINGS):
-    retv = AmsrImagerTrackObject()
+    retv = TruthImagerTrackObject(truth='amsr')
     retv.imager_instrument = imagerGeoObj.instrument.lower()
 
     if (getattr(cpp, "cpp_lwp")<0).all():

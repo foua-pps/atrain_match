@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from calendar import timegm
 TAI93 = datetime(1993, 1, 1)
 import  config
-from matchobject_io import (SynopImagerTrackObject, 
+from matchobject_io import (TruthImagerTrackObject, 
                             SynopObject)
 from truths.calipso import (find_break_points, calipso_track_from_matched,
                      do_some_logging)
@@ -43,7 +43,7 @@ def reshapeSynop(synopfiles, imager,  SETTINGS):
 
 def match_synop_imager(synopObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
                        imagerAngObj, cpp, nwp_segments, SETTINGS):
-    retv = SynopImagerTrackObject()
+    retv = TruthImagerTrackObject(truth='synop')
     retv.imager_instrument = imagerGeoObj.instrument.lower()
     from utils.common import map_imager_distances
     n_neighbours = 250

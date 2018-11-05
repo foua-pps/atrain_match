@@ -315,6 +315,9 @@ class ppsImagerObject(DataObject):
             #'segment_nwp_tb12clfree_land': None,
             #'segment_nwp_tb11cloudy_surface': None,
             #'segment_nwp_tb12cloudy_surface': None,
+            'nwp_height': None,
+            'nwp_pressure': None,
+            'nwp_temperature':None
         }
         
 class ModisObject(DataObject):
@@ -558,127 +561,25 @@ class SynopObject(DataObject):
             'sec_1970': None,
             'pressure': None}
 
-class SynopImagerTrackObject:
-    def __init__(self):
+class TruthImagerTrackObject:
+    def __init__(self, truth='calipso'):
         self.imager = ppsImagerObject()
         self.modis = ModisObject()
-        self.synop = SynopObject()
+        if truth in 'calipso':
+            self.calipso = CalipsoObject()
+            self.calipso_aerosol = CalipsoObject()
+        elif truth in 'cloudsat':
+            self.cloudsat = CloudsatObject()
+        elif truth in 'amsr':
+            self.amsr = AmsrObject()
+        elif truth in 'synop':
+            self.synop = SynopObject()
+        elif truth in 'mora':
+            self.mora = MoraObject()            
+        elif truth in 'iss':
+            self.iss = IssObject()
         self.diff_sec_1970 = None
-        self.truth_sat = 'synop' # Well not a satelite, but ...
-        self.imager_instrument = 'imager'
-
-    def __add__(self, other):
-        """Concatenating two objects together"""
-        self.imager = self.imager + other.imager
-        self.synop = self.synop + other.synop
-        #self.modis = self.modis + other.modis
-        try:
-            self.diff_sec_1970 = np.concatenate([self.diff_sec_1970,
-                                                 other.diff_sec_1970])
-        except ValueError as e:
-            #print "Don't concatenate member diff_sec_1970... " + str(e)
-            self.diff_sec_1970 = other.diff_sec_1970
-        return self
-
-class AmsrImagerTrackObject:
-    def __init__(self):
-        self.imager = ppsImagerObject()
-        self.modis = ModisObject()
-        self.amsr = AmsrObject()
-        self.diff_sec_1970 = None
-        self.truth_sat = 'amsr' #Satellite is EOS-Aqua or EOS-Terra
-                                #As we also use MODIS data from those
-                                #Name the truth_sat after the instrument
-        self.imager_instrument = 'imager'
-    def __add__(self, other):
-        """Concatenating two objects together"""
-        self.imager = self.imager + other.imager
-        self.amsr = self.amsr + other.amsr
-        #self.modis = self.modis + other.modis
-        try:
-            self.diff_sec_1970 = np.concatenate([self.diff_sec_1970,
-                                                 other.diff_sec_1970])
-        except ValueError as e:
-            #print "Don't concatenate member diff_sec_1970... " + str(e)
-            self.diff_sec_1970 = other.diff_sec_1970
-
-        return self
-
-
-class MoraImagerTrackObject:
-    def __init__(self):
-        self.imager = ppsImagerObject()
-        self.modis = ModisObject()
-        self.mora = MoraObject()
-        self.diff_sec_1970 = None
-        self.truth_sat = 'mora' 
-        self.imager_instrument = 'imager'
-    def __add__(self, other):
-        """Concatenating two objects together"""
-        self.imager = self.imager + other.imager
-        self.mora = self.mora + other.mora
-        #self.modis = self.modis + other.modis
-        try:
-            self.diff_sec_1970 = np.concatenate([self.diff_sec_1970,
-                                                 other.diff_sec_1970])
-        except ValueError as e:
-            #print "Don't concatenate member diff_sec_1970... " + str(e)
-            self.diff_sec_1970 = other.diff_sec_1970
-
-        return self
-
-class IssImagerTrackObject:
-    def __init__(self):
-        self.imager=ppsImagerObject()
-        self.modis = ModisObject()
-        self.iss=IssObject()
-        self.diff_sec_1970=None
-        self.truth_sat = 'iss'
-        self.imager_instrument = 'imager'
-    def __add__(self, other):
-        """Concatenating two objects together"""
-        self.imager = self.imager + other.imager
-        self.iss = self.iss + other.iss
-        self.modis = self.modis + other.modis
-        try:
-            self.diff_sec_1970 = np.concatenate([self.diff_sec_1970,
-                                                 other.diff_sec_1970])
-        except ValueError as e:
-            #print "Don't concatenate member diff_sec_1970... " + str(e)
-            self.diff_sec_1970 = other.diff_sec_1970
-
-        return self
-
-class CloudsatImagerTrackObject:
-    def __init__(self):
-        self.imager=ppsImagerObject()
-        self.modis = ModisObject()
-        self.cloudsat=CloudsatObject()
-        self.diff_sec_1970=None
-        self.truth_sat = 'cloudsat'
-        self.imager_instrument = 'imager'
-    def __add__(self, other):
-        """Concatenating two objects together"""
-        self.imager = self.imager + other.imager
-        self.cloudsat = self.cloudsat + other.cloudsat
-        self.modis = self.modis + other.modis
-        try:
-            self.diff_sec_1970 = np.concatenate([self.diff_sec_1970,
-                                                 other.diff_sec_1970])
-        except ValueError as e:
-            #print "Don't concatenate member diff_sec_1970... " + str(e)
-            self.diff_sec_1970 = other.diff_sec_1970
-
-        return self
-
-class CalipsoImagerTrackObject:
-    def __init__(self):
-        self.imager = ppsImagerObject()
-        self.modis = ModisObject()
-        self.calipso = CalipsoObject()
-        self.calipso_aerosol = CalipsoObject()
-        self.diff_sec_1970 = None
-        self.truth_sat = 'calipso'
+        self.truth_sat = truth
         self.imager_instrument = 'imager'
 
     def make_nsidc_surface_type_texture(self, kernel_sz = 51):
@@ -690,10 +591,13 @@ class CalipsoImagerTrackObject:
     
     def __add__(self, other):
         """Concatenating two objects together"""
-        self.imager = self.imager + other.imager
-        self.calipso = self.calipso + other.calipso
-        self.calipso_aerosol = self.calipso_aerosol + other.calipso_aerosol
-        self.modis = self.modis + other.modis
+        for object_name in ['imager', 'calipso', 'calipso_aerosol'
+                            'cloudsat', 'iss', 'mora', 'synop', 'modis']:
+            if hasattr(self, object_name):
+                setattr(self, object_name, 
+                        getattr(self, object_name) + 
+                        getattr(other, object_name))
+
         try:
             self.diff_sec_1970 = np.concatenate([self.diff_sec_1970,
                                                  other.diff_sec_1970])
@@ -747,19 +651,7 @@ def get_stuff_to_read_from_a_reshaped_file(h5file, retv):
     
           
 def readTruthImagerMatchObj(filename, truth='calipso'):
-    if 'calipso' in truth:
-        retv = CalipsoImagerTrackObject()  
-    if 'cloudsat' in truth:
-        retv = CloudsatImagerTrackObject()  
-    if 'iss' in truth: 
-        retv = IssImagerTrackObject()   
-    if 'amsr' in truth: 
-        retv = AmsrImagerTrackObject()   
-    if 'mora' in truth: 
-        retv = MoraImagerTrackObject()   
-    if 'synop' in truth: 
-        retv = SynopImagerTrackObject()   
-  
+    retv = TruthImagerTrackObject(truth=truth)    
     h5file = h5py.File(filename, 'r')
     (h5_groups, data_objects) =  get_stuff_to_read_from_a_reshaped_file(h5file, retv)
     for group, data_obj in zip(h5_groups, data_objects):
@@ -1005,6 +897,11 @@ the_used_variables = [
     'coldest_r16_correction_done',
     'segment_nwp_h440',
     'segment_nwp_h680',
+    'nwp_h440',
+    'nwp_h680',
+    'nwp_height',
+    'nwp_pressure',
+    'nwp_temperature',
     'longitude',
     'latitude',
     'imager_linnum',

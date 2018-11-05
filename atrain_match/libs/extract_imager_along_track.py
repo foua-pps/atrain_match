@@ -209,10 +209,17 @@ def _interpolate_height_and_temperature_from_pressure(imagerObj,
     High means high in pressure. The level closest to ground i hi, and lo is at lower 
     pressure further up in atmosphere.
     """
-    values_h =  imagerObj.segment_nwp_geoheight
-    pressure_v=  imagerObj.segment_nwp_pressure
-    surface_h = imagerObj.segment_nwp_surfaceGeoHeight
-    psur = imagerObj.segment_nwp_surfacePressure
+    values_h =  imagerObj.nwp_height
+    pressure_v=  imagerObj.nwp_pressure
+    surface_h = imagerObj.nwp_surface_h
+    psur = imagerObj.nwp_psur
+    if surface_h is None:
+        values_h =  imagerObj.segment_nwp_geoheight
+        pressure_v=  imagerObj.segment_nwp_pressure
+        surface_h = imagerObj.segment_nwp_surfaceGeoHeight
+        psur = imagerObj.segment_nwp_surfacePressure
+    #import pdb
+    #pdb.set_trace()
     nlev = pressure_v.shape[1]
     npix = pressure_v.shape[0]
     k = np.arange(npix)
@@ -522,6 +529,7 @@ def imager_track_from_matched(obt, SETTINGS,
     #NWP on ctth resolution        
     if nwp_segments is not None:
         obt = insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt)
+        
     if cpp is None:    
         logger.debug("Not extracting cpp")
     elif extract_some_data_for_x_neighbours:

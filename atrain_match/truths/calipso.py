@@ -11,7 +11,7 @@ from utils.common import (MatchupError, TimeMatchError,
                     InputError, ProcessingError, 
                     elements_within_range)
 
-from matchobject_io import (CalipsoImagerTrackObject,
+from matchobject_io import (TruthImagerTrackObject,
                             CalipsoObject)
 from utils.runutils import do_some_logging
 
@@ -47,7 +47,7 @@ def match_calipso_imager(values,
                         imagerAngObj, nwp_segments, SETTINGS, res=config.RESOLUTION):
 
     from utils.common import map_imager
-    retv = CalipsoImagerTrackObject()
+    retv = TruthImagerTrackObject(truth='calipso')
     retv.imager_instrument = imagerGeoObj.instrument.lower()
 
     cal, cap = map_imager(imagerGeoObj, 
