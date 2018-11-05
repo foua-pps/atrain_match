@@ -343,6 +343,8 @@ class CalipsoObject(DataObject):
             'cloud_fraction': None,
             'validation_height': None,
             'layer_top_altitude': None,
+            "layer_top_altitude_5km": None,
+            "layer_top_pressure_5km": None,
             'layer_top_temperature': None,
             'layer_top_pressure': None,
             'midlayer_temperature': None,
@@ -371,6 +373,7 @@ class CalipsoObject(DataObject):
             # is stored also for 1km data. Because of that I put the 5km in the name
             #/2013-08-17/Nina
             'feature_optical_depth_532_top_layer_5km': None,
+            'feature_optical_depth_532_5km': None,
             'detection_height_5km': None,
             'total_optical_depth_5km': None,
             #'layer_top_altitude_5km': None,
@@ -1052,6 +1055,7 @@ the_used_variables = [
     'single_shot_cloud_cleared_fraction',
     'cfc_single_shots_1km_from_5km_file',
     'feature_optical_depth_532_top_layer_5km',
+    'feature_optical_depth_532_5km',
     'total_optical_depth_5km',
     'detection_height_5km',         
     'column_optical_depth_cloud_532',
@@ -1060,6 +1064,8 @@ the_used_variables = [
     'column_optical_depth_tropospheric_aerosols_532',
     'column_optical_depth_aerosols_532_5km',
     'column_optical_depth_aerosols_532',
+    "layer_top_altitude_5km",
+    "layer_top_pressure_5km",
     'Number_cloudy_single_shots',
     #CLOUDSAT only
     'clsat_max_height',
