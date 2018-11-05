@@ -386,6 +386,7 @@ def add5kmVariablesTo1kmresolution(calipso1km, calipso5km, CALIPSO_version):
             "column_optical_depth_tropospheric_aerosols_uncertainty_532",
             "column_optical_depth_cloud_532",
             "column_optical_depth_cloud_uncertainty_532",
+            
             #"feature_optical_depth_532",
             #"feature_optical_depth_uncertainty_532"
     ]:                
@@ -398,10 +399,23 @@ def add5kmVariablesTo1kmresolution(calipso1km, calipso5km, CALIPSO_version):
         new_data = np.repeat(data, 5, axis=0)    
         setattr(calipso1km, variable_5km +"_5km", new_data)      
     for variable_5km  in ["feature_optical_depth_532_top_layer_5km",
+                          
                           "total_optical_depth_5km"]:                
         data = getattr(calipso5km, variable_5km)
         new_data = np.repeat(data, 5, axis=0)    
         setattr(calipso1km, variable_5km, new_data) 
+    for variable_5km  in ["layer_top_altitude", 
+                          "layer_top_pressure",
+                          "feature_optical_depth_532"]:                
+        data = getattr(calipso5km, variable_5km)
+        new_data = np.repeat(data, 5, axis=0)    
+        new_data = new_data[:,0:3]
+        setattr(calipso1km, variable_5km + "_5km", new_data) 
+
+    for variable_5km  in ["number_layers_found"]:                
+        data = getattr(calipso5km, variable_5km)
+        new_data = np.repeat(data, 5, axis=0)    
+        setattr(calipso1km, variable_5km + "_5km", new_data) 
     #for variable_5km  in ["layer_top_altitude", "layer_base_altitude"]:     
     #    data = getattr(calipso5km, variable_5km)#[:,0]*1000
     #    data[data<0] =-9
@@ -719,6 +733,29 @@ def CalipsoOpticalDepthSetThinToClearFiltering1km(CaObj, SETTINGS):
     return cloud_fraction, validation_height
 
 
+
+def total_and_top_layer_optical_depth_5km(calipso, resolution=5):
+    logger.info("Find total optical depth from 5km data")
+    optical_depth_in = calipso.feature_optical_depth_532
+    o_depth_top_layer = -9.0 + 0*calipso.number_layers_found.ravel()
+    total_o_depth = -9.0 + 0*calipso.number_layers_found.ravel()
+    if resolution==5:
+        pixels = np.logical_and(
+            calipso.number_layers_found.ravel()>0,
+            optical_depth_in[:,0].ravel() >= 0)   
+        o_depth_top_layer[pixels] = optical_depth_in[pixels, 0]
+        total_o_depth[pixels] =  optical_depth_in[pixels, 0]       
+        for lay in range(1, np.max(calipso.number_layers_found[pixels]), 1):  
+            pixels = np.logical_and(
+                pixels, 
+                optical_depth_in[:, lay]>=0)
+            total_o_depth[pixels] +=  optical_depth_in[pixels, lay]
+    else:
+        print("ERROR this fuction is only for 5km data!")
+        print("These features can then added to 1km data set")
+    calipso.feature_optical_depth_532_top_layer_5km = o_depth_top_layer
+    calipso.total_optical_depth_5km = total_o_depth       
+    return calipso 
 
 if __name__ == "__main__":
     # Testing:

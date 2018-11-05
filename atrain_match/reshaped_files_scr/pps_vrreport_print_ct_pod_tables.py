@@ -4,8 +4,6 @@
 import os
 from glob import glob
 import numpy as np
-from matchobject_io import (readCaliopImagerMatchObj,
-                            CalipsoImagerTrackObject)
 
 import matplotlib.pyplot as plt
 from utils.get_flag_info import get_calipso_clouds_of_type_i
@@ -118,6 +116,7 @@ def table_21_do_for_atbd(caObj):
     pps_ctype = caObj.imager.all_arrays['cloudtype']
     use = np.logical_and(pps_ctype>4,pps_ctype<23)
     use = np.logical_and(use, np.logical_and(caliop_ok,caObj.calipso.all_arrays['cloud_fraction']>0.99))
+    pps_frac = [pps_ctype_i in [10] for pps_ctype_i in pps_ctype]
     pps_very_low = [pps_ctype_i in [5] for pps_ctype_i in pps_ctype]
     pps_low = [pps_ctype_i in [5,6,10] for pps_ctype_i in pps_ctype]
     pps_medium = [pps_ctype_i in [7] for pps_ctype_i in pps_ctype] 
@@ -130,7 +129,10 @@ def table_21_do_for_atbd(caObj):
     far_very_low = np.sum(np.logical_and(np.logical_and(use,pps_very_low), height_>=500))*100.0/np.sum(np.logical_and(use,pps_low))
     print "pod_very_low", pod_very_low
     print "far_very_low", far_very_low
-        
+
+    part_fractional = np.sum(np.logical_and(use,pps_frac))*100.0/np.sum(use)
+     
+    print "part_fractional",part_fractional
     #print "POD low medium high FAR low medium high" 
     print "|POD-low| POD-m| POD-high| (POD-cirrus)| FAR-low | FAR-m| FAR-high FAR-cirrus|"
     for use_i, name in zip( [ all_dnt_flag, day_flag, night_flag, twilight_flag ],
@@ -206,6 +208,7 @@ def table_21_do_for_atbd(caObj):
 
 # ----------------------------------------
 if __name__ == "__main__":
+    from matchobject_io import read_files
     isModis1km = True
     isNPP_v2014 = False
     isGAC_v2014_morning_sat = False
@@ -233,7 +236,7 @@ if __name__ == "__main__":
 
     ROOT_DIR_v2014 = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/global_modis_v2014_created20180920/Reshaped_Files_merged_caliop/eos2/1km/2010/*/*%s*h5")
     ROOT_DIR_v2018 = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/global_modis_v2018_created20180920/Reshaped_Files_merged_caliop/eos2/1km/2010/*/*%s*h5")
-    ROOT_DIR = ROOT_DIR_v2018
+    ROOT_DIR = ROOT_DIR_v2014
     files = glob(ROOT_DIR%("20100201"))
     files = files + glob(ROOT_DIR%("20100401"))             
     files = files + glob(ROOT_DIR%("20100601")) 
@@ -246,11 +249,7 @@ if __name__ == "__main__":
     #files = glob(ROOT_DIR_v2018 + "*h5")
    
 
-    caObj = CalipsoImagerTrackObject()
-    for filename in files:
-        print  os.path.basename(filename)
-        caObj +=readCaliopImagerMatchObj(filename, var_to_skip='segment')
-
+    caObj = read_files(files)
 
     plot_ct_table4(caObj)
     plot_ct_table2(caObj)

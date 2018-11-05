@@ -89,10 +89,11 @@ from plotting.along_track_plotting import (drawCalClsatImagerPlotTimeDiff,
                                            drawCalClsatImagerPlotSATZ,
                                            drawCalClsatCWCImagerPlot)
 from truths.calipso import (CalipsoCloudOpticalDepth_new,
-                     check_total_optical_depth_and_warn,
-                     CalipsoOpticalDepthHeightFiltering1km,
-                     detection_height_from_5km_data,
-                     CalipsoOpticalDepthSetThinToClearFiltering1km)
+                            check_total_optical_depth_and_warn,
+                            CalipsoOpticalDepthHeightFiltering1km,
+                            detection_height_from_5km_data,
+                            total_and_top_layer_optical_depth_5km,
+                            CalipsoOpticalDepthSetThinToClearFiltering1km)
 
 from imager_cloud_products.read_cloudproducts_and_nwp_pps import NWPObj
 from truths.cloudsat import (reshapeCloudsat, 
@@ -592,28 +593,7 @@ def get_mora_matchups(mora_files, imagerGeoObj, imagerObj,
                                   ctth, nwp_obj, imagerAngObj, cpp, nwp_segments,  SETTINGS)
     return mora_matchup
 
-def total_and_top_layer_optical_depth_5km(calipso, resolution=5):
-    logger.info("Find total optical depth from 5km data")
-    optical_depth_in = calipso.feature_optical_depth_532
-    o_depth_top_layer = -9.0 + 0*calipso.number_layers_found.ravel()
-    total_o_depth = -9.0 + 0*calipso.number_layers_found.ravel()
-    if resolution==5:
-        pixels = np.logical_and(
-            calipso.number_layers_found.ravel()>0,
-            optical_depth_in[:,0].ravel() >= 0)   
-        o_depth_top_layer[pixels] = optical_depth_in[pixels, 0]
-        total_o_depth[pixels] =  optical_depth_in[pixels, 0]       
-        for lay in range(1, np.max(calipso.number_layers_found[pixels]), 1):  
-            pixels = np.logical_and(
-                pixels, 
-                optical_depth_in[:, lay]>=0)
-            total_o_depth[pixels] +=  optical_depth_in[pixels, lay]
-    else:
-        print("ERROR this fuction is only for 5km data!")
-        print("These features can then added to 1km data set")
-    calipso.feature_optical_depth_532_top_layer_5km = o_depth_top_layer
-    calipso.total_optical_depth_5km = total_o_depth       
-    return calipso 
+
 
 def get_calipso_matchups(calipso_files, values, 
                          imagerGeoObj, imagerObj, ctype, cma,  ctth, 

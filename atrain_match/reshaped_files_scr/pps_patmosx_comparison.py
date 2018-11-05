@@ -27,7 +27,7 @@ def crop_object(cObj, use_in=None):
         y =cObj.imager.all_arrays['ctth_height_corr']   
     x = cObj.calipso.all_arrays['validation_height']
     pps_profile_id = cObj.calipso.sec_1970#profile_id[:,0]
-    use = np.logical_and(y>0,x>0)
+    use = np.logical_and(y>=0,x>=0)
     if use_in is not None:
         use = np.logical_and(use,use_in)
     for arnameca, valueca in cObj.calipso.all_arrays.items(): 
@@ -150,4 +150,8 @@ if __name__ == "__main__":
     print("PPS-vCCI")
     print_stats(cObjCCI, cObjPATMOSX, use_cci, use_patmosx)
     print("PPS-v2018")
+    print_stats(cObjPPS, cObjPATMOSX, use_pps, use_patmosx)
+    print("Dummy")
+    cObjPPS.imager.all_arrays['imager_ctth_m_above_seasurface'][:] = np.mean(cObjPPS.calipso.all_arrays['validation_height'][use_pps])
+    print(np.mean(cObjPPS.calipso.all_arrays['validation_height'][use_pps]))
     print_stats(cObjPPS, cObjPATMOSX, use_pps, use_patmosx)
