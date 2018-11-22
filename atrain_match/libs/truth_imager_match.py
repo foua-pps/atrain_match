@@ -1449,7 +1449,7 @@ def process_one_mode(process_mode_dnt, caObj, clsatObj, issObj, amObj,syObj,
     logger.debug("Plotting")
     if process_mode_dnt in SETTINGS['PLOT_MODES']:
         plot_some_figures(clsatObj, caObj, values, basename, process_mode, 
-                          AM_PATHS, amObj=amObj)
+                          AM_PATHS, SETTINGS, amObj=amObj)
     #==============================================================
     #Calculate Statistics
     logger.debug("Calculating statistics")

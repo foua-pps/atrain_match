@@ -20,11 +20,11 @@ from utils.get_flag_info import (get_semi_opaque_info_pps2014,
 
 cc_type_name={
    0: 'low overcast (tp) ',
-    1: 'low overcast (oq)',
+    1: 'low overcast (op)',
    2: 'transition stratocumulus',
    3: 'low broken cumulus',
    4: 'altocumulus (tp)',
-   5: 'altostratus (oq)',
+    5: 'altostratus (op)',
    6: 'cirrus (tp)',
    7: 'deep convective (op)'
 }
