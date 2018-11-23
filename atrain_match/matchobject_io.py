@@ -317,7 +317,13 @@ class ppsImagerObject(DataObject):
             #'segment_nwp_tb12cloudy_surface': None,
             'nwp_height': None,
             'nwp_pressure': None,
-            'nwp_temperature':None
+            'nwp_temperature': None,
+            'nwp_surface_h': None,
+            'nwp_h2m': None,
+            'nwp_t2m': None,
+            'nwp_u10m': None, 
+            'nwp_v10m': None,
+            'nwp_psur': None
         }
         
 class ModisObject(DataObject):
@@ -902,6 +908,12 @@ the_used_variables = [
     'nwp_height',
     'nwp_pressure',
     'nwp_temperature',
+    'nwp_surface_h',
+    'nwp_h2m',
+    'nwp_t2m',
+    'nwp_u10m', 
+    'nwp_v10m',
+    'nwp_psur',
     'longitude',
     'latitude',
     'imager_linnum',

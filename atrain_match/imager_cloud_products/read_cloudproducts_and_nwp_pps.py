@@ -884,6 +884,7 @@ def read_all_intermediate_files(pps_files, SETTINGS):
         nwp_dict['t800'] = read_etc_nc(pps_nc_nwp, "t800")
         nwp_dict['t250'] = read_etc_nc(pps_nc_nwp, "t250")
         nwp_dict['ptro'] = read_etc_nc(pps_nc_nwp, "ptro")
+        #psur in in Pa, as ctth_pressure is in Pa
         nwp_dict['psur'] = read_etc_nc(pps_nc_nwp, "psur")
         nwp_dict['t2m'] = read_etc_nc(pps_nc_nwp, "t2m")
         nwp_dict['h2m'] = read_etc_nc(pps_nc_nwp, "h2m")

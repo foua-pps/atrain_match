@@ -1187,7 +1187,8 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
         if SETTINGS['ADD_NWP']:
             import pps_nwp
             from libs.extract_imager_along_track import _interpolate_height_and_temperature_from_pressure
-            nwp_file = find_closest_nwp_file(imagerGeoObj, AM_PATHS, values, SETTINGS)
+            nwp_file = find_closest_nwp_file(imagerGeoObj, AM_PATHS, 
+                                             values, SETTINGS)
             logger.debug(nwp_file)
             if pps_nwp is None:
                 continue
@@ -1195,13 +1196,22 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
                                                    matchup.imager.latitude))
             matchup.imager.nwp_height = gribfile.get_gh_vertical()[0,:,:].astype(np.float32).transpose()
             matchup.imager.nwp_surface_h = gribfile.get_gh_surface()[:].astype(np.float32)
-            matchup.imager.nwp_psur = 0.01*gribfile.get_p_surface()[:].astype(np.float32)
             matchup.imager.nwp_temperature = gribfile.get_t_vertical()[0,:,:].astype(np.float32).transpose()
+            matchup.imager.nwp_h2m = gribfile.get_h_2meter()[:].astype(np.float32)
+            matchup.imager.nwp_t2m = gribfile.get_t_2meter()[:].astype(np.float32)
+            matchup.imager.nwp_u10m = gribfile.get_u_10meter()[:].astype(np.float32)
+            matchup.imager.nwp_v10m = gribfile.get_v_10meter()[:].astype(np.float32)
+            #get pressure variables in hPs
             field = gribfile.get_p_vertical()
             if field.units =='Pa':
                 field = 0.01*field[:]
                 field.units = 'hPa'
             matchup.imager.nwp_pressure = field[0,:,:].astype(np.float32).transpose()
+            field = gribfile.get_p_surface()
+            if field.units =='Pa':
+                field = 0.01*field[:]
+                field.units = 'hPa'
+            matchup.imager.nwp_psur = field[:].astype(np.float32).transpose()
             data = _interpolate_height_and_temperature_from_pressure(matchup.imager, 440)
             setattr(matchup.imager, 'nwp_h440', data)
             data = _interpolate_height_and_temperature_from_pressure(matchup.imager, 680)
