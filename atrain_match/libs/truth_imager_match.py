@@ -1386,7 +1386,8 @@ def plot_some_figures(clsatObj, caObj, values, basename, process_mode,
                                       basename, 
                                       process_mode, 
                                       file_type,
-                                      instrument=caObj.imager_instrument)
+                                      instrument=caObj.imager_instrument,
+                                      MAXHEIGHT = SETTINGS["MAXHEIGHT"])
         #TIME DIFF SATZ 
         drawCalClsatImagerPlotTimeDiff(clsatObj, 
                                       caObj,

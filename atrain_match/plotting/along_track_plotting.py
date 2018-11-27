@@ -15,12 +15,12 @@ def drawCalClsatGEOPROFImagerPlot(clsatObj,
                                  mode, 
                                  file_type='png',
                                  **options):
-
+    instrument = 'imager'
     if 'instrument' in options:
         instrument = options['instrument']
-    else:
-        instrument = 'imager'
-
+    MAXHEIGHT = None
+    if 'MAXHEIGHT' in options:
+        MAXHEIGHT = options["MAXHEIGHT"]
     caliop_height = caObj.calipso.layer_top_altitude*1000
     caliop_base = caObj.calipso.layer_base_altitude*1000
     calipso_val_h = caObj.calipso.validation_height
@@ -28,13 +28,13 @@ def drawCalClsatGEOPROFImagerPlot(clsatObj,
     caliop_height[caliop_height<0]=-9
     pixel_position = np.arange(caObj.calipso.latitude.shape[0])                            
     # Calculates Hihest Cloud Top   
-    if SETTINGS("MAXHEIGHT") is None:
+    if MAXHEIGHT is None:
         maxheight_calipso = np.nanmax(caliop_height)
         maxheight_imager = np.nanmax(imager_ctth_m_above_seasurface)
-        max_height_sat = [maxheight_calipso, maxheight_imager]
-        maxheight = maxheight + 1000
+        max_height_sat = np.max([maxheight_calipso, maxheight_imager])
+        maxheight = max_height_sat + 1000
     else:
-        maxheight = SETTINGS("MAXHEIGHT")
+        maxheight =  MAXHEIGHT 
     #PLOT    
     fig = plt.figure()
     #Plot ground
@@ -136,10 +136,14 @@ def drawCalPPSHeightPlot_PrototypePPSHeight(caObj_calipso,
                                             **options):
     if xmax<0:
         xmax = len(data_ok)
+    instrument = 'imager'
     if 'instrument' in options:
         instrument = options['instrument']
-    else:
-        instrument = 'imager'
+    MAXHEIGHT = None
+    if 'MAXHEIGHT' in options:
+        MAXHEIGHT = options["MAXHEIGHT"]
+
+    
     # Prepare for Imager
     caliop_height = caObj_calipso.layer_top_altitude*1000
     caliop_base = caObj_calipso.layer_base_altitude*1000
@@ -154,11 +158,10 @@ def drawCalPPSHeightPlot_PrototypePPSHeight(caObj_calipso,
     if MAXHEIGHT is None:
         maxheight_calipso = np.nanmax(caliop_height)
         maxheight_imager = np.nanmax(ctth_height1)
-        max_height_sat = [maxheight_calipso, maxheight_imager]
-        maxheight = maxheight + 1000
+        max_height_sat = np.max([maxheight_calipso, maxheight_imager])
+        maxheight = max_height_sat + 1000
     else:
-        maxheight = MAXHEIGHT
-    maxheight = MAXHEIGHT
+        maxheight =  MAXHEIGHT 
     fig = plt.figure(figsize = (20,15))
     title = "%s-CALIOP Cloud Top Heights" % instrument.upper()
     font = {'family' : 'normal',
@@ -195,14 +198,20 @@ def drawCalPPSHeightPlot_PrototypePPSHeight(caObj_calipso,
     ax = fig.add_subplot(211)
     ax.plot(pixel_position_ok, imager_ctth_ok1, 'b+', linewidth=0.5, 
             label=instrument.upper() + " old-CTTH")
+    false = (caliop_height[:,0]<0)[data_ok]
+    ax.plot(pixel_position_ok[false], imager_ctth_ok1[false], 'r+', linewidth=0.5, 
+            label=instrument.upper() + " old-CTTH (false")
     plt.legend(fancybox=True, loc=1,  numpoints=4)
     ax.set_xlim(xmin, xmax)
+    ax.set_ylim(0, maxheight)
     ax = fig.add_subplot(212)
-    ax.plot(pixel_position_ok, imager_ctth_ok2, 'b+', linewidth=0.5,  
+    ax.plot(pixel_position_ok, imager_ctth_ok2, 'c+', linewidth=0.5,  
             label=instrument.upper() + " nn-CTTH")
+    ax.plot(pixel_position_ok[false], imager_ctth_ok2[false], 'm+', linewidth=0.5,  
+            label=instrument.upper() + " nn-CTTH (false)")
     plt.legend(fancybox=True, loc=1,  numpoints=4)
     ax.set_xlim(xmin,xmax)
-    #ax.set_ylim(0, maxheight)
+    ax.set_ylim(0, maxheight)
     plt.suptitle(title, fontsize=24)
     ax.set_xlabel("Track Position", fontsize=22)
 
@@ -216,7 +225,9 @@ def drawCalPPSHeightPlot_PrototypePPSHeight(caObj_calipso,
             filename = "%s/%skm_%s_calipso_%s_clouds.%s" \
                 %(plotpath, RESOLUTION, basename, instrument, filetype)
             fig.savefig(filename, format = filetype)
-      
+    #plt.show()
+    plt.close("all")
+
 # -----------------------------------------------------
 def drawCalClsatCWCImagerPlot(clsatObj, elevationcwc, data_okcwc, 
                              plotpath, basename, phase, **options):
