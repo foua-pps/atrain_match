@@ -198,7 +198,7 @@ def find_closest_nwp_file(imagerGeoObj, AM_PATHS, values, SETTINGS):
                 AM_PATHS['grib_file'],
                 values, 
                 datetime_obj=grib_datetime)
-            print("globbing", os.path.join(grib_dir, grib_file_pattern))
+            #print("globbing", os.path.join(grib_dir, grib_file_pattern))
             tmplist = glob(os.path.join(grib_dir, grib_file_pattern))
             if len(tmplist)>0:
                 return tmplist[0]
@@ -885,6 +885,33 @@ def add_additional_clousat_calipso_index_vars(clsatObj, caObj):
     if clsatObj is not None and caObj is not None:
         index = clsatObj.cloudsat.calipso_index.copy()
         index[index<0] = 0
+        for var_2d_name in ['feature_classification_flags', 
+                           'layer_base_altitude', 
+                           'layer_top_altitude',
+                           'feature_optical_depth_532',
+                           'feature_optical_depth_532_5km']:
+            if hasattr(caObj.calipso, var_2d_name):
+                data_calipso = getattr(caObj.calipso, var_2d_name)
+                if data_calipso is None:
+                    continue
+                temp_data = np.array([np.where(
+                    clsatObj.cloudsat.calipso_index>=0, 
+                    data_calipso[index,i], -9) for i in range(data_calipso.shape[1])])
+                setattr(clsatObj.cloudsat,  'calipso_{:s}'.format(var_2d_name), temp_data.transpose()) 
+
+        for var_1d_name in ['column_optical_depth_tropospheric_aerosols_532',
+                           'column_optical_depth_tropospheric_aerosols_532_5km',
+                           'column_optical_depth_aerosols_532',
+                           'column_optical_depth_aerosols_532_5km']:
+
+            if hasattr(caObj.calipso, var_1d_name):
+                data_calipso = getattr(caObj.calipso, var_1d_name)
+                if data_calipso is None:
+                    continue
+                temp_data = np.where(clsatObj.cloudsat.calipso_index>=0, data_calipso[index], -9) 
+                setattr(clsatObj.cloudsat,  'calipso_{:s}'.format(var_1d_name), temp_data) 
+            
+        """
         clsatObj.cloudsat.calipso_feature_classification_flags= np.where(
             clsatObj.cloudsat.calipso_index>=0,
             caObj.calipso.feature_classification_flags[index,0],
@@ -919,6 +946,7 @@ def add_additional_clousat_calipso_index_vars(clsatObj, caObj):
                 caObj.calipso.layer_top_altitude[index,layer],
             clsatObj.cloudsat.calipso_layer_top_altitude)
         clsatObj.cloudsat.calipso_layer_top_altitude[clsatObj.cloudsat.calipso_layer_top_altitude<-999] = -9.0
+    """   
     return clsatObj, caObj
 
 def add_modis_lvl2_clousat_(clsatObj, caObj):
