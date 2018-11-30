@@ -73,7 +73,13 @@ import os
 import sys
 import numpy as np
 import logging
-from datetime import timedelta, timezone, datetime
+
+from datetime import timedelta, datetime
+try: 
+    from datetime import timezone as my_tz
+except ImportError:
+    import pytz as my_tz
+from glob import glob
 from glob import glob
 import time
 
@@ -184,7 +190,7 @@ def get_time_list(cross_time, time_window, delta_t_in_seconds):
 
 def find_closest_nwp_file(imagerGeoObj, AM_PATHS, values, SETTINGS):
     date_time = datetime.fromtimestamp((imagerGeoObj.sec1970_end*0.5 + 
-                                        imagerGeoObj.sec1970_start*0.5), timezone.utc)
+                                        imagerGeoObj.sec1970_start*0.5), my_tz.utc)
     delta_3h = timedelta(hours=SETTINGS['MAX_NWP_TDIFF_HOURS'])
     tlist = get_time_list(date_time,  [delta_3h, delta_3h], 60*60) # time_window +/- 3h
     for tobj in tlist: 
