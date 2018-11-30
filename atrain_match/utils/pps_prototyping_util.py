@@ -2,6 +2,7 @@ import numpy as np
 import logging
 logger = logging.getLogger(__name__)
 
+import config
 from libs.extract_imager_along_track import CHANNEL_MICRON_IMAGER_PPS, CHANNEL_MICRON_DESCRIPTIONS
 from libs.extract_imager_along_track import get_channel_data_from_object, get_data_from_array
 
@@ -18,6 +19,9 @@ def get_t11t12_texture_data_from_object(dataObj, nwp_obj, ch11, ch12, text_name)
     t11t12_texture = mean_of_squared - mean**2 
     setattr(nwp_obj, text_name, t11t12_texture)
     return nwp_obj
+
+        
+
 
 class NeighbourObj(object):
     def __init__(self):
@@ -83,6 +87,7 @@ def get_warmest_or_coldest_index(t11, matched, warmest=True):
     return new_row_col
 
 
+
 def get_warmest_values(dataObj, matched):
     nobj = NeighbourObj()
     t11 = get_channel_data_from_objectfull_resolution(dataObj, '11', nodata=-9)
@@ -123,6 +128,39 @@ def get_darkest_values(dataObj, matched):
     nobj.darkest_r09=get_channel_data_from_object(dataObj, '09', new_row_col)[0]
     return nobj
     
+def add_cnn_features(dataObj, matched, lats_full, lons_full, lats_matched, lons_matched, SETTINGS):
+    from cloud_collocations.cloud_net import CloudNetBase
+    from cloud_collocations.cloud_net import FeatureModel
+    from utils.match import match_lonlat
+    the_filters_dict = {}
+    print(SETTINGS['CNN_PCKL_PATH'])
+    cnn = CloudNetBase.load(SETTINGS['CNN_PCKL_PATH'])
+    m = FeatureModel(cnn)
+    im11 = get_channel_data_from_objectfull_resolution(dataObj, '11', nodata=-9)
+    im12 = get_channel_data_from_objectfull_resolution(dataObj, '12', nodata=-9)
+    filter_response = m.apply(np.array([im11, im12]))
+    lats_f = m.resample_coordinates(lats_full)
+    lons_f = m.resample_coordinates(lons_full)
+    #filter_response.shape
+    #(1, 32, 43, 43)
+    #pytroll resample lats_matched/lons_matched to lats_f/lons_f
+    #extract along track feature 1:32
+    target = (lats_matched.astype(np.float64).reshape(-1,1), 
+              lons_matched.astype(np.float64).reshape(-1,1))
+    source = (lats_f.astype(np.float64).reshape(-1,1), 
+              lons_f.astype(np.float64).reshape(-1,1))
+    mapper, dummy = match_lonlat(source, target, radius_of_influence=10000, n_neighbours=1)
+    cnn_feature_index = mapper.rows.filled(config.NODATA).ravel() #i.e rows, cols!
+    for feature_index in range(32):
+        feature_i = filter_response[0,feature_index,:,:]
+        the_filters_dict["cnn_feature_%d"%(feature_index)] = np.where(
+            cnn_feature_index>=0, 
+            feature_i.reshape(-1,1).ravel()[cnn_feature_index],
+            -9)
+    return the_filters_dict  
+    
+
+
 def get_channel_data_from_objectfull_resolution(dataObj, chn_des, nodata=-9):
     """Get the IMAGER/VIIRS channel data on the track
     matched: dict of matched indices (row, col)

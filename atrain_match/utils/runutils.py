@@ -35,6 +35,9 @@ def read_config_info():
                       "PLOT_TYPES", "CTTH_TYPES", 
                       'SATELLITES', 'YEARS', 'MONTHS']:
            value_ = values
+        elif name in ['CNN_PCKL_PATH']:
+            value_ = values[0]           
+
         elif len(values)==1 and 'true' in values[0].lower():
             value_ = True
         elif len(values)==1 and 'false' in values[0].lower():

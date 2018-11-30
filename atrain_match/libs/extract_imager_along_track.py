@@ -362,7 +362,6 @@ def imager_track_from_matched(obt, SETTINGS,
     col_matched = truth.imager_pixnum
     row_col = {'row': row_matched, 'col': col_matched}
     if extract_some_data_for_x_neighbours or find_mean_data_for_x_neighbours:
-        truth = getattr(obt, obt.truth_sat)
         row_matched_nneigh = truth.imager_linnum_nneigh
         col_matched_nneigh = truth.imager_pixnum_nneigh
         row_col_nneigh = {'row': row_matched_nneigh, 'col': col_matched_nneigh}
@@ -417,8 +416,8 @@ def imager_track_from_matched(obt, SETTINGS,
                 name = "%s_%s"%(ctth_type.lower(),data_set)
                 setattr(obt.imager, name, get_data_from_array(data, row_col))
     from utils.pps_prototyping_util import (get_t11t12_texture_data_from_object,
-                                      get_coldest_values,get_darkest_values,
-                                      get_warmest_values)
+                                            get_coldest_values,get_darkest_values,
+                                            get_warmest_values)
     if dataObj is not None:
         pass
         #nwp_obj = get_t11t12_texture_data_from_object(dataObj, nwp_obj, '11','12', 
@@ -548,6 +547,17 @@ def imager_track_from_matched(obt, SETTINGS,
             if data is not None:
                 setattr(obt.imager, data_set_name,  
                         get_data_from_array(data, row_col))
+
+    #ADD CNN features  
+          
+    from utils.pps_prototyping_util import add_cnn_features
+    filters_dict = add_cnn_features(dataObj,  row_col, 
+                                    GeoObj.latitude, GeoObj.longitude, 
+                                    obt.imager.latitude, obt.imager.longitude, 
+                                    SETTINGS)
+    for filter_name in filters_dict.keys():
+        setattr(obt.imager, filter_name, filters_dict[filter_name])
+
            
     return obt
 
