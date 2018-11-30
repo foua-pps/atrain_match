@@ -1,5 +1,6 @@
 import numpy as np
 import logging
+import os
 logger = logging.getLogger(__name__)
 CHANNEL_MICRON_DESCRIPTIONS = {'11': ["avhrr channel 4 - 11um",
                                       "Avhrr channel channel4.",
@@ -551,12 +552,13 @@ def imager_track_from_matched(obt, SETTINGS,
     #ADD CNN features  
           
     from utils.pps_prototyping_util import add_cnn_features
-    filters_dict = add_cnn_features(dataObj,  row_col, 
-                                    GeoObj.latitude, GeoObj.longitude, 
-                                    obt.imager.latitude, obt.imager.longitude, 
-                                    SETTINGS)
-    for filter_name in filters_dict.keys():
-        setattr(obt.imager, filter_name, filters_dict[filter_name])
+    if os.path.isfile(SETTINGS['CNN_PCKL_PATH']):
+        filters_dict = add_cnn_features(dataObj,  row_col, 
+                                        GeoObj.latitude, GeoObj.longitude, 
+                                        obt.imager.latitude, obt.imager.longitude, 
+                                        SETTINGS)
+        for filter_name in filters_dict.keys():
+            setattr(obt.imager, filter_name, filters_dict[filter_name])
 
            
     return obt
