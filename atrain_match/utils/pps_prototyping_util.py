@@ -145,17 +145,18 @@ def add_cnn_features(dataObj, matched, lats_full, lons_full, lats_matched, lons_
     #(1, 32, 43, 43)
     #pytroll resample lats_matched/lons_matched to lats_f/lons_f
     #extract along track feature 1:32
-    target = (lats_matched.astype(np.float64).reshape(-1,1), 
-              lons_matched.astype(np.float64).reshape(-1,1))
-    source = (lats_f.astype(np.float64).reshape(-1,1), 
-              lons_f.astype(np.float64).reshape(-1,1))
+    target = (lons_matched.astype(np.float64).reshape(-1,1), 
+              lats_matched.astype(np.float64).reshape(-1,1))
+    source = (lons_f.astype(np.float64), 
+              lats_f.astype(np.float64))
     mapper, dummy = match_lonlat(source, target, radius_of_influence=10000, n_neighbours=1)
-    cnn_feature_index = mapper.rows.filled(config.NODATA).ravel() #i.e rows, cols!
+    cnn_feature_index_R = mapper.rows.filled(config.NODATA).ravel() #i.e rows, cols!
+    cnn_feature_index_C = mapper.cols.filled(config.NODATA).ravel() #i.e rows, cols!
     for feature_index in range(32):
         feature_i = filter_response[0,feature_index,:,:]
         the_filters_dict["cnn_feature_%d"%(feature_index)] = np.where(
-            cnn_feature_index>=0, 
-            feature_i.reshape(-1,1).ravel()[cnn_feature_index],
+            cnn_feature_index_R>=0, 
+            feature_i[cnn_feature_index_R,cnn_feature_index_C],
             -9)
     return the_filters_dict  
     
