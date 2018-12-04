@@ -108,9 +108,6 @@ def write_match_objects(filename, datasets, groups, group_attrs_dict, SETTINGS=N
     >>> diff_sec_1970, groups = read_match_objects('match.h5')
     
     """
-    skip_some = False
-    if SETTINGS is not None:
-        skip_some = SETTINGS["WRITE_ONLY_THE_MOST_IMPORTANT_STUFF_TO_FILE"]
     from config import COMPRESS_LVL
     import h5py
     from matchobject_io import the_used_variables 
@@ -120,6 +117,16 @@ def write_match_objects(filename, datasets, groups, group_attrs_dict, SETTINGS=N
                          compression=COMPRESS_LVL)
         
         for group_name, group_object in groups.items():
+            skip_some = False
+            if SETTINGS is not None and group_name in ['calipso', 
+                                                       'calipso_aerosol'
+                                                       'cloudsat', 
+                                                       'iss', 
+                                                       'mora', 
+                                                       'synop', 
+                                                       'modis']:
+                skip_some = SETTINGS["WRITE_ONLY_THE_MOST_IMPORTANT_STUFF_TO_FILE"]
+
             try:
                 attrs_dict = group_attrs_dict[group_name]
             except KeyError:
