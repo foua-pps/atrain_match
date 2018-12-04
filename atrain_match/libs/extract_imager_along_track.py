@@ -553,8 +553,7 @@ def imager_track_from_matched(obt, SETTINGS,
           
     from utils.pps_prototyping_util import add_cnn_features
     if os.path.isfile(SETTINGS['CNN_PCKL_PATH']):
-        filters_dict = add_cnn_features(dataObj,  row_col, 
-                                        GeoObj.latitude, GeoObj.longitude, 
+        filters_dict = add_cnn_features(dataObj.cnn_dict,  row_col, 
                                         obt.imager.latitude, obt.imager.longitude, 
                                         SETTINGS)
         for filter_name in filters_dict.keys():

@@ -127,24 +127,31 @@ def get_darkest_values(dataObj, matched):
     nobj.darkest_r16=get_channel_data_from_object(dataObj, '16', new_row_col)[0]
     nobj.darkest_r09=get_channel_data_from_object(dataObj, '09', new_row_col)[0]
     return nobj
-    
-def add_cnn_features(dataObj, matched, lats_full, lons_full, lats_matched, lons_matched, SETTINGS):
+ 
+def add_cnn_features_full(imagerObj, imagerGeoObj, SETTINGS):
     from cloud_collocations.cloud_net import CloudNetBase
     from cloud_collocations.cloud_net import FeatureModel
-    from utils.match import match_lonlat
     the_filters_dict = {}
     print(SETTINGS['CNN_PCKL_PATH'])
     cnn = CloudNetBase.load(SETTINGS['CNN_PCKL_PATH'])
     m = FeatureModel(cnn)
-    im11 = get_channel_data_from_objectfull_resolution(dataObj, '11', nodata=-9)
-    im12 = get_channel_data_from_objectfull_resolution(dataObj, '12', nodata=-9)
+    im11 = get_channel_data_from_objectfull_resolution(imagerObj, '11', nodata=-9)
+    im12 = get_channel_data_from_objectfull_resolution(imagerObj, '12', nodata=-9)
     filter_response = m.apply(np.array([im11, im12]))
-    lats_f = m.resample_coordinates(lats_full)
-    lons_f = m.resample_coordinates(lons_full)
+    lats_f = m.resample_coordinates(imagerGeoObj.latitude)
+    lons_f = m.resample_coordinates(imagerGeoObj.longitude)
+    return {'filter_response': filter_response, 'lats_f': lats_f, 'lons_f':lons_f}
+   
+def add_cnn_features(cnn_dict, matched, lats_matched, lons_matched, SETTINGS):
+    from utils.match import match_lonlat
     #filter_response.shape
     #(1, 32, 43, 43)
     #pytroll resample lats_matched/lons_matched to lats_f/lons_f
     #extract along track feature 1:32
+    the_filters_dict  = {}
+    filter_response = cnn_dict['filter_response']
+    lats_f = cnn_dict['lats_f']
+    lons_f = cnn_dict['lons_f']
     target = (lons_matched.astype(np.float64).reshape(-1,1), 
               lats_matched.astype(np.float64).reshape(-1,1))
     source = (lons_f.astype(np.float64), 

@@ -1087,6 +1087,9 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
         retv =read_pps_data(pps_files, imager_file, SETTINGS)
         (imagerAngObj, ctth, imagerGeoObj, ctype, imagerObj, 
          nwp_obj, cpp, nwp_segments, cma )= retv
+        if os.path.isfile(SETTINGS['CNN_PCKL_PATH']):
+            from utils.pps_prototyping_util import add_cnn_features_full
+            imagerObj.cnn_dict = add_cnn_features_full(imagerObj, imagerGeoObj, SETTINGS)
     if (CCI_CLOUD_VALIDATION):
         imagerAngObj, ctth, imagerGeoObj, ctype, imagerObj, surftemp, cpp, cma = read_cloud_cci(imager_file)
         nwp_segments = None
