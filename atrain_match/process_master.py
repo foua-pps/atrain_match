@@ -13,7 +13,11 @@ through a set of files with SNO matchups.
 
 """
 import logging
-logging.basicConfig(level=logging.INFO) 
+logging.basicConfig(
+    format='%(levelname)s |%(asctime)s|: %(message)s',
+    level=logging.INFO,
+    #datefmt='%Y-%m-%d %H:%M:%S')
+    datefmt='%H:%M:%S')
 logger = logging.getLogger(__name__)
 from utils.common import (InputError, MatchupError)
 import config

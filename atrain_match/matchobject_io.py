@@ -597,7 +597,7 @@ class TruthImagerTrackObject:
     
     def __add__(self, other):
         """Concatenating two objects together"""
-        for object_name in ['imager', 'calipso', 'calipso_aerosol'
+        for object_name in ['imager', 'calipso', 'calipso_aerosol',
                             'cloudsat', 'iss', 'mora', 'synop', 'modis']:
             if hasattr(self, object_name):
                 setattr(self, object_name, 
@@ -656,13 +656,13 @@ def get_stuff_to_read_from_a_reshaped_file(h5file, retv):
     return (h5_groups, data_objects)
     
           
-def readTruthImagerMatchObj(filename, truth='calipso'):
+def readTruthImagerMatchObj(filename, truth='calipso', READ_ALL=True):
     retv = TruthImagerTrackObject(truth=truth)    
     h5file = h5py.File(filename, 'r')
     (h5_groups, data_objects) =  get_stuff_to_read_from_a_reshaped_file(h5file, retv)
     for group, data_obj in zip(h5_groups, data_objects):
         for dataset in group.keys():        
-            if dataset in data_obj.all_arrays.keys():
+            if  READ_ALL or dataset in data_obj.all_arrays.keys():
                 atrain_match_name = dataset
                 if atrain_match_name in ["snow_ice_surface_type"]:
                     atrain_match_name = "nsidc_surface_type"
@@ -671,11 +671,11 @@ def readTruthImagerMatchObj(filename, truth='calipso'):
     h5file.close()
     return retv
 
-def read_files(files, truth='calipso'):
+def read_files(files, truth='calipso', READ_ALL=True):
     tObj = readTruthImagerMatchObj(files.pop(), truth=truth)
     if len(files)>0:
         for filename in files:
-            tObj += readTruthImagerMatchObj(filename, truth=truth)  
+            tObj += readTruthImagerMatchObj(filename, truth=truth, READ_ALL=READ_ALL)  
     return tObj 
 
 # write matchup files
