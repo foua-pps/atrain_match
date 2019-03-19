@@ -2,6 +2,7 @@ import pdb
 import os
 import numpy as np
 import time as tm
+from datetime import datetime
 import logging
 logger = logging.getLogger(__name__)
 
@@ -205,6 +206,11 @@ def read_calipso(filename):
             retv = read_calipso_h5(filename, retv)
     #Adopt some variables     
     dsec = tm.mktime((1993,1,1,0,0,0,0,0,0)) - tm.timezone
+    dt = datetime(1993,1,1,0,0,0)-datetime(1970,1,1,0,0,0)
+    dsec2 = dt.days*24*60*60
+    if dsec != dsec2:
+        print("WARNING")
+
     #1km
     if retv.profile_time_tai.shape == retv.number_layers_found.shape: 
         retv.latitude = retv.latitude[:,0]

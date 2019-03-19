@@ -46,7 +46,7 @@ def process_matchups(matchups, run_modes, reprocess=False, debug=False):
     problematic = set()
     no_matchup_files = []
     outstatus = 0
-    for match in sorted(matchups):
+    for match in matchups:
         try:
             truth_imager_match.run(match, run_modes,  AM_PATHS, SETTINGS, reprocess)
         except MatchupError as err:
