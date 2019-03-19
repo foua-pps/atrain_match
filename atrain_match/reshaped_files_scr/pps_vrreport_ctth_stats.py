@@ -4,10 +4,6 @@ import os
 import re
 from glob import glob
 import numpy as np
-from matchobject_io import (DataObject,
-                            CalipsoObject,
-                            CloudsatImagerTrackObject,
-                            CalipsoImagerTrackObject)
 
 from utils.get_flag_info import get_calipso_clouds_of_type_i_feature_classification_flags_one_layer
 import matplotlib.pyplot as plt
@@ -43,7 +39,7 @@ from matplotlib import rc
 
 #rc('text',usetex=True)
 #rc('text.latex', preamble='\usepackage{color}')
-out_filename = "/home/a001865/Documents/A_PPS_v2017/Validation_2018/results_ctth.txt"
+out_filename = "/home/a001865/Documents/A_PPS_v2017/Validation_2018/results_ctth_polarn.txt"
 out_file_h = open(out_filename,'a')
 
 
@@ -60,16 +56,34 @@ def my_make_plot3(y, x, x2, mhl,use):
 def my_make_plot2(y, x, x2, mhl,use):
     fig = plt.figure(figsize=(15, 11))
     ax = fig.add_subplot(321)
-    use_k = use
+    use_k = np.logical_and(use,x2>0)
+    #use_k = np.logical_and(use_k,x-x2>3000)
+
     print(min(y[use_k]), len(use[use_k]))
     abias1 = np.abs(y[use_k]-x[use_k])
     abias2 = np.abs(y[use_k]-x2[use_k])
     dist = 0.5*np.abs(x2[use_k]-x[use_k])
+    dist25 = 0.25*np.abs(x2[use_k]-x[use_k])
     closer_to_top = np.logical_and(abias1<=abias2, np.logical_and(y[use_k]<=x[use_k], y[use_k]>=x2[use_k]))
     closer_to_2 = np.logical_and(abias1>abias2, np.logical_and(y[use_k]<=x[use_k], y[use_k]>=x2[use_k]))
+    in_between = np.logical_and(y[use_k]<(x[use_k]), y[use_k]>(x2[use_k]))
+    in_between_2 = np.logical_and(in_between, np.logical_and(abias1>=1500,abias2>=1500))
+    close_to_level_2 = np.logical_and(abias1>2000,abias2<1500)
+    close_to_level_1 = abias1<1500
+    lower = np.logical_and(abias2>1500,y[use_k]<x2[use_k])
+    above = np.logical_and(abias1>1500,y[use_k]>x[use_k])
+    print("between", np.sum(in_between)*100.0/len(in_between),np.sum(in_between_2)*100.0/len(in_between_2)) 
+    print("det layer two", np.sum(close_to_level_2)*100.0/len(close_to_level_2))
+    print("det layer one", np.sum(close_to_level_1)*100.0/len(close_to_level_1))
+    print("lower", np.sum(lower)*100.0/len(lower))
+    print("above", np.sum(above)*100.0/len(above))
+     
+    
     sort_ind = np.argsort(np.where(abias1<abias2, abias1, abias2))
     print( np.mean(np.where(abias1<abias2, abias1, abias2)), np.mean(abias1), np.mean(abias2))
-    print( np.sum(np.where(abias1<abias2, abias1, abias2)<1000)*100.0/len(abias1))
+    print(  np.sum(np.where(abias1<abias2, abias1, abias2)<1000)*100.0/len(abias1))
+    print(  np.sum(np.where(abias1<abias2, abias1, abias2)<1500)*100.0/len(abias1)) #(70%)
+
 
     sort_ind_top = np.argsort(abias1[closer_to_top])
     sort_ind_2 = np.argsort(abias2[closer_to_2])
@@ -216,12 +230,48 @@ def my_make_plot_example_aprox(bias, use, label_str, caObj):
 
     #temp_data2 = np.concatenate([np.random.normal(-900,200, int(0.5*n_pix)), np.random.normal(+900,200, int(0.5*n_pix))])
     hist_heights_pps, x_m, dummy = my_hist(bias_i, None, bmin=-20*1000, bmax=20*1000, delta_h=100.0)
+
+
     hist_heights_g, x_m, dummy = my_hist(temp_data_g, None, bmin=-20*1000, bmax=20*1000, delta_h=100.0)
     hist_heights_iqr, x_m, dummy = my_hist(temp_data_iqr, None, bmin=-20*1000, bmax=20*1000, delta_h=100.0)
     hist_heights_gs, x_m, dummy = my_hist(temp_data_gs, None, bmin=-20*1000, bmax=20*1000, delta_h=100.0)
     hist_heights_iqrs, x_m, dummy = my_hist(temp_data_iqrs, None, bmin=-20*1000, bmax=20*1000, delta_h=100.0)
     #hist_heights3, x_m, dummy = my_hist(bias, use, bmin=-20*1000, bmax=20*1000, delta_h=100.0)
     x_ = x_m*0.001
+
+    
+    def gaussian_fit(x,y, bias):
+        n = len(x)                          #the number of data
+        mean = np.median(bias)                   #note this correction
+        sigma = my_iqr(bias)*21.0/27        #note this correction
+        from scipy.optimize import curve_fit
+        from scipy import asarray as ar,exp
+
+        def gaus(x,a,x0,sigma):
+            return 8*exp(-np.abs(x-x0)*np.sqrt(2)/(sigma))
+
+        #popt,pcov = curve_fit(gaus,x,y,p0=[1,mean,sigma])
+        
+        plt.plot(x,y,'b+:',label='data')
+        plt.plot(x,gaus(x,1, mean, sigma),'ro:',label='fit')
+        plt.show()
+        return 1, mean, sigma
+
+    dummy, mean_g, sigma_g = gaussian_fit(x_m, hist_heights_pps,bias_i)
+    temp_data_fitted = np.random.laplace(np.median(bias),my_iqr(bias)*32/26.0, n_pix)
+    hist_heights_fitted, x_m, dummy = my_hist(temp_data_fitted, None, bmin=-20*1000, bmax=20*1000, delta_h=100.0)
+
+    fig = plt.figure(figsize=(7, 5))
+    ax = fig.add_subplot(111)
+    ax.fill(x_, hist_heights_fitted, color='silver',
+            label = "\nGaussian\n" + my_legend_text_6(temp_data_fitted, ))
+    plt.plot(x_, hist_heights_pps, "r-",  
+             label = "NN-CTTH\n"+my_legend_text_6(bias_i, "PPS"  ))
+    ax.set_xlim(-4,6)
+    leg = plt.legend(loc="upper right", markerscale=2., numpoints=1,scatterpoints=1, bbox_to_anchor=(1.13, 1.2), framealpha=1.0, frameon=True)
+    leg.get_frame().set_facecolor('w')
+    plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_ctth_error_and_gaussian_fitted_%s.png"%(label_str),bbox_inches='tight')
+    plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_ctth_error_and_gaussian_fitted_%s.pdf"%(label_str),bbox_inches='tight')
 
     plt.style.use('seaborn-white')
     fig = plt.figure(figsize=(7, 5))
@@ -459,8 +509,8 @@ def print_all(cObj, compare, compare_name = "unknown"):
     bias_second_layer = y-x2
     abias = np.abs(bias)
 
-    my_make_plot_example(bias, use, compare_name)
-    my_make_plot2(y, x, x2, mhl, mhl["all_clouds_tp_bad2"])
+    #my_make_plot_example(bias, use, compare_name)
+    #my_make_plot2(y, x, x2, mhl, mhl["all"])
     my_make_plot_example_aprox(bias, use, compare_name, cObj)
 
     from scipy import  ndimage
@@ -570,12 +620,23 @@ if __name__ == "__main__":
     ROOT_DIR_v2018_GAC_clsat = (BASE_DIR + "global_gac_v2018_created20180927/Reshaped_Files/noaa18/5km/2009/*clouds*h5")
     ROOT_DIR = ROOT_DIR_v2018_clsat
 
+#between 27.16770203522559 12.67069745562212
+#between 38.70328344488811 22.066300881905146
+
+
+
+    files = glob(ROOT_DIR_v2014_NPP)
+    out_file_h.write("NPP-v2014\n")    
+    cObj = read_files(files)
+    print_all(cObj, None, "NPPv2014")
+
+
 
     files = glob(ROOT_DIR_v2018_NPP)
     out_file_h.write("NPP-v2018\n")    
     cObj = read_files(files)
     print_all(cObj, None, "NPPv2018")
-    #b=a
+    b=a
 
     files = glob(ROOT_DIR%("20100201"))
     files = files + glob(ROOT_DIR%("20100401"))             
@@ -655,10 +716,7 @@ if __name__ == "__main__":
 
 
     
-    files = glob(ROOT_DIR_v2014_NPP)
-    out_file_h.write("NPP-v2014\n")    
-    cObj = read_files(files)
-    print_all(cObj, None, "NPPv2014")
+
 
 
     ROOT_DIR = ROOT_DIR_v2014
