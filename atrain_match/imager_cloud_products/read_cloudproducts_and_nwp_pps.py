@@ -544,6 +544,8 @@ def read_pps_geoobj_nc(pps_nc):
     seconds = np.float64(pps_nc.variables['time'][::]) #from PPS often 0                        
     if 'T' in time_temp:
         time_obj = time.strptime(time_temp,'seconds since %Y-%m-%dT%H:%M:%S+00:00')
+    elif time_temp == u'seconds since 1970-01-01': 
+        time.strptime(time_temp,'seconds since %Y-%m-%d')
     else:
         time_obj = time.strptime(time_temp,'seconds since %Y-%m-%d %H:%M:%S.%f +00:00')
  
