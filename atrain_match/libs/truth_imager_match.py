@@ -131,7 +131,10 @@ from truths.calipso import  (add1kmTo5km,
 #All non-imager satellites need to be here. Imager is default.
 INSTRUMENT = {'npp': 'viirs',
               'noaa18': 'avhrr',
+              'meteosat8': 'seviri',
               'meteosat9': 'seviri',
+              'meteosat10': 'seviri',
+              'meteosat11': 'seviri',
               'noaa20': 'viirs',
               'eos1': 'modis',
               'eos2': 'modis'} 
@@ -1103,7 +1106,6 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
     if (PATMOSX_VALIDATION):
         imagerAngObj, ctth, imagerGeoObj, ctype, imagerObj, surftemp, cpp, cma = read_cloud_patmosx(
             imager_file, cross, SETTINGS)
-        ctype = None
         nwp_segments = None
         nwp_obj = NWPObj({'surftemp':surftemp})   
         imagerGeoObj.satellite = values["satellite"]
@@ -1398,7 +1400,7 @@ def plot_some_figures(clsatObj, caObj, values, basename, process_mode,
                                                datetime_obj=values['date_time'])  
 
     ##TRAJECTORY
-    if caObj is not None:
+    if caObj is not None and 1==2:
         imlon = caObj.imager.longitude.copy()
         imlat = caObj.imager.latitude.copy()
         trajectorypath = os.path.join(plotpath, "trajectory_plot")
