@@ -6,21 +6,22 @@ from scipy import ndimage
 from matchobject_io import readTruthImagerMatchObj
 from plotting.along_track_plotting import (drawCalClsatGEOPROFImagerPlot,
                                            drawCalPPSHeightPlot_PrototypePPSHeight  ) 
-ROOT_DIR = ("/home/a001865/DATA_MISC/reshaped_files/"
+from my_dir import ADIR
+ROOT_DIR = (ADIR + "/DATA_MISC/reshaped_files/"
             "global_modis_14th_created20161108/")
-ROOT_DIR_GAC_nn = ("/home/a001865/DATA_MISC/reshaped_files/"
+ROOT_DIR_GAC_nn = (ADIR + "/DATA_MISC/reshaped_files/"
                    "ATRAIN_RESULTS_GAC_nn21/Reshaped_Files/noaa18/")
-ROOT_DIR_GAC_old = ("/home/a001865/DATA_MISC/reshaped_files/"
+ROOT_DIR_GAC_old = (ADIR + "/DATA_MISC/reshaped_files/"
                     "ATRAIN_RESULTS_GAC_old/Reshaped_Files/noaa18/")
-ROOT_DIR_GAC_old = ("/home/a001865/DATA_MISC/reshaped_files/"
+ROOT_DIR_GAC_old = (ADIR + "/DATA_MISC/reshaped_files/"
                     "ATRAIN_RESULTS_GAC_20161222/Reshaped_Files/noaa18/")
 
-ROOT_DIR_GAC_nn_new = ("/home/a001865/DATA_MISC/reshaped_files/"
+ROOT_DIR_GAC_nn_new = (ADIR + "/DATA_MISC/reshaped_files/"
                        "ATRAIN_RESULTS_GAC_nn20161125/Reshaped_Files/noaa18/")
-ROOT_DIR_GAC_nn_imager = ("/home/a001865/DATA_MISC/reshaped_files/"
+ROOT_DIR_GAC_nn_imager = (ADIR + "/DATA_MISC/reshaped_files/"
                          "ATRAIN_RESULTS_GAC_nnimager_20161202/Reshaped_Files/noaa18/")
 
-BASE_DIR = "/home/a001865/DATA_MISC/reshaped_files_validation_2018/"
+BASE_DIR = ADIR + "/DATA_MISC/reshaped_files_validation_2018/"
 ROOT_DIR_v2014_GAC = (BASE_DIR + "global_gac_v2014_created20180927/Reshaped_Files/noaa18/5km/")
 ROOT_DIR_v2018_GAC = (BASE_DIR + "global_gac_v2018_created20180927/Reshaped_Files/noaa18/5km/")
 re_name = re.compile("_global_(\w+_\w+_\w+)\/")
@@ -52,7 +53,7 @@ for filename in files:
                                             use,
                                             height_pps_old + caObj.calipso.all_arrays['elevation'],
                                             height_pps + caObj.calipso.all_arrays['elevation'],                          
-                                            "/home/a001865/PICTURES_FROM_PYTHON/CTTH_LAPSE_RATE_INVESTIGATION/",
+                                            ADIR + "/PICTURES_FROM_PYTHON/CTTH_LAPSE_RATE_INVESTIGATION/",
                                             "test_plot_file_part_nn_ctth_%s_%s"%(name,basename.split('.h5')[0]),
                                             file_type='png',
                                             xmin=xmin,

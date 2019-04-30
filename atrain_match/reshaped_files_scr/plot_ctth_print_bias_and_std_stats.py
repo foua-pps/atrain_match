@@ -19,7 +19,7 @@ matplotlib.rcParams.update(matplotlib.rcParamsDefault)
 matplotlib.rcParams.update({'font.size': 18})
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
-
+from my_dir import ADIR
 from plot_ctth_bias_distributions import PlotAndDataObject, extract_data
 
 tag_dict = {"old": "(a) PPS-v2014",
@@ -342,7 +342,7 @@ def print_all(plt_obj_cali_new, plt_obj_csat_new, month):
 def get_plot_object_nn_ctth_modis_lvl2_cloudsat(month):
     day_str="01st"
     ROOT_DIR = (
-        "/home/a001865/DATA_MISC/reshaped_files/"
+        ADIR + "/DATA_MISC/reshaped_files/"
         #"global_modis_%s_created20170519/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/*h5")
         "global_modis_%s_created20180316/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/*h5")
         #"global_modis_%s_created20170330/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/*h5")
@@ -359,7 +359,7 @@ def get_plot_object_nn_ctth_modis_lvl2_cloudsat(month):
 def get_plot_object_nn_ctth_modis_lvl2(month):
     day_str="01st"
     ROOT_DIR = (
-        "/home/a001865/DATA_MISC/reshaped_files/"
+        ADIR + "/DATA_MISC/reshaped_files/"
         #"global_modis_%s_created20170504/Reshaped_Files_merged/eos2/1km/2010/%s/*h5")
         "global_modis_%s_created20180316/Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/%s/*h5")
         #"global_modis_%s_created20170519/Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/%s/*h5")

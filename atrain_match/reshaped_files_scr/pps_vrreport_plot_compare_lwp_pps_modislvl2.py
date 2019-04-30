@@ -23,7 +23,7 @@ from utils.stat_util import (my_iqr, my_hist, my_rms, my_mae)
 from scipy.stats import kurtosis, skewtest, skew, mode, kurtosis
 matplotlib.rcParams.update(matplotlib.rcParamsDefault)
 matplotlib.rcParams.update({'font.size': 16})
-
+from my_dir import ADIR
 def get_land_sea(cObj):
 
     use = np.logical_and(cObj.modis.all_arrays["lwp"]>=0,
@@ -107,8 +107,8 @@ def plot_all(cObj, density, my_str=""):
     ax.set_xlabel("PPS LWP - MODIS-C6 LWP $g/m^2$")
     plt.legend()
     #plt.plot(x[use],y[use],'b.', alpha=0.002)
-    plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_comp_lwp_modis.png",bbox_inches='tight')
-    plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_comp_lwp_modis.pdf",bbox_inches='tight')
+    plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_comp_lwp_modis.png",bbox_inches='tight')
+    plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_comp_lwp_modis.pdf",bbox_inches='tight')
     plt.show()
     fig = plt.figure(figsize=(15, 11))
     ax = fig.add_subplot(221)
@@ -116,17 +116,17 @@ def plot_all(cObj, density, my_str=""):
     import config
     plotSatelliteTrajectory(cObj.calipso.all_arrays["longitude"][use],
                             cObj.calipso.all_arrays["latitude"][use],
-                            "/home/a001865/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_marble_lwp_modis_lvl2_dist", 
+                            ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_marble_lwp_modis_lvl2_dist", 
                             config.AREA_CONFIG_FILE,
                             fig_type=['png'])
     from histogram_plotting import distribution_map
     distribution_map(cObj.calipso.all_arrays["longitude"][use], 
                      cObj.calipso.all_arrays["latitude"][use])
-    plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_white_lwp_modis_lvl2_dist", bbox_inches='tight')
+    plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_white_lwp_modis_lvl2_dist", bbox_inches='tight')
 
 def get_ca_object_nn_ctth_modis_lvl2():
     ROOT_DIR = (
-        "/home/a001865/DATA_MISC/"
+        ADIR + "/DATA_MISC/"
         "reshaped_files_validation_2018/"
         "global_modis_v2018_created20180920/"
         "Reshaped_Files_merged_caliop/eos2/1km/2010/*/*%s*cali*h5")
@@ -137,7 +137,7 @@ def get_ca_object_nn_ctth_modis_lvl2():
     files = files + glob(ROOT_DIR%("20101001")) 
     files = files + glob(ROOT_DIR%("20101201")) 
     #ROOT_DIR = (
-    #    "/home/a001865/DATA_MISC/"
+    #    ADIR + "/DATA_MISC/"
     #    "reshaped_files_validation_2018/"
     #    "global_gac_v2018_created20180918/"
     #    "Reshaped_Files/noaa18/5km/*/*cali*h5")

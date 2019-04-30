@@ -5,7 +5,7 @@ from scipy import ndimage
 from matchobject_io import (readCaliopImagerMatchObj,
                             CalipsoImagerTrackObject)
 from utils.get_flag_info import get_pixels_where_test_is_passed
-
+from my_dir import ADIR
 def print_common_stats(caObj, use, name_dict):
     nlay =np.where(caObj.calipso.all_arrays['number_layers_found']>0,1,0)
     meancl=ndimage.filters.uniform_filter1d(nlay*1.0, size=3)
@@ -90,16 +90,16 @@ def test_4(caObj, isCloudy, isClear):
     plt.show()
     fig.savefig("pps_investigation_test4.png", format = 'png')
 
-ROOT_DIR = ("/home/a001865/DATA_MISC/reshaped_files/"
+ROOT_DIR = (ADIR + "/DATA_MISC/reshaped_files/"
             "global_modis_14th_created20161108/")
-ROOT_DIR_GAC = ("/home/a001865/DATA_MISC/reshaped_files/"
+ROOT_DIR_GAC = (ADIR + "/DATA_MISC/reshaped_files/"
             "ATRAIN_RESULTS_GAC/Reshaped_Files/noaa18/")
 
 files = glob(ROOT_DIR + "Reshaped_Files/merged/modis*h5")
 files = glob(ROOT_DIR_GAC + "5km/2009/*/*/*h5")
 
 
-test_list_file = "/home/a001865/git/acpg_develop/acpg/pges/cloudmask/pps_pge01_cmasktests.h"
+test_list_file = ADIR + "/git/acpg_develop/acpg/pges/cloudmask/pps_pge01_cmasktests.h"
 TEST_NAMEFILE = open(test_list_file, 'r')
 name_dict = {'cma_testlist0': {},
              'cma_testlist1': {},

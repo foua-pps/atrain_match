@@ -1,6 +1,6 @@
 """
   Use this module to read maia cloudproducts
-  2016 SMHI, N.Hakansson a001865
+  2016 SMHI, N.Hakansson 
 """
 
 import time

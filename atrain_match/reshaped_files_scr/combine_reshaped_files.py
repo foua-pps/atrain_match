@@ -11,7 +11,7 @@ satellite = "eos2"
 truth = "calipso"
 version = "v2018"
 
-BASE_DIR = "/nobackup/smhid14/sm_ninha/atrain_matching/modis_cloud_base_simon_multilayer_ctth/global_{instrument}_{version}_created20181023/".format(instrument=instrument, version=version)
+BASE_DIR = "/my_path/global_{instrument}_{version}_created20181023/".format(instrument=instrument, version=version)
 ROOT_DIR = BASE_DIR + "/Reshaped_Files/{satellite}/1km/2010/%s/*2010%s%s_*{truth}*.h5".format(
     satellite=satellite, truth=truth)
 OUT_DIR_TEMPLATE = BASE_DIR + "/Reshaped_Files_merged_{truth}/{satellite}/1km/2010/%s/".format(

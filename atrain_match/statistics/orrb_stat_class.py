@@ -1,7 +1,6 @@
 '''
 Created on Oct 18, 2010
 
-@author: a001696
 '''
 import numpy as np
 

@@ -11,7 +11,7 @@ from libs.truth_imager_statistics import get_lwp_diff_inner_cloudsat
 
 from histogram_plotting import atrain_scatter
 from utils.stat_util import (my_hist, my_iqr, my_rms, my_pex, my_mae)
-
+from my_dir import ADIR
 def my_label(data):
     label = (#"{:s}\n"
              "bias = {:3.1f}\n"
@@ -97,7 +97,7 @@ def do_the_printing(aObj, name):
                 ax.set_ylabel("AMSR-E LWP g/m^2")
             else:
                 ax.set_ylabel("CPR (CloudSat) LWP g/m^2")
-            plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/scatter_lwp_%s_%s_dist_all_cpp_%s_%s.png"%(aObj.truth_sat, name, surf, condition), bbox_inches='tight')
+            plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/scatter_lwp_%s_%s_dist_all_cpp_%s_%s.png"%(aObj.truth_sat, name, surf, condition), bbox_inches='tight')
 
             fig = plt.figure(figsize=(14, 4.5))
             ax = fig.add_subplot(131)
@@ -145,18 +145,18 @@ def do_the_printing(aObj, name):
             ax.set_ylabel("percent of data")
 
             #plt.show()
-            plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/scatter_and_error_lwp_%s_%s_dist_all_cpp_170_%s_%s.png"%(aObj.truth_sat, name, surf, condition), bbox_inches='tight')
+            plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/scatter_and_error_lwp_%s_%s_dist_all_cpp_170_%s_%s.png"%(aObj.truth_sat, name, surf, condition), bbox_inches='tight')
             #plt.show()
             plt.close('all')
    
     from trajectory_plotting import plotSatelliteTrajectory
     import config
     #plotSatelliteTrajectory(lon, lat,
-    #                        "/home/a001865/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_marble_lwp_%s_dist_all"%(aObj.truth_sat), 
+    #                        ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_marble_lwp_%s_dist_all"%(aObj.truth_sat), 
     #                        config.AREA_CONFIG_FILE,
     #                        fig_type=['png'])
     plotSatelliteTrajectory(lon[use_map], lat[use_map],
-                            "/home/a001865/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_marble_lwp_%s_%s_dist"%(aObj.truth_sat, name), 
+                            ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_marble_lwp_%s_%s_dist"%(aObj.truth_sat, name), 
                             config.AREA_CONFIG_FILE,
                             fig_type=['png'])
     fig = plt.figure()
@@ -164,17 +164,17 @@ def do_the_printing(aObj, name):
     from histogram_plotting import distribution_map
     distribution_map(lon[use_map], 
                      lat[use_map])
-    plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_white_lwp_%s_%s_dist_all_cpp.png"%(aObj.truth_sat, name), bbox_inches='tight')
+    plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_white_lwp_%s_%s_dist_all_cpp.png"%(aObj.truth_sat, name), bbox_inches='tight')
 
 if __name__ == "__main__":
-    ROOT_DIR_v2014_amsr = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/global_gac_v2014_created20180927/Reshaped_Files_merged_amsr_lwp/noaa18/5km/")
-    ROOT_DIR_v2018_amsr = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/global_gac_v2018_created20180927/Reshaped_Files_merged_amsr_lwp/noaa18/5km/")
-    #ROOT_DIR_v2014_cl = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/global_gac_v2014_created20180927/Reshaped_Files_merged/noaa18/5km/*/*cloudsat")
-    #ROOT_DIR_v2018_cl = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/global_gac_v2018_created20180927/Reshaped_Files_merged/noaa18/5km/*/*cloudsat")
+    ROOT_DIR_v2014_amsr = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_gac_v2014_created20180927/Reshaped_Files_merged_amsr_lwp/noaa18/5km/")
+    ROOT_DIR_v2018_amsr = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_gac_v2018_created20180927/Reshaped_Files_merged_amsr_lwp/noaa18/5km/")
+    #ROOT_DIR_v2014_cl = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_gac_v2014_created20180927/Reshaped_Files_merged/noaa18/5km/*/*cloudsat")
+    #ROOT_DIR_v2018_cl = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_gac_v2018_created20180927/Reshaped_Files_merged/noaa18/5km/*/*cloudsat")
 
-    ROOT_DIR_v2018_modis_cl = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/global_modis_v2018_created20181001_cmap_osiice_dust/Reshaped_Files_merged_cloudsat_lwp/eos2/1km/*/*/")
-    ROOT_DIR_v2018_modis_amsr = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/global_modis_v2018_created20181001_cmap_osiice_dust/Reshaped_Files_merged_amsr_lwp/eos2/1km/*/*/")
-    ROOT_DIR_v2014_modis_amsr = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/global_modis_v2014_created20180920/Reshaped_Files_merged_amsr_lwp/eos2/1km/*/*/")
+    ROOT_DIR_v2018_modis_cl = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_modis_v2018_created20181001_cmap_osiice_dust/Reshaped_Files_merged_cloudsat_lwp/eos2/1km/*/*/")
+    ROOT_DIR_v2018_modis_amsr = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_modis_v2018_created20181001_cmap_osiice_dust/Reshaped_Files_merged_amsr_lwp/eos2/1km/*/*/")
+    ROOT_DIR_v2014_modis_amsr = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_modis_v2014_created20180920/Reshaped_Files_merged_amsr_lwp/eos2/1km/*/*/")
 
     files = glob(ROOT_DIR_v2018_modis_amsr + "*h5")
     print files

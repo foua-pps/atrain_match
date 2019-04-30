@@ -2,7 +2,6 @@
 '''
 Created on Oct 13, 2010
 
-@author: a001696
 '''
 from config import (RESOLUTION, _validation_results_dir,  DNT_FLAG, SURFACES)
 

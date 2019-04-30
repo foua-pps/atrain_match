@@ -3,6 +3,7 @@ from glob import glob
 import re
 import numpy as np
 from scipy import ndimage
+from my_dir import ADIR
 
 from matchobject_io import read_files
 limits = [0.1*ind for ind in range(0,10)]
@@ -76,7 +77,7 @@ def make_pod_vector(caObj):
     return np.array(pod_d), np.array(pod_n), np.array(feature_d), np.array(feature_n)
    
 
-BASE_DIR = "/home/a001865/DATA_MISC/reshaped_files_validation_2018/"
+BASE_DIR = ADIR + "/DATA_MISC/reshaped_files_validation_2018/"
 ROOT_DIR_v2014_GAC = (BASE_DIR + "global_gac_v2014_created20180927/Reshaped_Files/noaa18/5km/2009/*cali*h5")
 ROOT_DIR_v2018_GAC = (BASE_DIR + "global_gac_v2018_created20180927/Reshaped_Files/noaa18/5km/2009/*cali*h5")
 ROOT_DIR_v2014_NPP = (BASE_DIR + "global_viirs_v2014_created20180914/Reshaped_Files_merged_caliop/npp/1km/2015/*/*h5")
@@ -84,8 +85,8 @@ ROOT_DIR_v2018_NPP = (BASE_DIR + "global_viirs_v2018_created20180907/Reshaped_Fi
 #ROOT_DIR_v2018_NPP = (BASE_DIR + "global_viirs_v2018_created20181002_new_cmaprobv5/Reshaped_Files_merged_caliop/npp/1km/2015/*/*h5")
 ROOT_DIR_v2014 = (BASE_DIR + "global_modis_v2014_created20180920/Reshaped_Files_merged_caliop/eos2/1km/2010/*/*01_*cali*h5")
 ROOT_DIR_v2018 = (BASE_DIR + "global_modis_v2018_created20180920/Reshaped_Files_merged_caliop/eos2/1km/2010/*/*01_*cali*h5")
-ROOT_DIR_PATMOSX = "/home/a001865/VALIDATION_PATMOSX/Reshaped_Files/noaa18/5km/2009/*/*h5"
-ROOT_DIR_CCI = ("/home/a001865/DATA_MISC/reshaped_files_cci_noaa18_2009/V2/*2009*h5")
+ROOT_DIR_PATMOSX = ADIR + "/VALIDATION_PATMOSX/Reshaped_Files/noaa18/5km/2009/*/*h5"
+ROOT_DIR_CCI = (ADIR + "/DATA_MISC/reshaped_files_cci_noaa18_2009/V2/*2009*h5")
 
 re_name = re.compile("_global_(\w+_\w+_\w+)\/")
 
@@ -126,5 +127,5 @@ plt.plot(limits, podC_n, '-y.',label="CCI-V2!")
 plt.legend()
 plt.ylabel("POD day")
 plt.xlabel("Calipso total optical depth")
-plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/PODdayMinusPODnight_latitude45_%s_and_od_sea.png"%(name),bbox_inches='tight')
+plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/PODdayMinusPODnight_latitude45_%s_and_od_sea.png"%(name),bbox_inches='tight')
 plt.show()

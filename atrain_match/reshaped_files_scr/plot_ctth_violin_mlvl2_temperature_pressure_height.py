@@ -16,7 +16,7 @@ from utils.get_flag_info import (get_semi_opaque_info_pps2014,
                            get_calipso_high_clouds,
                            get_calipso_medium_clouds,
                            get_calipso_low_clouds)
-
+from my_dir import ADIR
 labels=["low","medium","high-all","high-thick\n od>0.4","high-thin \n 0.1<od<0.4","high-vthin\n od<0.1"],
 def make_violinplot(caObj, name, modis_lvl2=False):
     low_clouds = get_calipso_low_clouds(caObj)
@@ -71,7 +71,7 @@ def make_violinplot(caObj, name, modis_lvl2=False):
                           widths=0.9,showextrema=False, showmedians=True)
     ax.set_ylim(-20000,20000)
     plt.title(name)
-    plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/CTTH_BOX/ctth_violin_%s_5_95_filt.png"%(name))
+    plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_BOX/ctth_violin_%s_5_95_filt.png"%(name))
 
 
 def make_violinplot_temperature(caObj, name, modis_lvl2=False):
@@ -128,7 +128,7 @@ def make_violinplot_temperature(caObj, name, modis_lvl2=False):
                           widths=0.9,showextrema=False, showmedians=True)
     ax.set_ylim(-150,150)
     plt.title(name)
-    plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/CTTH_BOX/ctth_violin_temperature_%s_5_95_filt.png"%(name))
+    plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_BOX/ctth_violin_temperature_%s_5_95_filt.png"%(name))
 
 def make_violinplot_pressure(caObj, name, modis_lvl2=False):
     low_clouds = get_calipso_low_clouds(caObj)
@@ -184,18 +184,18 @@ def make_violinplot_pressure(caObj, name, modis_lvl2=False):
                           widths=0.9,showextrema=False, showmedians=True)
     ax.set_ylim(-1200,1200)
     plt.title(name)
-    plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/CTTH_BOX/ctth_violin_pressure_%s_5_95_filt.png"%(name))
+    plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_BOX/ctth_violin_pressure_%s_5_95_filt.png"%(name))
 
 
 def investigate_nn_ctth_modis_lvl2():
     #november
  
     ROOT_DIR_MODIS_nn_imager = (
-        "/home/a001865/DATA_MISC/reshaped_files/"
+        ADIR + "/DATA_MISC/reshaped_files/"
         "global_modis_14th_created20170324/Reshaped_Files_merged/eos2/1km/2010/%s/*h5")
 
     ROOT_DIR_MODIS_old = (
-        "/home/a001865/DATA_MISC/reshaped_files/"
+        ADIR + "/DATA_MISC/reshaped_files/"
         "global_modis_14th_created20161108/Reshaped_Files/merged/*%s*h5")
 
     for month in [ "06", "09", "01"]:    

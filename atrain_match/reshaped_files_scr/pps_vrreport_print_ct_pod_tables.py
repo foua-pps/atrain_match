@@ -17,7 +17,7 @@ from utils.get_flag_info import (get_semi_opaque_info_pps2014,
                            get_calipso_medium_and_high_clouds_tp,
                            get_calipso_clouds_of_type_i,
                            get_calipso_low_clouds)
-
+from my_dir import ADIR
 cc_type_name={
    0: 'low overcast (tp) ',
     1: 'low overcast (op)',
@@ -215,27 +215,27 @@ if __name__ == "__main__":
     isGAC_v2014 = True
 
     #ATRAIN_RESULTS_GAC_nnimager_20161202
-    ROOT_DIR_GAC_nn = ("/home/a001865/DATA_MISC/reshaped_files_jenkins_gac/"
+    ROOT_DIR_GAC_nn = (ADIR + "/DATA_MISC/reshaped_files_jenkins_gac/"
                        "ATRAIN_RESULTS_GAC_fine_snow2/Reshaped_Files/noaa18/")
-    ROOT_DIR_GAC_nn = ("/home/a001865/DATA_MISC/reshaped_files_jenkins_gac/"
+    ROOT_DIR_GAC_nn = (ADIR + "/DATA_MISC/reshaped_files_jenkins_gac/"
                        "ATRAIN_RESULTS_GAC_165_C4/Reshaped_Files/noaa18/")
-    ROOT_DIR_GAC_old = ("/home/a001865/DATA_MISC/reshaped_files_jenkins_gac/"
+    ROOT_DIR_GAC_old = (ADIR + "/DATA_MISC/reshaped_files_jenkins_gac/"
                         "ATRAIN_RESULTS_GAC_v2014_12x12/Reshaped_Files/noaa18/")
-    ROOT_DIR_GAC_old = ("/home/a001865/DATA_MISC/reshaped_files_jenkins_gac/"
+    ROOT_DIR_GAC_old = (ADIR + "/DATA_MISC/reshaped_files_jenkins_gac/"
                         "ATRAIN_RESULTS_GAC_v2014_C4/Reshaped_Files/noaa18/")
-    ROOT_DIR_GAC_nn = ("/home/a001865/Downloads/"
+    ROOT_DIR_GAC_nn = (ADIR + "/Downloads/"
                        "ATRAIN_RESULTS_NPP_C4_2014/Reshaped_Files/npp/")
     ROOT_DIR_v2014 = (
-        "/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
+        ADIR + "/DATA_MISC/reshaped_files_jenkins_npp_modis/"
         "ATRAIN_RESULTS_NPP_C4_2014/Reshaped_Files/npp/1km/2015/07/*/")
     ROOT_DIR_v2018 = (
-        "/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
+        ADIR + "/DATA_MISC/reshaped_files_jenkins_npp_modis/"
         "ATRAIN_RESULTS_NPP_C4/Reshaped_Files/npp/1km/2015/07/*/")
 
 
 
-    ROOT_DIR_v2014 = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/global_modis_v2014_created20180920/Reshaped_Files_merged_caliop/eos2/1km/2010/*/*%s*h5")
-    ROOT_DIR_v2018 = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/global_modis_v2018_created20180920/Reshaped_Files_merged_caliop/eos2/1km/2010/*/*%s*h5")
+    ROOT_DIR_v2014 = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_modis_v2014_created20180920/Reshaped_Files_merged_caliop/eos2/1km/2010/*/*%s*h5")
+    ROOT_DIR_v2018 = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_modis_v2018_created20180920/Reshaped_Files_merged_caliop/eos2/1km/2010/*/*%s*h5")
     ROOT_DIR = ROOT_DIR_v2014
     files = glob(ROOT_DIR%("20100201"))
     files = files + glob(ROOT_DIR%("20100401"))             
@@ -244,8 +244,8 @@ if __name__ == "__main__":
     files = files + glob(ROOT_DIR%("20101001")) 
     files = files + glob(ROOT_DIR%("20101201")) 
 
-    ROOT_DIR_v2014 = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/global_viirs_v2014_created20180914/Reshaped_Files_merged_caliop/npp/1km/2015/*/")
-    ROOT_DIR_v2018 = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/global_viirs_v2018_created20180907/Reshaped_Files_merged_caliop/npp/1km/2015/*/")
+    ROOT_DIR_v2014 = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_viirs_v2014_created20180914/Reshaped_Files_merged_caliop/npp/1km/2015/*/")
+    ROOT_DIR_v2018 = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_viirs_v2018_created20180907/Reshaped_Files_merged_caliop/npp/1km/2015/*/")
     #files = glob(ROOT_DIR_v2018 + "*h5")
    
 

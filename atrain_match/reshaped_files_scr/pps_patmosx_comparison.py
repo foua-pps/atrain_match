@@ -20,7 +20,7 @@ from utils.stat_util import (my_hist,
                        my_pe2000m,
                        my_pe2500m,
                        my_pe5000m)
-
+from my_dir import ADIR
 def crop_object(cObj, use_in=None):
     y =cObj.imager.all_arrays['ctth_height']
     if 'ctth_height_corr' in cObj.imager.all_arrays.keys() and   cObj.imager.all_arrays['ctth_height_corr'] is not None:
@@ -115,11 +115,11 @@ def print_stats(cObjPPS, cObjPATMOSX, use_pps, use_patmosx):
     
 if __name__ == "__main__":
 
-    PATMOSX_ROOT_DIR = ("/home/a001865/VALIDATION_PATMOSX/Reshaped_Files/noaa18/5km/2009/*/*h5")
+    PATMOSX_ROOT_DIR = (ADIR + "/VALIDATION_PATMOSX/Reshaped_Files/noaa18/5km/2009/*/*h5")
                  
-    PPS_ROOT_DIR = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/global_gac_v2018_created20180927/Reshaped_Files/noaa18/5km/2009/5km_noaa18_2009*cali*h5")
-    PPS14_ROOT_DIR = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/global_gac_v2014_created20180927/Reshaped_Files/noaa18/5km/2009/5km_noaa18_2009*cali*h5")
-    CCI_ROOT_DIR = ("/home/a001865/DATA_MISC/reshaped_files_cci_noaa18_2009/V2/*2009*h5")
+    PPS_ROOT_DIR = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_gac_v2018_created20180927/Reshaped_Files/noaa18/5km/2009/5km_noaa18_2009*cali*h5")
+    PPS14_ROOT_DIR = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_gac_v2014_created20180927/Reshaped_Files/noaa18/5km/2009/5km_noaa18_2009*cali*h5")
+    CCI_ROOT_DIR = (ADIR + "/DATA_MISC/reshaped_files_cci_noaa18_2009/V2/*2009*h5")
 
 
     patmosx_files = glob(PATMOSX_ROOT_DIR)

@@ -12,7 +12,7 @@ import matplotlib
 matplotlib.rcParams.update({'font.size': 16})
 
 from utils.get_flag_info import (get_semi_opaque_info_pps2014)
-
+from my_dir import ADIR
 def make_boxplot(clsatObj, name, month):
 
     height_c = clsatObj.cloudsat.all_arrays['clsat_max_height']
@@ -69,7 +69,7 @@ def make_boxplot(clsatObj, name, month):
     for box in bplot['boxes']:
         box.set_facecolor('0.9')
     plt.title("Cloudsat PPS/MODIS-LVL2 \nHeight bias comparison %s"%(month))
-    plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/CTTH_BOX_cloudsat/"
+    plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_BOX_cloudsat/"
                 "ctth_box_plot_csat_pps_and_lvl2modis_%s_5_95_filt.png"%(month))
     
     #LowMediumHigh
@@ -93,7 +93,7 @@ def make_boxplot(clsatObj, name, month):
     for box in bplot['boxes']:
         box.set_facecolor('0.9')
     plt.title("Cloudsat PPS-%s %s \nHeight bias comparison MAE= %3.0f"%(name,month, pps_MAE))
-    plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/CTTH_BOX_cloudsat/"
+    plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_BOX_cloudsat/"
                 "ctth_box_plot_csat_modis_%s_%s_5_95_filt.png"%(name,month))
 
     #LowMediumHigh
@@ -117,7 +117,7 @@ def make_boxplot(clsatObj, name, month):
     for box in bplot['boxes']:
         box.set_facecolor('0.9')
     plt.title("Cloudsat MODIS-LVL2 %s \nHeight bias comparison MAE= %3.0f"%(month, mlvl2_MAE))
-    plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/CTTH_BOX_cloudsat/"
+    plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_BOX_cloudsat/"
                 "ctth_box_plot_csat_modis_lvl2_C6_%s_5_95_filt.png"%(month))
 
 
@@ -146,7 +146,7 @@ def make_boxplot(clsatObj, name, month):
     for box in bplot['boxes']:
         box.set_facecolor('0.9')
     plt.title("Cloudsat PPS/MODIS-LVL2 \nHeight bias comparison %s"%(month))
-    plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/CTTH_BOX_cloudsat/"
+    plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_BOX_cloudsat/"
                 "ctth_box_plot_dnt_csat_pps_and_lvl2modis_%s_5_95_filt.png"%(month))
 
     #VIOLIN
@@ -170,7 +170,7 @@ def make_boxplot(clsatObj, name, month):
     #labels=["%s \n MAE=%3.0f"%(name,pps_MAE),"modis_lvl2 \nMAE=%3.0f"%(mlvl2_MAE)]
     ax.set_ylim(-10000,10000)
     plt.title("Cloudsat PPS/MODIS-LVL2 \nHeight bias comparison %s"%(month))
-    plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/CTTH_BOX_cloudsat/"
+    plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_BOX_cloudsat/"
                 "ctth_violin_csat_pps_and_lvl2modis_%s_5_95_filt.png"%(month))
 
 
@@ -179,11 +179,11 @@ def investigate_nn_ctth_modis_lvl2():
     #november
  
     ROOT_DIR_MODIS_nn_imager = (
-        "/home/a001865/DATA_MISC/reshaped_files/"
+        ADIR + "/DATA_MISC/reshaped_files/"
         "global_modis_14th_created20170324/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/*h5")
 
 #    ROOT_DIR_MODIS_old = (
-#        "/home/a001865/DATA_MISC/reshaped_files/"
+#        ADIR + "/DATA_MISC/reshaped_files/"
 #        "global_modis_14th_created20161108/Reshaped_Files/merged/*%s*h5")
 
     for month in [ "06", "09"]:#, "02","03","04","05","07","08","10","11","12","01"]:    

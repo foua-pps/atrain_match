@@ -7,7 +7,7 @@ import numpy as np
 from scipy import ndimage
 from matchobject_io import (readCaliopImagerMatchObj,
                             CalipsoImagerTrackObject)
-
+from my_dir import ADIR
 def get_clear_cloudy_vectors(caObj, use):#, both_have_ct):
     nlay =np.where(caObj.calipso.all_arrays['number_layers_found']>0,1,0)
     meancl=ndimage.filters.uniform_filter1d(nlay*1.0, size=3)
@@ -136,9 +136,9 @@ def print_common_stats(caObjMAIA, caObjPPS, y_month, satellite, dnt='all'):
         get_clear_cloudy_vectors(caObjPPS, use_pps)#, both_have_ct)
 
 
-MAIA_ROOT_DIR = ("/home/a001865/VALIDATIONS/MAIA/Reshaped_Files/"
+MAIA_ROOT_DIR = (ADIR + "/VALIDATIONS/MAIA/Reshaped_Files/"
                  "*/1km/")
-PPS_ROOT_DIR = ("/home/a001865/VALIDATIONS/PPS/Reshaped_Files/"
+PPS_ROOT_DIR = (ADIR + "/VALIDATIONS/PPS/Reshaped_Files/"
                 "*/1km/")
 
 print "Algorithm time satellite min-sunz, max-sunz, N PODcloudy FARcloudy PODclear FARclear Hitrate Kuipers Max-time-diff"

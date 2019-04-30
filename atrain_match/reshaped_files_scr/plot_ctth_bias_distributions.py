@@ -13,6 +13,7 @@ from plot_kuipers_on_area_util import (PerformancePlottingObject,
                                        ppsMatch_Imager_CalipsoObject)
 import matplotlib.pyplot as plt
 import matplotlib
+from my_dir import ADIR
 matplotlib.rcParams.update(matplotlib.rcParamsDefault)
 matplotlib.rcParams.update({'font.size': 18})
 plt.rc('text', usetex=True)
@@ -476,7 +477,7 @@ def replot_figure2_from_saved_data(month):
     ax.set_ylim(0,12.0)
     plot_one(ax, x_data, y_data,  "calipso", "Low")
 
-    plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/CTTH_PLOTS/fig02_%s.pdf"%(month), bbox_inches='tight')
+    plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_PLOTS/fig02_%s.pdf"%(month), bbox_inches='tight')
     plt.close("all")
 
 
@@ -608,7 +609,7 @@ def plot_medium_bias_plot_from_saved_data(month):
         ax = fig.add_subplot(325)
         plot_one(ax, x_data, y_data, median_data, bias_data, std_data,  "cloudsat", cloudc, "NN-AVHRR", " (e) ", maxx, maxy)#,True)
 
-        #plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/CTTH_PLOTS/figxx_cloudsat_bias_median_%s.pdf"%(month), bbox_inches='tight')
+        #plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_PLOTS/figxx_cloudsat_bias_median_%s.pdf"%(month), bbox_inches='tight')
         #plt.close("all")
         #fig = plt.figure(figsize=(9, 11))    
         ax = fig.add_subplot(322)
@@ -618,12 +619,12 @@ def plot_medium_bias_plot_from_saved_data(month):
         ax = fig.add_subplot(326)
         plot_one(ax, x_data, y_data, median_data, bias_data,  std_data, "calipso", cloudc, "NN-AVHRR", " (f) ", maxx, maxy,True)
 
-        plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/CTTH_PLOTS/fig08_bias_median_%s_%s.pdf"%(cloudc, month), bbox_inches='tight')
+        plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_PLOTS/fig08_bias_median_%s_%s.pdf"%(cloudc, month), bbox_inches='tight')
         plt.close("all")
         fig = plt.figure(figsize=(9, 11))
         ax = fig.add_subplot(111)
         plot_one(ax, x_data, y_data, median_data, bias_data, std_data,  "cloudsat", cloudc, "NN-AVHRR", " (e) ", maxx, maxy,True)
-        plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/CTTH_PLOTS/fig08_bias_median_%s_%s_e.pdf"%(cloudc, month), bbox_inches='tight')
+        plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_PLOTS/fig08_bias_median_%s_%s_e.pdf"%(cloudc, month), bbox_inches='tight')
 
 def make_profileplot(pltObj, month, day_str, sat='calipso'):
     print_stats(pltObj, month, day_str, sat=sat)
@@ -699,14 +700,14 @@ def make_profileplot(pltObj, month, day_str, sat='calipso'):
     ax.grid(True)
     #plt.show()   
     #plt.title("%s MAE = %3.0f"%(name,MAE))
-    plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/CTTH_BOX_%s/ctth_bias_profile_%s_%s_%s.png"%(sat, day_str, month,sat))
-    plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/CTTH_BOX_%s/ctth_bias_profile_%s_%s_%s.pdf"%(sat, day_str, month,sat))
+    plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_BOX_%s/ctth_bias_profile_%s_%s_%s.png"%(sat, day_str, month,sat))
+    plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_BOX_%s/ctth_bias_profile_%s_%s_%s.pdf"%(sat, day_str, month,sat))
     plt.close("all")
 
 def investigate_nn_ctth_modis_lvl2_cloudsat():
     day_str="01st"
     ROOT_DIR = (
-        "/home/a001865/DATA_MISC/reshaped_files/"
+        ADIR + "/DATA_MISC/reshaped_files/"
         "global_modis_%s_created20180316/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/*h5")
         #"global_modis_%s_created20170330/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/*h5")
     #clsatObj = CloudsatImagerTrackObject()
@@ -728,7 +729,7 @@ def investigate_nn_ctth_modis_lvl2_cloudsat():
 def investigate_nn_ctth_modis_lvl2():
     day_str="01st"
     ROOT_DIR = (
-        "/home/a001865/DATA_MISC/reshaped_files/"
+        ADIR + "/DATA_MISC/reshaped_files/"
         #"global_modis_%s_created20170504/Reshaped_Files_merged/eos2/1km/2010/%s/*h5")
         "global_modis_%s_created20180316/Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/%s/*h5")
     plt_obj = PlotAndDataObject()

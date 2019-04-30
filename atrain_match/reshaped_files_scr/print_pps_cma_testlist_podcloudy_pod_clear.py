@@ -11,7 +11,7 @@ warnings.filterwarnings("ignore")
 from utils.get_flag_info import get_pixels_where_test_is_passed
 
 v2014 = False
-
+from my_dir import ADIR
 def print_common_stats(caObj, use, name_dict, mints, maxts, surface_type, illumination, basename_outfile="basename_outfile"):
     if v2014:
         sunz = 100*caObj.imager.all_arrays['sunz']
@@ -19,7 +19,7 @@ def print_common_stats(caObj, use, name_dict, mints, maxts, surface_type, illumi
         sunz = caObj.imager.all_arrays['sunz']
     print np.min(sunz), np.max(sunz)
 
-    outfile=("/home/a001865/DATA_MISC/cma_log_files_can_be_removed_after_some_time"
+    outfile=(ADIR + "/DATA_MISC/cma_log_files_can_be_removed_after_some_time"
              "/log_cma_thin_%s_%s_%s_temp%d_%d_.txt"%(basename_outfile,surface_type,illumination, mints,maxts))
     print outfile
     outfile_h = open(outfile,'w')
@@ -285,57 +285,57 @@ def print_common_stats(caObj, use, name_dict, mints, maxts, surface_type, illumi
                 
 
 
-ROOT_DIR = ("/home/a001865/DATA_MISC/reshaped_files/"
+ROOT_DIR = (ADIR + "/DATA_MISC/reshaped_files/"
             "global_modis_14th_created20170519/")
-ROOT_DIR_GAC = ("/home/a001865/DATA_MISC/reshaped_files/"
+ROOT_DIR_GAC = (ADIR + "/DATA_MISC/reshaped_files/"
             "ATRAIN_RESULTS_GAC_oldctth/Reshaped_Files/noaa18/")
-ROOT_DIR_GAC = ("/home/a001865/DATA_MISC/reshaped_files/"
+ROOT_DIR_GAC = (ADIR + "/DATA_MISC/reshaped_files/"
             "ATRAIN_RESULTS_GAC_oldctth_20161201/Reshaped_Files/noaa18/")
-ROOT_DIR_GAC = ("/home/a001865/NN_CTTH/data/validation_data/imager_gac_noaa19/")
-ROOT_DIR_NPP1 = ("/home/a001865/DATA_MISC/reshaped_files/"
+ROOT_DIR_GAC = (ADIR + "/NN_CTTH/data/validation_data/imager_gac_noaa19/")
+ROOT_DIR_NPP1 = (ADIR + "/DATA_MISC/reshaped_files/"
                 "ATRAIN_RESULTS_NPP_new_thr_alos_85/Reshaped_Files"
                 "/npp/1km/2015/07/no_area/")
-ROOT_DIR_NPP2 = ("/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
+ROOT_DIR_NPP2 = (ADIR + "/DATA_MISC/reshaped_files_jenkins_npp_modis/"
                 "ATRAIN_RESULTS_NPP_test_with_lower_37_emiss/Reshaped_Files"
                 "/npp/1km/2015/07/")
-ROOT_DIR_NPP2 = ("/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
+ROOT_DIR_NPP2 = (ADIR + "/DATA_MISC/reshaped_files_jenkins_npp_modis/"
                 "ATRAIN_RESULTS_NPP_watercloud/Reshaped_Files"
                 "/npp/1km/2015/07/")
-ROOT_DIR_NPP2 = ("/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
+ROOT_DIR_NPP2 = (ADIR + "/DATA_MISC/reshaped_files_jenkins_npp_modis/"
                 "ATRAIN_RESULTS_NPP_emiss37/Reshaped_Files"
                 "/npp/1km/2015/07/")
-ROOT_DIR_NPP2 = ("/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
+ROOT_DIR_NPP2 = (ADIR + "/DATA_MISC/reshaped_files_jenkins_npp_modis/"
                 "ATRAIN_RESULTS_NPP_fine_snow/Reshaped_Files"
                 "/npp/1km/2015/07/")
-ROOT_DIR_NPP2 = ("/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
+ROOT_DIR_NPP2 = (ADIR + "/DATA_MISC/reshaped_files_jenkins_npp_modis/"
                 "ATRAIN_RESULTS_NPP_C4_build15/Reshaped_Files"
                 "/npp/1km/2015/07/")
-ROOT_DIR_GAC9 = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_GAC_tuned_nnIMAGER/Reshaped_Files/noaa18/5km/2009/*/"
-#ROOT_DIR_GAC = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_GAC_thr_wvp/Reshaped_Files/noaa18/5km/2009/*/"
-ROOT_DIR_GAC = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_GAC_rttov12/Reshaped_Files/noaa18/5km/2009/*/"
-#ROOT_DIR_GAC = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_GAC_percentile_thr/Reshaped_Files/noaa18/5km/2009/*/"
-#ROOT_DIR_GAC = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_GAC_rolles_method/Reshaped_Files/noaa18/5km/2009/*/"
-#ROOT_DIR_GAC = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_GAC_rolle_percentile/Reshaped_Files/noaa18/5km/2009/*/"
-#ROOT_DIR_GAC = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_GAC_larger_bins/Reshaped_Files/noaa18/5km/2009/*/"
-#ROOT_DIR_GAC = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_GAC_larger_bins_and_noise/Reshaped_Files/noaa18/5km/2009/*/"
-#ROOT_DIR_GAC = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_GAC_rM_tP_lB_N_mM/Reshaped_Files/noaa18/5km/2009/*/"
-#ROOT_DIR_GAC = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_GAC_defaults_5/Reshaped_Files/noaa18/5km/2009/*/"
-#ROOT_DIR_GAC = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_GAC_5_cfg_adjusted/Reshaped_Files/noaa18/5km/2009/*/"
-#ROOT_DIR_GAC = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_GAC_adjusted_2of/Reshaped_Files/noaa18/5km/2009/*/"
-#ROOT_DIR_GAC = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_GAC_ts_noise/Reshaped_Files/noaa18/5km/2009/*/"
-#ROOT_DIR_GAC = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_GAC_more_clouds/Reshaped_Files/noaa18/5km/2009/*/"
-#ROOT_DIR_GAC = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_GAC_21/Reshaped_Files/noaa18/5km/2009/*/"
-#ROOT_DIR_GAC = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_GAC_23/Reshaped_Files/noaa18/5km/2009/*/"
-ROOT_DIR_GAC = "/home/a001865/DATA_MISC/reshaped_files_jenkins_gac/ATRAIN_RESULTS_GAC_t11t12_higher_after_problem_cases/Reshaped_Files/noaa18/5km/2009/*/"
-ROOT_DIR_GAC = "/home/a001865/DATA_MISC/reshaped_files_jenkins_gac/ATRAIN_RESULTS_GAC_one_larger_refl/Reshaped_Files/noaa18/5km/2009/*/"
-#ROOT_DIR_GAC = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_GAC_v20142/Reshaped_Files/noaa18/5km/2009/*/"
+ROOT_DIR_GAC9 = ADIR + "/DATA_MISC/reshaped_files/ATRAIN_RESULTS_GAC_tuned_nnIMAGER/Reshaped_Files/noaa18/5km/2009/*/"
+#ROOT_DIR_GAC = ADIR + "/DATA_MISC/reshaped_files/ATRAIN_RESULTS_GAC_thr_wvp/Reshaped_Files/noaa18/5km/2009/*/"
+ROOT_DIR_GAC = ADIR + "/DATA_MISC/reshaped_files/ATRAIN_RESULTS_GAC_rttov12/Reshaped_Files/noaa18/5km/2009/*/"
+#ROOT_DIR_GAC = ADIR + "/DATA_MISC/reshaped_files/ATRAIN_RESULTS_GAC_percentile_thr/Reshaped_Files/noaa18/5km/2009/*/"
+#ROOT_DIR_GAC = ADIR + "/DATA_MISC/reshaped_files/ATRAIN_RESULTS_GAC_rolles_method/Reshaped_Files/noaa18/5km/2009/*/"
+#ROOT_DIR_GAC = ADIR + "/DATA_MISC/reshaped_files/ATRAIN_RESULTS_GAC_rolle_percentile/Reshaped_Files/noaa18/5km/2009/*/"
+#ROOT_DIR_GAC = ADIR + "/DATA_MISC/reshaped_files/ATRAIN_RESULTS_GAC_larger_bins/Reshaped_Files/noaa18/5km/2009/*/"
+#ROOT_DIR_GAC = ADIR + "/DATA_MISC/reshaped_files/ATRAIN_RESULTS_GAC_larger_bins_and_noise/Reshaped_Files/noaa18/5km/2009/*/"
+#ROOT_DIR_GAC = ADIR + "/DATA_MISC/reshaped_files/ATRAIN_RESULTS_GAC_rM_tP_lB_N_mM/Reshaped_Files/noaa18/5km/2009/*/"
+#ROOT_DIR_GAC = ADIR + "/DATA_MISC/reshaped_files/ATRAIN_RESULTS_GAC_defaults_5/Reshaped_Files/noaa18/5km/2009/*/"
+#ROOT_DIR_GAC = ADIR + "/DATA_MISC/reshaped_files/ATRAIN_RESULTS_GAC_5_cfg_adjusted/Reshaped_Files/noaa18/5km/2009/*/"
+#ROOT_DIR_GAC = ADIR + "/DATA_MISC/reshaped_files/ATRAIN_RESULTS_GAC_adjusted_2of/Reshaped_Files/noaa18/5km/2009/*/"
+#ROOT_DIR_GAC = ADIR + "/DATA_MISC/reshaped_files/ATRAIN_RESULTS_GAC_ts_noise/Reshaped_Files/noaa18/5km/2009/*/"
+#ROOT_DIR_GAC = ADIR + "/DATA_MISC/reshaped_files/ATRAIN_RESULTS_GAC_more_clouds/Reshaped_Files/noaa18/5km/2009/*/"
+#ROOT_DIR_GAC = ADIR + "/DATA_MISC/reshaped_files/ATRAIN_RESULTS_GAC_21/Reshaped_Files/noaa18/5km/2009/*/"
+#ROOT_DIR_GAC = ADIR + "/DATA_MISC/reshaped_files/ATRAIN_RESULTS_GAC_23/Reshaped_Files/noaa18/5km/2009/*/"
+ROOT_DIR_GAC = ADIR + "/DATA_MISC/reshaped_files_jenkins_gac/ATRAIN_RESULTS_GAC_t11t12_higher_after_problem_cases/Reshaped_Files/noaa18/5km/2009/*/"
+ROOT_DIR_GAC = ADIR + "/DATA_MISC/reshaped_files_jenkins_gac/ATRAIN_RESULTS_GAC_one_larger_refl/Reshaped_Files/noaa18/5km/2009/*/"
+#ROOT_DIR_GAC = ADIR + "/DATA_MISC/reshaped_files/ATRAIN_RESULTS_GAC_v20142/Reshaped_Files/noaa18/5km/2009/*/"
 
 #files = glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/*/*h5")
 #files = glob(ROOT_DIR_GAC + "5km/20??/*/*/*h5")
 #files = glob(ROOT_DIR_GAC  + "/*/*h5")
 
 files = glob(ROOT_DIR_NPP2 + "*/*h5")
-test_list_file = "/home/a001865/git/acpg_develop/acpg/pges/cloudmask/pps_pge01_cmasktests.h"
+test_list_file = ADIR + "/git/acpg_develop/acpg/pges/cloudmask/pps_pge01_cmasktests.h"
 #test_list_file = "pps_pge01_cmasktests.h"
 TEST_NAMEFILE = open(test_list_file, 'r')
 name_dict = {'cma_testlist0': {},

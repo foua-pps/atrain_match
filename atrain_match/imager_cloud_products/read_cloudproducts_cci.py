@@ -1,6 +1,6 @@
 """
   Use this module to read cci cloudproducts
-  2013 SMHI, N.Hakansson a001865
+  2013 SMHI, N.Hakansson 
 """
 from imager_cloud_products.read_cloudproducts_and_nwp_pps import (CtthObj, CppObj, CmaObj, 
                                                                   imagerAngObj, imagerGeoObj)

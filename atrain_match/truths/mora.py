@@ -14,8 +14,10 @@ from utils.common import (ProcessingError, MatchupError, elements_within_range)
 from libs.extract_imager_along_track import imager_track_from_matched
 import logging
 logger = logging.getLogger(__name__)
+from my_dir import ADIR
 
-TEST_FILE ="/home/a001865/DATA_MISC/atrain_match_testcases/mora/cb_2010.dat"
+
+TEST_FILE = ADIR + "/DATA_MISC/atrain_match_testcases/mora/cb_2010.dat"
 
 def get_mora_data(filename):
 

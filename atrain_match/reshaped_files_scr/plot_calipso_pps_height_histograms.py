@@ -15,6 +15,8 @@ import re
 from matchobject_io import (readCaliopImagerMatchObj,
                             CalipsoImagerTrackObject)
 import matplotlib.pyplot as plt
+from my_dir import ADIR
+
 
 isACPGv2012=False
 isGAC_v2014_morning_sat = True
@@ -22,7 +24,7 @@ isGAC_v2014 = True
 if isGAC_v2014_morning_sat:
     num_files_to_read = 30*3
     isGAC=True
-    ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/clara_a2_rerun/Reshaped_Files_CLARA_A2_final/"
+    ROOT_DIR = ADIR + "/DATA_MISC/reshaped_files/clara_a2_rerun/Reshaped_Files_CLARA_A2_final/"
     files = glob(ROOT_DIR + "noaa17/5km/20??/06/*/*h5")
     files = files + glob(ROOT_DIR + "metop*/5km/20??/06/*h5")
     figure_name = "figure_morning_sat_"
@@ -30,7 +32,7 @@ elif isGAC_v2014:
     num_files_to_read = 30
     isGAC=True
     figure_name = "figure_"
-    ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/clara_a2_rerun/Reshaped_Files_CLARA_A2_final/"
+    ROOT_DIR = ADIR + "/DATA_MISC/reshaped_files/clara_a2_rerun/Reshaped_Files_CLARA_A2_final/"
     files = glob(ROOT_DIR + "noaa18/5km/20??/??/*/*noaa*h5")
     files = files + glob(ROOT_DIR + "noaa19/5km/20??/??/*/*noaa*h5")
 

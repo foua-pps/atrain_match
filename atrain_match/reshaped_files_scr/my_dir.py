@@ -1,0 +1,1 @@
+ADIR = "/home/path"

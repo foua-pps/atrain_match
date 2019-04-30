@@ -19,8 +19,8 @@ from utils.get_flag_info import (get_semi_opaque_info_pps2014,
 from utils.stat_util import (HR_cma, K_cma, 
                        PODcy, FARcy, 
                        PODcl, FARcl)
-
-out_filename = "/home/a001865/Documents/A_PPS_v2017/Validation_2018/results_cma_osisaf.txt"
+from my_dir import ADIR
+out_filename = ADIR + "/Documents/A_PPS_v2017/Validation_2018/results_cma_osisaf.txt"
 out_file_h = open(out_filename,'w')
 
 def my_measures(calipso_cfc, pps_cfc, calipso_snowi, pps_snowi,  thin, use):
@@ -146,21 +146,21 @@ if __name__ == "__main__":
     from matchobject_io import read_files
 
     ROOT_DIR_v2014 = (
-        "/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
+        ADIR + "/DATA_MISC/reshaped_files_jenkins_npp_modis/"
         "ATRAIN_RESULTS_NPP_C4_2014/Reshaped_Files/npp/1km/2015/07/*/")
     ROOT_DIR_v2018 = (
-        "/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
+        ADIR + "/DATA_MISC/reshaped_files_jenkins_npp_modis/"
         "ATRAIN_RESULTS_NPP_C4/Reshaped_Files/npp/1km/2015/07/*/")
 
 
-    ROOT_DIR_v2014_npp = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/global_viirs_v2014_created20180914/Reshaped_Files_merged_caliop/npp/1km/2015/*/")
-    ROOT_DIR_v2018_npp = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/global_viirs_v2018_created20180907/Reshaped_Files_merged_caliop/npp/1km/2015/*/")
-    ROOT_DIR_v2014_modis = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/global_modis_v2014_created20180920/Reshaped_Files_merged_caliop/eos2/1km/2010/*/")
-    ROOT_DIR_v2018_modis = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/global_modis_v2018_created20180920/Reshaped_Files_merged_caliop/eos2/1km/2010/*/")
-    ROOT_DIR_v2018_modis_ice = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/global_modis_v2018_created20181001_cmap_osiice_dust/Reshaped_Files_merged_caliop/eos2/1km/2010/*/")
-    ROOT_DIR_v2014_gac = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/global_gac_v2014_created20180927/Reshaped_Files/noaa18/5km/*/")
-    ROOT_DIR_v2018_gac = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/global_gac_v2018_created20180927/Reshaped_Files/noaa18/5km/*/")
-    ROOT_DIR_v2018_npp_synop = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/global_viirs_v2018_created20181010_synop/Reshaped_Files_merged_synop/npp/1km/2015/*/")
+    ROOT_DIR_v2014_npp = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_viirs_v2014_created20180914/Reshaped_Files_merged_caliop/npp/1km/2015/*/")
+    ROOT_DIR_v2018_npp = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_viirs_v2018_created20180907/Reshaped_Files_merged_caliop/npp/1km/2015/*/")
+    ROOT_DIR_v2014_modis = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_modis_v2014_created20180920/Reshaped_Files_merged_caliop/eos2/1km/2010/*/")
+    ROOT_DIR_v2018_modis = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_modis_v2018_created20180920/Reshaped_Files_merged_caliop/eos2/1km/2010/*/")
+    ROOT_DIR_v2018_modis_ice = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_modis_v2018_created20181001_cmap_osiice_dust/Reshaped_Files_merged_caliop/eos2/1km/2010/*/")
+    ROOT_DIR_v2014_gac = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_gac_v2014_created20180927/Reshaped_Files/noaa18/5km/*/")
+    ROOT_DIR_v2018_gac = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_gac_v2018_created20180927/Reshaped_Files/noaa18/5km/*/")
+    ROOT_DIR_v2018_npp_synop = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_viirs_v2018_created20181010_synop/Reshaped_Files_merged_synop/npp/1km/2015/*/")
 
     def process_one_case(ROOT_DIR_INNER, exclude_2009=False):
         files = glob(ROOT_DIR_INNER + "*cali*h5")

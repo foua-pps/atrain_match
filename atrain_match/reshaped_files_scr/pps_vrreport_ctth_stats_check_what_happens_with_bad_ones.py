@@ -36,10 +36,10 @@ matplotlib.rcParams.update({'font.size': 20})
 #plt.rc('font', family='serif')
 #matplotlib.use('ps')
 from matplotlib import rc
-
+from my_dir import ADIR
 #rc('text',usetex=True)
 #rc('text.latex', preamble='\usepackage{color}')
-out_filename = "/home/a001865/Documents/A_PPS_v2017/Validation_2018/results_ctth_polarn.txt"
+out_filename = ADIR + "/Documents/A_PPS_v2017/Validation_2018/results_ctth_polarn.txt"
 out_file_h = open(out_filename,'a')
 
 
@@ -185,8 +185,8 @@ def my_make_plot_example(bias, use, label_str):
     ax.set_xlabel('error (km)')
     my_adjust_axis(ax)
     ax.set_yticklabels([])
-    plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_ctth_error_dist_%s.png"%(label_str),bbox_inches='tight')
-    plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_ctth_error_dist_%s.pdf"%(label_str),bbox_inches='tight')
+    plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_ctth_error_dist_%s.png"%(label_str),bbox_inches='tight')
+    plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_ctth_error_dist_%s.pdf"%(label_str),bbox_inches='tight')
     #plt.show()
 
 
@@ -270,8 +270,8 @@ def my_make_plot_example_aprox(bias, use, label_str, caObj):
     ax.set_xlim(-4,6)
     leg = plt.legend(loc="upper right", markerscale=2., numpoints=1,scatterpoints=1, bbox_to_anchor=(1.13, 1.2), framealpha=1.0, frameon=True)
     leg.get_frame().set_facecolor('w')
-    plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_ctth_error_and_gaussian_fitted_%s.png"%(label_str),bbox_inches='tight')
-    plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_ctth_error_and_gaussian_fitted_%s.pdf"%(label_str),bbox_inches='tight')
+    plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_ctth_error_and_gaussian_fitted_%s.png"%(label_str),bbox_inches='tight')
+    plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_ctth_error_and_gaussian_fitted_%s.pdf"%(label_str),bbox_inches='tight')
 
     plt.style.use('seaborn-white')
     fig = plt.figure(figsize=(7, 5))
@@ -302,8 +302,8 @@ def my_make_plot_example_aprox(bias, use, label_str, caObj):
     ax.set_ylim(0,10)    
     ax.set_xlim(-4,6)
     plt.yticks(np.arange(0,9,2.0))
-    plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_ctth_error_and_gaussian_%s.png"%(label_str),bbox_inches='tight')
-    plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_ctth_error_and_gaussian_%s.pdf"%(label_str),bbox_inches='tight')
+    plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_ctth_error_and_gaussian_%s.png"%(label_str),bbox_inches='tight')
+    plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_ctth_error_and_gaussian_%s.pdf"%(label_str),bbox_inches='tight')
 
 
     plt.style.use('seaborn-white')
@@ -350,8 +350,8 @@ def my_make_plot_example_aprox(bias, use, label_str, caObj):
     ax.set_ylim(0,10)    
     ax.set_xlim(-4,6)
     plt.yticks(np.arange(0,9,2.0))
-    plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_ctth_error_and_gaussian_and_biascorr_%s.png"%(label_str),bbox_inches='tight')
-    plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_ctth_error_and_gaussian_and_biascorr_%s.pdf"%(label_str),bbox_inches='tight')
+    plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_ctth_error_and_gaussian_and_biascorr_%s.png"%(label_str),bbox_inches='tight')
+    plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_ctth_error_and_gaussian_and_biascorr_%s.pdf"%(label_str),bbox_inches='tight')
 
     plt.close()
     plt.style.use('seaborn-white')
@@ -396,8 +396,8 @@ def my_make_plot_example_aprox(bias, use, label_str, caObj):
     ax.set_xlabel('error (km)')
     my_adjust_axis(ax)
     ax.set_yticklabels([])
-    plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_ctth_error_aprox_dist_%s.png"%(label_str),bbox_inches='tight')
-    plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_ctth_error_aprox_dist_%s.pdf"%(label_str),bbox_inches='tight')
+    plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_ctth_error_aprox_dist_%s.png"%(label_str),bbox_inches='tight')
+    plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_ctth_error_aprox_dist_%s.pdf"%(label_str),bbox_inches='tight')
     #plt.show()
 
 
@@ -604,7 +604,7 @@ def print_all(cObj, compare, compare_name = "unknown"):
 if __name__ == "__main__":
 
     from matchobject_io import read_files
-    BASE_DIR = "/home/a001865/DATA_MISC/reshaped_files_validation_2018/"
+    BASE_DIR = ADIR + "/DATA_MISC/reshaped_files_validation_2018/"
     ROOT_DIR_v2014 = (BASE_DIR + "global_modis_v2014_created20180920/Reshaped_Files_merged_caliop/eos2/1km/2010/*/*%s*h5")
     ROOT_DIR_v2014_clsat = (BASE_DIR + "global_modis_v2014_created20180920/Reshaped_Files_merged_cloudsat/eos2/1km/2010/*/*%s*h5")
     ROOT_DIR_v2018 = (BASE_DIR + "global_modis_v2018_created20180920/Reshaped_Files_merged_caliop/eos2/1km/2010/*/*%s*h5")

@@ -16,7 +16,7 @@ AREA_CONFIG_FILE = os.environ.get('AREA_CONFIG_FILE', './areas.def')
 #: Base directory for validation results   
 _validation_results_dir = os.environ.get(
   'VALIDATION_RESULTS_DIR', 
-  "/nobackup/smhid12/sm_kgkar/atrain_match_test_CALIPSOv4")
+  "/nobackup/smhid12/atrain_match_test_CALIPSOv4")
 
 
 #========== Process modes ==========#

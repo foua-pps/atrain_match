@@ -1,6 +1,6 @@
 """
   Use this module to read patmosx cloudproducts
-  2018 SMHI, N.Hakansson a001865
+  2018 SMHI, N.Hakansson 
 """
 
 import time

@@ -16,7 +16,7 @@ from utils.get_flag_info import (get_semi_opaque_info_pps2014,
                            get_calipso_high_clouds,
                            get_calipso_medium_clouds,
                            get_calipso_low_clouds)
-
+from my_dir import ADIR
 def make_boxplot(caObj, name):
     low_clouds = get_calipso_low_clouds(caObj)
     high_clouds = get_calipso_high_clouds(caObj)
@@ -104,33 +104,33 @@ def make_boxplot(caObj, name):
         title_name = "CTTH-2014  "
                 
     plt.title("%s MAE = %3.0f"%(title_name,MAE))
-    plt.savefig("/home/a001865/PICTURES_FROM_PYTHON/CTTH_LAPSE_RATE_INVESTIGATION/ctth_box_plot_%s_5_95_filt.png"%(name))
+    plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_LAPSE_RATE_INVESTIGATION/ctth_box_plot_%s_5_95_filt.png"%(name))
     #plt.show()
 
 
 
 def investigate_nn_ctth():
-    ROOT_DIR_GAC_nnNina = ("/home/a001865/DATA_MISC/reshaped_files/"
+    ROOT_DIR_GAC_nnNina = (ADIR + "/DATA_MISC/reshaped_files/"
                        "ATRAIN_RESULTS_GAC_nnNina/Reshaped_Files/noaa18/")
-    ROOT_DIR_GAC_nn = ("/home/a001865/DATA_MISC/reshaped_files/"
+    ROOT_DIR_GAC_nn = (ADIR + "/DATA_MISC/reshaped_files/"
                        "ATRAIN_RESULTS_GAC_nn21/Reshaped_Files/noaa18/")
-    ROOT_DIR_GAC_old = ("/home/a001865/DATA_MISC/reshaped_files/"
+    ROOT_DIR_GAC_old = (ADIR + "/DATA_MISC/reshaped_files/"
                         "ATRAIN_RESULTS_GAC_old/Reshaped_Files/noaa18/")
-    ROOT_DIR_GAC_oldCTTH_12x12 = ("/home/a001865/DATA_MISC/reshaped_files/"
+    ROOT_DIR_GAC_oldCTTH_12x12 = (ADIR + "/DATA_MISC/reshaped_files/"
                         "ATRAIN_RESULTS_GAC_oldCTTH_12x12/Reshaped_Files/noaa18/")
-    ROOT_DIR_GAC_v2014 = ("/home/a001865/DATA_MISC/reshaped_files/"
+    ROOT_DIR_GAC_v2014 = (ADIR + "/DATA_MISC/reshaped_files/"
                         "ATRAIN_RESULTS_GAC_v2014/Reshaped_Files/noaa18/")
-    ROOT_DIR_GAC_v2014_12x12 = ("/home/a001865/DATA_MISC/reshaped_files/"
+    ROOT_DIR_GAC_v2014_12x12 = (ADIR + "/DATA_MISC/reshaped_files/"
                                 "ATRAIN_RESULTS_GAC_v2014_12x12/Reshaped_Files/noaa18/")
-    ROOT_DIR_GAC_nn_new = ("/home/a001865/DATA_MISC/reshaped_files/"
+    ROOT_DIR_GAC_nn_new = (ADIR + "/DATA_MISC/reshaped_files/"
                            "ATRAIN_RESULTS_GAC_nn20161125/Reshaped_Files/noaa18/")
-    ROOT_DIR_GAC_nn_imager = ("/home/a001865/DATA_MISC/reshaped_files/"
+    ROOT_DIR_GAC_nn_imager = (ADIR + "/DATA_MISC/reshaped_files/"
                            "ATRAIN_RESULTS_GAC_nn20161130/Reshaped_Files/noaa18/")
-    ROOT_DIR_GAC_nn_imager_tuned = ("/home/a001865/DATA_MISC/reshaped_files/"
+    ROOT_DIR_GAC_nn_imager_tuned = (ADIR + "/DATA_MISC/reshaped_files/"
                            "ATRAIN_RESULTS_GAC_tuned_nnIMAGER/Reshaped_Files/noaa18/")
-    ROOT_DIR_GAC_nn_imager1_tuned = ("/home/a001865/DATA_MISC/reshaped_files/"
+    ROOT_DIR_GAC_nn_imager1_tuned = (ADIR + "/DATA_MISC/reshaped_files/"
                            "ATRAIN_RESULTS_GAC_nnIMAGER1/Reshaped_Files/noaa18/")
-    ROOT_DIR_GAC_nn_imager_with_gac = ("/home/a001865/DATA_MISC/reshaped_files/"
+    ROOT_DIR_GAC_nn_imager_with_gac = (ADIR + "/DATA_MISC/reshaped_files/"
                            "ATRAIN_RESULTS_GAC_IMAGER_with_gac/Reshaped_Files/noaa18/")
     re_name = re.compile("_RESULTS_GAC_(\w+)\/")
     caobj_dict = {}
@@ -155,47 +155,47 @@ def investigate_nn_ctth():
 
 def investigate_nn_ctth_viirs():
     ROOT_DIR_v2014 = (
-        "/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
+        ADIR + "/DATA_MISC/reshaped_files_jenkins_npp_modis/"
         "ATRAIN_RESULTS_NPP_C4_2014/Reshaped_Files/npp/1km/2015/07/*/")
     ROOT_DIR_v2018 = (
-        "/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
+        ADIR + "/DATA_MISC/reshaped_files_jenkins_npp_modis/"
         "ATRAIN_RESULTS_NPP_C4/Reshaped_Files/npp/1km/2015/07/*/")
     #ROOT_DIR_14bug_maia = (
-    #    "/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
+    #    ADIR + "/DATA_MISC/reshaped_files_jenkins_npp_modis/"
     #    "NPP_FULL_ORBIT_2014/Reshaped_Files/")
     ROOT_DIR_14bug = (
-        "/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
+        ADIR + "/DATA_MISC/reshaped_files_jenkins_npp_modis/"
         "ATRAIN_RESULTS_NPP_v2014_before_ctthbug_correction/"
         "Reshaped_Files/npp/1km/2015/07/*/")
     ROOT_DIR_v2014_old = (
-        "/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
+        ADIR + "/DATA_MISC/reshaped_files_jenkins_npp_modis/"
         "ATRAIN_RESULTS_NPP_v2014_bug_corrected_20170313/Reshaped_Files/npp/1km/2015/07/*/")
     ROOT_DIR_nn_imager = (
-        "/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
+        ADIR + "/DATA_MISC/reshaped_files_jenkins_npp_modis/"
         "ATRAIN_RESULTS_NPP_nnIMAGER_20170313/Reshaped_Files/npp/1km/2015/07/*/")
     ROOT_DIR_nn_imager_tuned = (
-        "/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
+        ADIR + "/DATA_MISC/reshaped_files_jenkins_npp_modis/"
         "ATRAIN_RESULTS_NPP_nnIMAGER_20170313_tuned/Reshaped_Files/npp/1km/2015/07/*/")
     ROOT_DIR_nn_imager1 = (
-        "/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
+        ADIR + "/DATA_MISC/reshaped_files_jenkins_npp_modis/"
         "ATRAIN_RESULTS_NPP_nnIMAGER1_20170313/Reshaped_Files/npp/1km/2015/07/*/")
     ROOT_DIR_nn_viirs = (
-        "/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
+        ADIR + "/DATA_MISC/reshaped_files_jenkins_npp_modis/"
         "ATRAIN_RESULTS_NPP_nnVIIRS_20170310/Reshaped_Files/npp/1km/2015/07/*/")
     ROOT_DIR_nn_viirs_new = (
-        "/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
+        ADIR + "/DATA_MISC/reshaped_files_jenkins_npp_modis/"
         "ATRAIN_RESULTS_NPP_nnVIIRS_20170313_new/Reshaped_Files/npp/1km/2015/07/*/")
     ROOT_DIR_nn_viirs_CLAY4 = (
-        "/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
+        ADIR + "/DATA_MISC/reshaped_files_jenkins_npp_modis/"
         "ATRAIN_RESULTS_NPP_nnVIIRS_20170310_CLAY4/Reshaped_Files/npp/1km/2015/07/*/")
     ROOT_DIR_nn_viirs_lm = (
-        "/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
+        ADIR + "/DATA_MISC/reshaped_files_jenkins_npp_modis/"
         "ATRAIN_RESULTS_NPP_viirs_lm/Reshaped_Files/npp/1km/2015/07/*/")
     ROOT_DIR_nn_imager_lm = (
-        "/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
+        ADIR + "/DATA_MISC/reshaped_files_jenkins_npp_modis/"
         "ATRAIN_RESULTS_NPP_imager_lm/Reshaped_Files/npp/1km/2015/07/*/")
     ROOT_DIR_nn_imager_wg = (
-        "/home/a001865/DATA_MISC/reshaped_files_jenkins_npp_modis/"
+        ADIR + "/DATA_MISC/reshaped_files_jenkins_npp_modis/"
         "ATRAIN_RESULTS_NPP_IMAGER_with_gac/Reshaped_Files/npp/1km/2015/07/*/")
     caobj_dict = {}
     for ROOT_DIR, name in zip(
@@ -216,17 +216,17 @@ def investigate_nn_ctth_modis_may():
     #may
     """
     ROOT_DIR_MODIS_nn = (
-        "/home/a001865/DATA_MISC/reshaped_files/"
+        ADIR + "/DATA_MISC/reshaped_files/"
         "ATRAIN_RESULTS_MODIS_MAY/Reshaped_Files/merged/")
     ROOT_DIR_MODIS_nn_viirs = (
-        "/home/a001865/DATA_MISC/reshaped_files/"
+        ADIR + "/DATA_MISC/reshaped_files/"
         "ATRAIN_RESULTS_MODIS_MAY_nnviirs_20161205/Reshaped_Files/merged/")
     ROOT_DIR_MODIS_nn_mersi2 = (
-        "/home/a001865/DATA_MISC/reshaped_files/"
+        ADIR + "/DATA_MISC/reshaped_files/"
         "ATRAIN_RESULTS_MODIS_MAY_nnmersi2_20161206/Reshaped_Files/merged/")
     """
     ROOT_DIR_MODIS_old = (
-        "/home/a001865/DATA_MISC/reshaped_files/"
+        ADIR + "/DATA_MISC/reshaped_files/"
         "global_modis_14th_created20161108/Reshaped_Files/merged/")
 
     caobj_dict = {}
@@ -253,26 +253,26 @@ def investigate_nn_ctth_modis_may():
 def investigate_nn_ctth_modis_november():
     #november
     ROOT_DIR_MODIS_nn_imager = (
-        "/home/a001865/DATA_MISC/reshaped_files/"
+        ADIR + "/DATA_MISC/reshaped_files/"
         "ATRAIN_RESULTS_MODIS_NOVEMBER/Reshaped_Files/merged/")
     ROOT_DIR_MODIS_nn_viirs = (
-        "/home/a001865/DATA_MISC/reshaped_files/"
+        ADIR + "/DATA_MISC/reshaped_files/"
         "ATRAIN_RESULTS_MODIS_NOVEMBER_nnviirs_20161205/Reshaped_Files/merged/")
     ROOT_DIR_MODIS_nn_mersi2 = (
-        "/home/a001865/DATA_MISC/reshaped_files/"
+        ADIR + "/DATA_MISC/reshaped_files/"
         "ATRAIN_RESULTS_MODIS_NOVEMBER_AEROSOL/Reshaped_Files/merged/")
     ROOT_DIR_MODIS_nn_viirs_tuned = (
-        "/home/a001865/DATA_MISC/reshaped_files/"
+        ADIR + "/DATA_MISC/reshaped_files/"
         "ATRAIN_RESULTS_MODIS_NOVEMBER_nnVIIRS_20170315/Reshaped_Files/merged/")
     ROOT_DIR_MODIS_nn_mersi2_tuned = (
-        "/home/a001865/DATA_MISC/reshaped_files/"
+        ADIR + "/DATA_MISC/reshaped_files/"
         "ATRAIN_RESULTS_MODIS_NOVEMBER_nnMERSI2/Reshaped_Files/merged/")
     ROOT_DIR_MODIS_nn_imager_tuned = (
-        "/home/a001865/DATA_MISC/reshaped_files/"
+        ADIR + "/DATA_MISC/reshaped_files/"
         "ATRAIN_RESULTS_MODIS_NOVEMBER_nnIMAGER_20170315/Reshaped_Files/merged/")
 
     ROOT_DIR_MODIS_old = (
-        "/home/a001865/DATA_MISC/reshaped_files/"
+        ADIR + "/DATA_MISC/reshaped_files/"
         "global_modis_14th_created20161108/Reshaped_Files/merged/")
 
     caobj_dict = {}

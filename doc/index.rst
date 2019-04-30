@@ -5,23 +5,19 @@
 Welcome to atrain_match's documentation!
 ========================================
 
-``atrain_match`` contains functionality for matching AVHRR data with Cloudsat
-and Calipso data, and producing statistics summaries for PPS products Cloud
-Mask, Cloud Type, and Cloud Top Temperature and Height, compared with
-corresponding Cloudsat and/or Calipso products.
+``atrain_match`` contains functionality for matching IMAGER(AVHRR/MODIS/VIIRS/SEVIRI) data with Cloudsat (CPR), CALIOP, AMSR-E, CATS and synop data and producing statistics summaries for PPS/MAIA/CCI/PATMOSX products Cloud
+Mask, Cloud Type, and Cloud Top Temperature and Height and CPP compared with
+corresponding truth.
 
-Additionally, the :mod:`collect_last_day` module can be set up to collect
-data files needed for matching and validation from a temporary directory (e.g.
-``/data/24/...`` at SMHI) to an archive directory.
 
 Contents:
 
 .. toctree::
    :maxdepth: 2
 
-   utilities
+   process_master
    
-   find_crosses
+   compile_statistis
    
    cloudsat_calipso_avhrr_match
    

@@ -23,17 +23,17 @@ import re
 from matchobject_io import (readCaliopImagerMatchObj,
                             CalipsoImagerTrackObject)
 import matplotlib.pyplot as plt
-
-#ROOT_DIR = "/home/a001865/git/atrain_match/modis_merged_05.h5"
-#ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/global_modis_14th_created20160615/Reshaped_Files/merged/"
-#ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_MODIS_*_AEROSOL_SMOKE/Reshaped_Files/merged/"
+from my_dir import ADIR
+#ROOT_DIR = ADIR + "/git/atrain_match/modis_merged_05.h5"
+#ROOT_DIR = ADIR + "/DATA_MISC/reshaped_files/global_modis_14th_created20160615/Reshaped_Files/merged/"
+#ROOT_DIR = ADIR + "/DATA_MISC/reshaped_files/ATRAIN_RESULTS_MODIS_*_AEROSOL_SMOKE/Reshaped_Files/merged/"
 #files = glob(ROOT_DIR+"*05*.h5")
-#ROOT_DIR = "/home/a001865/DATA_MISC/reshaped_files/ATRAIN_RESULTS_MODIS_NOVEMBER_AEROSOL_SMOKE/Reshaped_Files/merged/"
+#ROOT_DIR = ADIR + "/DATA_MISC/reshaped_files/ATRAIN_RESULTS_MODIS_NOVEMBER_AEROSOL_SMOKE/Reshaped_Files/merged/"
 #files = files + glob(ROOT_DIR+"*11*.h5")
-#ROOT_DIR = ("/home/a001865/DATA_MISC/reshaped_files/"
+#ROOT_DIR = (ADIR + "/DATA_MISC/reshaped_files/"
 #            "global_modis_14th_created20161108/Reshaped_Files/merged/")
 #files = glob(ROOT_DIR+"*day*.h5")
-ROOT_DIR = ("/home/a001865/DATA_MISC/reshaped_files_validation_2018/global_modis_v2018_created20181001_cmap_osiice_dust/Reshaped_Files_merged_caliop/eos2/1km/*/*/*")
+ROOT_DIR = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_modis_v2018_created20181001_cmap_osiice_dust/Reshaped_Files_merged_caliop/eos2/1km/*/*/*")
 files = glob(ROOT_DIR+"*.h5")
 from utils.get_flag_info import get_calipso_aerosol_of_type_i
 

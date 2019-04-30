@@ -5,14 +5,14 @@ import os
 from matchobject_io import (readAmsrImagerMatchObj,
                             writeAmsrImagerMatchObj,
                             AmsrImagerTrackObject)
-
+from my_dir import ADIR
 
 instrument = "gac"
 satellite = "noaa18"
 truth = "amsr"
 version = "v2014"
 
-BASE_DIR = "/home/a001865/DATA_MISC/reshaped_files_validation_2018/global_{instrument}_{version}_created20180927/".format(instrument=instrument, version=version)
+BASE_DIR = ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_{instrument}_{version}_created20180927/".format(instrument=instrument, version=version)
 ROOT_DIR = BASE_DIR + "/Reshaped_Files/{satellite}/5km/*/*{truth}*.h5".format(
     satellite=satellite, truth=truth)
 OUT_DIR_TEMPLATE = BASE_DIR + "/Reshaped_Files_merged_{truth}_lwp/{satellite}/5km/".format(
