@@ -492,6 +492,7 @@ def find_files_from_imager(imager_file, AM_PATHS, SETTINGS, as_oldstyle=False):
     check_cfc_configuration(file_name_dict, SETTINGS)
     # For CTTH can have several files:    
     ctth_files = {}
+    file_name_dict['ctth'] = ctth_files #If no ctth matching requested
     if 'ctth_file' in AM_PATHS.keys():  
         for ctth_type in SETTINGS['CTTH_TYPES']:
             values['ctth_type'] = ctth_type
