@@ -83,11 +83,12 @@ def map_imager_distances(imager, lon, lat, radius_of_influence, n_neighbours=1):
     # Return the nearest (and the only calculated) neighbour
     #return mapper.rows.filled(NODATA)[:, 0], mapper.cols.filled(NODATA)[:, 0]
     # Nina 2016-01-19 changed mapper.rows to be 1D arrays not 2D-arrays with 
+    # Nina 2019-08-22 changed back to (n,1) arrays needed for amsr 
     # one column as that is mostly "needed for array magic."
     # Note that ravel() transform array (n,1) array to (n,)
     # Array2D[:,0] gives (n,)
     # np.logical_and(array_of_size(n,1), array_of_size(n,)) => (n,n)
-    out = {"mapper": (mapper.rows.filled(NODATA).ravel(), mapper.cols.filled(NODATA).ravel()),
+    out = {"mapper": (mapper.rows.filled(NODATA)[:], mapper.cols.filled(NODATA)[:]),
            "distances": distances}
 
     return out
