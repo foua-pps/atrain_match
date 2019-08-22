@@ -394,7 +394,7 @@ def read_cma_nc(filename):
 def readImagerData_nc(pps_nc):
     imager_data = NewImagerData()
     for var in pps_nc.variables.keys():
-        if 'image' in var:
+        if 'image' in var or hasattr(pps_nc.variables[var], "sensor"):
             image = pps_nc.variables[var]
             if image.id_tag in ['satzenith', 'sunzenith', 
                                 'azimuthdiff', 
