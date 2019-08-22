@@ -75,11 +75,28 @@ class DataObject(object):
                     self.all_arrays[key] = np.concatenate(
                         [self.all_arrays[key],
                          other.all_arrays[key]], 0)
-                        
             except ValueError as e:
                 #print "Don't concatenate member " + key + "... " + str(e)
                 self.all_arrays[key] = other.all_arrays[key]
-        return self
+        return self  
+
+    def extract_elements(self, idx=None, starti=0, endi=0):
+        """Extract elements with index idx"""
+        #to replace calipso_track_from_matched
+        for key, value in self.all_arrays.items(): 
+            if value is None:
+                self.all_arrays[key] = None
+            elif value.size == 1:
+                pass
+            elif idx is not None:    
+                self.all_arrays[key] = value[idx.ravel(),...]   
+            else:
+                self.all_arrays[key] = value[starti:endi,...]                
+            if value is not None and len(value.shape)>1 and value.shape[1]==1:
+                self.all_arrays[key] = self.all_arrays[key].ravel()
+
+              
+        return self    
 
     def mask_nodata(self, nodata):
         for key in self.all_arrays:
@@ -600,22 +617,36 @@ class TruthImagerTrackObject:
     
     def __add__(self, other):
         """Concatenating two objects together"""
-        for object_name in ['imager', 'calipso', 'calipso_aerosol',
+        for object_name in ['imager', 'calipso', 'calipso_aerosol', 'amsr',
                             'cloudsat', 'iss', 'mora', 'synop', 'modis']:
             if hasattr(self, object_name):
                 setattr(self, object_name, 
                         getattr(self, object_name) + 
                         getattr(other, object_name))
-
         try:
             self.diff_sec_1970 = np.concatenate([self.diff_sec_1970,
                                                  other.diff_sec_1970])
         except ValueError as e:
             #print "Don't concatenate member diff_sec_1970... " + str(e)
             self.diff_sec_1970 = other.diff_sec_1970
-
         return self
 
+    def extract_elements(self, idx=None, starti=None, endi=None):
+        for object_name in ['imager', 'calipso', 'calipso_aerosol', 'amsr',
+                            'cloudsat', 'iss', 'mora', 'synop', 'modis']:
+            if hasattr(self, object_name):
+                obj = getattr(self, object_name)
+                setattr(self, object_name, obj.extract_elements(idx=idx, starti=starti, endi=endi))
+        try:
+            if idx is not None:
+                self.diff_sec_1970 = self.diff_sec_1970[idx]
+            else:
+                self.diff_sec_1970 = self.diff_sec_1970[starti:endi]
+        except ValueError as e:
+            #print "Don't concatenate member diff_sec_1970... " + str(e)
+            self.diff_sec_1970 = other.diff_sec_1970
+        return self
+       
 
 def get_stuff_to_read_from_a_reshaped_file(h5file, retv):
     h5_groups = []

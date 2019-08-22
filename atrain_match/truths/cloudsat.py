@@ -28,8 +28,7 @@ from utils.common import (MatchupError, ProcessingError,
                     elements_within_range)
 from libs.extract_imager_along_track import imager_track_from_matched
 
-from truths.calipso import (find_break_points, calipso_track_from_matched,
-                     time_reshape_calipso)
+from truths.calipso import (find_break_points)
 from utils.runutils import do_some_logging
 
 def add_validation_ctth_cloudsat(cloudsat):
@@ -201,6 +200,7 @@ def match_cloudsat_imager(cloudsatObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,
                           cpp, nwp_segments, SETTINGS):
     retv = TruthImagerTrackObject(truth='cloudsat')
     retv.imager_instrument = imagerGeoObj.instrument.lower()
+    retv.cloudsat = cloudsatObj
     #Nina 20150313 Swithcing to mapping without area as in cpp. Following suggestion from Jakob
     from utils.common import map_imager
     cal, cap = map_imager(imagerGeoObj, 
@@ -223,7 +223,7 @@ def match_cloudsat_imager(cloudsatObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,
     if idx_match.sum() == 0:
         logger.warning("No matches in region within time threshold %d s.", SETTINGS["sec_timeThr"])
         return None
-    retv.cloudsat = calipso_track_from_matched(retv.cloudsat, cloudsatObj, idx_match)
+    retv.cloudsat = retv.cloudsat.extract_elements(idx=idx_match)
  
     # Cloudsat line,pixel inside IMAGER swath:
     retv.cloudsat.imager_linnum = np.repeat(cal, idx_match).astype('i')
@@ -290,7 +290,8 @@ def reshapeCloudsat(cloudsatfiles, imager,  SETTINGS):
                                                                newCloudsat.all_arrays[arname]))
     # Finds Break point
     startBreak, endBreak = find_break_points(clsat, imager, SETTINGS)
-    clsat = time_reshape_calipso(clsat, startBreak, endBreak)
+    clsat = clsat.extract_elements(starti=startBreak, 
+                                   endi=endBreak) 
     return clsat
     
     

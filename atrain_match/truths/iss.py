@@ -29,8 +29,7 @@ from utils.common import (MatchupError, ProcessingError,
                     elements_within_range)
 from libs.extract_imager_along_track import imager_track_from_matched
 
-from truths.calipso import (find_break_points, calipso_track_from_matched,
-                     time_reshape_calipso)
+from truths.calipso import (find_break_points)
 from utils.runutils import do_some_logging
 import time
 import datetime
@@ -151,6 +150,7 @@ def match_iss_imager(issObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,imagerAngO
                          cpp, nwp_segments, SETTINGS):
     retv = TruthImagerTrackObject(truth='iss')
     retv.imager_instrument = imagerGeoObj.instrument.lower()
+    retv.iss = issObj
 
     from utils.common import map_imager
     cal, cap = map_imager(imagerGeoObj, issObj.longitude.ravel(),
@@ -175,7 +175,7 @@ def match_iss_imager(issObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,imagerAngO
         logger.warning("No matches in region within time threshold %d s.", SETTINGS["sec_timeThr"])
         return None
 
-    retv.iss = calipso_track_from_matched(retv.iss, issObj, idx_match)
+    retv.iss = retv.iss.extract_elements(idx=idx_match)
 
      # Calipso line,pixel inside IMAGER swath:
     retv.iss.imager_linnum = np.repeat(cal, idx_match).astype('i')
@@ -214,7 +214,8 @@ def reshapeIss(issfiles, imager, SETTINGS):
                                                              newIss.all_arrays[arname]),axis=0)          
     # Finds Break point
     startBreak, endBreak = find_break_points(iss, imager, SETTINGS)
-    iss = time_reshape_calipso(iss, startBreak, endBreak)
+    iss = iss.extract_elements(starti=startBreak, 
+                               endi=endBreak) 
     return iss
     
 

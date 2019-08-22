@@ -24,8 +24,8 @@ import config
 from imager_cloud_products.read_cloudproducts_and_nwp_pps import NWPObj
 from matchobject_io import (TruthImagerTrackObject, 
                             AmsrObject)
-from truths.calipso import (find_break_points, calipso_track_from_matched,
-                     time_reshape_calipso, do_some_logging)
+from truths.calipso import find_break_points
+from utils.runutils import do_some_logging
 
 from utils.common import (ProcessingError, MatchupError, elements_within_range)
 from libs.extract_imager_along_track import imager_track_from_matched
@@ -53,7 +53,7 @@ def get_amsr(filename):
     logger.info("Extract AMSR-E lwp between 0 and %d g/m-2", LWP_THRESHOLD)
     use_amsr = np.logical_and(retv.lwp >=0 ,
                               retv.lwp < LWP_THRESHOLD*100)
-    retv = calipso_track_from_matched(retv, retv, use_amsr)
+    retv = retv.extract_elements(idx=use_amsr)
     #import matplotlib.pyplot as plt
     #plt.plot(retv.longitude, retv.latitude, '.')
     #plt.savefig('map_test.png')
@@ -145,7 +145,8 @@ def reshapeAmsr(amsrfiles, imager, SETTINGS):
     # Finds Break point
     #import pdb; pdb.set_trace()
     startBreak, endBreak = find_break_points(amsr, imager, SETTINGS)
-    amsr = time_reshape_calipso(amsr, startBreak, endBreak)
+    amsr = amsr.extract_elements(starti=startBreak, 
+                                 endi=endBreak) 
     return amsr
 
 
@@ -154,6 +155,7 @@ def match_amsr_imager(amsrObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
                       imagerAngObj, cpp, nwp_segments, SETTINGS):
     retv = TruthImagerTrackObject(truth='amsr')
     retv.imager_instrument = imagerGeoObj.instrument.lower()
+    retv.amsr = amsrObj
 
     if (getattr(cpp, "cpp_lwp")<0).all():
         logger.warning("Not matching AMSR-E with scene with no lwp.")
@@ -193,7 +195,7 @@ def match_amsr_imager(amsrObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
     if idx_match.sum() == 0:
         logger.warning("No light (sunz<84)  matches in region within time threshold %d s.", SETTINGS["sec_timeThr"])
         return None
-    retv.amsr = calipso_track_from_matched(retv.amsr, amsrObj, idx_match)
+    retv.amsr = retv.amsr.extract_elements(idx=idx_match)
  
     # Amsr line,pixel inside IMAGER swath (one neighbour):
     retv.amsr.imager_linnum = np.repeat(cal_1, idx_match).astype('i')

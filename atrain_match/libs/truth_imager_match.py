@@ -132,8 +132,7 @@ from truths.iss import reshapeIss, match_iss_imager
 from truths.calipso import (reshapeCalipso, 
                      discardCalipsoFilesOutsideTimeRange,
                      match_calipso_imager, 
-                     find_break_points, 
-                     time_reshape_calipso)
+                     find_break_points)
 from matchobject_io import (CalipsoObject,
                             writeTruthImagerMatchObj, 
                             readTruthImagerMatchObj)
@@ -700,9 +699,8 @@ def get_calipso_matchups(calipso_files, values,
             logger.info("Find detection height using 5km data")
             calipso1km = detection_height_from_5km_data(calipso1km, calipso5km, 
                                                         SETTINGS['OPTICAL_LIMIT_CLOUD_TOP'])
-        calipso = time_reshape_calipso(calipso1km,  
-                                       start_break=startBreak, 
-                                       end_break=endBreak) 
+        calipso = calipso1km.extract_elements(starti=startBreak, 
+                                              endi=endBreak) 
 
     elif cafiles5km is not None and CALIPSO_version == 3 and config.RESOLUTION == 1:
         #RESOLUTION 1km also have 5km data calipso version 3
@@ -715,9 +713,8 @@ def get_calipso_matchups(calipso_files, values,
             logger.info("Find detection height using 5km data")
             calipso1km = detection_height_from_5km_data(calipso1km, calipso5km, 
                                                         SETTINGS['OPTICAL_LIMIT_CLOUD_TOP'])
-        calipso = time_reshape_calipso(calipso1km,  
-                                       start_break=startBreak, 
-                                       end_break=endBreak) 
+        calipso = calipso1km.extract_elements(starti=startBreak, 
+                                              endi=endBreak) 
     elif CALIPSO_version == 4 and config.RESOLUTION == 5 and SETTINGS['ALSO_USE_SINGLE_SHOT_CLOUD_CLEARED']:
 
         #RESOLUTION exclusively 5km data but additional clouds taken from 330 m single shot resolution
@@ -725,9 +722,9 @@ def get_calipso_matchups(calipso_files, values,
         #calipso5km = reshapeCalipso(cafiles5km, res=5)
         calipso5km  = reshapeCalipso(calipso_files)
         calipso = addSingleShotTo5km(calipso5km, SETTINGS) 
-        calipso = time_reshape_calipso(calipso,  
-                                       start_break=startBreak, 
-                                       end_break=endBreak) 
+
+        calipso = calipso.extract_elements(starti=startBreak, 
+                                           endi=endBreak) 
         calipso = total_and_top_layer_optical_depth_5km(calipso, resolution=5)
     elif CALIPSO_version == 4 and config.RESOLUTION == 5 and SETTINGS['ALSO_USE_1KM_FILES']:
 
@@ -736,16 +733,14 @@ def get_calipso_matchups(calipso_files, values,
         #calipso5km = reshapeCalipso(cafiles5km, res=5)
         calipso5km  = reshapeCalipso(calipso_files)
         calipso1km = reshapeCalipso(cafiles1km, res=1)
-        calipso = add1kmTo5km(calipso1km, calipso5km)
-        calipso = time_reshape_calipso(calipso,  
-                                       start_break=startBreak, 
-                                       end_break=endBreak) 
+        calipso = add1kmTo5km(calipso1km, calipso5km) 
+        calipso = calipso.extract_elements(starti=startBreak, 
+                                           endi=endBreak) 
         calipso = total_and_top_layer_optical_depth_5km(calipso, resolution=5)
     else:
         logger.warning("Old metod, only one resolution used, expect bad results!")
-        calipso = time_reshape_calipso(calipso,  
-                                       start_break=startBreak, 
-                                       end_break=endBreak)
+        calipso = calipso.extract_elements(starti=startBreak, 
+                                           endi=endBreak) 
         if config.RESOLUTION == 5:
             calipso = total_and_top_layer_optical_depth_5km(calipso, resolution=5)
 
@@ -757,9 +752,8 @@ def get_calipso_matchups(calipso_files, values,
             calipso_aerosol = adjust5kmTo1kmresolution(calipso5km_aerosol)
         elif config.RESOLUTION == 5:
             calipso_aerosol = calipso5km_aerosol
-        calipso_aerosol = time_reshape_calipso(calipso_aerosol,  
-                                               start_break=startBreak, 
-                                               end_break=endBreak)
+        calipso_aerosol = calipso_aerosol.extract_elements(starti=startBreak, 
+                                                           endi=endBreak) 
     # free some memory    
     calipso1km = None
     calipso5km = None
@@ -1000,7 +994,8 @@ def add_elevation_corrected_imager_ctth(clsatObj, caObj, issObj, SETTINGS):
                              0,clsatObj.cloudsat.elevation)		
         num_csat_data_ok = len(clsatObj.cloudsat.elevation)
         logger.debug("Length of CLOUDSAT array: %d", num_csat_data_ok )
-        imager_ctth_m_above_seasurface = np.array(clsatObj.imager.ctth_height).copy().ravel()
+        imager_ctth_m_above_seasurface = clsatObj.imager.ctth_height.copy()
+        #import pdb;pdb.set_trace()
         if SETTINGS["CCI_CLOUD_VALIDATION"] or SETTINGS["PATMOSX_VALIDATION"]: 
             #ctth already relative mean sea level
             imager_ctth_m_above_seasurface = caObj.imager.ctth_height
@@ -1021,7 +1016,7 @@ def add_elevation_corrected_imager_ctth(clsatObj, caObj, issObj, SETTINGS):
                                  0,caObj.calipso.elevation)
         num_cal_data_ok = len(caObj.calipso.elevation)
         logger.debug("Length of CALIOP array: %d", num_cal_data_ok)
-        imager_ctth_m_above_seasurface = np.array(caObj.imager.ctth_height).copy().ravel()
+        imager_ctth_m_above_seasurface = caObj.imager.ctth_height.copy()
         logger.debug("CCI_CLOUD_VALIDATION %s", str(SETTINGS["CCI_CLOUD_VALIDATION"]))
         if SETTINGS["CCI_CLOUD_VALIDATION"]: 
             #ctth relative mean sea level
@@ -1037,7 +1032,7 @@ def add_elevation_corrected_imager_ctth(clsatObj, caObj, issObj, SETTINGS):
                                  0,issObj.iss.elevation)
         num_iss_data_ok = len(issObj.iss.elevation)
         logger.info("Length of ISS array: %d", num_iss_data_ok)
-        imager_ctth_m_above_seasurface = np.array(issObj.imager.ctth_height).copy().ravel()
+        imager_ctth_m_above_seasurface = issObj.imager.ctth_height.copy()
         if SETTINGS["CCI_CLOUD_VALIDATION"]: 
             #ctth relative mean sea level
             pass

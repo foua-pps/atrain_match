@@ -40,23 +40,6 @@ def add_validation_ctth_calipso(calipso):
     calipso.validation_height[calipso.validation_height<0] = -9
     return calipso
 
-def calipso_track_from_matched(retv_calipso, calipso, idx_match):
-    # Calipso line,pixel inside IMAGER swath:
-    for arnameca, valueca in calipso.all_arrays.items(): 
-        if valueca is not None:
-            if valueca.size != 1:
-                the_values = valueca[idx_match,...]
-                shape_of_data = the_values.shape
-                if len(shape_of_data)==1 or shape_of_data[1]==1:
-                    #traditionally atrain_match expect arrays to be of chspe (n,) not (n,1)
-                    #This is what repeat returns so let it to as before:
-                    retv_calipso.all_arrays[arnameca] = np.repeat(np.array(the_values.ravel()),1)
-                else:
-                    retv_calipso.all_arrays[arnameca] = the_values
-            else:
-                retv_calipso.all_arrays[arnameca] = valueca
-    return retv_calipso
-
 
 def match_calipso_imager(values, 
                         caObj, caObjAerosol, 
@@ -67,7 +50,7 @@ def match_calipso_imager(values,
     from utils.common import map_imager
     retv = TruthImagerTrackObject(truth='calipso')
     retv.imager_instrument = imagerGeoObj.instrument.lower()
-
+    retv.calipso = caObj
     cal, cap = map_imager(imagerGeoObj, 
                          caObj.longitude.ravel(),
                          caObj.latitude.ravel(),
@@ -87,14 +70,14 @@ def match_calipso_imager(values,
     if idx_match.sum() == 0:
         logger.warning("No matches in region within time threshold %d s.", SETTINGS["sec_timeThr"])
         return None    
-    retv.calipso = calipso_track_from_matched(retv.calipso, caObj, idx_match)
+    retv.calipso = retv.calipso.extract_elements(idx=idx_match)
     
     # Calipso line,pixel inside IMAGER swath:
     retv.calipso.imager_linnum = np.repeat(cal, idx_match).astype('i')
     retv.calipso.imager_pixnum = np.repeat(cap, idx_match).astype('i')
 
     # Imager time
-    retv.imager.sec_1970 = np.repeat(imager_lines_sec_1970, idx_match)
+    retv.imager.sec_1970 = imager_lines_sec_1970[idx_match.ravel()]
     retv.diff_sec_1970 = retv.calipso.sec_1970 - retv.imager.sec_1970
     do_some_logging(retv, caObj)
     logger.debug("Generate the latitude,cloudtype tracks!")
@@ -104,8 +87,7 @@ def match_calipso_imager(values,
                                      nwp_obj, ctth, ctype, cma, cpp=cpp, 
                                      nwp_segments=nwp_segments)
     if caObjAerosol is not None:
-        retv.calipso_aerosol = calipso_track_from_matched(retv.calipso_aerosol, caObjAerosol, 
-                                                          idx_match)
+        retv.calipso_aerosol = caObjAerosol.extract_elements(idx=idx_match)
     max_cloud_top_calipso = np.maximum.reduce(retv.calipso.layer_top_altitude.ravel())
     logger.debug("max_cloud_top_calipso: %2.1f",max_cloud_top_calipso)
     return retv
@@ -369,23 +351,6 @@ def find_break_points(startCalipso, imagerGeoObj, SETTINGS):
     if start_break != 0:
         start_break = start_break - 1 # Minus one to get one extra, just to be certain
     return start_break, end_break
-
-def time_reshape_calipso(startCalipso,
-                         start_break, end_break):
-    """
-    Cut the calipso data at the point where matches with imager is within 
-    time limits.
-    """
-    # Cut the feature values
-    #arnameca = array name from caObj
-    cal = CalipsoObject()
-    for arnameca, valueca in startCalipso.all_arrays.items(): 
-        if valueca is not None:
-            if valueca.size != 1:
-                cal.all_arrays[arnameca] = valueca[start_break:end_break,...]
-            else:
-                cal.all_arrays[arnameca] = valueca
-    return cal
 
 def adjust5kmTo1kmresolution(calipso5km):
     logger.debug("Repeat 5km calipso data to fit 1km resoluiton")

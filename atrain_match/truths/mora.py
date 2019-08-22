@@ -24,17 +24,15 @@ from calendar import timegm
 TAI93 = datetime(1993, 1, 1)
 from matchobject_io import (TruthImagerTrackObject, 
                             MoraObject)
-from truths.calipso import (calipso_track_from_matched,
-                            do_some_logging)
+from utils.runutils import do_some_logging
 import config
 from utils.common import (ProcessingError, MatchupError, elements_within_range)
 from libs.extract_imager_along_track import imager_track_from_matched
 import logging
 logger = logging.getLogger(__name__)
-from my_dir import ADIR
 
 
-TEST_FILE = ADIR + "/DATA_MISC/atrain_match_testcases/mora/cb_2010.dat"
+TEST_FILE = "/DATA_MISC/atrain_match_testcases/mora/cb_2010.dat"
 
 def get_mora_data(filename):
 
@@ -88,6 +86,8 @@ def match_mora_imager(moraObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
                      imagerAngObj, cpp, nwp_segments, SETTINGS):
     retv = TruthImagerTrackObject('mora')
     retv.imager_instrument = imagerGeoObj.instrument.lower()
+    retv.mora = moraObj
+
     from utils.common import map_imager
 
     """
@@ -118,7 +118,7 @@ def match_mora_imager(moraObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
     if idx_match.sum() == 0:
         logger.warning("No matches in region within time threshold %d s.", SETTINGS["sec_timeThr_synop"])
         return None
-    retv.mora = calipso_track_from_matched(retv.mora, moraObj, idx_match)
+    retv.mora = retv.mora.extract_elements(idx=idx_match)
     # Mora line,pixel inside IMAGER swath (one nearest neighbour):
     retv.mora.imager_linnum = np.repeat(cal, idx_match).astype('i')
     retv.mora.imager_pixnum = np.repeat(cap, idx_match).astype('i')

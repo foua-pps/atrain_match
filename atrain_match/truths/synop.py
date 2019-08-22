@@ -25,8 +25,8 @@ TAI93 = datetime(1993, 1, 1)
 import  config
 from matchobject_io import (TruthImagerTrackObject, 
                             SynopObject)
-from truths.calipso import (find_break_points, calipso_track_from_matched,
-                     do_some_logging)
+from truths.calipso import find_break_points
+from utils.runutils import do_some_logging
 
 from utils.common import (ProcessingError, MatchupError, elements_within_range)
 from libs.extract_imager_along_track import imager_track_from_matched
@@ -91,7 +91,7 @@ def match_synop_imager(synopObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
     if idx_match.sum() == 0:
         logger.warning("No  matches in region within time threshold %d s.", SETTINGS["sec_timeThr_synop"])
         return None
-    retv.synop = calipso_track_from_matched(retv.synop, synopObj, idx_match)
+    retv.synop = retv.synop.extract_elements(idx=idx_match)
  
     # Synop line,pixel inside IMAGER swath (one nearest neighbour):
     retv.synop.imager_linnum = np.repeat(cal_1, idx_match).astype('i')

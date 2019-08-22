@@ -66,8 +66,8 @@ def calculate_ctth_stats(val_subset, imager_ctth_m_above_seasurface, truth_sat_v
     n_only_truth_had_height_both_had_cloud = np.sum(np.logical_and(only_truth_had_height,
                                                                    imager_is_cloudy))
     #print "debug", np.sum(n_only_truth_had_height_both_had_cloud)
-    imager_height_work = np.repeat(imager_ctth_m_above_seasurface[::],val_subset)
-    truth_sat_validation_height_work = np.repeat(truth_sat_validation_height[::],val_subset)
+    imager_height_work = imager_ctth_m_above_seasurface[val_subset.ravel(),...]
+    truth_sat_validation_height_work = truth_sat_validation_height[val_subset.ravel(),...]
     #import pdb; pdb.set_trace()
     corr_caliop_imager = -9.0
     bias = -9.0
