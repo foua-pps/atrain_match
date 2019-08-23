@@ -16,6 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
 
+# Author(s)
+# Nina Hakansson
+
 import numpy as np
 from glob import glob
 import os
@@ -31,7 +34,7 @@ version = "v2018"
 SATELLITES = ["noaa19"]
 YEAR_LIST = ["2011"]
 BASE_DIR = "/home/a001865/DATA_MISC/reshaped_files_from_kg_temp"
-MAKE_EXTRA_CHECK = True
+MAKE_EXTRA_CHECK = False
 
 SETTINGS ={"WRITE_ONLY_THE_MOST_IMPORTANT_STUFF_TO_FILE": False}
 tic = time.time()
