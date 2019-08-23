@@ -39,7 +39,7 @@ MAKE_EXTRA_CHECK = False
 SETTINGS ={"WRITE_ONLY_THE_MOST_IMPORTANT_STUFF_TO_FILE": False}
 tic = time.time()
 
-def add_find_non_doubbles(mObj, mObj2):
+def remove_doubles(mObj, mObj2):
     non_doubles = [ind for ind in range(len(mObj.calipso.sec_1970)) if mObj.calipso.sec_1970[ind] not in mObj2.calipso.sec_1970]
 
     if MAKE_EXTRA_CHECK:
@@ -96,13 +96,13 @@ for satellite in SATELLITES:
                 if caObj_merged is None:
                     caObj_merged =  caObj_new  
                 else:    
-                    caObj_new  = add_find_non_doubbles(caObj_new, caObj_merged)
+                    caObj_new  = remove_doubles(caObj_new, caObj_merged)
                     caObj_merged = caObj_merged + caObj_new             
             if num_n>0:
                 filename_merged = outfile_template%(year,month)
                 outfile = os.path.join(OUT_DIR, filename_merged)
                 
-
+                print(len(caObj_merged.calipso.sec_1970))
                 writeTruthImagerMatchObj(
                     outfile, caObj_merged, SETTINGS, imager_obj_name = 'pps')   
                 caObj_merged = None
