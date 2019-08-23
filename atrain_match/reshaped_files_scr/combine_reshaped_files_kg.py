@@ -22,29 +22,43 @@ import os
 from matchobject_io import (readTruthImagerMatchObj,
                             writeTruthImagerMatchObj)
 
+import time
 
 instrument = "avhrr"
 truth = "calipso"
 version = "v2018"
 
+SATELLITES = ["noaa19"]
+YEAR_LIST = ["2011"]
 BASE_DIR = "/home/a001865/DATA_MISC/reshaped_files_from_kg_temp"
-
+MAKE_EXTRA_CHECK = True
 
 SETTINGS ={"WRITE_ONLY_THE_MOST_IMPORTANT_STUFF_TO_FILE": False}
-
-
+tic = time.time()
 
 def add_find_non_doubbles(mObj, mObj2):
     non_doubles = [ind for ind in range(len(mObj.calipso.sec_1970)) if mObj.calipso.sec_1970[ind] not in mObj2.calipso.sec_1970]
-    #doubles = [ind for ind  in range(len(mObj.calipso.sec_1970)) if ind not in  non_doubles]
+
+    if MAKE_EXTRA_CHECK:
+        #Takes a lot of time .... 
+        doubles_time_and_id = [(mObj.calipso.sec_1970[ind], mObj.calipso.profile_id[ind,0]) for ind  in range(len(mObj.calipso.sec_1970)) if ind not in  non_doubles]
+
+        extra_check = [time_and_id for time_and_id in doubles_time_and_id if time_and_id in zip(mObj2.calipso.sec_1970, mObj2.calipso.profile_id[:,0])]
+        if len(extra_check) != len(mObj.calipso.sec_1970)-len(non_doubles):
+            print("Some points identified as doubles does not have "
+                  "the same time and profile id as ther corresponding double"
+                  "There is something wrong (in the code) here!")
+            raise ValueError
+            
+                           
     print("Found {:d} doubles (out of {:d}) in the new object".format(
         len(mObj.calipso.sec_1970)-len(non_doubles), len(mObj.calipso.sec_1970)))
     #import pdb;pdb.set_trace()
-    mObj = mObj.extract_elements(idx=non_doubles)
+    mObj = mObj.extract_elements(idx=np.array(non_doubles))
     return mObj   
 
 caObj_merged = None
-for satellite in ["noaa19"]:
+for satellite in SATELLITES:
     ROOT_DIR = BASE_DIR + "/{satellite}/5km/%s/%s/*%s%s*_*{truth}*.h5".format(
         satellite=satellite, truth=truth)
     print(ROOT_DIR)
@@ -53,7 +67,7 @@ for satellite in ["noaa19"]:
     outfile_template = "5km_{satellite}_%s%s01_0000_99999_{truth}_{instrument}_match.h5".format(
         satellite=satellite, truth=truth, instrument=instrument)
 
-    for year in ["2011"]:
+    for year in YEAR_LIST:
         for month in ["01", "02","03","04","05","06","07","08","09","10","11","12"]:
             OUT_DIR = OUT_DIR_TEMPLATE
             if not os.path.exists(OUT_DIR):
@@ -91,3 +105,4 @@ for satellite in ["noaa19"]:
                 caObj_merged = None
 
 
+print(time.time()-tic)
