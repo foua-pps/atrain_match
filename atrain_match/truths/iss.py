@@ -100,18 +100,11 @@ def get_iss(filename):
                    "\n \t use cloud_phase_fore_fov instead?")
 
     iss.validation_height[iss.cloud_fraction<0.5] = -9 #should not be needed
-
-
-
-
     return iss
 
 
-def read_iss(filename):
-    import h5py
-    import pdb, sys
-    logger.info("Reading file %s", filename)
-    scip_these_larger_variables_until_needed = {
+
+scip_these_larger_variables_until_needed_iss = {
         # if any of these are needed remove them from the dictionary!  
         # might need more work as they are 3D or 4D variables.
         "Constrained_Lidar_Ratio_Flag": True,
@@ -120,6 +113,10 @@ def read_iss(filename):
         "Attenuated_Total_Color_Ratio_Statistics_Fore_FOV": True, 
         "Volume_Depolarization_Ratio_Statistics_1064_Fore_FOV": True,
         }
+def read_iss(filename):
+    import h5py
+    import pdb, sys
+    logger.info("Reading file %s", filename)
     retv = IssObject()
     if filename is not None:
         h5file = h5py.File(filename, 'r')
@@ -129,9 +126,9 @@ def read_iss(filename):
             my_group = h5file[group]
 
             for dataset in my_group.keys():
-                if dataset in scip_these_larger_variables_until_needed.keys():
-                    continue
                 name = dataset.lower()
+                if name in scip_these_larger_variables_until_needed_iss.keys():
+                    continue
                 data = my_group[dataset].value
                 data = np.array(data)
                 setattr(retv, name, data) 
@@ -206,12 +203,8 @@ def reshapeIss(issfiles, imager, SETTINGS):
             raise ProcessingError("Iss files are in the wrong order")
         iss_break = np.argmin(np.abs(iss_start_all - iss_new_all[0]))+1
         # Concatenate the feature values
-        #arname = array name from truths.issObj
-        for arname, value in iss.all_arrays.items(): 
-            if value is not None:
-                if value.size != 1:
-                    iss.all_arrays[arname] = np.concatenate((iss.all_arrays[arname],
-                                                             newIss.all_arrays[arname]),axis=0)          
+        iss = iss + newIss
+ 
     # Finds Break point
     startBreak, endBreak = find_break_points(iss, imager, SETTINGS)
     iss = iss.extract_elements(starti=startBreak, 

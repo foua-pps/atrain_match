@@ -561,21 +561,21 @@ def print_cmask_prob_stats(cObj, statfile, val_subset, SETTINGS):
     statfile.write("CLOUD MASK PROB %s-IMAGER TABLE CLOUDY: %s \n" % (cObj.truth_sat.upper(), cloudy_string))               
 
 
-def print_modis_stats(cObj, statfile, val_subset, cal_MODIS_cflag, SETTINGS):    
+def print_modis_stats(cObj, statfile, val_subset, cal_modis_cflag, SETTINGS):    
     # CORRELATION CLOUD MASK: CALIOP - MODIS
     truth_clear, truth_cloudy = find_truth_clear_cloudy(cObj, val_subset, SETTINGS)
-    if cal_MODIS_cflag is None:
+    if cal_modis_cflag is None:
         return
-    if len(val_subset) != len(cal_MODIS_cflag):
+    if len(val_subset) != len(cal_modis_cflag):
         logger.error("Lenght mismatch error for cal_MODIS_cflag")
         return
  
     modis_clear = np.logical_and(
-        np.logical_or(np.equal(cal_MODIS_cflag,1),
-                      np.equal(cal_MODIS_cflag,0)),val_subset)
+        np.logical_or(np.equal(cal_modis_cflag,1),
+                      np.equal(cal_modis_cflag,0)),val_subset)
     modis_cloudy = np.logical_and(
-        np.logical_or(np.equal(cal_MODIS_cflag,3),
-                      np.equal(cal_MODIS_cflag,2)),val_subset)
+        np.logical_or(np.equal(cal_modis_cflag,3),
+                      np.equal(cal_modis_cflag,2)),val_subset)
 
     n_clear_clear = np.repeat(
         modis_clear,
@@ -1040,7 +1040,7 @@ def CalculateStatistics(mode, statfilename, caObj, clsatObj, issObj, amObj, syOb
             print_main_stats(caObj, statfile)
             print_cmask_stats(caObj, statfile, val_subset, SETTINGS)
             print_cmask_prob_stats(caObj, statfile, val_subset, SETTINGS)
-            print_modis_stats(caObj, statfile, val_subset,   caObj.calipso.cal_MODIS_cflag, SETTINGS)
+            print_modis_stats(caObj, statfile, val_subset,   caObj.calipso.cal_modis_cflag, SETTINGS)
             print_calipso_stats_ctype(caObj, statfile, val_subset, low_medium_high_class, SETTINGS)
             print_stats_ctop(caObj,  statfile, val_subset, low_medium_high_class, SETTINGS) 
             print_cpp_stats(caObj, statfile, val_subset, SETTINGS)

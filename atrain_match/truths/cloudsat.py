@@ -86,8 +86,6 @@ def clsat_name_conversion(dataset_name_in_cloudsat_file, retv):
     am_name = dataset_name_in_cloudsat_file
     if dataset_name_in_cloudsat_file == 'DEM_elevation':
         am_name = 'elevation'
-    elif dataset_name_in_cloudsat_file == 'Sigma-Zero':
-        am_name = 'SigmaZero'
     elif dataset_name_in_cloudsat_file == 'Longitude':
         am_name = 'longitude'
     elif dataset_name_in_cloudsat_file == 'Latitude':
@@ -181,14 +179,9 @@ def read_cloudsat(filename):
     for group in ['Geolocation Fields', 'Data Fields']:
         tempG = h5file["%s/%s" % (root, group)]
         for dataset in tempG.keys():
-            if dataset in retv.all_arrays.keys():
-                retv.all_arrays[dataset] = get_data(tempG[dataset])
-            elif dataset.lower() in retv.all_arrays.keys():
-                retv.all_arrays[dataset.lower()] = get_data(tempG[dataset])
-            elif dataset == 'DEM_elevation':
-                retv.all_arrays['elevation'] = get_data(tempG[dataset])
-            elif dataset == 'Sigma-Zero':           
-                retv.all_arrays['SigmaZero'] = get_data(tempG[dataset])
+            am_name = lsat_name_conversion(dataset, retv)
+            if am_name in retv.all_arrays.keys():
+                setattr(retv, am_name, get_data(tempG[dataset]))
     h5file.close()    
     # Convert from TAI time to UTC in seconds since 1970:
     dsec = time.mktime((1993,1,1,0,0,0,0,0,0)) - time.timezone
@@ -280,14 +273,11 @@ def reshapeCloudsat(cloudsatfiles, imager,  SETTINGS):
         clsat_new_all = newCloudsat.sec_1970.ravel()
         if not clsat_start_all[0]<clsat_new_all[0]:
             raise ProcessingError("CloudSat files are in the wrong order!")
-        clsat_break = np.argmin(np.abs(clsat_start_all - clsat_new_all[0]))+1
+        # clsat_break = np.argmin(np.abs(clsat_start_all - clsat_new_all[0]))+1
         # Concatenate the feature values
-        #arname = array name from truths.cloudsatObj
-        for arname, value in clsat.all_arrays.items(): 
-            if value is not None:
-                if value.size != 1:
-                    clsat.all_arrays[arname] = np.concatenate((value[0:clsat_break,...],
-                                                               newCloudsat.all_arrays[arname]))
+        clsat = clsat + newCloudsat
+        print("taistart", clsat.TAI_start)
+
     # Finds Break point
     startBreak, endBreak = find_break_points(clsat, imager, SETTINGS)
     clsat = clsat.extract_elements(starti=startBreak, 

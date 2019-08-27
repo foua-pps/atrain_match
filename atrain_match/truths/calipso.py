@@ -245,9 +245,11 @@ def read_calipso_hdf4(filename, retv):
         singleshotdata = {}
         for idx, dataset in enumerate(datasets.keys()):
             #non-goups
-            if dataset in scip_these_larger_variables_until_needed.keys():        
+            if dataset in scip_these_larger_variables_until_needed.keys():  
+                logger.debug("Not reading " + dataset)
                 continue
             elif dataset[0:8] == 'Surface_':
+                logger.debug("Not reading " + dataset)
                 continue
             if dataset in ["ssNumber_Layers_Found", 
                            "ssLayer_Base_Altitude", 
@@ -287,13 +289,17 @@ def read_calipso_h5(filename, retv):
                  "ssLayer_Base_Altitude": h5file["Single_Shot_Detection/ssLayer_Base_Altitude"].value,
                  "ssLayer_Top_Altitude": h5file["Single_Shot_Detection/ssLayer_Top_Altitude"].value})
         for dataset in h5file.keys():
+            if dataset in ["Single_Shot_Detection"]: 
+                #Handeled above
+                 continue
             if dataset in ["Lidar_Surface_Detection", # New group V4
-                           "Single_Shot_Detection", #Handeled above
-                           "metadata_t", 
+                            "metadata_t", 
                            "metadata"]: 
-                #skip all groups
+                #skip all in these groups
+                logger.debug("Not reading " + dataset)
                 continue
             if dataset in scip_these_larger_variables_until_needed.keys():
+                logger.debug("Not reading " + dataset)
                 continue
             name = dataset.lower()
             if dataset in atrain_match_names.keys():
@@ -330,10 +336,8 @@ def reshapeCalipso(calipsofiles, res=config.RESOLUTION, ALAY=False):
         if not cal_start_all[0] < cal_new_all[0]:
             raise ProcessingError("Calipso files are in the wrong order!")
         # Concatenate the feature values
-        for arname, value in startCalipso.all_arrays.items(): 
-            if value is not None:
-                startCalipso.all_arrays[arname] = np.concatenate((value[0:,...], 
-                                                                  newCalipso.all_arrays[arname]))          
+        startCalipso = startCalipso + newCalipso
+
     return startCalipso 
 
 def find_break_points(startCalipso, imagerGeoObj, SETTINGS):
@@ -387,7 +391,7 @@ def add5kmVariablesTo1kmresolution(calipso1km, calipso5km, CALIPSO_version):
         new_data = np.repeat(data, 5, axis=0)    
         setattr(calipso1km, variable_5km +"_5km", new_data)      
     for variable_5km  in ["feature_optical_depth_532_top_layer_5km",
-                          
+                          "detection_height_5km",
                           "total_optical_depth_5km"]:                
         data = getattr(calipso5km, variable_5km)
         new_data = np.repeat(data, 5, axis=0)    
@@ -675,7 +679,7 @@ def check_total_optical_depth_and_warn(caObj):
         #print obj.layer_top_altitude[0,badPix]
         #print obj.layer_base_altitude[0,badPix]
 
-def CalipsoOpticalDepthHeightFiltering1km(CaObj):
+def CalipsoOpticalDepthHeightFiltering(CaObj):
     #Should all layers be updated???
     new_cloud_tops = np.where(
         CaObj.calipso.layer_top_altitude[:,0]*1000 > CaObj.calipso.detection_height_5km,
@@ -693,19 +697,6 @@ def CalipsoOpticalDepthHeightFiltering1km(CaObj):
                     CaObj.calipso.validation_height)
 
 
-def detection_height_from_5km_data(Obj1, Obj5, limit_ctop=0.2):
-    if (Obj5.profile_utc_time[:,1] == Obj1.profile_utc_time[2::5]).sum() != Obj5.profile_utc_time.shape[0]:
-        logger.warning("length mismatch")
-    retv = CalipsoCloudOpticalDepth_new(Obj5, 0.0, 
-                                        limit_ctop=limit_ctop)
-    cloud_top5km, dummy, dummy, dummy, detection_height, dummy, dummy = retv
-    #cloud_base1km = Obj1.layer_base_altitude[:,0]
-    #cloud_top5km = np.repeat(cloud_top5km[:,0], 5, axis=0) 
-    detection_height1km = np.repeat(detection_height, 5, axis=0) 
-    #detection_height1km[cloud_top5km<cloud_base1km] = -9
-    Obj1.detection_height_5km = detection_height1km
-    return Obj1    
-
 def CalipsoOpticalDepthSetThinToClearFiltering1km(CaObj, SETTINGS):
     isThin_clouds = np.logical_and(
         CaObj.calipso.total_optical_depth_5km < SETTINGS['OPTICAL_DETECTION_LIMIT'],
@@ -721,8 +712,7 @@ def CalipsoOpticalDepthSetThinToClearFiltering1km(CaObj, SETTINGS):
     return cloud_fraction, validation_height
 
 
-
-def total_and_top_layer_optical_depth_5km(calipso, resolution=5):
+def total_and_top_layer_optical_depth_5km(calipso, SETTINGS, resolution=5):
     logger.info("Find total optical depth from 5km data")
     optical_depth_in = calipso.feature_optical_depth_532
     o_depth_top_layer = -9.0 + 0*calipso.number_layers_found.ravel()
@@ -742,7 +732,14 @@ def total_and_top_layer_optical_depth_5km(calipso, resolution=5):
         print("ERROR this fuction is only for 5km data!")
         print("These features can then added to 1km data set")
     calipso.feature_optical_depth_532_top_layer_5km = o_depth_top_layer
-    calipso.total_optical_depth_5km = total_o_depth       
+    calipso.total_optical_depth_5km = total_o_depth 
+    if SETTINGS['CALCULATE_DETECTION_HEIGHT_FROM_5KM_DATA']:
+        logger.info("Find detection height using 5km data")
+        retv = CalipsoCloudOpticalDepth_new(calipso, 0.0, 
+                                            limit_ctop=SETTINGS['OPTICAL_LIMIT_CLOUD_TOP'])
+        cloud_top5km, dummy, dummy, dummy, detection_height, dummy, dummy = retv
+        calipso.detection_height_5km = detection_height
+
     return calipso 
 
 if __name__ == "__main__":

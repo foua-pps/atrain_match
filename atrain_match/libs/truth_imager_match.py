@@ -114,8 +114,7 @@ from plotting.along_track_plotting import (drawCalClsatImagerPlotTimeDiff,
                                            drawCalClsatCWCImagerPlot)
 from truths.calipso import (CalipsoCloudOpticalDepth_new,
                             check_total_optical_depth_and_warn,
-                            CalipsoOpticalDepthHeightFiltering1km,
-                            detection_height_from_5km_data,
+                            CalipsoOpticalDepthHeightFiltering,
                             total_and_top_layer_optical_depth_5km,
                             CalipsoOpticalDepthSetThinToClearFiltering1km)
 
@@ -684,7 +683,7 @@ def get_calipso_matchups(calipso_files, values,
         calipso = add1kmTo5km(calipso1km, calipso5km)
         calipso = time_reshape_calipso(calipso, 
                                        start_break=startBreak, end_break=endBreak) 
-        calipso = total_and_top_layer_optical_depth_5km(calipso, resolution=5)
+        calipso = total_and_top_layer_optical_depth_5km(calipso, SETTINGS, resolution=5)
 
     elif cafiles5km is not None and CALIPSO_version == 4  and config.RESOLUTION == 1:
         #RESOLUTION 1km also have 5km data calipso version 4
@@ -693,12 +692,8 @@ def get_calipso_matchups(calipso_files, values,
         calipso1km = calipso
         calipso5km = reshapeCalipso(cafiles5km, res=5)
         calipso5km = addSingleShotTo5km(calipso5km, SETTINGS) 
-        calipso5km = total_and_top_layer_optical_depth_5km(calipso5km, resolution=5)
+        calipso5km = total_and_top_layer_optical_depth_5km(calipso5km, SETTINGS, resolution=5)
         calipso1km = add5kmVariablesTo1kmresolution(calipso1km, calipso5km, CALIPSO_version)
-        if SETTINGS['CALCULATE_DETECTION_HEIGHT_FROM_5KM_DATA']:
-            logger.info("Find detection height using 5km data")
-            calipso1km = detection_height_from_5km_data(calipso1km, calipso5km, 
-                                                        SETTINGS['OPTICAL_LIMIT_CLOUD_TOP'])
         calipso = calipso1km.extract_elements(starti=startBreak, 
                                               endi=endBreak) 
 
@@ -707,12 +702,8 @@ def get_calipso_matchups(calipso_files, values,
         logger.info("Calipso version 3 data used and old 5 km restored optical depth method!")
         calipso1km = calipso
         calipso5km = reshapeCalipso(cafiles5km, res=5)
-        calipso5km = total_and_top_layer_optical_depth_5km(calipso5km, resolution=5)
+        calipso5km = total_and_top_layer_optical_depth_5km(calipso5km, SETTINGS, resolution=5)
         calipso1km = add5kmVariablesTo1kmresolution(calipso1km, calipso5km, CALIPSO_version)
-        if SETTINGS['CALCULATE_DETECTION_HEIGHT_FROM_5KM_DATA']:
-            logger.info("Find detection height using 5km data")
-            calipso1km = detection_height_from_5km_data(calipso1km, calipso5km, 
-                                                        SETTINGS['OPTICAL_LIMIT_CLOUD_TOP'])
         calipso = calipso1km.extract_elements(starti=startBreak, 
                                               endi=endBreak) 
     elif CALIPSO_version == 4 and config.RESOLUTION == 5 and SETTINGS['ALSO_USE_SINGLE_SHOT_CLOUD_CLEARED']:
@@ -725,7 +716,7 @@ def get_calipso_matchups(calipso_files, values,
 
         calipso = calipso.extract_elements(starti=startBreak, 
                                            endi=endBreak) 
-        calipso = total_and_top_layer_optical_depth_5km(calipso, resolution=5)
+        calipso = total_and_top_layer_optical_depth_5km(calipso, SETTINGS, resolution=5)
     elif CALIPSO_version == 4 and config.RESOLUTION == 5 and SETTINGS['ALSO_USE_1KM_FILES']:
 
         #RESOLUTION exclusively 5km data but additional clouds taken from 1 km data
@@ -736,13 +727,13 @@ def get_calipso_matchups(calipso_files, values,
         calipso = add1kmTo5km(calipso1km, calipso5km) 
         calipso = calipso.extract_elements(starti=startBreak, 
                                            endi=endBreak) 
-        calipso = total_and_top_layer_optical_depth_5km(calipso, resolution=5)
+        calipso = total_and_top_layer_optical_depth_5km(calipso, SETTINGS, resolution=5)
     else:
         logger.warning("Old metod, only one resolution used, expect bad results!")
         calipso = calipso.extract_elements(starti=startBreak, 
                                            endi=endBreak) 
         if config.RESOLUTION == 5:
-            calipso = total_and_top_layer_optical_depth_5km(calipso, resolution=5)
+            calipso = total_and_top_layer_optical_depth_5km(calipso, SETTINGS, resolution=5)
 
     #aerosol-data
     calipso_aerosol = None
@@ -879,7 +870,7 @@ def add_additional_clousat_calipso_index_vars(clsatObj, caObj):
     #add cloudsat modisflag to calipso obj
     
     if clsatObj is not None and caObj is not None:
-        caObj.calipso.cal_MODIS_cflag = None
+        caObj.calipso.cal_modis_cflag = None
         #map cloudsat to calipso and the other way around!
         from utils.match import match_lonlat
         source = (clsatObj.cloudsat.longitude.astype(np.float64).reshape(-1,1), 
@@ -898,7 +889,7 @@ def add_additional_clousat_calipso_index_vars(clsatObj, caObj):
         # Transfer CloudSat MODIS cloud flag to CALIPSO representation
         index = caObj.calipso.cloudsat_index.copy()
         index[index<0] = 0
-        caObj.calipso.cal_MODIS_cflag = np.where(
+        caObj.calipso.cal_modis_cflag = np.where(
             caObj.calipso.cloudsat_index>=0, 
             clsatObj.cloudsat.MODIS_cloud_flag[index],
             -9)
@@ -1246,13 +1237,20 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
                 continue
             gribfile = pps_nwp.GRIBFile(nwp_file, (matchup.imager.longitude,
                                                    matchup.imager.latitude))
-            matchup.imager.nwp_height = gribfile.get_gh_vertical()[0,:,:].astype(np.float32).transpose()
-            matchup.imager.nwp_surface_h = gribfile.get_gh_surface()[:].astype(np.float32)
-            matchup.imager.nwp_temperature = gribfile.get_t_vertical()[0,:,:].astype(np.float32).transpose()
-            matchup.imager.nwp_h2m = gribfile.get_h_2meter()[:].astype(np.float32)
-            matchup.imager.nwp_t2m = gribfile.get_t_2meter()[:].astype(np.float32)
-            matchup.imager.nwp_u10m = gribfile.get_u_10meter()[:].astype(np.float32)
-            matchup.imager.nwp_v10m = gribfile.get_v_10meter()[:].astype(np.float32)
+            setattr(matchup.imager, "nwp_height", 
+                    gribfile.get_gh_vertical()[0,:,:].astype(np.float32).transpose())
+            setattr(matchup.imager, "nwp_surface_h",  
+                    gribfile.get_gh_surface()[:].astype(np.float32))
+            setattr(matchup.imager, "nwp_temperature",  
+                    gribfile.get_t_vertical()[0,:,:].astype(np.float32).transpose())
+            setattr(matchup.imager, "nwp_h2m",  
+                    gribfile.get_h_2meter()[:].astype(np.float32))
+            setattr(matchup.imager, "nwp_t2m",  
+                    gribfile.get_t_2meter()[:].astype(np.float32))
+            setattr(matchup.imager, "nwp_u10m",  
+                    gribfile.get_u_10meter()[:].astype(np.float32))
+            setattr(matchup.imager, "nwp_v10m",  
+                    gribfile.get_v_10meter()[:].astype(np.float32))
             #get pressure variables in hPs
             field = gribfile.get_p_vertical()
             if field.units =='Pa':
@@ -1453,7 +1451,7 @@ def plot_some_figures(clsatObj, caObj, values, basename, process_mode,
                                   instrument=caObj.imager_instrument)
 
     if (clsatObj is not None and 
-        'RVOD_liq_water_path' in clsatObj.cloudsat.all_arrays.keys()):
+        'rvod_liq_water_path' in clsatObj.cloudsat.all_arrays.keys()):
 
         elevation = np.where(np.less_equal(clsatObj.cloudsat.elevation,0),
                              -9, clsatObj.cloudsat.elevation)
@@ -1612,23 +1610,13 @@ def run(cross, run_modes, AM_PATHS, SETTINGS, reprocess=False):
                 caObj.calipso.validation_height = retv[4]
                 caObj.calipso.layer_top_pressure = retv[5]
                 caObj.calipso.layer_base_pressure = retv[6]
-           # If mode = STANDARD -> Change cloud -top and -base profile
-            if caObj is not None and process_mode == 'STANDARD' and config.RESOLUTION==5:
-                retv = CalipsoCloudOpticalDepth_new(caObj.calipso, 0.0)
-                caObj.calipso.layer_top_altitude = retv[0]
-                caObj.calipso.layer_base_altitude = retv[1]
-                caObj.calipso.cloud_fraction = retv[2]
-                caObj.calipso.feature_classification_flags = retv[3]
-                caObj.calipso.validation_height = retv[4]
-                caObj.calipso.layer_top_pressure = retv[5]
-                caObj.calipso.layer_base_pressure = retv[6]
             if caObj is not None:    
                 check_total_optical_depth_and_warn(caObj)
-                if  caObj is not None and 'STANDARD' in process_mode and config.RESOLUTION==1:
-                    caObj.calipso.validation_height = CalipsoOpticalDepthHeightFiltering1km(caObj)
+                if 'STANDARD' in process_mode:
+                    caObj.calipso.validation_height = CalipsoOpticalDepthHeightFiltering(caObj)[0]
             if  caObj is not None and process_mode == 'OPTICAL_DEPTH_THIN_IS_CLEAR':
-                logger.info("Setting thin clouds to clear"
-                            ", using 5km data in mode OPTICAL_DEPTH_THIN_IS_CLEAR")
+                logger.info("Setting thin clouds to clear, "
+                            "using 5km data in mode OPTICAL_DEPTH_THIN_IS_CLEAR")
                 retv = CalipsoOpticalDepthSetThinToClearFiltering1km(caObj, SETTINGS) 
                 caObj.calipso.cloud_fraction = retv[0]
                 caObj.calipso.validation_height = retv[1]

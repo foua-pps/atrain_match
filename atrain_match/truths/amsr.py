@@ -135,13 +135,8 @@ def reshapeAmsr(amsrfiles, imager, SETTINGS):
             raise ProcessingError("AMSR files are in the wrong order")
         amsr_break = np.argmin(np.abs(amsr_start_all - amsr_new_all[0]))+1
         # Concatenate the feature values
-        #arname = array name from truths.amsrObj
-        for arname, value in amsr.all_arrays.items(): 
-            if value is not None:
-                if value.size != 1:
-                    amsr.all_arrays[arname] = np.concatenate(
-                        (amsr.all_arrays[arname],
-                         newAmsr.all_arrays[arname]),axis=0)          
+        amsr = amsr + newAmsr
+    
     # Finds Break point
     #import pdb; pdb.set_trace()
     startBreak, endBreak = find_break_points(amsr, imager, SETTINGS)
