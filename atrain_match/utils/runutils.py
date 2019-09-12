@@ -31,7 +31,7 @@ def read_config_info():
     import os
     from configparser import ConfigParser
     CONF = ConfigParser()
-    ATRAIN_MATCH_CONFIG_PATH = os.environ.get('ATRAINMATCH_CONFIG_DIR', './etc')
+    from config import ATRAIN_MATCH_CONFIG_PATH
     config_file = os.path.join(ATRAIN_MATCH_CONFIG_PATH, "atrain_match.cfg")
     if not os.path.isfile(config_file):
         raise IOError("Couldn't find config file %s."%(config_file))

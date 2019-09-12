@@ -394,8 +394,11 @@ def add5kmVariablesTo1kmresolution(calipso1km, calipso5km, CALIPSO_version):
                           "detection_height_5km",
                           "total_optical_depth_5km"]:                
         data = getattr(calipso5km, variable_5km)
-        new_data = np.repeat(data, 5, axis=0)    
-        setattr(calipso1km, variable_5km, new_data) 
+        if data is None:
+             setattr(calipso1km, variable_5km, None)
+        else :
+            new_data = np.repeat(data, 5, axis=0)    
+            setattr(calipso1km, variable_5km, new_data) 
     for variable_5km  in ["layer_top_altitude", 
                           "layer_top_pressure",
                           "feature_optical_depth_532"]:                
@@ -739,7 +742,8 @@ def total_and_top_layer_optical_depth_5km(calipso, SETTINGS, resolution=5):
                                             limit_ctop=SETTINGS['OPTICAL_LIMIT_CLOUD_TOP'])
         cloud_top5km, dummy, dummy, dummy, detection_height, dummy, dummy = retv
         calipso.detection_height_5km = detection_height
-
+    else:
+        calipso.detection_height_5km = None
     return calipso 
 
 if __name__ == "__main__":

@@ -34,7 +34,7 @@ AREA_CONFIG_FILE = os.environ.get('AREA_CONFIG_FILE', './areas.def')
 _validation_results_dir = os.environ.get(
   'VALIDATION_RESULTS_DIR', 
   "/nobackup/smhid12/atrain_match_test_CALIPSOv4")
-
+ATRAIN_MATCH_CONFIG_PATH = os.environ.get('ATRAINMATCH_CONFIG_DIR', './etc')
 
 #========== Process modes ==========#
 #: Processing modes which can be handled for all resolutions
