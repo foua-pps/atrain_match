@@ -285,7 +285,9 @@ def get_calipso_low_medium_high_classification(caObj):
 
 def get_cloudsat_low_medium_high_classification(clsatObj):
     mlh_class = {}
-    if hasattr( clsatObj.imager, 'segment_nwp_h440') and clsatObj.imager.all_arrays['segment_nwp_h440'] is None:
+    if not hasattr( clsatObj.imager, 'segment_nwp_h440') :
+        return None
+    if clsatObj.imager.all_arrays['segment_nwp_h440'] is None:
         return  None
     clsat_h = clsatObj.cloudsat.validation_height
     mlh_class['low_clouds'] = np.less_equal(clsat_h, clsatObj.imager.all_arrays['segment_nwp_h680'])
