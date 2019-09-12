@@ -276,7 +276,7 @@ def reshapeCloudsat(cloudsatfiles, imager,  SETTINGS):
         # clsat_break = np.argmin(np.abs(clsat_start_all - clsat_new_all[0]))+1
         # Concatenate the feature values
         clsat = clsat + newCloudsat
-        print("taistart", clsat.TAI_start)
+        #print("taistart", clsat.TAI_start)
 
     # Finds Break point
     startBreak, endBreak = find_break_points(clsat, imager, SETTINGS)

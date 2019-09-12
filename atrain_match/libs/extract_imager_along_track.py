@@ -227,6 +227,18 @@ def _interpolate_height_and_temperature_from_pressure(imagerObj,
     High means high in pressure. The level closest to ground i hi, and lo is at lower 
     pressure further up in atmosphere.
     """
+    if hasattr(imagerObj, "nwp_height") and imagerObj.nwp_height is not None:
+        values_h =  imagerObj.nwp_height
+        pressure_v=  imagerObj.nwp_pressure
+        surface_h = imagerObj.nwp_surface_h
+        psur = imagerObj.nwp_psur
+    elif hasattr(imagerObj, "segment_nwp_geoheight") and imagerObj.segment_nwp_geoheight is not None:
+        values_h =  imagerObj.segment_nwp_geoheight
+        pressure_v=  imagerObj.segment_nwp_pressure
+        surface_h = imagerObj.segment_nwp_surfaceGeoHeight
+        psur = imagerObj.segment_nwp_surfacePressure
+    else:
+        return None
     values_h =  imagerObj.segment_nwp_geoheight
     pressure_v=  imagerObj.segment_nwp_pressure
     surface_h = imagerObj.segment_nwp_surfaceGeoHeight
@@ -349,18 +361,14 @@ def insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt):
                           'segment_nwp_geoheight', 'segment_nwp_temp']:
             data = getattr(obt.imager, data_set) 
             setattr(obt.imager, data_set, data[:,0:pressure_n_to_keep])
-
-        
-
-        #obt.imager.segment_nwp_geoheight = np.array([nwp_segments['geoheight'][seg_row[idx], seg_col[idx]]
-        #                                            for idx in range(npix)])
-        #Extract h440: hight at 440 hPa, and h680
-        data = _interpolate_height_and_temperature_from_pressure(obt.imager, 440)
-        setattr(obt.imager, 'segment_nwp_h440', data)
-        data = _interpolate_height_and_temperature_from_pressure(obt.imager, 680)
-        setattr(obt.imager, 'segment_nwp_h680', data)
-        
         return obt
+
+def insert_nwp_h440_h680_data(obt):
+    data = _interpolate_height_and_temperature_from_pressure(obt.imager, 440)
+    setattr(obt.imager, 'segment_nwp_h440', data)
+    data = _interpolate_height_and_temperature_from_pressure(obt.imager, 680)
+    setattr(obt.imager, 'segment_nwp_h680', data)
+    return obt
 
 #---------------------------------------------------------------------------
 def imager_track_from_matched(obt, SETTINGS, 
@@ -559,6 +567,8 @@ def imager_track_from_matched(obt, SETTINGS,
             if data is not None:
                 setattr(obt.imager, data_set_name,  
                         get_data_from_array(data, row_col))
+
+    obt = insert_nwp_h440_h680_data(obt)
 
     #ADD CNN features  
           
