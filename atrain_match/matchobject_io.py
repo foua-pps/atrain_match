@@ -50,6 +50,18 @@ class DataObject(object):
 
     def __add__(self, other):
         """Adding two objects together"""
+        # Check if we have an empty object 
+        # modis objects does not have longitude attribute
+        if (not hasattr(self, "longitude") and 
+            hasattr(self, "height") 
+            and self.all_arrays["height"] is None):
+            print("First object is None!, returning second object")
+            return other   
+     if (not hasattr(other, "longitude") and 
+            hasattr(other, "height") 
+            and other.all_arrays["height"] is None):
+            print("Second object is None!, returning first object")
+            return self  
         if self.all_arrays["longitude"] is None:
             print("First object is None!, returning second object")
             return other
@@ -363,7 +375,7 @@ class TruthImagerTrackObject:
         """Concatenating two objects together"""
         for object_name in ['imager', 'calipso', 'calipso_aerosol', 'amsr',
                             'cloudsat', 'iss', 'mora', 'synop', 'modis']:
-              if hasattr(self, object_name):
+            if hasattr(self, object_name):
                 setattr(self, object_name, 
                         getattr(self, object_name) + 
                         getattr(other, object_name))
@@ -434,12 +446,17 @@ def get_stuff_to_read_from_a_reshaped_file(h5file, retv):
     return (h5_groups, data_objects)
     
           
-def readTruthImagerMatchObj(filename, truth='calipso', read_all=True, read_var=[]):
+def readTruthImagerMatchObj(filename, truth='calipso', 
+                            read_all=True, 
+                            read_var=[], 
+                            skip_var=[]):
     retv = TruthImagerTrackObject(truth=truth)    
     h5file = h5py.File(filename, 'r')
     (h5_groups, data_objects) =  get_stuff_to_read_from_a_reshaped_file(h5file, retv)
     for group, data_obj in zip(h5_groups, data_objects):
-        for dataset in group.keys():        
+        for dataset in group.keys():
+            if dataset in skip_var:
+                continue
             if  (read_all or dataset in read_var or 
                  (len(read_var)==0 and dataset.data_obj.all_arrays.keys())) :
                 atrain_match_name = dataset
