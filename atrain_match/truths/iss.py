@@ -127,7 +127,7 @@ def read_iss(filename):
 
             for dataset in my_group.keys():
                 name = dataset.lower()
-                if name in scip_these_larger_variables_until_needed_iss.keys():
+                if dataset in scip_these_larger_variables_until_needed_iss.keys():
                     continue
                 data = my_group[dataset].value
                 data = np.array(data)

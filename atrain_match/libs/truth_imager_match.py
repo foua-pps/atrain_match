@@ -97,7 +97,6 @@ try:
 except ImportError:
     import pytz as my_tz
 from glob import glob
-from glob import glob
 import time
 
 logger = logging.getLogger(__name__)
@@ -241,7 +240,7 @@ def find_truth_files_inner(date_time, time_window, AM_PATHS, values, truth='cali
             values, 
             datetime_obj=tobj)
         tmplist = glob(os.path.join(calipso_dir, calipso_file_pattern))
-        print("globbing", os.path.join(calipso_dir, calipso_file_pattern))
+        logger.debug("globbing" + os.path.join(calipso_dir, calipso_file_pattern))
         flist.extend([ s for s in tmplist if s not in flist ])      
     return flist
 
@@ -754,6 +753,7 @@ def get_calipso_matchups(calipso_files, values,
                                       imagerGeoObj, imagerObj, ctype, cma,
                                       ctth, cpp, nwp_obj, imagerAngObj, 
                                       nwp_segments, SETTINGS)
+
     return ca_matchup
 def read_cloud_cci(imager_file):
     from imager_cloud_products.read_cloudproducts_cci import cci_read_all
