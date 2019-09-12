@@ -57,7 +57,7 @@ class DataObject(object):
             and self.all_arrays["height"] is None):
             print("First object is None!, returning second object")
             return other   
-     if (not hasattr(other, "longitude") and 
+        if (not hasattr(other, "longitude") and 
             hasattr(other, "height") 
             and other.all_arrays["height"] is None):
             print("Second object is None!, returning first object")
