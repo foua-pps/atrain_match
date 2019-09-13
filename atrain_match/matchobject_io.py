@@ -101,6 +101,7 @@ class DataObject(object):
     def extract_elements(self, idx=None, starti=0, endi=0):
         """Extract elements with index idx"""
         #to replace calipso_track_from_matched
+ 
         for key, value in self.all_arrays.items(): 
             if key in ["TAI_start"]:
                 continue
@@ -251,7 +252,6 @@ class CloudsatObject(DataObject):
             'cloud_fraction': None,
             'validation_height': None,
             'validation_height_base': None,
-            'total_optical_depth_5km': None, 
             'elevation': None,
             'sec_1970': None,
             'CPR_Cloud_mask': None,
