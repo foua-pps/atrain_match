@@ -187,13 +187,13 @@ def get_mean_data_from_array_nneigh(array, matched):
     return sum_out_all*1.0/n_ok
 
 
-def get_channel_data_from_object(dataObj, chn_des, matched, nodata=-9):
+def get_channel_data_from_object(imager_obj, chn_des, matched, nodata=-9):
     """Get the IMAGER/VIIRS channel data on the track
 
     matched: dict of matched indices (row, col)
 
     """
-    channels = dataObj.channel    
+    channels = imager_obj.channel    
     numOfChannels = len(channels)
     #for ich in range(numOfChannels):
     #    if channels[ich].des in CHANNEL_MICRON_DESCRIPTIONS[chn_des]:
@@ -220,29 +220,29 @@ def get_channel_data_from_object(dataObj, chn_des, matched, nodata=-9):
     return np.array(chdata_on_track), extra_info
 
 
-def _interpolate_height_and_temperature_from_pressure(imagerObj,
+def _interpolate_height_and_temperature_from_pressure(imager_obj,
                                                       level):
     """ Function to find height att pressure level (level)
     from segment_nwp, pressure and height vectors.
     High means high in pressure. The level closest to ground i hi, and lo is at lower 
     pressure further up in atmosphere.
     """
-    if hasattr(imagerObj, "nwp_height") and imagerObj.nwp_height is not None:
-        values_h =  imagerObj.nwp_height
-        pressure_v=  imagerObj.nwp_pressure
-        surface_h = imagerObj.nwp_surface_h
-        psur = imagerObj.nwp_psur
-    elif hasattr(imagerObj, "segment_nwp_geoheight") and imagerObj.segment_nwp_geoheight is not None:
-        values_h =  imagerObj.segment_nwp_geoheight
-        pressure_v=  imagerObj.segment_nwp_pressure
-        surface_h = imagerObj.segment_nwp_surfaceGeoHeight
-        psur = imagerObj.segment_nwp_surfacePressure
+    if hasattr(imager_obj, "nwp_height") and imager_obj.nwp_height is not None:
+        values_h =  imager_obj.nwp_height
+        pressure_v=  imager_obj.nwp_pressure
+        surface_h = imager_obj.nwp_surface_h
+        psur = imager_obj.nwp_psur
+    elif hasattr(imager_obj, "segment_nwp_geoheight") and imager_obj.segment_nwp_geoheight is not None:
+        values_h =  imager_obj.segment_nwp_geoheight
+        pressure_v=  imager_obj.segment_nwp_pressure
+        surface_h = imager_obj.segment_nwp_surfaceGeoHeight
+        psur = imager_obj.segment_nwp_surfacePressure
     else:
         return None
-    values_h =  imagerObj.segment_nwp_geoheight
-    pressure_v=  imagerObj.segment_nwp_pressure
-    surface_h = imagerObj.segment_nwp_surfaceGeoHeight
-    psur = imagerObj.segment_nwp_surfacePressure
+    values_h =  imager_obj.segment_nwp_geoheight
+    pressure_v=  imager_obj.segment_nwp_pressure
+    surface_h = imager_obj.segment_nwp_surfaceGeoHeight
+    psur = imager_obj.segment_nwp_surfacePressure
     #import pdb
     #pdb.set_trace()
     nlev = pressure_v.shape[1]
@@ -395,8 +395,8 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
     nwp_obj = cloudproducts.nwp
 
 
-    dataObj = cloudproducts.imager_channeldata
-    AngObj = cloudproducts.imager_angles
+    imager_obj = cloudproducts.imager_channeldata
+    angle_obj = cloudproducts.imager_angles
     ctth = cloudproducts.ctth
     cma = cloudproducts.cma
     ctype = cloudproducts.ctype
@@ -461,31 +461,31 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
     from utils.pps_prototyping_util import (get_t11t12_texture_data_from_object,
                                             get_coldest_values,get_darkest_values,
                                             get_warmest_values)
-    if dataObj is not None:
+    if imager_obj is not None:
         pass
-        #nwp_obj = get_t11t12_texture_data_from_object(dataObj, nwp_obj, '11','12', 
+        #nwp_obj = get_t11t12_texture_data_from_object(imager_obj, nwp_obj, '11','12', 
         #                                              'text_t11t12_square??') 
     for texture in ["text_r06", "text_t11", "text_t37", "text_t37t12", 
                     "text_t37t12_square", "text_t11t12_square", "text_t11t12"]:
         if hasattr(nwp_obj, texture):
             data = getattr(nwp_obj, texture)
             setattr(obt.imager, texture, get_data_from_array(data, row_col))
-    if dataObj is not None and SETTINGS["SAVE_NEIGHBOUR_INFO"]:
-        neighbour_obj = get_warmest_values(dataObj, row_col)
+    if imager_obj is not None and SETTINGS["SAVE_NEIGHBOUR_INFO"]:
+        neighbour_obj = get_warmest_values(imager_obj, row_col)
         for key in ["warmest_r06", "warmest_r09", "warmest_r16"]:
             setattr(obt.imager, key + neighbour_obj.extra_info_sza_corr, 
                     getattr(neighbour_obj,key))
         for key in ["warmest_t11", "warmest_t12", "warmest_t37"]:
             setattr(obt.imager, key, 
                     getattr(neighbour_obj,key))
-        neighbour_obj = get_darkest_values(dataObj, row_col)
+        neighbour_obj = get_darkest_values(imager_obj, row_col)
         for key in ["darkest_r06", "darkest_r09", "darkest_r16"]:
             setattr(obt.imager, key + neighbour_obj.extra_info_sza_corr, 
                     getattr(neighbour_obj,key))
         for key in ["darkest_t11", "darkest_t12", "darkest_t37"]:
             setattr(obt.imager, key, 
                     getattr(neighbour_obj,key))
-        neighbour_obj = get_coldest_values(dataObj, row_col)
+        neighbour_obj = get_coldest_values(imager_obj, row_col)
         for key in ["coldest_r06", "coldest_r09", "coldest_r16"]:
             setattr(obt.imager, key + neighbour_obj.extra_info_sza_corr, 
                     getattr(neighbour_obj,key))
@@ -512,46 +512,46 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
         if hasattr(nwp_obj, emis):
             data = getattr(nwp_obj, emis)
             setattr(obt.imager, emis, get_data_from_array(data, row_col))
-    if dataObj is not None:
-        temp_data, info = get_channel_data_from_object(dataObj, '06', row_col)
+    if imager_obj is not None:
+        temp_data, info = get_channel_data_from_object(imager_obj, '06', row_col)
         setattr(obt.imager, "r06micron" + info, temp_data) 
         # r09   
-        temp_data, info =  get_channel_data_from_object(dataObj, '09', row_col)
+        temp_data, info =  get_channel_data_from_object(imager_obj, '09', row_col)
         setattr(obt.imager, "r09micron" + info, temp_data)
         # bt37   
-        temp_data, info =  get_channel_data_from_object(dataObj, '37', row_col)
+        temp_data, info =  get_channel_data_from_object(imager_obj, '37', row_col)
         setattr(obt.imager, "bt37micron" + info, temp_data)
         # b11
-        temp_data, info =  get_channel_data_from_object(dataObj, '11', row_col)
+        temp_data, info =  get_channel_data_from_object(imager_obj, '11', row_col)
         setattr(obt.imager, "bt11micron" + info, temp_data)
         # b12
-        temp_data, info =  get_channel_data_from_object(dataObj, '12', row_col)
+        temp_data, info =  get_channel_data_from_object(imager_obj, '12', row_col)
         setattr(obt.imager, "bt12micron" + info, temp_data)
         # b86
-        temp_data, info =  get_channel_data_from_object(dataObj, '86', row_col)
+        temp_data, info =  get_channel_data_from_object(imager_obj, '86', row_col)
         setattr(obt.imager, "bt86micron" + info, temp_data)
         # b16
-        temp_data, info =  get_channel_data_from_object(dataObj, '16', row_col)
+        temp_data, info =  get_channel_data_from_object(imager_obj, '16', row_col)
         setattr(obt.imager, "r16micron" + info, temp_data)
         # b22
-        temp_data, info =  get_channel_data_from_object(dataObj, '22', row_col)
+        temp_data, info =  get_channel_data_from_object(imager_obj, '22', row_col)
         setattr(obt.imager, "r22micron" + info, temp_data)
         #b13
-        temp_data, info =  get_channel_data_from_object(dataObj, '13', row_col)
+        temp_data, info =  get_channel_data_from_object(imager_obj, '13', row_col)
         setattr(obt.imager, "r13micron" + info, temp_data)
         if obt.imager_instrument.lower() in ['modis']:
             for modis_channel in CURRENTLY_UNUSED_MODIS_CHANNELS:
-                modis_track, info = get_channel_data_from_object(dataObj, 
+                modis_track, info = get_channel_data_from_object(imager_obj, 
                                                                  modis_channel, row_col)
                 setattr(obt.imager, modis_channel + info, modis_track)
         if obt.imager_instrument.lower() in ['seviri']:
             for seviri_channel in CURRENTLY_UNUSED_SEVIRI_CHANNELS:
-                seviri_track, info = get_channel_data_from_object(dataObj, 
+                seviri_track, info = get_channel_data_from_object(imager_obj, 
                                                                   seviri_channel, row_col)
                 setattr(obt.imager, seviri_channel + info, seviri_track)
     #Angles, scale with gain and intercept when reading
     for angle in ['satz', 'sunz', 'azidiff', 'sunazimuth', 'satazimuth']:
-        data = getattr(AngObj, angle)
+        data = getattr(angle_obj, angle)
         if data is not None:
             setattr(obt.imager, angle,  get_data_from_array(data.data, row_col))
     if ctth is None:
@@ -596,7 +596,7 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
           
     from utils.pps_prototyping_util import add_cnn_features
     if os.path.isfile(SETTINGS['CNN_PCKL_PATH']):
-        filters_dict = add_cnn_features(dataObj.cnn_dict,  row_col, 
+        filters_dict = add_cnn_features(imager_obj.cnn_dict,  row_col, 
                                         obt.imager.latitude, obt.imager.longitude, 
                                         SETTINGS)
         for filter_name in filters_dict.keys():

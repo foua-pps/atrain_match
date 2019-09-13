@@ -246,10 +246,10 @@ def do_some_geo_obj_logging(GeoObj):
                      GeoObj.latitude)),
                  np.max(GeoObj.latitude))
 
-def do_some_logging(retv, cObj):
+def do_some_logging(retv, match_obj):
     logger.debug("Start and end times: %s %s",
-              time.gmtime(cObj.sec_1970[0]),
-              time.gmtime(cObj.sec_1970[-1]))
+              time.gmtime(match_obj.sec_1970[0]),
+              time.gmtime(match_obj.sec_1970[-1]))
     logger.debug("Maximum and minimum time differences in sec (imager-reference): %d %d",
           np.max(retv.diff_sec_1970),np.min(retv.diff_sec_1970))
     logger.debug("IMAGER observation time of first imager-reference match: %s",

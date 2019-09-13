@@ -64,7 +64,7 @@ def get_mora_data(filename):
     
     return pd.DataFrame(data)
     
-def reshapeMora(morafiles, imager,  SETTINGS):
+def reshape_mora(morafiles, imager,  SETTINGS):
     start_t = datetime.utcfromtimestamp(imager.sec1970_start)
     end_t = datetime.utcfromtimestamp(imager.sec1970_end)
     #datetime.datetime.fromtimestamp(

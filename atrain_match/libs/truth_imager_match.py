@@ -84,23 +84,23 @@ from config import INSTRUMENT
 from utils.common import MatchupError, ProcessingError
 from truths.cloudsat import (reshapeCloudsat, 
                              match_cloudsat_imager,
-                             mergeCloudsat)
-from truths.amsr import (reshapeAmsr, match_amsr_imager)
-from truths.mora import (reshapeMora, match_mora_imager)
-from truths.synop import (reshapeSynop, match_synop_imager)
-from truths.iss import reshapeIss, match_iss_imager
+                             merge_cloudsat)
+from truths.amsr import (reshape_amsr, match_amsr_imager)
+from truths.mora import (reshape_mora, match_mora_imager)
+from truths.synop import (reshape_synop, match_synop_imager)
+from truths.iss import reshape_iss, match_iss_imager
 from truths.calipso import ( #check_total_optical_depth_and_warn,
                             total_and_top_layer_optical_depth_5km,
-                            reshapeCalipso, 
-                            discardCalipsoFilesOutsideTimeRange,
+                            reshape_calipso, 
+                            discard_calipso_files_outside_time_range,
                             match_calipso_imager, 
                             find_break_points,
-                            add1kmTo5km,
-                            addSingleShotTo5km,
-                            add5kmVariablesTo1kmresolution,
-                            adjust5kmTo1kmresolution)
-from matchobject_io import (writeTruthImagerMatchObj, 
-                            readTruthImagerMatchObj)
+                            add_1km_to_5km,
+                            add_singleshot_to5km,
+                            add_5km_variables_to_1km,
+                            adjust_5km_to_1km_resolution)
+from matchobject_io import (write_truth_imager_match_obj, 
+                            read_truth_imager_match_obj)
 
 class ppsFiles(object):
     def __init__(self, file_name_dict):
@@ -530,7 +530,7 @@ def get_cloudsat_matchups(cloudsat_files, cloudsat_files_lwp, cloudproducts, SET
         cloudsat_lwp = reshapeCloudsat(cloudsat_files_lwp, cloudproducts, SETTINGS)    
     if cloudsat is not None and cloudsat_lwp is not None:
         logger.info("Merging CloudSat GEOPROF and CWC-RVOD data to one object")
-        cloudsat = mergeCloudsat(cloudsat, cloudsat_lwp)
+        cloudsat = merge_cloudsat(cloudsat, cloudsat_lwp)
     elif cloudsat is None:
         cloudsat = cloudsat_lwp        
     logger.debug("Matching CloudSat with imager")
@@ -541,7 +541,7 @@ def get_iss_matchups(iss_files, cloudproducts,  SETTINGS):
     """
     Read Iss data and match with the given PPS data.
     """
-    iss = reshapeIss(iss_files, cloudproducts,  SETTINGS)
+    iss = reshape_iss(iss_files, cloudproducts,  SETTINGS)
     cl_matchup = match_iss_imager(iss, cloudproducts,  SETTINGS)
     return cl_matchup
 
@@ -549,7 +549,7 @@ def get_amsr_matchups(amsr_files, cloudproducts,  SETTINGS):
     """
     Read Amsr data and match with the given PPS data.
     """
-    amsr = reshapeAmsr(amsr_files, cloudproducts,  SETTINGS)
+    amsr = reshape_amsr(amsr_files, cloudproducts,  SETTINGS)
     am_matchup = match_amsr_imager(amsr, cloudproducts,  SETTINGS)
     return am_matchup
 
@@ -557,7 +557,7 @@ def get_synop_matchups(synop_files, cloudproducts,  SETTINGS):
     """
     Read Synop data and match with the given PPS data.
     """
-    synop = reshapeSynop(synop_files, cloudproducts,  SETTINGS)
+    synop = reshape_synop(synop_files, cloudproducts,  SETTINGS)
     synop_matchup = match_synop_imager(synop, cloudproducts,  SETTINGS)
     return synop_matchup
 
@@ -565,7 +565,7 @@ def get_mora_matchups(mora_files, cloudproducts, SETTINGS):
     """
     Read Mora data and match with the given PPS data.
     """
-    mora = reshapeMora(mora_files, cloudproducts,  SETTINGS)
+    mora = reshape_mora(mora_files, cloudproducts,  SETTINGS)
     mora_matchup = match_mora_imager(mora, cloudproducts,  SETTINGS)
     return mora_matchup
 
@@ -583,31 +583,31 @@ def get_calipso_matchups(calipso_files, values,
     #When combinating 5km and 1km data some expensive calculations are done
     #before cutting the data that fits the time condition.
     #It is unnessecary to do this for files where no-pixel will match!
-    calipso_files = discardCalipsoFilesOutsideTimeRange(
+    calipso_files = discard_calipso_files_outside_time_range(
         calipso_files, cloudproducts, values, SETTINGS)
     if cafiles1km is not None:
-        cafiles1km = discardCalipsoFilesOutsideTimeRange(
+        cafiles1km = discard_calipso_files_outside_time_range(
             cafiles1km, cloudproducts, values, SETTINGS, res=1)
     if cafiles5km is not None:
-        cafiles5km = discardCalipsoFilesOutsideTimeRange(
+        cafiles5km = discard_calipso_files_outside_time_range(
             cafiles5km, cloudproducts, values, SETTINGS, res=5)
     if cafiles5km_aerosol is not None:
-        cafiles5km_aerosol = discardCalipsoFilesOutsideTimeRange(
+        cafiles5km_aerosol = discard_calipso_files_outside_time_range(
             cafiles5km_aerosol, cloudproducts, values, SETTINGS, res=5, ALAY=True)
     CALIPSO_version = 4
     if len(calipso_files)>0 and 'V3' in os.path.basename(calipso_files[0]):
         logger.info("CALIPSO version 3 data!")
         CALIPSO_version = 3
 
-    calipso  = reshapeCalipso(calipso_files)
+    calipso  = reshape_calipso(calipso_files)
     #find time breakpoints, but don't cut the data yet ..
     startBreak, endBreak = find_break_points(calipso,  cloudproducts, SETTINGS)
     if cafiles1km is not None and CALIPSO_version == 3 and config.RESOLUTION == 5:
         #RESOLUTION 5km also have 1km data
         logger.info("Calipso version 3 data used and old 1 km restore method!")
-        calipso1km = reshapeCalipso(cafiles1km, res=1)
+        calipso1km = reshape_calipso(cafiles1km, res=1)
         calipso5km = calipso
-        calipso = add1kmTo5km(calipso1km, calipso5km)
+        calipso = add_1km_to_5km(calipso1km, calipso5km)
         calipso = time_reshape_calipso(calipso, 
                                        start_break=startBreak, end_break=endBreak) 
         calipso = total_and_top_layer_optical_depth_5km(calipso, SETTINGS, resolution=5)
@@ -617,10 +617,10 @@ def get_calipso_matchups(calipso_files, values,
         logger.info("Calipso version 4, single shot fraction and "
                     "old 5km restored optical depth method used!")
         calipso1km = calipso
-        calipso5km = reshapeCalipso(cafiles5km, res=5)
-        calipso5km = addSingleShotTo5km(calipso5km, SETTINGS) 
+        calipso5km = reshape_calipso(cafiles5km, res=5)
+        calipso5km = add_singleshot_to5km(calipso5km, SETTINGS) 
         calipso5km = total_and_top_layer_optical_depth_5km(calipso5km, SETTINGS, resolution=5)
-        calipso1km = add5kmVariablesTo1kmresolution(calipso1km, calipso5km, CALIPSO_version)
+        calipso1km = add_5km_variables_to_1km(calipso1km, calipso5km, CALIPSO_version)
         calipso = calipso1km.extract_elements(starti=startBreak, 
                                               endi=endBreak) 
 
@@ -628,18 +628,18 @@ def get_calipso_matchups(calipso_files, values,
         #RESOLUTION 1km also have 5km data calipso version 3
         logger.info("Calipso version 3 data used and old 5 km restored optical depth method!")
         calipso1km = calipso
-        calipso5km = reshapeCalipso(cafiles5km, res=5)
+        calipso5km = reshape_calipso(cafiles5km, res=5)
         calipso5km = total_and_top_layer_optical_depth_5km(calipso5km, SETTINGS, resolution=5)
-        calipso1km = add5kmVariablesTo1kmresolution(calipso1km, calipso5km, CALIPSO_version)
+        calipso1km = add_5km_variables_to_1km(calipso1km, calipso5km, CALIPSO_version)
         calipso = calipso1km.extract_elements(starti=startBreak, 
                                               endi=endBreak) 
     elif CALIPSO_version == 4 and config.RESOLUTION == 5 and SETTINGS['ALSO_USE_SINGLE_SHOT_CLOUD_CLEARED']:
 
         #RESOLUTION exclusively 5km data but additional clouds taken from 330 m single shot resolution
         logger.info("Calipso version 4 data used and new single shot restore method!")
-        #calipso5km = reshapeCalipso(cafiles5km, res=5)
-        calipso5km  = reshapeCalipso(calipso_files)
-        calipso = addSingleShotTo5km(calipso5km, SETTINGS) 
+        #calipso5km = reshape_calipso(cafiles5km, res=5)
+        calipso5km  = reshape_calipso(calipso_files)
+        calipso = add_singleshot_to5km(calipso5km, SETTINGS) 
 
         calipso = calipso.extract_elements(starti=startBreak, 
                                            endi=endBreak) 
@@ -648,10 +648,10 @@ def get_calipso_matchups(calipso_files, values,
 
         #RESOLUTION exclusively 5km data but additional clouds taken from 1 km data
         logger.info("Calipso version 4 data used but old method combining 1 km and 5 km data!")
-        #calipso5km = reshapeCalipso(cafiles5km, res=5)
-        calipso5km  = reshapeCalipso(calipso_files)
-        calipso1km = reshapeCalipso(cafiles1km, res=1)
-        calipso = add1kmTo5km(calipso1km, calipso5km) 
+        #calipso5km = reshape_calipso(cafiles5km, res=5)
+        calipso5km  = reshape_calipso(calipso_files)
+        calipso1km = reshape_calipso(cafiles1km, res=1)
+        calipso = add_1km_to_5km(calipso1km, calipso5km) 
         calipso = calipso.extract_elements(starti=startBreak, 
                                            endi=endBreak) 
         calipso = total_and_top_layer_optical_depth_5km(calipso, SETTINGS, resolution=5)
@@ -665,9 +665,9 @@ def get_calipso_matchups(calipso_files, values,
     #aerosol-data
     calipso_aerosol = None
     if cafiles5km_aerosol is not None:
-        calipso5km_aerosol = reshapeCalipso(cafiles5km_aerosol, res=5, ALAY=True)
+        calipso5km_aerosol = reshape_calipso(cafiles5km_aerosol, res=5, ALAY=True)
         if config.RESOLUTION == 1:
-            calipso_aerosol = adjust5kmTo1kmresolution(calipso5km_aerosol)
+            calipso_aerosol = adjust_5km_to_1km_resolution(calipso5km_aerosol)
         elif config.RESOLUTION == 5:
             calipso_aerosol = calipso5km_aerosol
         calipso_aerosol = calipso_aerosol.extract_elements(starti=startBreak, 
@@ -791,156 +791,156 @@ def get_additional_calipso_files_if_requested(calipso_files, SETTINGS):
     return calipso5km, calipso1km, calipso5km_aerosol              
 
 
-def add_additional_clousat_calipso_index_vars(clsatObj, caObj):
+def add_additional_clousat_calipso_index_vars(match_clsat, match_calipso):
     #add cloudsat modisflag to calipso obj
     
-    if clsatObj is not None and caObj is not None:
-        caObj.calipso.cal_modis_cflag = None
+    if match_clsat is not None and match_calipso is not None:
+        match_calipso.calipso.cal_modis_cflag = None
         #map cloudsat to calipso and the other way around!
         from utils.match import match_lonlat
-        source = (clsatObj.cloudsat.longitude.astype(np.float64).reshape(-1,1), 
-                  clsatObj.cloudsat.latitude.astype(np.float64).reshape(-1,1))
-        target = (caObj.calipso.longitude.astype(np.float64).reshape(-1,1), 
-                  caObj.calipso.latitude.astype(np.float64).reshape(-1,1))
+        source = (match_clsat.cloudsat.longitude.astype(np.float64).reshape(-1,1), 
+                  match_clsat.cloudsat.latitude.astype(np.float64).reshape(-1,1))
+        target = (match_calipso.calipso.longitude.astype(np.float64).reshape(-1,1), 
+                  match_calipso.calipso.latitude.astype(np.float64).reshape(-1,1))
         mapper, dummy = match_lonlat(source, target, radius_of_influence=1000, n_neighbours=1)
-        caObj.calipso.cloudsat_index = mapper.rows.filled(config.NODATA).ravel()
-        target = (clsatObj.cloudsat.longitude.astype(np.float64).reshape(-1,1), 
-                  clsatObj.cloudsat.latitude.astype(np.float64).reshape(-1,1))
-        source = (caObj.calipso.longitude.astype(np.float64).reshape(-1,1), 
-                  caObj.calipso.latitude.astype(np.float64).reshape(-1,1))
+        match_calipso.calipso.cloudsat_index = mapper.rows.filled(config.NODATA).ravel()
+        target = (match_clsat.cloudsat.longitude.astype(np.float64).reshape(-1,1), 
+                  match_clsat.cloudsat.latitude.astype(np.float64).reshape(-1,1))
+        source = (match_calipso.calipso.longitude.astype(np.float64).reshape(-1,1), 
+                  match_calipso.calipso.latitude.astype(np.float64).reshape(-1,1))
         mapper, dummy = match_lonlat(source, target, radius_of_influence=1000, n_neighbours=1)
-        clsatObj.cloudsat.calipso_index = mapper.rows.filled(config.NODATA).ravel()
+        match_clsat.cloudsat.calipso_index = mapper.rows.filled(config.NODATA).ravel()
 
         # Transfer CloudSat MODIS cloud flag to CALIPSO representation
-        index = caObj.calipso.cloudsat_index.copy()
+        index = match_calipso.calipso.cloudsat_index.copy()
         index[index<0] = 0
-        caObj.calipso.cal_modis_cflag = np.where(
-            caObj.calipso.cloudsat_index>=0, 
-            clsatObj.cloudsat.MODIS_cloud_flag[index],
+        match_calipso.calipso.cal_modis_cflag = np.where(
+            match_calipso.calipso.cloudsat_index>=0, 
+            match_clsat.cloudsat.MODIS_cloud_flag[index],
             -9)
         
-    if clsatObj is not None and caObj is not None:
-        index = clsatObj.cloudsat.calipso_index.copy()
+    if match_clsat is not None and match_calipso is not None:
+        index = match_clsat.cloudsat.calipso_index.copy()
         index[index<0] = 0
         for var_2d_name in ['feature_classification_flags', 
                            'layer_base_altitude', 
                            'layer_top_altitude',
                            'feature_optical_depth_532',
                            'feature_optical_depth_532_5km']:
-            if hasattr(caObj.calipso, var_2d_name):
-                data_calipso = getattr(caObj.calipso, var_2d_name)
+            if hasattr(match_calipso.calipso, var_2d_name):
+                data_calipso = getattr(match_calipso.calipso, var_2d_name)
                 if data_calipso is None:
                     continue
                 temp_data = np.array([np.where(
-                    clsatObj.cloudsat.calipso_index>=0, 
+                    match_clsat.cloudsat.calipso_index>=0, 
                     data_calipso[index,i], -9) for i in range(data_calipso.shape[1])])
-                setattr(clsatObj.cloudsat,  'calipso_{:s}'.format(var_2d_name), temp_data.transpose()) 
+                setattr(match_clsat.cloudsat,  'calipso_{:s}'.format(var_2d_name), temp_data.transpose()) 
 
         for var_1d_name in ['column_optical_depth_tropospheric_aerosols_532',
                            'column_optical_depth_tropospheric_aerosols_532_5km',
                            'column_optical_depth_aerosols_532',
                            'column_optical_depth_aerosols_532_5km']:
 
-            if hasattr(caObj.calipso, var_1d_name):
-                data_calipso = getattr(caObj.calipso, var_1d_name)
+            if hasattr(match_calipso.calipso, var_1d_name):
+                data_calipso = getattr(match_calipso.calipso, var_1d_name)
                 if data_calipso is None:
                     continue
-                temp_data = np.where(clsatObj.cloudsat.calipso_index>=0, data_calipso[index], -9) 
-                setattr(clsatObj.cloudsat,  'calipso_{:s}'.format(var_1d_name), temp_data) 
+                temp_data = np.where(match_clsat.cloudsat.calipso_index>=0, data_calipso[index], -9) 
+                setattr(match_clsat.cloudsat,  'calipso_{:s}'.format(var_1d_name), temp_data) 
             
         """
-        clsatObj.cloudsat.calipso_feature_classification_flags= np.where(
-            clsatObj.cloudsat.calipso_index>=0,
-            caObj.calipso.feature_classification_flags[index,0],
+        match_clsat.cloudsat.calipso_feature_classification_flags= np.where(
+            match_clsat.cloudsat.calipso_index>=0,
+            match_calipso.calipso.feature_classification_flags[index,0],
             -9)
         # first bas layer use height not pressure as cloudsat uses height
-        clsatObj.cloudsat.calipso_layer_base_altitude = np.where(
-            clsatObj.cloudsat.calipso_index>=0,
-            caObj.calipso.layer_base_altitude[index,0],
+        match_clsat.cloudsat.calipso_layer_base_altitude = np.where(
+            match_clsat.cloudsat.calipso_index>=0,
+            match_calipso.calipso.layer_base_altitude[index,0],
             -9)
         for layer in range(1,10):
-            clsatObj.cloudsat.calipso_layer_base_altitude = np.where(
-                np.logical_and(np.logical_and(clsatObj.cloudsat.calipso_index>=0,
-                                              caObj.calipso.layer_base_altitude[index,layer]>0),
-                               caObj.calipso.layer_base_altitude[index,layer]< 
-                               caObj.calipso.layer_base_altitude[index,layer-1]),
+            match_clsat.cloudsat.calipso_layer_base_altitude = np.where(
+                np.logical_and(np.logical_and(match_clsat.cloudsat.calipso_index>=0,
+                                              match_calipso.calipso.layer_base_altitude[index,layer]>0),
+                               match_calipso.calipso.layer_base_altitude[index,layer]< 
+                               match_calipso.calipso.layer_base_altitude[index,layer-1]),
                 
-                caObj.calipso.layer_base_altitude[index,layer],
-            clsatObj.cloudsat.calipso_layer_base_altitude)
-        clsatObj.cloudsat.calipso_layer_base_altitude[clsatObj.cloudsat.calipso_layer_base_altitude<-999] = -9.0
+                match_calipso.calipso.layer_base_altitude[index,layer],
+            match_clsat.cloudsat.calipso_layer_base_altitude)
+        match_clsat.cloudsat.calipso_layer_base_altitude[match_clsat.cloudsat.calipso_layer_base_altitude<-999] = -9.0
         # first bas layer use height not pressure as cloudsat uses height
-        clsatObj.cloudsat.calipso_layer_top_altitude = np.where(
-            clsatObj.cloudsat.calipso_index>=0,
-            caObj.calipso.layer_top_altitude[index,0],
+        match_clsat.cloudsat.calipso_layer_top_altitude = np.where(
+            match_clsat.cloudsat.calipso_index>=0,
+            match_calipso.calipso.layer_top_altitude[index,0],
             -9)
         for layer in range(1,10):
-            clsatObj.cloudsat.calipso_layer_top_altitude = np.where(
-                np.logical_and(np.logical_and(clsatObj.cloudsat.calipso_index>=0,
-                                              caObj.calipso.layer_top_altitude[index,layer]>0),
-                               caObj.calipso.layer_top_altitude[index,layer]> 
-                               caObj.calipso.layer_top_altitude[index,layer-1]),
+            match_clsat.cloudsat.calipso_layer_top_altitude = np.where(
+                np.logical_and(np.logical_and(match_clsat.cloudsat.calipso_index>=0,
+                                              match_calipso.calipso.layer_top_altitude[index,layer]>0),
+                               match_calipso.calipso.layer_top_altitude[index,layer]> 
+                               match_calipso.calipso.layer_top_altitude[index,layer-1]),
                 
-                caObj.calipso.layer_top_altitude[index,layer],
-            clsatObj.cloudsat.calipso_layer_top_altitude)
-        clsatObj.cloudsat.calipso_layer_top_altitude[clsatObj.cloudsat.calipso_layer_top_altitude<-999] = -9.0
+                match_calipso.calipso.layer_top_altitude[index,layer],
+            match_clsat.cloudsat.calipso_layer_top_altitude)
+        match_clsat.cloudsat.calipso_layer_top_altitude[match_clsat.cloudsat.calipso_layer_top_altitude<-999] = -9.0
     """   
-    return clsatObj, caObj
+    return match_clsat, match_calipso
 
-def add_modis_lvl2_clousat_(clsatObj, caObj):
+def add_modis_lvl2_clousat_(match_clsat, match_calipso):
     #add modis lvl2 to cloudsat
-    if clsatObj is not None and caObj is not None:
-        clsatObj.modis.all_arrays["height"] = caObj.modis.all_arrays["height"][clsatObj.cloudsat.calipso_index]
-        clsatObj.modis.all_arrays["temperature"] = caObj.modis.all_arrays["temperature"][clsatObj.cloudsat.calipso_index]
-        clsatObj.modis.all_arrays["pressure"] = caObj.modis.all_arrays["pressure"][clsatObj.cloudsat.calipso_index]
-        clsatObj.modis.all_arrays["cloud_emissivity"] = caObj.modis.all_arrays["cloud_emissivity"][clsatObj.cloudsat.calipso_index]
-        clsatObj.modis.all_arrays["latitude_5km"] = caObj.modis.all_arrays["latitude_5km"][clsatObj.cloudsat.calipso_index]
-        clsatObj.modis.all_arrays["longitude_5km"] = caObj.modis.all_arrays["longitude_5km"][clsatObj.cloudsat.calipso_index]
-    return clsatObj
+    if match_clsat is not None and match_calipso is not None:
+        match_clsat.modis.all_arrays["height"] = match_calipso.modis.all_arrays["height"][match_clsat.cloudsat.calipso_index]
+        match_clsat.modis.all_arrays["temperature"] = match_calipso.modis.all_arrays["temperature"][match_clsat.cloudsat.calipso_index]
+        match_clsat.modis.all_arrays["pressure"] = match_calipso.modis.all_arrays["pressure"][match_clsat.cloudsat.calipso_index]
+        match_clsat.modis.all_arrays["cloud_emissivity"] = match_calipso.modis.all_arrays["cloud_emissivity"][match_clsat.cloudsat.calipso_index]
+        match_clsat.modis.all_arrays["latitude_5km"] = match_calipso.modis.all_arrays["latitude_5km"][match_clsat.cloudsat.calipso_index]
+        match_clsat.modis.all_arrays["longitude_5km"] = match_calipso.modis.all_arrays["longitude_5km"][match_clsat.cloudsat.calipso_index]
+    return match_clsat
 
 
-def add_elevation_corrected_imager_ctth(clsatObj, caObj, issObj, SETTINGS):
+def add_elevation_corrected_imager_ctth(match_clsat, match_calipso, issObj, SETTINGS):
     ## Cloudsat ##
-    if clsatObj is None or clsatObj.imager.ctth_height is None:
+    if match_clsat is None or match_clsat.imager.ctth_height is None:
         pass
-    elif  clsatObj.imager.imager_ctth_m_above_seasurface is None:
+    elif  match_clsat.imager.imager_ctth_m_above_seasurface is None:
         # First make sure that PPS cloud top heights are converted to height
         # above sea level just as CloudSat height are defined. Use
         # corresponding DEM data.
-        elevation = np.where(np.less_equal(clsatObj.cloudsat.elevation,0),
-                             0,clsatObj.cloudsat.elevation)		
-        num_csat_data_ok = len(clsatObj.cloudsat.elevation)
+        elevation = np.where(np.less_equal(match_clsat.cloudsat.elevation,0),
+                             0,match_clsat.cloudsat.elevation)		
+        num_csat_data_ok = len(match_clsat.cloudsat.elevation)
         logger.debug("Length of CLOUDSAT array: %d", num_csat_data_ok )
-        imager_ctth_m_above_seasurface = clsatObj.imager.ctth_height.copy()
+        imager_ctth_m_above_seasurface = match_clsat.imager.ctth_height.copy()
         #import pdb;pdb.set_trace()
         if SETTINGS["CCI_CLOUD_VALIDATION"] or SETTINGS["PATMOSX_VALIDATION"]: 
             #ctth already relative mean sea level
-            imager_ctth_m_above_seasurface = caObj.imager.ctth_height
+            imager_ctth_m_above_seasurface = match_calipso.imager.ctth_height
         else: #ctth relative topography
             got_height = imager_ctth_m_above_seasurface>=0                    
             imager_ctth_m_above_seasurface[got_height] += elevation[got_height]*1.0
-        clsatObj.imager.imager_ctth_m_above_seasurface = imager_ctth_m_above_seasurface
+        match_clsat.imager.imager_ctth_m_above_seasurface = imager_ctth_m_above_seasurface
         if num_csat_data_ok == 0:
             logger.info("Processing stopped: Zero lenght of matching arrays!")
             raise ProcessingError("Zero lenght of matching arrays!")
     ## Calipso ##        
     # First make sure that PPS cloud top heights are converted to height above sea level
     # just as CALIPSO heights are defined. Use corresponding DEM data.
-    if caObj is None or caObj.imager.ctth_height is None:
+    if match_calipso is None or match_calipso.imager.ctth_height is None:
         pass
-    elif  caObj.imager.imager_ctth_m_above_seasurface is None:
-        cal_elevation = np.where(np.less_equal(caObj.calipso.elevation,0),
-                                 0,caObj.calipso.elevation)
-        num_cal_data_ok = len(caObj.calipso.elevation)
+    elif  match_calipso.imager.imager_ctth_m_above_seasurface is None:
+        cal_elevation = np.where(np.less_equal(match_calipso.calipso.elevation,0),
+                                 0,match_calipso.calipso.elevation)
+        num_cal_data_ok = len(match_calipso.calipso.elevation)
         logger.debug("Length of CALIOP array: %d", num_cal_data_ok)
-        imager_ctth_m_above_seasurface = caObj.imager.ctth_height.copy()
+        imager_ctth_m_above_seasurface = match_calipso.imager.ctth_height.copy()
         logger.debug("CCI_CLOUD_VALIDATION %s", str(SETTINGS["CCI_CLOUD_VALIDATION"]))
         if SETTINGS["CCI_CLOUD_VALIDATION"]: 
             #ctth relative mean sea level
-            imager_ctth_m_above_seasurface = caObj.imager.ctth_height
+            imager_ctth_m_above_seasurface = match_calipso.imager.ctth_height
         else: #ctth relative topography
             got_height = imager_ctth_m_above_seasurface>=0                    
             imager_ctth_m_above_seasurface[got_height] += cal_elevation[got_height]*1.0
-        caObj.imager.imager_ctth_m_above_seasurface = imager_ctth_m_above_seasurface
+        match_calipso.imager.imager_ctth_m_above_seasurface = imager_ctth_m_above_seasurface
     if issObj is None or issObj.imager.ctth_height is None:
         pass
     elif  issObj.imager.imager_ctth_m_above_seasurface is None:
@@ -956,7 +956,7 @@ def add_elevation_corrected_imager_ctth(clsatObj, caObj, issObj, SETTINGS):
             got_height = imager_ctth_m_above_seasurface>=0                    
             imager_ctth_m_above_seasurface[got_height] += iss_elevation[got_height]*1.0
         issObj.imager.imager_ctth_m_above_seasurface = imager_ctth_m_above_seasurface
-    return clsatObj, caObj, issObj
+    return match_clsat, match_calipso, issObj
 
 
 def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
@@ -1009,7 +1009,7 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
         cloudproducts =read_pps_data(pps_files, imager_file, SETTINGS)
         if os.path.isfile(SETTINGS['CNN_PCKL_PATH']):
             from utils.pps_prototyping_util import add_cnn_features_full
-            imagerObj.cnn_dict = add_cnn_features_full(cloudproducts.imager_channeldata, 
+            imager_obj.cnn_dict = add_cnn_features_full(cloudproducts.imager_channeldata, 
                                                        cloudproducts, 
                                                        SETTINGS)
     if (CCI_CLOUD_VALIDATION):
@@ -1186,7 +1186,7 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
             truth_sat = matchup.truth_sat
             match_file = rematched_file_base.replace(
                 'atrain_datatype', truth_sat)
-            writeTruthImagerMatchObj(match_file, matchup,
+            write_truth_imager_match_obj(match_file, matchup,
                                      SETTINGS, 
                                      imager_obj_name = imager_obj_name)
 

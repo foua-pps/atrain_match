@@ -23,10 +23,10 @@ import config
 from libs.extract_imager_along_track import CHANNEL_MICRON_IMAGER_PPS, CHANNEL_MICRON_DESCRIPTIONS
 from libs.extract_imager_along_track import get_channel_data_from_object, get_data_from_array
 
-def get_t11t12_texture_data_from_object(dataObj, nwp_obj, ch11, ch12, text_name):
+def get_t11t12_texture_data_from_object(imager_obj, nwp_obj, ch11, ch12, text_name):
     #https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
-    t11 = get_channel_data_from_objectfull_resolution(dataObj, ch11, nodata=-9)
-    t12 = get_channel_data_from_objectfull_resolution(dataObj, ch12, nodata=-9)    
+    t11 = get_channel_data_from_objectfull_resolution(imager_obj, ch11, nodata=-9)
+    t12 = get_channel_data_from_objectfull_resolution(imager_obj, ch12, nodata=-9)    
     t11t12 = 1.0*np.array(t11-t12)
     K=np.median(t11t12) #K is trick to get better accurracy maybe not needed as differences are often small
     t11t12 = (t11t12-K)
@@ -105,55 +105,55 @@ def get_warmest_or_coldest_index(t11, matched, warmest=True):
 
 
 
-def get_warmest_values(dataObj, matched):
+def get_warmest_values(imager_obj, matched):
     nobj = NeighbourObj()
-    t11 = get_channel_data_from_objectfull_resolution(dataObj, '11', nodata=-9)
+    t11 = get_channel_data_from_objectfull_resolution(imager_obj, '11', nodata=-9)
     new_row_col = get_warmest_or_coldest_index(t11,  matched)
-    nobj.warmest_t11=get_channel_data_from_object(dataObj, '11', new_row_col)[0]
-    nobj.warmest_t12=get_channel_data_from_object(dataObj, '12', new_row_col)[0]
-    nobj.warmest_t37=get_channel_data_from_object(dataObj, '37', new_row_col)[0]
+    nobj.warmest_t11=get_channel_data_from_object(imager_obj, '11', new_row_col)[0]
+    nobj.warmest_t12=get_channel_data_from_object(imager_obj, '12', new_row_col)[0]
+    nobj.warmest_t37=get_channel_data_from_object(imager_obj, '37', new_row_col)[0]
     nobj.warmest_r06, nobj.extra_info_sza_corr = get_channel_data_from_object(
-        dataObj, '06', new_row_col)
-    nobj.warmest_r16 = get_channel_data_from_object(dataObj, '16', new_row_col)[0]
-    nobj.warmest_r09 = get_channel_data_from_object(dataObj, '09', new_row_col)[0]
+        imager_obj, '06', new_row_col)
+    nobj.warmest_r16 = get_channel_data_from_object(imager_obj, '16', new_row_col)[0]
+    nobj.warmest_r09 = get_channel_data_from_object(imager_obj, '09', new_row_col)[0]
     return nobj
 
-def get_coldest_values(dataObj, matched):
+def get_coldest_values(imager_obj, matched):
     nobj = NeighbourObj()
-    t11 = get_channel_data_from_objectfull_resolution(dataObj, '11', nodata=-9)
+    t11 = get_channel_data_from_objectfull_resolution(imager_obj, '11', nodata=-9)
     new_row_col = get_warmest_or_coldest_index(t11, matched, warmest=False)
-    nobj.coldest_t11=get_channel_data_from_object(dataObj, '11', new_row_col)[0]
-    nobj.coldest_t12=get_channel_data_from_object(dataObj, '12', new_row_col)[0]
-    nobj.coldest_t37=get_channel_data_from_object(dataObj, '37', new_row_col)[0]
+    nobj.coldest_t11=get_channel_data_from_object(imager_obj, '11', new_row_col)[0]
+    nobj.coldest_t12=get_channel_data_from_object(imager_obj, '12', new_row_col)[0]
+    nobj.coldest_t37=get_channel_data_from_object(imager_obj, '37', new_row_col)[0]
     nobj.coldest_r06, nobj.extra_info_sza_corr = get_channel_data_from_object(
-        dataObj, '06', new_row_col)
-    nobj.coldest_r16=get_channel_data_from_object(dataObj, '16', new_row_col)[0]
-    nobj.coldest_r09=get_channel_data_from_object(dataObj, '09', new_row_col)[0]
+        imager_obj, '06', new_row_col)
+    nobj.coldest_r16=get_channel_data_from_object(imager_obj, '16', new_row_col)[0]
+    nobj.coldest_r09=get_channel_data_from_object(imager_obj, '09', new_row_col)[0]
     return nobj
 
-def get_darkest_values(dataObj, matched):
+def get_darkest_values(imager_obj, matched):
     nobj = NeighbourObj()
-    r09 = get_channel_data_from_objectfull_resolution(dataObj, '09', nodata=-9)
-    r06 = get_channel_data_from_objectfull_resolution(dataObj, '06', nodata=-9)
+    r09 = get_channel_data_from_objectfull_resolution(imager_obj, '09', nodata=-9)
+    r06 = get_channel_data_from_objectfull_resolution(imager_obj, '06', nodata=-9)
     darkest = np.where(r09>r06,r06,r09)
     new_row_col = get_warmest_or_coldest_index(darkest, matched, warmest=False)
-    nobj.darkest_t11=get_channel_data_from_object(dataObj, '11', new_row_col)[0]
-    nobj.darkest_t12=get_channel_data_from_object(dataObj, '12', new_row_col)[0]
-    nobj.darkest_t37=get_channel_data_from_object(dataObj, '37', new_row_col)[0]
-    nobj.darkest_r06, nobj.extra_info_sza_corr=get_channel_data_from_object(dataObj, '06', new_row_col)
-    nobj.darkest_r16=get_channel_data_from_object(dataObj, '16', new_row_col)[0]
-    nobj.darkest_r09=get_channel_data_from_object(dataObj, '09', new_row_col)[0]
+    nobj.darkest_t11=get_channel_data_from_object(imager_obj, '11', new_row_col)[0]
+    nobj.darkest_t12=get_channel_data_from_object(imager_obj, '12', new_row_col)[0]
+    nobj.darkest_t37=get_channel_data_from_object(imager_obj, '37', new_row_col)[0]
+    nobj.darkest_r06, nobj.extra_info_sza_corr=get_channel_data_from_object(imager_obj, '06', new_row_col)
+    nobj.darkest_r16=get_channel_data_from_object(imager_obj, '16', new_row_col)[0]
+    nobj.darkest_r09=get_channel_data_from_object(imager_obj, '09', new_row_col)[0]
     return nobj
  
-def add_cnn_features_full(imagerObj, imagerGeoObj, SETTINGS):
+def add_cnn_features_full(imager_obj, imagerGeoObj, SETTINGS):
     from cloud_collocations.cloud_net import CloudNetBase
     from cloud_collocations.cloud_net import FeatureModel
     the_filters_dict = {}
     print(SETTINGS['CNN_PCKL_PATH'])
     cnn = CloudNetBase.load(SETTINGS['CNN_PCKL_PATH'])
     m = FeatureModel(cnn)
-    im11 = get_channel_data_from_objectfull_resolution(imagerObj, '11', nodata=-9)
-    im12 = get_channel_data_from_objectfull_resolution(imagerObj, '12', nodata=-9)
+    im11 = get_channel_data_from_objectfull_resolution(imager_obj, '11', nodata=-9)
+    im12 = get_channel_data_from_objectfull_resolution(imager_obj, '12', nodata=-9)
     filter_response = m.apply(np.array([im11, im12]))
     lats_f = m.resample_coordinates(imagerGeoObj.latitude)
     lons_f = m.resample_coordinates(imagerGeoObj.longitude)
@@ -186,14 +186,14 @@ def add_cnn_features(cnn_dict, matched, lats_matched, lons_matched, SETTINGS):
     
 
 
-def get_channel_data_from_objectfull_resolution(dataObj, chn_des, nodata=-9):
+def get_channel_data_from_objectfull_resolution(imager_obj, chn_des, nodata=-9):
     """Get the IMAGER/VIIRS channel data on the track
     matched: dict of matched indices (row, col)
     """
     try:
-        channels = dataObj.channels
+        channels = imager_obj.channels
     except:
-        channels = dataObj.channel
+        channels = imager_obj.channel
         
     numOfChannels = len(channels)
     chnum=-1
@@ -204,7 +204,7 @@ def get_channel_data_from_objectfull_resolution(dataObj, chn_des, nodata=-9):
         raise ValueError
     temp = channels[chnum].data
     chdata = channels[chnum].data* channels[chnum].gain + channels[chnum].intercept      
-    chdata[np.logical_or(np.equal(temp, dataObj.nodata),
-                         np.equal(temp, dataObj.missing_data))]= nodata
+    chdata[np.logical_or(np.equal(temp, imager_obj.nodata),
+                         np.equal(temp, imager_obj.missing_data))]= nodata
     return chdata
 

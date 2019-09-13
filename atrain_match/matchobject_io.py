@@ -132,7 +132,7 @@ class DataObject(object):
                     print("cloud not mask %s"%(key))
             
             
-class ppsImagerObject(DataObject):
+class ExtractedImagerObject(DataObject):
     def __init__(self):
         DataObject.__init__(self)                            
         self.all_arrays = {
@@ -345,7 +345,7 @@ class SynopObject(DataObject):
 
 class TruthImagerTrackObject:
     def __init__(self, truth='calipso'):
-        self.imager = ppsImagerObject()
+        self.imager = ExtractedImagerObject()
         self.modis = ModisObject()
         if truth in 'calipso':
             self.calipso = CalipsoObject()
@@ -446,7 +446,7 @@ def get_stuff_to_read_from_a_reshaped_file(h5file, retv):
     return (h5_groups, data_objects)
     
           
-def readTruthImagerMatchObj(filename, truth='calipso', 
+def read_truth_imager_match_obj(filename, truth='calipso', 
                             read_all=True, 
                             read_var=[], 
                             skip_var=[]):
@@ -468,14 +468,14 @@ def readTruthImagerMatchObj(filename, truth='calipso',
     return retv
 
 def read_files(files, truth='calipso', read_all=True, read_var=[]):
-    tObj = readTruthImagerMatchObj(files.pop(), truth=truth)
+    tObj = read_truth_imager_match_obj(files.pop(), truth=truth)
     if len(files)>0:
         for filename in files:
-            tObj += readTruthImagerMatchObj(filename, truth=truth, read_all=read_all, read_var=read_var)  
+            tObj += read_truth_imager_match_obj(filename, truth=truth, read_all=read_all, read_var=read_var)  
     return tObj 
 
 # write matchup files
-def writeTruthImagerMatchObj(filename, match_obj, SETTINGS=None, imager_obj_name = 'pps'):
+def write_truth_imager_match_obj(filename, match_obj, SETTINGS=None, imager_obj_name = 'pps'):
     """
     Write *match_obj* to *filename*.    
     """
@@ -580,7 +580,7 @@ if __name__ == "__main__":
                             "1km_npp_20121012_1246_04968_caliop_viirs_match.h5")
     TESTFILE2 = os.path.join(TESTDIR,
                              "1km_npp_20121004_0700_04851_caliop_viirs_match.h5")
-    caObj = readCaliopImagerMatchObj(TESTFILE)
-    caObj2 = readCaliopImagerMatchObj(TESTFILE2)
+    match_calipso = readCaliopImagerMatchObj(TESTFILE)
+    match_calipso2 = readCaliopImagerMatchObj(TESTFILE2)
 
-    caObj = caObj + caObj2
+    match_calipso = match_calipso + match_calipso2

@@ -230,7 +230,7 @@ def match_cloudsat_imager(cloudsat,cloudproducts, SETTINGS):
                                      cloudproducts)
     return retv
 
-def mergeCloudsat(cloudsat, cloudsatlwp):
+def merge_cloudsat(cloudsat, cloudsatlwp):
     #map cloudsat_lwp to cloudsat
     from utils.match import match_lonlat
     source = (cloudsatlwp.longitude.astype(np.float64).reshape(-1,1), 

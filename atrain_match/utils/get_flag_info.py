@@ -157,9 +157,9 @@ def get_inversion_info_pps2012(cloudtype_qflag):
 #7 = other
 
 
-def get_calipso_aerosol_of_type_i(caObj, atype=0):
+def get_calipso_aerosol_of_type_i(match_calipso, atype=0):
     #bits 10-12, start at 1 counting
-    cflag = caObj.calipso_aerosol.feature_classification_flags[::,0]
+    cflag = match_calipso.calipso_aerosol.feature_classification_flags[::,0]
     cal_vert_feature = np.zeros(cflag.shape)-9.0
     feature_array = (4*np.bitwise_and(np.right_shift(cflag,11),1) + 
                      2*np.bitwise_and(np.right_shift(cflag,10),1) + 
@@ -191,109 +191,109 @@ def get_calipso_clouds_of_type_i_feature_classification_flags_one_layer(cflag, c
     is_requested_type =  cal_vert_feature == calipso_cloudtype
     return is_requested_type 
 
-def get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=0):
+def get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=0):
     #bits 10-12, start at 1 counting
-    cflag = caObj.calipso.feature_classification_flags[::,0]
+    cflag = match_calipso.calipso.feature_classification_flags[::,0]
     return get_calipso_clouds_of_type_i_feature_classification_flags_one_layer(cflag, calipso_cloudtype=calipso_cloudtype)
 
-def get_calipso_op(caObj):
+def get_calipso_op(match_calipso):
     #type 1,2,5,7 are low cloudtypes
     calipso_low =  np.logical_or(
         np.logical_or(
-            get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=1),
-            get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=2)),
+            get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=1),
+            get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=2)),
         np.logical_or(
-            get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=5),
-            get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=7)))    
+            get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=5),
+            get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=7)))    
     return calipso_low
     #type 0,1,2, 3 are low cloudtypes
-def get_calipso_tp(caObj):
+def get_calipso_tp(match_calipso):
     calipso_low =  np.logical_or(
         np.logical_or(
-            get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=0),
-            get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=3)),
+            get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=0),
+            get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=3)),
         np.logical_or(
-            get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=4),
-            get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=6)))    
+            get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=4),
+            get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=6)))    
     return calipso_low
 
 
  
 
-def get_calipso_low_clouds(caObj):
+def get_calipso_low_clouds(match_calipso):
     #type 0,1,2, 3 are low cloudtypes
     calipso_low =  np.logical_or(
         np.logical_or(
-            get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=0),
-            get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=1)),
+            get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=0),
+            get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=1)),
         np.logical_or(
-            get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=2),
-            get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=3)))    
+            get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=2),
+            get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=3)))    
     return calipso_low
 
-def get_calipso_low_clouds_tp(caObj):
+def get_calipso_low_clouds_tp(match_calipso):
     #type 0,1,2, 3 are low cloudtypes
     calipso_low =  np.logical_or(
-            get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=0),
-            get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=3))
+            get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=0),
+            get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=3))
     return calipso_low
-def get_calipso_low_clouds_op(caObj):
+def get_calipso_low_clouds_op(match_calipso):
     #type 0,1,2, 3 are low cloudtypes
     calipso_low =  np.logical_or(
-            get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=1),
-            get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=2))
+            get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=1),
+            get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=2))
     return calipso_low 
 
-def get_calipso_high_clouds(caObj):
+def get_calipso_high_clouds(match_calipso):
     #type 6,7 are high cloudtypes
     calipso_high =   np.logical_or(
-        get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=6),
-        get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=7))    
+        get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=6),
+        get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=7))    
     return calipso_high
-def get_calipso_medium_clouds(caObj):
+def get_calipso_medium_clouds(match_calipso):
     #type 6,7 are high cloudtypes
     calipso_high =   np.logical_or(
-        get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=4),
-        get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=5))    
+        get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=4),
+        get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=5))    
     return calipso_high 
 
-def get_calipso_medium_and_high_clouds_tp(caObj):
+def get_calipso_medium_and_high_clouds_tp(match_calipso):
     #type 0,1,2, 3 are low cloudtypes
     calipso_transp =   np.logical_or(
-        get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=4),
-        get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=6))    
+        get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=4),
+        get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=6))    
     return calipso_transp
 
   
 
 
 
-def get_calipso_low_medium_high_classification(caObj):
+def get_calipso_low_medium_high_classification(match_calipso):
     mlh_class = {}
-    mlh_class['clouds_op'] = get_calipso_op(caObj)
-    mlh_class['clouds_tp'] = get_calipso_tp(caObj)
-    mlh_class['low_clouds'] = get_calipso_low_clouds(caObj)
-    mlh_class['medium_clouds'] = get_calipso_medium_clouds(caObj)
-    mlh_class['high_clouds'] = get_calipso_high_clouds(caObj)
-    mlh_class['low_clouds_op'] = get_calipso_low_clouds_op(caObj)
-    mlh_class['low_clouds_tp'] = get_calipso_low_clouds_tp(caObj)
-    mlh_class['medium_clouds_tp'] = get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=4)
-    mlh_class['medium_clouds_op'] = get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=5)
-    mlh_class['high_clouds_tp'] = get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=6)
-    mlh_class['high_clouds_op'] = get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=7)
+    mlh_class['clouds_op'] = get_calipso_op(match_calipso)
+    mlh_class['clouds_tp'] = get_calipso_tp(match_calipso)
+    mlh_class['low_clouds'] = get_calipso_low_clouds(match_calipso)
+    mlh_class['medium_clouds'] = get_calipso_medium_clouds(match_calipso)
+    mlh_class['high_clouds'] = get_calipso_high_clouds(match_calipso)
+    mlh_class['low_clouds_op'] = get_calipso_low_clouds_op(match_calipso)
+    mlh_class['low_clouds_tp'] = get_calipso_low_clouds_tp(match_calipso)
+    mlh_class['medium_clouds_tp'] = get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=4)
+    mlh_class['medium_clouds_op'] = get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=5)
+    mlh_class['high_clouds_tp'] = get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=6)
+    mlh_class['high_clouds_op'] = get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=7)
     return mlh_class
 
-def get_cloudsat_low_medium_high_classification(clsatObj):
+def get_cloudsat_low_medium_high_classification(match_clsat):
     mlh_class = {}
-    if not hasattr( clsatObj.imager, 'segment_nwp_h440') :
+    if not hasattr( match_clsat.imager, 'segment_nwp_h440') :
         return None
-    if clsatObj.imager.all_arrays['segment_nwp_h440'] is None:
+    if match_clsat.imager.all_arrays['segment_nwp_h440'] is None:
         return  None
-    clsat_h = clsatObj.cloudsat.validation_height
-    mlh_class['low_clouds'] = np.less_equal(clsat_h, clsatObj.imager.all_arrays['segment_nwp_h680'])
-    mlh_class['medium_clouds'] = np.logical_and(np.greater(clsat_h, clsatObj.imager.all_arrays['segment_nwp_h680']),
-                                                np.less(clsat_h, clsatObj.imager.all_arrays['segment_nwp_h440']))
-    mlh_class['high_clouds'] = np.greater_equal(clsat_h, clsatObj.imager.all_arrays['segment_nwp_h440']) 
+    clsat_h = match_clsat.cloudsat.validation_height
+    mlh_class['low_clouds'] = np.less_equal(clsat_h, match_clsat.imager.all_arrays['segment_nwp_h680'])
+    mlh_class['medium_clouds'] = np.logical_and(np.greater(clsat_h, match_clsat.imager.all_arrays['segment_nwp_h680']),
+                                                np.less(clsat_h, match_clsat.imager.all_arrays['segment_nwp_h440']))
+    mlh_class['high_clouds'] = np.greater_equal(clsat_h, match_clsat.imager.all_arrays['segment_nwp_h440']) 
     return mlh_class
 
 #cci FLAGS

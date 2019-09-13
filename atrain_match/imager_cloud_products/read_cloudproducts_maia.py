@@ -33,7 +33,7 @@ from imager_cloud_products.read_cloudproducts_and_nwp_pps import (
     AllImagerData,
     CtypeObj, CtthObj, CmaObj,
     createImagerTime,
-    imagerAngObj)
+    ImagerAngObj)
 from utils.runutils import do_some_geo_obj_logging
 import config 
 ATRAIN_MATCH_NODATA = config.NODATA
@@ -78,7 +78,7 @@ def maia_read_all(filename):
         logger.info("Reading angles ...")
         cloudproducts.imager_angles = read_maia_angobj(maia_h5)
         logger.info("Reading cloud type ...")
-        # , imagerAngObj)
+        # , angle_obj)
         ctype, cma, ctth = read_maia_ctype_cmask_ctth(maia_h5)
         cloudproducts.cma = cma
         cloudproducts.ctth = ctth
@@ -140,19 +140,19 @@ def read_maia_ctype_cmask_ctth(maia_h5):
 def read_maia_angobj(maia_h5):
     """Read angles info from filename
     """
-    imagerAngObj = imagerAngObj()
-    imagerAngObj.satz.data = 0.01 * maia_h5['DATA']['Sat_zenith'].value
-    imagerAngObj.sunz.data = ATRAIN_MATCH_NODATA + 0 * imagerAngObj.satz.data
-    imagerAngObj.azidiff.data = ATRAIN_MATCH_NODATA + 0 * imagerAngObj.satz.data
+    angle_obj = ImagerAngObj()
+    angle_obj.satz.data = 0.01 * maia_h5['DATA']['Sat_zenith'].value
+    angle_obj.sunz.data = ATRAIN_MATCH_NODATA + 0 * angle_obj.satz.data
+    angle_obj.azidiff.data = ATRAIN_MATCH_NODATA + 0 * angle_obj.satz.data
     maia_cma_bitflag = maia_h5['DATA']['CloudMask'].value
     daynight_flags = get_day_night_twilight_info_maia(maia_cma_bitflag)
     (no_qflag, night_flag, twilight_flag,
      day_flag, all_dnt_flag) = daynight_flags
     # Since we dont have sunz angle, set proxy for them using illumination flag
     # This to not include object in reshaped file just for maia!
-    imagerAngObj.sunz.data[night_flag == 1] = 120
-    imagerAngObj.sunz.data[twilight_flag == 1] = 85
-    imagerAngObj.sunz.data[day_flag == 1] = 00
+    angle_obj.sunz.data[night_flag == 1] = 120
+    angle_obj.sunz.data[twilight_flag == 1] = 85
+    angle_obj.sunz.data[day_flag == 1] = 00
     return imagerAngObj
 
 

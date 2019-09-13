@@ -122,7 +122,7 @@ def read_amsr_hdf4(filename):
     return retv
 
 
-def reshapeAmsr(amsrfiles, imager, SETTINGS):
+def reshape_amsr(amsrfiles, imager, SETTINGS):
     imager_end = imager.sec1970_end
     imager_start = imager.sec1970_start
     amsr = get_amsr(amsrfiles[0])

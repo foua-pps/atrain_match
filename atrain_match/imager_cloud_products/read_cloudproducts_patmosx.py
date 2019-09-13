@@ -34,7 +34,7 @@ from imager_cloud_products.read_cloudproducts_and_nwp_pps import (
     AllImagerData, 
     CtypeObj, CtthObj, CmaObj,
     createImagerTime,
-    imagerAngObj)
+    ImagerAngObj)
 from utils.runutils import do_some_geo_obj_logging
 import config 
 ATRAIN_MATCH_NODATA = config.NODATA
@@ -89,7 +89,7 @@ def patmosx_read_all_nc(filename, Cross, SETTINGS):
     logger.info("Reading angles ...")
     cloudproducts.imager_angles = read_patmosx_angobj(patmosx_nc)
     logger.info("Reading cloud type ...")
-    # , imagerAngObj)
+    # , angle_obj)
     ctype, cma, ctth = read_patmosx_ctype_cmask_ctth(patmosx_nc)
     cloudproducts.cma = cma
     cloudproducts.ctth = ctth
@@ -124,11 +124,11 @@ def read_patmosx_ctype_cmask_ctth(patmosx_nc):
 def read_patmosx_angobj(patmosx_nc):
     """Read angles info from filename
     """
-    AngObj = imagerAngObj()
-    AngObj.satz.data = patmosx_nc.variables['sensor_zenith_angle'][0,:,:].astype(np.float)
-    AngObj.sunz.data = patmosx_nc.variables['solar_zenith_angle'][0,:,:].astype(np.float)
-    AngObj.azidiff.data = None
-    return AngObj
+    angle_obj = ImagerAngObj()
+    angle_obj.satz.data = patmosx_nc.variables['sensor_zenith_angle'][0,:,:].astype(np.float)
+    angle_obj.sunz.data = patmosx_nc.variables['solar_zenith_angle'][0,:,:].astype(np.float)
+    angle_obj.azidiff.data = None
+    return angle_obj
 
 
 
@@ -167,7 +167,7 @@ def patmosx_read_all_hdf(filename, Cross, SETTINGS):
     logger.info("Reading angles ...")
     cloudproducts.imager_angles = read_patmosx_angobj_hdf(patmosx_hdf)
     logger.info("Reading cloud type ...")
-    # , imagerAngObj)
+    # , angle_obj)
     ctype, cma, ctth = read_patmosx_ctype_cmask_ctth_hdf(patmosx_hdf)
     cloudproducts.ctype = ctype
     cloudproducts.cma = cma
@@ -175,7 +175,7 @@ def patmosx_read_all_hdf(filename, Cross, SETTINGS):
     logger.info("Not reading surface temperature")
     logger.info("Not reading cloud microphysical properties")
     logger.info("Not reading channel data")
-    return imagerAngObj, ctth, imagercloudproducts, ctype,  imagerObj, surft, cpp, cma
+    return imagerAngObj, ctth, imagercloudproducts, ctype,  imager_obj, surft, cpp, cma
 
 def read_patmosx_ctype_cmask_ctth_hdf(patmosx_hdf):
     """Read cloudtype and flag info from filename
@@ -206,20 +206,20 @@ def read_patmosx_ctype_cmask_ctth_hdf(patmosx_hdf):
 def read_patmosx_angobj_hdf(patmosx_hdf):
     """Read angles info from filename
     """
-    AngObj = imagerAngObj()
+    angle_obj = ImagerAngObj()
     name = 'sensor_zenith_angle'
     temp = patmosx_hdf.select(name).get().astype(np.float)
     offset = patmosx_hdf.select(name).attributes()['add_offset']
     gain = patmosx_hdf.select(name).attributes()['scale_factor']
-    AngObj.satz.data =  temp * gain + offset
+    angle_obj.satz.data =  temp * gain + offset
     
     name = 'solar_zenith_angle' 
     temp = patmosx_hdf.select(name).get().astype(np.float)
     offset = patmosx_hdf.select(name).attributes()['add_offset']
     gain = patmosx_hdf.select(name).attributes()['scale_factor']
-    AngObj.sunz.data = temp * gain + offset
-    AngObj.azidiff.data = None
-    return AngObj
+    angle_obj.sunz.data = temp * gain + offset
+    angle_obj.azidiff.data = None
+    return angle_obj
 
 
 

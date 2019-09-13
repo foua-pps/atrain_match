@@ -20,9 +20,7 @@
 import logging
 import numpy as np
 logger = logging.getLogger(__name__)
-from matchobject_io import (DataObject,
-                            ppsImagerObject,
-                            IssObject,
+from matchobject_io import (IssObject,
                             TruthImagerTrackObject)                            
 import config
 from utils.common import (MatchupError, ProcessingError,
@@ -187,7 +185,7 @@ def match_iss_imager(iss,cloudproducts, SETTINGS):
 
 
 
-def reshapeIss(issfiles, imager, SETTINGS):
+def reshape_iss(issfiles, imager, SETTINGS):
     import sys
     imager_end = imager.sec1970_end
     imager_start = imager.sec1970_start

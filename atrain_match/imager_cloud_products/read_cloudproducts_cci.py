@@ -21,7 +21,7 @@
 """
 from imager_cloud_products.read_cloudproducts_and_nwp_pps import (AllImagerData,
                                                                   CtthObj, CppObj, CmaObj,
-                                                                  imagerAngObj)
+                                                                  ImagerAngObj)
 import os
 import netCDF4	
 import numpy as np
@@ -120,10 +120,10 @@ def read_cci_cma(cci_nc):
 def read_cci_angobj(cci_nc):
     """Read angles info from filename
     """
-    my_imagerAngObj = imagerAngObj()
-    my_imagerAngObj.satz.data = cci_nc.variables['satellite_zenith_view_no1'][::] 
-    my_imagerAngObj.sunz.data = cci_nc.variables['solar_zenith_view_no1'][::]
-    my_imagerAngObj.azidiff = None #cci_nc.variables['rel_azimuth_view_no1']??
+    my_angle_obj = ImagerAngObj()
+    my_angle_obj.satz.data = cci_nc.variables['satellite_zenith_view_no1'][::] 
+    my_angle_obj.sunz.data = cci_nc.variables['solar_zenith_view_no1'][::]
+    my_angle_obj.azidiff = None #cci_nc.variables['rel_azimuth_view_no1']??
     return my_imagerAngObj
 def read_cci_phase(cci_nc):
     """Read angles info from filename

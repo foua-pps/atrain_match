@@ -164,7 +164,7 @@ class smallDataObject(object):
         self.intercept = 0.0
         self.no_data = 0.0
         self.missing_data = 0.0
-class imagerAngObj(object):
+class ImagerAngObj(object):
     def __init__(self):        
         self.satz = smallDataObject()
         self.sunz = smallDataObject()
@@ -443,7 +443,7 @@ def readImagerData_nc(pps_nc):
 def read_pps_angobj_nc(pps_nc):
     """Read angles info from filename
     """
-    AngObj = imagerAngObj()
+    angle_obj = ImagerAngObj()
     for varname in pps_nc.variables.keys():
         this_is = "non_angle_variable"
         if varname in ['satzenith', 
@@ -459,54 +459,54 @@ def read_pps_angobj_nc(pps_nc):
                 this_is = pps_nc.variables[varname].id_tag 
  
         if this_is in['satzenith']:
-            AngObj.satz.data = pps_nc.variables[varname][0,:,:].astype(np.float)
-            AngObj.satz.no_data = pps_nc.variables[varname]._FillValue
-            AngObj.satz.intercept = pps_nc.variables[varname].add_offset
-            AngObj.satz.gain = pps_nc.variables[varname].scale_factor
+            angle_obj.satz.data = pps_nc.variables[varname][0,:,:].astype(np.float)
+            angle_obj.satz.no_data = pps_nc.variables[varname]._FillValue
+            angle_obj.satz.intercept = pps_nc.variables[varname].add_offset
+            angle_obj.satz.gain = pps_nc.variables[varname].scale_factor
         elif this_is in['sunzenith']:
-            AngObj.sunz.data = pps_nc.variables[varname][0,:,:].astype(np.float)
-            AngObj.sunz.no_data = pps_nc.variables[varname]._FillValue
-            AngObj.sunz.intercept = pps_nc.variables[varname].add_offset
-            AngObj.sunz.gain = pps_nc.variables[varname].scale_factor
+            angle_obj.sunz.data = pps_nc.variables[varname][0,:,:].astype(np.float)
+            angle_obj.sunz.no_data = pps_nc.variables[varname]._FillValue
+            angle_obj.sunz.intercept = pps_nc.variables[varname].add_offset
+            angle_obj.sunz.gain = pps_nc.variables[varname].scale_factor
         elif this_is in['azimuthdiff']:
-            AngObj.azidiff.data = pps_nc.variables[varname][0,:,:].astype(np.float)
-            AngObj.azidiff.no_data = pps_nc.variables[varname]._FillValue
-            AngObj.azidiff.intercept = pps_nc.variables[varname].add_offset
-            AngObj.azidiff.gain = pps_nc.variables[varname].scale_factor
+            angle_obj.azidiff.data = pps_nc.variables[varname][0,:,:].astype(np.float)
+            angle_obj.azidiff.no_data = pps_nc.variables[varname]._FillValue
+            angle_obj.azidiff.intercept = pps_nc.variables[varname].add_offset
+            angle_obj.azidiff.gain = pps_nc.variables[varname].scale_factor
         elif this_is in['sunazimuth']:
-            AngObj.sunazimuth.data = pps_nc.variables[varname][0,:,:].astype(np.float)
-            AngObj.sunazimuth.no_data = pps_nc.variables[varname]._FillValue
-            AngObj.sunazimuth.intercept = pps_nc.variables[varname].add_offset
-            AngObj.sunazimuth.gain = pps_nc.variables[varname].scale_factor
+            angle_obj.sunazimuth.data = pps_nc.variables[varname][0,:,:].astype(np.float)
+            angle_obj.sunazimuth.no_data = pps_nc.variables[varname]._FillValue
+            angle_obj.sunazimuth.intercept = pps_nc.variables[varname].add_offset
+            angle_obj.sunazimuth.gain = pps_nc.variables[varname].scale_factor
         elif this_is in['satazimuth']:
-            AngObj.satazimuth.data = pps_nc.variables[varname][0,:,:].astype(np.float)
-            AngObj.satazimuth.no_data = pps_nc.variables[varname]._FillValue
-            AngObj.satazimuth.intercept = pps_nc.variables[varname].add_offset
-            AngObj.satazimuth.gain = pps_nc.variables[varname].scale_factor
+            angle_obj.satazimuth.data = pps_nc.variables[varname][0,:,:].astype(np.float)
+            angle_obj.satazimuth.no_data = pps_nc.variables[varname]._FillValue
+            angle_obj.satazimuth.intercept = pps_nc.variables[varname].add_offset
+            angle_obj.satazimuth.gain = pps_nc.variables[varname].scale_factor
  
     #already scaled
-    if np.ma.is_masked(AngObj.sunz.data):        
-        AngObj.sunz.data[AngObj.sunz.data.mask] = ATRAIN_MATCH_NODATA
-        AngObj.sunz.data = AngObj.sunz.data.data
-    if np.ma.is_masked(AngObj.satz.data): 
-        AngObj.satz.data[AngObj.satz.data.mask] = ATRAIN_MATCH_NODATA
-        AngObj.satz.data = AngObj.satz.data.data
-    if np.ma.is_masked(AngObj.azidiff.data): 
-        AngObj.azidiff.data[AngObj.azidiff.data.mask] = ATRAIN_MATCH_NODATA
-        AngObj.azidiff.data = AngObj.azidiff.data.data
-    if np.ma.is_masked(AngObj.sunazimuth.data): 
-        AngObj.sunazimuth.data[AngObj.sunazimuth.data.mask] = ATRAIN_MATCH_NODATA
-        AngObj.sunazimuth.data = AngObj.sunazimuth.data.data
-    if np.ma.is_masked(AngObj.satazimuth.data): 
-        AngObj.satazimuth.data[AngObj.satazimuth.data.mask] = ATRAIN_MATCH_NODATA
-        AngObj.satazimuth.data = AngObj.satazimuth.data.data
-    return AngObj
+    if np.ma.is_masked(angle_obj.sunz.data):        
+        angle_obj.sunz.data[AngObj.sunz.data.mask] = ATRAIN_MATCH_NODATA
+        angle_obj.sunz.data = angle_obj.sunz.data.data
+    if np.ma.is_masked(angle_obj.satz.data): 
+        angle_obj.satz.data[AngObj.satz.data.mask] = ATRAIN_MATCH_NODATA
+        angle_obj.satz.data = angle_obj.satz.data.data
+    if np.ma.is_masked(angle_obj.azidiff.data): 
+        angle_obj.azidiff.data[AngObj.azidiff.data.mask] = ATRAIN_MATCH_NODATA
+        angle_obj.azidiff.data = angle_obj.azidiff.data.data
+    if np.ma.is_masked(angle_obj.sunazimuth.data): 
+        angle_obj.sunazimuth.data[AngObj.sunazimuth.data.mask] = ATRAIN_MATCH_NODATA
+        angle_obj.sunazimuth.data = angle_obj.sunazimuth.data.data
+    if np.ma.is_masked(angle_obj.satazimuth.data): 
+        angle_obj.satazimuth.data[AngObj.satazimuth.data.mask] = ATRAIN_MATCH_NODATA
+        angle_obj.satazimuth.data = angle_obj.satazimuth.data.data
+    return angle_obj
 
 def read_pps_angobj_h5(filename):
     """Read angles info from filename
     """
     h5file = h5py.File(filename, 'r')
-    AngObj = imagerAngObj() 
+    angle_obj = ImagerAngObj() 
   
     for var in h5file.keys():
         if 'image' in var:
@@ -514,41 +514,41 @@ def read_pps_angobj_h5(filename):
             if (image.attrs['description'] == "sun zenith angle" or
                 image.attrs['description'] == "Solar zenith angle"):
                 #print "reading sunz"
-                AngObj.sunz.data = image['data'].value.astype(np.float)
-                AngObj.sunz.gain = image['what'].attrs['gain']
-                AngObj.sunz.intercept = image['what'].attrs['offset']
-                AngObj.sunz.no_data = image['what'].attrs['nodata']
-                AngObj.sunz.missing_data = image['what'].attrs['missingdata']
+                angle_obj.sunz.data = image['data'].value.astype(np.float)
+                angle_obj.sunz.gain = image['what'].attrs['gain']
+                angle_obj.sunz.intercept = image['what'].attrs['offset']
+                angle_obj.sunz.no_data = image['what'].attrs['nodata']
+                angle_obj.sunz.missing_data = image['what'].attrs['missingdata']
             elif (image.attrs['description'] == "satellite zenith angle" or
                   image.attrs['description'] == "Satellite zenith angle"):
-                AngObj.satz.data = image['data'].value.astype(np.float)
-                AngObj.satz.gain = image['what'].attrs['gain']
-                AngObj.satz.intercept = image['what'].attrs['offset']
-                AngObj.satz.no_data = image['what'].attrs['nodata']
-                AngObj.satz.missing_data = image['what'].attrs['missingdata']
+                angle_obj.satz.data = image['data'].value.astype(np.float)
+                angle_obj.satz.gain = image['what'].attrs['gain']
+                angle_obj.satz.intercept = image['what'].attrs['offset']
+                angle_obj.satz.no_data = image['what'].attrs['nodata']
+                angle_obj.satz.missing_data = image['what'].attrs['missingdata']
             elif (image.attrs['description'] == 
                   "relative sun-satellite azimuth difference angle" or 
                   image.attrs['description'] == 
                   "Relative satellite-sun azimuth angle"):
-                AngObj.azidiff.data = image['data'].value.astype(np.float)
-                AngObj.azidiff.gain = image['what'].attrs['gain']
-                AngObj.azidiff.intercept = image['what'].attrs['offset']
-                AngObj.azidiff.no_data = image['what'].attrs['nodata']
-                AngObj.azidiff.missing_data = image['what'].attrs['missingdata']
-    sunzmask = np.logical_or(AngObj.sunz.data ==AngObj.sunz.no_data,
-                             AngObj.sunz.data ==AngObj.sunz.missing_data)
-    satzmask = np.logical_or(AngObj.satz.data ==AngObj.satz.no_data,
-                             AngObj.satz.data ==AngObj.satz.missing_data)
-    diffmask = np.logical_or(AngObj.azidiff.data ==AngObj.azidiff.no_data,
-                             AngObj.azidiff.data ==AngObj.azidiff.missing_data)
-    AngObj.sunz.data[~sunzmask] = AngObj.sunz.data[~sunzmask]*AngObj.sunz.gain + AngObj.sunz.intercept
-    AngObj.satz.data[~satzmask] = AngObj.satz.data[~satzmask]*AngObj.satz.gain + AngObj.satz.intercept
-    AngObj.azidiff.data[~diffmask] = AngObj.azidiff.data[~diffmask]*AngObj.azidiff.gain + AngObj.azidiff.intercept
-    AngObj.sunz.data[sunzmask] = ATRAIN_MATCH_NODATA
-    AngObj.satz.data[satzmask] = ATRAIN_MATCH_NODATA
-    AngObj.azidiff.data[diffmask] = ATRAIN_MATCH_NODATA
+                angle_obj.azidiff.data = image['data'].value.astype(np.float)
+                angle_obj.azidiff.gain = image['what'].attrs['gain']
+                angle_obj.azidiff.intercept = image['what'].attrs['offset']
+                angle_obj.azidiff.no_data = image['what'].attrs['nodata']
+                angle_obj.azidiff.missing_data = image['what'].attrs['missingdata']
+    sunzmask = np.logical_or(angle_obj.sunz.data ==AngObj.sunz.no_data,
+                             angle_obj.sunz.data ==AngObj.sunz.missing_data)
+    satzmask = np.logical_or(angle_obj.satz.data ==AngObj.satz.no_data,
+                             angle_obj.satz.data ==AngObj.satz.missing_data)
+    diffmask = np.logical_or(angle_obj.azidiff.data ==AngObj.azidiff.no_data,
+                             angle_obj.azidiff.data ==AngObj.azidiff.missing_data)
+    angle_obj.sunz.data[~sunzmask] = angle_obj.sunz.data[~sunzmask]*AngObj.sunz.gain + angle_obj.sunz.intercept
+    angle_obj.satz.data[~satzmask] = angle_obj.satz.data[~satzmask]*AngObj.satz.gain + angle_obj.satz.intercept
+    angle_obj.azidiff.data[~diffmask] = angle_obj.azidiff.data[~diffmask]*AngObj.azidiff.gain + angle_obj.azidiff.intercept
+    angle_obj.sunz.data[sunzmask] = ATRAIN_MATCH_NODATA
+    angle_obj.satz.data[satzmask] = ATRAIN_MATCH_NODATA
+    angle_obj.azidiff.data[diffmask] = ATRAIN_MATCH_NODATA
     h5file.close()
-    return AngObj
+    return angle_obj
 
 def read_pps_geoobj_nc(pps_nc):
     """Read geolocation and time info from filename

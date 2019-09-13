@@ -13,18 +13,18 @@ from libs.truth_imager_match import (get_matchups_from_data,
 
 from truths.cloudsat import (add_validation_ctth_cloudsat,
                              add_cloudsat_cloud_fraction)
-from truths.calipso import (CalipsoCloudOpticalDepth_new,
+from truths.calipso import (optical_depth_height_filtering,
                             check_total_optical_depth_and_warn,
                             add_validation_ctth_calipso,
-                            CalipsoOpticalDepthHeightFiltering,
-                            CalipsoOpticalDepthSetThinToClearFiltering1km)
-from libs.truth_imager_statistics_lib import (CalculateStatistics)
-from plotting.trajectory_plotting import plotSatelliteTrajectory
-from plotting.along_track_plotting import (drawCalClsatImagerPlotTimeDiff,
-                                           drawCalClsatGEOPROFImagerPlot, 
-                                           drawCalClsatImagerPlotSATZ,
-                                           drawCalClsatCWCImagerPlot)
-from matchobject_io import (readTruthImagerMatchObj,
+                            detection_height_filtering,
+                            set_thin_to_clear_filtering_1km)
+from libs.truth_imager_statistics_lib import (calculate_statistics)
+from plotting.trajectory_plotting import plot_satellite_trajectory
+from plotting.along_track_plotting import (plot_cal_clsat_imager_time_diff,
+                                           plot_cal_clsat_geoprof_imager, 
+                                           plot_cal_clsat_imager_satz,
+                                           plot_cal_clsat_cwc_imager)
+from matchobject_io import (read_truth_imager_match_obj,
                             CalipsoObject)
 
 logger = logging.getLogger(__name__)
@@ -46,16 +46,16 @@ import config
    one of the several surface categories.
 """
 
-def add_validation_ctth(clsatObj, caObj):
-    if clsatObj is not None:
-        if clsatObj.cloudsat.validation_height is None:
-            clsatObj.cloudsat = add_validation_ctth_cloudsat(clsatObj.cloudsat)
-        if clsatObj.cloudsat.cloud_fraction is None:   
-            clsatObj.cloudsat = add_cloudsat_cloud_fraction(clsatObj.cloudsat) 
-    if caObj is not None:
-        if caObj.calipso.validation_height is None:
-            caObj.calipso = add_validation_ctth_calipso(caObj.calipso)
-    return clsatObj, caObj
+def add_validation_ctth(match_clsat, match_calipso):
+    if match_clsat is not None:
+        if match_clsat.cloudsat.validation_height is None:
+            match_clsat.cloudsat = add_validation_ctth_cloudsat(match_clsat.cloudsat)
+        if match_clsat.cloudsat.cloud_fraction is None:   
+            match_clsat.cloudsat = add_cloudsat_cloud_fraction(match_clsat.cloudsat) 
+    if match_calipso is not None:
+        if match_calipso.calipso.validation_height is None:
+            match_calipso.calipso = add_validation_ctth_calipso(match_calipso.calipso)
+    return match_clsat, match_calipso
 
 def get_matchups(cross, AM_PATHS, SETTINGS, reprocess):
     """
@@ -107,7 +107,7 @@ def get_matchups(cross, AM_PATHS, SETTINGS, reprocess):
                         "Generating from source data if required.")
                     date_time = cross.time
                 else:
-                    Obj_dict[truth] = readTruthImagerMatchObj(match_file, truth = truth) 
+                    Obj_dict[truth] = read_truth_imager_match_obj(match_file, truth = truth) 
                     basename = '_'.join(os.path.basename(match_file).split('_')[1:5])
 
 
@@ -151,8 +151,8 @@ def get_matchups(cross, AM_PATHS, SETTINGS, reprocess):
 
     return out_dict
 
-def plot_some_figures(clsatObj, caObj, values, basename, process_mode, 
-                      AM_PATHS, SETTINGS, amObj = None, synopObj = None, moObj= None):
+def plot_some_figures(match_clsat, match_calipso, values, basename, process_mode, 
+                      AM_PATHS, SETTINGS, amObj = None, match_synop = None, moObj= None):
 
     logger.info("Plotting")
     file_type = SETTINGS['PLOT_TYPES']
@@ -161,65 +161,65 @@ def plot_some_figures(clsatObj, caObj, values, basename, process_mode,
                                                datetime_obj=values['date_time'])  
 
     ##TRAJECTORY
-    if caObj is not None and 1==2:
-        imlon = caObj.imager.longitude.copy()
-        imlat = caObj.imager.latitude.copy()
+    if match_calipso is not None and 1==2:
+        imlon = match_calipso.imager.longitude.copy()
+        imlat = match_calipso.imager.latitude.copy()
         trajectorypath = os.path.join(plotpath, "trajectory_plot")
         if not os.path.exists(trajectorypath):
             os.makedirs(trajectorypath)
         trajectoryname = os.path.join(trajectorypath, 
                                       "%skm_%s_trajectory" % (int(config.RESOLUTION),
                                                               values['basename']))
-        plotSatelliteTrajectory(imlon, 
+        plot_satellite_trajectory(imlon, 
                                 imlat,
                                 trajectoryname, 
                                 config.AREA_CONFIG_FILE, 
                                 file_type,
                                 **AM_PATHS)
 
-    if (caObj is not None):
+    if (match_calipso is not None):
         #HEIGHT
-        drawCalClsatGEOPROFImagerPlot(clsatObj, 
-                                      caObj, 
-                                      caObj.imager.imager_ctth_m_above_seasurface, 
+        plot_cal_clsat_geoprof_imager(match_clsat, 
+                                      match_calipso, 
+                                      match_calipso.imager.imager_ctth_m_above_seasurface, 
                                       plotpath,
                                       basename, 
                                       process_mode, 
                                       file_type,
-                                      instrument=caObj.imager_instrument,
+                                      instrument=match_calipso.imager_instrument,
                                       MAXHEIGHT = SETTINGS["MAXHEIGHT"])
         #TIME DIFF SATZ 
-        drawCalClsatImagerPlotTimeDiff(clsatObj, 
-                                      caObj,
+        plot_cal_clsat_imager_time_diff(match_clsat, 
+                                      match_calipso,
                                       plotpath, basename, 
                                       config.RESOLUTION,
-                                      instrument=caObj.imager_instrument)
-        drawCalClsatImagerPlotSATZ(clsatObj, 
-                                  caObj,
+                                      instrument=match_calipso.imager_instrument)
+        plot_cal_clsat_imager_satz(match_clsat, 
+                                  match_calipso,
                                   plotpath, basename, 
                                   config.RESOLUTION, file_type,
-                                  instrument=caObj.imager_instrument)
+                                  instrument=match_calipso.imager_instrument)
 
-    if (clsatObj is not None and 
-        'rvod_liq_water_path' in clsatObj.cloudsat.all_arrays.keys()):
+    if (match_clsat is not None and 
+        'rvod_liq_water_path' in match_clsat.cloudsat.all_arrays.keys()):
 
-        elevation = np.where(np.less_equal(clsatObj.cloudsat.elevation,0),
-                             -9, clsatObj.cloudsat.elevation)
-        data_ok = np.ones(clsatObj.cloudsat.elevation.shape,'b')                
+        elevation = np.where(np.less_equal(match_clsat.cloudsat.elevation,0),
+                             -9, match_clsat.cloudsat.elevation)
+        data_ok = np.ones(match_clsat.cloudsat.elevation.shape,'b')                
 
         phase='LW'  
-        drawCalClsatCWCImagerPlot(clsatObj, 
+        plot_cal_clsat_cwc_imager(match_clsat, 
                                  elevation, 
                                  data_ok, 
                                  plotpath, basename, 
                                  phase,
-                                 instrument=clsatObj.imager_instrument)
+                                 instrument=match_clsat.imager_instrument)
         phase='IW'  
-        drawCalClsatCWCImagerPlot(clsatObj, 
+        plot_cal_clsat_cwc_imager(match_clsat, 
                                  elevation, 
                                  data_ok, 
                                  plotpath, basename, phase,
-                                 instrument=clsatObj.imager_instrument)
+                                 instrument=match_clsat.imager_instrument)
 
 def split_process_mode_and_dnt_part(process_mode_dnt):        
     mode_dnt = process_mode_dnt.split('_')
@@ -235,7 +235,7 @@ def split_process_mode_and_dnt_part(process_mode_dnt):
     return process_mode, dnt_flag
  
 
-def process_one_mode(process_mode_dnt, caObj, clsatObj, issObj, amObj,syObj,
+def process_one_mode(process_mode_dnt, match_calipso, match_clsat, issObj, amObj,syObj,
                      min_optical_depth, values, AM_PATHS, SETTINGS, basename):
     
     #Get result filename
@@ -259,12 +259,12 @@ def process_one_mode(process_mode_dnt, caObj, clsatObj, issObj, amObj,syObj,
     # Draw plot
     logger.debug("Plotting")
     if process_mode_dnt in SETTINGS['PLOT_MODES']:
-        plot_some_figures(clsatObj, caObj, values, basename, process_mode, 
+        plot_some_figures(match_clsat, match_calipso, values, basename, process_mode, 
                           AM_PATHS, SETTINGS, amObj=amObj)
     #==============================================================
     #Calculate Statistics
     logger.debug("Calculating statistics")
-    CalculateStatistics(process_mode, statfilename, caObj, clsatObj, 
+    calculate_statistics(process_mode, statfilename, match_calipso, match_clsat, 
                         issObj, amObj, syObj, SETTINGS, dnt_flag)
     #=============================================================
 
@@ -288,37 +288,37 @@ def run(cross, run_modes, AM_PATHS, SETTINGS, reprocess=False):
 
     #Get the data that we need:
     matchup_results = get_matchups(cross, AM_PATHS, SETTINGS, reprocess)
-    caObj = matchup_results['calipso']
+    match_calipso = matchup_results['calipso']
     issObj = matchup_results['iss']
     amObj = matchup_results['amsr']
     syObj = matchup_results['synop']
     moObj = matchup_results['mora']
-    clsatObj = matchup_results['cloudsat']
+    match_clsat = matchup_results['cloudsat']
     values = matchup_results['values']
     basename = matchup_results['basename']
-    if caObj is not None and caObj.calipso.cloudsat_index is None:
+    if match_calipso is not None and match_calipso.calipso.cloudsat_index is None:
         logger.info("Adding stuff missing in old reshaped files")
-        clsatObj, caObj = add_additional_clousat_calipso_index_vars(clsatObj, caObj)
+        match_clsat, match_calipso = add_additional_clousat_calipso_index_vars(match_clsat, match_calipso)
     logger.info("Adding validation height missing in old reshaped files")
-    clsatObj, caObj = add_validation_ctth(clsatObj, caObj)
+    match_clsat, match_calipso = add_validation_ctth(match_clsat, match_calipso)
     #Calculate hight from sea surface 
-    clsatObj, caObj, issObj = add_elevation_corrected_imager_ctth(clsatObj, caObj, issObj, SETTINGS)
+    match_clsat, match_calipso, issObj = add_elevation_corrected_imager_ctth(match_clsat, match_calipso, issObj, SETTINGS)
     calipso_original = CalipsoObject()
     #Save data orignal data that we might edit for some modes
-    if caObj is not None:
-        calipso_original.layer_top_altitude = caObj.calipso.layer_top_altitude.copy()
-        calipso_original.layer_base_altitude = caObj.calipso.layer_base_altitude.copy()
-        calipso_original.cloud_fraction = caObj.calipso.cloud_fraction.copy()
-        calipso_original.feature_classification_flags = caObj.calipso.feature_classification_flags.copy()
-        calipso_original.validation_height = caObj.calipso.validation_height.copy()
-        calipso_original.layer_top_pressure = caObj.calipso.layer_top_pressure.copy()
-        calipso_original.layer_base_pressure = caObj.calipso.layer_base_pressure.copy()
+    if match_calipso is not None:
+        calipso_original.layer_top_altitude = match_calipso.calipso.layer_top_altitude.copy()
+        calipso_original.layer_base_altitude = match_calipso.calipso.layer_base_altitude.copy()
+        calipso_original.cloud_fraction = match_calipso.calipso.cloud_fraction.copy()
+        calipso_original.feature_classification_flags = match_calipso.calipso.feature_classification_flags.copy()
+        calipso_original.validation_height = match_calipso.calipso.validation_height.copy()
+        calipso_original.layer_top_pressure = match_calipso.calipso.layer_top_pressure.copy()
+        calipso_original.layer_base_pressure = match_calipso.calipso.layer_base_pressure.copy()
 
     #For each mode, do the statistics:
-    if (caObj is not None and 
+    if (match_calipso is not None and 
         SETTINGS['COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC'] and
         (SETTINGS['ALSO_USE_5KM_FILES'] or config.RESOLUTION==5) and 
-        caObj.calipso.total_optical_depth_5km is None):
+        match_calipso.calipso.total_optical_depth_5km is None):
         logger.warning("\n\t Rematched_file is missing total_optical_depth_5km field"
                        "\n\t Consider reprocessing with: "
                        "\n\t COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC=True"
@@ -335,48 +335,48 @@ def run(cross, run_modes, AM_PATHS, SETTINGS, reprocess=False):
         process_mode, dnt_flag = split_process_mode_and_dnt_part(process_mode_dnt)
         for min_optical_depth in optical_depths:
             #For some modes these are updated, so reset calipso data to original
-            if caObj is not None:
+            if match_calipso is not None:
                 #########################################################################
-                caObj.calipso.layer_top_altitude = calipso_original.layer_top_altitude.copy()
-                caObj.calipso.layer_base_altitude = calipso_original.layer_base_altitude.copy()
-                caObj.calipso.cloud_fraction = calipso_original.cloud_fraction.copy()
-                caObj.calipso.feature_classification_flags = calipso_original.feature_classification_flags.copy()
-                caObj.calipso.validation_height = calipso_original.validation_height.copy()
-                caObj.calipso.layer_top_pressure = calipso_original.layer_top_pressure.copy()
-                caObj.calipso.layer_base_pressure = calipso_original.layer_base_pressure.copy()
+                match_calipso.calipso.layer_top_altitude = calipso_original.layer_top_altitude.copy()
+                match_calipso.calipso.layer_base_altitude = calipso_original.layer_base_altitude.copy()
+                match_calipso.calipso.cloud_fraction = calipso_original.cloud_fraction.copy()
+                match_calipso.calipso.feature_classification_flags = calipso_original.feature_classification_flags.copy()
+                match_calipso.calipso.validation_height = calipso_original.validation_height.copy()
+                match_calipso.calipso.layer_top_pressure = calipso_original.layer_top_pressure.copy()
+                match_calipso.calipso.layer_base_pressure = calipso_original.layer_base_pressure.copy()
                 #########################################################################
             # If mode = OPTICAL_DEPTH -> Change cloud -top and -base profile
-            if caObj is not None and process_mode == 'OPTICAL_DEPTH': 
+            if match_calipso is not None and process_mode == 'OPTICAL_DEPTH': 
                 use_old_method = SETTINGS['KG_OLD_METHOD_CLOUD_CENTER_AS_HEIGHT']
-                retv = CalipsoCloudOpticalDepth_new(
-                    caObj.calipso,
+                retv = optical_depth_height_filtering(
+                    match_calipso.calipso,
                     min_optical_depth,
                     use_old_method=use_old_method,
                     limit_ctop=SETTINGS['OPTICAL_LIMIT_CLOUD_TOP'])
-                caObj.calipso.layer_top_altitude = retv[0]
-                caObj.calipso.layer_base_altitude = retv[1]
-                caObj.calipso.cloud_fraction = retv[2]
-                caObj.calipso.feature_classification_flags = retv[3]
-                caObj.calipso.validation_height = retv[4]
-                caObj.calipso.layer_top_pressure = retv[5]
-                caObj.calipso.layer_base_pressure = retv[6]
-            if caObj is not None:    
-                check_total_optical_depth_and_warn(caObj)
+                match_calipso.calipso.layer_top_altitude = retv[0]
+                match_calipso.calipso.layer_base_altitude = retv[1]
+                match_calipso.calipso.cloud_fraction = retv[2]
+                match_calipso.calipso.feature_classification_flags = retv[3]
+                match_calipso.calipso.validation_height = retv[4]
+                match_calipso.calipso.layer_top_pressure = retv[5]
+                match_calipso.calipso.layer_base_pressure = retv[6]
+            if match_calipso is not None:    
+                check_total_optical_depth_and_warn(match_calipso)
                 if 'STANDARD' in process_mode:
-                    caObj.calipso.validation_height = CalipsoOpticalDepthHeightFiltering(caObj)
-            if  caObj is not None and process_mode == 'OPTICAL_DEPTH_THIN_IS_CLEAR':
+                    match_calipso.calipso.validation_height = detection_height_filtering(match_calipso)
+            if  match_calipso is not None and process_mode == 'OPTICAL_DEPTH_THIN_IS_CLEAR':
                 logger.info("Setting thin clouds to clear, "
                             "using 5km data in mode OPTICAL_DEPTH_THIN_IS_CLEAR")
-                retv = CalipsoOpticalDepthSetThinToClearFiltering1km(caObj, SETTINGS) 
-                caObj.calipso.cloud_fraction = retv[0]
-                caObj.calipso.validation_height = retv[1]
+                retv = set_thin_to_clear_filtering_1km(match_calipso, SETTINGS) 
+                match_calipso.calipso.cloud_fraction = retv[0]
+                match_calipso.calipso.validation_height = retv[1]
             #Time to process results files for one mode:    
             process_one_mode(process_mode_dnt, 
-                             caObj, clsatObj, issObj, amObj, syObj,   
+                             match_calipso, match_clsat, issObj, amObj, syObj,   
                              min_optical_depth, values, 
                              AM_PATHS, SETTINGS, basename)
     #We are done, free some memory:        
-    caObj = None
-    clsatObj = None
+    match_calipso = None
+    match_clsat = None
     issObj = None
     amObj = None

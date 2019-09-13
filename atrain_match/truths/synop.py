@@ -33,7 +33,7 @@ from libs.extract_imager_along_track import imager_track_from_matched
 import logging
 logger = logging.getLogger(__name__)
 
-def reshapeSynop(synopfiles, imager,  SETTINGS):
+def reshape_synop(synopfiles, imager,  SETTINGS):
     start_t = datetime.utcfromtimestamp(imager.sec1970_start)
     end_t = datetime.utcfromtimestamp(imager.sec1970_end)
     #datetime.datetime.fromtimestamp(
