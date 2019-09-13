@@ -189,15 +189,15 @@ def read_cloudsat(filename):
     return retv
 
 
-def match_cloudsat_imager(cloudsatObj,cloudproducts, SETTINGS):
+def match_cloudsat_imager(cloudsat,cloudproducts, SETTINGS):
     retv = TruthImagerTrackObject(truth='cloudsat')
     retv.imager_instrument = cloudproducts.instrument.lower()
-    retv.cloudsat = cloudsatObj
+    retv.cloudsat = cloudsat
     #Nina 20150313 Swithcing to mapping without area as in cpp. Following suggestion from Jakob
     from utils.common import map_imager
     cal, cap = map_imager(cloudproducts, 
-                         cloudsatObj.longitude.ravel(),
-                         cloudsatObj.latitude.ravel(),
+                         cloudsat.longitude.ravel(),
+                         cloudsat.latitude.ravel(),
                          radius_of_influence=config.RESOLUTION*0.7*1000.0) # somewhat larger than radius...
     calnan = np.where(cal == config.NODATA, np.nan, cal)
     if (~np.isnan(calnan)).sum() == 0:
@@ -210,7 +210,7 @@ def match_cloudsat_imager(cloudsatObj,cloudproducts, SETTINGS):
     else:
         imager_lines_sec_1970 = np.where(cal != config.NODATA, cloudproducts.time[cal], np.nan)
     # Find all matching Cloudsat pixels within +/- sec_timeThr from the IMAGER data
-    idx_match = elements_within_range(cloudsatObj.sec_1970, imager_lines_sec_1970, SETTINGS["sec_timeThr"])
+    idx_match = elements_within_range(cloudsat.sec_1970, imager_lines_sec_1970, SETTINGS["sec_timeThr"])
 
     if idx_match.sum() == 0:
         logger.warning("No matches in region within time threshold %d s.", SETTINGS["sec_timeThr"])
@@ -224,7 +224,7 @@ def match_cloudsat_imager(cloudsatObj,cloudproducts, SETTINGS):
     # Imager time
     retv.imager.sec_1970 = np.repeat(imager_lines_sec_1970, idx_match)
     retv.diff_sec_1970 = retv.cloudsat.sec_1970 - retv.imager.sec_1970
-    do_some_logging(retv, cloudsatObj)
+    do_some_logging(retv, cloudsat)
     logger.debug("Generate the latitude,cloudtype tracks!")
     retv = imager_track_from_matched(retv, SETTINGS,
                                      cloudproducts)

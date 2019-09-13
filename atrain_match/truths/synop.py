@@ -58,17 +58,17 @@ def reshapeSynop(synopfiles, imager,  SETTINGS):
     retv.sec_1970 = np.array([calendar.timegm(tobj.timetuple()) for tobj in panda_synops['date']])
     return retv
 
-def match_synop_imager(synopObj, cloudproducts, SETTINGS):
+def match_synop_imager(synop, cloudproducts, SETTINGS):
     retv = TruthImagerTrackObject(truth='synop')
     retv.imager_instrument = cloudproducts.instrument.lower()
-    retv.synop = synopObj
+    retv.synop = synop
     from utils.common import map_imager_distances
     n_neighbours = 250
     if config.RESOLUTION == 5:
         n_neighbours = 16
     mapper_and_dist = map_imager_distances(cloudproducts, 
-                                          synopObj.longitude.ravel(), 
-                                          synopObj.latitude.ravel(), 
+                                          synop.longitude.ravel(), 
+                                          synop.latitude.ravel(), 
                                           radius_of_influence=SETTINGS["SYNOP_RADIUS"], 
                                           n_neighbours=n_neighbours)
     #pdb.set_trace()
@@ -87,7 +87,7 @@ def match_synop_imager(synopObj, cloudproducts, SETTINGS):
         imager_lines_sec_1970 = np.where(cal_1 != config.NODATA, imager_time_vector, np.nan)
     else:
         imager_lines_sec_1970 = np.where(cal_1 != config.NODATA, cloudproducts.time[cal_1], np.nan)
-    idx_match = elements_within_range(synopObj.sec_1970, imager_lines_sec_1970, SETTINGS["sec_timeThr_synop"])
+    idx_match = elements_within_range(synop.sec_1970, imager_lines_sec_1970, SETTINGS["sec_timeThr_synop"])
     if idx_match.sum() == 0:
         logger.warning("No  matches in region within time threshold %d s.", SETTINGS["sec_timeThr_synop"])
         return None
@@ -105,7 +105,7 @@ def match_synop_imager(synopObj, cloudproducts, SETTINGS):
     retv.imager.sec_1970 = np.repeat(imager_lines_sec_1970, idx_match)
     retv.diff_sec_1970 = retv.synop.sec_1970 - retv.imager.sec_1970
 
-    do_some_logging(retv, synopObj)
+    do_some_logging(retv, synop)
     logger.debug("Extract imager along track!")
     
     retv = imager_track_from_matched(retv, SETTINGS,

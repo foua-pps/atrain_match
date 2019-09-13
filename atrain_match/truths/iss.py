@@ -143,14 +143,14 @@ def read_iss(filename):
     return retv  
 
 
-def match_iss_imager(issObj,cloudproducts, SETTINGS):
+def match_iss_imager(iss,cloudproducts, SETTINGS):
     retv = TruthImagerTrackObject(truth='iss')
     retv.imager_instrument = cloudproducts.instrument.lower()
-    retv.iss = issObj
+    retv.iss = iss
 
     from utils.common import map_imager
-    cal, cap = map_imager(cloudproducts, issObj.longitude.ravel(),
-                         issObj.latitude.ravel(),
+    cal, cap = map_imager(cloudproducts, iss.longitude.ravel(),
+                         iss.latitude.ravel(),
                          radius_of_influence=config.RESOLUTION*0.7*1000.0) # larger than radius...
     calnan = np.where(cal == config.NODATA, np.nan, cal)
 
@@ -165,7 +165,7 @@ def match_iss_imager(issObj,cloudproducts, SETTINGS):
     else:
         imager_lines_sec_1970 = np.where(cal != config.NODATA, cloudproducts.time[cal], np.nan)
     # Find all matching Iss pixels within +/- sec_timeThr from the IMAGER data
-    idx_match = elements_within_range(issObj.sec_1970, imager_lines_sec_1970, SETTINGS["sec_timeThr"])
+    idx_match = elements_within_range(iss.sec_1970, imager_lines_sec_1970, SETTINGS["sec_timeThr"])
 
     if idx_match.sum() == 0:
         logger.warning("No matches in region within time threshold %d s.", SETTINGS["sec_timeThr"])
@@ -180,7 +180,7 @@ def match_iss_imager(issObj,cloudproducts, SETTINGS):
     retv.imager.sec_1970 = np.repeat(imager_lines_sec_1970, idx_match)
     retv.diff_sec_1970 = retv.iss.sec_1970 - retv.imager.sec_1970                        
 
-    do_some_logging(retv, issObj)
+    do_some_logging(retv, iss)
     logger.info("Generate the latitude,cloudtype tracks!")
     retv = imager_track_from_matched(retv, SETTINGS, cloudproducts)
     return retv

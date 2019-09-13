@@ -42,18 +42,18 @@ def add_validation_ctth_calipso(calipso):
 
 
 def match_calipso_imager(values, 
-                        caObj, caObjAerosol, 
-                        cloudproducts, SETTINGS, res=config.RESOLUTION):
+                         calipso, caObjAerosol, 
+                         cloudproducts, SETTINGS, res=config.RESOLUTION):
 
     from utils.common import map_imager
     retv = TruthImagerTrackObject(truth='calipso')
 
     retv.imager_instrument = cloudproducts.instrument.lower()
-    retv.calipso = caObj
+    retv.calipso = calipso
 
     cal, cap = map_imager(cloudproducts, 
-                          caObj.longitude.ravel(),
-                          caObj.latitude.ravel(),
+                          calipso.longitude.ravel(),
+                          calipso.latitude.ravel(),
                           radius_of_influence=config.RESOLUTION*0.7*1000.0) # somewhat larger than radius...
     #warn if no matches
     calnan = np.where(cal == config.NODATA, np.nan, cal)
@@ -66,7 +66,7 @@ def match_calipso_imager(values,
         imager_lines_sec_1970 = np.where(cal != config.NODATA, imager_time_vector, np.nan)
     else:
         imager_lines_sec_1970 = np.where(cal != config.NODATA, cloudproducts.time[cal], np.nan)
-    idx_match = elements_within_range(caObj.sec_1970, imager_lines_sec_1970, SETTINGS["sec_timeThr"]) 
+    idx_match = elements_within_range(calipso.sec_1970, imager_lines_sec_1970, SETTINGS["sec_timeThr"]) 
     if idx_match.sum() == 0:
         logger.warning("No matches in region within time threshold %d s.", SETTINGS["sec_timeThr"])
         return None    
@@ -79,13 +79,13 @@ def match_calipso_imager(values,
     # Imager time
     retv.imager.sec_1970 = imager_lines_sec_1970[idx_match.ravel()]
     retv.diff_sec_1970 = retv.calipso.sec_1970 - retv.imager.sec_1970
-    do_some_logging(retv, caObj)
+    do_some_logging(retv, calipso)
     logger.debug("Generate the latitude,cloudtype tracks!")
     from libs.extract_imager_along_track import imager_track_from_matched
     retv = imager_track_from_matched(retv, SETTINGS, 
                                      cloudproducts)   
-    if caObjAerosol is not None:
-        retv.calipso_aerosol = caObjAerosol.extract_elements(idx=idx_match)
+    if calipsoAerosol is not None:
+        retv.calipso_aerosol = calipsoAerosol.extract_elements(idx=idx_match)
     max_cloud_top_calipso = np.maximum.reduce(retv.calipso.layer_top_altitude.ravel())
     logger.debug("max_cloud_top_calipso: %2.1f",max_cloud_top_calipso)
     return retv

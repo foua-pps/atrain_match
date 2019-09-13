@@ -145,10 +145,10 @@ def reshapeAmsr(amsrfiles, imager, SETTINGS):
 
 
 
-def match_amsr_imager(amsrObj, cloudproducts, SETTINGS):
+def match_amsr_imager(amsr, cloudproducts, SETTINGS):
     retv = TruthImagerTrackObject(truth='amsr')
     retv.imager_instrument = cloudproducts.instrument.lower()
-    retv.amsr = amsrObj
+    retv.amsr = amsr
     if (getattr(cpp, "cpp_lwp")<0).all():
         logger.warning("Not matching AMSR-E with scene with no lwp.")
         return None
@@ -159,8 +159,8 @@ def match_amsr_imager(amsrObj, cloudproducts, SETTINGS):
     if config.RESOLUTION == 5:
         n_neighbours = 5
     mapper_and_dist = map_imager_distances(cloudproducts, 
-                                          amsrObj.longitude.ravel(), 
-                                          amsrObj.latitude.ravel(),
+                                          amsr.longitude.ravel(), 
+                                          amsr.latitude.ravel(),
                                           radius_of_influence=AMSR_RADIUS,
                                           n_neighbours=n_neighbours)
     cal, cap = mapper_and_dist["mapper"]
@@ -181,7 +181,7 @@ def match_amsr_imager(amsrObj, cloudproducts, SETTINGS):
     # Find all matching Amsr pixels within +/- sec_timeThr from the IMAGER data
     imager_sunz_vector = np.array([cloudproducts.imager_angles.sunz.data[line,pixel] for line, pixel in zip(cal_1,cap_1)])
     idx_match = np.logical_and(
-        elements_within_range(amsrObj.sec_1970, imager_lines_sec_1970, SETTINGS["sec_timeThr"]),
+        elements_within_range(amsr.sec_1970, imager_lines_sec_1970, SETTINGS["sec_timeThr"]),
         imager_sunz_vector<=84) #something larger than 84 (max for lwp)
 
     if idx_match.sum() == 0:
@@ -200,7 +200,7 @@ def match_amsr_imager(amsrObj, cloudproducts, SETTINGS):
     retv.imager.sec_1970 = np.repeat(imager_lines_sec_1970, idx_match)
     retv.diff_sec_1970 = retv.amsr.sec_1970 - retv.imager.sec_1970
 
-    do_some_logging(retv, amsrObj)
+    do_some_logging(retv, amsr)
     logger.debug("Extract imager lwp along track!")
     
     retv = imager_track_from_matched(retv, SETTINGS,
