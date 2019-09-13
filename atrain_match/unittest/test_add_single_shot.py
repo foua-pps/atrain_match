@@ -36,8 +36,8 @@ def add_singleshot_to5km_old(calipso5km): # Valid only for CALIPSO-CALIOP versio
             calipso5km.cloud_fraction[i] = 1.0
         if ((cfc > 0.01) and (calipso5km.number_layers_found[i] == 0)):
             calipso5km.number_layers_found[i] = 1
-            calipso5km.layer_top_altitude[i, 0] = calipso5km.Average_cloud_top_single_shots[i]
-            calipso5km.layer_base_altitude[i, 0] = calipso5km.Average_cloud_base_single_shots[i]
+            calipso5km.layer_top_altitude[i, 0] = calipso5km.average_cloud_top_single_shots[i]
+            calipso5km.layer_base_altitude[i, 0] = calipso5km.average_cloud_base_single_shots[i]
             calipso5km.feature_optical_depth_532[i, 0] = 1.0
             calipso5km.cloud_fraction[i] = cfc
     return calipso5km
@@ -58,8 +58,8 @@ class test_addSingleShot(unittest.TestCase):
         self.obt5.cloud_fraction = np.array([0,0,0,0,0,0,0,1,1])
         self.obt5.feature_classification_flags = np.zeros((9,10)) -9
         self.obt5.Number_cloudy_single_shots =  np.array([15, 0, 1,  10, 10,   0, 5,  14, 0]).ravel()
-        self.obt5.Average_cloud_top_single_shots = np.array([15000, 0, 1000,  1000, 8000,   0, 500,  1400, 0]).ravel()
-        self.obt5.Average_cloud_base_single_shots = np.array([14000, 0, 500,  50, 3000,   0, 50,  1400, 0]).ravel()
+        self.obt5.average_cloud_top_single_shots = np.array([15000, 0, 1000,  1000, 8000,   0, 500,  1400, 0]).ravel()
+        self.obt5.average_cloud_base_single_shots = np.array([14000, 0, 500,  50, 3000,   0, 50,  1400, 0]).ravel()
         self.obt5.layer_top_altitude[:,0] =        np.array([-9, -9, -9, -9, -9,   -9, -9,  2.2, 5.0]).ravel()
         self.obt5.layer_base_altitude[:,0] =       np.array([-9, -9, -9, -9, -9,   -9, -9,  2.0, 3.1]).ravel()
         self.obt5.feature_optical_depth_532[:,0] = np.array([-9, -9, -9,  -9, -9,  -9, -9, 10.0, 0.3]).ravel()

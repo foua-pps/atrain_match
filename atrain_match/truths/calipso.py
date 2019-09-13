@@ -166,8 +166,21 @@ def rearrange_calipso_the_single_shot_info(retv, singleshotdata):
     base_mean = np.where(single_shot_cloud_cleared_array>0, 
                          np.divide(np.sum(base_array,axis=1), single_shot_cloud_cleared_array), 
                          -9.0) #Calculate average cloud base
-    name = "Average_cloud_base_single_shots"
+    name = "average_cloud_base_single_shots"
     setattr(retv, name, base_mean)
+
+    data = singleshotdata["ssLayer_Top_Pressure"]
+    data = np.array(data)
+    data_reshaped_5 = data.reshape(-1,5)
+    top_array = data_reshaped_5[:,0]
+    top_array = top_array.reshape(-1,15)
+    top_array = np.where(top_array>0, top_array, 0.0)
+    top_mean = np.where(single_shot_cloud_cleared_array>0, 
+                        np.divide(np.sum(top_array,axis=1), single_shot_cloud_cleared_array),
+                        -9.0) #Calculate average cloud top
+    name = "average_cloud_top_pressure_single_shots"
+    setattr(retv, name, top_mean)
+
     data = singleshotdata["ssLayer_Top_Altitude"]
     data = np.array(data)
     data_reshaped_5 = data.reshape(-1,5)
@@ -177,7 +190,7 @@ def rearrange_calipso_the_single_shot_info(retv, singleshotdata):
     top_mean = np.where(single_shot_cloud_cleared_array>0, 
                         np.divide(np.sum(top_array,axis=1), single_shot_cloud_cleared_array),
                         -9.0) #Calculate average cloud top
-    name = "Average_cloud_top_single_shots"
+    name = "average_cloud_top_single_shots"
     #pdb.set_trace()
     setattr(retv, name, top_mean)
     #extract less information for 1km matching
@@ -251,6 +264,7 @@ def read_calipso_hdf4(filename, retv):
                 continue
             if dataset in ["ssNumber_Layers_Found", 
                            "ssLayer_Base_Altitude", 
+                           "ssLayer_Top_Pressure",
                            "ssLayer_Top_Altitude"]:
                 singleshotdata[dataset] = h4file.select(dataset).get()
             if dataset[0:2] == "ss":
@@ -285,6 +299,7 @@ def read_calipso_h5(filename, retv):
                 retv, 
                 {"ssNumber_Layers_Found": h5file["Single_Shot_Detection/ssNumber_Layers_Found"].value,
                  "ssLayer_Base_Altitude": h5file["Single_Shot_Detection/ssLayer_Base_Altitude"].value,
+                 "ssLayer_Top_Pressure": h5file["Single_Shot_Detection/ssLayer_Top_Pressure"].value,
                  "ssLayer_Top_Altitude": h5file["Single_Shot_Detection/ssLayer_Top_Altitude"].value})
         for dataset in h5file.keys():
             if dataset in ["Single_Shot_Detection"]: 
@@ -585,11 +600,11 @@ def add_singleshot_to5km(calipso5km, SETTINGS): # Valid only for CALIPSO-CALIOP 
     calipso5km.number_layers_found[update_these] = 1
 
     calipso5km.layer_top_altitude[update_these, 0] = (
-        calipso5km.Average_cloud_top_single_shots[update_these].ravel()) 
-    # Averaged from single shot data
+        calipso5km.average_cloud_top_single_shots[update_these].ravel()) 
+    # averaged from single shot data
     calipso5km.layer_base_altitude[update_these, 0] = (
-        calipso5km.Average_cloud_base_single_shots[update_these].ravel()) 
-    # Averaged from single shot data
+        calipso5km.average_cloud_base_single_shots[update_these].ravel()) 
+    # averaged from single shot data
     calipso5km.feature_optical_depth_532[update_these, 0] = 1.0 #not very thin 
     calipso5km.cloud_fraction = cfc
     return calipso5km

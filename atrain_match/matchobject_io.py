@@ -232,6 +232,10 @@ class CalipsoObject(DataObject):
             "feature_optical_depth_532_top_layer_5km": None,
             'cfc_single_shots_1km_from_5km_file': None,
             'single_shot_cloud_cleared_fraction': None,
+            "average_cloud_top_pressure_single_shots": None,
+            "average_cloud_top_pressure_single_shots_1km": None,
+            "average_cloud_top_single_shots": None,
+            "average_cloud_top_single_shots_1km": None,
             # Variables derived from 5km file to 1kmresolution_
             'cfc_single_shots_1km_from_5km_file': None,
 
@@ -532,6 +536,10 @@ the_used_variables = [
     'cal_modis_cflag',
     'cloudsat_index',
     #CALIPSO only (ISS?)
+    "average_cloud_top_pressure_single_shots",
+    "average_cloud_top_pressure_single_shots_1km",
+    "average_cloud_top_single_shots",
+    "average_cloud_top_single_shots_1km",
     'profile_id',
     'layer_top_altitude',
     'layer_top_altitude_fore_fov',
