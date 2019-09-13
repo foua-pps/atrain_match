@@ -32,7 +32,7 @@ through a set of files with SNO matchups.
 import logging
 logging.basicConfig(
     format='%(levelname)s |%(asctime)s|: %(message)s',
-    level=logging.DEBUG,
+    level=logging.INFO,
     #datefmt='%Y-%m-%d %H:%M:%S')
     datefmt='%H:%M:%S')
 logger = logging.getLogger(__name__)

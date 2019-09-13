@@ -153,7 +153,7 @@ def read_maia_angobj(maia_h5):
     angle_obj.sunz.data[night_flag == 1] = 120
     angle_obj.sunz.data[twilight_flag == 1] = 85
     angle_obj.sunz.data[day_flag == 1] = 00
-    return imagerAngObj
+    return angle_obj
 
 
 def read_maia_surftemp(maia_h5):

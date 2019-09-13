@@ -90,7 +90,7 @@ def cci_read_all(filename):
     cloudproducts.cma = read_cci_cma(cci_nc)
 
     logger.debug("Reading longitude, latitude and time ...")
-    my_cloudproducts.instrument = "imager"
+    cloudproducts.instrument = "imager"
     for imager in ["avhrr", "viirs", "modis", "seviri"]:
         if imager in os.path.basename(filename).lower():
             cloudproducts.instrument = imager
@@ -124,7 +124,7 @@ def read_cci_angobj(cci_nc):
     my_angle_obj.satz.data = cci_nc.variables['satellite_zenith_view_no1'][::] 
     my_angle_obj.sunz.data = cci_nc.variables['solar_zenith_view_no1'][::]
     my_angle_obj.azidiff = None #cci_nc.variables['rel_azimuth_view_no1']??
-    return my_imagerAngObj
+    return my_angle_obj
 def read_cci_phase(cci_nc):
     """Read angles info from filename
     """
