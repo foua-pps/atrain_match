@@ -486,19 +486,19 @@ def read_pps_angobj_nc(pps_nc):
  
     #already scaled
     if np.ma.is_masked(angle_obj.sunz.data):        
-        angle_obj.sunz.data[AngObj.sunz.data.mask] = ATRAIN_MATCH_NODATA
+        angle_obj.sunz.data[anlge_obj.sunz.data.mask] = ATRAIN_MATCH_NODATA
         angle_obj.sunz.data = angle_obj.sunz.data.data
     if np.ma.is_masked(angle_obj.satz.data): 
-        angle_obj.satz.data[AngObj.satz.data.mask] = ATRAIN_MATCH_NODATA
+        angle_obj.satz.data[anlge_obj.satz.data.mask] = ATRAIN_MATCH_NODATA
         angle_obj.satz.data = angle_obj.satz.data.data
     if np.ma.is_masked(angle_obj.azidiff.data): 
-        angle_obj.azidiff.data[AngObj.azidiff.data.mask] = ATRAIN_MATCH_NODATA
+        angle_obj.azidiff.data[anlge_obj.azidiff.data.mask] = ATRAIN_MATCH_NODATA
         angle_obj.azidiff.data = angle_obj.azidiff.data.data
     if np.ma.is_masked(angle_obj.sunazimuth.data): 
-        angle_obj.sunazimuth.data[AngObj.sunazimuth.data.mask] = ATRAIN_MATCH_NODATA
+        angle_obj.sunazimuth.data[anlge_obj.sunazimuth.data.mask] = ATRAIN_MATCH_NODATA
         angle_obj.sunazimuth.data = angle_obj.sunazimuth.data.data
     if np.ma.is_masked(angle_obj.satazimuth.data): 
-        angle_obj.satazimuth.data[AngObj.satazimuth.data.mask] = ATRAIN_MATCH_NODATA
+        angle_obj.satazimuth.data[anlge_obj.satazimuth.data.mask] = ATRAIN_MATCH_NODATA
         angle_obj.satazimuth.data = angle_obj.satazimuth.data.data
     return angle_obj
 
@@ -535,15 +535,15 @@ def read_pps_angobj_h5(filename):
                 angle_obj.azidiff.intercept = image['what'].attrs['offset']
                 angle_obj.azidiff.no_data = image['what'].attrs['nodata']
                 angle_obj.azidiff.missing_data = image['what'].attrs['missingdata']
-    sunzmask = np.logical_or(angle_obj.sunz.data ==AngObj.sunz.no_data,
-                             angle_obj.sunz.data ==AngObj.sunz.missing_data)
-    satzmask = np.logical_or(angle_obj.satz.data ==AngObj.satz.no_data,
-                             angle_obj.satz.data ==AngObj.satz.missing_data)
-    diffmask = np.logical_or(angle_obj.azidiff.data ==AngObj.azidiff.no_data,
-                             angle_obj.azidiff.data ==AngObj.azidiff.missing_data)
-    angle_obj.sunz.data[~sunzmask] = angle_obj.sunz.data[~sunzmask]*AngObj.sunz.gain + angle_obj.sunz.intercept
-    angle_obj.satz.data[~satzmask] = angle_obj.satz.data[~satzmask]*AngObj.satz.gain + angle_obj.satz.intercept
-    angle_obj.azidiff.data[~diffmask] = angle_obj.azidiff.data[~diffmask]*AngObj.azidiff.gain + angle_obj.azidiff.intercept
+    sunzmask = np.logical_or(angle_obj.sunz.data == anlge_obj.sunz.no_data,
+                             angle_obj.sunz.data == anlge_obj.sunz.missing_data)
+    satzmask = np.logical_or(angle_obj.satz.data == anlge_obj.satz.no_data,
+                             angle_obj.satz.data == anlge_obj.satz.missing_data)
+    diffmask = np.logical_or(angle_obj.azidiff.data == anlge_obj.azidiff.no_data,
+                             angle_obj.azidiff.data == anlge_obj.azidiff.missing_data)
+    angle_obj.sunz.data[~sunzmask] = angle_obj.sunz.data[~sunzmask]*anlge_obj.sunz.gain + angle_obj.sunz.intercept
+    angle_obj.satz.data[~satzmask] = angle_obj.satz.data[~satzmask]*anlge_obj.satz.gain + angle_obj.satz.intercept
+    angle_obj.azidiff.data[~diffmask] = angle_obj.azidiff.data[~diffmask]*anlge_obj.azidiff.gain + angle_obj.azidiff.intercept
     angle_obj.sunz.data[sunzmask] = ATRAIN_MATCH_NODATA
     angle_obj.satz.data[satzmask] = ATRAIN_MATCH_NODATA
     angle_obj.azidiff.data[diffmask] = ATRAIN_MATCH_NODATA
