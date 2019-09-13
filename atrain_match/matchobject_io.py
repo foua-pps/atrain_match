@@ -569,7 +569,7 @@ the_used_variables = [
     'column_optical_depth_aerosols_532',
     "layer_top_altitude_5km",
     "layer_top_pressure_5km",
-    'Number_cloudy_single_shots',
+    'number_cloudy_single_shots',
     #CLOUDSAT only
     'clsat_max_height',
     'validation_height_base',

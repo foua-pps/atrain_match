@@ -153,7 +153,7 @@ def rearrange_calipso_the_single_shot_info(retv, singleshotdata):
     data_reshaped_15 = data.reshape(-1,15)
     single_shot_cloud_cleared_array = np.sum(data_reshaped_15==0,axis=1) #Number of clear
     single_shot_cloud_cleared_array = 15-single_shot_cloud_cleared_array #Number of cloudy
-    name = "Number_cloudy_single_shots" # New name used here
+    name = "number_cloudy_single_shots" # New name used here
     #pdb.set_trace()
     setattr(retv, name, np.array(single_shot_cloud_cleared_array))
     #We need also average cloud top and cloud base for single_shot clouds
@@ -547,9 +547,9 @@ def add_singleshot_to5km(calipso5km, SETTINGS): # Valid only for CALIPSO-CALIOP 
     cfc_5km = 0
     cfc_Single_Shot = 0
     len_5km = calipso5km.profile_utc_time.shape[0]
-    len_single_shot = calipso5km.Number_cloudy_single_shots.shape[0]
+    len_single_shot = calipso5km.number_cloudy_single_shots.shape[0]
     cloudy_5km = np.greater(calipso5km.number_layers_found,0)
-    cloudy_singleshot = np.greater_equal(calipso5km.Number_cloudy_single_shots*1.0, 
+    cloudy_singleshot = np.greater_equal(calipso5km.number_cloudy_single_shots*1.0, 
                                          15.0*SETTINGS['CALIPSO_CLOUDY_MIN_CFC'])
     if len_5km == len_single_shot:
         cfc_5km = np.sum(cloudy_5km)
@@ -591,7 +591,7 @@ def add_singleshot_to5km(calipso5km, SETTINGS): # Valid only for CALIPSO-CALIOP 
     # top and min height for base if there are more than one layer).
     # This is a pragmatic solution to take care of a
     # weakness or bug in the (CALIPSO-Version3?) retrieval of clouds below 4 km
-    cfc = calipso5km.Number_cloudy_single_shots.ravel()/15.0
+    cfc = calipso5km.number_cloudy_single_shots.ravel()/15.0
     layers_found_5km = calipso5km.number_layers_found.ravel()
     cfc[np.equal(cfc, 1.0)] = 0.99
     cfc[np.greater(layers_found_5km, 0)] = 1.0

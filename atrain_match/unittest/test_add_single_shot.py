@@ -29,7 +29,7 @@ from matchobject_io import CalipsoObject
 def add_singleshot_to5km_old(calipso5km): # Valid only for CALIPSO-CALIOP version 4.10
     # weakness or bug in the CALIPSO retrieval of clouds below 4 km
     for i in range(calipso5km.profile_utc_time.shape[0]):
-        cfc = calipso5km.Number_cloudy_single_shots[i]/15.0 
+        cfc = calipso5km.number_cloudy_single_shots[i]/15.0 
         if cfc == 1.0:
             cfc = 0.99
         if (calipso5km.number_layers_found[i] > 0):
@@ -57,7 +57,7 @@ class test_addSingleShot(unittest.TestCase):
         self.obt5.number_layers_found = np.array([0,0,0,0,0,0,0,3,3])
         self.obt5.cloud_fraction = np.array([0,0,0,0,0,0,0,1,1])
         self.obt5.feature_classification_flags = np.zeros((9,10)) -9
-        self.obt5.Number_cloudy_single_shots =  np.array([15, 0, 1,  10, 10,   0, 5,  14, 0]).ravel()
+        self.obt5.number_cloudy_single_shots =  np.array([15, 0, 1,  10, 10,   0, 5,  14, 0]).ravel()
         self.obt5.average_cloud_top_single_shots = np.array([15000, 0, 1000,  1000, 8000,   0, 500,  1400, 0]).ravel()
         self.obt5.average_cloud_base_single_shots = np.array([14000, 0, 500,  50, 3000,   0, 50,  1400, 0]).ravel()
         self.obt5.layer_top_altitude[:,0] =        np.array([-9, -9, -9, -9, -9,   -9, -9,  2.2, 5.0]).ravel()
