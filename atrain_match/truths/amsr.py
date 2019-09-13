@@ -149,7 +149,7 @@ def match_amsr_imager(amsr, cloudproducts, SETTINGS):
     retv = TruthImagerTrackObject(truth='amsr')
     retv.imager_instrument = cloudproducts.instrument.lower()
     retv.amsr = amsr
-    if (getattr(cpp, "cpp_lwp")<0).all():
+    if (getattr(cloudproducts.cpp, "cpp_lwp")<0).all():
         logger.warning("Not matching AMSR-E with scene with no lwp.")
         return None
         #return MatchupError("No imager Lwp.") # if only LWP matching?
