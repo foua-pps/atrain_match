@@ -78,15 +78,15 @@ def get_satid_datetime_orbit_from_fname_pps(imager_filename,as_oldstyle=False):
     return values    
         
 
-def createImagerTime(Obt, values=None, Trust_sec_1970=False):
+def create_imager_time(obt, values=None, Trust_sec_1970=False):
     """ Function to make crate a matrix with time for each pixel 
     from objects start anf end time """
-    if Obt.sec1970_start < 0:
-        Obt.sec1970_start = calendar.timegm(values['date_time'])
-    if Obt.sec1970_end < Obt.sec1970_start:
-        Obt.sec1970_end = calendar.timegm(values['date_time_end'])
-    Obt.time = np.linspace(Obt.sec1970_start, Obt.sec1970_end, Obt.num_of_lines)
-    return Obt
+    if obt.sec1970_start < 0:
+        obt.sec1970_start = calendar.timegm(values['date_time'])
+    if obt.sec1970_end < obt.sec1970_start:
+        obt.sec1970_end = calendar.timegm(values['date_time_end'])
+    obt.time = np.linspace(obt.sec1970_start, obt.sec1970_end, obt.num_of_lines)
+    return obt
     
 
 class AllImagerData(object):
@@ -157,7 +157,7 @@ class NWPObj(object):
         self.elevation = None
         self.__dict__.update(array_dict) 
 
-class smallDataObject(object):
+class SmallDataObject(object):
     def __init__(self):
         self.data=None
         self.gain = 1.0
@@ -166,11 +166,11 @@ class smallDataObject(object):
         self.missing_data = 0.0
 class ImagerAngObj(object):
     def __init__(self):        
-        self.satz = smallDataObject()
-        self.sunz = smallDataObject()
-        self.satazimuth = smallDataObject()
-        self.sunazimuth = smallDataObject()
-        self.azidiff = smallDataObject()
+        self.satz = SmallDataObject()
+        self.sunz = SmallDataObject()
+        self.satazimuth = SmallDataObject()
+        self.sunazimuth = SmallDataObject()
+        self.azidiff = SmallDataObject()
 
 class NewImagerData:
     def __init__(self):
@@ -406,7 +406,7 @@ def read_cma_nc(filename):
     return cma
 
 
-def readImagerData_nc(pps_nc):
+def read_imager_data_nc(pps_nc):
     imager_data = NewImagerData()
     for var in pps_nc.variables.keys():
         if 'image' in var or hasattr(pps_nc.variables[var], "sensor"):
@@ -842,7 +842,7 @@ def read_thr_h5(filename, h5_obj_type, thr_type):
     return product
 
 
-def readImagerData_h5(filename):
+def read_imager_data_h5(filename):
     h5file = h5py.File(filename, 'r')
     imager_data = NewImagerData()
     for var in h5file.keys():
@@ -996,7 +996,7 @@ def pps_read_all(pps_files, imager_file, SETTINGS):
         cloudproducts = read_pps_geoobj_h5(imager_file)  
     #create time info for each pixel  
     values = get_satid_datetime_orbit_from_fname_pps(imager_file)  
-    cloudproducts = createImagerTime(cloudproducts, values)
+    cloudproducts = create_imager_time(cloudproducts, values)
     logger.info("Read sun and satellites angles data")
     if '.nc' in pps_files.sunsatangles:
         pps_nc_ang = netCDF4.Dataset(pps_files.sunsatangles, 'r', format='NETCDF4')
@@ -1007,10 +1007,10 @@ def pps_read_all(pps_files, imager_file, SETTINGS):
         cloudproducts.imager_angles = read_pps_angobj_h5(pps_files.sunsatangles)
     logger.info("Read Imager data")
     if '.nc' in imager_file:
-        cloudproducts.imager_channeldata = readImagerData_nc(pps_nc)
+        cloudproducts.imager_channeldata = read_imager_data_nc(pps_nc)
         pps_nc.close()
     else:
-        cloudproducts.imager_channeldata = readImagerData_h5(imager_file)
+        cloudproducts.imager_channeldata = read_imager_data_h5(imager_file)
     for imager in ["avhrr", "viirs", "modis", "seviri"]:
         if imager in os.path.basename(imager_file):
             cloudproducts.instrument = imager

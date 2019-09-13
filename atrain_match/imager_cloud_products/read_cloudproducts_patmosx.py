@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 from imager_cloud_products.read_cloudproducts_and_nwp_pps import (
     AllImagerData, 
     CtypeObj, CtthObj, CmaObj,
-    createImagerTime,
+    create_imager_time,
     ImagerAngObj)
 from utils.runutils import do_some_geo_obj_logging
 import config 

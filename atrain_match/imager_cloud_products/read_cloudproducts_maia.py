@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 from imager_cloud_products.read_cloudproducts_and_nwp_pps import (
     AllImagerData,
     CtypeObj, CtthObj, CmaObj,
-    createImagerTime,
+    create_imager_time,
     ImagerAngObj)
 from utils.runutils import do_some_geo_obj_logging
 import config 
@@ -184,7 +184,7 @@ def read_maia_geoobj(maia_h5, filename):
     cloudproducts.sec1970_end = calendar.timegm(date_time_end.timetuple())
     cloudproducts.num_of_lines = cloudproducts.latitude.shape[0]
 
-    cloudproducts = createImagerTime(cloudproducts, values={}, Trust_sec_1970=True)
+    cloudproducts = create_imager_time(cloudproducts, values={}, Trust_sec_1970=True)
     do_some_geo_obj_logging(cloudproducts)
 
     return cloudproducts
