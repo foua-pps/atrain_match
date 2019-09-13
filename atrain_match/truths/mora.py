@@ -31,8 +31,8 @@ from libs.extract_imager_along_track import imager_track_from_matched
 import logging
 logger = logging.getLogger(__name__)
 
-
 TEST_FILE = "/DATA_MISC/atrain_match_testcases/mora/cb_2010.dat"
+
 
 def get_mora_data(filename):
 
@@ -82,10 +82,9 @@ def reshapeMora(morafiles, imager,  SETTINGS):
     retv.sec_1970 = np.array([calendar.timegm(tobj.timetuple()) for tobj in panda_moras['date']])
     return retv
 
-def match_mora_imager(moraObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
-                     imagerAngObj, cpp, nwp_segments, SETTINGS):
+def match_mora_imager(moraObj, cloudproducts, SETTINGS):
     retv = TruthImagerTrackObject('mora')
-    retv.imager_instrument = imagerGeoObj.instrument.lower()
+    retv.imager_instrument = cloudproducts.instrument.lower()
     retv.mora = moraObj
 
     from utils.common import map_imager
@@ -95,12 +94,12 @@ def match_mora_imager(moraObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
     fig = plt.figure()
     ax = fig.add_subplot(111)
     from plotting.histogram_plotting import distribution_map
-    plt.plot(imagerGeoObj.longitude.ravel(),
-              imagerGeoObj.latitude.ravel(), 'r.')
+    plt.plot(cloudproducts.longitude.ravel(),
+              cloudproducts.latitude.ravel(), 'r.')
     plt.plot(moraObj.longitude.ravel(), moraObj.latitude.ravel(),'b.')
     plt.show()
     """
-    cal, cap = map_imager(imagerGeoObj, 
+    cal, cap = map_imager(cloudproducts, 
                          moraObj.longitude.ravel(),
                          moraObj.latitude.ravel(),
                           radius_of_influence=config.RESOLUTION*0.7*1000.0)
@@ -109,11 +108,11 @@ def match_mora_imager(moraObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
         logger.warning("No matches within region.")
         return None   
     #check if it is within time limits:
-    if len(imagerGeoObj.time.shape)>1:
-        imager_time_vector = [imagerGeoObj.time[line,pixel] for line, pixel in zip(cal,cap)]
+    if len(cloudproducts.time.shape)>1:
+        imager_time_vector = [cloudproducts.time[line,pixel] for line, pixel in zip(cal,cap)]
         imager_lines_sec_1970 = np.where(cal != config.NODATA, imager_time_vector, np.nan)
     else:
-        imager_lines_sec_1970 = np.where(cal != config.NODATA, imagerGeoObj.time[cal], np.nan)
+        imager_lines_sec_1970 = np.where(cal != config.NODATA, cloudproducts.time[cal], np.nan)
     idx_match = elements_within_range(moraObj.sec_1970, imager_lines_sec_1970, SETTINGS["sec_timeThr_synop"])
     if idx_match.sum() == 0:
         logger.warning("No matches in region within time threshold %d s.", SETTINGS["sec_timeThr_synop"])
@@ -129,10 +128,10 @@ def match_mora_imager(moraObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
     do_some_logging(retv, moraObj)
     logger.debug("Extract imager along track!")
     
-    retv = imager_track_from_matched(retv, SETTINGS,
-                                     imagerGeoObj, imagerObj, imagerAngObj, 
-                                     nwp, ctth, ctype, cma,  
-                                     cpp=cpp, nwp_segments=None)
+    retv = imager_track_from_matched(retv, 
+                                     SETTINGS,
+                                     cloudproducts,
+                                     extract_nwp_segments = False)
     return retv
 
 if __name__ == "__main__":

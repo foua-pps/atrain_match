@@ -19,8 +19,9 @@
   Use this module to read cci cloudproducts
   2013 SMHI, N.Hakansson 
 """
-from imager_cloud_products.read_cloudproducts_and_nwp_pps import (CtthObj, CppObj, CmaObj, 
-                                                                  imagerAngObj, imagerGeoObj)
+from imager_cloud_products.read_cloudproducts_and_nwp_pps import (AllImagerData,
+                                                                  CtthObj, CppObj, CmaObj,
+                                                                  imagerAngObj)
 import os
 import netCDF4	
 import numpy as np
@@ -80,29 +81,26 @@ def cci_read_all(filename):
     """
     logger.info("Opening file %s", filename)
     cci_nc = netCDF4.Dataset(filename, 'r', format='NETCDF4')
+    cloudproducts = read_cci_geoobj(cci_nc)
     logger.debug("Reading ctth ...")
-    ctth = read_cci_ctth(cci_nc)
+    cloudproducts.ctth = read_cci_ctth(cci_nc)
     logger.debug("Reading angles ...")
-    my_imagerAngObj = read_cci_angobj(cci_nc)
+    cloudproducts.imager_angles = read_cci_angobj(cci_nc)
     logger.debug("Reading cloud type ...")
-    cma = read_cci_cma(cci_nc)
+    cloudproducts.cma = read_cci_cma(cci_nc)
 
     logger.debug("Reading longitude, latitude and time ...")
-    my_imagerGeoObj = read_cci_geoobj(cci_nc)
-    my_imagerGeoObj.instrument = "imager"
+    my_cloudproducts.instrument = "imager"
     for imager in ["avhrr", "viirs", "modis", "seviri"]:
         if imager in os.path.basename(filename).lower():
-            imagerGeoObj.instrument = imager
+            cloudproducts.instrument = imager
     logger.debug("Not reading surface temperature")
-    surft = None
     logger.debug("Reading cloud phase")
-    cpp = read_cci_phase(cci_nc)
+    cloudproducts.cpp = read_cci_phase(cci_nc)
     logger.debug("Not reading channel data")
-    imagerObj = None  
     if cci_nc:
         cci_nc.close()
-    ctype = None    
-    return my_imagerAngObj, ctth, my_imagerGeoObj, ctype, imagerObj, surft, cpp, cma 
+    return cloudproducts
 
 
 def read_cci_cma(cci_nc):
@@ -145,18 +143,18 @@ def read_cci_geoobj(cci_nc):
 
     """Read geolocation and time info from filename
     """
-    GeoObj = imagerGeoObj()
+    cloudproducts = AllImagerData()
     logger.debug("Min lon: %s, max lon: %d",
                  np.min(cci_nc.variables['lon'][::]), 
                  np.max(cci_nc.variables['lon'][::]))
     #cci_nc.variables['lon'].add_offset
-    #GeoObj.longitude = cci_nc.variables['lon'][::]
-    GeoObj.nodata = -999.0
+    #cloudproducts.longitude = cci_nc.variables['lon'][::]
+    cloudproducts.nodata = -999.0
     in_fillvalue = cci_nc.variables['lon']._FillValue
-    GeoObj.longitude = cci_nc.variables['lon'][::]
-    GeoObj.longitude[cci_nc.variables['lon'][::] == in_fillvalue] = GeoObj.nodata
-    GeoObj.latitude = cci_nc.variables['lon'][::]
-    GeoObj.latitude[cci_nc.variables['lon'][::] == in_fillvalue] = GeoObj.nodata
+    cloudproducts.longitude = cci_nc.variables['lon'][::]
+    cloudproducts.longitude[cci_nc.variables['lon'][::] == in_fillvalue] = cloudproducts.nodata
+    cloudproducts.latitude = cci_nc.variables['lon'][::]
+    cloudproducts.latitude[cci_nc.variables['lon'][::] == in_fillvalue] = cloudproducts.nodata
     np.where(
         np.logical_and(
             np.greater_equal(cci_nc.variables['lon'][::],
@@ -164,27 +162,27 @@ def read_cci_geoobj(cci_nc):
             np.less_equal(cci_nc.variables['lon'][::],
                           cci_nc.variables['lon'].valid_max)),
         cci_nc.variables['lon'][::],
-        GeoObj.nodata)
-    #GeoObj.latitude = cci_nc.variables['lat'][::] 
-    GeoObj.latitude = np.where(
+        cloudproducts.nodata)
+    #cloudproducts.latitude = cci_nc.variables['lat'][::] 
+    cloudproducts.latitude = np.where(
         np.logical_and(
             np.greater_equal(cci_nc.variables['lat'][::],
                              cci_nc.variables['lat'].valid_min),
             np.less_equal(cci_nc.variables['lat'][::],
                           cci_nc.variables['lat'].valid_max)),
         cci_nc.variables['lat'][::],
-        GeoObj.nodata)
+        cloudproducts.nodata)
 
     #: For pps these are calculated in calipso.py, but better read them
     # from file because time are already available on arrays in the netcdf files
     # dsec = calendar.timegm((1993,1,1,0,0,0,0,0,0)) #TAI to UTC
     time_temp = daysafter4713bc_to_sec1970(cci_nc.variables['time'][::])
-    GeoObj.time = time_temp[::]#[:,0] #time_temp[:,0]
+    cloudproducts.time = time_temp[::]#[:,0] #time_temp[:,0]
 
-    GeoObj.sec1970_start = np.min(GeoObj.time)  
-    GeoObj.sec1970_end = np.max(GeoObj.time)
-    do_some_geo_obj_logging(GeoObj)
-    return  GeoObj
+    cloudproducts.sec1970_start = np.min(cloudproducts.time)  
+    cloudproducts.sec1970_end = np.max(cloudproducts.time)
+    do_some_geo_obj_logging(cloudproducts)
+    return  cloudproducts
 
 def read_cci_ctth(cci_nc):
     """Read cloud top: temperature, height and pressure from filename

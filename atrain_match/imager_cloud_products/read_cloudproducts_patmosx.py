@@ -30,9 +30,11 @@ from datetime import timedelta
 import logging
 logger = logging.getLogger(__name__)
 
-from imager_cloud_products.read_cloudproducts_and_nwp_pps import (CtypeObj, CtthObj, CmaObj,
-                                            createImagerTime,
-                                            imagerAngObj, imagerGeoObj)
+from imager_cloud_products.read_cloudproducts_and_nwp_pps import (
+    AllImagerData, 
+    CtypeObj, CtthObj, CmaObj,
+    createImagerTime,
+    imagerAngObj)
 from utils.runutils import do_some_geo_obj_logging
 import config 
 ATRAIN_MATCH_NODATA = config.NODATA
@@ -82,20 +84,21 @@ def patmosx_read_all_nc(filename, Cross, SETTINGS):
     """
     patmosx_nc = netCDF4.Dataset(filename, 'r', format='NETCDF4')
     logger.info("Opening file %s", filename)
+    logger.info("Reading longitude, latitude and time ...")
+    cloudproducts = read_patmosx_geoobj(patmosx_nc, filename, Cross, SETTINGS)
     logger.info("Reading angles ...")
-    imagerAngObj = read_patmosx_angobj(patmosx_nc)
+    cloudproducts.imager_angles = read_patmosx_angobj(patmosx_nc)
     logger.info("Reading cloud type ...")
     # , imagerAngObj)
     ctype, cma, ctth = read_patmosx_ctype_cmask_ctth(patmosx_nc)
-    logger.info("Reading longitude, latitude and time ...")
-    imagerGeoObj = read_patmosx_geoobj(patmosx_nc, filename, Cross, SETTINGS)
+    cloudproducts.cma = cma
+    cloudproducts.ctth = ctth
+    cloudproducts.ctype = cype
+
     logger.info("Not reading surface temperature")
-    surft = None
     logger.info("Not reading cloud microphysical properties")
-    cpp = None
     logger.info("Not reading channel data")
-    imagerObj = None
-    return imagerAngObj, ctth, imagerGeoObj, ctype,  imagerObj, surft, cpp, cma
+    return cloudproducts
 
 def read_patmosx_ctype_cmask_ctth(patmosx_nc):
     """Read cloudtype and flag info from filename
@@ -132,23 +135,23 @@ def read_patmosx_angobj(patmosx_nc):
 def read_patmosx_geoobj(patmosx_nc, filename, cross, SETTINGS):
     """Read geolocation and time info from filename
     """
-    GeoObj = imagerGeoObj()
+    cloudproducts = AllImagerData()
     latitude_v = patmosx_nc.variables['latitude'][:].astype(np.float)
     longitude_v = patmosx_nc.variables['longitude'][:].astype(np.float)
-    GeoObj.latitude = np.repeat(latitude_v[:,np.newaxis], len(longitude_v), axis=1)
-    GeoObj.longitude = np.repeat(longitude_v[np.newaxis,:], len(latitude_v), axis=0)
-    GeoObj.nodata=-999
+    cloudproducts.latitude = np.repeat(latitude_v[:,np.newaxis], len(longitude_v), axis=1)
+    cloudproducts.longitude = np.repeat(longitude_v[np.newaxis,:], len(latitude_v), axis=0)
+    cloudproducts.nodata=-999
     date_time_start = cross.time
     date_time_end = cross.time + timedelta(seconds=SETTINGS['SAT_ORBIT_DURATION'])
-    GeoObj.sec1970_start = calendar.timegm(date_time_start.timetuple())
-    GeoObj.sec1970_end = calendar.timegm(date_time_end.timetuple())
+    cloudproducts.sec1970_start = calendar.timegm(date_time_start.timetuple())
+    cloudproducts.sec1970_end = calendar.timegm(date_time_end.timetuple())
     frac_hour = patmosx_nc.variables['scan_line_time'][0,:,:].astype(np.float)
     if np.ma.is_masked(frac_hour):
         frac_hour = frac_hour.data
     seconds = frac_hour*60*60.0
-    GeoObj.time = seconds +  patmosx_nc.variables['time']
-    do_some_geo_obj_logging(GeoObj)
-    return GeoObj
+    cloudproducts.time = seconds +  patmosx_nc.variables['time']
+    do_some_geo_obj_logging(cloudproducts)
+    return cloudproducts
 
 
 def patmosx_read_all_hdf(filename, Cross, SETTINGS):
@@ -159,20 +162,20 @@ def patmosx_read_all_hdf(filename, Cross, SETTINGS):
     import pyhdf.VS 
     patmosx_hdf = SD(filename, SDC.READ)
     logger.info("Opening file %s", filename)
+    logger.info("Reading longitude, latitude and time ...")
+    cloudproducts = read_patmosx_geoobj_hdf(patmosx_hdf, filename, Cross, SETTINGS)
     logger.info("Reading angles ...")
-    imagerAngObj = read_patmosx_angobj_hdf(patmosx_hdf)
+    cloudproducts.imager_angles = read_patmosx_angobj_hdf(patmosx_hdf)
     logger.info("Reading cloud type ...")
     # , imagerAngObj)
     ctype, cma, ctth = read_patmosx_ctype_cmask_ctth_hdf(patmosx_hdf)
-    logger.info("Reading longitude, latitude and time ...")
-    imagerGeoObj = read_patmosx_geoobj_hdf(patmosx_hdf, filename, Cross, SETTINGS)
+    cloudproducts.ctype = ctype
+    cloudproducts.cma = cma
+    cloudproducts.ctth = ctth
     logger.info("Not reading surface temperature")
-    surft = None
     logger.info("Not reading cloud microphysical properties")
-    cpp = None
     logger.info("Not reading channel data")
-    imagerObj = None
-    return imagerAngObj, ctth, imagerGeoObj, ctype,  imagerObj, surft, cpp, cma
+    return imagerAngObj, ctth, imagercloudproducts, ctype,  imagerObj, surft, cpp, cma
 
 def read_patmosx_ctype_cmask_ctth_hdf(patmosx_hdf):
     """Read cloudtype and flag info from filename
@@ -223,7 +226,7 @@ def read_patmosx_angobj_hdf(patmosx_hdf):
 def read_patmosx_geoobj_hdf(patmosx_hdf, filename, cross, SETTINGS):
     """Read geolocation and time info from filename
     """
-    GeoObj = imagerGeoObj()
+    cloudproducts = AllImagerData()
     name = 'latitude'
     temp = patmosx_hdf.select(name).get().astype(np.float)
     offset = patmosx_hdf.select(name).attributes()['add_offset']
@@ -235,13 +238,13 @@ def read_patmosx_geoobj_hdf(patmosx_hdf, filename, cross, SETTINGS):
     gain = patmosx_hdf.select(name).attributes()['scale_factor']
     longitude_v = temp * gain + offset
 
-    GeoObj.latitude = np.repeat(latitude_v[:,np.newaxis], len(longitude_v), axis=1)
-    GeoObj.longitude = np.repeat(longitude_v[np.newaxis,:], len(latitude_v), axis=0)
-    GeoObj.nodata=-999
+    cloudproducts.latitude = np.repeat(latitude_v[:,np.newaxis], len(longitude_v), axis=1)
+    cloudproducts.longitude = np.repeat(longitude_v[np.newaxis,:], len(latitude_v), axis=0)
+    cloudproducts.nodata=-999
     date_time_start = cross.time
     date_time_end = cross.time + timedelta(seconds=SETTINGS['SAT_ORBIT_DURATION'])
-    GeoObj.sec1970_start = calendar.timegm(date_time_start.timetuple())
-    GeoObj.sec1970_end = calendar.timegm(date_time_end.timetuple())
+    cloudproducts.sec1970_start = calendar.timegm(date_time_start.timetuple())
+    cloudproducts.sec1970_end = calendar.timegm(date_time_end.timetuple())
     frac_hour = patmosx_hdf.select('scan_line_time').get().astype(np.float)
     if np.ma.is_masked(frac_hour):
         frac_hour = frac_hour.data
@@ -249,9 +252,9 @@ def read_patmosx_geoobj_hdf(patmosx_hdf, filename, cross, SETTINGS):
     time_s = patmosx_hdf.attributes()['time_coverage_start']
     dt_obj = datetime.strptime(time_s, "%Y-%m-%dT%H:%M:%SZ")
     time_sec_1970 =  calendar.timegm(dt_obj.timetuple())
-    GeoObj.time = seconds +  time_sec_1970
-    do_some_geo_obj_logging(GeoObj)
-    return GeoObj
+    cloudproducts.time = seconds +  time_sec_1970
+    do_some_geo_obj_logging(cloudproducts)
+    return cloudproducts
 
 
 if __name__ == "__main__":

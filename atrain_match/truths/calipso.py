@@ -43,29 +43,29 @@ def add_validation_ctth_calipso(calipso):
 
 def match_calipso_imager(values, 
                         caObj, caObjAerosol, 
-                        imagerGeoObj, imagerObj, 
-                        ctype, cma, ctth, cpp, nwp_obj,
-                        imagerAngObj, nwp_segments, SETTINGS, res=config.RESOLUTION):
+                        cloudproducts, SETTINGS, res=config.RESOLUTION):
 
     from utils.common import map_imager
     retv = TruthImagerTrackObject(truth='calipso')
-    retv.imager_instrument = imagerGeoObj.instrument.lower()
+
+    retv.imager_instrument = cloudproducts.instrument.lower()
     retv.calipso = caObj
-    cal, cap = map_imager(imagerGeoObj, 
-                         caObj.longitude.ravel(),
-                         caObj.latitude.ravel(),
-                         radius_of_influence=config.RESOLUTION*0.7*1000.0) # somewhat larger than radius...
+
+    cal, cap = map_imager(cloudproducts, 
+                          caObj.longitude.ravel(),
+                          caObj.latitude.ravel(),
+                          radius_of_influence=config.RESOLUTION*0.7*1000.0) # somewhat larger than radius...
     #warn if no matches
     calnan = np.where(cal == config.NODATA, np.nan, cal)
     if (~np.isnan(calnan)).sum() == 0:
         logger.warning("No matches within region.")
         return None
     #check if it is within time limits:
-    if len(imagerGeoObj.time.shape)>1:
-        imager_time_vector = [imagerGeoObj.time[line,pixel] for line, pixel in zip(cal,cap)]
+    if len(cloudproducts.time.shape)>1:
+        imager_time_vector = [cloudproducts.time[line,pixel] for line, pixel in zip(cal,cap)]
         imager_lines_sec_1970 = np.where(cal != config.NODATA, imager_time_vector, np.nan)
     else:
-        imager_lines_sec_1970 = np.where(cal != config.NODATA, imagerGeoObj.time[cal], np.nan)
+        imager_lines_sec_1970 = np.where(cal != config.NODATA, cloudproducts.time[cal], np.nan)
     idx_match = elements_within_range(caObj.sec_1970, imager_lines_sec_1970, SETTINGS["sec_timeThr"]) 
     if idx_match.sum() == 0:
         logger.warning("No matches in region within time threshold %d s.", SETTINGS["sec_timeThr"])
@@ -83,9 +83,7 @@ def match_calipso_imager(values,
     logger.debug("Generate the latitude,cloudtype tracks!")
     from libs.extract_imager_along_track import imager_track_from_matched
     retv = imager_track_from_matched(retv, SETTINGS, 
-                                     imagerGeoObj, imagerObj, imagerAngObj, 
-                                     nwp_obj, ctth, ctype, cma, cpp=cpp, 
-                                     nwp_segments=nwp_segments)
+                                     cloudproducts)   
     if caObjAerosol is not None:
         retv.calipso_aerosol = caObjAerosol.extract_elements(idx=idx_match)
     max_cloud_top_calipso = np.maximum.reduce(retv.calipso.layer_top_altitude.ravel())
@@ -310,9 +308,9 @@ def read_calipso_h5(filename, retv):
         h5file.close()
     return retv  
 
-def discardCalipsoFilesOutsideTimeRange(calipsofiles_list, imagerGeoObj, values, SETTINGS, res=config.RESOLUTION, ALAY=False):
-    imager_end = imagerGeoObj.sec1970_end
-    imager_start = imagerGeoObj.sec1970_start
+def discardCalipsoFilesOutsideTimeRange(calipsofiles_list, cloudproducts, values, SETTINGS, res=config.RESOLUTION, ALAY=False):
+    imager_end = cloudproducts.sec1970_end
+    imager_start = cloudproducts.sec1970_start
     calipso_within_time_range = []
     for current_file in calipsofiles_list:
         newCalipso = get_calipso(current_file, res, ALAY=ALAY)
@@ -340,13 +338,13 @@ def reshapeCalipso(calipsofiles, res=config.RESOLUTION, ALAY=False):
 
     return startCalipso 
 
-def find_break_points(startCalipso, imagerGeoObj, SETTINGS):
+def find_break_points(startCalipso, cloudproducts, SETTINGS):
     """
     Find the start and end point where calipso and imager matches is within 
     time limits.
     """
-    imager_end = imagerGeoObj.sec1970_end
-    imager_start = imagerGeoObj.sec1970_start
+    imager_end = cloudproducts.sec1970_end
+    imager_start = cloudproducts.sec1970_start
     # Finds Break point
     start_break = np.argmin((np.abs((startCalipso.sec_1970) 
                                     - (imager_start - SETTINGS["sec_timeThr"]))))

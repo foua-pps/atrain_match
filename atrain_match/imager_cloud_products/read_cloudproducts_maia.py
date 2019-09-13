@@ -29,9 +29,11 @@ from datetime import datetime
 import logging
 logger = logging.getLogger(__name__)
 
-from imager_cloud_products.read_cloudproducts_and_nwp_pps import (CtypeObj, CtthObj, CmaObj,
-                                            createImagerTime,
-                                            imagerAngObj, imagerGeoObj)
+from imager_cloud_products.read_cloudproducts_and_nwp_pps import (
+    AllImagerData,
+    CtypeObj, CtthObj, CmaObj,
+    createImagerTime,
+    imagerAngObj)
 from utils.runutils import do_some_geo_obj_logging
 import config 
 ATRAIN_MATCH_NODATA = config.NODATA
@@ -71,24 +73,27 @@ def maia_read_all(filename):
 
     logger.info("Opening file %s", filename)
     with h5py.File(filename, 'r') as maia_h5:
+        logger.info("Reading longitude, latitude and time ...")
+        cloudproducts = read_maia_geoobj(maia_h5, filename)
         logger.info("Reading angles ...")
-        imagerAngObj = read_maia_angobj(maia_h5)
+        cloudproducts.imager_angles = read_maia_angobj(maia_h5)
         logger.info("Reading cloud type ...")
         # , imagerAngObj)
         ctype, cma, ctth = read_maia_ctype_cmask_ctth(maia_h5)
-        logger.info("Reading longitude, latitude and time ...")
-        imagerGeoObj = read_maia_geoobj(maia_h5, filename)
+        cloudproducts.cma = cma
+        cloudproducts.ctth = ctth
+        cloudproducts.ctype = cype
+
         logger.info("Reading surface temperature")
         surft = read_maia_surftemp(maia_h5)
+        cloudproducts.nwp = NWPObj({'surftemp':surft}) 
         logger.info("Not reading cloud microphysical properties")
-        cpp = None
         logger.info("Not reading channel data")
-        imagerObj = None
 
     if unzipped:
         os.remove(unzipped)
 
-    return imagerAngObj, ctth, imagerGeoObj, ctype, imagerObj, surft, cpp, cma
+    return cloudproducts
 
 
 def read_maia_ctype_cmask_ctth(maia_h5):
@@ -162,12 +167,12 @@ def read_maia_surftemp(maia_h5):
 def read_maia_geoobj(maia_h5, filename):
     """Read geolocation and time info from filename
     """
-    GeoObj = imagerGeoObj()
-    GeoObj.latitude = 0.0001 * maia_h5['DATA']['Latitude'].value
-    GeoObj.longitude = 0.0001 * maia_h5['DATA']['Longitude'].value
-    GeoObj.nodata = 999
-    GeoObj.longitude[GeoObj.longitude == -9999] = GeoObj.nodata
-    GeoObj.latitude[GeoObj.latitude == -9999] = GeoObj.nodata
+    cloudproducts = AllImagerData()
+    cloudproducts.latitude = 0.0001 * maia_h5['DATA']['Latitude'].value
+    cloudproducts.longitude = 0.0001 * maia_h5['DATA']['Longitude'].value
+    cloudproducts.nodata = 999
+    cloudproducts.longitude[cloudproducts.longitude == -9999] = cloudproducts.nodata
+    cloudproducts.latitude[cloudproducts.latitude == -9999] = cloudproducts.nodata
 
     # viiCT_npp_GL_20150711_S211124_E211248_ASC_D_La-40_Lo-108_19188.h5
     # viiCT_npp_DB_20120817_S035411_E035535_DES_N_La052_Lo-027_00001.h5
@@ -175,14 +180,14 @@ def read_maia_geoobj(maia_h5, filename):
     date_time_start = datetime.strptime(sl_[3] + sl_[4], '%Y%m%dS%H%M%S')
     date_time_end = datetime.strptime(sl_[3] + sl_[5], '%Y%m%dE%H%M%S')
 
-    GeoObj.sec1970_start = calendar.timegm(date_time_start.timetuple())
-    GeoObj.sec1970_end = calendar.timegm(date_time_end.timetuple())
-    GeoObj.num_of_lines = GeoObj.latitude.shape[0]
+    cloudproducts.sec1970_start = calendar.timegm(date_time_start.timetuple())
+    cloudproducts.sec1970_end = calendar.timegm(date_time_end.timetuple())
+    cloudproducts.num_of_lines = cloudproducts.latitude.shape[0]
 
-    GeoObj = createImagerTime(GeoObj, values={}, Trust_sec_1970=True)
-    do_some_geo_obj_logging(GeoObj)
+    cloudproducts = createImagerTime(cloudproducts, values={}, Trust_sec_1970=True)
+    do_some_geo_obj_logging(cloudproducts)
 
-    return GeoObj
+    return cloudproducts
 
 if __name__ == "__main__":
     pass

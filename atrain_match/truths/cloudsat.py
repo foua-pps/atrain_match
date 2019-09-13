@@ -189,14 +189,13 @@ def read_cloudsat(filename):
     return retv
 
 
-def match_cloudsat_imager(cloudsatObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,imagerAngObj, 
-                          cpp, nwp_segments, SETTINGS):
+def match_cloudsat_imager(cloudsatObj,cloudproducts, SETTINGS):
     retv = TruthImagerTrackObject(truth='cloudsat')
-    retv.imager_instrument = imagerGeoObj.instrument.lower()
+    retv.imager_instrument = cloudproducts.instrument.lower()
     retv.cloudsat = cloudsatObj
     #Nina 20150313 Swithcing to mapping without area as in cpp. Following suggestion from Jakob
     from utils.common import map_imager
-    cal, cap = map_imager(imagerGeoObj, 
+    cal, cap = map_imager(cloudproducts, 
                          cloudsatObj.longitude.ravel(),
                          cloudsatObj.latitude.ravel(),
                          radius_of_influence=config.RESOLUTION*0.7*1000.0) # somewhat larger than radius...
@@ -205,11 +204,11 @@ def match_cloudsat_imager(cloudsatObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,
         logger.warning("No matches within region.")
         return None
     #check if it is within time limits:
-    if len(imagerGeoObj.time.shape)>1:
-        imager_time_vector = [imagerGeoObj.time[line,pixel] for line, pixel in zip(cal,cap)]
+    if len(cloudproducts.time.shape)>1:
+        imager_time_vector = [cloudproducts.time[line,pixel] for line, pixel in zip(cal,cap)]
         imager_lines_sec_1970 = np.where(cal != config.NODATA, imager_time_vector, np.nan)
     else:
-        imager_lines_sec_1970 = np.where(cal != config.NODATA, imagerGeoObj.time[cal], np.nan)
+        imager_lines_sec_1970 = np.where(cal != config.NODATA, cloudproducts.time[cal], np.nan)
     # Find all matching Cloudsat pixels within +/- sec_timeThr from the IMAGER data
     idx_match = elements_within_range(cloudsatObj.sec_1970, imager_lines_sec_1970, SETTINGS["sec_timeThr"])
 
@@ -228,9 +227,7 @@ def match_cloudsat_imager(cloudsatObj,imagerGeoObj,imagerObj,ctype,cma,ctth,nwp,
     do_some_logging(retv, cloudsatObj)
     logger.debug("Generate the latitude,cloudtype tracks!")
     retv = imager_track_from_matched(retv, SETTINGS,
-                                     imagerGeoObj, imagerObj, imagerAngObj, 
-                                     nwp, ctth, ctype, cma, 
-                                     cpp=cpp, nwp_segments=nwp_segments)
+                                     cloudproducts)
     return retv
 
 def mergeCloudsat(cloudsat, cloudsatlwp):

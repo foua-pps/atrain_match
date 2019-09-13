@@ -371,13 +371,39 @@ def insert_nwp_h440_h680_data(obt):
     return obt
 
 #---------------------------------------------------------------------------
-def imager_track_from_matched(obt, SETTINGS, 
-                              GeoObj, dataObj, AngObj, 
-                              nwp_obj, ctth, ctype, cma, 
-                              cpp=None,
-                              nwp_segments=None,
+def imager_track_from_matched(obt, SETTINGS, cloudproducts,
+                              extract_radiances=True,                            
+                              extract_cma=True,
+                              extract_ctth=True,
+                              extract_ctype=True,
+                              extract_cpp=True,
+                              extract_nwp_segments=True,
+                              extract_nwp=True,  
+                              nwp_params=None,
                               extract_some_data_for_x_neighbours=False,
                               find_mean_data_for_x_neighbours=False):
+    nwp_params_all = ["surftemp", "t500", "t700", "t850", "t950", "ttro", "ciwv",
+                      "t900", "t1000", "t800", "t250", "t2m", "ptro", "psur", 
+                      "h2m", "u10m", "v10m", "t2m",
+                      "snowa", "snowd", "seaice", "landuse", "fractionofland", "elevation",
+                      "r37_sza_correction_done"]
+
+    if nwp_params is None:
+        nwp_params = nwp_params_all 
+        #For amsr-E matching (many neighbors) use only the needed nwp data
+
+    nwp_obj = cloudproducts.nwp
+
+
+    dataObj = cloudproducts.imager_channeldata
+    AngObj = cloudproducts.imager_angles
+    ctth = cloudproducts.ctth
+    cma = cloudproducts.cma
+    ctype = cloudproducts.ctype
+    cpp = cloudproducts.cpp
+    nwp_segments = cloudproducts.nwp_segments
+
+  
     truth = getattr(obt, obt.truth_sat)
     row_matched = truth.imager_linnum
     col_matched = truth.imager_pixnum
@@ -387,39 +413,35 @@ def imager_track_from_matched(obt, SETTINGS,
         col_matched_nneigh = truth.imager_pixnum_nneigh
         row_col_nneigh = {'row': row_matched_nneigh, 'col': col_matched_nneigh}
 
-    obt.imager.latitude = get_data_from_array(GeoObj.latitude, row_col)
-    obt.imager.longitude = get_data_from_array(GeoObj.longitude, row_col)
-    if ctype is not None:
+    obt.imager.latitude = get_data_from_array(cloudproducts.latitude, row_col)
+    obt.imager.longitude = get_data_from_array(cloudproducts.longitude, row_col)
+    if extract_ctype and ctype is not None:
         obt.imager.cloudtype = get_data_from_array(ctype.cloudtype, row_col)
-    if cma is not None:
+    if extract_cma and cma is not None:
         obt.imager.cloudmask = get_data_from_array(cma.cma_ext, row_col)
         if find_mean_data_for_x_neighbours:
             obt.imager.cfc_mean = get_mean_data_from_array_nneigh(cma.cma_bin, row_col_nneigh)
-            
     for varname in ['cma_testlist0','cma_testlist1', 'cma_testlist2',
                     'cma_testlist3','cma_testlist4', 'cma_testlist5',
                     'cma_prob', 'cma_aerosolflag', 'cma_dust']:
-        if hasattr(cma, varname):
+        if extract_cma and hasattr(cma, varname):
             setattr(obt.imager, varname, 
                     get_data_from_array(getattr(cma, varname), row_col))
             if find_mean_data_for_x_neighbours and varname=='cma_prob':
                 obt.imager.cma_prob_mean = get_mean_data_from_array_nneigh(cma.cma_prob, row_col_nneigh)   
                                 
     #cloud-type flags
-    for (variable, outname) in  zip(
-            ['ct_quality', 'ct_conditions', 'ct_statusflag', 
-             'qualityflag', 'phaseflag'],
-            ['cloudtype_quality', 'cloudtype_conditions', 'cloudtype_status', 
-             'cloudtype_qflag', 'cloudtype_pflag'] ):
-        if hasattr(ctype, variable) and SETTINGS["PPS_VALIDATION"]:
-            setattr(obt.imager, outname, 
-                    get_data_from_array(getattr(ctype,variable), row_col))
-    for nwp_info in ["surftemp", "t500", "t700", "t850", "t950", "ttro", "ciwv",
-                     "t900", "t1000", "t800", "t250", "t2m", "ptro", "psur", 
-                     "h2m", "u10m", "v10m", "t2m",
-                     "snowa", "snowd", "seaice", "landuse", "fractionofland", "elevation",
-                     "r37_sza_correction_done"]:
-        if hasattr(nwp_obj, nwp_info):
+    if extract_ctype and SETTINGS["PPS_VALIDATION"]:
+        for (variable, outname) in  zip(
+                ['ct_quality', 'ct_conditions', 'ct_statusflag', 
+                 'qualityflag', 'phaseflag'],
+                ['cloudtype_quality', 'cloudtype_conditions', 'cloudtype_status', 
+                 'cloudtype_qflag', 'cloudtype_pflag'] ):
+            if hasattr(ctype, variable):
+                setattr(obt.imager, outname, 
+                        get_data_from_array(getattr(ctype,variable), row_col))
+    for nwp_info in nwp_params:
+        if extract_nwp and hasattr(nwp_obj, nwp_info):
             data = getattr(nwp_obj, nwp_info)
             if np.size(data)>1:
                 setattr(obt.imager, nwp_info, get_data_from_array(data, row_col))
@@ -429,7 +451,7 @@ def imager_track_from_matched(obt, SETTINGS,
     if len(CTTH_TYPES)>1 and SETTINGS["PPS_VALIDATION"]:        
         for ctth_type in CTTH_TYPES[1:]:
             if hasattr(nwp_obj,ctth_type):
-                ctth_obj = getattr(nwp_obj,ctth_type)
+                ctth_obj = getattr(nwp_obj, ctth_type)
             else:
                 continue
             for data_set in ["pressure", "temperature", "height"]:

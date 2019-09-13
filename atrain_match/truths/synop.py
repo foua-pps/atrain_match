@@ -58,15 +58,15 @@ def reshapeSynop(synopfiles, imager,  SETTINGS):
     retv.sec_1970 = np.array([calendar.timegm(tobj.timetuple()) for tobj in panda_synops['date']])
     return retv
 
-def match_synop_imager(synopObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
-                       imagerAngObj, cpp, nwp_segments, SETTINGS):
+def match_synop_imager(synopObj, cloudproducts, SETTINGS):
     retv = TruthImagerTrackObject(truth='synop')
-    retv.imager_instrument = imagerGeoObj.instrument.lower()
+    retv.imager_instrument = cloudproducts.instrument.lower()
+    retv.synop = synopObj
     from utils.common import map_imager_distances
     n_neighbours = 250
     if config.RESOLUTION == 5:
         n_neighbours = 16
-    mapper_and_dist = map_imager_distances(imagerGeoObj, 
+    mapper_and_dist = map_imager_distances(cloudproducts, 
                                           synopObj.longitude.ravel(), 
                                           synopObj.latitude.ravel(), 
                                           radius_of_influence=SETTINGS["SYNOP_RADIUS"], 
@@ -82,11 +82,11 @@ def match_synop_imager(synopObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
         logger.warning("No matches within region.")
         return None   
     #check if it is within time limits:
-    if len(imagerGeoObj.time.shape)>1:
-        imager_time_vector = [imagerGeoObj.time[line,pixel] for line, pixel in zip(cal_1,cap_1)]
+    if len(cloudproducts.time.shape)>1:
+        imager_time_vector = [cloudproducts.time[line,pixel] for line, pixel in zip(cal_1,cap_1)]
         imager_lines_sec_1970 = np.where(cal_1 != config.NODATA, imager_time_vector, np.nan)
     else:
-        imager_lines_sec_1970 = np.where(cal_1 != config.NODATA, imagerGeoObj.time[cal_1], np.nan)
+        imager_lines_sec_1970 = np.where(cal_1 != config.NODATA, cloudproducts.time[cal_1], np.nan)
     idx_match = elements_within_range(synopObj.sec_1970, imager_lines_sec_1970, SETTINGS["sec_timeThr_synop"])
     if idx_match.sum() == 0:
         logger.warning("No  matches in region within time threshold %d s.", SETTINGS["sec_timeThr_synop"])
@@ -109,9 +109,9 @@ def match_synop_imager(synopObj, imagerGeoObj, imagerObj, ctype, cma, ctth, nwp,
     logger.debug("Extract imager along track!")
     
     retv = imager_track_from_matched(retv, SETTINGS,
-                                     imagerGeoObj, imagerObj, imagerAngObj, 
-                                     nwp, ctth, ctype, cma,  
-                                     #nwp_small, ctth, ctype, cma,
-                                     cpp=cpp, nwp_segments=None,
+                                     cloudproducts,
+                                     extract_radiances = False,
+                                     extract_nwp_segments = False,
+                                     nwp_params = ['fractionofland', 'landuse'],
                                      find_mean_data_for_x_neighbours=True)
     return retv

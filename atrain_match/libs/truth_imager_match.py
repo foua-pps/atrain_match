@@ -205,9 +205,9 @@ def get_time_list(cross_time, time_window, delta_t_in_seconds):
             tobj2 = tobj2 - delta_t  
     return tlist 
 
-def find_closest_nwp_file(imagerGeoObj, AM_PATHS, values, SETTINGS):
-    date_time = datetime.fromtimestamp((imagerGeoObj.sec1970_end*0.5 + 
-                                        imagerGeoObj.sec1970_start*0.5), my_tz.utc)
+def find_closest_nwp_file(cloudproducts, AM_PATHS, values, SETTINGS):
+    date_time = datetime.fromtimestamp((cloudproducts.sec1970_end*0.5 + 
+                                        cloudproducts.sec1970_start*0.5), my_tz.utc)
     delta_3h = timedelta(hours=SETTINGS['MAX_NWP_TDIFF_HOURS'])
     tlist = get_time_list(date_time,  [delta_3h, delta_3h], 60*60) # time_window +/- 3h
     for tobj in tlist: 
@@ -568,9 +568,7 @@ def find_files_from_imager(imager_file, AM_PATHS, SETTINGS, as_oldstyle=False):
     ppsfiles = ppsFiles(file_name_dict)
     return  ppsfiles
 
-def get_cloudsat_matchups(cloudsat_files, cloudsat_files_lwp, imagerGeoObj, imagerObj,
-                          ctype, cma, ctth, nwp_obj, imagerAngObj, 
-                          cpp, nwp_segments, SETTINGS):
+def get_cloudsat_matchups(cloudsat_files, cloudsat_files_lwp, cloudproducts, SETTINGS):
     """
     Read Cloudsat data and match with the given PPS data.
     """
@@ -578,75 +576,57 @@ def get_cloudsat_matchups(cloudsat_files, cloudsat_files_lwp, imagerGeoObj, imag
     cloudsat = None
     if cloudsat_files is not None:   
         logger.debug("Reading cloudsat for type GEOPROF.")
-        cloudsat = reshapeCloudsat(cloudsat_files, imagerGeoObj, SETTINGS)
+        cloudsat = reshapeCloudsat(cloudsat_files, cloudproducts, SETTINGS)
     if cloudsat_files_lwp is not None: 
         logger.debug("Reading cloudsat for type CWC-RVOD.")
-        cloudsat_lwp = reshapeCloudsat(cloudsat_files_lwp, imagerGeoObj, SETTINGS)    
+        cloudsat_lwp = reshapeCloudsat(cloudsat_files_lwp, cloudproducts, SETTINGS)    
     if cloudsat is not None and cloudsat_lwp is not None:
         logger.info("Merging CloudSat GEOPROF and CWC-RVOD data to one object")
         cloudsat = mergeCloudsat(cloudsat, cloudsat_lwp)
     elif cloudsat is None:
         cloudsat = cloudsat_lwp        
     logger.debug("Matching CloudSat with imager")
-    cl_matchup = match_cloudsat_imager(cloudsat,
-                                      imagerGeoObj, imagerObj, ctype, cma,
-                                      ctth, nwp_obj, imagerAngObj, cpp, nwp_segments,  SETTINGS)
+    cl_matchup = match_cloudsat_imager(cloudsat, cloudproducts,  SETTINGS)
     return cl_matchup
 
-def get_iss_matchups(iss_files, imagerGeoObj, imagerObj,
-                     ctype, cma, ctth, nwp_obj, imagerAngObj, 
-                     cpp, nwp_segments,  SETTINGS):
+def get_iss_matchups(iss_files, cloudproducts,  SETTINGS):
     """
     Read Iss data and match with the given PPS data.
     """
-    iss = reshapeIss(iss_files, imagerGeoObj,  SETTINGS)
-    cl_matchup = match_iss_imager(iss,
-                                 imagerGeoObj, imagerObj, ctype, cma,
-                                 ctth, nwp_obj, imagerAngObj, cpp, nwp_segments,  SETTINGS)
+    iss = reshapeIss(iss_files, cloudproducts,  SETTINGS)
+    cl_matchup = match_iss_imager(iss, cloudproducts,  SETTINGS)
     return cl_matchup
 
-def get_amsr_matchups(amsr_files, imagerGeoObj, imagerObj,
-                     ctype, cma, ctth, nwp_obj, imagerAngObj, 
-                     cpp, nwp_segments,  SETTINGS):
+def get_amsr_matchups(amsr_files, cloudproducts,  SETTINGS):
     """
     Read Amsr data and match with the given PPS data.
     """
-    amsr = reshapeAmsr(amsr_files, imagerGeoObj,  SETTINGS)
-    am_matchup = match_amsr_imager(amsr,
-                                  imagerGeoObj, imagerObj, ctype, cma,
-                                  ctth, nwp_obj, imagerAngObj, cpp, nwp_segments,  SETTINGS)
+    amsr = reshapeAmsr(amsr_files, cloudproducts,  SETTINGS)
+    am_matchup = match_amsr_imager(amsr, cloudproducts,  SETTINGS)
     return am_matchup
 
-def get_synop_matchups(synop_files, imagerGeoObj, imagerObj,
-                       ctype, cma, ctth, nwp_obj, imagerAngObj, 
-                       cpp, nwp_segments,  SETTINGS):
+def get_synop_matchups(synop_files, cloudproducts,  SETTINGS):
     """
     Read Synop data and match with the given PPS data.
     """
-    synop = reshapeSynop(synop_files, imagerGeoObj,  SETTINGS)
-    synop_matchup = match_synop_imager(synop,
-                                  imagerGeoObj, imagerObj, ctype, cma,
-                                  ctth, nwp_obj, imagerAngObj, cpp, nwp_segments,  SETTINGS)
+    synop = reshapeSynop(synop_files, cloudproducts,  SETTINGS)
+    synop_matchup = match_synop_imager(synop, cloudproducts,  SETTINGS)
     return synop_matchup
 
-def get_mora_matchups(mora_files, imagerGeoObj, imagerObj,
-                       ctype, cma, ctth, nwp_obj, imagerAngObj, 
-                       cpp, nwp_segments, SETTINGS):
+def get_mora_matchups(mora_files, cloudproducts, SETTINGS):
     """
     Read Mora data and match with the given PPS data.
     """
-    mora = reshapeMora(mora_files, imagerGeoObj,  SETTINGS)
-    mora_matchup = match_mora_imager(mora,
-                                  imagerGeoObj, imagerObj, ctype, cma,
-                                  ctth, nwp_obj, imagerAngObj, cpp, nwp_segments,  SETTINGS)
+    mora = reshapeMora(mora_files, cloudproducts,  SETTINGS)
+    mora_matchup = match_mora_imager(mora, cloudproducts,  SETTINGS)
     return mora_matchup
 
 
 
 def get_calipso_matchups(calipso_files, values, 
-                         imagerGeoObj, imagerObj, ctype, cma,  ctth, 
-                         nwp_obj, imagerAngObj, AM_PATHS, SETTINGS, cpp=None, 
-                         nwp_segments=None, cafiles1km=None, cafiles5km=None, 
+                         cloudproducts, 
+                         AM_PATHS, SETTINGS, 
+                         cafiles1km=None, cafiles5km=None, 
                          cafiles5km_aerosol=None):
     """
     Read Calipso data and match with the given PPS data.
@@ -656,16 +636,16 @@ def get_calipso_matchups(calipso_files, values,
     #before cutting the data that fits the time condition.
     #It is unnessecary to do this for files where no-pixel will match!
     calipso_files = discardCalipsoFilesOutsideTimeRange(
-        calipso_files, imagerGeoObj, values, SETTINGS)
+        calipso_files, cloudproducts, values, SETTINGS)
     if cafiles1km is not None:
         cafiles1km = discardCalipsoFilesOutsideTimeRange(
-            cafiles1km, imagerGeoObj, values, SETTINGS, res=1)
+            cafiles1km, cloudproducts, values, SETTINGS, res=1)
     if cafiles5km is not None:
         cafiles5km = discardCalipsoFilesOutsideTimeRange(
-            cafiles5km, imagerGeoObj, values, SETTINGS, res=5)
+            cafiles5km, cloudproducts, values, SETTINGS, res=5)
     if cafiles5km_aerosol is not None:
         cafiles5km_aerosol = discardCalipsoFilesOutsideTimeRange(
-            cafiles5km_aerosol, imagerGeoObj, values, SETTINGS, res=5, ALAY=True)
+            cafiles5km_aerosol, cloudproducts, values, SETTINGS, res=5, ALAY=True)
     CALIPSO_version = 4
     if len(calipso_files)>0 and 'V3' in os.path.basename(calipso_files[0]):
         logger.info("CALIPSO version 3 data!")
@@ -673,7 +653,7 @@ def get_calipso_matchups(calipso_files, values,
 
     calipso  = reshapeCalipso(calipso_files)
     #find time breakpoints, but don't cut the data yet ..
-    startBreak, endBreak = find_break_points(calipso,  imagerGeoObj, SETTINGS)
+    startBreak, endBreak = find_break_points(calipso,  cloudproducts, SETTINGS)
     if cafiles1km is not None and CALIPSO_version == 3 and config.RESOLUTION == 5:
         #RESOLUTION 5km also have 1km data
         logger.info("Calipso version 3 data used and old 1 km restore method!")
@@ -750,10 +730,7 @@ def get_calipso_matchups(calipso_files, values,
         
     logger.debug("Matching CALIPSO with imager")
     ca_matchup = match_calipso_imager(values, calipso, calipso_aerosol,
-                                      imagerGeoObj, imagerObj, ctype, cma,
-                                      ctth, cpp, nwp_obj, imagerAngObj, 
-                                      nwp_segments, SETTINGS)
-
+                                      cloudproducts, SETTINGS)
     return ca_matchup
 def read_cloud_cci(imager_file):
     from imager_cloud_products.read_cloudproducts_cci import cci_read_all
@@ -1091,28 +1068,21 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
    
     #STEP 3 Read imager data:    
     if (PPS_VALIDATION ):
-        retv =read_pps_data(pps_files, imager_file, SETTINGS)
-        (imagerAngObj, ctth, imagerGeoObj, ctype, imagerObj, 
-         nwp_obj, cpp, nwp_segments, cma )= retv
+        cloudproducts =read_pps_data(pps_files, imager_file, SETTINGS)
         if os.path.isfile(SETTINGS['CNN_PCKL_PATH']):
             from utils.pps_prototyping_util import add_cnn_features_full
-            imagerObj.cnn_dict = add_cnn_features_full(imagerObj, imagerGeoObj, SETTINGS)
+            imagerObj.cnn_dict = add_cnn_features_full(cloudproducts.imager_channeldata, 
+                                                       cloudproducts, 
+                                                       SETTINGS)
     if (CCI_CLOUD_VALIDATION):
-        imagerAngObj, ctth, imagerGeoObj, ctype, imagerObj, surftemp, cpp, cma = read_cloud_cci(imager_file)
-        nwp_segments = None
-        nwp_obj = NWPObj({'surftemp':surftemp}) 
-        imagerGeoObj.satellite = values["satellite"]
+        cloudproducts = read_cloud_cci(imager_file) 
+        cloudproducts.satellite = values["satellite"]
     if (MAIA_VALIDATION):
-        imagerAngObj, ctth, imagerGeoObj, ctype, imagerObj, surftemp, cpp, cma = read_cloud_maia(imager_file)
-        nwp_segments = None
-        nwp_obj = NWPObj({'surftemp':surftemp})   
-        imagerGeoObj.satellite = values["satellite"]
+        cloudproducts = read_cloud_maia(imager_file)  
+        cloudproducts.satellite = values["satellite"]
     if (PATMOSX_VALIDATION):
-        imagerAngObj, ctth, imagerGeoObj, ctype, imagerObj, surftemp, cpp, cma = read_cloud_patmosx(
-            imager_file, cross, SETTINGS)
-        nwp_segments = None
-        nwp_obj = NWPObj({'surftemp':surftemp})   
-        imagerGeoObj.satellite = values["satellite"]
+        cloudproducts = read_cloud_patmosx(imager_file, cross, SETTINGS)
+        cloudproducts.satellite = values["satellite"]
     #STEP 4 get matchups 
     #ClloudSat
     cloudsat_matchup = None
@@ -1121,56 +1091,42 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
         logger.info("Read CLOUDSAT data")
         cloudsat_matchup = get_cloudsat_matchups(truth_files['cloudsat'],
                                                  truth_files['cloudsat_lwp'],
-                                                 imagerGeoObj, imagerObj, ctype, cma,
-                                           ctth, nwp_obj, imagerAngObj, cpp, 
-                                                 nwp_segments, SETTINGS) 
+                                                 cloudproducts, SETTINGS) 
     #ISS:  
     iss_matchup = None
     if (PPS_VALIDATION and SETTINGS['ISS_MATCHING'] and  
         truth_files['iss'] is not None):
         logger.info("Read ISS data")
         iss_matchup = get_iss_matchups(truth_files['iss'],
-                                       imagerGeoObj, imagerObj, ctype, cma,
-                                       ctth, nwp_obj, imagerAngObj, cpp, 
-                                       nwp_segments, SETTINGS)
+                                       cloudproducts, SETTINGS)
     #AMSR
     amsr_matchup = None
     if (PPS_VALIDATION and SETTINGS['AMSR_MATCHING'] and 
         truth_files['amsr'] is not None):
         logger.info("Read AMSR data")
         amsr_matchup = get_amsr_matchups(truth_files['amsr'],
-                                         imagerGeoObj, imagerObj, ctype, cma,
-                                         ctth, nwp_obj, imagerAngObj, cpp, 
-                                         nwp_segments, SETTINGS)
+                                         cloudproducts, SETTINGS)
     #SYNOP
     synop_matchup = None
     if (PPS_VALIDATION and SETTINGS['SYNOP_MATCHING'] and 
         truth_files['synop'] is not None):
         logger.info("Read SYNOP data")
         synop_matchup = get_synop_matchups(truth_files['synop'], 
-                                           imagerGeoObj, imagerObj, ctype, cma,
-                                           ctth, nwp_obj, imagerAngObj, cpp, 
-                                           nwp_segments, SETTINGS)
+                                           cloudproducts, SETTINGS)
     #MORA
     mora_matchup = None
     if (PPS_VALIDATION and SETTINGS['MORA_MATCHING'] and truth_files['mora'] is not None):
         logger.info("Read MORA data")
         mora_matchup = get_mora_matchups(truth_files['mora'],
-                                         imagerGeoObj, imagerObj, ctype, cma,
-                                         ctth, nwp_obj, imagerAngObj, cpp, 
-                                         nwp_segments, SETTINGS)
+                                         cloudproducts, SETTINGS)
     #CALIPSO:
     calipso_matchup = None
     if SETTINGS['CALIPSO_MATCHING'] and truth_files['calipso'] is not None:
         logger.info("Read CALIPSO data")        
         calipso_matchup= get_calipso_matchups(truth_files['calipso'],
                                               values,
-                                              imagerGeoObj, imagerObj, 
-                                              ctype, cma, ctth, 
-                                              nwp_obj, imagerAngObj, 
+                                              cloudproducts,
                                               AM_PATHS, SETTINGS,
-                                              cpp,
-                                              nwp_segments,
                                               calipso1km, calipso5km, calipso5km_aerosol)
  
     if calipso_matchup is None and SETTINGS['CALIPSO_REQUIRED']:
@@ -1230,7 +1186,7 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
         if SETTINGS['ADD_NWP']:
             import pps_nwp
             from libs.extract_imager_along_track import _interpolate_height_and_temperature_from_pressure
-            nwp_file = find_closest_nwp_file(imagerGeoObj, AM_PATHS, 
+            nwp_file = find_closest_nwp_file(cloudproducts, AM_PATHS, 
                                              values, SETTINGS)
             logger.debug(nwp_file)
             if pps_nwp is None:

@@ -89,6 +89,29 @@ def createImagerTime(Obt, values=None, Trust_sec_1970=False):
     return Obt
     
 
+class AllImagerData(object):
+    def __init__(self, array_dict=None):
+        self.latitude = None
+        self.longitude = None
+        self.nodata = None #latlon nodata
+        self.sec1970_end = None
+        self.sec1970_start = None
+        self.time = None
+        self.num_of_lines = None
+        self.instrument = "imager"
+        #self.imager_geo = None
+        self.imager_angles = None
+        self.imager_channeldata = None
+        self.ctype = None
+        self.cma = None
+        self.ctth = None
+        self.nwp = NWPObj({'surftemp': None})
+        self.cpp = None 
+        self.nwp_segments = None
+        if array_dict is not None:
+            self.__dict__.update(array_dict) 
+
+    
 class NWPObj(object):
     def __init__(self, array_dict):
         self.surftemp = None
@@ -148,14 +171,6 @@ class imagerAngObj(object):
         self.satazimuth = smallDataObject()
         self.sunazimuth = smallDataObject()
         self.azidiff = smallDataObject()
-
-class imagerGeoObj(object):
-    def __init__(self):
-        self.latitude = None
-        self.longitude = None
-        self.azidiff = None
-        self.num_of_lines = None
-        self.instrument = "imager"
 
 class NewImagerData:
     def __init__(self):
@@ -538,23 +553,22 @@ def read_pps_angobj_h5(filename):
 def read_pps_geoobj_nc(pps_nc):
     """Read geolocation and time info from filename
     """
-    GeoObj = imagerGeoObj()
-
+    all_imager_obj = AllImagerData()
 
     longitude = pps_nc.variables['lon'][::]
     if np.ma.is_masked(longitude):
-        GeoObj.longitude = pps_nc.variables['lon'][::].data
-        GeoObj.longitude[longitude.mask] = -999.0
+        all_imager_obj.longitude = pps_nc.variables['lon'][::].data
+        all_imager_obj.longitude[longitude.mask] = -999.0
     else: 
-        GeoObj.longitude = longitude
+        all_imager_obj.longitude = longitude
     latitude = pps_nc.variables['lat'][::]
     if np.ma.is_masked(latitude):
-        GeoObj.latitude = pps_nc.variables['lat'][::].data
-        GeoObj.latitude[latitude.mask] = -999.0
+        all_imager_obj.latitude = pps_nc.variables['lat'][::].data
+        all_imager_obj.latitude[latitude.mask] = -999.0
     else: 
-        GeoObj.latitude = latitude
-    GeoObj.nodata = pps_nc.variables['lon']._FillValue
-    GeoObj.num_of_lines = GeoObj.latitude.shape[0]
+        all_imager_obj.latitude = latitude
+    all_imager_obj.nodata = pps_nc.variables['lon']._FillValue
+    all_imager_obj.num_of_lines = all_imager_obj.latitude.shape[0]
     #import pdb
     #pdb.set_trace()
     time_temp = pps_nc.variables['time'].units #to 1970 s
@@ -568,42 +582,42 @@ def read_pps_geoobj_nc(pps_nc):
  
     sec_since_1970 = calendar.timegm(time_obj)
 
-    GeoObj.sec1970_start = (sec_since_1970 +
+    all_imager_obj.sec1970_start = (sec_since_1970 +
                             np.float64(np.min(pps_nc.variables['time_bnds'][::])) + 
                             seconds)
-    GeoObj.sec1970_end = (sec_since_1970 + 
+    all_imager_obj.sec1970_end = (sec_since_1970 + 
                           np.float64(np.max(pps_nc.variables['time_bnds'][::])) + 
                           seconds)
-    #print type(GeoObj.sec1970_start)
-    GeoObj.sec1970_start = np.float64(GeoObj.sec1970_start)
-    GeoObj.sec1970_end = np.float64(GeoObj.sec1970_end)
-    do_some_geo_obj_logging(GeoObj)
-    return  GeoObj
+    #print type(all_imager_obj.sec1970_start)
+    all_imager_obj.sec1970_start = np.float64(all_imager_obj.sec1970_start)
+    all_imager_obj.sec1970_end = np.float64(all_imager_obj.sec1970_end)
+    do_some_geo_obj_logging(all_imager_obj)
+    return  all_imager_obj
 
 def read_pps_geoobj_h5(filename):
     """Read geolocation and time info from filename
     """
     h5file = h5py.File(filename, 'r')
-    GeoObj = imagerGeoObj()
+    all_imager_obj = AllImagerData()
     in_fillvalue1 = h5file['where/lon/what'].attrs['nodata']
     in_fillvalue2 = h5file['where/lon/what'].attrs['missingdata']
-    GeoObj.nodata = -999.0
+    all_imager_obj.nodata = -999.0
     gain = h5file['where/lon/what'].attrs['gain']
     intercept = h5file['where/lon/what'].attrs['offset']
-    GeoObj.longitude = h5file['where/lon']['data'].value*gain + intercept
-    GeoObj.latitude = h5file['where/lat']['data'].value*gain + intercept
+    all_imager_obj.longitude = h5file['where/lon']['data'].value*gain + intercept
+    all_imager_obj.latitude = h5file['where/lat']['data'].value*gain + intercept
 
-    GeoObj.longitude[h5file['where/lon']['data'].value==in_fillvalue1] = GeoObj.nodata
-    GeoObj.latitude[h5file['where/lat']['data'].value==in_fillvalue1] = GeoObj.nodata
-    GeoObj.longitude[h5file['where/lon']['data'].value==in_fillvalue2] = GeoObj.nodata
-    GeoObj.latitude[h5file['where/lat']['data'].value==in_fillvalue2] = GeoObj.nodata
+    all_imager_obj.longitude[h5file['where/lon']['data'].value==in_fillvalue1] = all_imager_obj.nodata
+    all_imager_obj.latitude[h5file['where/lat']['data'].value==in_fillvalue1] = all_imager_obj.nodata
+    all_imager_obj.longitude[h5file['where/lon']['data'].value==in_fillvalue2] = all_imager_obj.nodata
+    all_imager_obj.latitude[h5file['where/lat']['data'].value==in_fillvalue2] = all_imager_obj.nodata
 
-    GeoObj.num_of_lines = GeoObj.latitude.shape[0]
-    GeoObj.sec1970_start = h5file['how'].attrs['startepochs']
-    GeoObj.sec1970_end =  h5file['how'].attrs['endepochs']
-    do_some_geo_obj_logging(GeoObj)
+    all_imager_obj.num_of_lines = all_imager_obj.latitude.shape[0]
+    all_imager_obj.sec1970_start = h5file['how'].attrs['startepochs']
+    all_imager_obj.sec1970_end =  h5file['how'].attrs['endepochs']
+    do_some_geo_obj_logging(all_imager_obj)
 
-    return  GeoObj
+    return  all_imager_obj
 
 def read_cpp_h5(filename):
     density = 1e3
@@ -971,85 +985,84 @@ def read_all_intermediate_files(pps_files, SETTINGS):
     nwp_obj = NWPObj(nwp_dict)
     return nwp_obj
 
+
 def pps_read_all(pps_files, imager_file, SETTINGS):
     logger.info("Read Imager geolocation data")
     if '.nc' in imager_file:
         pps_nc = netCDF4.Dataset(imager_file, 'r', format='NETCDF4')
-        imagerGeoObj = read_pps_geoobj_nc(pps_nc)
+        cloudproducts = read_pps_geoobj_nc(pps_nc)
     else:    
         #use mpop?
-        imagerGeoObj = read_pps_geoobj_h5(imager_file)  
+        cloudproducts = read_pps_geoobj_h5(imager_file)  
     #create time info for each pixel  
     values = get_satid_datetime_orbit_from_fname_pps(imager_file)  
-    imagerGeoObj = createImagerTime(imagerGeoObj, values)
+    cloudproducts = createImagerTime(cloudproducts, values)
     logger.info("Read sun and satellites angles data")
     if '.nc' in pps_files.sunsatangles:
         pps_nc_ang = netCDF4.Dataset(pps_files.sunsatangles, 'r', format='NETCDF4')
-        imagerAngObj = read_pps_angobj_nc(pps_nc_ang)
+        cloudproducts.imager_angles = read_pps_angobj_nc(pps_nc_ang)
         pps_nc_ang.close()
     else:
         #use mpop?
-        imagerAngObj = read_pps_angobj_h5(pps_files.sunsatangles)
+        cloudproducts.imager_angles = read_pps_angobj_h5(pps_files.sunsatangles)
     logger.info("Read Imager data")
     if '.nc' in imager_file:
-        imagerObj = readImagerData_nc(pps_nc)
+        cloudproducts.imager_channeldata = readImagerData_nc(pps_nc)
         pps_nc.close()
     else:
-        imagerObj = readImagerData_h5(imager_file)
+        cloudproducts.imager_channeldata = readImagerData_h5(imager_file)
     for imager in ["avhrr", "viirs", "modis", "seviri"]:
         if imager in os.path.basename(imager_file):
-            imagerGeoObj.instrument = imager
+            cloudproducts.instrument = imager
     logger.debug("%s, %s, %s", pps_files.cloudtype, pps_files.ctth, pps_files.cma)
 
     #CPP
-    cpp = None
     if pps_files.cpp is not None:
         logger.info("Read CPP data")
         if '.nc' in pps_files.cpp:          
-            cpp = read_cpp_nc(pps_files.cpp)
+            cloudproducts.cpp = read_cpp_nc(pps_files.cpp)
         else:            
-            cpp = read_cpp_h5(pps_files.cpp)    
+            cloudproducts.cpp = read_cpp_h5(pps_files.cpp)    
     #CMA
-    cma = None
     if pps_files.cma is not None:
         logger.info("Read PPS Cloud mask")
         logger.debug(pps_files.cma )
         if '.nc' in pps_files.cma:
-            cma = read_cma_nc(pps_files.cma)
+            cloudproducts.cma = read_cma_nc(pps_files.cma)
         else:
-            cma = read_cma_h5(pps_files.cma)  
+            cloudproducts.cma = read_cma_h5(pps_files.cma)  
     #CMAPROB
     if pps_files.cmaprob is not None:
         logger.info("Read PPS Cloud mask prob")
         if '.nc' in pps_files.cmaprob:
-            cma = read_cmaprob_nc(pps_files.cmaprob, cma)
+            cloudproducts.cma = read_cmaprob_nc(pps_files.cmaprob, cma)
         else:
-            cma = read_cmaprob_h5(pps_files.cmaprob, cma)
+            cloudproducts.cma = read_cmaprob_h5(pps_files.cmaprob, cma)
     #CTYPE
-    ctype = None
     if pps_files.cloudtype is not None:
         logger.info("Read PPS Cloud type")        
         if '.nc' in pps_files.cloudtype:
-            ctype = read_cloudtype_nc(pps_files.cloudtype)
+            cloudproducts.ctype = read_cloudtype_nc(pps_files.cloudtype)
         else:
-            ctype = read_cloudtype_h5(pps_files.cloudtype)
+            cloudproducts.ctype = read_cloudtype_h5(pps_files.cloudtype)
     #CTTH        
-    ctth = None
     CTTH_TYPES = SETTINGS["CTTH_TYPES"]
     if len(pps_files.ctth.keys())>=1:
         logger.info("Read PPS CTTH")
         if '.nc' in pps_files.ctth[CTTH_TYPES[0]]:
             #read first ctth as primary one
-            ctth = read_ctth_nc(pps_files.ctth[CTTH_TYPES[0]])
+            cloudproducts.ctth = read_ctth_nc(pps_files.ctth[CTTH_TYPES[0]])
         else:            
-            ctth = read_ctth_h5(pps_files.ctth[CTTH_TYPES[0]])
+            cloudproducts.ctth = read_ctth_h5(pps_files.ctth[CTTH_TYPES[0]])
 
     logger.info("Read PPS full resolution intermediate files")
     nwp_obj = read_all_intermediate_files(pps_files, SETTINGS)
   
     logger.info("Read PPS NWP segment resolution data") 
-    segment_data_object = read_segment_data(getattr(pps_files,'nwp_segments'))
-    return imagerAngObj, ctth, imagerGeoObj, ctype, imagerObj, nwp_obj, cpp, segment_data_object, cma 
+    cloudproducts.nwp_segments = read_segment_data(getattr(pps_files,'nwp_segments'))
+                               
+    return cloudproducts
+
 
 if __name__ == "__main__":
     pass
