@@ -105,7 +105,7 @@ import config
 
 from utils.common import MatchupError, ProcessingError
 
-from libs.truth_imager_statistics import (CalculateStatistics)
+from libs.truth_imager_statistics_lib import (CalculateStatistics)
 from plotting.trajectory_plotting import plotSatelliteTrajectory
 from plotting.along_track_plotting import (drawCalClsatImagerPlotTimeDiff,
                                            drawCalClsatGEOPROFImagerPlot, 

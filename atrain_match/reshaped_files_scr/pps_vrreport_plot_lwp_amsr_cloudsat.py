@@ -24,7 +24,7 @@ from matchobject_io import (readAmsrImagerMatchObj,
                             CloudsatImagerTrackObject)
 import matplotlib.pyplot as plt 
 from utils.validate_lwp_util import get_lwp_diff_inner
-from libs.truth_imager_statistics import get_lwp_diff_inner_cloudsat
+from libs.truth_imager_statistics_lib import get_lwp_diff_inner_cloudsat
 
 from histogram_plotting import atrain_scatter
 from utils.stat_util import (my_hist, my_iqr, my_rms, my_pex, my_mae)
