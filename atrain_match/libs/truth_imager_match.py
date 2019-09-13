@@ -79,21 +79,9 @@ import time
 logger = logging.getLogger(__name__)
 
 import config
+from config import INSTRUMENT
 
 from utils.common import MatchupError, ProcessingError
-
-from plotting.trajectory_plotting import plotSatelliteTrajectory
-from plotting.along_track_plotting import (drawCalClsatImagerPlotTimeDiff,
-                                           drawCalClsatGEOPROFImagerPlot, 
-                                           drawCalClsatImagerPlotSATZ,
-                                           drawCalClsatCWCImagerPlot)
-from truths.calipso import (CalipsoCloudOpticalDepth_new,
-                            #check_total_optical_depth_and_warn,
-                            CalipsoOpticalDepthHeightFiltering,
-                            total_and_top_layer_optical_depth_5km,
-                            CalipsoOpticalDepthSetThinToClearFiltering1km)
-
-from imager_cloud_products.read_cloudproducts_and_nwp_pps import NWPObj
 from truths.cloudsat import (reshapeCloudsat, 
                              match_cloudsat_imager,
                              mergeCloudsat)
@@ -101,22 +89,18 @@ from truths.amsr import (reshapeAmsr, match_amsr_imager)
 from truths.mora import (reshapeMora, match_mora_imager)
 from truths.synop import (reshapeSynop, match_synop_imager)
 from truths.iss import reshapeIss, match_iss_imager
-from truths.calipso import (reshapeCalipso, 
+from truths.calipso import ( #check_total_optical_depth_and_warn,
+                            total_and_top_layer_optical_depth_5km,
+                            reshapeCalipso, 
                             discardCalipsoFilesOutsideTimeRange,
                             match_calipso_imager, 
-                            find_break_points)
+                            find_break_points,
+                            add1kmTo5km,
+                            addSingleShotTo5km,
+                            add5kmVariablesTo1kmresolution,
+                            adjust5kmTo1kmresolution)
 from matchobject_io import (writeTruthImagerMatchObj, 
                             readTruthImagerMatchObj)
-
-from truths.calipso import  (add1kmTo5km,
-                             addSingleShotTo5km,
-                             add5kmVariablesTo1kmresolution,
-                             adjust5kmTo1kmresolution)
-
-
-from config import INSTRUMENT
-
-
 
 class ppsFiles(object):
     def __init__(self, file_name_dict):

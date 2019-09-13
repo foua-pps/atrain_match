@@ -2,18 +2,31 @@ import os
 import sys
 import numpy as np
 import logging
+
+from utils.common import MatchupError
+
 from libs.truth_imager_match import (get_matchups_from_data, 
+                                     find_imager_file,
                                      insert_info_in_filename_or_path,
                                      add_additional_clousat_calipso_index_vars,                                     
                                      add_elevation_corrected_imager_ctth)
 
 from truths.cloudsat import (add_validation_ctth_cloudsat,
                              add_cloudsat_cloud_fraction)
-
-from matchobject_io import (CalipsoObject)
-from truths.calipso import (check_total_optical_depth_and_warn,
-                            add_validation_ctth_calipso)
+from truths.calipso import (CalipsoCloudOpticalDepth_new,
+                            check_total_optical_depth_and_warn,
+                            add_validation_ctth_calipso,
+                            CalipsoOpticalDepthHeightFiltering,
+                            CalipsoOpticalDepthSetThinToClearFiltering1km)
 from libs.truth_imager_statistics_lib import (CalculateStatistics)
+from plotting.trajectory_plotting import plotSatelliteTrajectory
+from plotting.along_track_plotting import (drawCalClsatImagerPlotTimeDiff,
+                                           drawCalClsatGEOPROFImagerPlot, 
+                                           drawCalClsatImagerPlotSATZ,
+                                           drawCalClsatCWCImagerPlot)
+from matchobject_io import (readTruthImagerMatchObj,
+                            CalipsoObject)
+
 logger = logging.getLogger(__name__)
 from config import INSTRUMENT
 import config
@@ -350,7 +363,7 @@ def run(cross, run_modes, AM_PATHS, SETTINGS, reprocess=False):
             if caObj is not None:    
                 check_total_optical_depth_and_warn(caObj)
                 if 'STANDARD' in process_mode:
-                    caObj.calipso.validation_height = CalipsoOpticalDepthHeightFiltering(caObj)[0]
+                    caObj.calipso.validation_height = CalipsoOpticalDepthHeightFiltering(caObj)
             if  caObj is not None and process_mode == 'OPTICAL_DEPTH_THIN_IS_CLEAR':
                 logger.info("Setting thin clouds to clear, "
                             "using 5km data in mode OPTICAL_DEPTH_THIN_IS_CLEAR")

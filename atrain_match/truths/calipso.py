@@ -681,6 +681,10 @@ def check_total_optical_depth_and_warn(caObj):
         #print obj.layer_base_altitude[0,badPix]
 
 def CalipsoOpticalDepthHeightFiltering(CaObj):
+    if CaObj.calipso.detection_height_5km is None:
+        logger.warning("Reprocess matchups with CALCULATE_DETECTION_HEIGHT_FROM_5KM_DATA = True")
+        raise ProcessingError("No detection_height_5km in rehsaped file!")
+
     #Should all layers be updated???
     new_cloud_tops = np.where(
         CaObj.calipso.layer_top_altitude[:,0]*1000 > CaObj.calipso.detection_height_5km,
