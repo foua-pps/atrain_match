@@ -38,16 +38,16 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 from utils.common import (InputError, MatchupError)
 import config
-from libs import truth_imager_make_statistics
+from libs import truth_imager_match
 from utils.common import Cross
 from utils.runutils import  parse_scenesfile_reshaped
 from utils.runutils import  parse_scenesfile_maia
-from utils.runutils import  parse_scene
+from utils.runutils import parse_scene
 from utils.runutils import  parse_scenesfile_cci
 from utils.runutils import  parse_scenesfile_v2014
 
 
-def process_matchups(matchups, run_modes, reprocess=False, debug=False):
+def process_matchups(matchups, reprocess=False, debug=False):
     """
     Run the given *matchups* through the validation system.
     
@@ -65,7 +65,7 @@ def process_matchups(matchups, run_modes, reprocess=False, debug=False):
     outstatus = 0
     for match in matchups:
         try:
-            truth_imager_make_statistics.run(match, run_modes,  AM_PATHS, SETTINGS, reprocess)
+            truth_imager_match.run(match, AM_PATHS, SETTINGS, reprocess)
         except MatchupError as err:
             logger.warning("Matchup problem: %s", str(err))
             import traceback
@@ -105,8 +105,6 @@ def main():
     import argparse
     parser = argparse.ArgumentParser()
     group = parser.add_mutually_exclusive_group(required=True)
-    parser.add_argument('--mode', '-M', type=str, required=False, choices=config.ALLOWED_MODES,
-                      help=("Run validation software in MODE "))
     parser.add_argument('--reprocess', '-r', const=True, nargs='?', required=False,
                         help="Disregard any previously generated Cloudsat- and "
                         "Calipso-IMAGER matchup files.")
@@ -124,17 +122,11 @@ def main():
     group.add_argument( '--maia_product_file', '-mf', 
                       help="Interpret arguments as inputfile with "  
                       "list of maia files")
-    # Consider having this as the only option in future
-    # Matchup files are made with process_master_only_match.py
     group.add_argument('--reshaped_product_file', '-rf', 
                       help="Interpret arguments as reshaped_output_file")
     options = parser.parse_args()
     
-    if options.mode is not None:
-        run_modes = [options.mode]
-    else:
-        run_modes = config.ALLOWED_MODES
-
+  
     reprocess = False    
     if options.reprocess is not None:
         reprocess = options.reprocess
@@ -187,7 +179,7 @@ def main():
                 #print time
                 matchups.append(Cross(satname, time))
 
-    process_matchups(matchups, run_modes, reprocess, options.debug)
+    process_matchups(matchups, reprocess, options.debug)
     
     return 0
 

@@ -36,6 +36,17 @@ _validation_results_dir = os.environ.get(
   "/nobackup/smhid12/atrain_match_test_CALIPSOv4")
 ATRAIN_MATCH_CONFIG_PATH = os.environ.get('ATRAINMATCH_CONFIG_DIR', './etc')
 
+#All non-imager satellites need to be here. Imager is default.
+INSTRUMENT = {'npp': 'viirs',
+              'noaa18': 'avhrr',
+              'meteosat8': 'seviri',
+              'meteosat9': 'seviri',
+              'meteosat10': 'seviri',
+              'meteosat11': 'seviri',
+              'noaa20': 'viirs',
+              'eos1': 'modis',
+              'eos2': 'modis'} 
+
 #========== Process modes ==========#
 #: Processing modes which can be handled for all resolutions
 ALLOWED_MODES = ['BASIC', 'STANDARD']
