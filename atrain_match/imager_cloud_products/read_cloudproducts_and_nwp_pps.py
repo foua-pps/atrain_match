@@ -78,7 +78,7 @@ def get_satid_datetime_orbit_from_fname_pps(imager_filename,as_oldstyle=False):
     return values    
         
 
-def create_imager_time(obt, values=None, Trust_sec_1970=False):
+def create_imager_time(obt, values=None):
     """ Function to make crate a matrix with time for each pixel 
     from objects start anf end time """
     if obt.sec1970_start < 0:

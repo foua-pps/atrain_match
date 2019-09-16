@@ -141,7 +141,7 @@ class ppsFiles(object):
 def get_time_list(cross_time, time_window, delta_t_in_seconds):
     tlist = []
     delta_t = timedelta(seconds=delta_t_in_seconds) #search per minute!delta_t_in_seconds=60
-    tobj1 = cross_time
+    tobj1 = cross_time #end_time
     tobj2 = cross_time - delta_t
     while (tobj1 <= cross_time + time_window[1] or 
            tobj2 >= cross_time - time_window[0]):
@@ -195,6 +195,7 @@ def find_truth_files_inner(date_time, time_window, AM_PATHS, values, truth='cali
 def get_satid_datetime_orbit_from_fname(filename, SETTINGS, cross=None, as_oldstyle=False):
     from imager_cloud_products.read_cloudproducts_and_nwp_pps import get_satid_datetime_orbit_from_fname_pps
     from imager_cloud_products.read_cloudproducts_cci import get_satid_datetime_orbit_from_fname_cci
+    from imager_cloud_products.read_cloudproducts_oca import get_satid_datetime_orbit_from_fname_oca
     from imager_cloud_products.read_cloudproducts_maia import get_satid_datetime_orbit_from_fname_maia
     from imager_cloud_products.read_cloudproducts_patmosx import get_satid_datetime_orbit_from_fname_patmosx
     #Get satellite name, time, and orbit number from imager_file
@@ -206,6 +207,8 @@ def get_satid_datetime_orbit_from_fname(filename, SETTINGS, cross=None, as_oldst
         values = get_satid_datetime_orbit_from_fname_maia(filename)
     if SETTINGS['PATMOSX_VALIDATION']:
         values = get_satid_datetime_orbit_from_fname_patmosx(filename, SETTINGS, cross)
+    if SETTINGS['OCA_VALIDATION']:
+        values = get_satid_datetime_orbit_from_fname_oca(filename, SETTINGS, cross)
     return values
 
 
@@ -288,6 +291,14 @@ def find_cci_cloud_file(cross, AM_PATHS):
     if not found_file:
         raise MatchupError("No dir or file found with cci cloud data!\n" + 
                            "Searching under %s" % AM_PATHS['cci_dir'])
+    return found_file, tobj
+def find_oca_cloud_file(cross, AM_PATHS):
+    found_file, tobj= find_imager_file(cross, 
+                                      AM_PATHS['oca_dir'], 
+                                      AM_PATHS['oca_file'])
+    if not found_file:
+        raise MatchupError("No dir or file found with oca cloud data!\n" + 
+                           "Searching under %s" % AM_PATHS['oca_dir'])
     return found_file, tobj
 def find_maia_cloud_file(cross, AM_PATHS):
     found_file, tobj= find_imager_file(cross, 
@@ -683,7 +694,9 @@ def get_calipso_matchups(calipso_files, values,
 def read_cloud_cci(imager_file):
     from imager_cloud_products.read_cloudproducts_cci import cci_read_all
     return cci_read_all(imager_file)
-
+def read_cloud_oca(imager_file):
+    from imager_cloud_products.read_cloudproducts_oca import oca_read_all
+    return oca_read_all(imager_file)
 def read_cloud_maia(imager_file):
     from imager_cloud_products.read_cloudproducts_maia import maia_read_all
     return maia_read_all(imager_file)
@@ -964,21 +977,18 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
     Retrieve Cloudsat- and Calipso-IMAGER matchups from Cloudsat, Calipso, and
     PPS files.
     """
-    PPS_VALIDATION = SETTINGS['PPS_VALIDATION']
-    MAIA_VALIDATION = SETTINGS['MAIA_VALIDATION']
-    PATMOSX_VALIDATION = SETTINGS['PATMOSX_VALIDATION']
-    CCI_CLOUD_VALIDATION = SETTINGS['CCI_CLOUD_VALIDATION']
-
     #STEP 1 get imager files
-    if PPS_VALIDATION:
+    if SETTINGS['PPS_VALIDATION']:
         imager_file, tobj = find_radiance_file(cross, AM_PATHS)
         pps_files = find_files_from_imager(imager_file, AM_PATHS, SETTINGS) 
-    if CCI_CLOUD_VALIDATION:
+    if SETTINGS['CCI_CLOUD_VALIDATION']:
         imager_file, tobj = find_cci_cloud_file(cross, AM_PATHS)
-    if MAIA_VALIDATION:
+    if SETTINGS['MAIA_VALIDATION']:
         imager_file, tobj = find_maia_cloud_file(cross, AM_PATHS)
-    if PATMOSX_VALIDATION:
+    if SETTINGS['PATMOSX_VALIDATION']:
         imager_file, tobj = find_patmosx_cloud_file(cross, AM_PATHS)
+    if SETTINGS['OCA_VALIDATION']:
+        imager_file, tobj = find_oca_cloud_file(cross, AM_PATHS)
     if not imager_file:
         raise MatchupError("No imager file found!\ncross = " + str(cross))
     values = get_satid_datetime_orbit_from_fname(imager_file, SETTINGS, cross)
@@ -1005,26 +1015,30 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
 
    
     #STEP 3 Read imager data:    
-    if (PPS_VALIDATION ):
+    if (SETTINGS['PPS_VALIDATION'] ):
         cloudproducts =read_pps_data(pps_files, imager_file, SETTINGS)
         if os.path.isfile(SETTINGS['CNN_PCKL_PATH']):
             from utils.pps_prototyping_util import add_cnn_features_full
             imager_obj.cnn_dict = add_cnn_features_full(cloudproducts.imager_channeldata, 
                                                        cloudproducts, 
                                                        SETTINGS)
-    if (CCI_CLOUD_VALIDATION):
+    if (SETTINGS['CCI_CLOUD_VALIDATION']):
         cloudproducts = read_cloud_cci(imager_file) 
         cloudproducts.satellite = values["satellite"]
-    if (MAIA_VALIDATION):
+    if (SETTINGS['MAIA_VALIDATION']):
         cloudproducts = read_cloud_maia(imager_file)  
         cloudproducts.satellite = values["satellite"]
-    if (PATMOSX_VALIDATION):
+    if (SETTINGS['PATMOSX_VALIDATION']):
         cloudproducts = read_cloud_patmosx(imager_file, cross, SETTINGS)
         cloudproducts.satellite = values["satellite"]
+    if (SETTINGS['OCA_VALIDATION']):
+        cloudproducts = read_cloud_oca(imager_file)
+        cloudproducts.satellite = values["satellite"]
+
     #STEP 4 get matchups 
     #ClloudSat
     cloudsat_matchup = None
-    if (PPS_VALIDATION and SETTINGS['CLOUDSAT_MATCHING'] and 
+    if (SETTINGS['PPS_VALIDATION'] and SETTINGS['CLOUDSAT_MATCHING'] and 
         truth_files['cloudsat'] is not None):
         logger.info("Read CLOUDSAT data")
         cloudsat_matchup = get_cloudsat_matchups(truth_files['cloudsat'],
@@ -1032,28 +1046,28 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
                                                  cloudproducts, SETTINGS) 
     #ISS:  
     iss_matchup = None
-    if (PPS_VALIDATION and SETTINGS['ISS_MATCHING'] and  
+    if (SETTINGS['PPS_VALIDATION'] and SETTINGS['ISS_MATCHING'] and  
         truth_files['iss'] is not None):
         logger.info("Read ISS data")
         iss_matchup = get_iss_matchups(truth_files['iss'],
                                        cloudproducts, SETTINGS)
     #AMSR
     amsr_matchup = None
-    if (PPS_VALIDATION and SETTINGS['AMSR_MATCHING'] and 
+    if (SETTINGS['PPS_VALIDATION'] and SETTINGS['AMSR_MATCHING'] and 
         truth_files['amsr'] is not None):
         logger.info("Read AMSR data")
         amsr_matchup = get_amsr_matchups(truth_files['amsr'],
                                          cloudproducts, SETTINGS)
     #SYNOP
     synop_matchup = None
-    if (PPS_VALIDATION and SETTINGS['SYNOP_MATCHING'] and 
+    if (SETTINGS['PPS_VALIDATION'] and SETTINGS['SYNOP_MATCHING'] and 
         truth_files['synop'] is not None):
         logger.info("Read SYNOP data")
         synop_matchup = get_synop_matchups(truth_files['synop'], 
                                            cloudproducts, SETTINGS)
     #MORA
     mora_matchup = None
-    if (PPS_VALIDATION and SETTINGS['MORA_MATCHING'] and truth_files['mora'] is not None):
+    if (SETTINGS['PPS_VALIDATION'] and SETTINGS['MORA_MATCHING'] and truth_files['mora'] is not None):
         logger.info("Read MORA data")
         mora_matchup = get_mora_matchups(truth_files['mora'],
                                          cloudproducts, SETTINGS)
@@ -1170,6 +1184,8 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
     imager_obj_name = 'pps'
     if SETTINGS['CCI_CLOUD_VALIDATION']:
         imager_obj_name = 'cci'
+    if SETTINGS['OCA_VALIDATION']:
+        imager_obj_name = 'oca'
     if SETTINGS['MAIA_VALIDATION']:
         imager_obj_name = 'maia'
     if SETTINGS['PATMOSX_VALIDATION']:

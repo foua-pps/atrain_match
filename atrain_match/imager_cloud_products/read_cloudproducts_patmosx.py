@@ -93,7 +93,7 @@ def patmosx_read_all_nc(filename, cross, SETTINGS):
     ctype, cma, ctth = read_patmosx_ctype_cmask_ctth(patmosx_nc)
     cloudproducts.cma = cma
     cloudproducts.ctth = ctth
-    cloudproducts.ctype = cype
+    cloudproducts.ctype = ctype
 
     logger.info("Not reading surface temperature")
     logger.info("Not reading cloud microphysical properties")
