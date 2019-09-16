@@ -112,6 +112,6 @@ def match_synop_imager(synop, cloudproducts, SETTINGS):
                                      cloudproducts,
                                      extract_radiances = False,
                                      extract_nwp_segments = False,
-                                     nwp_params = ['fractionofland', 'landuse'],
+                                     aux_params = ['fractionofland', 'landuse'],
                                      find_mean_data_for_x_neighbours=True)
     return retv

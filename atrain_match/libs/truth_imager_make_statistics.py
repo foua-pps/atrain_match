@@ -82,7 +82,7 @@ def get_matchups(cross, AM_PATHS, SETTINGS, reprocess):
         #    if (SETTINGS['CCI_CLOUD_VALIDATION']):
         #        imager_file, tobj = find_cci_cloud_file(cross, AM_PATHS)
         #    if imager_file is not None:
-        #        values_imager = get_satid_datetime_orbit_from_fname(imager_file, SETTINGS, Cross)
+        #        values_imager = get_satid_datetime_orbit_from_fname(imager_file, SETTINGS, cross)
         #        date_time_imager = values_imager["date_time"]
         #        td = date_time_imager-cross.time
         #        diff_imager_seconds=abs(td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6

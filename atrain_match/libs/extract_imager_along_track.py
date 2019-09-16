@@ -377,12 +377,12 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
                               extract_ctth=True,
                               extract_ctype=True,
                               extract_cpp=True,
-                              extract_nwp_segments=True,
-                              extract_nwp=True,  
-                              nwp_params=None,
+                              extract_aux_segments=True,
+                              extract_aux=True,  
+                              aux_params=None,
                               extract_some_data_for_x_neighbours=False,
                               find_mean_data_for_x_neighbours=False):
-    nwp_params_all = ["surftemp", 
+    aux_params_all = ["surftemp", 
                       "t500", "t700", "t850", "t950", "ttro", 
                       "ciwv",
                       "t900", "t1000", "t800", "t250", "t2m", 
@@ -392,11 +392,11 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
                       "landuse", "fractionofland", "elevation",
                       "r37_sza_correction_done"]
 
-    if nwp_params is None:
-        nwp_params = nwp_params_all 
+    if aux_params is None:
+        aux_params = aux_params_all 
         #For amsr-E matching (many neighbors) use only the needed nwp data
 
-    nwp_obj = cloudproducts.nwp
+    aux_obj = cloudproducts.aux
 
 
     imager_obj = cloudproducts.imager_channeldata
@@ -444,9 +444,9 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
             if hasattr(ctype, variable):
                 setattr(obt.imager, outname, 
                         get_data_from_array(getattr(ctype,variable), row_col))
-    for nwp_info in nwp_params:
-        if extract_nwp and hasattr(nwp_obj, nwp_info):
-            data = getattr(nwp_obj, nwp_info)
+    for nwp_info in aux_params:
+        if extract_aux and hasattr(aux_obj, nwp_info):
+            data = getattr(aux_obj, nwp_info)
             if data is not None:
                 setattr(obt.imager, nwp_info, get_data_from_array(data, row_col))
         else:
@@ -454,8 +454,8 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
     CTTH_TYPES = SETTINGS["CTTH_TYPES"]
     if len(CTTH_TYPES)>1 and SETTINGS["PPS_VALIDATION"]:        
         for ctth_type in CTTH_TYPES[1:]:
-            if hasattr(nwp_obj,ctth_type):
-                ctth_obj = getattr(nwp_obj, ctth_type)
+            if hasattr(aux_obj,ctth_type):
+                ctth_obj = getattr(aux_obj, ctth_type)
             else:
                 continue
             for data_set in ["pressure", "temperature", "height"]:
@@ -467,12 +467,12 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
                                             get_warmest_values)
     if imager_obj is not None:
         pass
-        #nwp_obj = get_t11t12_texture_data_from_object(imager_obj, nwp_obj, '11','12', 
+        #aux_obj = get_t11t12_texture_data_from_object(imager_obj, aux_obj, '11','12', 
         #                                              'text_t11t12_square??') 
     for texture in ["text_r06", "text_t11", "text_t37", "text_t37t12", 
                     "text_t37t12_square", "text_t11t12_square", "text_t11t12"]:
-        if hasattr(nwp_obj, texture):
-            data = getattr(nwp_obj, texture)
+        if hasattr(aux_obj, texture):
+            data = getattr(aux_obj, texture)
             setattr(obt.imager, texture, get_data_from_array(data, row_col))
     if imager_obj is not None and SETTINGS["SAVE_NEIGHBOUR_INFO"]:
         neighbour_obj = get_warmest_values(imager_obj, row_col)
@@ -509,12 +509,12 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
                 "thr_t11t12",
                 "thr_r06",
                 "thr_r09"]:
-        if hasattr(nwp_obj, thr):
-            data = getattr(nwp_obj, thr)
+        if hasattr(aux_obj, thr):
+            data = getattr(aux_obj, thr)
             setattr(obt.imager, thr,  get_data_from_array(data, row_col))
     for emis in ["emis1", "emis6", "emis8", "emis9"]:
-        if hasattr(nwp_obj, emis):
-            data = getattr(nwp_obj, emis)
+        if hasattr(aux_obj, emis):
+            data = getattr(aux_obj, emis)
             setattr(obt.imager, emis, get_data_from_array(data, row_col))
     if imager_obj is not None:
         temp_data, info = get_channel_data_from_object(imager_obj, '06', row_col)
@@ -584,7 +584,7 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
                 setattr(obt.imager, data_set_name,  
                         get_data_from_array_nneigh(data, row_col_nneigh))
         for nwp_info in ["landuse", "fractionofland"]:
-            data = getattr(nwp_obj, nwp_info)
+            data = getattr(aux_obj, nwp_info)
             setattr(obt.imager, nwp_info, get_data_from_array_nneigh(data, row_col_nneigh))
     else:
         logger.debug("Extracting cpp along track ")

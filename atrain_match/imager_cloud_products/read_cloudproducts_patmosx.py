@@ -73,19 +73,19 @@ def get_satid_datetime_orbit_from_fname_patmosx(imager_filename, SETTINGS, cross
         values["date"] + "_" + values["time"] + "_" + values["orbit"] + "_" + asc_or_des
     return values
 
-def patmosx_read_all(filename, Cross, SETTINGS):
+def patmosx_read_all(filename, cross, SETTINGS):
     if ".nc" in filename:
-        return patmosx_read_all_nc(filename, Cross, SETTINGS)
+        return patmosx_read_all_nc(filename, cross, SETTINGS)
     else:   
-        return patmosx_read_all_hdf(filename, Cross, SETTINGS)
+        return patmosx_read_all_hdf(filename, cross, SETTINGS)
 
-def patmosx_read_all_nc(filename, Cross, SETTINGS):
+def patmosx_read_all_nc(filename, cross, SETTINGS):
     """Read geolocation, angles info, ctth, and cma
     """
     patmosx_nc = netCDF4.Dataset(filename, 'r', format='NETCDF4')
     logger.info("Opening file %s", filename)
     logger.info("Reading longitude, latitude and time ...")
-    cloudproducts = read_patmosx_geoobj(patmosx_nc, filename, Cross, SETTINGS)
+    cloudproducts = read_patmosx_geoobj(patmosx_nc, filename, cross, SETTINGS)
     logger.info("Reading angles ...")
     cloudproducts.imager_angles = read_patmosx_angobj(patmosx_nc)
     logger.info("Reading cloud type ...")
@@ -154,7 +154,7 @@ def read_patmosx_geoobj(patmosx_nc, filename, cross, SETTINGS):
     return cloudproducts
 
 
-def patmosx_read_all_hdf(filename, Cross, SETTINGS):
+def patmosx_read_all_hdf(filename, cross, SETTINGS):
     """Read geolocation, angles info, ctth, and cma
     """
     from pyhdf.SD import SD, SDC
@@ -163,7 +163,7 @@ def patmosx_read_all_hdf(filename, Cross, SETTINGS):
     patmosx_hdf = SD(filename, SDC.READ)
     logger.info("Opening file %s", filename)
     logger.info("Reading longitude, latitude and time ...")
-    cloudproducts = read_patmosx_geoobj_hdf(patmosx_hdf, filename, Cross, SETTINGS)
+    cloudproducts = read_patmosx_geoobj_hdf(patmosx_hdf, filename, cross, SETTINGS)
     logger.info("Reading angles ...")
     cloudproducts.imager_angles = read_patmosx_angobj_hdf(patmosx_hdf)
     logger.info("Reading cloud type ...")

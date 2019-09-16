@@ -206,9 +206,9 @@ def match_amsr_imager(amsr, cloudproducts, SETTINGS):
     retv = imager_track_from_matched(retv, SETTINGS,
                                      cloudproducts,
                                      extract_radiances = False,
-                                     extract_nwp_segments = False,
+                                     extract_aux_segments = False,
                                      extract_ctth = False,
                                      extract_ctype = False,
-                                     nwp_params = ['fractionofland', 'landuse'],
+                                     aux_params = ['fractionofland', 'landuse'],
                                      extract_some_data_for_x_neighbours=True)
     return retv

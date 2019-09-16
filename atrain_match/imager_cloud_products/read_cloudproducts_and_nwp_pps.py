@@ -105,14 +105,14 @@ class AllImagerData(object):
         self.ctype = None
         self.cma = None
         self.ctth = None
-        self.nwp = NWPObj({'surftemp': None})
+        self.aux = AuxiliaryObj({'surftemp': None})
         self.cpp = None 
         self.nwp_segments = None
         if array_dict is not None:
             self.__dict__.update(array_dict) 
 
     
-class NWPObj(object):
+class AuxiliaryObj(object):
     def __init__(self, array_dict):
         self.surftemp = None
         self.t500 = None
@@ -876,12 +876,12 @@ def read_imager_data_h5(filename):
 def read_all_intermediate_files(pps_files, SETTINGS):
 
     CTTH_TYPES = SETTINGS['CTTH_TYPES']
-    nwp_dict={}
+    aux_dict={}
     if pps_files.seaice is None:
         pass
     elif '.nc' in pps_files.seaice:
         pps_nc_seaice = netCDF4.Dataset(pps_files.seaice, 'r', format='NETCDF4')
-        nwp_dict["seaice"] = read_etc_nc(pps_nc_seaice, "seaice")
+        aux_dict["seaice"] = read_etc_nc(pps_nc_seaice, "seaice")
         pps_nc_seaice.close()
     else:
         logger.info("Not reading PPS seaice data")  
@@ -889,9 +889,9 @@ def read_all_intermediate_files(pps_files, SETTINGS):
         logger.info("Not reading PPS physiography data") 
     elif '.nc' in pps_files.physiography:
         pps_nc_physiography = netCDF4.Dataset(pps_files.physiography, 'r', format='NETCDF4')
-        nwp_dict["landuse"] = read_etc_nc(pps_nc_physiography, "landuse")
-        nwp_dict["fractionofland"] = read_etc_nc(pps_nc_physiography, "fractionofland")
-        nwp_dict["elevation"] = read_etc_nc(pps_nc_physiography, "elevation")
+        aux_dict["landuse"] = read_etc_nc(pps_nc_physiography, "landuse")
+        aux_dict["fractionofland"] = read_etc_nc(pps_nc_physiography, "fractionofland")
+        aux_dict["elevation"] = read_etc_nc(pps_nc_physiography, "elevation")
         pps_nc_physiography.close()
     else:
         logger.info("Not reading PPS physiography data") 
@@ -899,40 +899,40 @@ def read_all_intermediate_files(pps_files, SETTINGS):
         pass
     else:
         pps_nc_r37 = netCDF4.Dataset(pps_files.r37, 'r', format='NETCDF4')
-        nwp_dict["r37_sza_correction_done"] = read_etc_nc(pps_nc_r37, "r37")
+        aux_dict["r37_sza_correction_done"] = read_etc_nc(pps_nc_r37, "r37")
         pps_nc_r37.close()        
     if pps_files.nwp_tsur is None:
         pass
     elif '.nc' in pps_files.nwp_tsur:
         pps_nc_nwp = netCDF4.Dataset(pps_files.nwp_tsur, 'r', format='NETCDF4')
-        nwp_dict['surftemp'] = read_etc_nc(pps_nc_nwp, "tsur")
-        nwp_dict['t500'] = read_etc_nc(pps_nc_nwp, "t500")
-        nwp_dict['t700'] = read_etc_nc(pps_nc_nwp, "t700")
-        nwp_dict['t850'] = read_etc_nc(pps_nc_nwp, "t850")
-        nwp_dict['t950'] = read_etc_nc(pps_nc_nwp, "t950")
-        nwp_dict['ttro'] = read_etc_nc(pps_nc_nwp, "ttro")
-        nwp_dict['ciwv'] = read_etc_nc(pps_nc_nwp, "ciwv")
-        nwp_dict['t1000'] = read_etc_nc(pps_nc_nwp, "t1000")
-        nwp_dict['t900'] = read_etc_nc(pps_nc_nwp, "t900")
-        nwp_dict['t800'] = read_etc_nc(pps_nc_nwp, "t800")
-        nwp_dict['t250'] = read_etc_nc(pps_nc_nwp, "t250")
-        nwp_dict['ptro'] = read_etc_nc(pps_nc_nwp, "ptro")
+        aux_dict['surftemp'] = read_etc_nc(pps_nc_nwp, "tsur")
+        aux_dict['t500'] = read_etc_nc(pps_nc_nwp, "t500")
+        aux_dict['t700'] = read_etc_nc(pps_nc_nwp, "t700")
+        aux_dict['t850'] = read_etc_nc(pps_nc_nwp, "t850")
+        aux_dict['t950'] = read_etc_nc(pps_nc_nwp, "t950")
+        aux_dict['ttro'] = read_etc_nc(pps_nc_nwp, "ttro")
+        aux_dict['ciwv'] = read_etc_nc(pps_nc_nwp, "ciwv")
+        aux_dict['t1000'] = read_etc_nc(pps_nc_nwp, "t1000")
+        aux_dict['t900'] = read_etc_nc(pps_nc_nwp, "t900")
+        aux_dict['t800'] = read_etc_nc(pps_nc_nwp, "t800")
+        aux_dict['t250'] = read_etc_nc(pps_nc_nwp, "t250")
+        aux_dict['ptro'] = read_etc_nc(pps_nc_nwp, "ptro")
         #psur in in Pa, as ctth_pressure is in Pa
-        nwp_dict['psur'] = read_etc_nc(pps_nc_nwp, "psur")
-        nwp_dict['t2m'] = read_etc_nc(pps_nc_nwp, "t2m")
-        nwp_dict['h2m'] = read_etc_nc(pps_nc_nwp, "h2m")
-        nwp_dict['u10m'] = read_etc_nc(pps_nc_nwp, "u10m")
-        nwp_dict['v10m'] = read_etc_nc(pps_nc_nwp, "v10m") 
-        nwp_dict['snowa'] = read_etc_nc(pps_nc_nwp, "snowa")
-        nwp_dict['snowd'] = read_etc_nc(pps_nc_nwp, "snowd")
+        aux_dict['psur'] = read_etc_nc(pps_nc_nwp, "psur")
+        aux_dict['t2m'] = read_etc_nc(pps_nc_nwp, "t2m")
+        aux_dict['h2m'] = read_etc_nc(pps_nc_nwp, "h2m")
+        aux_dict['u10m'] = read_etc_nc(pps_nc_nwp, "u10m")
+        aux_dict['v10m'] = read_etc_nc(pps_nc_nwp, "v10m") 
+        aux_dict['snowa'] = read_etc_nc(pps_nc_nwp, "snowa")
+        aux_dict['snowd'] = read_etc_nc(pps_nc_nwp, "snowd")
     else:   
-         nwp_dict['surftemp'] = read_nwp_h5(pps_files.nwp_tsur,"tsur")
-         nwp_dict['t500'] = read_nwp_h5(pps_files.nwp_t500, "t500")
-         nwp_dict['t700'] = read_nwp_h5(pps_files.nwp_t700, "t700")
-         nwp_dict['t850'] = read_nwp_h5(pps_files.nwp_t850, "t850")
-         nwp_dict['t950'] = read_nwp_h5(pps_files.nwp_t950, "t950")
-         nwp_dict['ttro'] = read_nwp_h5(pps_files.nwp_ttro, "ttro")
-         nwp_dict['ciwv'] = read_nwp_h5(pps_files.nwp_ciwv, "ciwv")
+         aux_dict['surftemp'] = read_nwp_h5(pps_files.nwp_tsur,"tsur")
+         aux_dict['t500'] = read_nwp_h5(pps_files.nwp_t500, "t500")
+         aux_dict['t700'] = read_nwp_h5(pps_files.nwp_t700, "t700")
+         aux_dict['t850'] = read_nwp_h5(pps_files.nwp_t850, "t850")
+         aux_dict['t950'] = read_nwp_h5(pps_files.nwp_t950, "t950")
+         aux_dict['ttro'] = read_nwp_h5(pps_files.nwp_ttro, "ttro")
+         aux_dict['ciwv'] = read_nwp_h5(pps_files.nwp_ciwv, "ciwv")
     if pps_files.text_t11 is None:
         pass
         logger.info("Not reading PPS texture data")  
@@ -940,13 +940,13 @@ def read_all_intermediate_files(pps_files, SETTINGS):
         pps_nc_txt = netCDF4.Dataset(pps_files.text_t11, 'r', format='NETCDF4')
         for ttype in ['r06', 't11', 't37t12', 't37', 't11t12']:
             text_type = 'text_' + ttype
-            nwp_dict[text_type] = read_etc_nc(pps_nc_txt, ttype)
+            aux_dict[text_type] = read_etc_nc(pps_nc_txt, ttype)
         pps_nc_txt.close()
     else:    
         for ttype in ['r06', 't11', 't37t12', 't37']:
             h5_obj_type = ttype +'_text'
             text_type = 'text_' + ttype
-            nwp_dict[text_type] = read_thr_h5(getattr(pps_files,text_type), 
+            aux_dict[text_type] = read_thr_h5(getattr(pps_files,text_type), 
                                               h5_obj_type,text_type)
     if pps_files.thr_t11ts is None:
         pass
@@ -957,14 +957,14 @@ def read_all_intermediate_files(pps_files, SETTINGS):
                             't11ts', 't11t37', 't37t12', 't11t12',
                             'r09', 'r06', 't85t11_inv', 't85t11']:
             thr_type = 'thr_' + nc_obj_type
-            nwp_dict[thr_type] = read_etc_nc(pps_nc_thr,nc_obj_type)
+            aux_dict[thr_type] = read_etc_nc(pps_nc_thr,nc_obj_type)
         pps_nc_thr.close()    
     else:    
         for h5_obj_type in ['t11ts_inv', 't11t37_inv', 't37t12_inv', 't11t12_inv', 
                             't11ts', 't11t37', 't37t12', 't11t12',
                             'r09', 'r06', 't85t11_inv', 't85t11']:
             thr_type = 'thr_' + h5_obj_type
-            nwp_dict[thr_type] = read_thr_h5(getattr(pps_files,thr_type), 
+            aux_dict[thr_type] = read_thr_h5(getattr(pps_files,thr_type), 
                                              h5_obj_type, thr_type)
     if pps_files.emis is None:
         pass
@@ -972,18 +972,18 @@ def read_all_intermediate_files(pps_files, SETTINGS):
     elif '.nc' in pps_files.emis:
         pps_nc_thr = netCDF4.Dataset(pps_files.emis, 'r', format='NETCDF4')
         for emis_type in ['emis1',"emis6", 'emis8','emis9']:
-            nwp_dict[emis_type] = read_etc_nc(pps_nc_thr, emis_type)
+            aux_dict[emis_type] = read_etc_nc(pps_nc_thr, emis_type)
         pps_nc_thr.close()    
     else:
         for h5_obj_type in ['emis1',"emis6", 'emis8','emis9']:
             emis_type = h5_obj_type
-            nwp_dict[emis_type] = read_thr_h5(getattr(pps_files,"emis"), 
+            aux_dict[emis_type] = read_thr_h5(getattr(pps_files,"emis"), 
                                               h5_obj_type, emis_type)
     if len(CTTH_TYPES)>1:        
         for ctth_type in CTTH_TYPES[1:]: #already read first
-            nwp_dict[ctth_type] = read_ctth_nc(pps_files.ctth[ctth_type]) 
-    nwp_obj = NWPObj(nwp_dict)
-    return nwp_obj
+            aux_dict[ctth_type] = read_ctth_nc(pps_files.ctth[ctth_type]) 
+    aux_obj = AuxiliaryObj(aux_dict)
+    return aux_obj
 
 
 def pps_read_all(pps_files, imager_file, SETTINGS):
@@ -1056,7 +1056,7 @@ def pps_read_all(pps_files, imager_file, SETTINGS):
             cloudproducts.ctth = read_ctth_h5(pps_files.ctth[CTTH_TYPES[0]])
 
     logger.info("Read PPS full resolution intermediate files")
-    cloudproducts.nwp = read_all_intermediate_files(pps_files, SETTINGS)
+    cloudproducts.aux = read_all_intermediate_files(pps_files, SETTINGS)
   
     logger.info("Read PPS NWP segment resolution data") 
     cloudproducts.nwp_segments = read_segment_data(getattr(pps_files,'nwp_segments'))

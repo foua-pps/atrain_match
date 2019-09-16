@@ -23,7 +23,7 @@ import config
 from libs.extract_imager_along_track import CHANNEL_MICRON_IMAGER_PPS, CHANNEL_MICRON_DESCRIPTIONS
 from libs.extract_imager_along_track import get_channel_data_from_object, get_data_from_array
 
-def get_t11t12_texture_data_from_object(imager_obj, nwp_obj, ch11, ch12, text_name):
+def get_t11t12_texture_data_from_object(imager_obj, aux_obj, ch11, ch12, text_name):
     #https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
     t11 = get_channel_data_from_objectfull_resolution(imager_obj, ch11, nodata=-9)
     t12 = get_channel_data_from_objectfull_resolution(imager_obj, ch12, nodata=-9)    
@@ -34,8 +34,8 @@ def get_t11t12_texture_data_from_object(imager_obj, nwp_obj, ch11, ch12, text_na
     mean = uniform_filter(t11t12, size=(5,5), mode='mirror')
     mean_of_squared = uniform_filter(t11t12**2, size=(5,5), mode='mirror')    
     t11t12_texture = mean_of_squared - mean**2 
-    setattr(nwp_obj, text_name, t11t12_texture)
-    return nwp_obj
+    setattr(aux_obj, text_name, t11t12_texture)
+    return aux_obj
 
         
 

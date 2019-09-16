@@ -192,7 +192,7 @@ def find_truth_files_inner(date_time, time_window, AM_PATHS, values, truth='cali
         flist.extend([ s for s in tmplist if s not in flist ])      
     return flist
 
-def get_satid_datetime_orbit_from_fname(filename, SETTINGS, Cross=None, as_oldstyle=False):
+def get_satid_datetime_orbit_from_fname(filename, SETTINGS, cross=None, as_oldstyle=False):
     from imager_cloud_products.read_cloudproducts_and_nwp_pps import get_satid_datetime_orbit_from_fname_pps
     from imager_cloud_products.read_cloudproducts_cci import get_satid_datetime_orbit_from_fname_cci
     from imager_cloud_products.read_cloudproducts_maia import get_satid_datetime_orbit_from_fname_maia
@@ -205,7 +205,7 @@ def get_satid_datetime_orbit_from_fname(filename, SETTINGS, Cross=None, as_oldst
     if SETTINGS['MAIA_VALIDATION']:
         values = get_satid_datetime_orbit_from_fname_maia(filename)
     if SETTINGS['PATMOSX_VALIDATION']:
-        values = get_satid_datetime_orbit_from_fname_patmosx(filename, SETTINGS, Cross)
+        values = get_satid_datetime_orbit_from_fname_patmosx(filename, SETTINGS, cross)
     return values
 
 
@@ -438,7 +438,7 @@ def find_files_from_imager(imager_file, AM_PATHS, SETTINGS, as_oldstyle=False):
     logger.debug("IMAGER: %s", imager_file)
     values = get_satid_datetime_orbit_from_fname(imager_file,
                                                  SETTINGS,
-                                                 Cross=None, 
+                                                 cross=None, 
                                                  as_oldstyle=as_oldstyle)
     date_time = values["date_time"]
     file_name_dict={}
@@ -688,9 +688,9 @@ def read_cloud_maia(imager_file):
     from imager_cloud_products.read_cloudproducts_maia import maia_read_all
     return maia_read_all(imager_file)
 
-def read_cloud_patmosx(imager_file, Cross, SETTINGS):
+def read_cloud_patmosx(imager_file, cross, SETTINGS):
     from imager_cloud_products.read_cloudproducts_patmosx import patmosx_read_all
-    return patmosx_read_all(imager_file, Cross, SETTINGS)
+    return patmosx_read_all(imager_file, cross, SETTINGS)
 
 
 def read_pps_data(pps_files, imager_file, SETTINGS):
@@ -1191,7 +1191,7 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
                                      imager_obj_name = imager_obj_name)
 
     #no longer return the matchup data?
-    nwp_obj = None
+    aux_obj = None
     return {'cloudsat': cloudsat_matchup, 
             'calipso': calipso_matchup, 
             'iss': iss_matchup, 
