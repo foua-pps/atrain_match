@@ -36,9 +36,9 @@ if config.RESOLUTION == 1:
                                     # interval between two consecutive
                                     # lines (sec)
 def get_satid_datetime_orbit_from_fname_pps(imager_filename,as_oldstyle=False):
-    #import runutils
-    #satname, _datetime, orbit = runutils.parse_scene(imager_filename)
-    #returnd orbit as int, loosing leeding zeros, use %05d to get it right.
+    # import runutils
+    # satname, _datetime, orbit = runutils.parse_scene(imager_filename)
+    # returnd orbit as int, loosing leeding zeros, use %05d to get it right.
     # Get satellite name, time, and orbit number from imager_file
     if config.PPS_FORMAT_2012_OR_EARLIER or as_oldstyle:
         sl_ = os.path.basename(imager_filename).split('_')
@@ -52,7 +52,7 @@ def get_satid_datetime_orbit_from_fname_pps(imager_filename,as_oldstyle=False):
                  #"lines_lines": sl_[5] + "_" + sl_[6],
                  "lines_lines": "*",
                  "time":sl_[2],
-                 "ppsfilename":imager_filename}
+                 "imager_filename":imager_filename}
     else: #PPS v2014-filenames
         sl_ = os.path.basename(imager_filename).split('_')
         date_time = datetime.strptime(sl_[5], '%Y%m%dT%H%M%S%fZ')
