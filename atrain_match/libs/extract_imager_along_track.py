@@ -382,10 +382,14 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
                               nwp_params=None,
                               extract_some_data_for_x_neighbours=False,
                               find_mean_data_for_x_neighbours=False):
-    nwp_params_all = ["surftemp", "t500", "t700", "t850", "t950", "ttro", "ciwv",
-                      "t900", "t1000", "t800", "t250", "t2m", "ptro", "psur", 
+    nwp_params_all = ["surftemp", 
+                      "t500", "t700", "t850", "t950", "ttro", 
+                      "ciwv",
+                      "t900", "t1000", "t800", "t250", "t2m", 
+                      "ptro", "psur", 
                       "h2m", "u10m", "v10m", "t2m",
-                      "snowa", "snowd", "seaice", "landuse", "fractionofland", "elevation",
+                      "snowa", "snowd", "seaice", 
+                      "landuse", "fractionofland", "elevation",
                       "r37_sza_correction_done"]
 
     if nwp_params is None:
@@ -443,7 +447,7 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
     for nwp_info in nwp_params:
         if extract_nwp and hasattr(nwp_obj, nwp_info):
             data = getattr(nwp_obj, nwp_info)
-            if np.size(data)>1:
+            if data is not None:
                 setattr(obt.imager, nwp_info, get_data_from_array(data, row_col))
         else:
             logger.debug("missing {:s}".format(nwp_info))

@@ -1056,7 +1056,7 @@ def pps_read_all(pps_files, imager_file, SETTINGS):
             cloudproducts.ctth = read_ctth_h5(pps_files.ctth[CTTH_TYPES[0]])
 
     logger.info("Read PPS full resolution intermediate files")
-    nwp_obj = read_all_intermediate_files(pps_files, SETTINGS)
+    cloudproducts.nwp = read_all_intermediate_files(pps_files, SETTINGS)
   
     logger.info("Read PPS NWP segment resolution data") 
     cloudproducts.nwp_segments = read_segment_data(getattr(pps_files,'nwp_segments'))
