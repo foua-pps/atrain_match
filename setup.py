@@ -1,58 +1,46 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-############################
-# Get version from git tag or RELEASE-VERSION
-#
-# If this package is being installed as a dependency, chances are a module
-# named 'version' has already been imported. Load the modules directly.
-# This will also help if dependency (e.g. pyresample) tries to import a module
-# named 'version'.
-import imp
-git_version = imp.load_source('atrain_match_git_version', 'version.py')
-dist_version = git_version.get_git_version()
+"""Scripts to match level2 products to CALIOP, CloudSat (CPR), Synop, etc
+"""
 
-from setuptools import setup
+from setuptools import find_packages, setup
 
-lib_modules = ['common',  
-               'runutils', 
-               'calipso',
-               'config',
-               'truth_imager_match', 
-               'truth_imager_prepare', 
-               'truth_imager_statistics',
-               'cloudsat','amsr', 'iss',
-               'extract_imager_along_track',
-               'get_flag_info',
-               'matchobject_io',
-               'validate_cph_util',
-               'stat_util',
-               'pps_prototyping_util',
-               'read_modis_products',
-               'read_cloudproducts_maia',
-               'read_cloudproducts_cci',
-               'read_cloudproducts_and_nwp_pps',
-               ]
-script_modules = ['process_master',
-                  'compile_stats']
+try:
+    # HACK: https://github.com/pypa/setuptools_scm/issues/190#issuecomment-351181286
+    # Stop setuptools_scm from including all repository files
+    import setuptools_scm.integration
+    setuptools_scm.integration.find_files = lambda _: []
+except ImportError:
+    pass
 
-setup(name='atrain_match',
-      description="Library modules used in matching satellite swaths",
-      author=("Jakob Malm <jakob.malm@smhi.se>, "
+NAME = "atrain_match"
+README = open('README.txt', 'r').read()
+
+setup(name=NAME,
+      description="Library modules used for matching satellite swaths",
+      author=("Nina Hakansson <nina.hakansson@smhi.se>, "
+              "Jakob Malm <jakob.malm@smhi.se>, "
               "Adam Dybbroe <adam.dybbroe@smhi.se>, "
               "Erik Johansson <erik.johansson@smhi.se>, "
-              "Nina Hakansson <nina.hakansson@smhi.se>, "
               "Karl-Göran Karlsson <kgkarl@smhi.se>"),
       author_email="FoUa@smhi.se",
-      long_description='Software for matching imager data with lidar/radar and other truths',
-      license='(?)',
-      version=dist_version,
-      provides=['atrain_match'],
-      py_modules=lib_modules + script_modules,
-      data_files=[('cfg', ['etc/atrain_match.cfg']), ],
-      packages=['match_util', 'statistics', 'plotting',
-                'reshaped_files_plotting',
-                'reshaped_files_analyze_scripts'],
-      install_requires=['numpy', 'h5py'],
-      zip_safe=False
-      )
+      long_description=README,
+      classifiers=["Development Status :: 3 - Alpha",
+                   "Intended Audience :: Science/Research",
+                   "License :: OSI Approved :: GNU General Public License v3 " +
+                   "or later (GPLv3+)",
+                   "Operating System :: OS Independent",
+                   "Programming Language :: Python",
+                   "Topic :: Scientific/Engineering"],
+      url="https://github.com:foua-pps/atrain_match",
+      packages=['atrain_match', ],
+      scripts=['atrain_match/process_master.py', #
+               'atrain_match/compile_statistics.py', #
+               'atrain_match/process_atrain_match.py', ],
+      data_files=[('cfg', ['atrain_match/etc/atrain_match.cfg']),],
+      zip_safe=False,
+      use_scm_version=True,
+      python_requires='>=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*',
+      install_requires=['numpy', 'h5py', 'netCDF4', 'pandas' ],
+)

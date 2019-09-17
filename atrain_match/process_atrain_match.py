@@ -17,18 +17,10 @@
 # You should have received a copy of the GNU General Public License
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
 """
-This module is the main entry point for matching noaa and/or metop data with
-Cloudsat and Calipso data, and produce statistics for validation of PPS
-cloud mask, cloud type and cloud top temperature and height products.
-
-It is really a wrapper to :func:`truth_imager_match.run`, for running
-through a set of files with SNO matchups.
-
-.. note::
-
-    This module has a command line interface.
-
+This module is the main entry point for matching imager data with
+Cloudsat and Calipso. 
 """
+
 import logging
 logging.basicConfig(
     format='%(levelname)s |%(asctime)s|: %(message)s',
@@ -111,8 +103,7 @@ def main():
     parser.add_argument('-d', '--debug', const=True, nargs='?', required=False, 
                         help="Get debug logging")
     group.add_argument( '--pps_okay_scene', '-os', 
-                      help="Interpret arguments as PPS okay scenes instead of "
-                      "sno_output_files (e.g. noaa19_20101201_1345_27891*)")
+                      help="Interpret arguments noaa19_20101201_1345_27891")
     group.add_argument( '--pps_product_file', '-pf', 
                       help="Interpret arguments as inputfile with "  
                       "list of pps files")
