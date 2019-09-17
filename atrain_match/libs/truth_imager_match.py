@@ -78,7 +78,7 @@ import time
 
 logger = logging.getLogger(__name__)
 
-import atrain_match.config
+import atrain_match.config as config
 from atrain_match.config import INSTRUMENT
 
 from atrain_match.utils.common import MatchupError, ProcessingError
@@ -193,11 +193,11 @@ def find_truth_files_inner(date_time, time_window, AM_PATHS, values, truth='cali
     return flist
 
 def get_satid_datetime_orbit_from_fname(filename, SETTINGS, cross=None, as_oldstyle=False):
-    from imager_cloud_products.read_cloudproducts_and_nwp_pps import get_satid_datetime_orbit_from_fname_pps
-    from imager_cloud_products.read_cloudproducts_cci import get_satid_datetime_orbit_from_fname_cci
-    from imager_cloud_products.read_cloudproducts_oca import get_satid_datetime_orbit_from_fname_oca
-    from imager_cloud_products.read_cloudproducts_maia import get_satid_datetime_orbit_from_fname_maia
-    from imager_cloud_products.read_cloudproducts_patmosx import get_satid_datetime_orbit_from_fname_patmosx
+    from atrain_match.imager_cloud_products.read_cloudproducts_and_nwp_pps import get_satid_datetime_orbit_from_fname_pps
+    from atrain_match.imager_cloud_products.read_cloudproducts_cci import get_satid_datetime_orbit_from_fname_cci
+    from atrain_match.imager_cloud_products.read_cloudproducts_oca import get_satid_datetime_orbit_from_fname_oca
+    from atrain_match.imager_cloud_products.read_cloudproducts_maia import get_satid_datetime_orbit_from_fname_maia
+    from atrain_match.imager_cloud_products.read_cloudproducts_patmosx import get_satid_datetime_orbit_from_fname_patmosx
     #Get satellite name, time, and orbit number from imager_file
     if SETTINGS['PPS_VALIDATION']:
         values = get_satid_datetime_orbit_from_fname_pps(filename, as_oldstyle=as_oldstyle)  

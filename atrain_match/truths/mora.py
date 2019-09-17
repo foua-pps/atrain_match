@@ -25,7 +25,7 @@ TAI93 = datetime(1993, 1, 1)
 from atrain_match.matchobject_io import (TruthImagerTrackObject, 
                             MoraObject)
 from atrain_match.utils.runutils import do_some_logging
-import atrain_match.config
+import atrain_match.config as config
 from atrain_match.utils.common import (ProcessingError, MatchupError, elements_within_range)
 from atrain_match.libs.extract_imager_along_track import imager_track_from_matched
 import logging

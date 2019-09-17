@@ -23,7 +23,7 @@ import logging
 logger = logging.getLogger(__name__)
 from atrain_match.matchobject_io import (CloudsatObject,
                             TruthImagerTrackObject)                            
-import atrain_match.config
+import atrain_match.config as config
 from atrain_match.utils.common import (MatchupError, ProcessingError,
                     elements_within_range)
 from atrain_match.libs.extract_imager_along_track import imager_track_from_matched

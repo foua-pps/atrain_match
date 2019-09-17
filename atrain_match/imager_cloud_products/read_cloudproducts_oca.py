@@ -36,7 +36,7 @@ from atrain_match.imager_cloud_products.read_cloudproducts_and_nwp_pps import (
     create_imager_time,
     ImagerAngObj)
 from atrain_match.utils.runutils import do_some_geo_obj_logging
-import atrain_match.config
+import atrain_match.config as config
 ATRAIN_MATCH_NODATA = config.NODATA
 #from atrain_match.utils.get_flag_info import get_oca_ct_flag, get_day_night_twilight_info_oca
 

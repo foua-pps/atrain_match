@@ -24,7 +24,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-import atrain_match.config
+import atrain_match.config as config
 from atrain_match.utils.common import (MatchupError, TimeMatchError, 
                     InputError, ProcessingError, 
                     elements_within_range)

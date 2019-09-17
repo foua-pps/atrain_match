@@ -29,7 +29,7 @@ import re
 
 def read_config_info():
     import os
-    from atrain_match.configparser import ConfigParser
+    from configparser import ConfigParser
     CONF = ConfigParser()
     from atrain_match.config import ATRAIN_MATCH_CONFIG_PATH
     config_file = os.path.join(ATRAIN_MATCH_CONFIG_PATH, "atrain_match.cfg")

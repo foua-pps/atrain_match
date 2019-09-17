@@ -22,7 +22,7 @@ import calendar
 from datetime import datetime, timedelta
 from calendar import timegm
 TAI93 = datetime(1993, 1, 1)
-import  config
+import atrain_match.config as config
 from atrain_match.matchobject_io import (TruthImagerTrackObject, 
                             SynopObject)
 from atrain_match.truths.calipso import find_break_points

@@ -20,7 +20,7 @@ import numpy as np
 from datetime import datetime
 from calendar import timegm
 TAI93 = datetime(1993, 1, 1)
-import atrain_match.config
+import atrain_match.config as config
 from atrain_match.matchobject_io import (TruthImagerTrackObject, 
                             AmsrObject)
 from atrain_match.truths.calipso import find_break_points

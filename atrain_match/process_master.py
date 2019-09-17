@@ -37,7 +37,7 @@ logging.basicConfig(
     datefmt='%H:%M:%S')
 logger = logging.getLogger(__name__)
 from atrain_match.utils.common import (InputError, MatchupError)
-import atrain_match.config
+import atrain_match.config as config
 from atrain_match.libs import truth_imager_make_statistics
 from atrain_match.utils.common import Cross
 from atrain_match.utils.runutils import  parse_scenesfile_reshaped

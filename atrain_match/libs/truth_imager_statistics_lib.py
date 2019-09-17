@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
 #Program truth_imager_statistics.py
-import atrain_match.config
+import atrain_match.config as config
 import logging
 logger = logging.getLogger(__name__)
 import numpy as np

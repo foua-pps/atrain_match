@@ -29,7 +29,7 @@ from atrain_match.matchobject_io import (read_truth_imager_match_obj,
 
 logger = logging.getLogger(__name__)
 from atrain_match.config import INSTRUMENT
-import atrain_match.config
+import atrain_match.config as config
 
 """
  * The main running program is: process_master.py and compile_stat.py will 

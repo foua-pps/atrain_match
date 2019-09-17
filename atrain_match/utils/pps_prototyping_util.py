@@ -19,7 +19,7 @@ import numpy as np
 import logging
 logger = logging.getLogger(__name__)
 
-import atrain_match.config
+import atrain_match.config as config
 from atrain_match.libs.extract_imager_along_track import CHANNEL_MICRON_IMAGER_PPS, CHANNEL_MICRON_DESCRIPTIONS
 from atrain_match.libs.extract_imager_along_track import get_channel_data_from_object, get_data_from_array
 

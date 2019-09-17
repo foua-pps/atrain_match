@@ -30,7 +30,7 @@ import datetime
 import logging
 logger = logging.getLogger(__name__)
 import time
-import atrain_match.config
+import atrain_match.config as config
 ATRAIN_MATCH_NODATA = config.NODATA
 from atrain_match.utils.runutils import do_some_geo_obj_logging
 
