@@ -34,9 +34,9 @@ setup(name=NAME,
                    "Programming Language :: Python",
                    "Topic :: Scientific/Engineering"],
       url="https://github.com:foua-pps/atrain_match",
-      packages=['atrain_match', ],
+      packages=find_packages(),
       scripts=['atrain_match/process_master.py', #
-               'atrain_match/compile_statistics.py', #
+               'atrain_match/compile_stats.py', #
                'atrain_match/process_atrain_match.py', ],
       data_files=[('cfg', ['atrain_match/etc/atrain_match.cfg']),],
       zip_safe=False,

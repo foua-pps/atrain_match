@@ -21,15 +21,15 @@ import numpy as np
 import os
 import logging
 logger = logging.getLogger(__name__)
-from matchobject_io import (CloudsatObject,
+from atrain_match.matchobject_io import (CloudsatObject,
                             TruthImagerTrackObject)                            
-import config
-from utils.common import (MatchupError, ProcessingError,
+import atrain_match.config
+from atrain_match.utils.common import (MatchupError, ProcessingError,
                     elements_within_range)
-from libs.extract_imager_along_track import imager_track_from_matched
+from atrain_match.libs.extract_imager_along_track import imager_track_from_matched
 
-from truths.calipso import (find_break_points)
-from utils.runutils import do_some_logging
+from atrain_match.truths.calipso import (find_break_points)
+from atrain_match.utils.runutils import do_some_logging
 
 def add_validation_ctth_cloudsat(cloudsat):
     #CLOUDSAT VALIDATION HEIGHT!
@@ -194,7 +194,7 @@ def match_cloudsat_imager(cloudsat,cloudproducts, SETTINGS):
     retv.imager_instrument = cloudproducts.instrument.lower()
     retv.cloudsat = cloudsat
     #Nina 20150313 Swithcing to mapping without area as in cpp. Following suggestion from Jakob
-    from utils.common import map_imager
+    from atrain_match.utils.common import map_imager
     cal, cap = map_imager(cloudproducts, 
                          cloudsat.longitude.ravel(),
                          cloudsat.latitude.ravel(),
@@ -232,7 +232,7 @@ def match_cloudsat_imager(cloudsat,cloudproducts, SETTINGS):
 
 def merge_cloudsat(cloudsat, cloudsatlwp):
     #map cloudsat_lwp to cloudsat
-    from utils.match import match_lonlat
+    from atrain_match.utils.match import match_lonlat
     source = (cloudsatlwp.longitude.astype(np.float64).reshape(-1,1), 
               cloudsatlwp.latitude.astype(np.float64).reshape(-1,1))
     target = (cloudsat.longitude.astype(np.float64).reshape(-1,1), 

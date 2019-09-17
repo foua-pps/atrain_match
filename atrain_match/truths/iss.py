@@ -20,15 +20,15 @@
 import logging
 import numpy as np
 logger = logging.getLogger(__name__)
-from matchobject_io import (IssObject,
+from atrain_match.matchobject_io import (IssObject,
                             TruthImagerTrackObject)                            
-import config
-from utils.common import (MatchupError, ProcessingError,
+import atrain_match.config
+from atrain_match.utils.common import (MatchupError, ProcessingError,
                     elements_within_range)
-from libs.extract_imager_along_track import imager_track_from_matched
+from atrain_match.libs.extract_imager_along_track import imager_track_from_matched
 
-from truths.calipso import (find_break_points)
-from utils.runutils import do_some_logging
+from atrain_match.truths.calipso import (find_break_points)
+from atrain_match.utils.runutils import do_some_logging
 import time
 import datetime
 import calendar
@@ -146,7 +146,7 @@ def match_iss_imager(iss,cloudproducts, SETTINGS):
     retv.imager_instrument = cloudproducts.instrument.lower()
     retv.iss = iss
 
-    from utils.common import map_imager
+    from atrain_match.utils.common import map_imager
     cal, cap = map_imager(cloudproducts, iss.longitude.ravel(),
                          iss.latitude.ravel(),
                          radius_of_influence=config.RESOLUTION*0.7*1000.0) # larger than radius...

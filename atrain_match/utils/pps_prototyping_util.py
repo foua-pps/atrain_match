@@ -19,9 +19,9 @@ import numpy as np
 import logging
 logger = logging.getLogger(__name__)
 
-import config
-from libs.extract_imager_along_track import CHANNEL_MICRON_IMAGER_PPS, CHANNEL_MICRON_DESCRIPTIONS
-from libs.extract_imager_along_track import get_channel_data_from_object, get_data_from_array
+import atrain_match.config
+from atrain_match.libs.extract_imager_along_track import CHANNEL_MICRON_IMAGER_PPS, CHANNEL_MICRON_DESCRIPTIONS
+from atrain_match.libs.extract_imager_along_track import get_channel_data_from_object, get_data_from_array
 
 def get_t11t12_texture_data_from_object(imager_obj, aux_obj, ch11, ch12, text_name):
     #https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
@@ -160,7 +160,7 @@ def add_cnn_features_full(imager_obj, imagerGeoObj, SETTINGS):
     return {'filter_response': filter_response, 'lats_f': lats_f, 'lons_f':lons_f}
    
 def add_cnn_features(cnn_dict, matched, lats_matched, lons_matched, SETTINGS):
-    from utils.match import match_lonlat
+    from atrain_match.utils.match import match_lonlat
     #filter_response.shape
     #(1, 32, 43, 43)
     #pytroll resample lats_matched/lons_matched to lats_f/lons_f

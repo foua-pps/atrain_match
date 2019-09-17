@@ -24,14 +24,14 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-import config
-from utils.common import (MatchupError, TimeMatchError, 
+import atrain_match.config
+from atrain_match.utils.common import (MatchupError, TimeMatchError, 
                     InputError, ProcessingError, 
                     elements_within_range)
 
-from matchobject_io import (TruthImagerTrackObject,
+from atrain_match.matchobject_io import (TruthImagerTrackObject,
                             CalipsoObject)
-from utils.runutils import do_some_logging
+from atrain_match.utils.runutils import do_some_logging
 
 def add_validation_ctth_calipso(calipso):
     calipso.validation_height = calipso.layer_top_altitude[:,0].copy()
@@ -45,7 +45,7 @@ def match_calipso_imager(values,
                          calipso, calipso_aerosol, 
                          cloudproducts, SETTINGS, res=config.RESOLUTION):
 
-    from utils.common import map_imager
+    from atrain_match.utils.common import map_imager
     retv = TruthImagerTrackObject(truth='calipso')
 
     retv.imager_instrument = cloudproducts.instrument.lower()
@@ -81,7 +81,7 @@ def match_calipso_imager(values,
     retv.diff_sec_1970 = retv.calipso.sec_1970 - retv.imager.sec_1970
     do_some_logging(retv, calipso)
     logger.debug("Generate the latitude,cloudtype tracks!")
-    from libs.extract_imager_along_track import imager_track_from_matched
+    from atrain_match.libs.extract_imager_along_track import imager_track_from_matched
     retv = imager_track_from_matched(retv, SETTINGS, 
                                      cloudproducts)   
     if calipso_aerosol is not None:

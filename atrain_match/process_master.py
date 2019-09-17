@@ -36,15 +36,15 @@ logging.basicConfig(
     #datefmt='%Y-%m-%d %H:%M:%S')
     datefmt='%H:%M:%S')
 logger = logging.getLogger(__name__)
-from utils.common import (InputError, MatchupError)
-import config
-from libs import truth_imager_make_statistics
-from utils.common import Cross
-from utils.runutils import  parse_scenesfile_reshaped
-from utils.runutils import  parse_scenesfile_maia
-from utils.runutils import  parse_scene
-from utils.runutils import  parse_scenesfile_cci
-from utils.runutils import  parse_scenesfile_v2014
+from atrain_match.utils.common import (InputError, MatchupError)
+import atrain_match.config
+from atrain_match.libs import truth_imager_make_statistics
+from atrain_match.utils.common import Cross
+from atrain_match.utils.runutils import  parse_scenesfile_reshaped
+from atrain_match.utils.runutils import  parse_scenesfile_maia
+from atrain_match.utils.runutils import  parse_scene
+from atrain_match.utils.runutils import  parse_scenesfile_cci
+from atrain_match.utils.runutils import  parse_scenesfile_v2014
 
 
 def process_matchups(matchups, run_modes, reprocess=False, debug=False):
@@ -57,7 +57,7 @@ def process_matchups(matchups, run_modes, reprocess=False, debug=False):
     
     """
 
-    from utils.runutils import read_config_info
+    from atrain_match.utils.runutils import read_config_info
     AM_PATHS, SETTINGS = read_config_info()
 
     problematic = set()

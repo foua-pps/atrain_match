@@ -20,7 +20,7 @@
 Created on Oct 13, 2010
 
 '''
-from config import (RESOLUTION, _validation_results_dir,  DNT_FLAG, SURFACES)
+from atrain_match.config import (RESOLUTION, _validation_results_dir,  DNT_FLAG, SURFACES)
 
 import logging
 logging.basicConfig(level=logging.INFO) 
@@ -101,7 +101,7 @@ if __name__ == '__main__':
     (options) = parser.parse_args()
 
 
-    from utils.runutils import read_config_info
+    from atrain_match.utils.runutils import read_config_info
     AM_PATHS, SETTINGS = read_config_info()
 
         

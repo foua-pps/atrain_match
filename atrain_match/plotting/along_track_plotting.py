@@ -19,7 +19,7 @@
 #Program truth_imager_plot.py
 
 import numpy as np
-from config import RESOLUTION
+from atrain_match.config import RESOLUTION
 
 from matplotlib import pyplot as plt
 

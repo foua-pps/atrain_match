@@ -268,7 +268,7 @@ def plot_hist(data, **kwargs):
     mean = data.mean()
     median = np.median(data)
     std = data.std()
-    from reshaped_files_plotting.plot_ctth_print_bias_and_std_stats import half_sample_mode, my_iqr
+    from atrain_match.reshaped_files_plotting.plot_ctth_print_bias_and_std_stats import half_sample_mode, my_iqr
     mode = half_sample_mode(data)
     iqr = my_iqr(data)
     q1 = np.percentile(data,25)

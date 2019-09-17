@@ -24,7 +24,7 @@ Match TRUTH and IMAGER data
 import numpy as np
 import logging
 import h5py
-from config import RESOLUTION, NODATA
+from atrain_match.config import RESOLUTION, NODATA
 logger = logging.getLogger(__name__)
 
 

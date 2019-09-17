@@ -69,8 +69,8 @@ def map_imager_distances(imager, lon, lat, radius_of_influence, n_neighbours=1):
     functions would need some adjustment...
     
     """
-    from config import NODATA
-    from utils.match import match_lonlat
+    from atrain_match.config import NODATA
+    from atrain_match.utils.match import match_lonlat
     source = (imager.longitude, imager.latitude)
     target = (lon, lat)
     #if imager.longitude.dtype != lon.dtype or  imager.latitude.dtype != lat.dtype:
@@ -128,9 +128,9 @@ def write_match_objects(filename, datasets, groups, group_attrs_dict, SETTINGS=N
     >>> diff_sec_1970, groups = read_match_objects('match.h5')
     
     """
-    from config import COMPRESS_LVL
+    from atrain_match.config import COMPRESS_LVL
     import h5py
-    from matchobject_io import the_used_variables 
+    from atrain_match.matchobject_io import the_used_variables 
     with h5py.File(filename, 'w') as f:
         for name in datasets.keys():
             f.create_dataset(name, data=datasets[name],

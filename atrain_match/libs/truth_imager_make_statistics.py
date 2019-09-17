@@ -3,33 +3,33 @@ import sys
 import numpy as np
 import logging
 
-from utils.common import MatchupError
+from atrain_match.utils.common import MatchupError
 
-from libs.truth_imager_match import (get_matchups_from_data, 
+from atrain_match.libs.truth_imager_match import (get_matchups_from_data, 
                                      find_imager_file,
                                      insert_info_in_filename_or_path,
                                      add_additional_clousat_calipso_index_vars,                                     
                                      add_elevation_corrected_imager_ctth)
 
-from truths.cloudsat import (add_validation_ctth_cloudsat,
+from atrain_match.truths.cloudsat import (add_validation_ctth_cloudsat,
                              add_cloudsat_cloud_fraction)
-from truths.calipso import (optical_depth_height_filtering,
+from atrain_match.truths.calipso import (optical_depth_height_filtering,
                             check_total_optical_depth_and_warn,
                             add_validation_ctth_calipso,
                             detection_height_filtering,
                             set_thin_to_clear_filtering_1km)
-from libs.truth_imager_statistics_lib import (calculate_statistics)
-from plotting.trajectory_plotting import plot_satellite_trajectory
-from plotting.along_track_plotting import (plot_cal_clsat_imager_time_diff,
+from atrain_match.libs.truth_imager_statistics_lib import (calculate_statistics)
+from atrain_match.plotting.trajectory_plotting import plot_satellite_trajectory
+from atrain_match.plotting.along_track_plotting import (plot_cal_clsat_imager_time_diff,
                                            plot_cal_clsat_geoprof_imager, 
                                            plot_cal_clsat_imager_satz,
                                            plot_cal_clsat_cwc_imager)
-from matchobject_io import (read_truth_imager_match_obj,
+from atrain_match.matchobject_io import (read_truth_imager_match_obj,
                             CalipsoObject)
 
 logger = logging.getLogger(__name__)
-from config import INSTRUMENT
-import config
+from atrain_match.config import INSTRUMENT
+import atrain_match.config
 
 """
  * The main running program is: process_master.py and compile_stat.py will 

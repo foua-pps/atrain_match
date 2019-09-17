@@ -23,13 +23,13 @@ from datetime import datetime, timedelta
 from calendar import timegm
 TAI93 = datetime(1993, 1, 1)
 import  config
-from matchobject_io import (TruthImagerTrackObject, 
+from atrain_match.matchobject_io import (TruthImagerTrackObject, 
                             SynopObject)
-from truths.calipso import find_break_points
-from utils.runutils import do_some_logging
+from atrain_match.truths.calipso import find_break_points
+from atrain_match.utils.runutils import do_some_logging
 
-from utils.common import (ProcessingError, MatchupError, elements_within_range)
-from libs.extract_imager_along_track import imager_track_from_matched
+from atrain_match.utils.common import (ProcessingError, MatchupError, elements_within_range)
+from atrain_match.libs.extract_imager_along_track import imager_track_from_matched
 import logging
 logger = logging.getLogger(__name__)
 
@@ -37,7 +37,7 @@ def reshape_synop(synopfiles, imager,  SETTINGS):
     start_t = datetime.utcfromtimestamp(imager.sec1970_start)
     end_t = datetime.utcfromtimestamp(imager.sec1970_end)
     #datetime.datetime.fromtimestamp(
-    from truths.read_synop_dwd import get_synop_data
+    from atrain_match.truths.read_synop_dwd import get_synop_data
     items = [get_synop_data(filename) for filename in synopfiles]
     panda_synops = pd.concat(items, ignore_index=True)
     #import pdb
@@ -62,7 +62,7 @@ def match_synop_imager(synop, cloudproducts, SETTINGS):
     retv = TruthImagerTrackObject(truth='synop')
     retv.imager_instrument = cloudproducts.instrument.lower()
     retv.synop = synop
-    from utils.common import map_imager_distances
+    from atrain_match.utils.common import map_imager_distances
     n_neighbours = 250
     if config.RESOLUTION == 5:
         n_neighbours = 16

@@ -22,13 +22,13 @@
 #
 import numpy as np
 import unittest
-from libs.truth_imager_prepare import  (detection_height_from_5km_data,
+from atrain_match.libs.truth_imager_prepare import  (detection_height_from_5km_data,
                                              optical_depth_height_filtering)
-from matchobject_io import CalipsoObject
+from atrain_match.matchobject_io import CalipsoObject
 
 
 def CalipsoCloudOpticalDepth(cloud_top, cloud_base, optical_depth, cloud_fraction, fcf, min_optical_depth):
-    from config import MIN_OPTICAL_DEPTH
+    from atrain_match.config import MIN_OPTICAL_DEPTH
     new_cloud_top = np.ones(cloud_top.shape,'d')*np.min(cloud_top)
     new_cloud_base = np.ones(cloud_base.shape,'d')*np.min(cloud_base)
     new_cloud_fraction = np.zeros(cloud_fraction.shape,'d')

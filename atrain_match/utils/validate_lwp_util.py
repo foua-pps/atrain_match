@@ -81,7 +81,7 @@ def get_lwp_diff_inner(aObj, val_subset, threshold=LWP_THRESHOLD):
 
 """
 def validate_all(filenames):
-    from .plotting import plot_hist, density, distribution_map
+    from atrain_match..plotting import plot_hist, density, distribution_map
     mean = lwp_diff.mean()
     median = np.median(lwp_diff)
     std = lwp_diff.std()

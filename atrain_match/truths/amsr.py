@@ -20,15 +20,15 @@ import numpy as np
 from datetime import datetime
 from calendar import timegm
 TAI93 = datetime(1993, 1, 1)
-import config
-from matchobject_io import (TruthImagerTrackObject, 
+import atrain_match.config
+from atrain_match.matchobject_io import (TruthImagerTrackObject, 
                             AmsrObject)
-from truths.calipso import find_break_points
-from utils.runutils import do_some_logging
+from atrain_match.truths.calipso import find_break_points
+from atrain_match.utils.runutils import do_some_logging
 
-from utils.common import (ProcessingError, MatchupError, elements_within_range)
-from libs.extract_imager_along_track import imager_track_from_matched
-from utils.validate_lwp_util import LWP_THRESHOLD
+from atrain_match.utils.common import (ProcessingError, MatchupError, elements_within_range)
+from atrain_match.libs.extract_imager_along_track import imager_track_from_matched
+from atrain_match.utils.validate_lwp_util import LWP_THRESHOLD
 import logging
 logger = logging.getLogger(__name__)
 AMSR_RADIUS = 5.4e3 #3.7e3 to include 5km pixels parly overlapping amsr-e footprint
@@ -154,7 +154,7 @@ def match_amsr_imager(amsr, cloudproducts, SETTINGS):
         return None
         #return MatchupError("No imager Lwp.") # if only LWP matching?
 
-    from utils.common import map_imager_distances
+    from atrain_match.utils.common import map_imager_distances
     n_neighbours = 8
     if config.RESOLUTION == 5:
         n_neighbours = 5

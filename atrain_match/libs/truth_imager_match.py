@@ -78,18 +78,18 @@ import time
 
 logger = logging.getLogger(__name__)
 
-import config
-from config import INSTRUMENT
+import atrain_match.config
+from atrain_match.config import INSTRUMENT
 
-from utils.common import MatchupError, ProcessingError
-from truths.cloudsat import (reshapeCloudsat, 
+from atrain_match.utils.common import MatchupError, ProcessingError
+from atrain_match.truths.cloudsat import (reshapeCloudsat, 
                              match_cloudsat_imager,
                              merge_cloudsat)
-from truths.amsr import (reshape_amsr, match_amsr_imager)
-from truths.mora import (reshape_mora, match_mora_imager)
-from truths.synop import (reshape_synop, match_synop_imager)
-from truths.iss import reshape_iss, match_iss_imager
-from truths.calipso import ( #check_total_optical_depth_and_warn,
+from atrain_match.truths.amsr import (reshape_amsr, match_amsr_imager)
+from atrain_match.truths.mora import (reshape_mora, match_mora_imager)
+from atrain_match.truths.synop import (reshape_synop, match_synop_imager)
+from atrain_match.truths.iss import reshape_iss, match_iss_imager
+from atrain_match.truths.calipso import ( #check_total_optical_depth_and_warn,
                             total_and_top_layer_optical_depth_5km,
                             reshape_calipso, 
                             discard_calipso_files_outside_time_range,
@@ -99,7 +99,7 @@ from truths.calipso import ( #check_total_optical_depth_and_warn,
                             add_singleshot_to5km,
                             add_5km_variables_to_1km,
                             adjust_5km_to_1km_resolution)
-from matchobject_io import (write_truth_imager_match_obj, 
+from atrain_match.matchobject_io import (write_truth_imager_match_obj, 
                             read_truth_imager_match_obj)
 
 class ppsFiles(object):
@@ -692,22 +692,22 @@ def get_calipso_matchups(calipso_files, values,
                                       cloudproducts, SETTINGS)
     return ca_matchup
 def read_cloud_cci(imager_file):
-    from imager_cloud_products.read_cloudproducts_cci import cci_read_all
+    from atrain_match.imager_cloud_products.read_cloudproducts_cci import cci_read_all
     return cci_read_all(imager_file)
 def read_cloud_oca(imager_file):
-    from imager_cloud_products.read_cloudproducts_oca import oca_read_all
+    from atrain_match.imager_cloud_products.read_cloudproducts_oca import oca_read_all
     return oca_read_all(imager_file)
 def read_cloud_maia(imager_file):
-    from imager_cloud_products.read_cloudproducts_maia import maia_read_all
+    from atrain_match.imager_cloud_products.read_cloudproducts_maia import maia_read_all
     return maia_read_all(imager_file)
 
 def read_cloud_patmosx(imager_file, cross, SETTINGS):
-    from imager_cloud_products.read_cloudproducts_patmosx import patmosx_read_all
+    from atrain_match.imager_cloud_products.read_cloudproducts_patmosx import patmosx_read_all
     return patmosx_read_all(imager_file, cross, SETTINGS)
 
 
 def read_pps_data(pps_files, imager_file, SETTINGS):
-    from imager_cloud_products.read_cloudproducts_and_nwp_pps import pps_read_all
+    from atrain_match.imager_cloud_products.read_cloudproducts_and_nwp_pps import pps_read_all
     return pps_read_all(pps_files, imager_file, SETTINGS)
 
 def get_additional_calipso_files_if_requested(calipso_files, SETTINGS):
@@ -810,7 +810,7 @@ def add_additional_clousat_calipso_index_vars(match_clsat, match_calipso):
     if match_clsat is not None and match_calipso is not None:
         match_calipso.calipso.cal_modis_cflag = None
         #map cloudsat to calipso and the other way around!
-        from utils.match import match_lonlat
+        from atrain_match.utils.match import match_lonlat
         source = (match_clsat.cloudsat.longitude.astype(np.float64).reshape(-1,1), 
                   match_clsat.cloudsat.latitude.astype(np.float64).reshape(-1,1))
         target = (match_calipso.calipso.longitude.astype(np.float64).reshape(-1,1), 
@@ -1018,7 +1018,7 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
     if (SETTINGS['PPS_VALIDATION'] ):
         cloudproducts =read_pps_data(pps_files, imager_file, SETTINGS)
         if os.path.isfile(SETTINGS['CNN_PCKL_PATH']):
-            from utils.pps_prototyping_util import add_cnn_features_full
+            from atrain_match.utils.pps_prototyping_util import add_cnn_features_full
             imager_obj.cnn_dict = add_cnn_features_full(cloudproducts.imager_channeldata, 
                                                        cloudproducts, 
                                                        SETTINGS)
@@ -1132,12 +1132,12 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
             continue
         #add modis lvl2    
         if SETTINGS['MATCH_MODIS_LVL2']:
-            from imager_cloud_products.read_modis_products import add_modis_06  
+            from atrain_match.imager_cloud_products.read_modis_products import add_modis_06  
             if matchup.imager_instrument in ['modis']:
                 matchup = add_modis_06(matchup, imager_file, AM_PATHS) 
         if SETTINGS['ADD_NWP']:
             import pps_nwp
-            from libs.extract_imager_along_track import _interpolate_height_and_temperature_from_pressure
+            from atrain_match.libs.extract_imager_along_track import _interpolate_height_and_temperature_from_pressure
             nwp_file = find_closest_nwp_file(cloudproducts, AM_PATHS, 
                                              values, SETTINGS)
             logger.debug(nwp_file)

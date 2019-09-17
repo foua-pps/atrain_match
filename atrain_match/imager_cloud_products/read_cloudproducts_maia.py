@@ -29,15 +29,15 @@ from datetime import datetime
 import logging
 logger = logging.getLogger(__name__)
 
-from imager_cloud_products.read_cloudproducts_and_nwp_pps import (
+from atrain_match.imager_cloud_products.read_cloudproducts_and_nwp_pps import (
     AllImagerData,
     CtypeObj, CtthObj, CmaObj,
     create_imager_time,
     ImagerAngObj)
-from utils.runutils import do_some_geo_obj_logging
-import config 
+from atrain_match.utils.runutils import do_some_geo_obj_logging
+import atrain_match.config
 ATRAIN_MATCH_NODATA = config.NODATA
-from utils.get_flag_info import get_maia_ct_flag, get_day_night_twilight_info_maia
+from atrain_match.utils.get_flag_info import get_maia_ct_flag, get_day_night_twilight_info_maia
 
 
 def get_satid_datetime_orbit_from_fname_maia(imager_filename):
@@ -65,7 +65,7 @@ def get_satid_datetime_orbit_from_fname_maia(imager_filename):
 def maia_read_all(filename):
     """Read geolocation, angles info, ctth, and cloudtype
     """
-    from utils.runutils import unzip_file
+    from atrain_match.utils.runutils import unzip_file
 
     unzipped = unzip_file(filename)
     if unzipped:

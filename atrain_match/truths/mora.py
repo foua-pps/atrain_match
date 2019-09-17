@@ -22,12 +22,12 @@ import calendar
 from datetime import datetime, timedelta
 from calendar import timegm
 TAI93 = datetime(1993, 1, 1)
-from matchobject_io import (TruthImagerTrackObject, 
+from atrain_match.matchobject_io import (TruthImagerTrackObject, 
                             MoraObject)
-from utils.runutils import do_some_logging
-import config
-from utils.common import (ProcessingError, MatchupError, elements_within_range)
-from libs.extract_imager_along_track import imager_track_from_matched
+from atrain_match.utils.runutils import do_some_logging
+import atrain_match.config
+from atrain_match.utils.common import (ProcessingError, MatchupError, elements_within_range)
+from atrain_match.libs.extract_imager_along_track import imager_track_from_matched
 import logging
 logger = logging.getLogger(__name__)
 
@@ -87,13 +87,13 @@ def match_mora_imager(mora, cloudproducts, SETTINGS):
     retv.imager_instrument = cloudproducts.instrument.lower()
     retv.mora = mora
 
-    from utils.common import map_imager
+    from atrain_match.utils.common import map_imager
 
     """
     import matplotlib.pyplot as plt
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    from plotting.histogram_plotting import distribution_map
+    from atrain_match.plotting.histogram_plotting import distribution_map
     plt.plot(cloudproducts.longitude.ravel(),
               cloudproducts.latitude.ravel(), 'r.')
     plt.plot(mora.longitude.ravel(), mora.latitude.ravel(),'b.')

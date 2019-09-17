@@ -462,7 +462,7 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
                 data = getattr(ctth_obj, data_set)
                 name = "%s_%s"%(ctth_type.lower(),data_set)
                 setattr(obt.imager, name, get_data_from_array(data, row_col))
-    from utils.pps_prototyping_util import (get_t11t12_texture_data_from_object,
+    from atrain_match.utils.pps_prototyping_util import (get_t11t12_texture_data_from_object,
                                             get_coldest_values,get_darkest_values,
                                             get_warmest_values)
     if imager_obj is not None:
@@ -598,7 +598,7 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
 
     #ADD CNN features  
           
-    from utils.pps_prototyping_util import add_cnn_features
+    from atrain_match.utils.pps_prototyping_util import add_cnn_features
     if os.path.isfile(SETTINGS['CNN_PCKL_PATH']):
         filters_dict = add_cnn_features(imager_obj.cnn_dict,  row_col, 
                                         obt.imager.latitude, obt.imager.longitude, 

@@ -22,8 +22,8 @@
 #
 import numpy as np
 import unittest
-from truths.calipso import  (add_singleshot_to5km)
-from matchobject_io import CalipsoObject
+from atrain_match.truths.calipso import  (add_singleshot_to5km)
+from atrain_match.matchobject_io import CalipsoObject
 
 
 def add_singleshot_to5km_old(calipso5km): # Valid only for CALIPSO-CALIOP version 4.10

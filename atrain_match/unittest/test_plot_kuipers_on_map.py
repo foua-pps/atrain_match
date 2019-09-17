@@ -20,7 +20,7 @@
 #
 import numpy as np
 import unittest
-from reshaped_files_plotting.plot_kuipers_on_area_util import ppsStatsOnFibLatticeObject
+from atrain_match.reshaped_files_plotting.plot_kuipers_on_area_util import ppsStatsOnFibLatticeObject
 
 class test_kuipers_plot_on_map(unittest.TestCase): 
 
