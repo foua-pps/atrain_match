@@ -33,7 +33,7 @@ BASE_DIR = ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_{instrument}
 ROOT_DIR = BASE_DIR + "/Reshaped_Files/{satellite}/5km/*/*{truth}*.h5".format(
     satellite=satellite, truth=truth)
 OUT_DIR_TEMPLATE = BASE_DIR + "/Reshaped_Files_merged_{truth}_lwp/{satellite}/5km/".format(
-    truth=truth,satellite=satellite)
+    truth=truth, satellite=satellite)
 outfile_template = "5km_{satellite}_00000000_0000_00000_{truth}_{instrument}_match.h5".format(
     satellite=satellite, truth=truth, instrument = instrument)
 
@@ -42,10 +42,10 @@ print ROOT_DIR
 
 aObj = AmsrImagerTrackObject()
 
-for year in [2010]:#2012/02","2012/05", "2012/08", "2013/07", "2014/02", "2014/04", "2014/09"]:
-    #for month in ["01","02","03","04","05","06","07","08","09","10","11","12"]:
+for year in [2010]:#2012/02", "2012/05", "2012/08", "2013/07", "2014/02", "2014/04", "2014/09"]:
+    #for month in ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]:
     #for month in ["06"]:
-    for month in ["01"]:#, "02","03","04","05","06","07","08","09","10","11","12"]:
+    for month in ["01"]:#, "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]:
         for day in ["01"]:#, "14"]:
             OUT_DIR = OUT_DIR_TEMPLATE
             if not os.path.exists(OUT_DIR):
@@ -75,7 +75,7 @@ for year in [2010]:#2012/02","2012/05", "2012/08", "2013/07", "2014/02", "2014/0
                 if aObj.diff_sec_1970 is not None and len(diff) > 0:
                     aObj.diff_sec_1970 = np.concatenate([aObj.diff_sec_1970, aObj_new.diff_sec_1970[selection]], 0)
                     aObj.imager.cpp_lwp =  np.concatenate([aObj.imager.cpp_lwp, pps_lwp.ravel()], 0)
-                    aObj.amsr.lwp = np.concatenate([aObj.amsr.lwp, np.array(amsr_lwp).ravel()],0)
+                    aObj.amsr.lwp = np.concatenate([aObj.amsr.lwp, np.array(amsr_lwp).ravel()], 0)
                     for name in ["satz", "sunz", "longitude", "latitude"]:
                         aObj.imager.all_arrays[name] = np.concatenate([aObj.imager.all_arrays[name],
                                                                       aObj_new.imager.all_arrays[name][selection]],

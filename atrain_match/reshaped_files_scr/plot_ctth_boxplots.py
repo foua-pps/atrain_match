@@ -38,15 +38,15 @@ def make_boxplot(match_calipso, name):
     low_clouds = get_calipso_low_clouds(match_calipso)
     high_clouds = get_calipso_high_clouds(match_calipso)
     medium_clouds = get_calipso_medium_clouds(match_calipso)
-    height_c = (1000*match_calipso.calipso.all_arrays['layer_top_altitude'][:,0] -
+    height_c = (1000*match_calipso.calipso.all_arrays['layer_top_altitude'][:, 0] -
                 match_calipso.calipso.all_arrays['elevation'])
-    height_c1 = (1000*match_calipso.calipso.all_arrays['layer_top_altitude'][:,0] -
+    height_c1 = (1000*match_calipso.calipso.all_arrays['layer_top_altitude'][:, 0] -
                  match_calipso.calipso.all_arrays['elevation'])
-    height_c2 = (1000*match_calipso.calipso.all_arrays['layer_top_altitude'][:,1] -
+    height_c2 = (1000*match_calipso.calipso.all_arrays['layer_top_altitude'][:, 1] -
                  match_calipso.calipso.all_arrays['elevation'])
-    height_c3 = (1000*match_calipso.calipso.all_arrays['layer_top_altitude'][:,2] -
+    height_c3 = (1000*match_calipso.calipso.all_arrays['layer_top_altitude'][:, 2] -
                  match_calipso.calipso.all_arrays['elevation'])
-    height_c4 = (1000*match_calipso.calipso.all_arrays['layer_top_altitude'][:,3] -
+    height_c4 = (1000*match_calipso.calipso.all_arrays['layer_top_altitude'][:, 3] -
                  match_calipso.calipso.all_arrays['elevation'])
     height_pps = match_calipso.imager.all_arrays['ctth_height']
     bias_1 =  height_pps - height_c1
@@ -70,57 +70,57 @@ def make_boxplot(match_calipso, name):
 
 
     use = np.logical_and(height_pps > - 1,
-                         match_calipso.calipso.all_arrays['layer_top_altitude'][:,0]>=0)
-    use = np.logical_and(height_pps < 45000,use)
+                         match_calipso.calipso.all_arrays['layer_top_altitude'][:, 0]>=0)
+    use = np.logical_and(height_pps < 45000, use)
 
-    low = np.logical_and(low_clouds,use)
-    medium = np.logical_and(medium_clouds,use)
-    high = np.logical_and(high_clouds,use)
-    c_all = np.logical_or(high,np.logical_or(low,medium))
+    low = np.logical_and(low_clouds, use)
+    medium = np.logical_and(medium_clouds, use)
+    high = np.logical_and(high_clouds, use)
+    c_all = np.logical_or(high, np.logical_or(low, medium))
     high_very_thin = np.logical_and(high, very_thin)
-    high_thin = np.logical_and(high, np.logical_and(~very_thin,thin))
+    high_thin = np.logical_and(high, np.logical_and(~very_thin, thin))
     high_thick = np.logical_and(high, ~thin)
     #print "thin, thick high", np.sum(high_thin), np.sum(high_thick)
     bias = height_pps - height_c
-    limit = np.percentile(bias[use],5)
+    limit = np.percentile(bias[use], 5)
     #print limit
     abias = np.abs(bias)
     MAE = np.mean(abias[c_all])
     #abias[abias>2000]=2000
-    print name.ljust(30, " "), "%3.1f"%(np.mean(abias[c_all])), "%3.1f"%(np.mean(abias[low])),"%3.1f"%(np.mean(abias[medium])),"%3.1f"%(np.mean(abias[high])), "%3.1f"%(limit)
+    print name.ljust(30, " "), "%3.1f"%(np.mean(abias[c_all])), "%3.1f"%(np.mean(abias[low])), "%3.1f"%(np.mean(abias[medium])), "%3.1f"%(np.mean(abias[high])), "%3.1f"%(limit)
 
-    c_all = np.logical_or(np.logical_and(~very_thin,high),np.logical_or(low,medium))
+    c_all = np.logical_or(np.logical_and(~very_thin, high), np.logical_or(low, medium))
     number_of = np.sum(c_all)
 
-    #print name.ljust(30, " "), "%3.1f"%(np.sum(abias[c_all]<250)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<500)*100.0/number_of),  "%3.1f"%(np.sum(abias[c_all]<1000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<1500)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<2000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<3000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<4000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<5000)*100.0/number_of)
+    #print name.ljust(30, " "), "%3.1f"%(np.sum(abias[c_all]<250)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<500)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<1000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<1500)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<2000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<3000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<4000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<5000)*100.0/number_of)
     from matplotlib import rcParams
     rcParams.update({'figure.autolayout': True})
-    fig = plt.figure(figsize = (6,9))
+    fig = plt.figure(figsize = (6, 9))
     ax = fig.add_subplot(111)
     plt.xticks(rotation=70)
     #plt.tight_layout()
     #plt.subplots_adjust(left=0.2)
     #plt.subplots_adjust(left=10, bottom=10, right=10, top=10, wspace=0, hspace=0)
 
-    ax.fill_between(np.arange(0,8),-500,500, facecolor='green', alpha=0.6)
-    ax.fill_between(np.arange(0,8),-1000,1000, facecolor='green', alpha=0.4)
-    ax.fill_between(np.arange(0,8),-1500,1500, facecolor='green', alpha=0.2)
-    ax.fill_between(np.arange(0,8),2000,15000, facecolor='red', alpha=0.2)
-    ax.fill_between(np.arange(0,8),-2000,-15000, facecolor='red', alpha=0.2)
-    for y_val in [-5, -4, -3, -2,2,3,4,5]:
-        plt.plot(np.arange(0,8), y_val*1000 + 0*np.arange(0,8),':k')
-        plt.plot(np.arange(0,8), -10*1000 + 0*np.arange(0,8),':k')
-    plt.plot(np.arange(0,8), 0 + 0*np.arange(0,8),'k')
-    #plt.boxplot([bias[low],bias[medium],bias[high],bias[high_thick],bias[high_thin],bias[high_very_thin]],whis=[5, 95],sym='',
-    #            labels=["low","medium","high-all","high-thick\n od>0.3","high-thin \n 0.1<od<0.3","high-vthin\n od<0.1"],showmeans=True)
-    plt.boxplot([bias[low],bias[medium],bias[high]],whis=[5, 95],sym='',
-                labels=["low","medium","high"],showmeans=True)
-    ax.set_ylim(-14000,8000)
+    ax.fill_between(np.arange(0, 8), -500, 500, facecolor='green', alpha=0.6)
+    ax.fill_between(np.arange(0, 8), -1000, 1000, facecolor='green', alpha=0.4)
+    ax.fill_between(np.arange(0, 8), -1500, 1500, facecolor='green', alpha=0.2)
+    ax.fill_between(np.arange(0, 8), 2000, 15000, facecolor='red', alpha=0.2)
+    ax.fill_between(np.arange(0, 8), -2000, -15000, facecolor='red', alpha=0.2)
+    for y_val in [-5, -4, -3, -2, 2, 3, 4, 5]:
+        plt.plot(np.arange(0, 8), y_val*1000 + 0*np.arange(0, 8), ':k')
+        plt.plot(np.arange(0, 8), -10*1000 + 0*np.arange(0, 8), ':k')
+    plt.plot(np.arange(0, 8), 0 + 0*np.arange(0, 8), 'k')
+    #plt.boxplot([bias[low], bias[medium], bias[high], bias[high_thick], bias[high_thin], bias[high_very_thin]], whis=[5, 95], sym='',
+    #            labels=["low", "medium", "high-all", "high-thick\n od>0.3", "high-thin \n 0.1<od<0.3", "high-vthin\n od<0.1"], showmeans=True)
+    plt.boxplot([bias[low], bias[medium], bias[high]], whis=[5, 95], sym='',
+                labels=["low", "medium", "high"], showmeans=True)
+    ax.set_ylim(-14000, 8000)
     title_name = "CTTH-2018  "
     if "2014" in name:
         title_name = "CTTH-2014  "
 
-    plt.title("%s MAE = %3.0f"%(title_name,MAE))
+    plt.title("%s MAE = %3.0f"%(title_name, MAE))
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_LAPSE_RATE_INVESTIGATION/ctth_box_plot_%s_5_95_filt.png"%(name))
     #plt.show()
 
@@ -157,18 +157,18 @@ def investigate_nn_ctth():
                                ROOT_DIR_GAC_v2014_12x12,
                                ROOT_DIR_GAC_oldCTTH_12x12,
                                ROOT_DIR_GAC_nn_imager_with_gac],
-                              ["gac_nnLessIsMore","gac_nn21", "gac_CTTHold","gac_2014",
+                              ["gac_nnLessIsMore", "gac_nn21", "gac_CTTHold", "gac_2014",
                                "gac_nn20161125", "gac_nnIMAGER",
                                "gac_nnIMAGER_tuned", "gac_nnIMAGER1_tuned",
-                               "gac_v2014_12x12","gac_CTTHold_12x12", "gac_17var_modis_noaa19"]):
+                               "gac_v2014_12x12", "gac_CTTHold_12x12", "gac_17var_modis_noaa19"]):
         files = glob(ROOT_DIR + "5km/2009/*/*/*h5")
         match_calipso = CalipsoImagerTrackObject()
         for filename in files:
             match_calipso +=  readCaliopImagerMatchObj(filename)
         caobj_dict[name] = match_calipso
         make_boxplot(match_calipso, name)
-    #make_compare(caobj_dict['old'],caobj_dict['nn20161125'],'test')
-    #make_compare(caobj_dict['nn20161130'],caobj_dict['nn20161125'],'test2')
+    #make_compare(caobj_dict['old'], caobj_dict['nn20161125'], 'test')
+    #make_compare(caobj_dict['nn20161130'], caobj_dict['nn20161125'], 'test2')
 
 def investigate_nn_ctth_viirs():
     ROOT_DIR_v2014 = (
@@ -216,8 +216,8 @@ def investigate_nn_ctth_viirs():
         "ATRAIN_RESULTS_NPP_IMAGER_with_gac/Reshaped_Files/npp/1km/2015/07/*/")
     caobj_dict = {}
     for ROOT_DIR, name in zip(
-            [ROOT_DIR_v2014, ROOT_DIR_v2018, ROOT_DIR_nn_imager_wg, ROOT_DIR_nn_imager1,ROOT_DIR_nn_imager,ROOT_DIR_nn_imager_tuned, ROOT_DIR_v2014_old, ROOT_DIR_14bug, ROOT_DIR_nn_viirs, ROOT_DIR_nn_viirs_CLAY4, ROOT_DIR_nn_viirs_new,ROOT_DIR_nn_viirs_lm,ROOT_DIR_nn_imager_lm],
-            ["npp_CTTH-2014-C4", "npp_CTTH-2018-C4", "npp_CTTHnn_IMAGER_with_gac", "npp_CTTHnn_IMAGER1","npp_CTTHnn_IMAGER","npp_CTTHnn_IMAGER_tuned", "npp_CTTHv2014","npp_CTTHv2014_buggy","npp_CTTHnn_VIIRS","npp_CTTHnn_VIIRS_C4","npp_CTTHnn_VIIRS_tuned", "npp_nnVIIRS_LessIsMore", "npp_nnIMAGER_LessIsMore"]):
+            [ROOT_DIR_v2014, ROOT_DIR_v2018, ROOT_DIR_nn_imager_wg, ROOT_DIR_nn_imager1, ROOT_DIR_nn_imager, ROOT_DIR_nn_imager_tuned, ROOT_DIR_v2014_old, ROOT_DIR_14bug, ROOT_DIR_nn_viirs, ROOT_DIR_nn_viirs_CLAY4, ROOT_DIR_nn_viirs_new, ROOT_DIR_nn_viirs_lm, ROOT_DIR_nn_imager_lm],
+            ["npp_CTTH-2014-C4", "npp_CTTH-2018-C4", "npp_CTTHnn_IMAGER_with_gac", "npp_CTTHnn_IMAGER1", "npp_CTTHnn_IMAGER", "npp_CTTHnn_IMAGER_tuned", "npp_CTTHv2014", "npp_CTTHv2014_buggy", "npp_CTTHnn_VIIRS", "npp_CTTHnn_VIIRS_C4", "npp_CTTHnn_VIIRS_tuned", "npp_nnVIIRS_LessIsMore", "npp_nnIMAGER_LessIsMore"]):
         print ROOT_DIR
         files = glob(ROOT_DIR + "*.h5")
         print files

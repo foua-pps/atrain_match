@@ -45,7 +45,7 @@ re_name = re.compile("_global_(\w+_\w+_\w+)\/")
 
 
 files = glob(ROOT_DIR_v2018_GAC + "/200*/*cali*h5")
-#for ROOT_DIR in [ROOT_DIR_GAC_nn_imager, ROOT_DIR_GAC_nn,  ROOT_DIR_GAC_nn_new]:
+#for ROOT_DIR in [ROOT_DIR_GAC_nn_imager, ROOT_DIR_GAC_nn, ROOT_DIR_GAC_nn_new]:
 for filename in files:
     match = re_name.search(ROOT_DIR)
     name = "no_name"
@@ -61,7 +61,7 @@ for filename in files:
     except:
         continue
     #use = np.logical_and(np.abs(match_calipso.imager.all_arrays['latitude'])>70, use)
-    xmin = [i for i,x in enumerate(match_calipso.imager.all_arrays['latitude']) if x<-50]
+    xmin = [i for i, x in enumerate(match_calipso.imager.all_arrays['latitude']) if x<-50]
     try:
         xmin = xmin[0]
     except:
@@ -71,7 +71,7 @@ for filename in files:
                                             height_pps_old + match_calipso.calipso.all_arrays['elevation'],
                                             height_pps + match_calipso.calipso.all_arrays['elevation'],
                                             ADIR + "/PICTURES_FROM_PYTHON/CTTH_LAPSE_RATE_INVESTIGATION/",
-                                            "test_plot_file_part_nn_ctth_%s_%s"%(name,basename.split('.h5')[0]),
+                                            "test_plot_file_part_nn_ctth_%s_%s"%(name, basename.split('.h5')[0]),
                                             file_type='png',
                                             xmin=xmin,
                                             xmax=xmin + 2500,

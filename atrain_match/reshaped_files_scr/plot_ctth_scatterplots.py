@@ -84,7 +84,7 @@ def do_one_subplot(plt_obj, ax, fig, compare, truth='height_c', vmax = 250, do_c
     edgesx= np.linspace(xmin, xmax, n_edges)
     edgesy= np.linspace(ymin, ymax, n_edges)
     #print edgesx
-    H, xe, ye = np.histogram2d(x, y, bins=[edgesx,edgesy])
+    H, xe, ye = np.histogram2d(x, y, bins=[edgesx, edgesy])
     #print H
     xi = np.searchsorted(edgesx, x)# - edgesx[0])/(n_edges+1)).astype(np.int)
     yi = np.searchsorted(edgesy, y)#np.floor((y - edgesy[0])/(n_edges+1)).astype(np.int)  #-1?
@@ -95,9 +95,9 @@ def do_one_subplot(plt_obj, ax, fig, compare, truth='height_c', vmax = 250, do_c
     yi = yi - 1
     #only needed if max to small !
     #n_edges =3,
-    #edges: [0,1,2]
-    #np.searchsorted [(0),1,2,(3)]
-    #xi-t [(-1),0,1,(2)]
+    #edges: [0, 1, 2]
+    #np.searchsorted [(0), 1, 2, (3)]
+    #xi-t [(-1), 0, 1, (2)]
     # dim(H)=2x2
     #H(0) and H(1) is ok. H(2) is not!
     if 'pressure' not in truth:
@@ -110,18 +110,18 @@ def do_one_subplot(plt_obj, ax, fig, compare, truth='height_c', vmax = 250, do_c
         #yi(yi==2)==1 This is what we need!
         yi[yi == n_edges - 1] = n_edges - 2
         xi[xi == n_edges - 1] = n_edges - 2
-    z = H[xi,yi]
-    #z=H[yi,xi]
+    z = H[xi, yi]
+    #z=H[yi, xi]
 
     import copy;
     my_cmap=copy.copy(matplotlib.cm.viridis)
-    my_cmap.set_under(color='1.0',alpha=1)
+    my_cmap.set_under(color='1.0', alpha=1)
 
-    perc90 = np.percentile(z,75)
+    perc90 = np.percentile(z, 75)
     print "perc90", perc90
     #z[z>perc90]=perc90
     #nicer but too slow
-    #points = np.vstack([x,y])
+    #points = np.vstack([x, y])
     #kde= gaussian_kde(points)
     #z=kde(points)
     idx = z.argsort()
@@ -145,40 +145,40 @@ def do_one_subplot(plt_obj, ax, fig, compare, truth='height_c', vmax = 250, do_c
     more = z_values_to_use > 10
 
     if ptype in ['hexbin']:
-        b =plt.hexbin(to_km*x,to_km*y, gridsize=binsize,  cmap=my_cmap,
+        b =plt.hexbin(to_km*x, to_km*y, gridsize=binsize, cmap=my_cmap,
                       vmin=10, vmax=vmax)
     if ptype in ['hist2d']:
-        b =plt.hist2d(to_km*x,to_km*y,bins=binsize,  cmap=my_cmap,
+        b =plt.hist2d(to_km*x, to_km*y, bins=binsize, cmap=my_cmap,
                       vmin=1, vmax=vmax)
     if ptype in ['scatter']:
 
         #plt.scatter(to_km*x[idx][few], to_km*y[idx][few], c=z[idx][few],
         #            edgecolor='', cmap='inferno_r', vmin=1, vmax=vmax,
-        #            alpha=0.2,marker='.',edgecolors=None)
+        #            alpha=0.2, marker='.', edgecolors=None)
         #b = plt.scatter(to_km*x[idx][more], to_km*y[idx][more], c=z[idx][more],
         #                edgecolor='', cmap='inferno_r', vmin=1, vmax=vmax,
-        #                alpha=1.0, marker='.',edgecolors=None)
+        #                alpha=1.0, marker='.', edgecolors=None)
         b = plt.scatter(to_km*x[idx], to_km*y[idx], c=z[idx],
                         edgecolor='', cmap=my_cmap, vmin=1, vmax=vmax,
-                        alpha=1.0, marker='.', edgecolors=None,  rasterized=True)
+                        alpha=1.0, marker='.', edgecolors=None, rasterized=True)
         #b = plt.plot(to_km*x[idx], to_km*y[idx], c=z[idx],
         #              cmap=my_cmap, vmin=1, vmax=vmax,
-        #             alpha=1.0, marker='.',  rasterized=True)
+        #             alpha=1.0, marker='.', rasterized=True)
 
         if 'pressure' in truth:
             ax.text(to_km*xmax*0.95, to_km*xmax*0.05, the_title, bbox={'facecolor':'blue', 'alpha':0.0, 'pad':1})
-            #plt.plot([xmin, 0.9*to_km*xmax],[xmin+25, 0.9*to_km*xmax+25],'w', alpha=0.5)
-            #plt.plot([xmin, 0.9*to_km*xmax],[xmin-25, 0.9*to_km*xmax-25],'w', alpha=0.5)
-            plt.plot([0.1*to_km*xmax, to_km*xmax],[0.1*to_km*xmax, to_km*xmax],'b:')
+            #plt.plot([xmin, 0.9*to_km*xmax], [xmin+25, 0.9*to_km*xmax+25], 'w', alpha=0.5)
+            #plt.plot([xmin, 0.9*to_km*xmax], [xmin-25, 0.9*to_km*xmax-25], 'w', alpha=0.5)
+            plt.plot([0.1*to_km*xmax, to_km*xmax], [0.1*to_km*xmax, to_km*xmax], 'b:')
         else:
             ax.text(xmax*to_km*0.05, 0.90*to_km*xmax, the_title, bbox={'facecolor':'blue', 'alpha':0.0, 'pad':1})
-            #plt.plot([xmin, 0.9*to_km*xmax],[xmin+0.5, 0.9*to_km*xmax+0.5], color='grey', alpha=1.0)
-            #plt.plot([xmin, 0.9*to_km*xmax],[xmin-0.5, 0.9*to_km*xmax-0.5], color='grey', alpha=10)
-            plt.plot([xmin, 0.85*to_km*xmax],[xmin, 0.85*to_km*xmax],'b:')
-    #plt.scatter(x,y, alpha=0.1, label=label)
+            #plt.plot([xmin, 0.9*to_km*xmax], [xmin+0.5, 0.9*to_km*xmax+0.5], color='grey', alpha=1.0)
+            #plt.plot([xmin, 0.9*to_km*xmax], [xmin-0.5, 0.9*to_km*xmax-0.5], color='grey', alpha=10)
+            plt.plot([xmin, 0.85*to_km*xmax], [xmin, 0.85*to_km*xmax], 'b:')
+    #plt.scatter(x, y, alpha=0.1, label=label)
 
-    ax.set_ylim(ymin,to_km*ymax)
-    ax.set_xlim(xmin,to_km*xmax)
+    ax.set_ylim(ymin, to_km*ymax)
+    ax.set_xlim(xmin, to_km*xmax)
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
     if 'pressure' in truth:
@@ -222,8 +222,8 @@ def do_the_scatter_plot(plt_obj_cali_new, plt_obj_csat_new, month):
     do_one_subplot(plt_obj_cali_new, ax, fig, 'height_nnmintnco2', vmax=vmax, height_calipso=True)
     ax = fig.add_subplot(339, aspect='equal')
     do_one_subplot(plt_obj_cali_new, ax, fig, 'height_nnmint', vmax=vmax, height_calipso=True)
-    fig.text(0.5, 0.04, 'Cloud height CALIOP (km)', ha='center',fontsize=18)
-    fig.text(0.04, 0.5, 'Retrieved height (km)', va='center', rotation='vertical',fontsize=18)
+    fig.text(0.5, 0.04, 'Cloud height CALIOP (km)', ha='center', fontsize=18)
+    fig.text(0.04, 0.5, 'Retrieved height (km)', va='center', rotation='vertical', fontsize=18)
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_PLOTS/fig_calipso_scatter_inferno_r_modified_max_height_%s.png"%(month), bbox_inches='tight')
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_PLOTS/fig_calipso_scatter_inferno_r_modified_max_height_%s.pdf"%(month), bbox_inches='tight')
     plt.close("all")
@@ -246,8 +246,8 @@ def do_the_scatter_plot(plt_obj_cali_new, plt_obj_csat_new, month):
     do_one_subplot(plt_obj_cali_new, ax, fig, 'pressure_nnmintnco2', vmax=vmax, truth='pressure_c')
     ax = fig.add_subplot(339, aspect='equal')
     do_one_subplot(plt_obj_cali_new, ax, fig, 'pressure_nnmint', vmax=vmax, truth='pressure_c')
-    fig.text(0.5, 0.04, 'Cloud top pressure CALIOP (hPa)', ha='center',fontsize=18)
-    fig.text(0.04, 0.5, 'Retrieved cloud top pressure (hPa)', va='center', rotation='vertical',fontsize=18)
+    fig.text(0.5, 0.04, 'Cloud top pressure CALIOP (hPa)', ha='center', fontsize=18)
+    fig.text(0.04, 0.5, 'Retrieved cloud top pressure (hPa)', va='center', rotation='vertical', fontsize=18)
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_PLOTS/fig04_scatter_inferno_r_modified_max_pressure_%s.png"%(month), bbox_inches='tight')
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_PLOTS/fig04_%s.pdf"%(month), bbox_inches='tight')
     vmax = 200
@@ -273,8 +273,8 @@ def do_the_scatter_plot(plt_obj_cali_new, plt_obj_csat_new, month):
     do_one_subplot(plt_obj_csat_new, ax, fig, 'height_nnmintnco2', vmax=vmax)
     ax = fig.add_subplot(339, aspect='equal')
     do_one_subplot(plt_obj_csat_new, ax, fig, 'height_nnmint', vmax=vmax)
-    fig.text(0.5, 0.04, 'Cloud top height CPR (CloudSat) (km)', ha='center',fontsize=18)
-    fig.text(0.04, 0.5, 'Retrieved cloud top height (km)', va='center', rotation='vertical',fontsize=18)
+    fig.text(0.5, 0.04, 'Cloud top height CPR (CloudSat) (km)', ha='center', fontsize=18)
+    fig.text(0.04, 0.5, 'Retrieved cloud top height (km)', va='center', rotation='vertical', fontsize=18)
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_PLOTS/fig03_cloudsat_scatter_inferno_r_modified_max_height_%s.png"%(month), bbox_inches='tight')
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_PLOTS/fig03_%s.pdf"%(month), bbox_inches='tight')
 
@@ -286,8 +286,8 @@ def get_plot_object_nn_ctth_modis_lvl2_cloudsat(month):
         #"global_modis_%s_created20170330/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/*h5")
     #match_clsat = CloudsatImagerTrackObject()
     plt_obj = PlotAndDataObject()
-    print ROOT_DIR%(day_str,month)
-    files = glob(ROOT_DIR%(day_str,month))
+    print ROOT_DIR%(day_str, month)
+    files = glob(ROOT_DIR%(day_str, month))
     for filename in files:
         print filename
         match_clsat_new =  readCloudsatImagerMatchObj(filename)
@@ -301,8 +301,8 @@ def get_plot_object_nn_ctth_modis_lvl2(month):
         #"global_modis_%s_created20170504/Reshaped_Files_merged/eos2/1km/2010/%s/*h5")
         "global_modis_%s_created20180316/Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/%s/*h5")
     plt_obj = PlotAndDataObject()
-    print ROOT_DIR%(day_str,month)
-    files = glob(ROOT_DIR%(day_str,month))
+    print ROOT_DIR%(day_str, month)
+    files = glob(ROOT_DIR%(day_str, month))
     for filename in files:
         print filename
         match_calipso_new = readCaliopImagerMatchObj(filename)
@@ -315,7 +315,7 @@ def do_the_plots():
     plt_obj_csat = PlotAndDataObject()
 
     merged_months = ""
-    for month in ["02", "04","06", "08","10","12"]:
+    for month in ["02", "04", "06", "08", "10", "12"]:
     #for month in ["08"]:
         merged_months += month
         plt_obj_cali_new = get_plot_object_nn_ctth_modis_lvl2(month)
@@ -324,7 +324,7 @@ def do_the_plots():
         plt_obj_cali += plt_obj_cali_new
         plt_obj_csat += plt_obj_csat_new
 
-    do_the_scatter_plot(plt_obj_cali,plt_obj_csat, merged_months)
+    do_the_scatter_plot(plt_obj_cali, plt_obj_csat, merged_months)
 
 if __name__ == "__main__":
     do_the_plots()

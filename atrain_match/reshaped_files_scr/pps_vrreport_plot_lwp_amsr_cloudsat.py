@@ -44,7 +44,7 @@ def my_label(data):
                  np.median(data),
                  my_mae(data),
                  my_iqr(data),
-                 my_pex(data,10),
+                 my_pex(data, 10),
                  len(data)
                             ))
     return label
@@ -76,22 +76,22 @@ def do_the_printing(aObj, name):
         scatter_bin_size=5.0
     elif "cloudsat"  in aObj.truth_sat:
         xymax=300
-        diff, lwp_diff_lo, x, y,  use = get_lwp_diff_inner_cloudsat(aObj, True, wide_selection=True)
+        diff, lwp_diff_lo, x, y, use = get_lwp_diff_inner_cloudsat(aObj, True, wide_selection=True)
         lon = aObj.cloudsat.all_arrays["longitude"]
         lat = aObj.cloudsat.all_arrays["latitude"]
         conditions["use"] = use.copy()
         conditions["no_cloudsat_iwp"] =  aObj.cloudsat.RVOD_ice_water_path<=0
-        conditions["no_cloudsat_precip"] =  np.bitwise_and(np.right_shift(aObj.cloudsat.RVOD_CWC_status,2),1)==0
-        conditions["geoprof_cloudy"] = np.bitwise_and(np.right_shift(aObj.cloudsat.RVOD_CWC_status,0),10)==0
+        conditions["no_cloudsat_precip"] =  np.bitwise_and(np.right_shift(aObj.cloudsat.RVOD_CWC_status, 2), 1)==0
+        conditions["geoprof_cloudy"] = np.bitwise_and(np.right_shift(aObj.cloudsat.RVOD_CWC_status, 0), 10)==0
         conditions["without_zeros"] = np.logical_and(aObj.imager.cpp_lwp>0,
                                                     aObj.cloudsat.RVOD_liq_water_path > 0)
 
-        use_sea = np.logical_and(use,aObj.imager.fractionofland <= 0)
-        use_land = np.logical_and(use,aObj.imager.fractionofland > 0)
+        use_sea = np.logical_and(use, aObj.imager.fractionofland <= 0)
+        use_land = np.logical_and(use, aObj.imager.fractionofland > 0)
         use_surfs = [use, use_sea, use_land]
         surf_names = ["all", "sea", "land"]
         scatter_bin_size=5.0
-    for use_t, surf in zip(use_surfs,surf_names):
+    for use_t, surf in zip(use_surfs, surf_names):
         use_i = use_t
         for condition in ["use", "no_cloudsat_iwp", "no_cloudsat_precip", "geoprof_cloudy", "without_zeros"]:
             if condition not in conditions.keys():
@@ -106,9 +106,9 @@ def do_the_printing(aObj, name):
             vmax = len(diff_i)*0.002
             fig = plt.figure()
             ax = fig.add_subplot(111)
-            atrain_scatter(fig, ax, x[use_i] , y[use_i],   scatter_bin_size, xymin = 0,  xymax=1000, vmax=vmax,
+            atrain_scatter(fig, ax, x[use_i] , y[use_i],  scatter_bin_size, xymin = 0, xymax=1000, vmax=vmax,
                            do_colorbar=True, to_km=1.0, ptype='scatter')
-            ax.plot([0,170],[0,170], ':w')
+            ax.plot([0, 170], [0, 170], ':w')
             ax.set_xlabel("PPS LWP g/m^2")
             if "amsr" in  aObj.truth_sat:
                 ax.set_ylabel("AMSR-E LWP g/m^2")
@@ -121,24 +121,24 @@ def do_the_printing(aObj, name):
             hist_heights, x_, hist_heights_gaussian = my_hist(x[use_i] - y[use_i], None, bmin= -3000, bmax=3000, delta_h=5, return_also_corresponding_gaussian=True)
 
             ax.fill(x_, hist_heights_gaussian, color='silver')
-            plt.plot(x_, hist_heights, "r-",  label = my_label(x[use_i]-y[use_i]))
-            #ax.set_ylim(0,10)
-            #ax.set_xlim(-4,6)
-            ax.set_xlim([-500,600])
-            ax.set_ylim([00,14])
+            plt.plot(x_, hist_heights, "r-", label = my_label(x[use_i]-y[use_i]))
+            #ax.set_ylim(0, 10)
+            #ax.set_xlim(-4, 6)
+            ax.set_xlim([-500, 600])
+            ax.set_ylim([00, 14])
             if "amsr" in  aObj.truth_sat:
                 ax.set_xlabel("error: PPS - AMSR-E LWP g/m^2")
             else:
                 ax.set_xlabel("error: PPS - CPR (CloudSat) LWP g/m^2")
             ax.set_ylabel("percent of data")
-                #plt.yticks(np.arange(0,9,2.0))
+                #plt.yticks(np.arange(0, 9, 2.0))
             plt.legend()
 
             ax = fig.add_subplot(132)
-            b = atrain_scatter(fig, ax, x[use_i] , y[use_i],   scatter_bin_size, xymin = 0,  xymax=xymax, vmax=vmax, #140
+            b = atrain_scatter(fig, ax, x[use_i] , y[use_i],  scatter_bin_size, xymin = 0, xymax=xymax, vmax=vmax, #140
                            do_colorbar=False, to_km=1.0, ptype='scatter')
             ax.set_xlabel("PPS LWP g/m^2")
-            ax.plot([0,170],[0,170], ':w')
+            ax.plot([0, 170], [0, 170], ':w')
             cax = fig.add_axes([0.57, 0.65, 0.03, 0.22])
             cbar = fig.colorbar(b, cax=cax, )
 
@@ -151,13 +151,13 @@ def do_the_printing(aObj, name):
             ax = fig.add_subplot(133)
             hist_heights_x, x_, hist_heights_gaussian = my_hist(x[use_i], None, bmin=0, bmax=300, delta_h=5)
             hist_heights_y, y_, hist_heights_gaussian = my_hist(y[use_i], None, bmin=0, bmax=300, delta_h=5)
-            plt.plot(x_, hist_heights_x, "r-",  label = "PPS LWP")
+            plt.plot(x_, hist_heights_x, "r-", label = "PPS LWP")
             my_label_s = "CPR (CloudSat) LWP"
             if "amsr" in  aObj.truth_sat:
                 my_label_s=("AMSR-E LWP")
-            plt.plot(y_, hist_heights_y, "b-",  label = my_label_s)
+            plt.plot(y_, hist_heights_y, "b-", label = my_label_s)
             plt.legend()
-            ax.set_ylim([0,14])
+            ax.set_ylim([0, 14])
             ax.set_xlabel("LWP g/m^2")
             ax.set_ylabel("percent of data")
 
@@ -216,6 +216,6 @@ if __name__ == "__main__":
             if aObj_new.cloudsat.RVOD_liq_water_path is None:
                 print  os.path.basename(filename)
             if len(aObj_new.cloudsat.RVOD_liq_water_path) == len(aObj_new.imager.cpp_lwp):
-                print "ok",  os.path.basename(filename)
+                print "ok", os.path.basename(filename)
                 aObj += aObj_new
     do_the_printing(aObj, name)

@@ -35,44 +35,10 @@ for filename in files:
         #if '"""' in line and not com:
         #    com = True
 
-        if len(line.lstrip())>0 and line.lstrip()[0]!='#' and '"' not in line and "'" not in line and "print" not in line and line.lstrip()[0]!='*' and "avhrr channel" not in line and line.lstrip()[0]!='+' and not com and not "def" in line:
 
-            update = line
-            if len(line.split('#'))>1:
-                update = line.split('#')[0]
-            update_start = update    
-            for op in ['==', '<=', ">=", '+='  '*', '-', '+', '>', '<']:
-                update = update.replace(op, ' ' + op + ' ')
-                update = update.replace(op + '  ', op + ' ')
-                update = update.replace(op + '  ', op + ' ')
-                update = update.replace(op + '  ', op + ' ')
-                update = update.replace( '  ' + op, ' '+op)
-                update = update.replace( '  ' + op, ' '+op)
-                update = update.replace( '  ' + op, ' '+op)
-                update = update.replace( '  ' + op, ' '+op)
-            line = line.replace(update_start, update)
-        
-            
-        for value in range(0,10):
-            line = line.replace("( - %d"%(value), "(-%d"%(value))
-            line = line.replace("[ - %d"%(value), "[-%d"%(value))
-            line = line.replace(": - %d"%(value), ":-%d"%(value))
-            line = line.replace(", - %d"%(value), ", -%d"%(value))
-        line = line.replace("= - ", "= -")
-
-        line = line.replace( '< <', '<<')
-        line = line.replace( '< <', '<<')
-        line = line.replace( '> >', '>>')
-        line = line.replace( '> >', '>>')
-        line = line.replace( 'axis= -1', 'axis=-1')
-        line = line.replace( '* *', '**')
-        line = line.replace( ' ** ', '**')
-        line = line.replace( '< =', '<=')
-        line = line.replace( '+ =', '+=')
-        line = line.replace( '> =', '>=')
-        line = line.replace( '= =', '==')
-        line = line.replace( 'return - 9', 'return -9')
-        line = line.replace( 'nodata= -9', 'nodata=-9')
+        line = line.replace( ',', ', ')
+        line = line.replace( ',  ', ', ')
+        line = line.replace( ',  ', ', ')
         #line = line.replace( '100.0/', '100.0 / ')
         
 

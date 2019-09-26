@@ -75,11 +75,11 @@ t11t12_clear_water = np.ma.masked_where(isClearWater == False, t11t12).compresse
 
 import matplotlib.pyplot as plt
 
-fig = plt.figure(figsize=(9,8))
+fig = plt.figure(figsize=(9, 8))
 ax = fig.add_subplot(311)
 
 n, bins, patches = ax.hist(t11t12_cloud,
-                           100, range=[-10,20],
+                           100, range=[-10, 20],
                            normed=1, facecolor='green', alpha=0.75,
                            label='cloudy')
 ax.set_ylabel('Frequency')
@@ -89,7 +89,7 @@ ax.legend()
 
 ax = fig.add_subplot(312)
 n, bins, patches = ax.hist(t11t12_clear_water,
-                           100, range=[-10,20],
+                           100, range=[-10, 20],
                            normed=1, facecolor='blue', alpha=0.75,
                            label='open water (ice conc < 15%')
 ax.legend()
@@ -98,7 +98,7 @@ ax.set_xlim(-8, 16)
 
 ax = fig.add_subplot(313)
 n, bins, patches = ax.hist(t11t12_clear_ice,
-                           100, range=[-10,20],
+                           100, range=[-10, 20],
                            normed=1, facecolor='red', alpha=0.75,
                            label='cloudfree sea ice')
 ax.legend()

@@ -48,18 +48,18 @@ if blinn:
 
 def get_specular_refl_phong(azidiff, sunz, satz, exponent=25):
     a=1.0
-    B =np.where(azidiff >= 90, np.cos(np.radians(azidiff)),0)#??
+    B =np.where(azidiff >= 90, np.cos(np.radians(azidiff)), 0)#??
     B = np.cos(np.radians(azidiff))
-    cosalpha =  np.where(sunz >= 90,0,np.cos(np.radians(sunz)))*np.cos(np.radians(satz)) - a*np.where(sunz >= 90,0,np.sin(np.radians(sunz)))*np.sin(np.radians(satz))*B
+    cosalpha =  np.where(sunz >= 90, 0, np.cos(np.radians(sunz)))*np.cos(np.radians(satz)) - a*np.where(sunz >= 90, 0, np.sin(np.radians(sunz)))*np.sin(np.radians(satz))*B
     #refl = cosalpha**exponent
     #refl[refl==0] = -1
     return np.arccos(cosalpha)*180/np.pi
 
 def get_specular_refl_blinn_phong(azidiff, sunz, satz, exponent=4*25):
 
-    B =np.where(azidiff >= 90, np.cos(np.radians(azidiff)),0)#??
+    B =np.where(azidiff >= 90, np.cos(np.radians(azidiff)), 0)#??
     B = np.cos(np.radians(azidiff))
-    dev =  np.where(sunz >= 90,0,np.cos(np.radians(sunz)))*np.cos(np.radians(satz)) + np.where(sunz >= 90,0,np.sin(np.radians(sunz)))*np.sin(np.radians(satz))*B
+    dev =  np.where(sunz >= 90, 0, np.cos(np.radians(sunz)))*np.cos(np.radians(satz)) + np.where(sunz >= 90, 0, np.sin(np.radians(sunz)))*np.sin(np.radians(satz))*B
     cosalpha = (np.cos(np.radians(sunz)) + np.cos(np.radians(satz)))/np.sqrt(2*(1 + dev))
     #cosalpha = (np.cos(np.radians(sunz))+np.cos(np.radians(satz)))/(2*(1+dev))
     return np.arccos(cosalpha)*180/np.pi
@@ -89,7 +89,7 @@ for filename in files:
     i_cloudtype_conditions = getattr(i_match_calipso.imager, 'cloudtype_conditions')
     i_ppssg=get_sunglint_info_pps2014(i_cloudtype_conditions)
     i_phongsg = i_degree_from_reflection < 20
-    print(np.sum(i_phongsg),np.sum(i_ppssg))
+    print(np.sum(i_phongsg), np.sum(i_ppssg))
     if np.sum(i_phongsg) < np.sum(i_ppssg):
         print("!!!!!!!!!!!!!!!!!!!!!")
     """
@@ -128,8 +128,8 @@ cloudtype_conditions = getattr(match_calipso.imager, 'cloudtype_conditions')
 #r09 = r06/r09
 
 
-isCloudfree = np.logical_and(isCloudfree, np.equal(nsidc_st,0))
-isCloudfree = np.logical_and(isCloudfree, np.equal(igbp_st,17))
+isCloudfree = np.logical_and(isCloudfree, np.equal(nsidc_st, 0))
+isCloudfree = np.logical_and(isCloudfree, np.equal(igbp_st, 17))
 isPPSSG = np.logical_and(
     isCloudfree,
     get_sunglint_info_pps2014(cloudtype_conditions))
@@ -149,21 +149,21 @@ if blinn:
 
 ppssg=get_sunglint_info_pps2014(cloudtype_conditions)
 phongsg = degree_from_reflection < 15
-both = np.logical_and(ppssg,phongsg)
-neither = np.logical_and(~ppssg,~phongsg)
-onlypps = np.logical_and(ppssg,~phongsg)
-onlyphong = np.logical_and(~ppssg,phongsg)
+both = np.logical_and(ppssg, phongsg)
+neither = np.logical_and(~ppssg, ~phongsg)
+onlypps = np.logical_and(ppssg, ~phongsg)
+onlyphong = np.logical_and(~ppssg, phongsg)
 clear = match_calipso.calipso.all_arrays['cloud_fraction'] ==0
 cloudy =  match_calipso.calipso.all_arrays['cloud_fraction'] >=0.98
 #pps_clear =  match_calipso.imager.all_arrays['cloudmask'] ==0
 #pps_cloudy = match_calipso.imager.all_arrays['cloudmask'] ==1
-pps_clear = np.logical_or(np.equal(match_calipso.imager.cloudmask,3),
-                          np.equal(match_calipso.imager.cloudmask,0))
-pps_cloudy = np.logical_or(np.equal(match_calipso.imager.cloudmask,1),
-                           np.equal(match_calipso.imager.cloudmask,2))
-use = np.logical_or(pps_cloudy,pps_clear)
-use = np.logical_and(use, np.equal(nsidc_st,0))
-use = np.logical_and(use, np.equal(igbp_st,17))
+pps_clear = np.logical_or(np.equal(match_calipso.imager.cloudmask, 3),
+                          np.equal(match_calipso.imager.cloudmask, 0))
+pps_cloudy = np.logical_or(np.equal(match_calipso.imager.cloudmask, 1),
+                           np.equal(match_calipso.imager.cloudmask, 2))
+use = np.logical_or(pps_cloudy, pps_clear)
+use = np.logical_and(use, np.equal(nsidc_st, 0))
+use = np.logical_and(use, np.equal(igbp_st, 17))
 use = np.logical_and(use, sunz < 90)
 clear[~use] = False
 cloudy[~use]= False
@@ -187,26 +187,26 @@ ydat = r09[isCloudfree]
 xdat2 = degree_from_reflection[isPPSSG]
 ydat2 = r09[isPPSSG]
 data = []
-#for ang in range(0,160,5):
-#   data.append(list(ydat[np.logical_and(xdat>ang,xdat<ang+5)].ravel()))
+#for ang in range(0, 160, 5):
+#   data.append(list(ydat[np.logical_and(xdat>ang, xdat<ang+5)].ravel()))
 
 #for ang
-fig = plt.figure(figsize=(11,8))
+fig = plt.figure(figsize=(11, 8))
 ax = fig.add_subplot(111)
-plt.fill_between([0,6.5],0,100, color='g', alpha=0.3)
-plt.fill_between([0,5.5],0,100, color='g', alpha=0.3)
-plt.fill_between([0,4.5],0,100, color='g', alpha=0.3)
-data=[np.array(ydat[np.logical_and(xdat >= ang,xdat < ang + 5)]) for ang in range(0,150,5)]
-data2=[np.array(ydat2[np.logical_and(xdat2 >= ang,xdat2 < ang + 5)]) for ang in range(0,150,5)]
+plt.fill_between([0, 6.5], 0, 100, color='g', alpha=0.3)
+plt.fill_between([0, 5.5], 0, 100, color='g', alpha=0.3)
+plt.fill_between([0, 4.5], 0, 100, color='g', alpha=0.3)
+data=[np.array(ydat[np.logical_and(xdat >= ang, xdat < ang + 5)]) for ang in range(0, 150, 5)]
+data2=[np.array(ydat2[np.logical_and(xdat2 >= ang, xdat2 < ang + 5)]) for ang in range(0, 150, 5)]
 box = plt.boxplot(data,
-                  labels=[str(ang+2)+"-"+str(ang+5) for ang in range(0,150,5)],
-                  #positions=[str(ang+2) for ang in range(0,150,5)],
+                  labels=[str(ang+2)+"-"+str(ang+5) for ang in range(0, 150, 5)],
+                  #positions=[str(ang+2) for ang in range(0, 150, 5)],
                   whis='range', patch_artist=True)
 for patch in box['boxes']:
     patch.set_facecolor('c')
 box = plt.boxplot(data2,
-                  labels=[str(ang)+"-"+str(ang+5) for ang in range(0,150,5)],
-                  #positions=[str(ang+2) for ang in range(0,150,5)],
+                  labels=[str(ang)+"-"+str(ang+5) for ang in range(0, 150, 5)],
+                  #positions=[str(ang+2) for ang in range(0, 150, 5)],
                   whis='range', patch_artist=True)
 for patch in box['boxes']:
     patch.set_facecolor('r')
@@ -214,48 +214,48 @@ plt.title(my_title)
 plt.xlabel("Angle between mirror reflection and satellite")
 plt.ylabel("Reflectance R09 (%)")
 ax1 =plt.gca()
-ax1.set_ylim([0,100])
+ax1.set_ylim([0, 100])
 #xticks = ax1.xaxis.get_major_ticks()
 plt.xticks(rotation=90)
 #plt.xticks([950, 550, 150])
 #        plt.yticks([950, 550, 150])
-#for ind in range(8,150/5,2):
+#for ind in range(8, 150/5, 2):
 #    xticks[ind].set_visible(False)
 plt.savefig("/home/a001865/DATA_MISC/reflection/figbox_"+my_title+".pdf", bbox_inches='tight', dpi=500, pad_inches = 0)
 plt.savefig("/home/a001865/DATA_MISC/reflection/figbox_"+my_title+".png", bbox_inches='tight', dpi=500, pad_inches = 0)
 
-fig = plt.figure(figsize=(6,6))
+fig = plt.figure(figsize=(6, 6))
 ax = fig.add_subplot(111)
-#plt.fill_between([0,6.5],0,100, color='g', alpha=0.3)
-#plt.fill_between([0,5.5],0,100, color='g', alpha=0.3)
-#plt.fill_between([0,4.5],0,100, color='g', alpha=0.3)
-data=[len(ydat[np.logical_and(xdat >= ang,xdat < ang + 5)]) for ang in range(0,150,5)]
-data2=[len(ydat2[np.logical_and(xdat2 >= ang,xdat2 < ang + 5)]) for ang in range(0,150,5)]
-plt.hist(xdat, bins=list(range(0,150,5)), color = 'b', alpha=0.5)
-plt.hist(xdat[xdat<30], bins=list(range(0,150,5)), color = 'c', alpha=1.0)
-plt.hist(xdat2, bins=list(range(0,150,5)), color = 'r', alpha=0.5)
-plt.hist(xdat2[xdat2<30], bins=list(range(0,150,5)), color = 'r', alpha=1.0)
+#plt.fill_between([0, 6.5], 0, 100, color='g', alpha=0.3)
+#plt.fill_between([0, 5.5], 0, 100, color='g', alpha=0.3)
+#plt.fill_between([0, 4.5], 0, 100, color='g', alpha=0.3)
+data=[len(ydat[np.logical_and(xdat >= ang, xdat < ang + 5)]) for ang in range(0, 150, 5)]
+data2=[len(ydat2[np.logical_and(xdat2 >= ang, xdat2 < ang + 5)]) for ang in range(0, 150, 5)]
+plt.hist(xdat, bins=list(range(0, 150, 5)), color = 'b', alpha=0.5)
+plt.hist(xdat[xdat<30], bins=list(range(0, 150, 5)), color = 'c', alpha=1.0)
+plt.hist(xdat2, bins=list(range(0, 150, 5)), color = 'r', alpha=0.5)
+plt.hist(xdat2[xdat2<30], bins=list(range(0, 150, 5)), color = 'r', alpha=1.0)
 plt.title(my_title)
 plt.xlabel("Angle between mirror reflection and satellite")
 plt.ylabel("Number of observations")
 ax1 =plt.gca()
-ax1.set_ylim([0,np.max(data[0:7])])
+ax1.set_ylim([0, np.max(data[0:7])])
 plt.savefig("/home/a001865/DATA_MISC/reflection/fighist_"+my_title+".pdf", bbox_inches='tight', dpi=500, pad_inches = 0)
 plt.savefig("/home/a001865/DATA_MISC/reflection/fighist_"+my_title+".png", bbox_inches='tight', dpi=500, pad_inches = 0)
 
-fig = plt.figure(figsize=(6,6))
+fig = plt.figure(figsize=(6, 6))
 ax = fig.add_subplot(111)
-plt.fill_between([0,30],0,100, color='g', alpha=0.3)
-plt.fill_between([0,25],0,100, color='g', alpha=0.3)
-plt.fill_between([0,20],0,100, color='g', alpha=0.3)
+plt.fill_between([0, 30], 0, 100, color='g', alpha=0.3)
+plt.fill_between([0, 25], 0, 100, color='g', alpha=0.3)
+plt.fill_between([0, 20], 0, 100, color='g', alpha=0.3)
 plt.plot(degree_from_reflection[isCloudfree] , r09[isCloudfree], 'b*', alpha=1.0, rasterized=True)
 ax1 = plt.plot(degree_from_reflection[isPPSSG] , r09[isPPSSG], '.r', alpha=1.0, rasterized=True)
 plt.title(my_title)
 plt.xlabel("Angle between mirror reflection and satellite")
 plt.ylabel("Reflectance R09 (%)")
 ax1 = plt.gca()
-#ax1.set_xlim([0,60])
-ax1.set_ylim([0,100])
+#ax1.set_xlim([0, 60])
+ax1.set_ylim([0, 100])
 plt.savefig("/home/a001865/DATA_MISC/reflection/fig_"+my_title+".pdf", bbox_inches='tight', dpi=500, pad_inches = 0)
 plt.savefig("/home/a001865/DATA_MISC/reflection/fig_"+my_title+".png", bbox_inches='tight', dpi=500, pad_inches = 0)
 fig = plt.figure()
@@ -266,8 +266,8 @@ if blinn:
 plt.plot(degree_from_reflection[isCloudfree] , r09[isCloudfree], '.', alpha=1)
 ax1 = plt.plot(degree_from_reflection[isPPSSG] , r09[isPPSSG], '.r', alpha=1)
 ax1 = plt.gca()
-#ax1.set_xlim([0,60])
-ax1.set_ylim([0,100])
+#ax1.set_xlim([0, 60])
+ax1.set_ylim([0, 100])
 plt.xlabel("Angle between mirror reflection and satellite")
 plt.ylabel("Reflectance R09 (%)")
 ax = fig.add_subplot(222)
@@ -275,8 +275,8 @@ ax1 = plt.plot(degree_from_reflection[isPPSSG] , r09[isPPSSG], '.r', alpha=1)
 
 plt.plot(degree_from_reflection[isPPSSGn] , r09[isPPSSGn], '.', alpha=1)
 ax1 = plt.gca()
-#ax1.set_xlim([0,60])
-ax1.set_ylim([0,100])
+#ax1.set_xlim([0, 60])
+ax1.set_ylim([0, 100])
 plt.xlabel("Angle between mirror reflection and satellite")
 plt.ylabel("Reflectance R09 (%)")
 ax = fig.add_subplot(223)
@@ -284,8 +284,8 @@ degree_from_reflection = get_specular_refl_phong(azidiff, sunz, satz)
 plt.plot(degree_from_reflection[isCloudfree] , r06[isCloudfree], '.', alpha=1)
 ax1 = plt.plot(degree_from_reflection[isPPSSG] , r06[isPPSSG], '.r', alpha=1)
 ax1 = plt.gca()
-#ax1.set_xlim([0,60])
-ax1.set_ylim([0,100])
+#ax1.set_xlim([0, 60])
+ax1.set_ylim([0, 100])
 plt.xlabel("Angle between mirror reflection and satellite")
 plt.ylabel("Reflectance R06 (%)")
 ax = fig.add_subplot(224)
@@ -293,8 +293,8 @@ ax1 = plt.plot(degree_from_reflection[isPPSSG] , r06[isPPSSG], '.r', alpha=1)
 
 plt.plot(degree_from_reflection[isPPSSGn] , r06[isPPSSGn], '.', alpha=1)
 ax1 = plt.gca()
-#ax1.set_xlim([0,60])
-ax1.set_ylim([0,100])
+#ax1.set_xlim([0, 60])
+ax1.set_ylim([0, 100])
 plt.xlabel("Angle between mirror reflection and satellite")
 plt.ylabel("Reflectance R06 (%)")
 #plt.show()

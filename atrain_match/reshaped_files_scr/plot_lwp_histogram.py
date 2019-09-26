@@ -34,7 +34,7 @@ def plot_hist_lwp(lwp_diff, filename):
     fig.axes[0].set_xlabel('lwp difference (g m**-2)')
     fig.suptitle("CPP lwp - AMSR-E lwp npix: %d"% lwp_diff.size)
     my_path, my_file = os.path.split(filename)
-    fig.savefig(my_path + "/fig2_" + my_file.replace('h5','pdf'))
+    fig.savefig(my_path + "/fig2_" + my_file.replace('h5', 'pdf'))
 
 filename = ADIR + "/FromCollegues/forJanFokke/for_JanFokke/before_sza/1km_eos2_20100414_1040_00000_amsr_modis_match.h5"
 #filename = ADIR + "/FromCollegues/forJanFokke/for_JanFokke/before_sza/1km_meteosat9_20100414_1045_99999_amsr_seviri_match.h5"
@@ -43,4 +43,4 @@ if __name__ == "__main__":
     aObj = readAmsrImagerMatchObj(filename)
     val_subset = np.bool_(np.ones(aObj.amsr.latitude.shape))
     lwp_diff = get_lwp_diff(aObj, val_subset)
-    plot_hist_lwp(lwp_diff,filename)
+    plot_hist_lwp(lwp_diff, filename)

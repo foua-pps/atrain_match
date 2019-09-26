@@ -40,7 +40,7 @@ from utils.stat_util import (HR_cma, K_cma,
                        PODcl, FARcl)
 from my_dir import ADIR
 out_filename = ADIR + "/Documents/A_PPS_v2017/Validation_2018/results_cma_snow.txt"
-out_file_h = open(out_filename,'a')
+out_file_h = open(out_filename, 'a')
 
 def my_measures(calipso_cfc, pps_cfc, thin, use):
     thin = thin[use]
@@ -54,8 +54,8 @@ def my_measures(calipso_cfc, pps_cfc, thin, use):
     indict["undet_cloudy"] = np.sum(np.logical_and(pps_cfc==0, calipso_cfc==1))
     indict["N"] = len(pps_cfc)
 
-    undet_cloudy_th = np.sum(np.logical_and(pps_cfc == 0, np.logical_and(~thin,calipso_cfc == 1)))
-    det_cloudy_th = np.sum(np.logical_and(pps_cfc == 1, np.logical_and(~thin,calipso_cfc == 1)))
+    undet_cloudy_th = np.sum(np.logical_and(pps_cfc == 0, np.logical_and(~thin, calipso_cfc == 1)))
+    det_cloudy_th = np.sum(np.logical_and(pps_cfc == 1, np.logical_and(~thin, calipso_cfc == 1)))
 
     measures = {}
     measures["bias"] = np.mean(pps_cfc-calipso_cfc)*100.0
@@ -69,7 +69,7 @@ def my_measures(calipso_cfc, pps_cfc, thin, use):
     measures["N"] =  indict["N"]
     return measures
 
-def plot_cfc_table(match_calipso,cfc_limit=0.9,sat="modis"):
+def plot_cfc_table(match_calipso, cfc_limit=0.9, sat="modis"):
 
     from utils.get_flag_info import get_calipso_clouds_of_type_i
 
@@ -81,9 +81,9 @@ def plot_cfc_table(match_calipso,cfc_limit=0.9,sat="modis"):
                          match_calipso.imager.all_arrays['cloudmask']==3)
     pps_snowi =  match_calipso.imager.all_arrays['cloudmask']==3
     if match_calipso.imager.all_arrays['cloudmask'] is None:
-        cl =np.logical_and(np.less_equal(match_calipso.imager.cloudtype,4),np.greater(match_calipso.imager.cloudtype,0))
-        cma = np.logical_and(np.greater(match_calipso.imager.cloudtype,4),np.less(match_calipso.imager.cloudtype,20))
-        pps_snowi =np.logical_and(np.less_equal(match_calipso.imager.cloudtype,4),np.greater(match_calipso.imager.cloudtype,2))
+        cl =np.logical_and(np.less_equal(match_calipso.imager.cloudtype, 4), np.greater(match_calipso.imager.cloudtype, 0))
+        cma = np.logical_and(np.greater(match_calipso.imager.cloudtype, 4), np.less(match_calipso.imager.cloudtype, 20))
+        pps_snowi =np.logical_and(np.less_equal(match_calipso.imager.cloudtype, 4), np.greater(match_calipso.imager.cloudtype, 2))
 
 
     calipso_cfc = cfc.copy()
@@ -92,23 +92,23 @@ def plot_cfc_table(match_calipso,cfc_limit=0.9,sat="modis"):
     calipso_cfc[cfc < 0] = -1
     pps_cfc = 0*cfc.copy()
     pps_cfc[cma] = 1
-    use = np.logical_or(cl,cma)
+    use = np.logical_or(cl, cma)
 
 
 
     europe = np.logical_and(match_calipso.imager.all_arrays['longitude']<60,
                             match_calipso.imager.all_arrays['longitude']>-25)
-    europe = np.logical_and(europe,match_calipso.imager.all_arrays['latitude']<72)
-    europe = np.logical_and(europe,match_calipso.imager.all_arrays['latitude']>35)
+    europe = np.logical_and(europe, match_calipso.imager.all_arrays['latitude']<72)
+    europe = np.logical_and(europe, match_calipso.imager.all_arrays['latitude']>35)
     (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag
     ) = get_day_night_twilight_info_pps2014(match_calipso.imager.all_arrays['cloudtype_conditions'])
     non_polar_night = np.logical_or(~night_flag, np.abs(match_calipso.imager.all_arrays['latitude'])<75)
     measures = my_measures(calipso_cfc, pps_cfc, thin, use)
-    measures_d = my_measures(calipso_cfc, pps_cfc, thin, np.logical_and(use,day_flag))
+    measures_d = my_measures(calipso_cfc, pps_cfc, thin, np.logical_and(use, day_flag))
     measures_n = my_measures(calipso_cfc, pps_cfc, thin, np.logical_and(use, night_flag))
-    measures_t = my_measures(calipso_cfc, pps_cfc, thin, np.logical_and(use,twilight_flag))
-    measures_europe = my_measures(calipso_cfc, pps_cfc, thin, np.logical_and(europe,use))
-    measures_nonpolar_night =  my_measures(calipso_cfc, pps_cfc, thin, np.logical_and(non_polar_night,use))
+    measures_t = my_measures(calipso_cfc, pps_cfc, thin, np.logical_and(use, twilight_flag))
+    measures_europe = my_measures(calipso_cfc, pps_cfc, thin, np.logical_and(europe, use))
+    measures_nonpolar_night =  my_measures(calipso_cfc, pps_cfc, thin, np.logical_and(non_polar_night, use))
     def print_one_line(measures):
         info = ("{:3.1f} {:3.2f} {:3.2f} {:3.1f} {:3.1f} {:3.1f} {:3.1f} {:3.1f} {:d}\n"
                 .format(
@@ -149,8 +149,8 @@ def plot_cfc_table(match_calipso,cfc_limit=0.9,sat="modis"):
                             config.AREA_CONFIG_FILE,
                             fig_type=['png'])
     try:
-        plot_satellite_trajectory(match_calipso.calipso.all_arrays["longitude"][np.logical_and(europe,use)],
-                                match_calipso.calipso.all_arrays["latitude"][np.logical_and(europe,use)],
+        plot_satellite_trajectory(match_calipso.calipso.all_arrays["longitude"][np.logical_and(europe, use)],
+                                match_calipso.calipso.all_arrays["latitude"][np.logical_and(europe, use)],
                                 ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_marble_cfc_%s_dist_europe"%(sat),
                                 config.AREA_CONFIG_FILE,
                                 fig_type=['png'])
@@ -161,8 +161,8 @@ def plot_cfc_table(match_calipso,cfc_limit=0.9,sat="modis"):
                      match_calipso.calipso.all_arrays["latitude"][use])
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_white_cfc_%s_dist.png"%(sat), bbox_inches='tight')
     try:
-        distribution_map(match_calipso.calipso.all_arrays["longitude"][np.logical_and(europe,use)],
-                         match_calipso.calipso.all_arrays["latitude"][np.logical_and(europe,use)])
+        distribution_map(match_calipso.calipso.all_arrays["longitude"][np.logical_and(europe, use)],
+                         match_calipso.calipso.all_arrays["latitude"][np.logical_and(europe, use)])
         plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_white_cfc_%s_dist_europe.png"%(sat), bbox_inches='tight')
     except:
         pass

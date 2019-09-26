@@ -58,7 +58,7 @@ def get_land_sea(match_obj):
     return use_land, use_sea, use_coast, use
 
 
-def my_label(data,use):
+def my_label(data, use):
     label = (#"{:s}\n"
              "bias = {:3.1f}\n"
              "RMS = {:3.1f}\n"
@@ -90,42 +90,42 @@ def plot_all(match_obj, density, my_str=""):
     ax = fig.add_subplot(221)
     hist_heights, x_, gaussian = my_hist(error, use, return_also_corresponding_gaussian=True)
     ax.fill(x_, gaussian, color='silver')
-    plt.plot(x_, hist_heights,'b-', label=my_label(error, use))
+    plt.plot(x_, hist_heights, 'b-', label=my_label(error, use))
     plt.title("All")
-    ax.set_xlim([-500,600])
-    ax.set_ylim([00,14])
+    ax.set_xlim([-500, 600])
+    ax.set_ylim([00, 14])
     ax.set_ylabel("percent")
     plt.legend()
     ax = fig.add_subplot(222)
     hist_heights, x_, gaussian = my_hist(error, use_land, return_also_corresponding_gaussian=True)
     ax.fill(x_, gaussian, color='silver')
-    plt.plot(x_, hist_heights,'b-', label=my_label(error, use_land))
+    plt.plot(x_, hist_heights, 'b-', label=my_label(error, use_land))
     plt.title("Land")
-    ax.set_xlim([-500,600])
-    ax.set_ylim([00,14])
+    ax.set_xlim([-500, 600])
+    ax.set_ylim([00, 14])
     plt.legend()
     ax = fig.add_subplot(223)
     hist_heights, x_ , gaussian= my_hist(error, use_sea, return_also_corresponding_gaussian=True)
     ax.fill(x_, gaussian, color='silver')
-    plt.plot(x_, hist_heights,'b-', label=my_label(error, use_sea))
+    plt.plot(x_, hist_heights, 'b-', label=my_label(error, use_sea))
     plt.title("Sea")
-    ax.set_xlim([-500,600])
-    ax.set_ylim([00,14.00])
+    ax.set_xlim([-500, 600])
+    ax.set_ylim([00, 14.00])
     ax.set_ylabel("percent")
     ax.set_xlabel("PPS LWP - MODIS-C6 LWP $g/m^2$")
     plt.legend()
     ax = fig.add_subplot(224)
     hist_heights, x_, gaussian = my_hist(error, use_coast, return_also_corresponding_gaussian=True)
     ax.fill(x_, gaussian, color='silver')
-    plt.plot(x_, hist_heights,'b-', label=my_label(error, use_coast))
+    plt.plot(x_, hist_heights, 'b-', label=my_label(error, use_coast))
     plt.title("Coast")
-    ax.set_xlim([-500,600])
-    ax.set_ylim([00,14.00])
+    ax.set_xlim([-500, 600])
+    ax.set_ylim([00, 14.00])
     ax.set_xlabel("PPS LWP - MODIS-C6 LWP $g/m^2$")
     plt.legend()
-    #plt.plot(x[use],y[use],'b.', alpha=0.002)
-    plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_comp_lwp_modis.png",bbox_inches='tight')
-    plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_comp_lwp_modis.pdf",bbox_inches='tight')
+    #plt.plot(x[use], y[use], 'b.', alpha=0.002)
+    plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_comp_lwp_modis.png", bbox_inches='tight')
+    plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_comp_lwp_modis.pdf", bbox_inches='tight')
     plt.show()
     fig = plt.figure(figsize=(15, 11))
     ax = fig.add_subplot(221)
@@ -175,7 +175,7 @@ def do_the_printing():
     match_obj_cali, density = get_ca_object_nn_ctth_modis_lvl2()
 
 
-    plot_all(match_obj_cali, density,"")
+    plot_all(match_obj_cali, density, "")
 
 if __name__ == "__main__":
     do_the_printing()

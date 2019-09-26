@@ -113,8 +113,8 @@ def extract_data(match_obj, sat='cloudsat'):
         pltObj.height_c2 = match_obj.cloudsat.all_arrays['clsat_max_height']
         clsat_max_height = -9 + 0*np.zeros(match_obj.cloudsat.latitude.shape)
         #for i in range(125):
-        #    height = match_obj.cloudsat.Height[:,i]
-        #    cmask_ok = match_obj.cloudsat.CPR_Cloud_mask[:,i]
+        #    height = match_obj.cloudsat.Height[:, i]
+        #    cmask_ok = match_obj.cloudsat.CPR_Cloud_mask[:, i]
         #    top_height = height+120
         #    #top_height[height<240*4] = -9999 #Do not use not sure why these are not used Nina 20170317
         #    is_cloudy = cmask_ok > 30
@@ -130,42 +130,42 @@ def extract_data(match_obj, sat='cloudsat'):
         elevation = match_obj.cloudsat.all_arrays['elevation']
         elevation[elevation < 0] = 0
     elif  sat.lower() in 'calipso':
-        height_c = 1000*match_obj.calipso.all_arrays['layer_top_altitude'][:,0]
-        pltObj.pressure_c = match_obj.calipso.all_arrays['layer_top_pressure'][:,0]
+        height_c = 1000*match_obj.calipso.all_arrays['layer_top_altitude'][:, 0]
+        pltObj.pressure_c = match_obj.calipso.all_arrays['layer_top_pressure'][:, 0]
         pltObj.low_clouds = get_calipso_low_clouds(match_obj)
         pltObj.high_clouds = get_calipso_high_clouds(match_obj)
         pltObj.medium_clouds = get_calipso_medium_clouds(match_obj)
         elevation = match_obj.calipso.all_arrays['elevation']
         elevation[elevation < 0] = 0
         ninas_od = match_obj.calipso.all_arrays['total_optical_depth_5km']
-        print "min optical depth", np.min(ninas_od[np.logical_and(height_c>0,ninas_od>0)])
+        print "min optical depth", np.min(ninas_od[np.logical_and(height_c>0, ninas_od>0)])
         use_part = False
         part = "all"
         if use_part:
             part = "single_layer_sea_below_60_in5km_as_art"
             use_part = np.logical_and(
-                use_part,match_obj.calipso.all_arrays['number_layers_found']==1)
+                use_part, match_obj.calipso.all_arrays['number_layers_found']==1)
             use_part = np.logical_and(
-                use_part,np.abs(match_obj.calipso.all_arrays['latitude'])<60)
+                use_part, np.abs(match_obj.calipso.all_arrays['latitude'])<60)
             use = np.logical_and(
-                use_part,np.equal(match_obj.calipso.igbp_surface_type,17))
-            #use = np.logical_and(use_part,height_c<3000+match_obj.calipso.all_arrays['elevation'])
-            use_part = np.logical_and(use_part,match_obj.calipso.all_arrays[
+                use_part, np.equal(match_obj.calipso.igbp_surface_type, 17))
+            #use = np.logical_and(use_part, height_c<3000+match_obj.calipso.all_arrays['elevation'])
+            use_part = np.logical_and(use_part, match_obj.calipso.all_arrays[
                 'feature_optical_depth_532_top_layer_5km']>0)
             use_part = np.logical_and(use_part,
                                  match_obj.calipso.all_arrays[
                                      'feature_optical_depth_532_top_layer_5km']==
                                  match_obj.calipso.all_arrays['total_optical_depth_5km'])
             part = "single_layer_sea_below_60_in5km_all_od_top"
-            low = np.logical_and(low_clouds,use_part)
-            #low = np.logical_and(height_c<low_clouds,use_part)
+            low = np.logical_and(low_clouds, use_part)
+            #low = np.logical_and(height_c<low_clouds, use_part)
             low = np.logical_and(
-                use_part,height_c<(3000+match_obj.calipso.all_arrays['elevation']))
-            medium = np.logical_and(medium_clouds,use_part)
-            high = np.logical_and(height_c > 8000,use_part)
+                use_part, height_c<(3000+match_obj.calipso.all_arrays['elevation']))
+            medium = np.logical_and(medium_clouds, use_part)
+            high = np.logical_and(height_c > 8000, use_part)
 
 
-        pltObj.cflag =  match_obj.calipso.feature_classification_flags[::,0]
+        pltObj.cflag =  match_obj.calipso.feature_classification_flags[::, 0]
 
         elevation = match_obj.calipso.all_arrays['elevation']
         elevation[elevation < 0] = 0
@@ -182,17 +182,17 @@ def extract_data(match_obj, sat='cloudsat'):
     use =  height_c >= 0
     use = np.logical_and(use, pltObj.height_mlvl2 > - 1)
     use = np.logical_and(use, match_obj.modis.all_arrays['pressure']>=70) #no_effekt
-    use = np.logical_and(use,match_obj.imager.all_arrays['ctthnnant_height']>-1)
-    use = np.logical_and(use,match_obj.imager.all_arrays['ctthold_height']>-1)
-    #use = np.logical_and(use,match_obj.imager.all_arrays['ctthnnant_height']<55000)no_effekt
-    use = np.logical_and(use,match_obj.imager.all_arrays['ctthold_pressure']>=70*100)
-    use = np.logical_and(use,match_obj.modis.all_arrays['cloud_emissivity']<=100)
+    use = np.logical_and(use, match_obj.imager.all_arrays['ctthnnant_height']>-1)
+    use = np.logical_and(use, match_obj.imager.all_arrays['ctthold_height']>-1)
+    #use = np.logical_and(use, match_obj.imager.all_arrays['ctthnnant_height']<55000)no_effekt
+    use = np.logical_and(use, match_obj.imager.all_arrays['ctthold_pressure']>=70*100)
+    use = np.logical_and(use, match_obj.modis.all_arrays['cloud_emissivity']<=100)
     pltObj.use = use
     use_all = use.copy()
-    for var in ['ctthnnant_height','ctthnna1nt_height','ctthnnvnt_height','ctthnnm2nt_height','ctthnnmintnco2_height', 'ctthnnmint_height', 'ctthold_height']:
+    for var in ['ctthnnant_height', 'ctthnna1nt_height', 'ctthnnvnt_height', 'ctthnnm2nt_height', 'ctthnnmintnco2_height', 'ctthnnmint_height', 'ctthold_height']:
         name = var.replace('_height', '').replace('ctth', 'pressure_')
         #print name
-        pltObj.all_arrays[name] = 0.01*match_obj.imager.all_arrays[var.replace('height','pressure')]
+        pltObj.all_arrays[name] = 0.01*match_obj.imager.all_arrays[var.replace('height', 'pressure')]
         update = pltObj.all_arrays[name] > 0.01*match_obj.imager.all_arrays['psur']
         if 'old' not in name:
             update = pltObj.all_arrays[name] > 0.01*match_obj.imager.all_arrays['psur']
@@ -251,7 +251,7 @@ def extract_data(match_obj, sat='cloudsat'):
         use_all = np.logical_and(use_all, match_obj.imager.all_arrays['bt86micron']>-1)
         use_all = np.logical_and(use_all, match_obj.imager.all_arrays['ciwv']>-9)
 
-        pltObj.all_arrays[name.replace('bias_','ok_')] =  ok_ctth
+        pltObj.all_arrays[name.replace('bias_', 'ok_')] =  ok_ctth
         print "excluded", np.sum(pltObj.all_arrays[pressure_name][use_all]<70)
 
     pltObj.use_all = use_all
@@ -261,7 +261,7 @@ def extract_data(match_obj, sat='cloudsat'):
     pltObj.ok_cma_pps = np.logical_and(pltObj.ok_cma_pps, height_c >= 0)
     pltObj.ok_cma_mlvl2 = np.logical_and(pltObj.ok_cma_mlvl2, height_c >= 0)
     pltObj.ok_modis = np.logical_and(pltObj.height_mlvl2 > - 1, pltObj.height_mlvl2 < 45000)
-    pltObj.ok_cma = np.logical_and( pltObj.ok_modis,pltObj.ok_cma_pps)
+    pltObj.ok_cma = np.logical_and( pltObj.ok_modis, pltObj.ok_cma_pps)
 
     return pltObj
 
@@ -281,20 +281,20 @@ def print_stats(pltObj, month, day_strm, sat='CLOUDSAT_OR_CALIPSO'):
                                                          np.mean(np.abs(bias_v[low_print])),
                                                          np.mean(np.abs(bias_v[medium_print])),
                                                          np.mean(np.abs(bias_v[high_print])))
-    for var_v, name in zip(['bias_nnant','bias_nna1nt','bias_nnvnt','bias_nnm2nt','bias_nnmintnco2', 'bias_nnmint'],
-                            ["NN-AHRR" ,"NN-AHRR1", "NN-VIIRS", "NN-MERSI2",  "NN-MetImage-NoCO2", "NN-Metimage" ]):
+    for var_v, name in zip(['bias_nnant', 'bias_nna1nt', 'bias_nnvnt', 'bias_nnm2nt', 'bias_nnmintnco2', 'bias_nnmint'],
+                            ["NN-AHRR" , "NN-AHRR1", "NN-VIIRS", "NN-MERSI2", "NN-MetImage-NoCO2", "NN-Metimage" ]):
         bias_v = pltObj.all_arrays[var_v]
         print "%s & %3.0f & %3.0f & %3.0f & %3.0f \\\\"%(name,
                                                          np.mean(np.abs(bias_v[use_all])),
                                                          np.mean(np.abs(bias_v[low_print])),
                                                          np.mean(np.abs(bias_v[medium_print])),
                                                          np.mean(np.abs(bias_v[high_print])))
-    for var_v, name in zip(['ok_old', 'ok_nnant','ok_nna1nt','ok_nnvnt','ok_nnm2nt','ok_nnmintnco2', 'ok_nnmint'],
-                            ["PPS-v2014", "NN-AVHRR" ,"NN-AHRR1", "NN-VIIRS", "NN-MERSI2",  "NN-MetImage-NoCO2", "NN-Metimage" ]):
+    for var_v, name in zip(['ok_old', 'ok_nnant', 'ok_nna1nt', 'ok_nnvnt', 'ok_nnm2nt', 'ok_nnmintnco2', 'ok_nnmint'],
+                            ["PPS-v2014", "NN-AVHRR" , "NN-AHRR1", "NN-VIIRS", "NN-MERSI2", "NN-MetImage-NoCO2", "NN-Metimage" ]):
         ok_ctth = pltObj.all_arrays[var_v]
         ok_cma = pltObj.ok_cma
         n_cma = np.sum(ok_cma)
-        n_ctth = np.sum(np.logical_and(ok_cma,ok_ctth) )
+        n_ctth = np.sum(np.logical_and(ok_cma, ok_ctth) )
         print "%s & %3.0d & %3.0d & %3.2f \\\\"%(name,
                                                  n_ctth,
                                                  n_cma,
@@ -302,7 +302,7 @@ def print_stats(pltObj, month, day_strm, sat='CLOUDSAT_OR_CALIPSO'):
     ok_ctth = pltObj.ok_modis
     ok_cma = pltObj.ok_cma
     n_cma = np.sum(ok_cma)
-    n_ctth = np.sum(np.logical_and(ok_cma,ok_ctth) )
+    n_ctth = np.sum(np.logical_and(ok_cma, ok_ctth) )
     print "MODIS-C6 & %3.0d & %3.0d & %3.2f \\\\"%( n_ctth,
                                                    n_cma,
                                                    100*n_ctth*1.0/n_cma)
@@ -310,7 +310,7 @@ def print_stats(pltObj, month, day_strm, sat='CLOUDSAT_OR_CALIPSO'):
     n_all = len(bias_v[use_all])*1.0
     n_all_3 = len(bias_v[ pltObj.use])*1.0
     print "%s & %d %d & & %d & %d & %d \\\\"%(name,
-                                         n_all,    n_all_3,
+                                         n_all,   n_all_3,
                                          len(bias_v[low_print]),
                                          len(bias_v[medium_print]),
                                          len(bias_v[high_print]))
@@ -321,24 +321,24 @@ def print_stats(pltObj, month, day_strm, sat='CLOUDSAT_OR_CALIPSO'):
                                          len(bias_v[high_print])*100/n_all)
 
 def print_data_for_figure_2(pltObj, month, day_str, sat='calipso'):
-    out_filename = "%s/data_fig1_%s.txt"%(MYPATH,month)
+    out_filename = "%s/data_fig1_%s.txt"%(MYPATH, month)
     if sat.lower() in ["cloudsat"]:
-        out_file_h = open(out_filename,'w')
+        out_file_h = open(out_filename, 'w')
     else:
-        out_file_h = open(out_filename,'a')
+        out_file_h = open(out_filename, 'a')
     use =  pltObj.use
-    low = np.logical_and(pltObj.low_clouds,use)
-    medium = np.logical_and(pltObj.medium_clouds,use)
-    high = np.logical_and(pltObj.high_clouds,use)
+    low = np.logical_and(pltObj.low_clouds, use)
+    medium = np.logical_and(pltObj.medium_clouds, use)
+    high = np.logical_and(pltObj.high_clouds, use)
     pps_bias = pltObj.pps_bias
     old_bias = pltObj.old_bias
     mlvl2_bias = pltObj.mlvl2_bias
     out_text = ""
-    def print_one(out_text, bias_v, selection,  label, cloudc):
+    def print_one(out_text, bias_v, selection, label, cloudc):
         bmin = -20
         bmax = 20
-        bins = np.arange(bmin*1000,bmax*1000,delta_h)
-        hist_heights,bins = np.histogram(bias_v[selection],bins=bins)
+        bins = np.arange(bmin*1000, bmax*1000, delta_h)
+        hist_heights, bins = np.histogram(bias_v[selection], bins=bins)
         n_pix = np.sum(selection)
         hist_heights = hist_heights*100.0/n_pix
         out_text += "%s_%s_%s_x "%(label, cloudc, sat)
@@ -354,24 +354,24 @@ def print_data_for_figure_2(pltObj, month, day_str, sat='calipso'):
         out_text +=  "%s_%s_%s_std %3.4f \n"%(label, cloudc, sat, 0.001*np.std(bias_v[selection]))
         return out_text
 
-    out_text = print_one(out_text, pps_bias, high,   "NN-AVHRR", "High")
-    out_text = print_one(out_text, mlvl2_bias, high,   "MODIS-C6", "High")
-    out_text = print_one(out_text, old_bias, high,   "PPS-v2014", "High")
+    out_text = print_one(out_text, pps_bias, high,  "NN-AVHRR", "High")
+    out_text = print_one(out_text, mlvl2_bias, high,  "MODIS-C6", "High")
+    out_text = print_one(out_text, old_bias, high,  "PPS-v2014", "High")
     out_text = print_one(out_text, pps_bias, medium, "NN-AVHRR", "Medium")
     out_text = print_one(out_text, mlvl2_bias, medium, "MODIS-C6", "Medium")
-    out_text = print_one(out_text, old_bias, medium,   "PPS-v2014", "Medium")
-    out_text = print_one(out_text, pps_bias, low,  "NN-AVHRR", "Low",)
-    out_text = print_one(out_text, mlvl2_bias, low,   "MODIS-C6", "Low")
-    out_text = print_one(out_text, old_bias, low,   "PPS-v2014", "Low")
-    out_text = print_one(out_text, pps_bias, use,  "NN-AVHRR", "All",)
-    out_text = print_one(out_text, mlvl2_bias, use,   "MODIS-C6", "All")
-    out_text = print_one(out_text, old_bias, use,   "PPS-v2014", "All")
+    out_text = print_one(out_text, old_bias, medium,  "PPS-v2014", "Medium")
+    out_text = print_one(out_text, pps_bias, low, "NN-AVHRR", "Low", )
+    out_text = print_one(out_text, mlvl2_bias, low,  "MODIS-C6", "Low")
+    out_text = print_one(out_text, old_bias, low,  "PPS-v2014", "Low")
+    out_text = print_one(out_text, pps_bias, use, "NN-AVHRR", "All", )
+    out_text = print_one(out_text, mlvl2_bias, use,  "MODIS-C6", "All")
+    out_text = print_one(out_text, old_bias, use,  "PPS-v2014", "All")
     out_file_h.write(out_text)
     out_file_h.write("\n")
 
 def replot_figure2_from_saved_data(month):
-    out_filename = "%s/data_fig1_%s.txt"%(MYPATH,month)
-    in_file_h = open(filename,'r')
+    out_filename = "%s/data_fig1_%s.txt"%(MYPATH, month)
+    in_file_h = open(filename, 'r')
     from matplotlib import rcParams
     rcParams.update({'figure.autolayout': True})
 
@@ -392,11 +392,11 @@ def replot_figure2_from_saved_data(month):
         ax.spines['right'].set_visible(False)
         ax.spines['top'].set_visible(False)
         plt.plot(x_data[sat][cloudc]["PPS-v2014"], y_data[sat][cloudc]["PPS-v2014"],
-                 "-b",label="PPS-v2014")
+                 "-b", label="PPS-v2014")
         plt.plot(x_data[sat][cloudc]["MODIS-C6"], y_data[sat][cloudc]["MODIS-C6"],
-                 "-k",label="MODIS-C6")
+                 "-k", label="MODIS-C6")
         plt.plot(x_data[sat][cloudc]["NN-AVHRR"], y_data[sat][cloudc]["NN-AVHRR"],
-                 "-r",label="NN-AVHRR")
+                 "-r", label="NN-AVHRR")
 
         if cloudc in ["Low"]:
             plt.xlabel(" Retrieved height - %s (km) "%(print_sat))
@@ -404,9 +404,9 @@ def replot_figure2_from_saved_data(month):
             plt.ylabel("Percent of data")
         if legend:
             pass
-            plt.legend(fancybox=True, loc=1,  numpoints=3, bbox_to_anchor=(1.25, 1.1), framealpha=1.0,edgecolor='w', fontsize=18)
+            plt.legend(fancybox=True, loc=1, numpoints=3, bbox_to_anchor=(1.25, 1.1), framealpha=1.0, edgecolor='w', fontsize=18)
         ax.grid(True)
-        plt.text(0.024, 0.90, text_i, fontsize=18,transform=ax.transAxes, bbox=dict(facecolor='w', edgecolor='w', alpha=1.0))
+        plt.text(0.024, 0.90, text_i, fontsize=18, transform=ax.transAxes, bbox=dict(facecolor='w', edgecolor='w', alpha=1.0))
 
     x_data = {}
     y_data = {}
@@ -417,7 +417,7 @@ def replot_figure2_from_saved_data(month):
         y_data[sat] = {}
         bias_data[sat] = {}
         median_data[sat] = {}
-        for cloudc in ["All", "Low", "Medium",  "High"]:
+        for cloudc in ["All", "Low", "Medium", "High"]:
             y_data[sat][cloudc] = {}
             x_data[sat][cloudc] = {}
             bias_data[sat][cloudc] = {}
@@ -449,59 +449,59 @@ def replot_figure2_from_saved_data(month):
 
     ax = fig.add_subplot(321)
     plt.subplots_adjust(wspace=0, hspace=0)
-    plt.xticks(np.arange(-12,12,2.0))
+    plt.xticks(np.arange(-12, 12, 2.0))
     for label in ax.xaxis.get_ticklabels()[::]:
         label.set_visible(False)
     for label in ax.xaxis.get_ticklabels()[::2]:
         label.set_visible(True)
-    plt.yticks(np.arange(0,4,0.5))
-    ax.set_xlim(-11.5,11.5)
-    ax.set_ylim(0,4.0)
-    plot_one(ax, x_data, y_data,  "cloudsat", "High")
+    plt.yticks(np.arange(0, 4, 0.5))
+    ax.set_xlim(-11.5, 11.5)
+    ax.set_ylim(0, 4.0)
+    plot_one(ax, x_data, y_data, "cloudsat", "High")
     ax = fig.add_subplot(322)
-    plt.xticks(np.arange(-12,12,2.0))
+    plt.xticks(np.arange(-12, 12, 2.0))
     for label in ax.xaxis.get_ticklabels()[::]:
         label.set_visible(False)
     for label in ax.xaxis.get_ticklabels()[::2]:
         label.set_visible(True)
 
-    plt.yticks(np.arange(0,4,0.5))
-    ax.set_xlim(-11.5,11.5)
-    ax.set_ylim(0,4.0)
-    plot_one(ax, x_data, y_data,  "calipso", "High", True)
+    plt.yticks(np.arange(0, 4, 0.5))
+    ax.set_xlim(-11.5, 11.5)
+    ax.set_ylim(0, 4.0)
+    plot_one(ax, x_data, y_data, "calipso", "High", True)
     ax = fig.add_subplot(323)
-    plt.xticks(np.arange(-8,8,2.0))
-    plt.yticks(np.arange(0,12,1.0))
-    ax.set_xlim(-7,7)
-    ax.set_ylim(0,6.5)
-    plot_one(ax, x_data, y_data,  "cloudsat", "Medium")
+    plt.xticks(np.arange(-8, 8, 2.0))
+    plt.yticks(np.arange(0, 12, 1.0))
+    ax.set_xlim(-7, 7)
+    ax.set_ylim(0, 6.5)
+    plot_one(ax, x_data, y_data, "cloudsat", "Medium")
     ax = fig.add_subplot(324)
-    plt.xticks(np.arange(-8,8,2.0))
-    plt.yticks(np.arange(0,12,1.0))
-    ax.set_xlim(-7,7)
-    ax.set_ylim(0,6.5)
+    plt.xticks(np.arange(-8, 8, 2.0))
+    plt.yticks(np.arange(0, 12, 1.0))
+    ax.set_xlim(-7, 7)
+    ax.set_ylim(0, 6.5)
     plot_one(ax, x_data, y_data, "calipso", "Medium")
     ax = fig.add_subplot(325)
-    plt.xticks(np.arange(-5,5,1.0))
-    plt.yticks(np.arange(0,14,2.0))
-    ax.set_xlim(-4.5,4.5)
-    ax.set_ylim(0,12.0)
+    plt.xticks(np.arange(-5, 5, 1.0))
+    plt.yticks(np.arange(0, 14, 2.0))
+    ax.set_xlim(-4.5, 4.5)
+    ax.set_ylim(0, 12.0)
     plot_one(ax, x_data, y_data, "cloudsat", "Low")
     ax = fig.add_subplot(326)
-    plt.xticks(np.arange(-5,5,1.0))
-    plt.yticks(np.arange(0,14,2.0))
-    ax.set_xlim(-4.5,4.5)
-    ax.set_ylim(0,12.0)
-    plot_one(ax, x_data, y_data,  "calipso", "Low")
+    plt.xticks(np.arange(-5, 5, 1.0))
+    plt.yticks(np.arange(0, 14, 2.0))
+    ax.set_xlim(-4.5, 4.5)
+    ax.set_ylim(0, 12.0)
+    plot_one(ax, x_data, y_data, "calipso", "Low")
 
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_PLOTS/fig02_%s.pdf"%(month), bbox_inches='tight')
     plt.close("all")
 
 
 def plot_medium_bias_plot_from_saved_data(month):
-    out_filename = "%s/data_fig1_%s.txt"%(MYPATH,month)
+    out_filename = "%s/data_fig1_%s.txt"%(MYPATH, month)
     filename = "data_fig1_%s.txt"%(month)
-    in_file_h = open(filename,'r')
+    in_file_h = open(filename, 'r')
     from matplotlib import rcParams
     rcParams.update({'figure.autolayout': True})
     text_d = { "(a) High clouds",
@@ -533,23 +533,23 @@ def plot_medium_bias_plot_from_saved_data(month):
             color3 = "--b"
 
         n_pix =  10000000
-        temp_data = np.random.normal(1000*bias_data[sat][cloudc][imager],  1000*std_data[sat][cloudc][imager], n_pix)
+        temp_data = np.random.normal(1000*bias_data[sat][cloudc][imager], 1000*std_data[sat][cloudc][imager], n_pix)
         bmin = -20
         bmax = 20
-        bins = np.arange(bmin*1000,bmax*1000,delta_h)
-        hist_heights,bins = np.histogram(temp_data,bins=bins)
+        bins = np.arange(bmin*1000, bmax*1000, delta_h)
+        hist_heights, bins = np.histogram(temp_data, bins=bins)
         hist_heights = hist_heights*100.0/n_pix
 
-        ax.fill(x_data[sat][cloudc][imager], hist_heights, color='silver',  label='Gaussian')
-        #plt.plot(x_data[sat][cloudc][imager], hist_heights, 0.1,  label='Gaussian')
+        ax.fill(x_data[sat][cloudc][imager], hist_heights, color='silver', label='Gaussian')
+        #plt.plot(x_data[sat][cloudc][imager], hist_heights, 0.1, label='Gaussian')
         plt.plot(x_data[sat][cloudc][imager], y_data[sat][cloudc][imager],
-                 color1,label=imager)
+                 color1, label=imager)
         yind_bias = np.argmin(np.abs(x_data[sat][cloudc][imager] - bias_data[sat][cloudc][imager]))
         ylim_bias = y_data[sat][cloudc][imager][yind_bias]
         yind_median = np.argmin(np.abs(x_data[sat][cloudc][imager] - median_data[sat][cloudc][imager]))
         ylim_median = y_data[sat][cloudc][imager][yind_median]
-        plt.plot([median_data[sat][cloudc][imager],median_data[sat][cloudc][imager]], [0, ylim_median], color3, label="median")
-        plt.plot([bias_data[sat][cloudc][imager],bias_data[sat][cloudc][imager]],[0, ylim_bias], color2, label="bias")
+        plt.plot([median_data[sat][cloudc][imager], median_data[sat][cloudc][imager]], [0, ylim_median], color3, label="median")
+        plt.plot([bias_data[sat][cloudc][imager], bias_data[sat][cloudc][imager]], [0, ylim_bias], color2, label="bias")
         #print bias_data[sat][cloudc]["NN-AVHRR"]
         #plt.show()
         #plt.title("Non Gaussian error distributions ")
@@ -559,17 +559,17 @@ def plot_medium_bias_plot_from_saved_data(month):
             plt.ylabel("Percent of data")
         if legend:
             pass
-            plt.legend(fancybox=True, loc=1,  numpoints=3, bbox_to_anchor=(1.30, 1.1), framealpha=1.0,edgecolor='w', fontsize=18)
+            plt.legend(fancybox=True, loc=1, numpoints=3, bbox_to_anchor=(1.30, 1.1), framealpha=1.0, edgecolor='w', fontsize=18)
         ax.grid(True)
-        plt.text(0.025, 0.90, text_i, fontsize=18,transform=ax.transAxes, bbox=dict(facecolor='w', edgecolor='w', alpha=1.0))
-        plt.xticks(np.arange(-12,12,1.0))
+        plt.text(0.025, 0.90, text_i, fontsize=18, transform=ax.transAxes, bbox=dict(facecolor='w', edgecolor='w', alpha=1.0))
+        plt.xticks(np.arange(-12, 12, 1.0))
         if cloudc in ["High", "Medium"]:
-            plt.xticks(np.arange(-12,12,2.0))
+            plt.xticks(np.arange(-12, 12, 2.0))
         for label in ax.xaxis.get_ticklabels()[::]:
             label.set_visible(False)
         for label in ax.xaxis.get_ticklabels()[::2]:
             label.set_visible(True)
-        ax.set_xlim( - maxx,maxx)
+        ax.set_xlim( - maxx, maxx)
         ax.set_ylim(0, maxy)
 
     x_data = {}
@@ -583,7 +583,7 @@ def plot_medium_bias_plot_from_saved_data(month):
         bias_data[sat] = {}
         median_data[sat] = {}
         std_data[sat] = {}
-        for cloudc in ["All", "Low", "Medium",  "High"]:
+        for cloudc in ["All", "Low", "Medium", "High"]:
             y_data[sat][cloudc] = {}
             x_data[sat][cloudc] = {}
             bias_data[sat][cloudc] = {}
@@ -614,42 +614,42 @@ def plot_medium_bias_plot_from_saved_data(month):
         if '_std' in line:
             std_data[sat][cloudc][algorithm] = np.array([np.float(s) for s in data])[0]
     for cloudc, maxx, maxy, in zip(["All", "Low", "Medium", "High"],
-                                   [4.5,4.5,7.0,8.5],
-                                   [6.5,12.0,6.5,4.0]):
+                                   [4.5, 4.5, 7.0, 8.5],
+                                   [6.5, 12.0, 6.5, 4.0]):
         fig = plt.figure(figsize=(9, 11))
         if cloudc not in ["All"]:
             plt.suptitle(cloudc)
         ax = fig.add_subplot(321)
         plot_one(ax, x_data, y_data, median_data, bias_data, std_data, "cloudsat", cloudc, "PPS-v2014", " (a) ", maxx, maxy)#, True)
         ax = fig.add_subplot(323)
-        plot_one(ax, x_data, y_data, median_data, bias_data, std_data,  "cloudsat", cloudc, "MODIS-C6", " (c) ", maxx, maxy)#,True)
+        plot_one(ax, x_data, y_data, median_data, bias_data, std_data, "cloudsat", cloudc, "MODIS-C6", " (c) ", maxx, maxy)#, True)
         ax = fig.add_subplot(325)
-        plot_one(ax, x_data, y_data, median_data, bias_data, std_data,  "cloudsat", cloudc, "NN-AVHRR", " (e) ", maxx, maxy)#,True)
+        plot_one(ax, x_data, y_data, median_data, bias_data, std_data, "cloudsat", cloudc, "NN-AVHRR", " (e) ", maxx, maxy)#, True)
 
         #plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_PLOTS/figxx_cloudsat_bias_median_%s.pdf"%(month), bbox_inches='tight')
         #plt.close("all")
         #fig = plt.figure(figsize=(9, 11))
         ax = fig.add_subplot(322)
-        plot_one(ax, x_data, y_data, median_data, bias_data, std_data,  "calipso", cloudc, "PPS-v2014", " (b) ", maxx, maxy,True)
+        plot_one(ax, x_data, y_data, median_data, bias_data, std_data, "calipso", cloudc, "PPS-v2014", " (b) ", maxx, maxy, True)
         ax = fig.add_subplot(324)
-        plot_one(ax, x_data, y_data, median_data, bias_data, std_data,  "calipso", cloudc, "MODIS-C6", " (d) ", maxx, maxy,True)
+        plot_one(ax, x_data, y_data, median_data, bias_data, std_data, "calipso", cloudc, "MODIS-C6", " (d) ", maxx, maxy, True)
         ax = fig.add_subplot(326)
-        plot_one(ax, x_data, y_data, median_data, bias_data,  std_data, "calipso", cloudc, "NN-AVHRR", " (f) ", maxx, maxy,True)
+        plot_one(ax, x_data, y_data, median_data, bias_data, std_data, "calipso", cloudc, "NN-AVHRR", " (f) ", maxx, maxy, True)
 
         plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_PLOTS/fig08_bias_median_%s_%s.pdf"%(cloudc, month), bbox_inches='tight')
         plt.close("all")
         fig = plt.figure(figsize=(9, 11))
         ax = fig.add_subplot(111)
-        plot_one(ax, x_data, y_data, median_data, bias_data, std_data,  "cloudsat", cloudc, "NN-AVHRR", " (e) ", maxx, maxy,True)
+        plot_one(ax, x_data, y_data, median_data, bias_data, std_data, "cloudsat", cloudc, "NN-AVHRR", " (e) ", maxx, maxy, True)
         plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_PLOTS/fig08_bias_median_%s_%s_e.pdf"%(cloudc, month), bbox_inches='tight')
 
 def make_profileplot(pltObj, month, day_str, sat='calipso'):
     print_stats(pltObj, month, day_str, sat=sat)
     print_data_for_figure_2(pltObj, month, day_str, sat=sat)
     use =  pltObj.use
-    low = np.logical_and(pltObj.low_clouds,use)
-    medium = np.logical_and(pltObj.medium_clouds,use)
-    high = np.logical_and(pltObj.high_clouds,use)
+    low = np.logical_and(pltObj.low_clouds, use)
+    medium = np.logical_and(pltObj.medium_clouds, use)
+    high = np.logical_and(pltObj.high_clouds, use)
     pps_bias = pltObj.pps_bias
     old_bias = pltObj.old_bias
     mlvl2_bias = pltObj.mlvl2_bias
@@ -666,59 +666,59 @@ def make_profileplot(pltObj, month, day_str, sat='calipso'):
         text2 = text2.replace("(d)", "(c)")
         text3 = text3.replace("(f)", "(e)")
     def plot_one(bias_v, selection, bmin, bmax, color, label):
-       bins = np.arange(bmin*1000,bmax*1000,delta_h)
-       hist_heights,bins = np.histogram(bias_v[selection],bins=bins)
+       bins = np.arange(bmin*1000, bmax*1000, delta_h)
+       hist_heights, bins = np.histogram(bias_v[selection], bins=bins)
        n_pix = np.sum(selection)
        hist_heights = hist_heights*100.0/n_pix
        plt.plot(0.001*(bins[0:-1] + delta_h*0.5), hist_heights,
-                color,label=label)
+                color, label=label)
        plt.xlabel(" Retrieved height - %s (km) "%(print_sat))
        plt.ylabel("Percent of data")
-       ax.set_xlim(bmin,bmax)
-    fig = plt.figure(figsize = (5.5,12))
+       ax.set_xlim(bmin, bmax)
+    fig = plt.figure(figsize = (5.5, 12))
     ax = fig.add_subplot(313)
     #plt.title("Low")
-    plt.text(0.02, 0.90, text3, fontsize=14,transform=ax.transAxes, bbox=dict(facecolor='w', edgecolor='w', alpha=1.0))
-    plt.xticks(np.arange(-5,5,1.0))
-    plt.yticks(np.arange(0,14,1.0))
-    plot_one(pps_bias, low, -14,14, '-r', "NN-AVHRR")
-    plot_one(mlvl2_bias, low, -14,14, '-k', "MODIS-C6")
-    plot_one(old_bias, low, -14,14, '-b', "PPS-v2014")
-    #plot_one(nna1_bias, low, -14,14, '0.3', "NN-AVHRR1")
-    plt.legend(fancybox=True, loc=1,  numpoints=4)
-    ax.set_xlim(-5,5)
-    ax.set_ylim(0,12.0)
+    plt.text(0.02, 0.90, text3, fontsize=14, transform=ax.transAxes, bbox=dict(facecolor='w', edgecolor='w', alpha=1.0))
+    plt.xticks(np.arange(-5, 5, 1.0))
+    plt.yticks(np.arange(0, 14, 1.0))
+    plot_one(pps_bias, low, -14, 14, '-r', "NN-AVHRR")
+    plot_one(mlvl2_bias, low, -14, 14, '-k', "MODIS-C6")
+    plot_one(old_bias, low, -14, 14, '-b', "PPS-v2014")
+    #plot_one(nna1_bias, low, -14, 14, '0.3', "NN-AVHRR1")
+    plt.legend(fancybox=True, loc=1, numpoints=4)
+    ax.set_xlim(-5, 5)
+    ax.set_ylim(0, 12.0)
     ax.grid(True)
     ax = fig.add_subplot(312)
     #plt.title("Medium")
-    plt.text(0.02, 0.90, text2, fontsize=14,transform=ax.transAxes, bbox=dict(facecolor='w', edgecolor='w', alpha=1.0))
-    plt.xticks(np.arange(-8,8,2.0))
-    plt.yticks(np.arange(0,12,1.0))
-    plot_one(pps_bias, medium, -12,12, '-r', "NN-AVHRR")
-    plot_one(mlvl2_bias, medium, -12,12, '-k', "MODIS-C6")
-    plot_one(old_bias, medium, -12,12, '-b', "PPS-v2014")
-    #plot_one(nna1_bias, medium, -12,12, '0.3', "NN-AVHRR1")
-    plt.legend(fancybox=True, loc=1,  numpoints=4)
-    ax.set_xlim(-7,7)
-    ax.set_ylim(0,6.0)
+    plt.text(0.02, 0.90, text2, fontsize=14, transform=ax.transAxes, bbox=dict(facecolor='w', edgecolor='w', alpha=1.0))
+    plt.xticks(np.arange(-8, 8, 2.0))
+    plt.yticks(np.arange(0, 12, 1.0))
+    plot_one(pps_bias, medium, -12, 12, '-r', "NN-AVHRR")
+    plot_one(mlvl2_bias, medium, -12, 12, '-k', "MODIS-C6")
+    plot_one(old_bias, medium, -12, 12, '-b', "PPS-v2014")
+    #plot_one(nna1_bias, medium, -12, 12, '0.3', "NN-AVHRR1")
+    plt.legend(fancybox=True, loc=1, numpoints=4)
+    ax.set_xlim(-7, 7)
+    ax.set_ylim(0, 6.0)
     ax.grid(True)
     ax = fig.add_subplot(311)
     #plt.title("High")
-    plt.text(0.02, 0.90, text1, fontsize=14,transform=ax.transAxes, bbox=dict(facecolor='w', edgecolor='w', alpha=1.0))
-    plt.xticks(np.arange(-12,12,2.0))
-    plt.yticks(np.arange(0,4,0.5))
-    plot_one(pps_bias, high, -14,14, '-r', "NN-AVHRR")
-    plot_one(mlvl2_bias, high, -14,14, '-k', "MODIS-C6")
-    plot_one(old_bias, high, -14,14, '-b', "PPS-v2014")
-    #plot_one(nna1_bias, high, -14,14, '0.3', "NN-AVHRR1")
-    plt.legend(fancybox=True, loc=1,  numpoints=4)
-    ax.set_xlim(-12,12)
-    ax.set_ylim(0,4.0)
+    plt.text(0.02, 0.90, text1, fontsize=14, transform=ax.transAxes, bbox=dict(facecolor='w', edgecolor='w', alpha=1.0))
+    plt.xticks(np.arange(-12, 12, 2.0))
+    plt.yticks(np.arange(0, 4, 0.5))
+    plot_one(pps_bias, high, -14, 14, '-r', "NN-AVHRR")
+    plot_one(mlvl2_bias, high, -14, 14, '-k', "MODIS-C6")
+    plot_one(old_bias, high, -14, 14, '-b', "PPS-v2014")
+    #plot_one(nna1_bias, high, -14, 14, '0.3', "NN-AVHRR1")
+    plt.legend(fancybox=True, loc=1, numpoints=4)
+    ax.set_xlim(-12, 12)
+    ax.set_ylim(0, 4.0)
     ax.grid(True)
     #plt.show()
-    #plt.title("%s MAE = %3.0f"%(name,MAE))
-    plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_BOX_%s/ctth_bias_profile_%s_%s_%s.png"%(sat, day_str, month,sat))
-    plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_BOX_%s/ctth_bias_profile_%s_%s_%s.pdf"%(sat, day_str, month,sat))
+    #plt.title("%s MAE = %3.0f"%(name, MAE))
+    plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_BOX_%s/ctth_bias_profile_%s_%s_%s.png"%(sat, day_str, month, sat))
+    plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_BOX_%s/ctth_bias_profile_%s_%s_%s.pdf"%(sat, day_str, month, sat))
     plt.close("all")
 
 def investigate_nn_ctth_modis_lvl2_cloudsat():
@@ -730,9 +730,9 @@ def investigate_nn_ctth_modis_lvl2_cloudsat():
     #match_clsat = CloudsatImagerTrackObject()
     plt_obj = PlotAndDataObject()
     name=""
-    for month in [ "02", "04","06", "08","10", "12"]:#[ "03","05", "07","09", "11"]: #[ "02", "04","06", "08","10", "12"]:#, "03","05", "07","09", "11","01" ]:  #[ "06", "09"]:
-        print ROOT_DIR%(day_str,month)
-        files = glob(ROOT_DIR%(day_str,month))
+    for month in [ "02", "04", "06", "08", "10", "12"]:#[ "03", "05", "07", "09", "11"]: #[ "02", "04", "06", "08", "10", "12"]:#, "03", "05", "07", "09", "11", "01" ]:  #[ "06", "09"]:
+        print ROOT_DIR%(day_str, month)
+        files = glob(ROOT_DIR%(day_str, month))
         name +=month
         plt_obj_new = PlotAndDataObject()
         for filename in files:
@@ -740,8 +740,8 @@ def investigate_nn_ctth_modis_lvl2_cloudsat():
             match_clsat_new =  readCloudsatImagerMatchObj(filename)
             plt_obj_new += extract_data(match_clsat_new, sat='cloudsat')
         plt_obj +=  plt_obj_new
-        make_profileplot(plt_obj_new, month=month,day_str=day_str, sat='cloudsat')
-    make_profileplot(plt_obj, month=name,day_str=day_str, sat='cloudsat')
+        make_profileplot(plt_obj_new, month=month, day_str=day_str, sat='cloudsat')
+    make_profileplot(plt_obj, month=name, day_str=day_str, sat='cloudsat')
 
 def investigate_nn_ctth_modis_lvl2():
     day_str="01st"
@@ -751,9 +751,9 @@ def investigate_nn_ctth_modis_lvl2():
         "global_modis_%s_created20180316/Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/%s/*h5")
     plt_obj = PlotAndDataObject()
     name=""
-    for month in [  "02", "04","06", "08","10","12"]:# ["01", "03","05", "07","09", "11"]: # #[ "06", "09"]:
-        print ROOT_DIR%(day_str,month)
-        files = glob(ROOT_DIR%(day_str,month))
+    for month in [  "02", "04", "06", "08", "10", "12"]:# ["01", "03", "05", "07", "09", "11"]: # #[ "06", "09"]:
+        print ROOT_DIR%(day_str, month)
+        files = glob(ROOT_DIR%(day_str, month))
         name +=month
         plt_obj_new = PlotAndDataObject()
         for filename in files:
@@ -761,12 +761,12 @@ def investigate_nn_ctth_modis_lvl2():
             match_calipso_new = readCaliopImagerMatchObj(filename)
             plt_obj_new += extract_data(match_calipso_new, sat='calipso')
         plt_obj +=  plt_obj_new
-        make_profileplot(plt_obj_new, month=month,day_str=day_str, sat='calipso')
-    make_profileplot(plt_obj, month=name,day_str=day_str, sat='calipso')
+        make_profileplot(plt_obj_new, month=month, day_str=day_str, sat='calipso')
+    make_profileplot(plt_obj, month=name, day_str=day_str, sat='calipso')
 
 
 if __name__ == "__main__":
-    for month in ["02", "04","06", "08","10","12", "020406081012"]:
+    for month in ["02", "04", "06", "08", "10", "12", "020406081012"]:
         replot_figure2_from_saved_data(month)
         plot_medium_bias_plot_from_saved_data(month)
         print "hej"

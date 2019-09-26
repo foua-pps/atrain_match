@@ -60,18 +60,18 @@ def  my_plot_histogram_hexbin(x, y,
                               file_name=None):
     """Plot a 2d-histogram using hexbins
     """
-    fig = plt.figure(figsize = (9,8))
+    fig = plt.figure(figsize = (9, 8))
     ax = fig.add_subplot(111)
     xdata = x.ravel()
     ydata = y.ravel()
     if gridsize is not None:
-        plt.hexbin(xdata,ydata,cmap=plt.cm.gray_r,bins='log',gridsize=gridsize)
+        plt.hexbin(xdata, ydata, cmap=plt.cm.gray_r, bins='log', gridsize=gridsize)
     else:
-        plt.hexbin(xdata,ydata,cmap=plt.cm.gray_r,bins='log')
+        plt.hexbin(xdata, ydata, cmap=plt.cm.gray_r, bins='log')
     plt.colorbar()
     plt.title(ttitle, color='k')
     if ymin is not None:
-        ax.set_ylim(ymin,np.max(ydata))
+        ax.set_ylim(ymin, np.max(ydata))
     plt.xlabel(txlabel)
     plt.ylabel(tylabel)
     if file_name is not None:
@@ -90,37 +90,37 @@ isCloudyCaliop = match_calipso.calipso.all_arrays['number_layers_found']>0
 isCloudyCaliop = np.logical_and(isCloudyCaliop,
                                  match_calipso.calipso.all_arrays['total_optical_depth_5km']>0.5)
 
-cal_temp = match_calipso.calipso.all_arrays['midlayer_temperature'][:,0]+273.15
-cal_height = 1000*match_calipso.calipso.all_arrays['layer_top_altitude'][:,0]
+cal_temp = match_calipso.calipso.all_arrays['midlayer_temperature'][:, 0]+273.15
+cal_height = 1000*match_calipso.calipso.all_arrays['layer_top_altitude'][:, 0]
 pps_temp = match_calipso.imager.all_arrays['ctth_temperature']
 pps_height = match_calipso.imager.all_arrays['ctth_height']
 bt11 = match_calipso.imager.all_arrays['bt11micron']
 tsur = match_calipso.imager.all_arrays['surftemp']
 ctype = match_calipso.imager.all_arrays['cloudtype']
 
-isCloudy =  np.logical_and(isCloudyPPS,isCloudyCaliop)
-isCloudy =  np.logical_and(pps_temp > - 9,isCloudy)
-isCloudy = np.logical_and(pps_temp > 150,isCloudy)
-isCloudy = np.logical_and(cal_temp > 150,isCloudy)
+isCloudy =  np.logical_and(isCloudyPPS, isCloudyCaliop)
+isCloudy =  np.logical_and(pps_temp > - 9, isCloudy)
+isCloudy = np.logical_and(pps_temp > 150, isCloudy)
+isCloudy = np.logical_and(cal_temp > 150, isCloudy)
 
 
 """
-for ind in range(5,15):
+for ind in range(5, 15):
     print ind
-    isCloudytypeT = np.logical_and(isCloudy,ctype == ind)
-    my_plot_histogram_hexbin(bt11[isCloudytypeT], np.abs(pps_temp[isCloudytypeT] - cal_temp[isCloudytypeT]),gridsize=30,
-                               txlabel='bt11', tylabel='diff cal pps temp',file_name='misc_png/bt11_cal_minus_pps_temp_klass_%d.png'%(ind))
+    isCloudytypeT = np.logical_and(isCloudy, ctype == ind)
+    my_plot_histogram_hexbin(bt11[isCloudytypeT], np.abs(pps_temp[isCloudytypeT] - cal_temp[isCloudytypeT]), gridsize=30,
+                               txlabel='bt11', tylabel='diff cal pps temp', file_name='misc_png/bt11_cal_minus_pps_temp_klass_%d.png'%(ind))
 """
-my_plot_histogram_hexbin(cal_temp[isCloudy], pps_temp[isCloudy],gridsize=30,
-                         txlabel='calipso temp', tylabel='pps temp',file_name='misc_png/cal_pps_temp.png')
-my_plot_histogram_hexbin(bt11[isCloudy], cal_temp[isCloudy],gridsize=30,
-                         txlabel='bt11', tylabel='cal temp',file_name='misc_png/bt11_cal_temp.png')
-my_plot_histogram_hexbin(bt11[isCloudy], pps_temp[isCloudy],gridsize=30,
-                         txlabel='bt11', tylabel='pps temp',file_name='misc_png/bt11_pps_temp.png')
+my_plot_histogram_hexbin(cal_temp[isCloudy], pps_temp[isCloudy], gridsize=30,
+                         txlabel='calipso temp', tylabel='pps temp', file_name='misc_png/cal_pps_temp.png')
+my_plot_histogram_hexbin(bt11[isCloudy], cal_temp[isCloudy], gridsize=30,
+                         txlabel='bt11', tylabel='cal temp', file_name='misc_png/bt11_cal_temp.png')
+my_plot_histogram_hexbin(bt11[isCloudy], pps_temp[isCloudy], gridsize=30,
+                         txlabel='bt11', tylabel='pps temp', file_name='misc_png/bt11_pps_temp.png')
 
-my_plot_histogram_hexbin(cal_height[isCloudy], pps_height[isCloudy],gridsize=30,
-                         txlabel='calipso height', tylabel='pps height',file_name='misc_png/cal_pps_height.png')
-my_plot_histogram_hexbin(bt11[isCloudy], cal_height[isCloudy],gridsize=30,
-                         txlabel='bt11', tylabel='cal_height',file_name='misc_png/bt11_cal_height.png')
-my_plot_histogram_hexbin(bt11[isCloudy], pps_height[isCloudy],gridsize=30,
-                         txlabel='bt11', tylabel='pps height',file_name='misc_png/bt11_pps_height.png')
+my_plot_histogram_hexbin(cal_height[isCloudy], pps_height[isCloudy], gridsize=30,
+                         txlabel='calipso height', tylabel='pps height', file_name='misc_png/cal_pps_height.png')
+my_plot_histogram_hexbin(bt11[isCloudy], cal_height[isCloudy], gridsize=30,
+                         txlabel='bt11', tylabel='cal_height', file_name='misc_png/bt11_cal_height.png')
+my_plot_histogram_hexbin(bt11[isCloudy], pps_height[isCloudy], gridsize=30,
+                         txlabel='bt11', tylabel='pps height', file_name='misc_png/bt11_pps_height.png')

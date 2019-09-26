@@ -43,21 +43,21 @@ def crop_object(match_obj, use_in=None):
     if 'ctth_height_corr' in match_obj.imager.all_arrays.keys() and   match_obj.imager.all_arrays['ctth_height_corr'] is not None:
         y =match_obj.imager.all_arrays['ctth_height_corr']
     x = match_obj.calipso.all_arrays['validation_height']
-    pps_profile_id = match_obj.calipso.sec_1970#profile_id[:,0]
-    use = np.logical_and(y >= 0,x >= 0)
+    pps_profile_id = match_obj.calipso.sec_1970#profile_id[:, 0]
+    use = np.logical_and(y >= 0, x >= 0)
     if use_in is not None:
-        use = np.logical_and(use,use_in)
+        use = np.logical_and(use, use_in)
     for arnameca, valueca in match_obj.calipso.all_arrays.items():
         if match_obj.calipso.all_arrays[arnameca] is None:
             pass
-        elif arnameca in ['ctth_height','validation_height', 'sec_1970','imager_ctth_m_above_seasurface','ctth_height_corr']:
+        elif arnameca in ['ctth_height', 'validation_height', 'sec_1970', 'imager_ctth_m_above_seasurface', 'ctth_height_corr']:
             match_obj.calipso.all_arrays[arnameca] = match_obj.calipso.all_arrays[arnameca][use]
         else:
             match_obj.calipso.all_arrays[arnameca] = None
     for arnameca, valueca in match_obj.imager.all_arrays.items():
         if match_obj.imager.all_arrays[arnameca] is None:
             pass
-        elif arnameca in ['ctth_height','validation_height', 'sec_1970','imager_ctth_m_above_seasurface','ctth_height_corr']:
+        elif arnameca in ['ctth_height', 'validation_height', 'sec_1970', 'imager_ctth_m_above_seasurface', 'ctth_height_corr']:
             match_obj.imager.all_arrays[arnameca] = match_obj.imager.all_arrays[arnameca][use]
         else:
             match_obj.imager.all_arrays[arnameca] = None
@@ -66,8 +66,8 @@ def crop_object(match_obj, use_in=None):
 
 def remove_missing(match_objPPS, match_objPATMOSX, common_index):
 
-    patmosx_profile_id = match_objPATMOSX.calipso.sec_1970#profile_id[:,0]
-    pps_profile_id = match_objPPS.calipso.sec_1970#profile_id[:,0]
+    patmosx_profile_id = match_objPATMOSX.calipso.sec_1970#profile_id[:, 0]
+    pps_profile_id = match_objPPS.calipso.sec_1970#profile_id[:, 0]
 
     use_patmosx_same_profile = np.array([p_id in common_index for p_id in patmosx_profile_id])
     use_pps_same_profile =  np.array([p_id in  common_index for p_id in pps_profile_id])
@@ -128,7 +128,7 @@ def print_stats(match_objPPS, match_objPATMOSX, use_pps, use_patmosx):
         np.mean(bias_pps),
         np.mean(bias_patmosx),
         np.std(bias_pps),
-        np.std(bias_patmosx),                                        ))
+        np.std(bias_patmosx),                                       ))
 
 if __name__ == "__main__":
 
@@ -150,13 +150,13 @@ if __name__ == "__main__":
     match_objCCI =  read_files(glob(CCI_ROOT_DIR))
     match_objCCI =  crop_object(match_objCCI, use_in=None)
 
-    patmosx_profile_id = match_objPATMOSX.calipso.sec_1970#profile_id[:,0]
-    pps_profile_id = match_objPPS.calipso.sec_1970#profile_id[:,0]
-    pps14_profile_id = match_objPPS14.calipso.sec_1970#profile_id[:,0]
-    cci_profile_id = match_objCCI.calipso.sec_1970#profile_id[:,0]
-    common_index1 = np.intersect1d(patmosx_profile_id,  pps_profile_id)
-    common_index2 = np.intersect1d(cci_profile_id,  pps14_profile_id)
-    common_index = np.intersect1d(common_index1,common_index2)
+    patmosx_profile_id = match_objPATMOSX.calipso.sec_1970#profile_id[:, 0]
+    pps_profile_id = match_objPPS.calipso.sec_1970#profile_id[:, 0]
+    pps14_profile_id = match_objPPS14.calipso.sec_1970#profile_id[:, 0]
+    cci_profile_id = match_objCCI.calipso.sec_1970#profile_id[:, 0]
+    common_index1 = np.intersect1d(patmosx_profile_id, pps_profile_id)
+    common_index2 = np.intersect1d(cci_profile_id, pps14_profile_id)
+    common_index = np.intersect1d(common_index1, common_index2)
 
     use_pps_v14, use_patmosx = remove_missing(match_objPPS14, match_objPATMOSX, common_index)
     use_pps, use_cci = remove_missing(match_objPPS, match_objCCI, common_index)

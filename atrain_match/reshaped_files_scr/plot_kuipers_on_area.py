@@ -223,7 +223,7 @@ elif isGAC_v2014:
     #files = glob(ROOT_DIR + "merged/noaa19*2014*h5")
     if cci_orbits:
         satellites = "part_noaa18_noaa19"
-        files = glob(ROOT_DIR + "merged/noaa18*200*h5") #06,07,08,09
+        files = glob(ROOT_DIR + "merged/noaa18*200*h5") #06, 07, 08, 09
         files = files + glob(ROOT_DIR + "merged/noaa19*20*0*h5") #2009, 2010
 
 
@@ -253,7 +253,7 @@ for filename in files:
         match_calipso_new=read_truth_imager_match_obj(filename)#, var_to_skip='segment')
         if "modis_lvl2" in satellites:
             match_calipso_new.imager.all_arrays["cloudtype"] = np.where(
-                match_calipso_new.modis.all_arrays["cloud_emissivity"]>100,1,7)
+                match_calipso_new.modis.all_arrays["cloud_emissivity"]>100, 1, 7)
             match_calipso_new.imager.all_arrays["ctth_temperature"] = (
                 match_calipso_new.modis.all_arrays["temperature"])
             match_calipso_new.imager.all_arrays["ctth_height"] = (
@@ -300,7 +300,7 @@ pplot_obj.flattice.calculate_ctth_pe1()
 pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=0, vmax=100.0, score='ctth_pe1')
 
 pplot_obj.flattice.calculate_bias()
-pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-25.0, vmax=25.0, score='Bias',  screen_out_valid=True)
+pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-25.0, vmax=25.0, score='Bias', screen_out_valid=True)
 pplot_obj.flattice.calculate_kuipers()
 pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=0.0, score='Kuipers')
 #Calcualte hitrate
@@ -377,7 +377,7 @@ pplot_obj.flattice.remap_and_plot_score_on_several_areas( score='FARcloudy', vma
 pplot_obj.flattice.calculate_far_clear()
 pplot_obj.flattice.remap_and_plot_score_on_several_areas( score='FARclear', vmax=0.5)
 pplot_obj.flattice.calculate_rms()
-pplot_obj.flattice.remap_and_plot_score_on_several_areas( score='RMS',  vmax=50.0, screen_out_valid=True)
+pplot_obj.flattice.remap_and_plot_score_on_several_areas( score='RMS', vmax=50.0, screen_out_valid=True)
 
 name = "fig_%s_ccm_%s_%sfilter_dnt_%s_r%skm_"%(
     pplot_obj.flattice.satellites,

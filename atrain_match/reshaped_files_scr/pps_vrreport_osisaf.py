@@ -38,9 +38,9 @@ from utils.stat_util import (HR_cma, K_cma,
                        PODcl, FARcl)
 from my_dir import ADIR
 out_filename = ADIR + "/Documents/A_PPS_v2017/Validation_2018/results_cma_osisaf.txt"
-out_file_h = open(out_filename,'w')
+out_file_h = open(out_filename, 'w')
 
-def my_measures(calipso_cfc, pps_cfc, calipso_snowi, pps_snowi,  thin, use):
+def my_measures(calipso_cfc, pps_cfc, calipso_snowi, pps_snowi, thin, use):
     if use is not None:
         calipso_cfc = calipso_cfc[use]
         pps_cfc = pps_cfc[use]
@@ -83,10 +83,10 @@ def my_measures(calipso_cfc, pps_cfc, calipso_snowi, pps_snowi,  thin, use):
     return indict
 
 
-def plot_cfc_table(match_calipso,cfc_limit=0.9,sat="modis"):
+def plot_cfc_table(match_calipso, cfc_limit=0.9, sat="modis"):
 
     from utils.get_flag_info import get_calipso_clouds_of_type_i
-    #cal_subset = np.logical_and(np.equal(nsidc_st,0),np.equal(igbp_st,17))
+    #cal_subset = np.logical_and(np.equal(nsidc_st, 0), np.equal(igbp_st, 17))
     cfc = match_calipso.calipso.all_arrays['cloud_fraction']
     calipso_snowi = match_calipso.calipso.all_arrays['nsidc_surface_type']
     od = match_calipso.calipso.all_arrays['total_optical_depth_5km']
@@ -96,9 +96,9 @@ def plot_cfc_table(match_calipso,cfc_limit=0.9,sat="modis"):
                          match_calipso.imager.all_arrays['cloudmask']==3)
     pps_snowi =  match_calipso.imager.all_arrays['cloudmask']==3
     if match_calipso.imager.all_arrays['cloudmask'] is None:
-        cl =np.logical_and(np.less_equal(match_calipso.imager.cloudtype,4),np.greater(match_calipso.imager.cloudtype,0))
-        cma = np.logical_and(np.greater(match_calipso.imager.cloudtype,4),np.less(match_calipso.imager.cloudtype,20))
-        pps_snowi =np.logical_and(np.less_equal(match_calipso.imager.cloudtype,4),np.greater(match_calipso.imager.cloudtype,2))
+        cl =np.logical_and(np.less_equal(match_calipso.imager.cloudtype, 4), np.greater(match_calipso.imager.cloudtype, 0))
+        cma = np.logical_and(np.greater(match_calipso.imager.cloudtype, 4), np.less(match_calipso.imager.cloudtype, 20))
+        pps_snowi =np.logical_and(np.less_equal(match_calipso.imager.cloudtype, 4), np.greater(match_calipso.imager.cloudtype, 2))
 
     (no_qflag, land_flag, sea_flag, coast_flag, all_lsc_flag) = get_land_coast_sea_info_pps2014(match_calipso.imager.cloudtype_conditions)
     (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag) = get_day_night_twilight_info_pps2014(match_calipso.imager.cloudtype_conditions)
@@ -108,17 +108,17 @@ def plot_cfc_table(match_calipso,cfc_limit=0.9,sat="modis"):
     calipso_cfc[cfc < 0] = -1
     pps_cfc = 0*cfc.copy()
     pps_cfc[cma] = 1
-    use = np.logical_or(cl,cma)
+    use = np.logical_or(cl, cma)
     use = np.logical_and(use, sea_flag)
     thin = None
-    measures = my_measures(calipso_cfc, pps_cfc, calipso_snowi, pps_snowi,  thin,
+    measures = my_measures(calipso_cfc, pps_cfc, calipso_snowi, pps_snowi, thin,
                            use)
-    measures_d = my_measures(calipso_cfc, pps_cfc, calipso_snowi, pps_snowi,  thin,
+    measures_d = my_measures(calipso_cfc, pps_cfc, calipso_snowi, pps_snowi, thin,
                               np.logical_and(use, day_flag))
-    measures_t = my_measures(calipso_cfc, pps_cfc,  calipso_snowi, pps_snowi, thin,
-                              np.logical_and(use,twilight_flag))
-    measures_n = my_measures(calipso_cfc, pps_cfc,  calipso_snowi, pps_snowi, thin,
-                              np.logical_and(use,night_flag))
+    measures_t = my_measures(calipso_cfc, pps_cfc, calipso_snowi, pps_snowi, thin,
+                              np.logical_and(use, twilight_flag))
+    measures_n = my_measures(calipso_cfc, pps_cfc, calipso_snowi, pps_snowi, thin,
+                              np.logical_and(use, night_flag))
     def print_one_line(measures):
         info = "CALIOP-CLOUD(W) CALIOP-CLOUD(I) CALIOP-WATER CALIOP-ICE\n"
         info += ("*********\nPPS-CLOUD: {:3.1f} {:3.1f} {:3.1f} {:3.1f} \nPPS-WATER {:3.1f} {:3.1f} {:3.1f} {:3.1f} \nPPS-ICE {:3.1f} {:3.1f} {:3.1f} {:3.1f} \n"
@@ -137,7 +137,7 @@ def plot_cfc_table(match_calipso,cfc_limit=0.9,sat="modis"):
                     measures["pps_ice_c_ice"]
                 ))
         info += " POD-C:{:3.1f} POD-W:{:3.1f} POD-I:{:3.1f} \n FAR-C:{:3.1f} FAR-W(cloud):{:3.1f} FAR-I(cloud):{:3.1f} \n".format(
-            measures["pod_cloudy"], measures["pod_water"], measures["pod_ice"], measures["far_cloudy"], measures["far_water"],measures["far_ice"],)
+            measures["pod_cloudy"], measures["pod_water"], measures["pod_ice"], measures["far_cloudy"], measures["far_water"], measures["far_ice"], )
         print(info)
         return info
 

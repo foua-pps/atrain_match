@@ -24,7 +24,7 @@ from matchobject_io import (readCaliopImagerMatchObj,
 from utils.get_flag_info import get_pixels_where_test_is_passed
 from my_dir import ADIR
 def print_common_stats(match_calipso, use, name_dict):
-    nlay =np.where(match_calipso.calipso.all_arrays['number_layers_found']>0,1,0)
+    nlay =np.where(match_calipso.calipso.all_arrays['number_layers_found']>0, 1, 0)
     meancl=ndimage.filters.uniform_filter1d(nlay*1.0, size=3)
     isCalipsoCloudy = np.logical_and(
         nlay > 0,
@@ -60,8 +60,8 @@ def test_1(match_calipso, isCloudy, isClear):
     bad = np.logical_and(test_is_on, isClear)
     good = np.logical_and(test_is_on, isCloudy)
     fig = plt.figure()
-    plt.plot( feature2[bad],feature1[bad], 'b.')
-    plt.plot( feature2[good],feature1[good], 'g.')
+    plt.plot( feature2[bad], feature1[bad], 'b.')
+    plt.plot( feature2[good], feature1[good], 'g.')
     plt.show()
     fig.savefig("pps_investigation_test1.png", format = 'png')
 
@@ -74,8 +74,8 @@ def test_2(match_calipso, isCloudy, isClear):
     bad = np.logical_and(test_is_on, isClear)
     good = np.logical_and(test_is_on, isCloudy)
     fig = plt.figure()
-    plt.plot( feature2[bad],feature1[bad], 'b.')
-    plt.plot( feature2[good],feature1[good], 'g.')
+    plt.plot( feature2[bad], feature1[bad], 'b.')
+    plt.plot( feature2[good], feature1[good], 'g.')
     plt.show()
     fig.savefig("pps_investigation_test2.png", format = 'png')
 
@@ -88,8 +88,8 @@ def test_3(match_calipso, isCloudy, isClear):
     bad = np.logical_and(test_is_on, isClear)
     good = np.logical_and(test_is_on, isCloudy)
     fig = plt.figure()
-    plt.plot( feature2[bad],feature1[bad], 'b.')
-    plt.plot( feature2[good],feature1[good], 'g.')
+    plt.plot( feature2[bad], feature1[bad], 'b.')
+    plt.plot( feature2[good], feature1[good], 'g.')
     plt.show()
     fig.savefig("pps_investigation_test3.png", format = 'png')
 
@@ -102,8 +102,8 @@ def test_4(match_calipso, isCloudy, isClear):
     bad = np.logical_and(test_is_on, isClear)
     good = np.logical_and(test_is_on, isCloudy)
     fig = plt.figure()
-    plt.plot( feature2[bad],feature1[bad], 'b.')
-    plt.plot( feature2[good],feature1[good], 'g.')
+    plt.plot( feature2[bad], feature1[bad], 'b.')
+    plt.plot( feature2[good], feature1[good], 'g.')
     plt.show()
     fig.savefig("pps_investigation_test4.png", format = 'png')
 
@@ -127,7 +127,7 @@ name_dict = {'cma_testlist0': {},
 for line in TEST_NAMEFILE:
     if 'define SM_ACMG_' in line:
         list_of_line = line.split(' ')
-        (name, list_nr, bit) = (list_of_line[1].replace('SM_ACMG_',''), list_of_line[2].replace(',',''), list_of_line[3])
+        (name, list_nr, bit) = (list_of_line[1].replace('SM_ACMG_', ''), list_of_line[2].replace(', ', ''), list_of_line[3])
         var = 'cma_testlist' + list_nr
         name_dict[var][int(bit)] =  name
 
