@@ -37,22 +37,22 @@ def add_validation_ctth_cloudsat(cloudsat):
     # both is cloudy is done later. This makes it possbile to find also
     # POD-cloudy for different cloud heights
     LARGE_POSITIVE = 99999.0
-    validation_height = -9 + 0*np.zeros(cloudsat.latitude.shape)
-    validation_height_base =  LARGE_POSITIVE + 0*np.zeros(cloudsat.latitude.shape)
+    validation_height = -9 + 0 * np.zeros(cloudsat.latitude.shape)
+    validation_height_base =  LARGE_POSITIVE + 0 * np.zeros(cloudsat.latitude.shape)
     for i in range(125):
         height = cloudsat.Height[:, i]
         cmask_ok = cloudsat.CPR_Cloud_mask[:, i]
-        top_height = height+120
+        top_height = height + 120
         # top_height[height<240*4] = -9999 # Do not use not sure why these were not used Nina 20170317
         is_cloudy = cmask_ok > config.CLOUDSAT_CLOUDY_THR
         top_height[~is_cloudy] = -9999
-        validation_height[validation_height<top_height] =  top_height[
-            validation_height<top_height]
+        validation_height[validation_height < top_height] =  top_height[
+            validation_height < top_height]
         cloudsat.validation_height= validation_height
-        update_base = np.logical_and(top_height>0, validation_height_base>top_height)
+        update_base = np.logical_and(top_height > 0, validation_height_base > top_height)
         validation_height_base[update_base] =  top_height[update_base]
         cloudsat.validation_height_base = validation_height_base
-    cloudsat.validation_height_base[cloudsat.validation_height_base>=LARGE_POSITIVE] =-9
+    cloudsat.validation_height_base[cloudsat.validation_height_base >= LARGE_POSITIVE] = -9
     return cloudsat
 
 def add_cloudsat_cloud_fraction(cloudsat):
@@ -198,13 +198,13 @@ def match_cloudsat_imager(cloudsat, cloudproducts, SETTINGS):
     cal, cap = map_imager(cloudproducts,
                          cloudsat.longitude.ravel(),
                          cloudsat.latitude.ravel(),
-                         radius_of_influence=config.RESOLUTION*0.7*1000.0)  # somewhat larger than radius...
+                         radius_of_influence=config.RESOLUTION * 0.7 * 1000.0)  # somewhat larger than radius...
     calnan = np.where(cal == config.NODATA, np.nan, cal)
     if (~np.isnan(calnan)).sum() == 0:
         logger.warning("No matches within region.")
         return None
     # check if it is within time limits:
-    if len(cloudproducts.time.shape)>1:
+    if len(cloudproducts.time.shape) > 1:
         imager_time_vector = [cloudproducts.time[line, pixel] for line, pixel in zip(cal, cap)]
         imager_lines_sec_1970 = np.where(cal != config.NODATA, imager_time_vector, np.nan)
     else:
@@ -241,21 +241,21 @@ def merge_cloudsat(cloudsat, cloudsatlwp):
     cloudsat_lwp_index = mapper.rows.filled(config.NODATA).ravel()
     # Transfer CloudSat LWP to ordinary cloudsat obj
     index = cloudsat_lwp_index.copy()
-    index[index<0] = 0
+    index[index < 0] = 0
     cloudsat.RVOD_liq_water_path = np.where(
-        cloudsat_lwp_index>=0,
+        cloudsat_lwp_index >= 0,
         cloudsatlwp.RVOD_liq_water_path[index], -9)
     cloudsat.RVOD_ice_water_path = np.where(
-        cloudsat_lwp_index>=0,
+        cloudsat_lwp_index >= 0,
         cloudsatlwp.RVOD_ice_water_path[index], -9)
     cloudsat.LO_RVOD_liquid_water_path = np.where(
-        cloudsat_lwp_index>=0,
+        cloudsat_lwp_index >= 0,
         cloudsatlwp.LO_RVOD_liquid_water_path[index], -9)
     cloudsat.IO_RVOD_ice_water_path = np.where(
-        cloudsat_lwp_index>=0,
+        cloudsat_lwp_index >= 0,
         cloudsatlwp.IO_RVOD_ice_water_path[index], -9)
     cloudsat.RVOD_CWC_status = np.where(
-        cloudsat_lwp_index>=0,
+        cloudsat_lwp_index >= 0,
         cloudsatlwp.RVOD_CWC_status[index], -9)
     return cloudsat
 
@@ -264,11 +264,11 @@ def reshapeCloudsat(cloudsatfiles, imager, SETTINGS):
     # imager_end = imager.sec1970_end
     # imager_start = imager.sec1970_start
     clsat = get_cloudsat(cloudsatfiles[0])
-    for i in range(len(cloudsatfiles)-1):
-        newCloudsat = get_cloudsat(cloudsatfiles[i+1])
+    for i in range(len(cloudsatfiles) - 1):
+        newCloudsat = get_cloudsat(cloudsatfiles[i + 1])
         clsat_start_all = clsat.sec_1970.ravel()
         clsat_new_all = newCloudsat.sec_1970.ravel()
-        if not clsat_start_all[0]<clsat_new_all[0]:
+        if not clsat_start_all[0] < clsat_new_all[0]:
             raise ProcessingError("CloudSat files are in the wrong order!")
         # clsat_break = np.argmin(np.abs(clsat_start_all - clsat_new_all[0]))+1
         # Concatenate the feature values

@@ -31,8 +31,8 @@ def bias_corrected_rms(rms, bias, N):
     if N < 2:
         print "Warning too few elements to calculate bc-RMS"
         return -9
-    cnn1 = N/(N-1)
-    return np.sqrt(rms*rms-cnn1*bias*bias)
+    cnn1 = N / (N - 1)
+    return np.sqrt(rms * rms - cnn1 * bias * bias)
 
 
 class CloudTopStats(OrrbStats):

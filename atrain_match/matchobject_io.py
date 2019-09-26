@@ -113,7 +113,7 @@ class DataObject(object):
                 self.all_arrays[key] = value[idx.ravel(), ...]
             else:
                 self.all_arrays[key] = value[starti:endi, ...]
-            if value is not None and len(value.shape)>1 and value.shape[1]==1:
+            if value is not None and len(value.shape) > 1 and value.shape[1] == 1:
                 self.all_arrays[key] = self.all_arrays[key].ravel()
 
 
@@ -127,7 +127,7 @@ class DataObject(object):
                 try:
                     self.all_arrays[key] = np.ma.array(
                         self.all_arrays[key],
-                        mask = self.all_arrays[key]<=nodata)
+                        mask = self.all_arrays[key] <= nodata)
                 except:
                     print("cloud not mask %s"%(key))
 
@@ -464,7 +464,7 @@ def read_truth_imager_match_obj(filename, truth='calipso',
             if dataset in skip_var:
                 continue
             if  (read_all or dataset in read_var or
-                 (len(read_var)==0 and dataset.data_obj.all_arrays.keys())) :
+                 (len(read_var) == 0 and dataset.data_obj.all_arrays.keys())) :
                 atrain_match_name = dataset
                 if atrain_match_name in ["snow_ice_surface_type"]:
                     atrain_match_name = "nsidc_surface_type"
@@ -475,9 +475,9 @@ def read_truth_imager_match_obj(filename, truth='calipso',
 
 def read_files(files, truth='calipso', read_all=True, read_var=[]):
     tObj = read_truth_imager_match_obj(files.pop(), truth=truth)
-    if len(files)>0:
+    if len(files) > 0:
         for filename in files:
-            tObj += read_truth_imager_match_obj(filename, truth=truth, read_all=read_all, read_var=read_var)
+            tObj + = read_truth_imager_match_obj(filename, truth=truth, read_all=read_all, read_var=read_var)
     return tObj
 
 # write matchup files
@@ -502,7 +502,7 @@ def sliding_std(x, size=5):
     from scipy.ndimage.filters import uniform_filter
     c1 = uniform_filter(x.astype('float'), size=size)
     c2 = uniform_filter(x.astype('float')*x.astype('float'), size=size)
-    return abs(c2 - c1*c1)**.5
+    return abs(c2 - c1 * c1)**.5
 
 the_used_variables = [
     'longitude',

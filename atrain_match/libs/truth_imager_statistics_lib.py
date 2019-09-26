@@ -81,12 +81,12 @@ def calculate_ctth_stats(val_subset, imager_ctth_m_above_seasurface, truth_sat_v
                                             imager_height_work)[0, 1]
         else:
             corr_caliop_imager = -99.0
-        diff = imager_height_work-truth_sat_validation_height_work
+        diff = imager_height_work - truth_sat_validation_height_work
         bias = np.mean(diff)
         MAE = np.mean(np.abs(diff))
-        diff_squared = diff*diff
+        diff_squared = diff * diff
         RMS_difference = np.sqrt(np.mean(diff_squared))
-        diff_squared_biascorr = (diff-bias)*(diff-bias)
+        diff_squared_biascorr = (diff - bias) * (diff - bias)
 #        RMS_difference_biascorr = np.sqrt(np.mean(diff_squared_biascorr))
 
     # return (corr_caliop_imager, bias, RMS_difference, imager_height_work, diff_squared_biascorr)

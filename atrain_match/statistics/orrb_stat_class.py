@@ -153,7 +153,7 @@ class OrrbStats():
                 # Ie do not use CLOUDSAT info when compiling stats for CALIPSO
                 cal_data = data_dict[key]
                 if  key in cfc_stats_labels:
-                    cal_data[cal_data<0] = 0
+                    cal_data[cal_data < 0] = 0
                     acu["n_clear_clear_cal"] += cal_data[0]
                     acu["n_clear_cloudy_cal"] += cal_data[1]
                     acu["n_cloudy_clear_cal"] += cal_data[2]
@@ -180,7 +180,7 @@ class OrrbStats():
                 if  key in cfc_stats_labels_modis:
                     got_cloudsat_modis_flag = True
                     modis_data = data_dict[key]
-                    modis_data[modis_data<0] = 0
+                    modis_data[modis_data < 0] = 0
                     acu["n_clear_clear_cal_MODIS"] += modis_data[0]
                     acu["n_clear_cloudy_cal_MODIS"] += modis_data[1]
                     acu["n_cloudy_clear_cal_MODIS"] += modis_data[2]
@@ -190,7 +190,7 @@ class OrrbStats():
             for key in data_dict.keys():
                 if  key in cph_stats_labels:
                     cal_data = data_dict[key]
-                    cal_data[cal_data<0] = 0
+                    cal_data[cal_data < 0] = 0
                     acu["n_ice_ice_cal"] += cal_data[0]
                     acu["n_ice_water_cal"] += cal_data[1]
                     acu["n_water_ice_cal"] += cal_data[2]
@@ -208,7 +208,7 @@ class OrrbStats():
             for key in data_dict.keys():
                 if  key in cty_stats_labels:
                     cal_data = data_dict[key]
-                    cal_data[cal_data<0] = 0
+                    cal_data[cal_data < 0] = 0
                     acu["n_low_low"] += cal_data[0]
                     acu["n_low_medium"] += cal_data[1]
                     acu["n_low_high"] += cal_data[2]
@@ -225,7 +225,7 @@ class OrrbStats():
                     acu["n_cirrus_high_op"] += cal_data[13]
                 if  key in cty_stats_labels_missed:
                     cal_data_missed = data_dict[key]
-                    cal_data_missed[cal_data_missed<0] = 0
+                    cal_data_missed[cal_data_missed < 0] = 0
                     acu["n_clear_low"] += cal_data_missed[0]
                     acu["n_clear_medium"] += cal_data_missed[1]
                     acu["n_clear_high"] += cal_data_missed[2]
@@ -241,10 +241,10 @@ class OrrbStats():
                 type_of_clouds = key.split(" ")[-2]
                 cloud_level  = key.split(" ")[-1]
                 data_one_cat = data_dict[key]
-                if data_one_cat[3]<0:
+                if data_one_cat[3] < 0:
                     print "no pixels!"
                     continue
-                if data_one_cat[3]<=0:
+                if data_one_cat[3] <= 0:
                     data_one_cat[3]=0
                 if cloud_level == "MEDIUM":
                     if type_of_clouds not in acu["cal_medium_samples"].keys():

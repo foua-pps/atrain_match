@@ -82,7 +82,7 @@ def match_synop_imager(synop, cloudproducts, SETTINGS):
         logger.warning("No matches within region.")
         return None
     # check if it is within time limits:
-    if len(cloudproducts.time.shape)>1:
+    if len(cloudproducts.time.shape) > 1:
         imager_time_vector = [cloudproducts.time[line, pixel] for line, pixel in zip(cal_1, cap_1)]
         imager_lines_sec_1970 = np.where(cal_1 != config.NODATA, imager_time_vector, np.nan)
     else:

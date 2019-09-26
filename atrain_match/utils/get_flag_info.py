@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 def get_semi_opaque_info_pps2014(ctth_status):
     logger.debug("Assuming cloudtype flags structure from pps v2014")
-    temp_val = (ctth_status>>7 & 1)
+    temp_val = (ctth_status >> 7 & 1)
     semi_flag = temp_val == 1
     opaque_flag = temp_val == 0
     return  semi_flag, opaque_flag
@@ -36,33 +36,33 @@ def get_semi_opaque_info_pps2012(ctth_opaque):
 
 def get_sunglint_info_pps2014(cloudtype_conditions):
     logger.debug("Assuming cloudtype flags structure from pps v2014")
-    temp_val = (cloudtype_conditions>>3 & 1)
+    temp_val = (cloudtype_conditions >> 3 & 1)
     sunglint_flag = temp_val == 1
     return  sunglint_flag
 
 def get_high_terrain_info_pps2014(cloudtype_conditions):
     logger.debug("Assuming cloudtype flags structure from pps v2014")
-    temp_val = (cloudtype_conditions>>6 & 1)
+    temp_val = (cloudtype_conditions >> 6 & 1)
     mountin_flag = temp_val == 1
     logger.debug("Number of mountain %d"%(len(cloudtype_conditions[mountin_flag==True])))
     return  mountin_flag
 
 def get_mountin_info_pps2014(cloudtype_conditions):
     logger.debug("Assuming cloudtype flags structure from pps v2014")
-    temp_val = (cloudtype_conditions>>7 & 1)
+    temp_val = (cloudtype_conditions >> 7 & 1)
     mountin_flag = temp_val == 1
     logger.debug("Number of mountain %d"%(len(cloudtype_conditions[mountin_flag==True])))
     return  mountin_flag
 
 def get_inversion_info_pps2014(cloudtype_status):
     logger.debug("Assuming cloudtype flags structure from pps v2014")
-    flag_temp = (cloudtype_status>>0 & 1)+0
-    inversion_flag = flag_temp ==1
+    flag_temp = (cloudtype_status >> 0 & 1) + 0
+    inversion_flag = flag_temp == 1
     return inversion_flag
 
 def get_land_coast_sea_info_pps2014(cloudtype_conditions):
     logger.debug("Assuming cloudtype flags structure from pps v2014")
-    sealand_val = (cloudtype_conditions>>4 & 1) + (cloudtype_conditions>>5 & 1)*2
+    sealand_val = (cloudtype_conditions >> 4 & 1) + (cloudtype_conditions >> 5 & 1) * 2
     no_qflag = sealand_val == 0
     land_flag =  sealand_val == 1
     sea_flag =  sealand_val == 2
@@ -76,12 +76,12 @@ def get_land_coast_sea_info_pps2014(cloudtype_conditions):
 
 def get_land_coast_sea_info_pps2012(cloudtype_qflag):
     logger.info("Assuming cloudtype flags structure from pps v2012")
-    land_sea_val = (cloudtype_qflag>>0 & 1)
-    coast_val = (cloudtype_qflag>>1 & 1)
+    land_sea_val = (cloudtype_qflag >> 0 & 1)
+    coast_val = (cloudtype_qflag >> 1 & 1)
     no_qflag = None
-    land_flag =  np.logical_and(land_sea_val == 1, coast_val==0)
-    sea_flag =  np.logical_and(land_sea_val == 0, coast_val==0)
-    coast_flag = coast_val==1
+    land_flag =  np.logical_and(land_sea_val == 1, coast_val == 0)
+    sea_flag =  np.logical_and(land_sea_val == 0, coast_val == 0)
+    coast_flag = coast_val == 1
     land_or_sea=np.logical_or(land_flag, sea_flag)
     true_coast=np.logical_and(coast_flag, np.equal(land_or_sea, False))
     logger.info("Number coast %d"%( len(cloudtype_qflag[coast_flag==True])))
@@ -94,19 +94,19 @@ def get_land_coast_sea_info_pps2012(cloudtype_qflag):
 
 def get_ice_info_pps2014(cloudtype_status):
     logger.debug("Assuming cloudtype flags structure from pps v2014")
-    ice_flag_temp = (cloudtype_status>>3 & 1)+0
-    ice_flag = ice_flag_temp ==1
+    ice_flag_temp = (cloudtype_status >> 3 & 1) + 0
+    ice_flag = ice_flag_temp == 1
     return ice_flag
 
 def get_ice_info_pps2012(cloudtype_qflag):
     logger.info("Assuming cloudtype flags structure from pps v2012")
-    ice_flag_temp = (cloudtype_qflag>>15 & 1)+0
-    ice_flag = ice_flag_temp ==1
+    ice_flag_temp = (cloudtype_qflag >> 15 & 1) + 0
+    ice_flag = ice_flag_temp == 1
     return ice_flag
 
 def get_day_night_twilight_info_pps2014(cloudtype_conditions):
     logger.debug("Assuming cloudtype flags structure from pps v2014")
-    daynight_val = (cloudtype_conditions>>1 & 1) + (cloudtype_conditions>>2 & 1)*2
+    daynight_val = (cloudtype_conditions >> 1 & 1) + (cloudtype_conditions >> 2 & 1) * 2
     no_qflag = daynight_val == 0
     night_flag =  daynight_val == 1
     day_flag =   daynight_val == 2
@@ -120,9 +120,9 @@ def get_day_night_twilight_info_pps2014(cloudtype_conditions):
 def get_day_night_twilight_info_pps2012(cloudtype_qflag):
     logger.info("Assuming cloudtype flags structure from pps v2012")
     no_qflag = cloudtype_qflag == 0
-    night_flag = (((cloudtype_qflag>>2) & 1) == 1) & ~no_qflag
-    twilight_flag = (((cloudtype_qflag>>3) & 1) == 1) & ~no_qflag
-    day_flag =  (((cloudtype_qflag>>2) & 1) == 0) & (((cloudtype_qflag>>3) & 1) == 0) & ~no_qflag
+    night_flag = (((cloudtype_qflag >> 2) & 1) == 1) & ~no_qflag
+    twilight_flag = (((cloudtype_qflag >> 3) & 1) == 1) & ~no_qflag
+    day_flag =  (((cloudtype_qflag >> 2) & 1) == 0) & (((cloudtype_qflag >> 3) & 1) == 0) & ~no_qflag
     logger.info("Number of day %d"%(len(cloudtype_qflag[day_flag==True])))
     logger.info("Number of night %d"%(len(cloudtype_qflag[night_flag==True])))
     logger.info("Number of twilight %d"%(len(cloudtype_qflag[twilight_flag==True])))
@@ -132,19 +132,19 @@ def get_day_night_twilight_info_pps2012(cloudtype_qflag):
 def get_sunglint_info_pps2012(cloudtype_qflag):
     logger.info("Assuming cloudtype flags structure from pps v2012")
     no_qflag = cloudtype_qflag == 0
-    sunglint_flag = (((cloudtype_qflag>>4) & 1) == 1) & ~no_qflag
+    sunglint_flag = (((cloudtype_qflag >> 4) & 1) == 1) & ~no_qflag
     return  sunglint_flag
 
 def get_mountin_info_pps2012(cloudtype_qflag):
     logger.info("Assuming cloudtype flags structure from pps v2012")
     no_qflag = cloudtype_qflag == 0
-    mountin_flag = (((cloudtype_qflag>>5) & 1) == 1) & ~no_qflag
+    mountin_flag = (((cloudtype_qflag >> 5) & 1) == 1) & ~no_qflag
     return  mountin_flag
 
 def get_inversion_info_pps2012(cloudtype_qflag):
     logger.info("Assuming cloudtype flags structure from pps v2012")
     no_qflag = cloudtype_qflag == 0
-    inversion_flag = (((cloudtype_qflag>>6) & 1) == 1) & ~no_qflag
+    inversion_flag = (((cloudtype_qflag >> 6) & 1) == 1) & ~no_qflag
     return inversion_flag
 
 # 0 = not determined
@@ -160,10 +160,10 @@ def get_inversion_info_pps2012(cloudtype_qflag):
 def get_calipso_aerosol_of_type_i(match_calipso, atype=0):
     # bits 10-12, start at 1 counting
     cflag = match_calipso.calipso_aerosol.feature_classification_flags[::, 0]
-    cal_vert_feature = np.zeros(cflag.shape)-9.0
-    feature_array = (4*np.bitwise_and(np.right_shift(cflag, 11), 1) +
-                     2*np.bitwise_and(np.right_shift(cflag, 10), 1) +
-                     1*np.bitwise_and(np.right_shift(cflag, 9), 1))
+    cal_vert_feature = np.zeros(cflag.shape) - 9.0
+    feature_array = (4 * np.bitwise_and(np.right_shift(cflag, 11), 1) +
+                     2 * np.bitwise_and(np.right_shift(cflag, 10), 1) +
+                     1 * np.bitwise_and(np.right_shift(cflag, 9), 1))
     cal_vert_feature = np.where(
         np.not_equal(cflag, 1), feature_array, cal_vert_feature)
 
@@ -181,10 +181,10 @@ def get_calipso_aerosol_of_type_i(match_calipso, atype=0):
 # 7 = deep convective (opaque)
 def get_calipso_clouds_of_type_i_feature_classification_flags_one_layer(cflag, calipso_cloudtype=0):
     # bits 10-12, start at 1 counting
-    cal_vert_feature = np.zeros(cflag.shape)-9.0
-    feature_array = (4*np.bitwise_and(np.right_shift(cflag, 11), 1) +
-                     2*np.bitwise_and(np.right_shift(cflag, 10), 1) +
-                     1*np.bitwise_and(np.right_shift(cflag, 9), 1))
+    cal_vert_feature = np.zeros(cflag.shape) - 9.0
+    feature_array = (4 * np.bitwise_and(np.right_shift(cflag, 11), 1) +
+                     2 * np.bitwise_and(np.right_shift(cflag, 10), 1) +
+                     1 * np.bitwise_and(np.right_shift(cflag, 9), 1))
     cal_vert_feature = np.where(
         np.not_equal(cflag, 1), feature_array, cal_vert_feature)
 
@@ -300,7 +300,7 @@ def get_cloudsat_low_medium_high_classification(match_clsat):
 def get_land_coast_sea_info_cci2014(lsflag):
     logger.info("Assuming cloudtype flags structure from CCI v2014?")
     land_flag =  lsflag
-    sea_flag =  1 -lsflag
+    sea_flag =  1 - lsflag
     coast_flag = None
     all_lsc_flag =  np.bool_(np.ones(lsflag))
     return (no_qflag, land_flag, sea_flag, coast_flag, all_lsc_flag)
@@ -323,19 +323,19 @@ def get_day_night_twilight_info_cci2014(sunz):
 
 def get_maia_ct_flag(ct_flag):
     # bits 4-8, start at 0 counting
-    maia_ct_flag = (16*np.bitwise_and(np.right_shift(ct_flag, 8), 1) +
-                    8*np.bitwise_and(np.right_shift(ct_flag, 7), 1) +
-                    4*np.bitwise_and(np.right_shift(ct_flag, 6), 1) +
-                    2*np.bitwise_and(np.right_shift(ct_flag, 5), 1) +
-                    1*np.bitwise_and(np.right_shift(ct_flag, 4), 1))
+    maia_ct_flag = (16 * np.bitwise_and(np.right_shift(ct_flag, 8), 1) +
+                    8 * np.bitwise_and(np.right_shift(ct_flag, 7), 1) +
+                    4 * np.bitwise_and(np.right_shift(ct_flag, 6), 1) +
+                    2 * np.bitwise_and(np.right_shift(ct_flag, 5), 1) +
+                    1 * np.bitwise_and(np.right_shift(ct_flag, 4), 1))
     return  maia_ct_flag
 def get_day_night_twilight_info_maia(cm_flag):
     # bit 13-14
-    maia_cm_flag = (2*np.bitwise_and(np.right_shift(cm_flag, 14), 1) +
-                    1*np.bitwise_and(np.right_shift(cm_flag, 13), 1))
-    day_flag = np.where(maia_cm_flag==2, 1, 0)  # include also sunglint in day ==3
-    night_flag =  np.where(maia_cm_flag==0, 1, 0)
-    twilight_flag =  np.where(maia_cm_flag==1, 1, 0)
+    maia_cm_flag = (2 * np.bitwise_and(np.right_shift(cm_flag, 14), 1) +
+                    1 * np.bitwise_and(np.right_shift(cm_flag, 13), 1))
+    day_flag = np.where(maia_cm_flag == 2, 1, 0)  # include also sunglint in day ==3
+    night_flag =  np.where(maia_cm_flag == 0, 1, 0)
+    twilight_flag =  np.where(maia_cm_flag == 1, 1, 0)
     logger.debug("number of day {:d}".format(len(maia_cm_flag[day_flag==True])))
     logger.debug("number of night {:d}".format(len(maia_cm_flag[night_flag==True])))
     logger.debug("number of twilight {:d}".format(len(maia_cm_flag[twilight_flag==True])))
@@ -346,5 +346,5 @@ def get_day_night_twilight_info_maia(cm_flag):
 def get_pixels_where_test_is_passed(cma_testlist, bit_nr=0):
     # print bit_nr,
     # print
-    test_was_fullfilled = (cma_testlist.astype(np.uint16)>>bit_nr & 1)
+    test_was_fullfilled = (cma_testlist.astype(np.uint16) >> bit_nr & 1)
     return test_was_fullfilled

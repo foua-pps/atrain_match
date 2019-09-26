@@ -41,7 +41,7 @@ def get_amsr(filename):
         retv = read_amsr_hdf4(filename)
 
     density = 1e3  # Density of water [kg m**-3]
-    n_lat_scans = len(retv.latitude)*1.0/(len(retv.sec1993))  # = 242!
+    n_lat_scans = len(retv.latitude) * 1.0 / (len(retv.sec1993))  # = 242!
     # print n_lat_scans
     epoch_diff = timegm(TAI93.utctimetuple())
     nadir_sec_1970 = retv.sec1993 + epoch_diff
@@ -50,8 +50,8 @@ def get_amsr(filename):
     retv.lwp = retv.lwp_mm.ravel() * density  # [mm * kg m**-3 = g m**-2]
 
     logger.info("Extract AMSR-E lwp between 0 and %d g/m-2", LWP_THRESHOLD)
-    use_amsr = np.logical_and(retv.lwp >=0 ,
-                              retv.lwp < LWP_THRESHOLD*100)
+    use_amsr = np.logical_and(retv.lwp >= 0 ,
+                              retv.lwp < LWP_THRESHOLD * 100)
     retv = retv.extract_elements(idx=use_amsr)
     # import matplotlib.pyplot as plt
     # plt.plot(retv.longitude, retv.latitude, '.')
@@ -126,13 +126,13 @@ def reshape_amsr(amsrfiles, imager, SETTINGS):
     imager_end = imager.sec1970_end
     imager_start = imager.sec1970_start
     amsr = get_amsr(amsrfiles[0])
-    for i in range(len(amsrfiles)-1):
-        newAmsr = get_amsr(amsrfiles[i+1])
+    for i in range(len(amsrfiles) - 1):
+        newAmsr = get_amsr(amsrfiles[i + 1])
         amsr_start_all = amsr.sec_1970.ravel()
         amsr_new_all = newAmsr.sec_1970.ravel()
-        if not amsr_start_all[0]<amsr_new_all[0]:
+        if not amsr_start_all[0] < amsr_new_all[0]:
             raise ProcessingError("AMSR files are in the wrong order")
-        amsr_break = np.argmin(np.abs(amsr_start_all - amsr_new_all[0]))+1
+        amsr_break = np.argmin(np.abs(amsr_start_all - amsr_new_all[0])) + 1
         # Concatenate the feature values
         amsr = amsr + newAmsr
 
@@ -173,7 +173,7 @@ def match_amsr_imager(amsr, cloudproducts, SETTINGS):
         logger.warning("No matches within region.")
         return None
     # check if it is within time limits:
-    if len(cloudproducts.time.shape)>1:
+    if len(cloudproducts.time.shape) > 1:
         imager_time_vector = [cloudproducts.time[line, pixel] for line, pixel in zip(cal_1, cap_1)]
         imager_lines_sec_1970 = np.where(cal_1 != config.NODATA, imager_time_vector, np.nan)
     else:
@@ -182,7 +182,7 @@ def match_amsr_imager(amsr, cloudproducts, SETTINGS):
     imager_sunz_vector = np.array([cloudproducts.imager_angles.sunz.data[line, pixel] for line, pixel in zip(cal_1, cap_1)])
     idx_match = np.logical_and(
         elements_within_range(amsr.sec_1970, imager_lines_sec_1970, SETTINGS["sec_timeThr"]),
-        imager_sunz_vector<=84)  # something larger than 84 (max for lwp)
+        imager_sunz_vector <= 84)  # something larger than 84 (max for lwp)
 
     if idx_match.sum() == 0:
         logger.warning("No light (sunz<84)  matches in region within time threshold %d s.", SETTINGS["sec_timeThr"])

@@ -159,7 +159,7 @@ if __name__ == '__main__':
                                  'day': day})
 
 
-    if len(modes_dnt_list)==0 :
+    if len(modes_dnt_list) == 0 :
         logger.warning("No modes selected!")
         parser.print_help()
     # For each mode calcualte the statistics
@@ -190,7 +190,7 @@ if __name__ == '__main__':
                 print("-> " + indata_dir)
                 results_files.extend(glob("%s/*%skm*%s*.dat" %(indata_dir, RESOLUTION, truth_sat.lower())))
                 results_files = list(set(results_files))
-            if len(results_files) <1:
+            if len(results_files) < 1:
                 logger.info("PROCESS MODE %s have no results files", process_mode_dnt)
                 continue
             # compile and write results

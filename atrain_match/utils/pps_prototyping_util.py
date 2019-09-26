@@ -27,9 +27,9 @@ def get_t11t12_texture_data_from_object(imager_obj, aux_obj, ch11, ch12, text_na
     # https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
     t11 = get_channel_data_from_objectfull_resolution(imager_obj, ch11, nodata=-9)
     t12 = get_channel_data_from_objectfull_resolution(imager_obj, ch12, nodata=-9)
-    t11t12 = 1.0*np.array(t11-t12)
+    t11t12 = 1.0 * np.array(t11 - t12)
     K=np.median(t11t12)  # K is trick to get better accurracy maybe not needed as differences are often small
-    t11t12 = (t11t12-K)
+    t11t12 = (t11t12 - K)
     from scipy.ndimage import uniform_filter
     mean = uniform_filter(t11t12, size=(5, 5), mode='mirror')
     mean_of_squared = uniform_filter(t11t12**2, size=(5, 5), mode='mirror')
@@ -66,10 +66,10 @@ def get_data_from_array_fill_outside(array, matched, Fill=0):
     row_index = matched['row'].copy()
     col_index = matched['col'].copy()
     row_lim, col_lim = array.shape
-    outside = np.logical_or(np.logical_or(row_index<0,
-                                          row_index>=row_lim),
-                            np.logical_or(col_index<0,
-                                          col_index>=col_lim))
+    outside = np.logical_or(np.logical_or(row_index < 0,
+                                          row_index >= row_lim),
+                            np.logical_or(col_index < 0,
+                                          col_index >= col_lim))
     row_index[outside] = 0
     col_index[outside] = 0
     temp = np.array([array[row_index[idx], col_index[idx]]
@@ -135,7 +135,7 @@ def get_darkest_values(imager_obj, matched):
     nobj = NeighbourObj()
     r09 = get_channel_data_from_objectfull_resolution(imager_obj, '09', nodata=-9)
     r06 = get_channel_data_from_objectfull_resolution(imager_obj, '06', nodata=-9)
-    darkest = np.where(r09>r06, r06, r09)
+    darkest = np.where(r09 > r06, r06, r09)
     new_row_col = get_warmest_or_coldest_index(darkest, matched, warmest=False)
     nobj.darkest_t11=get_channel_data_from_object(imager_obj, '11', new_row_col)[0]
     nobj.darkest_t12=get_channel_data_from_object(imager_obj, '12', new_row_col)[0]
@@ -179,9 +179,9 @@ def add_cnn_features(cnn_dict, matched, lats_matched, lons_matched, SETTINGS):
     for feature_index in range(32):
         feature_i = filter_response[0, feature_index, :, :]
         the_filters_dict["cnn_feature_%d"%(feature_index)] = np.where(
-            cnn_feature_index_R>=0,
+            cnn_feature_index_R >= 0,
             feature_i[cnn_feature_index_R, cnn_feature_index_C],
-            -9)
+      - 9)
     return the_filters_dict
 
 

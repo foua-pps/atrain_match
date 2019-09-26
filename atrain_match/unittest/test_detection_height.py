@@ -42,20 +42,20 @@ def CalipsoCloudOpticalDepth(cloud_top, cloud_base, optical_depth, cloud_fractio
             else:
                 depthsum = depthsum + optical_depth[pixel_i, layer_j]
                 if depthsum >= min_optical_depth:
-                    new_cloud_top[pixel_i, 0:(optical_depth.shape[1]-layer_j)] = cloud_top[pixel_i, layer_j:]
-                    new_cloud_base[pixel_i, 0:(optical_depth.shape[1]-layer_j)] = cloud_base[pixel_i, layer_j:]
+                    new_cloud_top[pixel_i, 0:(optical_depth.shape[1] - layer_j)] = cloud_top[pixel_i, layer_j:]
+                    new_cloud_base[pixel_i, 0:(optical_depth.shape[1] - layer_j)] = cloud_base[pixel_i, layer_j:]
                     new_cloud_fraction[pixel_i] = cloud_fraction[pixel_i]
-                    new_fcf[pixel_i, 0:(fcf.shape[1]-layer_j)] = fcf[pixel_i, layer_j:]
+                    new_fcf[pixel_i, 0:(fcf.shape[1] - layer_j)] = fcf[pixel_i, layer_j:]
                     for k in range(new_cloud_top.shape[1]):
                         if new_cloud_top[pixel_i, k] < 0:
                             break
                         else:
                             new_cloud_top[pixel_i, k] = new_cloud_base[pixel_i, k] + \
-                            ((new_cloud_top[pixel_i, k] - new_cloud_base[pixel_i, k]) * 1/2.)
+                            ((new_cloud_top[pixel_i, k] - new_cloud_base[pixel_i, k]) * 1 / 2.)
                     break
     new_validation_height = new_cloud_top[:, 0].copy()
-    new_validation_height[new_validation_height>=0] *= 1000
-    new_validation_height[new_validation_height<0] = -9
+    new_validation_height[new_validation_height >= 0] * = 1000
+    new_validation_height[new_validation_height < 0] = -9
     return new_cloud_top, new_cloud_base, new_cloud_fraction, new_fcf, new_validation_height
 
 
@@ -68,17 +68,17 @@ class test_detection_height(unittest.TestCase):
         self.obt5 = CalipsoObject()
         self.obt1 = CalipsoObject()
         self.obt5.profile_utc_time = np.zeros((7, 3))
-        self.obt1.profile_utc_time = np.zeros((35, 1))-10
+        self.obt1.profile_utc_time = np.zeros((35, 1)) - 10
         self.obt1.profile_utc_time[0:7] = 0
         self.obt1.number_layers_found = np.ones((35, 1))
-        self.obt5.layer_top_altitude = np.zeros((7, 10)) -9
-        self.obt5.layer_base_altitude = np.zeros((7, 10)) -9
-        self.obt5.layer_top_pressure = np.zeros((7, 10)) -9
-        self.obt5.layer_base_pressure = np.zeros((7, 10)) -9
-        self.obt5.feature_optical_depth_532 = np.zeros((7, 10)) -9
+        self.obt5.layer_top_altitude = np.zeros((7, 10)) - 9
+        self.obt5.layer_base_altitude = np.zeros((7, 10)) - 9
+        self.obt5.layer_top_pressure = np.zeros((7, 10)) - 9
+        self.obt5.layer_base_pressure = np.zeros((7, 10)) - 9
+        self.obt5.feature_optical_depth_532 = np.zeros((7, 10)) - 9
         self.obt5.number_layers_found = np.array([1, 1, 1, 3, 3, 3, 3])
         self.obt5.cloud_fraction = np.array([1, 1, 1, 1, 1, 1, 1])
-        self.obt5.feature_classification_flags = np.zeros((7, 10)) -9
+        self.obt5.feature_classification_flags = np.zeros((7, 10)) - 9
         self.obt1.total_optical_depth_5km = np.repeat(np.array([0.1, 9.0 , 0.3, 0.2, 3.6, 10.4, 0.9]), 5, axis=0)
 
         self.obt5.layer_top_altitude[:, 0] =        np.array([-9, 9.2, 8.3, 7.6, 5.3, 2.2, 5.0]).ravel()
@@ -103,12 +103,12 @@ class test_detection_height(unittest.TestCase):
         calipso = detection_height_from_5km_data(self.obt1, self.obt5, limit_ctop=1.0)
         print "dh", calipso.detection_height_5km[0::5]
         self.assertEqual(calipso.detection_height_5km[0], -9)
-        self.assertTrue(np.abs(calipso.detection_height_5km[5]-9.08*1000)<100)
-        self.assertTrue(np.abs(calipso.detection_height_5km[10]-7.3*1000)<100)
-        self.assertTrue(np.abs(calipso.detection_height_5km[15]-6.6*1000)<100)
-        self.assertTrue(np.abs(calipso.detection_height_5km[20]-2.22*1000)<100)
-        self.assertTrue(np.abs(calipso.detection_height_5km[25]-2.18*1000)<100)
-        self.assertTrue(np.abs(calipso.detection_height_5km[30]-3.1*1000)<100)
+        self.assertTrue(np.abs(calipso.detection_height_5km[5] - 9.08 * 1000) < 100)
+        self.assertTrue(np.abs(calipso.detection_height_5km[10] - 7.3 * 1000) < 100)
+        self.assertTrue(np.abs(calipso.detection_height_5km[15] - 6.6 * 1000) < 100)
+        self.assertTrue(np.abs(calipso.detection_height_5km[20] - 2.22 * 1000) < 100)
+        self.assertTrue(np.abs(calipso.detection_height_5km[25] - 2.18 * 1000) < 100)
+        self.assertTrue(np.abs(calipso.detection_height_5km[30] - 3.1 * 1000) < 100)
     def test_ninas_code(self):
         out1 = optical_depth_height_filtering(self.obt5, 0.5, use_old_method=True,
                                              limit_ctop=1.0)

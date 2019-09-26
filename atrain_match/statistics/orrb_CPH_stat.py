@@ -63,8 +63,8 @@ class CloudPhaseStats(OrrbStats):
         self.far_ice_cal = far_ice_cal
         self.cph_kuipers = kuipers
         self.cph_hitrate = hitrate
-        self.n_water = n_water_water_cal+n_water_ice_cal
-        self.n_ice = n_ice_ice_cal+n_ice_water_cal
+        self.n_water = n_water_water_cal + n_water_ice_cal
+        self.n_ice = n_ice_ice_cal + n_ice_water_cal
         self.n_water_water = n_water_water_cal
         self.n_ice_ice = n_ice_ice_cal
 

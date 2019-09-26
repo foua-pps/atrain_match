@@ -41,7 +41,7 @@ def plot_satellite_trajectory(longitude,
     area_def = pr.utils.load_area(area_config_file, area_id)
 
     result = pr.kd_tree.resample_nearest(swath_def, track, area_def,
-                                         radius_of_influence=50*1000, fill_value=None)
+                                         radius_of_influence=50 * 1000, fill_value=None)
 
     import matplotlib.pyplot as plt
     import pylab

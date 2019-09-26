@@ -32,7 +32,7 @@ ATRAIN_MATCH_NODATA = config.NODATA
 
 DSEC_PER_AVHRR_SCALINE = 1.0/6. * 4  # A "work for the time being" solution.
 if config.RESOLUTION == 1:
-    DSEC_PER_AVHRR_SCALINE = 1.0/6.  # Full scan period, i.e. the time
+    DSEC_PER_AVHRR_SCALINE = 1.0 / 6.  # Full scan period, i.e. the time
                                     # interval between two consecutive
                                     # lines (sec)
 def get_satid_datetime_orbit_from_fname_pps(imager_filename, as_oldstyle=False):

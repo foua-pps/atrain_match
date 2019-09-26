@@ -35,9 +35,9 @@ from atrain_match.utils.runutils import do_some_logging
 
 def add_validation_ctth_calipso(calipso):
     calipso.validation_height = calipso.layer_top_altitude[:, 0].copy()
-    calipso.validation_height[calipso.validation_height>=0] = (
-        1000.0*calipso.validation_height[calipso.validation_height>=0])
-    calipso.validation_height[calipso.validation_height<0] = -9
+    calipso.validation_height[calipso.validation_height >= 0] = (
+        1000.0 * calipso.validation_height[calipso.validation_height >= 0])
+    calipso.validation_height[calipso.validation_height < 0] = -9
     return calipso
 
 
@@ -54,14 +54,14 @@ def match_calipso_imager(values,
     cal, cap = map_imager(cloudproducts,
                           calipso.longitude.ravel(),
                           calipso.latitude.ravel(),
-                          radius_of_influence=config.RESOLUTION*0.7*1000.0)  # somewhat larger than radius...
+                          radius_of_influence=config.RESOLUTION * 0.7 * 1000.0)  # somewhat larger than radius...
     # warn if no matches
     calnan = np.where(cal == config.NODATA, np.nan, cal)
     if (~np.isnan(calnan)).sum() == 0:
         logger.warning("No matches within region.")
         return None
     # check if it is within time limits:
-    if len(cloudproducts.time.shape)>1:
+    if len(cloudproducts.time.shape) > 1:
         imager_time_vector = [cloudproducts.time[line, pixel] for line, pixel in zip(cal, cap)]
         imager_lines_sec_1970 = np.where(cal != config.NODATA, imager_time_vector, np.nan)
     else:
@@ -106,15 +106,15 @@ def get_calipso(filename, res, ALAY=False):
         # --------------------------------------------------------
         # This filtering of single clear/cloud pixels is questionable.
         # Minor investigation (45 scenes npp), shows small decrease in results if removed.
-        cloud_fraction_temp =  ndimage.filters.uniform_filter1d(calipso_clmask*1.0, size=winsz)
+        cloud_fraction_temp =  ndimage.filters.uniform_filter1d(calipso_clmask * 1.0, size=winsz)
         # Se low cloudfraction on clear 1km pixels that might be cloudy.
         # don't use filter to set cloudy pixels to clear
         # If winsz=3: 1clear 2cloudy => cfc = 0.066
         #   winsz=3; 2clear 1cloudy => cfc = 0.033
         cal.cloud_fraction = np.where(
-            np.logical_and(cal.cloud_fraction<1.0,
-                           cloud_fraction_temp>0.01),
-            0.01*cloud_fraction_temp, cal.cloud_fraction)
+            np.logical_and(cal.cloud_fraction < 1.0,
+                           cloud_fraction_temp > 0.01),
+            0.01 * cloud_fraction_temp, cal.cloud_fraction)
        # --------------------------------------------------------
     elif res == 5 and  not ALAY:
         cal.cloud_fraction = np.where(cal.layer_top_altitude[:, 0] > 0, 1, 0).astype('d')
@@ -151,8 +151,8 @@ def rearrange_calipso_the_single_shot_info(retv, singleshotdata):
     data = singleshotdata[name]
     data = np.array(data)
     data_reshaped_15 = data.reshape(-1, 15)
-    single_shot_cloud_cleared_array = np.sum(data_reshaped_15==0, axis=1)  # Number of clear
-    single_shot_cloud_cleared_array = 15-single_shot_cloud_cleared_array  # Number of cloudy
+    single_shot_cloud_cleared_array = np.sum(data_reshaped_15 == 0, axis=1)  # Number of clear
+    single_shot_cloud_cleared_array = 15 - single_shot_cloud_cleared_array  # Number of cloudy
     name = "number_cloudy_single_shots"  # New name used here
     # pdb.set_trace()
     setattr(retv, name, np.array(single_shot_cloud_cleared_array))
@@ -162,10 +162,10 @@ def rearrange_calipso_the_single_shot_info(retv, singleshotdata):
     data_reshaped_5 = data.reshape(-1, 5)
     base_array = data_reshaped_5[:, 0]
     base_array = base_array.reshape(-1, 15)
-    base_array = np.where(base_array>0, base_array, 0.0)
-    base_mean = np.where(single_shot_cloud_cleared_array>0,
+    base_array = np.where(base_array > 0, base_array, 0.0)
+    base_mean = np.where(single_shot_cloud_cleared_array > 0,
                          np.divide(np.sum(base_array, axis=1), single_shot_cloud_cleared_array),
-                         -9.0)  # Calculate average cloud base
+                   - 9.0)  # Calculate average cloud base
     name = "average_cloud_base_single_shots"
     setattr(retv, name, base_mean)
 
@@ -174,10 +174,10 @@ def rearrange_calipso_the_single_shot_info(retv, singleshotdata):
     data_reshaped_5 = data.reshape(-1, 5)
     top_array = data_reshaped_5[:, 0]
     top_array = top_array.reshape(-1, 15)
-    top_array = np.where(top_array>0, top_array, 0.0)
-    top_mean = np.where(single_shot_cloud_cleared_array>0,
+    top_array = np.where(top_array > 0, top_array, 0.0)
+    top_mean = np.where(single_shot_cloud_cleared_array > 0,
                         np.divide(np.sum(top_array, axis=1), single_shot_cloud_cleared_array),
-                        -9.0)  # Calculate average cloud top
+                  - 9.0)  # Calculate average cloud top
     name = "average_cloud_top_pressure_single_shots"
     setattr(retv, name, top_mean)
 
@@ -186,10 +186,10 @@ def rearrange_calipso_the_single_shot_info(retv, singleshotdata):
     data_reshaped_5 = data.reshape(-1, 5)
     top_array = data_reshaped_5[:, 0]
     top_array = top_array.reshape(-1, 15)
-    top_array = np.where(top_array>0, top_array, 0.0)
-    top_mean = np.where(single_shot_cloud_cleared_array>0,
+    top_array = np.where(top_array > 0, top_array, 0.0)
+    top_mean = np.where(single_shot_cloud_cleared_array > 0,
                         np.divide(np.sum(top_array, axis=1), single_shot_cloud_cleared_array),
-                        -9.0)  # Calculate average cloud top
+                  - 9.0)  # Calculate average cloud top
     name = "average_cloud_top_single_shots"
     # pdb.set_trace()
     setattr(retv, name, top_mean)
@@ -199,8 +199,8 @@ def rearrange_calipso_the_single_shot_info(retv, singleshotdata):
         data = singleshotdata["ssNumber_Layers_Found"]
         data = np.array(data).reshape(-1, 3)
         data_reshaped_3 = data.reshape(-1, 3)
-        single_shot_num_clear_array = np.sum(data_reshaped_3==0, axis=1)  # Number of clear
-        cfc_single_shots = (3-single_shot_num_clear_array)/3.0  # Number of cloudy
+        single_shot_num_clear_array = np.sum(data_reshaped_3 == 0, axis=1)  # Number of clear
+        cfc_single_shots = (3 - single_shot_num_clear_array) / 3.0  # Number of cloudy
         name = "cfc_single_shots_1km_from_5km_file"  # New name used here
         # pdb.set_trace()
         setattr(retv, name, cfc_single_shots)
@@ -216,8 +216,8 @@ def read_calipso(filename):
             retv = read_calipso_h5(filename, retv)
     # Adopt some variables
     dsec = tm.mktime((1993, 1, 1, 0, 0, 0, 0, 0, 0)) - tm.timezone
-    dt = datetime(1993, 1, 1, 0, 0, 0)-datetime(1970, 1, 1, 0, 0, 0)
-    dsec2 = dt.days*24*60*60
+    dt = datetime(1993, 1, 1, 0, 0, 0) - datetime(1970, 1, 1, 0, 0, 0)
+    dsec2 = dt.days * 24 * 60 * 60
     if dsec != dsec2:
         print("WARNING")
 
@@ -227,14 +227,14 @@ def read_calipso(filename):
         retv.longitude = retv.longitude [:, 0]
         retv.profile_time_tai = retv.profile_time_tai[:, 0]
         # Elevation is given in km's. Convert to meters:
-        retv.elevation = retv.dem_surface_elevation[:, 0]*1000.0
+        retv.elevation = retv.dem_surface_elevation[:, 0] * 1000.0
     # 5km
     else:
         retv.latitude = retv.latitude[:, 1]
         retv.longitude = retv.longitude[:, 1]
         retv.profile_time_tai = retv.profile_time_tai[:, 1]
         # Elevation is given in km's. Convert to meters:
-        retv.elevation = retv.dem_surface_elevation[:, 2]*1000.0
+        retv.elevation = retv.dem_surface_elevation[:, 2] * 1000.0
     setattr(retv, "sec_1970", retv.profile_time_tai + dsec)
     return retv
 

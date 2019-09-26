@@ -31,13 +31,13 @@ def get_warmest_index_old(t11, matched):
                                 function=np.argmax,
                                 size=5,
                                 mode='constant',
-                                cval=-9999999999999)
+                                cval= -9999999999999)
     flat_index = np.array(flat_index, dtype=np.int)
     delta_row, delta_col = np.unravel_index(flat_index, (5, 5))
     delta_row = delta_row - 2
     delta_col = delta_col - 2
-    new_row = row+delta_row
-    new_col = col+delta_col
+    new_row = row + delta_row
+    new_col = col + delta_col
     new_row_matched = np.array([new_row[matched['row'][idx], matched['col'][idx]]
                        for idx in range(matched['row'].shape[0])])
     new_col_matched = np.array([new_col[matched['row'][idx], matched['col'][idx]]
@@ -69,12 +69,12 @@ class test_prototyping_utils(unittest.TestCase):
         out_c = retv['col']
         out_r2, out_c2 = get_warmest_index_old(self.t11, self.matched)
 
-        self.assertTrue((out_r[0:4]== [0, 0, 0, 0]).all())
-        self.assertTrue((out_c[0:4] ==[1, 1, 1, 1]).all())
-        self.assertTrue((out_r[4:7] ==[2, 2, 2]).all())
-        self.assertTrue((out_c[4:7] ==[4, 4, 4]).all())
-        self.assertTrue((out_c[7:10] ==[9, 9, 9]).all())
-        self.assertTrue((out_c ==  out_c2).all())
+        self.assertTrue((out_r[0:4] == [0, 0, 0, 0]).all())
+        self.assertTrue((out_c[0:4] == [1, 1, 1, 1]).all())
+        self.assertTrue((out_r[4:7] == [2, 2, 2]).all())
+        self.assertTrue((out_c[4:7] == [4, 4, 4]).all())
+        self.assertTrue((out_c[7:10] == [9, 9, 9]).all())
+        self.assertTrue((out_c == out_c2).all())
         self.assertTrue((out_r == out_r2).all())
 def suite():
     """The suite for test_utils.

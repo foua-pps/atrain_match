@@ -76,8 +76,8 @@ class CloudTypeStats(OrrbStats):
                   n_medium_low + n_medium_medium + n_medium_high +
                   n_high_low + n_high_medium + n_high_high +
                   n_cirrus_low +
-                  n_cirrus_medium_op +n_cirrus_high_op +
-                  n_cirrus_medium_tp +n_cirrus_high_tp )
+                  n_cirrus_medium_op + n_cirrus_high_op +
+                  n_cirrus_medium_tp + n_cirrus_high_tp )
 
         N_low_cal = (n_low_low + n_medium_low + n_high_low
                      + n_cirrus_low)
@@ -116,13 +116,13 @@ class CloudTypeStats(OrrbStats):
         high_fraction_cal_rel = np.divide(float(N_high_cal), Num_ct) * 100.0
         cirrus_fraction_pps_rel = np.divide(float(pps_cirrus), Num_ct) * 100.0
 
-        low_fraction_pps_abs = low_fraction_pps_rel * 0.01 *CFC_PPS
-        low_fraction_cal_abs = low_fraction_cal_rel * 0.01 *CFC_TRUTH
-        medium_fraction_pps_abs = medium_fraction_pps_rel * 0.01 *CFC_PPS
-        medium_fraction_cal_abs = medium_fraction_cal_rel * 0.01 *CFC_TRUTH
-        high_fraction_pps_abs = high_fraction_pps_rel * 0.01 *CFC_PPS
-        high_fraction_cal_abs = high_fraction_cal_rel * 0.01 *CFC_TRUTH
-        cirrus_fraction_pps_abs = cirrus_fraction_pps_rel * 0.01 *CFC_PPS
+        low_fraction_pps_abs = low_fraction_pps_rel * 0.01 * CFC_PPS
+        low_fraction_cal_abs = low_fraction_cal_rel * 0.01 * CFC_TRUTH
+        medium_fraction_pps_abs = medium_fraction_pps_rel * 0.01 * CFC_PPS
+        medium_fraction_cal_abs = medium_fraction_cal_rel * 0.01 * CFC_TRUTH
+        high_fraction_pps_abs = high_fraction_pps_rel * 0.01 * CFC_PPS
+        high_fraction_cal_abs = high_fraction_cal_rel * 0.01 * CFC_TRUTH
+        cirrus_fraction_pps_abs = cirrus_fraction_pps_rel * 0.01 * CFC_PPS
 
 
 
@@ -131,7 +131,7 @@ class CloudTypeStats(OrrbStats):
         # POD, FAR, HR and KSS calculations =============================================================
 
         hitrate = np.divide(
-            100.0*(
+            100.0 * (
                 n_low_low + n_medium_medium + n_high_high +
                 n_cirrus_medium_tp + n_cirrus_high_tp),
             Num_ct)
@@ -179,7 +179,7 @@ class CloudTypeStats(OrrbStats):
         self.pps_false_cirrus = pps_false_cirrus
     def printout(self):
         lines = []
-        if self.Num_cma == 0 or self.Num_ct==0:
+        if self.Num_cma == 0 or self.Num_ct == 0:
             return lines
         lines.append( "Total pixels: %d" % self.Num_cma)
         lines.append( "Common cloud-free: %d" % self.common_cloud_free)

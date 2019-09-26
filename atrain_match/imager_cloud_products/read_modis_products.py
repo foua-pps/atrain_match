@@ -99,10 +99,10 @@ def read_modis_h5(filename):
     modis_06.pressure = modis_06.pressure.astype(np.float)
     modis_06.temperature = modis_06.temperature.astype(np.float)
     modis_06.lwp = modis_06.lwp.astype(np.float)
-    modis_06.height[~hmask] = modis_06.height[~hmask]*h_gain + h_intercept
-    modis_06.pressure[~pmask] = modis_06.pressure[~pmask]*p_gain + p_intercept
-    modis_06.temperature[~tmask] = modis_06.temperature[~tmask]*t_gain - t_intercept*t_gain
-    modis_06.lwp[~lwpmask] = modis_06.lwp[~lwpmask]*lwp_gain + lwp_intercept
+    modis_06.height[~hmask] = modis_06.height[~hmask] * h_gain + h_intercept
+    modis_06.pressure[~pmask] = modis_06.pressure[~pmask] * p_gain + p_intercept
+    modis_06.temperature[~tmask] = modis_06.temperature[~tmask] * t_gain - t_intercept * t_gain
+    modis_06.lwp[~lwpmask] = modis_06.lwp[~lwpmask] * lwp_gain + lwp_intercept
     modis_06.height[hmask] = ATRAIN_MATCH_NODATA
     modis_06.pressure[pmask] = ATRAIN_MATCH_NODATA
     modis_06.temperature[tmask] = ATRAIN_MATCH_NODATA

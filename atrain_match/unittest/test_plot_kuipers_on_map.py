@@ -31,7 +31,7 @@ class test_kuipers_plot_on_map(unittest.TestCase):
         self.area.N_detected_clear =    np.array([20, 80, 100, 0, 200, 100])
         self.area.N_false_clouds =      np.array([80, 20, 1, 1, 200, 300])
 
-        dummy = 0*np.array([80, 20, 1, 1, 200, 300])
+        dummy = 0 * np.array([80, 20, 1, 1, 200, 300])
         self.area.Sum_ctth_mae_low = dummy
         self.area.Sum_ctth_mae_high = dummy
         self.area.Sum_ctth_mae = dummy
@@ -51,12 +51,12 @@ class test_kuipers_plot_on_map(unittest.TestCase):
         self.area.calculate_kuipers()
         # print
         # print self.area.Kuipers
-        self.assertTrue(np.abs(self.area.Kuipers[0]+0.79) <0.01)
-        self.assertTrue(np.abs(self.area.Kuipers[1]-0.709)<0.01)
-        self.assertTrue(np.abs(self.area.Kuipers[2]-0.899)<0.01)
+        self.assertTrue(np.abs(self.area.Kuipers[0] + 0.79) < 0.01)
+        self.assertTrue(np.abs(self.area.Kuipers[1] - 0.709) < 0.01)
+        self.assertTrue(np.abs(self.area.Kuipers[2] - 0.899) < 0.01)
         self.assertTrue(self.area.Kuipers.mask[3])
-        self.assertTrue(np.abs(self.area.Kuipers[4]-0.40) <0.01)
-        self.assertTrue(np.abs(self.area.Kuipers[5]-0.15) <0.01)
+        self.assertTrue(np.abs(self.area.Kuipers[4] - 0.40) < 0.01)
+        self.assertTrue(np.abs(self.area.Kuipers[5] - 0.15) < 0.01)
 
 
 def suite():
