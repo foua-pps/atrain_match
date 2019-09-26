@@ -310,8 +310,8 @@ def my_make_plot_example_aprox(bias, use, label_str, match_calipso):
     leg.get_frame().set_linewidth(0.0)
     # import pdb
     # pdb.set_trace()
-    print("inside {:3.1f}".format(np.sum(hist_heights_pps[np.logical_and(x_>=-4, x_<=6)])))
-    print("gaussian inside {:3.1f}".format(np.sum(hist_heights_g[np.logical_and(x_>=-4, x_<=6)])))
+    print("inside {:3.1f}".format(np.sum(hist_heights_pps[np.logical_and(x_ >= -4, x_<=6)])))
+    print("gaussian inside {:3.1f}".format(np.sum(hist_heights_g[np.logical_and(x_ >= -4, x_<=6)])))
     # plt.legend(frameon=False)
 
     ax.set_ylim(0, 10)
@@ -386,7 +386,7 @@ def my_make_plot_example_aprox(bias, use, label_str, match_calipso):
     ax.set_title('b) Equal IQR/median')
     ax.fill(x_, hist_heights_iqr, color='grey',
             label = "\n" +my_legend_text(temp_data_iqr, "Gaussian (IQR)"))
-    plt.plot(x_, hist_heights_pps, "r-")#, label='PPS')
+    plt.plot(x_, hist_heights_pps, "r-")# , label='PPS')
     my_adjust_axis(ax)
     ax.set_yticklabels([])
     ax.set_xticklabels([])
@@ -396,7 +396,7 @@ def my_make_plot_example_aprox(bias, use, label_str, match_calipso):
 
     plt.fill(x_, hist_heights_gs, color='silver',
              label = "\n" + my_legend_text(temp_data_gs, "Gaussian \Sum (STD)"))
-    plt.plot(x_, hist_heights_pps, "r-")#, label='PPS')
+    plt.plot(x_, hist_heights_pps, "r-")# , label='PPS')
     my_adjust_axis(ax)
     ax.set_ylabel('Percent')
     ax.set_xlabel('error (km)')
@@ -405,7 +405,7 @@ def my_make_plot_example_aprox(bias, use, label_str, match_calipso):
     ax.set_title('d) Equal IQR/median, sum over cloud types')
     ax.fill(x_, hist_heights_iqrs, color='grey',
             label = "\n" + my_legend_text(temp_data_iqrs, "Gaussian \Sum (IQR)"))
-    plt.plot(x_, hist_heights_pps, "r-")#, label='PPS')
+    plt.plot(x_, hist_heights_pps, "r-")# , label='PPS')
 
     ax.set_xlabel('error (km)')
     my_adjust_axis(ax)
@@ -434,7 +434,7 @@ def my_print_one_line(out_file_h, bias, x, y, use_ind, compare_name, flag_key):
         my_pe2500m(bias[use_ind]),
         my_pe5000m(bias[use_ind]),
         half_sample_mode(bias[use_ind]),
-        skew(bias[use_ind]), #,
+        skew(bias[use_ind]), # ,
         # kurtosis(bias[use_ind])
     )
     out_file_h.write(out_line)
@@ -482,35 +482,35 @@ def print_all(match_obj, compare, compare_name = "unknown"):
 
     mhl["high_clouds_tp_thin"] = np.logical_and(
         mhl["high_clouds_tp"],
-        np.logical_and(match_obj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>=0,
+        np.logical_and(match_obj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km'] >= 0,
                        match_obj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km'] <= 0.225))
     mhl["high_clouds_tp_not_thin"] = np.logical_and(
         mhl["high_clouds_tp"], ~mhl["high_clouds_tp_thin"])
 
     mhl["medium_clouds_tp_thin"] = np.logical_and(
         mhl["medium_clouds_tp"],
-        np.logical_and(match_obj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>=0,
+        np.logical_and(match_obj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km'] >= 0,
                       match_obj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km'] <= 0.225))
     mhl["medium_clouds_tp_not_thin"] = np.logical_and(
         mhl["medium_clouds_tp"], ~mhl["medium_clouds_tp_thin"])
 
     mhl["low_clouds_tp_thin"] = np.logical_and(
         mhl["low_clouds_tp"],
-        np.logical_and(match_obj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>=0,
+        np.logical_and(match_obj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km'] >= 0,
                       match_obj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km'] <= 0.225))
     mhl["low_clouds_tp_not_thin"] = np.logical_and(
         mhl["low_clouds_tp"], ~mhl["low_clouds_tp_thin"] )
 
     mhl["all_clouds_tp_thin"] = np.logical_and(
         mhl["clouds_tp"],
-        np.logical_and(match_obj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>=0,
+        np.logical_and(match_obj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km'] >= 0,
                        match_obj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km'] <= 0.225))
     mhl["all_clouds_tp_not_thin"] = np.logical_and(
         mhl["clouds_tp"], ~mhl["all_clouds_tp_thin"] )
 
     mhl["all_clouds_tp_bad2"] = np.logical_and(
         mhl["high_clouds_tp_thin"],
-        match_obj.calipso.all_arrays['number_layers_found']>=2)
+        match_obj.calipso.all_arrays['number_layers_found'] >= 2)
 
     mhl["all_clouds_tp_bad3"] = np.logical_and(
         mhl["high_clouds_tp_thin"],

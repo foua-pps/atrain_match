@@ -46,11 +46,11 @@ def print_common_stats(match_calipso, use, name_dict, mints, maxts, surface_type
     nlay =np.where(match_calipso.calipso.all_arrays['number_layers_found']>0, 1, 0)
     meancl=ndimage.filters.uniform_filter1d(nlay*1.0, size=3)
     """
-    isCalipsoCloudy = match_calipso.calipso.all_arrays['cloud_fraction']>=0.5
+    isCalipsoCloudy = match_calipso.calipso.all_arrays['cloud_fraction'] >= 0.5
 
     isCalipsoCloudy = np.logical_and(
         nlay >= 0,
-        match_calipso.calipso.all_arrays['cloud_fraction']>=0.5)
+        match_calipso.calipso.all_arrays['cloud_fraction'] >= 0.5)
     isCalipsoCloudy = np.logical_and(
         isCalipsoCloudy,
         match_calipso.calipso.all_arrays['total_optical_depth_5km']>-0.1)
@@ -61,7 +61,7 @@ def print_common_stats(match_calipso, use, name_dict, mints, maxts, surface_type
         isCalipsoClear,
         match_calipso.calipso.all_arrays['total_optical_depth_5km']<0)
     """
-    isCalipsoCloudy = match_calipso.calipso.all_arrays['cloud_fraction']>=0.5
+    isCalipsoCloudy = match_calipso.calipso.all_arrays['cloud_fraction'] >= 0.5
     isCalipsoCloudy = np.logical_and(
         isCalipsoCloudy,
         np.logical_or(match_calipso.calipso.all_arrays['total_optical_depth_5km']>0.1,
@@ -171,7 +171,7 @@ def print_common_stats(match_calipso, use, name_dict, mints, maxts, surface_type
     cfc = np.sum(isCalipsoCloudy[use])*1.0/Num
     part_nodata = nodata*1.0/(nodata + Num)
     all_out_text += "N: %d POD-cloudy: %3.1f FAR-cloudy: %3.1f POD-clear %3.1f %3.3f Hitrate:  %3.1f Kuipers:  %3.3f\n"%(
-        Num, 100.0*PODcloudy, 100.0*FARcloudy , 100.0*PODclear, cfc, 100*Hitrate, Kuipers )
+        Num, 100.0*PODcloudy, 100.0*FARcloudy, 100.0*PODclear, cfc, 100*Hitrate, Kuipers )
     print all_out_text
     all_pix = use.copy()
     if v2014:
@@ -286,7 +286,7 @@ def print_common_stats(match_calipso, use, name_dict, mints, maxts, surface_type
                     test_name)
 
             # print "%s test_bit:%d N: %d POD-cloudy: %3.2f FAR-cloudy: %3.2f POD-clear %3.2f FAR-clear %3.2f"%(
-            #   var, bit_nr, Num, PODcloudy, FARcloudy , PODclear, FARclear)
+            #   var, bit_nr, Num, PODcloudy, FARcloudy, PODclear, FARclear)
 
     # print "should be zero", np.sum(np.logical_and(isCalipsoClear[all_pix],
     #                                             isCloudyPPS[all_pix])),
@@ -297,7 +297,7 @@ def print_common_stats(match_calipso, use, name_dict, mints, maxts, surface_type
     Num = np.sum(use)
     part_nodata = nodata*1.0/(nodata + Num)
     # print "N: %d POD-cloudy: %3.2f FAR-cloudy: %3.2f POD-clear %3.2f"%(
-    #   Num, PODcloudy, FARcloudy , PODclear)
+    #   Num, PODcloudy, FARcloudy, PODclear)
 
 
 ROOT_DIR = (ADIR + "/DATA_MISC/reshaped_files/"
@@ -381,7 +381,7 @@ for illumination in ["dnt", "day", "night", "twilight"]:
         # for mints, maxts in zip([190, 190, 240, 260, 260, 270, 280, 290, 280, 300, 320, 190, 270],
         #                       [380, 240, 260, 280, 270, 280, 290, 300, 300, 320, 380, 270, 380 ]):
         for mints, maxts in zip([190, 190, 270], # 190, 260, 280, 290, 300],
-                                [380, 270, 380]):#, 260, 280, 290, 300, 380 ]):
+                                [380, 270, 380]):# , 260, 280, 290, 300, 380 ]):
             pass
             print_common_stats(match_calipsoPPS, use, name_dict, mints, maxts, surface_type, illumination, basename_outfile=basename_outfile)
 # for surface_type in [ "all", "land", "sea", ]:

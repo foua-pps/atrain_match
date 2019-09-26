@@ -45,8 +45,8 @@ from my_dir import ADIR
 
 def get_land_sea(match_obj):
 
-    use = np.logical_and(match_obj.modis.all_arrays["lwp"]>=0,
-                         match_obj.imager.all_arrays["cpp_lwp"]>=0)
+    use = np.logical_and(match_obj.modis.all_arrays["lwp"] >= 0,
+                         match_obj.imager.all_arrays["cpp_lwp"] >= 0)
     use = np.logical_and(use,
                          match_obj.imager.all_arrays["cpp_phase"]==1)
     use = np.logical_and(match_obj.modis.all_arrays["cloud_phase"]==1,
@@ -107,7 +107,7 @@ def plot_all(match_obj, density, my_str=""):
     ax.set_ylim([00, 14])
     plt.legend()
     ax = fig.add_subplot(223)
-    hist_heights, x_ , gaussian= my_hist(error, use_sea, return_also_corresponding_gaussian=True)
+    hist_heights, x_, gaussian= my_hist(error, use_sea, return_also_corresponding_gaussian=True)
     ax.fill(x_, gaussian, color='silver')
     plt.plot(x_, hist_heights, 'b-', label=my_label(error, use_sea))
     plt.title("Sea")

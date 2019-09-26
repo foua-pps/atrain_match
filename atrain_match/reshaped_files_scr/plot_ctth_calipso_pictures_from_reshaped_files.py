@@ -74,7 +74,7 @@ for filename in files:
                                             file_type='png',
                                             xmin=xmin,
                                             xmax=xmin + 2500,
-                                            instrument='imager')#, MAXHEIGHT = 18000)
+                                            instrument='imager')# , MAXHEIGHT = 18000)
 
     # plt.show()
     # plt.close("all")

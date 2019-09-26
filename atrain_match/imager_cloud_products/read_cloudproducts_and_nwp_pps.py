@@ -1079,7 +1079,7 @@ def pps_read_all(pps_files, imager_file, SETTINGS):
             cloudproducts.ctype = read_cloudtype_h5(pps_files.cloudtype)
     # CTTH
     CTTH_TYPES = SETTINGS["CTTH_TYPES"]
-    if len(pps_files.ctth.keys())>=1:
+    if len(pps_files.ctth.keys()) >= 1:
         logger.info("Read PPS CTTH")
         if '.nc' in pps_files.ctth[CTTH_TYPES[0]]:
             # read first ctth as primary one

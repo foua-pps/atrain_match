@@ -70,7 +70,7 @@ def make_boxplot(match_calipso, name):
     # height_c[thin_top] = height_c2[thin_top]
 
     use = np.logical_and(height_pps > - 1,
-                         match_calipso.calipso.all_arrays['layer_top_altitude'][:, 0]>=0)
+                         match_calipso.calipso.all_arrays['layer_top_altitude'][:, 0] >= 0)
     use = np.logical_and(height_pps < 45000, use)
 
     low = np.logical_and(low_clouds, use)

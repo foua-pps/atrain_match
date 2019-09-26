@@ -102,7 +102,7 @@ def plot_cal_clsat_geoprof_imager(match_clsat,
             ax.vlines(pixel_position[all_thick],
                       base_ok[all_thick], top_ok[all_thick], linewidth=0.5,
                       colors="g", linestyle='solid',
-                      alpha=0.5 , rasterized=True)
+                      alpha=0.5, rasterized=True)
         else:
             ax.vlines(pixel_position[all_thick],
                       base_ok[all_thick], top_ok[all_thick],
@@ -274,7 +274,7 @@ def plot_cal_clsat_cwc_imager(match_clsat, elevationcwc, data_okcwc,
     # Findes max value and add 100
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    ax.plot(pixel_position[use], y1[use], "k." , label='RVOD')
+    ax.plot(pixel_position[use], y1[use], "k.", label='RVOD')
     ax.plot(pixel_position[use], y2[use], "b.", label='PPS')
     # ax.set_ylim(0, maxvalue)
     ax.set_xlabel("Track Position")

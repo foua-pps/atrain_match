@@ -245,7 +245,7 @@ for filename in files:
 
     num +=1
     try :
-        match_calipso_new=read_truth_imager_match_obj(filename)#, var_to_skip='segment')
+        match_calipso_new=read_truth_imager_match_obj(filename)# , var_to_skip='segment')
         if "modis_lvl2" in satellites:
             match_calipso_new.imager.all_arrays["cloudtype"] = np.where(
                 match_calipso_new.modis.all_arrays["cloud_emissivity"]>100, 1, 7)

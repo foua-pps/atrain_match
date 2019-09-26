@@ -203,7 +203,7 @@ def investigate_nn_ctth_modis_lvl2():
 #       ADIR + "/DATA_MISC/reshaped_files/"
 #       "global_modis_14th_created20161108/Reshaped_Files/merged/*%s*h5")
 
-    for month in [ "06", "09"]:#, "02", "03", "04", "05", "07", "08", "10", "11", "12", "01"]:
+    for month in [ "06", "09"]:# , "02", "03", "04", "05", "07", "08", "10", "11", "12", "01"]:
         for ROOT_DIR, name in zip(
                 [ROOT_DIR_MODIS_nn_imager],
                  # ROOT_DIR_MODIS_old],

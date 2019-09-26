@@ -682,7 +682,7 @@ def optical_depth_height_filtering(calipso, min_optical_depth, use_old_method=Fa
             new_cloud_top[filtered_to_low, 0] = new_cloud_top[filtered_to_low, layer_j]
 
     new_validation_height = new_cloud_top[:, 0].copy()
-    new_validation_height[new_validation_height>=0] = new_validation_height[new_validation_height>=0]*1000
+    new_validation_height[new_validation_height >= 0] = new_validation_height[new_validation_height >= 0]*1000
     new_validation_height[new_validation_height<0] = -9
     return (new_cloud_top, new_cloud_base, new_cloud_fraction, new_fcf, new_validation_height,
             new_cloud_top_pressure, new_cloud_base_pressure)
@@ -759,7 +759,7 @@ def total_and_top_layer_optical_depth_5km(calipso, SETTINGS, resolution=5):
         for lay in range(1, np.max(calipso.number_layers_found[pixels]), 1):
             pixels = np.logical_and(
                 pixels,
-                optical_depth_in[:, lay]>=0)
+                optical_depth_in[:, lay] >= 0)
             total_o_depth[pixels] += optical_depth_in[pixels, lay]
     else:
         print("ERROR this fuction is only for 5km data!")

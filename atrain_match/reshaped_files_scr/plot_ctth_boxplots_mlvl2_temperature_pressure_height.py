@@ -158,7 +158,7 @@ def make_boxplot_temperature(match_calipso, name, modis_lvl2=False):
     thin_top = np.logical_and(match_calipso.calipso.all_arrays['number_layers_found']>1, thin)
     thin_1_lay = np.logical_and(match_calipso.calipso.all_arrays['number_layers_found']==1, thin)
     use = np.logical_and(temp_pps > 100,
-                         match_calipso.calipso.all_arrays['layer_top_altitude'][:, 0]>=0)
+                         match_calipso.calipso.all_arrays['layer_top_altitude'][:, 0] >= 0)
     use = np.logical_and(height_pps < 45000, use)
     low = np.logical_and(low_clouds, use)
     medium = np.logical_and(medium_clouds, use)
@@ -220,7 +220,7 @@ def make_boxplot_pressure(match_calipso, name, modis_lvl2=False):
     thin_top = np.logical_and(match_calipso.calipso.all_arrays['number_layers_found']>1, thin)
     thin_1_lay = np.logical_and(match_calipso.calipso.all_arrays['number_layers_found']==1, thin)
     use = np.logical_and(pressure_pps > 0,
-                         match_calipso.calipso.all_arrays['layer_top_altitude'][:, 0]>=0)
+                         match_calipso.calipso.all_arrays['layer_top_altitude'][:, 0] >= 0)
     low = np.logical_and(low_clouds, use)
     medium = np.logical_and(medium_clouds, use)
     high = np.logical_and(high_clouds, use)

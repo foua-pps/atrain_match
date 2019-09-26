@@ -139,8 +139,8 @@ def match_lonlat(source, target,
     if n_neighbours > 1:
         rows_0 = rows.copy()
         cols_0 = cols.copy()
-        rows = NODATA + np.zeros((len(rows_0) , n_neighbours))
-        cols = NODATA + np.zeros((len(cols_0) , n_neighbours))
+        rows = NODATA + np.zeros((len(rows_0), n_neighbours))
+        cols = NODATA + np.zeros((len(cols_0), n_neighbours))
         rows[:, 0] = rows_0
         cols[:, 0] = cols_0
         for i in range(1, n_neighbours):

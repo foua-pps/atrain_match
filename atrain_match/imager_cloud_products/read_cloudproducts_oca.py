@@ -151,7 +151,7 @@ def read_oca_angobj(oca_nc):
     angle_obj = ImagerAngObj()
     angle_obj.satz.data, nodata = scale_oca_var(
         oca_nc['data']['measurement_data']['observation_zenith'])
-    angle_obj.sunz.data , nodata= scale_oca_var(
+    angle_obj.sunz.data, nodata= scale_oca_var(
         oca_nc['data']['measurement_data']['solar_zenith'])
     angle_obj.satazimuth.data, nodata = scale_oca_var(
         oca_nc['data']['measurement_data']['observation_azimuth'])

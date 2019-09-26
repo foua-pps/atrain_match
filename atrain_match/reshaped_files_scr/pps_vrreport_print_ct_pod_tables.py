@@ -183,7 +183,7 @@ def table_21_do_for_atbd(match_calipso):
         n_high_ok_cirrus = np.sum(np.logical_and(pps_cirrus_i, high_clouds_tp_i))
         POD_high = 100*(n_high_ok + n_high_ok_cirrus)/np.sum(high_clouds_i)
         FAR_high = 100*(np.sum(pps_high_i) - n_high_ok)/np.sum(pps_high_i)
-#     ,                               low, frac, medium, high, cirrus
+#   ,                               low, frac, medium, high, cirrus
 #                                      |    low    |
 # N      4544   low overcast (tp)        |  X  |  X  |  -  |  -  |  -  | #
 # N     13452   transition stratocumulus |  X  |  X  |  -  |  -  |  -  | # CALIPSO-low
@@ -260,4 +260,3 @@ if __name__ == "__main__":
     plot_ct_table4(match_calipso)
     plot_ct_table2(match_calipso)
     table_21_do_for_atbd(match_calipso)
-

@@ -69,8 +69,8 @@ def my_measures(calipso_cfc, pps_cfc, calipso_snowi, pps_snowi, thin, use):
             pps_snowi = pps_snowi[use]
             calipso_snowi = calipso_snowi[use]
         indict["det_snow"] = np.sum(np.logical_and(pps_snowi, np.logical_and(calipso_snowi>0, calipso_cfc==0)))
-        indict["det_snow_much"] = np.sum(np.logical_and(pps_snowi, np.logical_and(calipso_snowi>=10, calipso_cfc==0)))
-        indict["undet_snow_much"] = np.sum(np.logical_and(~pps_snowi, np.logical_and(calipso_snowi>=10, calipso_cfc==0)))
+        indict["det_snow_much"] = np.sum(np.logical_and(pps_snowi, np.logical_and(calipso_snowi >= 10, calipso_cfc==0)))
+        indict["undet_snow_much"] = np.sum(np.logical_and(~pps_snowi, np.logical_and(calipso_snowi >= 10, calipso_cfc==0)))
         indict["undet_snow"] = np.sum(np.logical_and(~pps_snowi, np.logical_and(calipso_snowi>0, calipso_cfc==0)))
         indict["false_snow"] = np.sum(np.logical_and(pps_snowi, np.logical_or(calipso_snowi==0, calipso_cfc==1)))
         indict["false_snow_more_than_cloud_issue"] = np.sum(np.logical_and(pps_snowi, ~calipso_snowi==0 ))
@@ -119,11 +119,11 @@ def plot_cfc_table(match_calipso, cfc_limit=0.9, sat="modis"):
         ok_cl = np.logical_and(use, cl)
         ok_cma_thick = np.logical_and(use_thick, cma)
         # cloudy = np.logcial_and(
-        print "%3.1f"%(limit) , len(cfc[use]),
+        print "%3.1f"%(limit), len(cfc[use]),
         print "(%d)"%(len(cfc[use_thick]))
-        print "cloudy" , "%3.1f"%(len(cfc[ok_cma])*100.0/len(cfc[use])),
+        print "cloudy", "%3.1f"%(len(cfc[ok_cma])*100.0/len(cfc[use])),
         print "(%3.1f)"%(len(cfc[ok_cma_thick])*100.0/np.max([1, len(cfc[use_thick])]))
-        print "cear" , "%3.1f"%(len(cfc[ok_cl])*100.0/len(cfc[use])),
+        print "cear", "%3.1f"%(len(cfc[ok_cl])*100.0/len(cfc[use])),
         print ""
     """
 

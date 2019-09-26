@@ -44,8 +44,8 @@ aObj = AmsrImagerTrackObject()
 for year in [2010]:#2012/02", "2012/05", "2012/08", "2013/07", "2014/02", "2014/04", "2014/09"]:
     # for month in ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]:
     # for month in ["06"]:
-    for month in ["01"]:#, "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]:
-        for day in ["01"]:#, "14"]:
+    for month in ["01"]:# , "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]:
+        for day in ["01"]:# , "14"]:
             OUT_DIR = OUT_DIR_TEMPLATE
             if not os.path.exists(OUT_DIR):
                 os.makedirs(OUT_DIR)

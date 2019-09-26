@@ -52,7 +52,7 @@ def get_amsr(filename):
     retv.lwp = retv.lwp_mm.ravel() * density  # [mm * kg m**-3 = g m**-2]
 
     logger.info("Extract AMSR-E lwp between 0 and %d g/m-2", LWP_THRESHOLD)
-    use_amsr = np.logical_and(retv.lwp >= 0 ,
+    use_amsr = np.logical_and(retv.lwp >= 0,
                               retv.lwp < LWP_THRESHOLD * 100)
     retv = retv.extract_elements(idx=use_amsr)
     # import matplotlib.pyplot as plt

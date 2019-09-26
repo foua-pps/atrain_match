@@ -95,7 +95,7 @@ def my_mode(bias):
 def print_for_one(plt_obj, compare, truth='height_c'):
     x = getattr(plt_obj, truth)
     y = getattr(plt_obj, compare)
-    use = np.logical_and(x>=0, getattr(plt_obj, 'use_all'))
+    use = np.logical_and(x >= 0, getattr(plt_obj, 'use_all'))
     use_low = np.logical_and(use, plt_obj.low_clouds)
     use_medium = np.logical_and(use, plt_obj.medium_clouds)
     use_high = np.logical_and(use, plt_obj.high_clouds)
@@ -135,7 +135,7 @@ def print_for_one(plt_obj, compare, truth='height_c'):
         # my_mode(bias[use_i]),
         half_sample_mode(bias[use_i]),
         np.mean(bias[use_i]),
-        skew(bias[use_i])#,
+        skew(bias[use_i])# ,
         # kurtosis(bias[use_i])
         )
 
@@ -413,4 +413,3 @@ def do_the_printing():
 
 if __name__ == "__main__":
     do_the_printing()
-

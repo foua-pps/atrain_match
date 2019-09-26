@@ -854,7 +854,7 @@ def add_additional_clousat_calipso_index_vars(match_clsat, match_calipso):
         index = match_calipso.calipso.cloudsat_index.copy()
         index[index<0] = 0
         match_calipso.calipso.cal_modis_cflag = np.where(
-            match_calipso.calipso.cloudsat_index>=0,
+            match_calipso.calipso.cloudsat_index >= 0,
             match_clsat.cloudsat.MODIS_cloud_flag[index],
             -9)
 
@@ -871,7 +871,7 @@ def add_additional_clousat_calipso_index_vars(match_clsat, match_calipso):
                 if data_calipso is None:
                     continue
                 temp_data = np.array([np.where(
-                    match_clsat.cloudsat.calipso_index>=0,
+                    match_clsat.cloudsat.calipso_index >= 0,
                     data_calipso[index, i], -9) for i in range(data_calipso.shape[1])])
                 setattr(match_clsat.cloudsat, 'calipso_{:s}'.format(var_2d_name), temp_data.transpose())
 
@@ -884,22 +884,22 @@ def add_additional_clousat_calipso_index_vars(match_clsat, match_calipso):
                 data_calipso = getattr(match_calipso.calipso, var_1d_name)
                 if data_calipso is None:
                     continue
-                temp_data = np.where(match_clsat.cloudsat.calipso_index>=0, data_calipso[index], -9)
+                temp_data = np.where(match_clsat.cloudsat.calipso_index >= 0, data_calipso[index], -9)
                 setattr(match_clsat.cloudsat, 'calipso_{:s}'.format(var_1d_name), temp_data)
 
         """
         match_clsat.cloudsat.calipso_feature_classification_flags= np.where(
-            match_clsat.cloudsat.calipso_index>=0,
+            match_clsat.cloudsat.calipso_index >= 0,
             match_calipso.calipso.feature_classification_flags[index, 0],
             -9)
         # first bas layer use height not pressure as cloudsat uses height
         match_clsat.cloudsat.calipso_layer_base_altitude = np.where(
-            match_clsat.cloudsat.calipso_index>=0,
+            match_clsat.cloudsat.calipso_index >= 0,
             match_calipso.calipso.layer_base_altitude[index, 0],
             -9)
         for layer in range(1, 10):
             match_clsat.cloudsat.calipso_layer_base_altitude = np.where(
-                np.logical_and(np.logical_and(match_clsat.cloudsat.calipso_index>=0,
+                np.logical_and(np.logical_and(match_clsat.cloudsat.calipso_index >= 0,
                                               match_calipso.calipso.layer_base_altitude[index, layer]>0),
                                match_calipso.calipso.layer_base_altitude[index, layer]<
                                match_calipso.calipso.layer_base_altitude[index, layer-1]),
@@ -909,12 +909,12 @@ def add_additional_clousat_calipso_index_vars(match_clsat, match_calipso):
         match_clsat.cloudsat.calipso_layer_base_altitude[match_clsat.cloudsat.calipso_layer_base_altitude<-999] = -9.0
         # first bas layer use height not pressure as cloudsat uses height
         match_clsat.cloudsat.calipso_layer_top_altitude = np.where(
-            match_clsat.cloudsat.calipso_index>=0,
+            match_clsat.cloudsat.calipso_index >= 0,
             match_calipso.calipso.layer_top_altitude[index, 0],
             -9)
         for layer in range(1, 10):
             match_clsat.cloudsat.calipso_layer_top_altitude = np.where(
-                np.logical_and(np.logical_and(match_clsat.cloudsat.calipso_index>=0,
+                np.logical_and(np.logical_and(match_clsat.cloudsat.calipso_index >= 0,
                                               match_calipso.calipso.layer_top_altitude[index, layer]>0),
                                match_calipso.calipso.layer_top_altitude[index, layer]>
                                match_calipso.calipso.layer_top_altitude[index, layer-1]),
@@ -956,7 +956,7 @@ def add_elevation_corrected_imager_ctth(match_clsat, match_calipso, issObj, SETT
             # ctth already relative mean sea level
             imager_ctth_m_above_seasurface = match_calipso.imager.ctth_height
         else:  # ctth relative topography
-            got_height = imager_ctth_m_above_seasurface>=0
+            got_height = imager_ctth_m_above_seasurface >= 0
             imager_ctth_m_above_seasurface[got_height] += elevation[got_height]*1.0
         match_clsat.imager.imager_ctth_m_above_seasurface = imager_ctth_m_above_seasurface
         if num_csat_data_ok == 0:
@@ -978,7 +978,7 @@ def add_elevation_corrected_imager_ctth(match_clsat, match_calipso, issObj, SETT
             # ctth relative mean sea level
             imager_ctth_m_above_seasurface = match_calipso.imager.ctth_height
         else:  # ctth relative topography
-            got_height = imager_ctth_m_above_seasurface>=0
+            got_height = imager_ctth_m_above_seasurface >= 0
             imager_ctth_m_above_seasurface[got_height] += cal_elevation[got_height]*1.0
         match_calipso.imager.imager_ctth_m_above_seasurface = imager_ctth_m_above_seasurface
     if issObj is None or issObj.imager.ctth_height is None:
@@ -993,7 +993,7 @@ def add_elevation_corrected_imager_ctth(match_clsat, match_calipso, issObj, SETT
             # ctth relative mean sea level
             pass
         else:  # ctth relative topography
-            got_height = imager_ctth_m_above_seasurface>=0
+            got_height = imager_ctth_m_above_seasurface >= 0
             imager_ctth_m_above_seasurface[got_height] += iss_elevation[got_height]*1.0
         issObj.imager.imager_ctth_m_above_seasurface = imager_ctth_m_above_seasurface
     return match_clsat, match_calipso, issObj

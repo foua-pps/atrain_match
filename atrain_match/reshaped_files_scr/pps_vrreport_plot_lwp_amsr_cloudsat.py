@@ -109,7 +109,7 @@ def do_the_printing(aObj, name):
             vmax = len(diff_i)*0.002
             fig = plt.figure()
             ax = fig.add_subplot(111)
-            atrain_scatter(fig, ax, x[use_i] , y[use_i],  scatter_bin_size, xymin = 0, xymax=1000, vmax=vmax,
+            atrain_scatter(fig, ax, x[use_i], y[use_i],  scatter_bin_size, xymin = 0, xymax=1000, vmax=vmax,
                            do_colorbar=True, to_km=1.0, ptype='scatter')
             ax.plot([0, 170], [0, 170], ':w')
             ax.set_xlabel("PPS LWP g/m^2")
@@ -138,7 +138,7 @@ def do_the_printing(aObj, name):
             plt.legend()
 
             ax = fig.add_subplot(132)
-            b = atrain_scatter(fig, ax, x[use_i] , y[use_i],  scatter_bin_size, xymin = 0, xymax=xymax, vmax=vmax, #140
+            b = atrain_scatter(fig, ax, x[use_i], y[use_i],  scatter_bin_size, xymin = 0, xymax=xymax, vmax=vmax, #140
                            do_colorbar=False, to_km=1.0, ptype='scatter')
             ax.set_xlabel("PPS LWP g/m^2")
             ax.plot([0, 170], [0, 170], ':w')

@@ -27,7 +27,7 @@ from matchobject_io import (readCaliopImagerMatchObj,
 from my_dir import ADIR
 
 
-def get_clear_cloudy_vectors(match_calipso, use):#, both_have_ct):
+def get_clear_cloudy_vectors(match_calipso, use):# , both_have_ct):
     nlay =np.where(match_calipso.calipso.all_arrays['number_layers_found']>0, 1, 0)
     meancl=ndimage.filters.uniform_filter1d(nlay*1.0, size=3)
     isCalipsoCloudy = np.logical_and(
@@ -79,8 +79,8 @@ def get_clear_cloudy_vectors(match_calipso, use):#, both_have_ct):
     Hitrate = np.divide(N_detected_clouds + N_detected_clear, N_clouds + N_clear)
     # part_nodata = nodata*1.0/(nodata+Num)
     max_time_diff = np.max(match_calipso.diff_sec_1970[use])
-    # print "N: %d POD-cloudy: %3.2f FAR-cloudy: %3.2f POD-clear %3.2f Max-time-diff %ds"%(# Part-CT-nodata: %3.2f"%(Num, PODcloudy, FARcloudy , PODclear, max_time_diff)# , part_nodata)
-    print "{:d}".format(Num), "%3.2f"%(PODcloudy), "%3.2f"%(FARcloudy) , "%3.2f"%(PODclear), "%3.2f"%(FARclear), "%3.3f"%(Hitrate), "%3.3f"%(Kuipers), "{:d}".format(max_time_diff)
+    # print "N: %d POD-cloudy: %3.2f FAR-cloudy: %3.2f POD-clear %3.2f Max-time-diff %ds"%(# Part-CT-nodata: %3.2f"%(Num, PODcloudy, FARcloudy, PODclear, max_time_diff)# , part_nodata)
+    print "{:d}".format(Num), "%3.2f"%(PODcloudy), "%3.2f"%(FARcloudy), "%3.2f"%(PODclear), "%3.2f"%(FARclear), "%3.3f"%(Hitrate), "%3.3f"%(Kuipers), "{:d}".format(max_time_diff)
 
 
 def print_common_stats(match_calipsoMAIA, match_calipsoPPS, y_month, satellite, dnt='all'):
@@ -149,7 +149,7 @@ def print_common_stats(match_calipsoMAIA, match_calipsoPPS, y_month, satellite, 
         print "MAIA", y_month, satellite, '-', '-',
         get_clear_cloudy_vectors(match_calipsoMAIA, use_maia)
         print "PPS", y_month, satellite, int(min(sunz[use_pps])), int(max(sunz[use_pps])),
-        get_clear_cloudy_vectors(match_calipsoPPS, use_pps)#, both_have_ct)
+        get_clear_cloudy_vectors(match_calipsoPPS, use_pps)# , both_have_ct)
 
 MAIA_ROOT_DIR = (ADIR + "/VALIDATIONS/MAIA/Reshaped_Files/"
                  "*/1km/")

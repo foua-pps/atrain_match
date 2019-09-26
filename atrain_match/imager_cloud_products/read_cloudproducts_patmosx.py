@@ -117,7 +117,7 @@ def read_patmosx_ctype_cmask_ctth(patmosx_nc):
         ctth.height = ctth.height.data
     ctth.height = 1000*ctth.height
     cf = patmosx_nc.variables['cloud_fraction'][0, :, :].astype(np.float)
-    cma.cma_ext = np.where(cf>=0.5, 1, 0)
+    cma.cma_ext = np.where(cf >= 0.5, 1, 0)
     if np.ma.is_masked(cf):
        cma.cma_ext[cf.mask] = 255
     ctype.phaseflag = None
@@ -201,7 +201,7 @@ def read_patmosx_ctype_cmask_ctth_hdf(patmosx_hdf):
     gain = patmosx_hdf.select(name).attributes()['scale_factor']
     cf = cf_unscaled * gain + offset
     cf[cf_unscaled== patmosx_hdf.select(name)._FillValue] = ATRAIN_MATCH_NODATA
-    cma.cma_ext = np.where(cf>=0.5, 1, 0)
+    cma.cma_ext = np.where(cf >= 0.5, 1, 0)
     ctype.phaseflag = None
     ctype.ct_conditions = None
     return ctype, cma, ctth

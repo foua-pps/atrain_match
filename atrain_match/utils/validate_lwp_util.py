@@ -48,7 +48,7 @@ def get_lwp_diff_inner(aObj, val_subset, threshold=LWP_THRESHOLD):
     # exclude very high values
     aObj.imager.cpp_lwp[aObj.imager.cpp_lwp>LWP_THRESHOLD_CPP] = -9
 
-    use_lwp = np.logical_or(aObj.imager.cpp_lwp>=0,
+    use_lwp = np.logical_or(aObj.imager.cpp_lwp >= 0,
                             aObj.amsr.imager_linnum_nneigh <= 0)  # might have less than 8 neighbours
     use_lwp_upper = np.logical_or(aObj.imager.cpp_lwp<LWP_THRESHOLD_CPP,
                                   aObj.amsr.imager_linnum_nneigh <= 0)
@@ -61,17 +61,17 @@ def get_lwp_diff_inner(aObj, val_subset, threshold=LWP_THRESHOLD):
     selection = np.logical_and(val_subset, selection)
     # import pdb; pdb.set_trace()
     cpp_lwp = aObj.imager.cpp_lwp
-    n_cpp = np.sum(cpp_lwp>=0, axis=-1)  # before
+    n_cpp = np.sum(cpp_lwp >= 0, axis=-1)  # before
     cpp_lwp[cpp_lwp<0] = 0
     cpp_lwp[np.isnan(cpp_lwp)] = 0
     sum_cpp = np.sum(cpp_lwp, axis=-1)
     n_cpp[n_cpp==0] = 1.0
     cpp_mean = sum_cpp * 1.0/ n_cpp
     lwp_diff = cpp_mean - aObj.amsr.lwp
-    use_amsr = np.logical_and(aObj.amsr.lwp >=0 ,
+    use_amsr = np.logical_and(aObj.amsr.lwp >= 0,
                               aObj.amsr.lwp < threshold)
     selection = np.logical_and(use_amsr, selection)
-    selection = np.logical_and(cpp_mean>=0, selection)
+    selection = np.logical_and(cpp_mean >= 0, selection)
     selection = np.logical_and(cpp_mean<LWP_THRESHOLD_CPP, selection)
     selection = np.logical_and(aObj.imager.sunz<72, selection)
 

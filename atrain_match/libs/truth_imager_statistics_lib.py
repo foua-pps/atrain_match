@@ -119,7 +119,7 @@ def get_subset_for_mode(match_obj, mode):
     elif mode == 'SATZ_LOW':
         cal_subset = match_obj.imager.all_arrays['satz']<20
     elif mode == 'SATZ_HIGH':
-        cal_subset = match_obj.imager.all_arrays['satz'] >=20
+        cal_subset = match_obj.imager.all_arrays['satz'] >= 20
     elif mode == 'OPTICAL_DEPTH':
         cal_subset = np.bool_(np.ones(latitude_abs.shape))
     elif mode == 'STANDARD':
@@ -292,7 +292,7 @@ def get_semi_opaque_info(match_calipso):
 def find_imager_clear_cloudy(match_obj, SETTINGS):
     if 'SYNOP' in  match_obj.truth_sat.upper():
         imager_clear = match_obj.imager.cfc_mean <SETTINGS["PPS_SYNOP_CLEAR_MAX_CFC"]
-        imager_cloudy = match_obj.imager.cfc_mean >=SETTINGS["PPS_SYNOP_CLOUDY_MIN_CFC"]
+        imager_cloudy = match_obj.imager.cfc_mean >= SETTINGS["PPS_SYNOP_CLOUDY_MIN_CFC"]
     elif SETTINGS["USE_CMA_FOR_CFC_STATISTICS"]:
         imager_clear = np.logical_or(np.equal(match_obj.imager.cloudmask, 3),
                                      np.equal(match_obj.imager.cloudmask, 0))
@@ -339,8 +339,8 @@ def find_truth_clear_cloudy(match_obj, val_subset, SETTINGS):
 
 
 def  get_lwp_diff_inner_cloudsat(aObj, val_subset, wide_selection=False):
-    selection = np.logical_and(aObj.imager.cpp_lwp>=0,
-                               aObj.cloudsat.RVOD_liq_water_path>=0)
+    selection = np.logical_and(aObj.imager.cpp_lwp >= 0,
+                               aObj.cloudsat.RVOD_liq_water_path >= 0)
     selection = np.logical_and(selection, aObj.imager.cpp_phase == 1)
 
     if wide_selection:
@@ -357,8 +357,8 @@ def  get_lwp_diff_inner_cloudsat(aObj, val_subset, wide_selection=False):
     lwp_diff = aObj.imager.cpp_lwp - aObj.cloudsat.RVOD_liq_water_path
     lwp_diff = lwp_diff[selection]
 
-    selection1 = np.logical_and(aObj.imager.cpp_lwp>=0,
-                               aObj.cloudsat.LO_RVOD_liquid_water_path>=0)
+    selection1 = np.logical_and(aObj.imager.cpp_lwp >= 0,
+                               aObj.cloudsat.LO_RVOD_liquid_water_path >= 0)
     selection1 = np.logical_and(selection1, aObj.imager.cpp_phase == 1)
     selection1 = np.logical_and(selection1, aObj.cloudsat.cloud_fraction >0)
     # selection = np.logical_and(selection, aObj.imager.fractionofland <= 0)
@@ -560,7 +560,7 @@ def print_cmask_prob_stats(match_obj, statfile, val_subset, SETTINGS):
         upper = lower + step
         if upper == 100:
             upper = 101
-        pps_in_interval = np.logical_and(cma_prob>=lower,
+        pps_in_interval = np.logical_and(cma_prob >= lower,
                                          cma_prob<upper)
         n_clear = np.sum(np.logical_and(truth_clear, pps_in_interval))
         n_cloudy= np.sum(np.logical_and(truth_cloudy, pps_in_interval))

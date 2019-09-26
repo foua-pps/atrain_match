@@ -82,7 +82,7 @@ def get_warmest_or_coldest_index(t11, matched, warmest=True):
     if warmest:
         FILL = -99
 
-    steps = [(i , j) for i in [-2, -1, 0, 1, 2] for j in  [-2, -1, 0, 1, 2] ]
+    steps = [(i, j) for i in [-2, -1, 0, 1, 2] for j in  [-2, -1, 0, 1, 2] ]
     t11_neighbour_i = np.zeros((25, matched['row'].shape[0]) )
     for i, (step_r, step_c) in enumerate(steps):
         new_row_col = {'row': matched['row'] + step_r,

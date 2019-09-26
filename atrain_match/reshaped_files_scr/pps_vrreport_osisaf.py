@@ -120,17 +120,17 @@ def plot_cfc_table(match_calipso, cfc_limit=0.9, sat="modis"):
         info = "CALIOP-CLOUD(W) CALIOP-CLOUD(I) CALIOP-WATER CALIOP-ICE\n"
         info += ("*********\nPPS-CLOUD: {:3.1f} {:3.1f} {:3.1f} {:3.1f} \nPPS-WATER {:3.1f} {:3.1f} {:3.1f} {:3.1f} \nPPS-ICE {:3.1f} {:3.1f} {:3.1f} {:3.1f} \n"
                 .format(
-                    measures["pps_cloudy_c_cloudy_w"] ,
-                    measures["pps_cloudy_c_cloudy_i"] ,
-                    measures["pps_cloudy_c_water"] ,
-                    measures["pps_cloudy_c_ice"] ,
-                    measures["pps_water_c_cloudy_w"] ,
-                    measures["pps_water_c_cloudy_i"] ,
-                    measures["pps_water_c_water"] ,
-                    measures["pps_water_c_ice"] ,
+                    measures["pps_cloudy_c_cloudy_w"],
+                    measures["pps_cloudy_c_cloudy_i"],
+                    measures["pps_cloudy_c_water"],
+                    measures["pps_cloudy_c_ice"],
+                    measures["pps_water_c_cloudy_w"],
+                    measures["pps_water_c_cloudy_i"],
+                    measures["pps_water_c_water"],
+                    measures["pps_water_c_ice"],
                     measures["pps_ice_c_cloudy_w"],
-                    measures["pps_ice_c_cloudy_i"] ,
-                    measures["pps_ice_c_water"] ,
+                    measures["pps_ice_c_cloudy_i"],
+                    measures["pps_ice_c_water"],
                     measures["pps_ice_c_ice"]
                 ))
         info += " POD-C:{:3.1f} POD-W:{:3.1f} POD-I:{:3.1f} \n FAR-C:{:3.1f} FAR-W(cloud):{:3.1f} FAR-I(cloud):{:3.1f} \n".format(

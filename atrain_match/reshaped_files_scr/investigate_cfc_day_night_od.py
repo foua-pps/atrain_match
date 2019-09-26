@@ -45,7 +45,7 @@ def make_pod_vector(match_calipso):
     igbp_st = getattr(match_calipso.calipso, 'igbp_surface_type')
     alat = np.abs(match_calipso.imager.all_arrays['latitude'])
     use_all = np.logical_and(np.equal(igbp_st, 17), alat < 45)
-    use_all = np.logical_and(use_all, match_calipso.calipso.all_arrays["cloud_fraction"]>=1.0)
+    use_all = np.logical_and(use_all, match_calipso.calipso.all_arrays["cloud_fraction"] >= 1.0)
     sunz = match_calipso.imager.all_arrays['sunz']
     if np.max(sunz) < 5:
         sunz = 100*sunz
