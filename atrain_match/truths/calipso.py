@@ -15,6 +15,13 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
+from atrain_match.utils.runutils import do_some_logging
+from atrain_match.matchobject_io import (TruthImagerTrackObject,
+                                         CalipsoObject)
+from atrain_match.utils.common import (MatchupError, TimeMatchError,
+                                       InputError, ProcessingError,
+                                       elements_within_range)
+import atrain_match.config as config
 import pdb
 import os
 import numpy as np
@@ -22,15 +29,6 @@ import time as tm
 from datetime import datetime
 import logging
 logger = logging.getLogger(__name__)
-
-import atrain_match.config as config
-from atrain_match.utils.common import (MatchupError, TimeMatchError,
-                    InputError, ProcessingError,
-                    elements_within_range)
-
-from atrain_match.matchobject_io import (TruthImagerTrackObject,
-                            CalipsoObject)
-from atrain_match.utils.runutils import do_some_logging
 
 
 def add_validation_ctth_calipso(calipso):
@@ -117,7 +115,7 @@ def get_calipso(filename, res, ALAY=False):
                            cloud_fraction_temp > 0.01),
             0.01 * cloud_fraction_temp, cal.cloud_fraction)
        # --------------------------------------------------------
-    elif res == 5 and  not ALAY:
+    elif res == 5 and not ALAY:
         cal.cloud_fraction = np.where(cal.layer_top_altitude[:, 0] > 0, 1, 0).astype('d')
         # Strange - this will give 0 cloud fraction in points with no data, wouldn't it????/KG
     return cal
@@ -126,16 +124,16 @@ def get_calipso(filename, res, ALAY=False):
 # READING DATA FROM CALIOP:
 scip_these_larger_variables_until_needed = {
     # if any of these are needed just rempve them from the dictionary!
-    "Spacecraft_Position": True, # 3D-variable
+    "Spacecraft_Position": True,  # 3D-variable
     # 2-D variable with second dimension larger than 40:
-    "Attenuated_Backscatter_Statistics_1064" : True,
-    "Attenuated_Backscatter_Statistics_532" : True,
-    "Attenuated_Total_Color_Ratio_Statistics" : True,
-    "Volume_Depolarization_Ratio_Statistics" : True,
-    "Particulate_Depolarization_Ratio_Statistics" : True,
-    "Cirrus_Shape_Parameter" : True,
-    "Cirrus_Shape_Parameter_Invalid_Points" : True,
-    "Cirrus_Shape_Parameter_Uncertainty" : True
+    "Attenuated_Backscatter_Statistics_1064": True,
+    "Attenuated_Backscatter_Statistics_532": True,
+    "Attenuated_Total_Color_Ratio_Statistics": True,
+    "Volume_Depolarization_Ratio_Statistics": True,
+    "Particulate_Depolarization_Ratio_Statistics": True,
+    "Cirrus_Shape_Parameter": True,
+    "Cirrus_Shape_Parameter_Invalid_Points": True,
+    "Cirrus_Shape_Parameter_Uncertainty": True
 }
 atrain_match_names = {
     # Use version 3 "nsidc_surface_type" as name for sea/ice info
@@ -167,7 +165,7 @@ def rearrange_calipso_the_single_shot_info(retv, singleshotdata):
     base_array = np.where(base_array > 0, base_array, 0.0)
     base_mean = np.where(single_shot_cloud_cleared_array > 0,
                          np.divide(np.sum(base_array, axis=1), single_shot_cloud_cleared_array),
-                   - 9.0)  # Calculate average cloud base
+                         - 9.0)  # Calculate average cloud base
     name = "average_cloud_base_single_shots"
     setattr(retv, name, base_mean)
 
@@ -179,7 +177,7 @@ def rearrange_calipso_the_single_shot_info(retv, singleshotdata):
     top_array = np.where(top_array > 0, top_array, 0.0)
     top_mean = np.where(single_shot_cloud_cleared_array > 0,
                         np.divide(np.sum(top_array, axis=1), single_shot_cloud_cleared_array),
-                  - 9.0)  # Calculate average cloud top
+                        - 9.0)  # Calculate average cloud top
     name = "average_cloud_top_pressure_single_shots"
     setattr(retv, name, top_mean)
 
@@ -191,7 +189,7 @@ def rearrange_calipso_the_single_shot_info(retv, singleshotdata):
     top_array = np.where(top_array > 0, top_array, 0.0)
     top_mean = np.where(single_shot_cloud_cleared_array > 0,
                         np.divide(np.sum(top_array, axis=1), single_shot_cloud_cleared_array),
-                  - 9.0)  # Calculate average cloud top
+                        - 9.0)  # Calculate average cloud top
     name = "average_cloud_top_single_shots"
     # pdb.set_trace()
     setattr(retv, name, top_mean)
@@ -227,7 +225,7 @@ def read_calipso(filename):
     # 1km
     if retv.profile_time_tai.shape == retv.number_layers_found.shape:
         retv.latitude = retv.latitude[:, 0]
-        retv.longitude = retv.longitude [:, 0]
+        retv.longitude = retv.longitude[:, 0]
         retv.profile_time_tai = retv.profile_time_tai[:, 0]
         # Elevation is given in km's. Convert to meters:
         retv.elevation = retv.dem_surface_elevation[:, 0] * 1000.0
@@ -246,6 +244,7 @@ def read_calipso_hdf4(filename, retv):
     from pyhdf.SD import SD, SDC
     from pyhdf.HDF import HDF, HC
     import pyhdf.VS
+
     def convert_data(data):
         if len(data.shape) == 2:
             if data.shape[1] == 1:
@@ -309,9 +308,9 @@ def read_calipso_h5(filename, retv):
         for dataset in h5file.keys():
             if dataset in ["Single_Shot_Detection"]:
                 # Handeled above
-                 continue
-            if dataset in ["Lidar_Surface_Detection", # New group V4
-                            "metadata_t",
+                continue
+            if dataset in ["Lidar_Surface_Detection",  # New group V4
+                           "metadata_t",
                            "metadata"]:
                 # skip all in these groups
                 logger.debug("Not reading " + dataset)
@@ -336,7 +335,7 @@ def discard_calipso_files_outside_time_range(calipsofiles_list, cloudproducts, v
     for current_file in calipsofiles_list:
         newCalipso = get_calipso(current_file, res, ALAY=ALAY)
         cal_new_all = newCalipso.sec_1970
-        if cal_new_all[0]>imager_end + SETTINGS["sec_timeThr"] or  cal_new_all[-1] + SETTINGS["sec_timeThr"]<imager_start:
+        if cal_new_all[0] > imager_end + SETTINGS["sec_timeThr"] or cal_new_all[-1] + SETTINGS["sec_timeThr"] < imager_start:
             pass
             # print "skipping file %s outside time_limits"%(current_file)
         else:
@@ -380,7 +379,7 @@ def find_break_points(startCalipso, cloudproducts, SETTINGS):
 
 def adjust_5km_to_1km_resolution(calipso5km):
     logger.debug("Repeat 5km calipso data to fit 1km resoluiton")
-    calipso= CalipsoObject()
+    calipso = CalipsoObject()
     for arname, value in calipso5km.all_arrays.items():
         if value is not None:
             new_values = np.repeat(value, 5, axis=0)
@@ -394,7 +393,7 @@ def add_5km_variables_to_1km(calipso1km, calipso5km, CALIPSO_version):
         if hasattr(calipso5km, variable):
             cfc_single_shot_1km_from_5km_file = getattr(calipso5km, variable)
             setattr(calipso1km, variable, cfc_single_shot_1km_from_5km_file)
-    for variable_5km  in [
+    for variable_5km in [
             "column_optical_depth_tropospheric_aerosols_1064",
             "column_optical_depth_tropospheric_aerosols_532",
             "column_optical_depth_tropospheric_aerosols_uncertainty_1064",
@@ -407,30 +406,30 @@ def add_5km_variables_to_1km(calipso1km, calipso5km, CALIPSO_version):
     ]:
         if CALIPSO_version == 3:
             if not hasattr(calipso5km, variable_5km) or getattr(calipso5km, variable_5km) is None:
-            # in version 3 names were different
+                # in version 3 names were different
                 variable_5km = variable_5km.replace('tropospheric_', '')
 
         data = getattr(calipso5km, variable_5km)
         new_data = np.repeat(data, 5, axis=0)
-        setattr(calipso1km, variable_5km +"_5km", new_data)
-    for variable_5km  in ["feature_optical_depth_532_top_layer_5km",
-                          "detection_height_5km",
-                          "total_optical_depth_5km"]:
+        setattr(calipso1km, variable_5km + "_5km", new_data)
+    for variable_5km in ["feature_optical_depth_532_top_layer_5km",
+                         "detection_height_5km",
+                         "total_optical_depth_5km"]:
         data = getattr(calipso5km, variable_5km)
         if data is None:
-             setattr(calipso1km, variable_5km, None)
-        else :
+            setattr(calipso1km, variable_5km, None)
+        else:
             new_data = np.repeat(data, 5, axis=0)
             setattr(calipso1km, variable_5km, new_data)
-    for variable_5km  in ["layer_top_altitude",
-                          "layer_top_pressure",
-                          "feature_optical_depth_532"]:
+    for variable_5km in ["layer_top_altitude",
+                         "layer_top_pressure",
+                         "feature_optical_depth_532"]:
         data = getattr(calipso5km, variable_5km)
         new_data = np.repeat(data, 5, axis=0)
         new_data = new_data[:, 0:3]
         setattr(calipso1km, variable_5km + "_5km", new_data)
 
-    for variable_5km  in ["number_layers_found"]:
+    for variable_5km in ["number_layers_found"]:
         data = getattr(calipso5km, variable_5km)
         new_data = np.repeat(data, 5, axis=0)
         setattr(calipso1km, variable_5km + "_5km", new_data)
@@ -442,8 +441,8 @@ def add_5km_variables_to_1km(calipso1km, calipso5km, CALIPSO_version):
     # cfc_5km = np.repeat(calipso5km.cloud_fraction, 5, axis=0)
     # number_layers_found_5km = np.repeat(calipso5km.number_layers_found,
     # 5, axis=0).ravel()
-    isCloudOnlyIn5km = np.logical_and(calipso1km.cloud_fraction<0.1,
-                                      calipso1km.total_optical_depth_5km>0)
+    isCloudOnlyIn5km = np.logical_and(calipso1km.cloud_fraction < 0.1,
+                                      calipso1km.total_optical_depth_5km > 0)
     # Give clouds in only 5km  cloud fraction equal to 0.15
     # these clouds are either:
     # 1) thin or
@@ -454,7 +453,7 @@ def add_5km_variables_to_1km(calipso1km, calipso5km, CALIPSO_version):
         isCloudOnlyIn5km] = 0.15
     if CALIPSO_version == 4:
         isCloudOnlyIn300m = np.logical_and(calipso1km.cloud_fraction <= 0,
-                                           cfc_single_shot_1km_from_5km_file>0)
+                                           cfc_single_shot_1km_from_5km_file > 0)
         calipso1km.cloud_fraction[
             isCloudOnlyIn300m] = cfc_single_shot_1km_from_5km_file[isCloudOnlyIn300m]
     return calipso1km
@@ -487,11 +486,11 @@ def add_1km_to_5km(calipso1km, calipso5km):
         "*****CHECKING CLOUD FREQUENCY DIFFERENCES IN 1KM AND 5KM "
         "DATASETS:"
         "\n"
-        "\n Number of 5 km FOVS: {:d}".format(len_5km)+
-        "\n Number of cloudy 5 km FOVS: {3.3f}".format(cfc_5km)+
-        "\n Cloudy fraction 5 km: {3.3f}".format(float(cfc_5km)/float(len_5km))+
-        "\n Number of 1 km FOVS: {:d}".format(len_1km)+
-        "\n Number of cloudy 1 km FOVS:   {3.3f}".format(cfc_1km )+
+        "\n Number of 5 km FOVS: {:d}".format(len_5km) +
+        "\n Number of cloudy 5 km FOVS: {3.3f}".format(cfc_5km) +
+        "\n Cloudy fraction 5 km: {3.3f}".format(float(cfc_5km)/float(len_5km)) +
+        "\n Number of 1 km FOVS: {:d}".format(len_1km) +
+        "\n Number of cloudy 1 km FOVS:   {3.3f}".format(cfc_1km) +
         "\n Cloudy fraction 1 km:  {3.3f}".format(float(cfc_1km)/float(len_1km)))
     print(output)
     # Now calculate the cloud fraction in 5 km data from 1 km data
@@ -516,8 +515,8 @@ def add_1km_to_5km(calipso1km, calipso5km):
         calipso5km.number_layers_found_1km[i] = cfc
         if cfc == 1.0:
             cfc = 0.99  # Just to be able to track the case
-                       # when no cloud layers existed in 5 km data
-                       # but all 1 km FOVs were cloudy /KG 20170213
+            # when no cloud layers existed in 5 km data
+            # but all 1 km FOVs were cloudy /KG 20170213
         if (calipso5km.number_layers_found[i] > 0):
             calipso5km.cloud_fraction[i] = 1.0
         if ((cfc > 0.1) and (calipso5km.number_layers_found[i] == 0)):
@@ -580,15 +579,15 @@ def add_singleshot_to5km(calipso5km, SETTINGS):  # Valid only for CALIPSO-CALIOP
         " \t \t Number of Combined FOVS:             %d\n"
         " \t \t Number of cloudy combined FOVS:      %d\n"
         " \t \t Cloudy fraction combined:         %3.2f\n",
-            len_5km,
-            cfc_5km,
-            float(cfc_5km)/float(len_5km),
-            len_single_shot,
-            cfc_Single_Shot,
-            float(cfc_Single_Shot)/float(len_single_shot),
-            len_single_shot,
-            cfc_combined,
-            float(cfc_combined)/float(len_single_shot))
+        len_5km,
+        cfc_5km,
+        float(cfc_5km)/float(len_5km),
+        len_single_shot,
+        cfc_Single_Shot,
+        float(cfc_Single_Shot)/float(len_single_shot),
+        len_single_shot,
+        cfc_combined,
+        float(cfc_combined)/float(len_single_shot))
     # Now calculate the cloud fraction in 5 km data from single shot data
     # (fraction of 15 FOVs declared cloudy).
     # In addition, if there are cloud layers in 5 km data but nothing in
@@ -622,7 +621,7 @@ def add_singleshot_to5km(calipso5km, SETTINGS):  # Valid only for CALIPSO-CALIOP
 
 
 def optical_depth_height_filtering(calipso, min_optical_depth, use_old_method=False,
-                                 limit_ctop=0.2):
+                                   limit_ctop=0.2):
     new_cloud_top = np.ones(calipso.layer_top_altitude.shape)*config.NODATA*1.0
     new_cloud_base = np.ones(calipso.layer_base_altitude.shape)*config.NODATA*1.0
     new_cloud_top_pressure = np.ones(calipso.layer_top_altitude.shape)*config.NODATA*1.0
@@ -632,7 +631,7 @@ def optical_depth_height_filtering(calipso, min_optical_depth, use_old_method=Fa
     new_fcf = np.ones(calipso.feature_classification_flags.shape).astype(calipso.feature_classification_flags.dtype)
     depthsum = 0.0*new_cloud_fraction.copy()
     already_detected = depthsum > 99999  # None from the start! All False
-    already_detected[calipso.layer_top_altitude[:, 0]<0] = True  # don't bother with clear pixels
+    already_detected[calipso.layer_top_altitude[:, 0] < 0] = True  # don't bother with clear pixels
     # to_thin_to_see_at_all = calipso.total_optical_depth_5km < min_optical_depth
     N10 = new_cloud_top.shape[1]
     for layer_j in range(N10):
@@ -649,11 +648,11 @@ def optical_depth_height_filtering(calipso, min_optical_depth, use_old_method=Fa
         cloud_base = calipso.layer_base_altitude[:, layer_j]
         cloud_top = calipso.layer_top_altitude[:, layer_j]
         geometrical_distance_cloud = cloud_top-cloud_base
-        geometrical_distance_cloud[cloud_base<0] = 0
-        geometrical_distance_cloud[cloud_top<0] = 0
+        geometrical_distance_cloud[cloud_base < 0] = 0
+        geometrical_distance_cloud[cloud_top < 0] = 0
         fraction_into_cloud = (limit_ctop*1.0)/this_layer_optical_depth
-        fraction_into_cloud[fraction_into_cloud<0] = 0
-        fraction_into_cloud[fraction_into_cloud>1.0] = 1.0
+        fraction_into_cloud[fraction_into_cloud < 0] = 0
+        fraction_into_cloud[fraction_into_cloud > 1.0] = 1.0
         if use_old_method:
             fraction_into_cloud = 0.5
         # For KGs method set fraction_into_cloud = 0.5 always
@@ -678,23 +677,23 @@ def optical_depth_height_filtering(calipso, min_optical_depth, use_old_method=Fa
         pass
     else:
         for layer_j in range(N10):
-            filtered_to_low = new_cloud_top[:, 0]< new_cloud_top[:, layer_j]
+            filtered_to_low = new_cloud_top[:, 0] < new_cloud_top[:, layer_j]
             new_cloud_top[filtered_to_low, 0] = new_cloud_top[filtered_to_low, layer_j]
 
     new_validation_height = new_cloud_top[:, 0].copy()
     new_validation_height[new_validation_height >= 0] = new_validation_height[new_validation_height >= 0]*1000
-    new_validation_height[new_validation_height<0] = -9
+    new_validation_height[new_validation_height < 0] = -9
     return (new_cloud_top, new_cloud_base, new_cloud_fraction, new_fcf, new_validation_height,
             new_cloud_top_pressure, new_cloud_base_pressure)
 
 
 def check_total_optical_depth_and_warn(match_calipso):
     obj = match_calipso.calipso
-    if  (obj.total_optical_depth_5km is not None and
-         (obj.total_optical_depth_5km < obj.feature_optical_depth_532_top_layer_5km).any()):
-        badPix=np.less(obj.total_optical_depth_5km+0.001,
-                       obj.feature_optical_depth_532_top_layer_5km)
-        diff=obj.total_optical_depth_5km- obj.feature_optical_depth_532_top_layer_5km
+    if (obj.total_optical_depth_5km is not None and
+            (obj.total_optical_depth_5km < obj.feature_optical_depth_532_top_layer_5km).any()):
+        badPix = np.less(obj.total_optical_depth_5km+0.001,
+                         obj.feature_optical_depth_532_top_layer_5km)
+        diff = obj.total_optical_depth_5km - obj.feature_optical_depth_532_top_layer_5km
         print("warning {:d}".format(len(obj.total_optical_depth_5km)))
         # print len(obj.total_optical_depth_5km[badPix])
         # print obj.total_optical_depth_5km[badPix]
@@ -723,7 +722,7 @@ def detection_height_filtering(match_calipso):
         match_calipso.calipso.layer_base_altitude[:, 0]*1000,
         new_cloud_tops)
     clouds_to_update = np.logical_and(
-        match_calipso.calipso.layer_top_altitude[:, 0]*1000>match_calipso.calipso.detection_height_5km,
+        match_calipso.calipso.layer_top_altitude[:, 0]*1000 > match_calipso.calipso.detection_height_5km,
         np.not_equal(match_calipso.calipso.detection_height_5km, -9))
     return np.where(clouds_to_update,
                     new_cloud_tops,
@@ -736,7 +735,7 @@ def set_thin_to_clear_filtering_1km(match_calipso, SETTINGS):
         np.not_equal(match_calipso.calipso.total_optical_depth_5km, -9))
     # >0.0 important. Some clouds are missing in 5km data set but present in 1km data set!
     set_to_clear = np.logical_and(
-        match_calipso.calipso.number_layers_found>0,
+        match_calipso.calipso.number_layers_found > 0,
         isThin_clouds)
     cloud_fraction = match_calipso.calipso.cloud_fraction
     validation_height = match_calipso.calipso.validation_height
@@ -750,9 +749,9 @@ def total_and_top_layer_optical_depth_5km(calipso, SETTINGS, resolution=5):
     optical_depth_in = calipso.feature_optical_depth_532
     o_depth_top_layer = -9.0 + 0*calipso.number_layers_found.ravel()
     total_o_depth = -9.0 + 0*calipso.number_layers_found.ravel()
-    if resolution==5:
+    if resolution == 5:
         pixels = np.logical_and(
-            calipso.number_layers_found.ravel()>0,
+            calipso.number_layers_found.ravel() > 0,
             optical_depth_in[:, 0].ravel() >= 0)
         o_depth_top_layer[pixels] = optical_depth_in[pixels, 0]
         total_o_depth[pixels] = optical_depth_in[pixels, 0]
@@ -769,12 +768,13 @@ def total_and_top_layer_optical_depth_5km(calipso, SETTINGS, resolution=5):
     if SETTINGS['CALCULATE_DETECTION_HEIGHT_FROM_5KM_DATA']:
         logger.info("Find detection height using 5km data")
         retv = optical_depth_height_filtering(calipso, 0.0,
-                                            limit_ctop=SETTINGS['OPTICAL_LIMIT_CLOUD_TOP'])
+                                              limit_ctop=SETTINGS['OPTICAL_LIMIT_CLOUD_TOP'])
         cloud_top5km, dummy, dummy, dummy, detection_height, dummy, dummy = retv
         calipso.detection_height_5km = detection_height
     else:
         calipso.detection_height_5km = None
     return calipso
+
 
 if __name__ == "__main__":
     # Testing:

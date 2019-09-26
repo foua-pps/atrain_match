@@ -29,6 +29,15 @@ through a set of files with SNO matchups.
     This module has a command line interface.
 
 """
+from atrain_match.utils.runutils import parse_scenesfile_v2014
+from atrain_match.utils.runutils import parse_scenesfile_cci
+from atrain_match.utils.runutils import parse_scene
+from atrain_match.utils.runutils import parse_scenesfile_maia
+from atrain_match.utils.runutils import parse_scenesfile_reshaped
+from atrain_match.utils.common import Cross
+from atrain_match.libs import truth_imager_make_statistics
+import atrain_match.config as config
+from atrain_match.utils.common import (InputError, MatchupError)
 import logging
 logging.basicConfig(
     format='%(levelname)s |%(asctime)s|: %(message)s',
@@ -36,15 +45,6 @@ logging.basicConfig(
     # datefmt='%Y-%m-%d %H:%M:%S')
     datefmt='%H:%M:%S')
 logger = logging.getLogger(__name__)
-from atrain_match.utils.common import (InputError, MatchupError)
-import atrain_match.config as config
-from atrain_match.libs import truth_imager_make_statistics
-from atrain_match.utils.common import Cross
-from atrain_match.utils.runutils import  parse_scenesfile_reshaped
-from atrain_match.utils.runutils import  parse_scenesfile_maia
-from atrain_match.utils.runutils import  parse_scene
-from atrain_match.utils.runutils import  parse_scenesfile_cci
-from atrain_match.utils.runutils import  parse_scenesfile_v2014
 
 
 def process_matchups(matchups, run_modes, reprocess=False, debug=False):
@@ -107,28 +107,28 @@ def main():
     parser = argparse.ArgumentParser()
     group = parser.add_mutually_exclusive_group(required=True)
     parser.add_argument('--mode', '-M', type=str, required=False, choices=config.ALLOWED_MODES,
-                      help=("Run validation software in MODE "))
+                        help=("Run validation software in MODE "))
     parser.add_argument('--reprocess', '-r', const=True, nargs='?', required=False,
                         help="Disregard any previously generated Cloudsat- and "
                         "Calipso-IMAGER matchup files.")
     parser.add_argument('-d', '--debug', const=True, nargs='?', required=False,
                         help="Get debug logging")
-    group.add_argument( '--pps_okay_scene', '-os',
-                      help="Interpret arguments as PPS okay scenes instead of "
-                      "sno_output_files (e.g. noaa19_20101201_1345_27891*)")
-    group.add_argument( '--pps_product_file', '-pf',
-                      help="Interpret arguments as inputfile with "
-                      "list of pps files")
-    group.add_argument( '--cci_product_file', '-cf',
-                      help="Interpret arguments as inputfile with "
-                      "list of cci files")
-    group.add_argument( '--maia_product_file', '-mf',
-                      help="Interpret arguments as inputfile with "
-                      "list of maia files")
+    group.add_argument('--pps_okay_scene', '-os',
+                       help="Interpret arguments as PPS okay scenes instead of "
+                       "sno_output_files (e.g. noaa19_20101201_1345_27891*)")
+    group.add_argument('--pps_product_file', '-pf',
+                       help="Interpret arguments as inputfile with "
+                       "list of pps files")
+    group.add_argument('--cci_product_file', '-cf',
+                       help="Interpret arguments as inputfile with "
+                       "list of cci files")
+    group.add_argument('--maia_product_file', '-mf',
+                       help="Interpret arguments as inputfile with "
+                       "list of maia files")
     # Consider having this as the only option in future
     # Matchup files are made with process_master_only_match.py
     group.add_argument('--reshaped_product_file', '-rf',
-                      help="Interpret arguments as reshaped_output_file")
+                       help="Interpret arguments as reshaped_output_file")
     options = parser.parse_args()
 
     if options.mode is not None:
@@ -192,6 +192,7 @@ def main():
 
     return 0
 
+
 # ------------------------------------------------------------------------------
-if __name__=='__main__':
+if __name__ == '__main__':
     main()

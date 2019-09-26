@@ -16,20 +16,19 @@
 # You should have received a copy of the GNU General Public License
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
 # Change log is found in git
+from atrain_match.utils.runutils import do_some_logging
+from atrain_match.truths.calipso import (find_break_points)
+from atrain_match.libs.extract_imager_along_track import imager_track_from_matched
+from atrain_match.utils.common import (MatchupError, ProcessingError,
+                                       elements_within_range)
+import atrain_match.config as config
+from atrain_match.matchobject_io import (CloudsatObject,
+                                         TruthImagerTrackObject)
 import time
 import numpy as np
 import os
 import logging
 logger = logging.getLogger(__name__)
-from atrain_match.matchobject_io import (CloudsatObject,
-                            TruthImagerTrackObject)
-import atrain_match.config as config
-from atrain_match.utils.common import (MatchupError, ProcessingError,
-                    elements_within_range)
-from atrain_match.libs.extract_imager_along_track import imager_track_from_matched
-
-from atrain_match.truths.calipso import (find_break_points)
-from atrain_match.utils.runutils import do_some_logging
 
 
 def add_validation_ctth_cloudsat(cloudsat):
@@ -49,7 +48,7 @@ def add_validation_ctth_cloudsat(cloudsat):
         top_height[~is_cloudy] = -9999
         validation_height[validation_height < top_height] = top_height[
             validation_height < top_height]
-        cloudsat.validation_height= validation_height
+        cloudsat.validation_height = validation_height
         update_base = np.logical_and(top_height > 0, validation_height_base > top_height)
         validation_height_base[update_base] = top_height[update_base]
         cloudsat.validation_height_base = validation_height_base
@@ -103,6 +102,7 @@ def read_cloudsat_hdf4(filename):
     from pyhdf.SD import SD, SDC
     from pyhdf.HDF import HDF, HC
     import pyhdf.VS
+
     def convert_data(data):
         if len(data.shape) == 2:
             if data.shape[1] == 1:
@@ -167,6 +167,7 @@ def read_cloudsat(filename):
     CLOUDSAT_TYPE = "GEOPROF"
     if 'CWC-RVOD' in os.path.basename(filename):
         CLOUDSAT_TYPE = 'CWC-RVOD'
+
     def get_data(dataset):
         type_name = dataset.value.dtype.names
         try:
@@ -182,7 +183,7 @@ def read_cloudsat(filename):
         return data
     retv = CloudsatObject()
     h5file = h5py.File(filename, 'r')
-    root="2B-" + CLOUDSAT_TYPE
+    root = "2B-" + CLOUDSAT_TYPE
     for group in ['Geolocation Fields', 'Data Fields']:
         tempG = h5file["%s/%s" % (root, group)]
         for dataset in tempG.keys():
@@ -203,9 +204,9 @@ def match_cloudsat_imager(cloudsat, cloudproducts, SETTINGS):
     # Nina 20150313 Swithcing to mapping without area as in cpp. Following suggestion from Jakob
     from atrain_match.utils.common import map_imager
     cal, cap = map_imager(cloudproducts,
-                         cloudsat.longitude.ravel(),
-                         cloudsat.latitude.ravel(),
-                         radius_of_influence=config.RESOLUTION * 0.7 * 1000.0)  # somewhat larger than radius...
+                          cloudsat.longitude.ravel(),
+                          cloudsat.latitude.ravel(),
+                          radius_of_influence=config.RESOLUTION * 0.7 * 1000.0)  # somewhat larger than radius...
     calnan = np.where(cal == config.NODATA, np.nan, cal)
     if (~np.isnan(calnan)).sum() == 0:
         logger.warning("No matches within region.")

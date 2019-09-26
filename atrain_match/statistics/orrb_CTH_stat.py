@@ -98,7 +98,7 @@ class CloudTopStats(OrrbStats):
         self.mae_cal_medium = {}
         self.mae_cal_high = {}
         for tc in cal_all_samples.keys():
-        # numpy.divide handles potential division by zero
+            # numpy.divide handles potential division by zero
             self.retrieval_rate_all[tc] = (
                 cal_all_samples[tc] /
                 (cal_all_samples[tc] + n_missed_ctth_all[tc]))
@@ -145,7 +145,7 @@ class CloudTopStats(OrrbStats):
 
             self.rms_cal_low[tc] = math.sqrt(
                 np.divide(rms_error_cal_low_sum[tc], cal_low_samples[tc]))
-            self.rms_cal_medium[tc]= math.sqrt(
+            self.rms_cal_medium[tc] = math.sqrt(
                 np.divide(rms_error_cal_medium_sum[tc],
                           cal_medium_samples[tc]))
             self.rms_cal_high[tc] = math.sqrt(
@@ -153,8 +153,8 @@ class CloudTopStats(OrrbStats):
 
             self.mae_cal_low[tc] = np.divide(mae_error_cal_low_sum[tc],
                                              cal_low_samples[tc])
-            self.mae_cal_medium[tc]= np.divide(mae_error_cal_medium_sum[tc],
-                                               cal_medium_samples[tc])
+            self.mae_cal_medium[tc] = np.divide(mae_error_cal_medium_sum[tc],
+                                                cal_medium_samples[tc])
             self.mae_cal_high[tc] = np.divide(mae_error_cal_high_sum[tc],
                                               cal_high_samples[tc])
 
@@ -175,14 +175,17 @@ class CloudTopStats(OrrbStats):
         lines = []
         for tc in sorted(self.cal_low_samples.keys()):
             lines.append("========== Cloud top height ===========")
-            lines.append("====== %s ======"%(tc))
+            lines.append("====== %s ======" % (tc))
             lines.append("Total number of matched scenes is: %s" % self.ac_data["scenes"])
             lines.append("")
             lines.append("Imager retrieval rate: %3.2f" % self.retrieval_rate_all[tc])
-            lines.append("Total number of %s matched cloudtops: %d" %( self.truth_sat.upper(), self.cal_all_samples[tc]))
+            lines.append("Total number of %s matched cloudtops: %d" %
+                         (self.truth_sat.upper(), self.cal_all_samples[tc]))
             lines.append("Number of %s matched low cloudtops: %d" % (self.truth_sat.upper(), self.cal_low_samples[tc]))
-            lines.append("Number of %s matched medium cloudtops: %d" %( self.truth_sat.upper(), self.cal_medium_samples[tc]))
-            lines.append("Number of %s matched high cloudtops: %d" %( self.truth_sat.upper(), self.cal_high_samples[tc]))
+            lines.append("Number of %s matched medium cloudtops: %d" %
+                         (self.truth_sat.upper(), self.cal_medium_samples[tc]))
+            lines.append("Number of %s matched high cloudtops: %d" %
+                         (self.truth_sat.upper(), self.cal_high_samples[tc]))
             lines.append("Mean absolute error total cases: %.0f" % self.mae_cal_all[tc])
             lines.append("Mean absolute error low-level cases: %.0f" % self.mae_cal_low[tc])
             lines.append("Mean absolute error medium-level cases: %.0f" % self.mae_cal_medium[tc])
@@ -204,17 +207,18 @@ class CloudTopStats(OrrbStats):
             lines.append("Imager estimated POD-cloudy medium-level cases: %3.2f" % self.estimate_pod_cloudy_medium[tc])
             lines.append("Imager estimated POD-cloudy high-level cases: %3.2f" % self.estimate_pod_cloudy_high[tc])
             lines.append("")
-        for tc in  self.cal_all_samples.keys():
+        for tc in self.cal_all_samples.keys():
             if tc in self.cal_low_samples.keys():
                 # already go these results printed
                 continue
             else:
                 lines.append("========== Cloud top height ===========")
-                lines.append("====== %s ======"%(tc))
+                lines.append("====== %s ======" % (tc))
                 lines.append("Total number of matched scenes is: %s" % self.ac_data["scenes"])
                 lines.append("")
                 lines.append("Imager retrieval rate: %3.2f" % self.retrieval_rate_all[tc])
-                lines.append("Total number of %s matched cloudtops: %d" %( self.truth_sat.upper(), self.cal_all_samples[tc]))
+                lines.append("Total number of %s matched cloudtops: %d" %
+                             (self.truth_sat.upper(), self.cal_all_samples[tc]))
                 lines.append("Mean absolute error total cases: %.0f" % self.mae_cal_all[tc])
                 lines.append("Mean error total cases: %.0f" % self.bias_cal_all[tc])
                 lines.append("RMS error total cases: %.0f" % self.rms_cal_all[tc])
@@ -222,6 +226,7 @@ class CloudTopStats(OrrbStats):
                 lines.append("Imager estimated POD-cloudy total-level cases: %3.2f" % self.estimate_pod_cloudy_all[tc])
                 lines.append("")
         return lines
+
 
 if __name__ == "__main__":
     stats = CloudTopStats()

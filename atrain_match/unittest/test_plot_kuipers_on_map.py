@@ -67,5 +67,6 @@ def suite():
     mysuite.addTest(loader.loadTestsFromTestCase(test_kuipers_plot_on_map))
     return mysuite
 
+
 if __name__ == "__main__":
     unittest.TextTestRunner(verbosity=2).run(suite())

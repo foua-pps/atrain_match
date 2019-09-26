@@ -17,21 +17,20 @@
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
 # Change log is found in git
 
+import calendar
+import datetime
+import time
+from atrain_match.utils.runutils import do_some_logging
+from atrain_match.truths.calipso import (find_break_points)
+from atrain_match.libs.extract_imager_along_track import imager_track_from_matched
+from atrain_match.utils.common import (MatchupError, ProcessingError,
+                                       elements_within_range)
+import atrain_match.config as config
+from atrain_match.matchobject_io import (IssObject,
+                                         TruthImagerTrackObject)
 import logging
 import numpy as np
 logger = logging.getLogger(__name__)
-from atrain_match.matchobject_io import (IssObject,
-                            TruthImagerTrackObject)
-import atrain_match.config as config
-from atrain_match.utils.common import (MatchupError, ProcessingError,
-                    elements_within_range)
-from atrain_match.libs.extract_imager_along_track import imager_track_from_matched
-
-from atrain_match.truths.calipso import (find_break_points)
-from atrain_match.utils.runutils import do_some_logging
-import time
-import datetime
-import calendar
 
 
 def get_iss(filename):
@@ -103,19 +102,20 @@ def get_iss(filename):
 
 
 scip_these_larger_variables_until_needed_iss = {
-        # if any of these are needed remove them from the dictionary!
-        # might need more work as they are 3D or 4D variables.
-        "Constrained_Lidar_Ratio_Flag": True,
-        "Attenuated_Backscatter_Statistics_1064_Fore_FOV": True,
-        "Attenuated_Backscatter_Statistics_532_Fore_FOV":  True,
-        "Attenuated_Total_Color_Ratio_Statistics_Fore_FOV": True,
-        "Volume_Depolarization_Ratio_Statistics_1064_Fore_FOV": True,
-        }
+    # if any of these are needed remove them from the dictionary!
+    # might need more work as they are 3D or 4D variables.
+    "Constrained_Lidar_Ratio_Flag": True,
+    "Attenuated_Backscatter_Statistics_1064_Fore_FOV": True,
+    "Attenuated_Backscatter_Statistics_532_Fore_FOV":  True,
+    "Attenuated_Total_Color_Ratio_Statistics_Fore_FOV": True,
+    "Volume_Depolarization_Ratio_Statistics_1064_Fore_FOV": True,
+}
 
 
 def read_iss(filename):
     import h5py
-    import pdb, sys
+    import pdb
+    import sys
     logger.info("Reading file %s", filename)
     retv = IssObject()
     if filename is not None:
@@ -138,7 +138,8 @@ def read_iss(filename):
         # Elevation is given in km's. Convert to meters:
         retv.elevation = retv.dem_surface_altitude_fore_fov * 1000.0
         seconds_per_day = datetime.timedelta(days=1).total_seconds()
-        midnight_sec_1970 = [ calendar.timegm(time.strptime(str(date_as_integer), "%Y%m%d")) for date_as_integer in retv.profile_utc_date]
+        midnight_sec_1970 = [calendar.timegm(time.strptime(str(date_as_integer), "%Y%m%d"))
+                             for date_as_integer in retv.profile_utc_date]
         retv.sec_1970 = seconds_per_day * retv.profile_utc_time[:, 1] + np.array(midnight_sec_1970)
     return retv
 
@@ -150,8 +151,8 @@ def match_iss_imager(iss, cloudproducts, SETTINGS):
 
     from atrain_match.utils.common import map_imager
     cal, cap = map_imager(cloudproducts, iss.longitude.ravel(),
-                         iss.latitude.ravel(),
-                         radius_of_influence=config.RESOLUTION * 0.7 * 1000.0)  # larger than radius...
+                          iss.latitude.ravel(),
+                          radius_of_influence=config.RESOLUTION * 0.7 * 1000.0)  # larger than radius...
     calnan = np.where(cal == config.NODATA, np.nan, cal)
 
     if (~np.isnan(calnan)).sum() == 0:
@@ -173,7 +174,7 @@ def match_iss_imager(iss, cloudproducts, SETTINGS):
 
     retv.iss = retv.iss.extract_elements(idx=idx_match)
 
-     # Calipso line, pixel inside IMAGER swath:
+    # Calipso line, pixel inside IMAGER swath:
     retv.iss.imager_linnum = np.repeat(cal, idx_match).astype('i')
     retv.iss.imager_pixnum = np.repeat(cap, idx_match).astype('i')
     # Imager time

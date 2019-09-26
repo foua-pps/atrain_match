@@ -20,12 +20,12 @@ Utilities for running matching
 
 """
 
+import re
+import time
+import numpy as np
 import os
 import logging
 logger = logging.getLogger(__name__)
-import numpy as np
-import time
-import re
 
 
 def read_config_info():
@@ -35,38 +35,38 @@ def read_config_info():
     from atrain_match.config import ATRAIN_MATCH_CONFIG_PATH
     config_file = os.path.join(ATRAIN_MATCH_CONFIG_PATH, "atrain_match.cfg")
     if not os.path.isfile(config_file):
-        raise IOError("Couldn't find config file %s."%(config_file))
+        raise IOError("Couldn't find config file %s." % (config_file))
     CONF.read(config_file)
     AM_PATHS = {}
-    for option, value in CONF.items('files', raw = True):
+    for option, value in CONF.items('files', raw=True):
         AM_PATHS[option] = value
     SETTINGS = {}
-    for name, value in CONF.items('general', raw = True):
+    for name, value in CONF.items('general', raw=True):
         name = name.upper()
         value = value.strip()
         while ' ' in value:
             value = value.replace(' ', '')
         values = value.split(',')
         if name in ['MIN_OPTICAL_DEPTH']:
-           value_ = [ np.float(val_i) for val_i in values]
+            value_ = [np.float(val_i) for val_i in values]
         elif name in ["COMPILE_STATISTICS_TRUTH", "PLOT_MODES",
                       "PLOT_TYPES", "CTTH_TYPES",
                       'SATELLITES', 'YEARS', 'MONTHS']:
-           value_ = values
+            value_ = values
         elif name in ['CNN_PCKL_PATH']:
             value_ = values[0]
 
-        elif len(values)==1 and 'true' in values[0].lower():
+        elif len(values) == 1 and 'true' in values[0].lower():
             value_ = True
-        elif len(values)==1 and 'false' in values[0].lower():
+        elif len(values) == 1 and 'false' in values[0].lower():
             value_ = False
-        elif len(values)==1  and re.match("\d+.*\d*", values[0]):
+        elif len(values) == 1 and re.match("\d+.*\d*", values[0]):
             value_ = np.float(values[0])
 
         SETTINGS[name.upper()] = value_
 
     if (SETTINGS['COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC'] or
-        SETTINGS['CALCULATE_DETECTION_HEIGHT_FROM_5KM_DATA']):
+            SETTINGS['CALCULATE_DETECTION_HEIGHT_FROM_5KM_DATA']):
         SETTINGS['ALSO_USE_5KM_FILES'] = True  # 5km data is required also for 1km processing
     SETTINGS['sec_timeThr'] = SETTINGS['MINUTES_TIMETHR']*60.0
     SETTINGS['sec_timeThr_synop'] = SETTINGS['MINUTES_TIMETHR_SYNOP']*60.0
@@ -250,14 +250,14 @@ def do_some_geo_obj_logging(GeoObj):
 
 def do_some_logging(retv, match_obj):
     logger.debug("Start and end times: %s %s",
-              time.gmtime(match_obj.sec_1970[0]),
-              time.gmtime(match_obj.sec_1970[-1]))
+                 time.gmtime(match_obj.sec_1970[0]),
+                 time.gmtime(match_obj.sec_1970[-1]))
     logger.debug("Maximum and minimum time differences in sec (imager-reference): %d %d",
-          np.max(retv.diff_sec_1970), np.min(retv.diff_sec_1970))
+                 np.max(retv.diff_sec_1970), np.min(retv.diff_sec_1970))
     logger.debug("IMAGER observation time of first imager-reference match: %s",
-          time.gmtime(retv.imager.sec_1970[0]))
+                 time.gmtime(retv.imager.sec_1970[0]))
     logger.debug("IMAGER observation time of last imager-reference match: %s",
-          time.gmtime(retv.imager.sec_1970[-1]))
+                 time.gmtime(retv.imager.sec_1970[-1]))
 
 
 if __name__ == "__main__":

@@ -64,11 +64,11 @@ def half_sample_mode(x, already_sorted=False):
     half_idx = int((len(x) + 1) / 2)  # Round up to include the middle value, in the case of an odd-length array
 
     # Calculate all interesting ranges that span half of all data points
-    ranges = sorted_x[ - half_idx:] - sorted_x[:half_idx]
+    ranges = sorted_x[- half_idx:] - sorted_x[:half_idx]
     smallest_range_idx = np.argmin(ranges)
 
     # Now repeat the procedure on the half that spans the smallest range
-    x_subset = sorted_x[smallest_range_idx : (smallest_range_idx + half_idx)]
+    x_subset = sorted_x[smallest_range_idx: (smallest_range_idx + half_idx)]
     return half_sample_mode(x_subset, already_sorted=True)
 
 
@@ -111,9 +111,9 @@ def my_mode(bias):
     maxind = np.argmax(hist_heights)
     maxind2 = len(hist_heights) - 1 - np.argmax(hist_heights[::-1])
     if maxind != maxind2:
-        print( maxind, maxind2)
+        print(maxind, maxind2)
         raise ValueError
-    mode =bins[maxind] + delta_h * 0.5
+    mode = bins[maxind] + delta_h * 0.5
     return mode
 
 
@@ -142,7 +142,7 @@ def PODcy(indict):
 def FARcy(indict):
     det_cloudy = indict["det_cloudy"]
     false_cloudy = indict["false_cloudy"]
-    return  false_cloudy * 100.0 / (false_cloudy + det_cloudy)
+    return false_cloudy * 100.0 / (false_cloudy + det_cloudy)
 
 
 def PODcl(indict):

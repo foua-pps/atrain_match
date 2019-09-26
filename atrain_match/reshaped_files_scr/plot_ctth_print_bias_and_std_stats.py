@@ -17,6 +17,8 @@
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
 """Read all matched data and make some plotting
 """
+from plot_ctth_bias_distributions import PlotAndDataObject, extract_data
+from my_dir import ADIR
 import os
 import re
 from glob import glob
@@ -36,8 +38,6 @@ matplotlib.rcParams.update(matplotlib.rcParamsDefault)
 matplotlib.rcParams.update({'font.size': 18})
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
-from my_dir import ADIR
-from plot_ctth_bias_distributions import PlotAndDataObject, extract_data
 
 tag_dict = {"old": "(a) PPS-v2014",
             "mlvl2": "(b) MODIS-C6",
@@ -49,7 +49,7 @@ tag_dict = {"old": "(a) PPS-v2014",
             "nnmint": "(h) NN-MetImage",
             "nnmintnco2": "(g) NN-MetImage-$NoCO_2$",
 
-}
+            }
 # https://stats.stackexchange.com/questions/278237/half-sample-mode-estimate-of-sample-of-weighted-data
 
 
@@ -57,17 +57,17 @@ def half_sample_mode(x, already_sorted=False):
     if len(x) < 3:
         return np.mean(x)
     if already_sorted:
-        sorted_x = x # No need to sort
+        sorted_x = x  # No need to sort
     else:
         sorted_x = np.sort(x)
-    half_idx = int((len(x) + 1) / 2) # Round up to include the middle value, in the case of an odd-length array
+    half_idx = int((len(x) + 1) / 2)  # Round up to include the middle value, in the case of an odd-length array
 
     # Calculate all interesting ranges that span half of all data points
-    ranges = sorted_x[ - half_idx:] - sorted_x[:half_idx]
+    ranges = sorted_x[- half_idx:] - sorted_x[:half_idx]
     smallest_range_idx = np.argmin(ranges)
 
     # Now repeat the procedure on the half that spans the smallest range
-    x_subset = sorted_x[smallest_range_idx : (smallest_range_idx + half_idx)]
+    x_subset = sorted_x[smallest_range_idx: (smallest_range_idx + half_idx)]
     return half_sample_mode(x_subset, already_sorted=True)
 
 
@@ -88,7 +88,7 @@ def my_mode(bias):
     if maxind != maxind2:
         print maxind, maxind2
         raise ValueError
-    mode =bins[maxind] + delta_h*0.5
+    mode = bins[maxind] + delta_h*0.5
     return mode
 
 
@@ -112,12 +112,12 @@ def print_for_one(plt_obj, compare, truth='height_c'):
 
     compare_name = name_conversion[compare.split('_')[1]]
 
-    bias = y - x#+1465
+    bias = y - x  # +1465
     AE = np.abs(bias)
     std = np.std(bias[use])
 
     use_i = use
-    print "%s & %d & %d & %d & %d & %d & %d & %d & %d & %d & %d & %d & %d & %3.1f  \\\\"%(
+    print "%s & %d & %d & %d & %d & %d & %d & %d & %d & %d & %d & %d & %d & %3.1f  \\\\" % (
         compare_name,
         # np.sum(AE[use_i]<=1000)*100.0/len(AE[use_i]),
         np.mean(AE[use_i]),
@@ -135,9 +135,9 @@ def print_for_one(plt_obj, compare, truth='height_c'):
         # my_mode(bias[use_i]),
         half_sample_mode(bias[use_i]),
         np.mean(bias[use_i]),
-        skew(bias[use_i])# ,
+        skew(bias[use_i])  # ,
         # kurtosis(bias[use_i])
-        )
+    )
 
     """
     print "%s & %d & %d & %d & %d & %d & %d & %d & %d & %d & %d &  %d & %d & %d & %d & %d &   \\\\"%(
@@ -360,16 +360,16 @@ def print_all(plt_obj_cali_new, plt_obj_csat_new, month):
 
 
 def get_plot_object_nn_ctth_modis_lvl2_cloudsat(month):
-    day_str="01st"
+    day_str = "01st"
     ROOT_DIR = (
         ADIR + "/DATA_MISC/reshaped_files/"
         # "global_modis_%s_created20170519/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/*h5")
         "global_modis_%s_created20180316/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/*h5")
-        # "global_modis_%s_created20170330/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/*h5")
+    # "global_modis_%s_created20170330/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/*h5")
     # match_clsat = CloudsatImagerTrackObject()
     plt_obj = PlotAndDataObject()
-    print ROOT_DIR%(day_str, month)
-    files = glob(ROOT_DIR%(day_str, month))
+    print ROOT_DIR % (day_str, month)
+    files = glob(ROOT_DIR % (day_str, month))
     for filename in files:
         print filename
         match_clsat_new = readCloudsatImagerMatchObj(filename)
@@ -378,15 +378,15 @@ def get_plot_object_nn_ctth_modis_lvl2_cloudsat(month):
 
 
 def get_plot_object_nn_ctth_modis_lvl2(month):
-    day_str="01st"
+    day_str = "01st"
     ROOT_DIR = (
         ADIR + "/DATA_MISC/reshaped_files/"
         # "global_modis_%s_created20170504/Reshaped_Files_merged/eos2/1km/2010/%s/*h5")
         "global_modis_%s_created20180316/Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/%s/*h5")
-        # "global_modis_%s_created20170519/Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/%s/*h5")
+    # "global_modis_%s_created20170519/Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/%s/*h5")
     plt_obj = PlotAndDataObject()
-    print ROOT_DIR%(day_str, month)
-    files = glob(ROOT_DIR%(day_str, month))
+    print ROOT_DIR % (day_str, month)
+    files = glob(ROOT_DIR % (day_str, month))
     for filename in files:
         print filename
         match_calipso_new = readCaliopImagerMatchObj(filename)
@@ -401,7 +401,7 @@ def do_the_printing():
 
     merged_months = ""
     for month in ["02", "04", "06", "08", "10", "12"]:
-    # for month in ["08"]:
+        # for month in ["08"]:
         merged_months += month
         plt_obj_cali_new = get_plot_object_nn_ctth_modis_lvl2(month)
         plt_obj_csat_new = get_plot_object_nn_ctth_modis_lvl2_cloudsat(month)
@@ -410,6 +410,7 @@ def do_the_printing():
         plt_obj_csat += plt_obj_csat_new
 
     print_all(plt_obj_cali, plt_obj_csat, merged_months)
+
 
 if __name__ == "__main__":
     do_the_printing()

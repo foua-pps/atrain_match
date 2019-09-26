@@ -22,7 +22,7 @@
 #
 import numpy as np
 import unittest
-from atrain_match.truths.calipso import  (add_singleshot_to5km)
+from atrain_match.truths.calipso import (add_singleshot_to5km)
 from atrain_match.matchobject_io import CalipsoObject
 
 

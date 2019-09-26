@@ -98,16 +98,16 @@ if __name__ == '__main__':
                         nargs='?', required=False,
                         help='calculate the statistic for the optical '
                         'thickness filters')
-    parser.add_argument( '--write', '-w', const=True, nargs='?',
-                         required=False,
-                         help="Depricated: write results to file")
+    parser.add_argument('--write', '-w', const=True, nargs='?',
+                        required=False,
+                        help="Depricated: write results to file")
     (options) = parser.parse_args()
 
     from atrain_match.utils.runutils import read_config_info
     AM_PATHS, SETTINGS = read_config_info()
 
     # Find all wanted modes (dnt)
-    modes_list =[]
+    modes_list = []
     if options.nodnt == True:
         New_DNT_FLAG = ['']
     else:
@@ -132,34 +132,34 @@ if __name__ == '__main__':
         # Add dnt flag to all modes so far
     modes_dnt_list = []
     for mode in modes_list:
-          for dnt in New_DNT_FLAG:
-              modes_dnt_list.append(mode + dnt)
+        for dnt in New_DNT_FLAG:
+            modes_dnt_list.append(mode + dnt)
     # Treat cotfilter separately as those directories have not dnt-flag at end
     if options.cotfilter == True:
         print('Will calculate statistic for mode COT-filter')
         for dnt in New_DNT_FLAG:
             for cot in SETTINGS["MIN_OPTICAL_DEPTH"]:
                 # modes_list.append("OPTICAL_DEPTH-%0.2_%sf"(dnt, cot))# if like this
-                modes_dnt_list.append("OPTICAL_DEPTH%s-%0.2f"%(dnt, cot))
+                modes_dnt_list.append("OPTICAL_DEPTH%s-%0.2f" % (dnt, cot))
 
     # get cases
     CASES = []
     month_list = ["*"]
     day_list = ["*"]
-    if "MONTH" in SETTINGS.keys() and len(SETTINGS["MONTHS"])>0:
+    if "MONTH" in SETTINGS.keys() and len(SETTINGS["MONTHS"]) > 0:
         month_list = ["{:02d}".format(int(ind)) for ind in SETTINGS["MONTHS"]]
-    if "DAY" in SETTINGS.keys() and len(SETTINGS["DAYS"])>0:
+    if "DAY" in SETTINGS.keys() and len(SETTINGS["DAYS"]) > 0:
         day_list = ["{:02d}".format(int(ind)) for ind in SETTINGS["DAYS"]]
     for sat in SETTINGS["SATELLITES"]:
-        for year in  SETTINGS["YEARS"]:
+        for year in SETTINGS["YEARS"]:
             for month in month_list:
                 for day in day_list:
                     CASES.append({'satname': sat,
-                                 'month': month,
-                                 'year': year,
-                                 'day': day})
+                                  'month': month,
+                                  'year': year,
+                                  'day': day})
 
-    if len(modes_dnt_list) == 0 :
+    if len(modes_dnt_list) == 0:
         logger.warning("No modes selected!")
         parser.print_help()
     # For each mode calcualte the statistics
@@ -182,13 +182,13 @@ if __name__ == '__main__':
                     mode=process_mode_dnt,
                     truth_sat=truth_sat,
                     min_opt_depth="")
-                indata_dir =indata_dir.replace("_%H", "*")
+                indata_dir = indata_dir.replace("_%H", "*")
                 indata_file = AM_PATHS['result_file'].format(
                     resolution=str(RESOLUTION),
                     basename="*",
                     truth_sat=truth_sat)
                 print("-> " + indata_dir)
-                results_files.extend(glob("%s/*%skm*%s*.dat" %(indata_dir, RESOLUTION, truth_sat.lower())))
+                results_files.extend(glob("%s/*%skm*%s*.dat" % (indata_dir, RESOLUTION, truth_sat.lower())))
                 results_files = list(set(results_files))
             if len(results_files) < 1:
                 logger.info("PROCESS MODE %s have no results files", process_mode_dnt)

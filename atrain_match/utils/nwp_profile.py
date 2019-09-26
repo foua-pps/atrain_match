@@ -146,6 +146,7 @@ def generate_profile(grib_name, lon_name, lat_name, pressure=False,
     from pylab import show
     show()
 
+
 if __name__ == '__main__':
     from optparse import OptionParser
     parser = OptionParser("Usage: %prog [options] GRIBFILE lons.txt lats.txt")

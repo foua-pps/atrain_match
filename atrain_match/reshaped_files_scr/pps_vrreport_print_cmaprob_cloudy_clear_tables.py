@@ -24,18 +24,18 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 from utils.get_flag_info import (get_semi_opaque_info_pps2014,
-                           get_day_night_twilight_info_pps2014,
-                           get_land_coast_sea_info_pps2014,
-                           get_mountin_info_pps2014,
-                           get_inversion_info_pps2014,
-                           get_calipso_high_clouds,
-                           get_calipso_medium_clouds,
-                           get_calipso_medium_and_high_clouds_tp,
-                           get_calipso_clouds_of_type_i,
-                           get_calipso_low_clouds)
+                                 get_day_night_twilight_info_pps2014,
+                                 get_land_coast_sea_info_pps2014,
+                                 get_mountin_info_pps2014,
+                                 get_inversion_info_pps2014,
+                                 get_calipso_high_clouds,
+                                 get_calipso_medium_clouds,
+                                 get_calipso_medium_and_high_clouds_tp,
+                                 get_calipso_clouds_of_type_i,
+                                 get_calipso_low_clouds)
 from utils.stat_util import (HR_cma, K_cma,
-                       PODcy, FARcy,
-                       PODcl, FARcl)
+                             PODcy, FARcy,
+                             PODcl, FARcl)
 from my_dir import ADIR
 out_filename = ADIR + "/Documents/A_PPS_v2017/Validation_2018/results_cma_cmap.txt"
 out_file_h = open(out_filename, 'a')
@@ -48,15 +48,17 @@ def plot_cfc_table(match_calipso, cfc_limit=0.9, sat="modis"):
     cfc = match_calipso.calipso.all_arrays['cloud_fraction']
     calipso_snowi = match_calipso.calipso.all_arrays['nsidc_surface_type']
     od = match_calipso.calipso.all_arrays['total_optical_depth_5km']
-    cma = np.logical_or(match_calipso.imager.all_arrays['cloudmask']==1,
-                         match_calipso.imager.all_arrays['cloudmask']==2)
-    cl = np.logical_or(match_calipso.imager.all_arrays['cloudmask']==0,
-                         match_calipso.imager.all_arrays['cloudmask']==3)
-    pps_snowi = match_calipso.imager.all_arrays['cloudmask']==3
+    cma = np.logical_or(match_calipso.imager.all_arrays['cloudmask'] == 1,
+                        match_calipso.imager.all_arrays['cloudmask'] == 2)
+    cl = np.logical_or(match_calipso.imager.all_arrays['cloudmask'] == 0,
+                       match_calipso.imager.all_arrays['cloudmask'] == 3)
+    pps_snowi = match_calipso.imager.all_arrays['cloudmask'] == 3
     if match_calipso.imager.all_arrays['cloudmask'] is None:
-        cl =np.logical_and(np.less_equal(match_calipso.imager.cloudtype, 4), np.greater(match_calipso.imager.cloudtype, 0))
+        cl = np.logical_and(np.less_equal(match_calipso.imager.cloudtype, 4),
+                            np.greater(match_calipso.imager.cloudtype, 0))
         cma = np.logical_and(np.greater(match_calipso.imager.cloudtype, 4), np.less(match_calipso.imager.cloudtype, 20))
-        pps_snowi =np.logical_and(np.less_equal(match_calipso.imager.cloudtype, 4), np.greater(match_calipso.imager.cloudtype, 2))
+        pps_snowi = np.logical_and(np.less_equal(match_calipso.imager.cloudtype, 4),
+                                   np.greater(match_calipso.imager.cloudtype, 2))
 
     calipso_cfc = cfc.copy()
     calipso_cfc[cfc <= cfc_limit] = 0
@@ -71,7 +73,7 @@ def plot_cfc_table(match_calipso, cfc_limit=0.9, sat="modis"):
 
     # import pdb
     # pdb.set_trace()
-    pps_cprob[np.isnan(pps_cprob)]= -9
+    pps_cprob[np.isnan(pps_cprob)] = -9
     use = np.logical_and(use, pps_cprob > 0)
     cl = np.logical_and(use, cl)
     cma = np.logical_and(use, cma)
@@ -105,8 +107,8 @@ def plot_cfc_table(match_calipso, cfc_limit=0.9, sat="modis"):
             np.sum(np.logical_and(ct_quality == 24, pcloudy_clear_i)))
     print(info)
 
-    out_file_h.write("---------------------\n" )
-    out_file_h.write(sat + ": \n" )
+    out_file_h.write("---------------------\n")
+    out_file_h.write(sat + ": \n")
     out_file_h.write(info)
 
     info = ("CALIPSO-cloudy	CALIPSO-clear	CALIPSO-cloudy	CALISPO-clear\n" +
@@ -137,8 +139,8 @@ def plot_cfc_table(match_calipso, cfc_limit=0.9, sat="modis"):
             np.sum(pcloudy_clear_i),
             np.sum(np.logical_and(cma_aerosol == 1, pcloudy_clear_i)))
     print(info)
-    out_file_h.write("---------------------\n" )
-    out_file_h.write(sat + ": \n" )
+    out_file_h.write("---------------------\n")
+    out_file_h.write(sat + ": \n")
     out_file_h.write(info)
 
 
@@ -154,14 +156,22 @@ if __name__ == "__main__":
         ADIR + "/DATA_MISC/reshaped_files_jenkins_npp_modis/"
         "ATRAIN_RESULTS_NPP_C4/Reshaped_Files/npp/1km/2015/07/*/")
 
-    ROOT_DIR_v2014_npp = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_viirs_v2014_created20180914/Reshaped_Files_merged_caliop/npp/1km/2015/*/")
-    ROOT_DIR_v2018_npp = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_viirs_v2018_created20180907/Reshaped_Files_merged_caliop/npp/1km/2015/*/")
-    ROOT_DIR_v2014_modis = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_modis_v2014_created20180920/Reshaped_Files_merged_caliop/eos2/1km/2010/*/")
-    ROOT_DIR_v2018_modis = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_modis_v2018_created20180920/Reshaped_Files_merged_caliop/eos2/1km/2010/*/")
-    ROOT_DIR_v2018_modis_ice = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_modis_v2018_created20181001_cmap_osiice_dust/Reshaped_Files_merged_caliop/eos2/1km/2010/*/")
-    ROOT_DIR_v2014_gac = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_gac_v2014_created20180927/Reshaped_Files/noaa18/5km/*/")
-    ROOT_DIR_v2018_gac = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_gac_v2018_created20180927/Reshaped_Files/noaa18/5km/*/")
-    ROOT_DIR_v2018_npp_synop = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_viirs_v2018_created20181010_synop/Reshaped_Files_merged_synop/npp/1km/2015/*/")
+    ROOT_DIR_v2014_npp = (
+        ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_viirs_v2014_created20180914/Reshaped_Files_merged_caliop/npp/1km/2015/*/")
+    ROOT_DIR_v2018_npp = (
+        ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_viirs_v2018_created20180907/Reshaped_Files_merged_caliop/npp/1km/2015/*/")
+    ROOT_DIR_v2014_modis = (
+        ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_modis_v2014_created20180920/Reshaped_Files_merged_caliop/eos2/1km/2010/*/")
+    ROOT_DIR_v2018_modis = (
+        ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_modis_v2018_created20180920/Reshaped_Files_merged_caliop/eos2/1km/2010/*/")
+    ROOT_DIR_v2018_modis_ice = (
+        ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_modis_v2018_created20181001_cmap_osiice_dust/Reshaped_Files_merged_caliop/eos2/1km/2010/*/")
+    ROOT_DIR_v2014_gac = (
+        ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_gac_v2014_created20180927/Reshaped_Files/noaa18/5km/*/")
+    ROOT_DIR_v2018_gac = (
+        ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_gac_v2018_created20180927/Reshaped_Files/noaa18/5km/*/")
+    ROOT_DIR_v2018_npp_synop = (
+        ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_viirs_v2018_created20181010_synop/Reshaped_Files_merged_synop/npp/1km/2015/*/")
 
     def process_one_case(ROOT_DIR_INNER, exclude_2009=False):
         files = glob(ROOT_DIR_INNER + "*cali*h5")
@@ -179,11 +189,11 @@ if __name__ == "__main__":
     #                ROOT_DIR_v2018_gac]:
     #   process_one_case(ROOT_DIR, True)
 
-    for ROOT_DIR in [#ROOT_DIR_v2014_npp,
-                     ROOT_DIR_v2018_npp,
-                     # ROOT_DIR_v2014_modis,
-                     ROOT_DIR_v2018_modis,
-                     ROOT_DIR_v2018_modis_ice]:
+    for ROOT_DIR in [  # ROOT_DIR_v2014_npp,
+        ROOT_DIR_v2018_npp,
+        # ROOT_DIR_v2014_modis,
+        ROOT_DIR_v2018_modis,
+            ROOT_DIR_v2018_modis_ice]:
                      # ROOT_DIR_v2014_gac,
                      # ROOT_DIR_v2018_gac]:
         process_one_case(ROOT_DIR)

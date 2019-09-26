@@ -15,13 +15,12 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
+from atrain_match.libs.extract_imager_along_track import get_channel_data_from_object, get_data_from_array
+from atrain_match.libs.extract_imager_along_track import CHANNEL_MICRON_IMAGER_PPS, CHANNEL_MICRON_DESCRIPTIONS
+import atrain_match.config as config
 import numpy as np
 import logging
 logger = logging.getLogger(__name__)
-
-import atrain_match.config as config
-from atrain_match.libs.extract_imager_along_track import CHANNEL_MICRON_IMAGER_PPS, CHANNEL_MICRON_DESCRIPTIONS
-from atrain_match.libs.extract_imager_along_track import get_channel_data_from_object, get_data_from_array
 
 
 def get_t11t12_texture_data_from_object(imager_obj, aux_obj, ch11, ch12, text_name):
@@ -29,7 +28,7 @@ def get_t11t12_texture_data_from_object(imager_obj, aux_obj, ch11, ch12, text_na
     t11 = get_channel_data_from_objectfull_resolution(imager_obj, ch11, nodata=-9)
     t12 = get_channel_data_from_objectfull_resolution(imager_obj, ch12, nodata=-9)
     t11t12 = 1.0 * np.array(t11 - t12)
-    K=np.median(t11t12)  # K is trick to get better accurracy maybe not needed as differences are often small
+    K = np.median(t11t12)  # K is trick to get better accurracy maybe not needed as differences are often small
     t11t12 = (t11t12 - K)
     from scipy.ndimage import uniform_filter
     mean = uniform_filter(t11t12, size=(5, 5), mode='mirror')
@@ -82,24 +81,24 @@ def get_warmest_or_coldest_index(t11, matched, warmest=True):
     if warmest:
         FILL = -99
 
-    steps = [(i, j) for i in [-2, -1, 0, 1, 2] for j in  [-2, -1, 0, 1, 2] ]
-    t11_neighbour_i = np.zeros((25, matched['row'].shape[0]) )
+    steps = [(i, j) for i in [-2, -1, 0, 1, 2] for j in [-2, -1, 0, 1, 2]]
+    t11_neighbour_i = np.zeros((25, matched['row'].shape[0]))
     for i, (step_r, step_c) in enumerate(steps):
         new_row_col = {'row': matched['row'] + step_r,
                        'col': matched['col'] + step_c}
         t11_neighbour_i[i, :] = get_data_from_array_fill_outside(t11,
-                                                                new_row_col,
-                                                                Fill=FILL)
+                                                                 new_row_col,
+                                                                 Fill=FILL)
     if warmest:
         neigbour_index = np.argmax(t11_neighbour_i, axis=0)
     else:  # coldest
         neigbour_index = np.argmin(t11_neighbour_i, axis=0)
     new_row_matched = np.array(
         [matched['row'][idx] + steps[neigbour_index[idx]][0]
-         for idx in  range(matched['row'].shape[0])] )
+         for idx in range(matched['row'].shape[0])])
     new_col_matched = np.array(
         [matched['col'][idx] + steps[neigbour_index[idx]][1]
-         for idx in  range(matched['row'].shape[0])] )
+         for idx in range(matched['row'].shape[0])])
     new_row_col = {'row': new_row_matched, 'col': new_col_matched}
     return new_row_col
 
@@ -108,9 +107,9 @@ def get_warmest_values(imager_obj, matched):
     nobj = NeighbourObj()
     t11 = get_channel_data_from_objectfull_resolution(imager_obj, '11', nodata=-9)
     new_row_col = get_warmest_or_coldest_index(t11, matched)
-    nobj.warmest_t11=get_channel_data_from_object(imager_obj, '11', new_row_col)[0]
-    nobj.warmest_t12=get_channel_data_from_object(imager_obj, '12', new_row_col)[0]
-    nobj.warmest_t37=get_channel_data_from_object(imager_obj, '37', new_row_col)[0]
+    nobj.warmest_t11 = get_channel_data_from_object(imager_obj, '11', new_row_col)[0]
+    nobj.warmest_t12 = get_channel_data_from_object(imager_obj, '12', new_row_col)[0]
+    nobj.warmest_t37 = get_channel_data_from_object(imager_obj, '37', new_row_col)[0]
     nobj.warmest_r06, nobj.extra_info_sza_corr = get_channel_data_from_object(
         imager_obj, '06', new_row_col)
     nobj.warmest_r16 = get_channel_data_from_object(imager_obj, '16', new_row_col)[0]
@@ -122,13 +121,13 @@ def get_coldest_values(imager_obj, matched):
     nobj = NeighbourObj()
     t11 = get_channel_data_from_objectfull_resolution(imager_obj, '11', nodata=-9)
     new_row_col = get_warmest_or_coldest_index(t11, matched, warmest=False)
-    nobj.coldest_t11=get_channel_data_from_object(imager_obj, '11', new_row_col)[0]
-    nobj.coldest_t12=get_channel_data_from_object(imager_obj, '12', new_row_col)[0]
-    nobj.coldest_t37=get_channel_data_from_object(imager_obj, '37', new_row_col)[0]
+    nobj.coldest_t11 = get_channel_data_from_object(imager_obj, '11', new_row_col)[0]
+    nobj.coldest_t12 = get_channel_data_from_object(imager_obj, '12', new_row_col)[0]
+    nobj.coldest_t37 = get_channel_data_from_object(imager_obj, '37', new_row_col)[0]
     nobj.coldest_r06, nobj.extra_info_sza_corr = get_channel_data_from_object(
         imager_obj, '06', new_row_col)
-    nobj.coldest_r16=get_channel_data_from_object(imager_obj, '16', new_row_col)[0]
-    nobj.coldest_r09=get_channel_data_from_object(imager_obj, '09', new_row_col)[0]
+    nobj.coldest_r16 = get_channel_data_from_object(imager_obj, '16', new_row_col)[0]
+    nobj.coldest_r09 = get_channel_data_from_object(imager_obj, '09', new_row_col)[0]
     return nobj
 
 
@@ -138,12 +137,12 @@ def get_darkest_values(imager_obj, matched):
     r06 = get_channel_data_from_objectfull_resolution(imager_obj, '06', nodata=-9)
     darkest = np.where(r09 > r06, r06, r09)
     new_row_col = get_warmest_or_coldest_index(darkest, matched, warmest=False)
-    nobj.darkest_t11=get_channel_data_from_object(imager_obj, '11', new_row_col)[0]
-    nobj.darkest_t12=get_channel_data_from_object(imager_obj, '12', new_row_col)[0]
-    nobj.darkest_t37=get_channel_data_from_object(imager_obj, '37', new_row_col)[0]
-    nobj.darkest_r06, nobj.extra_info_sza_corr=get_channel_data_from_object(imager_obj, '06', new_row_col)
-    nobj.darkest_r16=get_channel_data_from_object(imager_obj, '16', new_row_col)[0]
-    nobj.darkest_r09=get_channel_data_from_object(imager_obj, '09', new_row_col)[0]
+    nobj.darkest_t11 = get_channel_data_from_object(imager_obj, '11', new_row_col)[0]
+    nobj.darkest_t12 = get_channel_data_from_object(imager_obj, '12', new_row_col)[0]
+    nobj.darkest_t37 = get_channel_data_from_object(imager_obj, '37', new_row_col)[0]
+    nobj.darkest_r06, nobj.extra_info_sza_corr = get_channel_data_from_object(imager_obj, '06', new_row_col)
+    nobj.darkest_r16 = get_channel_data_from_object(imager_obj, '16', new_row_col)[0]
+    nobj.darkest_r09 = get_channel_data_from_object(imager_obj, '09', new_row_col)[0]
     return nobj
 
 
@@ -159,7 +158,7 @@ def add_cnn_features_full(imager_obj, imagerGeoObj, SETTINGS):
     filter_response = m.apply(np.array([im11, im12]))
     lats_f = m.resample_coordinates(imagerGeoObj.latitude)
     lons_f = m.resample_coordinates(imagerGeoObj.longitude)
-    return {'filter_response': filter_response, 'lats_f': lats_f, 'lons_f':lons_f}
+    return {'filter_response': filter_response, 'lats_f': lats_f, 'lons_f': lons_f}
 
 
 def add_cnn_features(cnn_dict, matched, lats_matched, lons_matched, SETTINGS):
@@ -168,7 +167,7 @@ def add_cnn_features(cnn_dict, matched, lats_matched, lons_matched, SETTINGS):
     # (1, 32, 43, 43)
     # pytroll resample lats_matched/lons_matched to lats_f/lons_f
     # extract along track feature 1:32
-    the_filters_dict  = {}
+    the_filters_dict = {}
     filter_response = cnn_dict['filter_response']
     lats_f = cnn_dict['lats_f']
     lons_f = cnn_dict['lons_f']
@@ -184,7 +183,7 @@ def add_cnn_features(cnn_dict, matched, lats_matched, lons_matched, SETTINGS):
         the_filters_dict["cnn_feature_{:d}".format(feature_index)] = np.where(
             cnn_feature_index_R >= 0,
             feature_i[cnn_feature_index_R, cnn_feature_index_C],
-      - 9)
+            - 9)
     return the_filters_dict
 
 
@@ -198,14 +197,14 @@ def get_channel_data_from_objectfull_resolution(imager_obj, chn_des, nodata=-9):
         channels = imager_obj.channel
 
     numOfChannels = len(channels)
-    chnum=-1
+    chnum = -1
     for ich in range(numOfChannels):
         if channels[ich].des in CHANNEL_MICRON_DESCRIPTIONS[chn_des]:
             chnum = ich
-    if chnum ==-1:
+    if chnum == -1:
         raise ValueError
     temp = channels[chnum].data
-    chdata = channels[chnum].data* channels[chnum].gain + channels[chnum].intercept
+    chdata = channels[chnum].data * channels[chnum].gain + channels[chnum].intercept
     chdata[np.logical_or(np.equal(temp, imager_obj.nodata),
-                         np.equal(temp, imager_obj.missing_data))]= nodata
+                         np.equal(temp, imager_obj.missing_data))] = nodata
     return chdata

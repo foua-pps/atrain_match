@@ -20,6 +20,13 @@
   2018 SMHI, N.Hakansson
 """
 
+import atrain_match.config as config
+from atrain_match.utils.runutils import do_some_geo_obj_logging
+from atrain_match.imager_cloud_products.read_cloudproducts_and_nwp_pps import (
+    AllImagerData,
+    CtypeObj, CtthObj, CmaObj,
+    create_imager_time,
+    ImagerAngObj)
 import time
 import os
 import netCDF4
@@ -30,13 +37,6 @@ from datetime import timedelta
 import logging
 logger = logging.getLogger(__name__)
 
-from atrain_match.imager_cloud_products.read_cloudproducts_and_nwp_pps import (
-    AllImagerData,
-    CtypeObj, CtthObj, CmaObj,
-    create_imager_time,
-    ImagerAngObj)
-from atrain_match.utils.runutils import do_some_geo_obj_logging
-import atrain_match.config as config
 ATRAIN_MATCH_NODATA = config.NODATA
 # from atrain_match.utils.get_flag_info import get_patmosx_ct_flag, get_day_night_twilight_info_patmosx
 
@@ -113,13 +113,13 @@ def read_patmosx_ctype_cmask_ctth(patmosx_nc):
     ctth.height = patmosx_nc.variables['cld_height_acha'][0, :, :].astype(np.float)
     ctth.h_nodata = patmosx_nc.variables['cld_height_acha']._FillValue
     if np.ma.is_masked(ctth.height):
-        ctth.height.data[ctth.height.mask]  = ATRAIN_MATCH_NODATA
+        ctth.height.data[ctth.height.mask] = ATRAIN_MATCH_NODATA
         ctth.height = ctth.height.data
     ctth.height = 1000*ctth.height
     cf = patmosx_nc.variables['cloud_fraction'][0, :, :].astype(np.float)
     cma.cma_ext = np.where(cf >= 0.5, 1, 0)
     if np.ma.is_masked(cf):
-       cma.cma_ext[cf.mask] = 255
+        cma.cma_ext[cf.mask] = 255
     ctype.phaseflag = None
     ctype.ct_conditions = None
     return ctype, cma, ctth
@@ -143,7 +143,7 @@ def read_patmosx_geoobj(patmosx_nc, filename, cross, SETTINGS):
     longitude_v = patmosx_nc.variables['longitude'][:].astype(np.float)
     cloudproducts.latitude = np.repeat(latitude_v[:, np.newaxis], len(longitude_v), axis=1)
     cloudproducts.longitude = np.repeat(longitude_v[np.newaxis, :], len(latitude_v), axis=0)
-    cloudproducts.nodata=-999
+    cloudproducts.nodata = -999
     date_time_start = cross.time
     date_time_end = cross.time + timedelta(seconds=SETTINGS['SAT_ORBIT_DURATION'])
     cloudproducts.sec1970_start = calendar.timegm(date_time_start.timetuple())
@@ -152,7 +152,7 @@ def read_patmosx_geoobj(patmosx_nc, filename, cross, SETTINGS):
     if np.ma.is_masked(frac_hour):
         frac_hour = frac_hour.data
     seconds = frac_hour*60*60.0
-    cloudproducts.time = seconds +  patmosx_nc.variables['time']
+    cloudproducts.time = seconds + patmosx_nc.variables['time']
     do_some_geo_obj_logging(cloudproducts)
     return cloudproducts
 
@@ -194,13 +194,13 @@ def read_patmosx_ctype_cmask_ctth_hdf(patmosx_hdf):
     ctth.height = height_unscaled * gain + offset
     ctth.h_nodata = patmosx_hdf.select(name)._FillValue
     # ctth.height = 1000*ctth.height
-    ctth.height[height_unscaled==ctth.h_nodata] = ATRAIN_MATCH_NODATA
+    ctth.height[height_unscaled == ctth.h_nodata] = ATRAIN_MATCH_NODATA
     name = 'cloud_fraction'
     cf_unscaled = np.array(patmosx_hdf.select(name).get())
     offset = patmosx_hdf.select(name).attributes()['add_offset']
     gain = patmosx_hdf.select(name).attributes()['scale_factor']
     cf = cf_unscaled * gain + offset
-    cf[cf_unscaled== patmosx_hdf.select(name)._FillValue] = ATRAIN_MATCH_NODATA
+    cf[cf_unscaled == patmosx_hdf.select(name)._FillValue] = ATRAIN_MATCH_NODATA
     cma.cma_ext = np.where(cf >= 0.5, 1, 0)
     ctype.phaseflag = None
     ctype.ct_conditions = None
@@ -243,7 +243,7 @@ def read_patmosx_geoobj_hdf(patmosx_hdf, filename, cross, SETTINGS):
 
     cloudproducts.latitude = np.repeat(latitude_v[:, np.newaxis], len(longitude_v), axis=1)
     cloudproducts.longitude = np.repeat(longitude_v[np.newaxis, :], len(latitude_v), axis=0)
-    cloudproducts.nodata=-999
+    cloudproducts.nodata = -999
     date_time_start = cross.time
     date_time_end = cross.time + timedelta(seconds=SETTINGS['SAT_ORBIT_DURATION'])
     cloudproducts.sec1970_start = calendar.timegm(date_time_start.timetuple())
@@ -255,9 +255,10 @@ def read_patmosx_geoobj_hdf(patmosx_hdf, filename, cross, SETTINGS):
     time_s = patmosx_hdf.attributes()['time_coverage_start']
     dt_obj = datetime.strptime(time_s, "%Y-%m-%dT%H:%M:%SZ")
     time_sec_1970 = calendar.timegm(dt_obj.timetuple())
-    cloudproducts.time = seconds +  time_sec_1970
+    cloudproducts.time = seconds + time_sec_1970
     do_some_geo_obj_logging(cloudproducts)
     return cloudproducts
+
 
 if __name__ == "__main__":
     pass

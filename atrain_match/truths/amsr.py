@@ -15,21 +15,21 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
+import logging
+from atrain_match.utils.validate_lwp_util import LWP_THRESHOLD
+from atrain_match.libs.extract_imager_along_track import imager_track_from_matched
+from atrain_match.utils.common import (ProcessingError, MatchupError, elements_within_range)
+from atrain_match.utils.runutils import do_some_logging
+from atrain_match.truths.calipso import find_break_points
+from atrain_match.matchobject_io import (TruthImagerTrackObject,
+                                         AmsrObject)
+import atrain_match.config as config
 import h5py
 import numpy as np
 from datetime import datetime
 from calendar import timegm
 TAI93 = datetime(1993, 1, 1)
-import atrain_match.config as config
-from atrain_match.matchobject_io import (TruthImagerTrackObject,
-                            AmsrObject)
-from atrain_match.truths.calipso import find_break_points
-from atrain_match.utils.runutils import do_some_logging
 
-from atrain_match.utils.common import (ProcessingError, MatchupError, elements_within_range)
-from atrain_match.libs.extract_imager_along_track import imager_track_from_matched
-from atrain_match.utils.validate_lwp_util import LWP_THRESHOLD
-import logging
 logger = logging.getLogger(__name__)
 AMSR_RADIUS = 5.4e3  # 3.7e3 to include 5km pixels parly overlapping amsr-e footprint
 
@@ -152,7 +152,7 @@ def match_amsr_imager(amsr, cloudproducts, SETTINGS):
     retv = TruthImagerTrackObject(truth='amsr')
     retv.imager_instrument = cloudproducts.instrument.lower()
     retv.amsr = amsr
-    if (getattr(cloudproducts.cpp, "cpp_lwp")<0).all():
+    if (getattr(cloudproducts.cpp, "cpp_lwp") < 0).all():
         logger.warning("Not matching AMSR-E with scene with no lwp.")
         return None
         # return MatchupError("No imager Lwp.") # if only LWP matching?
@@ -162,10 +162,10 @@ def match_amsr_imager(amsr, cloudproducts, SETTINGS):
     if config.RESOLUTION == 5:
         n_neighbours = 5
     mapper_and_dist = map_imager_distances(cloudproducts,
-                                          amsr.longitude.ravel(),
-                                          amsr.latitude.ravel(),
-                                          radius_of_influence=AMSR_RADIUS,
-                                          n_neighbours=n_neighbours)
+                                           amsr.longitude.ravel(),
+                                           amsr.latitude.ravel(),
+                                           radius_of_influence=AMSR_RADIUS,
+                                           n_neighbours=n_neighbours)
     cal, cap = mapper_and_dist["mapper"]
     distances = mapper_and_dist["distances"]
     cal_1 = cal[:, 0]
@@ -182,7 +182,8 @@ def match_amsr_imager(amsr, cloudproducts, SETTINGS):
     else:
         imager_lines_sec_1970 = np.where(cal_1 != config.NODATA, cloudproducts.time[cal_1], np.nan)
     # Find all matching Amsr pixels within +/- sec_timeThr from the IMAGER data
-    imager_sunz_vector = np.array([cloudproducts.imager_angles.sunz.data[line, pixel] for line, pixel in zip(cal_1, cap_1)])
+    imager_sunz_vector = np.array([cloudproducts.imager_angles.sunz.data[line, pixel]
+                                   for line, pixel in zip(cal_1, cap_1)])
     idx_match = np.logical_and(
         elements_within_range(amsr.sec_1970, imager_lines_sec_1970, SETTINGS["sec_timeThr"]),
         imager_sunz_vector <= 84)  # something larger than 84 (max for lwp)
@@ -208,10 +209,10 @@ def match_amsr_imager(amsr, cloudproducts, SETTINGS):
 
     retv = imager_track_from_matched(retv, SETTINGS,
                                      cloudproducts,
-                                     extract_radiances = False,
-                                     extract_aux_segments = False,
-                                     extract_ctth = False,
-                                     extract_ctype = False,
-                                     aux_params = ['fractionofland', 'landuse'],
+                                     extract_radiances=False,
+                                     extract_aux_segments=False,
+                                     extract_ctth=False,
+                                     extract_ctype=False,
+                                     aux_params=['fractionofland', 'landuse'],
                                      extract_some_data_for_x_neighbours=True)
     return retv

@@ -20,6 +20,14 @@
   2016 SMHI, N.Hakansson
 """
 
+from atrain_match.utils.get_flag_info import get_maia_ct_flag, get_day_night_twilight_info_maia
+import atrain_match.config as config
+from atrain_match.utils.runutils import do_some_geo_obj_logging
+from atrain_match.imager_cloud_products.read_cloudproducts_and_nwp_pps import (
+    AllImagerData,
+    CtypeObj, CtthObj, CmaObj,
+    create_imager_time,
+    ImagerAngObj)
 import time
 import os
 import h5py
@@ -29,15 +37,7 @@ from datetime import datetime
 import logging
 logger = logging.getLogger(__name__)
 
-from atrain_match.imager_cloud_products.read_cloudproducts_and_nwp_pps import (
-    AllImagerData,
-    CtypeObj, CtthObj, CmaObj,
-    create_imager_time,
-    ImagerAngObj)
-from atrain_match.utils.runutils import do_some_geo_obj_logging
-import atrain_match.config as config
 ATRAIN_MATCH_NODATA = config.NODATA
-from atrain_match.utils.get_flag_info import get_maia_ct_flag, get_day_night_twilight_info_maia
 
 
 def get_satid_datetime_orbit_from_fname_maia(imager_filename):
@@ -86,7 +86,7 @@ def maia_read_all(filename):
 
         logger.info("Reading surface temperature")
         surft = read_maia_surftemp(maia_h5)
-        cloudproducts.nwp = AuxiliaryObj({'surftemp':surft})
+        cloudproducts.nwp = AuxiliaryObj({'surftemp': surft})
         logger.info("Not reading cloud microphysical properties")
         logger.info("Not reading channel data")
 
@@ -188,6 +188,7 @@ def read_maia_geoobj(maia_h5, filename):
     do_some_geo_obj_logging(cloudproducts)
 
     return cloudproducts
+
 
 if __name__ == "__main__":
     pass

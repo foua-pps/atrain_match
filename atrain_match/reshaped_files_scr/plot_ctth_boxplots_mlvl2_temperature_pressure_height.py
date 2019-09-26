@@ -17,6 +17,12 @@
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
 """Read all matched data and make some plotting
 """
+from my_dir import ADIR
+from utils.get_flag_info import (get_semi_opaque_info_pps2014,
+                                 get_calipso_high_clouds,
+                                 get_calipso_medium_clouds,
+                                 get_calipso_low_clouds)
+from utils.get_flag_info import get_calipso_clouds_of_type_i
 import os
 import re
 from glob import glob
@@ -28,13 +34,6 @@ from plot_kuipers_on_area_util import (PerformancePlottingObject,
 import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.rcParams.update({'font.size': 16})
-from utils.get_flag_info import get_calipso_clouds_of_type_i
-from utils.get_flag_info import (get_semi_opaque_info_pps2014,
-                           get_calipso_high_clouds,
-                           get_calipso_medium_clouds,
-                           get_calipso_low_clouds)
-
-from my_dir import ADIR
 
 
 def make_boxplot(match_calipso, name, month="xx", modis_lvl2=False, use_m2_pix=True):
@@ -42,7 +41,8 @@ def make_boxplot(match_calipso, name, month="xx", modis_lvl2=False, use_m2_pix=T
     high_clouds = get_calipso_high_clouds(match_calipso)
     medium_clouds = get_calipso_medium_clouds(match_calipso)
     height_c = 1000*match_calipso.calipso.all_arrays['layer_top_altitude'][:, 0]
-    cloud_elevation = 1000*match_calipso.calipso.all_arrays['layer_top_altitude'][:, 0]-match_calipso.calipso.all_arrays['elevation']
+    cloud_elevation = 1000 * \
+        match_calipso.calipso.all_arrays['layer_top_altitude'][:, 0]-match_calipso.calipso.all_arrays['elevation']
     if modis_lvl2:
         height_imager = match_calipso.modis.all_arrays['height']
     else:
@@ -53,7 +53,7 @@ def make_boxplot(match_calipso, name, month="xx", modis_lvl2=False, use_m2_pix=T
     use = np.logical_and(height_imager > - 1,
                          height_c >= 0)
     use = np.logical_and(height_imager < 45000, use)
-    USE_ONLY_PIXELS_WHERE_PPS_AND_MODIS_C6_HAVE_VALUES=use_m2_pix
+    USE_ONLY_PIXELS_WHERE_PPS_AND_MODIS_C6_HAVE_VALUES = use_m2_pix
     if USE_ONLY_PIXELS_WHERE_PPS_AND_MODIS_C6_HAVE_VALUES:
         height_mlvl2 = match_calipso.modis.all_arrays['height']
         height_pps = match_calipso.imager.all_arrays['imager_ctth_m_above_seasurface']
@@ -62,12 +62,12 @@ def make_boxplot(match_calipso, name, month="xx", modis_lvl2=False, use_m2_pix=T
         use = np.logical_and(use, height_pps > - 1)
         use = np.logical_and(use, height_pps < 45000)
 
-    thin = np.logical_and(match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']<0.30,
-                          match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>0)
-    very_thin = np.logical_and(match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']<0.10,
-                          match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>0)
-    thin_top = np.logical_and(match_calipso.calipso.all_arrays['number_layers_found']>1, thin)
-    thin_1_lay = np.logical_and(match_calipso.calipso.all_arrays['number_layers_found']==1, thin)
+    thin = np.logical_and(match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km'] < 0.30,
+                          match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km'] > 0)
+    very_thin = np.logical_and(match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km'] < 0.10,
+                               match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km'] > 0)
+    thin_top = np.logical_and(match_calipso.calipso.all_arrays['number_layers_found'] > 1, thin)
+    thin_1_lay = np.logical_and(match_calipso.calipso.all_arrays['number_layers_found'] == 1, thin)
 
     low = np.logical_and(low_clouds, use)
     medium = np.logical_and(medium_clouds, use)
@@ -80,7 +80,7 @@ def make_boxplot(match_calipso, name, month="xx", modis_lvl2=False, use_m2_pix=T
     bias = height_imager - height_c
     abias = np.abs(bias)
     # abias[abias>2000]=2000
-    print name.ljust(30, " "), "%3.1f"%(np.mean(abias[c_all])), "%3.1f"%(np.mean(abias[low])), "%3.1f"%(np.mean(abias[medium])), "%3.1f"%(np.mean(abias[high]))
+    print name.ljust(30, " "), "%3.1f" % (np.mean(abias[c_all])), "%3.1f" % (np.mean(abias[low])), "%3.1f" % (np.mean(abias[medium])), "%3.1f" % (np.mean(abias[high]))
 
     c_all = np.logical_or(np.logical_and(~very_thin, high), np.logical_or(low, medium))
     number_of = np.sum(c_all)
@@ -88,7 +88,7 @@ def make_boxplot(match_calipso, name, month="xx", modis_lvl2=False, use_m2_pix=T
     # print name.ljust(30, " "), "%3.1f"%(np.sum(abias[c_all]<250)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<500)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<1000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<1500)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<2000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<3000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<4000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<5000)*100.0/number_of)
     from matplotlib import rcParams
     rcParams.update({'figure.autolayout': True})
-    fig = plt.figure(figsize = (6, 9))
+    fig = plt.figure(figsize=(6, 9))
     ax = fig.add_subplot(111)
     plt.xticks(rotation=70)
     ax.fill_between(np.arange(0, 8), -500, 500, facecolor='green', alpha=0.6)
@@ -101,21 +101,21 @@ def make_boxplot(match_calipso, name, month="xx", modis_lvl2=False, use_m2_pix=T
         plt.plot(np.arange(0, 8), -10*1000 + 0*np.arange(0, 8), ':k', alpha=0.4)
     plt.plot(np.arange(0, 8), 0 + 0*np.arange(0, 8), ':k', alpha=0.4)
     bplot = ax.boxplot([bias[low], bias[medium], bias[high], bias[high_thick], bias[high_thin], bias[high_very_thin]], whis=[5, 95], sym='',
-                labels=["low", "medium", "high-all", "high-thick\n od>0.4", "high-thin \n 0.1<od<0.4", "high-vthin\n od<0.1"], showmeans=True, patch_artist=True)
+                       labels=["low", "medium", "high-all", "high-thick\n od>0.4", "high-thin \n 0.1<od<0.4", "high-vthin\n od<0.1"], showmeans=True, patch_artist=True)
     ax.set_ylim(-14000, 8000)
     for box in bplot['boxes']:
         box.set_facecolor('0.9')
-    plt.title("%s MAE = %3.0f"%(name, MAE))
-    plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_BOX/ctth_box_plot_%s_5_95_filt.png"%(name))
+    plt.title("%s MAE = %3.0f" % (name, MAE))
+    plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_BOX/ctth_box_plot_%s_5_95_filt.png" % (name))
 
-    elevation_zero = np.logical_and(use, match_calipso.calipso.all_arrays['elevation']>5000)
+    elevation_zero = np.logical_and(use, match_calipso.calipso.all_arrays['elevation'] > 5000)
     low_clouds = height_c < 2500
     medium_clouds = np.logical_and(height_c >= 2500, height_c <= 5000)
     high_clouds = height_c > 5000
     low = np.logical_and(low_clouds, use)
     medium = np.logical_and(medium_clouds, use)
     high = np.logical_and(high_clouds, use)
-    fig = plt.figure(figsize = (6, 9))
+    fig = plt.figure(figsize=(6, 9))
     ax = fig.add_subplot(111)
     plt.xticks(rotation=50)
     ax.fill_between(np.arange(0, 8), -500, 500, facecolor='green', alpha=0.6)
@@ -133,15 +133,15 @@ def make_boxplot(match_calipso, name, month="xx", modis_lvl2=False, use_m2_pix=T
     ax.set_ylim(-8000, 8000)
     for box in bplot['boxes']:
         box.set_facecolor('0.9')
-    plt.title("Calipso %s \nHeight bias comparison MAE= %3.0f"%(name, MAE))
-    plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_BOX/ctth_box_plot_hkm_%s_5_95_filt.png"%(name))
+    plt.title("Calipso %s \nHeight bias comparison MAE= %3.0f" % (name, MAE))
+    plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_BOX/ctth_box_plot_hkm_%s_5_95_filt.png" % (name))
 
 
 def make_boxplot_temperature(match_calipso, name, modis_lvl2=False):
     low_clouds = get_calipso_low_clouds(match_calipso)
     high_clouds = get_calipso_high_clouds(match_calipso)
     medium_clouds = get_calipso_medium_clouds(match_calipso)
-    temp_c = match_calipso.calipso.all_arrays['layer_top_temperature'][:, 0] +273.15
+    temp_c = match_calipso.calipso.all_arrays['layer_top_temperature'][:, 0] + 273.15
     if modis_lvl2:
         temp_pps = match_calipso.modis.all_arrays['temperature']
     else:
@@ -151,12 +151,12 @@ def make_boxplot_temperature(match_calipso, name, modis_lvl2=False):
     else:
         height_pps = match_calipso.imager.all_arrays['ctth_height']
 
-    thin = np.logical_and(match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']<0.30,
-                          match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>0)
-    very_thin = np.logical_and(match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']<0.10,
-                          match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>0)
-    thin_top = np.logical_and(match_calipso.calipso.all_arrays['number_layers_found']>1, thin)
-    thin_1_lay = np.logical_and(match_calipso.calipso.all_arrays['number_layers_found']==1, thin)
+    thin = np.logical_and(match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km'] < 0.30,
+                          match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km'] > 0)
+    very_thin = np.logical_and(match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km'] < 0.10,
+                               match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km'] > 0)
+    thin_top = np.logical_and(match_calipso.calipso.all_arrays['number_layers_found'] > 1, thin)
+    thin_1_lay = np.logical_and(match_calipso.calipso.all_arrays['number_layers_found'] == 1, thin)
     use = np.logical_and(temp_pps > 100,
                          match_calipso.calipso.all_arrays['layer_top_altitude'][:, 0] >= 0)
     use = np.logical_and(height_pps < 45000, use)
@@ -171,7 +171,7 @@ def make_boxplot_temperature(match_calipso, name, modis_lvl2=False):
     bias = temp_pps - temp_c
     abias = np.abs(bias)
     # abias[abias>2000]=2000
-    print name.ljust(30, " "), "%3.1f"%(np.mean(abias[c_all])), "%3.1f"%(np.mean(abias[low])), "%3.1f"%(np.mean(abias[medium])), "%3.1f"%(np.mean(abias[high]))
+    print name.ljust(30, " "), "%3.1f" % (np.mean(abias[c_all])), "%3.1f" % (np.mean(abias[low])), "%3.1f" % (np.mean(abias[medium])), "%3.1f" % (np.mean(abias[high]))
 
     c_all = np.logical_or(np.logical_and(~very_thin, high), np.logical_or(low, medium))
     number_of = np.sum(c_all)
@@ -179,7 +179,7 @@ def make_boxplot_temperature(match_calipso, name, modis_lvl2=False):
     # print name.ljust(30, " "), "%3.1f"%(np.sum(abias[c_all]<250)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<500)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<1000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<1500)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<2000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<3000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<4000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<5000)*100.0/number_of)
     from matplotlib import rcParams
     rcParams.update({'figure.autolayout': True})
-    fig = plt.figure(figsize = (6, 9))
+    fig = plt.figure(figsize=(6, 9))
     ax = fig.add_subplot(111)
     plt.xticks(rotation=70)
     ax.fill_between(np.arange(0, 8), -2.5, 2.5, facecolor='green', alpha=0.6)
@@ -191,12 +191,12 @@ def make_boxplot_temperature(match_calipso, name, modis_lvl2=False):
         plt.plot(np.arange(0, 8), y_val*20 + 0*np.arange(0, 8), ':k', alpha=0.4)
     plt.plot(np.arange(0, 8), 0 + 0*np.arange(0, 8), ':k', alpha=0.4)
     bplot = ax.boxplot([bias[low], bias[medium], bias[high], bias[high_thick], bias[high_thin], bias[high_very_thin]], whis=[5, 95], sym='',
-                labels=["low", "medium", "high-all", "high-thick\n od>0.4", "high-thin \n 0.1<od<0.4", "high-vthin\n od<0.1"], showmeans=True, patch_artist=True)
+                       labels=["low", "medium", "high-all", "high-thick\n od>0.4", "high-thin \n 0.1<od<0.4", "high-vthin\n od<0.1"], showmeans=True, patch_artist=True)
     ax.set_ylim(-20, 100)
     for box in bplot['boxes']:
         box.set_facecolor('0.9')
     plt.title(name)
-    plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_BOX/ctth_box_plot_temperature_%s_5_95_filt.png"%(name))
+    plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_BOX/ctth_box_plot_temperature_%s_5_95_filt.png" % (name))
 
 
 def make_boxplot_pressure(match_calipso, name, modis_lvl2=False):
@@ -213,12 +213,12 @@ def make_boxplot_pressure(match_calipso, name, modis_lvl2=False):
     else:
         height_pps = match_calipso.imager.all_arrays['ctth_height']
 
-    thin = np.logical_and(match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']<0.30,
-                          match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>0)
-    very_thin = np.logical_and(match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']<0.10,
-                          match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>0)
-    thin_top = np.logical_and(match_calipso.calipso.all_arrays['number_layers_found']>1, thin)
-    thin_1_lay = np.logical_and(match_calipso.calipso.all_arrays['number_layers_found']==1, thin)
+    thin = np.logical_and(match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km'] < 0.30,
+                          match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km'] > 0)
+    very_thin = np.logical_and(match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km'] < 0.10,
+                               match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km'] > 0)
+    thin_top = np.logical_and(match_calipso.calipso.all_arrays['number_layers_found'] > 1, thin)
+    thin_1_lay = np.logical_and(match_calipso.calipso.all_arrays['number_layers_found'] == 1, thin)
     use = np.logical_and(pressure_pps > 0,
                          match_calipso.calipso.all_arrays['layer_top_altitude'][:, 0] >= 0)
     low = np.logical_and(low_clouds, use)
@@ -232,7 +232,7 @@ def make_boxplot_pressure(match_calipso, name, modis_lvl2=False):
     bias = pressure_pps - pressure_c
     abias = np.abs(bias)
     # abias[abias>2000]=2000
-    print name.ljust(30, " "), "%3.1f"%(np.mean(abias[c_all])), "%3.1f"%(np.mean(abias[low])), "%3.1f"%(np.mean(abias[medium])), "%3.1f"%(np.mean(abias[high]))
+    print name.ljust(30, " "), "%3.1f" % (np.mean(abias[c_all])), "%3.1f" % (np.mean(abias[low])), "%3.1f" % (np.mean(abias[medium])), "%3.1f" % (np.mean(abias[high]))
 
     c_all = np.logical_or(np.logical_and(~very_thin, high), np.logical_or(low, medium))
     number_of = np.sum(c_all)
@@ -240,7 +240,7 @@ def make_boxplot_pressure(match_calipso, name, modis_lvl2=False):
     # print name.ljust(30, " "), "%3.1f"%(np.sum(abias[c_all]<250)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<500)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<1000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<1500)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<2000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<3000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<4000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<5000)*100.0/number_of)
     from matplotlib import rcParams
     rcParams.update({'figure.autolayout': True})
-    fig = plt.figure(figsize = (6, 9))
+    fig = plt.figure(figsize=(6, 9))
     ax = fig.add_subplot(111)
     plt.xticks(rotation=70)
     ax.fill_between(np.arange(0, 8), -50, 50, facecolor='green', alpha=0.6)
@@ -252,12 +252,12 @@ def make_boxplot_pressure(match_calipso, name, modis_lvl2=False):
         plt.plot(np.arange(0, 8), y_val*100 + 0*np.arange(0, 8), ':k', alpha=0.4)
     plt.plot(np.arange(0, 8), 0 + 0*np.arange(0, 8), ':k', alpha=0.4)
     bplot = ax.boxplot([bias[low], bias[medium], bias[high], bias[high_thick], bias[high_thin], bias[high_very_thin]], whis=[5, 95], sym='',
-                labels=["low", "medium", "high-all", "high-thick\n od>0.4", "high-thin \n 0.1<od<0.4", "high-vthin\n od<0.1"], showmeans=True, patch_artist=True)
+                       labels=["low", "medium", "high-all", "high-thick\n od>0.4", "high-thin \n 0.1<od<0.4", "high-vthin\n od<0.1"], showmeans=True, patch_artist=True)
     ax.set_ylim(-1000, 800)
     for box in bplot['boxes']:
         box.set_facecolor('0.9')
     plt.title(name)
-    plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_BOX/ctth_box_plot_pressure_%s_5_95_filt.png"%(name))
+    plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_BOX/ctth_box_plot_pressure_%s_5_95_filt.png" % (name))
 
 
 def investigate_nn_ctth_modis_lvl2():
@@ -271,7 +271,7 @@ def investigate_nn_ctth_modis_lvl2():
         ADIR + "/DATA_MISC/reshaped_files/"
         "global_modis_14th_created20161108/Reshaped_Files/merged/*%s*h5")
 
-    for month in [ "06", "09", "01"]:
+    for month in ["06", "09", "01"]:
         for ROOT_DIR, name in zip(
                 [ROOT_DIR_MODIS_nn_imager,
                  ROOT_DIR_MODIS_nn_imager,
@@ -279,22 +279,23 @@ def investigate_nn_ctth_modis_lvl2():
                 ["modis_nnIMAGER",
                  "modis_lvl2_C6",
                  "modis_CTTHold"]):
-            name = "%s_%s"%(name, month)
+            name = "%s_%s" % (name, month)
             print ROOT_DIR
-            files = glob(ROOT_DIR%(month))
+            files = glob(ROOT_DIR % (month))
             match_calipso = CalipsoImagerTrackObject()
             for filename in files:
                 # print filename
                 match_calipso += readCaliopImagerMatchObj(filename)
             modis_lvl2 = False
-            if "modis_lvl2"  in name:
+            if "modis_lvl2" in name:
                 modis_lvl2 = True
-            use_m2_pix=True
+            use_m2_pix = True
             if "old" in name:
-                use_m2_pix=False
-            make_boxplot(match_calipso, name, month = month, modis_lvl2=modis_lvl2, use_m2_pix=use_m2_pix)
+                use_m2_pix = False
+            make_boxplot(match_calipso, name, month=month, modis_lvl2=modis_lvl2, use_m2_pix=use_m2_pix)
             make_boxplot_pressure(match_calipso, name, modis_lvl2=modis_lvl2)
             make_boxplot_temperature(match_calipso, name, modis_lvl2=modis_lvl2)
+
 
 if __name__ == "__main__":
     investigate_nn_ctth_modis_lvl2()

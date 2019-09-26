@@ -17,6 +17,8 @@
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
 """Read all matched data and make tables
 """
+from my_dir import ADIR
+from utils.get_flag_info import get_pixels_where_test_is_passed
 import os
 from glob import glob
 import numpy as np
@@ -25,10 +27,8 @@ from matchobject_io import (readCaliopImagerMatchObj,
                             CalipsoImagerTrackObject)
 import warnings
 warnings.filterwarnings("ignore")
-from utils.get_flag_info import get_pixels_where_test_is_passed
 
 v2014 = False
-from my_dir import ADIR
 
 
 def print_common_stats(match_calipso, use, name_dict, mints, maxts, surface_type, illumination, basename_outfile="basename_outfile"):
@@ -38,13 +38,13 @@ def print_common_stats(match_calipso, use, name_dict, mints, maxts, surface_type
         sunz = match_calipso.imager.all_arrays['sunz']
     print np.min(sunz), np.max(sunz)
 
-    outfile=(ADIR + "/DATA_MISC/cma_log_files_can_be_removed_after_some_time"
-             "/log_cma_thin_%s_%s_%s_temp%d_%d_.txt"%(basename_outfile, surface_type, illumination, mints, maxts))
+    outfile = (ADIR + "/DATA_MISC/cma_log_files_can_be_removed_after_some_time"
+               "/log_cma_thin_%s_%s_%s_temp%d_%d_.txt" % (basename_outfile, surface_type, illumination, mints, maxts))
     print outfile
     outfile_h = open(outfile, 'w')
     all_out_text = ""
-    nlay =np.where(match_calipso.calipso.all_arrays['number_layers_found']>0, 1, 0)
-    meancl=ndimage.filters.uniform_filter1d(nlay*1.0, size=3)
+    nlay = np.where(match_calipso.calipso.all_arrays['number_layers_found'] > 0, 1, 0)
+    meancl = ndimage.filters.uniform_filter1d(nlay*1.0, size=3)
     """
     isCalipsoCloudy = match_calipso.calipso.all_arrays['cloud_fraction'] >= 0.5
 
@@ -64,62 +64,63 @@ def print_common_stats(match_calipso, use, name_dict, mints, maxts, surface_type
     isCalipsoCloudy = match_calipso.calipso.all_arrays['cloud_fraction'] >= 0.5
     isCalipsoCloudy = np.logical_and(
         isCalipsoCloudy,
-        np.logical_or(match_calipso.calipso.all_arrays['total_optical_depth_5km']>0.1,
-                       match_calipso.calipso.all_arrays['total_optical_depth_5km']<0))
-    isCalipsoClear = match_calipso.calipso.all_arrays['cloud_fraction']<0.0001
+        np.logical_or(match_calipso.calipso.all_arrays['total_optical_depth_5km'] > 0.1,
+                      match_calipso.calipso.all_arrays['total_optical_depth_5km'] < 0))
+    isCalipsoClear = match_calipso.calipso.all_arrays['cloud_fraction'] < 0.0001
     isCalipsoSnowIce = np.logical_and(
         isCalipsoClear,
-        match_calipso.calipso.all_arrays['nsidc_surface_type']>50)
+        match_calipso.calipso.all_arrays['nsidc_surface_type'] > 50)
     isCalipsoSnowIceWithCloudAbove = np.logical_and(
         isCalipsoCloudy,
-        match_calipso.calipso.all_arrays['nsidc_surface_type']>5)
+        match_calipso.calipso.all_arrays['nsidc_surface_type'] > 5)
     # print np.sum(isCalipsoSnowIce)
     isCalipsoNotSnowIce = np.logical_and(
         isCalipsoClear,
         match_calipso.calipso.all_arrays['nsidc_surface_type'] <= 0)
     isClearPPS = np.logical_or(np.equal(match_calipso.imager.cloudmask, 3),
-                                   np.equal(match_calipso.imager.cloudmask, 0))
+                               np.equal(match_calipso.imager.cloudmask, 0))
     isCloudyPPS = np.logical_or(np.equal(match_calipso.imager.cloudmask, 1),
-                                   np.equal(match_calipso.imager.cloudmask, 2))
+                                np.equal(match_calipso.imager.cloudmask, 2))
 
     gotLight = sunz < 95
-    nodata = np.sum(match_calipso.imager.all_arrays['cloudtype'][use]>200)
+    nodata = np.sum(match_calipso.imager.all_arrays['cloudtype'][use] > 200)
     use = np.logical_and(use, np.logical_or(isCloudyPPS, isClearPPS))
     use = np.logical_and(use, np.logical_or(isCalipsoCloudy, isCalipsoClear))
-    use = np.logical_and(use, match_calipso.imager.all_arrays['surftemp']<=maxts)
-    use = np.logical_and(use, match_calipso.imager.all_arrays['surftemp']>mints)
-    from utils.get_flag_info import  get_land_coast_sea_info_pps2014
+    use = np.logical_and(use, match_calipso.imager.all_arrays['surftemp'] <= maxts)
+    use = np.logical_and(use, match_calipso.imager.all_arrays['surftemp'] > mints)
+    from utils.get_flag_info import get_land_coast_sea_info_pps2014
     (no_qflag, land_flag, sea_flag, coast_flag, all_lsc_flag
-    ) = get_land_coast_sea_info_pps2014(match_calipso.imager.all_arrays['cloudtype_conditions'])
+     ) = get_land_coast_sea_info_pps2014(match_calipso.imager.all_arrays['cloudtype_conditions'])
     if surface_type in ["land"]:
         # use = np.logical_and(use, np.not_equal(match_calipso.calipso.igbp_surface_type, 17))
         use = np.logical_and(use, land_flag)
     elif surface_type in ["emiss"]:
         # use = np.logical_and(use, np.not_equal(match_calipso.calipso.igbp_surface_type, 17))
         use = np.logical_and(use, np.logical_or(land_flag, coast_flag))
-        use = np.logical_and(use, match_calipso.imager.all_arrays['emis1']<1.0)
+        use = np.logical_and(use, match_calipso.imager.all_arrays['emis1'] < 1.0)
     elif surface_type in ["emiss_coast"]:
         # use = np.logical_and(use, np.not_equal(match_calipso.calipso.igbp_surface_type, 17))
         use = np.logical_and(use, coast_flag)
-        use = np.logical_and(use, match_calipso.imager.all_arrays['emis1']<1.0)
+        use = np.logical_and(use, match_calipso.imager.all_arrays['emis1'] < 1.0)
     elif surface_type in ["emiss_land"]:
         # use = np.logical_and(use, np.not_equal(match_calipso.calipso.igbp_surface_type, 17))
         use = np.logical_and(use, land_flag)
-        use = np.logical_and(use, match_calipso.imager.all_arrays['emis1']<1.0)
+        use = np.logical_and(use, match_calipso.imager.all_arrays['emis1'] < 1.0)
     elif surface_type in ["noemiss_coast"]:
         # use = np.logical_and(use, np.not_equal(match_calipso.calipso.igbp_surface_type, 17))
         use = np.logical_and(use, coast_flag)
-        use = np.logical_and(use, match_calipso.imager.all_arrays['emis1']==1.0)
+        use = np.logical_and(use, match_calipso.imager.all_arrays['emis1'] == 1.0)
     elif surface_type in ["noemiss_land"]:
         # use = np.logical_and(use, np.not_equal(match_calipso.calipso.igbp_surface_type, 17))
         use = np.logical_and(use, land_flag)
-        use = np.logical_and(use, match_calipso.imager.all_arrays['emis1']==1.0)
+        use = np.logical_and(use, match_calipso.imager.all_arrays['emis1'] == 1.0)
     elif surface_type in ["noemiss"]:
         # use = np.logical_and(use, np.not_equal(match_calipso.calipso.igbp_surface_type, 17))
         use = np.logical_and(use, np.logical_or(land_flag, coast_flag))
-        use = np.logical_and(use, match_calipso.imager.all_arrays['emis1']==1.0)
+        use = np.logical_and(use, match_calipso.imager.all_arrays['emis1'] == 1.0)
         import matplotlib.pyplot as plt
-        plt.plot(match_calipso.imager.all_arrays['longitude'][use], match_calipso.imager.all_arrays['latitude'][use], 'b.')
+        plt.plot(match_calipso.imager.all_arrays['longitude'][use],
+                 match_calipso.imager.all_arrays['latitude'][use], 'b.')
         plt.savefig('emiss_missing.png')
         # plt.show()
     elif surface_type in ["sea"]:
@@ -163,29 +164,29 @@ def print_common_stats(match_calipso, use, name_dict, mints, maxts, surface_type
 
     NALL = N_clouds + N_clear
     PODcloudy = N_detected_clouds*1.0/N_clouds
-    FARcloudy = N_false_clouds *1.0/np.sum(isCloudyPPS[use])
+    FARcloudy = N_false_clouds * 1.0/np.sum(isCloudyPPS[use])
     PODclear = N_detected_clear*1.0/N_clear
     Hitrate = (N_detected_clear + N_detected_clouds)*1.0/NALL
 
     Num = np.sum(use)
     cfc = np.sum(isCalipsoCloudy[use])*1.0/Num
     part_nodata = nodata*1.0/(nodata + Num)
-    all_out_text += "N: %d POD-cloudy: %3.1f FAR-cloudy: %3.1f POD-clear %3.1f %3.3f Hitrate:  %3.1f Kuipers:  %3.3f\n"%(
-        Num, 100.0*PODcloudy, 100.0*FARcloudy, 100.0*PODclear, cfc, 100*Hitrate, Kuipers )
+    all_out_text += "N: %d POD-cloudy: %3.1f FAR-cloudy: %3.1f POD-clear %3.1f %3.3f Hitrate:  %3.1f Kuipers:  %3.3f\n" % (
+        Num, 100.0*PODcloudy, 100.0*FARcloudy, 100.0*PODclear, cfc, 100*Hitrate, Kuipers)
     print all_out_text
     all_pix = use.copy()
     if v2014:
-          outfile_h.write(all_out_text+"\n")
-          Num = np.sum(use)
-          part_nodata = nodata*1.0/(nodata + Num)
-          return
+        outfile_h.write(all_out_text+"\n")
+        Num = np.sum(use)
+        part_nodata = nodata*1.0/(nodata + Num)
+        return
     for var in ['cma_testlist0',
                 'cma_testlist1',
                 'cma_testlist2',
                 'cma_testlist3',
                 'cma_testlist4',
                 'cma_testlist5',
-            ]:
+                ]:
         # print var
         for bit_nr in range(0, 16):
             if bit_nr not in name_dict[var].keys():
@@ -202,87 +203,87 @@ def print_common_stats(match_calipso, use, name_dict, mints, maxts, surface_type
             #                           match_calipso.imager.all_arrays[var]==4))
             PODcloudy = (np.sum(np.logical_and(isCalipsoCloudy[use_this_test],
                                                isCloudyPPS[use_this_test]))*1.0
-                         /np.sum(isCalipsoCloudy[use]))
+                         / np.sum(isCalipsoCloudy[use]))
             FARcloudy = (np.sum(np.logical_and(isCalipsoClear[use_this_test],
-                                           isCloudyPPS[use_this_test]))*1.0
-                         /np.sum(isCloudyPPS[use_this_test]))
+                                               isCloudyPPS[use_this_test]))*1.0
+                         / np.sum(isCloudyPPS[use_this_test]))
             PODclear = (np.sum(np.logical_and(isCalipsoClear[use_this_test],
                                               isClearPPS[use_this_test]))*1.0
-                        /np.sum(isCalipsoClear[use]))
+                        / np.sum(isCalipsoClear[use]))
             PODsnow = (np.sum(np.logical_and(isCalipsoSnowIce[use_this_test],
-                                            isClearPPS[use_this_test]))*1.0
-                       /np.sum(np.logical_and(isCalipsoSnowIce[use], gotLight[use])))
+                                             isClearPPS[use_this_test]))*1.0
+                       / np.sum(np.logical_and(isCalipsoSnowIce[use], gotLight[use])))
             FARsnow_not_clouds = (np.sum(np.logical_and(isCalipsoNotSnowIce[use_this_test],
                                                         isClearPPS[use_this_test]))*1.0
-                                  /np.sum(isClearPPS[use_this_test]))
+                                  / np.sum(isClearPPS[use_this_test]))
             FARclear = (np.sum(np.logical_and(isCalipsoCloudy[use_this_test],
                                               isClearPPS[use_this_test]))*1.0
-                        /np.sum(isClearPPS[use_this_test]))
+                        / np.sum(isClearPPS[use_this_test]))
             MISSclear = (np.sum(np.logical_and(isCalipsoClear[use_this_test],
-                                              isCloudyPPS[use_this_test]))*1.0
-                        /np.sum(isCalipsoClear[use]))
+                                               isCloudyPPS[use_this_test]))*1.0
+                         / np.sum(isCalipsoClear[use]))
             MISScloudy = (np.sum(np.logical_and(isCalipsoCloudy[use_this_test],
-                                              isClearPPS[use_this_test]))*1.0
-                        /np.sum(isCalipsoCloudy[use]))
+                                                isClearPPS[use_this_test]))*1.0
+                          / np.sum(isCalipsoCloudy[use]))
             MISScloudyOverSnow = (np.sum(np.logical_and(
                 isCalipsoSnowIceWithCloudAbove[use_this_test],
                 isClearPPS[use_this_test]))*1.0
-                        /np.sum(isCalipsoCloudy[use]))
+                / np.sum(isCalipsoCloudy[use]))
             MISSsnow = (np.sum(np.logical_and(
                 np.logical_and(
                     isCalipsoSnowIce[use_this_test],
                     gotLight[use_this_test]),
                 isCloudyPPS[use_this_test]))*1.0
-                        /np.sum(isCalipsoClear[use]))
+                / np.sum(isCalipsoClear[use]))
             LOSTsnow = (np.sum(np.logical_and(
                 np.logical_and(
                     isCalipsoSnowIce[use_this_test],
                     gotLight[use_this_test]),
                 isCloudyPPS[use_this_test]))*1.0
-                        /np.sum(np.logical_and(isCalipsoSnowIce[use], gotLight[use])))
+                / np.sum(np.logical_and(isCalipsoSnowIce[use], gotLight[use])))
 
             PRINT_FOR_OUTPUT_ON_SCREEN = False
             test_name = name_dict[var][bit_nr]
             if PRINT_FOR_OUTPUT_ON_SCREEN:
-                all_out_text += "%s test_bit: %s"%(var, str(bit_nr).rjust(2, ' ') )
+                all_out_text += "%s test_bit: %s" % (var, str(bit_nr).rjust(2, ' '))
 
-            clear_test=False
-            if (var == 'cma_testlist5' and bit_nr<9) or (var == 'cma_testlist4' and bit_nr>1) or (var == 'cma_testlist5' and bit_nr==12)  or (var == 'cma_testlist5' and bit_nr==13):
-                clear_test=True
+            clear_test = False
+            if (var == 'cma_testlist5' and bit_nr < 9) or (var == 'cma_testlist4' and bit_nr > 1) or (var == 'cma_testlist5' and bit_nr == 12) or (var == 'cma_testlist5' and bit_nr == 13):
+                clear_test = True
             num_passed = np.sum(use_this_test)
             print num_passed, name_dict[var][bit_nr]
-            if clear_test and 'now' in name_dict[var][bit_nr] and num_passed>0:
-                all_out_text += "N: %s POD-clear: %s FAR-clear: %s POD-snow: %s FAR_not_clouds %s LOSTsnow %s MISScloudy: %s (%s) %s \n"%(
+            if clear_test and 'now' in name_dict[var][bit_nr] and num_passed > 0:
+                all_out_text += "N: %s POD-clear: %s FAR-clear: %s POD-snow: %s FAR_not_clouds %s LOSTsnow %s MISScloudy: %s (%s) %s \n" % (
                     str(num_passed).rjust(8, ' '),
-                    ("%3.2f"%(PODclear*100)).rjust(5, ' '),
-                    ("%3.2f"%(FARclear*100)).rjust(5, ' '),
-                    ("%3.2f"%(PODsnow*100)).rjust(5, ' '),
-                    ("%3.2f"%(FARsnow_not_clouds*100)).rjust(5, ' '),
-                    ("%3.2f"%(LOSTsnow*100)).rjust(5, ' '),
-                    ("%3.2f"%(MISScloudy*100)).rjust(5, ' '),
-                    ("%3.2f"%(MISScloudyOverSnow*100)).rjust(5, ' '),
+                    ("%3.2f" % (PODclear*100)).rjust(5, ' '),
+                    ("%3.2f" % (FARclear*100)).rjust(5, ' '),
+                    ("%3.2f" % (PODsnow*100)).rjust(5, ' '),
+                    ("%3.2f" % (FARsnow_not_clouds*100)).rjust(5, ' '),
+                    ("%3.2f" % (LOSTsnow*100)).rjust(5, ' '),
+                    ("%3.2f" % (MISScloudy*100)).rjust(5, ' '),
+                    ("%3.2f" % (MISScloudyOverSnow*100)).rjust(5, ' '),
                     test_name)
             elif clear_test and num_passed > 0:
-                all_out_text += "N: %s POD-clear: %s FAR-clear: %s MISS-cloudy: %s %s \n"%(
+                all_out_text += "N: %s POD-clear: %s FAR-clear: %s MISS-cloudy: %s %s \n" % (
                     str(num_passed).rjust(8, ' '),
-                    ("%3.2f"%(PODclear*100)).rjust(5, ' '),
-                    ("%3.2f"%(FARclear*100)).rjust(5, ' '),
-                    ("%3.2f"%(MISScloudy*100)).rjust(5, ' '),
+                    ("%3.2f" % (PODclear*100)).rjust(5, ' '),
+                    ("%3.2f" % (FARclear*100)).rjust(5, ' '),
+                    ("%3.2f" % (MISScloudy*100)).rjust(5, ' '),
                     test_name)
             elif num_passed > 0:
-                all_out_text_i = "N: %s POD-cloudy: %s FAR-cloudy: %s MISS-clear: %s MISS-snow: %s %s \n"%(
+                all_out_text_i = "N: %s POD-cloudy: %s FAR-cloudy: %s MISS-clear: %s MISS-snow: %s %s \n" % (
                     str(num_passed).rjust(8, ' '),
-                    ("%3.2f"%(PODcloudy*100)).rjust(5, ' '),
-                    ("%3.2f"%(FARcloudy*100)).rjust(5, ' '),
-                    ("%3.2f"%(MISSclear*100)).rjust(5, ' '),
-                    ("%3.2f"%(MISSsnow*100)).rjust(5, ' '),
+                    ("%3.2f" % (PODcloudy*100)).rjust(5, ' '),
+                    ("%3.2f" % (FARcloudy*100)).rjust(5, ' '),
+                    ("%3.2f" % (MISSclear*100)).rjust(5, ' '),
+                    ("%3.2f" % (MISSsnow*100)).rjust(5, ' '),
                     test_name)
-                all_out_text += "N: %s PCy: %s Fy: %s mPCl: %s : %s (%s) \n"%(
+                all_out_text += "N: %s PCy: %s Fy: %s mPCl: %s : %s (%s) \n" % (
                     str(num_passed).rjust(8, ' '),
-                    ("%3.2f"%(PODcloudy*100)).rjust(5, ' '),
-                    ("%3.2f"%(FARcloudy*100)).rjust(5, ' '),
-                    ("%3.2f"%(MISSclear*100)).rjust(5, ' '),
-                    ("%3.2f"%(MISSsnow*100)).rjust(5, ' '),
+                    ("%3.2f" % (PODcloudy*100)).rjust(5, ' '),
+                    ("%3.2f" % (FARcloudy*100)).rjust(5, ' '),
+                    ("%3.2f" % (MISSclear*100)).rjust(5, ' '),
+                    ("%3.2f" % (MISSsnow*100)).rjust(5, ' '),
                     test_name)
 
             # print "%s test_bit:%d N: %d POD-cloudy: %3.2f FAR-cloudy: %3.2f POD-clear %3.2f FAR-clear %3.2f"%(
@@ -303,28 +304,28 @@ def print_common_stats(match_calipso, use, name_dict, mints, maxts, surface_type
 ROOT_DIR = (ADIR + "/DATA_MISC/reshaped_files/"
             "global_modis_14th_created20170519/")
 ROOT_DIR_GAC = (ADIR + "/DATA_MISC/reshaped_files/"
-            "ATRAIN_RESULTS_GAC_oldctth/Reshaped_Files/noaa18/")
+                "ATRAIN_RESULTS_GAC_oldctth/Reshaped_Files/noaa18/")
 ROOT_DIR_GAC = (ADIR + "/DATA_MISC/reshaped_files/"
-            "ATRAIN_RESULTS_GAC_oldctth_20161201/Reshaped_Files/noaa18/")
+                "ATRAIN_RESULTS_GAC_oldctth_20161201/Reshaped_Files/noaa18/")
 ROOT_DIR_GAC = (ADIR + "/NN_CTTH/data/validation_data/imager_gac_noaa19/")
 ROOT_DIR_NPP1 = (ADIR + "/DATA_MISC/reshaped_files/"
-                "ATRAIN_RESULTS_NPP_new_thr_alos_85/Reshaped_Files"
-                "/npp/1km/2015/07/no_area/")
+                 "ATRAIN_RESULTS_NPP_new_thr_alos_85/Reshaped_Files"
+                 "/npp/1km/2015/07/no_area/")
 ROOT_DIR_NPP2 = (ADIR + "/DATA_MISC/reshaped_files_jenkins_npp_modis/"
-                "ATRAIN_RESULTS_NPP_test_with_lower_37_emiss/Reshaped_Files"
-                "/npp/1km/2015/07/")
+                 "ATRAIN_RESULTS_NPP_test_with_lower_37_emiss/Reshaped_Files"
+                 "/npp/1km/2015/07/")
 ROOT_DIR_NPP2 = (ADIR + "/DATA_MISC/reshaped_files_jenkins_npp_modis/"
-                "ATRAIN_RESULTS_NPP_watercloud/Reshaped_Files"
-                "/npp/1km/2015/07/")
+                 "ATRAIN_RESULTS_NPP_watercloud/Reshaped_Files"
+                 "/npp/1km/2015/07/")
 ROOT_DIR_NPP2 = (ADIR + "/DATA_MISC/reshaped_files_jenkins_npp_modis/"
-                "ATRAIN_RESULTS_NPP_emiss37/Reshaped_Files"
-                "/npp/1km/2015/07/")
+                 "ATRAIN_RESULTS_NPP_emiss37/Reshaped_Files"
+                 "/npp/1km/2015/07/")
 ROOT_DIR_NPP2 = (ADIR + "/DATA_MISC/reshaped_files_jenkins_npp_modis/"
-                "ATRAIN_RESULTS_NPP_fine_snow/Reshaped_Files"
-                "/npp/1km/2015/07/")
+                 "ATRAIN_RESULTS_NPP_fine_snow/Reshaped_Files"
+                 "/npp/1km/2015/07/")
 ROOT_DIR_NPP2 = (ADIR + "/DATA_MISC/reshaped_files_jenkins_npp_modis/"
-                "ATRAIN_RESULTS_NPP_C4_build15/Reshaped_Files"
-                "/npp/1km/2015/07/")
+                 "ATRAIN_RESULTS_NPP_C4_build15/Reshaped_Files"
+                 "/npp/1km/2015/07/")
 ROOT_DIR_GAC9 = ADIR + "/DATA_MISC/reshaped_files/ATRAIN_RESULTS_GAC_tuned_nnIMAGER/Reshaped_Files/noaa18/5km/2009/*/"
 # ROOT_DIR_GAC = ADIR + "/DATA_MISC/reshaped_files/ATRAIN_RESULTS_GAC_thr_wvp/Reshaped_Files/noaa18/5km/2009/*/"
 ROOT_DIR_GAC = ADIR + "/DATA_MISC/reshaped_files/ATRAIN_RESULTS_GAC_rttov12/Reshaped_Files/noaa18/5km/2009/*/"
@@ -362,7 +363,8 @@ name_dict = {'cma_testlist0': {},
 for line in TEST_NAMEFILE:
     if 'define SM_ACMG_' in line:
         list_of_line = line.split(' ')
-        (name, list_nr, bit) = (list_of_line[1].replace('SM_ACMG_', ''), list_of_line[2].replace(', ', ''), list_of_line[3])
+        (name, list_nr, bit) = (list_of_line[1].replace('SM_ACMG_', ''),
+                                list_of_line[2].replace(', ', ''), list_of_line[3])
         var = 'cma_testlist' + list_nr
         name_dict[var][int(bit)] = name
 
@@ -370,20 +372,21 @@ match_calipsoPPS = CalipsoImagerTrackObject()
 for filename in files:
     print filename
     match_calipsoPPS += readCaliopImagerMatchObj(filename)
-    print "Scene %s"%(os.path.basename(filename))
-use = match_calipsoPPS.imager.all_arrays['bt11micron']>-9
+    print "Scene %s" % (os.path.basename(filename))
+use = match_calipsoPPS.imager.all_arrays['bt11micron'] > -9
 # use = match_calipsoPPS.imager.all_arrays['sunz']>95
 basename_outfile = filename.split("/Reshaped_Files")[0]
 basename_outfile = basename_outfile.split("/")[-1]
 print basename_outfile
 for illumination in ["dnt", "day", "night", "twilight"]:
-    for surface_type in [ "noemiss_coast", "noemiss_land", "land", "sea", "all", "coast", "emiss_land", "emiss_coast"]:
+    for surface_type in ["noemiss_coast", "noemiss_land", "land", "sea", "all", "coast", "emiss_land", "emiss_coast"]:
         # for mints, maxts in zip([190, 190, 240, 260, 260, 270, 280, 290, 280, 300, 320, 190, 270],
         #                       [380, 240, 260, 280, 270, 280, 290, 300, 300, 320, 380, 270, 380 ]):
-        for mints, maxts in zip([190, 190, 270], # 190, 260, 280, 290, 300],
-                                [380, 270, 380]):# , 260, 280, 290, 300, 380 ]):
+        for mints, maxts in zip([190, 190, 270],  # 190, 260, 280, 290, 300],
+                                [380, 270, 380]):  # , 260, 280, 290, 300, 380 ]):
             pass
-            print_common_stats(match_calipsoPPS, use, name_dict, mints, maxts, surface_type, illumination, basename_outfile=basename_outfile)
+            print_common_stats(match_calipsoPPS, use, name_dict, mints, maxts, surface_type,
+                               illumination, basename_outfile=basename_outfile)
 # for surface_type in [ "all", "land", "sea", ]:
 #   for mints, maxts in zip([ 190],
 #                           [ 380 ]):

@@ -36,18 +36,21 @@ YEAR_LIST = ["2011"]
 BASE_DIR = "/home/a001865/DATA_MISC/reshaped_files_from_kg_temp"
 MAKE_EXTRA_CHECK = False
 
-SETTINGS ={"WRITE_ONLY_THE_MOST_IMPORTANT_STUFF_TO_FILE": False}
+SETTINGS = {"WRITE_ONLY_THE_MOST_IMPORTANT_STUFF_TO_FILE": False}
 tic = time.time()
 
 
 def remove_doubles(mObj, mObj2):
-    non_doubles = [ind for ind in range(len(mObj.calipso.sec_1970)) if mObj.calipso.sec_1970[ind] not in mObj2.calipso.sec_1970]
+    non_doubles = [ind for ind in range(len(mObj.calipso.sec_1970))
+                   if mObj.calipso.sec_1970[ind] not in mObj2.calipso.sec_1970]
 
     if MAKE_EXTRA_CHECK:
         # Takes a lot of time ....
-        doubles_time_and_id = [(mObj.calipso.sec_1970[ind], mObj.calipso.profile_id[ind, 0]) for ind  in range(len(mObj.calipso.sec_1970)) if ind not in  non_doubles]
+        doubles_time_and_id = [(mObj.calipso.sec_1970[ind], mObj.calipso.profile_id[ind, 0])
+                               for ind in range(len(mObj.calipso.sec_1970)) if ind not in non_doubles]
 
-        extra_check = [time_and_id for time_and_id in doubles_time_and_id if time_and_id in zip(mObj2.calipso.sec_1970, mObj2.calipso.profile_id[:, 0])]
+        extra_check = [time_and_id for time_and_id in doubles_time_and_id if time_and_id in zip(
+            mObj2.calipso.sec_1970, mObj2.calipso.profile_id[:, 0])]
         if len(extra_check) != len(mObj.calipso.sec_1970) - len(non_doubles):
             print("Some points identified as doubles does not have "
                   "the same time and profile id as ther corresponding double"
@@ -77,35 +80,35 @@ for satellite in SATELLITES:
             if not os.path.exists(OUT_DIR):
                 os.makedirs(OUT_DIR)
             num_n = 0
-            files = sorted(glob(ROOT_DIR%(year, month,
-                                          year, month)))
+            files = sorted(glob(ROOT_DIR % (year, month,
+                                            year, month)))
             if len(files) == 0:
                 continue
             for filename in files:
                 print(os.path.basename(filename))
                 # match_calipso_new=read_truth_imager_match_obj(filename, truth=truth)
                 try:
-                    match_calipso_new=read_truth_imager_match_obj(filename, truth=truth)
+                    match_calipso_new = read_truth_imager_match_obj(filename, truth=truth)
                 except:
                     print("problem with", os.path.basename(filename))
                     continue
                     # if match_calipso_new.cloudsat.RVOD_CWC_status is None or len(match_calipso_new.cloudsat.RVOD_CWC_status) != len(match_calipso_new.avhrr.cpp_lwp):
                     #   print("Missing RVOD_CWC_status")
                     #   continue
-                num_n +=1
+                num_n += 1
                 print("reading", os.path.basename(filename))
                 if match_calipso_merged is None:
                     match_calipso_merged = match_calipso_new
                 else:
-                    match_calipso_new  = remove_doubles(match_calipso_new, match_calipso_merged)
+                    match_calipso_new = remove_doubles(match_calipso_new, match_calipso_merged)
                     match_calipso_merged = match_calipso_merged + match_calipso_new
             if num_n > 0:
-                filename_merged = outfile_template%(year, month)
+                filename_merged = outfile_template % (year, month)
                 outfile = os.path.join(OUT_DIR, filename_merged)
 
                 print(len(match_calipso_merged.calipso.sec_1970))
                 write_truth_imager_match_obj(
-                    outfile, match_calipso_merged, SETTINGS, imager_obj_name = 'pps')
+                    outfile, match_calipso_merged, SETTINGS, imager_obj_name='pps')
                 match_calipso_merged = None
 
 print(time.time()-tic)

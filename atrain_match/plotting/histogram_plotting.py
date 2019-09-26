@@ -20,12 +20,12 @@ Plotting functions for AMSR-E IMAGER matching / validation
 
 """
 
+import matplotlib.pyplot as plt
+import matplotlib
 import numpy as np
 import logging
 logger = logging.getLogger(__name__)
 
-import matplotlib
-import matplotlib.pyplot as plt
 try:
     matplotlib.use('agg', warn=False)
 except TypeError:  # For some reason, I don't always have 'warn'
@@ -310,7 +310,7 @@ def density(x, y, bins=None, log=True):
     return fig
 
 
-def atrain_scatter(fig, ax, x, y, binsize, xymin = None, xymax=None, vmax=250,
+def atrain_scatter(fig, ax, x, y, binsize, xymin=None, xymax=None, vmax=250,
                    do_colorbar=True, to_km=1.0, ptype='scatter'):
     import copy
 
@@ -319,8 +319,8 @@ def atrain_scatter(fig, ax, x, y, binsize, xymin = None, xymax=None, vmax=250,
     if xymin is None:
         xymin = np.min([np.min(x), np.min(y)])
     n_edges = int((xymax-xymin)*1.0/binsize)+1
-    edgesx= np.linspace(xymin, xymax, n_edges)
-    edgesy= np.linspace(xymin, xymax, n_edges)
+    edgesx = np.linspace(xymin, xymax, n_edges)
+    edgesy = np.linspace(xymin, xymax, n_edges)
     H, xe, ye = np.histogram2d(x, y, bins=[edgesx, edgesy])
     xi = np.searchsorted(edgesx, x)  # - edgesx[0])/(n_edges+1)).astype(np.int)
     yi = np.searchsorted(edgesy, y)  # np.floor((y - edgesy[0])/(n_edges+1)).astype(np.int)  # -1?
@@ -328,11 +328,11 @@ def atrain_scatter(fig, ax, x, y, binsize, xymin = None, xymax=None, vmax=250,
     yi = yi-1
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Move pixels out side in side ?:
-    yi[yi==n_edges] = n_edges-1
-    xi[xi==n_edges] = n_edges-1
-        # yi(yi==2)==1 This is what we need!?
-    yi[yi==n_edges-1] = n_edges-2
-    xi[xi==n_edges-1] = n_edges-2
+    yi[yi == n_edges] = n_edges-1
+    xi[xi == n_edges] = n_edges-1
+    # yi(yi==2)==1 This is what we need!?
+    yi[yi == n_edges-1] = n_edges-2
+    xi[xi == n_edges-1] = n_edges-2
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     z = H[xi, yi]
     idx = z.argsort()
@@ -344,11 +344,11 @@ def atrain_scatter(fig, ax, x, y, binsize, xymin = None, xymax=None, vmax=250,
         "new_inferno_r", cmap_vals)
 
     if ptype in ['hexbin']:
-        b =plt.hexbin(to_km*x, to_km*y, gridsize=binsize, cmap=my_cmap,
-                      vmin=10, vmax=vmax)
+        b = plt.hexbin(to_km*x, to_km*y, gridsize=binsize, cmap=my_cmap,
+                       vmin=10, vmax=vmax)
     if ptype in ['hist2d']:
-        b =plt.hist2d(to_km*x, to_km*y, bins=binsize, cmap=my_cmap,
-                      vmin=1, vmax=vmax)
+        b = plt.hist2d(to_km*x, to_km*y, bins=binsize, cmap=my_cmap,
+                       vmin=1, vmax=vmax)
     if ptype in ['scatter']:
         b = plt.scatter(to_km*x[idx], to_km*y[idx], c=z[idx],
                         edgecolor='', cmap=my_cmap, vmin=1, vmax=vmax,

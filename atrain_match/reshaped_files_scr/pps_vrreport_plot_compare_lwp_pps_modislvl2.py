@@ -17,6 +17,7 @@
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
 """Read all matched data and make some plotting
 """
+from my_dir import ADIR
 import os
 import re
 from glob import glob
@@ -31,16 +32,15 @@ import matplotlib.pyplot as plt
 import matplotlib
 
 from utils.get_flag_info import (get_land_coast_sea_info_pps2014,
-                           get_calipso_low_medium_high_classification,
-                           get_calipso_high_clouds,
-                           get_calipso_medium_clouds,
-                           get_calipso_low_clouds)
+                                 get_calipso_low_medium_high_classification,
+                                 get_calipso_high_clouds,
+                                 get_calipso_medium_clouds,
+                                 get_calipso_low_clouds)
 from utils.stat_util import (my_iqr, my_hist, my_rms, my_mae)
 
 from scipy.stats import kurtosis, skewtest, skew, mode, kurtosis
 matplotlib.rcParams.update(matplotlib.rcParamsDefault)
 matplotlib.rcParams.update({'font.size': 16})
-from my_dir import ADIR
 
 
 def get_land_sea(match_obj):
@@ -48,8 +48,8 @@ def get_land_sea(match_obj):
     use = np.logical_and(match_obj.modis.all_arrays["lwp"] >= 0,
                          match_obj.imager.all_arrays["cpp_lwp"] >= 0)
     use = np.logical_and(use,
-                         match_obj.imager.all_arrays["cpp_phase"]==1)
-    use = np.logical_and(match_obj.modis.all_arrays["cloud_phase"]==1,
+                         match_obj.imager.all_arrays["cpp_phase"] == 1)
+    use = np.logical_and(match_obj.modis.all_arrays["cloud_phase"] == 1,
                          use)
     retv = get_land_coast_sea_info_pps2014(
         match_obj.imager.all_arrays['cloudtype_conditions'])
@@ -61,28 +61,28 @@ def get_land_sea(match_obj):
 
 
 def my_label(data, use):
-    label = (#"{:s}\n"
-             "bias = {:3.1f}\n"
-             "RMS = {:3.1f}\n"
-             "median = {:3.1f}\n"
-             "MAE = {:3.1f}\n"
-             "IQR = {:3.1f}\n"
-             "PE>10 = {:3.1f}\n"
-             "N = {:d}\n".format(
-                 # text
-                 np.mean(data[use]),
-                 my_rms(data[use]),
-                 np.median(data[use]),
-                 my_mae(data[use]),
-                 my_iqr(data[use]),
-                 len(data[use][np.abs(data[use]) > 10])*100.0/len(data[use]),
-                 len(data[use])
-                            ))
+    label = (  # "{:s}\n"
+        "bias = {:3.1f}\n"
+        "RMS = {:3.1f}\n"
+        "median = {:3.1f}\n"
+        "MAE = {:3.1f}\n"
+        "IQR = {:3.1f}\n"
+        "PE>10 = {:3.1f}\n"
+        "N = {:d}\n".format(
+            # text
+            np.mean(data[use]),
+            my_rms(data[use]),
+            np.median(data[use]),
+            my_mae(data[use]),
+            my_iqr(data[use]),
+            len(data[use][np.abs(data[use]) > 10])*100.0/len(data[use]),
+            len(data[use])
+        ))
     return label
 
 
 def plot_all(match_obj, density, my_str=""):
-    use_land, use_sea, use_coast, use  = get_land_sea(match_obj)
+    use_land, use_sea, use_coast, use = get_land_sea(match_obj)
     x = match_obj.modis.all_arrays["lwp"]
     y = match_obj.imager.all_arrays["cpp_lwp"]*density
     error = y - x
@@ -107,7 +107,7 @@ def plot_all(match_obj, density, my_str=""):
     ax.set_ylim([00, 14])
     plt.legend()
     ax = fig.add_subplot(223)
-    hist_heights, x_, gaussian= my_hist(error, use_sea, return_also_corresponding_gaussian=True)
+    hist_heights, x_, gaussian = my_hist(error, use_sea, return_also_corresponding_gaussian=True)
     ax.fill(x_, gaussian, color='silver')
     plt.plot(x_, hist_heights, 'b-', label=my_label(error, use_sea))
     plt.title("Sea")
@@ -134,10 +134,10 @@ def plot_all(match_obj, density, my_str=""):
     from trajectory_plotting import plot_satellite_trajectory
     import config
     plot_satellite_trajectory(match_obj.calipso.all_arrays["longitude"][use],
-                            match_obj.calipso.all_arrays["latitude"][use],
-                            ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_marble_lwp_modis_lvl2_dist",
-                            config.AREA_CONFIG_FILE,
-                            fig_type=['png'])
+                              match_obj.calipso.all_arrays["latitude"][use],
+                              ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_marble_lwp_modis_lvl2_dist",
+                              config.AREA_CONFIG_FILE,
+                              fig_type=['png'])
     from histogram_plotting import distribution_map
     distribution_map(match_obj.calipso.all_arrays["longitude"][use],
                      match_obj.calipso.all_arrays["latitude"][use])
@@ -150,12 +150,12 @@ def get_ca_object_nn_ctth_modis_lvl2():
         "reshaped_files_validation_2018/"
         "global_modis_v2018_created20180920/"
         "Reshaped_Files_merged_caliop/eos2/1km/2010/*/*%s*cali*h5")
-    files = glob(ROOT_DIR%("20100201"))
-    files = files + glob(ROOT_DIR%("20100401"))
-    files = files + glob(ROOT_DIR%("20100601"))
-    files = files + glob(ROOT_DIR%("20100801"))
-    files = files + glob(ROOT_DIR%("20101001"))
-    files = files + glob(ROOT_DIR%("20101201"))
+    files = glob(ROOT_DIR % ("20100201"))
+    files = files + glob(ROOT_DIR % ("20100401"))
+    files = files + glob(ROOT_DIR % ("20100601"))
+    files = files + glob(ROOT_DIR % ("20100801"))
+    files = files + glob(ROOT_DIR % ("20101001"))
+    files = files + glob(ROOT_DIR % ("20101201"))
     # ROOT_DIR = (
     #   ADIR + "/DATA_MISC/"
     #   "reshaped_files_validation_2018/"

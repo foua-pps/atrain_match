@@ -49,26 +49,27 @@ class CloudLwpStats(OrrbStats):
 
         self.amsr_all_samples = amsr_all_samples
         self.bias_amsr_all = np.divide(
-                mean_error_amsr_all_sum, amsr_all_samples )
+            mean_error_amsr_all_sum, amsr_all_samples)
         self.rms_amsr_all = np.sqrt(
             np.divide(rms_error_amsr_all_sum, amsr_all_samples))
 
         self.bcrms_amsr_all = bias_corrected_rms(
-                self.rms_amsr_all,
-                self.bias_amsr_all,
-                amsr_all_samples)
+            self.rms_amsr_all,
+            self.bias_amsr_all,
+            amsr_all_samples)
 
     def printout(self):
         lines = []
         lines.append("========== Cloud lwp ===========")
         lines.append("Total number of matched scenes is: %s" % self.ac_data["scenes"])
         lines.append("")
-        lines.append("Total number of %s matched cloudtops: %d" %( self.truth_sat.upper(), self.amsr_all_samples))
+        lines.append("Total number of %s matched cloudtops: %d" % (self.truth_sat.upper(), self.amsr_all_samples))
         lines.append("Mean error total cases: %.1f" % self.bias_amsr_all)
         lines.append("RMS error total cases: %.1f" % self.rms_amsr_all)
         lines.append("bc-RMS error total cases: %.1f" % self.bcrms_amsr_all)
 
         return lines
+
 
 if __name__ == "__main__":
     stats = CloudTopStats()

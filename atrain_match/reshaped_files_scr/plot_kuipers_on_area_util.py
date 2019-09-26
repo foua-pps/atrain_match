@@ -15,6 +15,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
+from matchobject_io import DataObject
 import numpy as np
 from pyresample import utils
 from pyresample.geometry import SwathDefinition
@@ -44,7 +45,7 @@ plt.rcParams['image.cmap'] = 'BrBG'
 
 # matplotlib.rcParams.update(matplotlib.rcParamsDefault)
 matplotlib.rcParams.update({'image.cmap': 'BrBG'})
-matplotlib.rcParams['image.cmap']= "BrBG"
+matplotlib.rcParams['image.cmap'] = "BrBG"
 matplotlib.rcParams.update({'font.size': 30})
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
@@ -52,8 +53,6 @@ plt.rc('font', family='serif')
 print(matplotlib.rcParams)
 # plt.rc('font', family='sans serif')
 # plt.rcParams["font.family"] = "Verdana"
-
-from matchobject_io import DataObject
 
 
 class ppsMatch_Imager_CalipsoObject(DataObject):
@@ -68,9 +67,10 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
             'new_false_clouds': None,
             'lats': None,
             'lons': None}
+
     def get_some_info_from_caobj(self, match_calipso, PROCES_FOR_ART=False, PROCES_FOR_PRESSENTATIONS=False):
         self.set_false_and_missed_cloudy_and_clear(match_calipso=match_calipso, PROCES_FOR_ART=PROCES_FOR_ART,
-                                                   PROCES_FOR_PRESSENTATIONS = PROCES_FOR_PRESSENTATIONS)
+                                                   PROCES_FOR_PRESSENTATIONS=PROCES_FOR_PRESSENTATIONS)
         self.set_r13_extratest(match_calipso=match_calipso)
         self.get_thr_offset(match_calipso=match_calipso)
         self.get_lapse_rate(match_calipso=match_calipso)
@@ -78,8 +78,8 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         self.get_ctth_bias_low(match_calipso=match_calipso)
         self.get_ctth_bias_high(match_calipso=match_calipso)
         self.get_ctth_bias_low_temperature(match_calipso=match_calipso)
-        self.height_bias_type={}
-        self.detected_height_type={}
+        self.height_bias_type = {}
+        self.detected_height_type = {}
         for cc_type in range(8):
             self.get_ctth_bias_type(match_calipso=match_calipso, calipso_cloudtype=cc_type)
 
@@ -87,22 +87,22 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         lat = match_calipso.imager.all_arrays['latitude']
         lon = match_calipso.imager.all_arrays['longitude']
         if match_calipso.imager.all_arrays['cloudmask'] is not None:
-            isCloudyPPS = np.logical_or(match_calipso.imager.all_arrays['cloudmask']==1,
-                                        match_calipso.imager.all_arrays['cloudmask']==2)
-            isClearPPS = np.logical_or(match_calipso.imager.all_arrays['cloudmask']==0,
-                                       match_calipso.imager.all_arrays['cloudmask']==3)
+            isCloudyPPS = np.logical_or(match_calipso.imager.all_arrays['cloudmask'] == 1,
+                                        match_calipso.imager.all_arrays['cloudmask'] == 2)
+            isClearPPS = np.logical_or(match_calipso.imager.all_arrays['cloudmask'] == 0,
+                                       match_calipso.imager.all_arrays['cloudmask'] == 3)
         else:
-            isCloudyPPS = np.logical_and(match_calipso.imager.all_arrays['cloudtype']>4,
-                                         match_calipso.imager.all_arrays['cloudtype']<21)
-            isClearPPS = np.logical_and(match_calipso.imager.all_arrays['cloudtype']>0,
-                                        match_calipso.imager.all_arrays['cloudtype']<5)
+            isCloudyPPS = np.logical_and(match_calipso.imager.all_arrays['cloudtype'] > 4,
+                                         match_calipso.imager.all_arrays['cloudtype'] < 21)
+            isClearPPS = np.logical_and(match_calipso.imager.all_arrays['cloudtype'] > 0,
+                                        match_calipso.imager.all_arrays['cloudtype'] < 5)
 
-        isCloudyPPS = np.logical_and(match_calipso.imager.all_arrays['cloudtype']>4,
-                                     match_calipso.imager.all_arrays['cloudtype']<21)
-        isClearPPS = np.logical_and(match_calipso.imager.all_arrays['cloudtype']>0,
-                                    match_calipso.imager.all_arrays['cloudtype']<5)
-        nlay =np.where(match_calipso.calipso.all_arrays['number_layers_found']>0, 1, 0)
-        meancl=ndimage.filters.uniform_filter1d(nlay*1.0, size=3)
+        isCloudyPPS = np.logical_and(match_calipso.imager.all_arrays['cloudtype'] > 4,
+                                     match_calipso.imager.all_arrays['cloudtype'] < 21)
+        isClearPPS = np.logical_and(match_calipso.imager.all_arrays['cloudtype'] > 0,
+                                    match_calipso.imager.all_arrays['cloudtype'] < 5)
+        nlay = np.where(match_calipso.calipso.all_arrays['number_layers_found'] > 0, 1, 0)
+        meancl = ndimage.filters.uniform_filter1d(nlay*1.0, size=3)
         if self.cc_method == 'BASIC' and self.isGAC:
             isCalipsoCloudy = nlay > 0
             isCalipsoClear = np.not_equal(isCalipsoCloudy, True)
@@ -111,18 +111,18 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
             isCalipsoClear = np.not_equal(isCalipsoCloudy, True)
         elif self.cc_method == 'KG' and self.isGAC:
             isCalipsoCloudy = np.logical_and(
-                match_calipso.calipso.all_arrays['cloud_fraction']>0.5,
-                match_calipso.calipso.all_arrays['total_optical_depth_5km']>0.15)
+                match_calipso.calipso.all_arrays['cloud_fraction'] > 0.5,
+                match_calipso.calipso.all_arrays['total_optical_depth_5km'] > 0.15)
             isCalipsoClear = np.not_equal(isCalipsoCloudy, True)
         elif self.cc_method == 'Nina' and self.isGAC:
             isCalipsoCloudy = np.logical_and(
-                match_calipso.calipso.all_arrays['cloud_fraction']>0.5,
-                match_calipso.calipso.all_arrays['total_optical_depth_5km']>0.15)
+                match_calipso.calipso.all_arrays['cloud_fraction'] > 0.5,
+                match_calipso.calipso.all_arrays['total_optical_depth_5km'] > 0.15)
             # exclude pixels that might be cloud contaminated
             isCalipsoClear = np.logical_and(nlay == 0, meancl < 0.01)
             isCalipsoClear = np.logical_and(
                 isCalipsoClear,
-                match_calipso.calipso.all_arrays['total_optical_depth_5km']<0)
+                match_calipso.calipso.all_arrays['total_optical_depth_5km'] < 0)
         elif self.cc_method == 'KG':
             isCalipsoCloudy = nlay > 0
             isCalipsoClear = np.not_equal(isCalipsoCloudy, True)
@@ -136,7 +136,7 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
             isCalipsoClear = np.logical_and(nlay == 0, meancl < 0.01)
             isCalipsoClear = np.logical_and(
                 isCalipsoClear,
-                match_calipso.calipso.all_arrays['total_optical_depth_5km']<0) #dangerous for broken clouds!
+                match_calipso.calipso.all_arrays['total_optical_depth_5km'] < 0)  # dangerous for broken clouds!
         use_ok_lat_lon = np.logical_and(np.logical_and(lat >= -90, lat <= 90),
                                         np.logical_and(lon >= -180, lat <= 180))
         isCloudyPPS = np.logical_and(isCloudyPPS, use_ok_lat_lon)
@@ -166,69 +166,73 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         use = np.logical_or(np.logical_or(detected_clouds, detected_clear),
                             np.logical_or(false_clouds, undetected_clouds))
         detected_height = np.logical_and(detected_clouds,
-                                         match_calipso.imager.all_arrays['ctth_height']>-9)
+                                         match_calipso.imager.all_arrays['ctth_height'] > -9)
         detected_height = np.logical_and(detected_height,
-                                         match_calipso.imager.all_arrays['ctth_height']<45000)
+                                         match_calipso.imager.all_arrays['ctth_height'] < 45000)
 
         # settings for article eos_modis:
         if PROCES_FOR_ART:
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['warmest_t12']>-9)
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['coldest_t12']>-9)
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['psur']>-9)
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['surftemp']>-9)
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['t950']>-9)
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['t850']>-9)
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['t700']>-9)
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['t500']>-9)
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['t250']>-9)
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['text_t11']>-9) #without this 1793146 pixels
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['text_t11t12']>-9)
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['warmest_t11']>-9)
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['coldest_t11']>-9)
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['modis_27']>-1)
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['modis_28']>-1)
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['modis_33']>-1)
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['text_t37']>-9)
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['warmest_t37']>-9)
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['coldest_t37']>-9)
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['bt11micron']>-1)
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['bt12micron']>-1)
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['bt37micron']>-1)
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['bt86micron']>-1)
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['ciwv']>-9)
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays["ctthold_height"]>-9) #only included in art
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays["ctthnnant_height"]>-9) #only included in art
-            detected_height = np.logical_and(detected_height, match_calipso.modis.all_arrays["height"]>-9)
+            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['warmest_t12'] > -9)
+            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['coldest_t12'] > -9)
+            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['psur'] > -9)
+            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['surftemp'] > -9)
+            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['t950'] > -9)
+            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['t850'] > -9)
+            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['t700'] > -9)
+            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['t500'] > -9)
+            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['t250'] > -9)
+            detected_height = np.logical_and(
+                detected_height, match_calipso.imager.all_arrays['text_t11'] > -9)  # without this 1793146 pixels
+            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['text_t11t12'] > -9)
+            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['warmest_t11'] > -9)
+            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['coldest_t11'] > -9)
+            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['modis_27'] > -1)
+            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['modis_28'] > -1)
+            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['modis_33'] > -1)
+            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['text_t37'] > -9)
+            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['warmest_t37'] > -9)
+            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['coldest_t37'] > -9)
+            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['bt11micron'] > -1)
+            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['bt12micron'] > -1)
+            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['bt37micron'] > -1)
+            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['bt86micron'] > -1)
+            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['ciwv'] > -9)
+            detected_height = np.logical_and(
+                detected_height, match_calipso.imager.all_arrays["ctthold_height"] > -9)  # only included in art
+            detected_height = np.logical_and(
+                detected_height, match_calipso.imager.all_arrays["ctthnnant_height"] > -9)  # only included in art
+            detected_height = np.logical_and(detected_height, match_calipso.modis.all_arrays["height"] > -9)
 
         if PROCES_FOR_PRESSENTATIONS:
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['warmest_t12']>-9)
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['coldest_t12']>-9)
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['psur']>-9)
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['surftemp']>-9)
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['t950']>-9)
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['t850']>-9)
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['t700']>-9)
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['t500']>-9)
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['t250']>-9)
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['text_t11']>-9) #without this 1793146 pixels
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['text_t11t12']>-9)
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['warmest_t11']>-9)
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['coldest_t11']>-9)
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['text_t37']>-9)
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['warmest_t37']>-9)
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['coldest_t37']>-9)
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['bt11micron']>-1)
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['bt12micron']>-1)
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['bt37micron']>-1)
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['bt86micron']>-1)
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['ciwv']>-9)
-            detected_height = np.logical_and(detected_height, match_calipso.modis.all_arrays["height"]>-9)
-            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays["ctth_height"]>-9)
+            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['warmest_t12'] > -9)
+            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['coldest_t12'] > -9)
+            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['psur'] > -9)
+            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['surftemp'] > -9)
+            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['t950'] > -9)
+            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['t850'] > -9)
+            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['t700'] > -9)
+            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['t500'] > -9)
+            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['t250'] > -9)
+            detected_height = np.logical_and(
+                detected_height, match_calipso.imager.all_arrays['text_t11'] > -9)  # without this 1793146 pixels
+            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['text_t11t12'] > -9)
+            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['warmest_t11'] > -9)
+            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['coldest_t11'] > -9)
+            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['text_t37'] > -9)
+            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['warmest_t37'] > -9)
+            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['coldest_t37'] > -9)
+            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['bt11micron'] > -1)
+            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['bt12micron'] > -1)
+            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['bt37micron'] > -1)
+            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['bt86micron'] > -1)
+            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['ciwv'] > -9)
+            detected_height = np.logical_and(detected_height, match_calipso.modis.all_arrays["height"] > -9)
+            detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays["ctth_height"] > -9)
 
         detected_height = np.logical_and(detected_height,
-                                         match_calipso.calipso.all_arrays['layer_top_altitude'][:, 0]>-1)
+                                         match_calipso.calipso.all_arrays['layer_top_altitude'][:, 0] > -1)
         detected_temperature = np.logical_and(detected_clouds,
-                                       match_calipso.imager.all_arrays['ctth_temperature']>-9)
+                                              match_calipso.imager.all_arrays['ctth_temperature'] > -9)
 
         self.false_clouds = false_clouds[use]
         self.detected_clouds = detected_clouds[use]
@@ -241,16 +245,16 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         self.detected_temperature = detected_temperature[use]
 
     def set_r13_extratest(self, match_calipso):
-        if np.size(match_calipso.imager.all_arrays['r13micron'])==1 and match_calipso.imager.all_arrays['r13micron'] is None:
+        if np.size(match_calipso.imager.all_arrays['r13micron']) == 1 and match_calipso.imager.all_arrays['r13micron'] is None:
             self.new_false_clouds = np.zeros(self.false_clouds.shape)
             self.new_detected_clouds = np.zeros(self.false_clouds.shape)
             return
         r13 = match_calipso.imager.all_arrays['r13micron']
         sunz = match_calipso.imager.all_arrays['sunz']
         sunz_cos = sunz.copy()
-        sunz_cos[sunz > 87] =87
+        sunz_cos[sunz > 87] = 87
         r13[sunz < 90] = r13[sunz < 90]/np.cos(np.radians(sunz_cos[sunz < 90]))
-        isCloud_r13 = np.logical_and(r13>2.0, match_calipso.imager.all_arrays['ciwv']>3)
+        isCloud_r13 = np.logical_and(r13 > 2.0, match_calipso.imager.all_arrays['ciwv'] > 3)
         new_detected_clouds = np.logical_and(self.detected_clouds,
                                              isCloud_r13[self.use])
         new_false_clouds = np.logical_and(self.detected_clear,
@@ -259,7 +263,7 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         self.new_detected_clouds = new_detected_clouds
 
     def get_thr_offset(self, match_calipso):
-        if np.size(match_calipso.imager.all_arrays['surftemp'])==1 and match_calipso.imager.all_arrays['surftemp'] is None:
+        if np.size(match_calipso.imager.all_arrays['surftemp']) == 1 and match_calipso.imager.all_arrays['surftemp'] is None:
             self.t11ts_offset = np.zeros(self.false_clouds.shape)
             self.t11t12_offset = np.zeros(self.false_clouds.shape)
             self.t11t37_offset = np.zeros(self.false_clouds.shape)
@@ -269,14 +273,14 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
                         match_calipso.imager.all_arrays['surftemp'] -
                         match_calipso.imager.all_arrays['thr_t11ts_inv'])
         t11t12_offset = (match_calipso.imager.all_arrays['bt11micron'] -
-                        match_calipso.imager.all_arrays['bt12micron'] -
-                        match_calipso.imager.all_arrays['thr_t11t12'])
+                         match_calipso.imager.all_arrays['bt12micron'] -
+                         match_calipso.imager.all_arrays['thr_t11t12'])
         t37t12_offset = (match_calipso.imager.all_arrays['bt37micron'] -
-                        match_calipso.imager.all_arrays['bt12micron'] -
-                        match_calipso.imager.all_arrays['thr_t37t12'])
+                         match_calipso.imager.all_arrays['bt12micron'] -
+                         match_calipso.imager.all_arrays['thr_t37t12'])
         t11t37_offset = (match_calipso.imager.all_arrays['bt11micron'] -
-                        match_calipso.imager.all_arrays['bt37micron'] -
-                        match_calipso.imager.all_arrays['thr_t11t37'])
+                         match_calipso.imager.all_arrays['bt37micron'] -
+                         match_calipso.imager.all_arrays['thr_t11t37'])
         t11ts_offset = t11ts_offset[self.use]
         t11ts_offset[self.detected_clouds] = 99999
         t11ts_offset[self.undetected_clouds] = 99999
@@ -293,17 +297,20 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         t11t37_offset[self.detected_clouds] = -99999
         t11t37_offset[self.undetected_clouds] = -99999
         self.t11t37_offset = t11t37_offset
+
     def get_lapse_rate(self, match_calipso):
-        if np.size(match_calipso.imager.all_arrays['surftemp'])==1 and match_calipso.imager.all_arrays['surftemp'] is None:
+        if np.size(match_calipso.imager.all_arrays['surftemp']) == 1 and match_calipso.imager.all_arrays['surftemp'] is None:
             self.lapse_rate = np.zeros(self.false_clouds.shape)
             return
         from utils.get_flag_info import get_calipso_low_clouds
         low_clouds = get_calipso_low_clouds(match_calipso)
-        delta_h = match_calipso.calipso.all_arrays['layer_top_altitude'][:, 0] - 0.001*match_calipso.calipso.all_arrays['elevation'][:]
-        delta_t = (273.15 + match_calipso.calipso.all_arrays['layer_top_temperature'][:, 0] - match_calipso.imager.all_arrays['surftemp'][:])
+        delta_h = match_calipso.calipso.all_arrays['layer_top_altitude'][:,
+                                                                         0] - 0.001*match_calipso.calipso.all_arrays['elevation'][:]
+        delta_t = (273.15 + match_calipso.calipso.all_arrays['layer_top_temperature']
+                   [:, 0] - match_calipso.imager.all_arrays['surftemp'][:])
         lapse_rate = delta_t/delta_h
-        lapse_rate[match_calipso.calipso.all_arrays['layer_top_temperature'][:, 0]<-500] = 0
-        lapse_rate[match_calipso.calipso.all_arrays['layer_top_altitude'][:, 0]>35.0] = 0
+        lapse_rate[match_calipso.calipso.all_arrays['layer_top_temperature'][:, 0] < -500] = 0
+        lapse_rate[match_calipso.calipso.all_arrays['layer_top_altitude'][:, 0] > 35.0] = 0
         lapse_rate[~low_clouds] = 0.0
         self.lapse_rate = lapse_rate[self.use]
 
@@ -321,7 +328,7 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         height_pps = match_calipso.imager.all_arrays['ctth_height'][self.use]
         delta_h = height_pps - height_c
         self.height_bias = delta_h
-        self.height_bias[~self.detected_height]=0
+        self.height_bias[~self.detected_height] = 0
 
         self.detected_height_both = np.where(self.detected_height, False, self.detected_height)
         self.height_mae_diff = 0*self.height_bias
@@ -349,16 +356,16 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
             new_pps_h[temp_diff > 0] = rate_pos*temp_diff[temp_diff > 0]*1000
             new_pps_h[new_pps_h < 100] = 100
             keep = (
-                (tsur - match_calipso.imager.all_arrays['ctth_temperature'])/
-                (tsur - match_calipso.imager.all_arrays['ttro']))>0.33
+                (tsur - match_calipso.imager.all_arrays['ctth_temperature']) /
+                (tsur - match_calipso.imager.all_arrays['ttro'])) > 0.33
             keep = new_pps_h > 3000
             new_pps_h[keep] = match_calipso.imager.all_arrays['ctth_height'][keep]
             self.lapse_bias = new_pps_h[self.use] - height_c
-            self.lapse_bias[~self.detected_height]=0
-            self.lapse_bias[temperature_pps < 0]=0
+            self.lapse_bias[~self.detected_height] = 0
+            self.lapse_bias[temperature_pps < 0] = 0
         except:
             # raise
-            self.lapse_bias = 0* height_c
+            self.lapse_bias = 0 * height_c
 
     def get_ctth_bias_low(self, match_calipso):
         from utils.get_flag_info import get_calipso_low_clouds
@@ -366,11 +373,11 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         detected_low = np.logical_and(self.detected_height,
                                       low_clouds[self.use])
         delta_h = self.height_bias.copy()
-        delta_h[~detected_low]=0
+        delta_h[~detected_low] = 0
         self.height_bias_low = delta_h
         self.detected_height_low = detected_low
         delta_h = self.lapse_bias.copy()
-        delta_h[~detected_low]=0
+        delta_h[~detected_low] = 0
         self.lapse_bias_low = delta_h
 
     def get_ctth_bias_high(self, match_calipso):
@@ -378,11 +385,11 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         high_clouds = get_calipso_high_clouds(match_calipso)
         detected_high = np.logical_and(self.detected_height, high_clouds[self.use])
         delta_h = self.height_bias.copy()
-        delta_h[~detected_high]=0
+        delta_h[~detected_high] = 0
         self.height_bias_high = delta_h.copy()
         self.detected_height_high = detected_high
         delta_h = self.lapse_bias.copy()
-        delta_h[~detected_high]=0
+        delta_h[~detected_high] = 0
         self.lapse_bias_high = delta_h
 
     def get_ctth_bias_low_temperature(self, match_calipso):
@@ -394,20 +401,20 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
             temperature_c = 273.15 + match_calipso.calipso.all_arrays['midlayer_temperature'][self.use, 0]
 
             delta_t = temperature_pps - temperature_c
-            delta_t[~detected_low]=0
-            delta_t[temperature_c < 0]=0
-            delta_t[temperature_pps < 0]=0
+            delta_t[~detected_low] = 0
+            delta_t[temperature_c < 0] = 0
+            delta_t[temperature_pps < 0] = 0
         except:
             delta_t = 0*temperature_pps
         try:
             temperature_pps = match_calipso.imager.all_arrays['bt11micron'][self.use]
             delta_t_t11 = temperature_pps - temperature_c
-            delta_t_t11[~detected_low]=0
-            delta_t_t11[temperature_c < 0]=0
-            delta_t_t11[temperature_pps < 0]=0
+            delta_t_t11[~detected_low] = 0
+            delta_t_t11[temperature_c < 0] = 0
+            delta_t_t11[temperature_pps < 0] = 0
         except:
             delta_t_t11 = 0*delta_t
-        self.temperature_bias_low =delta_t
+        self.temperature_bias_low = delta_t
         # self.temperature_bias_low[~detected_low]=0
         self.temperature_bias_low_t11 = delta_t_t11
 
@@ -416,7 +423,7 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         wanted_clouds = get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=calipso_cloudtype)
         detected_typei = np.logical_and(self.detected_height, wanted_clouds[self.use])
         delta_h = self.height_bias.copy()
-        delta_h[~detected_typei]=0
+        delta_h[~detected_typei] = 0
         self.height_bias_type[calipso_cloudtype] = delta_h
         self.detected_height_type[calipso_cloudtype] = detected_typei
 
@@ -435,14 +442,15 @@ class ppsStatsOnFibLatticeObject(DataObject):
             'N_new_detected_clouds': None,
             'N_undetected_clouds': None,
             'N_detected_clear': None,
-            'N_clear':None,
-            'N_clouds':None,
+            'N_clear': None,
+            'N_clouds': None,
             'N': None,
             'Kuipers': None}
+
     def set_flattice(self, radius_km=200):
         self.radius_km = radius_km
-        self.lons, self.lats =get_fibonacci_spread_points_on_earth(radius_km = radius_km)
-        fig = plt.figure(figsize = (36, 18))
+        self.lons, self.lats = get_fibonacci_spread_points_on_earth(radius_km=radius_km)
+        fig = plt.figure(figsize=(36, 18))
         ax = fig.add_subplot(111)
         plt.plot(self.lons, self.lats, 'b*')
         # plt.show()
@@ -472,11 +480,12 @@ class ppsStatsOnFibLatticeObject(DataObject):
         self.Max_t11t12_offset = np.zeros(self.lats.shape)
         self.Max_t37t12_offset = np.zeros(self.lats.shape)
         self.Max_t11t37_offset = np.zeros(self.lats.shape)
-        self.Sum_height_bias_type={}
-        self.N_detected_height_type={}
+        self.Sum_height_bias_type = {}
+        self.N_detected_height_type = {}
         for cc_type in range(8):
             self.Sum_height_bias_type[cc_type] = 1.0*np.zeros(self.lats.shape)
             self.N_detected_height_type[cc_type] = 1.0*np.zeros(self.lats.shape)
+
     def np_float_array(self):
 
         self.Sum_ctth_mae_low = 1.0*np.array(self.Sum_ctth_mae_low)
@@ -496,6 +505,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
         self.N_new_detected_clouds = 1.0*np.array(self.N_new_detected_clouds)
         self.N_new_false_clouds = 1.0*np.array(self.N_new_false_clouds)
         self.N_detected_height_low = 1.0*np.array(self.N_detected_height_low)
+
     def find_number_of_clouds_clear(self):
         self.np_float_array()
         self.N_clear = self.N_detected_clear + self.N_false_clouds
@@ -512,11 +522,12 @@ class ppsStatsOnFibLatticeObject(DataObject):
         data = getattr(self, score)
         data = data.copy()
         if np.ma.is_masked(data):
-            data[np.logical_and(np.equal(data.mask, False), data > vmax)]=vmax
-            data[np.logical_and(np.equal(data.mask, False), data<vmin)]=vmin #do not wan't low ex hitrates set to nodata!
+            data[np.logical_and(np.equal(data.mask, False), data > vmax)] = vmax
+            # do not wan't low ex hitrates set to nodata!
+            data[np.logical_and(np.equal(data.mask, False), data < vmin)] = vmin
         else:
-            data[data > vmax]=vmax
-            data[data < vmin]=vmin
+            data[data > vmax] = vmax
+            data[data < vmin] = vmin
         # lons = np.ma.masked_array(self.lons, mask=data.mask)
         # lats = np.ma.masked_array(self.lats, mask=data.mask)
         lons = self.lons
@@ -530,20 +541,20 @@ class ppsStatsOnFibLatticeObject(DataObject):
         result = area_con.image_data
         # pr.plot.show_quicklook(area_def, result,
         #                     vmin=vmin, vmax=vmax, label=score)
-        matplotlib.rcParams['image.cmap']= "BrBG"
+        matplotlib.rcParams['image.cmap'] = "BrBG"
         if "FAR" in score:
-            matplotlib.rcParams['image.cmap']= "BrBG"
+            matplotlib.rcParams['image.cmap'] = "BrBG"
         elif "diff" in score:
-            matplotlib.rcParams['image.cmap']= "BrBG"
+            matplotlib.rcParams['image.cmap'] = "BrBG"
         elif "mae" in score:
-            matplotlib.rcParams['image.cmap']= "Reds"
+            matplotlib.rcParams['image.cmap'] = "Reds"
         else:
-            matplotlib.rcParams['image.cmap']= "BrBG"
-        plot_label =score.replace('_', '-')
+            matplotlib.rcParams['image.cmap'] = "BrBG"
+        plot_label = score.replace('_', '-')
         if "mae" in score:
-            plot_label =""
+            plot_label = ""
         pr.plot.save_quicklook(self.PLOT_DIR_SCORE + self.PLOT_FILENAME_START +
-                               plot_area_name +'.png',
+                               plot_area_name + '.png',
                                area_def, result,
                                vmin=vmin, vmax=vmax, label=plot_label)
 
@@ -555,7 +566,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
         plt.close('all')
         ma_data = getattr(self, score)
         the_mask = ma_data.mask
-        data=ma_data.data
+        data = ma_data.data
         # data[np.logical_and(data>vmax, ~the_mask)] = vmax
         # data[np.logical_and(data<vmin, ~the_mask)] = vmin
         # reshape data a bit
@@ -567,57 +578,57 @@ class ppsStatsOnFibLatticeObject(DataObject):
         ind = np.argsort(lons)
         lons = lons[ind]
         lats = lats[ind]
-        data =data[ind]
+        data = data[ind]
         the_mask = the_mask[ind]
-        lons = lons.reshape(len(data), 1)#*3.14/180
-        lats = lats.reshape(len(data), 1)#*3.14/180
+        lons = lons.reshape(len(data), 1)  # *3.14/180
+        lats = lats.reshape(len(data), 1)  # *3.14/180
         data = data.reshape(len(data), 1)
         the_mask = the_mask.reshape(len(data), 1)
 
         my_proj1 = Basemap(projection='robin', lon_0=0, resolution='c')
-        numcols=1000
-        numrows=500
+        numcols = 1000
+        numrows = 500
         lat_min = -83.0
         lon_min = -179.9
         lat_max = 83.0
         lon_max = 179.9
 
-        fig = plt.figure(figsize = (16, 9))
+        fig = plt.figure(figsize=(16, 9))
         ax = fig.add_subplot(111)
-        import copy;
+        import copy
         if "FAR" in score:
-            my_cmap=copy.copy(matplotlib.cm.BrBG)
+            my_cmap = copy.copy(matplotlib.cm.BrBG)
         elif "diff" in score:
-            my_cmap=copy.copy(matplotlib.cm.BrBG)
+            my_cmap = copy.copy(matplotlib.cm.BrBG)
         elif "mae" in score:
-            my_cmap=copy.copy(matplotlib.cm.Reds)
+            my_cmap = copy.copy(matplotlib.cm.Reds)
         elif "ctth_pe" in score:
-            my_cmap=copy.copy(matplotlib.cm.BrBG_r)
+            my_cmap = copy.copy(matplotlib.cm.BrBG_r)
         else:
-            my_cmap=copy.copy(matplotlib.cm.BrBG)
+            my_cmap = copy.copy(matplotlib.cm.BrBG)
         if score in "Bias" and screen_out_valid:
             # This screens out values between -5 and +5%
-            vmax=25
-            vmin= -25
-            my_cmap=copy.copy(matplotlib.cm.get_cmap("BrBG", lut=100))
-            cmap_vals = my_cmap(np.arange(100)) #extractvalues as an array
-            cmap_vals[39:61] = [0.9, 0.9, 0.9, 1] #change the first value
+            vmax = 25
+            vmin = -25
+            my_cmap = copy.copy(matplotlib.cm.get_cmap("BrBG", lut=100))
+            cmap_vals = my_cmap(np.arange(100))  # extractvalues as an array
+            cmap_vals[39:61] = [0.9, 0.9, 0.9, 1]  # change the first value
             my_cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
                 "newBrBG", cmap_vals)
         if score in "RMS" and screen_out_valid:
             # This screens out values beteen 0 and 20%. 41/100=20%
-            vmax=50
-            vmin=0
-            my_cmap=copy.copy(matplotlib.cm.get_cmap("BrBG", lut=100))
-            cmap_vals = my_cmap(np.arange(100)) #extract values as an array
-            cmap_vals[0:41] = [0.9, 0.9, 0.9, 1] #change the first value
+            vmax = 50
+            vmin = 0
+            my_cmap = copy.copy(matplotlib.cm.get_cmap("BrBG", lut=100))
+            cmap_vals = my_cmap(np.arange(100))  # extract values as an array
+            cmap_vals[0:41] = [0.9, 0.9, 0.9, 1]  # change the first value
             my_cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
                 "newBrBG", cmap_vals)
 
         # to mask out where we lack data
-        data[np.logical_and(data > vmax, ~the_mask)]=vmax
-        data[np.logical_and(data < vmin, ~the_mask)]=vmin
-        data[the_mask]=2*vmax #give no data value that will be masked white
+        data[np.logical_and(data > vmax, ~the_mask)] = vmax
+        data[np.logical_and(data < vmin, ~the_mask)] = vmin
+        data[the_mask] = 2*vmax  # give no data value that will be masked white
         xi = np.linspace(lon_min, lon_max, numcols)
         yi = np.linspace(lat_min, lat_max, numrows)
         xi, yi = np.meshgrid(xi, yi)
@@ -628,13 +639,13 @@ class ppsStatsOnFibLatticeObject(DataObject):
         my_cmap.set_over(color='0.5', alpha=1)
         zi = griddata((x, y), z, (xi, yi), method='nearest')
         im1 = my_proj1.pcolormesh(xi, yi, zi, cmap=my_cmap,
-                           vmin=vmin, vmax=vmax, latlon=True, rasterized=True)
-        im1.set_clim([vmin, vmax]) #to get nice ticks in the colorbar
+                                  vmin=vmin, vmax=vmax, latlon=True, rasterized=True)
+        im1.set_clim([vmin, vmax])  # to get nice ticks in the colorbar
         # draw som lon/lat lines
         my_proj1.drawparallels(np.arange(-90., 90., 30.))
         my_proj1.drawmeridians(np.arange(-180., 180., 60.))
         my_proj1.drawcoastlines()
-        my_proj1.drawmapboundary(fill_color='1.0') #0.9 light grey"
+        my_proj1.drawmapboundary(fill_color='1.0')  # 0.9 light grey"
         cb = my_proj1.colorbar(im1, "right", size="5%", pad="2%")
         tick_locator = matplotlib.ticker.MaxNLocator(nbins=10)
         cb.locator = tick_locator
@@ -648,18 +659,19 @@ class ppsStatsOnFibLatticeObject(DataObject):
                 text_i = "(a)"
             if "v2018" in self.PLOT_FILENAME_START:
                 text_i = "(c)"
-            plt.text(0.01, 0.95, text_i, fontsize=36, transform=ax.transAxes, bbox=dict(facecolor='w', edgecolor='w', alpha=1.0))
+            plt.text(0.01, 0.95, text_i, fontsize=36, transform=ax.transAxes,
+                     bbox=dict(facecolor='w', edgecolor='w', alpha=1.0))
 
         plt.savefig(self.PLOT_DIR_SCORE + self.PLOT_FILENAME_START +
-                    '_robinson_' +'.pdf', bbox_inches='tight')
+                    '_robinson_' + '.pdf', bbox_inches='tight')
         plt.savefig(self.PLOT_DIR_SCORE + self.PLOT_FILENAME_START +
-                    '_robinson_' +'.png', bbox_inches='tight')
+                    '_robinson_' + '.png', bbox_inches='tight')
         plt.close('all')
 
     def remap_and_plot_score_on_several_areas(self, vmin=0.0, vmax=1.0,
                                               score='Kuipers', screen_out_valid=False):
-        self.PLOT_DIR_SCORE = self.PLOT_DIR + "/%s/%s/"%(score, self.satellites)
-        self.PLOT_FILENAME_START = "fig_%s_ccm_%s_%sfilter_dnt_%s_%s_r%skm_"%(
+        self.PLOT_DIR_SCORE = self.PLOT_DIR + "/%s/%s/" % (score, self.satellites)
+        self.PLOT_FILENAME_START = "fig_%s_ccm_%s_%sfilter_dnt_%s_%s_r%skm_" % (
             self.satellites, self.cc_method, self.filter_method,
             self.DNT, score, self.radius_km)
 
@@ -673,13 +685,14 @@ class ppsStatsOnFibLatticeObject(DataObject):
                 # 'antarctica', # good
                 # 'npole', # good
                 'ease_nh_test',
-                'ease_sh_test' ]:
+                'ease_sh_test']:
             self._remap_a_score_on_an_area(plot_area_name=plot_area_name,
                                            vmin=vmin, vmax=vmax, score=score)
-        #the real robinson projection
+        # the real robinson projection
         if "metop" not in self.satellites:
             self._remap_a_score_on_an_robinson_projection(vmin=vmin, vmax=vmax,
                                                           score=score, screen_out_valid=False)
+
     def calculate_kuipers(self):
         self.np_float_array()
         self.find_number_of_clouds_clear()
@@ -711,38 +724,45 @@ class ppsStatsOnFibLatticeObject(DataObject):
         the_mask = self.Min_lapse_rate > - 0.001
         lapse_rate = np.ma.masked_array(self.Min_lapse_rate, mask=the_mask)
         self.lapse_rate = lapse_rate
+
     def calculate_t11ts_offset(self):
         self.np_float_array()
         the_mask = self.N_clear < 10
         t11ts_offset = np.ma.masked_array(self.Min_t11ts_offset, mask=the_mask)
         self.t11ts_offset = t11ts_offset
+
     def calculate_t11t12_offset(self):
         self.np_float_array()
         the_mask = self.N_clear < 10
         t11t12_offset = np.ma.masked_array(self.Max_t11t12_offset, mask=the_mask)
         self.t11t12_offset = t11t12_offset
+
     def calculate_t37t12_offset(self):
         self.np_float_array()
         the_mask = self.N_clear < 10
         t37t12_offset = np.ma.masked_array(self.Max_t37t12_offset, mask=the_mask)
         self.t37t12_offset = t37t12_offset
+
     def calculate_t11t37_offset(self):
         self.np_float_array()
         the_mask = self.N_clear < 10
         t11t37_offset = np.ma.masked_array(self.Max_t11t37_offset, mask=the_mask)
         self.t11t37_offset = t11t37_offset
+
     def calculate_temperature_bias(self):
         self.np_float_array()
         the_mask = self.N_detected_height_low < 10
         ctth_bias_temperature_low = self.Sum_ctth_bias_temperature_low*1.0/self.N_detected_height_low
         ctth_bias_temperature_low = np.ma.masked_array(ctth_bias_temperature_low, mask=the_mask)
         self.ctth_bias_temperature_low = ctth_bias_temperature_low
+
     def calculate_temperature_bias_t11(self):
         self.np_float_array()
         the_mask = self.N_detected_height_low < 10
         ctth_bias_temperature_low_t11 = self.Sum_ctth_bias_temperature_low_t11*1.0/self.N_detected_height_low
         ctth_bias_temperature_low_t11 = np.ma.masked_array(ctth_bias_temperature_low_t11, mask=the_mask)
         self.ctth_bias_temperature_low_t11 = ctth_bias_temperature_low_t11
+
     def calculate_height_bias(self):
         self.np_float_array()
         the_mask = self.N_detected_height_low < 10
@@ -753,6 +773,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
         ctth_bias_high = self.Sum_ctth_bias_high*1.0/self.N_detected_height_high
         ctth_bias_high = np.ma.masked_array(ctth_bias_high, mask=the_mask)
         self.ctth_bias_high = ctth_bias_high
+
     def calculate_height_mae(self):
         self.np_float_array()
         the_mask = self.N_detected_height_low < 10
@@ -791,6 +812,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
         lapse_bias_high = self.Sum_lapse_bias_high*1.0/self.N_detected_height_high
         lapse_bias_high = np.ma.masked_array(lapse_bias_high, mask=the_mask)
         self.lapse_bias_high = lapse_bias_high
+
     def calculate_height_bias_type(self):
         self.np_float_array()
         for cc_type in range(8):
@@ -831,20 +853,22 @@ class ppsStatsOnFibLatticeObject(DataObject):
         self.np_float_array()
         self.find_number_of_clouds_clear()
         ThreatScore = (
-            self.N_detected_clouds)*1.0/( self.N_clouds + self.N_false_clouds)
+            self.N_detected_clouds)*1.0/(self.N_clouds + self.N_false_clouds)
         the_mask = self.N_clouds < 20
         ThreatScore = np.ma.masked_array(ThreatScore, mask=the_mask)
         self.Threat_Score = ThreatScore
+
     def calculate_threat_score_clear(self):
         self.np_float_array()
         self.find_number_of_clouds_clear()
         ThreatScoreClear = (
-            self.N_detected_clear)*1.0/( self.N_clear +
-                                         self.N_undetected_clouds)
+            self.N_detected_clear)*1.0/(self.N_clear +
+                                        self.N_undetected_clouds)
         the_mask = self.N_clear < 20
         ThreatScoreClear = np.ma.masked_array(ThreatScoreClear,
                                               mask=the_mask)
         self.Threat_Score_Clear = ThreatScoreClear
+
     def calculate_pod_clear(self):
         self.np_float_array()
         self.find_number_of_clouds_clear()
@@ -880,6 +904,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
         the_mask = self.N_clear < 20
         FARclear = np.ma.masked_array(FARclear, mask=the_mask)
         self.FARclear = FARclear
+
     def calculate_far_cloudy(self):
         self.np_float_array()
         self.find_number_of_clouds_clear()
@@ -894,6 +919,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
             np.sum(self.N_false_clouds[use]))*1.0/(
                 np.sum(self.N_detected_clouds[use]) +
                 np.sum(self.N_false_clouds[use]))
+
     def calculate_calipso_cfc(self):
         self.np_float_array()
         self.find_number_of_clouds_clear()
@@ -902,6 +928,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
         the_mask = self.N < 20
         calipso_cfc = np.ma.masked_array(calipso_cfc, mask=the_mask)
         self.calipso_cfc = calipso_cfc
+
     def calculate_pps_cfc(self):
         self.np_float_array()
         self.find_number_of_clouds_clear()
@@ -910,6 +937,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
         the_mask = self.N < 20
         pps_cfc = np.ma.masked_array(pps_cfc, mask=the_mask)
         self.pps_cfc = pps_cfc
+
     def calculate_bias(self):
         self.np_float_array()
         self.find_number_of_clouds_clear()
@@ -920,9 +948,10 @@ class ppsStatsOnFibLatticeObject(DataObject):
         Bias = np.ma.masked_array(Bias, mask=the_mask)
         use = np.logical_or(self.lats >= 70, ~the_mask)
         self.Bias_total_mean_polar = 100*(
-         - np.sum(self.N_undetected_clouds[use]) +
+            - np.sum(self.N_undetected_clouds[use]) +
             np.sum(self.N_false_clouds[use]))*1.0/(np.sum(self.N[use]))
         self.Bias = Bias
+
     def calculate_rms(self):
         self.np_float_array()
         self.calculate_calipso_cfc()
@@ -932,7 +961,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
                        self.N_undetected_clouds*(0.0 - 100.0 - self.Bias)**2 +
                        self.N_detected_clear*self.Bias**2 +
                        self.N_detected_clouds*self.Bias**2)/(
-                   self.N))
+            self.N))
         the_mask = self.N < 20
         RMS = np.ma.masked_array(RMS, mask=the_mask)
         self.RMS = RMS
@@ -941,13 +970,14 @@ class ppsStatsOnFibLatticeObject(DataObject):
 class PerformancePlottingObject:
     def __init__(self):
         self.flattice = ppsStatsOnFibLatticeObject()
+
     def add_detection_stats_on_fib_lattice(self, my_obj):
         # Start with the area and get lat and lon to calculate the stats:
-        if  len(my_obj.longitude) == 0:
+        if len(my_obj.longitude) == 0:
             print("Skipping file, no matches !")
             return
         lats = self.flattice.lats[:]
-        max_distance=self.flattice.radius_km*1000*2.5
+        max_distance = self.flattice.radius_km*1000*2.5
         area_def = SwathDefinition(*(self.flattice.lons,
                                      self.flattice.lats))
         target_def = SwathDefinition(*(my_obj.longitude,
@@ -985,7 +1015,7 @@ class PerformancePlottingObject:
         lapse_bias_high = my_obj.lapse_bias_high[valid_out]
         is_clear = np.logical_or(detected_clear, false_clouds)
         # lets make things faster, I'm tired of waiting!
-        cols[distances>max_distance]=-9 #don't use pixles matched too far away!
+        cols[distances > max_distance] = -9  # don't use pixles matched too far away!
         import time
         tic = time.time()
         arr, counts = np.unique(cols, return_index=False, return_counts=True)
@@ -1050,7 +1080,7 @@ class PerformancePlottingObject:
             self.flattice.Sum_height_bias_type[cc_type][d] += np.sum(my_obj.height_bias_type[cc_type][ind])
             self.flattice.N_detected_height_type[cc_type][d] += np.sum(my_obj.detected_height_type[cc_type][ind])
 
-        print("mapping took %1.4f seconds"%(time.time()-tic)   )
+        print("mapping took %1.4f seconds" % (time.time()-tic))
 
 
 def get_fibonacci_spread_points_on_earth(radius_km):
@@ -1061,26 +1091,26 @@ def get_fibonacci_spread_points_on_earth(radius_km):
     # 64000 radius 5km
     EARTH_AREA = 510072000
     POINT_AREA = radius_km * radius_km * 3.14
-    n = int(EARTH_AREA /POINT_AREA)
+    n = int(EARTH_AREA / POINT_AREA)
     # http://arxiv.org/pdf/0912.4540.pdf
     # Alvaro Gonzalez: Measurement of areas on sphere usig Fibonacci and latitude-longitude grid.
     # import math
-    lin_space = np.array(range( - n//2, n//2))
+    lin_space = np.array(range(- n//2, n//2))
     pi = 3.14
     theta = (1 + np.sqrt(5))*0.5
     longitude = (lin_space % theta)*360/theta
     temp = (2.0 * lin_space) / (n)
-    temp[temp > 1.0]=0.999
-    temp[temp < - 1.0]= -0.999
+    temp[temp > 1.0] = 0.999
+    temp[temp < - 1.0] = -0.999
     latitude = np.arcsin(temp)*180/pi
     longitude[longitude > 180] = longitude[longitude > 180] - 360
     longitude[longitude < - 180] = longitude[longitude < - 180] + 360
     # latitude[latitude>90]=180 - latitude[latitude>90]
     # latitude[latitude<-90]=-180 -latitude[latitude<-90]
-    longitude =longitude[latitude < 90]
-    latitude =latitude[latitude < 90]
-    longitude =longitude[latitude > - 90]
-    latitude =latitude[latitude > - 90]
+    longitude = longitude[latitude < 90]
+    latitude = latitude[latitude < 90]
+    longitude = longitude[latitude > - 90]
+    latitude = latitude[latitude > - 90]
 
     if np.isnan(np.max(latitude)):
         raise ValueError

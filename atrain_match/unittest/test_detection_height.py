@@ -22,8 +22,8 @@
 #
 import numpy as np
 import unittest
-from atrain_match.libs.truth_imager_prepare import  (detection_height_from_5km_data,
-                                             optical_depth_height_filtering)
+from atrain_match.libs.truth_imager_prepare import (detection_height_from_5km_data,
+                                                    optical_depth_height_filtering)
 from atrain_match.matchobject_io import CalipsoObject
 
 
@@ -51,7 +51,7 @@ def CalipsoCloudOpticalDepth(cloud_top, cloud_base, optical_depth, cloud_fractio
                             break
                         else:
                             new_cloud_top[pixel_i, k] = new_cloud_base[pixel_i, k] + \
-                            ((new_cloud_top[pixel_i, k] - new_cloud_base[pixel_i, k]) * 1 / 2.)
+                                ((new_cloud_top[pixel_i, k] - new_cloud_base[pixel_i, k]) * 1 / 2.)
                     break
     new_validation_height = new_cloud_top[:, 0].copy()
     new_validation_height[new_validation_height >= 0] * = 1000
@@ -104,9 +104,10 @@ class test_detection_height(unittest.TestCase):
         self.assertTrue(np.abs(calipso.detection_height_5km[20] - 2.22 * 1000) < 100)
         self.assertTrue(np.abs(calipso.detection_height_5km[25] - 2.18 * 1000) < 100)
         self.assertTrue(np.abs(calipso.detection_height_5km[30] - 3.1 * 1000) < 100)
+
     def test_ninas_code(self):
         out1 = optical_depth_height_filtering(self.obt5, 0.5, use_old_method=True,
-                                             limit_ctop=1.0)
+                                              limit_ctop=1.0)
         out2 = CalipsoCloudOpticalDepth(self.obt5.layer_top_altitude,
                                         self.obt5.layer_base_altitude,
                                         self.obt5.feature_optical_depth_532,
@@ -115,7 +116,7 @@ class test_detection_height(unittest.TestCase):
                                         0.5)
         # This is what I think we should do
         out3 = optical_depth_height_filtering(self.obt5, 0.5, use_old_method=False,
-                                             limit_ctop=0.1)
+                                              limit_ctop=0.1)
         self.assertTrue((np.equal(out1[0], out2[0])).all())
         self.assertTrue((np.equal(out1[2], out2[2])).all())
         self.assertTrue((np.equal(out1[3], out2[3])).all())

@@ -15,6 +15,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
+from atrain_match.libs.extract_imager_along_track import get_data_from_array
+from atrain_match.config import NODATA
 import numpy as np
 import os
 import netCDF4
@@ -24,8 +26,6 @@ import time
 import calendar
 from datetime import datetime
 logger = logging.getLogger(__name__)
-from atrain_match.config import NODATA
-from atrain_match.libs.extract_imager_along_track import get_data_from_array
 ATRAIN_MATCH_NODATA = NODATA
 
 
@@ -55,12 +55,12 @@ def add_modis_06(ca_matchup, pps_imager_file, options):
 
     ca_matchup.modis.height = get_data_from_array(modis_06.height, index)
     ca_matchup.modis.temperature = get_data_from_array(modis_06.temperature, index)
-    ca_matchup.modis.pressure = get_data_from_array( modis_06.pressure, index)
-    ca_matchup.modis.lwp = get_data_from_array( modis_06.lwp, index)
-    ca_matchup.modis.cloud_emissivity = get_data_from_array( modis_06.cloud_emissivity, index)
-    ca_matchup.modis.cloud_phase = get_data_from_array( modis_06.cloud_phase, index)
-    ca_matchup.modis.latitude_5km = get_data_from_array( modis_06.latitude, index_5km)
-    ca_matchup.modis.longitude_5km = get_data_from_array( modis_06.longitude, index_5km)
+    ca_matchup.modis.pressure = get_data_from_array(modis_06.pressure, index)
+    ca_matchup.modis.lwp = get_data_from_array(modis_06.lwp, index)
+    ca_matchup.modis.cloud_emissivity = get_data_from_array(modis_06.cloud_emissivity, index)
+    ca_matchup.modis.cloud_phase = get_data_from_array(modis_06.cloud_phase, index)
+    ca_matchup.modis.latitude_5km = get_data_from_array(modis_06.latitude, index_5km)
+    ca_matchup.modis.longitude_5km = get_data_from_array(modis_06.longitude, index_5km)
     return ca_matchup
 
 

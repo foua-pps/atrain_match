@@ -25,26 +25,26 @@ from scipy import ndimage
 from matchobject_io import (read_files)
 
 from utils.stat_util import (my_hist,
-                       my_iqr,
-                       my_rms,
-                       my_mae,
-                       half_sample_mode,
-                       half_sample_mode,
-                       my_pe250m,
-                       my_pe500m,
-                       my_pe1000m,
-                       my_pe2000m,
-                       my_pe2500m,
-                       my_pe5000m)
+                             my_iqr,
+                             my_rms,
+                             my_mae,
+                             half_sample_mode,
+                             half_sample_mode,
+                             my_pe250m,
+                             my_pe500m,
+                             my_pe1000m,
+                             my_pe2000m,
+                             my_pe2500m,
+                             my_pe5000m)
 from my_dir import ADIR
 
 
 def crop_object(match_obj, use_in=None):
-    y =match_obj.imager.all_arrays['ctth_height']
-    if 'ctth_height_corr' in match_obj.imager.all_arrays.keys() and   match_obj.imager.all_arrays['ctth_height_corr'] is not None:
-        y =match_obj.imager.all_arrays['ctth_height_corr']
+    y = match_obj.imager.all_arrays['ctth_height']
+    if 'ctth_height_corr' in match_obj.imager.all_arrays.keys() and match_obj.imager.all_arrays['ctth_height_corr'] is not None:
+        y = match_obj.imager.all_arrays['ctth_height_corr']
     x = match_obj.calipso.all_arrays['validation_height']
-    pps_profile_id = match_obj.calipso.sec_1970#profile_id[:, 0]
+    pps_profile_id = match_obj.calipso.sec_1970  # profile_id[:, 0]
     use = np.logical_and(y >= 0, x >= 0)
     if use_in is not None:
         use = np.logical_and(use, use_in)
@@ -67,11 +67,11 @@ def crop_object(match_obj, use_in=None):
 
 def remove_missing(match_objPPS, match_objPATMOSX, common_index):
 
-    patmosx_profile_id = match_objPATMOSX.calipso.sec_1970#profile_id[:, 0]
-    pps_profile_id = match_objPPS.calipso.sec_1970#profile_id[:, 0]
+    patmosx_profile_id = match_objPATMOSX.calipso.sec_1970  # profile_id[:, 0]
+    pps_profile_id = match_objPPS.calipso.sec_1970  # profile_id[:, 0]
 
     use_patmosx_same_profile = np.array([p_id in common_index for p_id in patmosx_profile_id])
-    use_pps_same_profile = np.array([p_id in  common_index for p_id in pps_profile_id])
+    use_pps_same_profile = np.array([p_id in common_index for p_id in pps_profile_id])
     use_patmosx = use_patmosx_same_profile
     use_pps = use_pps_same_profile
     """
@@ -102,9 +102,9 @@ def print_stats(match_objPPS, match_objPATMOSX, use_pps, use_patmosx):
     x = match_objPPS.calipso.all_arrays['validation_height']
     x_patmosx = match_objPATMOSX.calipso.all_arrays['validation_height']
     y_pps = match_objPPS.imager.all_arrays['imager_ctth_m_above_seasurface']
-    if 'ctth_height_corr' in match_objPPS.imager.all_arrays.keys() and   match_objPPS.imager.all_arrays['ctth_height_corr'] is not None:
-        y_pps =match_objPPS.imager.all_arrays['ctth_height_corr']
-    y_patmosx =match_objPATMOSX.imager.all_arrays['ctth_height']
+    if 'ctth_height_corr' in match_objPPS.imager.all_arrays.keys() and match_objPPS.imager.all_arrays['ctth_height_corr'] is not None:
+        y_pps = match_objPPS.imager.all_arrays['ctth_height_corr']
+    y_patmosx = match_objPATMOSX.imager.all_arrays['ctth_height']
 
     print(np.sum(use_pps), np.sum(use_patmosx))
 
@@ -130,15 +130,17 @@ def print_stats(match_objPPS, match_objPATMOSX, use_pps, use_patmosx):
         np.mean(bias_pps),
         np.mean(bias_patmosx),
         np.std(bias_pps),
-        np.std(bias_patmosx),                                       ))
+        np.std(bias_patmosx),))
 
 
 if __name__ == "__main__":
 
     PATMOSX_ROOT_DIR = (ADIR + "/VALIDATION_PATMOSX/Reshaped_Files/noaa18/5km/2009/*/*h5")
 
-    PPS_ROOT_DIR = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_gac_v2018_created20180927/Reshaped_Files/noaa18/5km/2009/5km_noaa18_2009*cali*h5")
-    PPS14_ROOT_DIR = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_gac_v2014_created20180927/Reshaped_Files/noaa18/5km/2009/5km_noaa18_2009*cali*h5")
+    PPS_ROOT_DIR = (
+        ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_gac_v2018_created20180927/Reshaped_Files/noaa18/5km/2009/5km_noaa18_2009*cali*h5")
+    PPS14_ROOT_DIR = (
+        ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_gac_v2014_created20180927/Reshaped_Files/noaa18/5km/2009/5km_noaa18_2009*cali*h5")
     CCI_ROOT_DIR = (ADIR + "/DATA_MISC/reshaped_files_cci_noaa18_2009/V2/*2009*h5")
 
     patmosx_files = glob(PATMOSX_ROOT_DIR)
@@ -152,10 +154,10 @@ if __name__ == "__main__":
     match_objCCI = read_files(glob(CCI_ROOT_DIR))
     match_objCCI = crop_object(match_objCCI, use_in=None)
 
-    patmosx_profile_id = match_objPATMOSX.calipso.sec_1970#profile_id[:, 0]
-    pps_profile_id = match_objPPS.calipso.sec_1970#profile_id[:, 0]
-    pps14_profile_id = match_objPPS14.calipso.sec_1970#profile_id[:, 0]
-    cci_profile_id = match_objCCI.calipso.sec_1970#profile_id[:, 0]
+    patmosx_profile_id = match_objPATMOSX.calipso.sec_1970  # profile_id[:, 0]
+    pps_profile_id = match_objPPS.calipso.sec_1970  # profile_id[:, 0]
+    pps14_profile_id = match_objPPS14.calipso.sec_1970  # profile_id[:, 0]
+    cci_profile_id = match_objCCI.calipso.sec_1970  # profile_id[:, 0]
     common_index1 = np.intersect1d(patmosx_profile_id, pps_profile_id)
     common_index2 = np.intersect1d(cci_profile_id, pps14_profile_id)
     common_index = np.intersect1d(common_index1, common_index2)
@@ -170,6 +172,7 @@ if __name__ == "__main__":
     print("PPS-v2018")
     print_stats(match_objPPS, match_objPATMOSX, use_pps, use_patmosx)
     print("Dummy")
-    match_objPPS.imager.all_arrays['imager_ctth_m_above_seasurface'][:] = np.mean(match_objPPS.calipso.all_arrays['validation_height'][use_pps])
+    match_objPPS.imager.all_arrays['imager_ctth_m_above_seasurface'][:] = np.mean(
+        match_objPPS.calipso.all_arrays['validation_height'][use_pps])
     print(np.mean(match_objPPS.calipso.all_arrays['validation_height'][use_pps]))
     print_stats(match_objPPS, match_objPATMOSX, use_pps, use_patmosx)

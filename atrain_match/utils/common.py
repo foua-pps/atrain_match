@@ -26,12 +26,15 @@ logger = logging.getLogger(__name__)
 
 class Cross:
     """A cross where two satellites (almost) meet."""
+
     def __init__(self, satellite, time):
         self.satellite1 = satellite
         self.satellite2 = 'xxx'
         self.time = time
+
     def __repr__(self):
-        return "Cross: %s at time %s" %(self.satellite1, self.time)
+        return "Cross: %s at time %s" % (self.satellite1, self.time)
+
     def __str__(self):
         return self.__repr__()
 
@@ -142,7 +145,7 @@ def write_match_objects(filename, datasets, groups, group_attrs_dict, SETTINGS=N
     with h5py.File(filename, 'w') as f:
         for name in datasets.keys():
             f.create_dataset(name, data=datasets[name],
-                         compression=COMPRESS_LVL)
+                             compression=COMPRESS_LVL)
 
         for group_name, group_object in groups.items():
             skip_some = False
@@ -166,7 +169,7 @@ def write_match_objects(filename, datasets, groups, group_attrs_dict, SETTINGS=N
                 if array is None:
                     continue
                 if (skip_some and
-                    array_name not in the_used_variables):
+                        array_name not in the_used_variables):
                     logger.debug("Not writing unimportant %s to file",
                                  array_name)
                     continue

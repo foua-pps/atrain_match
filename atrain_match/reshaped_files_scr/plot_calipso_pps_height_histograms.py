@@ -32,33 +32,33 @@ from matchobject_io import (readCaliopImagerMatchObj,
 import matplotlib.pyplot as plt
 from my_dir import ADIR
 
-isACPGv2012=False
+isACPGv2012 = False
 isGAC_v2014_morning_sat = True
 isGAC_v2014 = True
 if isGAC_v2014_morning_sat:
     num_files_to_read = 30*3
-    isGAC=True
+    isGAC = True
     ROOT_DIR = ADIR + "/DATA_MISC/reshaped_files/clara_a2_rerun/Reshaped_Files_CLARA_A2_final/"
     files = glob(ROOT_DIR + "noaa17/5km/20??/06/*/*h5")
     files = files + glob(ROOT_DIR + "metop*/5km/20??/06/*h5")
     figure_name = "figure_morning_sat_"
 elif isGAC_v2014:
     num_files_to_read = 30
-    isGAC=True
+    isGAC = True
     figure_name = "figure_"
     ROOT_DIR = ADIR + "/DATA_MISC/reshaped_files/clara_a2_rerun/Reshaped_Files_CLARA_A2_final/"
     files = glob(ROOT_DIR + "noaa18/5km/20??/??/*/*noaa*h5")
     files = files + glob(ROOT_DIR + "noaa19/5km/20??/??/*/*noaa*h5")
 
 
-def  my_plot_histogram_hexbin(x, y,
-                              bins='log',
-                              gridsize=None,
-                              ttitle="", txlabel='x', tylabel='y', ymin=None,
-                              file_name=None):
+def my_plot_histogram_hexbin(x, y,
+                             bins='log',
+                             gridsize=None,
+                             ttitle="", txlabel='x', tylabel='y', ymin=None,
+                             file_name=None):
     """Plot a 2d-histogram using hexbins
     """
-    fig = plt.figure(figsize = (9, 8))
+    fig = plt.figure(figsize=(9, 8))
     ax = fig.add_subplot(111)
     xdata = x.ravel()
     ydata = y.ravel()
@@ -83,11 +83,11 @@ for filename in files:
     print os.path.basename(filename)
     match_calipso = match_calipso + readCaliopImagerMatchObj(filename)
 
-isCloudyPPS = np.logical_and(match_calipso.imager.all_arrays['cloudtype']>4,
-                             match_calipso.imager.all_arrays['cloudtype']<21)
-isCloudyCaliop = match_calipso.calipso.all_arrays['number_layers_found']>0
+isCloudyPPS = np.logical_and(match_calipso.imager.all_arrays['cloudtype'] > 4,
+                             match_calipso.imager.all_arrays['cloudtype'] < 21)
+isCloudyCaliop = match_calipso.calipso.all_arrays['number_layers_found'] > 0
 isCloudyCaliop = np.logical_and(isCloudyCaliop,
-                                 match_calipso.calipso.all_arrays['total_optical_depth_5km']>0.5)
+                                match_calipso.calipso.all_arrays['total_optical_depth_5km'] > 0.5)
 
 cal_temp = match_calipso.calipso.all_arrays['midlayer_temperature'][:, 0]+273.15
 cal_height = 1000*match_calipso.calipso.all_arrays['layer_top_altitude'][:, 0]

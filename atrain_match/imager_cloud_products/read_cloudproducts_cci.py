@@ -19,9 +19,15 @@
   Use this module to read cci cloudproducts
   2013 SMHI, N.Hakansson
 """
-from atrain_match.imager_cloud_products.read_cloudproducts_and_nwp_pps import (AllImagerData,
-                                                                  CtthObj, CppObj, CmaObj,
-                                                                  ImagerAngObj)
+
+from atrain_match.imager_cloud_products.read_cloudproducts_and_nwp_pps import (
+    AllImagerData,
+    CtypeObj, CtthObj, CmaObj,
+    create_imager_time,
+    ImagerAngObj)
+from atrain_match.utils.runutils import do_some_geo_obj_logging
+import atrain_match.config as config
+import time
 import os
 import netCDF4
 import numpy as np
@@ -29,10 +35,7 @@ import calendar
 import datetime
 import logging
 logger = logging.getLogger(__name__)
-import time
-import atrain_match.config as config
 ATRAIN_MATCH_NODATA = config.NODATA
-from atrain_match.utils.runutils import do_some_geo_obj_logging
 
 
 def get_satid_datetime_orbit_from_fname_cci(imager_filename):
@@ -42,16 +45,16 @@ def get_satid_datetime_orbit_from_fname_cci(imager_filename):
     date_time = datetime.datetime.strptime(sl_[0], '%Y%m%d%H%M%S')
 
     sat_id = sl_[5].lower()
-    values= {"satellite": sat_id,
-             "date_time": date_time,
-             "orbit": "99999",
-             "date":date_time.strftime("%Y%m%d"),
-             "year":date_time.year,
-             "month":"%02d"%(date_time.month),
-             "time":date_time.strftime("%H%M"),
-             # "basename":sat_id + "_" + date_time.strftime("%Y%m%d_%H%M_99999"), # "20080613002200-ESACCI",
-             "ccifilename":imager_filename,
-             "ppsfilename":None}
+    values = {"satellite": sat_id,
+              "date_time": date_time,
+              "orbit": "99999",
+              "date": date_time.strftime("%Y%m%d"),
+              "year": date_time.year,
+              "month": "%02d" % (date_time.month),
+              "time": date_time.strftime("%H%M"),
+              # "basename":sat_id + "_" + date_time.strftime("%Y%m%d_%H%M_99999"), # "20080613002200-ESACCI",
+              "ccifilename": imager_filename,
+              "ppsfilename": None}
     values['basename'] = values["satellite"] + "_" + values["date"] + "_" + values["time"] + "_" + values["orbit"]
     return values
 
@@ -72,7 +75,7 @@ def daysafter4713bc_to_sec1970(bcdate_array):
     ddays = ddays-2433283
 
     time_delta = datetime.timedelta(days=ddays, seconds=dseconds,
-                                    microseconds = mseconds)
+                                    microseconds=mseconds)
     the_time = datetime.datetime(1950, 1, 1, 12, 0, 0, 0) + time_delta
     sec_1970 = calendar.timegm(the_time.timetuple()) + the_time.microsecond/(1.0*10**6)
     sec_1970_array = 24*60*60*(bcdate_array - bcdate) + sec_1970
@@ -116,7 +119,7 @@ def read_cci_cma(cci_nc):
     # pps 0 cloudfree 3 cloudfree snow 1: cloudy, 2:cloudy
     # cci lsflag 0:sea 1:land
     cma.cma_ext = 0*cci_nc.variables['lsflag'][::]
-    cma.cma_ext[cci_nc.variables['cc_total'][::]>0.5] = 1
+    cma.cma_ext[cci_nc.variables['cc_total'][::] > 0.5] = 1
     # ctype.landseaflag = cci_nc.variables['lsflag'][::]
     return cma
 
@@ -146,7 +149,6 @@ def read_cci_phase(cci_nc):
 
 
 def read_cci_geoobj(cci_nc):
-
     """Read geolocation and time info from filename
     """
     cloudproducts = AllImagerData()
@@ -188,7 +190,7 @@ def read_cci_geoobj(cci_nc):
     cloudproducts.sec1970_start = np.min(cloudproducts.time)
     cloudproducts.sec1970_end = np.max(cloudproducts.time)
     do_some_geo_obj_logging(cloudproducts)
-    return  cloudproducts
+    return cloudproducts
 
 
 def read_cci_ctth(cci_nc):
@@ -202,7 +204,7 @@ def read_cci_ctth(cci_nc):
         cth_data = cth.data  # already scaled!
 
     logger.info("Setting ctth for non cloudy pixels do nodata ...")
-    cth_data[cci_nc.variables['cc_total'][::]<0.5]= ATRAIN_MATCH_NODATA
+    cth_data[cci_nc.variables['cc_total'][::] < 0.5] = ATRAIN_MATCH_NODATA
 
     cth_corr = cci_nc.variables['cth_corrected'][::]
     if hasattr(cth_corr, 'mask'):
@@ -210,7 +212,7 @@ def read_cci_ctth(cci_nc):
     else:
         cth_data_corr = cth_corr.data  # already scaled!
     logger.debug("Setting ctth for non cloudy pixels do nodata ...")
-    cth_data_corr[cci_nc.variables['cc_total'][::]<0.5]= ATRAIN_MATCH_NODATA
+    cth_data_corr[cci_nc.variables['cc_total'][::] < 0.5] = ATRAIN_MATCH_NODATA
 
     ctth.h_gain = 1.0
     ctth.h_intercept = 0.0
@@ -224,7 +226,7 @@ def read_cci_ctth(cci_nc):
     else:
         ctt_data = ctt.data
     logger.debug("Setting ctth for non cloudy pixels do nodata ...")
-    ctt_data[cci_nc.variables['cc_total'][::]<0.5]= ATRAIN_MATCH_NODATA
+    ctt_data[cci_nc.variables['cc_total'][::] < 0.5] = ATRAIN_MATCH_NODATA
 
     ctth.t_gain = 1.0
     ctth.t_intercept = 0.0
@@ -240,12 +242,13 @@ def read_cci_ctth(cci_nc):
     ctth.p_intercept = 0.0
     ctth.p_nodata = ATRAIN_MATCH_NODATA
     logger.debug("Setting ctth for non cloudy pixels do nodata ...")
-    ctp_data[cci_nc.variables['cc_total'][::]<0.5]= ATRAIN_MATCH_NODATA
+    ctp_data[cci_nc.variables['cc_total'][::] < 0.5] = ATRAIN_MATCH_NODATA
     ctth.pressure = ctp_data
 
     return ctth
 
+
 if __name__ == "__main__":
-    my_filename="20080613002200-ESACCI-L2_CLOUD-CLD_PRODUCTS-IMAGERGAC-NOAA18-fv1.0.nc"
+    my_filename = "20080613002200-ESACCI-L2_CLOUD-CLD_PRODUCTS-IMAGERGAC-NOAA18-fv1.0.nc"
     PPS_OBJECTS = read_cci_ctth(my_filename)
     print(PPS_OBJECTS)

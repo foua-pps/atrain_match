@@ -15,6 +15,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
+from matplotlib import pyplot as plt
 import os
 from glob import glob
 import re
@@ -38,10 +39,11 @@ def make_pod_vector(match_calipso):
     #
     # except:
     if match_calipso.imager.all_arrays['cloudmask'] is not None:
-        pps_cloudy = np.logical_or(match_calipso.imager.all_arrays['cloudmask']==1,
-                                   match_calipso.imager.all_arrays['cloudmask']==2)
+        pps_cloudy = np.logical_or(match_calipso.imager.all_arrays['cloudmask'] == 1,
+                                   match_calipso.imager.all_arrays['cloudmask'] == 2)
     else:
-        pps_cloudy = np.logical_and(np.greater(match_calipso.imager.cloudtype, 4), np.less(match_calipso.imager.cloudtype, 20))
+        pps_cloudy = np.logical_and(np.greater(match_calipso.imager.cloudtype, 4),
+                                    np.less(match_calipso.imager.cloudtype, 20))
     igbp_st = getattr(match_calipso.calipso, 'igbp_surface_type')
     alat = np.abs(match_calipso.imager.all_arrays['latitude'])
     use_all = np.logical_and(np.equal(igbp_st, 17), alat < 45)
@@ -53,7 +55,8 @@ def make_pod_vector(match_calipso):
 
     # feature = np.array(match_calipso.imager.all_arrays['bt11micron'])-match_calipso.imager.all_arrays['surftemp']
     # feature = match_calipso.imager.all_arrays['thr_t37t12'] - np.array(match_calipso.imager.all_arrays['bt37micron']) +match_calipso.imager.all_arrays['bt12micron']
-    feature = np.array(match_calipso.imager.all_arrays['bt11micron'])# -match_calipso.imager.all_arrays['bt12micron'] - match_calipso.imager.all_arrays['thr_t11t12']
+    # -match_calipso.imager.all_arrays['bt12micron'] - match_calipso.imager.all_arrays['thr_t11t12']
+    feature = np.array(match_calipso.imager.all_arrays['bt11micron'])
     feature = od
     for i, lower in enumerate(limits):
         try:
@@ -64,19 +67,19 @@ def make_pod_vector(match_calipso):
         use = np.logical_and(use, day)
 
         pod_d.append(np.sum(np.logical_and(use, pps_cloudy)) * 100.0/np.sum(use))
-        feature_d.append(np.sum(feature[np.logical_and(use, np.not_equal(pps_cloudy, True))] > 297)*100.0/np.sum(use) )
+        feature_d.append(np.sum(feature[np.logical_and(use, np.not_equal(pps_cloudy, True))] > 297)*100.0/np.sum(use))
         # feature_d.append(np.mean(feature[np.logical_and(use, np.equal(pps_cloudy, True))]))
 
         use = np.logical_and(use_all, np.logical_and(od >= lower, od < upper))
         use = np.logical_and(use, np.not_equal(day, True))
         pod_n.append(np.sum(np.logical_and(use, pps_cloudy)) * 100.0/np.sum(use))
-        feature_n.append(np.sum(feature[np.logical_and(use, np.not_equal(pps_cloudy, True))] > 297)*100.0/np.sum(use) )
+        feature_n.append(np.sum(feature[np.logical_and(use, np.not_equal(pps_cloudy, True))] > 297)*100.0/np.sum(use))
         # feature_n.append(np.mean(feature[np.logical_and(use, np.equal(pps_cloudy, True))]))
     use = np.logical_and(use_all, np.logical_and(od >= 0.2, od < 0.5))
     use = np.logical_and(use, np.not_equal(pps_cloudy, True))
     use_i = np.logical_and(use, day)
     from collections import Counter
-    try :
+    try:
         print(Counter(match_calipso.imager.all_arrays['cma_testlist0'][use_i]))
         print(Counter(match_calipso.imager.all_arrays['cma_testlist1'][use_i]))
         print(Counter(match_calipso.imager.all_arrays['cma_testlist2'][use_i]))
@@ -123,7 +126,6 @@ match_objC = read_files(files)
 podC_d, podC_n, fC_d, fC_n = make_pod_vector(match_objC)
 name = "GAC"
 
-from matplotlib import pyplot as plt
 fig = plt.figure(figsize=(9, 11))
 ax = fig.add_subplot(211)
 plt.plot(limits, pod18_d-pod18_n, '-r.', label="PPS-v2018")
@@ -144,5 +146,6 @@ plt.plot(limits, podC_n, '-y.', label="CCI-V2!")
 plt.legend()
 plt.ylabel("POD day")
 plt.xlabel("Calipso total optical depth")
-plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/PODdayMinusPODnight_latitude45_%s_and_od_sea.png"%(name), bbox_inches='tight')
+plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/PODdayMinusPODnight_latitude45_%s_and_od_sea.png" %
+            (name), bbox_inches='tight')
 plt.show()

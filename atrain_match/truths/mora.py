@@ -15,6 +15,13 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
+import logging
+from atrain_match.libs.extract_imager_along_track import imager_track_from_matched
+from atrain_match.utils.common import (ProcessingError, MatchupError, elements_within_range)
+import atrain_match.config as config
+from atrain_match.utils.runutils import do_some_logging
+from atrain_match.matchobject_io import (TruthImagerTrackObject,
+                                         MoraObject)
 import numpy as np
 import pandas as pd
 import time
@@ -22,13 +29,6 @@ import calendar
 from datetime import datetime, timedelta
 from calendar import timegm
 TAI93 = datetime(1993, 1, 1)
-from atrain_match.matchobject_io import (TruthImagerTrackObject,
-                            MoraObject)
-from atrain_match.utils.runutils import do_some_logging
-import atrain_match.config as config
-from atrain_match.utils.common import (ProcessingError, MatchupError, elements_within_range)
-from atrain_match.libs.extract_imager_along_track import imager_track_from_matched
-import logging
 logger = logging.getLogger(__name__)
 
 TEST_FILE = "/DATA_MISC/atrain_match_testcases/mora/cb_2010.dat"
@@ -36,7 +36,7 @@ TEST_FILE = "/DATA_MISC/atrain_match_testcases/mora/cb_2010.dat"
 
 def get_mora_data(filename):
 
-    convert_datefunc = lambda x: datetime.strptime(x.decode("utf-8"), '%Y%m%dT%H%M%S')
+    def convert_datefunc(x): return datetime.strptime(x.decode("utf-8"), '%Y%m%dT%H%M%S')
     # convert_datefunc = lambda x: x.decode("utf-8")
 
     dtype = [('station', '|S5'),
@@ -54,12 +54,12 @@ def get_mora_data(filename):
                          dtype=dtype,
                          unpack=True,
                          converters={
-                                     # 2: lambda x: float(x) / 100.,
-                                     # 3: lambda x: float(x) / 100.,
+                             # 2: lambda x: float(x) / 100.,
+                             # 3: lambda x: float(x) / 100.,
                              4: convert_datefunc,
-                                     # 6: lambda x: float(x) / 10.,
-                                     # 7: lambda x: float(x) / 10.,
-                                     # 8: lambda x: float(x) / 10.,
+                             # 6: lambda x: float(x) / 10.,
+                             # 7: lambda x: float(x) / 10.,
+                             # 8: lambda x: float(x) / 10.,
                          })
 
     return pd.DataFrame(data)
@@ -75,7 +75,7 @@ def reshape_mora(morafiles, imager, SETTINGS):
     # pdb.set_trace()
     dt_ = timedelta(seconds=SETTINGS["sec_timeThr_synop"])
     newmoras = panda_moras[panda_moras['date'] < end_t + dt_]
-    panda_moras = newmoras[newmoras['date']  >  start_t - dt_ ]
+    panda_moras = newmoras[newmoras['date'] > start_t - dt_]
     retv = MoraObject()
     retv.longitude = np.array(panda_moras['lon'])
     retv.latitude = np.array(panda_moras['lat'])
@@ -102,15 +102,15 @@ def match_mora_imager(mora, cloudproducts, SETTINGS):
     plt.show()
     """
     cal, cap = map_imager(cloudproducts,
-                         mora.longitude.ravel(),
-                         mora.latitude.ravel(),
+                          mora.longitude.ravel(),
+                          mora.latitude.ravel(),
                           radius_of_influence=config.RESOLUTION*0.7*1000.0)
     calnan = np.where(cal == config.NODATA, np.nan, cal)
     if (~np.isnan(calnan)).sum() == 0:
         logger.warning("No matches within region.")
         return None
     # check if it is within time limits:
-    if len(cloudproducts.time.shape)>1:
+    if len(cloudproducts.time.shape) > 1:
         imager_time_vector = [cloudproducts.time[line, pixel] for line, pixel in zip(cal, cap)]
         imager_lines_sec_1970 = np.where(cal != config.NODATA, imager_time_vector, np.nan)
     else:
@@ -133,7 +133,7 @@ def match_mora_imager(mora, cloudproducts, SETTINGS):
     retv = imager_track_from_matched(retv,
                                      SETTINGS,
                                      cloudproducts,
-                                     extract_nwp_segments = False)
+                                     extract_nwp_segments=False)
     return retv
 
 

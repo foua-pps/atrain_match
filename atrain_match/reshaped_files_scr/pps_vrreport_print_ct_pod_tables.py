@@ -25,34 +25,34 @@ import numpy as np
 import matplotlib.pyplot as plt
 from utils.get_flag_info import get_calipso_clouds_of_type_i
 from utils.get_flag_info import (get_semi_opaque_info_pps2014,
-                           get_day_night_twilight_info_pps2014,
-                           get_land_coast_sea_info_pps2014,
-                           get_mountin_info_pps2014,
-                           get_inversion_info_pps2014,
-                           get_calipso_high_clouds,
-                           get_calipso_medium_clouds,
-                           get_calipso_medium_and_high_clouds_tp,
-                           get_calipso_clouds_of_type_i,
-                           get_calipso_low_clouds)
+                                 get_day_night_twilight_info_pps2014,
+                                 get_land_coast_sea_info_pps2014,
+                                 get_mountin_info_pps2014,
+                                 get_inversion_info_pps2014,
+                                 get_calipso_high_clouds,
+                                 get_calipso_medium_clouds,
+                                 get_calipso_medium_and_high_clouds_tp,
+                                 get_calipso_clouds_of_type_i,
+                                 get_calipso_low_clouds)
 from my_dir import ADIR
-cc_type_name={
-   0: 'low overcast (tp) ',
+cc_type_name = {
+    0: 'low overcast (tp) ',
     1: 'low overcast (op)',
-   2: 'transition stratocumulus',
-   3: 'low broken cumulus',
-   4: 'altocumulus (tp)',
+    2: 'transition stratocumulus',
+    3: 'low broken cumulus',
+    4: 'altocumulus (tp)',
     5: 'altostratus (op)',
-   6: 'cirrus (tp)',
-   7: 'deep convective (op)'
+    6: 'cirrus (tp)',
+    7: 'deep convective (op)'
 }
-ct_min_v =[1, 2, 3, 4, 5, 10, 7, 8, 11]
-ct_max_v= [1, 2, 3, 4, 6, 10, 7, 9, 20]
+ct_min_v = [1, 2, 3, 4, 5, 10, 7, 8, 11]
+ct_max_v = [1, 2, 3, 4, 6, 10, 7, 9, 20]
 
 
 def plot_ct_table2(match_calipso):
 
     from utils.get_flag_info import get_calipso_clouds_of_type_i
-    fig = plt.figure(figsize = (30, 64))
+    fig = plt.figure(figsize=(30, 64))
     print "N,          low, frac, medium, high, cirrus"
     for type_i in range(0, 8):
         # if type_i ==1:
@@ -60,22 +60,22 @@ def plot_ct_table2(match_calipso):
         is_type_i = get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=type_i)
         pps_ctype = match_calipso.imager.all_arrays['cloudtype']
         use = np.logical_and(pps_ctype > 4, pps_ctype < 23)
-        is_type_i =np.logical_and(is_type_i, use)
+        is_type_i = np.logical_and(is_type_i, use)
         N = np.sum(is_type_i)
-        print "N", ("%d"%(N)).rjust(9, ' '),
+        print "N", ("%d" % (N)).rjust(9, ' '),
         for ind_ct in range(4, 9):
             pps_ok = np.logical_and(pps_ctype >= ct_min_v[ind_ct], pps_ctype <= ct_max_v[ind_ct])
             these = np.logical_and(is_type_i, pps_ok)
-            print ("%3.1f"%(np.sum(these)*1.0/N*100)).rjust(5, ' '),
+            print("%3.1f" % (np.sum(these)*1.0/N*100)).rjust(5, ' '),
         print cc_type_name[type_i], np.percentile(match_calipso.calipso.all_arrays['layer_top_pressure'][:, 0][
             np.logical_and(these,
-                           match_calipso.calipso.all_arrays['layer_top_pressure'][:, 0]>0)], 0.1)
+                           match_calipso.calipso.all_arrays['layer_top_pressure'][:, 0] > 0)], 0.1)
 
 
 def plot_ct_table4(match_calipso, use_in=None):
 
     from utils.get_flag_info import get_calipso_clouds_of_type_i
-    fig = plt.figure(figsize = (30, 64))
+    fig = plt.figure(figsize=(30, 64))
     print "N,          land, sea, snow, ice, low, frac, medium, high, cirrus"
     for type_i in range(0, 8):
         # if type_i ==1:
@@ -85,41 +85,41 @@ def plot_ct_table4(match_calipso, use_in=None):
         use = np.logical_and(pps_ctype > 0, pps_ctype < 23)
         if use_in is not None:
             use = np.logical_and(use, use_in)
-        is_type_i =np.logical_and(is_type_i, use)
+        is_type_i = np.logical_and(is_type_i, use)
         N = np.sum(is_type_i)
-        print "N", ("%d"%(N)).rjust(9, ' '),
+        print "N", ("%d" % (N)).rjust(9, ' '),
         for ind_ct in range(0, 9):
             pps_ok = np.logical_and(pps_ctype >= ct_min_v[ind_ct], pps_ctype <= ct_max_v[ind_ct])
             these = np.logical_and(is_type_i, pps_ok)
-            print ("%3.1f"%(np.sum(these)*1.0/N*100)).rjust(5, ' '),
+            print("%3.1f" % (np.sum(these)*1.0/N*100)).rjust(5, ' '),
         print cc_type_name[type_i]
 
 
 def plot_ct_table5(match_calipso, use_in=None):
 
     from utils.get_flag_info import get_calipso_clouds_of_type_i
-    fig = plt.figure(figsize = (30, 64))
+    fig = plt.figure(figsize=(30, 64))
     pps_ctype = match_calipso.imager.all_arrays['cloudtype']
     use = np.logical_and(pps_ctype > 0, pps_ctype < 23)
     use = np.logical_and(use, use_in)
     for type_i in [0, 2, 3, 4, 5, 6, 7]:
         is_type_i = get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=type_i)
-        is_type_i =np.logical_and(is_type_i, use)
+        is_type_i = np.logical_and(is_type_i, use)
         N = np.sum(is_type_i)
-        print "N", ("%d"%(N)).rjust(9, ' '),
+        print "N", ("%d" % (N)).rjust(9, ' '),
         if N < 50:
             print "------------------", cc_type_name[type_i]
             continue
         these = np.logical_and(is_type_i, pps_ctype < 5)
-        print ("%3.1f"%(np.sum(these)*1.0/N*100)).rjust(5, ' '),
+        print("%3.1f" % (np.sum(these)*1.0/N*100)).rjust(5, ' '),
         these = np.logical_and(is_type_i, pps_ctype > 4)
-        print ("%3.1f"%(np.sum(these)*1.0/N*100)).rjust(5, ' '),
+        print("%3.1f" % (np.sum(these)*1.0/N*100)).rjust(5, ' '),
         print cc_type_name[type_i]
 
 
 def table_21_do_for_atbd(match_calipso):
-    cloudtype_conditions = match_calipso.imager.all_arrays[ 'cloudtype_conditions']
-    cloudtype_status = match_calipso.imager.all_arrays[ 'cloudtype_status']
+    cloudtype_conditions = match_calipso.imager.all_arrays['cloudtype_conditions']
+    cloudtype_status = match_calipso.imager.all_arrays['cloudtype_status']
     (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag) = get_day_night_twilight_info_pps2014(cloudtype_conditions)
     low_clouds = get_calipso_low_clouds(match_calipso)
     high_clouds_tp = get_calipso_clouds_of_type_i(match_calipso, 6)
@@ -132,7 +132,7 @@ def table_21_do_for_atbd(match_calipso):
                               np.logical_or(high_clouds, medium_clouds))
     pps_ctype = match_calipso.imager.all_arrays['cloudtype']
     use = np.logical_and(pps_ctype > 4, pps_ctype < 23)
-    use = np.logical_and(use, np.logical_and(caliop_ok, match_calipso.calipso.all_arrays['cloud_fraction']>0.99))
+    use = np.logical_and(use, np.logical_and(caliop_ok, match_calipso.calipso.all_arrays['cloud_fraction'] > 0.99))
     pps_frac = [pps_ctype_i in [10] for pps_ctype_i in pps_ctype]
     pps_very_low = [pps_ctype_i in [5] for pps_ctype_i in pps_ctype]
     pps_low = [pps_ctype_i in [5, 6, 10] for pps_ctype_i in pps_ctype]
@@ -142,8 +142,10 @@ def table_21_do_for_atbd(match_calipso):
     height_ = match_calipso.calipso.all_arrays['validation_height']
     elevation = match_calipso.calipso.all_arrays['elevation']
     height_[elevation > 0] = height_[elevation > 0] - elevation[elevation > 0]
-    pod_very_low = np.sum(np.logical_and(np.logical_and(use, pps_very_low), height_ < 500))*100.0/np.sum(np.logical_and(use, height_ < 500))
-    far_very_low = np.sum(np.logical_and(np.logical_and(use, pps_very_low), height_ >= 500))*100.0/np.sum(np.logical_and(use, pps_low))
+    pod_very_low = np.sum(np.logical_and(np.logical_and(use, pps_very_low), height_ < 500)) * \
+        100.0/np.sum(np.logical_and(use, height_ < 500))
+    far_very_low = np.sum(np.logical_and(np.logical_and(use, pps_very_low), height_ >= 500)) * \
+        100.0/np.sum(np.logical_and(use, pps_low))
     print "pod_very_low", pod_very_low
     print "far_very_low", far_very_low
 
@@ -152,8 +154,8 @@ def table_21_do_for_atbd(match_calipso):
     print "part_fractional", part_fractional
     # print "POD low medium high FAR low medium high"
     print "|POD-low| POD-m| POD-high| (POD-cirrus)| FAR-low | FAR-m| FAR-high FAR-cirrus|"
-    for use_i, name in zip( [ all_dnt_flag, day_flag, night_flag, twilight_flag ],
-                          ["all", "day", "night", "twilight"]):
+    for use_i, name in zip([all_dnt_flag, day_flag, night_flag, twilight_flag],
+                           ["all", "day", "night", "twilight"]):
 
         use_this = np.logical_and(use, use_i)
         pps_cirrus_i = np.logical_and(pps_cirrus, use_this)
@@ -212,8 +214,9 @@ def table_21_do_for_atbd(match_calipso):
 
         # print "%3.1f %3.1f %3.1f (%3.1f) %3.1f %3.1f %3.1f %3.1f"%(POD_low, POD_medium, POD_high, POD_cirrus,
         #                                                        FAR_low, FAR_medium, FAR_high, FAR_cirrus)
-        print "|%3.1f| %3.1f| %3.1f| (%3.1f)| %3.1f| %3.1f| %3.1f| %3.1f| %d"%(POD_low, POD_medium, POD_high, POD_cirrus,
-                                                                               FAR_low, FAR_medium, FAR_high, FAR_cirrus, np.sum(use_this))
+        print "|%3.1f| %3.1f| %3.1f| (%3.1f)| %3.1f| %3.1f| %3.1f| %3.1f| %d" % (POD_low, POD_medium, POD_high, POD_cirrus,
+                                                                                 FAR_low, FAR_medium, FAR_high, FAR_cirrus, np.sum(use_this))
+
 
 # ----------------------------------------
 if __name__ == "__main__":
@@ -241,18 +244,22 @@ if __name__ == "__main__":
         ADIR + "/DATA_MISC/reshaped_files_jenkins_npp_modis/"
         "ATRAIN_RESULTS_NPP_C4/Reshaped_Files/npp/1km/2015/07/*/")
 
-    ROOT_DIR_v2014 = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_modis_v2014_created20180920/Reshaped_Files_merged_caliop/eos2/1km/2010/*/*%s*h5")
-    ROOT_DIR_v2018 = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_modis_v2018_created20180920/Reshaped_Files_merged_caliop/eos2/1km/2010/*/*%s*h5")
+    ROOT_DIR_v2014 = (
+        ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_modis_v2014_created20180920/Reshaped_Files_merged_caliop/eos2/1km/2010/*/*%s*h5")
+    ROOT_DIR_v2018 = (
+        ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_modis_v2018_created20180920/Reshaped_Files_merged_caliop/eos2/1km/2010/*/*%s*h5")
     ROOT_DIR = ROOT_DIR_v2014
-    files = glob(ROOT_DIR%("20100201"))
-    files = files + glob(ROOT_DIR%("20100401"))
-    files = files + glob(ROOT_DIR%("20100601"))
-    files = files + glob(ROOT_DIR%("20100801"))
-    files = files + glob(ROOT_DIR%("20101001"))
-    files = files + glob(ROOT_DIR%("20101201"))
+    files = glob(ROOT_DIR % ("20100201"))
+    files = files + glob(ROOT_DIR % ("20100401"))
+    files = files + glob(ROOT_DIR % ("20100601"))
+    files = files + glob(ROOT_DIR % ("20100801"))
+    files = files + glob(ROOT_DIR % ("20101001"))
+    files = files + glob(ROOT_DIR % ("20101201"))
 
-    ROOT_DIR_v2014 = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_viirs_v2014_created20180914/Reshaped_Files_merged_caliop/npp/1km/2015/*/")
-    ROOT_DIR_v2018 = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_viirs_v2018_created20180907/Reshaped_Files_merged_caliop/npp/1km/2015/*/")
+    ROOT_DIR_v2014 = (
+        ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_viirs_v2014_created20180914/Reshaped_Files_merged_caliop/npp/1km/2015/*/")
+    ROOT_DIR_v2018 = (
+        ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_viirs_v2018_created20180907/Reshaped_Files_merged_caliop/npp/1km/2015/*/")
     # files = glob(ROOT_DIR_v2018 + "*h5")
 
     match_calipso = read_files(files)

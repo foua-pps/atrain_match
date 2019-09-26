@@ -21,6 +21,15 @@ This module is the main entry point for matching imager data with
 Cloudsat and Calipso.
 """
 
+from atrain_match.utils.runutils import parse_scenesfile_v2014
+from atrain_match.utils.runutils import parse_scenesfile_cci
+from atrain_match.utils.runutils import parse_scene
+from atrain_match.utils.runutils import parse_scenesfile_maia
+from atrain_match.utils.runutils import parse_scenesfile_reshaped
+from atrain_match.utils.common import Cross
+from atrain_match.libs import truth_imager_match
+import atrain_match.config as config
+from atrain_match.utils.common import (InputError, MatchupError)
 import logging
 logging.basicConfig(
     format='%(levelname)s |%(asctime)s|: %(message)s',
@@ -28,15 +37,6 @@ logging.basicConfig(
     # datefmt='%Y-%m-%d %H:%M:%S')
     datefmt='%H:%M:%S')
 logger = logging.getLogger(__name__)
-from atrain_match.utils.common import (InputError, MatchupError)
-import atrain_match.config as config
-from atrain_match.libs import truth_imager_match
-from atrain_match.utils.common import Cross
-from atrain_match.utils.runutils import  parse_scenesfile_reshaped
-from atrain_match.utils.runutils import  parse_scenesfile_maia
-from atrain_match.utils.runutils import parse_scene
-from atrain_match.utils.runutils import  parse_scenesfile_cci
-from atrain_match.utils.runutils import  parse_scenesfile_v2014
 
 
 def process_matchups(matchups, reprocess=False, debug=False):
@@ -103,19 +103,19 @@ def main():
                         "Calipso-IMAGER matchup files.")
     parser.add_argument('-d', '--debug', const=True, nargs='?', required=False,
                         help="Get debug logging")
-    group.add_argument( '--pps_okay_scene', '-os',
-                      help="Interpret arguments noaa19_20101201_1345_27891")
-    group.add_argument( '--pps_product_file', '-pf',
-                      help="Interpret arguments as inputfile with "
-                      "list of pps files")
-    group.add_argument( '--cci_product_file', '-cf',
-                      help="Interpret arguments as inputfile with "
-                      "list of cci files")
-    group.add_argument( '--maia_product_file', '-mf',
-                      help="Interpret arguments as inputfile with "
-                      "list of maia files")
+    group.add_argument('--pps_okay_scene', '-os',
+                       help="Interpret arguments noaa19_20101201_1345_27891")
+    group.add_argument('--pps_product_file', '-pf',
+                       help="Interpret arguments as inputfile with "
+                       "list of pps files")
+    group.add_argument('--cci_product_file', '-cf',
+                       help="Interpret arguments as inputfile with "
+                       "list of cci files")
+    group.add_argument('--maia_product_file', '-mf',
+                       help="Interpret arguments as inputfile with "
+                       "list of maia files")
     group.add_argument('--reshaped_product_file', '-rf',
-                      help="Interpret arguments as reshaped_output_file")
+                       help="Interpret arguments as reshaped_output_file")
     options = parser.parse_args()
 
     reprocess = False
@@ -174,6 +174,7 @@ def main():
 
     return 0
 
+
 # ------------------------------------------------------------------------------
-if __name__=='__main__':
+if __name__ == '__main__':
     main()

@@ -15,6 +15,14 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
+import logging
+from atrain_match.libs.extract_imager_along_track import imager_track_from_matched
+from atrain_match.utils.common import (ProcessingError, MatchupError, elements_within_range)
+from atrain_match.utils.runutils import do_some_logging
+from atrain_match.truths.calipso import find_break_points
+from atrain_match.matchobject_io import (TruthImagerTrackObject,
+                                         SynopObject)
+import atrain_match.config as config
 import numpy as np
 import pandas as pd
 import time
@@ -22,15 +30,7 @@ import calendar
 from datetime import datetime, timedelta
 from calendar import timegm
 TAI93 = datetime(1993, 1, 1)
-import atrain_match.config as config
-from atrain_match.matchobject_io import (TruthImagerTrackObject,
-                            SynopObject)
-from atrain_match.truths.calipso import find_break_points
-from atrain_match.utils.runutils import do_some_logging
 
-from atrain_match.utils.common import (ProcessingError, MatchupError, elements_within_range)
-from atrain_match.libs.extract_imager_along_track import imager_track_from_matched
-import logging
 logger = logging.getLogger(__name__)
 
 
@@ -45,7 +45,7 @@ def reshape_synop(synopfiles, imager, SETTINGS):
     # pdb.set_trace()
     dt_ = timedelta(seconds=SETTINGS["sec_timeThr_synop"])
     newsynops = panda_synops[panda_synops['date'] < end_t + dt_]
-    panda_synops = newsynops[newsynops['date']  >  start_t - dt_ ]
+    panda_synops = newsynops[newsynops['date'] > start_t - dt_]
     retv = SynopObject()
     retv.longitude = np.array(panda_synops['lon'])
     retv.latitude = np.array(panda_synops['lat'])
@@ -70,10 +70,10 @@ def match_synop_imager(synop, cloudproducts, SETTINGS):
     if config.RESOLUTION == 5:
         n_neighbours = 16
     mapper_and_dist = map_imager_distances(cloudproducts,
-                                          synop.longitude.ravel(),
-                                          synop.latitude.ravel(),
-                                          radius_of_influence=SETTINGS["SYNOP_RADIUS"],
-                                          n_neighbours=n_neighbours)
+                                           synop.longitude.ravel(),
+                                           synop.latitude.ravel(),
+                                           radius_of_influence=SETTINGS["SYNOP_RADIUS"],
+                                           n_neighbours=n_neighbours)
     # pdb.set_trace()
     cal, cap = mapper_and_dist["mapper"]
     distances = mapper_and_dist["distances"]
@@ -113,8 +113,8 @@ def match_synop_imager(synop, cloudproducts, SETTINGS):
 
     retv = imager_track_from_matched(retv, SETTINGS,
                                      cloudproducts,
-                                     extract_radiances = False,
-                                     extract_nwp_segments = False,
-                                     aux_params = ['fractionofland', 'landuse'],
+                                     extract_radiances=False,
+                                     extract_nwp_segments=False,
+                                     aux_params=['fractionofland', 'landuse'],
                                      find_mean_data_for_x_neighbours=True)
     return retv

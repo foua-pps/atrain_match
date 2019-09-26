@@ -20,6 +20,13 @@
   2019 SMHI, N.Hakansson
 """
 
+import atrain_match.config as config
+from atrain_match.utils.runutils import do_some_geo_obj_logging
+from atrain_match.imager_cloud_products.read_cloudproducts_and_nwp_pps import (
+    AllImagerData, AuxiliaryObj,
+    CtypeObj, CtthObj, CmaObj, CppObj,
+    create_imager_time,
+    ImagerAngObj)
 import time
 import os
 import netCDF4
@@ -30,13 +37,6 @@ from datetime import timedelta
 import logging
 logger = logging.getLogger(__name__)
 
-from atrain_match.imager_cloud_products.read_cloudproducts_and_nwp_pps import (
-    AllImagerData, AuxiliaryObj,
-    CtypeObj, CtthObj, CmaObj, CppObj,
-    create_imager_time,
-    ImagerAngObj)
-from atrain_match.utils.runutils import do_some_geo_obj_logging
-import atrain_match.config as config
 ATRAIN_MATCH_NODATA = config.NODATA
 # from atrain_match.utils.get_flag_info import get_oca_ct_flag, get_day_night_twilight_info_oca
 
@@ -57,7 +57,7 @@ def get_satid_datetime_orbit_from_fname_oca(imager_filename, SETTINGS, cross):
               "year": date_time.year,
               "month": "%02d" % (date_time.month),
               "time": date_time.strftime("%H%M"),
-              "extrai": "", # asc_or_des
+              "extrai": "",  # asc_or_des
               # "basename":sat_id + "_" + date_time.strftime("%Y%m%d_%H%M_99999"), # "20080613002200-ESACCI",
               "imagerfilename": imager_filename}
     values['basename'] = values["satellite"] + "_" + \
@@ -89,7 +89,7 @@ def oca_read_all_nc(filename):
     # cloudproducts.cpp = read_oca_cpp(oca_nc)
     logger.info("Not reading surface temperature")
     logger.info("Not reading channel data")
-    cloudproducts.longitude[cloudproducts.longitude>180] = cloudproducts.longitude[cloudproducts.longitude>180]-360
+    cloudproducts.longitude[cloudproducts.longitude > 180] = cloudproducts.longitude[cloudproducts.longitude > 180]-360
     return cloudproducts
 
 
@@ -115,7 +115,7 @@ def read_oca_ctype_cmask_ctth(oca_nc):
         oca_nc['data']['measurement_data']['ctp'])
     ctth.temperature, ctth.t_nodata = scale_oca_var(
         oca_nc['data']['measurement_data']['ctt'])
-    cma.cma_ext = np.where(ctth.pressure>0, 1, 0)
+    cma.cma_ext = np.where(ctth.pressure > 0, 1, 0)
     ctype.phaseflag = None
     ctype.ct_conditions = None
     return ctype, cma, ctth
@@ -151,7 +151,7 @@ def read_oca_angobj(oca_nc):
     angle_obj = ImagerAngObj()
     angle_obj.satz.data, nodata = scale_oca_var(
         oca_nc['data']['measurement_data']['observation_zenith'])
-    angle_obj.sunz.data, nodata= scale_oca_var(
+    angle_obj.sunz.data, nodata = scale_oca_var(
         oca_nc['data']['measurement_data']['solar_zenith'])
     angle_obj.satazimuth.data, nodata = scale_oca_var(
         oca_nc['data']['measurement_data']['observation_azimuth'])
@@ -171,7 +171,7 @@ def read_oca_geoobj(oca_nc, filename):
     cloudproducts.longitude, cloudproducts.nodata = scale_oca_var(oca_nc['data']['measurement_data']['longitude'])
     cloudproducts.latitude, cloudproducts.nodata = scale_oca_var(oca_nc['data']['measurement_data']['latitude'])
     cloudproducts.num_of_lines = cloudproducts.longitude.shape[0]
-    cloudproducts.nodata=-999
+    cloudproducts.nodata = -999
     # sensing_start_time_utc and sensing_end_time_utc,
     stime = getattr(oca_nc, "sensing_start_time_utc")
     etime = getattr(oca_nc, "sensing_end_time_utc")

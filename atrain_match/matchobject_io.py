@@ -36,6 +36,7 @@ class DataObject(object):
     Class to handle data objects with several arrays.
 
     """
+
     def __getattr__(self, name):
         try:
             return self.all_arrays[name]
@@ -55,12 +56,12 @@ class DataObject(object):
         # modis objects does not have longitude attribute
         if (not hasattr(self, "longitude") and
             hasattr(self, "height")
-            and self.all_arrays["height"] is None):
+                and self.all_arrays["height"] is None):
             print("First object is None!, returning second object")
             return other
         if (not hasattr(other, "longitude") and
             hasattr(other, "height")
-            and other.all_arrays["height"] is None):
+                and other.all_arrays["height"] is None):
             print("Second object is None!, returning first object")
             return self
         if self.all_arrays["longitude"] is None:
@@ -87,9 +88,9 @@ class DataObject(object):
                              'segment_nwp_moist',
                              'segment_nwp_pressure',
                              'segment_nwp_temp']:
-                     self.all_arrays[key] = np.concatenate(
-                         [self.all_arrays[key],
-                          other.all_arrays[key]], 0)
+                    self.all_arrays[key] = np.concatenate(
+                        [self.all_arrays[key],
+                         other.all_arrays[key]], 0)
                 elif self.all_arrays[key].ndim == 2:
                     self.all_arrays[key] = np.concatenate(
                         [self.all_arrays[key],
@@ -127,9 +128,9 @@ class DataObject(object):
                 try:
                     self.all_arrays[key] = np.ma.array(
                         self.all_arrays[key],
-                        mask = self.all_arrays[key] <= nodata)
+                        mask=self.all_arrays[key] <= nodata)
                 except:
-                    print("cloud not mask %s"%(key))
+                    print("cloud not mask %s" % (key))
 
 
 class ExtractedImagerObject(DataObject):
@@ -149,8 +150,8 @@ class ExtractedImagerObject(DataObject):
             'cma_prob': None,
             'cma_prob_mean': None,
 
-            'cpp_lwp':None,
-            'cpp_phase':None,
+            'cpp_lwp': None,
+            'cpp_phase': None,
             # Quality flags
             'cloudtype_qflag': None,
             'cloudtype_phaseflag': None,
@@ -173,7 +174,7 @@ class ModisObject(DataObject):
             'temperature': None,
             'pressure': None,
             'cloud_emissivity': None,
-            'cloud_phase':None,
+            'cloud_phase': None,
             'lwp': None}
 
 
@@ -188,7 +189,7 @@ class CalipsoObject(DataObject):
             'latitude': None,
             'imager_linnum': None,
             'imager_pixnum': None,
-            'elevation': None, # DEM_elevation => elevation in (m)"
+            'elevation': None,  # DEM_elevation => elevation in (m)"
             'cloud_fraction': None,
             'validation_height': None,
             'sec_1970': None,
@@ -201,15 +202,15 @@ class CalipsoObject(DataObject):
             'layer_base_pressure': None,
             'number_layers_found': None,
             'igbp_surface_type': None,
-            'nsidc_surface_type': None, # V4 renamed from 'snow_ice_surface_type'
+            'nsidc_surface_type': None,  # V4 renamed from 'snow_ice_surface_type'
             'snow_ice_surface_type': None,
             # 'nsidc_surface_type_texture': None,
-            'profile_time_tai': None, # renamed from "Profile_Time"
+            'profile_time_tai': None,  # renamed from "Profile_Time"
             'feature_classification_flags': None,
             'day_night_flag': None,
             'feature_optical_depth_532': None,
             'tropopause_height': None,
-            'profile_id':None,
+            'profile_id': None,
 
             # If a combination of 5 and 1km data are used for RESOLUTION=1
             # "column_optical_depth_tropospheric_aerosols_1064_5km": None,
@@ -243,14 +244,14 @@ class CalipsoObject(DataObject):
             # From cloudsat:
             'cal_modis_cflag': None,
             'cloudsat_index': None,
-            }
+        }
 
 
 class CloudsatObject(DataObject):
     def __init__(self):
         DataObject.__init__(self)
         self.all_arrays = {
-            'clsat_max_height':None,
+            'clsat_max_height': None,
             'longitude': None,
             'latitude': None,
             'imager_linnum': None,
@@ -277,7 +278,7 @@ class CloudsatObject(DataObject):
             'calipso_layer_base_altitude': None,
             'calipso_layer_top_altitude': None,
             'calipso_feature_classification_flags': None
-                           }
+        }
 
 
 class IssObject(DataObject):
@@ -342,7 +343,7 @@ class SynopObject(DataObject):
             'imager_pixnum_nneigh': None,
             'total_cloud_cover': None,
             'cloud_fraction': None,
-            'nh':None,
+            'nh': None,
             'cl': None,
             'cm': None,
             'ch': None,
@@ -375,7 +376,7 @@ class TruthImagerTrackObject:
         self.truth_sat = truth
         self.imager_instrument = 'imager'
 
-    def make_nsidc_surface_type_texture(self, kernel_sz = 51):
+    def make_nsidc_surface_type_texture(self, kernel_sz=51):
         """Derive the stdv of the ice dataset"""
 
         if self.calipso.all_arrays['nsidc_surface_type'] is not None:
@@ -441,28 +442,28 @@ def get_stuff_to_read_from_a_reshaped_file(h5file, retv):
     if 'modis_lvl2' in h5file.keys():
         h5_groups.append(h5file['/modis_lvl2'])
         data_objects.append(retv.modis)
-    if 'cloudsat' in  h5file.keys():
+    if 'cloudsat' in h5file.keys():
         h5_groups.append(h5file['/cloudsat'])
         data_objects.append(retv.cloudsat)
-    if 'iss' in  h5file.keys():
+    if 'iss' in h5file.keys():
         h5_groups.append(h5file['/iss'])
         data_objects.append(retv.iss)
-    if 'amsr' in  h5file.keys():
+    if 'amsr' in h5file.keys():
         h5_groups.append(h5file['/amsr'])
         data_objects.append(retv.amsr)
-    if 'mora' in  h5file.keys():
+    if 'mora' in h5file.keys():
         h5_groups.append(h5file['/mora'])
         data_objects.append(retv.mora)
-    if 'synop' in  h5file.keys():
+    if 'synop' in h5file.keys():
         h5_groups.append(h5file['/synop'])
         data_objects.append(retv.synop)
     return (h5_groups, data_objects)
 
 
 def read_truth_imager_match_obj(filename, truth='calipso',
-                            read_all=True,
-                            read_var=[],
-                            skip_var=[]):
+                                read_all=True,
+                                read_var=[],
+                                skip_var=[]):
     retv = TruthImagerTrackObject(truth=truth)
     h5file = h5py.File(filename, 'r')
     (h5_groups, data_objects) = get_stuff_to_read_from_a_reshaped_file(h5file, retv)
@@ -470,8 +471,8 @@ def read_truth_imager_match_obj(filename, truth='calipso',
         for dataset in group.keys():
             if dataset in skip_var:
                 continue
-            if  (read_all or dataset in read_var or
-                 (len(read_var) == 0 and dataset.data_obj.all_arrays.keys())) :
+            if (read_all or dataset in read_var or
+                    (len(read_var) == 0 and dataset.data_obj.all_arrays.keys())):
                 atrain_match_name = dataset
                 if atrain_match_name in ["snow_ice_surface_type"]:
                     atrain_match_name = "nsidc_surface_type"
@@ -492,7 +493,7 @@ def read_files(files, truth='calipso', read_all=True, read_var=[]):
 # write matchup files
 
 
-def write_truth_imager_match_obj(filename, match_obj, SETTINGS=None, imager_obj_name = 'pps'):
+def write_truth_imager_match_obj(filename, match_obj, SETTINGS=None, imager_obj_name='pps'):
     """
     Write *match_obj* to *filename*.
     """
@@ -514,6 +515,7 @@ def sliding_std(x, size=5):
     c1 = uniform_filter(x.astype('float'), size=size)
     c2 = uniform_filter(x.astype('float')*x.astype('float'), size=size)
     return abs(c2 - c1 * c1)**.5
+
 
 the_used_variables = [
     'longitude',

@@ -25,6 +25,9 @@
 """Read all matched data and make some plotting
 """
 
+import matplotlib.pyplot as plt
+from matchobject_io import (readCaliopImagerMatchObj,
+                            CalipsoImagerTrackObject)
 from glob import glob
 import os.path
 import numpy as np
@@ -34,8 +37,6 @@ ROOT_DIR = "/local_disk/laptop/NowcastingSaf/FA/cloud_week_2013may/atrain_matchd
 
 files = glob(ROOT_DIR + "/2012/??/arctic_europe_1km/*h5")
 
-from matchobject_io import (readCaliopImagerMatchObj,
-                            CalipsoImagerTrackObject)
 
 match_calipso = CalipsoImagerTrackObject()
 for filename in files:
@@ -70,7 +71,6 @@ t11t12_clear = np.ma.masked_where(isCloud == True, t11t12).compressed()
 t11t12_clear_ice = np.ma.masked_where(isClearIce == False, t11t12).compressed()
 t11t12_clear_water = np.ma.masked_where(isClearWater == False, t11t12).compressed()
 
-import matplotlib.pyplot as plt
 
 fig = plt.figure(figsize=(9, 8))
 ax = fig.add_subplot(311)

@@ -41,42 +41,42 @@ CHANNEL_MICRON_DESCRIPTIONS = {'11': ["avhrr channel 4 - 11um",
                                       "MODIS 32",
                                       "VIIRS M16",
                                       "Avhrr channel channel5."],
-                               '06': [ "VIIRS M05",
-                                       "AVHRR ch 1",
-                                       "SEVIRI VIS006",
-                                       "AVHRR ch1",
-                                       "AVHRR ch_1",
-                                       "AVHRR 1",
-                                       "MODIS 1"],
-                               '09': [ "VIIRS M07",
-                                       "AVHRR ch 2",
-                                       "AVHRR ch2",
-                                       "AVHRR ch_2",
-                                       "AVHRR 2",
-                                       "SEVIRI VIS008",
-                                       "MODIS 2"],
-                               '16': [ "VIIRS M10",
-                                       "AVHRR ch 3a",
-                                       "3a",
-                                       "SEVIRI IR_016",
-                                       "AVHRR ch3a",
-                                       "AVHRR ch_3a",
-                                       "AVHRR 3A",
-                                       "MODIS 6"],
-                               '37': [ "VIIRS M12",
-                                       "AVHRR ch 3b",
-                                       "SEVIRI IR_039",
-                                       "AVHRR ch_3b",
-                                       "AVHRR ch3b",
-                                       "MODIS 20",
-                                       "3b",
-                                       "AVHRR 3B"],
-                               '22': [ "VIIRS M11"],
-                               '13': [ "VIIRS M09",
-                                       "MODIS 26"],
-                               '86': [ "VIIRS M14",
-                                       "SEVIRI IR_087",
-                                       "MODIS 29"],
+                               '06': ["VIIRS M05",
+                                      "AVHRR ch 1",
+                                      "SEVIRI VIS006",
+                                      "AVHRR ch1",
+                                      "AVHRR ch_1",
+                                      "AVHRR 1",
+                                      "MODIS 1"],
+                               '09': ["VIIRS M07",
+                                      "AVHRR ch 2",
+                                      "AVHRR ch2",
+                                      "AVHRR ch_2",
+                                      "AVHRR 2",
+                                      "SEVIRI VIS008",
+                                      "MODIS 2"],
+                               '16': ["VIIRS M10",
+                                      "AVHRR ch 3a",
+                                      "3a",
+                                      "SEVIRI IR_016",
+                                      "AVHRR ch3a",
+                                      "AVHRR ch_3a",
+                                      "AVHRR 3A",
+                                      "MODIS 6"],
+                               '37': ["VIIRS M12",
+                                      "AVHRR ch 3b",
+                                      "SEVIRI IR_039",
+                                      "AVHRR ch_3b",
+                                      "AVHRR ch3b",
+                                      "MODIS 20",
+                                      "3b",
+                                      "AVHRR 3B"],
+                               '22': ["VIIRS M11"],
+                               '13': ["VIIRS M09",
+                                      "MODIS 26"],
+                               '86': ["VIIRS M14",
+                                      "SEVIRI IR_087",
+                                      "MODIS 29"],
                                'seviri_bt73': ['SEVIRI WV_073'],
                                'seviri_bt134': ['SEVIRI IR_134'],
                                'seviri_bt97': ['SEVIRI IR_097'],
@@ -114,14 +114,14 @@ CHANNEL_MICRON_DESCRIPTIONS = {'11': ["avhrr channel 4 - 11um",
                                'modis_36': ['MODIS 36']
                                }
 CHANNEL_MICRON_IMAGER_PPS = {'11': 3,
-                            '12': 4,
-                            '06': 0,
-                            '09': 1,
-                            '37': 2,
-                            '86': -1,
-                            '16': 5,
-                            '22': -1,
-                            '13': -1}
+                             '12': 4,
+                             '06': 0,
+                             '09': 1,
+                             '37': 2,
+                             '86': -1,
+                             '16': 5,
+                             '22': -1,
+                             '13': -1}
 CURRENTLY_UNUSED_SEVIRI_CHANNELS = ['seviri_bt73',
                                     'seviri_bt134',
                                     'seviri_bt97',
@@ -162,7 +162,7 @@ def get_data_from_array(array, matched):
     if array is None:
         return None
     return np.array([array[matched['row'][idx], matched['col'][idx]]
-                    for idx in range(matched['row'].shape[0])])
+                     for idx in range(matched['row'].shape[0])])
 
 
 def get_data_from_array_nneigh(array, matched):
@@ -232,18 +232,18 @@ def _interpolate_height_and_temperature_from_pressure(imager_obj,
     """
     if hasattr(imager_obj, "nwp_height") and imager_obj.nwp_height is not None:
         values_h = imager_obj.nwp_height
-        pressure_v= imager_obj.nwp_pressure
+        pressure_v = imager_obj.nwp_pressure
         surface_h = imager_obj.nwp_surface_h
         psur = imager_obj.nwp_psur
     elif hasattr(imager_obj, "segment_nwp_geoheight") and imager_obj.segment_nwp_geoheight is not None:
         values_h = imager_obj.segment_nwp_geoheight
-        pressure_v= imager_obj.segment_nwp_pressure
+        pressure_v = imager_obj.segment_nwp_pressure
         surface_h = imager_obj.segment_nwp_surfaceGeoHeight
         psur = imager_obj.segment_nwp_surfacePressure
     else:
         return None
     values_h = imager_obj.segment_nwp_geoheight
-    pressure_v= imager_obj.segment_nwp_pressure
+    pressure_v = imager_obj.segment_nwp_pressure
     surface_h = imager_obj.segment_nwp_surfaceGeoHeight
     psur = imager_obj.segment_nwp_surfacePressure
     # import pdb
@@ -251,8 +251,8 @@ def _interpolate_height_and_temperature_from_pressure(imager_obj,
     nlev = pressure_v.shape[1]
     npix = pressure_v.shape[0]
     k = np.arange(npix)
-    higher_index = np.array([nlev -1 - np.searchsorted(pressure_v[ind, :], level, side='right',
-                                                       sorter=range(nlev -1, -1, -1))
+    higher_index = np.array([nlev - 1 - np.searchsorted(pressure_v[ind, :], level, side='right',
+                                                        sorter=range(nlev - 1, -1, -1))
                              for ind in range(npix)])
     higher_index[higher_index >= (nlev - 1)] = nlev - 2
     lower_index = higher_index + 1
@@ -277,8 +277,8 @@ def _interpolate_height_and_temperature_from_pressure(imager_obj,
 
 
 def insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt):
-        npix = row_matched.shape[0]
-        """
+    npix = row_matched.shape[0]
+    """
         # obt.imager.segment_nwgeoheight
         obt.imager.segment_nwp_moist
         obt.imager.segment_nwp_pressure
@@ -300,70 +300,70 @@ def insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt):
         obt.imager.segment_tb11cloudy_surface
         obt.imager.segment_tb12cloudy_surface
         """
-        def get_segment_row_col_idx(nwp_segments, row_matched, col_matched):
-            segment_colidx = nwp_segments['colidx']
-            segment_rowidx = nwp_segments['rowidx']
-            seg_row = np.zeros(np.size(row_matched)) -9
-            seg_col = np.zeros(np.size(col_matched)) -9
-            for s_col in range(nwp_segments['norows']):
-                for s_row in range(nwp_segments['nocols']):
-                    within_segment = np.logical_and(
-                        np.logical_and(
-                            row_matched >= (segment_rowidx[s_row, s_col]
-                                            - nwp_segments['segSizeX']/2),
-                            row_matched < (segment_rowidx[s_row, s_col]
-                                           + nwp_segments['segSizeX']/2)),
-                        np.logical_and(
-                            col_matched >= (segment_colidx[s_row, s_col]
-                                            - nwp_segments['segSizeY']/2),
-                            col_matched < (segment_colidx[s_row, s_col]
-                                           + nwp_segments['segSizeY']/2)))
-                    seg_row[within_segment] = s_row
-                    seg_col[within_segment] = s_col
-            return  seg_row.astype(np.int16), seg_col.astype(np.int16)
-        seg_row, seg_col = get_segment_row_col_idx(nwp_segments, row_matched, col_matched)
-        for data_set in ['surfaceLandTemp',
-                         'surfaceSeaTemp',
-                         'surfaceGeoHeight',
-                         'surfaceMoist',
-                         'surfacePressure',
-                         'fractionOfLand',
-                         'meanElevation',
-                         'ptro',
-                         'ttro',
-                         't850',
-                         'tb11clfree_sea',
-                         'tb12clfree_sea',
-                         'tb11clfree_land',
-                         'tb12clfree_land',
-                         'tb11lowcloud_sea',
-                         'tb12lowcloud_sea',
-                         'tb11lowcloud_land',
-                         'tb12lowcloud_land']:
-            if data_set in nwp_segments.keys():
-                # 'tb11cloudy_surface',
-                # 'tb12cloudy_surface ',
-                setattr(obt.imager, 'segment_nwp_' + data_set,
-                        np.array([nwp_segments[data_set][seg_row[idx], seg_col[idx]]
-                                  for idx in range(npix)]))
-            elif 'clfree' in data_set or 'lowcloud' in data_set:
-                # these are nor always present
-                pass
-
-        for data_set in ['moist', 'pressure', 'geoheight', 'temp']:
+    def get_segment_row_col_idx(nwp_segments, row_matched, col_matched):
+        segment_colidx = nwp_segments['colidx']
+        segment_rowidx = nwp_segments['rowidx']
+        seg_row = np.zeros(np.size(row_matched)) - 9
+        seg_col = np.zeros(np.size(col_matched)) - 9
+        for s_col in range(nwp_segments['norows']):
+            for s_row in range(nwp_segments['nocols']):
+                within_segment = np.logical_and(
+                    np.logical_and(
+                        row_matched >= (segment_rowidx[s_row, s_col]
+                                        - nwp_segments['segSizeX']/2),
+                        row_matched < (segment_rowidx[s_row, s_col]
+                                       + nwp_segments['segSizeX']/2)),
+                    np.logical_and(
+                        col_matched >= (segment_colidx[s_row, s_col]
+                                        - nwp_segments['segSizeY']/2),
+                        col_matched < (segment_colidx[s_row, s_col]
+                                       + nwp_segments['segSizeY']/2)))
+                seg_row[within_segment] = s_row
+                seg_col[within_segment] = s_col
+        return seg_row.astype(np.int16), seg_col.astype(np.int16)
+    seg_row, seg_col = get_segment_row_col_idx(nwp_segments, row_matched, col_matched)
+    for data_set in ['surfaceLandTemp',
+                     'surfaceSeaTemp',
+                     'surfaceGeoHeight',
+                     'surfaceMoist',
+                     'surfacePressure',
+                     'fractionOfLand',
+                     'meanElevation',
+                     'ptro',
+                     'ttro',
+                     't850',
+                     'tb11clfree_sea',
+                     'tb12clfree_sea',
+                     'tb11clfree_land',
+                     'tb12clfree_land',
+                     'tb11lowcloud_sea',
+                     'tb12lowcloud_sea',
+                     'tb11lowcloud_land',
+                     'tb12lowcloud_land']:
+        if data_set in nwp_segments.keys():
+            # 'tb11cloudy_surface',
+            # 'tb12cloudy_surface ',
             setattr(obt.imager, 'segment_nwp_' + data_set,
-                              np.array([nwp_segments[data_set][seg_row[idx], seg_col[idx]]
-                                        for idx in range(npix)]))
-        # Remove nodata and not used upper part of atmosphere
-        N = obt.imager.segment_nwp_pressure.shape[1]
-        pressure_n_to_keep = np.sum(np.max(obt.imager.segment_nwp_pressure, axis=0)>50)
-        logger.debug("Not saving upper %d levels of 3-D nwp from segment file"%(N-pressure_n_to_keep))
-        logger.debug("Keeping %d lower levels of 3-D nwp from segment file"%(pressure_n_to_keep))
-        for data_set in ['segment_nwp_moist', 'segment_nwp_pressure',
-                          'segment_nwp_geoheight', 'segment_nwp_temp']:
-            data = getattr(obt.imager, data_set)
-            setattr(obt.imager, data_set, data[:, 0:pressure_n_to_keep])
-        return obt
+                    np.array([nwp_segments[data_set][seg_row[idx], seg_col[idx]]
+                              for idx in range(npix)]))
+        elif 'clfree' in data_set or 'lowcloud' in data_set:
+            # these are nor always present
+            pass
+
+    for data_set in ['moist', 'pressure', 'geoheight', 'temp']:
+        setattr(obt.imager, 'segment_nwp_' + data_set,
+                np.array([nwp_segments[data_set][seg_row[idx], seg_col[idx]]
+                          for idx in range(npix)]))
+    # Remove nodata and not used upper part of atmosphere
+    N = obt.imager.segment_nwp_pressure.shape[1]
+    pressure_n_to_keep = np.sum(np.max(obt.imager.segment_nwp_pressure, axis=0) > 50)
+    logger.debug("Not saving upper %d levels of 3-D nwp from segment file" % (N-pressure_n_to_keep))
+    logger.debug("Keeping %d lower levels of 3-D nwp from segment file" % (pressure_n_to_keep))
+    for data_set in ['segment_nwp_moist', 'segment_nwp_pressure',
+                     'segment_nwp_geoheight', 'segment_nwp_temp']:
+        data = getattr(obt.imager, data_set)
+        setattr(obt.imager, data_set, data[:, 0:pressure_n_to_keep])
+    return obt
 
 
 def insert_nwp_h440_h680_data(obt):
@@ -435,16 +435,16 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
         if extract_cma and hasattr(cma, varname):
             setattr(obt.imager, varname,
                     get_data_from_array(getattr(cma, varname), row_col))
-            if find_mean_data_for_x_neighbours and varname=='cma_prob':
+            if find_mean_data_for_x_neighbours and varname == 'cma_prob':
                 obt.imager.cma_prob_mean = get_mean_data_from_array_nneigh(cma.cma_prob, row_col_nneigh)
 
     # cloud-type flags
     if extract_ctype and SETTINGS["PPS_VALIDATION"]:
-        for (variable, outname) in  zip(
+        for (variable, outname) in zip(
                 ['ct_quality', 'ct_conditions', 'ct_statusflag',
                  'qualityflag', 'phaseflag'],
                 ['cloudtype_quality', 'cloudtype_conditions', 'cloudtype_status',
-                 'cloudtype_qflag', 'cloudtype_pflag'] ):
+                 'cloudtype_qflag', 'cloudtype_pflag']):
             if hasattr(ctype, variable):
                 setattr(obt.imager, outname,
                         get_data_from_array(getattr(ctype, variable), row_col))
@@ -456,7 +456,7 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
         else:
             logger.debug("missing {:s}".format(nwp_info))
     CTTH_TYPES = SETTINGS["CTTH_TYPES"]
-    if len(CTTH_TYPES)>1 and SETTINGS["PPS_VALIDATION"]:
+    if len(CTTH_TYPES) > 1 and SETTINGS["PPS_VALIDATION"]:
         for ctth_type in CTTH_TYPES[1:]:
             if hasattr(aux_obj, ctth_type):
                 ctth_obj = getattr(aux_obj, ctth_type)
@@ -464,11 +464,11 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
                 continue
             for data_set in ["pressure", "temperature", "height"]:
                 data = getattr(ctth_obj, data_set)
-                name = "%s_%s"%(ctth_type.lower(), data_set)
+                name = "%s_%s" % (ctth_type.lower(), data_set)
                 setattr(obt.imager, name, get_data_from_array(data, row_col))
     from atrain_match.utils.pps_prototyping_util import (get_t11t12_texture_data_from_object,
-                                            get_coldest_values, get_darkest_values,
-                                            get_warmest_values)
+                                                         get_coldest_values, get_darkest_values,
+                                                         get_warmest_values)
     if imager_obj is not None:
         pass
         # aux_obj = get_t11t12_texture_data_from_object(imager_obj, aux_obj, '11', '12',

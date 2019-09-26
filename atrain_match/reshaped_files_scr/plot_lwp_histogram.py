@@ -25,7 +25,7 @@ from matchobject_io import (readAmsrImagerMatchObj,
                             DataObject,
                             AmsrImagerTrackObject)
 from my_dir import ADIR
-from utils.validate_lwp_util import ( get_lwp_diff)
+from utils.validate_lwp_util import (get_lwp_diff)
 
 
 def plot_hist_lwp(lwp_diff, filename):
@@ -34,7 +34,7 @@ def plot_hist_lwp(lwp_diff, filename):
                   np.percentile(lwp_diff, 99))
     fig = plot_hist(lwp_diff, bins=100, range=hist_range)
     fig.axes[0].set_xlabel('lwp difference (g m**-2)')
-    fig.suptitle("CPP lwp - AMSR-E lwp npix: %d"% lwp_diff.size)
+    fig.suptitle("CPP lwp - AMSR-E lwp npix: %d" % lwp_diff.size)
     my_path, my_file = os.path.split(filename)
     fig.savefig(my_path + "/fig2_" + my_file.replace('h5', 'pdf'))
 

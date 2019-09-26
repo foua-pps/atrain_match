@@ -19,16 +19,16 @@
 
 
 def plot_satellite_trajectory(longitude,
-                            latitude,
-                            trajectoryname,
-                            area_config_file,
-                            fig_type='eps',
-                            **options):
+                              latitude,
+                              trajectoryname,
+                              area_config_file,
+                              fig_type='eps',
+                              **options):
     """Plot a trajectory of geolocations (lon, lat) on a map"""
     import numpy as np
     import os
 
-    if 'trajectory_plot_area'  in options:
+    if 'trajectory_plot_area' in options:
         area_id = options['trajectory_plot_area']
     else:
         area_id = "pc_world"  # Global area

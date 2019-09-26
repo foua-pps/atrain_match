@@ -41,19 +41,19 @@
 """
 
 # TESTFILE = "./DataFromDwd/201403/sy_SYNOP_20140306.qc"
+from datetime import datetime
+import numpy as np
+import pandas as pd
 TESTFILE = "/data/proj6/saf/adybbroe/satellite_synop_matchup/DataFromDwd/201403/sy_SYNOP_20140306.qc"
 filename = TESTFILE
 
 # from astropy.io import ascii
-import pandas as pd
-import numpy as np
-from datetime import datetime
 
 
 def get_synop_data(filename):
     """Get all Synop data from one file"""
 
-    convert_datefunc = lambda x: datetime.strptime(x, '%Y%m%d%H%M')
+    def convert_datefunc(x): return datetime.strptime(x, '%Y%m%d%H%M')
 
     dtype = [('date', object), ('station', '|S5'),
              ('lat', 'f8'), ('lon', 'f8'),

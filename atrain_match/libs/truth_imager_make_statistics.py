@@ -1,3 +1,5 @@
+import atrain_match.config as config
+from atrain_match.config import INSTRUMENT
 import os
 import sys
 import numpy as np
@@ -6,30 +8,28 @@ import logging
 from atrain_match.utils.common import MatchupError
 
 from atrain_match.libs.truth_imager_match import (get_matchups_from_data,
-                                     find_imager_file,
-                                     insert_info_in_filename_or_path,
-                                     add_additional_clousat_calipso_index_vars,
-                                     add_elevation_corrected_imager_ctth)
+                                                  find_imager_file,
+                                                  insert_info_in_filename_or_path,
+                                                  add_additional_clousat_calipso_index_vars,
+                                                  add_elevation_corrected_imager_ctth)
 
 from atrain_match.truths.cloudsat import (add_validation_ctth_cloudsat,
-                             add_cloudsat_cloud_fraction)
+                                          add_cloudsat_cloud_fraction)
 from atrain_match.truths.calipso import (optical_depth_height_filtering,
-                            check_total_optical_depth_and_warn,
-                            add_validation_ctth_calipso,
-                            detection_height_filtering,
-                            set_thin_to_clear_filtering_1km)
+                                         check_total_optical_depth_and_warn,
+                                         add_validation_ctth_calipso,
+                                         detection_height_filtering,
+                                         set_thin_to_clear_filtering_1km)
 from atrain_match.libs.truth_imager_statistics_lib import (calculate_statistics)
 from atrain_match.plotting.trajectory_plotting import plot_satellite_trajectory
 from atrain_match.plotting.along_track_plotting import (plot_cal_clsat_imager_time_diff,
-                                           plot_cal_clsat_geoprof_imager,
-                                           plot_cal_clsat_imager_satz,
-                                           plot_cal_clsat_cwc_imager)
+                                                        plot_cal_clsat_geoprof_imager,
+                                                        plot_cal_clsat_imager_satz,
+                                                        plot_cal_clsat_cwc_imager)
 from atrain_match.matchobject_io import (read_truth_imager_match_obj,
-                            CalipsoObject)
+                                         CalipsoObject)
 
 logger = logging.getLogger(__name__)
-from atrain_match.config import INSTRUMENT
-import atrain_match.config as config
 
 """
  * The main running program is: process_master.py and compile_stat.py will
@@ -76,8 +76,8 @@ def get_matchups(cross, AM_PATHS, SETTINGS, reprocess):
         raise ValueError('Need satellite1 and time (cross: %s)' % cross)
 
     if reprocess is False or SETTINGS['USE_EXISTING_RESHAPED_FILES']:
-        diff_imager_seconds=None
-        imager_file=None
+        diff_imager_seconds = None
+        imager_file = None
         # if not SETTINGS['USE_EXISTING_RESHAPED_FILES']:
         #    if SETTINGS['PPS_VALIDATION']:
         #        imager_file, tobj = find_radiance_file(cross, AM_PATHS)
@@ -108,17 +108,17 @@ def get_matchups(cross, AM_PATHS, SETTINGS, reprocess):
                         "Generating from source data if required.")
                     date_time = cross.time
                 else:
-                    Obj_dict[truth] = read_truth_imager_match_obj(match_file, truth = truth)
+                    Obj_dict[truth] = read_truth_imager_match_obj(match_file, truth=truth)
                     basename = '_'.join(os.path.basename(match_file).split('_')[1:5])
 
-    if  (all([obj_i is None for obj_i in Obj_dict.values()])):
+    if (all([obj_i is None for obj_i in Obj_dict.values()])):
         pass
     else:
         values['date_time'] = date_time
         values['year'] = date_time.year
         values['basename'] = basename
-        values['month']="%02d"%(date_time.month)
-        out_dict = {'basename': basename, 'values':values}
+        values['month'] = "%02d" % (date_time.month)
+        out_dict = {'basename': basename, 'values': values}
 
     if SETTINGS['USE_EXISTING_RESHAPED_FILES']:
         for truth in ['cloudsat', 'amsr', 'iss', 'synop',
@@ -132,7 +132,7 @@ def get_matchups(cross, AM_PATHS, SETTINGS, reprocess):
     for truth in ['cloudsat', 'amsr', 'iss', 'synop',
                   'mora', 'calipso']:
         out_dict[truth] = Obj_dict[truth]
-    if  (all(obj_i is None for obj_i in Obj_dict.values())):
+    if (all(obj_i is None for obj_i in Obj_dict.values())):
         out_dict = get_matchups_from_data(cross, AM_PATHS, SETTINGS)
     for truth in ['cloudsat', 'amsr', 'iss', 'synop',
                   'mora', 'calipso']:
@@ -152,7 +152,7 @@ def get_matchups(cross, AM_PATHS, SETTINGS, reprocess):
 
 
 def plot_some_figures(match_clsat, match_calipso, values, basename, process_mode,
-                      AM_PATHS, SETTINGS, amObj = None, match_synop = None, moObj= None):
+                      AM_PATHS, SETTINGS, amObj=None, match_synop=None, moObj=None):
 
     logger.info("Plotting")
     file_type = SETTINGS['PLOT_TYPES']
@@ -161,7 +161,7 @@ def plot_some_figures(match_clsat, match_calipso, values, basename, process_mode
                                                datetime_obj=values['date_time'])
 
     # TRAJECTORY
-    if match_calipso is not None and 1==2:
+    if match_calipso is not None and 1 == 2:
         imlon = match_calipso.imager.longitude.copy()
         imlat = match_calipso.imager.latitude.copy()
         trajectorypath = os.path.join(plotpath, "trajectory_plot")
@@ -171,11 +171,11 @@ def plot_some_figures(match_clsat, match_calipso, values, basename, process_mode
                                       "%skm_%s_trajectory" % (int(config.RESOLUTION),
                                                               values['basename']))
         plot_satellite_trajectory(imlon,
-                                imlat,
-                                trajectoryname,
-                                config.AREA_CONFIG_FILE,
-                                file_type,
-                                **AM_PATHS)
+                                  imlat,
+                                  trajectoryname,
+                                  config.AREA_CONFIG_FILE,
+                                  file_type,
+                                  **AM_PATHS)
 
     if (match_calipso is not None):
         # HEIGHT
@@ -187,39 +187,39 @@ def plot_some_figures(match_clsat, match_calipso, values, basename, process_mode
                                       process_mode,
                                       file_type,
                                       instrument=match_calipso.imager_instrument,
-                                      MAXHEIGHT = SETTINGS["MAXHEIGHT"])
+                                      MAXHEIGHT=SETTINGS["MAXHEIGHT"])
         # TIME DIFF SATZ
         plot_cal_clsat_imager_time_diff(match_clsat,
-                                      match_calipso,
-                                      plotpath, basename,
-                                      config.RESOLUTION,
-                                      instrument=match_calipso.imager_instrument)
+                                        match_calipso,
+                                        plotpath, basename,
+                                        config.RESOLUTION,
+                                        instrument=match_calipso.imager_instrument)
         plot_cal_clsat_imager_satz(match_clsat,
-                                  match_calipso,
-                                  plotpath, basename,
-                                  config.RESOLUTION, file_type,
-                                  instrument=match_calipso.imager_instrument)
+                                   match_calipso,
+                                   plotpath, basename,
+                                   config.RESOLUTION, file_type,
+                                   instrument=match_calipso.imager_instrument)
 
     if (match_clsat is not None and
-        'rvod_liq_water_path' in match_clsat.cloudsat.all_arrays.keys()):
+            'rvod_liq_water_path' in match_clsat.cloudsat.all_arrays.keys()):
 
         elevation = np.where(np.less_equal(match_clsat.cloudsat.elevation, 0),
                              -9, match_clsat.cloudsat.elevation)
         data_ok = np.ones(match_clsat.cloudsat.elevation.shape, 'b')
 
-        phase='LW'
+        phase = 'LW'
         plot_cal_clsat_cwc_imager(match_clsat,
-                                 elevation,
-                                 data_ok,
-                                 plotpath, basename,
-                                 phase,
-                                 instrument=match_clsat.imager_instrument)
-        phase='IW'
+                                  elevation,
+                                  data_ok,
+                                  plotpath, basename,
+                                  phase,
+                                  instrument=match_clsat.imager_instrument)
+        phase = 'IW'
         plot_cal_clsat_cwc_imager(match_clsat,
-                                 elevation,
-                                 data_ok,
-                                 plotpath, basename, phase,
-                                 instrument=match_clsat.imager_instrument)
+                                  elevation,
+                                  data_ok,
+                                  plotpath, basename, phase,
+                                  instrument=match_clsat.imager_instrument)
 
 
 def split_process_mode_and_dnt_part(process_mode_dnt):
@@ -244,8 +244,8 @@ def process_one_mode(process_mode_dnt, match_calipso, match_clsat, issObj, amObj
     process_mode, dnt_flag = split_process_mode_and_dnt_part(process_mode_dnt)
     min_depth_to_file_name = ""
     if process_mode == 'OPTICAL_DEPTH':
-        min_depth_to_file_name="-%.2f"%(min_optical_depth)
-    values['mode']= process_mode_dnt + min_depth_to_file_name
+        min_depth_to_file_name = "-%.2f" % (min_optical_depth)
+    values['mode'] = process_mode_dnt + min_depth_to_file_name
     result_path = insert_info_in_filename_or_path(AM_PATHS['result_dir'],
                                                   values,
                                                   datetime_obj=values['date_time'])
@@ -254,7 +254,7 @@ def process_one_mode(process_mode_dnt, match_calipso, match_clsat, issObj, amObj
     result_file = AM_PATHS['result_file'].format(
         resolution=str(config.RESOLUTION),
         basename=values['basename'],
-        truth_sat = "xxx")
+        truth_sat="xxx")
     statfilename = os.path.join(result_path, result_file)
     # =============================================================
     # Draw plot
@@ -266,7 +266,7 @@ def process_one_mode(process_mode_dnt, match_calipso, match_clsat, issObj, amObj
     # Calculate Statistics
     logger.debug("Calculating statistics")
     calculate_statistics(process_mode, statfilename, match_calipso, match_clsat,
-                        issObj, amObj, syObj, SETTINGS, dnt_flag)
+                         issObj, amObj, syObj, SETTINGS, dnt_flag)
     # =============================================================
 
 
@@ -279,7 +279,7 @@ def run(cross, run_modes, AM_PATHS, SETTINGS, reprocess=False):
 
     if (not SETTINGS['USE_CMA_FOR_CFC_STATISTICS'] and
         not SETTINGS['USE_CT_FOR_CFC_STATISTICS'] and
-        not SETTINGS['USE_CMAPROB_FOR_CFC_STATISTICS']):
+            not SETTINGS['USE_CMAPROB_FOR_CFC_STATISTICS']):
         logger.error(
             "\n  --------------------------------- "
             "\n\tSet one of USE_*_FOR_CFC_STATISTICS=True in config.py!"
@@ -302,7 +302,8 @@ def run(cross, run_modes, AM_PATHS, SETTINGS, reprocess=False):
     logger.info("Adding validation height missing in old reshaped files")
     match_clsat, match_calipso = add_validation_ctth(match_clsat, match_calipso)
     # Calculate hight from sea surface
-    match_clsat, match_calipso, issObj = add_elevation_corrected_imager_ctth(match_clsat, match_calipso, issObj, SETTINGS)
+    match_clsat, match_calipso, issObj = add_elevation_corrected_imager_ctth(
+        match_clsat, match_calipso, issObj, SETTINGS)
     calipso_original = CalipsoObject()
     # Save data orignal data that we might edit for some modes
     if match_calipso is not None:
@@ -317,8 +318,8 @@ def run(cross, run_modes, AM_PATHS, SETTINGS, reprocess=False):
     # For each mode, do the statistics:
     if (match_calipso is not None and
         SETTINGS['COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC'] and
-        (SETTINGS['ALSO_USE_5KM_FILES'] or config.RESOLUTION==5) and
-        match_calipso.calipso.total_optical_depth_5km is None):
+        (SETTINGS['ALSO_USE_5KM_FILES'] or config.RESOLUTION == 5) and
+            match_calipso.calipso.total_optical_depth_5km is None):
         logger.warning("\n\t Rematched_file is missing total_optical_depth_5km field"
                        "\n\t Consider reprocessing with: "
                        "\n\t COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC=True"
@@ -364,7 +365,7 @@ def run(cross, run_modes, AM_PATHS, SETTINGS, reprocess=False):
                 check_total_optical_depth_and_warn(match_calipso)
                 if 'STANDARD' in process_mode:
                     match_calipso.calipso.validation_height = detection_height_filtering(match_calipso)
-            if  match_calipso is not None and process_mode == 'OPTICAL_DEPTH_THIN_IS_CLEAR':
+            if match_calipso is not None and process_mode == 'OPTICAL_DEPTH_THIN_IS_CLEAR':
                 logger.info("Setting thin clouds to clear, "
                             "using 5km data in mode OPTICAL_DEPTH_THIN_IS_CLEAR")
                 retv = set_thin_to_clear_filtering_1km(match_calipso, SETTINGS)

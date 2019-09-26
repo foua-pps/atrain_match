@@ -15,6 +15,9 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
+from atrain_match.utils.common import InputError
+from atrain_match.utils.runutils import do_some_geo_obj_logging
+import atrain_match.config as config
 import numpy as np
 import os
 import netCDF4
@@ -24,17 +27,14 @@ import time
 import calendar
 from datetime import datetime
 logger = logging.getLogger(__name__)
-import atrain_match.config as config
-from atrain_match.utils.runutils import do_some_geo_obj_logging
-from atrain_match.utils.common import InputError
 ATRAIN_MATCH_NODATA = config.NODATA
 # logger.debug('Just so you know: this module has a logger...')
 
 DSEC_PER_AVHRR_SCALINE = 1.0/6. * 4  # A "work for the time being" solution.
 if config.RESOLUTION == 1:
     DSEC_PER_AVHRR_SCALINE = 1.0 / 6.  # Full scan period, i.e. the time
-                                    # interval between two consecutive
-                                    # lines (sec)
+    # interval between two consecutive
+    # lines (sec)
 
 
 def get_satid_datetime_orbit_from_fname_pps(imager_filename, as_oldstyle=False):
@@ -44,38 +44,38 @@ def get_satid_datetime_orbit_from_fname_pps(imager_filename, as_oldstyle=False):
     # Get satellite name, time, and orbit number from imager_file
     if config.PPS_FORMAT_2012_OR_EARLIER or as_oldstyle:
         sl_ = os.path.basename(imager_filename).split('_')
-        date_time= datetime.strptime(sl_[1] + sl_[2], '%Y%m%d%H%M')
-        values= {"satellite": sl_[0],
-                 "date_time": date_time,
-                 "orbit": sl_[3].split('.')[0],
-                 "date":sl_[1],
-                 "year":date_time.year,
-                 "month":"%02d"%(date_time.month),
-                 # "lines_lines": sl_[5] + "_" + sl_[6],
-                 "lines_lines": "*",
-                 "time":sl_[2],
-                 "imager_filename":imager_filename}
+        date_time = datetime.strptime(sl_[1] + sl_[2], '%Y%m%d%H%M')
+        values = {"satellite": sl_[0],
+                  "date_time": date_time,
+                  "orbit": sl_[3].split('.')[0],
+                  "date": sl_[1],
+                  "year": date_time.year,
+                  "month": "%02d" % (date_time.month),
+                  # "lines_lines": sl_[5] + "_" + sl_[6],
+                  "lines_lines": "*",
+                  "time": sl_[2],
+                  "imager_filename": imager_filename}
     else:  # PPS v2014-filenames
         sl_ = os.path.basename(imager_filename).split('_')
         date_time = datetime.strptime(sl_[5], '%Y%m%dT%H%M%S%fZ')
         date_time_end = datetime.strptime(sl_[6].split('Z')[0], '%Y%m%dT%H%M%S%f')
 
-        values= {"satellite": sl_[3],
-                 "date_time": date_time,
-                 "date_time_end": date_time_end,
-                 "orbit": sl_[4],
-                 # "date":"%04d%02d%02d"%(date_time.year, dat_time.month, date_time.day),
-                 "date": date_time.strftime("%Y%m%d"),
-                 "year":date_time.year,
-                 "month":"%02d"%(date_time.month),
-                 "lines_lines": "*",
-                 "time":date_time.strftime("%H%M"),
-                 "ppsfilename":imager_filename}
+        values = {"satellite": sl_[3],
+                  "date_time": date_time,
+                  "date_time_end": date_time_end,
+                  "orbit": sl_[4],
+                  # "date":"%04d%02d%02d"%(date_time.year, dat_time.month, date_time.day),
+                  "date": date_time.strftime("%Y%m%d"),
+                  "year": date_time.year,
+                  "month": "%02d" % (date_time.month),
+                  "lines_lines": "*",
+                  "time": date_time.strftime("%H%M"),
+                  "ppsfilename": imager_filename}
     values['basename'] = (values["satellite"] +
                           "_" + values["date"] +
                           "_" + values["time"] +
                           "_" + values["orbit"])
-    values["jday"]=date_time.timetuple().tm_yday
+    values["jday"] = date_time.timetuple().tm_yday
 
     return values
 
@@ -162,7 +162,7 @@ class AuxiliaryObj(object):
 
 class SmallDataObject(object):
     def __init__(self):
-        self.data=None
+        self.data = None
         self.gain = 1.0
         self.intercept = 0.0
         self.no_data = 0.0
@@ -289,12 +289,12 @@ def read_ctth_nc(filename):
     ctth.pressure = pps_nc.variables['ctth_pres'][0, :, :].astype(np.float)
     ctth.ctth_statusflag = pps_nc.variables['ctth_status_flag'][0, :, :]
     # Currently unpacked arrays later in calipso.py
-    ctth.h_gain=1.0
-    ctth.h_intercept=0.0
-    ctth.p_gain=1.0  #
-    ctth.p_intercept=0.0
-    ctth.t_gain=1  #
-    ctth.t_intercept=0.0
+    ctth.h_gain = 1.0
+    ctth.h_intercept = 0.0
+    ctth.p_gain = 1.0  #
+    ctth.p_intercept = 0.0
+    ctth.t_gain = 1  #
+    ctth.t_intercept = 0.0
     ctth.h_nodata = pps_nc.variables['ctth_alti']._FillValue
     ctth.t_nodata = pps_nc.variables['ctth_tempe']._FillValue
     ctth.p_nodata = pps_nc.variables['ctth_pres']._FillValue
@@ -302,13 +302,13 @@ def read_ctth_nc(filename):
                  np.min(ctth.height), np.max(ctth.height.data), ctth.h_nodata)
     # already scaled
     if np.ma.is_masked(ctth.height):
-        ctth.height.data[ctth.height.mask]  = ATRAIN_MATCH_NODATA
+        ctth.height.data[ctth.height.mask] = ATRAIN_MATCH_NODATA
         ctth.height = ctth.height.data
     if np.ma.is_masked(ctth.pressure):
-        ctth.pressure.data[ctth.pressure.mask]  = ATRAIN_MATCH_NODATA
+        ctth.pressure.data[ctth.pressure.mask] = ATRAIN_MATCH_NODATA
         ctth.pressure = ctth.pressure.data
     if np.ma.is_masked(ctth.temperature):
-        ctth.temperature.data[ctth.temperature.mask]  = ATRAIN_MATCH_NODATA
+        ctth.temperature.data[ctth.temperature.mask] = ATRAIN_MATCH_NODATA
         ctth.temperature = ctth.temperature.data
     pps_nc.close()
     return ctth
@@ -344,10 +344,10 @@ def read_cma_h5(filename):
             logger.error("This CMA-file seem lika a CMAPROB file!")
     cma.cma_ext = h5file['cma_extended'].value
     cma.cma_bin = np.int64(0*cma.cma_ext.copy())
-    cma.cma_bin[cma.cma_ext==1] = 1.0
-    cma.cma_bin[cma.cma_ext==2] = 1.0
-    cma.cma_bin[cma.cma_ext<0] = ATRAIN_MATCH_NODATA
-    cma.cma_bin[cma.cma_ext>10] = ATRAIN_MATCH_NODATA
+    cma.cma_bin[cma.cma_ext == 1] = 1.0
+    cma.cma_bin[cma.cma_ext == 2] = 1.0
+    cma.cma_bin[cma.cma_ext < 0] = ATRAIN_MATCH_NODATA
+    cma.cma_bin[cma.cma_ext > 10] = ATRAIN_MATCH_NODATA
 
     # try KeyError 'cma'
     h5file.close()
@@ -390,10 +390,10 @@ def read_cma_nc(filename):
             logger.error("Probably you shold set CMAP_PROB_VALIDATION=True!")
     cma.cma_ext = pps_nc.variables['cma_extended'][0, :, :]
     cma.cma_bin = 0*np.int64(cma.cma_ext.copy())
-    cma.cma_bin[cma.cma_ext==1] = 1.0
-    cma.cma_bin[cma.cma_ext==2] = 1.0
-    cma.cma_bin[cma.cma_ext<0] = ATRAIN_MATCH_NODATA
-    cma.cma_bin[cma.cma_ext>10] = ATRAIN_MATCH_NODATA
+    cma.cma_bin[cma.cma_ext == 1] = 1.0
+    cma.cma_bin[cma.cma_ext == 2] = 1.0
+    cma.cma_bin[cma.cma_ext < 0] = ATRAIN_MATCH_NODATA
+    cma.cma_bin[cma.cma_ext > 10] = ATRAIN_MATCH_NODATA
 
     # cma.cma_testlist0 = pps_nc.variables['cma_testlist0'][0, :, :]
     # cma.cma_testlist1 = pps_nc.variables['cma_testlist1'][0, :, :]
@@ -402,7 +402,7 @@ def read_cma_nc(filename):
     # cma.cma_testlist4 = pps_nc.variables['cma_testlist4'][0, :, :]
     # cma.cma_testlist5 = pps_nc.variables['cma_testlist5'][0, :, :]
     for var_name in [
-            'cma_aerosol', # new updated name
+            'cma_aerosol',  # new updated name
             'cma_aerosolflag',
             'cma_dust',
             'cma_testlist0',
@@ -419,7 +419,7 @@ def read_cma_nc(filename):
             if np.ma.is_masked(array):
                 mask = array.mask
                 data = array.data
-                data[mask]= 0
+                data[mask] = 0
                 setattr(cma, atrain_name, data)
             else:
                 setattr(cma, atrain_name, array)
@@ -537,7 +537,7 @@ def read_pps_angobj_h5(filename):
         if 'image' in var:
             image = h5file[var]
             if (image.attrs['description'] == "sun zenith angle" or
-                image.attrs['description'] == "Solar zenith angle"):
+                    image.attrs['description'] == "Solar zenith angle"):
                 # print "reading sunz"
                 angle_obj.sunz.data = image['data'].value.astype(np.float)
                 angle_obj.sunz.gain = image['what'].attrs['gain']
@@ -568,7 +568,8 @@ def read_pps_angobj_h5(filename):
                              angle_obj.azidiff.data == angle_obj.azidiff.missing_data)
     angle_obj.sunz.data[~sunzmask] = angle_obj.sunz.data[~sunzmask]*angle_obj.sunz.gain + angle_obj.sunz.intercept
     angle_obj.satz.data[~satzmask] = angle_obj.satz.data[~satzmask]*angle_obj.satz.gain + angle_obj.satz.intercept
-    angle_obj.azidiff.data[~diffmask] = angle_obj.azidiff.data[~diffmask]*angle_obj.azidiff.gain + angle_obj.azidiff.intercept
+    angle_obj.azidiff.data[~diffmask] = angle_obj.azidiff.data[~diffmask] * \
+        angle_obj.azidiff.gain + angle_obj.azidiff.intercept
     angle_obj.sunz.data[sunzmask] = ATRAIN_MATCH_NODATA
     angle_obj.satz.data[satzmask] = ATRAIN_MATCH_NODATA
     angle_obj.azidiff.data[diffmask] = ATRAIN_MATCH_NODATA
@@ -609,16 +610,16 @@ def read_pps_geoobj_nc(pps_nc):
     sec_since_1970 = calendar.timegm(time_obj)
 
     all_imager_obj.sec1970_start = (sec_since_1970 +
-                            np.float64(np.min(pps_nc.variables['time_bnds'][::])) +
-                            seconds)
+                                    np.float64(np.min(pps_nc.variables['time_bnds'][::])) +
+                                    seconds)
     all_imager_obj.sec1970_end = (sec_since_1970 +
-                          np.float64(np.max(pps_nc.variables['time_bnds'][::])) +
-                          seconds)
+                                  np.float64(np.max(pps_nc.variables['time_bnds'][::])) +
+                                  seconds)
     # print type(all_imager_obj.sec1970_start)
     all_imager_obj.sec1970_start = np.float64(all_imager_obj.sec1970_start)
     all_imager_obj.sec1970_end = np.float64(all_imager_obj.sec1970_end)
     do_some_geo_obj_logging(all_imager_obj)
-    return  all_imager_obj
+    return all_imager_obj
 
 
 def read_pps_geoobj_h5(filename):
@@ -634,17 +635,17 @@ def read_pps_geoobj_h5(filename):
     all_imager_obj.longitude = h5file['where/lon']['data'].value*gain + intercept
     all_imager_obj.latitude = h5file['where/lat']['data'].value*gain + intercept
 
-    all_imager_obj.longitude[h5file['where/lon']['data'].value==in_fillvalue1] = all_imager_obj.nodata
-    all_imager_obj.latitude[h5file['where/lat']['data'].value==in_fillvalue1] = all_imager_obj.nodata
-    all_imager_obj.longitude[h5file['where/lon']['data'].value==in_fillvalue2] = all_imager_obj.nodata
-    all_imager_obj.latitude[h5file['where/lat']['data'].value==in_fillvalue2] = all_imager_obj.nodata
+    all_imager_obj.longitude[h5file['where/lon']['data'].value == in_fillvalue1] = all_imager_obj.nodata
+    all_imager_obj.latitude[h5file['where/lat']['data'].value == in_fillvalue1] = all_imager_obj.nodata
+    all_imager_obj.longitude[h5file['where/lon']['data'].value == in_fillvalue2] = all_imager_obj.nodata
+    all_imager_obj.latitude[h5file['where/lat']['data'].value == in_fillvalue2] = all_imager_obj.nodata
 
     all_imager_obj.num_of_lines = all_imager_obj.latitude.shape[0]
     all_imager_obj.sec1970_start = h5file['how'].attrs['startepochs']
     all_imager_obj.sec1970_end = h5file['how'].attrs['endepochs']
     do_some_geo_obj_logging(all_imager_obj)
 
-    return  all_imager_obj
+    return all_imager_obj
 
 
 def read_cpp_h5(filename):
@@ -655,7 +656,7 @@ def read_cpp_h5(filename):
         data = read_cpp_h5_one_var(h5file, cpp_key)
         if cpp_key in ["cpp_lwp"]:
             logger.debug("Convert from CPP-lwp from kg/m-2 to g/m-2")
-            data[data>0] = density * data[data>0]
+            data[data > 0] = density * data[data > 0]
         setattr(cpp_obj, cpp_key, data)
     h5file.close()
     return cpp_obj
@@ -674,9 +675,9 @@ def read_cpp_h5_one_var(h5file, cpp_key):
             intercept = h5file[cpp_key].attrs['add_offset']
 
         cpp_data = np.where(cpp_var_value != nodata,
-                           cpp_var_value * gain + intercept,
-                           ATRAIN_MATCH_NODATA)
-        return  cpp_data
+                            cpp_var_value * gain + intercept,
+                            ATRAIN_MATCH_NODATA)
+        return cpp_data
     else:
         logger.debug("NO %s field, Continue ", cpp_key)
         return None
@@ -694,8 +695,8 @@ def read_cpp_nc_one_var(ncFile, cpp_key):
             cpp_data = cpp_var
         if cpp_key in ["cpp_lwp"]:
             logger.debug("Convert from CPP-lwp from to g/m-2")
-            cpp_data[cpp_data>0] = density * cpp_data[cpp_data>0]
-        return  cpp_data
+            cpp_data[cpp_data > 0] = density * cpp_data[cpp_data > 0]
+        return cpp_data
     else:
         logger.debug("NO %s field, Continue ", cpp_key)
         return None
@@ -738,7 +739,7 @@ def read_etc_nc(ncFile, etc_key):
                 # set emissivity 1.0 where we miss data
                 nwp_var.data[nwp_var.mask] = 1.0
             nwp_var = nwp_var.data
-        return  nwp_var
+        return nwp_var
     else:
         logger.debug("NO %s field, Continue ", etc_key)
         return None
@@ -772,7 +773,7 @@ def read_segment_data(filename):
             nodata = h5file.attrs['p_nodata']
             # data[data!=nodata] = data[data!=nodata] * (gain/100) + intercept/100 # Pa => hPa
             data_float = np.array(data, dtype=np.float)
-            data_float[data!=nodata] = data_float[data!=nodata] * (gain/100) + intercept/100  # Pa => hPa
+            data_float[data != nodata] = data_float[data != nodata] * (gain/100) + intercept/100  # Pa => hPa
             product[pressure_data] = data_float
         logger.debug("Read segment info height")
         for geoheight_data in ['geoheight', 'surfaceGeoHeight']:
@@ -781,7 +782,7 @@ def read_segment_data(filename):
             gain = h5file.attrs['h_gain']
             intercept = h5file.attrs['h_intercept']
             nodata = h5file.attrs['h_nodata']
-            data[data!=nodata] = data[data!=nodata] * gain + intercept
+            data[data != nodata] = data[data != nodata] * gain + intercept
             product[geoheight_data] = data
         logger.debug("Read segment info temperature")
         for temperature_data in ['temp']:
@@ -791,7 +792,7 @@ def read_segment_data(filename):
             intercept = h5file.attrs['t_intercept']
             nodata = h5file.attrs['t_nodata']
             data_float = np.array(data, dtype=np.float)
-            data_float[data!=nodata] = data_float[data!=nodata] * gain + intercept
+            data_float[data != nodata] = data_float[data != nodata] * gain + intercept
             product[temperature_data] = data_float
         for temperature_data in ['t850', 'ttro', 'surfaceLandTemp', 'surfaceSeaTemp']:
             data = h5file['segment_area'][temperature_data]
@@ -799,7 +800,7 @@ def read_segment_data(filename):
             intercept = h5file.attrs['t_intercept']
             nodata = h5file.attrs['t_nodata']
             data_float = np.array(data, dtype=np.float)
-            data_float[data!=nodata] = data_float[data!=nodata] * gain + intercept
+            data_float[data != nodata] = data_float[data != nodata] * gain + intercept
             product[temperature_data] = data_float
         for misc_data in ['meanElevation', 'fractionOfLand']:
             product[misc_data] = h5file['segment_area'][misc_data]
@@ -824,8 +825,8 @@ def read_segment_data(filename):
                 intercept = h5file.attrs['tb_intercept']
                 nodata = h5file.attrs['t_nodata']
                 data_float = np.array(data, dtype=np.float)
-                data_float[data!=nodata] = data_float[data!=nodata] * gain + intercept
-                name= tb_data
+                data_float[data != nodata] = data_float[data != nodata] * gain + intercept
+                name = tb_data
                 name = name.replace('4', '11')
                 name = name.replace('5', '12')
                 product[name] = data_float
@@ -844,13 +845,13 @@ def read_thr_h5(filename, h5_obj_type, thr_type):
     if thr_type in ["emis1", "emis6", "emis8", "emis9"]:
         if filename is not None:
             h5file = h5py.File(filename, 'r')
-            if 1==1:  # h5_obj_type in h5file.keys():
+            if 1 == 1:  # h5_obj_type in h5file.keys():
                 value = h5file[h5_obj_type].value
                 gain = h5file.attrs['gain']
                 intercept = h5file.attrs['intercept']
                 product = value * gain + intercept
-                product[product<0] = 1.0
-                product[product>1.0] = 1.0
+                product[product < 0] = 1.0
+                product[product > 1.0] = 1.0
                 logger.debug("Read EMIS: %s", thr_type)
             else:
                 logger.info("ERROR", "Couldn't read %s file, Continue", thr_type)
@@ -865,7 +866,7 @@ def read_thr_h5(filename, h5_obj_type, thr_type):
             gain = h5file[h5_obj_type].attrs['gain']
             intercept = h5file[h5_obj_type].attrs['intercept']
             product = value * gain + intercept
-            logger.debug("Read THR: %s"%(thr_type))
+            logger.debug("Read THR: %s" % (thr_type))
         else:
             logger.error("Could not read %s File, Continue", thr_type)
         h5file.close()
@@ -881,10 +882,10 @@ def read_imager_data_h5(filename):
         if 'image' in var:
             image = h5file[var]
             if 'description' not in image.attrs.keys() and "modis" in filename:
-                my_description = "MODIS %s"%(image.attrs['channel'])
+                my_description = "MODIS %s" % (image.attrs['channel'])
             else:
                 my_description = image.attrs['description']
-            logger.debug("reading channel %s", my_description )
+            logger.debug("reading channel %s", my_description)
             one_channel = ImagerChannelData()
             one_channel.data = image['data'].value
             one_channel.des = my_description
@@ -908,7 +909,7 @@ def read_imager_data_h5(filename):
 def read_all_intermediate_files(pps_files, SETTINGS):
 
     CTTH_TYPES = SETTINGS['CTTH_TYPES']
-    aux_dict={}
+    aux_dict = {}
     if pps_files.seaice is None:
         pass
     elif '.nc' in pps_files.seaice:
@@ -958,13 +959,13 @@ def read_all_intermediate_files(pps_files, SETTINGS):
         aux_dict['snowa'] = read_etc_nc(pps_nc_nwp, "snowa")
         aux_dict['snowd'] = read_etc_nc(pps_nc_nwp, "snowd")
     else:
-         aux_dict['surftemp'] = read_nwp_h5(pps_files.nwp_tsur, "tsur")
-         aux_dict['t500'] = read_nwp_h5(pps_files.nwp_t500, "t500")
-         aux_dict['t700'] = read_nwp_h5(pps_files.nwp_t700, "t700")
-         aux_dict['t850'] = read_nwp_h5(pps_files.nwp_t850, "t850")
-         aux_dict['t950'] = read_nwp_h5(pps_files.nwp_t950, "t950")
-         aux_dict['ttro'] = read_nwp_h5(pps_files.nwp_ttro, "ttro")
-         aux_dict['ciwv'] = read_nwp_h5(pps_files.nwp_ciwv, "ciwv")
+        aux_dict['surftemp'] = read_nwp_h5(pps_files.nwp_tsur, "tsur")
+        aux_dict['t500'] = read_nwp_h5(pps_files.nwp_t500, "t500")
+        aux_dict['t700'] = read_nwp_h5(pps_files.nwp_t700, "t700")
+        aux_dict['t850'] = read_nwp_h5(pps_files.nwp_t850, "t850")
+        aux_dict['t950'] = read_nwp_h5(pps_files.nwp_t950, "t950")
+        aux_dict['ttro'] = read_nwp_h5(pps_files.nwp_ttro, "ttro")
+        aux_dict['ciwv'] = read_nwp_h5(pps_files.nwp_ciwv, "ciwv")
     if pps_files.text_t11 is None:
         pass
         logger.info("Not reading PPS texture data")
@@ -976,7 +977,7 @@ def read_all_intermediate_files(pps_files, SETTINGS):
         pps_nc_txt.close()
     else:
         for ttype in ['r06', 't11', 't37t12', 't37']:
-            h5_obj_type = ttype +'_text'
+            h5_obj_type = ttype + '_text'
             text_type = 'text_' + ttype
             aux_dict[text_type] = read_thr_h5(getattr(pps_files, text_type),
                                               h5_obj_type, text_type)
@@ -1011,7 +1012,7 @@ def read_all_intermediate_files(pps_files, SETTINGS):
             emis_type = h5_obj_type
             aux_dict[emis_type] = read_thr_h5(getattr(pps_files, "emis"),
                                               h5_obj_type, emis_type)
-    if len(CTTH_TYPES)>1:
+    if len(CTTH_TYPES) > 1:
         for ctth_type in CTTH_TYPES[1:]:  # already read first
             aux_dict[ctth_type] = read_ctth_nc(pps_files.ctth[ctth_type])
     aux_obj = AuxiliaryObj(aux_dict)
@@ -1058,7 +1059,7 @@ def pps_read_all(pps_files, imager_file, SETTINGS):
     # CMA
     if pps_files.cma is not None:
         logger.info("Read PPS Cloud mask")
-        logger.debug(pps_files.cma )
+        logger.debug(pps_files.cma)
         if '.nc' in pps_files.cma:
             cloudproducts.cma = read_cma_nc(pps_files.cma)
         else:
@@ -1094,6 +1095,7 @@ def pps_read_all(pps_files, imager_file, SETTINGS):
     cloudproducts.nwp_segments = read_segment_data(getattr(pps_files, 'nwp_segments'))
 
     return cloudproducts
+
 
 if __name__ == "__main__":
     pass

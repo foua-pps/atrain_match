@@ -25,6 +25,9 @@
 """Read all matched data and make some plotting
 """
 
+import matplotlib.pyplot as plt
+from matchobject_io import (read_truth_imager_match_obj,
+                            TruthImagerTrackObject)
 from glob import glob
 import os.path
 import numpy as np
@@ -40,18 +43,19 @@ my_title = "SEVIRI_2015"
 ROOT_DIR = "/home/a001865/NN_CTTH/data/training_data_seviri_c4_ok_angles/5km_meteosat*2010*"
 my_title = "SEVIRI"
 ROOT_DIR = "/home/a001865/NN_CTTH/data/sunglint_data_noaa18_gac/*"
-my_title="AVHRR"
+my_title = "AVHRR"
 
-blinn=True
+blinn = True
 if blinn:
-    my_title= my_title+"blinn"
+    my_title = my_title+"blinn"
 
 
 def get_specular_refl_phong(azidiff, sunz, satz, exponent=25):
-    a=1.0
-    B =np.where(azidiff >= 90, np.cos(np.radians(azidiff)), 0)#??
+    a = 1.0
+    B = np.where(azidiff >= 90, np.cos(np.radians(azidiff)), 0)  # ??
     B = np.cos(np.radians(azidiff))
-    cosalpha = np.where(sunz >= 90, 0, np.cos(np.radians(sunz)))*np.cos(np.radians(satz)) - a*np.where(sunz >= 90, 0, np.sin(np.radians(sunz)))*np.sin(np.radians(satz))*B
+    cosalpha = np.where(sunz >= 90, 0, np.cos(np.radians(sunz)))*np.cos(np.radians(satz)) - a * \
+        np.where(sunz >= 90, 0, np.sin(np.radians(sunz)))*np.sin(np.radians(satz))*B
     # refl = cosalpha**exponent
     # refl[refl==0] = -1
     return np.arccos(cosalpha)*180/np.pi
@@ -59,9 +63,10 @@ def get_specular_refl_phong(azidiff, sunz, satz, exponent=25):
 
 def get_specular_refl_blinn_phong(azidiff, sunz, satz, exponent=4*25):
 
-    B =np.where(azidiff >= 90, np.cos(np.radians(azidiff)), 0)#??
+    B = np.where(azidiff >= 90, np.cos(np.radians(azidiff)), 0)  # ??
     B = np.cos(np.radians(azidiff))
-    dev = np.where(sunz >= 90, 0, np.cos(np.radians(sunz)))*np.cos(np.radians(satz)) + np.where(sunz >= 90, 0, np.sin(np.radians(sunz)))*np.sin(np.radians(satz))*B
+    dev = np.where(sunz >= 90, 0, np.cos(np.radians(sunz)))*np.cos(np.radians(satz)) + \
+        np.where(sunz >= 90, 0, np.sin(np.radians(sunz)))*np.sin(np.radians(satz))*B
     cosalpha = (np.cos(np.radians(sunz)) + np.cos(np.radians(satz)))/np.sqrt(2*(1 + dev))
     # cosalpha = (np.cos(np.radians(sunz))+np.cos(np.radians(satz)))/(2*(1+dev))
     return np.arccos(cosalpha)*180/np.pi
@@ -71,13 +76,11 @@ def get_sunglint_info_pps2014(cloudtype_conditions):
 
     temp_val = (cloudtype_conditions >> 3 & 1)
     sunglint_flag = temp_val == 1
-    return  sunglint_flag
+    return sunglint_flag
 
 
 files = glob(ROOT_DIR)
 
-from matchobject_io import (read_truth_imager_match_obj,
-                            TruthImagerTrackObject)
 
 match_calipso = TruthImagerTrackObject(truth='calipso')
 for filename in files:
@@ -100,7 +103,7 @@ for filename in files:
 
 isCloudfree = np.logical_and(
     match_calipso.calipso.all_arrays['number_layers_found'] == 0,
-    match_calipso.calipso.all_arrays['cloud_fraction'] ==0)
+    match_calipso.calipso.all_arrays['cloud_fraction'] == 0)
 # isCloudfree = np.logical_and(
 #   isCloudfree,
 #   match_calipso.calipso.all_arrays['column_optical_depth_tropospheric_aerosols_532'] ==0)
@@ -138,19 +141,18 @@ isPPSSGn = np.logical_and(
     isCloudfree,
     ~get_sunglint_info_pps2014(cloudtype_conditions))
 
-import matplotlib.pyplot as plt
 
 degree_from_reflection = get_specular_refl_phong(azidiff, sunz, satz)
 if blinn:
     degree_from_reflection = get_specular_refl_blinn_phong(azidiff, sunz, satz)
 
-ppssg=get_sunglint_info_pps2014(cloudtype_conditions)
+ppssg = get_sunglint_info_pps2014(cloudtype_conditions)
 phongsg = degree_from_reflection < 15
 both = np.logical_and(ppssg, phongsg)
 neither = np.logical_and(~ppssg, ~phongsg)
 onlypps = np.logical_and(ppssg, ~phongsg)
 onlyphong = np.logical_and(~ppssg, phongsg)
-clear = match_calipso.calipso.all_arrays['cloud_fraction'] ==0
+clear = match_calipso.calipso.all_arrays['cloud_fraction'] == 0
 cloudy = match_calipso.calipso.all_arrays['cloud_fraction'] >= 0.98
 # pps_clear = match_calipso.imager.all_arrays['cloudmask'] ==0
 # pps_cloudy = match_calipso.imager.all_arrays['cloudmask'] ==1
@@ -163,7 +165,7 @@ use = np.logical_and(use, np.equal(nsidc_st, 0))
 use = np.logical_and(use, np.equal(igbp_st, 17))
 use = np.logical_and(use, sunz < 90)
 clear[~use] = False
-cloudy[~use]= False
+cloudy[~use] = False
 print(my_title)
 for selection, name in zip([both, neither, onlypps, onlyphong],
                            ["both", "neither", "onlypps", "onlyphong"]):
@@ -192,8 +194,8 @@ ax = fig.add_subplot(111)
 plt.fill_between([0, 6.5], 0, 100, color='g', alpha=0.3)
 plt.fill_between([0, 5.5], 0, 100, color='g', alpha=0.3)
 plt.fill_between([0, 4.5], 0, 100, color='g', alpha=0.3)
-data=[np.array(ydat[np.logical_and(xdat >= ang, xdat < ang + 5)]) for ang in range(0, 150, 5)]
-data2=[np.array(ydat2[np.logical_and(xdat2 >= ang, xdat2 < ang + 5)]) for ang in range(0, 150, 5)]
+data = [np.array(ydat[np.logical_and(xdat >= ang, xdat < ang + 5)]) for ang in range(0, 150, 5)]
+data2 = [np.array(ydat2[np.logical_and(xdat2 >= ang, xdat2 < ang + 5)]) for ang in range(0, 150, 5)]
 box = plt.boxplot(data,
                   labels=[str(ang+2)+"-"+str(ang+5) for ang in range(0, 150, 5)],
                   # positions=[str(ang+2) for ang in range(0, 150, 5)],
@@ -209,7 +211,7 @@ for patch in box['boxes']:
 plt.title(my_title)
 plt.xlabel("Angle between mirror reflection and satellite")
 plt.ylabel("Reflectance R09 (%)")
-ax1 =plt.gca()
+ax1 = plt.gca()
 ax1.set_ylim([0, 100])
 # xticks = ax1.xaxis.get_major_ticks()
 plt.xticks(rotation=90)
@@ -217,27 +219,27 @@ plt.xticks(rotation=90)
 #       plt.yticks([950, 550, 150])
 # for ind in range(8, 150/5, 2):
 #   xticks[ind].set_visible(False)
-plt.savefig("/home/a001865/DATA_MISC/reflection/figbox_"+my_title+".pdf", bbox_inches='tight', dpi=500, pad_inches = 0)
-plt.savefig("/home/a001865/DATA_MISC/reflection/figbox_"+my_title+".png", bbox_inches='tight', dpi=500, pad_inches = 0)
+plt.savefig("/home/a001865/DATA_MISC/reflection/figbox_"+my_title+".pdf", bbox_inches='tight', dpi=500, pad_inches=0)
+plt.savefig("/home/a001865/DATA_MISC/reflection/figbox_"+my_title+".png", bbox_inches='tight', dpi=500, pad_inches=0)
 
 fig = plt.figure(figsize=(6, 6))
 ax = fig.add_subplot(111)
 # plt.fill_between([0, 6.5], 0, 100, color='g', alpha=0.3)
 # plt.fill_between([0, 5.5], 0, 100, color='g', alpha=0.3)
 # plt.fill_between([0, 4.5], 0, 100, color='g', alpha=0.3)
-data=[len(ydat[np.logical_and(xdat >= ang, xdat < ang + 5)]) for ang in range(0, 150, 5)]
-data2=[len(ydat2[np.logical_and(xdat2 >= ang, xdat2 < ang + 5)]) for ang in range(0, 150, 5)]
-plt.hist(xdat, bins=list(range(0, 150, 5)), color = 'b', alpha=0.5)
-plt.hist(xdat[xdat<30], bins=list(range(0, 150, 5)), color = 'c', alpha=1.0)
-plt.hist(xdat2, bins=list(range(0, 150, 5)), color = 'r', alpha=0.5)
-plt.hist(xdat2[xdat2<30], bins=list(range(0, 150, 5)), color = 'r', alpha=1.0)
+data = [len(ydat[np.logical_and(xdat >= ang, xdat < ang + 5)]) for ang in range(0, 150, 5)]
+data2 = [len(ydat2[np.logical_and(xdat2 >= ang, xdat2 < ang + 5)]) for ang in range(0, 150, 5)]
+plt.hist(xdat, bins=list(range(0, 150, 5)), color='b', alpha=0.5)
+plt.hist(xdat[xdat < 30], bins=list(range(0, 150, 5)), color='c', alpha=1.0)
+plt.hist(xdat2, bins=list(range(0, 150, 5)), color='r', alpha=0.5)
+plt.hist(xdat2[xdat2 < 30], bins=list(range(0, 150, 5)), color='r', alpha=1.0)
 plt.title(my_title)
 plt.xlabel("Angle between mirror reflection and satellite")
 plt.ylabel("Number of observations")
-ax1 =plt.gca()
+ax1 = plt.gca()
 ax1.set_ylim([0, np.max(data[0:7])])
-plt.savefig("/home/a001865/DATA_MISC/reflection/fighist_"+my_title+".pdf", bbox_inches='tight', dpi=500, pad_inches = 0)
-plt.savefig("/home/a001865/DATA_MISC/reflection/fighist_"+my_title+".png", bbox_inches='tight', dpi=500, pad_inches = 0)
+plt.savefig("/home/a001865/DATA_MISC/reflection/fighist_"+my_title+".pdf", bbox_inches='tight', dpi=500, pad_inches=0)
+plt.savefig("/home/a001865/DATA_MISC/reflection/fighist_"+my_title+".png", bbox_inches='tight', dpi=500, pad_inches=0)
 
 fig = plt.figure(figsize=(6, 6))
 ax = fig.add_subplot(111)
@@ -252,8 +254,8 @@ plt.ylabel("Reflectance R09 (%)")
 ax1 = plt.gca()
 # ax1.set_xlim([0, 60])
 ax1.set_ylim([0, 100])
-plt.savefig("/home/a001865/DATA_MISC/reflection/fig_"+my_title+".pdf", bbox_inches='tight', dpi=500, pad_inches = 0)
-plt.savefig("/home/a001865/DATA_MISC/reflection/fig_"+my_title+".png", bbox_inches='tight', dpi=500, pad_inches = 0)
+plt.savefig("/home/a001865/DATA_MISC/reflection/fig_"+my_title+".pdf", bbox_inches='tight', dpi=500, pad_inches=0)
+plt.savefig("/home/a001865/DATA_MISC/reflection/fig_"+my_title+".png", bbox_inches='tight', dpi=500, pad_inches=0)
 fig = plt.figure()
 ax = fig.add_subplot(221)
 degree_from_reflection = get_specular_refl_phong(azidiff, sunz, satz)
