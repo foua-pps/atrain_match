@@ -52,10 +52,10 @@ for filename in files:
     if match:
         name = match.group(1)
     basename = os.path.basename(filename)
-    match_calipso =  read_truth_imager_match_obj(filename)
-    match_calipso_OLD =  read_truth_imager_match_obj(filename.replace(ROOT_DIR_v2018_GAC, ROOT_DIR_v2014_GAC))
-    height_pps =  match_calipso.imager.all_arrays['ctth_height']
-    height_pps_old =  match_calipso_OLD.imager.all_arrays['ctth_height']
+    match_calipso = read_truth_imager_match_obj(filename)
+    match_calipso_OLD = read_truth_imager_match_obj(filename.replace(ROOT_DIR_v2018_GAC, ROOT_DIR_v2014_GAC))
+    height_pps = match_calipso.imager.all_arrays['ctth_height']
+    height_pps_old = match_calipso_OLD.imager.all_arrays['ctth_height']
     try:
         use = np.logical_or(height_pps > 0, height_pps_old > 0)
     except:

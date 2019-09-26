@@ -590,8 +590,8 @@ def print_all(match_obj, compare, compare_name = "unknown"):
     if np.max(sunz) < 20:
         sunz =sunz*100.0
     day_flag = np.where(np.less_equal(sunz, 80), 1, 0)
-    night_flag =  np.where(np.greater_equal(sunz, 95), 1, 0)
-    twilight_flag =  np.where(
+    night_flag = np.where(np.greater_equal(sunz, 95), 1, 0)
+    twilight_flag = np.where(
         np.logical_and(np.greater(sunz, 80),
                        np.less(sunz, 95)),
         1, 0)

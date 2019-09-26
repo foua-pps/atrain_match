@@ -129,12 +129,12 @@ for line in TEST_NAMEFILE:
         list_of_line = line.split(' ')
         (name, list_nr, bit) = (list_of_line[1].replace('SM_ACMG_', ''), list_of_line[2].replace(', ', ''), list_of_line[3])
         var = 'cma_testlist' + list_nr
-        name_dict[var][int(bit)] =  name
+        name_dict[var][int(bit)] = name
 
 
 match_calipsoPPS = CalipsoImagerTrackObject()
 for filename in files:
-    match_calipsoPPS +=  readCaliopImagerMatchObj(filename)
+    match_calipsoPPS += readCaliopImagerMatchObj(filename)
     print "Scene %s"%(os.path.basename(filename))
     use = match_calipsoPPS.imager.all_arrays['bt11micron']>-9
 print_common_stats(match_calipsoPPS, use, name_dict)

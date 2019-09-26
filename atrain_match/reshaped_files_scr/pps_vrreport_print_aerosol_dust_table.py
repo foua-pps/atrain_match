@@ -116,15 +116,15 @@ def get_calipso_cloudy_and_aerosl(match_calipso):
     isDust = get_calipso_aerosol_of_type_i(match_calipso, atype=2)
     isDust = np.logical_and( isDust, isAerosol)
     isCleanMarine = np.logical_and(get_calipso_aerosol_of_type_i(match_calipso, atype=1), isAerosol)
-    isAerosol =  np.logical_and(isAerosol, ~isCleanMarine)
+    isAerosol = np.logical_and(isAerosol, ~isCleanMarine)
     # isClear = np.logical_or(isClear, isCleanMarine)
     return isCloudy, isClear, isAerosol, isCloudyAerosolMix, isDust, isCleanMarine
 
 
 def is_pps_aerosol(match_calipso , atype=None):
    print atype
-   cf_flag =  match_calipso.imager.all_arrays['cloudtype_status']
-   sunz =  match_calipso.imager.all_arrays['sunz']
+   cf_flag = match_calipso.imager.all_arrays['cloudtype_status']
+   sunz = match_calipso.imager.all_arrays['sunz']
    # isPPSAerosol = cf_flag>=62 # egentligen bit 5 betyder aerosol se upp för fler bitar senare!
    # isPPSAerosol = np.logical_or(isPPSAerosol, get_pps_aerosl(match_calipso))
    isPPSDust = match_calipso.imager.cma_dust

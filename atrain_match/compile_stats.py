@@ -148,7 +148,7 @@ if __name__ == '__main__':
     if "MONTH" in SETTINGS.keys() and len(SETTINGS["MONTHS"])>0:
         month_list = ["{:02d}".format(int(ind)) for ind in SETTINGS["MONTHS"]]
     if "DAY" in SETTINGS.keys() and len(SETTINGS["DAYS"])>0:
-        day_list =  ["{:02d}".format(int(ind)) for ind in SETTINGS["DAYS"]]
+        day_list = ["{:02d}".format(int(ind)) for ind in SETTINGS["DAYS"]]
     for sat in SETTINGS["SATELLITES"]:
         for year in  SETTINGS["YEARS"]:
             for month in month_list:

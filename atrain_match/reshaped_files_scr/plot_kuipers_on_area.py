@@ -109,7 +109,7 @@ elif isModis1km_lvl2:
     isGAC=False
 
     satellites = "eos_modis_lvl2_C6_1st_and_14th_all_val_test_font_testing_offset_calipso4"
-    ROOT_DIR =  ADIR + "/DATA_MISC/reshaped_files/global_modis_01st_created20180316/"
+    ROOT_DIR = ADIR + "/DATA_MISC/reshaped_files/global_modis_01st_created20180316/"
     ROOT_DIR2 = ADIR + "/DATA_MISC/reshaped_files/global_modis_14th_created20180316/"
 
     # files = glob(ROOT_DIR + "Reshaped_Files/eos?/1km/????/12/2010??14_*/*h5")
@@ -133,7 +133,7 @@ elif isModis1km_lvl2:
 elif isModis1km_ppsv2018:
     num_files_to_read = 1
     isGAC=False
-    ROOT_DIR =  ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_modis_v2018_created20180920/"
+    ROOT_DIR = ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_modis_v2018_created20180920/"
     satellites = "eos_modis_v2018_C6_1st_and_14th_non_used_v2018_val"
     # files = glob(ROOT_DIR + "Reshaped_Files/eos?/1km/????/12/2010??14_*/*h5")
     files = glob(ROOT_DIR + "Reshaped_Files_merged_caliop/eos2/1km/2010/*2/2010*01_*.h5")
@@ -151,7 +151,7 @@ elif isModis1km_lvl2_ppsv2018:
     num_files_to_read = 1
     isGAC=False
     satellites = "eos_modis_lvl2_C6_1st_and_14th_non_used_v2018_val"
-    ROOT_DIR =  ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_modis_v2018_created20180920/"
+    ROOT_DIR = ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_modis_v2018_created20180920/"
     files = glob(ROOT_DIR + "Reshaped_Files_merged_caliop/eos2/1km/2010/*2/2010*01_*.h5")
     files = files +glob(ROOT_DIR + "Reshaped_Files_merged_caliop/eos2/1km/2010/04/*0401_*.h5")
     files = files +glob(ROOT_DIR + "Reshaped_Files_merged_caliop/eos2/1km/2010/06/*0601_*.h5")

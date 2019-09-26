@@ -19,7 +19,7 @@ for filename in files:
     CONCAT = 0
     linec = ""
     if "reshaped_files_scr" not in filename:
-        continue
+        pass
     if os.path.basename(filename) in "python_edit_the_code.py":
         continue
         print("do not edit %s"%(os.path.basename(filename)))
@@ -35,10 +35,17 @@ for filename in files:
         #if '"""' in line and not com:
         #    com = True
 
+        line = line.replace('=  ', '= ')
+        line = line.replace('=  ', '= ')
+        line = line.replace('=  ', '= ')
+        line = line.replace('=  ', '= ')
+        line = line.replace('=  ', '= ')
+        line = line.replace('=  ', '= ')
+        line = line.replace('=  ', '= ')
+        line = line.replace('=  ', '= ')
 
-        line = line.replace( ',', ', ')
-        line = line.replace( ',  ', ', ')
-        line = line.replace( ',  ', ', ')
+        
+
         #line = line.replace( '100.0/', '100.0 / ')
         
 

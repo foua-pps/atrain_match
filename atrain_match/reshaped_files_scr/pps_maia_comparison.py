@@ -85,14 +85,14 @@ def print_common_stats(match_calipsoMAIA, match_calipsoPPS, y_month, satellite, 
     maia_sec_1970 = match_calipsoMAIA.calipso.all_arrays['sec_1970']
     pps_lat = match_calipsoPPS.calipso.all_arrays['latitude']
     maia_lat = match_calipsoMAIA.calipso.all_arrays['latitude']
-    min_time_pps =  np.min(pps_sec_1970)
-    max_time_pps =  np.max(pps_sec_1970)
-    min_time_maia =  np.min(maia_sec_1970)
-    max_time_maia =  np.max(maia_sec_1970)
-    min_lat_pps =  np.min(pps_lat)
-    max_lat_pps =  np.max(pps_lat)
-    min_lat_maia =  np.min(maia_lat)
-    max_lat_maia =  np.max(maia_lat)
+    min_time_pps = np.min(pps_sec_1970)
+    max_time_pps = np.max(pps_sec_1970)
+    min_time_maia = np.min(maia_sec_1970)
+    max_time_maia = np.max(maia_sec_1970)
+    min_lat_pps = np.min(pps_lat)
+    max_lat_pps = np.max(pps_lat)
+    min_lat_maia = np.min(maia_lat)
+    max_lat_maia = np.max(maia_lat)
 
 
 
@@ -137,9 +137,9 @@ def print_common_stats(match_calipsoMAIA, match_calipsoPPS, y_month, satellite, 
         use_pps[sunz < 95.0]=False
 
     use_maia_same_profile = np.array([p_id in pps_profile_id[use_pps] for p_id in maia_profile_id])
-    use_pps_same_profile =  np.array([p_id in maia_profile_id[use_maia] for p_id in pps_profile_id])
-    use_maia =  np.logical_and(use_maia, use_maia_same_profile)
-    use_pps =   np.logical_and(use_pps, use_pps_same_profile)
+    use_pps_same_profile = np.array([p_id in maia_profile_id[use_maia] for p_id in pps_profile_id])
+    use_maia = np.logical_and(use_maia, use_maia_same_profile)
+    use_pps = np.logical_and(use_pps, use_pps_same_profile)
     # print np.sum(use_maia), np.sum(use_pps)
 
 
@@ -165,9 +165,9 @@ for y_month in ['2012/06', '2012/07', '2012/08', '2012/10', '2015/1201', '2015/1
     match_calipsoMAIA = CalipsoImagerTrackObject()
     match_calipsoPPS = CalipsoImagerTrackObject()
     for filename in maia_files:
-        match_calipsoMAIA +=  readCaliopImagerMatchObj(filename)
+        match_calipsoMAIA += readCaliopImagerMatchObj(filename)
     for filename in pps_files:
-        match_calipsoPPS +=  readCaliopImagerMatchObj(filename)
+        match_calipsoPPS += readCaliopImagerMatchObj(filename)
     satellite = 'Suomi-NPP'
 
 

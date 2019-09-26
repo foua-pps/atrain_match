@@ -120,7 +120,7 @@ def plot_ct_table5(match_calipso, use_in=None):
 def table_21_do_for_atbd(match_calipso):
     cloudtype_conditions = match_calipso.imager.all_arrays[ 'cloudtype_conditions']
     cloudtype_status = match_calipso.imager.all_arrays[ 'cloudtype_status']
-    (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag) =     get_day_night_twilight_info_pps2014(cloudtype_conditions)
+    (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag) = get_day_night_twilight_info_pps2014(cloudtype_conditions)
     low_clouds = get_calipso_low_clouds(match_calipso)
     high_clouds_tp = get_calipso_clouds_of_type_i(match_calipso, 6)
     medium_clouds_tp = get_calipso_clouds_of_type_i(match_calipso, 4)
@@ -138,7 +138,7 @@ def table_21_do_for_atbd(match_calipso):
     pps_low = [pps_ctype_i in [5, 6, 10] for pps_ctype_i in pps_ctype]
     pps_medium = [pps_ctype_i in [7] for pps_ctype_i in pps_ctype]
     pps_high = [pps_ctype_i in [8, 9] for pps_ctype_i in pps_ctype]
-    pps_cirrus =  [pps_ctype_i in [11, 12, 13, 14, 15, 16, 17, 18] for pps_ctype_i in pps_ctype]
+    pps_cirrus = [pps_ctype_i in [11, 12, 13, 14, 15, 16, 17, 18] for pps_ctype_i in pps_ctype]
     height_ = match_calipso.calipso.all_arrays['validation_height']
     elevation = match_calipso.calipso.all_arrays['elevation']
     height_[elevation > 0] = height_[elevation > 0] - elevation[elevation > 0]
@@ -159,31 +159,31 @@ def table_21_do_for_atbd(match_calipso):
 
         use_this = np.logical_and(use, use_i)
         pps_cirrus_i = np.logical_and(pps_cirrus, use_this)
-        cirrus_clouds_i =  np.logical_and(cirrus_clouds, use_this)
+        cirrus_clouds_i = np.logical_and(cirrus_clouds, use_this)
         n_cirrus_ok = 1.0*np.sum(np.logical_and(pps_cirrus_i, cirrus_clouds_i))
-        POD_cirrus =  100*n_cirrus_ok/np.sum(cirrus_clouds_i)
+        POD_cirrus = 100*n_cirrus_ok/np.sum(cirrus_clouds_i)
         FAR_cirrus = 100*(np.sum(pps_cirrus_i) - n_cirrus_ok)/np.sum(pps_cirrus_i)
-        medium_clouds_tp_i =  np.logical_and(medium_clouds_tp, use_this)
-        high_clouds_tp_i =  np.logical_and(high_clouds_tp, use_this)
+        medium_clouds_tp_i = np.logical_and(medium_clouds_tp, use_this)
+        high_clouds_tp_i = np.logical_and(high_clouds_tp, use_this)
 
         pps_low_i = np.logical_and(pps_low, use_this)
-        low_clouds_i =  np.logical_and(low_clouds, use_this)
+        low_clouds_i = np.logical_and(low_clouds, use_this)
         n_low_ok = 1.0*np.sum(np.logical_and(pps_low_i, low_clouds_i))
-        POD_low =  100*n_low_ok/np.sum(low_clouds_i)
-        FAR_low =  100*(np.sum(pps_low_i) - n_low_ok)*1.0/np.sum(pps_low_i)
+        POD_low = 100*n_low_ok/np.sum(low_clouds_i)
+        FAR_low = 100*(np.sum(pps_low_i) - n_low_ok)*1.0/np.sum(pps_low_i)
 
         pps_medium_i = np.logical_and(pps_medium, use_this)
-        medium_clouds_i =  np.logical_and(medium_clouds, use_this)
+        medium_clouds_i = np.logical_and(medium_clouds, use_this)
         n_medium_ok = 1.0*np.sum(np.logical_and(pps_medium_i, medium_clouds_i))
         n_medium_ok_cirrus = np.sum(np.logical_and(pps_cirrus_i, medium_clouds_tp_i))
-        POD_medium =  100*(n_medium_ok + n_medium_ok_cirrus)/np.sum(medium_clouds_i)
-        FAR_medium =  100*(np.sum(pps_medium_i) - n_medium_ok)/np.sum(pps_medium_i)
+        POD_medium = 100*(n_medium_ok + n_medium_ok_cirrus)/np.sum(medium_clouds_i)
+        FAR_medium = 100*(np.sum(pps_medium_i) - n_medium_ok)/np.sum(pps_medium_i)
 
         pps_high_i = np.logical_and(pps_high, use_this)
-        high_clouds_i =  np.logical_and(high_clouds, use_this)
+        high_clouds_i = np.logical_and(high_clouds, use_this)
         n_high_ok = 1.0*np.sum(np.logical_and(pps_high_i, high_clouds_i))
         n_high_ok_cirrus = np.sum(np.logical_and(pps_cirrus_i, high_clouds_tp_i))
-        POD_high =  100*(n_high_ok + n_high_ok_cirrus)/np.sum(high_clouds_i)
+        POD_high = 100*(n_high_ok + n_high_ok_cirrus)/np.sum(high_clouds_i)
         FAR_high = 100*(np.sum(pps_high_i) - n_high_ok)/np.sum(pps_high_i)
 #     ,                               low, frac, medium, high, cirrus
 #                                      |    low    |

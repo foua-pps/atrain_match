@@ -161,17 +161,17 @@ def print_common_stats(match_calipso, use, name_dict, mints, maxts, surface_type
                N_false_clouds*N_undetected_clouds)/Kuipers_devider
 
 
-    NALL =   N_clouds + N_clear
+    NALL = N_clouds + N_clear
     PODcloudy = N_detected_clouds*1.0/N_clouds
     FARcloudy = N_false_clouds *1.0/np.sum(isCloudyPPS[use])
     PODclear = N_detected_clear*1.0/N_clear
-    Hitrate =  (N_detected_clear + N_detected_clouds)*1.0/NALL
+    Hitrate = (N_detected_clear + N_detected_clouds)*1.0/NALL
 
 
     Num = np.sum(use)
     cfc = np.sum(isCalipsoCloudy[use])*1.0/Num
     part_nodata = nodata*1.0/(nodata + Num)
-    all_out_text +=  "N: %d POD-cloudy: %3.1f FAR-cloudy: %3.1f POD-clear %3.1f %3.3f Hitrate:  %3.1f Kuipers:  %3.3f\n"%(
+    all_out_text += "N: %d POD-cloudy: %3.1f FAR-cloudy: %3.1f POD-clear %3.1f %3.3f Hitrate:  %3.1f Kuipers:  %3.3f\n"%(
         Num, 100.0*PODcloudy, 100.0*FARcloudy , 100.0*PODclear, cfc, 100*Hitrate, Kuipers )
     print all_out_text
     all_pix = use.copy()
@@ -248,9 +248,9 @@ def print_common_stats(match_calipso, use, name_dict, mints, maxts, surface_type
                 all_out_text += "%s test_bit: %s"%(var, str(bit_nr).rjust(2, ' ') )
 
             clear_test=False
-            if (var ==  'cma_testlist5' and bit_nr<9) or (var == 'cma_testlist4' and bit_nr>1) or (var ==  'cma_testlist5' and bit_nr==12)  or (var ==  'cma_testlist5' and bit_nr==13):
+            if (var == 'cma_testlist5' and bit_nr<9) or (var == 'cma_testlist4' and bit_nr>1) or (var == 'cma_testlist5' and bit_nr==12)  or (var == 'cma_testlist5' and bit_nr==13):
                 clear_test=True
-            num_passed =  np.sum(use_this_test)
+            num_passed = np.sum(use_this_test)
             print num_passed, name_dict[var][bit_nr]
             if clear_test and 'now' in name_dict[var][bit_nr] and num_passed>0:
                 all_out_text += "N: %s POD-clear: %s FAR-clear: %s POD-snow: %s FAR_not_clouds %s LOSTsnow %s MISScloudy: %s (%s) %s \n"%(
@@ -366,13 +366,13 @@ for line in TEST_NAMEFILE:
         list_of_line = line.split(' ')
         (name, list_nr, bit) = (list_of_line[1].replace('SM_ACMG_', ''), list_of_line[2].replace(', ', ''), list_of_line[3])
         var = 'cma_testlist' + list_nr
-        name_dict[var][int(bit)] =  name
+        name_dict[var][int(bit)] = name
 
 
 match_calipsoPPS = CalipsoImagerTrackObject()
 for filename in files:
     print filename
-    match_calipsoPPS +=  readCaliopImagerMatchObj(filename)
+    match_calipsoPPS += readCaliopImagerMatchObj(filename)
     print "Scene %s"%(os.path.basename(filename))
 use = match_calipsoPPS.imager.all_arrays['bt11micron']>-9
 # use = match_calipsoPPS.imager.all_arrays['sunz']>95

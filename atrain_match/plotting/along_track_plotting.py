@@ -51,7 +51,7 @@ def plot_cal_clsat_geoprof_imager(match_clsat,
         max_height_sat = np.max([maxheight_calipso, maxheight_imager])
         maxheight = max_height_sat + 1000
     else:
-        maxheight =  MAXHEIGHT
+        maxheight = MAXHEIGHT
     # PLOT
     fig = plt.figure()
     # Plot ground
@@ -178,7 +178,7 @@ def drawCalPPSHeightPlot_PrototypePPSHeight(match_calipso_calipso,
         max_height_sat = np.max([maxheight_calipso, maxheight_imager])
         maxheight = max_height_sat + 1000
     else:
-        maxheight =  MAXHEIGHT
+        maxheight = MAXHEIGHT
     fig = plt.figure(figsize = (20, 15))
     title = "%s-CALIOP Cloud Top Heights" % instrument.upper()
     font = {'family' : 'normal',

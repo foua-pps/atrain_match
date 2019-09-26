@@ -59,15 +59,15 @@ def my_measures(calipso_cfc, pps_cfc, calipso_snowi, pps_snowi, thin, use):
     measures["HR"] = HR_cma(indict)
     measures["K"] = K_cma(indict)
     measures["PODcy"] = PODcy(indict)
-    measures["Farcy"] =  FARcy(indict)
+    measures["Farcy"] = FARcy(indict)
     measures["PODcl"] = PODcl(indict)
     measures["Farcl"] = FARcl(indict)
-    measures["N"] =  indict["N"]
+    measures["N"] = indict["N"]
 
     if calipso_snowi is not None:
         if use is not None:
             pps_snowi = pps_snowi[use]
-            calipso_snowi =  calipso_snowi[use]
+            calipso_snowi = calipso_snowi[use]
         indict["det_snow"] = np.sum(np.logical_and(pps_snowi, np.logical_and(calipso_snowi>0, calipso_cfc==0)))
         indict["det_snow_much"] = np.sum(np.logical_and(pps_snowi, np.logical_and(calipso_snowi>=10, calipso_cfc==0)))
         indict["undet_snow_much"] = np.sum(np.logical_and(~pps_snowi, np.logical_and(calipso_snowi>=10, calipso_cfc==0)))
@@ -76,16 +76,16 @@ def my_measures(calipso_cfc, pps_cfc, calipso_snowi, pps_snowi, thin, use):
         indict["false_snow_more_than_cloud_issue"] = np.sum(np.logical_and(pps_snowi, ~calipso_snowi==0 ))
         indict["N_pps_snow"] = np.sum(pps_snowi)
 
-        measures["PODsnow"] =  indict["det_snow"]*100.0/(indict["det_snow"] + indict["undet_snow"])
-        measures["PODsnow_much"] =  indict["det_snow_much"]*100.0/(indict["det_snow_much"] + indict["undet_snow_much"])
-        measures["FARsnow"] =  indict["false_snow"]*100.0/(indict["N_pps_snow"])
-        measures["FARsnow_bad"] =  indict["false_snow_more_than_cloud_issue"]*100.0/(indict["N_pps_snow"])
+        measures["PODsnow"] = indict["det_snow"]*100.0/(indict["det_snow"] + indict["undet_snow"])
+        measures["PODsnow_much"] = indict["det_snow_much"]*100.0/(indict["det_snow_much"] + indict["undet_snow_much"])
+        measures["FARsnow"] = indict["false_snow"]*100.0/(indict["N_pps_snow"])
+        measures["FARsnow_bad"] = indict["false_snow_more_than_cloud_issue"]*100.0/(indict["N_pps_snow"])
     if thin is not None:
         if use is not None:
             thin = thin[use]
         undet_cloudy_th = np.sum(np.logical_and(pps_cfc == 0, np.logical_and(~thin, calipso_cfc == 1)))
         det_cloudy_th = np.sum(np.logical_and(pps_cfc == 1, np.logical_and(~thin, calipso_cfc == 1)))
-        measures["PODcy02"] =  det_cloudy_th*100.0/(det_cloudy_th + undet_cloudy_th)
+        measures["PODcy02"] = det_cloudy_th*100.0/(det_cloudy_th + undet_cloudy_th)
 
 
     return measures
@@ -102,7 +102,7 @@ def plot_cfc_table(match_calipso, cfc_limit=0.9, sat="modis"):
                          match_calipso.imager.all_arrays['cloudmask']==2)
     cl = np.logical_or(match_calipso.imager.all_arrays['cloudmask']==0,
                          match_calipso.imager.all_arrays['cloudmask']==3)
-    pps_snowi =  match_calipso.imager.all_arrays['cloudmask']==3
+    pps_snowi = match_calipso.imager.all_arrays['cloudmask']==3
     if match_calipso.imager.all_arrays['cloudmask'] is None:
         cl =np.logical_and(np.less_equal(match_calipso.imager.cloudtype, 4), np.greater(match_calipso.imager.cloudtype, 0))
         cma = np.logical_and(np.greater(match_calipso.imager.cloudtype, 4), np.less(match_calipso.imager.cloudtype, 20))
@@ -153,7 +153,7 @@ def plot_cfc_table(match_calipso, cfc_limit=0.9, sat="modis"):
     measures_ds = my_measures(calipso_cfc, pps_cfc, calipso_snowi, pps_snowi, thin, np.logical_and(sea_flag, np.logical_and(use, day_flag)))
     measures_ts = my_measures(calipso_cfc, pps_cfc, calipso_snowi, pps_snowi, thin, np.logical_and(sea_flag, np.logical_and(use, twilight_flag)))
     measures_europe = my_measures(calipso_cfc, pps_cfc, calipso_snowi, pps_snowi, thin, np.logical_and(europe, use))
-    measures_nonpolar_night =  my_measures(calipso_cfc, pps_cfc, calipso_snowi, pps_snowi, thin, np.logical_and(non_polar_night, use))
+    measures_nonpolar_night = my_measures(calipso_cfc, pps_cfc, calipso_snowi, pps_snowi, thin, np.logical_and(non_polar_night, use))
     def print_one_line(measures):
         info = ("{:3.1f} {:3.2f} {:3.2f} {:3.1f} {:3.1f} {:3.1f} {:3.1f} {:3.1f} {:d} {:3.1f} {:3.1f}  {:3.1f} {:3.1f} \n"
                 .format(

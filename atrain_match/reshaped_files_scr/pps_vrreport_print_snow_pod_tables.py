@@ -62,11 +62,11 @@ def my_measures(calipso_cfc, pps_cfc, thin, use):
     measures["HR"] = HR_cma(indict)
     measures["K"] = K_cma(indict)
     measures["PODcy"] = PODcy(indict)
-    measures["PODcy02"] =  det_cloudy_th*100.0/(det_cloudy_th + undet_cloudy_th)
-    measures["Farcy"] =  FARcy(indict)
+    measures["PODcy02"] = det_cloudy_th*100.0/(det_cloudy_th + undet_cloudy_th)
+    measures["Farcy"] = FARcy(indict)
     measures["PODcl"] = PODcl(indict)
     measures["Farcl"] = FARcl(indict)
-    measures["N"] =  indict["N"]
+    measures["N"] = indict["N"]
     return measures
 
 def plot_cfc_table(match_calipso, cfc_limit=0.9, sat="modis"):
@@ -79,7 +79,7 @@ def plot_cfc_table(match_calipso, cfc_limit=0.9, sat="modis"):
                          match_calipso.imager.all_arrays['cloudmask']==2)
     cl = np.logical_or(match_calipso.imager.all_arrays['cloudmask']==0,
                          match_calipso.imager.all_arrays['cloudmask']==3)
-    pps_snowi =  match_calipso.imager.all_arrays['cloudmask']==3
+    pps_snowi = match_calipso.imager.all_arrays['cloudmask']==3
     if match_calipso.imager.all_arrays['cloudmask'] is None:
         cl =np.logical_and(np.less_equal(match_calipso.imager.cloudtype, 4), np.greater(match_calipso.imager.cloudtype, 0))
         cma = np.logical_and(np.greater(match_calipso.imager.cloudtype, 4), np.less(match_calipso.imager.cloudtype, 20))
@@ -108,7 +108,7 @@ def plot_cfc_table(match_calipso, cfc_limit=0.9, sat="modis"):
     measures_n = my_measures(calipso_cfc, pps_cfc, thin, np.logical_and(use, night_flag))
     measures_t = my_measures(calipso_cfc, pps_cfc, thin, np.logical_and(use, twilight_flag))
     measures_europe = my_measures(calipso_cfc, pps_cfc, thin, np.logical_and(europe, use))
-    measures_nonpolar_night =  my_measures(calipso_cfc, pps_cfc, thin, np.logical_and(non_polar_night, use))
+    measures_nonpolar_night = my_measures(calipso_cfc, pps_cfc, thin, np.logical_and(non_polar_night, use))
     def print_one_line(measures):
         info = ("{:3.1f} {:3.2f} {:3.2f} {:3.1f} {:3.1f} {:3.1f} {:3.1f} {:3.1f} {:d}\n"
                 .format(

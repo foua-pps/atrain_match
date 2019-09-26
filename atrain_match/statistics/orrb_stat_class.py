@@ -107,11 +107,11 @@ class OrrbStats():
         acu["rms_error_cal_all_sum"] = {}
         acu["rms_error_cal_low_sum"] = {}
         acu["rms_error_cal_medium_sum"] = {}
-        acu["rms_error_cal_high_sum"] =  {}
+        acu["rms_error_cal_high_sum"] = {}
         acu["mae_error_cal_all_sum"] = {}
         acu["mae_error_cal_low_sum"] = {}
         acu["mae_error_cal_medium_sum"] = {}
-        acu["mae_error_cal_high_sum"] =  {}
+        acu["mae_error_cal_high_sum"] = {}
         acu["n_missed_ctth_all"] = {}
         acu["n_missed_ctth_low"] = {}
         acu["n_missed_ctth_medium"] = {}

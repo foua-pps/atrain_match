@@ -290,7 +290,7 @@ def get_plot_object_nn_ctth_modis_lvl2_cloudsat(month):
     files = glob(ROOT_DIR%(day_str, month))
     for filename in files:
         print filename
-        match_clsat_new =  readCloudsatImagerMatchObj(filename)
+        match_clsat_new = readCloudsatImagerMatchObj(filename)
         plt_obj += extract_data(match_clsat_new, sat='cloudsat')
     return plt_obj
 

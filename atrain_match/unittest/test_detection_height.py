@@ -81,12 +81,12 @@ class test_detection_height(unittest.TestCase):
         self.obt5.feature_classification_flags = np.zeros((7, 10)) - 9
         self.obt1.total_optical_depth_5km = np.repeat(np.array([0.1, 9.0 , 0.3, 0.2, 3.6, 10.4, 0.9]), 5, axis=0)
 
-        self.obt5.layer_top_altitude[:, 0] =        np.array([-9, 9.2, 8.3, 7.6, 5.3, 2.2, 5.0]).ravel()
-        self.obt5.layer_top_altitude[:, 1] =        np.array([-9, -9, -9, 6.1, 4.3, 1.2, 4.9]).ravel()
-        self.obt5.layer_top_altitude[:, 2] =        np.array([-9, -9, -9, 5.6, 3.3, 0.6, 4.8]).ravel()
-        self.obt5.layer_base_altitude[:, 0] =       np.array([-9, 8.2, 7.3, 6.6, 1.3, 2.0, 3.1]).ravel()
-        self.obt5.layer_base_altitude[:, 1] =       np.array([-9, -9, -9, 4.6, 1.2, 0.2, 2.1]).ravel()
-        self.obt5.layer_base_altitude[:, 2] =       np.array([-9, -9, -9, -9, 1.1 , 0.1, 1.1]).ravel()
+        self.obt5.layer_top_altitude[:, 0] = np.array([-9, 9.2, 8.3, 7.6, 5.3, 2.2, 5.0]).ravel()
+        self.obt5.layer_top_altitude[:, 1] = np.array([-9, -9, -9, 6.1, 4.3, 1.2, 4.9]).ravel()
+        self.obt5.layer_top_altitude[:, 2] = np.array([-9, -9, -9, 5.6, 3.3, 0.6, 4.8]).ravel()
+        self.obt5.layer_base_altitude[:, 0] = np.array([-9, 8.2, 7.3, 6.6, 1.3, 2.0, 3.1]).ravel()
+        self.obt5.layer_base_altitude[:, 1] = np.array([-9, -9, -9, 4.6, 1.2, 0.2, 2.1]).ravel()
+        self.obt5.layer_base_altitude[:, 2] = np.array([-9, -9, -9, -9, 1.1 , 0.1, 1.1]).ravel()
 
         self.obt5.feature_optical_depth_532[:, 0] = np.array([-9, 8.2, 0.3, 0.1, 1.3, 10.0, 0.3]).ravel()
         self.obt5.feature_optical_depth_532[:, 1] = np.array([-9, -9, -9, 0.1, 1.2, 0.2, 0.3]).ravel()

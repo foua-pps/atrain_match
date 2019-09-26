@@ -458,7 +458,7 @@ def read_truth_imager_match_obj(filename, truth='calipso',
                             skip_var=[]):
     retv = TruthImagerTrackObject(truth=truth)
     h5file = h5py.File(filename, 'r')
-    (h5_groups, data_objects) =  get_stuff_to_read_from_a_reshaped_file(h5file, retv)
+    (h5_groups, data_objects) = get_stuff_to_read_from_a_reshaped_file(h5file, retv)
     for group, data_obj in zip(h5_groups, data_objects):
         for dataset in group.keys():
             if dataset in skip_var:

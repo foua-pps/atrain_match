@@ -52,7 +52,7 @@ def plot_cfc_table(match_calipso, cfc_limit=0.9, sat="modis"):
                          match_calipso.imager.all_arrays['cloudmask']==2)
     cl = np.logical_or(match_calipso.imager.all_arrays['cloudmask']==0,
                          match_calipso.imager.all_arrays['cloudmask']==3)
-    pps_snowi =  match_calipso.imager.all_arrays['cloudmask']==3
+    pps_snowi = match_calipso.imager.all_arrays['cloudmask']==3
     if match_calipso.imager.all_arrays['cloudmask'] is None:
         cl =np.logical_and(np.less_equal(match_calipso.imager.cloudtype, 4), np.greater(match_calipso.imager.cloudtype, 0))
         cma = np.logical_and(np.greater(match_calipso.imager.cloudtype, 4), np.less(match_calipso.imager.cloudtype, 20))

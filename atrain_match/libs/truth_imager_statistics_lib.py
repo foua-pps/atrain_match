@@ -281,8 +281,8 @@ def get_semi_opaque_info(match_calipso):
 
 def find_imager_clear_cloudy(match_obj, SETTINGS):
     if 'SYNOP' in  match_obj.truth_sat.upper():
-        imager_clear =  match_obj.imager.cfc_mean <SETTINGS["PPS_SYNOP_CLEAR_MAX_CFC"]
-        imager_cloudy =  match_obj.imager.cfc_mean >=SETTINGS["PPS_SYNOP_CLOUDY_MIN_CFC"]
+        imager_clear = match_obj.imager.cfc_mean <SETTINGS["PPS_SYNOP_CLEAR_MAX_CFC"]
+        imager_cloudy = match_obj.imager.cfc_mean >=SETTINGS["PPS_SYNOP_CLOUDY_MIN_CFC"]
     elif SETTINGS["USE_CMA_FOR_CFC_STATISTICS"]:
         imager_clear = np.logical_or(np.equal(match_obj.imager.cloudmask, 3),
                                      np.equal(match_obj.imager.cloudmask, 0))
@@ -365,7 +365,7 @@ def print_cpp_lwp_stats(aObj, statfile, val_subset):
         return
     if "amsr" in aObj.truth_sat:
         from atrain_match.utils.validate_lwp_util import get_lwp_diff
-        lwp_diff =  get_lwp_diff(aObj, val_subset)
+        lwp_diff = get_lwp_diff(aObj, val_subset)
     elif "cloudsat"  in aObj.truth_sat:
         lwp_diff, lwp_diff_lo, dummy, dummy2, dummy3 = get_lwp_diff_inner_cloudsat(aObj, val_subset)
 

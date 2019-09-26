@@ -184,7 +184,7 @@ def read_patmosx_ctype_cmask_ctth_hdf(patmosx_hdf):
     ctype = CtypeObj()
     cma = CmaObj()
     name = 'cld_height_acha'
-    height_unscaled =  np.array(patmosx_hdf.select(name).get())
+    height_unscaled = np.array(patmosx_hdf.select(name).get())
     offset = patmosx_hdf.select(name).attributes()['add_offset']
     gain = patmosx_hdf.select(name).attributes()['scale_factor']
     ctth.height = height_unscaled * gain + offset
@@ -192,11 +192,11 @@ def read_patmosx_ctype_cmask_ctth_hdf(patmosx_hdf):
     # ctth.height = 1000*ctth.height
     ctth.height[height_unscaled==ctth.h_nodata] = ATRAIN_MATCH_NODATA
     name = 'cloud_fraction'
-    cf_unscaled =  np.array(patmosx_hdf.select(name).get())
+    cf_unscaled = np.array(patmosx_hdf.select(name).get())
     offset = patmosx_hdf.select(name).attributes()['add_offset']
     gain = patmosx_hdf.select(name).attributes()['scale_factor']
     cf = cf_unscaled * gain + offset
-    cf[cf_unscaled== patmosx_hdf.select(name)._FillValue] =  ATRAIN_MATCH_NODATA
+    cf[cf_unscaled== patmosx_hdf.select(name)._FillValue] = ATRAIN_MATCH_NODATA
     cma.cma_ext = np.where(cf>=0.5, 1, 0)
     ctype.phaseflag = None
     ctype.ct_conditions = None
@@ -211,7 +211,7 @@ def read_patmosx_angobj_hdf(patmosx_hdf):
     temp = patmosx_hdf.select(name).get().astype(np.float)
     offset = patmosx_hdf.select(name).attributes()['add_offset']
     gain = patmosx_hdf.select(name).attributes()['scale_factor']
-    angle_obj.satz.data =  temp * gain + offset
+    angle_obj.satz.data = temp * gain + offset
 
     name = 'solar_zenith_angle'
     temp = patmosx_hdf.select(name).get().astype(np.float)
@@ -251,7 +251,7 @@ def read_patmosx_geoobj_hdf(patmosx_hdf, filename, cross, SETTINGS):
     seconds = frac_hour*60*60.0
     time_s = patmosx_hdf.attributes()['time_coverage_start']
     dt_obj = datetime.strptime(time_s, "%Y-%m-%dT%H:%M:%SZ")
-    time_sec_1970 =  calendar.timegm(dt_obj.timetuple())
+    time_sec_1970 = calendar.timegm(dt_obj.timetuple())
     cloudproducts.time = seconds +  time_sec_1970
     do_some_geo_obj_logging(cloudproducts)
     return cloudproducts

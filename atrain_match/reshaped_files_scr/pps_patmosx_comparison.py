@@ -70,9 +70,9 @@ def remove_missing(match_objPPS, match_objPATMOSX, common_index):
     pps_profile_id = match_objPPS.calipso.sec_1970#profile_id[:, 0]
 
     use_patmosx_same_profile = np.array([p_id in common_index for p_id in patmosx_profile_id])
-    use_pps_same_profile =  np.array([p_id in  common_index for p_id in pps_profile_id])
-    use_patmosx =  use_patmosx_same_profile
-    use_pps =    use_pps_same_profile
+    use_pps_same_profile = np.array([p_id in  common_index for p_id in pps_profile_id])
+    use_patmosx = use_patmosx_same_profile
+    use_pps = use_pps_same_profile
     """
     pps_profile_id[~use_pps]= -111
     # remove doubles
@@ -87,9 +87,9 @@ def remove_missing(match_objPPS, match_objPATMOSX, common_index):
     patmosx_profile_id = patmosx_profile_id_new
 
     use_patmosx_same_profile = np.array([p_id in pps_profile_id[use_pps] for p_id in patmosx_profile_id])
-    use_pps_same_profile =  np.array([p_id in patmosx_profile_id[use_patmosx] for p_id in pps_profile_id])
-    use_patmosx =  np.logical_and(use_patmosx, use_patmosx_same_profile)
-    use_pps =   np.logical_and(use_pps, use_pps_same_profile)
+    use_pps_same_profile = np.array([p_id in patmosx_profile_id[use_patmosx] for p_id in pps_profile_id])
+    use_patmosx = np.logical_and(use_patmosx, use_patmosx_same_profile)
+    use_pps = np.logical_and(use_pps, use_pps_same_profile)
     """
     return use_pps, use_patmosx
 
@@ -106,8 +106,8 @@ def print_stats(match_objPPS, match_objPATMOSX, use_pps, use_patmosx):
 
     print(np.sum(use_pps), np.sum(use_patmosx))
 
-    use_patmosx =  np.logical_and(use_patmosx, x_patmosx > 0)
-    use_pps =   np.logical_and(use_pps, x > 0)
+    use_patmosx = np.logical_and(use_patmosx, x_patmosx > 0)
+    use_pps = np.logical_and(use_pps, x > 0)
 
     bias_pps = y_pps[use_pps] - x[use_pps]
     bias_patmosx = y_patmosx[use_patmosx] - x_patmosx[use_patmosx]
@@ -141,14 +141,14 @@ if __name__ == "__main__":
 
     patmosx_files = glob(PATMOSX_ROOT_DIR)
 
-    match_objPATMOSX =  read_files(glob(PATMOSX_ROOT_DIR))
+    match_objPATMOSX = read_files(glob(PATMOSX_ROOT_DIR))
     match_objPATMOSX = crop_object(match_objPATMOSX, use_in=None)
-    match_objPPS =  read_files(glob(PPS_ROOT_DIR))
+    match_objPPS = read_files(glob(PPS_ROOT_DIR))
     match_objPPS = crop_object(match_objPPS, use_in=None)
-    match_objPPS14 =  read_files(glob(PPS14_ROOT_DIR))
-    match_objPPS14 =  crop_object(match_objPPS14, use_in=None)
-    match_objCCI =  read_files(glob(CCI_ROOT_DIR))
-    match_objCCI =  crop_object(match_objCCI, use_in=None)
+    match_objPPS14 = read_files(glob(PPS14_ROOT_DIR))
+    match_objPPS14 = crop_object(match_objPPS14, use_in=None)
+    match_objCCI = read_files(glob(CCI_ROOT_DIR))
+    match_objCCI = crop_object(match_objCCI, use_in=None)
 
     patmosx_profile_id = match_objPATMOSX.calipso.sec_1970#profile_id[:, 0]
     pps_profile_id = match_objPPS.calipso.sec_1970#profile_id[:, 0]

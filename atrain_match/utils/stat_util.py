@@ -35,7 +35,7 @@ def my_hist(data, use, bmin=-3000, bmax=3000, delta_h=5,
         n_pix_g = 1000000
         temp_data = np.random.normal(np.mean(data[use]), np.std(data[use]), n_pix_g)
         hist_heights_gaussian, bins = np.histogram(temp_data, bins=bins)
-        hist_heights_gaussian =  hist_heights_gaussian * 100.0 / n_pix_g
+        hist_heights_gaussian = hist_heights_gaussian * 100.0 / n_pix_g
     return hist_heights, x_, hist_heights_gaussian
 
 

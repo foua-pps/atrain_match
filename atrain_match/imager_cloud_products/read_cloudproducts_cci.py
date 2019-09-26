@@ -232,15 +232,15 @@ def read_cci_ctth(cci_nc):
         ctp_data = ctp.data
     ctth.p_gain = 1.0
     ctth.p_intercept = 0.0
-    ctth.p_nodata =  ATRAIN_MATCH_NODATA
+    ctth.p_nodata = ATRAIN_MATCH_NODATA
     logger.debug("Setting ctth for non cloudy pixels do nodata ...")
     ctp_data[cci_nc.variables['cc_total'][::]<0.5]= ATRAIN_MATCH_NODATA
-    ctth.pressure =  ctp_data
+    ctth.pressure = ctp_data
 
 
     return ctth
 
 if __name__ == "__main__":
     my_filename="20080613002200-ESACCI-L2_CLOUD-CLD_PRODUCTS-IMAGERGAC-NOAA18-fv1.0.nc"
-    PPS_OBJECTS =  read_cci_ctth(my_filename)
+    PPS_OBJECTS = read_cci_ctth(my_filename)
     print(PPS_OBJECTS)

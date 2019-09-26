@@ -119,8 +119,8 @@ def extract_data(match_obj, sat='cloudsat'):
         #   # top_height[height<240*4] = -9999 # Do not use not sure why these are not used Nina 20170317
         #   is_cloudy = cmask_ok > 30
         #   top_height[~is_cloudy] = -9999
-        #   clsat_max_height[clsat_max_height<top_height] =  top_height[clsat_max_height<top_height]
-        # height_c =  clsat_max_height
+        #   clsat_max_height[clsat_max_height<top_height] = top_height[clsat_max_height<top_height]
+        # height_c = clsat_max_height
         height_c = match_obj.cloudsat.validation_height
 
         pltObj.low_clouds = np.logical_and(height_c<match_obj.imager.all_arrays['segment_nwp_h680'], height_c>-9)
@@ -165,7 +165,7 @@ def extract_data(match_obj, sat='cloudsat'):
             high = np.logical_and(height_c > 8000, use_part)
 
 
-        pltObj.cflag =  match_obj.calipso.feature_classification_flags[::, 0]
+        pltObj.cflag = match_obj.calipso.feature_classification_flags[::, 0]
 
         elevation = match_obj.calipso.all_arrays['elevation']
         elevation[elevation < 0] = 0
@@ -179,7 +179,7 @@ def extract_data(match_obj, sat='cloudsat'):
     pltObj.pps_bias = pltObj.height_pps - height_c
     pltObj.old_bias = pltObj.height_old - height_c
     pltObj.mlvl2_bias = pltObj.height_mlvl2 - height_c
-    use =  height_c >= 0
+    use = height_c >= 0
     use = np.logical_and(use, pltObj.height_mlvl2 > - 1)
     use = np.logical_and(use, match_obj.modis.all_arrays['pressure']>=70) #no_effekt
     use = np.logical_and(use, match_obj.imager.all_arrays['ctthnnant_height']>-1)
@@ -251,7 +251,7 @@ def extract_data(match_obj, sat='cloudsat'):
         use_all = np.logical_and(use_all, match_obj.imager.all_arrays['bt86micron']>-1)
         use_all = np.logical_and(use_all, match_obj.imager.all_arrays['ciwv']>-9)
 
-        pltObj.all_arrays[name.replace('bias_', 'ok_')] =  ok_ctth
+        pltObj.all_arrays[name.replace('bias_', 'ok_')] = ok_ctth
         print "excluded", np.sum(pltObj.all_arrays[pressure_name][use_all]<70)
 
     pltObj.use_all = use_all
@@ -270,7 +270,7 @@ def print_stats(pltObj, month, day_strm, sat='CLOUDSAT_OR_CALIPSO'):
     old_bias = pltObj.old_bias
     mlvl2_bias = pltObj.mlvl2_bias
     print sat.upper()
-    use_all =  pltObj.use_all
+    use_all = pltObj.use_all
     low_print = np.logical_and(use_all, pltObj.low_clouds)
     medium_print = np.logical_and(use_all, pltObj.medium_clouds)
     high_print = np.logical_and(use_all, pltObj.high_clouds)
@@ -326,7 +326,7 @@ def print_data_for_figure_2(pltObj, month, day_str, sat='calipso'):
         out_file_h = open(out_filename, 'w')
     else:
         out_file_h = open(out_filename, 'a')
-    use =  pltObj.use
+    use = pltObj.use
     low = np.logical_and(pltObj.low_clouds, use)
     medium = np.logical_and(pltObj.medium_clouds, use)
     high = np.logical_and(pltObj.high_clouds, use)
@@ -344,14 +344,14 @@ def print_data_for_figure_2(pltObj, month, day_str, sat='calipso'):
         out_text += "%s_%s_%s_x "%(label, cloudc, sat)
         formated_x = ["%.2f"%(0.001*(item+delta_h*0.5)) for item in bins[0:-1]]
         formated_x = " ".join(formated_x)
-        out_text +=  formated_x + "\n"
+        out_text += formated_x + "\n"
         out_text += "%s_%s_%s_y "%(label, cloudc, sat)
         formated_y = ["%.2f"%(item) for item in  hist_heights]
         formated_y = " ".join(formated_y)
-        out_text +=  formated_y + "\n"
-        out_text +=  "%s_%s_%s_bias %3.4f \n"%(label, cloudc, sat, 0.001*np.mean(bias_v[selection]))
-        out_text +=  "%s_%s_%s_median %3.4f \n"%(label, cloudc, sat, 0.001*np.median(bias_v[selection]))
-        out_text +=  "%s_%s_%s_std %3.4f \n"%(label, cloudc, sat, 0.001*np.std(bias_v[selection]))
+        out_text += formated_y + "\n"
+        out_text += "%s_%s_%s_bias %3.4f \n"%(label, cloudc, sat, 0.001*np.mean(bias_v[selection]))
+        out_text += "%s_%s_%s_median %3.4f \n"%(label, cloudc, sat, 0.001*np.median(bias_v[selection]))
+        out_text += "%s_%s_%s_std %3.4f \n"%(label, cloudc, sat, 0.001*np.std(bias_v[selection]))
         return out_text
 
     out_text = print_one(out_text, pps_bias, high,  "NN-AVHRR", "High")
@@ -532,7 +532,7 @@ def plot_medium_bias_plot_from_saved_data(month):
             color2 = ":b"
             color3 = "--b"
 
-        n_pix =  10000000
+        n_pix = 10000000
         temp_data = np.random.normal(1000*bias_data[sat][cloudc][imager], 1000*std_data[sat][cloudc][imager], n_pix)
         bmin = -20
         bmax = 20
@@ -646,7 +646,7 @@ def plot_medium_bias_plot_from_saved_data(month):
 def make_profileplot(pltObj, month, day_str, sat='calipso'):
     print_stats(pltObj, month, day_str, sat=sat)
     print_data_for_figure_2(pltObj, month, day_str, sat=sat)
-    use =  pltObj.use
+    use = pltObj.use
     low = np.logical_and(pltObj.low_clouds, use)
     medium = np.logical_and(pltObj.medium_clouds, use)
     high = np.logical_and(pltObj.high_clouds, use)
@@ -737,9 +737,9 @@ def investigate_nn_ctth_modis_lvl2_cloudsat():
         plt_obj_new = PlotAndDataObject()
         for filename in files:
             print filename
-            match_clsat_new =  readCloudsatImagerMatchObj(filename)
+            match_clsat_new = readCloudsatImagerMatchObj(filename)
             plt_obj_new += extract_data(match_clsat_new, sat='cloudsat')
-        plt_obj +=  plt_obj_new
+        plt_obj += plt_obj_new
         make_profileplot(plt_obj_new, month=month, day_str=day_str, sat='cloudsat')
     make_profileplot(plt_obj, month=name, day_str=day_str, sat='cloudsat')
 
@@ -760,7 +760,7 @@ def investigate_nn_ctth_modis_lvl2():
             # print filename
             match_calipso_new = readCaliopImagerMatchObj(filename)
             plt_obj_new += extract_data(match_calipso_new, sat='calipso')
-        plt_obj +=  plt_obj_new
+        plt_obj += plt_obj_new
         make_profileplot(plt_obj_new, month=month, day_str=day_str, sat='calipso')
     make_profileplot(plt_obj, month=name, day_str=day_str, sat='calipso')
 

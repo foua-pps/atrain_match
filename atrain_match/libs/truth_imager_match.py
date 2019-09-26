@@ -453,7 +453,7 @@ def find_files_from_imager(imager_file, AM_PATHS, SETTINGS, as_oldstyle=False):
                                                  as_oldstyle=as_oldstyle)
     date_time = values["date_time"]
     file_name_dict={}
-    file_name_dict['cma'] =  get_pps_file(imager_file, AM_PATHS, values,
+    file_name_dict['cma'] = get_pps_file(imager_file, AM_PATHS, values,
                              'cma_file', 'cma_dir',
                              FailIfRequestedAndMissing=True)
     file_name_dict['cloudtype'] = get_pps_file(imager_file, AM_PATHS, values,

@@ -282,7 +282,7 @@ def investigate_nn_ctth_modis_lvl2():
             match_calipso = CalipsoImagerTrackObject()
             for filename in files:
                 # print filename
-                match_calipso +=  readCaliopImagerMatchObj(filename)
+                match_calipso += readCaliopImagerMatchObj(filename)
             modis_lvl2 = False
             if "modis_lvl2"  in name:
                 modis_lvl2 = True

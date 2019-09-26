@@ -94,7 +94,7 @@ for satellite in SATELLITES:
                 num_n +=1
                 print("reading", os.path.basename(filename))
                 if match_calipso_merged is None:
-                    match_calipso_merged =  match_calipso_new
+                    match_calipso_merged = match_calipso_new
                 else:
                     match_calipso_new  = remove_doubles(match_calipso_new, match_calipso_merged)
                     match_calipso_merged = match_calipso_merged + match_calipso_new

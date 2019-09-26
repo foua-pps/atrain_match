@@ -51,7 +51,7 @@ def get_land_sea(match_obj):
                          use)
     retv = get_land_coast_sea_info_pps2014(
         match_obj.imager.all_arrays['cloudtype_conditions'])
-    (no_qflag, land_flag, sea_flag, coast_flag, all_lsc_flag) =  retv
+    (no_qflag, land_flag, sea_flag, coast_flag, all_lsc_flag) = retv
     use_land = np.logical_and(use, land_flag)
     use_coast = np.logical_and(use, coast_flag)
     use_sea = np.logical_and(use, sea_flag)

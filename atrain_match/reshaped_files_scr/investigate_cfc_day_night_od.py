@@ -52,7 +52,7 @@ def make_pod_vector(match_calipso):
 
     # feature = np.array(match_calipso.imager.all_arrays['bt11micron'])-match_calipso.imager.all_arrays['surftemp']
     # feature = match_calipso.imager.all_arrays['thr_t37t12'] - np.array(match_calipso.imager.all_arrays['bt37micron']) +match_calipso.imager.all_arrays['bt12micron']
-    feature =  np.array(match_calipso.imager.all_arrays['bt11micron'])# -match_calipso.imager.all_arrays['bt12micron'] - match_calipso.imager.all_arrays['thr_t11t12']
+    feature = np.array(match_calipso.imager.all_arrays['bt11micron'])# -match_calipso.imager.all_arrays['bt12micron'] - match_calipso.imager.all_arrays['thr_t11t12']
     feature = od
     for i, lower in enumerate(limits):
         try:

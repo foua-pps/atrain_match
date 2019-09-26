@@ -50,7 +50,7 @@ def get_specular_refl_phong(azidiff, sunz, satz, exponent=25):
     a=1.0
     B =np.where(azidiff >= 90, np.cos(np.radians(azidiff)), 0)#??
     B = np.cos(np.radians(azidiff))
-    cosalpha =  np.where(sunz >= 90, 0, np.cos(np.radians(sunz)))*np.cos(np.radians(satz)) - a*np.where(sunz >= 90, 0, np.sin(np.radians(sunz)))*np.sin(np.radians(satz))*B
+    cosalpha = np.where(sunz >= 90, 0, np.cos(np.radians(sunz)))*np.cos(np.radians(satz)) - a*np.where(sunz >= 90, 0, np.sin(np.radians(sunz)))*np.sin(np.radians(satz))*B
     # refl = cosalpha**exponent
     # refl[refl==0] = -1
     return np.arccos(cosalpha)*180/np.pi
@@ -59,7 +59,7 @@ def get_specular_refl_blinn_phong(azidiff, sunz, satz, exponent=4*25):
 
     B =np.where(azidiff >= 90, np.cos(np.radians(azidiff)), 0)#??
     B = np.cos(np.radians(azidiff))
-    dev =  np.where(sunz >= 90, 0, np.cos(np.radians(sunz)))*np.cos(np.radians(satz)) + np.where(sunz >= 90, 0, np.sin(np.radians(sunz)))*np.sin(np.radians(satz))*B
+    dev = np.where(sunz >= 90, 0, np.cos(np.radians(sunz)))*np.cos(np.radians(satz)) + np.where(sunz >= 90, 0, np.sin(np.radians(sunz)))*np.sin(np.radians(satz))*B
     cosalpha = (np.cos(np.radians(sunz)) + np.cos(np.radians(satz)))/np.sqrt(2*(1 + dev))
     # cosalpha = (np.cos(np.radians(sunz))+np.cos(np.radians(satz)))/(2*(1+dev))
     return np.arccos(cosalpha)*180/np.pi
@@ -154,8 +154,8 @@ neither = np.logical_and(~ppssg, ~phongsg)
 onlypps = np.logical_and(ppssg, ~phongsg)
 onlyphong = np.logical_and(~ppssg, phongsg)
 clear = match_calipso.calipso.all_arrays['cloud_fraction'] ==0
-cloudy =  match_calipso.calipso.all_arrays['cloud_fraction'] >=0.98
-# pps_clear =  match_calipso.imager.all_arrays['cloudmask'] ==0
+cloudy = match_calipso.calipso.all_arrays['cloud_fraction'] >=0.98
+# pps_clear = match_calipso.imager.all_arrays['cloudmask'] ==0
 # pps_cloudy = match_calipso.imager.all_arrays['cloudmask'] ==1
 pps_clear = np.logical_or(np.equal(match_calipso.imager.cloudmask, 3),
                           np.equal(match_calipso.imager.cloudmask, 0))

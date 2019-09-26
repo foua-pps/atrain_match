@@ -214,7 +214,7 @@ def investigate_nn_ctth_modis_lvl2():
             match_clsat = CloudsatImagerTrackObject()
             for filename in files:
                 # print filename
-                match_clsat +=  readCloudsatImagerMatchObj(filename)
+                match_clsat += readCloudsatImagerMatchObj(filename)
             make_boxplot(match_clsat, name, month )
 
 

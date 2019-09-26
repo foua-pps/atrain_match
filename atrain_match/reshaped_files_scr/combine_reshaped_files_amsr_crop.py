@@ -74,7 +74,7 @@ for year in [2010]:#2012/02", "2012/05", "2012/08", "2013/07", "2014/02", "2014/
 
                 if aObj.diff_sec_1970 is not None and len(diff) > 0:
                     aObj.diff_sec_1970 = np.concatenate([aObj.diff_sec_1970, aObj_new.diff_sec_1970[selection]], 0)
-                    aObj.imager.cpp_lwp =  np.concatenate([aObj.imager.cpp_lwp, pps_lwp.ravel()], 0)
+                    aObj.imager.cpp_lwp = np.concatenate([aObj.imager.cpp_lwp, pps_lwp.ravel()], 0)
                     aObj.amsr.lwp = np.concatenate([aObj.amsr.lwp, np.array(amsr_lwp).ravel()], 0)
                     for name in ["satz", "sunz", "longitude", "latitude"]:
                         aObj.imager.all_arrays[name] = np.concatenate([aObj.imager.all_arrays[name],
@@ -82,7 +82,7 @@ for year in [2010]:#2012/02", "2012/05", "2012/08", "2013/07", "2014/02", "2014/
                                                                      0)
                 elif len(diff) > 0:
                     aObj.diff_sec_1970 = aObj_new.diff_sec_1970[selection]
-                    aObj.imager.cpp_lwp =  pps_lwp.ravel()
+                    aObj.imager.cpp_lwp = pps_lwp.ravel()
                     aObj.amsr.lwp = np.array(amsr_lwp).ravel()
                     for name in ["satz", "sunz", "longitude", "latitude"]:
                         aObj.imager.all_arrays[name] = aObj_new.imager.all_arrays[name][selection]

@@ -228,19 +228,19 @@ def _interpolate_height_and_temperature_from_pressure(imager_obj,
     pressure further up in atmosphere.
     """
     if hasattr(imager_obj, "nwp_height") and imager_obj.nwp_height is not None:
-        values_h =  imager_obj.nwp_height
-        pressure_v=  imager_obj.nwp_pressure
+        values_h = imager_obj.nwp_height
+        pressure_v= imager_obj.nwp_pressure
         surface_h = imager_obj.nwp_surface_h
         psur = imager_obj.nwp_psur
     elif hasattr(imager_obj, "segment_nwp_geoheight") and imager_obj.segment_nwp_geoheight is not None:
-        values_h =  imager_obj.segment_nwp_geoheight
-        pressure_v=  imager_obj.segment_nwp_pressure
+        values_h = imager_obj.segment_nwp_geoheight
+        pressure_v= imager_obj.segment_nwp_pressure
         surface_h = imager_obj.segment_nwp_surfaceGeoHeight
         psur = imager_obj.segment_nwp_surfacePressure
     else:
         return None
-    values_h =  imager_obj.segment_nwp_geoheight
-    pressure_v=  imager_obj.segment_nwp_pressure
+    values_h = imager_obj.segment_nwp_geoheight
+    pressure_v= imager_obj.segment_nwp_pressure
     surface_h = imager_obj.segment_nwp_surfaceGeoHeight
     psur = imager_obj.segment_nwp_surfacePressure
     # import pdb
@@ -520,28 +520,28 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
         temp_data, info = get_channel_data_from_object(imager_obj, '06', row_col)
         setattr(obt.imager, "r06micron" + info, temp_data)
         # r09
-        temp_data, info =  get_channel_data_from_object(imager_obj, '09', row_col)
+        temp_data, info = get_channel_data_from_object(imager_obj, '09', row_col)
         setattr(obt.imager, "r09micron" + info, temp_data)
         # bt37
-        temp_data, info =  get_channel_data_from_object(imager_obj, '37', row_col)
+        temp_data, info = get_channel_data_from_object(imager_obj, '37', row_col)
         setattr(obt.imager, "bt37micron" + info, temp_data)
         # b11
-        temp_data, info =  get_channel_data_from_object(imager_obj, '11', row_col)
+        temp_data, info = get_channel_data_from_object(imager_obj, '11', row_col)
         setattr(obt.imager, "bt11micron" + info, temp_data)
         # b12
-        temp_data, info =  get_channel_data_from_object(imager_obj, '12', row_col)
+        temp_data, info = get_channel_data_from_object(imager_obj, '12', row_col)
         setattr(obt.imager, "bt12micron" + info, temp_data)
         # b86
-        temp_data, info =  get_channel_data_from_object(imager_obj, '86', row_col)
+        temp_data, info = get_channel_data_from_object(imager_obj, '86', row_col)
         setattr(obt.imager, "bt86micron" + info, temp_data)
         # b16
-        temp_data, info =  get_channel_data_from_object(imager_obj, '16', row_col)
+        temp_data, info = get_channel_data_from_object(imager_obj, '16', row_col)
         setattr(obt.imager, "r16micron" + info, temp_data)
         # b22
-        temp_data, info =  get_channel_data_from_object(imager_obj, '22', row_col)
+        temp_data, info = get_channel_data_from_object(imager_obj, '22', row_col)
         setattr(obt.imager, "r22micron" + info, temp_data)
         # b13
-        temp_data, info =  get_channel_data_from_object(imager_obj, '13', row_col)
+        temp_data, info = get_channel_data_from_object(imager_obj, '13', row_col)
         setattr(obt.imager, "r13micron" + info, temp_data)
         if obt.imager_instrument.lower() in ['modis']:
             for modis_channel in CURRENTLY_UNUSED_MODIS_CHANNELS:
@@ -563,7 +563,7 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
     else:
         logger.debug("Extracting ctth along track ")
         if hasattr(ctth, 'ctth_statusflag') and SETTINGS["PPS_VALIDATION"]:
-            obt.imager.ctth_status =  get_data_from_array(ctth.ctth_statusflag, row_col)
+            obt.imager.ctth_status = get_data_from_array(ctth.ctth_statusflag, row_col)
         for ctth_product in ['height', 'temperature', 'pressure', 'height_corr']:
             data = getattr(ctth, ctth_product)
             if data is None:

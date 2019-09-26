@@ -140,23 +140,23 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         use_ok_lat_lon = np.logical_and(np.logical_and(lat >= -90, lat <= 90),
                                         np.logical_and(lon >= -180, lat <= 180))
         isCloudyPPS = np.logical_and(isCloudyPPS, use_ok_lat_lon)
-        isClearPPS =  np.logical_and(isClearPPS, use_ok_lat_lon)
+        isClearPPS = np.logical_and(isClearPPS, use_ok_lat_lon)
         sunz = match_calipso.imager.all_arrays['sunz']
         if self.filter_method == "satz":
             satz = match_calipso.imager.all_arrays['satz']
             isCloudyPPS = np.logical_and(isCloudyPPS, satz <= 30)
-            isClearPPS =  np.logical_and(isClearPPS, satz <= 30)
+            isClearPPS = np.logical_and(isClearPPS, satz <= 30)
         if self.DNT in ["day"]:
             isCloudyPPS = np.logical_and(isCloudyPPS, sunz <= 80)
-            isClearPPS =  np.logical_and(isClearPPS, sunz <= 80)
+            isClearPPS = np.logical_and(isClearPPS, sunz <= 80)
         if self.DNT in ["night"]:
             isCloudyPPS = np.logical_and(isCloudyPPS, sunz >= 95)
-            isClearPPS =  np.logical_and(isClearPPS, sunz >= 95)
+            isClearPPS = np.logical_and(isClearPPS, sunz >= 95)
         if self.DNT in ["twilight"]:
             isCloudyPPS = np.logical_and(isCloudyPPS, sunz > 80)
-            isClearPPS =  np.logical_and(isClearPPS, sunz > 80)
+            isClearPPS = np.logical_and(isClearPPS, sunz > 80)
             isCloudyPPS = np.logical_and(isCloudyPPS, sunz < 95)
-            isClearPPS =  np.logical_and(isClearPPS, sunz < 95)
+            isClearPPS = np.logical_and(isClearPPS, sunz < 95)
         if self.DNT in ["all"]:
             pass
         undetected_clouds = np.logical_and(isCalipsoCloudy, isClearPPS)
@@ -247,7 +247,7 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
             self.new_detected_clouds = np.zeros(self.false_clouds.shape)
             return
         r13 = match_calipso.imager.all_arrays['r13micron']
-        sunz =  match_calipso.imager.all_arrays['sunz']
+        sunz = match_calipso.imager.all_arrays['sunz']
         sunz_cos = sunz.copy()
         sunz_cos[sunz > 87] =87
         r13[sunz < 90] = r13[sunz < 90]/np.cos(np.radians(sunz_cos[sunz < 90]))
@@ -574,10 +574,10 @@ class ppsStatsOnFibLatticeObject(DataObject):
         lats = lats[ind]
         data =data[ind]
         the_mask = the_mask[ind]
-        lons =         lons.reshape(len(data), 1)#*3.14/180
-        lats =         lats.reshape(len(data), 1)#*3.14/180
-        data =         data.reshape(len(data), 1)
-        the_mask =     the_mask.reshape(len(data), 1)
+        lons = lons.reshape(len(data), 1)#*3.14/180
+        lats = lats.reshape(len(data), 1)#*3.14/180
+        data = data.reshape(len(data), 1)
+        the_mask = the_mask.reshape(len(data), 1)
 
         my_proj1 = Basemap(projection='robin', lon_0=0, resolution='c')
         numcols=1000
@@ -721,22 +721,22 @@ class ppsStatsOnFibLatticeObject(DataObject):
         self.lapse_rate = lapse_rate
     def calculate_t11ts_offset(self):
         self.np_float_array()
-        the_mask =  self.N_clear < 10
+        the_mask = self.N_clear < 10
         t11ts_offset = np.ma.masked_array(self.Min_t11ts_offset, mask=the_mask)
         self.t11ts_offset = t11ts_offset
     def calculate_t11t12_offset(self):
         self.np_float_array()
-        the_mask =  self.N_clear < 10
+        the_mask = self.N_clear < 10
         t11t12_offset = np.ma.masked_array(self.Max_t11t12_offset, mask=the_mask)
         self.t11t12_offset = t11t12_offset
     def calculate_t37t12_offset(self):
         self.np_float_array()
-        the_mask =  self.N_clear < 10
+        the_mask = self.N_clear < 10
         t37t12_offset = np.ma.masked_array(self.Max_t37t12_offset, mask=the_mask)
         self.t37t12_offset = t37t12_offset
     def calculate_t11t37_offset(self):
         self.np_float_array()
-        the_mask =  self.N_clear < 10
+        the_mask = self.N_clear < 10
         t11t37_offset = np.ma.masked_array(self.Max_t11t37_offset, mask=the_mask)
         self.t11t37_offset = t11t37_offset
     def calculate_temperature_bias(self):

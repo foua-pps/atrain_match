@@ -98,8 +98,8 @@ bt11 = match_calipso.imager.all_arrays['bt11micron']
 tsur = match_calipso.imager.all_arrays['surftemp']
 ctype = match_calipso.imager.all_arrays['cloudtype']
 
-isCloudy =  np.logical_and(isCloudyPPS, isCloudyCaliop)
-isCloudy =  np.logical_and(pps_temp > - 9, isCloudy)
+isCloudy = np.logical_and(isCloudyPPS, isCloudyCaliop)
+isCloudy = np.logical_and(pps_temp > - 9, isCloudy)
 isCloudy = np.logical_and(pps_temp > 150, isCloudy)
 isCloudy = np.logical_and(cal_temp > 150, isCloudy)
 

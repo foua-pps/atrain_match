@@ -106,7 +106,7 @@ def get_calipso(filename, res, ALAY=False):
         # --------------------------------------------------------
         # This filtering of single clear/cloud pixels is questionable.
         # Minor investigation (45 scenes npp), shows small decrease in results if removed.
-        cloud_fraction_temp =  ndimage.filters.uniform_filter1d(calipso_clmask * 1.0, size=winsz)
+        cloud_fraction_temp = ndimage.filters.uniform_filter1d(calipso_clmask * 1.0, size=winsz)
         # Se low cloudfraction on clear 1km pixels that might be cloudy.
         # don't use filter to set cloudy pixels to clear
         # If winsz=3: 1clear 2cloudy => cfc = 0.066
@@ -725,7 +725,7 @@ def set_thin_to_clear_filtering_1km(match_calipso, SETTINGS):
     set_to_clear = np.logical_and(
         match_calipso.calipso.number_layers_found>0,
         isThin_clouds)
-    cloud_fraction =  match_calipso.calipso.cloud_fraction
+    cloud_fraction = match_calipso.calipso.cloud_fraction
     validation_height = match_calipso.calipso.validation_height
     cloud_fraction[set_to_clear] = 0.00001
     validation_height[set_to_clear] = -9
@@ -742,12 +742,12 @@ def total_and_top_layer_optical_depth_5km(calipso, SETTINGS, resolution=5):
             calipso.number_layers_found.ravel()>0,
             optical_depth_in[:, 0].ravel() >= 0)
         o_depth_top_layer[pixels] = optical_depth_in[pixels, 0]
-        total_o_depth[pixels] =  optical_depth_in[pixels, 0]
+        total_o_depth[pixels] = optical_depth_in[pixels, 0]
         for lay in range(1, np.max(calipso.number_layers_found[pixels]), 1):
             pixels = np.logical_and(
                 pixels,
                 optical_depth_in[:, lay]>=0)
-            total_o_depth[pixels] +=  optical_depth_in[pixels, lay]
+            total_o_depth[pixels] += optical_depth_in[pixels, lay]
     else:
         print("ERROR this fuction is only for 5km data!")
         print("These features can then added to 1km data set")

@@ -326,8 +326,8 @@ def read_cma_h5(filename):
     cma.cma_bin = np.int64(0*cma.cma_ext.copy())
     cma.cma_bin[cma.cma_ext==1] = 1.0
     cma.cma_bin[cma.cma_ext==2] = 1.0
-    cma.cma_bin[cma.cma_ext<0] =  ATRAIN_MATCH_NODATA
-    cma.cma_bin[cma.cma_ext>10] =  ATRAIN_MATCH_NODATA
+    cma.cma_bin[cma.cma_ext<0] = ATRAIN_MATCH_NODATA
+    cma.cma_bin[cma.cma_ext>10] = ATRAIN_MATCH_NODATA
 
     # try KeyError 'cma'
     h5file.close()
@@ -369,8 +369,8 @@ def read_cma_nc(filename):
     cma.cma_bin = 0*np.int64(cma.cma_ext.copy())
     cma.cma_bin[cma.cma_ext==1] = 1.0
     cma.cma_bin[cma.cma_ext==2] = 1.0
-    cma.cma_bin[cma.cma_ext<0] =  ATRAIN_MATCH_NODATA
-    cma.cma_bin[cma.cma_ext>10] =  ATRAIN_MATCH_NODATA
+    cma.cma_bin[cma.cma_ext<0] = ATRAIN_MATCH_NODATA
+    cma.cma_bin[cma.cma_ext>10] = ATRAIN_MATCH_NODATA
 
     # cma.cma_testlist0 = pps_nc.variables['cma_testlist0'][0, :, :]
     # cma.cma_testlist1 = pps_nc.variables['cma_testlist1'][0, :, :]
@@ -392,7 +392,7 @@ def read_cma_nc(filename):
             array = pps_nc.variables[var_name][0, :, :]
             atrain_name = var_name
             if var_name == 'cma_aerosol':
-                atrain_name =    'cma_aerosolflag'
+                atrain_name = 'cma_aerosolflag'
             if np.ma.is_masked(array):
                 mask = array.mask
                 data = array.data
@@ -614,7 +614,7 @@ def read_pps_geoobj_h5(filename):
 
     all_imager_obj.num_of_lines = all_imager_obj.latitude.shape[0]
     all_imager_obj.sec1970_start = h5file['how'].attrs['startepochs']
-    all_imager_obj.sec1970_end =  h5file['how'].attrs['endepochs']
+    all_imager_obj.sec1970_end = h5file['how'].attrs['endepochs']
     do_some_geo_obj_logging(all_imager_obj)
 
     return  all_imager_obj

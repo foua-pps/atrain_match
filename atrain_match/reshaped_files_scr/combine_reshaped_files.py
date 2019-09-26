@@ -68,14 +68,14 @@ for year in [2010]:
                     num_n +=1
                     print("reading", os.path.basename(filename))
                     if match_calipso_night is None:
-                        match_calipso_night =  match_calipso_new
+                        match_calipso_night = match_calipso_new
                     else:
                         match_calipso_night = match_calipso_night + match_calipso_new
                 else :
                     num_d +=1
                     print("reading", os.path.basename(filename))
                     if match_calipso_day is None:
-                        match_calipso_day =  match_calipso_new
+                        match_calipso_day = match_calipso_new
                     else:
                         match_calipso_day = match_calipso_day + match_calipso_new
             if num_n > 0:
