@@ -181,7 +181,7 @@ def add_cnn_features(cnn_dict, matched, lats_matched, lons_matched, SETTINGS):
     cnn_feature_index_C = mapper.cols.filled(config.NODATA).ravel()  # i.e rows, cols!
     for feature_index in range(32):
         feature_i = filter_response[0, feature_index, :, :]
-        the_filters_dict["cnn_feature_%d"%(feature_index)] = np.where(
+        the_filters_dict["cnn_feature_{:d}".format(feature_index)] = np.where(
             cnn_feature_index_R >= 0,
             feature_i[cnn_feature_index_R, cnn_feature_index_C],
       - 9)
@@ -209,4 +209,3 @@ def get_channel_data_from_objectfull_resolution(imager_obj, chn_des, nodata=-9):
     chdata[np.logical_or(np.equal(temp, imager_obj.nodata),
                          np.equal(temp, imager_obj.missing_data))]= nodata
     return chdata
-

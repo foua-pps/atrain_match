@@ -102,8 +102,8 @@ def do_one_subplot(plt_obj, ax, fig, compare, truth='height_c', vmax = 250, do_c
     # H(0) and H(1) is ok. H(2) is not!
     if 'pressure' not in truth:
         print compare
-        print " n to large x values %d"%(np.sum(xi>=(n_edges-1)))
-        print " n to large y values %d"%(np.sum(yi>=(n_edges-1)))
+        print " n to large x values {:d}".format(np.sum(xi>=(n_edges-1)))
+        print " n to large y values {:d}".format(np.sum(yi>=(n_edges-1)))
         # yi(yi==3)==2 no one
         yi[yi == n_edges] = n_edges - 1
         xi[xi == n_edges] = n_edges - 1
@@ -328,4 +328,3 @@ def do_the_plots():
 
 if __name__ == "__main__":
     do_the_plots()
-

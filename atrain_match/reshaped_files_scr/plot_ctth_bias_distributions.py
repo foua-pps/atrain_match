@@ -109,7 +109,7 @@ class PlotAndDataObject(DataObject):
 
 def extract_data(match_obj, sat='cloudsat'):
     pltObj = PlotAndDataObject()
-    print("max_pressure %d"%(0.01*np.max(match_obj.imager.all_arrays['psur'])))
+    print("max_pressure {:d}".format(0.01*np.max(match_obj.imager.all_arrays['psur'])))
     if sat.lower() in 'cloudsat':
         pltObj.height_c2 = match_obj.cloudsat.all_arrays['clsat_max_height']
         clsat_max_height = -9 + 0*np.zeros(match_obj.cloudsat.latitude.shape)
@@ -776,4 +776,3 @@ if __name__ == "__main__":
 
     # investigate_nn_ctth_modis_lvl2_cloudsat()
     # investigate_nn_ctth_modis_lvl2()
-

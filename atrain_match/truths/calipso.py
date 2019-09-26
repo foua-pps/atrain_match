@@ -779,4 +779,3 @@ def total_and_top_layer_optical_depth_5km(calipso, SETTINGS, resolution=5):
 if __name__ == "__main__":
     # Testing:
     pass
-

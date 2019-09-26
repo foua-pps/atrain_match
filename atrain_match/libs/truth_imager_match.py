@@ -1273,4 +1273,3 @@ def run(cross, AM_PATHS, SETTINGS, reprocess=False):
     # Match the data that we need:
     if reprocess or not check_if_got_all_match_files(cross, AM_PATHS, SETTINGS):
         matchup_results = get_matchups_from_data(cross, AM_PATHS, SETTINGS)
-

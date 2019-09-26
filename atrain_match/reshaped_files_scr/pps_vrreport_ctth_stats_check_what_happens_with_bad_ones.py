@@ -740,4 +740,3 @@ if __name__ == "__main__":
     out_file_h.write("MODIS-v2018\n")
     match_obj = read_files(files)
     print_all(match_obj, None, "eos2v2018")
-

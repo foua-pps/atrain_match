@@ -211,4 +211,3 @@ if __name__ == '__main__':
             compile_stats(results_files, outfile_cfc=compiled_file_cfc, truth_sat=truth_sat)
     if options.write == True:
         logger.warning("Results always written to file, -w flag is depricated")
-

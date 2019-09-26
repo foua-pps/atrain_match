@@ -250,4 +250,3 @@ for filename in files:
 # make_optical_depth_hist(match_calipso)
 
 is_pps_aerosol(match_calipso)
-

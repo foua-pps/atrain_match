@@ -225,4 +225,3 @@ class CloudTopStats(OrrbStats):
 
 if __name__ == "__main__":
     stats = CloudTopStats()
-

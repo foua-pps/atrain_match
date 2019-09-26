@@ -90,4 +90,3 @@ for year in [2010]:
                 write_truth_imager_match_obj(
                     outfile, match_calipso_day, SETTINGS, imager_obj_name = 'pps')
                 match_calipso_day = None
-

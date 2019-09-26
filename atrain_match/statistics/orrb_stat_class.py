@@ -330,4 +330,3 @@ class OrrbStats():
             for l in lines_to_write:
                 f.write(l + '\n')
             f.close()
-

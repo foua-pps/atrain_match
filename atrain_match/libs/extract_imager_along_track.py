@@ -611,4 +611,3 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
             setattr(obt.imager, filter_name, filters_dict[filter_name])
 
     return obt
-

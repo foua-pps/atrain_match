@@ -388,4 +388,3 @@ for illumination in ["dnt", "day", "night", "twilight"]:
 #   for mints, maxts in zip([ 190],
 #                           [ 380 ]):
 #       print_common_stats(match_calipsoPPS, use, name_dict, mints, maxts, surface_type, basename_outfile=basename_outfile)
-

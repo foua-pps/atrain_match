@@ -179,4 +179,3 @@ def match_lonlat(source, target,
     cols[mask] = NODATA
     # import pdb; pdb.set_trace()
     return MatchMapper(rows, cols, mask), distances
-

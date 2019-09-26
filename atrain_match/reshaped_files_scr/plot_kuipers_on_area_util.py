@@ -797,7 +797,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
             the_mask = self.N_detected_height_type[cc_type] < 10
             ctth_bias_type_i = self.Sum_height_bias_type[cc_type]*1.0/self.N_detected_height_type[cc_type]
             ctth_bias_type_i = np.ma.masked_array(ctth_bias_type_i, mask=the_mask)
-            setattr(self, "ctth_bias_type_%d"%(cc_type), ctth_bias_type_i)
+            setattr(self, "ctth_bias_type_{:d}".format(cc_type), ctth_bias_type_i)
 
     def calculate_hitrate(self):
         self.np_float_array()
@@ -1085,4 +1085,3 @@ def get_fibonacci_spread_points_on_earth(radius_km):
     if np.isnan(np.max(latitude)):
         raise ValueError
     return longitude, latitude
-

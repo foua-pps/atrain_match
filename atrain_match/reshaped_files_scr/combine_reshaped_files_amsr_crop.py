@@ -92,4 +92,3 @@ for year in [2010]:#2012/02", "2012/05", "2012/08", "2013/07", "2014/02", "2014/
                 writeAmsrImagerMatchObj(
                     outfile, aObj, imager_obj_name = 'pps')
                 aObj = AmsrImagerTrackObject()
-

@@ -219,4 +219,3 @@ def investigate_nn_ctth_modis_lvl2():
 
 if __name__ == "__main__":
     investigate_nn_ctth_modis_lvl2()
-

@@ -80,7 +80,7 @@ def get_clear_cloudy_vectors(match_calipso, use):#, both_have_ct):
     # part_nodata = nodata*1.0/(nodata+Num)
     max_time_diff = np.max(match_calipso.diff_sec_1970[use])
     # print "N: %d POD-cloudy: %3.2f FAR-cloudy: %3.2f POD-clear %3.2f Max-time-diff %ds"%(# Part-CT-nodata: %3.2f"%(Num, PODcloudy, FARcloudy , PODclear, max_time_diff)# , part_nodata)
-    print "%d"%(Num), "%3.2f"%(PODcloudy), "%3.2f"%(FARcloudy) , "%3.2f"%(PODclear), "%3.2f"%(FARclear), "%3.3f"%(Hitrate), "%3.3f"%(Kuipers), "%d"%(max_time_diff)
+    print "{:d}".format(Num), "%3.2f"%(PODcloudy), "%3.2f"%(FARcloudy) , "%3.2f"%(PODclear), "%3.2f"%(FARclear), "%3.3f"%(Hitrate), "%3.3f"%(Kuipers), "{:d}".format(max_time_diff)
 
 
 def print_common_stats(match_calipsoMAIA, match_calipsoPPS, y_month, satellite, dnt='all'):

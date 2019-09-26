@@ -328,4 +328,3 @@ if __name__ == "__main__":
     # investigate_nn_ctth()
     # investigate_nn_ctth_modis_november()
     investigate_nn_ctth_viirs()
-
