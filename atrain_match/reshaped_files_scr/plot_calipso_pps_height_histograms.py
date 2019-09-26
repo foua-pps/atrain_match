@@ -24,7 +24,7 @@
 """
 
 from glob import glob
-#import os.path
+# import os.path
 import os
 import numpy as np
 from scipy import histogram

@@ -89,7 +89,7 @@ def make_boxplot(match_clsat, name, month):
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_BOX_cloudsat/"
                 "ctth_box_plot_csat_pps_and_lvl2modis_%s_5_95_filt.png"%(month))
 
-    #LowMediumHigh
+    # LowMediumHigh
     fig = plt.figure(figsize = (6, 9))
     ax = fig.add_subplot(111)
     plt.xticks(rotation=50)
@@ -113,7 +113,7 @@ def make_boxplot(match_clsat, name, month):
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_BOX_cloudsat/"
                 "ctth_box_plot_csat_modis_%s_%s_5_95_filt.png"%(name, month))
 
-    #LowMediumHigh
+    # LowMediumHigh
     fig = plt.figure(figsize = (6, 9))
     ax = fig.add_subplot(111)
     plt.xticks(rotation=50)
@@ -138,7 +138,7 @@ def make_boxplot(match_clsat, name, month):
                 "ctth_box_plot_csat_modis_lvl2_C6_%s_5_95_filt.png"%(month))
 
 
-    #DNT
+    # DNT
     fig = plt.figure(figsize = (16, 9))
     ax = fig.add_subplot(111)
     plt.xticks(rotation=50)
@@ -166,12 +166,12 @@ def make_boxplot(match_clsat, name, month):
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_BOX_cloudsat/"
                 "ctth_box_plot_dnt_csat_pps_and_lvl2modis_%s_5_95_filt.png"%(month))
 
-    #VIOLIN
+    # VIOLIN
     fig = plt.figure(figsize = (6, 9))
     ax = fig.add_subplot(111)
     plt.xticks(rotation=50)
-    #ax.fill_between(np.arange(0, 5), -500, 500, facecolor='green', alpha=0.6)
-    #ax.fill_between(np.arange(0, 5), -1000, 1000, facecolor='green', alpha=0.4)
+    # ax.fill_between(np.arange(0, 5), -500, 500, facecolor='green', alpha=0.6)
+    # ax.fill_between(np.arange(0, 5), -1000, 1000, facecolor='green', alpha=0.4)
     ax.fill_between(np.arange(0, 5), -1500, 1500, facecolor='green', alpha=0.2)
     ax.fill_between(np.arange(0, 5), 2000, 45000, facecolor='red', alpha=0.2)
     ax.fill_between(np.arange(0, 5), -2000, -45000, facecolor='red', alpha=0.2)
@@ -184,7 +184,7 @@ def make_boxplot(match_clsat, name, month):
                           widths=1.2, showextrema=False, showmedians=True)
     plt.setp(ax, xticks=[1, 3],
              xticklabels=["%s \n MAE=%3.0f"%(name, pps_MAE), "modis_lvl2 \nMAE=%3.0f"%(mlvl2_MAE)])
-    #labels=["%s \n MAE=%3.0f"%(name, pps_MAE), "modis_lvl2 \nMAE=%3.0f"%(mlvl2_MAE)]
+    # labels=["%s \n MAE=%3.0f"%(name, pps_MAE), "modis_lvl2 \nMAE=%3.0f"%(mlvl2_MAE)]
     ax.set_ylim(-10000, 10000)
     plt.title("Cloudsat PPS/MODIS-LVL2 \nHeight bias comparison %s"%(month))
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_BOX_cloudsat/"
@@ -193,27 +193,27 @@ def make_boxplot(match_clsat, name, month):
 
 
 def investigate_nn_ctth_modis_lvl2():
-    #november
+    # november
 
     ROOT_DIR_MODIS_nn_imager = (
         ADIR + "/DATA_MISC/reshaped_files/"
         "global_modis_14th_created20170324/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/*h5")
 
-#    ROOT_DIR_MODIS_old = (
-#        ADIR + "/DATA_MISC/reshaped_files/"
-#        "global_modis_14th_created20161108/Reshaped_Files/merged/*%s*h5")
+#   ROOT_DIR_MODIS_old = (
+#       ADIR + "/DATA_MISC/reshaped_files/"
+#       "global_modis_14th_created20161108/Reshaped_Files/merged/*%s*h5")
 
     for month in [ "06", "09"]:#, "02", "03", "04", "05", "07", "08", "10", "11", "12", "01"]:
         for ROOT_DIR, name in zip(
                 [ROOT_DIR_MODIS_nn_imager],
-                 #ROOT_DIR_MODIS_old],
+                 # ROOT_DIR_MODIS_old],
                 ["nnIMAGER"]):
-            #name = "%s_%s"%(name, month)
+            # name = "%s_%s"%(name, month)
             print ROOT_DIR
             files = glob(ROOT_DIR%(month))
             match_clsat = CloudsatImagerTrackObject()
             for filename in files:
-                #print filename
+                # print filename
                 match_clsat +=  readCloudsatImagerMatchObj(filename)
             make_boxplot(match_clsat, name, month )
 

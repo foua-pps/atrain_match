@@ -49,13 +49,13 @@ from utils.stat_util import (my_hist,
 
 matplotlib.rcParams.update(matplotlib.rcParamsDefault)
 matplotlib.rcParams.update({'font.size': 20})
-#plt.rc('text', usetex=True)
-#plt.rc('font', family='serif')
-#matplotlib.use('ps')
+# plt.rc('text', usetex=True)
+# plt.rc('font', family='serif')
+# matplotlib.use('ps')
 from matplotlib import rc
 from my_dir import ADIR
-#rc('text', usetex=True)
-#rc('text.latex', preamble='\usepackage{color}')
+# rc('text', usetex=True)
+# rc('text.latex', preamble='\usepackage{color}')
 out_filename = ADIR + "/Documents/A_PPS_v2017/Validation_2018/results_ctth_polarn.txt"
 out_file_h = open(out_filename, 'a')
 
@@ -69,12 +69,12 @@ def my_make_plot3(y, x, x2, mhl, use):
     sort_ind = np.argsort(x[use_k])
     plt.plot(x[use_k][sort_ind], 'g.')
     plt.plot(y[use_k][sort_ind], 'b.', alpha=0.2)
-    #plt.show()
+    # plt.show()
 def my_make_plot2(y, x, x2, mhl, use):
     fig = plt.figure(figsize=(15, 11))
     ax = fig.add_subplot(321)
     use_k = np.logical_and(use, x2 > 0)
-    #use_k = np.logical_and(use_k, x-x2>3000)
+    # use_k = np.logical_and(use_k, x-x2>3000)
 
     print(min(y[use_k]), len(use[use_k]))
     abias1 = np.abs(y[use_k] - x[use_k])
@@ -119,10 +119,10 @@ def my_make_plot2(y, x, x2, mhl, use):
 
     plt.plot(dist[closer_to_2][sort_ind_2], '.c')
     plt.plot(abias2[closer_to_2][sort_ind_2], 'k')
-    #plt.plot(abias1[sort_ind], 'g.')
-    #plt.plot(abias2[sort_ind], 'r.')
-    #plt.plot(np.where(abias1<abias2, abias1, abias2)[sort_ind], 'k')
-    #plt.show()
+    # plt.plot(abias1[sort_ind], 'g.')
+    # plt.plot(abias2[sort_ind], 'r.')
+    # plt.plot(np.where(abias1<abias2, abias1, abias2)[sort_ind], 'k')
+    # plt.show()
 
 
 
@@ -134,18 +134,18 @@ def my_adjust_axis(ax):
     leg = plt.legend(loc="upper right", markerscale=1., numpoints=1, scatterpoints=1, bbox_to_anchor=(1.2, 1.05), framealpha=1.0, frameon=True)
     leg.get_frame().set_edgecolor('w')
     leg.get_frame().set_facecolor('w')
-    #leg.get_frame().set_linewidth(0.0)
+    # leg.get_frame().set_linewidth(0.0)
     ax.set_ylim(0, 10)
     ax.set_xlim(-4, 6)
     plt.yticks(np.arange(0, 9, 2.0))
     plt.yticks(np.arange(0, 9, 2.0))
 
 def my_legend_text_6(data, text = "text"):
-    #label1 = text
+    # label1 = text
     label2 = "bias={:d}m\n".format(np.int(np.mean(data)))
     label3 = "STD={:d}m\n".format(np.int(np.std(data)))
     label4 = "MAE={:d}m\nIQR={:d}m\nQ2={:d}m\nPE0.5={:d}".format(
-        #np.int(my_rms(data)),
+        # np.int(my_rms(data)),
         np.int(my_mae(data)),
         np.int(my_iqr(data)),
         np.int(np.median(data)),
@@ -157,7 +157,7 @@ def my_legend_text_6(data, text = "text"):
 def my_make_plot_example(bias, use, label_str):
     plt.style.use('seaborn-white')
     fig = plt.figure(figsize=(11, 9))
-    #plt.suptitle("CTTH error distributions not well described by RMS and bias")
+    # plt.suptitle("CTTH error distributions not well described by RMS and bias")
     n_pix = 1000000
     ax = fig.add_subplot(221)
     temp_data = np.random.normal(900, 1600, n_pix)
@@ -167,15 +167,15 @@ def my_make_plot_example(bias, use, label_str):
     hist_heights3, x_m, dummy = my_hist(bias, use, bmin= -20*1000, bmax=20*1000, delta_h=100.0)
     x_ = x_m*0.001
     ax = fig.add_subplot(221)
-    #S1
+    # S1
     ax.set_title('a) Within threshold accuracy', loc='left')
     ax.fill(x_, hist_heights, color='silver',
              label = my_legend_text_6(temp_data, "Gaussian"))
-#    plt.plot([0.001*np.mean(temp_data), 0.001*np.mean(temp_data)], [0, 2.4], 'k:')
+#   plt.plot([0.001*np.mean(temp_data), 0.001*np.mean(temp_data)], [0, 2.4], 'k:')
     ax.set_ylabel('Percent')
     my_adjust_axis(ax)
     ax.set_xticklabels([])
-    #S2
+    # S2
     ax = fig.add_subplot(222)
     ax.set_title('b) Within target accuracy', loc='left')
     ax.fill(x_, hist_heights2, color='grey',
@@ -183,17 +183,17 @@ def my_make_plot_example(bias, use, label_str):
     my_adjust_axis(ax)
     ax.set_yticklabels([])
     ax.set_xticklabels([])
-    #S3
+    # S3
     ax = fig.add_subplot(223)
     ax.set_title('c) Outside threshold accuracy', loc='left')
     bias_i = bias[use]
     plt.plot(x_, hist_heights3, "r-",
              label = my_legend_text_6(bias_i, "PPS S-NPP"))
-    #plt.plot([0.001*np.mean(bias_i), 0.001*np.mean(bias_i)], [0, 2], 'r:')
+    # plt.plot([0.001*np.mean(bias_i), 0.001*np.mean(bias_i)], [0, 2], 'r:')
     my_adjust_axis(ax)
     ax.set_ylabel('Percent')
     ax.set_xlabel('error (km)')
-    #S4
+    # S4
     ax = fig.add_subplot(224)
     ax.set_title('d) The worst (in STD) is the best', loc='left')
     ax.fill(x_, hist_heights, color='silver', label='Gaussian')
@@ -204,20 +204,20 @@ def my_make_plot_example(bias, use, label_str):
     ax.set_yticklabels([])
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_ctth_error_dist_%s.png"%(label_str), bbox_inches='tight')
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_ctth_error_dist_%s.pdf"%(label_str), bbox_inches='tight')
-    #plt.show()
+    # plt.show()
 
 
 def my_make_plot_example_aprox(bias, use, label_str, match_calipso):
     def my_legend_text(data, text = "text"):
-        #label1 = text
+        # label1 = text
         label2 = "bias: {:d}\n".format(np.int(np.mean(data)))
         label3 = "STD: {:d}\n".format(np.int(np.std(data)))
         label4 = "IQR: {:d}\nQ2: {:d}".format(
-            #np.int(my_rms(data)),
-            #np.int(my_mae(data)),
+            # np.int(my_rms(data)),
+            # np.int(my_mae(data)),
             np.int(my_iqr(data)),
             np.int(np.median(data)),
-            #np.int(my_pe500m(data))
+            # np.int(my_pe500m(data))
         )
         label = label2 + label3 + label4
         return label
@@ -228,8 +228,8 @@ def my_make_plot_example_aprox(bias, use, label_str, match_calipso):
     temp_data_iqrs = []
     from utils.get_flag_info import get_calipso_clouds_of_type_i
     for type_i in range(0, 8):
-        #if type_i ==1:
-        #    continue
+        # if type_i ==1:
+        #   continue
         is_type_i = np.logical_and(use, get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=type_i))
         n_pix_i = np.int(np.sum(is_type_i)*1.0/N_all*n_pix)
         temp_data_gi = np.random.normal(np.mean(bias[is_type_i]), np.std(bias[is_type_i]), n_pix_i)
@@ -245,7 +245,7 @@ def my_make_plot_example_aprox(bias, use, label_str, match_calipso):
     temp_data_g = np.random.normal(np.mean(bias_i), np.std(bias_i), n_pix)
     temp_data_iqr = np.random.normal(np.median(bias_i), my_iqr(bias_i)*20.0/27, n_pix)
 
-    #temp_data2 = np.concatenate([np.random.normal(-900, 200, int(0.5*n_pix)), np.random.normal(+900, 200, int(0.5*n_pix))])
+    # temp_data2 = np.concatenate([np.random.normal(-900, 200, int(0.5*n_pix)), np.random.normal(+900, 200, int(0.5*n_pix))])
     hist_heights_pps, x_m, dummy = my_hist(bias_i, None, bmin= -20*1000, bmax=20*1000, delta_h=100.0)
 
 
@@ -253,7 +253,7 @@ def my_make_plot_example_aprox(bias, use, label_str, match_calipso):
     hist_heights_iqr, x_m, dummy = my_hist(temp_data_iqr, None, bmin= -20*1000, bmax=20*1000, delta_h=100.0)
     hist_heights_gs, x_m, dummy = my_hist(temp_data_gs, None, bmin= -20*1000, bmax=20*1000, delta_h=100.0)
     hist_heights_iqrs, x_m, dummy = my_hist(temp_data_iqrs, None, bmin= -20*1000, bmax=20*1000, delta_h=100.0)
-    #hist_heights3, x_m, dummy = my_hist(bias, use, bmin=-20*1000, bmax=20*1000, delta_h=100.0)
+    # hist_heights3, x_m, dummy = my_hist(bias, use, bmin=-20*1000, bmax=20*1000, delta_h=100.0)
     x_ = x_m*0.001
 
 
@@ -267,7 +267,7 @@ def my_make_plot_example_aprox(bias, use, label_str, match_calipso):
         def gaus(x, a, x0, sigma):
             return 8*exp( - np.abs(x - x0)*np.sqrt(2)/(sigma))
 
-        #popt, pcov = curve_fit(gaus, x, y, p0=[1, mean, sigma])
+        # popt, pcov = curve_fit(gaus, x, y, p0=[1, mean, sigma])
 
         plt.plot(x, y, 'b+:', label='data')
         plt.plot(x, gaus(x, 1, mean, sigma), 'ro:', label='fit')
@@ -292,10 +292,10 @@ def my_make_plot_example_aprox(bias, use, label_str, match_calipso):
 
     plt.style.use('seaborn-white')
     fig = plt.figure(figsize=(7, 5))
-    #plt.suptitle("CTTH error distributions not well described by RMS and bias")
+    # plt.suptitle("CTTH error distributions not well described by RMS and bias")
     ax = fig.add_subplot(111)
-    #S1
-    #ax.set_title('PPS-v2018', loc='left', zorder=30)
+    # S1
+    # ax.set_title('PPS-v2018', loc='left', zorder=30)
     ax.fill(x_, hist_heights_g, color='silver',
              label = "\nGaussian\n" + my_legend_text(temp_data_g, ))
     plt.plot(x_, hist_heights_pps, "r-",
@@ -310,11 +310,11 @@ def my_make_plot_example_aprox(bias, use, label_str, match_calipso):
     leg = plt.legend(loc="upper right", markerscale=2., numpoints=1, scatterpoints=1, bbox_to_anchor=(1.13, 1.2), framealpha=1.0, frameon=True)
     leg.get_frame().set_facecolor('w')
     leg.get_frame().set_linewidth(0.0)
-    #import pdb
-    #pdb.set_trace()
+    # import pdb
+    # pdb.set_trace()
     print("inside {:3.1f}".format(np.sum(hist_heights_pps[np.logical_and(x_>=-4, x_<=6)])))
     print("gaussian inside {:3.1f}".format(np.sum(hist_heights_g[np.logical_and(x_>=-4, x_<=6)])))
-    #plt.legend(frameon=False)
+    # plt.legend(frameon=False)
 
     ax.set_ylim(0, 10)
     ax.set_xlim(-4, 6)
@@ -325,13 +325,13 @@ def my_make_plot_example_aprox(bias, use, label_str, match_calipso):
 
     plt.style.use('seaborn-white')
     fig = plt.figure(figsize=(12, 4.5))
-    #plt.suptitle("CTTH error distributions not well described by RMS and bias")
+    # plt.suptitle("CTTH error distributions not well described by RMS and bias")
     ax = fig.add_subplot(121)
-    #S1
+    # S1
     ax.grid(True)
     ax.set_title('PPS-v2018', loc='left', zorder=30)
-    #ax.fill(x_, hist_heights_g, color='silver',
-    #         label = my_legend_text(temp_data_g, "Gaussian (STD)"))
+    # ax.fill(x_, hist_heights_g, color='silver',
+    #        label = my_legend_text(temp_data_g, "Gaussian (STD)"))
     plt.fill(x_, hist_heights_pps, "r-",  #alpha = 0.5,
              label = my_legend_text_6(bias_i, "PPS"  ))
     plt.plot(x_-0.001*np.mean(bias_i), hist_heights_pps, "b-")
@@ -349,15 +349,15 @@ def my_make_plot_example_aprox(bias, use, label_str, match_calipso):
     plt.yticks(np.arange(0, 9, 2.0))
     ax = fig.add_subplot(122)
     ax.grid(True)
-    #S1
+    # S1
     ax.set_title('Bias "corrected"', loc='left', zorder=30)
-    #ax.fill(x_-0.001*np.mean(temp_data_g), hist_heights_g, color='silver',
-    #         label = my_legend_text(temp_data_g-0.001*np.mean(temp_data_g), "Gaussian (STD)"))
+    # ax.fill(x_-0.001*np.mean(temp_data_g), hist_heights_g, color='silver',
+    #        label = my_legend_text(temp_data_g-0.001*np.mean(temp_data_g), "Gaussian (STD)"))
     plt.fill(x_-0.001*np.mean(bias_i), hist_heights_pps, "b-", #alpha = 0.5,
              label = my_legend_text_6(bias_i-np.mean(bias_i), "PPS"  ))
     plt.plot(x_, hist_heights_pps, "r-")
     ax.set_xlim(-4, 6)
-    #ax.set_ylabel('Percent')
+    # ax.set_ylabel('Percent')
     ax.set_xlabel('Error (km)')
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
@@ -373,9 +373,9 @@ def my_make_plot_example_aprox(bias, use, label_str, match_calipso):
     plt.close()
     plt.style.use('seaborn-white')
     fig = plt.figure(figsize=(15, 11))
-    #plt.suptitle("CTTH error distributions not well described by RMS and bias")
+    # plt.suptitle("CTTH error distributions not well described by RMS and bias")
     ax = fig.add_subplot(221)
-    #S1
+    # S1
     ax.set_title('a) Equal bias/std')
     ax.fill(x_, hist_heights_g, color='silver',
              label = my_legend_text(temp_data_g, "Gaussian (STD)"))
@@ -384,7 +384,7 @@ def my_make_plot_example_aprox(bias, use, label_str, match_calipso):
     ax.set_ylabel('Percent')
     my_adjust_axis(ax)
     ax.set_xticklabels([])
-    #S2
+    # S2
     ax = fig.add_subplot(222)
     ax.set_title('b) Equal IQR/median')
     ax.fill(x_, hist_heights_iqr, color='grey',
@@ -393,7 +393,7 @@ def my_make_plot_example_aprox(bias, use, label_str, match_calipso):
     my_adjust_axis(ax)
     ax.set_yticklabels([])
     ax.set_xticklabels([])
-    #S3
+    # S3
     ax = fig.add_subplot(223)
     ax.set_title('c) Equal bias/std, sum of types')
 
@@ -403,7 +403,7 @@ def my_make_plot_example_aprox(bias, use, label_str, match_calipso):
     my_adjust_axis(ax)
     ax.set_ylabel('Percent')
     ax.set_xlabel('error (km)')
-    #S4
+    # S4
     ax = fig.add_subplot(224)
     ax.set_title('d) Equal IQR/median, sum over cloud types')
     ax.fill(x_, hist_heights_iqrs, color='grey',
@@ -415,7 +415,7 @@ def my_make_plot_example_aprox(bias, use, label_str, match_calipso):
     ax.set_yticklabels([])
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_ctth_error_aprox_dist_%s.png"%(label_str), bbox_inches='tight')
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_ctth_error_aprox_dist_%s.pdf"%(label_str), bbox_inches='tight')
-    #plt.show()
+    # plt.show()
 
 
 def my_print_one_line(out_file_h, bias, x, y, use_ind, compare_name, flag_key):
@@ -438,7 +438,7 @@ def my_print_one_line(out_file_h, bias, x, y, use_ind, compare_name, flag_key):
         my_pe5000m(bias[use_ind]),
         half_sample_mode(bias[use_ind]),
         skew(bias[use_ind]), #,
-        #kurtosis(bias[use_ind])
+        # kurtosis(bias[use_ind])
     )
     out_file_h.write(out_line)
     out_file_h.write("\n")
@@ -463,14 +463,14 @@ def print_all_cloudsat(match_obj, compare, compare_name = "unknown"):
             my_print_one_line(out_file_h, bias, x, y, use_i, "all", flag_key)
 
 def print_all(match_obj, compare, compare_name = "unknown"):
-    #x = getattr(plt_obj, truth)
-    #y = getattr(plt_obj, compare)
+    # x = getattr(plt_obj, truth)
+    # y = getattr(plt_obj, compare)
 
     x = match_obj.calipso.all_arrays['validation_height']
     x2 = match_obj.calipso.all_arrays['layer_top_altitude'][:, 1]*1000
     y = match_obj.imager.all_arrays['imager_ctth_m_above_seasurface']
     print( np.max(y), np.max(y[y<65000]))
-    #pressure_c = match_obj.calipso.all_arrays['layer_top_pressure'][:, 0]
+    # pressure_c = match_obj.calipso.all_arrays['layer_top_pressure'][:, 0]
     low_clouds = get_calipso_low_clouds(match_obj)
     high_clouds = get_calipso_high_clouds(match_obj)
     medium_clouds = get_calipso_medium_clouds(match_obj)
@@ -526,16 +526,16 @@ def print_all(match_obj, compare, compare_name = "unknown"):
     bias_second_layer = y - x2
     abias = np.abs(bias)
 
-    #my_make_plot_example(bias, use, compare_name)
-    #my_make_plot2(y, x, x2, mhl, mhl["all"])
+    # my_make_plot_example(bias, use, compare_name)
+    # my_make_plot2(y, x, x2, mhl, mhl["all"])
     my_make_plot_example_aprox(bias, use, compare_name, match_obj)
 
     from scipy import  ndimage
     maxct = ndimage.filters.maximum_filter1d(match_obj.imager.cloudtype, size=9)
     minct = ndimage.filters.minimum_filter1d(match_obj.imager.cloudtype, size=9)
     val_geo = np.equal(maxct, minct)
-    #match_obj.calipso.layer_top_pressure[:, 0][match_obj.calipso.layer_top_pressure[:, 0]<0] =1200
-    #match_obj.calipso.layer_top_altitude[:, 0][match_obj.calipso.layer_top_altitude[:, 0]<0] =0
+    # match_obj.calipso.layer_top_pressure[:, 0][match_obj.calipso.layer_top_pressure[:, 0]<0] =1200
+    # match_obj.calipso.layer_top_altitude[:, 0][match_obj.calipso.layer_top_altitude[:, 0]<0] =0
     if hasattr(match_obj, 'calipso'):
         var_pressure = (ndimage.filters.maximum_filter1d(match_obj.calipso.layer_top_pressure[:, 0], size=9) -
                         ndimage.filters.minimum_filter1d(match_obj.calipso.layer_top_pressure[:, 0], size=9))
@@ -577,16 +577,16 @@ def print_all(match_obj, compare, compare_name = "unknown"):
 
     fig = plt.figure(figsize=(15, 11))
     ax = fig.add_subplot(111)
-    #plt.plot(var_pressure[use], abias[use], 'b.', alpha=0.02)
-    #plt.plot(var_height[use], abias[use], 'b.', alpha=0.02)
-    #plt.plot(match_obj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km'][use], abias[use], 'b.', alpha=0.02)
-    #plt.plot(match_obj.calipso.all_arrays['cfc_single_shots_1km_from_5km_file'][use]+0.01), abias[use], 'b.', alpha=0.02)
-    #ax.set_xlim([-1.0, 1.0])
+    # plt.plot(var_pressure[use], abias[use], 'b.', alpha=0.02)
+    # plt.plot(var_height[use], abias[use], 'b.', alpha=0.02)
+    # plt.plot(match_obj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km'][use], abias[use], 'b.', alpha=0.02)
+    # plt.plot(match_obj.calipso.all_arrays['cfc_single_shots_1km_from_5km_file'][use]+0.01), abias[use], 'b.', alpha=0.02)
+    # ax.set_xlim([-1.0, 1.0])
     plt.plot(feature_array, abias[use], 'b.', alpha=0.02)
-    #plt.plot(match_obj.calipso.layer_top_altitude[:, 0][use], abias[use], 'r.', alpha=0.05)
+    # plt.plot(match_obj.calipso.layer_top_altitude[:, 0][use], abias[use], 'r.', alpha=0.05)
     plt.show()
     """
-    #logger.info("Getting day/night info from sunz")
+    # logger.info("Getting day/night info from sunz")
     if np.max(sunz) < 20:
         sunz =sunz*100.0
     day_flag = np.where(np.less_equal(sunz, 80), 1, 0)
@@ -596,11 +596,11 @@ def print_all(match_obj, compare, compare_name = "unknown"):
                        np.less(sunz, 95)),
         1, 0)
     out_file_h.write(compare_name + " CALIOP:\n")
-    #use = np.logical_and(use, feature_array_full==3)
+    # use = np.logical_and(use, feature_array_full==3)
     my_list = sorted(mhl.keys())
     my_list = ["clouds_tp", "low_clouds_tp", "medium_clouds_tp", "high_clouds_tp",
-               #"all_clouds_tp_not_thin", "low_clouds_tp_not_thin", "medium_clouds_tp_not_thin", "high_clouds_tp_not_thin",
-               #"all_clouds_tp_thin", "low_clouds_tp_thin", "medium_clouds_tp_thin", "high_clouds_tp_thin",
+               # "all_clouds_tp_not_thin", "low_clouds_tp_not_thin", "medium_clouds_tp_not_thin", "high_clouds_tp_not_thin",
+               # "all_clouds_tp_thin", "low_clouds_tp_thin", "medium_clouds_tp_thin", "high_clouds_tp_thin",
                "clouds_op", "low_clouds_op", "medium_clouds_op", "high_clouds_op",
                "all_clouds_tp_bad2", "all_clouds_tp_bad3"]
     for flag, compare_name in zip( [use, day_flag, night_flag, twilight_flag, val_geo, val_geo2],
@@ -637,8 +637,8 @@ if __name__ == "__main__":
     ROOT_DIR_v2018_GAC_clsat = (BASE_DIR + "global_gac_v2018_created20180927/Reshaped_Files/noaa18/5km/2009/*clouds*h5")
     ROOT_DIR = ROOT_DIR_v2018_clsat
 
-#between 27.16770203522559 12.67069745562212
-#between 38.70328344488811 22.066300881905146
+# between 27.16770203522559 12.67069745562212
+# between 38.70328344488811 22.066300881905146
 
 
 

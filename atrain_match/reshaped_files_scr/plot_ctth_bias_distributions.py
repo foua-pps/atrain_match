@@ -35,14 +35,14 @@ matplotlib.rcParams.update(matplotlib.rcParamsDefault)
 matplotlib.rcParams.update({'font.size': 18})
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
-#plt.rc('serif', "Times New Roman")
-#plt.rcParams["font.serif"] = "times new roman"
-#from matplotlib import rc
+# plt.rc('serif', "Times New Roman")
+# plt.rcParams["font.serif"] = "times new roman"
+# from matplotlib import rc
 print matplotlib.rcParams
-#rc('text', usetex=True)
-#rc('mathtext', usetex=True)
-#rc('font', size=18)
-#rc('text.latex', preamble=r'\usepackage{times}')
+# rc('text', usetex=True)
+# rc('mathtext', usetex=True)
+# rc('font', size=18)
+# rc('text.latex', preamble=r'\usepackage{times}')
 delta_h = 100.0
 
 
@@ -66,7 +66,7 @@ class PlotAndDataObject(DataObject):
             'height_old': None,
             'height_pps': None,
             'cflag': None,
-            #'bias_nnant': None,
+            # 'bias_nnant': None,
             'pressure_c': None,
             'height_nna1nt': None,
             'height_nnvnt': None,
@@ -112,15 +112,15 @@ def extract_data(match_obj, sat='cloudsat'):
     if sat.lower() in 'cloudsat':
         pltObj.height_c2 = match_obj.cloudsat.all_arrays['clsat_max_height']
         clsat_max_height = -9 + 0*np.zeros(match_obj.cloudsat.latitude.shape)
-        #for i in range(125):
-        #    height = match_obj.cloudsat.Height[:, i]
-        #    cmask_ok = match_obj.cloudsat.CPR_Cloud_mask[:, i]
-        #    top_height = height+120
-        #    #top_height[height<240*4] = -9999 #Do not use not sure why these are not used Nina 20170317
-        #    is_cloudy = cmask_ok > 30
-        #    top_height[~is_cloudy] = -9999
-        #    clsat_max_height[clsat_max_height<top_height] =  top_height[clsat_max_height<top_height]
-        #height_c =  clsat_max_height
+        # for i in range(125):
+        #   height = match_obj.cloudsat.Height[:, i]
+        #   cmask_ok = match_obj.cloudsat.CPR_Cloud_mask[:, i]
+        #   top_height = height+120
+        #   # top_height[height<240*4] = -9999 # Do not use not sure why these are not used Nina 20170317
+        #   is_cloudy = cmask_ok > 30
+        #   top_height[~is_cloudy] = -9999
+        #   clsat_max_height[clsat_max_height<top_height] =  top_height[clsat_max_height<top_height]
+        # height_c =  clsat_max_height
         height_c = match_obj.cloudsat.validation_height
 
         pltObj.low_clouds = np.logical_and(height_c<match_obj.imager.all_arrays['segment_nwp_h680'], height_c>-9)
@@ -149,7 +149,7 @@ def extract_data(match_obj, sat='cloudsat'):
                 use_part, np.abs(match_obj.calipso.all_arrays['latitude'])<60)
             use = np.logical_and(
                 use_part, np.equal(match_obj.calipso.igbp_surface_type, 17))
-            #use = np.logical_and(use_part, height_c<3000+match_obj.calipso.all_arrays['elevation'])
+            # use = np.logical_and(use_part, height_c<3000+match_obj.calipso.all_arrays['elevation'])
             use_part = np.logical_and(use_part, match_obj.calipso.all_arrays[
                 'feature_optical_depth_532_top_layer_5km']>0)
             use_part = np.logical_and(use_part,
@@ -158,7 +158,7 @@ def extract_data(match_obj, sat='cloudsat'):
                                  match_obj.calipso.all_arrays['total_optical_depth_5km'])
             part = "single_layer_sea_below_60_in5km_all_od_top"
             low = np.logical_and(low_clouds, use_part)
-            #low = np.logical_and(height_c<low_clouds, use_part)
+            # low = np.logical_and(height_c<low_clouds, use_part)
             low = np.logical_and(
                 use_part, height_c<(3000+match_obj.calipso.all_arrays['elevation']))
             medium = np.logical_and(medium_clouds, use_part)
@@ -172,7 +172,7 @@ def extract_data(match_obj, sat='cloudsat'):
     pltObj.height_c = height_c
     pltObj.height_mlvl2 = match_obj.modis.all_arrays['height']#+elevation #??
     pltObj.pressure_mlvl2 = match_obj.modis.all_arrays['pressure']
-    #height_pps = match_obj.imager.all_arrays['imager_ctth_m_above_seasurface']
+    # height_pps = match_obj.imager.all_arrays['imager_ctth_m_above_seasurface']
     pltObj.satz = match_obj.imager.all_arrays['satz']
     pltObj.height_pps = match_obj.imager.all_arrays['ctthnnant_height']+elevation
     pltObj.height_old = match_obj.imager.all_arrays['ctthold_height']+elevation
@@ -184,26 +184,26 @@ def extract_data(match_obj, sat='cloudsat'):
     use = np.logical_and(use, match_obj.modis.all_arrays['pressure']>=70) #no_effekt
     use = np.logical_and(use, match_obj.imager.all_arrays['ctthnnant_height']>-1)
     use = np.logical_and(use, match_obj.imager.all_arrays['ctthold_height']>-1)
-    #use = np.logical_and(use, match_obj.imager.all_arrays['ctthnnant_height']<55000)no_effekt
+    # use = np.logical_and(use, match_obj.imager.all_arrays['ctthnnant_height']<55000)no_effekt
     use = np.logical_and(use, match_obj.imager.all_arrays['ctthold_pressure']>=70*100)
     use = np.logical_and(use, match_obj.modis.all_arrays['cloud_emissivity']<=100)
     pltObj.use = use
     use_all = use.copy()
     for var in ['ctthnnant_height', 'ctthnna1nt_height', 'ctthnnvnt_height', 'ctthnnm2nt_height', 'ctthnnmintnco2_height', 'ctthnnmint_height', 'ctthold_height']:
         name = var.replace('_height', '').replace('ctth', 'pressure_')
-        #print name
+        # print name
         pltObj.all_arrays[name] = 0.01*match_obj.imager.all_arrays[var.replace('height', 'pressure')]
         update = pltObj.all_arrays[name] > 0.01*match_obj.imager.all_arrays['psur']
         if 'old' not in name:
             update = pltObj.all_arrays[name] > 0.01*match_obj.imager.all_arrays['psur']
             pltObj.all_arrays[name][update] = 0.01*match_obj.imager.all_arrays['psur'][update]
-            #ok_pressure = pltObj.all_arrays[name]>=70
+            # ok_pressure = pltObj.all_arrays[name]>=70
             pressure_name = name
         name = var.replace('_height', '').replace('ctth', 'height_')
         pltObj.all_arrays[name] = match_obj.imager.all_arrays[var] + elevation
         name = var.replace('_height', '').replace('ctth', 'bias_')
         pltObj.all_arrays[name] = match_obj.imager.all_arrays[var] + elevation - height_c
-        #ok_ctth = np.logical_and(match_obj.imager.all_arrays[var]<550000, match_obj.imager.all_arrays[var]>-1)
+        # ok_ctth = np.logical_and(match_obj.imager.all_arrays[var]<550000, match_obj.imager.all_arrays[var]>-1)
         ok_ctth = match_obj.imager.all_arrays[var] > - 1
         ok_ctth = np.logical_and(ok_ctth, match_obj.imager.all_arrays['text_t11']>-1)
         use_all = np.logical_and(use_all, ok_ctth)
@@ -222,7 +222,7 @@ def extract_data(match_obj, sat='cloudsat'):
         ok_ctth = np.logical_and(ok_ctth, match_obj.imager.all_arrays['bt11micron']>-1)
         use_all = np.logical_and(use_all, ok_ctth)
         # for pressure scatter plot:
-        #use_all = np.logical_and(use_all, ok_pressure)
+        # use_all = np.logical_and(use_all, ok_pressure)
 
 
         use_all = np.logical_and(use_all, match_obj.imager.all_arrays['warmest_t12']>-9)
@@ -306,7 +306,7 @@ def print_stats(pltObj, month, day_strm, sat='CLOUDSAT_OR_CALIPSO'):
     print "MODIS-C6 & %3.0d & %3.0d & %3.2f \\\\"%( n_ctth,
                                                    n_cma,
                                                    100*n_ctth*1.0/n_cma)
-    #Number of
+    # Number of
     n_all = len(bias_v[use_all])*1.0
     n_all_3 = len(bias_v[ pltObj.use])*1.0
     print "%s & %d %d & & %d & %d & %d \\\\"%(name,
@@ -432,7 +432,7 @@ def replot_figure2_from_saved_data(month):
         data = line.split(" ")
         info = data.pop(0)
         info_list = info.split("_")
-        #print info_list
+        # print info_list
         algorithm = info_list[0]
         cloudc = info_list[1]
         sat = info_list[2]
@@ -512,7 +512,7 @@ def plot_medium_bias_plot_from_saved_data(month):
                "(f) Low clouds"}
 
     def plot_one(ax, x_data, y_data, median_data, bias_data, std_data, sat, cloudc, imager, text_i, maxx, maxy, legend=False):
-        #text_i = text_d[sat+"_"+imager]
+        # text_i = text_d[sat+"_"+imager]
         print_sat = sat.upper()
         if print_sat in ["CLOUDSAT"]:
             print_sat = "CPR (CloudSat)"
@@ -541,7 +541,7 @@ def plot_medium_bias_plot_from_saved_data(month):
         hist_heights = hist_heights*100.0/n_pix
 
         ax.fill(x_data[sat][cloudc][imager], hist_heights, color='silver', label='Gaussian')
-        #plt.plot(x_data[sat][cloudc][imager], hist_heights, 0.1, label='Gaussian')
+        # plt.plot(x_data[sat][cloudc][imager], hist_heights, 0.1, label='Gaussian')
         plt.plot(x_data[sat][cloudc][imager], y_data[sat][cloudc][imager],
                  color1, label=imager)
         yind_bias = np.argmin(np.abs(x_data[sat][cloudc][imager] - bias_data[sat][cloudc][imager]))
@@ -550,9 +550,9 @@ def plot_medium_bias_plot_from_saved_data(month):
         ylim_median = y_data[sat][cloudc][imager][yind_median]
         plt.plot([median_data[sat][cloudc][imager], median_data[sat][cloudc][imager]], [0, ylim_median], color3, label="median")
         plt.plot([bias_data[sat][cloudc][imager], bias_data[sat][cloudc][imager]], [0, ylim_bias], color2, label="bias")
-        #print bias_data[sat][cloudc]["NN-AVHRR"]
-        #plt.show()
-        #plt.title("Non Gaussian error distributions ")
+        # print bias_data[sat][cloudc]["NN-AVHRR"]
+        # plt.show()
+        # plt.title("Non Gaussian error distributions ")
         if imager in ["NN-AVHRR"]:
             plt.xlabel(" Retrieved height - %s (km) "%(print_sat))
         if sat in ["cloudsat"]:
@@ -597,7 +597,7 @@ def plot_medium_bias_plot_from_saved_data(month):
         data = line.split(" ")
         info = data.pop(0)
         info_list = info.split("_")
-        #print info_list
+        # print info_list
         algorithm = info_list[0]
         cloudc = info_list[1]
         print cloudc
@@ -626,9 +626,9 @@ def plot_medium_bias_plot_from_saved_data(month):
         ax = fig.add_subplot(325)
         plot_one(ax, x_data, y_data, median_data, bias_data, std_data, "cloudsat", cloudc, "NN-AVHRR", " (e) ", maxx, maxy)#, True)
 
-        #plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_PLOTS/figxx_cloudsat_bias_median_%s.pdf"%(month), bbox_inches='tight')
-        #plt.close("all")
-        #fig = plt.figure(figsize=(9, 11))
+        # plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_PLOTS/figxx_cloudsat_bias_median_%s.pdf"%(month), bbox_inches='tight')
+        # plt.close("all")
+        # fig = plt.figure(figsize=(9, 11))
         ax = fig.add_subplot(322)
         plot_one(ax, x_data, y_data, median_data, bias_data, std_data, "calipso", cloudc, "PPS-v2014", " (b) ", maxx, maxy, True)
         ax = fig.add_subplot(324)
@@ -677,46 +677,46 @@ def make_profileplot(pltObj, month, day_str, sat='calipso'):
        ax.set_xlim(bmin, bmax)
     fig = plt.figure(figsize = (5.5, 12))
     ax = fig.add_subplot(313)
-    #plt.title("Low")
+    # plt.title("Low")
     plt.text(0.02, 0.90, text3, fontsize=14, transform=ax.transAxes, bbox=dict(facecolor='w', edgecolor='w', alpha=1.0))
     plt.xticks(np.arange(-5, 5, 1.0))
     plt.yticks(np.arange(0, 14, 1.0))
     plot_one(pps_bias, low, -14, 14, '-r', "NN-AVHRR")
     plot_one(mlvl2_bias, low, -14, 14, '-k', "MODIS-C6")
     plot_one(old_bias, low, -14, 14, '-b', "PPS-v2014")
-    #plot_one(nna1_bias, low, -14, 14, '0.3', "NN-AVHRR1")
+    # plot_one(nna1_bias, low, -14, 14, '0.3', "NN-AVHRR1")
     plt.legend(fancybox=True, loc=1, numpoints=4)
     ax.set_xlim(-5, 5)
     ax.set_ylim(0, 12.0)
     ax.grid(True)
     ax = fig.add_subplot(312)
-    #plt.title("Medium")
+    # plt.title("Medium")
     plt.text(0.02, 0.90, text2, fontsize=14, transform=ax.transAxes, bbox=dict(facecolor='w', edgecolor='w', alpha=1.0))
     plt.xticks(np.arange(-8, 8, 2.0))
     plt.yticks(np.arange(0, 12, 1.0))
     plot_one(pps_bias, medium, -12, 12, '-r', "NN-AVHRR")
     plot_one(mlvl2_bias, medium, -12, 12, '-k', "MODIS-C6")
     plot_one(old_bias, medium, -12, 12, '-b', "PPS-v2014")
-    #plot_one(nna1_bias, medium, -12, 12, '0.3', "NN-AVHRR1")
+    # plot_one(nna1_bias, medium, -12, 12, '0.3', "NN-AVHRR1")
     plt.legend(fancybox=True, loc=1, numpoints=4)
     ax.set_xlim(-7, 7)
     ax.set_ylim(0, 6.0)
     ax.grid(True)
     ax = fig.add_subplot(311)
-    #plt.title("High")
+    # plt.title("High")
     plt.text(0.02, 0.90, text1, fontsize=14, transform=ax.transAxes, bbox=dict(facecolor='w', edgecolor='w', alpha=1.0))
     plt.xticks(np.arange(-12, 12, 2.0))
     plt.yticks(np.arange(0, 4, 0.5))
     plot_one(pps_bias, high, -14, 14, '-r', "NN-AVHRR")
     plot_one(mlvl2_bias, high, -14, 14, '-k', "MODIS-C6")
     plot_one(old_bias, high, -14, 14, '-b', "PPS-v2014")
-    #plot_one(nna1_bias, high, -14, 14, '0.3', "NN-AVHRR1")
+    # plot_one(nna1_bias, high, -14, 14, '0.3', "NN-AVHRR1")
     plt.legend(fancybox=True, loc=1, numpoints=4)
     ax.set_xlim(-12, 12)
     ax.set_ylim(0, 4.0)
     ax.grid(True)
-    #plt.show()
-    #plt.title("%s MAE = %3.0f"%(name, MAE))
+    # plt.show()
+    # plt.title("%s MAE = %3.0f"%(name, MAE))
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_BOX_%s/ctth_bias_profile_%s_%s_%s.png"%(sat, day_str, month, sat))
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_BOX_%s/ctth_bias_profile_%s_%s_%s.pdf"%(sat, day_str, month, sat))
     plt.close("all")
@@ -726,8 +726,8 @@ def investigate_nn_ctth_modis_lvl2_cloudsat():
     ROOT_DIR = (
         ADIR + "/DATA_MISC/reshaped_files/"
         "global_modis_%s_created20180316/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/*h5")
-        #"global_modis_%s_created20170330/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/*h5")
-    #match_clsat = CloudsatImagerTrackObject()
+        # "global_modis_%s_created20170330/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/*h5")
+    # match_clsat = CloudsatImagerTrackObject()
     plt_obj = PlotAndDataObject()
     name=""
     for month in [ "02", "04", "06", "08", "10", "12"]:#[ "03", "05", "07", "09", "11"]: #[ "02", "04", "06", "08", "10", "12"]:#, "03", "05", "07", "09", "11", "01" ]:  #[ "06", "09"]:
@@ -747,7 +747,7 @@ def investigate_nn_ctth_modis_lvl2():
     day_str="01st"
     ROOT_DIR = (
         ADIR + "/DATA_MISC/reshaped_files/"
-        #"global_modis_%s_created20170504/Reshaped_Files_merged/eos2/1km/2010/%s/*h5")
+        # "global_modis_%s_created20170504/Reshaped_Files_merged/eos2/1km/2010/%s/*h5")
         "global_modis_%s_created20180316/Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/%s/*h5")
     plt_obj = PlotAndDataObject()
     name=""
@@ -757,7 +757,7 @@ def investigate_nn_ctth_modis_lvl2():
         name +=month
         plt_obj_new = PlotAndDataObject()
         for filename in files:
-            #print filename
+            # print filename
             match_calipso_new = readCaliopImagerMatchObj(filename)
             plt_obj_new += extract_data(match_calipso_new, sat='calipso')
         plt_obj +=  plt_obj_new
@@ -772,7 +772,7 @@ if __name__ == "__main__":
         print "hej"
 
 
-    #investigate_nn_ctth_modis_lvl2_cloudsat()
-    #investigate_nn_ctth_modis_lvl2()
+    # investigate_nn_ctth_modis_lvl2_cloudsat()
+    # investigate_nn_ctth_modis_lvl2()
 
 

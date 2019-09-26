@@ -32,7 +32,7 @@ def print_common_stats(match_calipso, use, name_dict):
     isCalipsoCloudy = np.logical_and(
         isCalipsoCloudy,
         match_calipso.calipso.all_arrays['total_optical_depth_5km']>0.15)
-    #isCalipsoClear = match_calipso.calipso.all_arrays['cloud_fraction']<0.5
+    # isCalipsoClear = match_calipso.calipso.all_arrays['cloud_fraction']<0.5
     isCalipsoClear = nlay == 0
     isCalipsoClear = np.logical_and(isCalipsoClear, meancl < 0.01)
     isCalipsoClear = np.logical_and(

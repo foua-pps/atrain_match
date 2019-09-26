@@ -75,16 +75,16 @@ def make_boxplot(match_calipso, name, month="xx", modis_lvl2=False, use_m2_pix=T
     high_very_thin = np.logical_and(high, very_thin)
     high_thin = np.logical_and(high, np.logical_and(~very_thin, thin))
     high_thick = np.logical_and(high, ~thin)
-    #print "thin, thick high", np.sum(high_thin), np.sum(high_thick)
+    # print "thin, thick high", np.sum(high_thin), np.sum(high_thick)
     bias = height_imager - height_c
     abias = np.abs(bias)
-    #abias[abias>2000]=2000
+    # abias[abias>2000]=2000
     print name.ljust(30, " "), "%3.1f"%(np.mean(abias[c_all])), "%3.1f"%(np.mean(abias[low])), "%3.1f"%(np.mean(abias[medium])), "%3.1f"%(np.mean(abias[high]))
 
     c_all = np.logical_or(np.logical_and(~very_thin, high), np.logical_or(low, medium))
     number_of = np.sum(c_all)
     MAE = np.mean(abias[c_all])
-    #print name.ljust(30, " "), "%3.1f"%(np.sum(abias[c_all]<250)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<500)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<1000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<1500)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<2000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<3000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<4000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<5000)*100.0/number_of)
+    # print name.ljust(30, " "), "%3.1f"%(np.sum(abias[c_all]<250)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<500)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<1000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<1500)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<2000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<3000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<4000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<5000)*100.0/number_of)
     from matplotlib import rcParams
     rcParams.update({'figure.autolayout': True})
     fig = plt.figure(figsize = (6, 9))
@@ -165,16 +165,16 @@ def make_boxplot_temperature(match_calipso, name, modis_lvl2=False):
     high_very_thin = np.logical_and(high, very_thin)
     high_thin = np.logical_and(high, np.logical_and(~very_thin, thin))
     high_thick = np.logical_and(high, ~thin)
-    #print "thin, thick high", np.sum(high_thin), np.sum(high_thick)
+    # print "thin, thick high", np.sum(high_thin), np.sum(high_thick)
     bias = temp_pps - temp_c
     abias = np.abs(bias)
-    #abias[abias>2000]=2000
+    # abias[abias>2000]=2000
     print name.ljust(30, " "), "%3.1f"%(np.mean(abias[c_all])), "%3.1f"%(np.mean(abias[low])), "%3.1f"%(np.mean(abias[medium])), "%3.1f"%(np.mean(abias[high]))
 
     c_all = np.logical_or(np.logical_and(~very_thin, high), np.logical_or(low, medium))
     number_of = np.sum(c_all)
 
-    #print name.ljust(30, " "), "%3.1f"%(np.sum(abias[c_all]<250)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<500)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<1000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<1500)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<2000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<3000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<4000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<5000)*100.0/number_of)
+    # print name.ljust(30, " "), "%3.1f"%(np.sum(abias[c_all]<250)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<500)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<1000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<1500)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<2000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<3000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<4000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<5000)*100.0/number_of)
     from matplotlib import rcParams
     rcParams.update({'figure.autolayout': True})
     fig = plt.figure(figsize = (6, 9))
@@ -225,16 +225,16 @@ def make_boxplot_pressure(match_calipso, name, modis_lvl2=False):
     high_very_thin = np.logical_and(high, very_thin)
     high_thin = np.logical_and(high, np.logical_and(~very_thin, thin))
     high_thick = np.logical_and(high, ~thin)
-    #print "thin, thick high", np.sum(high_thin), np.sum(high_thick)
+    # print "thin, thick high", np.sum(high_thin), np.sum(high_thick)
     bias = pressure_pps - pressure_c
     abias = np.abs(bias)
-    #abias[abias>2000]=2000
+    # abias[abias>2000]=2000
     print name.ljust(30, " "), "%3.1f"%(np.mean(abias[c_all])), "%3.1f"%(np.mean(abias[low])), "%3.1f"%(np.mean(abias[medium])), "%3.1f"%(np.mean(abias[high]))
 
     c_all = np.logical_or(np.logical_and(~very_thin, high), np.logical_or(low, medium))
     number_of = np.sum(c_all)
 
-    #print name.ljust(30, " "), "%3.1f"%(np.sum(abias[c_all]<250)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<500)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<1000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<1500)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<2000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<3000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<4000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<5000)*100.0/number_of)
+    # print name.ljust(30, " "), "%3.1f"%(np.sum(abias[c_all]<250)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<500)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<1000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<1500)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<2000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<3000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<4000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<5000)*100.0/number_of)
     from matplotlib import rcParams
     rcParams.update({'figure.autolayout': True})
     fig = plt.figure(figsize = (6, 9))
@@ -258,7 +258,7 @@ def make_boxplot_pressure(match_calipso, name, modis_lvl2=False):
 
 
 def investigate_nn_ctth_modis_lvl2():
-    #november
+    # november
 
     ROOT_DIR_MODIS_nn_imager = (
         ADIR + "/DATA_MISC/reshaped_files/"
@@ -281,7 +281,7 @@ def investigate_nn_ctth_modis_lvl2():
             files = glob(ROOT_DIR%(month))
             match_calipso = CalipsoImagerTrackObject()
             for filename in files:
-                #print filename
+                # print filename
                 match_calipso +=  readCaliopImagerMatchObj(filename)
             modis_lvl2 = False
             if "modis_lvl2"  in name:

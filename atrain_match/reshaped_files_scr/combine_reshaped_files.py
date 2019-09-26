@@ -54,17 +54,17 @@ for year in [2010]:
             num_d = 0
             for filename in files:
                 print(os.path.basename(filename))
-                #match_calipso_new=read_truth_imager_match_obj(filename, truth=truth)
+                # match_calipso_new=read_truth_imager_match_obj(filename, truth=truth)
                 try:
                     match_calipso_new=read_truth_imager_match_obj(filename, truth=truth)
                 except:
                     print("problem with", os.path.basename(filename))
                     continue
-                #if match_calipso_new.cloudsat.RVOD_CWC_status is None or len(match_calipso_new.cloudsat.RVOD_CWC_status) != len(match_calipso_new.avhrr.cpp_lwp):
-                #    print("Missing RVOD_CWC_status")
-                #    continue
+                # if match_calipso_new.cloudsat.RVOD_CWC_status is None or len(match_calipso_new.cloudsat.RVOD_CWC_status) != len(match_calipso_new.avhrr.cpp_lwp):
+                #   print("Missing RVOD_CWC_status")
+                #   continue
                 if int(os.path.basename(filename).split('_')[3][0:2])<12:
-                    #time between 0000 and 11:59
+                    # time between 0000 and 11:59
                     num_n +=1
                     print("reading", os.path.basename(filename))
                     if match_calipso_night is None:

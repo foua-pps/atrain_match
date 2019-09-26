@@ -32,10 +32,10 @@ def make_pod_vector(match_calipso):
     feature_n = []
     feature_d = []
     od = match_calipso.calipso.all_arrays["total_optical_depth_5km"]
-    #try:
-    #    pps_cloudy = match_calipso.imager.all_arrays['cma_prob']>50
+    # try:
+    #   pps_cloudy = match_calipso.imager.all_arrays['cma_prob']>50
     #
-    #except:
+    # except:
     if match_calipso.imager.all_arrays['cloudmask'] is not None:
         pps_cloudy = np.logical_or(match_calipso.imager.all_arrays['cloudmask']==1,
                                    match_calipso.imager.all_arrays['cloudmask']==2)
@@ -50,8 +50,8 @@ def make_pod_vector(match_calipso):
         sunz = 100*sunz
     day = sunz < 90
 
-    #feature = np.array(match_calipso.imager.all_arrays['bt11micron'])-match_calipso.imager.all_arrays['surftemp']
-    #feature = match_calipso.imager.all_arrays['thr_t37t12'] - np.array(match_calipso.imager.all_arrays['bt37micron']) +match_calipso.imager.all_arrays['bt12micron']
+    # feature = np.array(match_calipso.imager.all_arrays['bt11micron'])-match_calipso.imager.all_arrays['surftemp']
+    # feature = match_calipso.imager.all_arrays['thr_t37t12'] - np.array(match_calipso.imager.all_arrays['bt37micron']) +match_calipso.imager.all_arrays['bt12micron']
     feature =  np.array(match_calipso.imager.all_arrays['bt11micron'])# -match_calipso.imager.all_arrays['bt12micron'] - match_calipso.imager.all_arrays['thr_t11t12']
     feature = od
     for i, lower in enumerate(limits):
@@ -64,13 +64,13 @@ def make_pod_vector(match_calipso):
 
         pod_d.append(np.sum(np.logical_and(use, pps_cloudy)) * 100.0/np.sum(use))
         feature_d.append(np.sum(feature[np.logical_and(use, np.not_equal(pps_cloudy, True))] > 297)*100.0/np.sum(use) )
-        #feature_d.append(np.mean(feature[np.logical_and(use, np.equal(pps_cloudy, True))]))
+        # feature_d.append(np.mean(feature[np.logical_and(use, np.equal(pps_cloudy, True))]))
 
         use = np.logical_and(use_all, np.logical_and(od >= lower, od < upper))
         use = np.logical_and(use, np.not_equal(day, True))
         pod_n.append(np.sum(np.logical_and(use, pps_cloudy)) * 100.0/np.sum(use))
         feature_n.append(np.sum(feature[np.logical_and(use, np.not_equal(pps_cloudy, True))] > 297)*100.0/np.sum(use) )
-        #feature_n.append(np.mean(feature[np.logical_and(use, np.equal(pps_cloudy, True))]))
+        # feature_n.append(np.mean(feature[np.logical_and(use, np.equal(pps_cloudy, True))]))
     use = np.logical_and(use_all, np.logical_and(od >= 0.2, od < 0.5))
     use = np.logical_and(use, np.not_equal(pps_cloudy, True))
     use_i = np.logical_and(use, day)
@@ -99,7 +99,7 @@ ROOT_DIR_v2014_GAC = (BASE_DIR + "global_gac_v2014_created20180927/Reshaped_File
 ROOT_DIR_v2018_GAC = (BASE_DIR + "global_gac_v2018_created20180927/Reshaped_Files/noaa18/5km/2009/*cali*h5")
 ROOT_DIR_v2014_NPP = (BASE_DIR + "global_viirs_v2014_created20180914/Reshaped_Files_merged_caliop/npp/1km/2015/*/*h5")
 ROOT_DIR_v2018_NPP = (BASE_DIR + "global_viirs_v2018_created20180907/Reshaped_Files_merged_caliop/npp/1km/2015/*/*h5")
-#ROOT_DIR_v2018_NPP = (BASE_DIR + "global_viirs_v2018_created20181002_new_cmaprobv5/Reshaped_Files_merged_caliop/npp/1km/2015/*/*h5")
+# ROOT_DIR_v2018_NPP = (BASE_DIR + "global_viirs_v2018_created20181002_new_cmaprobv5/Reshaped_Files_merged_caliop/npp/1km/2015/*/*h5")
 ROOT_DIR_v2014 = (BASE_DIR + "global_modis_v2014_created20180920/Reshaped_Files_merged_caliop/eos2/1km/2010/*/*01_*cali*h5")
 ROOT_DIR_v2018 = (BASE_DIR + "global_modis_v2018_created20180920/Reshaped_Files_merged_caliop/eos2/1km/2010/*/*01_*cali*h5")
 ROOT_DIR_PATMOSX = ADIR + "/VALIDATION_PATMOSX/Reshaped_Files/noaa18/5km/2009/*/*h5"
@@ -127,9 +127,9 @@ from matplotlib import pyplot as plt
 fig = plt.figure(figsize=(9, 11))
 ax = fig.add_subplot(211)
 plt.plot(limits, pod18_d-pod18_n, '-r.', label="PPS-v2018")
-#plt.plot(limits, pod18_d, 'c*')
+# plt.plot(limits, pod18_d, 'c*')
 plt.plot(limits, pod14_d-pod14_n, '-k.', label="PPS-v2014")
-#plt.plot(limits, pod14_n, 'c*')
+# plt.plot(limits, pod14_n, 'c*')
 plt.plot(limits, podP_d-podP_n, '-m.', label="PATMOSX")
 plt.plot(limits, podC_d-podC_n, '-y.', label="CCI-V2!")
 plt.plot(limits, 0*np.array(limits), 'k:')

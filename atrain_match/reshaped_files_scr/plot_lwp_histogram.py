@@ -37,7 +37,7 @@ def plot_hist_lwp(lwp_diff, filename):
     fig.savefig(my_path + "/fig2_" + my_file.replace('h5', 'pdf'))
 
 filename = ADIR + "/FromCollegues/forJanFokke/for_JanFokke/before_sza/1km_eos2_20100414_1040_00000_amsr_modis_match.h5"
-#filename = ADIR + "/FromCollegues/forJanFokke/for_JanFokke/before_sza/1km_meteosat9_20100414_1045_99999_amsr_seviri_match.h5"
+# filename = ADIR + "/FromCollegues/forJanFokke/for_JanFokke/before_sza/1km_meteosat9_20100414_1045_99999_amsr_seviri_match.h5"
 
 if __name__ == "__main__":
     aObj = readAmsrImagerMatchObj(filename)

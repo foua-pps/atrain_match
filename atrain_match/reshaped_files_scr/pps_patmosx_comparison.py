@@ -75,7 +75,7 @@ def remove_missing(match_objPPS, match_objPATMOSX, common_index):
     use_pps =    use_pps_same_profile
     """
     pps_profile_id[~use_pps]= -111
-    #remove doubles
+    # remove doubles
     unique, index = np.unique(pps_profile_id, return_index=True)
     pps_profile_id_new = -111 + 0*pps_profile_id.copy()
     pps_profile_id_new[index] = unique
@@ -95,8 +95,8 @@ def remove_missing(match_objPPS, match_objPATMOSX, common_index):
 
 def print_stats(match_objPPS, match_objPATMOSX, use_pps, use_patmosx):
 
-    #print(sorted(patmosx_profile_id[use_patmosx])[-10:])
-    #print(sorted(pps_profile_id[use_pps])[-10:])
+    # print(sorted(patmosx_profile_id[use_patmosx])[-10:])
+    # print(sorted(pps_profile_id[use_pps])[-10:])
     x = match_objPPS.calipso.all_arrays['validation_height']
     x_patmosx = match_objPATMOSX.calipso.all_arrays['validation_height']
     y_pps = match_objPPS.imager.all_arrays['imager_ctth_m_above_seasurface']

@@ -192,7 +192,7 @@ if __name__ == "__main__":
         files = glob(ROOT_DIR_INNER + "*cali*h5")
         if exclude_2009:
             files = [filename for filename in files if "/2009/" not in filename]
-        #print files
+        # print files
         sat = ROOT_DIR_INNER.split("global_")[1].split("/Reshaped")[0]
         limit = 0.9
         if "gac" in sat:
@@ -208,7 +208,7 @@ if __name__ == "__main__":
                      ROOT_DIR_v2014_modis,
                      ROOT_DIR_v2018_modis,
                      ROOT_DIR_v2018_modis_ice]:
-    #,
-    #                 ROOT_DIR_v2014_gac,
-    #                 ROOT_DIR_v2018_gac]:
+    # ,
+    #                ROOT_DIR_v2014_gac,
+    #                ROOT_DIR_v2018_gac]:
         process_one_case(ROOT_DIR)

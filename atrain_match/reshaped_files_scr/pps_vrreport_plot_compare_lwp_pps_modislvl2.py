@@ -67,7 +67,7 @@ def my_label(data, use):
              "IQR = {:3.1f}\n"
              "PE>10 = {:3.1f}\n"
              "N = {:d}\n".format(
-                 #text
+                 # text
                  np.mean(data[use]),
                  my_rms(data[use]),
                  np.median(data[use]),
@@ -123,7 +123,7 @@ def plot_all(match_obj, density, my_str=""):
     ax.set_ylim([00, 14.00])
     ax.set_xlabel("PPS LWP - MODIS-C6 LWP $g/m^2$")
     plt.legend()
-    #plt.plot(x[use], y[use], 'b.', alpha=0.002)
+    # plt.plot(x[use], y[use], 'b.', alpha=0.002)
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_comp_lwp_modis.png", bbox_inches='tight')
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_comp_lwp_modis.pdf", bbox_inches='tight')
     plt.show()
@@ -153,11 +153,11 @@ def get_ca_object_nn_ctth_modis_lvl2():
     files = files + glob(ROOT_DIR%("20100801"))
     files = files + glob(ROOT_DIR%("20101001"))
     files = files + glob(ROOT_DIR%("20101201"))
-    #ROOT_DIR = (
-    #    ADIR + "/DATA_MISC/"
-    #    "reshaped_files_validation_2018/"
-    #    "global_gac_v2018_created20180918/"
-    #    "Reshaped_Files/noaa18/5km/*/*cali*h5")
+    # ROOT_DIR = (
+    #   ADIR + "/DATA_MISC/"
+    #   "reshaped_files_validation_2018/"
+    #   "global_gac_v2018_created20180918/"
+    #   "Reshaped_Files/noaa18/5km/*/*cali*h5")
     density = 1.0
     if "v2014" in ROOT_DIR:
         density = 1e3

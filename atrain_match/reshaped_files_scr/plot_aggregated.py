@@ -20,7 +20,7 @@
 
 # Author(s):
 
-#   Adam.Dybbroe
+#  Adam.Dybbroe
 
 """Read all matched data and make some plotting
 """

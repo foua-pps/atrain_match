@@ -43,7 +43,7 @@ def remove_doubles(mObj, mObj2):
     non_doubles = [ind for ind in range(len(mObj.calipso.sec_1970)) if mObj.calipso.sec_1970[ind] not in mObj2.calipso.sec_1970]
 
     if MAKE_EXTRA_CHECK:
-        #Takes a lot of time ....
+        # Takes a lot of time ....
         doubles_time_and_id = [(mObj.calipso.sec_1970[ind], mObj.calipso.profile_id[ind, 0]) for ind  in range(len(mObj.calipso.sec_1970)) if ind not in  non_doubles]
 
         extra_check = [time_and_id for time_and_id in doubles_time_and_id if time_and_id in zip(mObj2.calipso.sec_1970, mObj2.calipso.profile_id[:, 0])]
@@ -56,7 +56,7 @@ def remove_doubles(mObj, mObj2):
 
     print("Found {:d} doubles (out of {:d}) in the new object".format(
         len(mObj.calipso.sec_1970) - len(non_doubles), len(mObj.calipso.sec_1970)))
-    #import pdb;pdb.set_trace()
+    # import pdb;pdb.set_trace()
     mObj = mObj.extract_elements(idx=np.array(non_doubles))
     return mObj
 
@@ -82,15 +82,15 @@ for satellite in SATELLITES:
                 continue
             for filename in files:
                 print(os.path.basename(filename))
-                #match_calipso_new=read_truth_imager_match_obj(filename, truth=truth)
+                # match_calipso_new=read_truth_imager_match_obj(filename, truth=truth)
                 try:
                     match_calipso_new=read_truth_imager_match_obj(filename, truth=truth)
                 except:
                     print("problem with", os.path.basename(filename))
                     continue
-                    #if match_calipso_new.cloudsat.RVOD_CWC_status is None or len(match_calipso_new.cloudsat.RVOD_CWC_status) != len(match_calipso_new.avhrr.cpp_lwp):
-                    #    print("Missing RVOD_CWC_status")
-                    #    continue
+                    # if match_calipso_new.cloudsat.RVOD_CWC_status is None or len(match_calipso_new.cloudsat.RVOD_CWC_status) != len(match_calipso_new.avhrr.cpp_lwp):
+                    #   print("Missing RVOD_CWC_status")
+                    #   continue
                 num_n +=1
                 print("reading", os.path.basename(filename))
                 if match_calipso_merged is None:

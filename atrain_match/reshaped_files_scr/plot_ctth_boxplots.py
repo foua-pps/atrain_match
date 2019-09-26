@@ -59,13 +59,13 @@ def make_boxplot(match_calipso, name):
                           match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>0)
     thin_top = np.logical_and(match_calipso.calipso.all_arrays['number_layers_found']>1, thin)
     thin_1_lay = np.logical_and(match_calipso.calipso.all_arrays['number_layers_found']==1, thin)
-    #height_c[thin_top] =  height_c2[thin_top]
-    #height_c[np.abs(bias_1)<np.abs(bias_2)] =  height_c1[np.abs(bias_1)<np.abs(bias_2)]
-    #height_c[np.abs(bias_2)<np.abs(bias_1)] =  height_c2[np.abs(bias_2)<np.abs(bias_1)]
-    #bias = height_pps - height_c
-    #height_c[np.abs(bias_3)<np.abs(bias)] =  height_c3[np.abs(bias_3)<np.abs(bias)]
-    #height_c[~thin_top] =  height_c1[~thin_top]
-    #height_c[thin_top] =  height_c2[thin_top]
+    # height_c[thin_top] =  height_c2[thin_top]
+    # height_c[np.abs(bias_1)<np.abs(bias_2)] =  height_c1[np.abs(bias_1)<np.abs(bias_2)]
+    # height_c[np.abs(bias_2)<np.abs(bias_1)] =  height_c2[np.abs(bias_2)<np.abs(bias_1)]
+    # bias = height_pps - height_c
+    # height_c[np.abs(bias_3)<np.abs(bias)] =  height_c3[np.abs(bias_3)<np.abs(bias)]
+    # height_c[~thin_top] =  height_c1[~thin_top]
+    # height_c[thin_top] =  height_c2[thin_top]
 
 
 
@@ -80,27 +80,27 @@ def make_boxplot(match_calipso, name):
     high_very_thin = np.logical_and(high, very_thin)
     high_thin = np.logical_and(high, np.logical_and(~very_thin, thin))
     high_thick = np.logical_and(high, ~thin)
-    #print "thin, thick high", np.sum(high_thin), np.sum(high_thick)
+    # print "thin, thick high", np.sum(high_thin), np.sum(high_thick)
     bias = height_pps - height_c
     limit = np.percentile(bias[use], 5)
-    #print limit
+    # print limit
     abias = np.abs(bias)
     MAE = np.mean(abias[c_all])
-    #abias[abias>2000]=2000
+    # abias[abias>2000]=2000
     print name.ljust(30, " "), "%3.1f"%(np.mean(abias[c_all])), "%3.1f"%(np.mean(abias[low])), "%3.1f"%(np.mean(abias[medium])), "%3.1f"%(np.mean(abias[high])), "%3.1f"%(limit)
 
     c_all = np.logical_or(np.logical_and(~very_thin, high), np.logical_or(low, medium))
     number_of = np.sum(c_all)
 
-    #print name.ljust(30, " "), "%3.1f"%(np.sum(abias[c_all]<250)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<500)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<1000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<1500)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<2000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<3000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<4000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<5000)*100.0/number_of)
+    # print name.ljust(30, " "), "%3.1f"%(np.sum(abias[c_all]<250)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<500)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<1000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<1500)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<2000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<3000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<4000)*100.0/number_of), "%3.1f"%(np.sum(abias[c_all]<5000)*100.0/number_of)
     from matplotlib import rcParams
     rcParams.update({'figure.autolayout': True})
     fig = plt.figure(figsize = (6, 9))
     ax = fig.add_subplot(111)
     plt.xticks(rotation=70)
-    #plt.tight_layout()
-    #plt.subplots_adjust(left=0.2)
-    #plt.subplots_adjust(left=10, bottom=10, right=10, top=10, wspace=0, hspace=0)
+    # plt.tight_layout()
+    # plt.subplots_adjust(left=0.2)
+    # plt.subplots_adjust(left=10, bottom=10, right=10, top=10, wspace=0, hspace=0)
 
     ax.fill_between(np.arange(0, 8), -500, 500, facecolor='green', alpha=0.6)
     ax.fill_between(np.arange(0, 8), -1000, 1000, facecolor='green', alpha=0.4)
@@ -111,8 +111,8 @@ def make_boxplot(match_calipso, name):
         plt.plot(np.arange(0, 8), y_val*1000 + 0*np.arange(0, 8), ':k')
         plt.plot(np.arange(0, 8), -10*1000 + 0*np.arange(0, 8), ':k')
     plt.plot(np.arange(0, 8), 0 + 0*np.arange(0, 8), 'k')
-    #plt.boxplot([bias[low], bias[medium], bias[high], bias[high_thick], bias[high_thin], bias[high_very_thin]], whis=[5, 95], sym='',
-    #            labels=["low", "medium", "high-all", "high-thick\n od>0.3", "high-thin \n 0.1<od<0.3", "high-vthin\n od<0.1"], showmeans=True)
+    # plt.boxplot([bias[low], bias[medium], bias[high], bias[high_thick], bias[high_thin], bias[high_very_thin]], whis=[5, 95], sym='',
+    #           labels=["low", "medium", "high-all", "high-thick\n od>0.3", "high-thin \n 0.1<od<0.3", "high-vthin\n od<0.1"], showmeans=True)
     plt.boxplot([bias[low], bias[medium], bias[high]], whis=[5, 95], sym='',
                 labels=["low", "medium", "high"], showmeans=True)
     ax.set_ylim(-14000, 8000)
@@ -122,7 +122,7 @@ def make_boxplot(match_calipso, name):
 
     plt.title("%s MAE = %3.0f"%(title_name, MAE))
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_LAPSE_RATE_INVESTIGATION/ctth_box_plot_%s_5_95_filt.png"%(name))
-    #plt.show()
+    # plt.show()
 
 
 
@@ -167,8 +167,8 @@ def investigate_nn_ctth():
             match_calipso +=  readCaliopImagerMatchObj(filename)
         caobj_dict[name] = match_calipso
         make_boxplot(match_calipso, name)
-    #make_compare(caobj_dict['old'], caobj_dict['nn20161125'], 'test')
-    #make_compare(caobj_dict['nn20161130'], caobj_dict['nn20161125'], 'test2')
+    # make_compare(caobj_dict['old'], caobj_dict['nn20161125'], 'test')
+    # make_compare(caobj_dict['nn20161130'], caobj_dict['nn20161125'], 'test2')
 
 def investigate_nn_ctth_viirs():
     ROOT_DIR_v2014 = (
@@ -177,9 +177,9 @@ def investigate_nn_ctth_viirs():
     ROOT_DIR_v2018 = (
         ADIR + "/DATA_MISC/reshaped_files_jenkins_npp_modis/"
         "ATRAIN_RESULTS_NPP_C4/Reshaped_Files/npp/1km/2015/07/*/")
-    #ROOT_DIR_14bug_maia = (
-    #    ADIR + "/DATA_MISC/reshaped_files_jenkins_npp_modis/"
-    #    "NPP_FULL_ORBIT_2014/Reshaped_Files/")
+    # ROOT_DIR_14bug_maia = (
+    #   ADIR + "/DATA_MISC/reshaped_files_jenkins_npp_modis/"
+    #   "NPP_FULL_ORBIT_2014/Reshaped_Files/")
     ROOT_DIR_14bug = (
         ADIR + "/DATA_MISC/reshaped_files_jenkins_npp_modis/"
         "ATRAIN_RESULTS_NPP_v2014_before_ctthbug_correction/"
@@ -223,14 +223,14 @@ def investigate_nn_ctth_viirs():
         print files
         match_calipso = CalipsoImagerTrackObject()
         for filename in files:
-            #print filename
+            # print filename
             match_calipso +=  readCaliopImagerMatchObj(filename)
         caobj_dict[name] = match_calipso
         make_boxplot(match_calipso, name)
 
 def investigate_nn_ctth_modis_may():
-   #november
-    #may
+   # november
+    # may
     """
     ROOT_DIR_MODIS_nn = (
         ADIR + "/DATA_MISC/reshaped_files/"
@@ -258,17 +258,17 @@ def investigate_nn_ctth_modis_may():
         files = glob(ROOT_DIR + "/*11*.h5")
         match_calipso = CalipsoImagerTrackObject()
         for filename in files:
-            #print filename
+            # print filename
             match_calipso +=  readCaliopImagerMatchObj(filename)
         caobj_dict[name] = match_calipso
         make_boxplot(match_calipso, name)
-    #make_compare(caobj_dict["modis_nn18var"],
-    #             caobj_dict["modis_CTTHold"],
-    #             'compare_modis')
+    # make_compare(caobj_dict["modis_nn18var"],
+    #            caobj_dict["modis_CTTHold"],
+    #            'compare_modis')
 
 
 def investigate_nn_ctth_modis_november():
-    #november
+    # november
     ROOT_DIR_MODIS_nn_imager = (
         ADIR + "/DATA_MISC/reshaped_files/"
         "ATRAIN_RESULTS_MODIS_NOVEMBER/Reshaped_Files/merged/")
@@ -313,16 +313,16 @@ def investigate_nn_ctth_modis_november():
         files = glob(ROOT_DIR + "/*11*.h5")
         match_calipso = CalipsoImagerTrackObject()
         for filename in files:
-            #print filename
+            # print filename
             match_calipso +=  readCaliopImagerMatchObj(filename)
         caobj_dict[name] = match_calipso
         make_boxplot(match_calipso, name)
-    #make_compare(caobj_dict["modis_nn18var"],
-    #             caobj_dict["modis_CTTHold"],
-    #             'compare_modis')
+    # make_compare(caobj_dict["modis_nn18var"],
+    #            caobj_dict["modis_CTTHold"],
+    #            'compare_modis')
 
 if __name__ == "__main__":
-    #investigate_nn_ctth()
-    #investigate_nn_ctth_modis_november()
+    # investigate_nn_ctth()
+    # investigate_nn_ctth_modis_november()
     investigate_nn_ctth_viirs()
 

@@ -94,7 +94,7 @@ def my_measures(calipso_cfc, pps_cfc, calipso_snowi, pps_snowi, thin, use):
 def plot_cfc_table(match_calipso, cfc_limit=0.9, sat="modis"):
 
     from utils.get_flag_info import get_calipso_clouds_of_type_i
-    #cal_subset = np.logical_and(np.equal(nsidc_st, 0), np.equal(igbp_st, 17))
+    # cal_subset = np.logical_and(np.equal(nsidc_st, 0), np.equal(igbp_st, 17))
     cfc = match_calipso.calipso.all_arrays['cloud_fraction']
     calipso_snowi = match_calipso.calipso.all_arrays['nsidc_surface_type']
     od = match_calipso.calipso.all_arrays['total_optical_depth_5km']
@@ -119,7 +119,7 @@ def plot_cfc_table(match_calipso, cfc_limit=0.9, sat="modis"):
         ok_cma = np.logical_and(use, cma)
         ok_cl = np.logical_and(use, cl)
         ok_cma_thick = np.logical_and(use_thick, cma)
-        #cloudy = np.logcial_and(
+        # cloudy = np.logcial_and(
         print "%3.1f"%(limit) , len(cfc[use]),
         print "(%d)"%(len(cfc[use_thick]))
         print "cloudy" , "%3.1f"%(len(cfc[ok_cma])*100.0/len(cfc[use])),
@@ -242,17 +242,17 @@ def val_synop_cfc(match_calipso, sat):
                 .format(
                     measures["bias"],
                     measures["HR"],
-                    #measures["K"],
+                    # measures["K"],
                     measures["PODcy"],
-                    #measures["PODcy02"],
+                    # measures["PODcy02"],
                     measures["Farcy"],
                     measures["PODcl"],
                     measures["Farcl"],
                     measures["N"],
-                    #measures["PODsnow"],
-                    #measures["PODsnow_much"],
-                    #measures["FARsnow"],
-                    #measures["FARsnow_bad"],
+                    # measures["PODsnow"],
+                    # measures["PODsnow_much"],
+                    # measures["FARsnow"],
+                    # measures["FARsnow_bad"],
 
                 ))
         print(info)
@@ -313,7 +313,7 @@ if __name__ == "__main__":
         files = glob(ROOT_DIR_INNER + "*cali*h5")
         if exclude_2009:
             files = [filename for filename in files if "/2009/" not in filename]
-        #print files
+        # print files
         sat = ROOT_DIR_INNER.split("global_")[1].split("/Reshaped")[0]
         limit = 0.9
         if "gac" in sat:
@@ -337,6 +337,6 @@ if __name__ == "__main__":
                      ROOT_DIR_v2014_modis,
                      ROOT_DIR_v2018_modis,
                      ROOT_DIR_v2018_modis_ice]:
-                     #ROOT_DIR_v2014_gac,
-                     #ROOT_DIR_v2018_gac]:
+                     # ROOT_DIR_v2014_gac,
+                     # ROOT_DIR_v2018_gac]:
         process_one_case(ROOT_DIR)

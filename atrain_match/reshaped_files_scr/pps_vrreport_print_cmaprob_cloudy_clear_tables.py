@@ -44,7 +44,7 @@ out_file_h = open(out_filename, 'a')
 def plot_cfc_table(match_calipso, cfc_limit=0.9, sat="modis"):
 
     from utils.get_flag_info import get_calipso_clouds_of_type_i
-    #cal_subset = np.logical_and(np.equal(nsidc_st, 0), np.equal(igbp_st, 17))
+    # cal_subset = np.logical_and(np.equal(nsidc_st, 0), np.equal(igbp_st, 17))
     cfc = match_calipso.calipso.all_arrays['cloud_fraction']
     calipso_snowi = match_calipso.calipso.all_arrays['nsidc_surface_type']
     od = match_calipso.calipso.all_arrays['total_optical_depth_5km']
@@ -69,8 +69,8 @@ def plot_cfc_table(match_calipso, cfc_limit=0.9, sat="modis"):
     ct_quality = match_calipso.imager.all_arrays['cloudtype_quality']
     cma_aerosol = match_calipso.imager.all_arrays['cma_aerosolflag']
 
-    #import pdb
-    #pdb.set_trace()
+    # import pdb
+    # pdb.set_trace()
     pps_cprob[np.isnan(pps_cprob)]= -9
     use = np.logical_and(use, pps_cprob > 0)
     cl = np.logical_and(use, cl)
@@ -84,7 +84,7 @@ def plot_cfc_table(match_calipso, cfc_limit=0.9, sat="modis"):
         upper = lower + 5
         if upper == 100:
             upper = 101
-        #ppsclear
+        # ppsclear
         use_i = np.logical_and(cl, pps_cprob >= lower)
         use_i = np.logical_and(use_i, pps_cprob < upper)
         pclear_cloudy_i = np.logical_and(use_i, calipso_cfc == 1)
@@ -119,7 +119,7 @@ def plot_cfc_table(match_calipso, cfc_limit=0.9, sat="modis"):
         upper = lower + 5
         if upper == 100:
             upper = 101
-        #ppsclear
+        # ppsclear
         use_i = np.logical_and(cl, pps_cprob >= lower)
         use_i = np.logical_and(use_i, pps_cprob < upper)
         pclear_cloudy_i = np.logical_and(use_i, calipso_cfc == 1)
@@ -170,7 +170,7 @@ if __name__ == "__main__":
         files = glob(ROOT_DIR_INNER + "*cali*h5")
         if exclude_2009:
             files = [filename for filename in files if "/2009/" not in filename]
-        #print files
+        # print files
         sat = ROOT_DIR_INNER.split("global_")[1].split("/Reshaped")[0]
         limit = 0.9
         if "gac" in sat:
@@ -178,15 +178,15 @@ if __name__ == "__main__":
         match_calipso = read_files(files, 'calipso')
         plot_cfc_table(match_calipso, limit, sat=sat)
 
-    #for ROOT_DIR in [ROOT_DIR_v2014_gac,
-    #                 ROOT_DIR_v2018_gac]:
-    #    process_one_case(ROOT_DIR, True)
+    # for ROOT_DIR in [ROOT_DIR_v2014_gac,
+    #                ROOT_DIR_v2018_gac]:
+    #   process_one_case(ROOT_DIR, True)
 
     for ROOT_DIR in [#ROOT_DIR_v2014_npp,
                      ROOT_DIR_v2018_npp,
-                     #ROOT_DIR_v2014_modis,
+                     # ROOT_DIR_v2014_modis,
                      ROOT_DIR_v2018_modis,
                      ROOT_DIR_v2018_modis_ice]:
-                     #ROOT_DIR_v2014_gac,
-                     #ROOT_DIR_v2018_gac]:
+                     # ROOT_DIR_v2014_gac,
+                     # ROOT_DIR_v2018_gac]:
         process_one_case(ROOT_DIR)

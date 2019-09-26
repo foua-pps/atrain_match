@@ -38,7 +38,7 @@ def my_label(data):
              "IQR = {:3.1f}\n"
              "PE>10 = {:3.1f}\n"
              "N = {:d}\n".format(
-                 #text
+                 # text
                  np.mean(data),
                  my_rms(data),
                  np.median(data),
@@ -99,7 +99,7 @@ def do_the_printing(aObj, name):
             use_i = np.logical_and(use_i, conditions[condition])
             if surf == "all" and condition == "geoprof_cloudy":
                 use_map = use_i
-            #print x, y
+            # print x, y
             diff_i = x[use_i] - y[use_i]
             print name, surf, condition, np.mean(diff_i), my_rms(diff_i), my_iqr(diff_i), np.median(diff_i), np.std(diff_i), len(diff_i)
 
@@ -122,8 +122,8 @@ def do_the_printing(aObj, name):
 
             ax.fill(x_, hist_heights_gaussian, color='silver')
             plt.plot(x_, hist_heights, "r-", label = my_label(x[use_i]-y[use_i]))
-            #ax.set_ylim(0, 10)
-            #ax.set_xlim(-4, 6)
+            # ax.set_ylim(0, 10)
+            # ax.set_xlim(-4, 6)
             ax.set_xlim([-500, 600])
             ax.set_ylim([00, 14])
             if "amsr" in  aObj.truth_sat:
@@ -131,7 +131,7 @@ def do_the_printing(aObj, name):
             else:
                 ax.set_xlabel("error: PPS - CPR (CloudSat) LWP g/m^2")
             ax.set_ylabel("percent of data")
-                #plt.yticks(np.arange(0, 9, 2.0))
+                # plt.yticks(np.arange(0, 9, 2.0))
             plt.legend()
 
             ax = fig.add_subplot(132)
@@ -161,17 +161,17 @@ def do_the_printing(aObj, name):
             ax.set_xlabel("LWP g/m^2")
             ax.set_ylabel("percent of data")
 
-            #plt.show()
+            # plt.show()
             plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/scatter_and_error_lwp_%s_%s_dist_all_cpp_170_%s_%s.png"%(aObj.truth_sat, name, surf, condition), bbox_inches='tight')
-            #plt.show()
+            # plt.show()
             plt.close('all')
 
     from trajectory_plotting import plot_satellite_trajectory
     import config
-    #plot_satellite_trajectory(lon, lat,
-    #                        ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_marble_lwp_%s_dist_all"%(aObj.truth_sat),
-    #                        config.AREA_CONFIG_FILE,
-    #                        fig_type=['png'])
+    # plot_satellite_trajectory(lon, lat,
+    #                       ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_marble_lwp_%s_dist_all"%(aObj.truth_sat),
+    #                       config.AREA_CONFIG_FILE,
+    #                       fig_type=['png'])
     plot_satellite_trajectory(lon[use_map], lat[use_map],
                             ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_marble_lwp_%s_%s_dist"%(aObj.truth_sat, name),
                             config.AREA_CONFIG_FILE,
@@ -186,8 +186,8 @@ def do_the_printing(aObj, name):
 if __name__ == "__main__":
     ROOT_DIR_v2014_amsr = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_gac_v2014_created20180927/Reshaped_Files_merged_amsr_lwp/noaa18/5km/")
     ROOT_DIR_v2018_amsr = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_gac_v2018_created20180927/Reshaped_Files_merged_amsr_lwp/noaa18/5km/")
-    #ROOT_DIR_v2014_cl = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_gac_v2014_created20180927/Reshaped_Files_merged/noaa18/5km/*/*cloudsat")
-    #ROOT_DIR_v2018_cl = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_gac_v2018_created20180927/Reshaped_Files_merged/noaa18/5km/*/*cloudsat")
+    # ROOT_DIR_v2014_cl = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_gac_v2014_created20180927/Reshaped_Files_merged/noaa18/5km/*/*cloudsat")
+    # ROOT_DIR_v2018_cl = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_gac_v2018_created20180927/Reshaped_Files_merged/noaa18/5km/*/*cloudsat")
 
     ROOT_DIR_v2018_modis_cl = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_modis_v2018_created20181001_cmap_osiice_dust/Reshaped_Files_merged_cloudsat_lwp/eos2/1km/*/*/")
     ROOT_DIR_v2018_modis_amsr = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_modis_v2018_created20181001_cmap_osiice_dust/Reshaped_Files_merged_amsr_lwp/eos2/1km/*/*/")

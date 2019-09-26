@@ -112,22 +112,22 @@ elif isModis1km_lvl2:
     ROOT_DIR =  ADIR + "/DATA_MISC/reshaped_files/global_modis_01st_created20180316/"
     ROOT_DIR2 = ADIR + "/DATA_MISC/reshaped_files/global_modis_14th_created20180316/"
 
-    #files = glob(ROOT_DIR + "Reshaped_Files/eos?/1km/????/12/2010??14_*/*h5")
+    # files = glob(ROOT_DIR + "Reshaped_Files/eos?/1km/????/12/2010??14_*/*h5")
     files = glob(ROOT_DIR + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/*2/*.h5")
     files = files +glob(ROOT_DIR + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/04/*.h5")
     files = files +glob(ROOT_DIR + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/06/*.h5")
     files = files +glob(ROOT_DIR + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/08/*.h5")
     files = files +glob(ROOT_DIR + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/10/*.h5")
-    #files = files +glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/05/*.h5")
+    # files = files +glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/05/*.h5")
     files = files +glob(ROOT_DIR + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/11/*.h5")
     files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/01/*.h5")
-    #files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/03/*.h5")
+    # files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/03/*.h5")
     files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/06/*.h5")
-    #files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/07/*.h5")
+    # files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/07/*.h5")
     files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/09/*.h5")
-    #files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/11/*.h5")
-    #files = glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/*/*.h5")
-    #files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/*/*.h5")
+    # files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/11/*.h5")
+    # files = glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/*/*.h5")
+    # files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/*/*.h5")
 
 
 elif isModis1km_ppsv2018:
@@ -135,7 +135,7 @@ elif isModis1km_ppsv2018:
     isGAC=False
     ROOT_DIR =  ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_modis_v2018_created20180920/"
     satellites = "eos_modis_v2018_C6_1st_and_14th_non_used_v2018_val"
-    #files = glob(ROOT_DIR + "Reshaped_Files/eos?/1km/????/12/2010??14_*/*h5")
+    # files = glob(ROOT_DIR + "Reshaped_Files/eos?/1km/????/12/2010??14_*/*h5")
     files = glob(ROOT_DIR + "Reshaped_Files_merged_caliop/eos2/1km/2010/*2/2010*01_*.h5")
     files = files +glob(ROOT_DIR + "Reshaped_Files_merged_caliop/eos2/1km/2010/04/*0401_*.h5")
     files = files +glob(ROOT_DIR + "Reshaped_Files_merged_caliop/eos2/1km/2010/06/*0601_*.h5")
@@ -169,28 +169,28 @@ elif isModis1km_nnctth:
     satellites = "eos_modis_v2018_1st_and_14th_all_val_test_font_testing_offset_calipso4"
     ROOT_DIR = ADIR + "/DATA_MISC/reshaped_files/global_modis_01st_created20180316/"
     ROOT_DIR2 = ADIR + "/DATA_MISC/reshaped_files/global_modis_14th_created20180316/"
-    #files = glob(ROOT_DIR + "Reshaped_Files/eos?/1km/????/12/2010??14_*/*h5")
+    # files = glob(ROOT_DIR + "Reshaped_Files/eos?/1km/????/12/2010??14_*/*h5")
     files = glob(ROOT_DIR + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/*2/*.h5")
     files = files +glob(ROOT_DIR + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/04/*.h5")
     files = files +glob(ROOT_DIR + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/06/*.h5")
     files = files +glob(ROOT_DIR + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/08/*.h5")
     files = files +glob(ROOT_DIR + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/10/*.h5")
-    #files = files +glob(ROOT_DIR + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/05/*.h5")
+    # files = files +glob(ROOT_DIR + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/05/*.h5")
     files = files +glob(ROOT_DIR + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/11/*.h5")
     files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/01/*.h5")
-    #files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/03/*.h5")
+    # files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/03/*.h5")
     files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/06/*.h5")
-    #files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/07/*.h5")
+    # files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/07/*.h5")
     files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/09/*.h5")
-    #files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/11/*.h5")
+    # files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/11/*.h5")
 
 
-    #ROOT_DIR2 = ADIR + "/DATA_MISC/reshaped_files/global_modis_14th_created20171121/"
-    #files = glob(ROOT_DIR2 + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/*/*.h5")
-    #satellites = "eos_modis_v2018_14th_all_14_offset_rttov12"
-    #ROOT_DIR2 = ADIR + "/DATA_MISC/reshaped_files/global_modis_14th_created20170519/"
-    #files = glob(ROOT_DIR2 + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/*/*.h5")
-    #satellites = "eos_modis_v2018_14th_all_14_offset_rttov9"
+    # ROOT_DIR2 = ADIR + "/DATA_MISC/reshaped_files/global_modis_14th_created20171121/"
+    # files = glob(ROOT_DIR2 + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/*/*.h5")
+    # satellites = "eos_modis_v2018_14th_all_14_offset_rttov12"
+    # ROOT_DIR2 = ADIR + "/DATA_MISC/reshaped_files/global_modis_14th_created20170519/"
+    # files = glob(ROOT_DIR2 + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/*/*.h5")
+    # satellites = "eos_modis_v2018_14th_all_14_offset_rttov9"
 
 
 elif isNPP_v2014:
@@ -203,8 +203,8 @@ elif isGAC_v2014_morning_sat:
     num_files_to_read = 1#30*3
     isGAC=True
     ROOT_DIR = ADIR + "/DATA_MISC/reshaped_files/clara_a2_rerun/Reshaped_Files_CLARA_A2_final/"
-    #files = glob(ROOT_DIR + "noaa17/5km/20??/??/*/*h5")
-    #files = files + glob(ROOT_DIR + "metop*/5km/20??/??/*/*h5")
+    # files = glob(ROOT_DIR + "noaa17/5km/20??/??/*/*h5")
+    # files = files + glob(ROOT_DIR + "metop*/5km/20??/??/*/*h5")
     files = glob(ROOT_DIR + "merged/metop*h5")
     files = files + glob(ROOT_DIR + "merged/noaa17*h5")
     satellites = "metopa_metopb_noaa17"
@@ -220,7 +220,7 @@ elif isGAC_v2014:
     ROOT_DIR = ADIR + "/DATA_MISC/reshaped_files/clara_a2_rerun/Reshaped_Files_CLARA_A2_final/"
     files = glob(ROOT_DIR + "merged/noaa18*h5")
     files = files + glob(ROOT_DIR + "merged/noaa19*h5")
-    #files = glob(ROOT_DIR + "merged/noaa19*2014*h5")
+    # files = glob(ROOT_DIR + "merged/noaa19*2014*h5")
     if cci_orbits:
         satellites = "part_noaa18_noaa19"
         files = glob(ROOT_DIR + "merged/noaa18*200*h5") #06, 07, 08, 09
@@ -289,7 +289,7 @@ for filename in files:
     else:
         match_calipso = match_calipso + match_calipso_new
 
-#Get info from the last files too
+# Get info from the last files too
 if num_files_to_read!=1:
     print("Get info from last files!")
     temp_obj.get_some_info_from_caobj(match_calipso, PROCES_FOR_ART=PROCES_FOR_ART)
@@ -303,7 +303,7 @@ pplot_obj.flattice.calculate_bias()
 pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-25.0, vmax=25.0, score='Bias', screen_out_valid=True)
 pplot_obj.flattice.calculate_kuipers()
 pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=0.0, score='Kuipers')
-#Calcualte hitrate
+# Calcualte hitrate
 pplot_obj.flattice.calculate_hitrate()
 pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=0.5, score='Hitrate')
 pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=0.0, vmax=1000.0, score='Number_of')
@@ -315,15 +315,15 @@ pplot_obj.flattice.calculate_t11t12_offset()
 pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-1.0, vmax=1.0, score='t11t12_offset')
 pplot_obj.flattice.calculate_t37t12_offset()
 pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-10.0, vmax=10.0, score='t37t12_offset')
-#start to calculate
+# start to calculate
 if 'modis' in satellites and 1==2:
-    #needs surftemp
+    # needs surftemp
     pplot_obj.flattice.calculate_height_bias_lapse()
     pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-2000.0, vmax=2000.0, score='lapse_bias_low')
     pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-5000.0, vmax=5000.0, score='lapse_bias_high')
     pplot_obj.flattice.calculate_lapse_rate()
     pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-25.0, vmax=0.0, score='lapse_rate')
-    #Calcualte scores #nneds r13
+    # Calcualte scores # nneds r13
     pplot_obj.flattice.calculate_increased_hitrate()
     pplot_obj.flattice.remap_and_plot_score_on_several_areas( score='increased_Hitrate', vmin=-0.05, vmax=0.05)
 
@@ -358,10 +358,10 @@ pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-4000.0, vmax=400
 
 
 
-#Calcualte threat_score
+# Calcualte threat_score
 pplot_obj.flattice.calculate_threat_score()
 pplot_obj.flattice.remap_and_plot_score_on_several_areas( score='Threat_Score')
-#Calcualte threat_score_clear
+# Calcualte threat_score_clear
 pplot_obj.flattice.calculate_threat_score_clear()
 pplot_obj.flattice.remap_and_plot_score_on_several_areas( score='Threat_Score_Clear')
 pplot_obj.flattice.calculate_calipso_cfc()
