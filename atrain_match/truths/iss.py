@@ -37,8 +37,8 @@ def get_iss(filename):
     # Read ISS Radar data for calipso something is done in this function:
     limit = 0.02
     iss = read_iss(filename)
-    iss.cloud_fraction = 0.0 + 0*iss.cloud_phase_fore_fov[:,0].copy()
-    iss.total_optical_depth_5km = 0.0 + 0*iss.cloud_phase_fore_fov[:,0].copy()
+    iss.cloud_fraction = 0.0 + 0*iss.cloud_phase_fore_fov[:, 0].copy()
+    iss.total_optical_depth_5km = 0.0 + 0*iss.cloud_phase_fore_fov[:, 0].copy()
     iss.validation_height = -9 + 0 * iss.cloud_fraction.copy()
     #  feature_optical_depth_1064_fore_fov
     # 1.       Handle layers with values -1 och -999.9 as optical thick (= 5)
@@ -50,23 +50,23 @@ def get_iss(filename):
     # Remember that layer_top_altitude contain also aerosols
     # This was not the case for CALIPSO-data
     # There can be a thin aerosol layer above the highest cloud!
-    for layer in range(9,-1,-1):  # layer index 9.0
-        # is_cloudy = np.greater(iss.cloud_phase_fore_fov[:,layer],0)
-        is_cloudy = np.equal(iss.feature_type_fore_fov[:,layer],1)
+    for layer in range(9, -1, -1):  # layer index 9.0
+        # is_cloudy = np.greater(iss.cloud_phase_fore_fov[:, layer], 0)
+        is_cloudy = np.equal(iss.feature_type_fore_fov[:, layer], 1)
         is_cloudy = np.logical_and(
             is_cloudy,
-            np.equal(iss.extinction_qc_flag_1064_fore_fov[:,layer],0))
+            np.equal(iss.extinction_qc_flag_1064_fore_fov[:, layer], 0))
         is_cloudy = np.logical_and(
             is_cloudy,
-            np.greater(iss.feature_type_score_fore_fov[:,layer],5))
-        od_layer = iss.feature_optical_depth_1064_fore_fov[:,layer].copy()
+            np.greater(iss.feature_type_score_fore_fov[:, layer], 5))
+        od_layer = iss.feature_optical_depth_1064_fore_fov[:, layer].copy()
         od_layer[od_layer==-1] = 5.0
         od_layer[od_layer==-999.9] = 5.0
         od_layer[od_layer<0] = 0.0
         iss.total_optical_depth_5km += od_layer
         is_not_very_thin = np.greater(od_layer, limit)
         # is_cloudy = np.logical_and(is_cloudy, is_not_very_thin)
-        height_layer = iss.layer_top_altitude_fore_fov[:,layer]
+        height_layer = iss.layer_top_altitude_fore_fov[:, layer]
         iss.validation_height[is_cloudy] = height_layer[is_cloudy]
 
     logger.warning("Currently not considering cloudheight for cloud layers "
@@ -92,9 +92,9 @@ def get_iss(filename):
     # 1 = clear skies (no clouds)
     # 2 = cloudy skies (no aerosols)
     # 3 = hazy/cloudy (both clouds/aerosols)
-    iss.cloud_fraction = np.where(iss.sky_condition_fore_fov>1.5, 1.0,0.0)
+    iss.cloud_fraction = np.where(iss.sky_condition_fore_fov>1.5, 1.0, 0.0)
     # print "iss cf", iss.cloud_fraction
-    logger.warning("Currently using sky_condition_fore_fov to set cloudfraction,"
+    logger.warning("Currently using sky_condition_fore_fov to set cloudfraction, "
                    "\n \t use cloud_phase_fore_fov instead?")
 
     iss.validation_height[iss.cloud_fraction<0.5] = -9  # should not be needed
@@ -131,17 +131,17 @@ def read_iss(filename):
                 data = np.array(data)
                 setattr(retv, name, data)
         h5file.close()
-        retv.latitude = retv.cats_fore_fov_latitude[:,1]
-        retv.longitude = retv.cats_fore_fov_longitude[:,1]
+        retv.latitude = retv.cats_fore_fov_latitude[:, 1]
+        retv.longitude = retv.cats_fore_fov_longitude[:, 1]
         # Elevation is given in km's. Convert to meters:
         retv.elevation = retv.dem_surface_altitude_fore_fov*1000.0
         seconds_per_day = datetime.timedelta(days=1).total_seconds()
         midnight_sec_1970 = [ calendar.timegm(time.strptime(str(date_as_integer), "%Y%m%d")) for date_as_integer in retv.profile_utc_date]
-        retv.sec_1970 = seconds_per_day*retv.profile_utc_time[:,1] + np.array(midnight_sec_1970)
+        retv.sec_1970 = seconds_per_day*retv.profile_utc_time[:, 1] + np.array(midnight_sec_1970)
     return retv
 
 
-def match_iss_imager(iss,cloudproducts, SETTINGS):
+def match_iss_imager(iss, cloudproducts, SETTINGS):
     retv = TruthImagerTrackObject(truth='iss')
     retv.imager_instrument = cloudproducts.instrument.lower()
     retv.iss = iss
@@ -157,8 +157,8 @@ def match_iss_imager(iss,cloudproducts, SETTINGS):
         return None
     # check if it is within time limits:
     if len(cloudproducts.time.shape)>1:
-        imager_time_vector = [cloudproducts.time[line,pixel] for line, pixel
-                              in zip(cal,cap)]
+        imager_time_vector = [cloudproducts.time[line, pixel] for line, pixel
+                              in zip(cal, cap)]
         imager_lines_sec_1970 = np.where(cal != config.NODATA, imager_time_vector, np.nan)
     else:
         imager_lines_sec_1970 = np.where(cal != config.NODATA, cloudproducts.time[cal], np.nan)
@@ -171,7 +171,7 @@ def match_iss_imager(iss,cloudproducts, SETTINGS):
 
     retv.iss = retv.iss.extract_elements(idx=idx_match)
 
-     # Calipso line,pixel inside IMAGER swath:
+     # Calipso line, pixel inside IMAGER swath:
     retv.iss.imager_linnum = np.repeat(cal, idx_match).astype('i')
     retv.iss.imager_pixnum = np.repeat(cap, idx_match).astype('i')
     # Imager time
@@ -179,7 +179,7 @@ def match_iss_imager(iss,cloudproducts, SETTINGS):
     retv.diff_sec_1970 = retv.iss.sec_1970 - retv.imager.sec_1970
 
     do_some_logging(retv, iss)
-    logger.info("Generate the latitude,cloudtype tracks!")
+    logger.info("Generate the latitude, cloudtype tracks!")
     retv = imager_track_from_matched(retv, SETTINGS, cloudproducts)
     return retv
 

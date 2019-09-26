@@ -157,7 +157,7 @@ def find_closest_nwp_file(cloudproducts, AM_PATHS, values, SETTINGS):
     date_time = datetime.fromtimestamp((cloudproducts.sec1970_end*0.5 +
                                         cloudproducts.sec1970_start*0.5), my_tz.utc)
     delta_3h = timedelta(hours=SETTINGS['MAX_NWP_TDIFF_HOURS'])
-    tlist = get_time_list(date_time,  [delta_3h, delta_3h], 60*60)  # time_window +/- 3h
+    tlist = get_time_list(date_time, [delta_3h, delta_3h], 60*60)  # time_window +/- 3h
     for tobj in tlist:
         for prognosis_length in range(15):
             values['plus_hours'] = "{:03d}".format(prognosis_length)
@@ -214,22 +214,22 @@ def get_satid_datetime_orbit_from_fname(filename, SETTINGS, cross=None, as_oldst
 
 def insert_info_in_filename_or_path(file_or_name_path, values, datetime_obj=None):
     # file_or_name_path = file_or_name_path.format(**values)
-    satellite=values.get("satellite","*")
+    satellite=values.get("satellite", "*")
     file_or_name_path = file_or_name_path.format(
-        ctth_type=values.get("ctth_type",""),
+        ctth_type=values.get("ctth_type", ""),
         satellite=satellite,
-        orbit=values.get("orbit","*"),
-        instrument = INSTRUMENT.get(satellite,"avhrr"),
+        orbit=values.get("orbit", "*"),
+        instrument = INSTRUMENT.get(satellite, "avhrr"),
         resolution=config.RESOLUTION,
         lines_lines=values.get("lines_lines", "*"),
         val_dir=config._validation_results_dir,
-        extrai=values.get('extrai',""),
-        plus_hours=values.get("plus_hours",""),
-        year=values.get('year',"unknown"),
-        month=values.get('month',"unknown"),
-        mode=values.get('mode',"unknown"),
-        # min_opt_depth=values.get('min_opt_depth',""),
-        atrain_datatype=values.get("atrain_datatype","atrain_datatype"))
+        extrai=values.get('extrai', ""),
+        plus_hours=values.get("plus_hours", ""),
+        year=values.get('year', "unknown"),
+        month=values.get('month', "unknown"),
+        mode=values.get('mode', "unknown"),
+        # min_opt_depth=values.get('min_opt_depth', ""),
+        atrain_datatype=values.get("atrain_datatype", "atrain_datatype"))
     if datetime_obj is None:
         return file_or_name_path
     name = datetime_obj.strftime(file_or_name_path)
@@ -272,7 +272,7 @@ def find_truth_files(date_time, AM_PATHS, SETTINGS, values, truth='calipso'):
     if truth in ['iss']:
         t_files.sort(key=lambda x: x.rsplit('.')[-2])
     truth_basenames = [ "\n          " + os.path.basename(s) for s in t_files ]
-    logger.info("%s files:  %s",truth.upper(), "\n ".join(truth_basenames))
+    logger.info("%s files:  %s", truth.upper(), "\n ".join(truth_basenames))
     return t_files
 
 
@@ -282,7 +282,7 @@ def find_radiance_file(cross, AM_PATHS):
                                       AM_PATHS['radiance_file'])
     if not found_file:
         raise MatchupError("No dir or file found with radiance data!\n" +
-                           "Searching for %s %s" % (AM_PATHS['radiance_dir'],AM_PATHS['radiance_file']))
+                           "Searching for %s %s" % (AM_PATHS['radiance_dir'], AM_PATHS['radiance_file']))
     return found_file, tobj
 def find_cci_cloud_file(cross, AM_PATHS):
     found_file, tobj= find_imager_file(cross,
@@ -403,9 +403,9 @@ def get_pps_file(imager_file, AM_PATHS, values, type_of_file, file_dir,
         file_name = glob(os.path.join(path, pps_file_name))[0]
         if FailIfRequestedAndMissing:
             # This is and important file, tell the user where it was read:
-            logger.info("%s-dir: %s", type_of_file.upper().replace('_FILE',''),
+            logger.info("%s-dir: %s", type_of_file.upper().replace('_FILE', ''),
                         os.path.dirname(file_name))
-            logger.info("%s-file: %s", type_of_file.upper().replace('_FILE',''),
+            logger.info("%s-file: %s", type_of_file.upper().replace('_FILE', ''),
                         os.path.basename(file_name))
         return file_name
     except IndexError:
@@ -503,12 +503,12 @@ def find_files_from_imager(imager_file, AM_PATHS, SETTINGS, as_oldstyle=False):
                                                'thr_t11ts_file', 'thr_dir',
                                                FailIfRequestedAndMissing=True)
     # # # # More NWP, textures and thresholds for v2014:
-    for nwp_file in ['nwp_t500','nwp_t700',
-                     'nwp_t850','nwp_t950', 'nwp_ciwv', 'nwp_ttro']:
+    for nwp_file in ['nwp_t500', 'nwp_t700',
+                     'nwp_t850', 'nwp_t950', 'nwp_ciwv', 'nwp_ttro']:
         file_name_dict[nwp_file] = get_pps_file(imager_file, AM_PATHS, values,
                                                  nwp_file+'_file', 'nwp_nwp_dir',
                                                  OnlyPrintInDebugMode=True)
-    for text_file in ['text_r06',  'text_t37t12', 'text_t37']:
+    for text_file in ['text_r06', 'text_t37t12', 'text_t37']:
         file_name_dict[text_file] = get_pps_file(imager_file, AM_PATHS, values,
                                                  text_file+'_file', 'text_dir',
                                                  OnlyPrintInDebugMode=True)
@@ -545,39 +545,39 @@ def get_cloudsat_matchups(cloudsat_files, cloudsat_files_lwp, cloudproducts, SET
     elif cloudsat is None:
         cloudsat = cloudsat_lwp
     logger.debug("Matching CloudSat with imager")
-    cl_matchup = match_cloudsat_imager(cloudsat, cloudproducts,  SETTINGS)
+    cl_matchup = match_cloudsat_imager(cloudsat, cloudproducts, SETTINGS)
     return cl_matchup
 
-def get_iss_matchups(iss_files, cloudproducts,  SETTINGS):
+def get_iss_matchups(iss_files, cloudproducts, SETTINGS):
     """
     Read Iss data and match with the given PPS data.
     """
-    iss = reshape_iss(iss_files, cloudproducts,  SETTINGS)
-    cl_matchup = match_iss_imager(iss, cloudproducts,  SETTINGS)
+    iss = reshape_iss(iss_files, cloudproducts, SETTINGS)
+    cl_matchup = match_iss_imager(iss, cloudproducts, SETTINGS)
     return cl_matchup
 
-def get_amsr_matchups(amsr_files, cloudproducts,  SETTINGS):
+def get_amsr_matchups(amsr_files, cloudproducts, SETTINGS):
     """
     Read Amsr data and match with the given PPS data.
     """
-    amsr = reshape_amsr(amsr_files, cloudproducts,  SETTINGS)
-    am_matchup = match_amsr_imager(amsr, cloudproducts,  SETTINGS)
+    amsr = reshape_amsr(amsr_files, cloudproducts, SETTINGS)
+    am_matchup = match_amsr_imager(amsr, cloudproducts, SETTINGS)
     return am_matchup
 
-def get_synop_matchups(synop_files, cloudproducts,  SETTINGS):
+def get_synop_matchups(synop_files, cloudproducts, SETTINGS):
     """
     Read Synop data and match with the given PPS data.
     """
-    synop = reshape_synop(synop_files, cloudproducts,  SETTINGS)
-    synop_matchup = match_synop_imager(synop, cloudproducts,  SETTINGS)
+    synop = reshape_synop(synop_files, cloudproducts, SETTINGS)
+    synop_matchup = match_synop_imager(synop, cloudproducts, SETTINGS)
     return synop_matchup
 
 def get_mora_matchups(mora_files, cloudproducts, SETTINGS):
     """
     Read Mora data and match with the given PPS data.
     """
-    mora = reshape_mora(mora_files, cloudproducts,  SETTINGS)
-    mora_matchup = match_mora_imager(mora, cloudproducts,  SETTINGS)
+    mora = reshape_mora(mora_files, cloudproducts, SETTINGS)
+    mora_matchup = match_mora_imager(mora, cloudproducts, SETTINGS)
     return mora_matchup
 
 
@@ -612,7 +612,7 @@ def get_calipso_matchups(calipso_files, values,
 
     calipso  = reshape_calipso(calipso_files)
     # find time breakpoints, but don't cut the data yet ..
-    startBreak, endBreak = find_break_points(calipso,  cloudproducts, SETTINGS)
+    startBreak, endBreak = find_break_points(calipso, cloudproducts, SETTINGS)
     if cafiles1km is not None and CALIPSO_version == 3 and config.RESOLUTION == 5:
         # RESOLUTION 5km also have 1km data
         logger.info("Calipso version 3 data used and old 1 km restore method!")
@@ -731,7 +731,7 @@ def get_additional_calipso_files_if_requested(calipso_files, SETTINGS):
                 files_found = glob.glob(file1km)
                 if len(files_found)==0:
                     # didn't find h5 file, might be hdf file instead
-                    file1km = file1km.replace('.h5','.hdf')
+                    file1km = file1km.replace('.h5', '.hdf')
                     files_found = glob.glob(file1km)
                 if len(files_found)>0:
                     calipso1km.append(files_found[0])
@@ -755,14 +755,14 @@ def get_additional_calipso_files_if_requested(calipso_files, SETTINGS):
             for file1km in calipso_files:
                 file5km = file1km.replace('/1km/', '/5km/').\
                           replace('01kmCLay', '05kmCLay').\
-                          replace('-Standard-V4-10.','*').\
+                          replace('-Standard-V4-10.', '*').\
                           replace('-ValStage1-V3-30.', '*').\
                           replace('-ValStage1-V3-01.', '*').\
                           replace('-ValStage1-V3-02.', '*')
                 files_found = glob.glob(file5km)
                 if len(files_found)==0:
                     # didn't find h5 file, might be hdf file instead
-                    file5km = file5km.replace('.h5','.hdf')
+                    file5km = file5km.replace('.h5', '.hdf')
                     files_found = glob.glob(file5km)
                 if len(files_found)>0:
                     calipso5km.append(files_found[0])
@@ -792,7 +792,7 @@ def get_additional_calipso_files_if_requested(calipso_files, SETTINGS):
             files_found_aerosol = glob.glob(file5km_aerosol)
             if len(files_found_aerosol)==0:
                 # didn't find h5 file, might be hdf file instead
-                file5km_aerosol = file5km_aerosol.replace('.h5','.hdf')
+                file5km_aerosol = file5km_aerosol.replace('.h5', '.hdf')
                 files_found_aerosol = glob.glob(file5km_aerosol)
             if len(files_found_aerosol)>0:
                 calipso5km_aerosol.append(files_found_aerosol[0])
@@ -811,16 +811,16 @@ def add_additional_clousat_calipso_index_vars(match_clsat, match_calipso):
         match_calipso.calipso.cal_modis_cflag = None
         # map cloudsat to calipso and the other way around!
         from atrain_match.utils.match import match_lonlat
-        source = (match_clsat.cloudsat.longitude.astype(np.float64).reshape(-1,1),
-                  match_clsat.cloudsat.latitude.astype(np.float64).reshape(-1,1))
-        target = (match_calipso.calipso.longitude.astype(np.float64).reshape(-1,1),
-                  match_calipso.calipso.latitude.astype(np.float64).reshape(-1,1))
+        source = (match_clsat.cloudsat.longitude.astype(np.float64).reshape(-1, 1),
+                  match_clsat.cloudsat.latitude.astype(np.float64).reshape(-1, 1))
+        target = (match_calipso.calipso.longitude.astype(np.float64).reshape(-1, 1),
+                  match_calipso.calipso.latitude.astype(np.float64).reshape(-1, 1))
         mapper, dummy = match_lonlat(source, target, radius_of_influence=1000, n_neighbours=1)
         match_calipso.calipso.cloudsat_index = mapper.rows.filled(config.NODATA).ravel()
-        target = (match_clsat.cloudsat.longitude.astype(np.float64).reshape(-1,1),
-                  match_clsat.cloudsat.latitude.astype(np.float64).reshape(-1,1))
-        source = (match_calipso.calipso.longitude.astype(np.float64).reshape(-1,1),
-                  match_calipso.calipso.latitude.astype(np.float64).reshape(-1,1))
+        target = (match_clsat.cloudsat.longitude.astype(np.float64).reshape(-1, 1),
+                  match_clsat.cloudsat.latitude.astype(np.float64).reshape(-1, 1))
+        source = (match_calipso.calipso.longitude.astype(np.float64).reshape(-1, 1),
+                  match_calipso.calipso.latitude.astype(np.float64).reshape(-1, 1))
         mapper, dummy = match_lonlat(source, target, radius_of_influence=1000, n_neighbours=1)
         match_clsat.cloudsat.calipso_index = mapper.rows.filled(config.NODATA).ravel()
 
@@ -846,8 +846,8 @@ def add_additional_clousat_calipso_index_vars(match_clsat, match_calipso):
                     continue
                 temp_data = np.array([np.where(
                     match_clsat.cloudsat.calipso_index>=0,
-                    data_calipso[index,i], -9) for i in range(data_calipso.shape[1])])
-                setattr(match_clsat.cloudsat,  'calipso_{:s}'.format(var_2d_name), temp_data.transpose())
+                    data_calipso[index, i], -9) for i in range(data_calipso.shape[1])])
+                setattr(match_clsat.cloudsat, 'calipso_{:s}'.format(var_2d_name), temp_data.transpose())
 
         for var_1d_name in ['column_optical_depth_tropospheric_aerosols_532',
                            'column_optical_depth_tropospheric_aerosols_532_5km',
@@ -859,41 +859,41 @@ def add_additional_clousat_calipso_index_vars(match_clsat, match_calipso):
                 if data_calipso is None:
                     continue
                 temp_data = np.where(match_clsat.cloudsat.calipso_index>=0, data_calipso[index], -9)
-                setattr(match_clsat.cloudsat,  'calipso_{:s}'.format(var_1d_name), temp_data)
+                setattr(match_clsat.cloudsat, 'calipso_{:s}'.format(var_1d_name), temp_data)
 
         """
         match_clsat.cloudsat.calipso_feature_classification_flags= np.where(
             match_clsat.cloudsat.calipso_index>=0,
-            match_calipso.calipso.feature_classification_flags[index,0],
+            match_calipso.calipso.feature_classification_flags[index, 0],
             -9)
         # first bas layer use height not pressure as cloudsat uses height
         match_clsat.cloudsat.calipso_layer_base_altitude = np.where(
             match_clsat.cloudsat.calipso_index>=0,
-            match_calipso.calipso.layer_base_altitude[index,0],
+            match_calipso.calipso.layer_base_altitude[index, 0],
             -9)
-        for layer in range(1,10):
+        for layer in range(1, 10):
             match_clsat.cloudsat.calipso_layer_base_altitude = np.where(
                 np.logical_and(np.logical_and(match_clsat.cloudsat.calipso_index>=0,
-                                              match_calipso.calipso.layer_base_altitude[index,layer]>0),
-                               match_calipso.calipso.layer_base_altitude[index,layer]<
-                               match_calipso.calipso.layer_base_altitude[index,layer-1]),
+                                              match_calipso.calipso.layer_base_altitude[index, layer]>0),
+                               match_calipso.calipso.layer_base_altitude[index, layer]<
+                               match_calipso.calipso.layer_base_altitude[index, layer-1]),
 
-                match_calipso.calipso.layer_base_altitude[index,layer],
+                match_calipso.calipso.layer_base_altitude[index, layer],
             match_clsat.cloudsat.calipso_layer_base_altitude)
         match_clsat.cloudsat.calipso_layer_base_altitude[match_clsat.cloudsat.calipso_layer_base_altitude<-999] = -9.0
         # first bas layer use height not pressure as cloudsat uses height
         match_clsat.cloudsat.calipso_layer_top_altitude = np.where(
             match_clsat.cloudsat.calipso_index>=0,
-            match_calipso.calipso.layer_top_altitude[index,0],
+            match_calipso.calipso.layer_top_altitude[index, 0],
             -9)
-        for layer in range(1,10):
+        for layer in range(1, 10):
             match_clsat.cloudsat.calipso_layer_top_altitude = np.where(
                 np.logical_and(np.logical_and(match_clsat.cloudsat.calipso_index>=0,
-                                              match_calipso.calipso.layer_top_altitude[index,layer]>0),
-                               match_calipso.calipso.layer_top_altitude[index,layer]>
-                               match_calipso.calipso.layer_top_altitude[index,layer-1]),
+                                              match_calipso.calipso.layer_top_altitude[index, layer]>0),
+                               match_calipso.calipso.layer_top_altitude[index, layer]>
+                               match_calipso.calipso.layer_top_altitude[index, layer-1]),
 
-                match_calipso.calipso.layer_top_altitude[index,layer],
+                match_calipso.calipso.layer_top_altitude[index, layer],
             match_clsat.cloudsat.calipso_layer_top_altitude)
         match_clsat.cloudsat.calipso_layer_top_altitude[match_clsat.cloudsat.calipso_layer_top_altitude<-999] = -9.0
     """
@@ -919,8 +919,8 @@ def add_elevation_corrected_imager_ctth(match_clsat, match_calipso, issObj, SETT
         # First make sure that PPS cloud top heights are converted to height
         # above sea level just as CloudSat height are defined. Use
         # corresponding DEM data.
-        elevation = np.where(np.less_equal(match_clsat.cloudsat.elevation,0),
-                             0,match_clsat.cloudsat.elevation)
+        elevation = np.where(np.less_equal(match_clsat.cloudsat.elevation, 0),
+                             0, match_clsat.cloudsat.elevation)
         num_csat_data_ok = len(match_clsat.cloudsat.elevation)
         logger.debug("Length of CLOUDSAT array: %d", num_csat_data_ok )
         imager_ctth_m_above_seasurface = match_clsat.imager.ctth_height.copy()
@@ -941,8 +941,8 @@ def add_elevation_corrected_imager_ctth(match_clsat, match_calipso, issObj, SETT
     if match_calipso is None or match_calipso.imager.ctth_height is None:
         pass
     elif  match_calipso.imager.imager_ctth_m_above_seasurface is None:
-        cal_elevation = np.where(np.less_equal(match_calipso.calipso.elevation,0),
-                                 0,match_calipso.calipso.elevation)
+        cal_elevation = np.where(np.less_equal(match_calipso.calipso.elevation, 0),
+                                 0, match_calipso.calipso.elevation)
         num_cal_data_ok = len(match_calipso.calipso.elevation)
         logger.debug("Length of CALIOP array: %d", num_cal_data_ok)
         imager_ctth_m_above_seasurface = match_calipso.imager.ctth_height.copy()
@@ -957,8 +957,8 @@ def add_elevation_corrected_imager_ctth(match_clsat, match_calipso, issObj, SETT
     if issObj is None or issObj.imager.ctth_height is None:
         pass
     elif  issObj.imager.imager_ctth_m_above_seasurface is None:
-        iss_elevation = np.where(np.less_equal(issObj.iss.elevation,0),
-                                 0,issObj.iss.elevation)
+        iss_elevation = np.where(np.less_equal(issObj.iss.elevation, 0),
+                                 0, issObj.iss.elevation)
         num_iss_data_ok = len(issObj.iss.elevation)
         logger.info("Length of ISS array: %d", num_iss_data_ok)
         imager_ctth_m_above_seasurface = issObj.imager.ctth_height.copy()
@@ -998,9 +998,9 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
     truth_files = {}
     for truth in ['cloudsat', 'amsr', 'iss', 'synop', 'mora', 'cloudsat_lwp', 'calipso']:
         truth_files[truth] = None
-        if (SETTINGS[truth.replace("_lwp","").upper()+'_MATCHING'] and truth + '_file' in AM_PATHS.keys()):
+        if (SETTINGS[truth.replace("_lwp", "").upper()+'_MATCHING'] and truth + '_file' in AM_PATHS.keys()):
             truth_files[truth] = find_truth_files(date_time, AM_PATHS, SETTINGS, values, truth=truth)
-        elif not SETTINGS[truth.replace("_lwp","").upper()+'_MATCHING']:
+        elif not SETTINGS[truth.replace("_lwp", "").upper()+'_MATCHING']:
             logger.info("NO {truth} File, {truth} matching not requested "
                         "{truth}_MATCHING=False".format(truth=truth))
         elif  truth + '_file' not in AM_PATHS.keys():
@@ -1113,9 +1113,9 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
         satellite=values["satellite"],
         orbit=values["orbit"],
         resolution=str(config.RESOLUTION),
-        instrument=INSTRUMENT.get(values["satellite"],'avhrr'),
+        instrument=INSTRUMENT.get(values["satellite"], 'avhrr'),
         atrain_datatype="atrain_datatype",
-        extrai=values.get("extrai","")
+        extrai=values.get("extrai", "")
     ))
     rematched_file_base = rematched_path + rematched_file
 
@@ -1146,11 +1146,11 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
             gribfile = pps_nwp.GRIBFile(nwp_file, (matchup.imager.longitude,
                                                    matchup.imager.latitude))
             setattr(matchup.imager, "nwp_height",
-                    gribfile.get_gh_vertical()[0,:,:].astype(np.float32).transpose())
+                    gribfile.get_gh_vertical()[0, :, :].astype(np.float32).transpose())
             setattr(matchup.imager, "nwp_surface_h",
                     gribfile.get_gh_surface()[:].astype(np.float32))
             setattr(matchup.imager, "nwp_temperature",
-                    gribfile.get_t_vertical()[0,:,:].astype(np.float32).transpose())
+                    gribfile.get_t_vertical()[0, :, :].astype(np.float32).transpose())
             setattr(matchup.imager, "nwp_h2m",
                     gribfile.get_h_2meter()[:].astype(np.float32))
             setattr(matchup.imager, "nwp_t2m",
@@ -1164,7 +1164,7 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
             if field.units =='Pa':
                 field = 0.01*field[:]
                 field.units = 'hPa'
-            matchup.imager.nwp_pressure = field[0,:,:].astype(np.float32).transpose()
+            matchup.imager.nwp_pressure = field[0, :, :].astype(np.float32).transpose()
             field = gribfile.get_p_surface()
             if field.units =='Pa':
                 field = 0.01*field[:]

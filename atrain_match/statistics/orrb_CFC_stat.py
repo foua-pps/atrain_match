@@ -43,9 +43,9 @@ class CloudFractionStats(OrrbStats):
             step_cmaprob = int(self.ac_data["step_cmaprob"])
             n_clear_cmaprob = np.array(self.ac_data["n_clear_cmaprob"])
             n_cloudy_cmaprob = np.array(self.ac_data["n_cloudy_cmaprob"])
-            min_prob = np.array([percent*1.0 for percent in range(0,100,step_cmaprob)])
-            max_prob = np.array([percent*1.0 for percent in range(step_cmaprob,100 + step_cmaprob,step_cmaprob)])
-            limit_v =  np.array([percent*1.0 for percent in range(0,101,step_cmaprob)])
+            min_prob = np.array([percent*1.0 for percent in range(0, 100, step_cmaprob)])
+            max_prob = np.array([percent*1.0 for percent in range(step_cmaprob, 100 + step_cmaprob, step_cmaprob)])
+            limit_v =  np.array([percent*1.0 for percent in range(0, 101, step_cmaprob)])
             max_prob[-1] = 100
             Num_cloudy_tot = np.sum(n_cloudy_cmaprob)
             Num_clear_tot = np.sum(n_clear_cmaprob)

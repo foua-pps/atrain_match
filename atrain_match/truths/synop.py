@@ -33,7 +33,7 @@ from atrain_match.libs.extract_imager_along_track import imager_track_from_match
 import logging
 logger = logging.getLogger(__name__)
 
-def reshape_synop(synopfiles, imager,  SETTINGS):
+def reshape_synop(synopfiles, imager, SETTINGS):
     start_t = datetime.utcfromtimestamp(imager.sec1970_start)
     end_t = datetime.utcfromtimestamp(imager.sec1970_end)
     # datetime.datetime.fromtimestamp(
@@ -74,8 +74,8 @@ def match_synop_imager(synop, cloudproducts, SETTINGS):
     # pdb.set_trace()
     cal, cap = mapper_and_dist["mapper"]
     distances = mapper_and_dist["distances"]
-    cal_1 = cal[:,0]
-    cap_1 = cap[:,0]
+    cal_1 = cal[:, 0]
+    cap_1 = cap[:, 0]
 
     calnan = np.where(cal_1 == config.NODATA, np.nan, cal_1)
     if (~np.isnan(calnan)).sum() == 0:
@@ -83,7 +83,7 @@ def match_synop_imager(synop, cloudproducts, SETTINGS):
         return None
     # check if it is within time limits:
     if len(cloudproducts.time.shape)>1:
-        imager_time_vector = [cloudproducts.time[line,pixel] for line, pixel in zip(cal_1,cap_1)]
+        imager_time_vector = [cloudproducts.time[line, pixel] for line, pixel in zip(cal_1, cap_1)]
         imager_lines_sec_1970 = np.where(cal_1 != config.NODATA, imager_time_vector, np.nan)
     else:
         imager_lines_sec_1970 = np.where(cal_1 != config.NODATA, cloudproducts.time[cal_1], np.nan)
@@ -93,10 +93,10 @@ def match_synop_imager(synop, cloudproducts, SETTINGS):
         return None
     retv.synop = retv.synop.extract_elements(idx=idx_match)
 
-    # Synop line,pixel inside IMAGER swath (one nearest neighbour):
+    # Synop line, pixel inside IMAGER swath (one nearest neighbour):
     retv.synop.imager_linnum = np.repeat(cal_1, idx_match).astype('i')
     retv.synop.imager_pixnum = np.repeat(cap_1, idx_match).astype('i')
-    # Synop line,pixel inside IMAGER swath (several neighbours):
+    # Synop line, pixel inside IMAGER swath (several neighbours):
     retv.synop.imager_linnum_nneigh = np.repeat(cal, idx_match, axis=0)
     retv.synop.imager_pixnum_nneigh = np.repeat(cap, idx_match, axis=0)
     retv.synop.imager_synop_dist = np.repeat(distances, idx_match, axis=0)

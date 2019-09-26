@@ -31,8 +31,8 @@ def get_t11t12_texture_data_from_object(imager_obj, aux_obj, ch11, ch12, text_na
     K=np.median(t11t12)  # K is trick to get better accurracy maybe not needed as differences are often small
     t11t12 = (t11t12-K)
     from scipy.ndimage import uniform_filter
-    mean = uniform_filter(t11t12, size=(5,5), mode='mirror')
-    mean_of_squared = uniform_filter(t11t12**2, size=(5,5), mode='mirror')
+    mean = uniform_filter(t11t12, size=(5, 5), mode='mirror')
+    mean_of_squared = uniform_filter(t11t12**2, size=(5, 5), mode='mirror')
     t11t12_texture = mean_of_squared - mean**2
     setattr(aux_obj, text_name, t11t12_texture)
     return aux_obj
@@ -82,12 +82,12 @@ def get_warmest_or_coldest_index(t11, matched, warmest=True):
     if warmest:
         FILL = -99
 
-    steps = [(i ,j) for i in [-2,-1,0,1,2] for j in  [-2,-1,0,1,2] ]
+    steps = [(i , j) for i in [-2, -1, 0, 1, 2] for j in  [-2, -1, 0, 1, 2] ]
     t11_neighbour_i = np.zeros((25, matched['row'].shape[0]) )
     for i, (step_r, step_c) in enumerate(steps):
         new_row_col = {'row': matched['row'] + step_r,
                        'col': matched['col'] + step_c}
-        t11_neighbour_i[i,:] = get_data_from_array_fill_outside(t11,
+        t11_neighbour_i[i, :] = get_data_from_array_fill_outside(t11,
                                                                 new_row_col,
                                                                 Fill=FILL)
     if warmest:
@@ -108,7 +108,7 @@ def get_warmest_or_coldest_index(t11, matched, warmest=True):
 def get_warmest_values(imager_obj, matched):
     nobj = NeighbourObj()
     t11 = get_channel_data_from_objectfull_resolution(imager_obj, '11', nodata=-9)
-    new_row_col = get_warmest_or_coldest_index(t11,  matched)
+    new_row_col = get_warmest_or_coldest_index(t11, matched)
     nobj.warmest_t11=get_channel_data_from_object(imager_obj, '11', new_row_col)[0]
     nobj.warmest_t12=get_channel_data_from_object(imager_obj, '12', new_row_col)[0]
     nobj.warmest_t37=get_channel_data_from_object(imager_obj, '37', new_row_col)[0]
@@ -135,7 +135,7 @@ def get_darkest_values(imager_obj, matched):
     nobj = NeighbourObj()
     r09 = get_channel_data_from_objectfull_resolution(imager_obj, '09', nodata=-9)
     r06 = get_channel_data_from_objectfull_resolution(imager_obj, '06', nodata=-9)
-    darkest = np.where(r09>r06,r06,r09)
+    darkest = np.where(r09>r06, r06, r09)
     new_row_col = get_warmest_or_coldest_index(darkest, matched, warmest=False)
     nobj.darkest_t11=get_channel_data_from_object(imager_obj, '11', new_row_col)[0]
     nobj.darkest_t12=get_channel_data_from_object(imager_obj, '12', new_row_col)[0]
@@ -169,18 +169,18 @@ def add_cnn_features(cnn_dict, matched, lats_matched, lons_matched, SETTINGS):
     filter_response = cnn_dict['filter_response']
     lats_f = cnn_dict['lats_f']
     lons_f = cnn_dict['lons_f']
-    target = (lons_matched.astype(np.float64).reshape(-1,1),
-              lats_matched.astype(np.float64).reshape(-1,1))
+    target = (lons_matched.astype(np.float64).reshape(-1, 1),
+              lats_matched.astype(np.float64).reshape(-1, 1))
     source = (lons_f.astype(np.float64),
               lats_f.astype(np.float64))
     mapper, dummy = match_lonlat(source, target, radius_of_influence=10000, n_neighbours=1)
     cnn_feature_index_R = mapper.rows.filled(config.NODATA).ravel()  # i.e rows, cols!
     cnn_feature_index_C = mapper.cols.filled(config.NODATA).ravel()  # i.e rows, cols!
     for feature_index in range(32):
-        feature_i = filter_response[0,feature_index,:,:]
+        feature_i = filter_response[0, feature_index, :, :]
         the_filters_dict["cnn_feature_%d"%(feature_index)] = np.where(
             cnn_feature_index_R>=0,
-            feature_i[cnn_feature_index_R,cnn_feature_index_C],
+            feature_i[cnn_feature_index_R, cnn_feature_index_C],
             -9)
     return the_filters_dict
 

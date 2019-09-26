@@ -26,12 +26,12 @@ class test_kuipers_plot_on_map(unittest.TestCase):
 
     def setUp(self):
         self.area = ppsStatsOnFibLatticeObject()
-        self.area.N_detected_clouds =   np.array([10,  1000, 1000, 1000, 1000, 1000])
-        self.area.N_undetected_clouds = np.array([1000, 100,  100,  100,  100,  100])
-        self.area.N_detected_clear =    np.array([20,    80,  100,    0,  200,  100])
-        self.area.N_false_clouds =      np.array([80,    20,    1,    1,  200,  300])
+        self.area.N_detected_clouds =   np.array([10, 1000, 1000, 1000, 1000, 1000])
+        self.area.N_undetected_clouds = np.array([1000, 100, 100, 100, 100, 100])
+        self.area.N_detected_clear =    np.array([20, 80, 100, 0, 200, 100])
+        self.area.N_false_clouds =      np.array([80, 20, 1, 1, 200, 300])
 
-        dummy = 0*np.array([80,    20,    1,    1,  200,  300])
+        dummy = 0*np.array([80, 20, 1, 1, 200, 300])
         self.area.Sum_ctth_mae_low = dummy
         self.area.Sum_ctth_mae_high = dummy
         self.area.Sum_ctth_mae = dummy

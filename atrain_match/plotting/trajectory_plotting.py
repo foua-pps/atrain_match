@@ -23,7 +23,7 @@ def plot_satellite_trajectory(longitude,
                             area_config_file,
                             fig_type='eps',
                             **options):
-    """Plot a trajectory of geolocations (lon,lat) on a map"""
+    """Plot a trajectory of geolocations (lon, lat) on a map"""
     import numpy as np
     import os
 
@@ -51,7 +51,7 @@ def plot_satellite_trajectory(longitude,
     bmap = pr.plot.area_def2basemap(area_def)
     bmng = bmap.bluemarble()
     # col = bmap.imshow(result, cmap=pylab.get_cmap('rainbow'), origin='upper')
-    col = bmap.imshow(result,  origin='upper', cmap=pylab.get_cmap('autumn'))
+    col = bmap.imshow(result, origin='upper', cmap=pylab.get_cmap('autumn'))
     # plt.title('Calipso matchup track')
 
     for figt in fig_type:

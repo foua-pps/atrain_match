@@ -67,8 +67,8 @@ def get_land_coast_sea_info_pps2014(cloudtype_conditions):
     land_flag =  sealand_val == 1
     sea_flag =  sealand_val == 2
     coast_flag =   sealand_val == 3
-    land_or_sea=np.logical_or(land_flag,sea_flag)
-    true_coast=np.logical_and(coast_flag, np.equal(land_or_sea,False))
+    land_or_sea=np.logical_or(land_flag, sea_flag)
+    true_coast=np.logical_and(coast_flag, np.equal(land_or_sea, False))
     logger.debug("Number coast %d"%(len(cloudtype_conditions[coast_flag==True])))
     logger.debug("Number true coast %d"%(len(cloudtype_conditions[true_coast==True])))
     all_lsc_flag =  np.bool_(np.ones(cloudtype_conditions.shape))
@@ -79,11 +79,11 @@ def get_land_coast_sea_info_pps2012(cloudtype_qflag):
     land_sea_val = (cloudtype_qflag>>0 & 1)
     coast_val = (cloudtype_qflag>>1 & 1)
     no_qflag = None
-    land_flag =  np.logical_and(land_sea_val == 1,coast_val==0)
+    land_flag =  np.logical_and(land_sea_val == 1, coast_val==0)
     sea_flag =  np.logical_and(land_sea_val == 0, coast_val==0)
     coast_flag = coast_val==1
-    land_or_sea=np.logical_or(land_flag,sea_flag)
-    true_coast=np.logical_and(coast_flag, np.equal(land_or_sea,False))
+    land_or_sea=np.logical_or(land_flag, sea_flag)
+    true_coast=np.logical_and(coast_flag, np.equal(land_or_sea, False))
     logger.info("Number coast %d"%( len(cloudtype_qflag[coast_flag==True])))
     logger.info("Number true coast %d"%( len(cloudtype_qflag[true_coast==True])))
     all_lsc_flag =  np.bool_(np.ones(cloudtype_qflag.shape))
@@ -159,13 +159,13 @@ def get_inversion_info_pps2012(cloudtype_qflag):
 
 def get_calipso_aerosol_of_type_i(match_calipso, atype=0):
     # bits 10-12, start at 1 counting
-    cflag = match_calipso.calipso_aerosol.feature_classification_flags[::,0]
+    cflag = match_calipso.calipso_aerosol.feature_classification_flags[::, 0]
     cal_vert_feature = np.zeros(cflag.shape)-9.0
-    feature_array = (4*np.bitwise_and(np.right_shift(cflag,11),1) +
-                     2*np.bitwise_and(np.right_shift(cflag,10),1) +
-                     1*np.bitwise_and(np.right_shift(cflag,9),1))
+    feature_array = (4*np.bitwise_and(np.right_shift(cflag, 11), 1) +
+                     2*np.bitwise_and(np.right_shift(cflag, 10), 1) +
+                     1*np.bitwise_and(np.right_shift(cflag, 9), 1))
     cal_vert_feature = np.where(
-        np.not_equal(cflag,1),feature_array,cal_vert_feature)
+        np.not_equal(cflag, 1), feature_array, cal_vert_feature)
 
     is_requested_type =  cal_vert_feature == atype
     return is_requested_type
@@ -182,22 +182,22 @@ def get_calipso_aerosol_of_type_i(match_calipso, atype=0):
 def get_calipso_clouds_of_type_i_feature_classification_flags_one_layer(cflag, calipso_cloudtype=0):
     # bits 10-12, start at 1 counting
     cal_vert_feature = np.zeros(cflag.shape)-9.0
-    feature_array = (4*np.bitwise_and(np.right_shift(cflag,11),1) +
-                     2*np.bitwise_and(np.right_shift(cflag,10),1) +
-                     1*np.bitwise_and(np.right_shift(cflag,9),1))
+    feature_array = (4*np.bitwise_and(np.right_shift(cflag, 11), 1) +
+                     2*np.bitwise_and(np.right_shift(cflag, 10), 1) +
+                     1*np.bitwise_and(np.right_shift(cflag, 9), 1))
     cal_vert_feature = np.where(
-        np.not_equal(cflag,1),feature_array,cal_vert_feature)
+        np.not_equal(cflag, 1), feature_array, cal_vert_feature)
 
     is_requested_type =  cal_vert_feature == calipso_cloudtype
     return is_requested_type
 
 def get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=0):
     # bits 10-12, start at 1 counting
-    cflag = match_calipso.calipso.feature_classification_flags[::,0]
+    cflag = match_calipso.calipso.feature_classification_flags[::, 0]
     return get_calipso_clouds_of_type_i_feature_classification_flags_one_layer(cflag, calipso_cloudtype=calipso_cloudtype)
 
 def get_calipso_op(match_calipso):
-    # type 1,2,5,7 are low cloudtypes
+    # type 1, 2, 5, 7 are low cloudtypes
     calipso_low =  np.logical_or(
         np.logical_or(
             get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=1),
@@ -206,7 +206,7 @@ def get_calipso_op(match_calipso):
             get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=5),
             get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=7)))
     return calipso_low
-    # type 0,1,2, 3 are low cloudtypes
+    # type 0, 1, 2, 3 are low cloudtypes
 def get_calipso_tp(match_calipso):
     calipso_low =  np.logical_or(
         np.logical_or(
@@ -221,7 +221,7 @@ def get_calipso_tp(match_calipso):
 
 
 def get_calipso_low_clouds(match_calipso):
-    # type 0,1,2, 3 are low cloudtypes
+    # type 0, 1, 2, 3 are low cloudtypes
     calipso_low =  np.logical_or(
         np.logical_or(
             get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=0),
@@ -232,33 +232,33 @@ def get_calipso_low_clouds(match_calipso):
     return calipso_low
 
 def get_calipso_low_clouds_tp(match_calipso):
-    # type 0,1,2, 3 are low cloudtypes
+    # type 0, 1, 2, 3 are low cloudtypes
     calipso_low =  np.logical_or(
             get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=0),
             get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=3))
     return calipso_low
 def get_calipso_low_clouds_op(match_calipso):
-    # type 0,1,2, 3 are low cloudtypes
+    # type 0, 1, 2, 3 are low cloudtypes
     calipso_low =  np.logical_or(
             get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=1),
             get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=2))
     return calipso_low
 
 def get_calipso_high_clouds(match_calipso):
-    # type 6,7 are high cloudtypes
+    # type 6, 7 are high cloudtypes
     calipso_high =   np.logical_or(
         get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=6),
         get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=7))
     return calipso_high
 def get_calipso_medium_clouds(match_calipso):
-    # type 6,7 are high cloudtypes
+    # type 6, 7 are high cloudtypes
     calipso_high =   np.logical_or(
         get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=4),
         get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=5))
     return calipso_high
 
 def get_calipso_medium_and_high_clouds_tp(match_calipso):
-    # type 0,1,2, 3 are low cloudtypes
+    # type 0, 1, 2, 3 are low cloudtypes
     calipso_transp =   np.logical_or(
         get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=4),
         get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=6))
@@ -308,13 +308,13 @@ def get_day_night_twilight_info_cci2014(sunz):
     sunz = np.array(sunz)
     logger.info("Getting day/night info from sunz")
     no_qflag = np.zeros(sunz.shape)
-    day_flag = np.where(np.less_equal(sunz,80),1,0)
-    night_flag =  np.where(np.greater_equal(sunz,95),1,0)
+    day_flag = np.where(np.less_equal(sunz, 80), 1, 0)
+    night_flag =  np.where(np.greater_equal(sunz, 95), 1, 0)
     twilight_flag =  np.where(
-        np.logical_and(np.greater(sunz,80),
-                       np.less(sunz,95)),
-        1,0)
-    no_qflag = np.where(np.isnan(sunz),1,0)
+        np.logical_and(np.greater(sunz, 80),
+                       np.less(sunz, 95)),
+        1, 0)
+    no_qflag = np.where(np.isnan(sunz), 1, 0)
     logger.debug("number of day {:d}".format(len(sunz[day_flag==True])))
     logger.debug("number of night {:d}".format(len(sunz[night_flag==True])))
     logger.debug("number of twilight {:d}".format(len(sunz[twilight_flag==True])))
@@ -323,19 +323,19 @@ def get_day_night_twilight_info_cci2014(sunz):
 
 def get_maia_ct_flag(ct_flag):
     # bits 4-8, start at 0 counting
-    maia_ct_flag = (16*np.bitwise_and(np.right_shift(ct_flag,8),1) +
-                    8*np.bitwise_and(np.right_shift(ct_flag,7),1) +
-                    4*np.bitwise_and(np.right_shift(ct_flag,6),1) +
-                    2*np.bitwise_and(np.right_shift(ct_flag,5),1) +
-                    1*np.bitwise_and(np.right_shift(ct_flag,4),1))
+    maia_ct_flag = (16*np.bitwise_and(np.right_shift(ct_flag, 8), 1) +
+                    8*np.bitwise_and(np.right_shift(ct_flag, 7), 1) +
+                    4*np.bitwise_and(np.right_shift(ct_flag, 6), 1) +
+                    2*np.bitwise_and(np.right_shift(ct_flag, 5), 1) +
+                    1*np.bitwise_and(np.right_shift(ct_flag, 4), 1))
     return  maia_ct_flag
 def get_day_night_twilight_info_maia(cm_flag):
     # bit 13-14
-    maia_cm_flag = (2*np.bitwise_and(np.right_shift(cm_flag,14),1) +
-                    1*np.bitwise_and(np.right_shift(cm_flag,13),1))
-    day_flag = np.where(maia_cm_flag==2,1,0)  # include also sunglint in day ==3
-    night_flag =  np.where(maia_cm_flag==0,1,0)
-    twilight_flag =  np.where(maia_cm_flag==1,1,0)
+    maia_cm_flag = (2*np.bitwise_and(np.right_shift(cm_flag, 14), 1) +
+                    1*np.bitwise_and(np.right_shift(cm_flag, 13), 1))
+    day_flag = np.where(maia_cm_flag==2, 1, 0)  # include also sunglint in day ==3
+    night_flag =  np.where(maia_cm_flag==0, 1, 0)
+    twilight_flag =  np.where(maia_cm_flag==1, 1, 0)
     logger.debug("number of day {:d}".format(len(maia_cm_flag[day_flag==True])))
     logger.debug("number of night {:d}".format(len(maia_cm_flag[night_flag==True])))
     logger.debug("number of twilight {:d}".format(len(maia_cm_flag[twilight_flag==True])))

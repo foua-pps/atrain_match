@@ -223,13 +223,13 @@ def plot_fields(fields, break_value=None):
         m.drawcoastlines(linewidth=.5, color='g')
 
         step = (f.data.shape[1] // 256) or 1  # don't use full gigantic arrays
-        _slice = (slice(None, None, step),) * 2
+        _slice = (slice(None, None, step), ) * 2
         x, y = m(f.lon[_slice], f.lat[_slice])
         # Mask out pixels outside projection limb
         # on_map = (x < 1e20) | (y < 1e20)
         # data = np.ma.array(f.data[_slice], mask=~on_map)
         data = f.data[_slice]
-        logger.debug("data.shape = %r" % (data.shape,))
+        logger.debug("data.shape = %r" % (data.shape, ))
         # mesh = m.pcolor(x, y, data, vmin=vmin, vmax=vmax, cmap=cmap)
         # pcolormesh is much faster, but I can't get rid of off-projection drawing
         mesh = m.pcolormesh(x, y, data, vmin=vmin, vmax=vmax, cmap=cmap)
@@ -271,7 +271,7 @@ def plot_hist(data, **kwargs):
     from atrain_match.reshaped_files_plotting.plot_ctth_print_bias_and_std_stats import half_sample_mode, my_iqr
     mode = half_sample_mode(data)
     iqr = my_iqr(data)
-    q1 = np.percentile(data,25)
+    q1 = np.percentile(data, 25)
     fig = plt.figure()
     ax = fig.add_subplot(111)
     n, bins, bars = ax.hist(data, **kwargs)  # @UnusedVariable
@@ -288,7 +288,7 @@ def plot_hist(data, **kwargs):
               label='iqr = %.2f' % iqr, colors='r', linestyle=':')
     ax.grid()
     ax.legend()
-    print(np.median(data), np.percentile(data,25), np.percentile(data,75))
+    print(np.median(data), np.percentile(data, 25), np.percentile(data, 75))
 
     return fig
 
@@ -311,18 +311,18 @@ def density(x, y, bins=None, log=True):
 
     return fig
 
-def atrain_scatter(fig, ax, x, y, binsize, xymin = None,  xymax=None, vmax=250,
+def atrain_scatter(fig, ax, x, y, binsize, xymin = None, xymax=None, vmax=250,
                    do_colorbar=True, to_km=1.0, ptype='scatter'):
     import copy
 
     if xymax is None:
-        xymax = np.max([np.max(x),np.max(y)])
+        xymax = np.max([np.max(x), np.max(y)])
     if xymin is None:
-        xymin = np.min([np.min(x),np.min(y)])
+        xymin = np.min([np.min(x), np.min(y)])
     n_edges = int((xymax-xymin)*1.0/binsize)+1
     edgesx= np.linspace(xymin, xymax, n_edges)
     edgesy= np.linspace(xymin, xymax, n_edges)
-    H, xe, ye = np.histogram2d(x, y, bins=[edgesx,edgesy])
+    H, xe, ye = np.histogram2d(x, y, bins=[edgesx, edgesy])
     xi = np.searchsorted(edgesx, x)  # - edgesx[0])/(n_edges+1)).astype(np.int)
     yi = np.searchsorted(edgesy, y)  # np.floor((y - edgesy[0])/(n_edges+1)).astype(np.int)  # -1?
     xi = xi-1
@@ -335,7 +335,7 @@ def atrain_scatter(fig, ax, x, y, binsize, xymin = None,  xymax=None, vmax=250,
     yi[yi==n_edges-1] = n_edges-2
     xi[xi==n_edges-1] = n_edges-2
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-    z = H[xi,yi]
+    z = H[xi, yi]
     idx = z.argsort()
     my_cmap = copy.copy(matplotlib.cm.get_cmap("inferno_r", lut=100))
     cmap_vals = my_cmap(np.arange(100))  # extractvalues as an array
@@ -345,18 +345,18 @@ def atrain_scatter(fig, ax, x, y, binsize, xymin = None,  xymax=None, vmax=250,
         "new_inferno_r", cmap_vals)
 
     if ptype in ['hexbin']:
-        b =plt.hexbin(to_km*x,to_km*y, gridsize=binsize,  cmap=my_cmap,
+        b =plt.hexbin(to_km*x, to_km*y, gridsize=binsize, cmap=my_cmap,
                       vmin=10, vmax=vmax)
     if ptype in ['hist2d']:
-        b =plt.hist2d(to_km*x,to_km*y,bins=binsize,  cmap=my_cmap,
+        b =plt.hist2d(to_km*x, to_km*y, bins=binsize, cmap=my_cmap,
                       vmin=1, vmax=vmax)
     if ptype in ['scatter']:
         b = plt.scatter(to_km*x[idx], to_km*y[idx], c=z[idx],
                         edgecolor='', cmap=my_cmap, vmin=1, vmax=vmax,
-                        alpha=1.0, marker='.', edgecolors=None,  rasterized=True)
+                        alpha=1.0, marker='.', edgecolors=None, rasterized=True)
 
-    ax.set_ylim(xymin,to_km*xymax)
-    ax.set_xlim(xymin,to_km*xymax)
+    ax.set_ylim(xymin, to_km*xymax)
+    ax.set_xlim(xymin, to_km*xymax)
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
     # if 'pressure' in truth:

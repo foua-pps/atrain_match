@@ -82,7 +82,7 @@ def read_amsr_hdf4(filename):
     h4file = SD(filename, SDC.READ)
     datasets = h4file.datasets()
     attributes = h4file.attributes()
-    # for idx,attr in enumerate(attributes.keys()):
+    # for idx, attr in enumerate(attributes.keys()):
     #    print idx, attr
     for sds in ["Longitude", "Latitude", "High_res_cloud"]:
         data = h4file.select(sds).get()
@@ -165,8 +165,8 @@ def match_amsr_imager(amsr, cloudproducts, SETTINGS):
                                           n_neighbours=n_neighbours)
     cal, cap = mapper_and_dist["mapper"]
     distances = mapper_and_dist["distances"]
-    cal_1 = cal[:,0]
-    cap_1 = cap[:,0]
+    cal_1 = cal[:, 0]
+    cap_1 = cap[:, 0]
 
     calnan = np.where(cal_1 == config.NODATA, np.nan, cal_1)
     if (~np.isnan(calnan)).sum() == 0:
@@ -174,12 +174,12 @@ def match_amsr_imager(amsr, cloudproducts, SETTINGS):
         return None
     # check if it is within time limits:
     if len(cloudproducts.time.shape)>1:
-        imager_time_vector = [cloudproducts.time[line,pixel] for line, pixel in zip(cal_1,cap_1)]
+        imager_time_vector = [cloudproducts.time[line, pixel] for line, pixel in zip(cal_1, cap_1)]
         imager_lines_sec_1970 = np.where(cal_1 != config.NODATA, imager_time_vector, np.nan)
     else:
         imager_lines_sec_1970 = np.where(cal_1 != config.NODATA, cloudproducts.time[cal_1], np.nan)
     # Find all matching Amsr pixels within +/- sec_timeThr from the IMAGER data
-    imager_sunz_vector = np.array([cloudproducts.imager_angles.sunz.data[line,pixel] for line, pixel in zip(cal_1,cap_1)])
+    imager_sunz_vector = np.array([cloudproducts.imager_angles.sunz.data[line, pixel] for line, pixel in zip(cal_1, cap_1)])
     idx_match = np.logical_and(
         elements_within_range(amsr.sec_1970, imager_lines_sec_1970, SETTINGS["sec_timeThr"]),
         imager_sunz_vector<=84)  # something larger than 84 (max for lwp)
@@ -189,7 +189,7 @@ def match_amsr_imager(amsr, cloudproducts, SETTINGS):
         return None
     retv.amsr = retv.amsr.extract_elements(idx=idx_match)
 
-    # Amsr line,pixel inside IMAGER swath (one neighbour):
+    # Amsr line, pixel inside IMAGER swath (one neighbour):
     retv.amsr.imager_linnum = np.repeat(cal_1, idx_match).astype('i')
     retv.amsr.imager_pixnum = np.repeat(cap_1, idx_match).astype('i')
     retv.amsr.imager_linnum_nneigh = np.repeat(cal, idx_match, axis=0)

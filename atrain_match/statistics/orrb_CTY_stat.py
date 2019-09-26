@@ -128,7 +128,7 @@ class CloudTypeStats(OrrbStats):
 
         # Removed bc-RMS Not sure how ot interpret it
 
-        # POD,FAR,HR and KSS calculations =============================================================
+        # POD, FAR, HR and KSS calculations =============================================================
 
         hitrate = np.divide(
             100.0*(
@@ -195,17 +195,17 @@ class CloudTypeStats(OrrbStats):
         lines.append("Rel. Fraction LOW for PPS and for %s: %.2f %.2f" % \
                      (self.truth_sat.upper(), self.low_fraction_pps_rel, self.low_fraction_cal_rel))
         lines.append("Rel. Fraction MEDIUM for PPS and for %s: %.2f %.2f" % \
-                     (self.truth_sat.upper(),self.medium_fraction_pps_rel, self.medium_fraction_cal_rel))
+                     (self.truth_sat.upper(), self.medium_fraction_pps_rel, self.medium_fraction_cal_rel))
         lines.append("Rel. Fraction HIGH for PPS and for %s: %.2f %.2f" % \
-                     (self.truth_sat.upper(),self.high_fraction_pps_rel, self.high_fraction_cal_rel))
+                     (self.truth_sat.upper(), self.high_fraction_pps_rel, self.high_fraction_cal_rel))
         lines.append("Rel. Fraction CIRRUS for PPS: %.2f" % self.cirrus_fraction_pps_rel)
 
         lines.append("Abs. Fraction LOW for PPS and for %s: %.2f %.2f" % \
-                     (self.truth_sat.upper(),self.low_fraction_pps_abs, self.low_fraction_cal_abs))
+                     (self.truth_sat.upper(), self.low_fraction_pps_abs, self.low_fraction_cal_abs))
         lines.append("Abs. Fraction MEDIUM for PPS and for %s: %.2f %.2f" % \
-                     (self.truth_sat.upper(),self.medium_fraction_pps_abs, self.medium_fraction_cal_abs))
+                     (self.truth_sat.upper(), self.medium_fraction_pps_abs, self.medium_fraction_cal_abs))
         lines.append("Abs. Fraction HIGH for PPS and for %s: %.2f %.2f" % \
-                     (self.truth_sat.upper(),self.high_fraction_pps_abs, self.high_fraction_cal_abs))
+                     (self.truth_sat.upper(), self.high_fraction_pps_abs, self.high_fraction_cal_abs))
         lines.append("Abs. Fraction CIRRUS for PPS: %.2f" % self.cirrus_fraction_pps_abs)
         lines.append("POD (Low, Medium, High): %.2f %.2f %.2f" % \
                      (self.pod_low, self.pod_medium, self.pod_high))

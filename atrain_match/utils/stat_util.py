@@ -25,22 +25,22 @@ def my_hist(data, use, bmin=-3000, bmax=3000, delta_h=5,
     if use is None:
         use = np.ones(data.shape, dtype=bool)
     n_pix = len(data[use])
-    bins = np.arange(bmin,bmax,delta_h)
+    bins = np.arange(bmin, bmax, delta_h)
     x_ = np.array([item+delta_h*0.5 for item in bins[0:-1]])
-    hist_heights, bins = np.histogram(data[use],bins=bins)
+    hist_heights, bins = np.histogram(data[use], bins=bins)
     hist_heights = hist_heights*100.0/n_pix
 
     hist_heights_gaussian = None
     if return_also_corresponding_gaussian:
         n_pix_g = 1000000
-        temp_data = np.random.normal(np.mean(data[use]),np.std(data[use]), n_pix_g)
-        hist_heights_gaussian,bins = np.histogram(temp_data,bins=bins)
+        temp_data = np.random.normal(np.mean(data[use]), np.std(data[use]), n_pix_g)
+        hist_heights_gaussian, bins = np.histogram(temp_data, bins=bins)
         hist_heights_gaussian =  hist_heights_gaussian *100.0/n_pix_g
     return hist_heights, x_, hist_heights_gaussian
 
 
 def my_iqr(data):
-    return np.percentile(data,75)- np.percentile(data,25)
+    return np.percentile(data, 75)- np.percentile(data, 25)
 
 def my_rms(data):
     return np.sqrt(np.mean(data*data))
@@ -86,8 +86,8 @@ def my_mode(bias):
     bmin = -40
     bmax = 40
     delta_h = 100.0
-    bins = np.arange(bmin*1000,bmax*1000,delta_h)
-    hist_heights,bins = np.histogram(bias,bins=bins)
+    bins = np.arange(bmin*1000, bmax*1000, delta_h)
+    hist_heights, bins = np.histogram(bias, bins=bins)
     n_pix = len(bias)
     hist_heights = hist_heights*100.0/n_pix
     maxind = np.argmax(hist_heights)

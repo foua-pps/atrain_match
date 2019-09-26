@@ -69,12 +69,12 @@ def get_lwp_diff_inner(aObj, val_subset, threshold=LWP_THRESHOLD):
     lwp_diff = cpp_mean - aObj.amsr.lwp
     use_amsr = np.logical_and(aObj.amsr.lwp >=0 ,
                               aObj.amsr.lwp < threshold)
-    selection = np.logical_and(use_amsr,  selection)
-    selection = np.logical_and(cpp_mean>=0,  selection)
-    selection = np.logical_and(cpp_mean<LWP_THRESHOLD_CPP,  selection)
-    selection = np.logical_and(aObj.imager.sunz<72,  selection)
+    selection = np.logical_and(use_amsr, selection)
+    selection = np.logical_and(cpp_mean>=0, selection)
+    selection = np.logical_and(cpp_mean<LWP_THRESHOLD_CPP, selection)
+    selection = np.logical_and(aObj.imager.sunz<72, selection)
 
-    return [lwp_diff[selection], cpp_mean[selection], aObj.amsr.lwp[selection],  selection]
+    return [lwp_diff[selection], cpp_mean[selection], aObj.amsr.lwp[selection], selection]
 
 
 

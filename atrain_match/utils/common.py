@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 class Cross:
     """A cross where two satellites (almost) meet."""
-    def __init__(self, satellite,  time):
+    def __init__(self, satellite, time):
         self.satellite1 = satellite
         self.satellite2 = 'xxx'
         self.time = time
@@ -77,17 +77,17 @@ def map_imager_distances(imager, lon, lat, radius_of_influence, n_neighbours=1):
     source = (imager.longitude.astype(np.float64),
               imager.latitude.astype(np.float64))
     target = (lon.astype(np.float64), lat.astype(np.float64))
-    # print imager.longitude.dtype, lon.dtype, imager.latitude.dtype,  lat.dtype
+    # print imager.longitude.dtype, lon.dtype, imager.latitude.dtype, lat.dtype
     mapper, distances = match_lonlat(source, target, radius_of_influence,
                                      n_neighbours=n_neighbours)
     # Return the nearest (and the only calculated) neighbour
     # return mapper.rows.filled(NODATA)[:, 0], mapper.cols.filled(NODATA)[:, 0]
     # Nina 2016-01-19 changed mapper.rows to be 1D arrays not 2D-arrays with
-    # Nina 2019-08-22 changed back to (n,1) arrays needed for amsr
+    # Nina 2019-08-22 changed back to (n, 1) arrays needed for amsr
     # one column as that is mostly "needed for array magic."
-    # Note that ravel() transform array (n,1) array to (n,)
-    # Array2D[:,0] gives (n,)
-    # np.logical_and(array_of_size(n,1), array_of_size(n,)) => (n,n)
+    # Note that ravel() transform array (n, 1) array to (n, )
+    # Array2D[:, 0] gives (n, )
+    # np.logical_and(array_of_size(n, 1), array_of_size(n, )) => (n, n)
     out = {"mapper": (mapper.rows.filled(NODATA)[:], mapper.cols.filled(NODATA)[:]),
            "distances": distances}
 

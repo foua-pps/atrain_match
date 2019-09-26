@@ -97,9 +97,9 @@ def get_calipso_phase_inner(features, qual_min=CALIPSO_QUAL_VALUES['medium'],
     Screen out pixels with more than *max_layers* layers.
     """
     if same_phase_in_top_three_lay:
-        phase1 = get_bits(features[:,0], CALIPSO_PHASE_BITS, shift=True)
-        phase2 = get_bits(features[:,1], CALIPSO_PHASE_BITS, shift=True)
-        phase3 = get_bits(features[:,2], CALIPSO_PHASE_BITS, shift=True)
+        phase1 = get_bits(features[:, 0], CALIPSO_PHASE_BITS, shift=True)
+        phase2 = get_bits(features[:, 1], CALIPSO_PHASE_BITS, shift=True)
+        phase3 = get_bits(features[:, 2], CALIPSO_PHASE_BITS, shift=True)
         two_layer_pixels = features[:, 2] >1
         three_layer_pixels = features[:, 3] >1
         lay1_lay2_differ = np.logical_and(two_layer_pixels,

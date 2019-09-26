@@ -57,7 +57,7 @@ def get_satid_datetime_orbit_from_fname_patmosx(imager_filename, SETTINGS, cross
     date_time = cross.time
     # date_time_end = cross.time + timedelta(seconds=SETTINGS['SAT_ORBIT_DURATION'])
 
-    sat_id = sl_[2].replace('-','').lower()
+    sat_id = sl_[2].replace('-', '').lower()
     values = {"satellite": sat_id,
               "date_time": date_time,
               "orbit": "99999",
@@ -66,7 +66,7 @@ def get_satid_datetime_orbit_from_fname_patmosx(imager_filename, SETTINGS, cross
               "month": "%02d" % (date_time.month),
               "time": date_time.strftime("%H%M"),
               "extrai": asc_or_des,
-              # "basename":sat_id + "_" + date_time.strftime("%Y%m%d_%H%M_99999"),# "20080613002200-ESACCI",
+              # "basename":sat_id + "_" + date_time.strftime("%Y%m%d_%H%M_99999"), # "20080613002200-ESACCI",
               "ccifilename": imager_filename,
               "ppsfilename": None}
     values['basename'] = values["satellite"] + "_" + \
@@ -106,13 +106,13 @@ def read_patmosx_ctype_cmask_ctth(patmosx_nc):
     ctth = CtthObj()
     ctype = CtypeObj()
     cma = CmaObj()
-    ctth.height = patmosx_nc.variables['cld_height_acha'][0,:,:].astype(np.float)
+    ctth.height = patmosx_nc.variables['cld_height_acha'][0, :, :].astype(np.float)
     ctth.h_nodata = patmosx_nc.variables['cld_height_acha']._FillValue
     if np.ma.is_masked(ctth.height):
         ctth.height.data[ctth.height.mask]  = ATRAIN_MATCH_NODATA
         ctth.height = ctth.height.data
     ctth.height = 1000*ctth.height
-    cf = patmosx_nc.variables['cloud_fraction'][0,:,:].astype(np.float)
+    cf = patmosx_nc.variables['cloud_fraction'][0, :, :].astype(np.float)
     cma.cma_ext = np.where(cf>=0.5, 1, 0)
     if np.ma.is_masked(cf):
        cma.cma_ext[cf.mask] = 255
@@ -125,8 +125,8 @@ def read_patmosx_angobj(patmosx_nc):
     """Read angles info from filename
     """
     angle_obj = ImagerAngObj()
-    angle_obj.satz.data = patmosx_nc.variables['sensor_zenith_angle'][0,:,:].astype(np.float)
-    angle_obj.sunz.data = patmosx_nc.variables['solar_zenith_angle'][0,:,:].astype(np.float)
+    angle_obj.satz.data = patmosx_nc.variables['sensor_zenith_angle'][0, :, :].astype(np.float)
+    angle_obj.sunz.data = patmosx_nc.variables['solar_zenith_angle'][0, :, :].astype(np.float)
     angle_obj.azidiff.data = None
     return angle_obj
 
@@ -138,14 +138,14 @@ def read_patmosx_geoobj(patmosx_nc, filename, cross, SETTINGS):
     cloudproducts = AllImagerData()
     latitude_v = patmosx_nc.variables['latitude'][:].astype(np.float)
     longitude_v = patmosx_nc.variables['longitude'][:].astype(np.float)
-    cloudproducts.latitude = np.repeat(latitude_v[:,np.newaxis], len(longitude_v), axis=1)
-    cloudproducts.longitude = np.repeat(longitude_v[np.newaxis,:], len(latitude_v), axis=0)
+    cloudproducts.latitude = np.repeat(latitude_v[:, np.newaxis], len(longitude_v), axis=1)
+    cloudproducts.longitude = np.repeat(longitude_v[np.newaxis, :], len(latitude_v), axis=0)
     cloudproducts.nodata=-999
     date_time_start = cross.time
     date_time_end = cross.time + timedelta(seconds=SETTINGS['SAT_ORBIT_DURATION'])
     cloudproducts.sec1970_start = calendar.timegm(date_time_start.timetuple())
     cloudproducts.sec1970_end = calendar.timegm(date_time_end.timetuple())
-    frac_hour = patmosx_nc.variables['scan_line_time'][0,:,:].astype(np.float)
+    frac_hour = patmosx_nc.variables['scan_line_time'][0, :, :].astype(np.float)
     if np.ma.is_masked(frac_hour):
         frac_hour = frac_hour.data
     seconds = frac_hour*60*60.0
@@ -175,7 +175,7 @@ def patmosx_read_all_hdf(filename, cross, SETTINGS):
     logger.info("Not reading surface temperature")
     logger.info("Not reading cloud microphysical properties")
     logger.info("Not reading channel data")
-    return imagerAngObj, ctth, imagercloudproducts, ctype,  imager_obj, surft, cpp, cma
+    return imagerAngObj, ctth, imagercloudproducts, ctype, imager_obj, surft, cpp, cma
 
 def read_patmosx_ctype_cmask_ctth_hdf(patmosx_hdf):
     """Read cloudtype and flag info from filename
@@ -238,8 +238,8 @@ def read_patmosx_geoobj_hdf(patmosx_hdf, filename, cross, SETTINGS):
     gain = patmosx_hdf.select(name).attributes()['scale_factor']
     longitude_v = temp * gain + offset
 
-    cloudproducts.latitude = np.repeat(latitude_v[:,np.newaxis], len(longitude_v), axis=1)
-    cloudproducts.longitude = np.repeat(longitude_v[np.newaxis,:], len(latitude_v), axis=0)
+    cloudproducts.latitude = np.repeat(latitude_v[:, np.newaxis], len(longitude_v), axis=1)
+    cloudproducts.longitude = np.repeat(longitude_v[np.newaxis, :], len(latitude_v), axis=0)
     cloudproducts.nodata=-999
     date_time_start = cross.time
     date_time_end = cross.time + timedelta(seconds=SETTINGS['SAT_ORBIT_DURATION'])

@@ -42,7 +42,7 @@ ATRAIN_MATCH_NODATA = config.NODATA
 
 def get_satid_datetime_orbit_from_fname_oca(imager_filename, SETTINGS, cross):
     # Get satellite name, time, and orbit number from imager_file
-    # W_de-airbusDS-friedrichshafen,SAT,SGA1-VII-02-OCA_C_EUM_20190811211148_G_D_20070912114935_20070912115438_T_X____.nc
+    # W_de-airbusDS-friedrichshafen, SAT, SGA1-VII-02-OCA_C_EUM_20190811211148_G_D_20070912114935_20070912115438_T_X____.nc
     sl_ = os.path.basename(imager_filename).split('_')
     date_time = datetime.strptime(sl_[6], '%Y%m%d%H%M%S')
     # date_time = cross.time
@@ -56,8 +56,8 @@ def get_satid_datetime_orbit_from_fname_oca(imager_filename, SETTINGS, cross):
               "year": date_time.year,
               "month": "%02d" % (date_time.month),
               "time": date_time.strftime("%H%M"),
-              "extrai": "",  # asc_or_des
-              # "basename":sat_id + "_" + date_time.strftime("%Y%m%d_%H%M_99999"),# "20080613002200-ESACCI",
+              "extrai": "", # asc_or_des
+              # "basename":sat_id + "_" + date_time.strftime("%Y%m%d_%H%M_99999"), # "20080613002200-ESACCI",
               "imagerfilename": imager_filename}
     values['basename'] = values["satellite"] + "_" + \
         values["date"] + "_" + values["time"] + "_" + values["orbit"] + "_" + ""
@@ -90,11 +90,11 @@ def oca_read_all_nc(filename):
     return cloudproducts
 
 def scale_oca_var(oca_var):
-    likely_unscaled = oca_var[:,:].data
+    likely_unscaled = oca_var[:, :].data
     # Variables are scaled if inside valid_min/valid_max)
-    # gain = getattr(oca_var,'scale_factor')
-    # intercept = getattr(oca_var,'add_offset')
-    nodata = getattr(oca_var,'missing_value')
+    # gain = getattr(oca_var, 'scale_factor')
+    # intercept = getattr(oca_var, 'add_offset')
+    nodata = getattr(oca_var, 'missing_value')
     # out = likely_unscaled.astype(np.float)*gain + intercept
     out = likely_unscaled
     out[likely_unscaled == nodata] = ATRAIN_MATCH_NODATA

@@ -115,7 +115,7 @@ def match_lonlat(source, target,
     lon = np.ma.masked_array(lon, mask=mask_out)
     # lat = np.around(lat, decimals=4)
     # lon = np.around(lon, decimals=4)
-    source_def = SwathDefinition(*(lon,lat))
+    source_def = SwathDefinition(*(lon, lat))
     target_def = SwathDefinition(*target)
     logger.debug("Matching %d nearest neighbours", n_neighbours)
     valid_in, valid_out, indices, distances = get_neighbour_info(
@@ -123,12 +123,12 @@ def match_lonlat(source, target,
     # import pdb; pdb.set_trace()
     # Use pyresampe code to find colmun and row numbers for each pixel
     # This is works also with no-data in imager lat/lon.
-    cols_matrix, rows_matrix = np.meshgrid(np.array(range(0,lat.shape[1])),
-                                           np.array(range(0,lat.shape[0])))
+    cols_matrix, rows_matrix = np.meshgrid(np.array(range(0, lat.shape[1])),
+                                           np.array(range(0, lat.shape[0])))
     if n_neighbours == 1:
         first_indices = indices
     else:
-        first_indices = indices[:,0]
+        first_indices = indices[:, 0]
 
     cols = get_sample_from_neighbour_info('nn', target_def.shape,
                                           cols_matrix,
@@ -144,18 +144,18 @@ def match_lonlat(source, target,
         cols_0 = cols.copy()
         rows = NODATA + np.zeros((len(rows_0) , n_neighbours))
         cols = NODATA + np.zeros((len(cols_0) , n_neighbours))
-        rows[:,0] = rows_0
-        cols[:,0] = cols_0
+        rows[:, 0] = rows_0
+        cols[:, 0] = cols_0
         for i in range(1, n_neighbours):
-            cols[:,i] = get_sample_from_neighbour_info('nn', target_def.shape,
+            cols[:, i] = get_sample_from_neighbour_info('nn', target_def.shape,
                                                        cols_matrix,
                                                        valid_in, valid_out,
-                                                       indices[:,i])
-            rows[:,i] = get_sample_from_neighbour_info('nn', target_def.shape,
+                                                       indices[:, i])
+            rows[:, i] = get_sample_from_neighbour_info('nn', target_def.shape,
                                                        rows_matrix,
                                                        valid_in, valid_out,
-                                                       indices[:,i])
-            test = (distances[:,0] - distances[:,i])
+                                                       indices[:, i])
+            test = (distances[:, 0] - distances[:, i])
             if  sum(~np.isnan(test))>0 and np.max(test[~np.isnan(test)]) > 0:
                 raise ValueError(
                     'We count on the first neighbour beeing the closest')
@@ -169,7 +169,7 @@ def match_lonlat(source, target,
         # With pykdtree installed get_neighbour_info returns indices
         # as type uint32
         # This does not combine well with a nodata value of -9.
-        indices = np.array(indices,dtype=np.int64)
+        indices = np.array(indices, dtype=np.int64)
     """
     # Make sure all indices are valid
     # import pdb; pdb.set_trace()

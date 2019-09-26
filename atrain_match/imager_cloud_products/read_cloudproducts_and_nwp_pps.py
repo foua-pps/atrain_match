@@ -35,7 +35,7 @@ if config.RESOLUTION == 1:
     DSEC_PER_AVHRR_SCALINE = 1.0/6.  # Full scan period, i.e. the time
                                     # interval between two consecutive
                                     # lines (sec)
-def get_satid_datetime_orbit_from_fname_pps(imager_filename,as_oldstyle=False):
+def get_satid_datetime_orbit_from_fname_pps(imager_filename, as_oldstyle=False):
     # import runutils
     # satname, _datetime, orbit = runutils.parse_scene(imager_filename)
     # returnd orbit as int, loosing leeding zeros, use %05d to get it right.
@@ -62,7 +62,7 @@ def get_satid_datetime_orbit_from_fname_pps(imager_filename,as_oldstyle=False):
                  "date_time": date_time,
                  "date_time_end": date_time_end,
                  "orbit": sl_[4],
-                 # "date":"%04d%02d%02d"%(date_time.year,dat_time.month, date_time.day),
+                 # "date":"%04d%02d%02d"%(date_time.year, dat_time.month, date_time.day),
                  "date": date_time.strftime("%Y%m%d"),
                  "year":date_time.year,
                  "month":"%02d"%(date_time.month),
@@ -267,10 +267,10 @@ def read_ctth_h5(filename):
 def read_ctth_nc(filename):
     pps_nc = netCDF4.Dataset(filename, 'r', format='NETCDF4')
     ctth = CtthObj()
-    ctth.height = pps_nc.variables['ctth_alti'][0,:,:].astype(np.float)
-    ctth.temperature = pps_nc.variables['ctth_tempe'][0,:,:].astype(np.float)
-    ctth.pressure = pps_nc.variables['ctth_pres'][0,:,:].astype(np.float)
-    ctth.ctth_statusflag = pps_nc.variables['ctth_status_flag'][0,:,:]
+    ctth.height = pps_nc.variables['ctth_alti'][0, :, :].astype(np.float)
+    ctth.temperature = pps_nc.variables['ctth_tempe'][0, :, :].astype(np.float)
+    ctth.pressure = pps_nc.variables['ctth_pres'][0, :, :].astype(np.float)
+    ctth.ctth_statusflag = pps_nc.variables['ctth_status_flag'][0, :, :]
     # Currently unpacked arrays later in calipso.py
     ctth.h_gain=1.0
     ctth.h_intercept=0.0
@@ -309,10 +309,10 @@ def read_cloudtype_h5(filename):
 def read_cloudtype_nc(filename):
     pps_nc = netCDF4.Dataset(filename, 'r', format='NETCDF4')
     ctype = CtypeObj()
-    ctype.cloudtype = pps_nc.variables['ct'][0,:,:]
-    ctype.ct_conditions = pps_nc.variables['ct_conditions'][0,:,:]
-    ctype.ct_statusflag = pps_nc.variables['ct_status_flag'][0,:,:]
-    ctype.ct_quality = pps_nc.variables['ct_quality'][0,:,:]
+    ctype.cloudtype = pps_nc.variables['ct'][0, :, :]
+    ctype.ct_conditions = pps_nc.variables['ct_conditions'][0, :, :]
+    ctype.ct_statusflag = pps_nc.variables['ct_status_flag'][0, :, :]
+    ctype.ct_quality = pps_nc.variables['ct_quality'][0, :, :]
     pps_nc.close()
     return ctype
 
@@ -355,7 +355,7 @@ def read_cmaprob_nc(filename, cma):
     if 'cma_extended' in pps_nc.variables.keys():
         if 'cmaprob' not in pps_nc.variables.keys():
             logger.error("\n This file looks not like a CMAPROB-file like a normal CMA-file %s", filename)
-    cma.cma_prob = pps_nc.variables['cmaprob'][0,:,:]
+    cma.cma_prob = pps_nc.variables['cmaprob'][0, :, :]
     pps_nc.close()
     return cma
 
@@ -365,21 +365,21 @@ def read_cma_nc(filename):
     if 'cma_extended' not in pps_nc.variables.keys():
         if 'cloud_probability' in pps_nc.variables.keys():
             logger.error("Probably you shold set CMAP_PROB_VALIDATION=True!")
-    cma.cma_ext = pps_nc.variables['cma_extended'][0,:,:]
+    cma.cma_ext = pps_nc.variables['cma_extended'][0, :, :]
     cma.cma_bin = 0*np.int64(cma.cma_ext.copy())
     cma.cma_bin[cma.cma_ext==1] = 1.0
     cma.cma_bin[cma.cma_ext==2] = 1.0
     cma.cma_bin[cma.cma_ext<0] =  ATRAIN_MATCH_NODATA
     cma.cma_bin[cma.cma_ext>10] =  ATRAIN_MATCH_NODATA
 
-    # cma.cma_testlist0 = pps_nc.variables['cma_testlist0'][0,:,:]
-    # cma.cma_testlist1 = pps_nc.variables['cma_testlist1'][0,:,:]
-    # cma.cma_testlist2 = pps_nc.variables['cma_testlist2'][0,:,:]
-    # cma.cma_testlist3 = pps_nc.variables['cma_testlist3'][0,:,:]
-    # cma.cma_testlist4 = pps_nc.variables['cma_testlist4'][0,:,:]
-    # cma.cma_testlist5 = pps_nc.variables['cma_testlist5'][0,:,:]
+    # cma.cma_testlist0 = pps_nc.variables['cma_testlist0'][0, :, :]
+    # cma.cma_testlist1 = pps_nc.variables['cma_testlist1'][0, :, :]
+    # cma.cma_testlist2 = pps_nc.variables['cma_testlist2'][0, :, :]
+    # cma.cma_testlist3 = pps_nc.variables['cma_testlist3'][0, :, :]
+    # cma.cma_testlist4 = pps_nc.variables['cma_testlist4'][0, :, :]
+    # cma.cma_testlist5 = pps_nc.variables['cma_testlist5'][0, :, :]
     for var_name in [
-            'cma_aerosol',  # new updated name
+            'cma_aerosol', # new updated name
             'cma_aerosolflag',
             'cma_dust',
             'cma_testlist0',
@@ -389,7 +389,7 @@ def read_cma_nc(filename):
             'cma_testlist4',
             'cma_testlist5']:
         if var_name in pps_nc.variables.keys():
-            array = pps_nc.variables[var_name][0,:,:]
+            array = pps_nc.variables[var_name][0, :, :]
             atrain_name = var_name
             if var_name == 'cma_aerosol':
                 atrain_name =    'cma_aerosolflag'
@@ -419,7 +419,7 @@ def read_imager_data_nc(pps_nc):
             logger.debug("reading channel %s", image.description)
             one_channel = ImagerChannelData()
             # channel = image.channel
-            data_temporary = image[0,:,:]
+            data_temporary = image[0, :, :]
             if np.ma.is_masked(one_channel.data):
                 one_channel.data = data_temporary.data
                 one_channel.data[data_temporary.mask] = ATRAIN_MATCH_NODATA
@@ -459,27 +459,27 @@ def read_pps_angobj_nc(pps_nc):
                 this_is = pps_nc.variables[varname].id_tag
 
         if this_is in['satzenith']:
-            angle_obj.satz.data = pps_nc.variables[varname][0,:,:].astype(np.float)
+            angle_obj.satz.data = pps_nc.variables[varname][0, :, :].astype(np.float)
             angle_obj.satz.no_data = pps_nc.variables[varname]._FillValue
             angle_obj.satz.intercept = pps_nc.variables[varname].add_offset
             angle_obj.satz.gain = pps_nc.variables[varname].scale_factor
         elif this_is in['sunzenith']:
-            angle_obj.sunz.data = pps_nc.variables[varname][0,:,:].astype(np.float)
+            angle_obj.sunz.data = pps_nc.variables[varname][0, :, :].astype(np.float)
             angle_obj.sunz.no_data = pps_nc.variables[varname]._FillValue
             angle_obj.sunz.intercept = pps_nc.variables[varname].add_offset
             angle_obj.sunz.gain = pps_nc.variables[varname].scale_factor
         elif this_is in['azimuthdiff']:
-            angle_obj.azidiff.data = pps_nc.variables[varname][0,:,:].astype(np.float)
+            angle_obj.azidiff.data = pps_nc.variables[varname][0, :, :].astype(np.float)
             angle_obj.azidiff.no_data = pps_nc.variables[varname]._FillValue
             angle_obj.azidiff.intercept = pps_nc.variables[varname].add_offset
             angle_obj.azidiff.gain = pps_nc.variables[varname].scale_factor
         elif this_is in['sunazimuth']:
-            angle_obj.sunazimuth.data = pps_nc.variables[varname][0,:,:].astype(np.float)
+            angle_obj.sunazimuth.data = pps_nc.variables[varname][0, :, :].astype(np.float)
             angle_obj.sunazimuth.no_data = pps_nc.variables[varname]._FillValue
             angle_obj.sunazimuth.intercept = pps_nc.variables[varname].add_offset
             angle_obj.sunazimuth.gain = pps_nc.variables[varname].scale_factor
         elif this_is in['satazimuth']:
-            angle_obj.satazimuth.data = pps_nc.variables[varname][0,:,:].astype(np.float)
+            angle_obj.satazimuth.data = pps_nc.variables[varname][0, :, :].astype(np.float)
             angle_obj.satazimuth.no_data = pps_nc.variables[varname]._FillValue
             angle_obj.satazimuth.intercept = pps_nc.variables[varname].add_offset
             angle_obj.satazimuth.gain = pps_nc.variables[varname].scale_factor
@@ -574,11 +574,11 @@ def read_pps_geoobj_nc(pps_nc):
     time_temp = pps_nc.variables['time'].units  # to 1970 s
     seconds = np.float64(pps_nc.variables['time'][::])  # from PPS often 0
     if 'T' in time_temp:
-        time_obj = time.strptime(time_temp,'seconds since %Y-%m-%dT%H:%M:%S+00:00')
+        time_obj = time.strptime(time_temp, 'seconds since %Y-%m-%dT%H:%M:%S+00:00')
     elif time_temp == u'seconds since 1970-01-01':
-        time_obj = time.strptime(time_temp,'seconds since %Y-%m-%d')
+        time_obj = time.strptime(time_temp, 'seconds since %Y-%m-%d')
     else:
-        time_obj = time.strptime(time_temp,'seconds since %Y-%m-%d %H:%M:%S.%f +00:00')
+        time_obj = time.strptime(time_temp, 'seconds since %Y-%m-%d %H:%M:%S.%f +00:00')
 
     sec_since_1970 = calendar.timegm(time_obj)
 
@@ -656,7 +656,7 @@ def read_cpp_nc_one_var(ncFile, cpp_key):
     density = 1e3
     if cpp_key in ncFile.variables.keys():
         logger.debug("Read %s", cpp_key)
-        cpp_var = ncFile.variables[cpp_key][0,:,:]
+        cpp_var = ncFile.variables[cpp_key][0, :, :]
         if np.ma.is_masked(cpp_var):
             cpp_data = cpp_var.data.astype(np.float)
             cpp_data[cpp_var.mask] = ATRAIN_MATCH_NODATA
@@ -691,7 +691,7 @@ def read_nwp_h5(filename, nwp_key):
         gain = h5file[nwp_key].attrs['gain']
         intercept = h5file[nwp_key].attrs['intercept']
         nodat = h5file[nwp_key].attrs['nodata']
-        data = np.where(value != nodat,value * gain + intercept, value)
+        data = np.where(value != nodat, value * gain + intercept, value)
         h5file.close()
         return data
     else:
@@ -701,7 +701,7 @@ def read_nwp_h5(filename, nwp_key):
 def read_etc_nc(ncFile, etc_key):
     if etc_key in ncFile.variables.keys():
         logger.debug("Read %s", etc_key)
-        nwp_var = ncFile.variables[etc_key][0,:,:]
+        nwp_var = ncFile.variables[etc_key][0, :, :]
         if np.ma.is_masked(nwp_var):
             if 'emis' in etc_key:
                 # set emissivity 1.0 where we miss data
@@ -794,8 +794,8 @@ def read_segment_data(filename):
                 data_float = np.array(data, dtype=np.float)
                 data_float[data!=nodata] = data_float[data!=nodata] * gain + intercept
                 name= tb_data
-                name = name.replace('4','11')
-                name = name.replace('5','12')
+                name = name.replace('4', '11')
+                name = name.replace('5', '12')
                 product[name] = data_float
             except ValueError:
                 pass
@@ -809,7 +809,7 @@ def read_segment_data(filename):
 def read_thr_h5(filename, h5_obj_type, thr_type):
     import h5py
     product = None
-    if thr_type in ["emis1","emis6", "emis8", "emis9"]:
+    if thr_type in ["emis1", "emis6", "emis8", "emis9"]:
         if filename is not None:
             h5file = h5py.File(filename, 'r')
             if 1==1:  # h5_obj_type in h5file.keys():
@@ -821,7 +821,7 @@ def read_thr_h5(filename, h5_obj_type, thr_type):
                 product[product>1.0] = 1.0
                 logger.debug("Read EMIS: %s", thr_type)
             else:
-                logger.info("ERROR","Couldn't read %s file, Continue", thr_type)
+                logger.info("ERROR", "Couldn't read %s file, Continue", thr_type)
             h5file.close()
         else:
             logger.debug("NO EMIS %s File, Continue", thr_type)
@@ -926,7 +926,7 @@ def read_all_intermediate_files(pps_files, SETTINGS):
         aux_dict['snowa'] = read_etc_nc(pps_nc_nwp, "snowa")
         aux_dict['snowd'] = read_etc_nc(pps_nc_nwp, "snowd")
     else:
-         aux_dict['surftemp'] = read_nwp_h5(pps_files.nwp_tsur,"tsur")
+         aux_dict['surftemp'] = read_nwp_h5(pps_files.nwp_tsur, "tsur")
          aux_dict['t500'] = read_nwp_h5(pps_files.nwp_t500, "t500")
          aux_dict['t700'] = read_nwp_h5(pps_files.nwp_t700, "t700")
          aux_dict['t850'] = read_nwp_h5(pps_files.nwp_t850, "t850")
@@ -946,8 +946,8 @@ def read_all_intermediate_files(pps_files, SETTINGS):
         for ttype in ['r06', 't11', 't37t12', 't37']:
             h5_obj_type = ttype +'_text'
             text_type = 'text_' + ttype
-            aux_dict[text_type] = read_thr_h5(getattr(pps_files,text_type),
-                                              h5_obj_type,text_type)
+            aux_dict[text_type] = read_thr_h5(getattr(pps_files, text_type),
+                                              h5_obj_type, text_type)
     if pps_files.thr_t11ts is None:
         pass
         logger.info("Not reading PPS threshold data")
@@ -957,27 +957,27 @@ def read_all_intermediate_files(pps_files, SETTINGS):
                             't11ts', 't11t37', 't37t12', 't11t12',
                             'r09', 'r06', 't85t11_inv', 't85t11']:
             thr_type = 'thr_' + nc_obj_type
-            aux_dict[thr_type] = read_etc_nc(pps_nc_thr,nc_obj_type)
+            aux_dict[thr_type] = read_etc_nc(pps_nc_thr, nc_obj_type)
         pps_nc_thr.close()
     else:
         for h5_obj_type in ['t11ts_inv', 't11t37_inv', 't37t12_inv', 't11t12_inv',
                             't11ts', 't11t37', 't37t12', 't11t12',
                             'r09', 'r06', 't85t11_inv', 't85t11']:
             thr_type = 'thr_' + h5_obj_type
-            aux_dict[thr_type] = read_thr_h5(getattr(pps_files,thr_type),
+            aux_dict[thr_type] = read_thr_h5(getattr(pps_files, thr_type),
                                              h5_obj_type, thr_type)
     if pps_files.emis is None:
         pass
         logger.info("Not reading PPS Emissivity data")
     elif '.nc' in pps_files.emis:
         pps_nc_thr = netCDF4.Dataset(pps_files.emis, 'r', format='NETCDF4')
-        for emis_type in ['emis1',"emis6", 'emis8','emis9']:
+        for emis_type in ['emis1', "emis6", 'emis8', 'emis9']:
             aux_dict[emis_type] = read_etc_nc(pps_nc_thr, emis_type)
         pps_nc_thr.close()
     else:
-        for h5_obj_type in ['emis1',"emis6", 'emis8','emis9']:
+        for h5_obj_type in ['emis1', "emis6", 'emis8', 'emis9']:
             emis_type = h5_obj_type
-            aux_dict[emis_type] = read_thr_h5(getattr(pps_files,"emis"),
+            aux_dict[emis_type] = read_thr_h5(getattr(pps_files, "emis"),
                                               h5_obj_type, emis_type)
     if len(CTTH_TYPES)>1:
         for ctth_type in CTTH_TYPES[1:]:  # already read first
@@ -1059,7 +1059,7 @@ def pps_read_all(pps_files, imager_file, SETTINGS):
     cloudproducts.aux = read_all_intermediate_files(pps_files, SETTINGS)
 
     logger.info("Read PPS NWP segment resolution data")
-    cloudproducts.nwp_segments = read_segment_data(getattr(pps_files,'nwp_segments'))
+    cloudproducts.nwp_segments = read_segment_data(getattr(pps_files, 'nwp_segments'))
 
     return cloudproducts
 

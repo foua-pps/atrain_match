@@ -40,8 +40,8 @@ def add_validation_ctth_cloudsat(cloudsat):
     validation_height = -9 + 0*np.zeros(cloudsat.latitude.shape)
     validation_height_base =  LARGE_POSITIVE + 0*np.zeros(cloudsat.latitude.shape)
     for i in range(125):
-        height = cloudsat.Height[:,i]
-        cmask_ok = cloudsat.CPR_Cloud_mask[:,i]
+        height = cloudsat.Height[:, i]
+        cmask_ok = cloudsat.CPR_Cloud_mask[:, i]
         top_height = height+120
         # top_height[height<240*4] = -9999 # Do not use not sure why these were not used Nina 20170317
         is_cloudy = cmask_ok > config.CLOUDSAT_CLOUDY_THR
@@ -108,9 +108,9 @@ def read_cloudsat_hdf4(filename):
     h4file = SD(filename, SDC.READ)
     datasets = h4file.datasets()
     attributes = h4file.attributes()
-    # for idx,attr in enumerate(attributes.keys()):
+    # for idx, attr in enumerate(attributes.keys()):
     #    print idx, attr
-    for idx,sds in enumerate(datasets.keys()):
+    for idx, sds in enumerate(datasets.keys()):
         # 2D data, print idx, sds
         data = h4file.select(sds).get()
         # print h4file.select(sds).attributes().keys()
@@ -151,7 +151,7 @@ def read_cloudsat_hdf4(filename):
     # print data_handle.attrinfo()
     h4file.close()
     # Convert from TAI time to UTC in seconds since 1970:
-    dsec = time.mktime((1993,1,1,0,0,0,0,0,0)) - time.timezone
+    dsec = time.mktime((1993, 1, 1, 0, 0, 0, 0, 0, 0)) - time.timezone
     retv.sec_1970 = retv.Profile_time.ravel() + retv.TAI_start + dsec
     return retv
 
@@ -184,12 +184,12 @@ def read_cloudsat(filename):
                 setattr(retv, am_name, get_data(tempG[dataset]))
     h5file.close()
     # Convert from TAI time to UTC in seconds since 1970:
-    dsec = time.mktime((1993,1,1,0,0,0,0,0,0)) - time.timezone
+    dsec = time.mktime((1993, 1, 1, 0, 0, 0, 0, 0, 0)) - time.timezone
     retv.sec_1970 = retv.Profile_time.ravel() + retv.TAI_start + dsec
     return retv
 
 
-def match_cloudsat_imager(cloudsat,cloudproducts, SETTINGS):
+def match_cloudsat_imager(cloudsat, cloudproducts, SETTINGS):
     retv = TruthImagerTrackObject(truth='cloudsat')
     retv.imager_instrument = cloudproducts.instrument.lower()
     retv.cloudsat = cloudsat
@@ -205,7 +205,7 @@ def match_cloudsat_imager(cloudsat,cloudproducts, SETTINGS):
         return None
     # check if it is within time limits:
     if len(cloudproducts.time.shape)>1:
-        imager_time_vector = [cloudproducts.time[line,pixel] for line, pixel in zip(cal,cap)]
+        imager_time_vector = [cloudproducts.time[line, pixel] for line, pixel in zip(cal, cap)]
         imager_lines_sec_1970 = np.where(cal != config.NODATA, imager_time_vector, np.nan)
     else:
         imager_lines_sec_1970 = np.where(cal != config.NODATA, cloudproducts.time[cal], np.nan)
@@ -217,7 +217,7 @@ def match_cloudsat_imager(cloudsat,cloudproducts, SETTINGS):
         return None
     retv.cloudsat = retv.cloudsat.extract_elements(idx=idx_match)
 
-    # Cloudsat line,pixel inside IMAGER swath:
+    # Cloudsat line, pixel inside IMAGER swath:
     retv.cloudsat.imager_linnum = np.repeat(cal, idx_match).astype('i')
     retv.cloudsat.imager_pixnum = np.repeat(cap, idx_match).astype('i')
 
@@ -225,7 +225,7 @@ def match_cloudsat_imager(cloudsat,cloudproducts, SETTINGS):
     retv.imager.sec_1970 = np.repeat(imager_lines_sec_1970, idx_match)
     retv.diff_sec_1970 = retv.cloudsat.sec_1970 - retv.imager.sec_1970
     do_some_logging(retv, cloudsat)
-    logger.debug("Generate the latitude,cloudtype tracks!")
+    logger.debug("Generate the latitude, cloudtype tracks!")
     retv = imager_track_from_matched(retv, SETTINGS,
                                      cloudproducts)
     return retv
@@ -233,10 +233,10 @@ def match_cloudsat_imager(cloudsat,cloudproducts, SETTINGS):
 def merge_cloudsat(cloudsat, cloudsatlwp):
     # map cloudsat_lwp to cloudsat
     from atrain_match.utils.match import match_lonlat
-    source = (cloudsatlwp.longitude.astype(np.float64).reshape(-1,1),
-              cloudsatlwp.latitude.astype(np.float64).reshape(-1,1))
-    target = (cloudsat.longitude.astype(np.float64).reshape(-1,1),
-              cloudsat.latitude.astype(np.float64).reshape(-1,1))
+    source = (cloudsatlwp.longitude.astype(np.float64).reshape(-1, 1),
+              cloudsatlwp.latitude.astype(np.float64).reshape(-1, 1))
+    target = (cloudsat.longitude.astype(np.float64).reshape(-1, 1),
+              cloudsat.latitude.astype(np.float64).reshape(-1, 1))
     mapper, dummy = match_lonlat(source, target, radius_of_influence=10, n_neighbours=1)
     cloudsat_lwp_index = mapper.rows.filled(config.NODATA).ravel()
     # Transfer CloudSat LWP to ordinary cloudsat obj
@@ -244,23 +244,23 @@ def merge_cloudsat(cloudsat, cloudsatlwp):
     index[index<0] = 0
     cloudsat.RVOD_liq_water_path = np.where(
         cloudsat_lwp_index>=0,
-        cloudsatlwp.RVOD_liq_water_path[index],-9)
+        cloudsatlwp.RVOD_liq_water_path[index], -9)
     cloudsat.RVOD_ice_water_path = np.where(
         cloudsat_lwp_index>=0,
-        cloudsatlwp.RVOD_ice_water_path[index],-9)
+        cloudsatlwp.RVOD_ice_water_path[index], -9)
     cloudsat.LO_RVOD_liquid_water_path = np.where(
         cloudsat_lwp_index>=0,
-        cloudsatlwp.LO_RVOD_liquid_water_path[index],-9)
+        cloudsatlwp.LO_RVOD_liquid_water_path[index], -9)
     cloudsat.IO_RVOD_ice_water_path = np.where(
         cloudsat_lwp_index>=0,
-        cloudsatlwp.IO_RVOD_ice_water_path[index],-9)
+        cloudsatlwp.IO_RVOD_ice_water_path[index], -9)
     cloudsat.RVOD_CWC_status = np.where(
         cloudsat_lwp_index>=0,
-        cloudsatlwp.RVOD_CWC_status[index],-9)
+        cloudsatlwp.RVOD_CWC_status[index], -9)
     return cloudsat
 
 
-def reshapeCloudsat(cloudsatfiles, imager,  SETTINGS):
+def reshapeCloudsat(cloudsatfiles, imager, SETTINGS):
     # imager_end = imager.sec1970_end
     # imager_start = imager.sec1970_start
     clsat = get_cloudsat(cloudsatfiles[0])

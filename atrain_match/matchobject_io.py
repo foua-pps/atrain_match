@@ -110,9 +110,9 @@ class DataObject(object):
             elif value.size == 1:
                 pass
             elif idx is not None:
-                self.all_arrays[key] = value[idx.ravel(),...]
+                self.all_arrays[key] = value[idx.ravel(), ...]
             else:
-                self.all_arrays[key] = value[starti:endi,...]
+                self.all_arrays[key] = value[starti:endi, ...]
             if value is not None and len(value.shape)>1 and value.shape[1]==1:
                 self.all_arrays[key] = self.all_arrays[key].ravel()
 
@@ -187,7 +187,7 @@ class CalipsoObject(DataObject):
             'latitude': None,
             'imager_linnum': None,
             'imager_pixnum': None,
-            'elevation': None,  # DEM_elevation => elevation in (m)"
+            'elevation': None, # DEM_elevation => elevation in (m)"
             'cloud_fraction': None,
             'validation_height': None,
             'sec_1970': None,
@@ -200,10 +200,10 @@ class CalipsoObject(DataObject):
             'layer_base_pressure': None,
             'number_layers_found': None,
             'igbp_surface_type': None,
-            'nsidc_surface_type': None,  # V4 renamed from 'snow_ice_surface_type'
+            'nsidc_surface_type': None, # V4 renamed from 'snow_ice_surface_type'
             'snow_ice_surface_type': None,
             # 'nsidc_surface_type_texture': None,
-            'profile_time_tai': None,  # renamed from "Profile_Time"
+            'profile_time_tai': None, # renamed from "Profile_Time"
             'feature_classification_flags': None,
             'day_night_flag': None,
             'feature_optical_depth_532': None,

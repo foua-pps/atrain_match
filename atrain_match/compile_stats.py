@@ -20,7 +20,7 @@
 Created on Oct 13, 2010
 
 '''
-from atrain_match.config import (RESOLUTION, _validation_results_dir,  DNT_FLAG, SURFACES)
+from atrain_match.config import (RESOLUTION, _validation_results_dir, DNT_FLAG, SURFACES)
 
 import logging
 logging.basicConfig(level=logging.INFO)
@@ -38,21 +38,21 @@ def compile_stats(results_files, write=True, outfile_cfc="merged_sat_file_cfc", 
 
     if truth_sat not in ['amsr']:
         note = "========== Cloud top height ==========="
-        compiled_cth_file_name = outfile_cfc.replace('_cfc_','_cth_')
+        compiled_cth_file_name = outfile_cfc.replace('_cfc_', '_cth_')
         from statistics import orrb_CTH_stat
         cth_stats = orrb_CTH_stat.CloudTopStats(ac_data=cfc_stats.ac_data, truth_sat=truth_sat)
         cth_stats.write(compiled_cth_file_name)
 
     if truth_sat not in ['amsr']:
         # print("============= Cloud type ==============")
-        compiled_cty_file_name = outfile_cfc.replace('_cfc_','_cty_')
+        compiled_cty_file_name = outfile_cfc.replace('_cfc_', '_cty_')
         from statistics import orrb_CTY_stat
         cty_stats = orrb_CTY_stat.CloudTypeStats(ac_data=cfc_stats.ac_data, truth_sat=truth_sat)
         cty_stats.write(compiled_cty_file_name)
 
     if truth_sat not in ['amsr']:
         note = "========== Cloud phase ==========="
-        compiled_cph_file_name = outfile_cfc.replace('_cfc_','_cph_')
+        compiled_cph_file_name = outfile_cfc.replace('_cfc_', '_cph_')
         from statistics import orrb_CPH_stat
         cth_stats = orrb_CPH_stat.CloudPhaseStats(ac_data=cfc_stats.ac_data, truth_sat=truth_sat)
         cth_stats.write(compiled_cph_file_name)
@@ -60,7 +60,7 @@ def compile_stats(results_files, write=True, outfile_cfc="merged_sat_file_cfc", 
     # LWP only for AMSR-E currently
     if truth_sat in ['amsr']:
         note = "========== Cloud lwp ==========="
-        compiled_lwp_file_name = outfile_cfc.replace('_cfc_','_lwp_')
+        compiled_lwp_file_name = outfile_cfc.replace('_cfc_', '_lwp_')
         from statistics import orrb_LWP_stat
         cth_stats = orrb_LWP_stat.CloudLwpStats(ac_data=cfc_stats.ac_data, truth_sat=truth_sat)
         cth_stats.write(compiled_lwp_file_name)
@@ -71,27 +71,27 @@ if __name__ == '__main__':
 
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('--nodnt', '-d',  const=True, nargs='?',
+    parser.add_argument('--nodnt', '-d', const=True, nargs='?',
                         required=False,
                         help="Don't calculate statistics for all DNTs")
-    parser.add_argument('--basic', '-b',  const=True, nargs='?',
+    parser.add_argument('--basic', '-b', const=True, nargs='?',
                         required=False,
                         help="Calculate the statistic for mode BASIC")
-    parser.add_argument('--satz', '-z',  const=True, nargs='?',
+    parser.add_argument('--satz', '-z', const=True, nargs='?',
                         required=False,
                         help="Calculate the statistic for mode BASIC")
     parser.add_argument('--standard', '-t', const=True, nargs='?',
                         required=False,
                         help="Calculate the statistic for mode STANDARD")
-    parser.add_argument('--odticfilter', '-o',  const=True, nargs='?',
+    parser.add_argument('--odticfilter', '-o', const=True, nargs='?',
                         required=False,
                         help="Calculate the statistic for mode "
                         "OPTICAL_DEPTH_THIN_IS_CLEAR")
-    parser.add_argument('--surface_new_way', '-n',  const=True,
+    parser.add_argument('--surface_new_way', '-n', const=True,
                         nargs='?', required=False,
                         help='calculate the statistic for the different '
                         'surfaces')
-    parser.add_argument('--cotfilter', '-c',  const=True,
+    parser.add_argument('--cotfilter', '-c', const=True,
                         nargs='?', required=False,
                         help='calculate the statistic for the optical '
                         'thickness filters')
@@ -138,8 +138,8 @@ if __name__ == '__main__':
         print('Will calculate statistic for mode COT-filter')
         for dnt in New_DNT_FLAG:
             for cot in SETTINGS["MIN_OPTICAL_DEPTH"]:
-                # modes_list.append("OPTICAL_DEPTH-%0.2_%sf"(dnt,cot))# if like this
-                modes_dnt_list.append("OPTICAL_DEPTH%s-%0.2f"%(dnt,cot))
+                # modes_list.append("OPTICAL_DEPTH-%0.2_%sf"(dnt, cot))# if like this
+                modes_dnt_list.append("OPTICAL_DEPTH%s-%0.2f"%(dnt, cot))
 
     # get cases
     CASES = []
@@ -182,7 +182,7 @@ if __name__ == '__main__':
                     mode=process_mode_dnt,
                     truth_sat=truth_sat,
                     min_opt_depth="")
-                indata_dir =indata_dir.replace("_%H","*")
+                indata_dir =indata_dir.replace("_%H", "*")
                 indata_file = AM_PATHS['result_file'].format(
                     resolution=str(RESOLUTION),
                     basename="*",
@@ -208,7 +208,7 @@ if __name__ == '__main__':
                 stat_type='cfc',
                 min_opt_depth="")
             compiled_file_cfc = os.path.join(compiled_dir, compiled_file_cfc)
-            compile_stats(results_files,  outfile_cfc=compiled_file_cfc,   truth_sat=truth_sat)
+            compile_stats(results_files, outfile_cfc=compiled_file_cfc, truth_sat=truth_sat)
     if options.write == True:
         logger.warning("Results always written to file, -w flag is depricated")
 

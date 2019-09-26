@@ -59,7 +59,7 @@ def read_config_info():
             value_ = True
         elif len(values)==1 and 'false' in values[0].lower():
             value_ = False
-        elif len(values)==1  and re.match("\d+.*\d*",values[0]):
+        elif len(values)==1  and re.match("\d+.*\d*", values[0]):
             value_ = np.float(values[0])
 
         SETTINGS[name.upper()] = value_
@@ -251,7 +251,7 @@ def do_some_logging(retv, match_obj):
               time.gmtime(match_obj.sec_1970[0]),
               time.gmtime(match_obj.sec_1970[-1]))
     logger.debug("Maximum and minimum time differences in sec (imager-reference): %d %d",
-          np.max(retv.diff_sec_1970),np.min(retv.diff_sec_1970))
+          np.max(retv.diff_sec_1970), np.min(retv.diff_sec_1970))
     logger.debug("IMAGER observation time of first imager-reference match: %s",
           time.gmtime(retv.imager.sec_1970[0]))
     logger.debug("IMAGER observation time of last imager-reference match: %s",

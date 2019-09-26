@@ -50,10 +50,10 @@ def calculate_ctth_stats(val_subset, imager_ctth_m_above_seasurface, truth_sat_v
 
     imager_have_hight_for_selection = np.logical_and(
         val_subset,
-        np.greater_equal(imager_ctth_m_above_seasurface,0))
+        np.greater_equal(imager_ctth_m_above_seasurface, 0))
     truth_have_hight_for_selection = np.logical_and(
         val_subset,
-        np.greater_equal(truth_sat_validation_height,0))
+        np.greater_equal(truth_sat_validation_height, 0))
     # validate where both have height:
     val_subset = np.logical_and(imager_have_hight_for_selection,
                                 truth_have_hight_for_selection)
@@ -66,8 +66,8 @@ def calculate_ctth_stats(val_subset, imager_ctth_m_above_seasurface, truth_sat_v
     n_only_truth_had_height_both_had_cloud = np.sum(np.logical_and(only_truth_had_height,
                                                                    imager_is_cloudy))
     # print "debug", np.sum(n_only_truth_had_height_both_had_cloud)
-    imager_height_work = imager_ctth_m_above_seasurface[val_subset.ravel(),...]
-    truth_sat_validation_height_work = truth_sat_validation_height[val_subset.ravel(),...]
+    imager_height_work = imager_ctth_m_above_seasurface[val_subset.ravel(), ...]
+    truth_sat_validation_height_work = truth_sat_validation_height[val_subset.ravel(), ...]
     # import pdb; pdb.set_trace()
     corr_caliop_imager = -9.0
     bias = -9.0
@@ -78,7 +78,7 @@ def calculate_ctth_stats(val_subset, imager_ctth_m_above_seasurface, truth_sat_v
     if len(truth_sat_validation_height_work) > 0:
         if len(imager_height_work) > 20:
             corr_caliop_imager = np.corrcoef(truth_sat_validation_height_work,
-                                            imager_height_work)[0,1]
+                                            imager_height_work)[0, 1]
         else:
             corr_caliop_imager = -99.0
         diff = imager_height_work-truth_sat_validation_height_work
@@ -89,7 +89,7 @@ def calculate_ctth_stats(val_subset, imager_ctth_m_above_seasurface, truth_sat_v
         diff_squared_biascorr = (diff-bias)*(diff-bias)
 #        RMS_difference_biascorr = np.sqrt(np.mean(diff_squared_biascorr))
 
-    # return (corr_caliop_imager,bias,RMS_difference,imager_height_work,diff_squared_biascorr)
+    # return (corr_caliop_imager, bias, RMS_difference, imager_height_work, diff_squared_biascorr)
     return "%3.2f %3.2f %3.2f %d %d %d %3.2f"%(corr_caliop_imager,
                                                bias,
                                                RMS_difference,
@@ -141,96 +141,96 @@ def get_subset_for_mode(match_obj, mode):
     # and IGBP surface types  if we have them
     elif mode == 'ICE_COVER_SEA':
         cal_subset = np.logical_and(
-            np.logical_and(np.less_equal(nsidc_st,100), np.greater(nsidc_st,10)),
-            np.equal(igbp_st,17))
+            np.logical_and(np.less_equal(nsidc_st, 100), np.greater(nsidc_st, 10)),
+            np.equal(igbp_st, 17))
     elif mode == 'ICE_FREE_SEA':
-        cal_subset = np.logical_and(np.equal(nsidc_st,0),np.equal(igbp_st,17))
+        cal_subset = np.logical_and(np.equal(nsidc_st, 0), np.equal(igbp_st, 17))
     elif mode == 'SNOW_COVER_LAND':
         cal_subset = np.logical_and(
-            np.logical_and(np.less(nsidc_st,104), np.greater(nsidc_st,10)),
-            np.not_equal(igbp_st,17))
+            np.logical_and(np.less(nsidc_st, 104), np.greater(nsidc_st, 10)),
+            np.not_equal(igbp_st, 17))
         #  Notice that some uncertainty remains about the meaning of IGBP
         #  category 15 = "snow and ice". Can this possibly include also
         #  the Arctic ice sheet? We hope that it is not!
         #  However, if it is, the whole classification here might be wrong
         #  since this will affect also the definition of IGBP category 17./KG
     elif mode == 'SNOW_FREE_LAND':
-        cal_subset = np.logical_and(np.equal(nsidc_st,0),
-                                    np.not_equal(igbp_st,17))
+        cal_subset = np.logical_and(np.equal(nsidc_st, 0),
+                                    np.not_equal(igbp_st, 17))
     elif mode == 'COASTAL_ZONE':
-        cal_subset = np.equal(nsidc_st,255)
+        cal_subset = np.equal(nsidc_st, 255)
     elif mode == 'TROPIC_ZONE_SNOW_FREE_LAND':
-        cal_subset_lat = np.logical_and(np.equal(nsidc_st,0),
-                                        np.not_equal(igbp_st,17))
+        cal_subset_lat = np.logical_and(np.equal(nsidc_st, 0),
+                                        np.not_equal(igbp_st, 17))
         cal_subset_area = latitude_abs <= 10
         cal_subset = np.logical_and(cal_subset_lat, cal_subset_area)
     elif mode == 'TROPIC_ZONE_ICE_FREE_SEA':
-        cal_subset_lat = np.logical_and(np.equal(nsidc_st,0),
-                                        np.equal(igbp_st,17))
+        cal_subset_lat = np.logical_and(np.equal(nsidc_st, 0),
+                                        np.equal(igbp_st, 17))
         cal_subset_area = latitude_abs <= 10
         cal_subset = np.logical_and(cal_subset_lat, cal_subset_area)
     elif mode == 'SUB_TROPIC_ZONE_SNOW_FREE_LAND':
         cal_subset_lat = np.logical_and((latitude_abs > 10),
                                         (latitude_abs <= 45))
-        cal_subset_area = np.logical_and(np.equal(nsidc_st,0),
-                                         np.not_equal(igbp_st,17))
+        cal_subset_area = np.logical_and(np.equal(nsidc_st, 0),
+                                         np.not_equal(igbp_st, 17))
         cal_subset = np.logical_and(cal_subset_lat, cal_subset_area)
     elif mode == 'SUB_TROPIC_ZONE_ICE_FREE_SEA':
         cal_subset_lat = np.logical_and((latitude_abs > 10),
                                         (latitude_abs <= 45))
-        cal_subset_area = np.logical_and(np.equal(nsidc_st,0),
-                                         np.equal(igbp_st,17))
+        cal_subset_area = np.logical_and(np.equal(nsidc_st, 0),
+                                         np.equal(igbp_st, 17))
         cal_subset = np.logical_and(cal_subset_lat, cal_subset_area)
 
     elif mode == 'HIGH-LATITUDES_SNOW_FREE_LAND':
-        cal_subset_lat = np.logical_and(np.equal(nsidc_st,0),
-                                        np.not_equal(igbp_st,17))
+        cal_subset_lat = np.logical_and(np.equal(nsidc_st, 0),
+                                        np.not_equal(igbp_st, 17))
         cal_subset_area = np.logical_and((latitude_abs > 45),
                                          (latitude_abs <= 75))
         cal_subset = np.logical_and(cal_subset_lat, cal_subset_area)
     elif mode == 'HIGH-LATITUDES_SNOW_COVER_LAND':
         cal_subset_lat = np.logical_and(
-            np.logical_and(np.less(nsidc_st,104),
-                           np.greater(nsidc_st,10)),
-            np.not_equal(igbp_st,17))
+            np.logical_and(np.less(nsidc_st, 104),
+                           np.greater(nsidc_st, 10)),
+            np.not_equal(igbp_st, 17))
         cal_subset_area = np.logical_and((latitude_abs > 45), (latitude_abs <= 75))
         cal_subset = np.logical_and(cal_subset_lat, cal_subset_area)
     elif mode == 'HIGH-LATITUDES_ICE_FREE_SEA':
-        cal_subset_lat = np.logical_and(np.equal(nsidc_st,0),
-                                        np.equal(igbp_st,17))
+        cal_subset_lat = np.logical_and(np.equal(nsidc_st, 0),
+                                        np.equal(igbp_st, 17))
         cal_subset_area = np.logical_and((latitude_abs > 45),
                                          (latitude_abs <= 75))
         cal_subset = np.logical_and(cal_subset_lat, cal_subset_area)
     elif mode == 'HIGH-LATITUDES_ICE_COVER_SEA':
         cal_subset_lat = np.logical_and(
-            np.logical_and(np.less_equal(nsidc_st,100),
-                           np.greater(nsidc_st,10)),
-            np.equal(igbp_st,17))
+            np.logical_and(np.less_equal(nsidc_st, 100),
+                           np.greater(nsidc_st, 10)),
+            np.equal(igbp_st, 17))
         cal_subset_area = np.logical_and((latitude_abs > 45),
                                          (latitude_abs <= 75))
         cal_subset = np.logical_and(cal_subset_lat, cal_subset_area)
     elif mode == 'POLAR_SNOW_FREE_LAND':
-        cal_subset_lat = np.logical_and(np.equal(nsidc_st,0),
-                                        np.not_equal(igbp_st,17))
+        cal_subset_lat = np.logical_and(np.equal(nsidc_st, 0),
+                                        np.not_equal(igbp_st, 17))
         cal_subset_area = latitude_abs > 75
         cal_subset = np.logical_and(cal_subset_lat, cal_subset_area)
     elif mode == 'POLAR_SNOW_COVER_LAND':
         cal_subset_lat = np.logical_and(
-            np.logical_and(np.less(nsidc_st,104),
-                           np.greater(nsidc_st,10)),
-            np.not_equal(igbp_st,17))
+            np.logical_and(np.less(nsidc_st, 104),
+                           np.greater(nsidc_st, 10)),
+            np.not_equal(igbp_st, 17))
         cal_subset_area = latitude_abs > 75
         cal_subset = np.logical_and(cal_subset_lat, cal_subset_area)
     elif mode == 'POLAR_ICE_FREE_SEA':
         cal_subset_lat = np.logical_and(
-            np.equal(nsidc_st,0),np.equal(igbp_st,17))
+            np.equal(nsidc_st, 0), np.equal(igbp_st, 17))
         cal_subset_area = latitude_abs > 75
         cal_subset = np.logical_and(cal_subset_lat, cal_subset_area)
     elif mode == 'POLAR_ICE_COVER_SEA':
         cal_subset_lat = np.logical_and(
-            np.logical_and(np.less_equal(nsidc_st,100),
-                           np.greater(nsidc_st,10)),
-            np.equal(igbp_st,17))
+            np.logical_and(np.less_equal(nsidc_st, 100),
+                           np.greater(nsidc_st, 10)),
+            np.equal(igbp_st, 17))
         cal_subset_area = latitude_abs > 75
         cal_subset = np.logical_and(cal_subset_lat, cal_subset_area)
     else:
@@ -284,19 +284,19 @@ def find_imager_clear_cloudy(match_obj, SETTINGS):
         imager_clear =  match_obj.imager.cfc_mean <SETTINGS["PPS_SYNOP_CLEAR_MAX_CFC"]
         imager_cloudy =  match_obj.imager.cfc_mean >=SETTINGS["PPS_SYNOP_CLOUDY_MIN_CFC"]
     elif SETTINGS["USE_CMA_FOR_CFC_STATISTICS"]:
-        imager_clear = np.logical_or(np.equal(match_obj.imager.cloudmask,3),
-                                     np.equal(match_obj.imager.cloudmask,0))
-        imager_cloudy = np.logical_or(np.equal(match_obj.imager.cloudmask,1),
-                                      np.equal(match_obj.imager.cloudmask,2))
+        imager_clear = np.logical_or(np.equal(match_obj.imager.cloudmask, 3),
+                                     np.equal(match_obj.imager.cloudmask, 0))
+        imager_cloudy = np.logical_or(np.equal(match_obj.imager.cloudmask, 1),
+                                      np.equal(match_obj.imager.cloudmask, 2))
     elif SETTINGS["USE_CT_FOR_CFC_STATISTICS"]:
-        imager_clear =np.logical_and(np.less_equal(match_obj.imager.cloudtype,4),np.greater(match_obj.imager.cloudtype,0))
-        imager_cloudy = np.logical_and(np.greater(match_obj.imager.cloudtype,4),np.less(match_obj.imager.cloudtype,20))
+        imager_clear =np.logical_and(np.less_equal(match_obj.imager.cloudtype, 4), np.greater(match_obj.imager.cloudtype, 0))
+        imager_cloudy = np.logical_and(np.greater(match_obj.imager.cloudtype, 4), np.less(match_obj.imager.cloudtype, 20))
     elif SETTINGS["USE_CMAPROB_FOR_CFC_STATISTICS"]:
         CMA_PROB_CLOUDY_LIMIT = SETTINGS["CMA_PROB_CLOUDY_LIMIT"]
-        imager_clear = np.logical_and(np.less(match_obj.imager.cma_prob,CMA_PROB_CLOUDY_LIMIT),
-                                     np.greater_equal(match_obj.imager.cma_prob,0))
-        imager_cloudy = np.logical_and(np.greater_equal(match_obj.imager.cma_prob,CMA_PROB_CLOUDY_LIMIT),
-                                      np.less_equal(match_obj.imager.cma_prob,100.0))
+        imager_clear = np.logical_and(np.less(match_obj.imager.cma_prob, CMA_PROB_CLOUDY_LIMIT),
+                                     np.greater_equal(match_obj.imager.cma_prob, 0))
+        imager_cloudy = np.logical_and(np.greater_equal(match_obj.imager.cma_prob, CMA_PROB_CLOUDY_LIMIT),
+                                      np.less_equal(match_obj.imager.cma_prob, 100.0))
 
     else:
         raise ProcessingError("You need at least one of USE_*_FOR_CFC_STATISICS"
@@ -311,19 +311,19 @@ def find_truth_clear_cloudy(match_obj, val_subset, SETTINGS):
     match_obj_truth_sat = getattr(match_obj, match_obj.truth_sat)
     if 'CALIPSO' in match_obj.truth_sat.upper():
         truth_clear = np.logical_and(
-            np.less(match_obj_truth_sat.cloud_fraction,SETTINGS["CALIPSO_CLEAR_MAX_CFC"]),val_subset)
+            np.less(match_obj_truth_sat.cloud_fraction, SETTINGS["CALIPSO_CLEAR_MAX_CFC"]), val_subset)
         truth_cloudy = np.logical_and(
-            np.greater_equal(match_obj_truth_sat.cloud_fraction,SETTINGS["CALIPSO_CLOUDY_MIN_CFC"]),val_subset)
+            np.greater_equal(match_obj_truth_sat.cloud_fraction, SETTINGS["CALIPSO_CLOUDY_MIN_CFC"]), val_subset)
     elif 'SYNOP' in  match_obj.truth_sat.upper():
         truth_clear = np.logical_and(
-            np.less(match_obj_truth_sat.cloud_fraction,SETTINGS["SYNOP_CLEAR_MAX_CFC"]),val_subset)
+            np.less(match_obj_truth_sat.cloud_fraction, SETTINGS["SYNOP_CLEAR_MAX_CFC"]), val_subset)
         truth_cloudy = np.logical_and(
-            np.greater_equal(match_obj_truth_sat.cloud_fraction,SETTINGS["SYNOP_CLOUDY_MIN_CFC"]),val_subset)
+            np.greater_equal(match_obj_truth_sat.cloud_fraction, SETTINGS["SYNOP_CLOUDY_MIN_CFC"]), val_subset)
     else:
         truth_clear = np.logical_and(
-            np.less_equal(match_obj_truth_sat.cloud_fraction,0.5), val_subset)
+            np.less_equal(match_obj_truth_sat.cloud_fraction, 0.5), val_subset)
         truth_cloudy = np.logical_and(
-            np.greater(match_obj_truth_sat.cloud_fraction,0.5), val_subset)
+            np.greater(match_obj_truth_sat.cloud_fraction, 0.5), val_subset)
     return truth_clear, truth_cloudy
 
 def  get_lwp_diff_inner_cloudsat(aObj, val_subset, wide_selection=False):
@@ -335,9 +335,9 @@ def  get_lwp_diff_inner_cloudsat(aObj, val_subset, wide_selection=False):
         pass
     else:
         # exclude risk for precipitation contamination
-        selection = np.logical_and(selection, np.bitwise_and(np.right_shift(aObj.cloudsat.RVOD_CWC_status,2),1)==0)
+        selection = np.logical_and(selection, np.bitwise_and(np.right_shift(aObj.cloudsat.RVOD_CWC_status, 2), 1)==0)
         # exclude not seen in GEOPROF
-        selection = np.logical_and(selection, np.bitwise_and(np.right_shift(aObj.cloudsat.RVOD_CWC_status,0),10)==0)  # clear geoprof
+        selection = np.logical_and(selection, np.bitwise_and(np.right_shift(aObj.cloudsat.RVOD_CWC_status, 0), 10)==0)  # clear geoprof
         # exclude cloudsat ice water path
         selection = np.logical_and(selection, aObj.cloudsat.RVOD_ice_water_path<=0)
 
@@ -353,7 +353,7 @@ def  get_lwp_diff_inner_cloudsat(aObj, val_subset, wide_selection=False):
     selection1 = np.logical_and(val_subset, selection1)
     lwp_diff_lo = aObj.imager.cpp_lwp - aObj.cloudsat.LO_RVOD_liquid_water_path
     lwp_diff_lo = lwp_diff_lo[selection1]
-    return lwp_diff, lwp_diff_lo,  aObj.imager.cpp_lwp, aObj.cloudsat.RVOD_liq_water_path, selection
+    return lwp_diff, lwp_diff_lo, aObj.imager.cpp_lwp, aObj.cloudsat.RVOD_liq_water_path, selection
 
 def print_cpp_lwp_stats(aObj, statfile, val_subset):
     # CLOUD LWP EVALUATION
@@ -444,19 +444,19 @@ def print_cpp_stats(match_obj, statfile, val_subset, SETTINGS):
         np.equal(cal_phase, CALIPSO_PHASE_VALUES['horizontal_oriented_ice']))
     truth_water = np.logical_and(truth_water.data, ~cal_phase.mask)
     truth_ice = np.logical_and(truth_ice.data, ~cal_phase.mask)
-    pps_water = np.equal(match_obj.imager.cpp_phase,1)
-    pps_ice = np.equal(match_obj.imager.cpp_phase,2)
+    pps_water = np.equal(match_obj.imager.cpp_phase, 1)
+    pps_ice = np.equal(match_obj.imager.cpp_phase, 2)
     pps_ice = np.logical_and(pps_ice, val_subset)
-    pps_water = np.logical_and(pps_water,val_subset)
+    pps_water = np.logical_and(pps_water, val_subset)
 
     n_ice_ice = np.sum(
-        np.logical_and(truth_ice,pps_ice))
+        np.logical_and(truth_ice, pps_ice))
     n_water_water = np.sum(
-        np.logical_and(truth_water,pps_water))
+        np.logical_and(truth_water, pps_water))
     n_ice_water = np.sum(
-        np.logical_and(truth_ice,pps_water))
+        np.logical_and(truth_ice, pps_water))
     n_water_ice = np.sum(
-        np.logical_and(truth_water,pps_ice))
+        np.logical_and(truth_water, pps_ice))
 
     nice = n_ice_ice + n_ice_water
     nwater = n_water_water + n_water_ice
@@ -472,7 +472,7 @@ def print_cpp_stats(match_obj, statfile, val_subset, SETTINGS):
         pod_ice = 100*float(n_ice_ice)/nice
     if nice + nwater >0:
         hitrate = (n_ice_ice + n_water_water)*1.0/(nice+nwater)
-    statfile.write("CLOUD PHASE %s-IMAGER TABLE: %s %s %s %s \n" % (match_obj.truth_sat.upper(), n_ice_ice,n_ice_water,n_water_ice,n_water_water))
+    statfile.write("CLOUD PHASE %s-IMAGER TABLE: %s %s %s %s \n" % (match_obj.truth_sat.upper(), n_ice_ice, n_ice_water, n_water_ice, n_water_water))
     statfile.write("CLOUD PHASE %s-IMAGER POD-WATER: %3.2f \n" % (match_obj.truth_sat.upper(), pod_water))
     statfile.write("CLOUD PHASE %s-IMAGER POD-ICE: %3.2f \n" % (match_obj.truth_sat.upper(), pod_ice))
     statfile.write("CLOUD PHASE %s-IMAGER Hitrate: %3.2f \n" % (match_obj.truth_sat.upper(), hitrate))
@@ -484,17 +484,17 @@ def print_cmask_stats(match_obj, statfile, val_subset, SETTINGS):
     truth_clear, truth_cloudy = find_truth_clear_cloudy(match_obj, val_subset, SETTINGS)
     pps_clear, pps_cloudy = find_imager_clear_cloudy(match_obj, SETTINGS)
     pps_clear = np.logical_and(pps_clear, val_subset)
-    pps_cloudy = np.logical_and(pps_cloudy,val_subset)
+    pps_cloudy = np.logical_and(pps_cloudy, val_subset)
     n_clear_clear = np.repeat(
-        pps_clear,np.logical_and(truth_clear,pps_clear)).shape[0]
+        pps_clear, np.logical_and(truth_clear, pps_clear)).shape[0]
     n_cloudy_cloudy = np.repeat(
-        pps_cloudy,np.logical_and(truth_cloudy,pps_cloudy)).shape[0]
+        pps_cloudy, np.logical_and(truth_cloudy, pps_cloudy)).shape[0]
     n_clear_cloudy = np.repeat(
-        pps_cloudy,np.logical_and(truth_clear,pps_cloudy)).shape[0]
+        pps_cloudy, np.logical_and(truth_clear, pps_cloudy)).shape[0]
     n_cloudy_clear = np.repeat(
-        pps_clear,np.logical_and(truth_cloudy,pps_clear)).shape[0]
-    nclear = n_clear_clear+n_clear_cloudy  # np.repeat(truth_clear,truth_clear).shape[0]
-    ncloudy = n_cloudy_cloudy+n_cloudy_clear  # np.repeat(truth_cloudy,truth_cloudy).shape[0]
+        pps_clear, np.logical_and(truth_cloudy, pps_clear)).shape[0]
+    nclear = n_clear_clear+n_clear_cloudy  # np.repeat(truth_clear, truth_clear).shape[0]
+    ncloudy = n_cloudy_cloudy+n_cloudy_clear  # np.repeat(truth_cloudy, truth_cloudy).shape[0]
     ncloudy_pps = n_cloudy_cloudy+n_clear_cloudy
     nclear_pps = n_cloudy_clear+n_clear_clear
 
@@ -519,8 +519,8 @@ def print_cmask_stats(match_obj, statfile, val_subset, SETTINGS):
     else:
         bias = -9.0*0.01
 
-    statfile.write("CLOUD MASK %s-IMAGER TABLE: %s %s %s %s \n" % (match_obj.truth_sat.upper(), n_clear_clear,n_clear_cloudy,n_cloudy_clear,n_cloudy_cloudy))
-    # statfile.write("CLOUD MASK %s-IMAGER PROB:%3.2f \n" % (match_obj.truth_sat.upper(), pod_cloudy,pod_clear,far_cloudy,far_clear,bias))
+    statfile.write("CLOUD MASK %s-IMAGER TABLE: %s %s %s %s \n" % (match_obj.truth_sat.upper(), n_clear_clear, n_clear_cloudy, n_cloudy_clear, n_cloudy_cloudy))
+    # statfile.write("CLOUD MASK %s-IMAGER PROB:%3.2f \n" % (match_obj.truth_sat.upper(), pod_cloudy, pod_clear, far_cloudy, far_clear, bias))
     statfile.write("CLOUD MASK %s-IMAGER POD-CLOUDY: %3.2f \n" % (match_obj.truth_sat.upper(), pod_cloudy*100))
     statfile.write("CLOUD MASK %s-IMAGER POD-CLEAR:  %3.2f \n" %  (match_obj.truth_sat.upper(), pod_clear*100))
     statfile.write("CLOUD MASK %s-IMAGER FAR-CLOUDY: %3.2f \n" % (match_obj.truth_sat.upper(), far_cloudy*100))
@@ -542,11 +542,11 @@ def print_cmask_prob_stats(match_obj, statfile, val_subset, SETTINGS):
 
     # selection:
     truth_clear = np.logical_and(truth_clear, val_subset)
-    truth_cloudy = np.logical_and(truth_cloudy,val_subset)
+    truth_cloudy = np.logical_and(truth_cloudy, val_subset)
     step = 5  # percents
     clear_string = ""
     cloudy_string = ""
-    for lower in range(0,100, step):
+    for lower in range(0, 100, step):
         upper = lower + step
         if upper == 100:
             upper = 101
@@ -571,26 +571,26 @@ def print_modis_stats(match_obj, statfile, val_subset, cal_modis_cflag, SETTINGS
         return
 
     modis_clear = np.logical_and(
-        np.logical_or(np.equal(cal_modis_cflag,1),
-                      np.equal(cal_modis_cflag,0)),val_subset)
+        np.logical_or(np.equal(cal_modis_cflag, 1),
+                      np.equal(cal_modis_cflag, 0)), val_subset)
     modis_cloudy = np.logical_and(
-        np.logical_or(np.equal(cal_modis_cflag,3),
-                      np.equal(cal_modis_cflag,2)),val_subset)
+        np.logical_or(np.equal(cal_modis_cflag, 3),
+                      np.equal(cal_modis_cflag, 2)), val_subset)
 
     n_clear_clear = np.repeat(
         modis_clear,
-        np.logical_and(truth_clear,modis_clear)).shape[0]
+        np.logical_and(truth_clear, modis_clear)).shape[0]
     n_cloudy_cloudy = np.repeat(
         modis_cloudy,
-        np.logical_and(truth_cloudy,modis_cloudy)).shape[0]
+        np.logical_and(truth_cloudy, modis_cloudy)).shape[0]
     n_clear_cloudy = np.repeat(
         modis_cloudy,
-        np.logical_and(truth_clear,modis_cloudy)).shape[0]
+        np.logical_and(truth_clear, modis_cloudy)).shape[0]
     n_cloudy_clear = np.repeat(
         modis_clear,
-        np.logical_and(truth_cloudy,modis_clear)).shape[0]
-    nclear = np.repeat(truth_clear,truth_clear).shape[0]
-    ncloudy = np.repeat(truth_cloudy,truth_cloudy).shape[0]
+        np.logical_and(truth_cloudy, modis_clear)).shape[0]
+    nclear = np.repeat(truth_clear, truth_clear).shape[0]
+    ncloudy = np.repeat(truth_cloudy, truth_cloudy).shape[0]
     ncloudy_modis = n_cloudy_cloudy+n_clear_cloudy
     nclear_modis = n_cloudy_clear+n_clear_clear
 
@@ -617,13 +617,13 @@ def print_modis_stats(match_obj, statfile, val_subset, cal_modis_cflag, SETTINGS
         bias=mean_modis-mean_caliop
     else:
         bias=-9.0
-    statfile.write("CLOUD MASK %s-MODIS TABLE: %s %s %s %s \n" % (match_obj.truth_sat.upper(), n_clear_clear,n_clear_cloudy,n_cloudy_clear,n_cloudy_cloudy))
-    # statfile.write("CLOUD MASK %s-MODIS FROM CLOUDSAT FLAG PROB: %f %f %f %f %f \n" % (pod_cloudy,pod_clear,far_cloudy,far_clear,bias))
+    statfile.write("CLOUD MASK %s-MODIS TABLE: %s %s %s %s \n" % (match_obj.truth_sat.upper(), n_clear_clear, n_clear_cloudy, n_cloudy_clear, n_cloudy_cloudy))
+    # statfile.write("CLOUD MASK %s-MODIS FROM CLOUDSAT FLAG PROB: %f %f %f %f %f \n" % (pod_cloudy, pod_clear, far_cloudy, far_clear, bias))
     statfile.write("CLOUD MASK %s-MODIS FROM CLOUDSAT FLAG POD-CLOUDY:  %3.2f \n" % (match_obj.truth_sat.upper(), pod_cloudy*100))
     statfile.write("CLOUD MASK %s-MODIS FROM CLOUDSAT FLAG POD-CLEAR:   %3.2f \n" % (match_obj.truth_sat.upper(), pod_clear*100))
     statfile.write("CLOUD MASK %s-MODIS FROM CLOUDSAT FLAG FAR-CLOUDY:  %3.2f \n" % (match_obj.truth_sat.upper(), far_cloudy*100))
     statfile.write("CLOUD MASK %s-MODIS FROM CLOUDSAT FLAG FAR-CLEAR:   %3.2f \n" % (match_obj.truth_sat.upper(), far_clear*100))
-    statfile.write("CLOUD MASK %s-MODIS FROM CLOUDSAT FLAG BIAS percent: %3.2f \n" % (match_obj.truth_sat.upper(),  bias*100))
+    statfile.write("CLOUD MASK %s-MODIS FROM CLOUDSAT FLAG BIAS percent: %3.2f \n" % (match_obj.truth_sat.upper(), bias*100))
 
 
 def print_calipso_stats_ctype(match_calipso, statfile, val_subset, low_medium_high_class, SETTINGS):
@@ -653,21 +653,21 @@ def print_calipso_stats_ctype(match_calipso, statfile, val_subset, low_medium_hi
     if  match_calipso.imager.cloudtype_conditions is not None:
         logger.debug("Assuming cloudtype structure from pps v2014")
         imager_low = np.logical_and(
-            np.logical_and(np.greater_equal(match_calipso.imager.cloudtype,5),
-                           np.less_equal(match_calipso.imager.cloudtype,6)),
+            np.logical_and(np.greater_equal(match_calipso.imager.cloudtype, 5),
+                           np.less_equal(match_calipso.imager.cloudtype, 6)),
             val_subset)
         imager_medium = np.logical_and(
-            np.equal(match_calipso.imager.cloudtype,7), val_subset)
+            np.equal(match_calipso.imager.cloudtype, 7), val_subset)
         imager_high_op = np.logical_and(
-            np.logical_and(np.greater_equal(match_calipso.imager.cloudtype,8),
-                           np.less_equal(match_calipso.imager.cloudtype,9)),
+            np.logical_and(np.greater_equal(match_calipso.imager.cloudtype, 8),
+                           np.less_equal(match_calipso.imager.cloudtype, 9)),
             val_subset)
         imager_cirrus = np.logical_and(
-            np.logical_and(np.greater_equal(match_calipso.imager.cloudtype,11),
-                           np.less_equal(match_calipso.imager.cloudtype,15)),
+            np.logical_and(np.greater_equal(match_calipso.imager.cloudtype, 11),
+                           np.less_equal(match_calipso.imager.cloudtype, 15)),
             val_subset)
-        imager_high = imager_high_op  # np.logical_or(imager_high_op,imager_high_semi)
-        imager_frac = np.logical_and(np.equal(match_calipso.imager.cloudtype,10),
+        imager_high = imager_high_op  # np.logical_or(imager_high_op, imager_high_semi)
+        imager_frac = np.logical_and(np.equal(match_calipso.imager.cloudtype, 10),
                                     val_subset)
         imager_low = np.logical_or(imager_low, imager_frac)
 
@@ -676,12 +676,12 @@ def print_calipso_stats_ctype(match_calipso, statfile, val_subset, low_medium_hi
         logger.error("Assuming cloudtype structure from pps v2012")
 
     calipso_clear = np.logical_and(
-        np.less(match_calipso.calipso.cloud_fraction,SETTINGS["CALIPSO_CLEAR_MAX_CFC"]),val_subset)
+        np.less(match_calipso.calipso.cloud_fraction, SETTINGS["CALIPSO_CLEAR_MAX_CFC"]), val_subset)
     calipso_cloudy = np.logical_and(
-        np.greater_equal(match_calipso.calipso.cloud_fraction,SETTINGS["CALIPSO_CLOUDY_MIN_CFC"]),val_subset)
+        np.greater_equal(match_calipso.calipso.cloud_fraction, SETTINGS["CALIPSO_CLOUDY_MIN_CFC"]), val_subset)
     imager_clear = np.logical_and(
-        np.logical_and(np.less_equal(match_calipso.imager.cloudtype,4),
-                       np.greater(match_calipso.imager.cloudtype,0)),
+        np.logical_and(np.less_equal(match_calipso.imager.cloudtype, 4),
+                       np.greater(match_calipso.imager.cloudtype, 0)),
         val_subset)
 
 
@@ -690,67 +690,67 @@ def print_calipso_stats_ctype(match_calipso, statfile, val_subset, low_medium_hi
 
     n_low_low = np.repeat(
         imager_low,
-        np.logical_and(calipso_low,imager_low)).shape[0]
+        np.logical_and(calipso_low, imager_low)).shape[0]
     n_low_medium = np.repeat(
         imager_low,
-        np.logical_and(calipso_medium,imager_low)).shape[0]
+        np.logical_and(calipso_medium, imager_low)).shape[0]
     n_low_high = np.repeat(
         imager_low,
-        np.logical_and(calipso_high,imager_low)).shape[0]
+        np.logical_and(calipso_high, imager_low)).shape[0]
     n_medium_low = np.repeat(
         imager_medium,
-        np.logical_and(calipso_low,imager_medium)).shape[0]
+        np.logical_and(calipso_low, imager_medium)).shape[0]
     n_medium_medium = np.repeat(
         imager_medium,
-        np.logical_and(calipso_medium,imager_medium)).shape[0]
+        np.logical_and(calipso_medium, imager_medium)).shape[0]
     n_medium_high = np.repeat(
         imager_medium,
-        np.logical_and(calipso_high,imager_medium)).shape[0]
+        np.logical_and(calipso_high, imager_medium)).shape[0]
     n_high_low = np.repeat(
         imager_high,
-        np.logical_and(calipso_low,imager_high)).shape[0]
+        np.logical_and(calipso_low, imager_high)).shape[0]
     n_high_medium = np.repeat(
         imager_high,
-        np.logical_and(calipso_medium,imager_high)).shape[0]
+        np.logical_and(calipso_medium, imager_high)).shape[0]
     n_high_high = np.repeat(
         imager_high,
-        np.logical_and(calipso_high,imager_high)).shape[0]
+        np.logical_and(calipso_high, imager_high)).shape[0]
     n_cirrus_low = np.repeat(
         imager_cirrus,
-        np.logical_and(calipso_low,imager_cirrus)).shape[0]
+        np.logical_and(calipso_low, imager_cirrus)).shape[0]
     n_cirrus_medium_tp = np.repeat(
         imager_cirrus,
-        np.logical_and(calipso_medium_tp,imager_cirrus)).shape[0]
+        np.logical_and(calipso_medium_tp, imager_cirrus)).shape[0]
     n_cirrus_high_tp = np.repeat(
         imager_cirrus,
-        np.logical_and(calipso_high_tp,imager_cirrus)).shape[0]
+        np.logical_and(calipso_high_tp, imager_cirrus)).shape[0]
     n_cirrus_medium_op = np.repeat(
         imager_cirrus,
-        np.logical_and(calipso_medium_op,imager_cirrus)).shape[0]
+        np.logical_and(calipso_medium_op, imager_cirrus)).shape[0]
     n_cirrus_high_op = np.repeat(
         imager_cirrus,
-        np.logical_and(calipso_high_op,imager_cirrus)).shape[0]
+        np.logical_and(calipso_high_op, imager_cirrus)).shape[0]
     n_clear_low = np.repeat(
         imager_clear,
-        np.logical_and(calipso_low,imager_clear)).shape[0]
+        np.logical_and(calipso_low, imager_clear)).shape[0]
     n_clear_medium = np.repeat(
         imager_clear,
-        np.logical_and(calipso_medium,imager_clear)).shape[0]
+        np.logical_and(calipso_medium, imager_clear)).shape[0]
     n_clear_high = np.repeat(
         imager_clear,
-        np.logical_and(calipso_high,imager_clear)).shape[0]
+        np.logical_and(calipso_high, imager_clear)).shape[0]
     n_low_clear = np.repeat(
         imager_low,
-        np.logical_and(calipso_clear,imager_low)).shape[0]
+        np.logical_and(calipso_clear, imager_low)).shape[0]
     n_medium_clear = np.repeat(
         imager_medium,
-        np.logical_and(calipso_clear,imager_medium)).shape[0]
+        np.logical_and(calipso_clear, imager_medium)).shape[0]
     n_high_clear = np.repeat(
         imager_high,
-        np.logical_and(calipso_clear,imager_high)).shape[0]
+        np.logical_and(calipso_clear, imager_high)).shape[0]
     n_cirrus_clear = np.repeat(
         imager_cirrus,
-        np.logical_and(calipso_clear,imager_cirrus)).shape[0]
+        np.logical_and(calipso_clear, imager_cirrus)).shape[0]
 
 
     pod_low = -9.0
@@ -802,10 +802,10 @@ def print_calipso_stats_ctype(match_calipso, statfile, val_subset, low_medium_hi
         n_low_clear, n_medium_clear, n_high_clear, n_cirrus_clear))
 
 
-def print_height_all_low_medium_high(NAME, val_subset,  statfile,
+def print_height_all_low_medium_high(NAME, val_subset, statfile,
                                      low_medium_high_class, imager_ctth_m_above_seasurface,
                                      truth_sat_validation_height, imager_is_cloudy):
-    out_stats = calculate_ctth_stats(val_subset,imager_ctth_m_above_seasurface,
+    out_stats = calculate_ctth_stats(val_subset, imager_ctth_m_above_seasurface,
                                      truth_sat_validation_height, imager_is_cloudy)
     statfile.write("CLOUD HEIGHT %s ALL: %s\n" %(NAME, out_stats))
     if low_medium_high_class is None:
@@ -813,7 +813,7 @@ def print_height_all_low_medium_high(NAME, val_subset,  statfile,
         return
     cal_low_ok = np.logical_and(low_medium_high_class['low_clouds'],
                                  val_subset)
-    out_stats = calculate_ctth_stats(cal_low_ok,imager_ctth_m_above_seasurface,
+    out_stats = calculate_ctth_stats(cal_low_ok, imager_ctth_m_above_seasurface,
                                      truth_sat_validation_height, imager_is_cloudy)
     statfile.write("CLOUD HEIGHT %s LOW: %s \n" % (NAME, out_stats))
     cal_mid_ok = np.logical_and(low_medium_high_class['medium_clouds'],
@@ -879,14 +879,14 @@ def print_stats_ctop(match_obj, statfile, val_subset, low_medium_high_class, SET
         minct = ndimage.filters.minimum_filter1d(match_obj.imager.cloudtype, size=9)
         val_geo = np.logical_and(
             val_subset,
-            np.equal(maxct,minct))
-        if hasattr(match_obj,'calipso'):
-            var_pressure = (ndimage.filters.maximum_filter1d(match_obj.calipso.layer_top_pressure[:,0], size=9) -
-                            ndimage.filters.minimum_filter1d(match_obj.calipso.layer_top_pressure[:,0], size=9))
+            np.equal(maxct, minct))
+        if hasattr(match_obj, 'calipso'):
+            var_pressure = (ndimage.filters.maximum_filter1d(match_obj.calipso.layer_top_pressure[:, 0], size=9) -
+                            ndimage.filters.minimum_filter1d(match_obj.calipso.layer_top_pressure[:, 0], size=9))
             val_geo = np.logical_and(
                 val_geo,
                 var_pressure<200)  # Pressure variation less than 200hPa
-        if hasattr(match_obj,'cloudsat'):
+        if hasattr(match_obj, 'cloudsat'):
             var_height = (ndimage.filters.maximum_filter1d(truth_sat_validation_height, size=9) -
                             ndimage.filters.minimum_filter1d(truth_sat_validation_height, size=9))
             val_geo = np.logical_and(
@@ -904,7 +904,7 @@ def print_stats_ctop(match_obj, statfile, val_subset, low_medium_high_class, SET
                                          imager_is_cloudy)
         val_geo = np.logical_and(
             val_geo,
-            np.greater_equal(match_obj.calipso.feature_optical_depth_532_top_layer_5km,0.2))
+            np.greater_equal(match_obj.calipso.feature_optical_depth_532_top_layer_5km, 0.2))
         statfile.write("CLOUD HEIGHT GEO-STYLE-EXCLUDE-THIN-PIXELS\n")
         print_height_all_low_medium_high("CALIOP-GEO-STYLE-EXCLUDE-THIN-PIXELS",
                                          val_geo,
@@ -917,7 +917,7 @@ def print_stats_ctop(match_obj, statfile, val_subset, low_medium_high_class, SET
         statfile.write("CLOUD HEIGHT SINGLE-LAYER\n")
         val_subset_single = np.logical_and(
             val_subset,
-            np.equal(match_obj.calipso.number_layers_found,1))
+            np.equal(match_obj.calipso.number_layers_found, 1))
         print_height_all_low_medium_high("CALIOP-SINGLE-LAYER",
                                          val_subset_single,
                                          statfile, low_medium_high_class,
@@ -931,7 +931,7 @@ def print_stats_ctop(match_obj, statfile, val_subset, low_medium_high_class, SET
         lim=2*SETTINGS["OPTICAL_DETECTION_LIMIT"]
         val_subset_single_not_thinnest = np.logical_and(
             val_subset_single,
-            np.greater_equal(match_obj.calipso.feature_optical_depth_532_top_layer_5km,lim))
+            np.greater_equal(match_obj.calipso.feature_optical_depth_532_top_layer_5km, lim))
         print_height_all_low_medium_high("CALIOP-SINGLE-LAYER>%f"%(lim),
                                          val_subset_single_not_thinnest,
                                          statfile, low_medium_high_class,
@@ -943,7 +943,7 @@ def print_stats_ctop(match_obj, statfile, val_subset, low_medium_high_class, SET
         lim=SETTINGS["OPTICAL_DETECTION_LIMIT"]
         val_subset_not_thinnest_top_layer = np.logical_and(
             val_subset,
-            np.greater_equal(match_obj.calipso.feature_optical_depth_532_top_layer_5km,lim))
+            np.greater_equal(match_obj.calipso.feature_optical_depth_532_top_layer_5km, lim))
         print_height_all_low_medium_high("CALIOP-TOP-LAYER>%f"%(lim),
                                          val_subset_not_thinnest_top_layer,
                                          statfile, low_medium_high_class,
@@ -955,7 +955,7 @@ def print_stats_ctop(match_obj, statfile, val_subset, low_medium_high_class, SET
         statfile.write("CLOUD HEIGHT VERY THIN TOP LAYER\n")
         val_subset_thinnest_top_layer = np.logical_and(
             val_subset,
-            np.less_equal(match_obj.calipso.feature_optical_depth_532_top_layer_5km,lim))
+            np.less_equal(match_obj.calipso.feature_optical_depth_532_top_layer_5km, lim))
         print_height_all_low_medium_high("CALIOP-TOP-LAYER<=%f"%(lim),
                                          val_subset_thinnest_top_layer,
                                          statfile, low_medium_high_class,
@@ -965,7 +965,7 @@ def print_stats_ctop(match_obj, statfile, val_subset, low_medium_high_class, SET
 
 
 def print_main_stats(match_obj, statfile):
-    val_object = getattr(match_obj,match_obj.truth_sat)
+    val_object = getattr(match_obj, match_obj.truth_sat)
     num_val_data_ok = len(match_obj.diff_sec_1970)
     statfile.write("%s min and max time diff: %3.2f %3.2f \n" %(
         match_obj.truth_sat.upper(),
@@ -1017,14 +1017,14 @@ def calculate_statistics(mode, statfilename, match_calipso, match_clsat, issObj,
         val_subset = get_subset_for_mode(match_clsat, mode)
         if val_subset is not None:
             val_subset = get_day_night_subset(match_clsat, val_subset, SETTINGS)
-            statfile = open(statfilename.replace('xxx','cloudsat'),"w")
+            statfile = open(statfilename.replace('xxx', 'cloudsat'), "w")
             if match_clsat.cloudsat.all_arrays['cloud_fraction'] is not None:
                 low_medium_high_class = get_cloudsat_low_medium_high_classification(match_clsat)
                 print_main_stats(match_clsat, statfile)
                 print_cmask_stats(match_clsat, statfile, val_subset, SETTINGS)
                 print_cmask_prob_stats(match_clsat, statfile, val_subset, SETTINGS)
                 print_modis_stats(match_clsat, statfile, val_subset, match_clsat.cloudsat.MODIS_cloud_flag, SETTINGS)
-                print_stats_ctop(match_clsat,  statfile, val_subset, low_medium_high_class, SETTINGS)
+                print_stats_ctop(match_clsat, statfile, val_subset, low_medium_high_class, SETTINGS)
             if match_clsat.cloudsat.all_arrays['RVOD_liq_water_path'] is not None:
                 print_cpp_lwp_stats(match_clsat, statfile, val_subset)
             statfile.close()
@@ -1033,23 +1033,23 @@ def calculate_statistics(mode, statfilename, match_calipso, match_clsat, issObj,
         logger.info("Calipo Statistics")
         val_subset = get_subset_for_mode(match_calipso, mode)
         if val_subset is not None:
-            statfile = open(statfilename.replace('xxx','calipso'),"w")
+            statfile = open(statfilename.replace('xxx', 'calipso'), "w")
             low_medium_high_class = get_calipso_low_medium_high_classification(match_calipso)
             # semi_flag, opaque_flag = get_semi_opaque_info(match_calipso)
             val_subset = get_day_night_subset(match_calipso, val_subset, SETTINGS)
             print_main_stats(match_calipso, statfile)
             print_cmask_stats(match_calipso, statfile, val_subset, SETTINGS)
             print_cmask_prob_stats(match_calipso, statfile, val_subset, SETTINGS)
-            print_modis_stats(match_calipso, statfile, val_subset,   match_calipso.calipso.cal_modis_cflag, SETTINGS)
+            print_modis_stats(match_calipso, statfile, val_subset, match_calipso.calipso.cal_modis_cflag, SETTINGS)
             print_calipso_stats_ctype(match_calipso, statfile, val_subset, low_medium_high_class, SETTINGS)
-            print_stats_ctop(match_calipso,  statfile, val_subset, low_medium_high_class, SETTINGS)
+            print_stats_ctop(match_calipso, statfile, val_subset, low_medium_high_class, SETTINGS)
             print_cpp_stats(match_calipso, statfile, val_subset, SETTINGS)
             statfile.close()
 
     if issObj is not None:
         val_subset = get_subset_for_mode(issObj, mode)
         if val_subset is not None:
-            statfile = open(statfilename.replace('xxx','iss'),"w")
+            statfile = open(statfilename.replace('xxx', 'iss'), "w")
             val_subset = get_day_night_subset(issObj, val_subset, SETTINGS)
             print_main_stats(issObj, statfile)
             print_cmask_stats(issObj, statfile, val_subset, SETTINGS)
@@ -1063,7 +1063,7 @@ def calculate_statistics(mode, statfilename, match_calipso, match_clsat, issObj,
         val_subset = get_subset_for_mode(amObj, mode)
         if val_subset is not None:
             val_subset = get_day_night_subset(amObj, val_subset, SETTINGS)
-            statfile = open(statfilename.replace('xxx','amsr'),"w")
+            statfile = open(statfilename.replace('xxx', 'amsr'), "w")
             print_main_stats(amObj, statfile)
             print_cpp_lwp_stats(amObj, statfile, val_subset)
             statfile.close()
@@ -1073,7 +1073,7 @@ def calculate_statistics(mode, statfilename, match_calipso, match_clsat, issObj,
         val_subset = get_subset_for_mode(syObj, mode)
         if val_subset is not None:
             val_subset = get_day_night_subset(syObj, val_subset, SETTINGS)
-            statfile = open(statfilename.replace('xxx','synop'),"w")
+            statfile = open(statfilename.replace('xxx', 'synop'), "w")
             print_main_stats(syObj, statfile)
             print_cmask_stats(syObj, statfile, val_subset, SETTINGS)
             print_cmask_prob_stats(syObj, statfile, val_subset, SETTINGS)

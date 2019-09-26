@@ -64,7 +64,7 @@ def get_mora_data(filename):
 
     return pd.DataFrame(data)
 
-def reshape_mora(morafiles, imager,  SETTINGS):
+def reshape_mora(morafiles, imager, SETTINGS):
     start_t = datetime.utcfromtimestamp(imager.sec1970_start)
     end_t = datetime.utcfromtimestamp(imager.sec1970_end)
     # datetime.datetime.fromtimestamp(
@@ -96,7 +96,7 @@ def match_mora_imager(mora, cloudproducts, SETTINGS):
     from atrain_match.plotting.histogram_plotting import distribution_map
     plt.plot(cloudproducts.longitude.ravel(),
               cloudproducts.latitude.ravel(), 'r.')
-    plt.plot(mora.longitude.ravel(), mora.latitude.ravel(),'b.')
+    plt.plot(mora.longitude.ravel(), mora.latitude.ravel(), 'b.')
     plt.show()
     """
     cal, cap = map_imager(cloudproducts,
@@ -109,7 +109,7 @@ def match_mora_imager(mora, cloudproducts, SETTINGS):
         return None
     # check if it is within time limits:
     if len(cloudproducts.time.shape)>1:
-        imager_time_vector = [cloudproducts.time[line,pixel] for line, pixel in zip(cal,cap)]
+        imager_time_vector = [cloudproducts.time[line, pixel] for line, pixel in zip(cal, cap)]
         imager_lines_sec_1970 = np.where(cal != config.NODATA, imager_time_vector, np.nan)
     else:
         imager_lines_sec_1970 = np.where(cal != config.NODATA, cloudproducts.time[cal], np.nan)
@@ -118,7 +118,7 @@ def match_mora_imager(mora, cloudproducts, SETTINGS):
         logger.warning("No matches in region within time threshold %d s.", SETTINGS["sec_timeThr_synop"])
         return None
     retv.mora = retv.mora.extract_elements(idx=idx_match)
-    # Mora line,pixel inside IMAGER swath (one nearest neighbour):
+    # Mora line, pixel inside IMAGER swath (one nearest neighbour):
     retv.mora.imager_linnum = np.repeat(cal, idx_match).astype('i')
     retv.mora.imager_pixnum = np.repeat(cap, idx_match).astype('i')
     # Imager time

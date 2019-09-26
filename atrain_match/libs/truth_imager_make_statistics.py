@@ -203,9 +203,9 @@ def plot_some_figures(match_clsat, match_calipso, values, basename, process_mode
     if (match_clsat is not None and
         'rvod_liq_water_path' in match_clsat.cloudsat.all_arrays.keys()):
 
-        elevation = np.where(np.less_equal(match_clsat.cloudsat.elevation,0),
+        elevation = np.where(np.less_equal(match_clsat.cloudsat.elevation, 0),
                              -9, match_clsat.cloudsat.elevation)
-        data_ok = np.ones(match_clsat.cloudsat.elevation.shape,'b')
+        data_ok = np.ones(match_clsat.cloudsat.elevation.shape, 'b')
 
         phase='LW'
         plot_cal_clsat_cwc_imager(match_clsat,
@@ -235,7 +235,7 @@ def split_process_mode_and_dnt_part(process_mode_dnt):
     return process_mode, dnt_flag
 
 
-def process_one_mode(process_mode_dnt, match_calipso, match_clsat, issObj, amObj,syObj,
+def process_one_mode(process_mode_dnt, match_calipso, match_clsat, issObj, amObj, syObj,
                      min_optical_depth, values, AM_PATHS, SETTINGS, basename):
 
     # Get result filename
@@ -327,8 +327,8 @@ def run(cross, run_modes, AM_PATHS, SETTINGS, reprocess=False):
     for process_mode_dnt in run_modes:
         logger.info("Process mode: %s", process_mode_dnt)
         optical_depths = [None]         # Update this if you always want to do filtering!/Nina
-        if process_mode_dnt in ["OPTICAL_DEPTH","OPTICAL_DEPTH_DAY",
-                                "OPTICAL_DEPTH_NIGHT","OPTICAL_DEPTH_TWILIGHT"]:
+        if process_mode_dnt in ["OPTICAL_DEPTH", "OPTICAL_DEPTH_DAY",
+                                "OPTICAL_DEPTH_NIGHT", "OPTICAL_DEPTH_TWILIGHT"]:
             optical_depths = SETTINGS['MIN_OPTICAL_DEPTH']
 
         # split process_mode_dnt into two parts. One with process_mode and one dnt_flag

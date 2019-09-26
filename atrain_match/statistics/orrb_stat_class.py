@@ -43,7 +43,7 @@ class OrrbStats():
         for line in current_datafile:
             if ":" not in line:
                 continue
-            line = line.replace('CALIOP','CALIPSO')
+            line = line.replace('CALIOP', 'CALIPSO')
             # old before sept 2017 files have both cloudsat and calipso data in the same files
             # Note both CALIPSO and CALIOP where used
             if self.truth_sat.upper()  not in line:

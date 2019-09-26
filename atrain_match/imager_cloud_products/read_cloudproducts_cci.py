@@ -48,7 +48,7 @@ def get_satid_datetime_orbit_from_fname_cci(imager_filename):
              "year":date_time.year,
              "month":"%02d"%(date_time.month),
              "time":date_time.strftime("%H%M"),
-             # "basename":sat_id + "_" + date_time.strftime("%Y%m%d_%H%M_99999"),# "20080613002200-ESACCI",
+             # "basename":sat_id + "_" + date_time.strftime("%Y%m%d_%H%M_99999"), # "20080613002200-ESACCI",
              "ccifilename":imager_filename,
              "ppsfilename":None}
     values['basename'] = values["satellite"] + "_" + values["date"] + "_" + values["time"] + "_" + values["orbit"]
@@ -66,12 +66,12 @@ def daysafter4713bc_to_sec1970(bcdate_array):
     dseconds = np.floor(24*60*60*(bcdate-ddays))
     mseconds = np.floor(10**6*(24*60*60*(bcdate-ddays)-dseconds))
     # to avoid too large numbers count from 1950-01-01 12:00
-    # time datetime.datetime(1950, 1, 1, 12, 0,0,0) == julian day 2433283
+    # time datetime.datetime(1950, 1, 1, 12, 0, 0, 0) == julian day 2433283
     ddays = ddays-2433283
 
     time_delta = datetime.timedelta(days=ddays, seconds=dseconds,
                                     microseconds = mseconds)
-    the_time = datetime.datetime(1950, 1, 1, 12, 0,0,0) + time_delta
+    the_time = datetime.datetime(1950, 1, 1, 12, 0, 0, 0) + time_delta
     sec_1970 = calendar.timegm(the_time.timetuple()) + the_time.microsecond/(1.0*10**6)
     sec_1970_array = 24*60*60*(bcdate_array - bcdate) + sec_1970
     return sec_1970_array
@@ -175,9 +175,9 @@ def read_cci_geoobj(cci_nc):
 
     #  For pps these are calculated in calipso.py, but better read them
     # from file because time are already available on arrays in the netcdf files
-    # dsec = calendar.timegm((1993,1,1,0,0,0,0,0,0)) # TAI to UTC
+    # dsec = calendar.timegm((1993, 1, 1, 0, 0, 0, 0, 0, 0)) # TAI to UTC
     time_temp = daysafter4713bc_to_sec1970(cci_nc.variables['time'][::])
-    cloudproducts.time = time_temp[::]  # [:,0]  # time_temp[:,0]
+    cloudproducts.time = time_temp[::]  # [:, 0]  # time_temp[:, 0]
 
     cloudproducts.sec1970_start = np.min(cloudproducts.time)
     cloudproducts.sec1970_end = np.max(cloudproducts.time)
@@ -227,7 +227,7 @@ def read_cci_ctth(cci_nc):
 
     ctp = cci_nc.variables['ctp'][::]
     if hasattr(ctp, 'mask'):
-        ctp_data = np.where(ctp.mask,  ATRAIN_MATCH_NODATA, ctp.data)  # Upscaled
+        ctp_data = np.where(ctp.mask, ATRAIN_MATCH_NODATA, ctp.data)  # Upscaled
     else:
         ctp_data = ctp.data
     ctth.p_gain = 1.0

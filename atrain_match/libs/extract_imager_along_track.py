@@ -168,13 +168,13 @@ def get_data_from_array_nneigh(array, matched):
         return None
     out = np.zeros(matched['row'].shape)
     for i in range(matched['row'].shape[1]):
-        nodata = matched['row'][:,i] < 0
-        matched_i = {'row': matched['row'][:,i].copy(),
-                     'col': matched['col'][:,i].copy()}
+        nodata = matched['row'][:, i] < 0
+        matched_i = {'row': matched['row'][:, i].copy(),
+                     'col': matched['col'][:, i].copy()}
         matched_i['row'][nodata] = 0
         matched_i['col'][nodata] = 0
-        out[:,i] = get_data_from_array(array, matched_i)
-        out[nodata,i] = -9
+        out[:, i] = get_data_from_array(array, matched_i)
+        out[nodata, i] = -9
     return out
 
 def get_mean_data_from_array_nneigh(array, matched):
@@ -248,19 +248,19 @@ def _interpolate_height_and_temperature_from_pressure(imager_obj,
     nlev = pressure_v.shape[1]
     npix = pressure_v.shape[0]
     k = np.arange(npix)
-    higher_index = np.array([nlev -1 - np.searchsorted(pressure_v[ind,:], level, side='right',
+    higher_index = np.array([nlev -1 - np.searchsorted(pressure_v[ind, :], level, side='right',
                                                        sorter=range(nlev -1, -1, -1))
                              for ind in range(npix)])
     higher_index[higher_index >= (nlev - 1)] = nlev - 2
     lower_index = higher_index + 1
     # update "lo" where level is between surface and first level in array
-    below_level_1 = level > pressure_v[:,0]
+    below_level_1 = level > pressure_v[:, 0]
     lower_index[below_level_1] = 0
     # get pressure and height for layer below and above level
-    hi = pressure_v[k,higher_index]
-    lo = pressure_v[k,lower_index]
-    height_hi_ = values_h[k,higher_index]*1.0
-    height_lo_ = values_h[k,lower_index]*1.0
+    hi = pressure_v[k, higher_index]
+    lo = pressure_v[k, lower_index]
+    height_hi_ = values_h[k, higher_index]*1.0
+    height_lo_ = values_h[k, lower_index]*1.0
     # update "hi" where level is between surface and first level in array
     hi[below_level_1] = psur[below_level_1]
     height_hi_[below_level_1] = surface_h[below_level_1]
@@ -306,14 +306,14 @@ def insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt):
                 for s_row in range(nwp_segments['nocols']):
                     within_segment = np.logical_and(
                         np.logical_and(
-                            row_matched >= (segment_rowidx[s_row,s_col]
+                            row_matched >= (segment_rowidx[s_row, s_col]
                                             - nwp_segments['segSizeX']/2),
-                            row_matched < (segment_rowidx[s_row,s_col]
+                            row_matched < (segment_rowidx[s_row, s_col]
                                            + nwp_segments['segSizeX']/2)),
                         np.logical_and(
-                            col_matched >= (segment_colidx[s_row,s_col]
+                            col_matched >= (segment_colidx[s_row, s_col]
                                             - nwp_segments['segSizeY']/2),
-                            col_matched < (segment_colidx[s_row,s_col]
+                            col_matched < (segment_colidx[s_row, s_col]
                                            + nwp_segments['segSizeY']/2)))
                     seg_row[within_segment] = s_row
                     seg_col[within_segment] = s_col
@@ -340,7 +340,7 @@ def insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt):
             if data_set in nwp_segments.keys():
                 # 'tb11cloudy_surface',
                 # 'tb12cloudy_surface ',
-                setattr(obt.imager,'segment_nwp_' + data_set,
+                setattr(obt.imager, 'segment_nwp_' + data_set,
                         np.array([nwp_segments[data_set][seg_row[idx], seg_col[idx]]
                                   for idx in range(npix)]))
             elif 'clfree' in data_set or 'lowcloud' in data_set:
@@ -349,18 +349,18 @@ def insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt):
 
 
         for data_set in ['moist', 'pressure', 'geoheight', 'temp']:
-            setattr(obt.imager,'segment_nwp_' + data_set,
+            setattr(obt.imager, 'segment_nwp_' + data_set,
                               np.array([nwp_segments[data_set][seg_row[idx], seg_col[idx]]
                                         for idx in range(npix)]))
         # Remove nodata and not used upper part of atmosphere
         N = obt.imager.segment_nwp_pressure.shape[1]
-        pressure_n_to_keep = np.sum(np.max(obt.imager.segment_nwp_pressure,axis=0)>50)
+        pressure_n_to_keep = np.sum(np.max(obt.imager.segment_nwp_pressure, axis=0)>50)
         logger.debug("Not saving upper %d levels of 3-D nwp from segment file"%(N-pressure_n_to_keep))
         logger.debug("Keeping %d lower levels of 3-D nwp from segment file"%(pressure_n_to_keep))
         for data_set in ['segment_nwp_moist', 'segment_nwp_pressure',
                           'segment_nwp_geoheight', 'segment_nwp_temp']:
             data = getattr(obt.imager, data_set)
-            setattr(obt.imager, data_set, data[:,0:pressure_n_to_keep])
+            setattr(obt.imager, data_set, data[:, 0:pressure_n_to_keep])
         return obt
 
 def insert_nwp_h440_h680_data(obt):
@@ -425,8 +425,8 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
         obt.imager.cloudmask = get_data_from_array(cma.cma_ext, row_col)
         if find_mean_data_for_x_neighbours:
             obt.imager.cfc_mean = get_mean_data_from_array_nneigh(cma.cma_bin, row_col_nneigh)
-    for varname in ['cma_testlist0','cma_testlist1', 'cma_testlist2',
-                    'cma_testlist3','cma_testlist4', 'cma_testlist5',
+    for varname in ['cma_testlist0', 'cma_testlist1', 'cma_testlist2',
+                    'cma_testlist3', 'cma_testlist4', 'cma_testlist5',
                     'cma_prob', 'cma_aerosolflag', 'cma_dust']:
         if extract_cma and hasattr(cma, varname):
             setattr(obt.imager, varname,
@@ -443,7 +443,7 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
                  'cloudtype_qflag', 'cloudtype_pflag'] ):
             if hasattr(ctype, variable):
                 setattr(obt.imager, outname,
-                        get_data_from_array(getattr(ctype,variable), row_col))
+                        get_data_from_array(getattr(ctype, variable), row_col))
     for nwp_info in aux_params:
         if extract_aux and hasattr(aux_obj, nwp_info):
             data = getattr(aux_obj, nwp_info)
@@ -454,20 +454,20 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
     CTTH_TYPES = SETTINGS["CTTH_TYPES"]
     if len(CTTH_TYPES)>1 and SETTINGS["PPS_VALIDATION"]:
         for ctth_type in CTTH_TYPES[1:]:
-            if hasattr(aux_obj,ctth_type):
+            if hasattr(aux_obj, ctth_type):
                 ctth_obj = getattr(aux_obj, ctth_type)
             else:
                 continue
             for data_set in ["pressure", "temperature", "height"]:
                 data = getattr(ctth_obj, data_set)
-                name = "%s_%s"%(ctth_type.lower(),data_set)
+                name = "%s_%s"%(ctth_type.lower(), data_set)
                 setattr(obt.imager, name, get_data_from_array(data, row_col))
     from atrain_match.utils.pps_prototyping_util import (get_t11t12_texture_data_from_object,
-                                            get_coldest_values,get_darkest_values,
+                                            get_coldest_values, get_darkest_values,
                                             get_warmest_values)
     if imager_obj is not None:
         pass
-        # aux_obj = get_t11t12_texture_data_from_object(imager_obj, aux_obj, '11','12',
+        # aux_obj = get_t11t12_texture_data_from_object(imager_obj, aux_obj, '11', '12',
         #                                              'text_t11t12_square??')
     for texture in ["text_r06", "text_t11", "text_t37", "text_t37t12",
                     "text_t37t12_square", "text_t11t12_square", "text_t11t12"]:
@@ -478,24 +478,24 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
         neighbour_obj = get_warmest_values(imager_obj, row_col)
         for key in ["warmest_r06", "warmest_r09", "warmest_r16"]:
             setattr(obt.imager, key + neighbour_obj.extra_info_sza_corr,
-                    getattr(neighbour_obj,key))
+                    getattr(neighbour_obj, key))
         for key in ["warmest_t11", "warmest_t12", "warmest_t37"]:
             setattr(obt.imager, key,
-                    getattr(neighbour_obj,key))
+                    getattr(neighbour_obj, key))
         neighbour_obj = get_darkest_values(imager_obj, row_col)
         for key in ["darkest_r06", "darkest_r09", "darkest_r16"]:
             setattr(obt.imager, key + neighbour_obj.extra_info_sza_corr,
-                    getattr(neighbour_obj,key))
+                    getattr(neighbour_obj, key))
         for key in ["darkest_t11", "darkest_t12", "darkest_t37"]:
             setattr(obt.imager, key,
-                    getattr(neighbour_obj,key))
+                    getattr(neighbour_obj, key))
         neighbour_obj = get_coldest_values(imager_obj, row_col)
         for key in ["coldest_r06", "coldest_r09", "coldest_r16"]:
             setattr(obt.imager, key + neighbour_obj.extra_info_sza_corr,
-                    getattr(neighbour_obj,key))
+                    getattr(neighbour_obj, key))
         for key in ["coldest_t11", "coldest_t12", "coldest_t37"]:
             setattr(obt.imager, key,
-                    getattr(neighbour_obj,key))
+                    getattr(neighbour_obj, key))
     # Thresholds:
     for thr in ["thr_t11ts_inv",
                 "thr_t85t11_inv",
@@ -511,7 +511,7 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
                 "thr_r09"]:
         if hasattr(aux_obj, thr):
             data = getattr(aux_obj, thr)
-            setattr(obt.imager, thr,  get_data_from_array(data, row_col))
+            setattr(obt.imager, thr, get_data_from_array(data, row_col))
     for emis in ["emis1", "emis6", "emis8", "emis9"]:
         if hasattr(aux_obj, emis):
             data = getattr(aux_obj, emis)
@@ -557,7 +557,7 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
     for angle in ['satz', 'sunz', 'azidiff', 'sunazimuth', 'satazimuth']:
         data = getattr(angle_obj, angle)
         if data is not None:
-            setattr(obt.imager, angle,  get_data_from_array(data.data, row_col))
+            setattr(obt.imager, angle, get_data_from_array(data.data, row_col))
     if ctth is None:
         logger.info("Not extracting ctth")
     else:
@@ -600,7 +600,7 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
 
     from atrain_match.utils.pps_prototyping_util import add_cnn_features
     if os.path.isfile(SETTINGS['CNN_PCKL_PATH']):
-        filters_dict = add_cnn_features(imager_obj.cnn_dict,  row_col,
+        filters_dict = add_cnn_features(imager_obj.cnn_dict, row_col,
                                         obt.imager.latitude, obt.imager.longitude,
                                         SETTINGS)
         for filter_name in filters_dict.keys():

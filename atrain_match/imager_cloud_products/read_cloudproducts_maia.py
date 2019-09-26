@@ -54,7 +54,7 @@ def get_satid_datetime_orbit_from_fname_maia(imager_filename):
               "year": date_time.year,
               "month": "%02d" % (date_time.month),
               "time": date_time.strftime("%H%M"),
-              # "basename":sat_id + "_" + date_time.strftime("%Y%m%d_%H%M_99999"),# "20080613002200-ESACCI",
+              # "basename":sat_id + "_" + date_time.strftime("%Y%m%d_%H%M_99999"), # "20080613002200-ESACCI",
               "ccifilename": imager_filename,
               "ppsfilename": None}
     values['basename'] = values["satellite"] + "_" + \

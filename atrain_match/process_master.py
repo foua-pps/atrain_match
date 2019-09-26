@@ -65,7 +65,7 @@ def process_matchups(matchups, run_modes, reprocess=False, debug=False):
     outstatus = 0
     for match in matchups:
         try:
-            truth_imager_make_statistics.run(match, run_modes,  AM_PATHS, SETTINGS, reprocess)
+            truth_imager_make_statistics.run(match, run_modes, AM_PATHS, SETTINGS, reprocess)
         except MatchupError as err:
             logger.warning("Matchup problem: %s", str(err))
             import traceback
@@ -151,7 +151,7 @@ def main():
         matchups.append(Cross(satname, time))
     elif options.pps_product_file is not None:
         pps_output_file = options.pps_product_file
-        read_from_file = open(pps_output_file,'r')
+        read_from_file = open(pps_output_file, 'r')
         for line in read_from_file:
             if line.rstrip() in "":
                 pass
@@ -160,7 +160,7 @@ def main():
                 matchups.append(Cross(satname, time))
     elif options.cci_product_file is not None:
         cci_output_file = options.cci_product_file
-        read_from_file = open(cci_output_file,'r')
+        read_from_file = open(cci_output_file, 'r')
         for line in read_from_file:
             if line.rstrip() in "":
                 pass
@@ -169,7 +169,7 @@ def main():
                 matchups.append(Cross(satname, time))
     elif options.maia_product_file is not None:
         maia_output_file = options.maia_product_file
-        read_from_file = open(maia_output_file,'r')
+        read_from_file = open(maia_output_file, 'r')
         for line in read_from_file:
             if line.rstrip() in "":
                 pass
@@ -178,7 +178,7 @@ def main():
                 matchups.append(Cross(satname, time))
     elif options.reshaped_product_file is not None:
         reshaped_output_file = options.reshaped_product_file
-        read_from_file = open(reshaped_output_file,'r')
+        read_from_file = open(reshaped_output_file, 'r')
         for line in read_from_file:
             if line.rstrip() in "":
                 pass
