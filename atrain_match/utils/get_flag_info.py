@@ -46,7 +46,7 @@ def get_high_terrain_info_pps2014(cloudtype_conditions):
     logger.debug("Assuming cloudtype flags structure from pps v2014")
     temp_val = (cloudtype_conditions >> 6 & 1)
     mountin_flag = temp_val == 1
-    logger.debug("Number of mountain %d"%(len(cloudtype_conditions[mountin_flag==True])))
+    logger.debug("Number of mountain %d"%(len(cloudtype_conditions[mountin_flag])))
     return  mountin_flag
 
 
@@ -54,7 +54,7 @@ def get_mountin_info_pps2014(cloudtype_conditions):
     logger.debug("Assuming cloudtype flags structure from pps v2014")
     temp_val = (cloudtype_conditions >> 7 & 1)
     mountin_flag = temp_val == 1
-    logger.debug("Number of mountain %d"%(len(cloudtype_conditions[mountin_flag==True])))
+    logger.debug("Number of mountain %d"%(len(cloudtype_conditions[mountin_flag])))
     return  mountin_flag
 
 
@@ -74,8 +74,8 @@ def get_land_coast_sea_info_pps2014(cloudtype_conditions):
     coast_flag = sealand_val == 3
     land_or_sea=np.logical_or(land_flag, sea_flag)
     true_coast=np.logical_and(coast_flag, np.equal(land_or_sea, False))
-    logger.debug("Number coast %d"%(len(cloudtype_conditions[coast_flag==True])))
-    logger.debug("Number true coast %d"%(len(cloudtype_conditions[true_coast==True])))
+    logger.debug("Number coast %d"%(len(cloudtype_conditions[coast_flag])))
+    logger.debug("Number true coast %d"%(len(cloudtype_conditions[true_coast])))
     all_lsc_flag = np.bool_(np.ones(cloudtype_conditions.shape))
     return (no_qflag, land_flag, sea_flag, coast_flag, all_lsc_flag)
 
@@ -90,8 +90,8 @@ def get_land_coast_sea_info_pps2012(cloudtype_qflag):
     coast_flag = coast_val == 1
     land_or_sea=np.logical_or(land_flag, sea_flag)
     true_coast=np.logical_and(coast_flag, np.equal(land_or_sea, False))
-    logger.info("Number coast %d"%( len(cloudtype_qflag[coast_flag==True])))
-    logger.info("Number true coast %d"%( len(cloudtype_qflag[true_coast==True])))
+    logger.info("Number coast %d"%( len(cloudtype_qflag[coast_flag])))
+    logger.info("Number true coast %d"%( len(cloudtype_qflag[true_coast])))
     all_lsc_flag = np.bool_(np.ones(cloudtype_qflag.shape))
     return (no_qflag, land_flag, sea_flag, coast_flag, all_lsc_flag)
 
@@ -117,9 +117,9 @@ def get_day_night_twilight_info_pps2014(cloudtype_conditions):
     night_flag = daynight_val == 1
     day_flag = daynight_val == 2
     twilight_flag = daynight_val == 3
-    logger.debug("Number of day %d"%(len(cloudtype_conditions[day_flag==True])))
-    logger.debug("Number of night %d"%(len(cloudtype_conditions[night_flag==True])))
-    logger.debug("Number of twilight %d"%(len(cloudtype_conditions[twilight_flag==True])))
+    logger.debug("Number of day %d"%(len(cloudtype_conditions[day_flag])))
+    logger.debug("Number of night %d"%(len(cloudtype_conditions[night_flag])))
+    logger.debug("Number of twilight %d"%(len(cloudtype_conditions[twilight_flag])))
     all_dnt_flag = np.bool_(np.ones(cloudtype_conditions.shape))
     return (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag)
 
@@ -130,9 +130,9 @@ def get_day_night_twilight_info_pps2012(cloudtype_qflag):
     night_flag = (((cloudtype_qflag >> 2) & 1) == 1) & ~no_qflag
     twilight_flag = (((cloudtype_qflag >> 3) & 1) == 1) & ~no_qflag
     day_flag = (((cloudtype_qflag >> 2) & 1) == 0) & (((cloudtype_qflag >> 3) & 1) == 0) & ~no_qflag
-    logger.info("Number of day %d"%(len(cloudtype_qflag[day_flag==True])))
-    logger.info("Number of night %d"%(len(cloudtype_qflag[night_flag==True])))
-    logger.info("Number of twilight %d"%(len(cloudtype_qflag[twilight_flag==True])))
+    logger.info("Number of day %d"%(len(cloudtype_qflag[day_flag])))
+    logger.info("Number of night %d"%(len(cloudtype_qflag[night_flag])))
+    logger.info("Number of twilight %d"%(len(cloudtype_qflag[twilight_flag])))
     all_dnt_flag = np.bool_(np.ones(cloudtype_qflag.shape))
     return (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag)
 
@@ -340,9 +340,9 @@ def get_day_night_twilight_info_cci2014(sunz):
                        np.less(sunz, 95)),
         1, 0)
     no_qflag = np.where(np.isnan(sunz), 1, 0)
-    logger.debug("number of day {:d}".format(len(sunz[day_flag==True])))
-    logger.debug("number of night {:d}".format(len(sunz[night_flag==True])))
-    logger.debug("number of twilight {:d}".format(len(sunz[twilight_flag==True])))
+    logger.debug("number of day {:d}".format(len(sunz[day_flag])))
+    logger.debug("number of night {:d}".format(len(sunz[night_flag])))
+    logger.debug("number of twilight {:d}".format(len(sunz[twilight_flag])))
     all_dnt_flag = np.bool_(np.ones(sunz.shape))
     return (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag)
 
@@ -364,9 +364,9 @@ def get_day_night_twilight_info_maia(cm_flag):
     day_flag = np.where(maia_cm_flag == 2, 1, 0)  # include also sunglint in day ==3
     night_flag = np.where(maia_cm_flag == 0, 1, 0)
     twilight_flag = np.where(maia_cm_flag == 1, 1, 0)
-    logger.debug("number of day {:d}".format(len(maia_cm_flag[day_flag==True])))
-    logger.debug("number of night {:d}".format(len(maia_cm_flag[night_flag==True])))
-    logger.debug("number of twilight {:d}".format(len(maia_cm_flag[twilight_flag==True])))
+    logger.debug("number of day {:d}".format(len(maia_cm_flag[day_flag])))
+    logger.debug("number of night {:d}".format(len(maia_cm_flag[night_flag])))
+    logger.debug("number of twilight {:d}".format(len(maia_cm_flag[twilight_flag])))
     all_dnt_flag = np.ones(maia_cm_flag.shape)
     no_qflag = 0 * all_dnt_flag  # dummy flag
     return (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag)
