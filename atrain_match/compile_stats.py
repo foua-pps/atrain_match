@@ -121,7 +121,7 @@ if __name__ == '__main__':
         modes_list.append('SATZ_LOW')
     if options.satz == True:
         modes_list.append('SATZ_HIGH')
-    if options.odticfilter == True: # I prefer this one! /KG
+    if options.odticfilter == True:  # I prefer this one! /KG
         print('Will calculate statistic for mode OPTICAL_DEPTH_THIN_IS_CLEAR')
         modes_list.append('OPTICAL_DEPTH_THIN_IS_CLEAR')
     if options.surface_new_way == True:

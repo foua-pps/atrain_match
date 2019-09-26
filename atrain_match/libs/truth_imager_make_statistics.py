@@ -160,7 +160,7 @@ def plot_some_figures(match_clsat, match_calipso, values, basename, process_mode
     plotpath = insert_info_in_filename_or_path(AM_PATHS['plot_dir'], values,
                                                datetime_obj=values['date_time'])
 
-    # # TRAJECTORY
+    # TRAJECTORY
     if match_calipso is not None and 1==2:
         imlon = match_calipso.imager.longitude.copy()
         imlat = match_calipso.imager.latitude.copy()
@@ -281,9 +281,9 @@ def run(cross, run_modes, AM_PATHS, SETTINGS, reprocess=False):
         not SETTINGS['USE_CT_FOR_CFC_STATISTICS'] and
         not SETTINGS['USE_CMAPROB_FOR_CFC_STATISTICS']):
         logger.error(
-            "\n# # # # # # # # # # # # # # # # # # # # # # # # # # # "
+            "\n  --------------------------------- "
             "\n\tSet one of USE_*_FOR_CFC_STATISTICS=True in config.py!"
-            "\n# # # # # # # # # # # # # # # # # # # # # # # # # # # ")
+            "\n  --------------------------------- ")
         raise MatchupError("Configure problems, see messages above.")
 
     # Get the data that we need:

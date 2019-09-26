@@ -37,9 +37,9 @@ def profile(field, y_coords, selection):
 
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    lons, lats = field.lonlat() # @UnusedVariable
-    lats = lats[selection[1:]] # First item in *selection* selects vertical coords
-    LATS = np.array([lats for i in field[selection]]) # @UnusedVariable
+    lons, lats = field.lonlat()  # @UnusedVariable
+    lats = lats[selection[1:]]  # First item in *selection* selects vertical coords
+    LATS = np.array([lats for i in field[selection]])  # @UnusedVariable
     im = ax.pcolormesh(LATS, y_coords[selection], field[selection])
     if 'Pa' in y_coords.units:
         ax.invert_yaxis()
@@ -106,7 +106,7 @@ def pressure_to_height(pressure):
 def generate_profile(grib_name, lon_name, lat_name, pressure=False,
                      level=None, humidity=False, out_filename=None):
     from numpy import loadtxt
-    lons = loadtxt(lon_name).reshape((-1, 1)) # pps_nwp requires 2-d lon/lat
+    lons = loadtxt(lon_name).reshape((-1, 1))  # pps_nwp requires 2-d lon/lat
     lats = loadtxt(lat_name).reshape((-1, 1))
 
     from pps_nwp import GRIBFile

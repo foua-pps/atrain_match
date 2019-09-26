@@ -53,10 +53,10 @@ def half_sample_mode(x, already_sorted=False):
     if len(x) < 3:
         return np.mean(x)
     if already_sorted:
-        sorted_x = x # No need to sort
+        sorted_x = x  # No need to sort
     else:
         sorted_x = np.sort(x)
-    half_idx = int((len(x) + 1) / 2) # Round up to include the middle value, in the case of an odd-length array
+    half_idx = int((len(x) + 1) / 2)  # Round up to include the middle value, in the case of an odd-length array
 
     # Calculate all interesting ranges that span half of all data points
     ranges = sorted_x[-half_idx:] - sorted_x[:half_idx]

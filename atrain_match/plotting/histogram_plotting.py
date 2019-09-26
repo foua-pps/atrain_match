@@ -28,7 +28,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 try:
     matplotlib.use('agg', warn=False)
-except TypeError: # For some reason, I don't always have 'warn'
+except TypeError:  # For some reason, I don't always have 'warn'
     matplotlib.use('agg')
 
 
@@ -222,7 +222,7 @@ def plot_fields(fields, break_value=None):
                     resolution='c', ax=ax)
         m.drawcoastlines(linewidth=.5, color='g')
 
-        step = (f.data.shape[1] // 256) or 1 # don't use full gigantic arrays
+        step = (f.data.shape[1] // 256) or 1  # don't use full gigantic arrays
         _slice = (slice(None, None, step),) * 2
         x, y = m(f.lon[_slice], f.lat[_slice])
         # Mask out pixels outside projection limb
@@ -274,7 +274,7 @@ def plot_hist(data, **kwargs):
     q1 = np.percentile(data,25)
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    n, bins, bars = ax.hist(data, **kwargs) # @UnusedVariable
+    n, bins, bars = ax.hist(data, **kwargs)  # @UnusedVariable
     # plt.hist(data, **kwargs)
     ax.set_ylabel('frequency')
     ax.axvline(mean, label='mean = %.2f' % mean, color='r')
@@ -298,7 +298,7 @@ def density(x, y, bins=None, log=True):
     Create a 2d density plot of correlated values in *x* and *y*.
 
     """
-    H, xedges, yedges = np.histogram2d(y, x, bins=bins) # @UnusedVariable
+    H, xedges, yedges = np.histogram2d(y, x, bins=bins)  # @UnusedVariable
 
     from matplotlib import pyplot as plt
     from matplotlib.colors import LogNorm
@@ -323,8 +323,8 @@ def atrain_scatter(fig, ax, x, y, binsize, xymin = None,  xymax=None, vmax=250,
     edgesx= np.linspace(xymin, xymax, n_edges)
     edgesy= np.linspace(xymin, xymax, n_edges)
     H, xe, ye = np.histogram2d(x, y, bins=[edgesx,edgesy])
-    xi = np.searchsorted(edgesx, x)# - edgesx[0])/(n_edges+1)).astype(np.int)
-    yi = np.searchsorted(edgesy, y)# np.floor((y - edgesy[0])/(n_edges+1)).astype(np.int)  # -1?
+    xi = np.searchsorted(edgesx, x)  # - edgesx[0])/(n_edges+1)).astype(np.int)
+    yi = np.searchsorted(edgesy, y)  # np.floor((y - edgesy[0])/(n_edges+1)).astype(np.int)  # -1?
     xi = xi-1
     yi = yi-1
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -338,9 +338,9 @@ def atrain_scatter(fig, ax, x, y, binsize, xymin = None,  xymax=None, vmax=250,
     z = H[xi,yi]
     idx = z.argsort()
     my_cmap = copy.copy(matplotlib.cm.get_cmap("inferno_r", lut=100))
-    cmap_vals = my_cmap(np.arange(100)) # extractvalues as an array
+    cmap_vals = my_cmap(np.arange(100))  # extractvalues as an array
     # print cmap_vals[0]
-    cmap_vals[0:5] = cmap_vals[5] # change the first values to less white
+    cmap_vals[0:5] = cmap_vals[5]  # change the first values to less white
     my_cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
         "new_inferno_r", cmap_vals)
 

@@ -31,7 +31,7 @@ from atrain_match.libs.extract_imager_along_track import imager_track_from_match
 from atrain_match.utils.validate_lwp_util import LWP_THRESHOLD
 import logging
 logger = logging.getLogger(__name__)
-AMSR_RADIUS = 5.4e3 # 3.7e3 to include 5km pixels parly overlapping amsr-e footprint
+AMSR_RADIUS = 5.4e3  # 3.7e3 to include 5km pixels parly overlapping amsr-e footprint
 def get_amsr(filename):
 
     if ".h5" in filename:
@@ -40,14 +40,14 @@ def get_amsr(filename):
         # hdf4 file:
         retv = read_amsr_hdf4(filename)
 
-    density = 1e3 # Density of water [kg m**-3]
-    n_lat_scans = len(retv.latitude)*1.0/(len(retv.sec1993)) # = 242!
+    density = 1e3  # Density of water [kg m**-3]
+    n_lat_scans = len(retv.latitude)*1.0/(len(retv.sec1993))  # = 242!
     # print n_lat_scans
     epoch_diff = timegm(TAI93.utctimetuple())
     nadir_sec_1970 = retv.sec1993 + epoch_diff
     retv.sec_1970 = np.repeat(nadir_sec_1970.ravel(), n_lat_scans)
     retv.sec1993 = None
-    retv.lwp = retv.lwp_mm.ravel() * density # [mm * kg m**-3 = g m**-2]
+    retv.lwp = retv.lwp_mm.ravel() * density  # [mm * kg m**-3 = g m**-2]
 
     logger.info("Extract AMSR-E lwp between 0 and %d g/m-2", LWP_THRESHOLD)
     use_amsr = np.logical_and(retv.lwp >=0 ,
@@ -67,7 +67,7 @@ def read_amsr_h5(filename):
         retv.latitude = f['Swath1/Geolocation Fields/Latitude'][:].ravel()
         retv.sec1993 = f['Swath1/Geolocation Fields/Time']['Time'][:]
         # description='lwp (mm)',
-        lwp_gain = f['Swath1/Data Fields/High_res_cloud'].attrs['Scale']# .ravel()
+        lwp_gain = f['Swath1/Data Fields/High_res_cloud'].attrs['Scale']  # .ravel()
         retv.lwp_mm = f['Swath1/Data Fields/High_res_cloud'][:].ravel() * lwp_gain
     if f:
         f.close()
@@ -182,7 +182,7 @@ def match_amsr_imager(amsr, cloudproducts, SETTINGS):
     imager_sunz_vector = np.array([cloudproducts.imager_angles.sunz.data[line,pixel] for line, pixel in zip(cal_1,cap_1)])
     idx_match = np.logical_and(
         elements_within_range(amsr.sec_1970, imager_lines_sec_1970, SETTINGS["sec_timeThr"]),
-        imager_sunz_vector<=84) # something larger than 84 (max for lwp)
+        imager_sunz_vector<=84)  # something larger than 84 (max for lwp)
 
     if idx_match.sum() == 0:
         logger.warning("No light (sunz<84)  matches in region within time threshold %d s.", SETTINGS["sec_timeThr"])

@@ -181,7 +181,7 @@ def get_mean_data_from_array_nneigh(array, matched):
     if array is None:
         return None
     out_all = get_data_from_array_nneigh(array, matched)
-    n_ok = np.sum(out_all>=0, axis=-1) # before
+    n_ok = np.sum(out_all>=0, axis=-1)  # before
     out_all[out_all<0] = 0
     sum_out_all = np.sum(out_all, axis=-1)
     return sum_out_all*1.0/n_ok

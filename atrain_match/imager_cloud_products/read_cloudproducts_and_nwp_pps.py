@@ -30,9 +30,9 @@ from atrain_match.utils.common import InputError
 ATRAIN_MATCH_NODATA = config.NODATA
 # logger.debug('Just so you know: this module has a logger...')
 
-DSEC_PER_AVHRR_SCALINE = 1.0/6. * 4 # A "work for the time being" solution.
+DSEC_PER_AVHRR_SCALINE = 1.0/6. * 4  # A "work for the time being" solution.
 if config.RESOLUTION == 1:
-    DSEC_PER_AVHRR_SCALINE = 1.0/6. # Full scan period, i.e. the time
+    DSEC_PER_AVHRR_SCALINE = 1.0/6.  # Full scan period, i.e. the time
                                     # interval between two consecutive
                                     # lines (sec)
 def get_satid_datetime_orbit_from_fname_pps(imager_filename,as_oldstyle=False):
@@ -53,7 +53,7 @@ def get_satid_datetime_orbit_from_fname_pps(imager_filename,as_oldstyle=False):
                  "lines_lines": "*",
                  "time":sl_[2],
                  "imager_filename":imager_filename}
-    else: # PPS v2014-filenames
+    else:  # PPS v2014-filenames
         sl_ = os.path.basename(imager_filename).split('_')
         date_time = datetime.strptime(sl_[5], '%Y%m%dT%H%M%S%fZ')
         date_time_end = datetime.strptime(sl_[6].split('Z')[0], '%Y%m%dT%H%M%S%f')
@@ -93,7 +93,7 @@ class AllImagerData(object):
     def __init__(self, array_dict=None):
         self.latitude = None
         self.longitude = None
-        self.nodata = None # latlon nodata
+        self.nodata = None  # latlon nodata
         self.sec1970_end = None
         self.sec1970_start = None
         self.time = None
@@ -196,12 +196,12 @@ class CmaObj:
         self.cma_bin = None
         self.cma_prob = None
         self.cma_aflag = None
-        self.cma_testlist0 = None # new in v2018
-        self.cma_testlist1 = None # new in v2018
-        self.cma_testlist2 = None # new in v2018
-        self.cma_testlist3 = None # new in v2018
-        self.cma_testlist4 = None # new in v2018
-        self.cma_testlist5 = None # new in v2018
+        self.cma_testlist0 = None  # new in v2018
+        self.cma_testlist1 = None  # new in v2018
+        self.cma_testlist2 = None  # new in v2018
+        self.cma_testlist3 = None  # new in v2018
+        self.cma_testlist4 = None  # new in v2018
+        self.cma_testlist5 = None  # new in v2018
 
 class CtypeObj:
     # skeleton container for v2014 cloudtype
@@ -210,7 +210,7 @@ class CtypeObj:
         self.ct_statusflag = None
         self.ct_quality = None
         self.ct_conditions = None
-        self.phaseflag = None # v2012
+        self.phaseflag = None  # v2012
 class CtthObj:
     # skeleton container for v2014 cloudtype
     def __init__(self):
@@ -274,9 +274,9 @@ def read_ctth_nc(filename):
     # Currently unpacked arrays later in calipso.py
     ctth.h_gain=1.0
     ctth.h_intercept=0.0
-    ctth.p_gain=1.0 #
+    ctth.p_gain=1.0  #
     ctth.p_intercept=0.0
-    ctth.t_gain=1 #
+    ctth.t_gain=1  #
     ctth.t_intercept=0.0
     ctth.h_nodata = pps_nc.variables['ctth_alti']._FillValue
     ctth.t_nodata = pps_nc.variables['ctth_tempe']._FillValue
@@ -379,7 +379,7 @@ def read_cma_nc(filename):
     # cma.cma_testlist4 = pps_nc.variables['cma_testlist4'][0,:,:]
     # cma.cma_testlist5 = pps_nc.variables['cma_testlist5'][0,:,:]
     for var_name in [
-            'cma_aerosol', # new updated name
+            'cma_aerosol',  # new updated name
             'cma_aerosolflag',
             'cma_dust',
             'cma_testlist0',
@@ -430,8 +430,8 @@ def read_imager_data_nc(pps_nc):
                 corr_done_attr = pps_nc.variables[var].sun_zenith_angle_correction_applied
                 if corr_done_attr.upper() in ["TRUE"]:
                     one_channel.SZA_corr_done = True
-            one_channel.gain = 1.0 # data already scaled
-            one_channel.intercept = 0.0 # data already scaled
+            one_channel.gain = 1.0  # data already scaled
+            one_channel.intercept = 0.0  # data already scaled
             imager_data.channel.append(one_channel)
             fill_value = pps_nc.variables[var]._FillValue
             imager_data.nodata = fill_value
@@ -571,8 +571,8 @@ def read_pps_geoobj_nc(pps_nc):
     all_imager_obj.num_of_lines = all_imager_obj.latitude.shape[0]
     # import pdb
     # pdb.set_trace()
-    time_temp = pps_nc.variables['time'].units # to 1970 s
-    seconds = np.float64(pps_nc.variables['time'][::]) # from PPS often 0
+    time_temp = pps_nc.variables['time'].units  # to 1970 s
+    seconds = np.float64(pps_nc.variables['time'][::])  # from PPS often 0
     if 'T' in time_temp:
         time_obj = time.strptime(time_temp,'seconds since %Y-%m-%dT%H:%M:%S+00:00')
     elif time_temp == u'seconds since 1970-01-01':
@@ -740,7 +740,7 @@ def read_segment_data(filename):
             nodata = h5file.attrs['p_nodata']
             # data[data!=nodata] = data[data!=nodata] * (gain/100) + intercept/100 # Pa => hPa
             data_float = np.array(data, dtype=np.float)
-            data_float[data!=nodata] = data_float[data!=nodata] * (gain/100) + intercept/100 # Pa => hPa
+            data_float[data!=nodata] = data_float[data!=nodata] * (gain/100) + intercept/100  # Pa => hPa
             product[pressure_data] = data_float
         logger.debug("Read segment info height")
         for geoheight_data in ['geoheight', 'surfaceGeoHeight']:
@@ -812,7 +812,7 @@ def read_thr_h5(filename, h5_obj_type, thr_type):
     if thr_type in ["emis1","emis6", "emis8", "emis9"]:
         if filename is not None:
             h5file = h5py.File(filename, 'r')
-            if 1==1:# h5_obj_type in h5file.keys():
+            if 1==1:  # h5_obj_type in h5file.keys():
                 value = h5file[h5_obj_type].value
                 gain = h5file.attrs['gain']
                 intercept = h5file.attrs['intercept']
@@ -980,7 +980,7 @@ def read_all_intermediate_files(pps_files, SETTINGS):
             aux_dict[emis_type] = read_thr_h5(getattr(pps_files,"emis"),
                                               h5_obj_type, emis_type)
     if len(CTTH_TYPES)>1:
-        for ctth_type in CTTH_TYPES[1:]: # already read first
+        for ctth_type in CTTH_TYPES[1:]:  # already read first
             aux_dict[ctth_type] = read_ctth_nc(pps_files.ctth[ctth_type])
     aux_obj = AuxiliaryObj(aux_dict)
     return aux_obj

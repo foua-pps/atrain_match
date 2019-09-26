@@ -50,7 +50,7 @@ def get_iss(filename):
     # Remember that layer_top_altitude contain also aerosols
     # This was not the case for CALIPSO-data
     # There can be a thin aerosol layer above the highest cloud!
-    for layer in range(9,-1,-1): # layer index 9.0
+    for layer in range(9,-1,-1):  # layer index 9.0
         # is_cloudy = np.greater(iss.cloud_phase_fore_fov[:,layer],0)
         is_cloudy = np.equal(iss.feature_type_fore_fov[:,layer],1)
         is_cloudy = np.logical_and(
@@ -97,7 +97,7 @@ def get_iss(filename):
     logger.warning("Currently using sky_condition_fore_fov to set cloudfraction,"
                    "\n \t use cloud_phase_fore_fov instead?")
 
-    iss.validation_height[iss.cloud_fraction<0.5] = -9 # should not be needed
+    iss.validation_height[iss.cloud_fraction<0.5] = -9  # should not be needed
     return iss
 
 
@@ -149,7 +149,7 @@ def match_iss_imager(iss,cloudproducts, SETTINGS):
     from atrain_match.utils.common import map_imager
     cal, cap = map_imager(cloudproducts, iss.longitude.ravel(),
                          iss.latitude.ravel(),
-                         radius_of_influence=config.RESOLUTION*0.7*1000.0) # larger than radius...
+                         radius_of_influence=config.RESOLUTION*0.7*1000.0)  # larger than radius...
     calnan = np.where(cal == config.NODATA, np.nan, cal)
 
     if (~np.isnan(calnan)).sum() == 0:

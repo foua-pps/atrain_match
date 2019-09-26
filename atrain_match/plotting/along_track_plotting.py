@@ -74,7 +74,7 @@ def plot_cal_clsat_geoprof_imager(match_clsat,
         top_height = match_clsat.cloudsat.validation_height
         plot_these = top_height>0
         ax.vlines(pixel_position[match_clsat.cloudsat.calipso_index[plot_these]],
-                  base_height[plot_these], top_height[plot_these], 'm',# color = colors[nidx], \
+                  base_height[plot_these], top_height[plot_these], 'm',  # color = colors[nidx], \
                   linestyle = 'solid', linewidth = 1,  rasterized=True, label='CPR (CloudSat)')
         title = "%s-CloudSat-CALIOP Cloud Top Heights" % instrument.upper()
     else:
@@ -376,7 +376,7 @@ def map_imager_track(imager_lonlat, track_lonlat):
     # Don't draw each pixel, or the machine will choke!
     npixels = imager_lonlat[0].size
     from math import sqrt
-    step = int(round(sqrt(npixels / 1e5))) # Will give a total of about 1e5 pixels
+    step = int(round(sqrt(npixels / 1e5)))  # Will give a total of about 1e5 pixels
     _slice_2d = (slice(None, None, step),) * 2
     m.pcolormesh(imager_lonlat[0][_slice_2d], imager_lonlat[1][_slice_2d],
                  imager_lonlat[1][_slice_2d], alpha=.5)

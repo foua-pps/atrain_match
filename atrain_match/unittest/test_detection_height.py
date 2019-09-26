@@ -34,7 +34,7 @@ def CalipsoCloudOpticalDepth(cloud_top, cloud_base, optical_depth, cloud_fractio
     new_cloud_fraction = np.zeros(cloud_fraction.shape,'d')
     new_fcf = np.ones(fcf.shape).astype(fcf.dtype)
     for pixel_i in range(optical_depth.shape[0]):
-        depthsum = 0 # Used to sum the optical_depth
+        depthsum = 0  # Used to sum the optical_depth
         for layer_j in range(optical_depth.shape[1]):
             # Just stops the for loop when there are no more valid value
             if optical_depth[pixel_i, layer_j] < 0:

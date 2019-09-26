@@ -56,7 +56,7 @@ class CloudTypeStats(OrrbStats):
         pps_undetected_low = self.ac_data["n_clear_low"]
         pps_undetected_medium = self.ac_data["n_clear_medium"]
         pps_undetected_high = self.ac_data["n_clear_high"]
-        pps_false_low = self.ac_data["n_low_clear"] # This is really CMA buisness!
+        pps_false_low = self.ac_data["n_low_clear"]  # This is really CMA buisness!
         pps_false_medium = self.ac_data["n_medium_clear"]
         pps_false_high = self.ac_data["n_high_clear"]
         pps_false_cirrus = self.ac_data["n_cirrus_clear"]

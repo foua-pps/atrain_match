@@ -26,7 +26,7 @@ from atrain_match.truths.calipso import  (add_singleshot_to5km)
 from atrain_match.matchobject_io import CalipsoObject
 
 
-def add_singleshot_to5km_old(calipso5km): # Valid only for CALIPSO-CALIOP version 4.10
+def add_singleshot_to5km_old(calipso5km):  # Valid only for CALIPSO-CALIOP version 4.10
     # weakness or bug in the CALIPSO retrieval of clouds below 4 km
     for i in range(calipso5km.profile_utc_time.shape[0]):
         cfc = calipso5km.number_cloudy_single_shots[i]/15.0

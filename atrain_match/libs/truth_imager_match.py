@@ -89,7 +89,7 @@ from atrain_match.truths.amsr import (reshape_amsr, match_amsr_imager)
 from atrain_match.truths.mora import (reshape_mora, match_mora_imager)
 from atrain_match.truths.synop import (reshape_synop, match_synop_imager)
 from atrain_match.truths.iss import reshape_iss, match_iss_imager
-from atrain_match.truths.calipso import ( # check_total_optical_depth_and_warn,
+from atrain_match.truths.calipso import (  # check_total_optical_depth_and_warn,
                             total_and_top_layer_optical_depth_5km,
                             reshape_calipso,
                             discard_calipso_files_outside_time_range,
@@ -140,8 +140,8 @@ class ppsFiles(object):
 
 def get_time_list(cross_time, time_window, delta_t_in_seconds):
     tlist = []
-    delta_t = timedelta(seconds=delta_t_in_seconds) # search per minute!delta_t_in_seconds=60
-    tobj1 = cross_time # end_time
+    delta_t = timedelta(seconds=delta_t_in_seconds)  # search per minute!delta_t_in_seconds=60
+    tobj1 = cross_time  # end_time
     tobj2 = cross_time - delta_t
     while (tobj1 <= cross_time + time_window[1] or
            tobj2 >= cross_time - time_window[0]):
@@ -157,7 +157,7 @@ def find_closest_nwp_file(cloudproducts, AM_PATHS, values, SETTINGS):
     date_time = datetime.fromtimestamp((cloudproducts.sec1970_end*0.5 +
                                         cloudproducts.sec1970_start*0.5), my_tz.utc)
     delta_3h = timedelta(hours=SETTINGS['MAX_NWP_TDIFF_HOURS'])
-    tlist = get_time_list(date_time,  [delta_3h, delta_3h], 60*60) # time_window +/- 3h
+    tlist = get_time_list(date_time,  [delta_3h, delta_3h], 60*60)  # time_window +/- 3h
     for tobj in tlist:
         for prognosis_length in range(15):
             values['plus_hours'] = "{:03d}".format(prognosis_length)
@@ -465,7 +465,7 @@ def find_files_from_imager(imager_file, AM_PATHS, SETTINGS, as_oldstyle=False):
     check_cfc_configuration(file_name_dict, SETTINGS)
     # For CTTH can have several files:
     ctth_files = {}
-    file_name_dict['ctth'] = ctth_files # If no ctth matching requested
+    file_name_dict['ctth'] = ctth_files  # If no ctth matching requested
     if 'ctth_file' in AM_PATHS.keys():
         for ctth_type in SETTINGS['CTTH_TYPES']:
             values['ctth_type'] = ctth_type
@@ -928,7 +928,7 @@ def add_elevation_corrected_imager_ctth(match_clsat, match_calipso, issObj, SETT
         if SETTINGS["CCI_CLOUD_VALIDATION"] or SETTINGS["PATMOSX_VALIDATION"]:
             # ctth already relative mean sea level
             imager_ctth_m_above_seasurface = match_calipso.imager.ctth_height
-        else: # ctth relative topography
+        else:  # ctth relative topography
             got_height = imager_ctth_m_above_seasurface>=0
             imager_ctth_m_above_seasurface[got_height] += elevation[got_height]*1.0
         match_clsat.imager.imager_ctth_m_above_seasurface = imager_ctth_m_above_seasurface
@@ -950,7 +950,7 @@ def add_elevation_corrected_imager_ctth(match_clsat, match_calipso, issObj, SETT
         if SETTINGS["CCI_CLOUD_VALIDATION"]:
             # ctth relative mean sea level
             imager_ctth_m_above_seasurface = match_calipso.imager.ctth_height
-        else: # ctth relative topography
+        else:  # ctth relative topography
             got_height = imager_ctth_m_above_seasurface>=0
             imager_ctth_m_above_seasurface[got_height] += cal_elevation[got_height]*1.0
         match_calipso.imager.imager_ctth_m_above_seasurface = imager_ctth_m_above_seasurface
@@ -965,7 +965,7 @@ def add_elevation_corrected_imager_ctth(match_clsat, match_calipso, issObj, SETT
         if SETTINGS["CCI_CLOUD_VALIDATION"]:
             # ctth relative mean sea level
             pass
-        else: # ctth relative topography
+        else:  # ctth relative topography
             got_height = imager_ctth_m_above_seasurface>=0
             imager_ctth_m_above_seasurface[got_height] += iss_elevation[got_height]*1.0
         issObj.imager.imager_ctth_m_above_seasurface = imager_ctth_m_above_seasurface

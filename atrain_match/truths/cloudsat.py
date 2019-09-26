@@ -63,7 +63,7 @@ def add_cloudsat_cloud_fraction(cloudsat):
     sum_cloudsat_cloud_mask = np.sum(cloudsat_cloud_mask, axis=1)
     if len(sum_cloudsat_cloud_mask) != (len(cloudsat_cloud_fraction)):
         raise ValueError('Boolean index-array should have same lenght as array!')
-    cloudsat_cloud_fraction[sum_cloudsat_cloud_mask > 2] = 1 # requires at least two cloudy bins
+    cloudsat_cloud_fraction[sum_cloudsat_cloud_mask > 2] = 1  # requires at least two cloudy bins
     cloudsat.cloud_fraction = cloudsat_cloud_fraction
     return cloudsat
 
@@ -198,7 +198,7 @@ def match_cloudsat_imager(cloudsat,cloudproducts, SETTINGS):
     cal, cap = map_imager(cloudproducts,
                          cloudsat.longitude.ravel(),
                          cloudsat.latitude.ravel(),
-                         radius_of_influence=config.RESOLUTION*0.7*1000.0) # somewhat larger than radius...
+                         radius_of_influence=config.RESOLUTION*0.7*1000.0)  # somewhat larger than radius...
     calnan = np.where(cal == config.NODATA, np.nan, cal)
     if (~np.isnan(calnan)).sum() == 0:
         logger.warning("No matches within region.")

@@ -28,7 +28,7 @@ def get_t11t12_texture_data_from_object(imager_obj, aux_obj, ch11, ch12, text_na
     t11 = get_channel_data_from_objectfull_resolution(imager_obj, ch11, nodata=-9)
     t12 = get_channel_data_from_objectfull_resolution(imager_obj, ch12, nodata=-9)
     t11t12 = 1.0*np.array(t11-t12)
-    K=np.median(t11t12) # K is trick to get better accurracy maybe not needed as differences are often small
+    K=np.median(t11t12)  # K is trick to get better accurracy maybe not needed as differences are often small
     t11t12 = (t11t12-K)
     from scipy.ndimage import uniform_filter
     mean = uniform_filter(t11t12, size=(5,5), mode='mirror')
@@ -92,7 +92,7 @@ def get_warmest_or_coldest_index(t11, matched, warmest=True):
                                                                 Fill=FILL)
     if warmest:
         neigbour_index = np.argmax(t11_neighbour_i, axis=0)
-    else: # coldest
+    else:  # coldest
         neigbour_index = np.argmin(t11_neighbour_i, axis=0)
     new_row_matched = np.array(
         [matched['row'][idx] + steps[neigbour_index[idx]][0]
@@ -174,8 +174,8 @@ def add_cnn_features(cnn_dict, matched, lats_matched, lons_matched, SETTINGS):
     source = (lons_f.astype(np.float64),
               lats_f.astype(np.float64))
     mapper, dummy = match_lonlat(source, target, radius_of_influence=10000, n_neighbours=1)
-    cnn_feature_index_R = mapper.rows.filled(config.NODATA).ravel() # i.e rows, cols!
-    cnn_feature_index_C = mapper.cols.filled(config.NODATA).ravel() # i.e rows, cols!
+    cnn_feature_index_R = mapper.rows.filled(config.NODATA).ravel()  # i.e rows, cols!
+    cnn_feature_index_C = mapper.cols.filled(config.NODATA).ravel()  # i.e rows, cols!
     for feature_index in range(32):
         feature_i = filter_response[0,feature_index,:,:]
         the_filters_dict["cnn_feature_%d"%(feature_index)] = np.where(

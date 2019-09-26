@@ -84,19 +84,19 @@ for mode in list(ALLOWED_MODES):
     ALLOWED_MODES.append(mode + DNT)
 
 
-COMPRESS_LVL = 6 # : Compresssion level for generated matched files (h5)
+COMPRESS_LVL = 6  # : Compresssion level for generated matched files (h5)
 NODATA = -9
 #  Recommended cloud threshold for the CloudSat cloud mask. In 5km data this
 #  threshold has already been applied, so there is no reason to change it for
 #  this data set.
 CLOUDSAT_CLOUDY_THR = 30.0
 #  File lenghts, normally no need to update
-CALIPSO_FILE_LENGTH = 60*60 # s calipso files are shorter 60 minutes
-CLOUDSAT_FILE_LENGTH = 120*60 # s cloudsat files are shorter 120 minutes
-ISS_FILE_LENGTH = 60*60 # s iss files are shorter 60 minutes
-AMSR_FILE_LENGTH = 60*60 # AMSR-Es  files are shorter 60 minutes
-SYNOP_FILE_LENGTH = 24*60 # s Our synop data comes in 1 day files
-MORA_FILE_LENGTH = 24*60 # s Our MORA data comes in 1 day files
+CALIPSO_FILE_LENGTH = 60*60  # s calipso files are shorter 60 minutes
+CLOUDSAT_FILE_LENGTH = 120*60  # s cloudsat files are shorter 120 minutes
+ISS_FILE_LENGTH = 60*60  # s iss files are shorter 60 minutes
+AMSR_FILE_LENGTH = 60*60  # AMSR-Es  files are shorter 60 minutes
+SYNOP_FILE_LENGTH = 24*60  # s Our synop data comes in 1 day files
+MORA_FILE_LENGTH = 24*60  # s Our MORA data comes in 1 day files
 
 #  Maybe depricated?:
 PPS_FORMAT_2012_OR_EARLIER = False

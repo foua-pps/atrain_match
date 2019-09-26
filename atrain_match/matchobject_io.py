@@ -187,7 +187,7 @@ class CalipsoObject(DataObject):
             'latitude': None,
             'imager_linnum': None,
             'imager_pixnum': None,
-            'elevation': None, # DEM_elevation => elevation in (m)"
+            'elevation': None,  # DEM_elevation => elevation in (m)"
             'cloud_fraction': None,
             'validation_height': None,
             'sec_1970': None,
@@ -200,10 +200,10 @@ class CalipsoObject(DataObject):
             'layer_base_pressure': None,
             'number_layers_found': None,
             'igbp_surface_type': None,
-            'nsidc_surface_type': None, # V4 renamed from 'snow_ice_surface_type'
+            'nsidc_surface_type': None,  # V4 renamed from 'snow_ice_surface_type'
             'snow_ice_surface_type': None,
             # 'nsidc_surface_type_texture': None,
-            'profile_time_tai': None, # renamed from "Profile_Time"
+            'profile_time_tai': None,  # renamed from "Profile_Time"
             'feature_classification_flags': None,
             'day_night_flag': None,
             'feature_optical_depth_532': None,

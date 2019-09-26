@@ -56,7 +56,7 @@ def get_satid_datetime_orbit_from_fname_oca(imager_filename, SETTINGS, cross):
               "year": date_time.year,
               "month": "%02d" % (date_time.month),
               "time": date_time.strftime("%H%M"),
-              "extrai": "", # asc_or_des
+              "extrai": "",  # asc_or_des
               # "basename":sat_id + "_" + date_time.strftime("%Y%m%d_%H%M_99999"),# "20080613002200-ESACCI",
               "imagerfilename": imager_filename}
     values['basename'] = values["satellite"] + "_" + \

@@ -333,14 +333,14 @@ def get_day_night_twilight_info_maia(cm_flag):
     # bit 13-14
     maia_cm_flag = (2*np.bitwise_and(np.right_shift(cm_flag,14),1) +
                     1*np.bitwise_and(np.right_shift(cm_flag,13),1))
-    day_flag = np.where(maia_cm_flag==2,1,0) # include also sunglint in day ==3
+    day_flag = np.where(maia_cm_flag==2,1,0)  # include also sunglint in day ==3
     night_flag =  np.where(maia_cm_flag==0,1,0)
     twilight_flag =  np.where(maia_cm_flag==1,1,0)
     logger.debug("number of day {:d}".format(len(maia_cm_flag[day_flag==True])))
     logger.debug("number of night {:d}".format(len(maia_cm_flag[night_flag==True])))
     logger.debug("number of twilight {:d}".format(len(maia_cm_flag[twilight_flag==True])))
     all_dnt_flag =  np.ones(maia_cm_flag.shape)
-    no_qflag = 0 * all_dnt_flag # dummy flag
+    no_qflag = 0 * all_dnt_flag  # dummy flag
     return (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag)
 
 def get_pixels_where_test_is_passed(cma_testlist, bit_nr=0):
