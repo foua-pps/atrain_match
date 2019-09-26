@@ -51,6 +51,7 @@ def reshape_synop(synopfiles, imager, SETTINGS):
     retv.latitude = np.array(panda_synops['lat'])
     retv.cloud_fraction = np.array(panda_synops['total_cloud_cover'])/8.0
 
+
 #    clmask_obs = np.logical_and(
 #        matchups['obs'] > 2. / 8., matchups['obs'] < 6. / 8.)
 #    clmask_sat = np.logical_and(

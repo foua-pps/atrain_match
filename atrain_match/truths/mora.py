@@ -136,5 +136,6 @@ def match_mora_imager(mora, cloudproducts, SETTINGS):
                                      extract_nwp_segments = False)
     return retv
 
+
 if __name__ == "__main__":
     get_mora_data(TEST_FILE)

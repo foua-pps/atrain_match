@@ -88,6 +88,8 @@ def calculate_ctth_stats(val_subset, imager_ctth_m_above_seasurface, truth_sat_v
         diff_squared = diff * diff
         RMS_difference = np.sqrt(np.mean(diff_squared))
         diff_squared_biascorr = (diff - bias) * (diff - bias)
+
+
 #        RMS_difference_biascorr = np.sqrt(np.mean(diff_squared_biascorr))
 
     # return (corr_caliop_imager, bias, RMS_difference, imager_height_work, diff_squared_biascorr)
@@ -282,6 +284,8 @@ def get_semi_opaque_info(match_calipso):
             semi_flag, opaque_flag = get_semi_opaque_info_pps2014(
                 match_calipso.imager.ctth_status)
     return semi_flag, opaque_flag
+
+
 """
 
 

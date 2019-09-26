@@ -94,6 +94,7 @@ def make_pod_vector(match_calipso):
         pass
     return np.array(pod_d), np.array(pod_n), np.array(feature_d), np.array(feature_n)
 
+
 BASE_DIR = ADIR + "/DATA_MISC/reshaped_files_validation_2018/"
 ROOT_DIR_v2014_GAC = (BASE_DIR + "global_gac_v2014_created20180927/Reshaped_Files/noaa18/5km/2009/*cali*h5")
 ROOT_DIR_v2018_GAC = (BASE_DIR + "global_gac_v2018_created20180927/Reshaped_Files/noaa18/5km/2009/*cali*h5")

@@ -170,6 +170,8 @@ def my_make_plot_example(bias, use, label_str):
     ax.set_title('a) Within threshold accuracy', loc='left')
     ax.fill(x_, hist_heights, color='silver',
              label = my_legend_text_6(temp_data, "Gaussian"))
+
+
 #   plt.plot([0.001*np.mean(temp_data), 0.001*np.mean(temp_data)], [0, 2.4], 'k:')
     ax.set_ylabel('Percent')
     my_adjust_axis(ax)

@@ -122,6 +122,7 @@ def get_calipso(filename, res, ALAY=False):
         # Strange - this will give 0 cloud fraction in points with no data, wouldn't it????/KG
     return cal
 
+
 # READING DATA FROM CALIOP:
 scip_these_larger_variables_until_needed = {
     # if any of these are needed just rempve them from the dictionary!

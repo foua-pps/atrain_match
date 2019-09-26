@@ -141,6 +141,7 @@ def plot_cfc_table(match_calipso, cfc_limit=0.9, sat="modis"):
     out_file_h.write(sat + ": \n" )
     out_file_h.write(info)
 
+
 # ----------------------------------------
 
 if __name__ == "__main__":

@@ -218,6 +218,7 @@ class CloudFractionStats(OrrbStats):
             lines.append("Hitrate MODIS: {:5.3f}".format( self.hitrate_MODIS))
         return lines
 
+
 if __name__ == "__main__":
     stats = CloudFractionStats()
 

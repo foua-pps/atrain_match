@@ -24,6 +24,8 @@ The user configurable options are set in atrain_match.cfg
 
 def str2bool(v):
   return str(v).lower() in ("yes", "true", "t", "1")
+
+
 import os
 
 # ========== Basic settings set as ENVIRON VARIABLES==========#

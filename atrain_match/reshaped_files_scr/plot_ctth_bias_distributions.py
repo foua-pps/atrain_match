@@ -767,6 +767,7 @@ def investigate_nn_ctth_modis_lvl2():
         make_profileplot(plt_obj_new, month=month, day_str=day_str, sat='calipso')
     make_profileplot(plt_obj, month=name, day_str=day_str, sat='calipso')
 
+
 if __name__ == "__main__":
     for month in ["02", "04", "06", "08", "10", "12", "020406081012"]:
         replot_figure2_from_saved_data(month)

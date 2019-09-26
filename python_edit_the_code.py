@@ -28,23 +28,22 @@ for filename in files:
     python_file = open(filename,'r') 
     line_list = [line for line in python_file]  
     com = False
+    inside_function_class_dif = False
     for line in line_list:
         
         #if '"""' in line and com:
         #    com = False
         #if '"""' in line and not com:
         #    com = True
-
-        line = line.replace('=  ', '= ')
-        line = line.replace('=  ', '= ')
-        line = line.replace('=  ', '= ')
-        line = line.replace('=  ', '= ')
-        line = line.replace('=  ', '= ')
-        line = line.replace('=  ', '= ')
-        line = line.replace('=  ', '= ')
-        line = line.replace('=  ', '= ')
-
+        if line==line.lstrip() and len(line.lstrip())>=1 and  inside_function_class_dif:
+            line = "\n\n" + line
+            inside_function_class_dif = False
         
+
+        if len(line)>3 and (line[0:3]=="def" or line[0:5]=="class"):
+            inside_function_class_dif = True
+
+
 
         #line = line.replace( '100.0/', '100.0 / ')
         
@@ -52,16 +51,11 @@ for filename in files:
         if len(line.split('"""'))>2:
          # it was a one line comment
             com = False
-        all_file += line.rstrip() +"\n"
-    all_file=all_file.replace("\ndef","\n\n\ndef")
-    all_file=all_file.replace("\nclass","\n\n\nclass")
-    all_file= all_file.replace("\n\n\n","\n\n")   
-    all_file=all_file.replace("\n\n\n","\n\n")
-    all_file=all_file.replace("\n\n\n","\n\n")
-    all_file=all_file.replace("\n\n\n","\n\n")
-    all_file=all_file.replace("\ndef","\n\ndef")
-    all_file=all_file.replace("\nclass","\n\nclass")
+        all_file += line
 
+    all_file=all_file.replace("\n\n\n\n","\n\n\n")
+    all_file=all_file.replace("\n\n\n\n","\n\n\n")
+    all_file=all_file.replace("\n\n\n\n","\n\n\n")
 
     python_file.close()
     python_file = open(filename,'w')

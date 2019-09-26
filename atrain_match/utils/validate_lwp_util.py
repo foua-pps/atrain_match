@@ -109,4 +109,6 @@ def validate_all(filenames):
     fig3.savefig('distribution_all.pdf')
 
     return mean, median, std, lwp_diff
+
+
 """

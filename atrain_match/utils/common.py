@@ -182,5 +182,6 @@ def write_match_objects(filename, datasets, groups, group_attrs_dict, SETTINGS=N
                     g.create_dataset(array_name, data=array,
                                      compression=COMPRESS_LVL)
 
+
 if __name__ == "__main__":
     pass

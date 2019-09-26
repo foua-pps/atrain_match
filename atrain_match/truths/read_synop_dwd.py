@@ -84,6 +84,7 @@ def get_synop_data(filename):
                                      8: lambda x: float(x) / 10., })
     return pd.DataFrame(data)
 
+
 if __name__ == "__main__":
 
     synop = get_data(TESTFILE)

@@ -132,6 +132,7 @@ def print_stats(match_objPPS, match_objPATMOSX, use_pps, use_patmosx):
         np.std(bias_pps),
         np.std(bias_patmosx),                                       ))
 
+
 if __name__ == "__main__":
 
     PATMOSX_ROOT_DIR = (ADIR + "/VALIDATION_PATMOSX/Reshaped_Files/noaa18/5km/2009/*/*h5")

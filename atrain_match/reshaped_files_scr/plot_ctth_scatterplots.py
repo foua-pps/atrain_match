@@ -325,6 +325,7 @@ def do_the_plots():
 
     do_the_scatter_plot(plt_obj_cali, plt_obj_csat, merged_months)
 
+
 if __name__ == "__main__":
     do_the_plots()
 

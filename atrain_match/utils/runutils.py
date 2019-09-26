@@ -259,5 +259,6 @@ def do_some_logging(retv, match_obj):
     logger.debug("IMAGER observation time of last imager-reference match: %s",
           time.gmtime(retv.imager.sec_1970[-1]))
 
+
 if __name__ == "__main__":
     pass

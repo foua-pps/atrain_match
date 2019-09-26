@@ -60,6 +60,7 @@ def remove_doubles(mObj, mObj2):
     mObj = mObj.extract_elements(idx=np.array(non_doubles))
     return mObj
 
+
 match_calipso_merged = None
 for satellite in SATELLITES:
     ROOT_DIR = BASE_DIR + "/{satellite}/5km/%s/%s/*%s%s*_*{truth}*.h5".format(

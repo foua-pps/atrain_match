@@ -142,6 +142,7 @@ def plot_cal_clsat_geoprof_imager(match_clsat,
                 %(plotpath, RESOLUTION, basename, instrument, mode.lower(), filetype)
             fig.savefig(filename, format = filetype)
 
+
 # added plot with two pps cloud-heights and no cloudsat
 
 
@@ -173,6 +174,8 @@ def drawCalPPSHeightPlot_PrototypePPSHeight(match_calipso_calipso,
     pixel_position_ok = pixel_position[data_ok]
     imager_ctth_ok1 = ctth_height1[data_ok]
     imager_ctth_ok2 = ctth_height2[data_ok]
+
+
 #    # Calculates Hihest Cloud Top
 
     if MAXHEIGHT is None:
@@ -282,6 +285,7 @@ def plot_cal_clsat_cwc_imager(match_clsat, elevationcwc, data_okcwc,
     # -------------------------------------------------------
     return
 
+
 # -----------------------------------------------------
 
 
@@ -331,6 +335,7 @@ def plot_cal_clsat_imager_time_diff(match_clsat,
             fig.savefig("%s/%skm_%s_time_diff.%s" % (plotpath,
                                                      resolution, basename, filetype))
     return
+
 
 # -----------------------------------------------------
 

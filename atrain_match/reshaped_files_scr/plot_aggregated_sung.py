@@ -73,6 +73,7 @@ def get_sunglint_info_pps2014(cloudtype_conditions):
     sunglint_flag = temp_val == 1
     return  sunglint_flag
 
+
 files = glob(ROOT_DIR)
 
 from matchobject_io import (read_truth_imager_match_obj,

@@ -101,6 +101,7 @@ def get_iss(filename):
     iss.validation_height[iss.cloud_fraction < 0.5] = -9  # should not be needed
     return iss
 
+
 scip_these_larger_variables_until_needed_iss = {
         # if any of these are needed remove them from the dictionary!
         # might need more work as they are 3D or 4D variables.
@@ -205,6 +206,7 @@ def reshape_iss(issfiles, imager, SETTINGS):
     iss = iss.extract_elements(starti=startBreak,
                                endi=endBreak)
     return iss
+
 
 if __name__ == "__main__":
     pass

@@ -299,6 +299,7 @@ def print_common_stats(match_calipso, use, name_dict, mints, maxts, surface_type
     # print "N: %d POD-cloudy: %3.2f FAR-cloudy: %3.2f POD-clear %3.2f"%(
     #   Num, PODcloudy, FARcloudy , PODclear)
 
+
 ROOT_DIR = (ADIR + "/DATA_MISC/reshaped_files/"
             "global_modis_14th_created20170519/")
 ROOT_DIR_GAC = (ADIR + "/DATA_MISC/reshaped_files/"

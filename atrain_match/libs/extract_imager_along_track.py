@@ -373,6 +373,7 @@ def insert_nwp_h440_h680_data(obt):
     setattr(obt.imager, 'segment_nwp_h680', data)
     return obt
 
+
 # ---------------------------------------------------------------------------
 
 

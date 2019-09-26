@@ -90,6 +90,8 @@ def get_pps_aerosl(match_calipso):
         np.logical_and(feature7, feature8)))
     is_cold_dust_nonday = np.logical_and(feature4, np.logical_and(feature2, np.logical_and(feature6, feature7)))
     is_warm_dust = np.logical_and(feature8, np.logical_and(feature1, feature3))
+
+
 #   is_warm_dust = np.logical_and(feature3, feature3)
     dust_singal = np.logical_or(is_warm_dust, is_cold_dust)
     safety_modis = np.logical_and(feature6, r13/np.cos(np.radians(sunz)) < 1.5)
@@ -215,6 +217,7 @@ def make_optical_depth_hist(match_calipso):
    center = (bins[:-1] + bins[1:]) / 2
    plt.bar(center, hist, align='center', width=width)
    plt.show()
+
 
 match_calipso = CalipsoImagerTrackObject()
 for filename in files:

@@ -157,6 +157,7 @@ def get_inversion_info_pps2012(cloudtype_qflag):
     inversion_flag = (((cloudtype_qflag >> 6) & 1) == 1) & ~no_qflag
     return inversion_flag
 
+
 # 0 = not determined
 # 1 = clean marine
 # 2 = dust
@@ -179,6 +180,7 @@ def get_calipso_aerosol_of_type_i(match_calipso, atype=0):
 
     is_requested_type = cal_vert_feature == atype
     return is_requested_type
+
 
 # If feature type = cloud, bits 10-12 will specify the cloud type.
 # 0 = low overcast, transparent

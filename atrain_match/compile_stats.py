@@ -65,6 +65,8 @@ def compile_stats(results_files, write=True, outfile_cfc="merged_sat_file_cfc", 
         from statistics import orrb_LWP_stat
         cth_stats = orrb_LWP_stat.CloudLwpStats(ac_data=cfc_stats.ac_data, truth_sat=truth_sat)
         cth_stats.write(compiled_lwp_file_name)
+
+
 if __name__ == '__main__':
 
     import os

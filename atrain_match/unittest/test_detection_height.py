@@ -131,5 +131,6 @@ def suite():
     mysuite.addTest(loader.loadTestsFromTestCase(test_detection_height))
     return mysuite
 
+
 if __name__ == "__main__":
     unittest.TextTestRunner(verbosity=2).run(suite())

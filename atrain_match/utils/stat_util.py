@@ -156,5 +156,6 @@ def FARcl(indict):
     undet_cloudy = indict["undet_cloudy"]
     return undet_cloudy * 100.0 / (det_clear + undet_cloudy)
 
+
 if __name__ == "__main__":
     pass

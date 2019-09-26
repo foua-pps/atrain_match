@@ -113,6 +113,7 @@ def test_4(match_calipso, isCloudy, isClear):
     plt.show()
     fig.savefig("pps_investigation_test4.png", format = 'png')
 
+
 ROOT_DIR = (ADIR + "/DATA_MISC/reshaped_files/"
             "global_modis_14th_created20161108/")
 ROOT_DIR_GAC = (ADIR + "/DATA_MISC/reshaped_files/"

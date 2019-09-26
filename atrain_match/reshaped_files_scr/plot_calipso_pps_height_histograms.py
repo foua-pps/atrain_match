@@ -77,6 +77,7 @@ def  my_plot_histogram_hexbin(x, y,
     plt.show()
     return 1
 
+
 match_calipso = CalipsoImagerTrackObject()
 for filename in files:
     print os.path.basename(filename)

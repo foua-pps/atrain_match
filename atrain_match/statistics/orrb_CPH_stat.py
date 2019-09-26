@@ -91,6 +91,7 @@ class CloudPhaseStats(OrrbStats):
         lines.append("")
         return lines
 
+
 if __name__ == "__main__":
     stats = CloudPhaseStats()
 
