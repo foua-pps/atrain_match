@@ -466,8 +466,8 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
                 data = getattr(ctth_obj, data_set)
                 name = "%s_%s" % (ctth_type.lower(), data_set)
                 setattr(obt.imager, name, get_data_from_array(data, row_col))
-    from atrain_match.utils.pps_prototyping_util import (get_t11t12_texture_data_from_object,
-                                                         get_coldest_values, get_darkest_values,
+    from atrain_match.utils.pps_prototyping_util import (get_coldest_values,
+                                                         get_darkest_values,
                                                          get_warmest_values)
     if imager_obj is not None:
         pass

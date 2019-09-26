@@ -28,7 +28,6 @@ from atrain_match.imager_cloud_products.read_cloudproducts_and_nwp_pps import (
     CtypeObj, CtthObj, CmaObj,
     create_imager_time,
     ImagerAngObj)
-import time
 import os
 import h5py
 import numpy as np

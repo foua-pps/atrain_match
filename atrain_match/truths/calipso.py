@@ -18,11 +18,9 @@
 from atrain_match.utils.runutils import do_some_logging
 from atrain_match.matchobject_io import (TruthImagerTrackObject,
                                          CalipsoObject)
-from atrain_match.utils.common import (MatchupError, TimeMatchError,
-                                       InputError, ProcessingError,
+from atrain_match.utils.common import (InputError, ProcessingError,
                                        elements_within_range)
 import atrain_match.config as config
-import pdb
 import os
 import numpy as np
 import time as tm
@@ -95,7 +93,6 @@ def get_calipso(filename, res, ALAY=False):
     cal = read_calipso(filename)
     cal = add_validation_ctth_calipso(cal)
     if res == 1 and not ALAY:
-        lon = cal.longitude.ravel()
         # ---------------------------------------------------------
         # Derive the calipso cloud fraction using the
         # cloud height:
@@ -114,7 +111,7 @@ def get_calipso(filename, res, ALAY=False):
             np.logical_and(cal.cloud_fraction < 1.0,
                            cloud_fraction_temp > 0.01),
             0.01 * cloud_fraction_temp, cal.cloud_fraction)
-       # --------------------------------------------------------
+        # --------------------------------------------------------
     elif res == 5 and not ALAY:
         cal.cloud_fraction = np.where(cal.layer_top_altitude[:, 0] > 0, 1, 0).astype('d')
         # Strange - this will give 0 cloud fraction in points with no data, wouldn't it????/KG
@@ -242,8 +239,8 @@ def read_calipso(filename):
 
 def read_calipso_hdf4(filename, retv):
     from pyhdf.SD import SD, SDC
-    from pyhdf.HDF import HDF, HC
-    import pyhdf.VS
+    # from pyhdf.HDF import HDF, HC
+    # import pyhdf.VS
 
     def convert_data(data):
         if len(data.shape) == 2:
@@ -255,7 +252,7 @@ def read_calipso_hdf4(filename, retv):
     if filename is not None:
         h4file = SD(filename, SDC.READ)
         datasets = h4file.datasets()
-        attributes = h4file.attributes()
+        # attributes = h4file.attributes()
         singleshotdata = {}
         for idx, dataset in enumerate(datasets.keys()):
             # non-goups
@@ -328,14 +325,16 @@ def read_calipso_h5(filename, retv):
     return retv
 
 
-def discard_calipso_files_outside_time_range(calipsofiles_list, cloudproducts, values, SETTINGS, res=config.RESOLUTION, ALAY=False):
+def discard_calipso_files_outside_time_range(calipsofiles_list, cloudproducts, values,
+                                             SETTINGS, res=config.RESOLUTION, ALAY=False):
     imager_end = cloudproducts.sec1970_end
     imager_start = cloudproducts.sec1970_start
     calipso_within_time_range = []
     for current_file in calipsofiles_list:
         newCalipso = get_calipso(current_file, res, ALAY=ALAY)
         cal_new_all = newCalipso.sec_1970
-        if cal_new_all[0] > imager_end + SETTINGS["sec_timeThr"] or cal_new_all[-1] + SETTINGS["sec_timeThr"] < imager_start:
+        if (cal_new_all[0] > imager_end + SETTINGS["sec_timeThr"] or
+            cal_new_all[-1] + SETTINGS["sec_timeThr"] < imager_start):
             pass
             # print "skipping file %s outside time_limits"%(current_file)
         else:
@@ -371,7 +370,7 @@ def find_break_points(startCalipso, cloudproducts, SETTINGS):
     start_break = np.argmin((np.abs((startCalipso.sec_1970)
                                     - (imager_start - SETTINGS["sec_timeThr"]))))
     end_break = np.argmin((np.abs((startCalipso.sec_1970)
-                                  - (imager_end + SETTINGS["sec_timeThr"])))) + 2    # Plus two to get one extra, just to be certain
+                                  - (imager_end + SETTINGS["sec_timeThr"])))) + 2    # Plus two, just to be certain
     if start_break != 0:
         start_break = start_break - 1  # Minus one to get one extra, just to be certain
     return start_break, end_break
@@ -464,10 +463,10 @@ def add_1km_to_5km(calipso1km, calipso5km):
     # (i.e. 1 km array = 5 times longer array)
     # Here we check the middle time (index 1) out of the three time values
     # given (start, mid, end) for 5 km data
-    if (calipso5km.profile_utc_time[:, 1] == calipso1km.profile_utc_time[2::5]).sum() != calipso5km.profile_utc_time.shape[0]:
-
+    length_ok = (calipso5km.profile_utc_time[:, 1] == calipso1km.profile_utc_time[2::5]).sum() == calipso5km.profile_utc_time.shape[0]
+    if not length_ok:
         print("length mismatch")
-        pdb.set_trace()
+        raise(ProcessingError)
 
     # First making a preliminary check of the differences in fraction of cloudy
     # calipso columns in 1 km and 5 km data.
@@ -658,7 +657,7 @@ def optical_depth_height_filtering(calipso, min_optical_depth, use_old_method=Fa
         # For KGs method set fraction_into_cloud = 0.5 always
         distance_down_in_cloud_we_see[:, layer_j] = geometrical_distance_cloud*fraction_into_cloud
     for layer_j in range(N10):
-        total_optical_depth_layers_above = depthsum.copy()
+        # total_optical_depth_layers_above = depthsum.copy()
         this_layer_optical_depth = calipso.feature_optical_depth_532[:, layer_j].ravel()
         depthsum += this_layer_optical_depth
         # this_is_the_top_most_layer_we_detect
@@ -691,9 +690,6 @@ def check_total_optical_depth_and_warn(match_calipso):
     obj = match_calipso.calipso
     if (obj.total_optical_depth_5km is not None and
             (obj.total_optical_depth_5km < obj.feature_optical_depth_532_top_layer_5km).any()):
-        badPix = np.less(obj.total_optical_depth_5km+0.001,
-                         obj.feature_optical_depth_532_top_layer_5km)
-        diff = obj.total_optical_depth_5km - obj.feature_optical_depth_532_top_layer_5km
         print("warning {:d}".format(len(obj.total_optical_depth_5km)))
         # print len(obj.total_optical_depth_5km[badPix])
         # print obj.total_optical_depth_5km[badPix]

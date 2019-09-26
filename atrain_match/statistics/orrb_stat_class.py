@@ -15,16 +15,14 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
-'''
-Created on Oct 18, 2010
 
-'''
+# Created on Oct 18, 2010
+
 import numpy as np
 
 
 class OrrbStats():
-    """Abstract class for accumulating statistics from atrain_match. (What does
-    orrb stand for?)"""
+    """Abstract class for accumulating statistics from atrain_match."""
 
     def __init__(self, results_files=None, ac_data=None, truth_sat='calipso'):
         """Create an OrrbStats object with results from *results_files*."""
@@ -37,7 +35,7 @@ class OrrbStats():
             self.do_stats()
 
     def read_one_file(self, datafile):
-        # print datafile
+        # print(datafile)
         data_dict = {}
         current_datafile = open(datafile, "r")
         for line in current_datafile:
@@ -51,14 +49,14 @@ class OrrbStats():
             what, data = line.rstrip().split(':')
             data = np.array([np.float(item) for item in data.lstrip().split(" ")])
             if what in data_dict.keys():
-                print what
+                print(what)
                 raise KeyError("Key should not be already in list")
             data_dict[what] = data
         current_datafile.close()
         return data_dict
 
     def accumulate_data(self, results_files):
-        print "reading data"
+        print("reading data")
         acu = {}
         acu["scenes"] = len(results_files)
         # CFC DATA
@@ -242,7 +240,7 @@ class OrrbStats():
                 cloud_level = key.split(" ")[-1]
                 data_one_cat = data_dict[key]
                 if data_one_cat[3] < 0:
-                    print "no pixels!"
+                    print("no pixels!")
                     continue
                 if data_one_cat[3] <= 0:
                     data_one_cat[3] = 0
@@ -324,10 +322,10 @@ class OrrbStats():
         """Write printout to a file."""
         lines_to_write = self.printout()
         if len(lines_to_write) == 0:
-            print "Not writing file %s" % (filename)
-            print "No compiled results!"
+            print("Not writing file %s" % (filename))
+            print("No compiled results!")
         else:
-            print "Writing file %s" % (filename)
+            print("Writing file %s" % (filename))
             f = open(filename, mode)
             for l in lines_to_write:
                 f.write(l + '\n')

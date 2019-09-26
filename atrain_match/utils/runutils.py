@@ -60,7 +60,7 @@ def read_config_info():
             value_ = True
         elif len(values) == 1 and 'false' in values[0].lower():
             value_ = False
-        elif len(values) == 1 and re.match("\d+.*\d*", values[0]):
+        elif len(values) == 1 and re.match(r"\d+.*\d*", values[0]):
             value_ = np.float(values[0])
 
         SETTINGS[name.upper()] = value_
@@ -144,7 +144,7 @@ def parse_scene(filename):
     filename = os.path.basename(filename)
     if not filename:
         raise ValueError("No file %r" % filename)
-    match = re.match('(\w+)_([0-9]{8})_([0-9]{4})_([0-9]+)', filename)
+    match = re.match(r'(\w+)_([0-9]{8})_([0-9]{4})_([0-9]+)', filename)
     if not match:
         raise ValueError("Couldn't parse \"okay\" file %r" % filename)
 

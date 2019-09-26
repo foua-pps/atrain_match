@@ -20,7 +20,6 @@
 # This program calculates basic statistics for the cloud top (CTH) product for
 # each month
 
-import math
 from statistics.orrb_stat_class import OrrbStats
 import numpy as np
 # -----------------------------------------------------
@@ -30,7 +29,7 @@ def bias_corrected_rms(rms, bias, N):
     # ie formula should be bcRMS= sqrt(RMS^2-c*bias^2),
     # where c=N/(N-1). However our Ns are usually large
     if N < 2:
-        print "Warning too few elements to calculate bc-RMS"
+        print("Warning too few elements to calculate bc-RMS")
         return -9
     cnn1 = N / (N - 1)
     return np.sqrt(rms * rms - cnn1 * bias * bias)
@@ -72,4 +71,4 @@ class CloudLwpStats(OrrbStats):
 
 
 if __name__ == "__main__":
-    stats = CloudTopStats()
+    stats = CloudLwpStats()

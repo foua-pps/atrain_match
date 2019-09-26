@@ -25,9 +25,7 @@ from atrain_match.utils.runutils import do_some_geo_obj_logging
 from atrain_match.imager_cloud_products.read_cloudproducts_and_nwp_pps import (
     AllImagerData,
     CtypeObj, CtthObj, CmaObj,
-    create_imager_time,
     ImagerAngObj)
-import time
 import os
 import netCDF4
 import numpy as np
@@ -161,8 +159,8 @@ def patmosx_read_all_hdf(filename, cross, SETTINGS):
     """Read geolocation, angles info, ctth, and cma
     """
     from pyhdf.SD import SD, SDC
-    from pyhdf.HDF import HDF, HC
-    import pyhdf.VS
+    #from pyhdf.HDF import HDF, HC
+    #import pyhdf.VS
     patmosx_hdf = SD(filename, SDC.READ)
     logger.info("Opening file %s", filename)
     logger.info("Reading longitude, latitude and time ...")

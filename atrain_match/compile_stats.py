@@ -20,7 +20,7 @@
 Created on Oct 13, 2010
 
 '''
-from atrain_match.config import (RESOLUTION, _validation_results_dir, DNT_FLAG, SURFACES)
+from atrain_match.config import (RESOLUTION, _validation_results_dir, SURFACES)
 
 import logging
 logging.basicConfig(level=logging.INFO)
@@ -38,7 +38,7 @@ def compile_stats(results_files, write=True, outfile_cfc="merged_sat_file_cfc", 
     cfc_stats.write(outfile_cfc)
 
     if truth_sat not in ['amsr']:
-        note = "========== Cloud top height ==========="
+        # note = "========== Cloud top height ==========="
         compiled_cth_file_name = outfile_cfc.replace('_cfc_', '_cth_')
         from statistics import orrb_CTH_stat
         cth_stats = orrb_CTH_stat.CloudTopStats(ac_data=cfc_stats.ac_data, truth_sat=truth_sat)
@@ -52,7 +52,7 @@ def compile_stats(results_files, write=True, outfile_cfc="merged_sat_file_cfc", 
         cty_stats.write(compiled_cty_file_name)
 
     if truth_sat not in ['amsr']:
-        note = "========== Cloud phase ==========="
+        # note = "========== Cloud phase ==========="
         compiled_cph_file_name = outfile_cfc.replace('_cfc_', '_cph_')
         from statistics import orrb_CPH_stat
         cth_stats = orrb_CPH_stat.CloudPhaseStats(ac_data=cfc_stats.ac_data, truth_sat=truth_sat)
@@ -60,7 +60,7 @@ def compile_stats(results_files, write=True, outfile_cfc="merged_sat_file_cfc", 
 
     # LWP only for AMSR-E currently
     if truth_sat in ['amsr']:
-        note = "========== Cloud lwp ==========="
+        # note = "========== Cloud lwp ==========="
         compiled_lwp_file_name = outfile_cfc.replace('_cfc_', '_lwp_')
         from statistics import orrb_LWP_stat
         cth_stats = orrb_LWP_stat.CloudLwpStats(ac_data=cfc_stats.ac_data, truth_sat=truth_sat)
@@ -108,24 +108,24 @@ if __name__ == '__main__':
 
     # Find all wanted modes (dnt)
     modes_list = []
-    if options.nodnt == True:
+    if options.nodnt:
         New_DNT_FLAG = ['']
     else:
         New_DNT_FLAG = ['', '_DAY', '_NIGHT', '_TWILIGHT']
-    if options.write == True:
+    if options.write:
         logger.warning("Results always written to file, -w flag is depricated")
-    if options.basic == True:
+    if options.basic:
         modes_list.append('BASIC')
-    if options.standard == True:
+    if options.standard:
         modes_list.append('STANDARD')
-    if options.satz == True:
+    if options.satz:
         modes_list.append('SATZ_LOW')
-    if options.satz == True:
+    if options.satz:
         modes_list.append('SATZ_HIGH')
-    if options.odticfilter == True:  # I prefer this one! /KG
+    if options.odticfilter:  # I prefer this one! /KG
         print('Will calculate statistic for mode OPTICAL_DEPTH_THIN_IS_CLEAR')
         modes_list.append('OPTICAL_DEPTH_THIN_IS_CLEAR')
-    if options.surface_new_way == True:
+    if options.surface_new_way:
         print('Will calculate statistic for the different surfaces')
         for surface in SURFACES:
             modes_list.append(surface)
@@ -135,7 +135,7 @@ if __name__ == '__main__':
         for dnt in New_DNT_FLAG:
             modes_dnt_list.append(mode + dnt)
     # Treat cotfilter separately as those directories have not dnt-flag at end
-    if options.cotfilter == True:
+    if options.cotfilter:
         print('Will calculate statistic for mode COT-filter')
         for dnt in New_DNT_FLAG:
             for cot in SETTINGS["MIN_OPTICAL_DEPTH"]:
@@ -209,5 +209,5 @@ if __name__ == '__main__':
                 min_opt_depth="")
             compiled_file_cfc = os.path.join(compiled_dir, compiled_file_cfc)
             compile_stats(results_files, outfile_cfc=compiled_file_cfc, truth_sat=truth_sat)
-    if options.write == True:
+    if options.write:
         logger.warning("Results always written to file, -w flag is depricated")

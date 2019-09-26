@@ -50,8 +50,8 @@ def get_lwp_diff_inner(aObj, val_subset, threshold=LWP_THRESHOLD):
 
     use_lwp = np.logical_or(aObj.imager.cpp_lwp >= 0,
                             aObj.amsr.imager_linnum_nneigh <= 0)  # might have less than 8 neighbours
-    use_lwp_upper = np.logical_or(aObj.imager.cpp_lwp < LWP_THRESHOLD_CPP,
-                                  aObj.amsr.imager_linnum_nneigh <= 0)
+    # use_lwp_upper = np.logical_or(aObj.imager.cpp_lwp < LWP_THRESHOLD_CPP,
+    #                              aObj.amsr.imager_linnum_nneigh <= 0)
 
     # use = use_sea
     use = np.logical_and(use_sea, use_phase)

@@ -132,7 +132,7 @@ def plot_cal_clsat_geoprof_imager(match_clsat,
     ax.set_xlabel("Track Position")
     ax.set_ylabel("Cloud Height (meter)")
     plt.legend(fancybox=True, loc=1, numpoints=4)
-    if isinstance(file_type, str) == True:
+    if isinstance(file_type, str):
         filename = "%s/%skm_%s_cloudsat_calipso_%s_clouds_%s.%s" \
             % (plotpath, RESOLUTION, basename, instrument, mode.lower(), file_type)
         fig.savefig(filename, format=file_type)
@@ -239,7 +239,7 @@ def drawCalPPSHeightPlot_PrototypePPSHeight(match_calipso_calipso,
     ax.set_xlabel("Track Position", fontsize=22)
 
     # plt.show()
-    if isinstance(file_type, str) == True:
+    if isinstance(file_type, str):
         filename = "%s/%skm_%s_calipso_%s_clouds.%s" \
             % (plotpath, RESOLUTION, basename, instrument, file_type)
         fig.savefig(filename, format=file_type)
@@ -327,7 +327,7 @@ def plot_cal_clsat_imager_time_diff(match_clsat,
             label="CALIPSO (max time diff %.2f min)" % (biggest_Calipso_diff))
     ax.legend(numpoints=4)
 
-    if isinstance(file_type, str) == True:
+    if isinstance(file_type, str):
         fig.savefig("%s/%skm_%s_time_diff.%s" % (plotpath,
                                                  resolution, basename, file_type))
     else:
@@ -365,7 +365,7 @@ def plot_cal_clsat_imager_satz(match_clsat,
     ax.set_title("%s SATZ" % instrument.upper())
     ax.plot(match_calipso.imager.satz, "g", label="%s - CALIPSO" % instrument.upper())
     ax.legend(numpoints=4)
-    if isinstance(file_type, str) == True:
+    if isinstance(file_type, str):
         fig.savefig("%s/%skm_%s_satz.%s" % (plotpath, resolution, basename, file_type))
     else:
         for filetype in file_type:

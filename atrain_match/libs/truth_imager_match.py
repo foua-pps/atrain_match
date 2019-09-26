@@ -62,9 +62,8 @@ Nina
 """
 
 # change log i found in git
-from atrain_match.matchobject_io import (write_truth_imager_match_obj,
-                                         read_truth_imager_match_obj)
-from atrain_match.truths.calipso import (  # check_total_optical_depth_and_warn,
+from atrain_match.matchobject_io import write_truth_imager_match_obj
+from atrain_match.truths.calipso import (
     total_and_top_layer_optical_depth_5km,
     reshape_calipso,
     discard_calipso_files_outside_time_range,
@@ -85,7 +84,6 @@ from atrain_match.utils.common import MatchupError, ProcessingError
 from atrain_match.config import INSTRUMENT
 import atrain_match.config as config
 import os
-import sys
 import numpy as np
 import logging
 
@@ -95,7 +93,7 @@ try:
 except ImportError:
     import pytz as my_tz
 from glob import glob
-import time
+#import time
 
 logger = logging.getLogger(__name__)
 

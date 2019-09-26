@@ -23,7 +23,6 @@
 import numpy as np
 import unittest
 from atrain_match.utils.pps_prototyping_util import (get_warmest_or_coldest_index)
-from atrain_match.matchobject_io import CalipsoObject
 
 
 def get_warmest_index_old(t11, matched):

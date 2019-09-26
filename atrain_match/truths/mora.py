@@ -17,17 +17,15 @@
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
 import logging
 from atrain_match.libs.extract_imager_along_track import imager_track_from_matched
-from atrain_match.utils.common import (ProcessingError, MatchupError, elements_within_range)
+from atrain_match.utils.common import elements_within_range
 import atrain_match.config as config
 from atrain_match.utils.runutils import do_some_logging
 from atrain_match.matchobject_io import (TruthImagerTrackObject,
                                          MoraObject)
 import numpy as np
 import pandas as pd
-import time
 import calendar
 from datetime import datetime, timedelta
-from calendar import timegm
 TAI93 = datetime(1993, 1, 1)
 logger = logging.getLogger(__name__)
 

@@ -19,12 +19,8 @@ from atrain_match.libs.extract_imager_along_track import get_data_from_array
 from atrain_match.config import NODATA
 import numpy as np
 import os
-import netCDF4
 import h5py
 import logging
-import time
-import calendar
-from datetime import datetime
 logger = logging.getLogger(__name__)
 ATRAIN_MATCH_NODATA = NODATA
 

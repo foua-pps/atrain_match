@@ -18,27 +18,7 @@
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
 # -*- coding: utf-8 -*-
 
-# Copyright (c) 2014, 2015, 2016 Adam.Dybbroe
-
-# Author(s):
-
-#   Adam.Dybbroe
-
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-"""Reader and data handler for the Synop reports from DWD
-"""
+"""Reader and data handler for the Synop reports from DWD."""
 
 # TESTFILE = "./DataFromDwd/201403/sy_SYNOP_20140306.qc"
 from datetime import datetime
@@ -51,7 +31,7 @@ filename = TESTFILE
 
 
 def get_synop_data(filename):
-    """Get all Synop data from one file"""
+    """Get all Synop data from one file."""
 
     def convert_datefunc(x): return datetime.strptime(x, '%Y%m%d%H%M')
 
@@ -87,7 +67,7 @@ def get_synop_data(filename):
 
 if __name__ == "__main__":
 
-    synop = get_data(TESTFILE)
+    synop = get_synop_data(TESTFILE)
 
     mystation = synop[synop['station'] == '01023']
-    print mystation['total_cloud_cover']
+    print(mystation['total_cloud_cover'])

@@ -177,7 +177,6 @@ def get_calipso_aerosol_of_type_i(match_calipso, atype=0):
                      1 * np.bitwise_and(np.right_shift(cflag, 9), 1))
     cal_vert_feature = np.where(
         np.not_equal(cflag, 1), feature_array, cal_vert_feature)
-
     is_requested_type = cal_vert_feature == atype
     return is_requested_type
 
@@ -201,7 +200,6 @@ def get_calipso_clouds_of_type_i_feature_classification_flags_one_layer(cflag, c
                      1 * np.bitwise_and(np.right_shift(cflag, 9), 1))
     cal_vert_feature = np.where(
         np.not_equal(cflag, 1), feature_array, cal_vert_feature)
-
     is_requested_type = cal_vert_feature == calipso_cloudtype
     return is_requested_type
 
@@ -209,11 +207,13 @@ def get_calipso_clouds_of_type_i_feature_classification_flags_one_layer(cflag, c
 def get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=0):
     # bits 10-12, start at 1 counting
     cflag = match_calipso.calipso.feature_classification_flags[::, 0]
-    return get_calipso_clouds_of_type_i_feature_classification_flags_one_layer(cflag, calipso_cloudtype=calipso_cloudtype)
+    return get_calipso_clouds_of_type_i_feature_classification_flags_one_layer(
+        cflag,
+        calipso_cloudtype=calipso_cloudtype)
 
 
 def get_calipso_op(match_calipso):
-    # type 1, 2, 5, 7 are low cloudtypes
+    # type 1, 2, 5, 7 are opaque cloudtypes
     calipso_low = np.logical_or(
         np.logical_or(
             get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=1),
@@ -222,7 +222,6 @@ def get_calipso_op(match_calipso):
             get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=5),
             get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=7)))
     return calipso_low
-    # type 0, 1, 2, 3 are low cloudtypes
 
 
 def get_calipso_tp(match_calipso):
@@ -326,6 +325,7 @@ def get_land_coast_sea_info_cci2014(lsflag):
     sea_flag = 1 - lsflag
     coast_flag = None
     all_lsc_flag = np.bool_(np.ones(lsflag))
+    no_qflag = np.bool_(np.zeros(lsflag))
     return (no_qflag, land_flag, sea_flag, coast_flag, all_lsc_flag)
 
 

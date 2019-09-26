@@ -52,22 +52,22 @@ class CloudFractionStats(OrrbStats):
             Num_cloudy_tot = np.sum(n_cloudy_cmaprob)
             Num_clear_tot = np.sum(n_clear_cmaprob)
             percent_cloudy_prob = np.array([100.0 / Num_cloudy_tot * np.int(nc) for nc in n_cloudy_cmaprob])
-            print percent_cloudy_prob, Num_cloudy_tot, n_cloudy_cmaprob
+            # print(percent_cloudy_prob, Num_cloudy_tot, n_cloudy_cmaprob)
             percent_clear_prob = np.array([100.0 / Num_clear_tot * np.int(nc) for nc in n_clear_cmaprob])
-            print percent_clear_prob
+            # print(percent_clear_prob)
 
             detected_clouds = np.array([np.sum(n_cloudy_cmaprob[min_prob >= limit]) for limit in limit_v])
             undetected_clouds = np.array([np.sum(n_cloudy_cmaprob[min_prob < limit]) for limit in limit_v])
             detected_clear = np.array([np.sum(n_clear_cmaprob[max_prob <= limit]) for limit in limit_v])
             false_clouds = np.array([np.sum(n_clear_cmaprob[max_prob > limit]) for limit in limit_v])
 
-            print max_prob
-            print limit_v
+            print(max_prob)
+            print(limit_v)
 
-            print false_clouds
-            print detected_clear
-            print detected_clouds
-            print undetected_clouds
+            print(false_clouds)
+            print(detected_clear)
+            print(detected_clouds)
+            print(undetected_clouds)
 
             pod_cloudy_prob = 100.0 / Num_cloudy_tot * detected_clouds
             pod_clear_prob = 100.0 / Num_clear_tot * detected_clear

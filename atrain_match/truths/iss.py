@@ -21,9 +21,9 @@ import calendar
 import datetime
 import time
 from atrain_match.utils.runutils import do_some_logging
-from atrain_match.truths.calipso import (find_break_points)
+from atrain_match.truths.calipso import find_break_points
 from atrain_match.libs.extract_imager_along_track import imager_track_from_matched
-from atrain_match.utils.common import (MatchupError, ProcessingError,
+from atrain_match.utils.common import (ProcessingError,
                                        elements_within_range)
 import atrain_match.config as config
 from atrain_match.matchobject_io import (IssObject,
@@ -64,7 +64,7 @@ def get_iss(filename):
         od_layer[od_layer == -999.9] = 5.0
         od_layer[od_layer < 0] = 0.0
         iss.total_optical_depth_5km += od_layer
-        is_not_very_thin = np.greater(od_layer, limit)
+        # is_not_very_thin = np.greater(od_layer, limit)
         # is_cloudy = np.logical_and(is_cloudy, is_not_very_thin)
         height_layer = iss.layer_top_altitude_fore_fov[:, layer]
         iss.validation_height[is_cloudy] = height_layer[is_cloudy]
@@ -114,8 +114,6 @@ scip_these_larger_variables_until_needed_iss = {
 
 def read_iss(filename):
     import h5py
-    import pdb
-    import sys
     logger.info("Reading file %s", filename)
     retv = IssObject()
     if filename is not None:
@@ -188,9 +186,8 @@ def match_iss_imager(iss, cloudproducts, SETTINGS):
 
 
 def reshape_iss(issfiles, imager, SETTINGS):
-    import sys
-    imager_end = imager.sec1970_end
-    imager_start = imager.sec1970_start
+    # imager_end = imager.sec1970_end
+    # imager_start = imager.sec1970_start
     iss = get_iss(issfiles[0])
     for i in range(len(issfiles) - 1):
         newIss = get_iss(issfiles[i + 1])
@@ -198,7 +195,6 @@ def reshape_iss(issfiles, imager, SETTINGS):
         iss_new_all = newIss.sec_1970.ravel()
         if not iss_start_all[0] < iss_new_all[0]:
             raise ProcessingError("Iss files are in the wrong order")
-        iss_break = np.argmin(np.abs(iss_start_all - iss_new_all[0])) + 1
         # Concatenate the feature values
         iss = iss + newIss
 

@@ -78,7 +78,7 @@ def get_cloudsat(filename):
     else:
         raise MatchupError(
             "Missing reader for CloudSat file type {:s}".format(
-                os.path.basename(fielname)))
+                os.path.basename(filename)))
     if 'GEOPROF' in os.path.basename(filename):
         cloudsat = add_validation_ctth_cloudsat(cloudsat)
         cloudsat = add_cloudsat_cloud_fraction(cloudsat)
@@ -100,8 +100,8 @@ def clsat_name_conversion(dataset_name_in_cloudsat_file, retv):
 
 def read_cloudsat_hdf4(filename):
     from pyhdf.SD import SD, SDC
-    from pyhdf.HDF import HDF, HC
-    import pyhdf.VS
+    from pyhdf.HDF import HDF  # HC
+    # import pyhdf.VS
 
     def convert_data(data):
         if len(data.shape) == 2:
@@ -113,7 +113,7 @@ def read_cloudsat_hdf4(filename):
     retv = CloudsatObject()
     h4file = SD(filename, SDC.READ)
     datasets = h4file.datasets()
-    attributes = h4file.attributes()
+    # attributes = h4file.attributes()
     # for idx, attr in enumerate(attributes.keys()):
     #    print idx, attr
     for idx, sds in enumerate(datasets.keys()):
@@ -132,7 +132,7 @@ def read_cloudsat_hdf4(filename):
         name = item[0]
         data_handle = vs.attach(name)
         data = np.array(data_handle[:])
-        attrinfo_dic = data_handle.attrinfo()
+        # attrinfo_dic = data_handle.attrinfo()
         factor = data_handle.findattr('factor')
         offset = data_handle.findattr('offset')
         # print data_handle.factor
@@ -187,7 +187,7 @@ def read_cloudsat(filename):
     for group in ['Geolocation Fields', 'Data Fields']:
         tempG = h5file["%s/%s" % (root, group)]
         for dataset in tempG.keys():
-            am_name = lsat_name_conversion(dataset, retv)
+            am_name = clsat_name_conversion(dataset, retv)
             if am_name in retv.all_arrays.keys():
                 setattr(retv, am_name, get_data(tempG[dataset]))
     h5file.close()

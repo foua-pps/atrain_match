@@ -18,7 +18,7 @@
 import logging
 from atrain_match.utils.validate_lwp_util import LWP_THRESHOLD
 from atrain_match.libs.extract_imager_along_track import imager_track_from_matched
-from atrain_match.utils.common import (ProcessingError, MatchupError, elements_within_range)
+from atrain_match.utils.common import (ProcessingError, elements_within_range)
 from atrain_match.utils.runutils import do_some_logging
 from atrain_match.truths.calipso import find_break_points
 from atrain_match.matchobject_io import (TruthImagerTrackObject,
@@ -79,13 +79,13 @@ def read_amsr_h5(filename):
 
 def read_amsr_hdf4(filename):
     from pyhdf.SD import SD, SDC
-    from pyhdf.HDF import HDF, HC
-    import pyhdf.VS
+    from pyhdf.HDF import HDF  # HC
+    # import pyhdf.VS
 
     retv = AmsrObject()
     h4file = SD(filename, SDC.READ)
-    datasets = h4file.datasets()
-    attributes = h4file.attributes()
+    # datasets = h4file.datasets()
+    # attributes = h4file.attributes()
     # for idx, attr in enumerate(attributes.keys()):
     #    print idx, attr
     for sds in ["Longitude", "Latitude", "High_res_cloud"]:
@@ -127,21 +127,15 @@ def read_amsr_hdf4(filename):
 
 
 def reshape_amsr(amsrfiles, imager, SETTINGS):
-    imager_end = imager.sec1970_end
-    imager_start = imager.sec1970_start
     amsr = get_amsr(amsrfiles[0])
     for i in range(len(amsrfiles) - 1):
-        newAmsr = get_amsr(amsrfiles[i + 1])
+        new_amsr = get_amsr(amsrfiles[i + 1])
         amsr_start_all = amsr.sec_1970.ravel()
-        amsr_new_all = newAmsr.sec_1970.ravel()
+        amsr_new_all = new_amsr.sec_1970.ravel()
         if not amsr_start_all[0] < amsr_new_all[0]:
             raise ProcessingError("AMSR files are in the wrong order")
-        amsr_break = np.argmin(np.abs(amsr_start_all - amsr_new_all[0])) + 1
         # Concatenate the feature values
-        amsr = amsr + newAmsr
-
-    # Finds Break point
-    # import pdb; pdb.set_trace()
+        amsr = amsr + new_amsr
     startBreak, endBreak = find_break_points(amsr, imager, SETTINGS)
     amsr = amsr.extract_elements(starti=startBreak,
                                  endi=endBreak)

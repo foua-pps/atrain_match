@@ -173,15 +173,14 @@ def write_match_objects(filename, datasets, groups, group_attrs_dict, SETTINGS=N
                     logger.debug("Not writing unimportant %s to file",
                                  array_name)
                     continue
-                try:
-                    if len(array) == 0:
-                        continue
-                except:
+
+                if len(array) == 0:
+                    continue
                     # Scalar data can't be compressed
                     # TODO: Write it as and attribute instead?
-                    g.create_dataset(array_name, data=array)
+                    # g.create_dataset(array_name, data=array)
                 else:
-                    # print "writing", array_name
+                    # print("writing", array_name)
                     g.create_dataset(array_name, data=array,
                                      compression=COMPRESS_LVL)
 

@@ -45,8 +45,6 @@ class test_match_lon_lat(unittest.TestCase):
         mapper = match.match_lonlat(self.source3, self.target,
                                     radius_of_influence=0.7 * 5 * 1000.0,
                                     n_neighbours=1)
-        print mapper.rows
-        print mapper.cols.data[1]
         self.assertEqual(mapper.cols.data[0], 0)
         self.assertEqual(mapper.cols.data[2], 2)
 
@@ -54,14 +52,13 @@ class test_match_lon_lat(unittest.TestCase):
         mapper = match.match_lonlat(self.source, self.target,
                                     radius_of_influence=0.7 * 5 * 1000.0,
                                     n_neighbours=1)
-        print mapper.rows
-        print mapper.cols.data[1]
+        print(mapper.rows)
+        print(mapper.cols.data[1])
         self.assertEqual(mapper.cols.data[1], 1)
 
 
 def suite():
-    """The suite for test_utils.
-    """
+    """The suite for test_utils."""
     loader = unittest.TestLoader()
     mysuite = unittest.TestSuite()
     mysuite.addTest(loader.loadTestsFromTestCase(test_match_lon_lat))

@@ -15,8 +15,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
-from atrain_match.libs.extract_imager_along_track import get_channel_data_from_object, get_data_from_array
-from atrain_match.libs.extract_imager_along_track import CHANNEL_MICRON_IMAGER_PPS, CHANNEL_MICRON_DESCRIPTIONS
+from atrain_match.libs.extract_imager_along_track import get_channel_data_from_object
+from atrain_match.libs.extract_imager_along_track import CHANNEL_MICRON_DESCRIPTIONS
 import atrain_match.config as config
 import numpy as np
 import logging
@@ -149,7 +149,6 @@ def get_darkest_values(imager_obj, matched):
 def add_cnn_features_full(imager_obj, imagerGeoObj, SETTINGS):
     from cloud_collocations.cloud_net import CloudNetBase
     from cloud_collocations.cloud_net import FeatureModel
-    the_filters_dict = {}
     print(SETTINGS['CNN_PCKL_PATH'])
     cnn = CloudNetBase.load(SETTINGS['CNN_PCKL_PATH'])
     m = FeatureModel(cnn)

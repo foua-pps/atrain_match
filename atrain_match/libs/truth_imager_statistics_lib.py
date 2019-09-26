@@ -20,24 +20,9 @@ from atrain_match.utils.stat_util import my_iqr
 from atrain_match.utils.get_flag_info import (
     get_calipso_low_medium_high_classification,
     get_cloudsat_low_medium_high_classification,
-    get_semi_opaque_info_pps2014,
-    get_semi_opaque_info_pps2012,
-    get_sunglint_info_pps2014,
-    get_high_terrain_info_pps2014,
-    get_mountin_info_pps2014,
-    get_inversion_info_pps2014,
-    get_land_coast_sea_info_pps2014,
-    get_land_coast_sea_info_pps2012,
-    get_land_coast_sea_info_cci2014,
-    get_ice_info_pps2014,
-    get_ice_info_pps2012,
     get_day_night_twilight_info_pps2014,
     get_day_night_twilight_info_pps2012,
-    get_day_night_twilight_info_cci2014,
-    get_day_night_twilight_info_maia,
-    get_sunglint_info_pps2012,
-    get_mountin_info_pps2012,
-    get_inversion_info_pps2012)
+    get_day_night_twilight_info_cci2014)
 from atrain_match.utils.common import ProcessingError
 import numpy as np
 import atrain_match.config as config

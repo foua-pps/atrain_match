@@ -15,15 +15,11 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
-"""
-Match TRUTH and IMAGER data
-
-"""
+"""Match TRUTH and IMAGER data."""
 
 # from __future__ import with_statement
 import numpy as np
 import logging
-import h5py
 from atrain_match.config import RESOLUTION, NODATA
 logger = logging.getLogger(__name__)
 
@@ -45,10 +41,7 @@ class MatchMapper(object):
         self.time_threshold = time_threshold
 
     def __call__(self, array):
-        """
-        Maps *array* to target swath.
-
-        """
+        """Maps *array* to target swath."""
         return np.ma.array(array[self.rows, self.cols], mask=self.mask)
 
     @property
@@ -79,7 +72,7 @@ class MatchMapper(object):
 
     @property
     def mask(self):
-        if not None in (self.time_diff, self.time_threshold):
+        if None not in (self.time_diff, self.time_threshold):
             return (self._pixel_mask +
                     (abs(self.time_diff) > self.time_threshold))
         return self._pixel_mask

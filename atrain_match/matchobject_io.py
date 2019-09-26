@@ -75,7 +75,7 @@ class DataObject(object):
                 if self.all_arrays[key].ndim != self.all_arrays[key].ndim:
                     raise ValueError("Can't concatenate arrays " +
                                      "of different dimensions!")
-            except AttributeError as e:
+            except AttributeError:
                 # print "Don't concatenate member " + key + "... " + str(e)
                 self.all_arrays[key] = other.all_arrays[key]
                 continue
@@ -95,7 +95,7 @@ class DataObject(object):
                     self.all_arrays[key] = np.concatenate(
                         [self.all_arrays[key],
                          other.all_arrays[key]], 0)
-            except ValueError as e:
+            except ValueError:
                 # print "Don't concatenate member " + key + "... " + str(e)
                 self.all_arrays[key] = other.all_arrays[key]
         return self
@@ -394,7 +394,7 @@ class TruthImagerTrackObject:
         try:
             self.diff_sec_1970 = np.concatenate([self.diff_sec_1970,
                                                  other.diff_sec_1970])
-        except ValueError as e:
+        except ValueError:
             # print "Don't concatenate member diff_sec_1970... " + str(e)
             self.diff_sec_1970 = other.diff_sec_1970
         return self
@@ -410,7 +410,7 @@ class TruthImagerTrackObject:
                 self.diff_sec_1970 = self.diff_sec_1970[idx]
             else:
                 self.diff_sec_1970 = self.diff_sec_1970[starti:endi]
-        except ValueError as e:
+        except ValueError:
             # print "Don't concatenate member diff_sec_1970... " + str(e)
             self.diff_sec_1970 = other.diff_sec_1970
         return self
@@ -603,7 +603,7 @@ if __name__ == "__main__":
                             "1km_npp_20121012_1246_04968_caliop_viirs_match.h5")
     TESTFILE2 = os.path.join(TESTDIR,
                              "1km_npp_20121004_0700_04851_caliop_viirs_match.h5")
-    match_calipso = readCaliopImagerMatchObj(TESTFILE)
-    match_calipso2 = readCaliopImagerMatchObj(TESTFILE2)
+    match_calipso = read_truth_imager_match_obj(TESTFILE)
+    match_calipso2 = read_truth_imager_match_obj(TESTFILE2)
 
     match_calipso = match_calipso + match_calipso2

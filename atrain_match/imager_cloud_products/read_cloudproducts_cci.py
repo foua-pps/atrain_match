@@ -22,12 +22,10 @@
 
 from atrain_match.imager_cloud_products.read_cloudproducts_and_nwp_pps import (
     AllImagerData,
-    CtypeObj, CtthObj, CmaObj,
-    create_imager_time,
+    CtthObj, CmaObj,
     ImagerAngObj)
 from atrain_match.utils.runutils import do_some_geo_obj_logging
 import atrain_match.config as config
-import time
 import os
 import netCDF4
 import numpy as np
