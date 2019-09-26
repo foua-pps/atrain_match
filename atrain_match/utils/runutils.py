@@ -66,7 +66,7 @@ def read_config_info():
 
     if (SETTINGS['COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC'] or
         SETTINGS['CALCULATE_DETECTION_HEIGHT_FROM_5KM_DATA']):
-        SETTINGS['ALSO_USE_5KM_FILES'] = True #5km data is required also for 1km processing
+        SETTINGS['ALSO_USE_5KM_FILES'] = True # 5km data is required also for 1km processing
     SETTINGS['sec_timeThr'] = SETTINGS['MINUTES_TIMETHR']*60.0
     SETTINGS['sec_timeThr_synop'] = SETTINGS['MINUTES_TIMETHR_SYNOP']*60.0
     SETTINGS['SAT_ORBIT_DURATION'] = SETTINGS['SAT_ORBIT_DURATION_MINUTES']*60.0
@@ -81,7 +81,7 @@ def unzip_file(filename):
     import gzip
     if filename.endswith('.bz2'):
         bz2file = bz2.BZ2File(filename)
-        #tmpfilename = tempfile.mktemp()
+        # tmpfilename = tempfile.mktemp()
         tmpdir = tempfile.mkdtemp()
         tmpfilename = os.path.join(tmpdir,
                                    os.path.basename(filename).strip('.bz2'))
@@ -99,7 +99,7 @@ def unzip_file(filename):
         return tmpfilename
 
     elif filename.endswith('.gz'):
-        #tmpfilename = tempfile.mktemp()
+        # tmpfilename = tempfile.mktemp()
         tmpdir = tempfile.mkdtemp()
         tmpfilename = os.path.join(tmpdir,
                                    os.path.basename(filename).strip('.gz'))
@@ -194,7 +194,7 @@ def parse_scenesfile_cci(filename):
 
 def parse_scenesfile_maia(filename):
     """
-    Parse maia file:  #viiCT_npp_DB_20120817_S035411_E035535_DES_N_La052_Lo-027_00001.h5
+    Parse maia file:  # viiCT_npp_DB_20120817_S035411_E035535_DES_N_La052_Lo-027_00001.h5
     """
     from datetime import datetime
     import re
@@ -211,7 +211,7 @@ def parse_scenesfile_maia(filename):
 
 def parse_scenesfile_reshaped(filename):
     """
-    Parse maia file:  #5km_noaa18_20090328_1855_99999_caliop_imager_match.h5
+    Parse maia file:  # 5km_noaa18_20090328_1855_99999_caliop_imager_match.h5
     """
     from datetime import datetime
     import re

@@ -38,12 +38,12 @@ from atrain_match.imager_cloud_products.read_cloudproducts_and_nwp_pps import (
 from atrain_match.utils.runutils import do_some_geo_obj_logging
 import atrain_match.config as config
 ATRAIN_MATCH_NODATA = config.NODATA
-#from atrain_match.utils.get_flag_info import get_patmosx_ct_flag, get_day_night_twilight_info_patmosx
+# from atrain_match.utils.get_flag_info import get_patmosx_ct_flag, get_day_night_twilight_info_patmosx
 
 def get_satid_datetime_orbit_from_fname_patmosx(imager_filename, SETTINGS, cross):
     # Get satellite name, time, and orbit number from imager_file
     # patmosx_v05r03_NOAA-18_asc_d20090102_c20140317.nc
-    #patmosx_noaa-18_des_2009_122.level2b.hdf
+    # patmosx_noaa-18_des_2009_122.level2b.hdf
 
     sl_ = os.path.basename(imager_filename).split('_')
     if ".nc" in imager_filename:
@@ -55,7 +55,7 @@ def get_satid_datetime_orbit_from_fname_patmosx(imager_filename, SETTINGS, cross
         asc_or_des = "des"
 
     date_time = cross.time
-    #date_time_end = cross.time + timedelta(seconds=SETTINGS['SAT_ORBIT_DURATION'])
+    # date_time_end = cross.time + timedelta(seconds=SETTINGS['SAT_ORBIT_DURATION'])
 
     sat_id = sl_[2].replace('-','').lower()
     values = {"satellite": sat_id,
@@ -66,7 +66,7 @@ def get_satid_datetime_orbit_from_fname_patmosx(imager_filename, SETTINGS, cross
               "month": "%02d" % (date_time.month),
               "time": date_time.strftime("%H%M"),
               "extrai": asc_or_des,
-              #"basename":sat_id + "_" + date_time.strftime("%Y%m%d_%H%M_99999"),#"20080613002200-ESACCI",
+              # "basename":sat_id + "_" + date_time.strftime("%Y%m%d_%H%M_99999"),# "20080613002200-ESACCI",
               "ccifilename": imager_filename,
               "ppsfilename": None}
     values['basename'] = values["satellite"] + "_" + \
@@ -189,7 +189,7 @@ def read_patmosx_ctype_cmask_ctth_hdf(patmosx_hdf):
     gain = patmosx_hdf.select(name).attributes()['scale_factor']
     ctth.height = height_unscaled * gain + offset
     ctth.h_nodata = patmosx_hdf.select(name)._FillValue
-    #ctth.height = 1000*ctth.height
+    # ctth.height = 1000*ctth.height
     ctth.height[height_unscaled==ctth.h_nodata] = ATRAIN_MATCH_NODATA
     name = 'cloud_fraction'
     cf_unscaled =  np.array(patmosx_hdf.select(name).get())

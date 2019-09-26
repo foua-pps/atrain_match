@@ -43,12 +43,12 @@ def imshow_lwps(amsr_lwp, cpp_lwp, time_diff, sea, title=None, lwp_max=None):
     from utility_functions import broken_cmap_r
     from matplotlib.colors import ListedColormap
 
-    #Comment: utility_functions is a separate package, created by J.Malm,
-    #but which we can not find. If we want to run this part of the code, it
-    #might be changed to something from matplotlib instead.
-    #By calling match_util_match without '-p', this part of the code is not
-    #executed.
-    #Sara Hornquist 2015-03-12
+    # Comment: utility_functions is a separate package, created by J.Malm,
+    # but which we can not find. If we want to run this part of the code, it
+    # might be changed to something from matplotlib instead.
+    # By calling match_util_match without '-p', this part of the code is not
+    # executed.
+    # Sara Hornquist 2015-03-12
 
 
     # Use average of all IMAGER pixels in AMSR footprint
@@ -198,13 +198,13 @@ def plot_fields(fields, break_value=None):
     from matplotlib import pyplot as plt
     from utility_functions import broken_cmap_r
 
-    #Comment: utility_functions is a separate package, created by J.Malm,
-    #but which we can not find. If we want to run this part of the code, it
-    #might be changed to something from matplotlib instead.
-    #broken_cmap_r is supposed to create a colormap with a gradient on one side
-    #of a threshold, and another gradient on the other side, and a unique
-    #colour on the theshold it self.
-    #Sara Hornquist 2015-03-12
+    # Comment: utility_functions is a separate package, created by J.Malm,
+    # but which we can not find. If we want to run this part of the code, it
+    # might be changed to something from matplotlib instead.
+    # broken_cmap_r is supposed to create a colormap with a gradient on one side
+    # of a threshold, and another gradient on the other side, and a unique
+    # colour on the theshold it self.
+    # Sara Hornquist 2015-03-12
 
 
     lon_0 = fields[0].lon.mean()
@@ -226,11 +226,11 @@ def plot_fields(fields, break_value=None):
         _slice = (slice(None, None, step),) * 2
         x, y = m(f.lon[_slice], f.lat[_slice])
         # Mask out pixels outside projection limb
-        #on_map = (x < 1e20) | (y < 1e20)
-        #data = np.ma.array(f.data[_slice], mask=~on_map)
+        # on_map = (x < 1e20) | (y < 1e20)
+        # data = np.ma.array(f.data[_slice], mask=~on_map)
         data = f.data[_slice]
         logger.debug("data.shape = %r" % (data.shape,))
-        #mesh = m.pcolor(x, y, data, vmin=vmin, vmax=vmax, cmap=cmap)
+        # mesh = m.pcolor(x, y, data, vmin=vmin, vmax=vmax, cmap=cmap)
         # pcolormesh is much faster, but I can't get rid of off-projection drawing
         mesh = m.pcolormesh(x, y, data, vmin=vmin, vmax=vmax, cmap=cmap)
         fig.colorbar(mesh)
@@ -274,8 +274,8 @@ def plot_hist(data, **kwargs):
     q1 = np.percentile(data,25)
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    n, bins, bars = ax.hist(data, **kwargs) #@UnusedVariable
-    #plt.hist(data, **kwargs)
+    n, bins, bars = ax.hist(data, **kwargs) # @UnusedVariable
+    # plt.hist(data, **kwargs)
     ax.set_ylabel('frequency')
     ax.axvline(mean, label='mean = %.2f' % mean, color='r')
     ax.axvline(median, label='median = %.2f' % median, color='r',
@@ -298,7 +298,7 @@ def density(x, y, bins=None, log=True):
     Create a 2d density plot of correlated values in *x* and *y*.
 
     """
-    H, xedges, yedges = np.histogram2d(y, x, bins=bins) #@UnusedVariable
+    H, xedges, yedges = np.histogram2d(y, x, bins=bins) # @UnusedVariable
 
     from matplotlib import pyplot as plt
     from matplotlib.colors import LogNorm
@@ -324,23 +324,23 @@ def atrain_scatter(fig, ax, x, y, binsize, xymin = None,  xymax=None, vmax=250,
     edgesy= np.linspace(xymin, xymax, n_edges)
     H, xe, ye = np.histogram2d(x, y, bins=[edgesx,edgesy])
     xi = np.searchsorted(edgesx, x)# - edgesx[0])/(n_edges+1)).astype(np.int)
-    yi = np.searchsorted(edgesy, y)#np.floor((y - edgesy[0])/(n_edges+1)).astype(np.int)  #-1?
+    yi = np.searchsorted(edgesy, y)# np.floor((y - edgesy[0])/(n_edges+1)).astype(np.int)  # -1?
     xi = xi-1
     yi = yi-1
-    #################################
-    #Move pixels out side in side ?:
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    # Move pixels out side in side ?:
     yi[yi==n_edges] = n_edges-1
     xi[xi==n_edges] = n_edges-1
-        #yi(yi==2)==1 This is what we need!?
+        # yi(yi==2)==1 This is what we need!?
     yi[yi==n_edges-1] = n_edges-2
     xi[xi==n_edges-1] = n_edges-2
-    #################################
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     z = H[xi,yi]
     idx = z.argsort()
     my_cmap = copy.copy(matplotlib.cm.get_cmap("inferno_r", lut=100))
-    cmap_vals = my_cmap(np.arange(100)) #extractvalues as an array
-    #print cmap_vals[0]
-    cmap_vals[0:5] = cmap_vals[5] #change the first values to less white
+    cmap_vals = my_cmap(np.arange(100)) # extractvalues as an array
+    # print cmap_vals[0]
+    cmap_vals[0:5] = cmap_vals[5] # change the first values to less white
     my_cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
         "new_inferno_r", cmap_vals)
 
@@ -359,12 +359,12 @@ def atrain_scatter(fig, ax, x, y, binsize, xymin = None,  xymax=None, vmax=250,
     ax.set_xlim(xymin,to_km*xymax)
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
-    #if 'pressure' in truth:
+    # if 'pressure' in truth:
     #    plt.gca().invert_xaxis()
     #    plt.gca().invert_yaxis()
     #    plt.xticks([950, 550, 150])
     #    plt.yticks([950, 550, 150])
-    #else:
+    # else:
     #    plt.xticks([5, 10, 15])
     #    plt.yticks([0, 5, 10, 15])
     if do_colorbar and ptype in ['scatter']:

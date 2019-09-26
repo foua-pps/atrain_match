@@ -50,9 +50,9 @@ def plot_satellite_trajectory(longitude,
 
     bmap = pr.plot.area_def2basemap(area_def)
     bmng = bmap.bluemarble()
-    #col = bmap.imshow(result, cmap=pylab.get_cmap('rainbow'), origin='upper')
+    # col = bmap.imshow(result, cmap=pylab.get_cmap('rainbow'), origin='upper')
     col = bmap.imshow(result,  origin='upper', cmap=pylab.get_cmap('autumn'))
-    #plt.title('Calipso matchup track')
+    # plt.title('Calipso matchup track')
 
     for figt in fig_type:
         figname = trajectoryname + '.' + figt

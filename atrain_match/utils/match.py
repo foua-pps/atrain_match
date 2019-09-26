@@ -20,7 +20,7 @@ Match TRUTH and IMAGER data
 
 """
 
-#from __future__ import with_statement
+# from __future__ import with_statement
 import numpy as np
 import logging
 import h5py
@@ -52,14 +52,14 @@ class MatchMapper(object):
 
     @property
     def rows(self):
-        #self._rows = np.array(self._rows, dtype=np.int64)
+        # self._rows = np.array(self._rows, dtype=np.int64)
         return np.ma.array(self._rows, mask=self.mask, fill_value=NODATA,
                            hard_mask=True)
 
     @property
     def cols(self):
 
-        #self._cols = np.array(self._cols, dtype=np.int64)
+        # self._cols = np.array(self._cols, dtype=np.int64)
         return  np.ma.array(self._cols, mask=self.mask, fill_value=-NODATA,
                             hard_mask=True)
 
@@ -113,16 +113,16 @@ def match_lonlat(source, target,
     mask_out = np.logical_or(mask_out_lat, mask_out_lon)
     lat = np.ma.masked_array(lat, mask=mask_out)
     lon = np.ma.masked_array(lon, mask=mask_out)
-    #lat = np.around(lat, decimals=4)
-    #lon = np.around(lon, decimals=4)
+    # lat = np.around(lat, decimals=4)
+    # lon = np.around(lon, decimals=4)
     source_def = SwathDefinition(*(lon,lat))
     target_def = SwathDefinition(*target)
     logger.debug("Matching %d nearest neighbours", n_neighbours)
     valid_in, valid_out, indices, distances = get_neighbour_info(
         source_def, target_def, radius_of_influence, neighbours=n_neighbours)
-    #import pdb; pdb.set_trace()
-    #Use pyresampe code to find colmun and row numbers for each pixel
-    #This is works also with no-data in imager lat/lon.
+    # import pdb; pdb.set_trace()
+    # Use pyresampe code to find colmun and row numbers for each pixel
+    # This is works also with no-data in imager lat/lon.
     cols_matrix, rows_matrix = np.meshgrid(np.array(range(0,lat.shape[1])),
                                            np.array(range(0,lat.shape[0])))
     if n_neighbours == 1:
@@ -163,25 +163,25 @@ def match_lonlat(source, target,
 
     rows = np.array(rows)
     cols = np.array(cols)
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     """ Code used during debugging, leaving it here for now
     if indices.dtype in ['uint32']:
-        #With pykdtree installed get_neighbour_info returns indices
+        # With pykdtree installed get_neighbour_info returns indices
         # as type uint32
-        #This does not combine well with a nodata value of -9.
+        # This does not combine well with a nodata value of -9.
         indices = np.array(indices,dtype=np.int64)
     """
     # Make sure all indices are valid
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     rows[rows >= source_def.shape[0]] = NODATA
     cols[cols >= source_def.shape[1]] = NODATA
     mask = np.logical_or(distances > radius_of_influence,
                          indices >= len(valid_in))
     distances[distances > radius_of_influence] =-9
-    #import pdb; ipdb.set_trace()
+    # import pdb; ipdb.set_trace()
     rows[mask] = NODATA
     cols[mask] = NODATA
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     return MatchMapper(rows, cols, mask), distances
 
 

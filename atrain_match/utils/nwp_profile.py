@@ -37,9 +37,9 @@ def profile(field, y_coords, selection):
 
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    lons, lats = field.lonlat() #@UnusedVariable
+    lons, lats = field.lonlat() # @UnusedVariable
     lats = lats[selection[1:]] # First item in *selection* selects vertical coords
-    LATS = np.array([lats for i in field[selection]]) #@UnusedVariable
+    LATS = np.array([lats for i in field[selection]]) # @UnusedVariable
     im = ax.pcolormesh(LATS, y_coords[selection], field[selection])
     if 'Pa' in y_coords.units:
         ax.invert_yaxis()

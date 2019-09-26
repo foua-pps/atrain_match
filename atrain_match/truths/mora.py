@@ -37,7 +37,7 @@ TEST_FILE = "/DATA_MISC/atrain_match_testcases/mora/cb_2010.dat"
 def get_mora_data(filename):
 
     convert_datefunc = lambda x: datetime.strptime(x.decode("utf-8"), '%Y%m%dT%H%M%S')
-    #convert_datefunc = lambda x: x.decode("utf-8")
+    # convert_datefunc = lambda x: x.decode("utf-8")
 
     dtype = [('station', '|S5'),
              ('lat', 'f8'),
@@ -54,12 +54,12 @@ def get_mora_data(filename):
                          dtype=dtype,
                          unpack=True,
                          converters={
-                                     #2: lambda x: float(x) / 100.,
-                                     #3: lambda x: float(x) / 100.,
+                                     # 2: lambda x: float(x) / 100.,
+                                     # 3: lambda x: float(x) / 100.,
                              4: convert_datefunc,
-                                     #6: lambda x: float(x) / 10.,
-                                     #7: lambda x: float(x) / 10.,
-                                     #8: lambda x: float(x) / 10.,
+                                     # 6: lambda x: float(x) / 10.,
+                                     # 7: lambda x: float(x) / 10.,
+                                     # 8: lambda x: float(x) / 10.,
                          })
 
     return pd.DataFrame(data)
@@ -67,11 +67,11 @@ def get_mora_data(filename):
 def reshape_mora(morafiles, imager,  SETTINGS):
     start_t = datetime.utcfromtimestamp(imager.sec1970_start)
     end_t = datetime.utcfromtimestamp(imager.sec1970_end)
-    #datetime.datetime.fromtimestamp(
+    # datetime.datetime.fromtimestamp(
     items = [get_mora_data(filename) for filename in morafiles]
     panda_moras = pd.concat(items, ignore_index=True)
-    #import pdb
-    #pdb.set_trace()
+    # import pdb
+    # pdb.set_trace()
     dt_ = timedelta(seconds=SETTINGS["sec_timeThr_synop"])
     newmoras = panda_moras[panda_moras['date'] < end_t + dt_]
     panda_moras = newmoras[newmoras['date']  >  start_t - dt_ ]
@@ -107,7 +107,7 @@ def match_mora_imager(mora, cloudproducts, SETTINGS):
     if (~np.isnan(calnan)).sum() == 0:
         logger.warning("No matches within region.")
         return None
-    #check if it is within time limits:
+    # check if it is within time limits:
     if len(cloudproducts.time.shape)>1:
         imager_time_vector = [cloudproducts.time[line,pixel] for line, pixel in zip(cal,cap)]
         imager_lines_sec_1970 = np.where(cal != config.NODATA, imager_time_vector, np.nan)

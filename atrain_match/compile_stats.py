@@ -29,10 +29,10 @@ logger = logging.getLogger(__name__)
 def compile_stats(results_files, write=True, outfile_cfc="merged_sat_file_cfc", truth_sat='calipso'):
     """Run through all summary statistics."""
 
-    #Always do CFC statistics, as it then that we read data
-    #print("=========== Cloud fraction ============")
+    # Always do CFC statistics, as it then that we read data
+    # print("=========== Cloud fraction ============")
     from statistics import orrb_CFC_stat
-    #read all results statistics only for cfc, resuse for cth, cty and cph
+    # read all results statistics only for cfc, resuse for cth, cty and cph
     cfc_stats = orrb_CFC_stat.CloudFractionStats(results_files=results_files, truth_sat=truth_sat)
     cfc_stats.write(outfile_cfc)
 
@@ -44,7 +44,7 @@ def compile_stats(results_files, write=True, outfile_cfc="merged_sat_file_cfc", 
         cth_stats.write(compiled_cth_file_name)
 
     if truth_sat not in ['amsr']:
-        #print("============= Cloud type ==============")
+        # print("============= Cloud type ==============")
         compiled_cty_file_name = outfile_cfc.replace('_cfc_','_cty_')
         from statistics import orrb_CTY_stat
         cty_stats = orrb_CTY_stat.CloudTypeStats(ac_data=cfc_stats.ac_data, truth_sat=truth_sat)
@@ -57,7 +57,7 @@ def compile_stats(results_files, write=True, outfile_cfc="merged_sat_file_cfc", 
         cth_stats = orrb_CPH_stat.CloudPhaseStats(ac_data=cfc_stats.ac_data, truth_sat=truth_sat)
         cth_stats.write(compiled_cph_file_name)
 
-    #LWP only for AMSR-E currently
+    # LWP only for AMSR-E currently
     if truth_sat in ['amsr']:
         note = "========== Cloud lwp ==========="
         compiled_lwp_file_name = outfile_cfc.replace('_cfc_','_lwp_')
@@ -105,7 +105,7 @@ if __name__ == '__main__':
     AM_PATHS, SETTINGS = read_config_info()
 
 
-    #Find all wanted modes (dnt)
+    # Find all wanted modes (dnt)
     modes_list =[]
     if options.nodnt == True:
         New_DNT_FLAG = ['']
@@ -128,20 +128,20 @@ if __name__ == '__main__':
         print('Will calculate statistic for the different surfaces')
         for surface in SURFACES:
             modes_list.append(surface)
-        #Add dnt flag to all modes so far
+        # Add dnt flag to all modes so far
     modes_dnt_list = []
     for mode in modes_list:
           for dnt in New_DNT_FLAG:
               modes_dnt_list.append(mode + dnt)
-    #Treat cotfilter separately as those directories have not dnt-flag at end
+    # Treat cotfilter separately as those directories have not dnt-flag at end
     if options.cotfilter == True:
         print('Will calculate statistic for mode COT-filter')
         for dnt in New_DNT_FLAG:
             for cot in SETTINGS["MIN_OPTICAL_DEPTH"]:
-                #modes_list.append("OPTICAL_DEPTH-%0.2_%sf"(dnt,cot))# if like this
+                # modes_list.append("OPTICAL_DEPTH-%0.2_%sf"(dnt,cot))# if like this
                 modes_dnt_list.append("OPTICAL_DEPTH%s-%0.2f"%(dnt,cot))
 
-    #get cases
+    # get cases
     CASES = []
     month_list = ["*"]
     day_list = ["*"]
@@ -162,10 +162,10 @@ if __name__ == '__main__':
     if len(modes_dnt_list)==0 :
         logger.warning("No modes selected!")
         parser.print_help()
-    #For each mode calcualte the statistics
+    # For each mode calcualte the statistics
     for process_mode_dnt in modes_dnt_list:
         print(RESOLUTION)
-        #get result files for all cases
+        # get result files for all cases
         for truth_sat in SETTINGS["COMPILE_STATISTICS_TRUTH"]:
             logger.info("PROCESS MODE %s, truth: %s", process_mode_dnt, truth_sat.upper())
             print("Gathering statistics from all validation results files in the "
@@ -193,7 +193,7 @@ if __name__ == '__main__':
             if len(results_files) <1:
                 logger.info("PROCESS MODE %s have no results files", process_mode_dnt)
                 continue
-            #compile and write results
+            # compile and write results
             compiled_dir = AM_PATHS['compiled_stats_dir'].format(
                 val_dir=_validation_results_dir)
             if not os.path.exists(compiled_dir):

@@ -76,7 +76,7 @@ def get_matchups(cross, AM_PATHS, SETTINGS, reprocess):
     if reprocess is False or SETTINGS['USE_EXISTING_RESHAPED_FILES']:
         diff_imager_seconds=None
         imager_file=None
-        #if not SETTINGS['USE_EXISTING_RESHAPED_FILES']:
+        # if not SETTINGS['USE_EXISTING_RESHAPED_FILES']:
         #    if SETTINGS['PPS_VALIDATION']:
         #        imager_file, tobj = find_radiance_file(cross, AM_PATHS)
         #    if (SETTINGS['CCI_CLOUD_VALIDATION']):
@@ -160,7 +160,7 @@ def plot_some_figures(match_clsat, match_calipso, values, basename, process_mode
     plotpath = insert_info_in_filename_or_path(AM_PATHS['plot_dir'], values,
                                                datetime_obj=values['date_time'])
 
-    ##TRAJECTORY
+    # # TRAJECTORY
     if match_calipso is not None and 1==2:
         imlon = match_calipso.imager.longitude.copy()
         imlat = match_calipso.imager.latitude.copy()
@@ -178,7 +178,7 @@ def plot_some_figures(match_clsat, match_calipso, values, basename, process_mode
                                 **AM_PATHS)
 
     if (match_calipso is not None):
-        #HEIGHT
+        # HEIGHT
         plot_cal_clsat_geoprof_imager(match_clsat,
                                       match_calipso,
                                       match_calipso.imager.imager_ctth_m_above_seasurface,
@@ -188,7 +188,7 @@ def plot_some_figures(match_clsat, match_calipso, values, basename, process_mode
                                       file_type,
                                       instrument=match_calipso.imager_instrument,
                                       MAXHEIGHT = SETTINGS["MAXHEIGHT"])
-        #TIME DIFF SATZ
+        # TIME DIFF SATZ
         plot_cal_clsat_imager_time_diff(match_clsat,
                                       match_calipso,
                                       plotpath, basename,
@@ -238,8 +238,8 @@ def split_process_mode_and_dnt_part(process_mode_dnt):
 def process_one_mode(process_mode_dnt, match_calipso, match_clsat, issObj, amObj,syObj,
                      min_optical_depth, values, AM_PATHS, SETTINGS, basename):
 
-    #Get result filename
-    #=============================================================
+    # Get result filename
+    # =============================================================
     process_mode, dnt_flag = split_process_mode_and_dnt_part(process_mode_dnt)
     min_depth_to_file_name = ""
     if process_mode == 'OPTICAL_DEPTH':
@@ -255,18 +255,18 @@ def process_one_mode(process_mode_dnt, match_calipso, match_clsat, issObj, amObj
         basename=values['basename'],
         truth_sat = "xxx")
     statfilename = os.path.join(result_path, result_file)
-    #=============================================================
+    # =============================================================
     # Draw plot
     logger.debug("Plotting")
     if process_mode_dnt in SETTINGS['PLOT_MODES']:
         plot_some_figures(match_clsat, match_calipso, values, basename, process_mode,
                           AM_PATHS, SETTINGS, amObj=amObj)
-    #==============================================================
-    #Calculate Statistics
+    # ==============================================================
+    # Calculate Statistics
     logger.debug("Calculating statistics")
     calculate_statistics(process_mode, statfilename, match_calipso, match_clsat,
                         issObj, amObj, syObj, SETTINGS, dnt_flag)
-    #=============================================================
+    # =============================================================
 
 
 
@@ -281,12 +281,12 @@ def run(cross, run_modes, AM_PATHS, SETTINGS, reprocess=False):
         not SETTINGS['USE_CT_FOR_CFC_STATISTICS'] and
         not SETTINGS['USE_CMAPROB_FOR_CFC_STATISTICS']):
         logger.error(
-            "\n###########################"
+            "\n# # # # # # # # # # # # # # # # # # # # # # # # # # # "
             "\n\tSet one of USE_*_FOR_CFC_STATISTICS=True in config.py!"
-            "\n###########################")
+            "\n# # # # # # # # # # # # # # # # # # # # # # # # # # # ")
         raise MatchupError("Configure problems, see messages above.")
 
-    #Get the data that we need:
+    # Get the data that we need:
     matchup_results = get_matchups(cross, AM_PATHS, SETTINGS, reprocess)
     match_calipso = matchup_results['calipso']
     issObj = matchup_results['iss']
@@ -301,10 +301,10 @@ def run(cross, run_modes, AM_PATHS, SETTINGS, reprocess=False):
         match_clsat, match_calipso = add_additional_clousat_calipso_index_vars(match_clsat, match_calipso)
     logger.info("Adding validation height missing in old reshaped files")
     match_clsat, match_calipso = add_validation_ctth(match_clsat, match_calipso)
-    #Calculate hight from sea surface
+    # Calculate hight from sea surface
     match_clsat, match_calipso, issObj = add_elevation_corrected_imager_ctth(match_clsat, match_calipso, issObj, SETTINGS)
     calipso_original = CalipsoObject()
-    #Save data orignal data that we might edit for some modes
+    # Save data orignal data that we might edit for some modes
     if match_calipso is not None:
         calipso_original.layer_top_altitude = match_calipso.calipso.layer_top_altitude.copy()
         calipso_original.layer_base_altitude = match_calipso.calipso.layer_base_altitude.copy()
@@ -314,7 +314,7 @@ def run(cross, run_modes, AM_PATHS, SETTINGS, reprocess=False):
         calipso_original.layer_top_pressure = match_calipso.calipso.layer_top_pressure.copy()
         calipso_original.layer_base_pressure = match_calipso.calipso.layer_base_pressure.copy()
 
-    #For each mode, do the statistics:
+    # For each mode, do the statistics:
     if (match_calipso is not None and
         SETTINGS['COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC'] and
         (SETTINGS['ALSO_USE_5KM_FILES'] or config.RESOLUTION==5) and
@@ -326,7 +326,7 @@ def run(cross, run_modes, AM_PATHS, SETTINGS, reprocess=False):
 
     for process_mode_dnt in run_modes:
         logger.info("Process mode: %s", process_mode_dnt)
-        optical_depths = [None]         #Update this if you always want to do filtering!/Nina
+        optical_depths = [None]         # Update this if you always want to do filtering!/Nina
         if process_mode_dnt in ["OPTICAL_DEPTH","OPTICAL_DEPTH_DAY",
                                 "OPTICAL_DEPTH_NIGHT","OPTICAL_DEPTH_TWILIGHT"]:
             optical_depths = SETTINGS['MIN_OPTICAL_DEPTH']
@@ -334,9 +334,9 @@ def run(cross, run_modes, AM_PATHS, SETTINGS, reprocess=False):
         # split process_mode_dnt into two parts. One with process_mode and one dnt_flag
         process_mode, dnt_flag = split_process_mode_and_dnt_part(process_mode_dnt)
         for min_optical_depth in optical_depths:
-            #For some modes these are updated, so reset calipso data to original
+            # For some modes these are updated, so reset calipso data to original
             if match_calipso is not None:
-                #########################################################################
+                # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
                 match_calipso.calipso.layer_top_altitude = calipso_original.layer_top_altitude.copy()
                 match_calipso.calipso.layer_base_altitude = calipso_original.layer_base_altitude.copy()
                 match_calipso.calipso.cloud_fraction = calipso_original.cloud_fraction.copy()
@@ -344,7 +344,7 @@ def run(cross, run_modes, AM_PATHS, SETTINGS, reprocess=False):
                 match_calipso.calipso.validation_height = calipso_original.validation_height.copy()
                 match_calipso.calipso.layer_top_pressure = calipso_original.layer_top_pressure.copy()
                 match_calipso.calipso.layer_base_pressure = calipso_original.layer_base_pressure.copy()
-                #########################################################################
+                # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
             # If mode = OPTICAL_DEPTH -> Change cloud -top and -base profile
             if match_calipso is not None and process_mode == 'OPTICAL_DEPTH':
                 use_old_method = SETTINGS['KG_OLD_METHOD_CLOUD_CENTER_AS_HEIGHT']
@@ -370,12 +370,12 @@ def run(cross, run_modes, AM_PATHS, SETTINGS, reprocess=False):
                 retv = set_thin_to_clear_filtering_1km(match_calipso, SETTINGS)
                 match_calipso.calipso.cloud_fraction = retv[0]
                 match_calipso.calipso.validation_height = retv[1]
-            #Time to process results files for one mode:
+            # Time to process results files for one mode:
             process_one_mode(process_mode_dnt,
                              match_calipso, match_clsat, issObj, amObj, syObj,
                              min_optical_depth, values,
                              AM_PATHS, SETTINGS, basename)
-    #We are done, free some memory:
+    # We are done, free some memory:
     match_calipso = None
     match_clsat = None
     issObj = None

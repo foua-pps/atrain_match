@@ -28,7 +28,7 @@ import atrain_match.config as config
 from atrain_match.utils.runutils import do_some_geo_obj_logging
 from atrain_match.utils.common import InputError
 ATRAIN_MATCH_NODATA = config.NODATA
-#logger.debug('Just so you know: this module has a logger...')
+# logger.debug('Just so you know: this module has a logger...')
 
 DSEC_PER_AVHRR_SCALINE = 1.0/6. * 4 # A "work for the time being" solution.
 if config.RESOLUTION == 1:
@@ -49,11 +49,11 @@ def get_satid_datetime_orbit_from_fname_pps(imager_filename,as_oldstyle=False):
                  "date":sl_[1],
                  "year":date_time.year,
                  "month":"%02d"%(date_time.month),
-                 #"lines_lines": sl_[5] + "_" + sl_[6],
+                 # "lines_lines": sl_[5] + "_" + sl_[6],
                  "lines_lines": "*",
                  "time":sl_[2],
                  "imager_filename":imager_filename}
-    else: #PPS v2014-filenames
+    else: # PPS v2014-filenames
         sl_ = os.path.basename(imager_filename).split('_')
         date_time = datetime.strptime(sl_[5], '%Y%m%dT%H%M%S%fZ')
         date_time_end = datetime.strptime(sl_[6].split('Z')[0], '%Y%m%dT%H%M%S%f')
@@ -62,7 +62,7 @@ def get_satid_datetime_orbit_from_fname_pps(imager_filename,as_oldstyle=False):
                  "date_time": date_time,
                  "date_time_end": date_time_end,
                  "orbit": sl_[4],
-                 #"date":"%04d%02d%02d"%(date_time.year,dat_time.month, date_time.day),
+                 # "date":"%04d%02d%02d"%(date_time.year,dat_time.month, date_time.day),
                  "date": date_time.strftime("%Y%m%d"),
                  "year":date_time.year,
                  "month":"%02d"%(date_time.month),
@@ -93,13 +93,13 @@ class AllImagerData(object):
     def __init__(self, array_dict=None):
         self.latitude = None
         self.longitude = None
-        self.nodata = None #latlon nodata
+        self.nodata = None # latlon nodata
         self.sec1970_end = None
         self.sec1970_start = None
         self.time = None
         self.num_of_lines = None
         self.instrument = "imager"
-        #self.imager_geo = None
+        # self.imager_geo = None
         self.imager_angles = None
         self.imager_channeldata = None
         self.ctype = None
@@ -190,29 +190,29 @@ class ImagerChannelData:
         self.SZA_corr_done = False
         self.data = None
 class CmaObj:
-    #skeleton container for v2018 cma
+    # skeleton container for v2018 cma
     def __init__(self):
         self.cma_ext = None
         self.cma_bin = None
         self.cma_prob = None
         self.cma_aflag = None
-        self.cma_testlist0 = None #new in v2018
-        self.cma_testlist1 = None #new in v2018
-        self.cma_testlist2 = None #new in v2018
-        self.cma_testlist3 = None #new in v2018
-        self.cma_testlist4 = None #new in v2018
-        self.cma_testlist5 = None #new in v2018
+        self.cma_testlist0 = None # new in v2018
+        self.cma_testlist1 = None # new in v2018
+        self.cma_testlist2 = None # new in v2018
+        self.cma_testlist3 = None # new in v2018
+        self.cma_testlist4 = None # new in v2018
+        self.cma_testlist5 = None # new in v2018
 
 class CtypeObj:
-    #skeleton container for v2014 cloudtype
+    # skeleton container for v2014 cloudtype
     def __init__(self):
         self.cloudtype = None
         self.ct_statusflag = None
         self.ct_quality = None
         self.ct_conditions = None
-        self.phaseflag = None #v2012
+        self.phaseflag = None # v2012
 class CtthObj:
-    #skeleton container for v2014 cloudtype
+    # skeleton container for v2014 cloudtype
     def __init__(self):
         self.height = None
         self.height_corr = None
@@ -220,7 +220,7 @@ class CtthObj:
         self.pressure = None
         self.ctth_statusflag = None
 class CppObj:
-    #skeleton container for v2018 cpp
+    # skeleton container for v2018 cpp
     def __init__(self):
         self.cpp_cot = None
         self.cpp_cwp = None
@@ -232,7 +232,7 @@ class CppObj:
         self.cpp_phase_extended = None
         self.cpp_reff = None
 
-#def read_ctth_v2012 might be needed?
+# def read_ctth_v2012 might be needed?
 def read_ctth_h5(filename):
     h5file = h5py.File(filename, 'r')
     ctth = CtthObj()
@@ -271,7 +271,7 @@ def read_ctth_nc(filename):
     ctth.temperature = pps_nc.variables['ctth_tempe'][0,:,:].astype(np.float)
     ctth.pressure = pps_nc.variables['ctth_pres'][0,:,:].astype(np.float)
     ctth.ctth_statusflag = pps_nc.variables['ctth_status_flag'][0,:,:]
-    #Currently unpacked arrays later in calipso.py
+    # Currently unpacked arrays later in calipso.py
     ctth.h_gain=1.0
     ctth.h_intercept=0.0
     ctth.p_gain=1.0 #
@@ -283,7 +283,7 @@ def read_ctth_nc(filename):
     ctth.p_nodata = pps_nc.variables['ctth_pres']._FillValue
     logger.debug("min-h: %d, max-h: %d, h_nodata: %d",
                  np.min(ctth.height), np.max(ctth.height.data), ctth.h_nodata)
-    #already scaled
+    # already scaled
     if np.ma.is_masked(ctth.height):
         ctth.height.data[ctth.height.mask]  = ATRAIN_MATCH_NODATA
         ctth.height = ctth.height.data
@@ -329,7 +329,7 @@ def read_cma_h5(filename):
     cma.cma_bin[cma.cma_ext<0] =  ATRAIN_MATCH_NODATA
     cma.cma_bin[cma.cma_ext>10] =  ATRAIN_MATCH_NODATA
 
-    #try KeyError 'cma'
+    # try KeyError 'cma'
     h5file.close()
     return cma
 
@@ -372,14 +372,14 @@ def read_cma_nc(filename):
     cma.cma_bin[cma.cma_ext<0] =  ATRAIN_MATCH_NODATA
     cma.cma_bin[cma.cma_ext>10] =  ATRAIN_MATCH_NODATA
 
-    #cma.cma_testlist0 = pps_nc.variables['cma_testlist0'][0,:,:]
-    #cma.cma_testlist1 = pps_nc.variables['cma_testlist1'][0,:,:]
-    #cma.cma_testlist2 = pps_nc.variables['cma_testlist2'][0,:,:]
-    #cma.cma_testlist3 = pps_nc.variables['cma_testlist3'][0,:,:]
-    #cma.cma_testlist4 = pps_nc.variables['cma_testlist4'][0,:,:]
-    #cma.cma_testlist5 = pps_nc.variables['cma_testlist5'][0,:,:]
+    # cma.cma_testlist0 = pps_nc.variables['cma_testlist0'][0,:,:]
+    # cma.cma_testlist1 = pps_nc.variables['cma_testlist1'][0,:,:]
+    # cma.cma_testlist2 = pps_nc.variables['cma_testlist2'][0,:,:]
+    # cma.cma_testlist3 = pps_nc.variables['cma_testlist3'][0,:,:]
+    # cma.cma_testlist4 = pps_nc.variables['cma_testlist4'][0,:,:]
+    # cma.cma_testlist5 = pps_nc.variables['cma_testlist5'][0,:,:]
     for var_name in [
-            'cma_aerosol', #new updated name
+            'cma_aerosol', # new updated name
             'cma_aerosolflag',
             'cma_dust',
             'cma_testlist0',
@@ -418,7 +418,7 @@ def read_imager_data_nc(pps_nc):
 
             logger.debug("reading channel %s", image.description)
             one_channel = ImagerChannelData()
-            #channel = image.channel
+            # channel = image.channel
             data_temporary = image[0,:,:]
             if np.ma.is_masked(one_channel.data):
                 one_channel.data = data_temporary.data
@@ -430,8 +430,8 @@ def read_imager_data_nc(pps_nc):
                 corr_done_attr = pps_nc.variables[var].sun_zenith_angle_correction_applied
                 if corr_done_attr.upper() in ["TRUE"]:
                     one_channel.SZA_corr_done = True
-            one_channel.gain = 1.0 #data already scaled
-            one_channel.intercept = 0.0 #data already scaled
+            one_channel.gain = 1.0 # data already scaled
+            one_channel.intercept = 0.0 # data already scaled
             imager_data.channel.append(one_channel)
             fill_value = pps_nc.variables[var]._FillValue
             imager_data.nodata = fill_value
@@ -453,8 +453,8 @@ def read_pps_angobj_nc(pps_nc):
                        'satazimuth']:
             this_is = varname
         else:
-            #some times we got angels in imager file
-            #they are then named imageX as varname
+            # some times we got angels in imager file
+            # they are then named imageX as varname
             if hasattr(pps_nc.variables[varname], 'id_tag'):
                 this_is = pps_nc.variables[varname].id_tag
 
@@ -484,7 +484,7 @@ def read_pps_angobj_nc(pps_nc):
             angle_obj.satazimuth.intercept = pps_nc.variables[varname].add_offset
             angle_obj.satazimuth.gain = pps_nc.variables[varname].scale_factor
 
-    #already scaled
+    # already scaled
     if np.ma.is_masked(angle_obj.sunz.data):
         angle_obj.sunz.data[angle_obj.sunz.data.mask] = ATRAIN_MATCH_NODATA
         angle_obj.sunz.data = angle_obj.sunz.data.data
@@ -513,7 +513,7 @@ def read_pps_angobj_h5(filename):
             image = h5file[var]
             if (image.attrs['description'] == "sun zenith angle" or
                 image.attrs['description'] == "Solar zenith angle"):
-                #print "reading sunz"
+                # print "reading sunz"
                 angle_obj.sunz.data = image['data'].value.astype(np.float)
                 angle_obj.sunz.gain = image['what'].attrs['gain']
                 angle_obj.sunz.intercept = image['what'].attrs['offset']
@@ -569,10 +569,10 @@ def read_pps_geoobj_nc(pps_nc):
         all_imager_obj.latitude = latitude
     all_imager_obj.nodata = pps_nc.variables['lon']._FillValue
     all_imager_obj.num_of_lines = all_imager_obj.latitude.shape[0]
-    #import pdb
-    #pdb.set_trace()
-    time_temp = pps_nc.variables['time'].units #to 1970 s
-    seconds = np.float64(pps_nc.variables['time'][::]) #from PPS often 0
+    # import pdb
+    # pdb.set_trace()
+    time_temp = pps_nc.variables['time'].units # to 1970 s
+    seconds = np.float64(pps_nc.variables['time'][::]) # from PPS often 0
     if 'T' in time_temp:
         time_obj = time.strptime(time_temp,'seconds since %Y-%m-%dT%H:%M:%S+00:00')
     elif time_temp == u'seconds since 1970-01-01':
@@ -588,7 +588,7 @@ def read_pps_geoobj_nc(pps_nc):
     all_imager_obj.sec1970_end = (sec_since_1970 +
                           np.float64(np.max(pps_nc.variables['time_bnds'][::])) +
                           seconds)
-    #print type(all_imager_obj.sec1970_start)
+    # print type(all_imager_obj.sec1970_start)
     all_imager_obj.sec1970_start = np.float64(all_imager_obj.sec1970_start)
     all_imager_obj.sec1970_end = np.float64(all_imager_obj.sec1970_end)
     do_some_geo_obj_logging(all_imager_obj)
@@ -704,7 +704,7 @@ def read_etc_nc(ncFile, etc_key):
         nwp_var = ncFile.variables[etc_key][0,:,:]
         if np.ma.is_masked(nwp_var):
             if 'emis' in etc_key:
-                #set emissivity 1.0 where we miss data
+                # set emissivity 1.0 where we miss data
                 nwp_var.data[nwp_var.mask] = 1.0
             nwp_var = nwp_var.data
         return  nwp_var
@@ -729,22 +729,22 @@ def read_segment_data(filename):
             gain = h5file.attrs['m_gain']
             intercept = h5file.attrs['m_intercept']
             nodata = h5file.attrs['m_nodata']
-            #data[data!=nodata] = data[data!=nodata] * (gain) + intercept
+            # data[data!=nodata] = data[data!=nodata] * (gain) + intercept
             product[moist_data] = data
         logger.debug("Read segment info pressure")
         for pressure_data in ['pressure', 'surfacePressure', 'ptro']:
-            #pressure is in Pa in segments file
+            # pressure is in Pa in segments file
             data = h5file['segment_area'][pressure_data]
             gain = h5file.attrs['p_gain']
             intercept = h5file.attrs['p_intercept']
             nodata = h5file.attrs['p_nodata']
-            #data[data!=nodata] = data[data!=nodata] * (gain/100) + intercept/100 #Pa => hPa
+            # data[data!=nodata] = data[data!=nodata] * (gain/100) + intercept/100 # Pa => hPa
             data_float = np.array(data, dtype=np.float)
-            data_float[data!=nodata] = data_float[data!=nodata] * (gain/100) + intercept/100 #Pa => hPa
+            data_float[data!=nodata] = data_float[data!=nodata] * (gain/100) + intercept/100 # Pa => hPa
             product[pressure_data] = data_float
         logger.debug("Read segment info height")
         for geoheight_data in ['geoheight', 'surfaceGeoHeight']:
-            #geo height is in meters in segment file
+            # geo height is in meters in segment file
             data = h5file['segment_area'][geoheight_data]
             gain = h5file.attrs['h_gain']
             intercept = h5file.attrs['h_intercept']
@@ -812,7 +812,7 @@ def read_thr_h5(filename, h5_obj_type, thr_type):
     if thr_type in ["emis1","emis6", "emis8", "emis9"]:
         if filename is not None:
             h5file = h5py.File(filename, 'r')
-            if 1==1:#h5_obj_type in h5file.keys():
+            if 1==1:# h5_obj_type in h5file.keys():
                 value = h5file[h5_obj_type].value
                 gain = h5file.attrs['gain']
                 intercept = h5file.attrs['intercept']
@@ -917,7 +917,7 @@ def read_all_intermediate_files(pps_files, SETTINGS):
         aux_dict['t800'] = read_etc_nc(pps_nc_nwp, "t800")
         aux_dict['t250'] = read_etc_nc(pps_nc_nwp, "t250")
         aux_dict['ptro'] = read_etc_nc(pps_nc_nwp, "ptro")
-        #psur in in Pa, as ctth_pressure is in Pa
+        # psur in in Pa, as ctth_pressure is in Pa
         aux_dict['psur'] = read_etc_nc(pps_nc_nwp, "psur")
         aux_dict['t2m'] = read_etc_nc(pps_nc_nwp, "t2m")
         aux_dict['h2m'] = read_etc_nc(pps_nc_nwp, "h2m")
@@ -980,7 +980,7 @@ def read_all_intermediate_files(pps_files, SETTINGS):
             aux_dict[emis_type] = read_thr_h5(getattr(pps_files,"emis"),
                                               h5_obj_type, emis_type)
     if len(CTTH_TYPES)>1:
-        for ctth_type in CTTH_TYPES[1:]: #already read first
+        for ctth_type in CTTH_TYPES[1:]: # already read first
             aux_dict[ctth_type] = read_ctth_nc(pps_files.ctth[ctth_type])
     aux_obj = AuxiliaryObj(aux_dict)
     return aux_obj
@@ -992,9 +992,9 @@ def pps_read_all(pps_files, imager_file, SETTINGS):
         pps_nc = netCDF4.Dataset(imager_file, 'r', format='NETCDF4')
         cloudproducts = read_pps_geoobj_nc(pps_nc)
     else:
-        #use mpop?
+        # use mpop?
         cloudproducts = read_pps_geoobj_h5(imager_file)
-    #create time info for each pixel
+    # create time info for each pixel
     values = get_satid_datetime_orbit_from_fname_pps(imager_file)
     cloudproducts = create_imager_time(cloudproducts, values)
     logger.info("Read sun and satellites angles data")
@@ -1003,7 +1003,7 @@ def pps_read_all(pps_files, imager_file, SETTINGS):
         cloudproducts.imager_angles = read_pps_angobj_nc(pps_nc_ang)
         pps_nc_ang.close()
     else:
-        #use mpop?
+        # use mpop?
         cloudproducts.imager_angles = read_pps_angobj_h5(pps_files.sunsatangles)
     logger.info("Read Imager data")
     if '.nc' in imager_file:
@@ -1016,14 +1016,14 @@ def pps_read_all(pps_files, imager_file, SETTINGS):
             cloudproducts.instrument = imager
     logger.debug("%s, %s, %s", pps_files.cloudtype, pps_files.ctth, pps_files.cma)
 
-    #CPP
+    # CPP
     if pps_files.cpp is not None:
         logger.info("Read CPP data")
         if '.nc' in pps_files.cpp:
             cloudproducts.cpp = read_cpp_nc(pps_files.cpp)
         else:
             cloudproducts.cpp = read_cpp_h5(pps_files.cpp)
-    #CMA
+    # CMA
     if pps_files.cma is not None:
         logger.info("Read PPS Cloud mask")
         logger.debug(pps_files.cma )
@@ -1031,26 +1031,26 @@ def pps_read_all(pps_files, imager_file, SETTINGS):
             cloudproducts.cma = read_cma_nc(pps_files.cma)
         else:
             cloudproducts.cma = read_cma_h5(pps_files.cma)
-    #CMAPROB
+    # CMAPROB
     if pps_files.cmaprob is not None:
         logger.info("Read PPS Cloud mask prob")
         if '.nc' in pps_files.cmaprob:
             cloudproducts.cma = read_cmaprob_nc(pps_files.cmaprob, cma)
         else:
             cloudproducts.cma = read_cmaprob_h5(pps_files.cmaprob, cma)
-    #CTYPE
+    # CTYPE
     if pps_files.cloudtype is not None:
         logger.info("Read PPS Cloud type")
         if '.nc' in pps_files.cloudtype:
             cloudproducts.ctype = read_cloudtype_nc(pps_files.cloudtype)
         else:
             cloudproducts.ctype = read_cloudtype_h5(pps_files.cloudtype)
-    #CTTH
+    # CTTH
     CTTH_TYPES = SETTINGS["CTTH_TYPES"]
     if len(pps_files.ctth.keys())>=1:
         logger.info("Read PPS CTTH")
         if '.nc' in pps_files.ctth[CTTH_TYPES[0]]:
-            #read first ctth as primary one
+            # read first ctth as primary one
             cloudproducts.ctth = read_ctth_nc(pps_files.ctth[CTTH_TYPES[0]])
         else:
             cloudproducts.ctth = read_ctth_h5(pps_files.ctth[CTTH_TYPES[0]])

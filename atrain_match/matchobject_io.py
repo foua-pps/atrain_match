@@ -74,7 +74,7 @@ class DataObject(object):
                     raise ValueError("Can't concatenate arrays " +
                                      "of different dimensions!")
             except AttributeError as e:
-                #print "Don't concatenate member " + key + "... " + str(e)
+                # print "Don't concatenate member " + key + "... " + str(e)
                 self.all_arrays[key] = other.all_arrays[key]
                 continue
             try:
@@ -94,13 +94,13 @@ class DataObject(object):
                         [self.all_arrays[key],
                          other.all_arrays[key]], 0)
             except ValueError as e:
-                #print "Don't concatenate member " + key + "... " + str(e)
+                # print "Don't concatenate member " + key + "... " + str(e)
                 self.all_arrays[key] = other.all_arrays[key]
         return self
 
     def extract_elements(self, idx=None, starti=0, endi=0):
         """Extract elements with index idx"""
-        #to replace calipso_track_from_matched
+        # to replace calipso_track_from_matched
 
         for key, value in self.all_arrays.items():
             if key in ["TAI_start"]:
@@ -187,7 +187,7 @@ class CalipsoObject(DataObject):
             'latitude': None,
             'imager_linnum': None,
             'imager_pixnum': None,
-            'elevation': None, #DEM_elevation => elevation in (m)"
+            'elevation': None, # DEM_elevation => elevation in (m)"
             'cloud_fraction': None,
             'validation_height': None,
             'sec_1970': None,
@@ -200,10 +200,10 @@ class CalipsoObject(DataObject):
             'layer_base_pressure': None,
             'number_layers_found': None,
             'igbp_surface_type': None,
-            'nsidc_surface_type': None, #V4 renamed from 'snow_ice_surface_type'
+            'nsidc_surface_type': None, # V4 renamed from 'snow_ice_surface_type'
             'snow_ice_surface_type': None,
-            #'nsidc_surface_type_texture': None,
-            'profile_time_tai': None, #renamed from "Profile_Time"
+            # 'nsidc_surface_type_texture': None,
+            'profile_time_tai': None, # renamed from "Profile_Time"
             'feature_classification_flags': None,
             'day_night_flag': None,
             'feature_optical_depth_532': None,
@@ -211,16 +211,16 @@ class CalipsoObject(DataObject):
             'profile_id':None,
 
             # If a combination of 5 and 1km data are used for RESOLUTION=1
-            #"column_optical_depth_tropospheric_aerosols_1064_5km": None,
-            #"column_optical_depth_tropospheric_aerosols_1064": None,
+            # "column_optical_depth_tropospheric_aerosols_1064_5km": None,
+            # "column_optical_depth_tropospheric_aerosols_1064": None,
             "column_optical_depth_tropospheric_aerosols_532_5km": None,
             "column_optical_depth_tropospheric_aerosols_532": None,
             "column_optical_depth_aerosols_532_5km": None,
             "column_optical_depth_aerosols_532": None,
-            #"column_optical_depth_tropospheric_aerosols_uncertainty_1064_5km": None,
-            #"column_optical_depth_tropospheric_aerosols_uncertainty_532_5km": None,
+            # "column_optical_depth_tropospheric_aerosols_uncertainty_1064_5km": None,
+            # "column_optical_depth_tropospheric_aerosols_uncertainty_532_5km": None,
             "column_optical_depth_cloud_532_5km": None,
-            #"column_optical_depth_cloud_uncertainty_532_5km": None,
+            # "column_optical_depth_cloud_uncertainty_532_5km": None,
             "feature_optical_depth_532_5km": None,
             "layer_top_altitude_5km": None,
             "layer_top_pressure_5km": None,
@@ -387,7 +387,7 @@ class TruthImagerTrackObject:
             self.diff_sec_1970 = np.concatenate([self.diff_sec_1970,
                                                  other.diff_sec_1970])
         except ValueError as e:
-            #print "Don't concatenate member diff_sec_1970... " + str(e)
+            # print "Don't concatenate member diff_sec_1970... " + str(e)
             self.diff_sec_1970 = other.diff_sec_1970
         return self
 
@@ -403,7 +403,7 @@ class TruthImagerTrackObject:
             else:
                 self.diff_sec_1970 = self.diff_sec_1970[starti:endi]
         except ValueError as e:
-            #print "Don't concatenate member diff_sec_1970... " + str(e)
+            # print "Don't concatenate member diff_sec_1970... " + str(e)
             self.diff_sec_1970 = other.diff_sec_1970
         return self
 
@@ -514,19 +514,19 @@ the_used_variables = [
     'imager_pixnum_nneigh',
     'sec_1970',
     'elevation',
-    #MODIS LVL2
+    # MODIS LVL2
     'height',
     'temperature',
     'pressure',
     'cloud_emissivity',
     'cloud_phase',
     'lwp',
-    #AMSR
+    # AMSR
     'lwp',
     'imager_amsr_dist',
-    #MORA
+    # MORA
     'cloud_base_height',
-    #Cloudsat
+    # Cloudsat
     'cloud_fraction',
     'validation_height',
     'RVOD_liq_water_path',
@@ -534,10 +534,10 @@ the_used_variables = [
     'LO_RVOD_liquid_water_path',
     'IO_RVOD_ice_water_path',
     'RVOD_CWC_status',
-    #CALIPSO write do not combine
+    # CALIPSO write do not combine
     'cal_modis_cflag',
     'cloudsat_index',
-    #CALIPSO only (ISS?)
+    # CALIPSO only (ISS?)
     "average_cloud_top_pressure_single_shots",
     "average_cloud_top_pressure_single_shots_1km",
     "average_cloud_top_single_shots",
@@ -572,7 +572,7 @@ the_used_variables = [
     "layer_top_altitude_5km",
     "layer_top_pressure_5km",
     'number_cloudy_single_shots',
-    #CLOUDSAT only
+    # CLOUDSAT only
     'clsat_max_height',
     'validation_height_base',
     'MODIS_Cloud_Fraction',

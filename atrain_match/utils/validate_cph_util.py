@@ -21,33 +21,33 @@ Use this script to validate the CPP cloud phase (cph) product
 """
 import numpy as np
 
-#: Calipso cloud phase bits
+#  Calipso cloud phase bits
 CALIPSO_PHASE_BITS = range(5, 7)
 
-#: Calipso cloud phase values
+#  Calipso cloud phase values
 CALIPSO_PHASE_VALUES = dict(unknown=0,
                             ice=1,
                             water=2,
                             horizontal_oriented_ice=3)
 
-#: Water (no mixed) value
+#  Water (no mixed) value
 CALIPSO_WATER_VALUE = 2
 
-#: Calipso quality bits
+#  Calipso quality bits
 CALIPSO_QUAL_BITS = range(7, 9)
 
-#: Calipso quality values
+#  Calipso quality values
 CALIPSO_QUAL_VALUES = dict(none=0,
                            low=1,
                            medium=2,
                            high=3)
 
 
-#: CPP cph value meanings, from v2014
+#  CPP cph value meanings, from v2014
 CPP_PHASE_VALUES = dict(liquid=1,
                         ice=2,
                         no_data=255)
-#: CPP cph value meanings, in v2012
+#  CPP cph value meanings, in v2012
 CPP_PHASE_VALUES_v2012 = dict(no_cloud=0,
                         liquid=1,
                         ice=2,
@@ -58,7 +58,7 @@ CPP_PHASE_VALUES_v2012 = dict(no_cloud=0,
                         no_observation=-1)
 
 
-#: Cloud type phase value equivalents
+#  Cloud type phase value equivalents
 CTYPE_PHASE_BITS = {'Not processed or undefined': 1,
                     'Water': 2,
                     'Ice': 4,
@@ -121,11 +121,11 @@ def get_calipso_phase_inner(features, qual_min=CALIPSO_QUAL_VALUES['medium'],
 
 
 
-    #from atrain_match.utils.plotting import distribution_map
-    #fig = distribution_map(lon, lat)
-    #fig.suptitle("Distribution of valid pixels in cloud phase validation\n" +
+    # from atrain_match.utils.plotting import distribution_map
+    # fig = distribution_map(lon, lat)
+    # fig.suptitle("Distribution of valid pixels in cloud phase validation\n" +
     #              "Number of Pixels: %d" % lon.size)
-    #fig.savefig('cph_distribution_all.pdf')
+    # fig.savefig('cph_distribution_all.pdf')
 
 
 if __name__ == '__main__':

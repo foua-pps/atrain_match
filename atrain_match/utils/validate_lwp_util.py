@@ -25,7 +25,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-#: Default threshold for lwp screening [g m**-2]
+#  Default threshold for lwp screening [g m**-2]
 LWP_THRESHOLD = 170
 LWP_THRESHOLD_CPP = 3000
 DO_PLOT = False
@@ -44,7 +44,7 @@ def get_lwp_diff_inner(aObj, val_subset, threshold=LWP_THRESHOLD):
                             aObj.amsr.imager_linnum_nneigh <=0) # might have less than 8 neighbours
     use_phase = np.logical_or(aObj.imager.cpp_phase == 1,
                               aObj.amsr.imager_linnum_nneigh <=0) # might have less than 8 neighbours
-    #exclude very high values
+    # exclude very high values
     aObj.imager.cpp_lwp[aObj.imager.cpp_lwp>LWP_THRESHOLD_CPP] = -9
 
     use_lwp = np.logical_or(aObj.imager.cpp_lwp>=0,
@@ -52,15 +52,15 @@ def get_lwp_diff_inner(aObj, val_subset, threshold=LWP_THRESHOLD):
     use_lwp_upper = np.logical_or(aObj.imager.cpp_lwp<LWP_THRESHOLD_CPP,
                                   aObj.amsr.imager_linnum_nneigh <=0)
 
-    #use = use_sea
+    # use = use_sea
     use = np.logical_and(use_sea, use_phase)
     use = np.logical_and(use, use_lwp)
-    #use = np.logical_and(use, use_lwp_upper)
+    # use = np.logical_and(use, use_lwp_upper)
     selection = use.all(axis=-1)
     selection = np.logical_and(val_subset, selection)
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     cpp_lwp = aObj.imager.cpp_lwp
-    n_cpp = np.sum(cpp_lwp>=0, axis=-1) #before
+    n_cpp = np.sum(cpp_lwp>=0, axis=-1) # before
     cpp_lwp[cpp_lwp<0] = 0
     cpp_lwp[np.isnan(cpp_lwp)] = 0
     sum_cpp = np.sum(cpp_lwp, axis=-1)
@@ -106,7 +106,7 @@ def validate_all(filenames):
     # Map of pixel distribution
     fig3 = distribution_map(lon, lat)
     fig3.suptitle("Distribution of valid pixels\n" +
-                  #("Restrictions: %s\n" % '; '.join(restrictions)) +
+                  # ("Restrictions: %s\n" % '; '.join(restrictions)) +
                   "Number of Pixels: %d" % lon.size)
     fig3.savefig('distribution_all.pdf')
 

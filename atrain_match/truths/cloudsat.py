@@ -15,7 +15,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
-#Change log is found in git
+# Change log is found in git
 import time
 import numpy as np
 import os
@@ -32,10 +32,10 @@ from atrain_match.truths.calipso import (find_break_points)
 from atrain_match.utils.runutils import do_some_logging
 
 def add_validation_ctth_cloudsat(cloudsat):
-    #CLOUDSAT VALIDATION HEIGHT!
-    #The restriction to use only pixels where imager and cloudsat
-    #both is cloudy is done later. This makes it possbile to find also
-    #POD-cloudy for different cloud heights
+    # CLOUDSAT VALIDATION HEIGHT!
+    # The restriction to use only pixels where imager and cloudsat
+    # both is cloudy is done later. This makes it possbile to find also
+    # POD-cloudy for different cloud heights
     LARGE_POSITIVE = 99999.0
     validation_height = -9 + 0*np.zeros(cloudsat.latitude.shape)
     validation_height_base =  LARGE_POSITIVE + 0*np.zeros(cloudsat.latitude.shape)
@@ -43,7 +43,7 @@ def add_validation_ctth_cloudsat(cloudsat):
         height = cloudsat.Height[:,i]
         cmask_ok = cloudsat.CPR_Cloud_mask[:,i]
         top_height = height+120
-        #top_height[height<240*4] = -9999 #Do not use not sure why these were not used Nina 20170317
+        # top_height[height<240*4] = -9999 # Do not use not sure why these were not used Nina 20170317
         is_cloudy = cmask_ok > config.CLOUDSAT_CLOUDY_THR
         top_height[~is_cloudy] = -9999
         validation_height[validation_height<top_height] =  top_height[
@@ -108,31 +108,31 @@ def read_cloudsat_hdf4(filename):
     h4file = SD(filename, SDC.READ)
     datasets = h4file.datasets()
     attributes = h4file.attributes()
-    #for idx,attr in enumerate(attributes.keys()):
+    # for idx,attr in enumerate(attributes.keys()):
     #    print idx, attr
     for idx,sds in enumerate(datasets.keys()):
-        #2D data, print idx, sds
+        # 2D data, print idx, sds
         data = h4file.select(sds).get()
-        #print h4file.select(sds).attributes().keys()
+        # print h4file.select(sds).attributes().keys()
         am_name = clsat_name_conversion(sds, retv)
         if am_name in retv.all_arrays.keys():
             retv.all_arrays[am_name] = convert_data(data)
-        #print h4file.select(sds).info()
+        # print h4file.select(sds).info()
     h4file = HDF(filename, SDC.READ)
     vs = h4file.vstart()
     data_info_list = vs.vdatainfo()
     for item in data_info_list:
-        #1D data compound/Vdata
+        # 1D data compound/Vdata
         name = item[0]
         data_handle = vs.attach(name)
         data = np.array(data_handle[:])
         attrinfo_dic = data_handle.attrinfo()
         factor = data_handle.findattr('factor')
         offset = data_handle.findattr('offset')
-        #print data_handle.factor
+        # print data_handle.factor
         am_name = clsat_name_conversion(name, retv)
         if am_name in retv.all_arrays.keys():
-            #To save RAM and disk only read what we use!
+            # To save RAM and disk only read what we use!
             if factor is None and offset is None:
                 retv.all_arrays[am_name] = convert_data(data)
             elif np.float(factor.get()) == 1.0 and np.float(offset.get()) == 0.0:
@@ -144,11 +144,11 @@ def read_cloudsat_hdf4(filename):
                     offset = 0.0
 
                 raise MatchupError("Not default offset and factor. Fix code")
-                #The code below is probably ok, but make sure:
-                #the_data_scaled = convert_data(data)*factor + offset
-                #retv.all_arrays[am_name] = the_data_scaled
+                # The code below is probably ok, but make sure:
+                # the_data_scaled = convert_data(data)*factor + offset
+                # retv.all_arrays[am_name] = the_data_scaled
         data_handle.detach()
-    #print data_handle.attrinfo()
+    # print data_handle.attrinfo()
     h4file.close()
     # Convert from TAI time to UTC in seconds since 1970:
     dsec = time.mktime((1993,1,1,0,0,0,0,0,0)) - time.timezone
@@ -193,7 +193,7 @@ def match_cloudsat_imager(cloudsat,cloudproducts, SETTINGS):
     retv = TruthImagerTrackObject(truth='cloudsat')
     retv.imager_instrument = cloudproducts.instrument.lower()
     retv.cloudsat = cloudsat
-    #Nina 20150313 Swithcing to mapping without area as in cpp. Following suggestion from Jakob
+    # Nina 20150313 Swithcing to mapping without area as in cpp. Following suggestion from Jakob
     from atrain_match.utils.common import map_imager
     cal, cap = map_imager(cloudproducts,
                          cloudsat.longitude.ravel(),
@@ -203,7 +203,7 @@ def match_cloudsat_imager(cloudsat,cloudproducts, SETTINGS):
     if (~np.isnan(calnan)).sum() == 0:
         logger.warning("No matches within region.")
         return None
-    #check if it is within time limits:
+    # check if it is within time limits:
     if len(cloudproducts.time.shape)>1:
         imager_time_vector = [cloudproducts.time[line,pixel] for line, pixel in zip(cal,cap)]
         imager_lines_sec_1970 = np.where(cal != config.NODATA, imager_time_vector, np.nan)
@@ -231,7 +231,7 @@ def match_cloudsat_imager(cloudsat,cloudproducts, SETTINGS):
     return retv
 
 def merge_cloudsat(cloudsat, cloudsatlwp):
-    #map cloudsat_lwp to cloudsat
+    # map cloudsat_lwp to cloudsat
     from atrain_match.utils.match import match_lonlat
     source = (cloudsatlwp.longitude.astype(np.float64).reshape(-1,1),
               cloudsatlwp.latitude.astype(np.float64).reshape(-1,1))
@@ -261,8 +261,8 @@ def merge_cloudsat(cloudsat, cloudsatlwp):
 
 
 def reshapeCloudsat(cloudsatfiles, imager,  SETTINGS):
-    #imager_end = imager.sec1970_end
-    #imager_start = imager.sec1970_start
+    # imager_end = imager.sec1970_end
+    # imager_start = imager.sec1970_start
     clsat = get_cloudsat(cloudsatfiles[0])
     for i in range(len(cloudsatfiles)-1):
         newCloudsat = get_cloudsat(cloudsatfiles[i+1])
@@ -273,7 +273,7 @@ def reshapeCloudsat(cloudsatfiles, imager,  SETTINGS):
         # clsat_break = np.argmin(np.abs(clsat_start_all - clsat_new_all[0]))+1
         # Concatenate the feature values
         clsat = clsat + newCloudsat
-        #print("taistart", clsat.TAI_start)
+        # print("taistart", clsat.TAI_start)
 
     # Finds Break point
     startBreak, endBreak = find_break_points(clsat, imager, SETTINGS)

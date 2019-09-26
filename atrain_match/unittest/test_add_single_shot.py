@@ -69,7 +69,7 @@ class test_addSingleShot(unittest.TestCase):
     def test_new_code(self):
         out1 = add_singleshot_to5km(self.obt5)
         out2 = add_singleshot_to5km_old(self.obt5)
-        #This is what I think we should do
+        # This is what I think we should do
 
         self.assertTrue((np.equal(out1.layer_top_altitude,out2.layer_top_altitude)).all())
         self.assertTrue((np.equal(out1.number_layers_found,out2.number_layers_found)).all())

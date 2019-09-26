@@ -28,7 +28,7 @@ from atrain_match.config import NODATA
 from atrain_match.libs.extract_imager_along_track import get_data_from_array
 ATRAIN_MATCH_NODATA = NODATA
 class MOD06Obj:
-    #skeleton container for v2014 cloudtype
+    # skeleton container for v2014 cloudtype
     def __init__(self):
         self.height = None
         self.temperature = None

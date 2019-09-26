@@ -36,7 +36,7 @@ from atrain_match.utils.runutils import do_some_geo_obj_logging
 
 def get_satid_datetime_orbit_from_fname_cci(imager_filename):
     # Get satellite name, time, and orbit number from imager_file
-    #imager_file = "20080613002200-ESACCI-L2_CLOUD-CLD_PRODUCTS-IMAGERGAC-NOAA18-fv1.0.nc"
+    # imager_file = "20080613002200-ESACCI-L2_CLOUD-CLD_PRODUCTS-IMAGERGAC-NOAA18-fv1.0.nc"
     sl_ = os.path.basename(imager_filename).split('-')
     date_time = datetime.datetime.strptime(sl_[0], '%Y%m%d%H%M%S')
 
@@ -48,7 +48,7 @@ def get_satid_datetime_orbit_from_fname_cci(imager_filename):
              "year":date_time.year,
              "month":"%02d"%(date_time.month),
              "time":date_time.strftime("%H%M"),
-             #"basename":sat_id + "_" + date_time.strftime("%Y%m%d_%H%M_99999"),#"20080613002200-ESACCI",
+             # "basename":sat_id + "_" + date_time.strftime("%Y%m%d_%H%M_99999"),# "20080613002200-ESACCI",
              "ccifilename":imager_filename,
              "ppsfilename":None}
     values['basename'] = values["satellite"] + "_" + values["date"] + "_" + values["time"] + "_" + values["orbit"]
@@ -57,12 +57,12 @@ def get_satid_datetime_orbit_from_fname_cci(imager_filename):
 def daysafter4713bc_to_sec1970(bcdate_array):
     """Translating days after 4713bc 12:00 to sec since 1970
     """
-    #import pps_time_util #@UnresolvedImport
-    #first date if several in the file, swath at midnight
+    # import pps_time_util # @UnresolvedImport
+    # first date if several in the file, swath at midnight
     bcdate = np.min(bcdate_array)
     # days since 4713 bc 12:00:00
     ddays = np.floor(bcdate)
-    #seconds after 12:00:00
+    # seconds after 12:00:00
     dseconds = np.floor(24*60*60*(bcdate-ddays))
     mseconds = np.floor(10**6*(24*60*60*(bcdate-ddays)-dseconds))
     # to avoid too large numbers count from 1950-01-01 12:00
@@ -107,14 +107,14 @@ def read_cci_cma(cci_nc):
     """Read cloudtype and flag info from filename
     """
     cma = CmaObj()
-    #cci_nc.variables['cc_total'][:])
-    #cci_nc.variables['ls_flag'][:])
-    #ctype = CtypeObj()
-    #pps 0 cloudfree 3 cloudfree snow 1: cloudy, 2:cloudy
-    #cci lsflag 0:sea 1:land
+    # cci_nc.variables['cc_total'][:])
+    # cci_nc.variables['ls_flag'][:])
+    # ctype = CtypeObj()
+    # pps 0 cloudfree 3 cloudfree snow 1: cloudy, 2:cloudy
+    # cci lsflag 0:sea 1:land
     cma.cma_ext = 0*cci_nc.variables['lsflag'][::]
     cma.cma_ext[cci_nc.variables['cc_total'][::]>0.5] = 1
-    #ctype.landseaflag = cci_nc.variables['lsflag'][::]
+    # ctype.landseaflag = cci_nc.variables['lsflag'][::]
     return cma
 
 def read_cci_angobj(cci_nc):
@@ -123,7 +123,7 @@ def read_cci_angobj(cci_nc):
     my_angle_obj = ImagerAngObj()
     my_angle_obj.satz.data = cci_nc.variables['satellite_zenith_view_no1'][::]
     my_angle_obj.sunz.data = cci_nc.variables['solar_zenith_view_no1'][::]
-    my_angle_obj.azidiff = None #cci_nc.variables['rel_azimuth_view_no1']??
+    my_angle_obj.azidiff = None # cci_nc.variables['rel_azimuth_view_no1']??
     return my_angle_obj
 def read_cci_phase(cci_nc):
     """Read angles info from filename
@@ -131,11 +131,11 @@ def read_cci_phase(cci_nc):
     cpp_obj = CppObj()
     data = cci_nc.variables['phase'][::]
     setattr(cpp_obj, 'cpp_phase', data)
-    #if hasattr(phase, 'mask'):
+    # if hasattr(phase, 'mask'):
     #    phase_out = np.where(phase.mask, -999, phase.data)
-    #else:
+    # else:
     #    phase_out = phase.data
-    #print phase
+    # print phase
     return cpp_obj
 
 def read_cci_geoobj(cci_nc):
@@ -147,8 +147,8 @@ def read_cci_geoobj(cci_nc):
     logger.debug("Min lon: %s, max lon: %d",
                  np.min(cci_nc.variables['lon'][::]),
                  np.max(cci_nc.variables['lon'][::]))
-    #cci_nc.variables['lon'].add_offset
-    #cloudproducts.longitude = cci_nc.variables['lon'][::]
+    # cci_nc.variables['lon'].add_offset
+    # cloudproducts.longitude = cci_nc.variables['lon'][::]
     cloudproducts.nodata = -999.0
     in_fillvalue = cci_nc.variables['lon']._FillValue
     cloudproducts.longitude = cci_nc.variables['lon'][::]
@@ -163,7 +163,7 @@ def read_cci_geoobj(cci_nc):
                           cci_nc.variables['lon'].valid_max)),
         cci_nc.variables['lon'][::],
         cloudproducts.nodata)
-    #cloudproducts.latitude = cci_nc.variables['lat'][::]
+    # cloudproducts.latitude = cci_nc.variables['lat'][::]
     cloudproducts.latitude = np.where(
         np.logical_and(
             np.greater_equal(cci_nc.variables['lat'][::],
@@ -173,11 +173,11 @@ def read_cci_geoobj(cci_nc):
         cci_nc.variables['lat'][::],
         cloudproducts.nodata)
 
-    #: For pps these are calculated in calipso.py, but better read them
+    #  For pps these are calculated in calipso.py, but better read them
     # from file because time are already available on arrays in the netcdf files
-    # dsec = calendar.timegm((1993,1,1,0,0,0,0,0,0)) #TAI to UTC
+    # dsec = calendar.timegm((1993,1,1,0,0,0,0,0,0)) # TAI to UTC
     time_temp = daysafter4713bc_to_sec1970(cci_nc.variables['time'][::])
-    cloudproducts.time = time_temp[::]#[:,0] #time_temp[:,0]
+    cloudproducts.time = time_temp[::]# [:,0] # time_temp[:,0]
 
     cloudproducts.sec1970_start = np.min(cloudproducts.time)
     cloudproducts.sec1970_end = np.max(cloudproducts.time)
@@ -227,7 +227,7 @@ def read_cci_ctth(cci_nc):
 
     ctp = cci_nc.variables['ctp'][::]
     if hasattr(ctp, 'mask'):
-        ctp_data = np.where(ctp.mask,  ATRAIN_MATCH_NODATA, ctp.data)#Upscaled
+        ctp_data = np.where(ctp.mask,  ATRAIN_MATCH_NODATA, ctp.data)# Upscaled
     else:
         ctp_data = ctp.data
     ctth.p_gain = 1.0

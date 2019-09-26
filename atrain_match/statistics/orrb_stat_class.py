@@ -37,15 +37,15 @@ class OrrbStats():
 
 
     def read_one_file(self, datafile):
-        #print datafile
+        # print datafile
         data_dict = {}
         current_datafile = open(datafile, "r")
         for line in current_datafile:
             if ":" not in line:
                 continue
             line = line.replace('CALIOP','CALIPSO')
-            #old before sept 2017 files have both cloudsat and calipso data in the same files
-            #Note both CALIPSO and CALIOP where used
+            # old before sept 2017 files have both cloudsat and calipso data in the same files
+            # Note both CALIPSO and CALIOP where used
             if self.truth_sat.upper()  not in line:
                 continue
             what, data = line.rstrip().split(':')
@@ -61,7 +61,7 @@ class OrrbStats():
         print "reading data"
         acu = {}
         acu["scenes"] = len(results_files)
-        #CFC DATA
+        # CFC DATA
         acu["n_clear_clear_cal"] = 0
         acu["n_clear_cloudy_cal"]  = 0
         acu["n_cloudy_clear_cal"]  = 0
@@ -71,7 +71,7 @@ class OrrbStats():
         acu["n_cloudy_clear_cal_MODIS"]  = 0
         acu["n_cloudy_cloudy_cal_MODIS"]  = 0
         got_cloudsat_modis_flag = False
-        #CTY
+        # CTY
 
         acu["n_low_low"] = 0
         acu["n_low_medium"] = 0
@@ -95,7 +95,7 @@ class OrrbStats():
         acu["n_high_clear"] = 0
         acu["n_frac_clear"] = 0
         acu["n_cirrus_clear"] = 0
-        #CTH
+        # CTH
         acu["cal_all_samples"] = {}
         acu["cal_low_samples"] = {}
         acu["cal_medium_samples"] = {}
@@ -120,12 +120,12 @@ class OrrbStats():
         acu["n_missed_cma_low"] = {}
         acu["n_missed_cma_medium"] = {}
         acu["n_missed_cma_high"] = {}
-        #CPH DATA
+        # CPH DATA
         acu["n_ice_ice_cal"] = 0
         acu["n_ice_water_cal"]  = 0
         acu["n_water_ice_cal"]  = 0
         acu["n_water_water_cal"]  = 0
-        #LWP
+        # LWP
         acu["amsr_all_samples"] = 0
         acu["mean_error_amsr_all_sum"] = 0
         acu["rms_error_amsr_all_sum"] = 0
@@ -149,8 +149,8 @@ class OrrbStats():
             data_dict = self.read_one_file(datafile)
             # Accumulate CALIOP/ISS/CLOUDSAT/AMSR-E statistics CFC
             for key in data_dict.keys():
-                #If reprocessing old results files make sure to extract the right lines!
-                #Ie do not use CLOUDSAT info when compiling stats for CALIPSO
+                # If reprocessing old results files make sure to extract the right lines!
+                # Ie do not use CLOUDSAT info when compiling stats for CALIPSO
                 cal_data = data_dict[key]
                 if  key in cfc_stats_labels:
                     cal_data[cal_data<0] = 0

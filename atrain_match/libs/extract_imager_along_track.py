@@ -181,7 +181,7 @@ def get_mean_data_from_array_nneigh(array, matched):
     if array is None:
         return None
     out_all = get_data_from_array_nneigh(array, matched)
-    n_ok = np.sum(out_all>=0, axis=-1) #before
+    n_ok = np.sum(out_all>=0, axis=-1) # before
     out_all[out_all<0] = 0
     sum_out_all = np.sum(out_all, axis=-1)
     return sum_out_all*1.0/n_ok
@@ -195,14 +195,14 @@ def get_channel_data_from_object(imager_obj, chn_des, matched, nodata=-9):
     """
     channels = imager_obj.channel
     numOfChannels = len(channels)
-    #for ich in range(numOfChannels):
+    # for ich in range(numOfChannels):
     #    if channels[ich].des in CHANNEL_MICRON_DESCRIPTIONS[chn_des]:
     #        chnum = ich
     chnum = [ich for ich in range(numOfChannels)
              if channels[ich].des in CHANNEL_MICRON_DESCRIPTIONS[chn_des]]
 
     if len(chnum) == 0:
-        #chnum = CHANNEL_MICRON_IMAGER_PPS[chn_des]
+        # chnum = CHANNEL_MICRON_IMAGER_PPS[chn_des]
         logger.debug("Did not find pps channel number for channel "
                      "{:s}".format(chn_des))
         return None, ""
@@ -212,7 +212,7 @@ def get_channel_data_from_object(imager_obj, chn_des, matched, nodata=-9):
         return channels[chnum].data, ""
 
     chdata_on_track = get_data_from_array(channels[chnum].data, matched)
-    #np.array([channels[chnum].data[matched['row'][idx], matched['col'][idx]]
+    # np.array([channels[chnum].data[matched['row'][idx], matched['col'][idx]]
     #                   for idx in range(matched['row'].shape[0])])
     extra_info = ""
     if channels[chnum].SZA_corr_done:
@@ -243,8 +243,8 @@ def _interpolate_height_and_temperature_from_pressure(imager_obj,
     pressure_v=  imager_obj.segment_nwp_pressure
     surface_h = imager_obj.segment_nwp_surfaceGeoHeight
     psur = imager_obj.segment_nwp_surfacePressure
-    #import pdb
-    #pdb.set_trace()
+    # import pdb
+    # pdb.set_trace()
     nlev = pressure_v.shape[1]
     npix = pressure_v.shape[0]
     k = np.arange(npix)
@@ -276,7 +276,7 @@ def _interpolate_height_and_temperature_from_pressure(imager_obj,
 def insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt):
         npix = row_matched.shape[0]
         """
-        #obt.imager.segment_nwgeoheight
+        # obt.imager.segment_nwgeoheight
         obt.imager.segment_nwp_moist
         obt.imager.segment_nwp_pressure
         obt.imager.segment_nwp_temp
@@ -289,7 +289,7 @@ def insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt):
         obt.imager.segment_meanElevation
         obt.imager.segment_ptro
         obt.imager.segment_ttro
-        #obt.imager.segment_t850
+        # obt.imager.segment_t850
         obt.imager.segment_tb11clfree_sea
         obt.imager.segment_tb12clfree_sea
         obt.imager.segment_tb11clfree_land
@@ -338,13 +338,13 @@ def insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt):
                          'tb11lowcloud_land',
                          'tb12lowcloud_land']:
             if data_set in nwp_segments.keys():
-                #'tb11cloudy_surface',
-                #'tb12cloudy_surface ',
+                # 'tb11cloudy_surface',
+                # 'tb12cloudy_surface ',
                 setattr(obt.imager,'segment_nwp_' + data_set,
                         np.array([nwp_segments[data_set][seg_row[idx], seg_col[idx]]
                                   for idx in range(npix)]))
             elif 'clfree' in data_set or 'lowcloud' in data_set:
-                #these are nor always present
+                # these are nor always present
                 pass
 
 
@@ -352,7 +352,7 @@ def insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt):
             setattr(obt.imager,'segment_nwp_' + data_set,
                               np.array([nwp_segments[data_set][seg_row[idx], seg_col[idx]]
                                         for idx in range(npix)]))
-        #Remove nodata and not used upper part of atmosphere
+        # Remove nodata and not used upper part of atmosphere
         N = obt.imager.segment_nwp_pressure.shape[1]
         pressure_n_to_keep = np.sum(np.max(obt.imager.segment_nwp_pressure,axis=0)>50)
         logger.debug("Not saving upper %d levels of 3-D nwp from segment file"%(N-pressure_n_to_keep))
@@ -370,7 +370,7 @@ def insert_nwp_h440_h680_data(obt):
     setattr(obt.imager, 'segment_nwp_h680', data)
     return obt
 
-#---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 def imager_track_from_matched(obt, SETTINGS, cloudproducts,
                               extract_radiances=True,
                               extract_cma=True,
@@ -394,7 +394,7 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
 
     if aux_params is None:
         aux_params = aux_params_all
-        #For amsr-E matching (many neighbors) use only the needed nwp data
+        # For amsr-E matching (many neighbors) use only the needed nwp data
 
     aux_obj = cloudproducts.aux
 
@@ -434,7 +434,7 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
             if find_mean_data_for_x_neighbours and varname=='cma_prob':
                 obt.imager.cma_prob_mean = get_mean_data_from_array_nneigh(cma.cma_prob, row_col_nneigh)
 
-    #cloud-type flags
+    # cloud-type flags
     if extract_ctype and SETTINGS["PPS_VALIDATION"]:
         for (variable, outname) in  zip(
                 ['ct_quality', 'ct_conditions', 'ct_statusflag',
@@ -467,7 +467,7 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
                                             get_warmest_values)
     if imager_obj is not None:
         pass
-        #aux_obj = get_t11t12_texture_data_from_object(imager_obj, aux_obj, '11','12',
+        # aux_obj = get_t11t12_texture_data_from_object(imager_obj, aux_obj, '11','12',
         #                                              'text_t11t12_square??')
     for texture in ["text_r06", "text_t11", "text_t37", "text_t37t12",
                     "text_t37t12_square", "text_t11t12_square", "text_t11t12"]:
@@ -496,7 +496,7 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
         for key in ["coldest_t11", "coldest_t12", "coldest_t37"]:
             setattr(obt.imager, key,
                     getattr(neighbour_obj,key))
-    #Thresholds:
+    # Thresholds:
     for thr in ["thr_t11ts_inv",
                 "thr_t85t11_inv",
                 "thr_t11t37_inv",
@@ -540,7 +540,7 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
         # b22
         temp_data, info =  get_channel_data_from_object(imager_obj, '22', row_col)
         setattr(obt.imager, "r22micron" + info, temp_data)
-        #b13
+        # b13
         temp_data, info =  get_channel_data_from_object(imager_obj, '13', row_col)
         setattr(obt.imager, "r13micron" + info, temp_data)
         if obt.imager_instrument.lower() in ['modis']:
@@ -553,7 +553,7 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
                 seviri_track, info = get_channel_data_from_object(imager_obj,
                                                                   seviri_channel, row_col)
                 setattr(obt.imager, seviri_channel + info, seviri_track)
-    #Angles, scale with gain and intercept when reading
+    # Angles, scale with gain and intercept when reading
     for angle in ['satz', 'sunz', 'azidiff', 'sunazimuth', 'satazimuth']:
         data = getattr(angle_obj, angle)
         if data is not None:
@@ -572,7 +572,7 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
         if (SETTINGS["PPS_VALIDATION"] and hasattr(ctth, 'processingflag')):
             is_opaque = np.bitwise_and(np.right_shift(ctth.processingflag, 2), 1)
             obt.imager.ctth_opaque = get_data_from_array(is_opaque, row_col)
-    #NWP on ctth resolution
+    # NWP on ctth resolution
     if nwp_segments is not None:
         obt = insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt)
     if cpp is None:
@@ -596,7 +596,7 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
 
     obt = insert_nwp_h440_h680_data(obt)
 
-    #ADD CNN features
+    # ADD CNN features
 
     from atrain_match.utils.pps_prototyping_util import add_cnn_features
     if os.path.isfile(SETTINGS['CNN_PCKL_PATH']):

@@ -31,18 +31,18 @@ from atrain_match.libs.extract_imager_along_track import imager_track_from_match
 from atrain_match.utils.validate_lwp_util import LWP_THRESHOLD
 import logging
 logger = logging.getLogger(__name__)
-AMSR_RADIUS = 5.4e3 #3.7e3 to include 5km pixels parly overlapping amsr-e footprint
+AMSR_RADIUS = 5.4e3 # 3.7e3 to include 5km pixels parly overlapping amsr-e footprint
 def get_amsr(filename):
 
     if ".h5" in filename:
         retv = read_amsr_h5(filename)
     else:
-        #hdf4 file:
+        # hdf4 file:
         retv = read_amsr_hdf4(filename)
 
     density = 1e3 # Density of water [kg m**-3]
-    n_lat_scans = len(retv.latitude)*1.0/(len(retv.sec1993)) #= 242!
-    #print n_lat_scans
+    n_lat_scans = len(retv.latitude)*1.0/(len(retv.sec1993)) # = 242!
+    # print n_lat_scans
     epoch_diff = timegm(TAI93.utctimetuple())
     nadir_sec_1970 = retv.sec1993 + epoch_diff
     retv.sec_1970 = np.repeat(nadir_sec_1970.ravel(), n_lat_scans)
@@ -53,21 +53,21 @@ def get_amsr(filename):
     use_amsr = np.logical_and(retv.lwp >=0 ,
                               retv.lwp < LWP_THRESHOLD*100)
     retv = retv.extract_elements(idx=use_amsr)
-    #import matplotlib.pyplot as plt
-    #plt.plot(retv.longitude, retv.latitude, '.')
-    #plt.savefig('map_test.png')
+    # import matplotlib.pyplot as plt
+    # plt.plot(retv.longitude, retv.latitude, '.')
+    # plt.savefig('map_test.png')
     return retv
 
 def read_amsr_h5(filename):
     retv = AmsrObject()
 
     with h5py.File(filename, 'r') as f:
-        #ravel AMSR-E data to 1 dimension
+        # ravel AMSR-E data to 1 dimension
         retv.longitude = f['Swath1/Geolocation Fields/Longitude'][:].ravel()
         retv.latitude = f['Swath1/Geolocation Fields/Latitude'][:].ravel()
         retv.sec1993 = f['Swath1/Geolocation Fields/Time']['Time'][:]
-        #description='lwp (mm)',
-        lwp_gain = f['Swath1/Data Fields/High_res_cloud'].attrs['Scale']#.ravel()
+        # description='lwp (mm)',
+        lwp_gain = f['Swath1/Data Fields/High_res_cloud'].attrs['Scale']# .ravel()
         retv.lwp_mm = f['Swath1/Data Fields/High_res_cloud'][:].ravel() * lwp_gain
     if f:
         f.close()
@@ -82,7 +82,7 @@ def read_amsr_hdf4(filename):
     h4file = SD(filename, SDC.READ)
     datasets = h4file.datasets()
     attributes = h4file.attributes()
-    #for idx,attr in enumerate(attributes.keys()):
+    # for idx,attr in enumerate(attributes.keys()):
     #    print idx, attr
     for sds in ["Longitude", "Latitude", "High_res_cloud"]:
         data = h4file.select(sds).get()
@@ -92,15 +92,15 @@ def read_amsr_hdf4(filename):
             lwp_gain = h4file.select(sds).attributes()['Scale']
             retv.all_arrays["lwp_mm"] = data.ravel() * lwp_gain
 
-        #print h4file.select(sds).info()
+        # print h4file.select(sds).info()
     h4file = HDF(filename, SDC.READ)
     vs = h4file.vstart()
     data_info_list = vs.vdatainfo()
-    #print "1D data compound/Vdata"
+    # print "1D data compound/Vdata"
     for item in data_info_list:
-        #1D data compound/Vdata
+        # 1D data compound/Vdata
         name = item[0]
-        #print name
+        # print name
         if name in ["Time"]:
             data_handle = vs.attach(name)
             data = np.array(data_handle[:])
@@ -108,16 +108,16 @@ def read_amsr_hdf4(filename):
             data_handle.detach()
         else:
             pass
-            #print name
-        #data = np.array(data_handle[:])
-        #attrinfo_dic = data_handle.attrinfo()
-        #factor = data_handle.findattr('factor')
-        #offset = data_handle.findattr('offset')
-        #print data_handle.factor
-        #data_handle.detach()
-    #print data_handle.attrinfo()
+            # print name
+        # data = np.array(data_handle[:])
+        # attrinfo_dic = data_handle.attrinfo()
+        # factor = data_handle.findattr('factor')
+        # offset = data_handle.findattr('offset')
+        # print data_handle.factor
+        # data_handle.detach()
+    # print data_handle.attrinfo()
     h4file.close()
-    #for key in retv.all_arrays.keys():
+    # for key in retv.all_arrays.keys():
     #    print key, retv.all_arrays[key]
     return retv
 
@@ -137,7 +137,7 @@ def reshape_amsr(amsrfiles, imager, SETTINGS):
         amsr = amsr + newAmsr
 
     # Finds Break point
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     startBreak, endBreak = find_break_points(amsr, imager, SETTINGS)
     amsr = amsr.extract_elements(starti=startBreak,
                                  endi=endBreak)
@@ -152,7 +152,7 @@ def match_amsr_imager(amsr, cloudproducts, SETTINGS):
     if (getattr(cloudproducts.cpp, "cpp_lwp")<0).all():
         logger.warning("Not matching AMSR-E with scene with no lwp.")
         return None
-        #return MatchupError("No imager Lwp.") # if only LWP matching?
+        # return MatchupError("No imager Lwp.") # if only LWP matching?
 
     from atrain_match.utils.common import map_imager_distances
     n_neighbours = 8
@@ -172,7 +172,7 @@ def match_amsr_imager(amsr, cloudproducts, SETTINGS):
     if (~np.isnan(calnan)).sum() == 0:
         logger.warning("No matches within region.")
         return None
-    #check if it is within time limits:
+    # check if it is within time limits:
     if len(cloudproducts.time.shape)>1:
         imager_time_vector = [cloudproducts.time[line,pixel] for line, pixel in zip(cal_1,cap_1)]
         imager_lines_sec_1970 = np.where(cal_1 != config.NODATA, imager_time_vector, np.nan)
@@ -182,7 +182,7 @@ def match_amsr_imager(amsr, cloudproducts, SETTINGS):
     imager_sunz_vector = np.array([cloudproducts.imager_angles.sunz.data[line,pixel] for line, pixel in zip(cal_1,cap_1)])
     idx_match = np.logical_and(
         elements_within_range(amsr.sec_1970, imager_lines_sec_1970, SETTINGS["sec_timeThr"]),
-        imager_sunz_vector<=84) #something larger than 84 (max for lwp)
+        imager_sunz_vector<=84) # something larger than 84 (max for lwp)
 
     if idx_match.sum() == 0:
         logger.warning("No light (sunz<84)  matches in region within time threshold %d s.", SETTINGS["sec_timeThr"])

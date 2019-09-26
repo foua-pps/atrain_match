@@ -62,7 +62,7 @@ Nina
 
 """
 
-#change log i found in git
+# change log i found in git
 import os
 import sys
 import numpy as np
@@ -89,7 +89,7 @@ from atrain_match.truths.amsr import (reshape_amsr, match_amsr_imager)
 from atrain_match.truths.mora import (reshape_mora, match_mora_imager)
 from atrain_match.truths.synop import (reshape_synop, match_synop_imager)
 from atrain_match.truths.iss import reshape_iss, match_iss_imager
-from atrain_match.truths.calipso import ( #check_total_optical_depth_and_warn,
+from atrain_match.truths.calipso import ( # check_total_optical_depth_and_warn,
                             total_and_top_layer_optical_depth_5km,
                             reshape_calipso,
                             discard_calipso_files_outside_time_range,
@@ -140,8 +140,8 @@ class ppsFiles(object):
 
 def get_time_list(cross_time, time_window, delta_t_in_seconds):
     tlist = []
-    delta_t = timedelta(seconds=delta_t_in_seconds) #search per minute!delta_t_in_seconds=60
-    tobj1 = cross_time #end_time
+    delta_t = timedelta(seconds=delta_t_in_seconds) # search per minute!delta_t_in_seconds=60
+    tobj1 = cross_time # end_time
     tobj2 = cross_time - delta_t
     while (tobj1 <= cross_time + time_window[1] or
            tobj2 >= cross_time - time_window[0]):
@@ -169,7 +169,7 @@ def find_closest_nwp_file(cloudproducts, AM_PATHS, values, SETTINGS):
                 AM_PATHS['grib_file'],
                 values,
                 datetime_obj=grib_datetime)
-            #print("globbing", os.path.join(grib_dir, grib_file_pattern))
+            # print("globbing", os.path.join(grib_dir, grib_file_pattern))
             tmplist = glob(os.path.join(grib_dir, grib_file_pattern))
             if len(tmplist)>0:
                 return tmplist[0]
@@ -198,7 +198,7 @@ def get_satid_datetime_orbit_from_fname(filename, SETTINGS, cross=None, as_oldst
     from atrain_match.imager_cloud_products.read_cloudproducts_oca import get_satid_datetime_orbit_from_fname_oca
     from atrain_match.imager_cloud_products.read_cloudproducts_maia import get_satid_datetime_orbit_from_fname_maia
     from atrain_match.imager_cloud_products.read_cloudproducts_patmosx import get_satid_datetime_orbit_from_fname_patmosx
-    #Get satellite name, time, and orbit number from imager_file
+    # Get satellite name, time, and orbit number from imager_file
     if SETTINGS['PPS_VALIDATION']:
         values = get_satid_datetime_orbit_from_fname_pps(filename, as_oldstyle=as_oldstyle)
     if SETTINGS['CCI_CLOUD_VALIDATION']:
@@ -213,7 +213,7 @@ def get_satid_datetime_orbit_from_fname(filename, SETTINGS, cross=None, as_oldst
 
 
 def insert_info_in_filename_or_path(file_or_name_path, values, datetime_obj=None):
-    #file_or_name_path = file_or_name_path.format(**values)
+    # file_or_name_path = file_or_name_path.format(**values)
     satellite=values.get("satellite","*")
     file_or_name_path = file_or_name_path.format(
         ctth_type=values.get("ctth_type",""),
@@ -228,7 +228,7 @@ def insert_info_in_filename_or_path(file_or_name_path, values, datetime_obj=None
         year=values.get('year',"unknown"),
         month=values.get('month',"unknown"),
         mode=values.get('mode',"unknown"),
-        #min_opt_depth=values.get('min_opt_depth',""),
+        # min_opt_depth=values.get('min_opt_depth',""),
         atrain_datatype=values.get("atrain_datatype","atrain_datatype"))
     if datetime_obj is None:
         return file_or_name_path
@@ -250,7 +250,7 @@ def find_truth_files(date_time, AM_PATHS, SETTINGS, values, truth='calipso'):
     if truth in ['synop']:
         TRUTH_FILE_LENGTH = config.SYNOP_FILE_LENGTH
         my_sec_THR = SETTINGS['sec_timeThr_synop']
-    #might need to geth this in before looking for matchups
+    # might need to geth this in before looking for matchups
     tdelta_before = timedelta(seconds = (TRUTH_FILE_LENGTH +
                                          my_sec_THR))
     tdelta = timedelta(
@@ -323,7 +323,7 @@ def find_imager_file(cross, filedir_pattern, filename_pattern, values=None):
     if values is None:
         values = {}
 
-    #tlist = get_time_list(cross.time,
+    # tlist = get_time_list(cross.time,
     #                      (timedelta(seconds=0), timedelta(seconds=0)),
     #                      delta_t_in_seconds=60)
     tlist = [cross.time]
@@ -332,10 +332,10 @@ def find_imager_file(cross, filedir_pattern, filename_pattern, values=None):
     no_files_found = True
     checked_dir = {}
     for tobj in tlist:
-        #print values
+        # print values
         imager_dir = insert_info_in_filename_or_path(filedir_pattern,
                                                     values, datetime_obj=tobj)
-        #print imager_dir
+        # print imager_dir
         if os.path.exists(imager_dir):
             found_dir = imager_dir
             if imager_dir not in checked_dir.keys():
@@ -375,7 +375,7 @@ def require_h5(files, SETTINGS):
             h5_file = f.replace('.hdf', '.h5')
             if not h5_file in files:
                 print(f)
-                #sys.exit()
+                # sys.exit()
                 command = '%s %s' % (H4H5_EXECUTABLE, f)
                 logger.info("Converting %s to HDF5", f)
                 if os.system(command):
@@ -402,7 +402,7 @@ def get_pps_file(imager_file, AM_PATHS, values, type_of_file, file_dir,
     try:
         file_name = glob(os.path.join(path, pps_file_name))[0]
         if FailIfRequestedAndMissing:
-            #This is and important file, tell the user where it was read:
+            # This is and important file, tell the user where it was read:
             logger.info("%s-dir: %s", type_of_file.upper().replace('_FILE',''),
                         os.path.dirname(file_name))
             logger.info("%s-file: %s", type_of_file.upper().replace('_FILE',''),
@@ -461,11 +461,11 @@ def find_files_from_imager(imager_file, AM_PATHS, SETTINGS, as_oldstyle=False):
                                                FailIfRequestedAndMissing=True)
     file_name_dict['cmaprob'] = get_pps_file(imager_file, AM_PATHS, values, 'cmaprob_file', 'cmaprob_dir',
                                              FailIfRequestedAndMissing=True)
-    #Check cfc configuration
+    # Check cfc configuration
     check_cfc_configuration(file_name_dict, SETTINGS)
     # For CTTH can have several files:
     ctth_files = {}
-    file_name_dict['ctth'] = ctth_files #If no ctth matching requested
+    file_name_dict['ctth'] = ctth_files # If no ctth matching requested
     if 'ctth_file' in AM_PATHS.keys():
         for ctth_type in SETTINGS['CTTH_TYPES']:
             values['ctth_type'] = ctth_type
@@ -495,14 +495,14 @@ def find_files_from_imager(imager_file, AM_PATHS, SETTINGS, as_oldstyle=False):
     file_name_dict['seaice'] = get_pps_file(imager_file, AM_PATHS, values,
                                             'seaice_file', 'seaice_dir',
                                             FailIfRequestedAndMissing=True)
-    #Textures and Thresholds:
+    # Textures and Thresholds:
     file_name_dict['text_t11'] = get_pps_file(imager_file, AM_PATHS, values,
                                               'text_t11_file', 'text_dir',
                                               FailIfRequestedAndMissing=True)
     file_name_dict['thr_t11ts'] = get_pps_file(imager_file, AM_PATHS, values,
                                                'thr_t11ts_file', 'thr_dir',
                                                FailIfRequestedAndMissing=True)
-    ####More NWP, textures and thresholds for v2014:
+    # # # # More NWP, textures and thresholds for v2014:
     for nwp_file in ['nwp_t500','nwp_t700',
                      'nwp_t850','nwp_t950', 'nwp_ciwv', 'nwp_ttro']:
         file_name_dict[nwp_file] = get_pps_file(imager_file, AM_PATHS, values,
@@ -523,7 +523,7 @@ def find_files_from_imager(imager_file, AM_PATHS, SETTINGS, as_oldstyle=False):
     file_name_dict['nwp_segments'] = get_pps_file(imager_file, AM_PATHS,
                                                   values,
                                                   'segment_file', 'segment_dir')
-    ########################################
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     ppsfiles = ppsFiles(file_name_dict)
     return  ppsfiles
 
@@ -590,10 +590,10 @@ def get_calipso_matchups(calipso_files, values,
     """
     Read Calipso data and match with the given PPS data.
     """
-    #First remove files clearly outside time limit from the lists
-    #When combinating 5km and 1km data some expensive calculations are done
-    #before cutting the data that fits the time condition.
-    #It is unnessecary to do this for files where no-pixel will match!
+    # First remove files clearly outside time limit from the lists
+    # When combinating 5km and 1km data some expensive calculations are done
+    # before cutting the data that fits the time condition.
+    # It is unnessecary to do this for files where no-pixel will match!
     calipso_files = discard_calipso_files_outside_time_range(
         calipso_files, cloudproducts, values, SETTINGS)
     if cafiles1km is not None:
@@ -611,10 +611,10 @@ def get_calipso_matchups(calipso_files, values,
         CALIPSO_version = 3
 
     calipso  = reshape_calipso(calipso_files)
-    #find time breakpoints, but don't cut the data yet ..
+    # find time breakpoints, but don't cut the data yet ..
     startBreak, endBreak = find_break_points(calipso,  cloudproducts, SETTINGS)
     if cafiles1km is not None and CALIPSO_version == 3 and config.RESOLUTION == 5:
-        #RESOLUTION 5km also have 1km data
+        # RESOLUTION 5km also have 1km data
         logger.info("Calipso version 3 data used and old 1 km restore method!")
         calipso1km = reshape_calipso(cafiles1km, res=1)
         calipso5km = calipso
@@ -624,7 +624,7 @@ def get_calipso_matchups(calipso_files, values,
         calipso = total_and_top_layer_optical_depth_5km(calipso, SETTINGS, resolution=5)
 
     elif cafiles5km is not None and CALIPSO_version == 4  and config.RESOLUTION == 1:
-        #RESOLUTION 1km also have 5km data calipso version 4
+        # RESOLUTION 1km also have 5km data calipso version 4
         logger.info("Calipso version 4, single shot fraction and "
                     "old 5km restored optical depth method used!")
         calipso1km = calipso
@@ -636,7 +636,7 @@ def get_calipso_matchups(calipso_files, values,
                                               endi=endBreak)
 
     elif cafiles5km is not None and CALIPSO_version == 3 and config.RESOLUTION == 1:
-        #RESOLUTION 1km also have 5km data calipso version 3
+        # RESOLUTION 1km also have 5km data calipso version 3
         logger.info("Calipso version 3 data used and old 5 km restored optical depth method!")
         calipso1km = calipso
         calipso5km = reshape_calipso(cafiles5km, res=5)
@@ -646,9 +646,9 @@ def get_calipso_matchups(calipso_files, values,
                                               endi=endBreak)
     elif CALIPSO_version == 4 and config.RESOLUTION == 5 and SETTINGS['ALSO_USE_SINGLE_SHOT_CLOUD_CLEARED']:
 
-        #RESOLUTION exclusively 5km data but additional clouds taken from 330 m single shot resolution
+        # RESOLUTION exclusively 5km data but additional clouds taken from 330 m single shot resolution
         logger.info("Calipso version 4 data used and new single shot restore method!")
-        #calipso5km = reshape_calipso(cafiles5km, res=5)
+        # calipso5km = reshape_calipso(cafiles5km, res=5)
         calipso5km  = reshape_calipso(calipso_files)
         calipso = add_singleshot_to5km(calipso5km, SETTINGS)
 
@@ -657,9 +657,9 @@ def get_calipso_matchups(calipso_files, values,
         calipso = total_and_top_layer_optical_depth_5km(calipso, SETTINGS, resolution=5)
     elif CALIPSO_version == 4 and config.RESOLUTION == 5 and SETTINGS['ALSO_USE_1KM_FILES']:
 
-        #RESOLUTION exclusively 5km data but additional clouds taken from 1 km data
+        # RESOLUTION exclusively 5km data but additional clouds taken from 1 km data
         logger.info("Calipso version 4 data used but old method combining 1 km and 5 km data!")
-        #calipso5km = reshape_calipso(cafiles5km, res=5)
+        # calipso5km = reshape_calipso(cafiles5km, res=5)
         calipso5km  = reshape_calipso(calipso_files)
         calipso1km = reshape_calipso(cafiles1km, res=1)
         calipso = add_1km_to_5km(calipso1km, calipso5km)
@@ -673,7 +673,7 @@ def get_calipso_matchups(calipso_files, values,
         if config.RESOLUTION == 5:
             calipso = total_and_top_layer_optical_depth_5km(calipso, SETTINGS, resolution=5)
 
-    #aerosol-data
+    # aerosol-data
     calipso_aerosol = None
     if cafiles5km_aerosol is not None:
         calipso5km_aerosol = reshape_calipso(cafiles5km_aerosol, res=5, ALAY=True)
@@ -730,7 +730,7 @@ def get_additional_calipso_files_if_requested(calipso_files, SETTINGS):
                           replace('.hdf', '.h5')
                 files_found = glob.glob(file1km)
                 if len(files_found)==0:
-                    #didn't find h5 file, might be hdf file instead
+                    # didn't find h5 file, might be hdf file instead
                     file1km = file1km.replace('.h5','.hdf')
                     files_found = glob.glob(file1km)
                 if len(files_found)>0:
@@ -761,7 +761,7 @@ def get_additional_calipso_files_if_requested(calipso_files, SETTINGS):
                           replace('-ValStage1-V3-02.', '*')
                 files_found = glob.glob(file5km)
                 if len(files_found)==0:
-                    #didn't find h5 file, might be hdf file instead
+                    # didn't find h5 file, might be hdf file instead
                     file5km = file5km.replace('.h5','.hdf')
                     files_found = glob.glob(file5km)
                 if len(files_found)>0:
@@ -791,7 +791,7 @@ def get_additional_calipso_files_if_requested(calipso_files, SETTINGS):
                               replace('-Prov-V3-30.', '*')
             files_found_aerosol = glob.glob(file5km_aerosol)
             if len(files_found_aerosol)==0:
-                #didn't find h5 file, might be hdf file instead
+                # didn't find h5 file, might be hdf file instead
                 file5km_aerosol = file5km_aerosol.replace('.h5','.hdf')
                 files_found_aerosol = glob.glob(file5km_aerosol)
             if len(files_found_aerosol)>0:
@@ -805,11 +805,11 @@ def get_additional_calipso_files_if_requested(calipso_files, SETTINGS):
 
 
 def add_additional_clousat_calipso_index_vars(match_clsat, match_calipso):
-    #add cloudsat modisflag to calipso obj
+    # add cloudsat modisflag to calipso obj
 
     if match_clsat is not None and match_calipso is not None:
         match_calipso.calipso.cal_modis_cflag = None
-        #map cloudsat to calipso and the other way around!
+        # map cloudsat to calipso and the other way around!
         from atrain_match.utils.match import match_lonlat
         source = (match_clsat.cloudsat.longitude.astype(np.float64).reshape(-1,1),
                   match_clsat.cloudsat.latitude.astype(np.float64).reshape(-1,1))
@@ -900,7 +900,7 @@ def add_additional_clousat_calipso_index_vars(match_clsat, match_calipso):
     return match_clsat, match_calipso
 
 def add_modis_lvl2_clousat_(match_clsat, match_calipso):
-    #add modis lvl2 to cloudsat
+    # add modis lvl2 to cloudsat
     if match_clsat is not None and match_calipso is not None:
         match_clsat.modis.all_arrays["height"] = match_calipso.modis.all_arrays["height"][match_clsat.cloudsat.calipso_index]
         match_clsat.modis.all_arrays["temperature"] = match_calipso.modis.all_arrays["temperature"][match_clsat.cloudsat.calipso_index]
@@ -912,7 +912,7 @@ def add_modis_lvl2_clousat_(match_clsat, match_calipso):
 
 
 def add_elevation_corrected_imager_ctth(match_clsat, match_calipso, issObj, SETTINGS):
-    ## Cloudsat ##
+    # # Cloudsat # #
     if match_clsat is None or match_clsat.imager.ctth_height is None:
         pass
     elif  match_clsat.imager.imager_ctth_m_above_seasurface is None:
@@ -924,18 +924,18 @@ def add_elevation_corrected_imager_ctth(match_clsat, match_calipso, issObj, SETT
         num_csat_data_ok = len(match_clsat.cloudsat.elevation)
         logger.debug("Length of CLOUDSAT array: %d", num_csat_data_ok )
         imager_ctth_m_above_seasurface = match_clsat.imager.ctth_height.copy()
-        #import pdb;pdb.set_trace()
+        # import pdb;pdb.set_trace()
         if SETTINGS["CCI_CLOUD_VALIDATION"] or SETTINGS["PATMOSX_VALIDATION"]:
-            #ctth already relative mean sea level
+            # ctth already relative mean sea level
             imager_ctth_m_above_seasurface = match_calipso.imager.ctth_height
-        else: #ctth relative topography
+        else: # ctth relative topography
             got_height = imager_ctth_m_above_seasurface>=0
             imager_ctth_m_above_seasurface[got_height] += elevation[got_height]*1.0
         match_clsat.imager.imager_ctth_m_above_seasurface = imager_ctth_m_above_seasurface
         if num_csat_data_ok == 0:
             logger.info("Processing stopped: Zero lenght of matching arrays!")
             raise ProcessingError("Zero lenght of matching arrays!")
-    ## Calipso ##
+    # # Calipso # #
     # First make sure that PPS cloud top heights are converted to height above sea level
     # just as CALIPSO heights are defined. Use corresponding DEM data.
     if match_calipso is None or match_calipso.imager.ctth_height is None:
@@ -948,9 +948,9 @@ def add_elevation_corrected_imager_ctth(match_clsat, match_calipso, issObj, SETT
         imager_ctth_m_above_seasurface = match_calipso.imager.ctth_height.copy()
         logger.debug("CCI_CLOUD_VALIDATION %s", str(SETTINGS["CCI_CLOUD_VALIDATION"]))
         if SETTINGS["CCI_CLOUD_VALIDATION"]:
-            #ctth relative mean sea level
+            # ctth relative mean sea level
             imager_ctth_m_above_seasurface = match_calipso.imager.ctth_height
-        else: #ctth relative topography
+        else: # ctth relative topography
             got_height = imager_ctth_m_above_seasurface>=0
             imager_ctth_m_above_seasurface[got_height] += cal_elevation[got_height]*1.0
         match_calipso.imager.imager_ctth_m_above_seasurface = imager_ctth_m_above_seasurface
@@ -963,9 +963,9 @@ def add_elevation_corrected_imager_ctth(match_clsat, match_calipso, issObj, SETT
         logger.info("Length of ISS array: %d", num_iss_data_ok)
         imager_ctth_m_above_seasurface = issObj.imager.ctth_height.copy()
         if SETTINGS["CCI_CLOUD_VALIDATION"]:
-            #ctth relative mean sea level
+            # ctth relative mean sea level
             pass
-        else: #ctth relative topography
+        else: # ctth relative topography
             got_height = imager_ctth_m_above_seasurface>=0
             imager_ctth_m_above_seasurface[got_height] += iss_elevation[got_height]*1.0
         issObj.imager.imager_ctth_m_above_seasurface = imager_ctth_m_above_seasurface
@@ -977,7 +977,7 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
     Retrieve Cloudsat- and Calipso-IMAGER matchups from Cloudsat, Calipso, and
     PPS files.
     """
-    #STEP 1 get imager files
+    # STEP 1 get imager files
     if SETTINGS['PPS_VALIDATION']:
         imager_file, tobj = find_radiance_file(cross, AM_PATHS)
         pps_files = find_files_from_imager(imager_file, AM_PATHS, SETTINGS)
@@ -994,7 +994,7 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
     values = get_satid_datetime_orbit_from_fname(imager_file, SETTINGS, cross)
     date_time = values["date_time"]
 
-    #Step 2 get truth satellite files
+    # Step 2 get truth satellite files
     truth_files = {}
     for truth in ['cloudsat', 'amsr', 'iss', 'synop', 'mora', 'cloudsat_lwp', 'calipso']:
         truth_files[truth] = None
@@ -1005,7 +1005,7 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
                         "{truth}_MATCHING=False".format(truth=truth))
         elif  truth + '_file' not in AM_PATHS.keys():
             logger.info("NO {truth}_file in atrain_match.cfg".format(truth=truth.lower()))
-    #CALIPSO get some extra files:
+    # CALIPSO get some extra files:
     if truth_files['calipso'] is not None:
         extra_files = get_additional_calipso_files_if_requested( truth_files['calipso'], SETTINGS)
         calipso5km, calipso1km, calipso5km_aerosol  = extra_files
@@ -1014,7 +1014,7 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
             "Couldn't find any matching CALIPSO/CLoudSat/ISS data")
 
 
-    #STEP 3 Read imager data:
+    # STEP 3 Read imager data:
     if (SETTINGS['PPS_VALIDATION'] ):
         cloudproducts =read_pps_data(pps_files, imager_file, SETTINGS)
         if os.path.isfile(SETTINGS['CNN_PCKL_PATH']):
@@ -1035,8 +1035,8 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
         cloudproducts = read_cloud_oca(imager_file)
         cloudproducts.satellite = values["satellite"]
 
-    #STEP 4 get matchups
-    #ClloudSat
+    # STEP 4 get matchups
+    # ClloudSat
     cloudsat_matchup = None
     if (SETTINGS['PPS_VALIDATION'] and SETTINGS['CLOUDSAT_MATCHING'] and
         truth_files['cloudsat'] is not None):
@@ -1044,34 +1044,34 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
         cloudsat_matchup = get_cloudsat_matchups(truth_files['cloudsat'],
                                                  truth_files['cloudsat_lwp'],
                                                  cloudproducts, SETTINGS)
-    #ISS:
+    # ISS:
     iss_matchup = None
     if (SETTINGS['PPS_VALIDATION'] and SETTINGS['ISS_MATCHING'] and
         truth_files['iss'] is not None):
         logger.info("Read ISS data")
         iss_matchup = get_iss_matchups(truth_files['iss'],
                                        cloudproducts, SETTINGS)
-    #AMSR
+    # AMSR
     amsr_matchup = None
     if (SETTINGS['PPS_VALIDATION'] and SETTINGS['AMSR_MATCHING'] and
         truth_files['amsr'] is not None):
         logger.info("Read AMSR data")
         amsr_matchup = get_amsr_matchups(truth_files['amsr'],
                                          cloudproducts, SETTINGS)
-    #SYNOP
+    # SYNOP
     synop_matchup = None
     if (SETTINGS['PPS_VALIDATION'] and SETTINGS['SYNOP_MATCHING'] and
         truth_files['synop'] is not None):
         logger.info("Read SYNOP data")
         synop_matchup = get_synop_matchups(truth_files['synop'],
                                            cloudproducts, SETTINGS)
-    #MORA
+    # MORA
     mora_matchup = None
     if (SETTINGS['PPS_VALIDATION'] and SETTINGS['MORA_MATCHING'] and truth_files['mora'] is not None):
         logger.info("Read MORA data")
         mora_matchup = get_mora_matchups(truth_files['mora'],
                                          cloudproducts, SETTINGS)
-    #CALIPSO:
+    # CALIPSO:
     calipso_matchup = None
     if SETTINGS['CALIPSO_MATCHING'] and truth_files['calipso'] is not None:
         logger.info("Read CALIPSO data")
@@ -1101,7 +1101,7 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
 
     # Get satellite name, time, and orbit number from imager_file
     date_time = values["date_time"]
-    #basename = '_'.join(os.path.basename(imager_file).split('_')[:4])
+    # basename = '_'.join(os.path.basename(imager_file).split('_')[:4])
     values = get_satid_datetime_orbit_from_fname(imager_file, SETTINGS, cross)
     basename = values["basename"]
     rematched_path = date_time.strftime(AM_PATHS['reshape_dir'].format(
@@ -1130,7 +1130,7 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
                               'SYNOP', 'MORA', 'CALIPSO']):
         if matchup is None:
             continue
-        #add modis lvl2
+        # add modis lvl2
         if SETTINGS['MATCH_MODIS_LVL2']:
             from atrain_match.imager_cloud_products.read_modis_products import add_modis_06
             if matchup.imager_instrument in ['modis']:
@@ -1159,7 +1159,7 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
                     gribfile.get_u_10meter()[:].astype(np.float32))
             setattr(matchup.imager, "nwp_v10m",
                     gribfile.get_v_10meter()[:].astype(np.float32))
-            #get pressure variables in hPs
+            # get pressure variables in hPs
             field = gribfile.get_p_vertical()
             if field.units =='Pa':
                 field = 0.01*field[:]
@@ -1175,12 +1175,12 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
             data = _interpolate_height_and_temperature_from_pressure(matchup.imager, 680)
             setattr(matchup.imager, 'nwp_h680', data)
 
-    #add additional vars to cloudsat and calipso objects and print them to file:
+    # add additional vars to cloudsat and calipso objects and print them to file:
     cloudsat_matchup, calipso_matchup = add_additional_clousat_calipso_index_vars(cloudsat_matchup, calipso_matchup)
     cloudsat_matchup, calipso_matchup, iss_matchup = add_elevation_corrected_imager_ctth(cloudsat_matchup, calipso_matchup, iss_matchup, SETTINGS)
 
 
-    #imager_name
+    # imager_name
     imager_obj_name = 'pps'
     if SETTINGS['CCI_CLOUD_VALIDATION']:
         imager_obj_name = 'cci'
@@ -1191,7 +1191,7 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
     if SETTINGS['PATMOSX_VALIDATION']:
         imager_obj_name = 'patmosx'
 
-    #write matchups
+    # write matchups
     for matchup, name in zip([cloudsat_matchup, iss_matchup, amsr_matchup,
                               synop_matchup, mora_matchup, calipso_matchup],
                              ['CloudSat', 'ISS', 'AMSR-E',
@@ -1206,7 +1206,7 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
                                      SETTINGS,
                                      imager_obj_name = imager_obj_name)
 
-    #no longer return the matchup data?
+    # no longer return the matchup data?
     aux_obj = None
     return {'cloudsat': cloudsat_matchup,
             'calipso': calipso_matchup,

@@ -39,7 +39,7 @@ class CloudTopStats(OrrbStats):
 
     def do_stats(self):
         OrrbStats.do_stats(self)
-        #for key in self.ac_data.keys():
+        # for key in self.ac_data.keys():
         #    print key
 
         cal_all_samples = self.ac_data["cal_all_samples"]
@@ -209,7 +209,7 @@ class CloudTopStats(OrrbStats):
             lines.append("")
         for tc in  self.cal_all_samples.keys():
             if tc in self.cal_low_samples.keys():
-                #already go these results printed
+                # already go these results printed
                 continue
             else:
                 lines.append("========== Cloud top height ===========")

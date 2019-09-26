@@ -104,7 +104,7 @@ class CloudFractionStats(OrrbStats):
         hitrate = np.divide(1.0*(n_clear_clear_cal+n_cloudy_cloudy_cal),
                          (n_clear_clear_cal+n_clear_cloudy_cal+n_cloudy_clear_cal+n_cloudy_cloudy_cal))
 
-        #MODIS
+        # MODIS
         if self.ac_data["got_cloudsat_modis_flag"]:
             bias_modis = np.divide(1.*(n_clear_cloudy_cal_MODIS - n_cloudy_clear_cal_MODIS), Num-1.)
             bias_modis_perc = np.divide(100.0*(n_clear_cloudy_cal_MODIS - n_cloudy_clear_cal_MODIS), Num-1.)

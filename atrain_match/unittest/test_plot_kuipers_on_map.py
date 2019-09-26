@@ -49,8 +49,8 @@ class test_kuipers_plot_on_map(unittest.TestCase):
 
     def test_calculate_kuipers(self):
         self.area.calculate_kuipers()
-        #print
-        #print self.area.Kuipers
+        # print
+        # print self.area.Kuipers
         self.assertTrue(np.abs(self.area.Kuipers[0]+0.79) <0.01)
         self.assertTrue(np.abs(self.area.Kuipers[1]-0.709)<0.01)
         self.assertTrue(np.abs(self.area.Kuipers[2]-0.899)<0.01)

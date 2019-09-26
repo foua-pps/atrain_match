@@ -126,9 +126,9 @@ class CloudTypeStats(OrrbStats):
 
 
 
-        #Removed bc-RMS Not sure how ot interpret it
+        # Removed bc-RMS Not sure how ot interpret it
 
-        #POD,FAR,HR and KSS calculations =============================================================
+        # POD,FAR,HR and KSS calculations =============================================================
 
         hitrate = np.divide(
             100.0*(

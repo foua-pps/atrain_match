@@ -47,8 +47,8 @@ def my_rms(data):
 def my_mae(data):
     return np.mean(np.abs(data))
 
-#https:/
-#https://stats.stackexchange.com/questions/278237/half-sample-mode-estimate-of-sample-of-weighted-data
+# https:/
+# https://stats.stackexchange.com/questions/278237/half-sample-mode-estimate-of-sample-of-weighted-data
 def half_sample_mode(x, already_sorted=False):
     if len(x) < 3:
         return np.mean(x)

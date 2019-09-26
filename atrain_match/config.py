@@ -24,19 +24,19 @@ def str2bool(v):
   return str(v).lower() in ("yes", "true", "t", "1")
 import os
 
-#========== Basic settings set as ENVIRON VARIABLES==========#
-#: Resolution, in km, to use for data files. This setting is used
-#: to specify file names, sub-directories mm. Supported 1 or 5
+# ========== Basic settings set as ENVIRON VARIABLES==========#
+#  Resolution, in km, to use for data files. This setting is used
+#  to specify file names, sub-directories mm. Supported 1 or 5
 RESOLUTION = int(os.environ.get('ATRAIN_RESOLUTION', 5))
-#: Region configuaration file with area definitons, needed for plotting
+#  Region configuaration file with area definitons, needed for plotting
 AREA_CONFIG_FILE = os.environ.get('AREA_CONFIG_FILE', './areas.def')
-#: Base directory for validation results
+#  Base directory for validation results
 _validation_results_dir = os.environ.get(
   'VALIDATION_RESULTS_DIR',
   "/nobackup/smhid12/atrain_match_test_CALIPSOv4")
 ATRAIN_MATCH_CONFIG_PATH = os.environ.get('ATRAINMATCH_CONFIG_DIR', './etc')
 
-#All non-imager satellites need to be here. Imager is default.
+# All non-imager satellites need to be here. Imager is default.
 INSTRUMENT = {'npp': 'viirs',
               'noaa18': 'avhrr',
               'meteosat8': 'seviri',
@@ -49,14 +49,14 @@ INSTRUMENT = {'npp': 'viirs',
               'eos1': 'modis',
               'eos2': 'modis'}
 
-#========== Process modes ==========#
-#: Processing modes which can be handled for all resolutions
+# ========== Process modes ==========#
+#  Processing modes which can be handled for all resolutions
 ALLOWED_MODES = ['BASIC', 'STANDARD']
-#if AMSR_MATCHING:
+# if AMSR_MATCHING:
 ALLOWED_MODES.append('SATZ_HIGH')
 ALLOWED_MODES.append('SATZ_LOW')
 if RESOLUTION == 1:
-  #if CALCULATE_DETECTION_HEIGHT_FROM_5KM_DATA:
+  # if CALCULATE_DETECTION_HEIGHT_FROM_5KM_DATA:
   ALLOWED_MODES.append('OPTICAL_DEPTH_THIN_IS_CLEAR')
     # Filter thin CALIPSO pixels. Define OPTICAL_DETECTION_LIMIT
 elif RESOLUTION == 5:
@@ -84,23 +84,23 @@ for mode in list(ALLOWED_MODES):
     ALLOWED_MODES.append(mode + DNT)
 
 
-COMPRESS_LVL = 6 #: Compresssion level for generated matched files (h5)
+COMPRESS_LVL = 6 # : Compresssion level for generated matched files (h5)
 NODATA = -9
-#: Recommended cloud threshold for the CloudSat cloud mask. In 5km data this
-#: threshold has already been applied, so there is no reason to change it for
-#: this data set.
+#  Recommended cloud threshold for the CloudSat cloud mask. In 5km data this
+#  threshold has already been applied, so there is no reason to change it for
+#  this data set.
 CLOUDSAT_CLOUDY_THR = 30.0
-#: File lenghts, normally no need to update
-CALIPSO_FILE_LENGTH = 60*60 #s calipso files are shorter 60 minutes
-CLOUDSAT_FILE_LENGTH = 120*60 #s cloudsat files are shorter 120 minutes
-ISS_FILE_LENGTH = 60*60 #s iss files are shorter 60 minutes
-AMSR_FILE_LENGTH = 60*60 #AMSR-Es  files are shorter 60 minutes
-SYNOP_FILE_LENGTH = 24*60 #s Our synop data comes in 1 day files
-MORA_FILE_LENGTH = 24*60 #s Our MORA data comes in 1 day files
+#  File lenghts, normally no need to update
+CALIPSO_FILE_LENGTH = 60*60 # s calipso files are shorter 60 minutes
+CLOUDSAT_FILE_LENGTH = 120*60 # s cloudsat files are shorter 120 minutes
+ISS_FILE_LENGTH = 60*60 # s iss files are shorter 60 minutes
+AMSR_FILE_LENGTH = 60*60 # AMSR-Es  files are shorter 60 minutes
+SYNOP_FILE_LENGTH = 24*60 # s Our synop data comes in 1 day files
+MORA_FILE_LENGTH = 24*60 # s Our MORA data comes in 1 day files
 
-#: Maybe depricated?:
+#  Maybe depricated?:
 PPS_FORMAT_2012_OR_EARLIER = False
-#: Surfaces for which statistics should be summarized
+#  Surfaces for which statistics should be summarized
 SURFACES = PROCESS_SURFACES
 DNT_FLAG = ['ALL', 'DAY', 'NIGHT', 'TWILIGHT']
 

@@ -15,7 +15,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
-#Program truth_imager_statistics.py
+# Program truth_imager_statistics.py
 import atrain_match.config as config
 import logging
 logger = logging.getLogger(__name__)
@@ -54,21 +54,21 @@ def calculate_ctth_stats(val_subset, imager_ctth_m_above_seasurface, truth_sat_v
     truth_have_hight_for_selection = np.logical_and(
         val_subset,
         np.greater_equal(truth_sat_validation_height,0))
-    #validate where both have height:
+    # validate where both have height:
     val_subset = np.logical_and(imager_have_hight_for_selection,
                                 truth_have_hight_for_selection)
-    #print "debug", np.sum(val_subset)
-    #note how many true clouds (iss/cloudsat/caliop) had no hight for imager:
+    # print "debug", np.sum(val_subset)
+    # note how many true clouds (iss/cloudsat/caliop) had no hight for imager:
     only_truth_had_height = np.logical_and(~imager_have_hight_for_selection,
                                            truth_have_hight_for_selection)
-    #print "debug", np.sum(only_truth_had_height)
+    # print "debug", np.sum(only_truth_had_height)
     n_only_truth_had_height = np.sum(only_truth_had_height)
     n_only_truth_had_height_both_had_cloud = np.sum(np.logical_and(only_truth_had_height,
                                                                    imager_is_cloudy))
-    #print "debug", np.sum(n_only_truth_had_height_both_had_cloud)
+    # print "debug", np.sum(n_only_truth_had_height_both_had_cloud)
     imager_height_work = imager_ctth_m_above_seasurface[val_subset.ravel(),...]
     truth_sat_validation_height_work = truth_sat_validation_height[val_subset.ravel(),...]
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     corr_caliop_imager = -9.0
     bias = -9.0
     RMS_difference = -9.0
@@ -89,7 +89,7 @@ def calculate_ctth_stats(val_subset, imager_ctth_m_above_seasurface, truth_sat_v
         diff_squared_biascorr = (diff-bias)*(diff-bias)
 #        RMS_difference_biascorr = np.sqrt(np.mean(diff_squared_biascorr))
 
-    #return (corr_caliop_imager,bias,RMS_difference,imager_height_work,diff_squared_biascorr)
+    # return (corr_caliop_imager,bias,RMS_difference,imager_height_work,diff_squared_biascorr)
     return "%3.2f %3.2f %3.2f %d %d %d %3.2f"%(corr_caliop_imager,
                                                bias,
                                                RMS_difference,
@@ -149,11 +149,11 @@ def get_subset_for_mode(match_obj, mode):
         cal_subset = np.logical_and(
             np.logical_and(np.less(nsidc_st,104), np.greater(nsidc_st,10)),
             np.not_equal(igbp_st,17))
-        #: Notice that some uncertainty remains about the meaning of IGBP
-        #: category 15 = "snow and ice". Can this possibly include also
-        #: the Arctic ice sheet? We hope that it is not!
-        #: However, if it is, the whole classification here might be wrong
-        #: since this will affect also the definition of IGBP category 17./KG
+        #  Notice that some uncertainty remains about the meaning of IGBP
+        #  category 15 = "snow and ice". Can this possibly include also
+        #  the Arctic ice sheet? We hope that it is not!
+        #  However, if it is, the whole classification here might be wrong
+        #  since this will affect also the definition of IGBP category 17./KG
     elif mode == 'SNOW_FREE_LAND':
         cal_subset = np.logical_and(np.equal(nsidc_st,0),
                                     np.not_equal(igbp_st,17))
@@ -240,8 +240,8 @@ def get_subset_for_mode(match_obj, mode):
 
 def get_day_night_info(match_obj, SETTINGS):
     daynight_flags = None
-    match_obj_imager = getattr(match_obj, 'imager') #Same as match_obj.imager
-    match_obj_truth_sat= getattr(match_obj, match_obj.truth_sat) #match_obj.calipso or match_obj.iss
+    match_obj_imager = getattr(match_obj, 'imager') # Same as match_obj.imager
+    match_obj_truth_sat= getattr(match_obj, match_obj.truth_sat) # match_obj.calipso or match_obj.iss
     if not SETTINGS["PPS_VALIDATION"]:
         daynight_flags = get_day_night_twilight_info_cci2014(
         match_obj_imager.sunz)
@@ -267,13 +267,13 @@ def get_semi_opaque_info(match_calipso):
     semi_flag = None
     opaque_flag = None
     if hasattr(match_calipso.imager, 'cloudtype_qflag'):
-        #print match_calipso.imager.ctth_opaque
+        # print match_calipso.imager.ctth_opaque
         if match_calipso.imager.ctth_opaque is not None:
             semi_flag, opaque_flag = get_semi_opaque_info_pps2012(
                 match_calipso.imager.ctth_opaque)
     if hasattr(match_calipso.imager, 'cloudtype_conditions'):
         if match_calipso.imager.ctth_status is not None:
-            #print match_calipso.imager.ctth_status
+            # print match_calipso.imager.ctth_status
             semi_flag, opaque_flag = get_semi_opaque_info_pps2014(
                 match_calipso.imager.ctth_status)
     return semi_flag, opaque_flag
@@ -334,11 +334,11 @@ def  get_lwp_diff_inner_cloudsat(aObj, val_subset, wide_selection=False):
     if wide_selection:
         pass
     else:
-        #exclude risk for precipitation contamination
+        # exclude risk for precipitation contamination
         selection = np.logical_and(selection, np.bitwise_and(np.right_shift(aObj.cloudsat.RVOD_CWC_status,2),1)==0)
-        #exclude not seen in GEOPROF
+        # exclude not seen in GEOPROF
         selection = np.logical_and(selection, np.bitwise_and(np.right_shift(aObj.cloudsat.RVOD_CWC_status,0),10)==0) # clear geoprof
-        #exclude cloudsat ice water path
+        # exclude cloudsat ice water path
         selection = np.logical_and(selection, aObj.cloudsat.RVOD_ice_water_path<=0)
 
     selection = np.logical_and(val_subset, selection)
@@ -349,7 +349,7 @@ def  get_lwp_diff_inner_cloudsat(aObj, val_subset, wide_selection=False):
                                aObj.cloudsat.LO_RVOD_liquid_water_path>=0)
     selection1 = np.logical_and(selection1, aObj.imager.cpp_phase == 1)
     selection1 = np.logical_and(selection1, aObj.cloudsat.cloud_fraction >0)
-    #selection = np.logical_and(selection, aObj.imager.fractionofland <=0)
+    # selection = np.logical_and(selection, aObj.imager.fractionofland <=0)
     selection1 = np.logical_and(val_subset, selection1)
     lwp_diff_lo = aObj.imager.cpp_lwp - aObj.cloudsat.LO_RVOD_liquid_water_path
     lwp_diff_lo = lwp_diff_lo[selection1]
@@ -357,7 +357,7 @@ def  get_lwp_diff_inner_cloudsat(aObj, val_subset, wide_selection=False):
 
 def print_cpp_lwp_stats(aObj, statfile, val_subset):
     # CLOUD LWP EVALUATION
-    #=======================
+    # =======================
     # AMSR-E - IMAGER
     # OR CLOUDSAT CWC-RVOD- IMAGER
     if aObj.imager.cpp_lwp is None:
@@ -425,7 +425,7 @@ def print_cpp_lwp_stats(aObj, statfile, val_subset):
 
 def print_cpp_stats(match_obj, statfile, val_subset, SETTINGS):
     # CLOUD PHASE EVALUATION
-    #=======================
+    # =======================
     # CLOUD PHASE: CALIOP/ISS - IMAGER
     if match_obj.imager.cpp_phase is None:
         logger.warning("There are no cpp data.")
@@ -460,8 +460,8 @@ def print_cpp_stats(match_obj, statfile, val_subset, SETTINGS):
 
     nice = n_ice_ice + n_ice_water
     nwater = n_water_water + n_water_ice
-    #nwater_pps = n_water_water+n_ice_water
-    #nice_pps = n_water_ice+n_ice_ice
+    # nwater_pps = n_water_water+n_ice_water
+    # nice_pps = n_water_ice+n_ice_ice
 
     pod_water = -9.0
     pod_ice = -9.0
@@ -479,7 +479,7 @@ def print_cpp_stats(match_obj, statfile, val_subset, SETTINGS):
 
 def print_cmask_stats(match_obj, statfile, val_subset, SETTINGS):
     # CLOUD MASK EVALUATION
-    #=======================
+    # =======================
     # CORRELATION CLOUD MASK: CALIOP/ISS - IMAGER
     truth_clear, truth_cloudy = find_truth_clear_cloudy(match_obj, val_subset, SETTINGS)
     pps_clear, pps_cloudy = find_imager_clear_cloudy(match_obj, SETTINGS)
@@ -493,8 +493,8 @@ def print_cmask_stats(match_obj, statfile, val_subset, SETTINGS):
         pps_cloudy,np.logical_and(truth_clear,pps_cloudy)).shape[0]
     n_cloudy_clear = np.repeat(
         pps_clear,np.logical_and(truth_cloudy,pps_clear)).shape[0]
-    nclear = n_clear_clear+n_clear_cloudy #np.repeat(truth_clear,truth_clear).shape[0]
-    ncloudy = n_cloudy_cloudy+n_cloudy_clear#np.repeat(truth_cloudy,truth_cloudy).shape[0]
+    nclear = n_clear_clear+n_clear_cloudy # np.repeat(truth_clear,truth_clear).shape[0]
+    ncloudy = n_cloudy_cloudy+n_cloudy_clear# np.repeat(truth_cloudy,truth_cloudy).shape[0]
     ncloudy_pps = n_cloudy_cloudy+n_clear_cloudy
     nclear_pps = n_cloudy_clear+n_clear_clear
 
@@ -520,7 +520,7 @@ def print_cmask_stats(match_obj, statfile, val_subset, SETTINGS):
         bias = -9.0*0.01
 
     statfile.write("CLOUD MASK %s-IMAGER TABLE: %s %s %s %s \n" % (match_obj.truth_sat.upper(), n_clear_clear,n_clear_cloudy,n_cloudy_clear,n_cloudy_cloudy))
-    #statfile.write("CLOUD MASK %s-IMAGER PROB:%3.2f \n" % (match_obj.truth_sat.upper(), pod_cloudy,pod_clear,far_cloudy,far_clear,bias))
+    # statfile.write("CLOUD MASK %s-IMAGER PROB:%3.2f \n" % (match_obj.truth_sat.upper(), pod_cloudy,pod_clear,far_cloudy,far_clear,bias))
     statfile.write("CLOUD MASK %s-IMAGER POD-CLOUDY: %3.2f \n" % (match_obj.truth_sat.upper(), pod_cloudy*100))
     statfile.write("CLOUD MASK %s-IMAGER POD-CLEAR:  %3.2f \n" %  (match_obj.truth_sat.upper(), pod_clear*100))
     statfile.write("CLOUD MASK %s-IMAGER FAR-CLOUDY: %3.2f \n" % (match_obj.truth_sat.upper(), far_cloudy*100))
@@ -530,7 +530,7 @@ def print_cmask_stats(match_obj, statfile, val_subset, SETTINGS):
 
 def print_cmask_prob_stats(match_obj, statfile, val_subset, SETTINGS):
     # CLOUD MASK PROB EVALUATION
-    #=======================
+    # =======================
     # CORRELATION CLOUD MASK: CALIOP/ISS - IMAGER
     if match_obj.imager.cma_prob is None:
         return
@@ -540,10 +540,10 @@ def print_cmask_prob_stats(match_obj, statfile, val_subset, SETTINGS):
         cma_prob = match_obj.imager.cma_prob
     truth_clear, truth_cloudy = find_truth_clear_cloudy(match_obj, val_subset, SETTINGS)
 
-    #selection:
+    # selection:
     truth_clear = np.logical_and(truth_clear, val_subset)
     truth_cloudy = np.logical_and(truth_cloudy,val_subset)
-    step = 5 #percents
+    step = 5 # percents
     clear_string = ""
     cloudy_string = ""
     for lower in range(0,100, step):
@@ -618,7 +618,7 @@ def print_modis_stats(match_obj, statfile, val_subset, cal_modis_cflag, SETTINGS
     else:
         bias=-9.0
     statfile.write("CLOUD MASK %s-MODIS TABLE: %s %s %s %s \n" % (match_obj.truth_sat.upper(), n_clear_clear,n_clear_cloudy,n_cloudy_clear,n_cloudy_cloudy))
-    #statfile.write("CLOUD MASK %s-MODIS FROM CLOUDSAT FLAG PROB: %f %f %f %f %f \n" % (pod_cloudy,pod_clear,far_cloudy,far_clear,bias))
+    # statfile.write("CLOUD MASK %s-MODIS FROM CLOUDSAT FLAG PROB: %f %f %f %f %f \n" % (pod_cloudy,pod_clear,far_cloudy,far_clear,bias))
     statfile.write("CLOUD MASK %s-MODIS FROM CLOUDSAT FLAG POD-CLOUDY:  %3.2f \n" % (match_obj.truth_sat.upper(), pod_cloudy*100))
     statfile.write("CLOUD MASK %s-MODIS FROM CLOUDSAT FLAG POD-CLEAR:   %3.2f \n" % (match_obj.truth_sat.upper(), pod_clear*100))
     statfile.write("CLOUD MASK %s-MODIS FROM CLOUDSAT FLAG FAR-CLOUDY:  %3.2f \n" % (match_obj.truth_sat.upper(), far_cloudy*100))
@@ -666,7 +666,7 @@ def print_calipso_stats_ctype(match_calipso, statfile, val_subset, low_medium_hi
             np.logical_and(np.greater_equal(match_calipso.imager.cloudtype,11),
                            np.less_equal(match_calipso.imager.cloudtype,15)),
             val_subset)
-        imager_high = imager_high_op #np.logical_or(imager_high_op,imager_high_semi)
+        imager_high = imager_high_op # np.logical_or(imager_high_op,imager_high_semi)
         imager_frac = np.logical_and(np.equal(match_calipso.imager.cloudtype,10),
                                     val_subset)
         imager_low = np.logical_or(imager_low, imager_frac)
@@ -809,7 +809,7 @@ def print_height_all_low_medium_high(NAME, val_subset,  statfile,
                                      truth_sat_validation_height, imager_is_cloudy)
     statfile.write("CLOUD HEIGHT %s ALL: %s\n" %(NAME, out_stats))
     if low_medium_high_class is None:
-        #Nothing more can be done!
+        # Nothing more can be done!
         return
     cal_low_ok = np.logical_and(low_medium_high_class['low_clouds'],
                                  val_subset)
@@ -836,14 +836,14 @@ def print_stats_ctop(match_obj, statfile, val_subset, low_medium_high_class, SET
     # FIRST TOTAL FIGURES
 
 
-    match_obj_imager = getattr(match_obj, 'imager') #Same as match_obj.imager
-    match_obj_truth_sat= getattr(match_obj, match_obj.truth_sat) #match_obj.calipso or match_obj.iss
+    match_obj_imager = getattr(match_obj, 'imager') # Same as match_obj.imager
+    match_obj_truth_sat= getattr(match_obj, match_obj.truth_sat) # match_obj.calipso or match_obj.iss
     imager_ctth_m_above_seasurface = match_obj_imager.imager_ctth_m_above_seasurface
     logger.warning("WARNING Only validating CTTH for cloudy pixels!")
     (dummy, imager_is_cloudy) = find_imager_clear_cloudy(match_obj, SETTINGS)
     imager_ctth_m_above_seasurface[~imager_is_cloudy] = -9
-    #imager_ctth_m_above_seasurface[match_obj_imager.cloudmask==0] = -9
-    #imager_ctth_m_above_seasurface[match_obj_imager.cloudmask==3] = -9
+    # imager_ctth_m_above_seasurface[match_obj_imager.cloudmask==0] = -9
+    # imager_ctth_m_above_seasurface[match_obj_imager.cloudmask==3] = -9
     truth_sat_validation_height = match_obj_truth_sat.validation_height
     truth_sat_validation_height = np.array(match_obj_truth_sat.validation_height, dtype=np.float64)
 
@@ -852,7 +852,7 @@ def print_stats_ctop(match_obj, statfile, val_subset, low_medium_high_class, SET
         match_obj_truth_sat.cloud_fraction >= SETTINGS["CALIPSO_CLOUDY_MIN_CFC"])
 
 
-    #print "ALL CLOUDS:"
+    # print "ALL CLOUDS:"
     print_height_all_low_medium_high(match_obj.truth_sat.upper(),
                                      val_subset,
                                      statfile, low_medium_high_class,
@@ -885,7 +885,7 @@ def print_stats_ctop(match_obj, statfile, val_subset, low_medium_high_class, SET
                             ndimage.filters.minimum_filter1d(match_obj.calipso.layer_top_pressure[:,0], size=9))
             val_geo = np.logical_and(
                 val_geo,
-                var_pressure<200) #Pressure variation less than 200hPa
+                var_pressure<200) # Pressure variation less than 200hPa
         if hasattr(match_obj,'cloudsat'):
             var_height = (ndimage.filters.maximum_filter1d(truth_sat_validation_height, size=9) -
                             ndimage.filters.minimum_filter1d(truth_sat_validation_height, size=9))
@@ -1035,7 +1035,7 @@ def calculate_statistics(mode, statfilename, match_calipso, match_clsat, issObj,
         if val_subset is not None:
             statfile = open(statfilename.replace('xxx','calipso'),"w")
             low_medium_high_class = get_calipso_low_medium_high_classification(match_calipso)
-            #semi_flag, opaque_flag = get_semi_opaque_info(match_calipso)
+            # semi_flag, opaque_flag = get_semi_opaque_info(match_calipso)
             val_subset = get_day_night_subset(match_calipso, val_subset, SETTINGS)
             print_main_stats(match_calipso, statfile)
             print_cmask_stats(match_calipso, statfile, val_subset, SETTINGS)
@@ -1054,7 +1054,7 @@ def calculate_statistics(mode, statfilename, match_calipso, match_clsat, issObj,
             print_main_stats(issObj, statfile)
             print_cmask_stats(issObj, statfile, val_subset, SETTINGS)
             print_cmask_prob_stats(issObj, statfile, val_subset, SETTINGS)
-            #print_calipso_stats_ctype(issObj, statfile, val_subset, cal_vert_feature)
+            # print_calipso_stats_ctype(issObj, statfile, val_subset, cal_vert_feature)
             print_stats_ctop(issObj, statfile, val_subset, None, SETTINGS)
             statfile.close()
 

@@ -33,7 +33,7 @@ import logging
 logging.basicConfig(
     format='%(levelname)s |%(asctime)s|: %(message)s',
     level=logging.INFO,
-    #datefmt='%Y-%m-%d %H:%M:%S')
+    # datefmt='%Y-%m-%d %H:%M:%S')
     datefmt='%H:%M:%S')
 logger = logging.getLogger(__name__)
 from atrain_match.utils.common import (InputError, MatchupError)
@@ -184,13 +184,13 @@ def main():
                 pass
             else:
                 satname, time = parse_scenesfile_reshaped(line)
-                #print time
+                # print time
                 matchups.append(Cross(satname, time))
 
     process_matchups(matchups, run_modes, reprocess, options.debug)
 
     return 0
 
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 if __name__=='__main__':
     main()

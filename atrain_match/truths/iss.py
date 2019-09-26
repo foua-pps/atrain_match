@@ -15,7 +15,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
-#Change log is found in git
+# Change log is found in git
 
 import logging
 import numpy as np
@@ -41,17 +41,17 @@ def get_iss(filename):
     iss.total_optical_depth_5km = 0.0 + 0*iss.cloud_phase_fore_fov[:,0].copy()
     iss.validation_height = -9 + 0 * iss.cloud_fraction.copy()
     #  feature_optical_depth_1064_fore_fov
-    #1.       Handle layers with values -1 och -999.9 as optical thick (= 5)
-    #2.       Check that each layer is a cloud layer (variable Feature_Type)
-    #3.       For safty, check also Feature_Type_Score (>5.0) and Extinction_QC_Flag_1064==0
+    # 1.       Handle layers with values -1 och -999.9 as optical thick (= 5)
+    # 2.       Check that each layer is a cloud layer (variable Feature_Type)
+    # 3.       For safty, check also Feature_Type_Score (>5.0) and Extinction_QC_Flag_1064==0
 
-    #used for cloud height validation, at certain modes it might be updated.
+    # used for cloud height validation, at certain modes it might be updated.
     # Start from bottom and find hight of highest cloud.
     # Remember that layer_top_altitude contain also aerosols
     # This was not the case for CALIPSO-data
     # There can be a thin aerosol layer above the highest cloud!
-    for layer in range(9,-1,-1): #layer index 9.0
-        #is_cloudy = np.greater(iss.cloud_phase_fore_fov[:,layer],0)
+    for layer in range(9,-1,-1): # layer index 9.0
+        # is_cloudy = np.greater(iss.cloud_phase_fore_fov[:,layer],0)
         is_cloudy = np.equal(iss.feature_type_fore_fov[:,layer],1)
         is_cloudy = np.logical_and(
             is_cloudy,
@@ -65,7 +65,7 @@ def get_iss(filename):
         od_layer[od_layer<0] = 0.0
         iss.total_optical_depth_5km += od_layer
         is_not_very_thin = np.greater(od_layer, limit)
-        #is_cloudy = np.logical_and(is_cloudy, is_not_very_thin)
+        # is_cloudy = np.logical_and(is_cloudy, is_not_very_thin)
         height_layer = iss.layer_top_altitude_fore_fov[:,layer]
         iss.validation_height[is_cloudy] = height_layer[is_cloudy]
 
@@ -74,30 +74,30 @@ def get_iss(filename):
     iss.validation_height[iss.validation_height>=0] = iss.validation_height[iss.validation_height>=0]*1000
     iss.validation_height[iss.validation_height<0] = -9
     #  --- cloud_phase_fore_fov ---
-    #0 clear or aerosol layer.
-    #1 water cloud
-    #2 unkknown phase
-    #3 ice cloud
+    # 0 clear or aerosol layer.
+    # 1 water cloud
+    # 2 unkknown phase
+    # 3 ice cloud
     # --- feature_type_score ---
-    #| 10 | = high confidence
-    #| 1 | = low confidence
-    #0 = zero confidence
+    # | 10 | = high confidence
+    # | 1 | = low confidence
+    # 0 = zero confidence
     # --- feature_type ---
-    #0 = invalid
-    #1 = cloud
-    #2 = undetermined
-    #3 = aerosol
+    # 0 = invalid
+    # 1 = cloud
+    # 2 = undetermined
+    # 3 = aerosol
     # --- sky_condition_fore_fov ---
-    #0 = clean skies (no clouds/aerosols)
-    #1 = clear skies (no clouds)
-    #2 = cloudy skies (no aerosols)
-    #3 = hazy/cloudy (both clouds/aerosols)
+    # 0 = clean skies (no clouds/aerosols)
+    # 1 = clear skies (no clouds)
+    # 2 = cloudy skies (no aerosols)
+    # 3 = hazy/cloudy (both clouds/aerosols)
     iss.cloud_fraction = np.where(iss.sky_condition_fore_fov>1.5, 1.0,0.0)
-    #print "iss cf", iss.cloud_fraction
+    # print "iss cf", iss.cloud_fraction
     logger.warning("Currently using sky_condition_fore_fov to set cloudfraction,"
                    "\n \t use cloud_phase_fore_fov instead?")
 
-    iss.validation_height[iss.cloud_fraction<0.5] = -9 #should not be needed
+    iss.validation_height[iss.cloud_fraction<0.5] = -9 # should not be needed
     return iss
 
 
@@ -155,7 +155,7 @@ def match_iss_imager(iss,cloudproducts, SETTINGS):
     if (~np.isnan(calnan)).sum() == 0:
         logger.warning("No matches within region.")
         return None
-    #check if it is within time limits:
+    # check if it is within time limits:
     if len(cloudproducts.time.shape)>1:
         imager_time_vector = [cloudproducts.time[line,pixel] for line, pixel
                               in zip(cal,cap)]

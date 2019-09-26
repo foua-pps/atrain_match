@@ -38,15 +38,15 @@ from atrain_match.imager_cloud_products.read_cloudproducts_and_nwp_pps import (
 from atrain_match.utils.runutils import do_some_geo_obj_logging
 import atrain_match.config as config
 ATRAIN_MATCH_NODATA = config.NODATA
-#from atrain_match.utils.get_flag_info import get_oca_ct_flag, get_day_night_twilight_info_oca
+# from atrain_match.utils.get_flag_info import get_oca_ct_flag, get_day_night_twilight_info_oca
 
 def get_satid_datetime_orbit_from_fname_oca(imager_filename, SETTINGS, cross):
     # Get satellite name, time, and orbit number from imager_file
-    #W_de-airbusDS-friedrichshafen,SAT,SGA1-VII-02-OCA_C_EUM_20190811211148_G_D_20070912114935_20070912115438_T_X____.nc
+    # W_de-airbusDS-friedrichshafen,SAT,SGA1-VII-02-OCA_C_EUM_20190811211148_G_D_20070912114935_20070912115438_T_X____.nc
     sl_ = os.path.basename(imager_filename).split('_')
     date_time = datetime.strptime(sl_[6], '%Y%m%d%H%M%S')
-    #date_time = cross.time
-    #date_time_end = cross.time + timedelta(seconds=SETTINGS['SAT_ORBIT_DURATION'])
+    # date_time = cross.time
+    # date_time_end = cross.time + timedelta(seconds=SETTINGS['SAT_ORBIT_DURATION'])
 
     sat_id = sl_[0].split('-')[0].lower()
     values = {"satellite": sat_id,
@@ -56,8 +56,8 @@ def get_satid_datetime_orbit_from_fname_oca(imager_filename, SETTINGS, cross):
               "year": date_time.year,
               "month": "%02d" % (date_time.month),
               "time": date_time.strftime("%H%M"),
-              "extrai": "", #asc_or_des
-              #"basename":sat_id + "_" + date_time.strftime("%Y%m%d_%H%M_99999"),#"20080613002200-ESACCI",
+              "extrai": "", # asc_or_des
+              # "basename":sat_id + "_" + date_time.strftime("%Y%m%d_%H%M_99999"),# "20080613002200-ESACCI",
               "imagerfilename": imager_filename}
     values['basename'] = values["satellite"] + "_" + \
         values["date"] + "_" + values["time"] + "_" + values["orbit"] + "_" + ""
@@ -83,7 +83,7 @@ def oca_read_all_nc(filename):
     cloudproducts.ctype = ctype
     cloudproducts.aux = read_oca_secondlayer_info(oca_nc)
     logger.info("Not reading cloud microphysical properties")
-    #cloudproducts.cpp = read_oca_cpp(oca_nc)
+    # cloudproducts.cpp = read_oca_cpp(oca_nc)
     logger.info("Not reading surface temperature")
     logger.info("Not reading channel data")
     cloudproducts.longitude[cloudproducts.longitude>180] = cloudproducts.longitude[cloudproducts.longitude>180]-360
@@ -91,11 +91,11 @@ def oca_read_all_nc(filename):
 
 def scale_oca_var(oca_var):
     likely_unscaled = oca_var[:,:].data
-    #Variables are scaled if inside valid_min/valid_max)
-    #gain = getattr(oca_var,'scale_factor')
-    #intercept = getattr(oca_var,'add_offset')
+    # Variables are scaled if inside valid_min/valid_max)
+    # gain = getattr(oca_var,'scale_factor')
+    # intercept = getattr(oca_var,'add_offset')
     nodata = getattr(oca_var,'missing_value')
-    #out = likely_unscaled.astype(np.float)*gain + intercept
+    # out = likely_unscaled.astype(np.float)*gain + intercept
     out = likely_unscaled
     out[likely_unscaled == nodata] = ATRAIN_MATCH_NODATA
     return out.astype(np.float), nodata
@@ -153,19 +153,19 @@ def read_oca_angobj(oca_nc):
     angle_obj.azidiff.data = None
     return angle_obj
 
-#filling on, default _FillValue of 4294967295 used
+# filling on, default _FillValue of 4294967295 used
 
 
 def read_oca_geoobj(oca_nc, filename):
     """Read geolocation and time info from filename
     """
     cloudproducts = AllImagerData()
-    #import pdb;pdb.set_trace()
+    # import pdb;pdb.set_trace()
     cloudproducts.longitude, cloudproducts.nodata = scale_oca_var(oca_nc['data']['measurement_data']['longitude'])
     cloudproducts.latitude, cloudproducts.nodata = scale_oca_var(oca_nc['data']['measurement_data']['latitude'])
     cloudproducts.num_of_lines = cloudproducts.longitude.shape[0]
     cloudproducts.nodata=-999
-    #sensing_start_time_utc and sensing_end_time_utc,
+    # sensing_start_time_utc and sensing_end_time_utc,
     stime = getattr(oca_nc, "sensing_start_time_utc")
     etime = getattr(oca_nc, "sensing_end_time_utc")
     cloudproducts.sec1970_start = calendar.timegm(

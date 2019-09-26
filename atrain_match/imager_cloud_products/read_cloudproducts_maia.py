@@ -54,7 +54,7 @@ def get_satid_datetime_orbit_from_fname_maia(imager_filename):
               "year": date_time.year,
               "month": "%02d" % (date_time.month),
               "time": date_time.strftime("%H%M"),
-              #"basename":sat_id + "_" + date_time.strftime("%Y%m%d_%H%M_99999"),#"20080613002200-ESACCI",
+              # "basename":sat_id + "_" + date_time.strftime("%Y%m%d_%H%M_99999"),# "20080613002200-ESACCI",
               "ccifilename": imager_filename,
               "ppsfilename": None}
     values['basename'] = values["satellite"] + "_" + \
@@ -102,7 +102,7 @@ def read_maia_ctype_cmask_ctth(maia_h5):
     ctth = CtthObj()
     ctype = CtypeObj()
     cma = CmaObj()
-    #ctth = CtthObj()
+    # ctth = CtthObj()
     cma.cma_ext
     maia_ct_bitflag = maia_h5['DATA']['CloudType'].value  # bit-4-8
     maia_ct = get_maia_ct_flag(maia_ct_bitflag)
@@ -124,9 +124,9 @@ def read_maia_ctype_cmask_ctth(maia_h5):
     cma.cma_ext[maia_ct == 3] = 3
     cma.cma_ext[maia_ct == 4] = 3
     cma.cma_ext[np.logical_and(maia_ct > 4, maia_ct < 20)] = 1
-    #0 -nodata
+    # 0 -nodata
     # 1-2 clear
-    #34 -snow/ice
+    # 34 -snow/ice
     # 5-19 cloudy
     ctype.phaseflag = None
     ctype.ct_conditions = None

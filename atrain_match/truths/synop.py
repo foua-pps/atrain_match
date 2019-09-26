@@ -36,12 +36,12 @@ logger = logging.getLogger(__name__)
 def reshape_synop(synopfiles, imager,  SETTINGS):
     start_t = datetime.utcfromtimestamp(imager.sec1970_start)
     end_t = datetime.utcfromtimestamp(imager.sec1970_end)
-    #datetime.datetime.fromtimestamp(
+    # datetime.datetime.fromtimestamp(
     from atrain_match.truths.read_synop_dwd import get_synop_data
     items = [get_synop_data(filename) for filename in synopfiles]
     panda_synops = pd.concat(items, ignore_index=True)
-    #import pdb
-    #pdb.set_trace()
+    # import pdb
+    # pdb.set_trace()
     dt_ = timedelta(seconds=SETTINGS["sec_timeThr_synop"])
     newsynops = panda_synops[panda_synops['date'] < end_t + dt_]
     panda_synops = newsynops[newsynops['date']  >  start_t - dt_ ]
@@ -71,7 +71,7 @@ def match_synop_imager(synop, cloudproducts, SETTINGS):
                                           synop.latitude.ravel(),
                                           radius_of_influence=SETTINGS["SYNOP_RADIUS"],
                                           n_neighbours=n_neighbours)
-    #pdb.set_trace()
+    # pdb.set_trace()
     cal, cap = mapper_and_dist["mapper"]
     distances = mapper_and_dist["distances"]
     cal_1 = cal[:,0]
@@ -81,7 +81,7 @@ def match_synop_imager(synop, cloudproducts, SETTINGS):
     if (~np.isnan(calnan)).sum() == 0:
         logger.warning("No matches within region.")
         return None
-    #check if it is within time limits:
+    # check if it is within time limits:
     if len(cloudproducts.time.shape)>1:
         imager_time_vector = [cloudproducts.time[line,pixel] for line, pixel in zip(cal_1,cap_1)]
         imager_lines_sec_1970 = np.where(cal_1 != config.NODATA, imager_time_vector, np.nan)

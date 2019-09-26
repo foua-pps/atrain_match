@@ -39,7 +39,7 @@ class CloudLwpStats(OrrbStats):
 
     def do_stats(self):
         OrrbStats.do_stats(self)
-        #for key in self.ac_data.keys():
+        # for key in self.ac_data.keys():
         #    print key
 
         amsr_all_samples = self.ac_data["amsr_all_samples"]

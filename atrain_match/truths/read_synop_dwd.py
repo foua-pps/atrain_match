@@ -40,11 +40,11 @@
 """Reader and data handler for the Synop reports from DWD
 """
 
-#TESTFILE = "./DataFromDwd/201403/sy_SYNOP_20140306.qc"
+# TESTFILE = "./DataFromDwd/201403/sy_SYNOP_20140306.qc"
 TESTFILE = "/data/proj6/saf/adybbroe/satellite_synop_matchup/DataFromDwd/201403/sy_SYNOP_20140306.qc"
 filename = TESTFILE
 
-#from astropy.io import ascii
+# from astropy.io import ascii
 import pandas as pd
 import numpy as np
 from datetime import datetime
