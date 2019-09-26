@@ -20,7 +20,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def my_hist(data, use, bmin=-3000, bmax=3000, delta_h=5, 
+def my_hist(data, use, bmin=-3000, bmax=3000, delta_h=5,
             return_also_corresponding_gaussian=False):
     if use is None:
         use = np.ones(data.shape, dtype=bool)
@@ -34,7 +34,7 @@ def my_hist(data, use, bmin=-3000, bmax=3000, delta_h=5,
     if return_also_corresponding_gaussian:
         n_pix_g = 1000000
         temp_data = np.random.normal(np.mean(data[use]),np.std(data[use]), n_pix_g)
-        hist_heights_gaussian,bins = np.histogram(temp_data,bins=bins)       
+        hist_heights_gaussian,bins = np.histogram(temp_data,bins=bins)
         hist_heights_gaussian =  hist_heights_gaussian *100.0/n_pix_g
     return hist_heights, x_, hist_heights_gaussian
 
@@ -85,7 +85,7 @@ def my_pe5000m(data):
 def my_mode(bias):
     bmin = -40
     bmax = 40
-    delta_h = 100.0   
+    delta_h = 100.0
     bins = np.arange(bmin*1000,bmax*1000,delta_h)
     hist_heights,bins = np.histogram(bias,bins=bins)
     n_pix = len(bias)
@@ -114,7 +114,7 @@ def K_cma(indict):
 def PODcy(indict):
     det_cloudy = indict["det_cloudy"]
     undet_cloudy = indict["undet_cloudy"]
-    return det_cloudy*100.0/(det_cloudy + undet_cloudy)    
+    return det_cloudy*100.0/(det_cloudy + undet_cloudy)
 def FARcy(indict):
     det_cloudy = indict["det_cloudy"]
     false_cloudy = indict["false_cloudy"]

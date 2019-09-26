@@ -31,9 +31,9 @@ logger = logging.getLogger(__name__)
 class MatchMapper(object):
     """
     Map arrays from one swath to another.
-    
+
     Note that MatchMapper always works with an extra dimension: neighbour
-    
+
     """
     def __init__(self, rows, cols, pixel_mask, time_diff=None,
                  time_threshold=None):
@@ -42,27 +42,27 @@ class MatchMapper(object):
         self._pixel_mask = pixel_mask
         self._time_diff = time_diff
         self.time_threshold = time_threshold
-    
+
     def __call__(self, array):
         """
         Maps *array* to target swath.
-        
+
         """
         return np.ma.array(array[self.rows, self.cols], mask=self.mask)
-    
+
     @property
     def rows(self):
         #self._rows = np.array(self._rows, dtype=np.int64)
         return np.ma.array(self._rows, mask=self.mask, fill_value=NODATA,
                            hard_mask=True)
-    
+
     @property
     def cols(self):
 
         #self._cols = np.array(self._cols, dtype=np.int64)
         return  np.ma.array(self._cols, mask=self.mask, fill_value=-NODATA,
                             hard_mask=True)
-    
+
     @property
     def time_diff(self):
         """Time difference in seconds"""
@@ -71,20 +71,20 @@ class MatchMapper(object):
         # Only use pixel mask
         return np.ma.array(self._time_diff, mask=self._pixel_mask,
                            fill_value=np.inf, hard_mask=True)
-    
+
     @time_diff.setter
     def time_diff(self, value):
         self._time_diff = value
-    
+
     @property
     def mask(self):
         if not None in (self.time_diff, self.time_threshold):
             return (self._pixel_mask +
                     (abs(self.time_diff) > self.time_threshold))
         return self._pixel_mask
-    
 
-    
+
+
 
 
 def match_lonlat(source, target,
@@ -94,14 +94,14 @@ def match_lonlat(source, target,
     Produce a masked array of the same shape as the arrays in *target*, with
     indices of nearest neighbours in *source*. *source* and *target* should be
     tuples (lon, lat) of the source and target swaths, respectively.
-    
+
     Note::
-    
+
         * Fastest matching is obtained when *target* has lower resolution than
         *source*.
-        
+
         * *source* should have 2-dimensional lon and lat arrays.
-    
+
     """
     from pyresample.geometry import SwathDefinition
     from pyresample.kd_tree import get_neighbour_info
@@ -154,16 +154,16 @@ def match_lonlat(source, target,
             rows[:,i] = get_sample_from_neighbour_info('nn', target_def.shape,
                                                        rows_matrix,
                                                        valid_in, valid_out,
-                                                       indices[:,i]) 
+                                                       indices[:,i])
             test = (distances[:,0] - distances[:,i])
             if  sum(~np.isnan(test))>0 and np.max(test[~np.isnan(test)]) > 0:
                 raise ValueError(
                     'We count on the first neighbour beeing the closest')
-            
+
 
     rows = np.array(rows)
     cols = np.array(cols)
-    #import pdb; pdb.set_trace()                            
+    #import pdb; pdb.set_trace()
     """ Code used during debugging, leaving it here for now
     if indices.dtype in ['uint32']:
         #With pykdtree installed get_neighbour_info returns indices
@@ -175,7 +175,7 @@ def match_lonlat(source, target,
     #import pdb; pdb.set_trace()
     rows[rows >= source_def.shape[0]] = NODATA
     cols[cols >= source_def.shape[1]] = NODATA
-    mask = np.logical_or(distances > radius_of_influence, 
+    mask = np.logical_or(distances > radius_of_influence,
                          indices >= len(valid_in))
     distances[distances > radius_of_influence] =-9
     #import pdb; ipdb.set_trace()

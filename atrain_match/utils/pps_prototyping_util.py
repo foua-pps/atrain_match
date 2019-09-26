@@ -26,18 +26,18 @@ from atrain_match.libs.extract_imager_along_track import get_channel_data_from_o
 def get_t11t12_texture_data_from_object(imager_obj, aux_obj, ch11, ch12, text_name):
     #https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
     t11 = get_channel_data_from_objectfull_resolution(imager_obj, ch11, nodata=-9)
-    t12 = get_channel_data_from_objectfull_resolution(imager_obj, ch12, nodata=-9)    
+    t12 = get_channel_data_from_objectfull_resolution(imager_obj, ch12, nodata=-9)
     t11t12 = 1.0*np.array(t11-t12)
     K=np.median(t11t12) #K is trick to get better accurracy maybe not needed as differences are often small
     t11t12 = (t11t12-K)
     from scipy.ndimage import uniform_filter
     mean = uniform_filter(t11t12, size=(5,5), mode='mirror')
-    mean_of_squared = uniform_filter(t11t12**2, size=(5,5), mode='mirror')    
-    t11t12_texture = mean_of_squared - mean**2 
+    mean_of_squared = uniform_filter(t11t12**2, size=(5,5), mode='mirror')
+    t11t12_texture = mean_of_squared - mean**2
     setattr(aux_obj, text_name, t11t12_texture)
     return aux_obj
 
-        
+
 
 
 class NeighbourObj(object):
@@ -73,7 +73,7 @@ def get_data_from_array_fill_outside(array, matched, Fill=0):
     row_index[outside] = 0
     col_index[outside] = 0
     temp = np.array([array[row_index[idx], col_index[idx]]
-                     for idx in range(matched['row'].shape[0])]) 
+                     for idx in range(matched['row'].shape[0])])
     return np.where(outside, Fill, temp)
 
 
@@ -81,24 +81,24 @@ def get_warmest_or_coldest_index(t11, matched, warmest=True):
     FILL = 999999.9  #coldest
     if warmest:
         FILL = -99
-        
+
     steps = [(i ,j) for i in [-2,-1,0,1,2] for j in  [-2,-1,0,1,2] ]
     t11_neighbour_i = np.zeros((25, matched['row'].shape[0]) )
     for i, (step_r, step_c) in enumerate(steps):
-        new_row_col = {'row': matched['row'] + step_r, 
+        new_row_col = {'row': matched['row'] + step_r,
                        'col': matched['col'] + step_c}
-        t11_neighbour_i[i,:] = get_data_from_array_fill_outside(t11, 
-                                                                new_row_col, 
+        t11_neighbour_i[i,:] = get_data_from_array_fill_outside(t11,
+                                                                new_row_col,
                                                                 Fill=FILL)
-    if warmest:    
+    if warmest:
         neigbour_index = np.argmax(t11_neighbour_i, axis=0)
     else: #coldest
         neigbour_index = np.argmin(t11_neighbour_i, axis=0)
     new_row_matched = np.array(
-        [matched['row'][idx] + steps[neigbour_index[idx]][0] 
+        [matched['row'][idx] + steps[neigbour_index[idx]][0]
          for idx in  range(matched['row'].shape[0])] )
     new_col_matched = np.array(
-        [matched['col'][idx] + steps[neigbour_index[idx]][1] 
+        [matched['col'][idx] + steps[neigbour_index[idx]][1]
          for idx in  range(matched['row'].shape[0])] )
     new_row_col = {'row': new_row_matched, 'col': new_col_matched}
     return new_row_col
@@ -144,7 +144,7 @@ def get_darkest_values(imager_obj, matched):
     nobj.darkest_r16=get_channel_data_from_object(imager_obj, '16', new_row_col)[0]
     nobj.darkest_r09=get_channel_data_from_object(imager_obj, '09', new_row_col)[0]
     return nobj
- 
+
 def add_cnn_features_full(imager_obj, imagerGeoObj, SETTINGS):
     from cloud_collocations.cloud_net import CloudNetBase
     from cloud_collocations.cloud_net import FeatureModel
@@ -158,7 +158,7 @@ def add_cnn_features_full(imager_obj, imagerGeoObj, SETTINGS):
     lats_f = m.resample_coordinates(imagerGeoObj.latitude)
     lons_f = m.resample_coordinates(imagerGeoObj.longitude)
     return {'filter_response': filter_response, 'lats_f': lats_f, 'lons_f':lons_f}
-   
+
 def add_cnn_features(cnn_dict, matched, lats_matched, lons_matched, SETTINGS):
     from atrain_match.utils.match import match_lonlat
     #filter_response.shape
@@ -169,9 +169,9 @@ def add_cnn_features(cnn_dict, matched, lats_matched, lons_matched, SETTINGS):
     filter_response = cnn_dict['filter_response']
     lats_f = cnn_dict['lats_f']
     lons_f = cnn_dict['lons_f']
-    target = (lons_matched.astype(np.float64).reshape(-1,1), 
+    target = (lons_matched.astype(np.float64).reshape(-1,1),
               lats_matched.astype(np.float64).reshape(-1,1))
-    source = (lons_f.astype(np.float64), 
+    source = (lons_f.astype(np.float64),
               lats_f.astype(np.float64))
     mapper, dummy = match_lonlat(source, target, radius_of_influence=10000, n_neighbours=1)
     cnn_feature_index_R = mapper.rows.filled(config.NODATA).ravel() #i.e rows, cols!
@@ -179,11 +179,11 @@ def add_cnn_features(cnn_dict, matched, lats_matched, lons_matched, SETTINGS):
     for feature_index in range(32):
         feature_i = filter_response[0,feature_index,:,:]
         the_filters_dict["cnn_feature_%d"%(feature_index)] = np.where(
-            cnn_feature_index_R>=0, 
+            cnn_feature_index_R>=0,
             feature_i[cnn_feature_index_R,cnn_feature_index_C],
             -9)
-    return the_filters_dict  
-    
+    return the_filters_dict
+
 
 
 def get_channel_data_from_objectfull_resolution(imager_obj, chn_des, nodata=-9):
@@ -194,7 +194,7 @@ def get_channel_data_from_objectfull_resolution(imager_obj, chn_des, nodata=-9):
         channels = imager_obj.channels
     except:
         channels = imager_obj.channel
-        
+
     numOfChannels = len(channels)
     chnum=-1
     for ich in range(numOfChannels):
@@ -203,7 +203,7 @@ def get_channel_data_from_objectfull_resolution(imager_obj, chn_des, nodata=-9):
     if chnum ==-1:
         raise ValueError
     temp = channels[chnum].data
-    chdata = channels[chnum].data* channels[chnum].gain + channels[chnum].intercept      
+    chdata = channels[chnum].data* channels[chnum].gain + channels[chnum].intercept
     chdata[np.logical_or(np.equal(temp, imager_obj.nodata),
                          np.equal(temp, imager_obj.missing_data))]= nodata
     return chdata

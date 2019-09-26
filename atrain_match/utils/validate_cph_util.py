@@ -70,19 +70,19 @@ CTYPE_PHASE_BITS = {'Not processed or undefined': 1,
 def get_bits(value, bits, shift=False):
     """
     Returns value for bits *bits* in *value*.
-    
+
     Examples
-    
+
     >>> get_bits(6, [0, 1])
     2
     >>> get_bits(6, [1, 2])
     6
-    
+
     If *shift* is True, shift the obtained value by min(bits) bits:
-    
+
     >>> get_bits(6, [1, 2], shift=True)
     3
-    
+
     """
     selected = value & sum([2**i for i in bits])
     if shift:
@@ -92,9 +92,9 @@ def get_bits(value, bits, shift=False):
 def get_calipso_phase_inner(features, qual_min=CALIPSO_QUAL_VALUES['medium'],
                             max_layers=1, same_phase_in_top_three_lay=True):
     """
-    Returns Calipso cloud phase.    
-    Pixels with quality lower than *qual_min* are masked out.    
-    Screen out pixels with more than *max_layers* layers.    
+    Returns Calipso cloud phase.
+    Pixels with quality lower than *qual_min* are masked out.
+    Screen out pixels with more than *max_layers* layers.
     """
     if same_phase_in_top_three_lay:
         phase1 = get_bits(features[:,0], CALIPSO_PHASE_BITS, shift=True)
@@ -112,10 +112,10 @@ def get_calipso_phase_inner(features, qual_min=CALIPSO_QUAL_VALUES['medium'],
     features = np.ma.array(features[:, 0],
                            mask=(features[:, max_layers:] > 1).any(axis=-1))
     if same_phase_in_top_three_lay:
-        features = np.ma.array(features,                               
+        features = np.ma.array(features,
                                 mask = varying_phases_in_top_3lay)
     phase = get_bits(features, CALIPSO_PHASE_BITS, shift=True)
-    qual = get_bits(features, CALIPSO_QUAL_BITS, shift=True)    
+    qual = get_bits(features, CALIPSO_QUAL_BITS, shift=True)
     # Don't care about pixels with lower than *qual_min* quality
     return np.ma.array(phase, mask=qual < qual_min)
 

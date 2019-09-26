@@ -27,13 +27,13 @@
 """
 
 import numpy as np
-import h5py   
+import h5py
 from atrain_match.utils.common import write_match_objects
 
 class DataObject(object):
     """
     Class to handle data objects with several arrays.
-    
+
     """
     def __getattr__(self, name):
         try:
@@ -41,7 +41,7 @@ class DataObject(object):
         except KeyError:
             raise AttributeError("%s instance has no attribute '%s'" % (
                 self.__class__.__name__, name))
-    
+
     def __setattr__(self, name, value):
         if name == 'all_arrays':
             object.__setattr__(self, name, value)
@@ -50,18 +50,18 @@ class DataObject(object):
 
     def __add__(self, other):
         """Adding two objects together"""
-        # Check if we have an empty object 
+        # Check if we have an empty object
         # modis objects does not have longitude attribute
-        if (not hasattr(self, "longitude") and 
-            hasattr(self, "height") 
+        if (not hasattr(self, "longitude") and
+            hasattr(self, "height")
             and self.all_arrays["height"] is None):
             print("First object is None!, returning second object")
-            return other   
-        if (not hasattr(other, "longitude") and 
-            hasattr(other, "height") 
+            return other
+        if (not hasattr(other, "longitude") and
+            hasattr(other, "height")
             and other.all_arrays["height"] is None):
             print("Second object is None!, returning first object")
-            return self  
+            return self
         if self.all_arrays["longitude"] is None:
             print("First object is None!, returning second object")
             return other
@@ -71,14 +71,14 @@ class DataObject(object):
         for key in self.all_arrays:
             try:
                 if self.all_arrays[key].ndim != self.all_arrays[key].ndim:
-                    raise ValueError("Can't concatenate arrays " + 
+                    raise ValueError("Can't concatenate arrays " +
                                      "of different dimensions!")
             except AttributeError as e:
                 #print "Don't concatenate member " + key + "... " + str(e)
                 self.all_arrays[key] = other.all_arrays[key]
                 continue
             try:
-                if self.all_arrays[key].ndim == 1:  
+                if self.all_arrays[key].ndim == 1:
                     self.all_arrays[key] = np.concatenate(
                         [self.all_arrays[key],
                          other.all_arrays[key]])
@@ -89,35 +89,35 @@ class DataObject(object):
                      self.all_arrays[key] = np.concatenate(
                          [self.all_arrays[key],
                           other.all_arrays[key]], 0)
-                elif self.all_arrays[key].ndim == 2: 
+                elif self.all_arrays[key].ndim == 2:
                     self.all_arrays[key] = np.concatenate(
                         [self.all_arrays[key],
                          other.all_arrays[key]], 0)
             except ValueError as e:
                 #print "Don't concatenate member " + key + "... " + str(e)
                 self.all_arrays[key] = other.all_arrays[key]
-        return self  
+        return self
 
     def extract_elements(self, idx=None, starti=0, endi=0):
         """Extract elements with index idx"""
         #to replace calipso_track_from_matched
- 
-        for key, value in self.all_arrays.items(): 
+
+        for key, value in self.all_arrays.items():
             if key in ["TAI_start"]:
                 continue
             if value is None:
                 self.all_arrays[key] = None
             elif value.size == 1:
                 pass
-            elif idx is not None:    
-                self.all_arrays[key] = value[idx.ravel(),...]   
+            elif idx is not None:
+                self.all_arrays[key] = value[idx.ravel(),...]
             else:
-                self.all_arrays[key] = value[starti:endi,...]                
+                self.all_arrays[key] = value[starti:endi,...]
             if value is not None and len(value.shape)>1 and value.shape[1]==1:
                 self.all_arrays[key] = self.all_arrays[key].ravel()
 
-              
-        return self    
+
+        return self
 
     def mask_nodata(self, nodata):
         for key in self.all_arrays:
@@ -126,15 +126,15 @@ class DataObject(object):
             else:
                 try:
                     self.all_arrays[key] = np.ma.array(
-                        self.all_arrays[key], 
+                        self.all_arrays[key],
                         mask = self.all_arrays[key]<=nodata)
                 except:
                     print("cloud not mask %s"%(key))
-            
-            
+
+
 class ExtractedImagerObject(DataObject):
     def __init__(self):
-        DataObject.__init__(self)                            
+        DataObject.__init__(self)
         self.all_arrays = {
             'imager_ctth_m_above_seasurface': None,
             'longitude': None,
@@ -148,7 +148,7 @@ class ExtractedImagerObject(DataObject):
             'cfc_mean': None,
             'cma_prob': None,
             'cma_prob_mean': None,
-            
+
             'cpp_lwp':None,
             'cpp_phase':None,
             # Quality flags
@@ -161,12 +161,12 @@ class ExtractedImagerObject(DataObject):
             # Angles
             'satz': None,
             'sunz': None,
-    
+
         }
-        
+
 class ModisObject(DataObject):
     def __init__(self):
-        DataObject.__init__(self)                            
+        DataObject.__init__(self)
         self.all_arrays = {
             'height': None,
             'temperature': None,
@@ -175,13 +175,13 @@ class ModisObject(DataObject):
             'cloud_phase':None,
             'lwp': None}
 
-        
+
 class CalipsoObject(DataObject):
     def __init__(self):
-        DataObject.__init__(self)                            
+        DataObject.__init__(self)
         self.all_arrays = {
             # Normal name = calipso.name.lower()
-            
+
             # Imager matching needed for all truths:
             'longitude': None,
             'latitude': None,
@@ -201,15 +201,15 @@ class CalipsoObject(DataObject):
             'number_layers_found': None,
             'igbp_surface_type': None,
             'nsidc_surface_type': None, #V4 renamed from 'snow_ice_surface_type'
-            'snow_ice_surface_type': None, 
+            'snow_ice_surface_type': None,
             #'nsidc_surface_type_texture': None,
-            'profile_time_tai': None, #renamed from "Profile_Time" 
+            'profile_time_tai': None, #renamed from "Profile_Time"
             'feature_classification_flags': None,
             'day_night_flag': None,
             'feature_optical_depth_532': None,
             'tropopause_height': None,
             'profile_id':None,
-          
+
             # If a combination of 5 and 1km data are used for RESOLUTION=1
             #"column_optical_depth_tropospheric_aerosols_1064_5km": None,
             #"column_optical_depth_tropospheric_aerosols_1064": None,
@@ -246,7 +246,7 @@ class CalipsoObject(DataObject):
 
 class CloudsatObject(DataObject):
     def __init__(self):
-        DataObject.__init__(self)                            
+        DataObject.__init__(self)
         self.all_arrays = {
             'clsat_max_height':None,
             'longitude': None,
@@ -279,7 +279,7 @@ class CloudsatObject(DataObject):
 
 class IssObject(DataObject):
     def __init__(self):
-        DataObject.__init__(self)                            
+        DataObject.__init__(self)
         self.all_arrays = {
             # Name: Iss name .lower()
             'longitude': None,
@@ -302,7 +302,7 @@ class IssObject(DataObject):
 
 class AmsrObject(DataObject):
     def __init__(self):
-        DataObject.__init__(self)                            
+        DataObject.__init__(self)
         self.all_arrays = {
             'longitude': None,
             'latitude': None,
@@ -315,7 +315,7 @@ class AmsrObject(DataObject):
 
 class MoraObject(DataObject):
     def __init__(self):
-        DataObject.__init__(self)                            
+        DataObject.__init__(self)
         self.all_arrays = {
             'longitude': None,
             'latitude': None,
@@ -326,7 +326,7 @@ class MoraObject(DataObject):
 
 class SynopObject(DataObject):
     def __init__(self):
-        DataObject.__init__(self)                            
+        DataObject.__init__(self)
         self.all_arrays = {
             'longitude': None,
             'latitude': None,
@@ -361,7 +361,7 @@ class TruthImagerTrackObject:
         elif truth in 'synop':
             self.synop = SynopObject()
         elif truth in 'mora':
-            self.mora = MoraObject()            
+            self.mora = MoraObject()
         elif truth in 'iss':
             self.iss = IssObject()
         self.diff_sec_1970 = None
@@ -374,14 +374,14 @@ class TruthImagerTrackObject:
         if self.calipso.all_arrays['nsidc_surface_type'] is not None:
             self.calipso.all_arrays['nsidc_surface_type_texture'] = sliding_std(
                 self.calipso.all_arrays['nsidc_surface_type'], kernel_sz)
-    
+
     def __add__(self, other):
         """Concatenating two objects together"""
         for object_name in ['imager', 'calipso', 'calipso_aerosol', 'amsr',
                             'cloudsat', 'iss', 'mora', 'synop', 'modis']:
             if hasattr(self, object_name):
-                setattr(self, object_name, 
-                        getattr(self, object_name) + 
+                setattr(self, object_name,
+                        getattr(self, object_name) +
                         getattr(other, object_name))
         try:
             self.diff_sec_1970 = np.concatenate([self.diff_sec_1970,
@@ -406,7 +406,7 @@ class TruthImagerTrackObject:
             #print "Don't concatenate member diff_sec_1970... " + str(e)
             self.diff_sec_1970 = other.diff_sec_1970
         return self
-       
+
 
 def get_stuff_to_read_from_a_reshaped_file(h5file, retv):
     h5_groups = []
@@ -433,7 +433,7 @@ def get_stuff_to_read_from_a_reshaped_file(h5file, retv):
         data_objects.append(retv.imager)
     if 'modis_lvl2' in h5file.keys():
         h5_groups.append(h5file['/modis_lvl2'])
-        data_objects.append(retv.modis)        
+        data_objects.append(retv.modis)
     if 'cloudsat' in  h5file.keys():
         h5_groups.append(h5file['/cloudsat'])
         data_objects.append(retv.cloudsat)
@@ -450,25 +450,25 @@ def get_stuff_to_read_from_a_reshaped_file(h5file, retv):
         h5_groups.append(h5file['/synop'])
         data_objects.append(retv.synop)
     return (h5_groups, data_objects)
-    
-          
-def read_truth_imager_match_obj(filename, truth='calipso', 
-                            read_all=True, 
-                            read_var=[], 
+
+
+def read_truth_imager_match_obj(filename, truth='calipso',
+                            read_all=True,
+                            read_var=[],
                             skip_var=[]):
-    retv = TruthImagerTrackObject(truth=truth)    
+    retv = TruthImagerTrackObject(truth=truth)
     h5file = h5py.File(filename, 'r')
     (h5_groups, data_objects) =  get_stuff_to_read_from_a_reshaped_file(h5file, retv)
     for group, data_obj in zip(h5_groups, data_objects):
         for dataset in group.keys():
             if dataset in skip_var:
                 continue
-            if  (read_all or dataset in read_var or 
+            if  (read_all or dataset in read_var or
                  (len(read_var)==0 and dataset.data_obj.all_arrays.keys())) :
                 atrain_match_name = dataset
                 if atrain_match_name in ["snow_ice_surface_type"]:
                     atrain_match_name = "nsidc_surface_type"
-                setattr(data_obj, dataset, group[dataset].value) 
+                setattr(data_obj, dataset, group[dataset].value)
     retv.diff_sec_1970 = h5file['diff_sec_1970'].value
     h5file.close()
     return retv
@@ -477,13 +477,13 @@ def read_files(files, truth='calipso', read_all=True, read_var=[]):
     tObj = read_truth_imager_match_obj(files.pop(), truth=truth)
     if len(files)>0:
         for filename in files:
-            tObj += read_truth_imager_match_obj(filename, truth=truth, read_all=read_all, read_var=read_var)  
-    return tObj 
+            tObj += read_truth_imager_match_obj(filename, truth=truth, read_all=read_all, read_var=read_var)
+    return tObj
 
 # write matchup files
 def write_truth_imager_match_obj(filename, match_obj, SETTINGS=None, imager_obj_name = 'pps'):
     """
-    Write *match_obj* to *filename*.    
+    Write *match_obj* to *filename*.
     """
     datasets = {'diff_sec_1970': match_obj.diff_sec_1970}
     groups = {imager_obj_name: match_obj.imager.all_arrays}
@@ -522,11 +522,11 @@ the_used_variables = [
     'cloud_phase',
     'lwp',
     #AMSR
-    'lwp',   
+    'lwp',
     'imager_amsr_dist',
     #MORA
-    'cloud_base_height',   
-    #Cloudsat 
+    'cloud_base_height',
+    #Cloudsat
     'cloud_fraction',
     'validation_height',
     'RVOD_liq_water_path',
@@ -562,7 +562,7 @@ the_used_variables = [
     'feature_optical_depth_532_top_layer_5km',
     'feature_optical_depth_532_5km',
     'total_optical_depth_5km',
-    'detection_height_5km',         
+    'detection_height_5km',
     'column_optical_depth_cloud_532',
     'column_optical_depth_cloud_uncertainty_532',
     'column_optical_depth_tropospheric_aerosols_532_5km',
@@ -584,9 +584,9 @@ the_used_variables = [
 if __name__ == "__main__":
 
     import os.path
-    TESTDIR = ("/local_disk/laptop/NowcastingSaf/FA/cloud_week_2013may" + 
+    TESTDIR = ("/local_disk/laptop/NowcastingSaf/FA/cloud_week_2013may" +
                "/atrain_matchdata/2012/10/arctic_europe_1km")
-    TESTFILE = os.path.join(TESTDIR, 
+    TESTFILE = os.path.join(TESTDIR,
                             "1km_npp_20121012_1246_04968_caliop_viirs_match.h5")
     TESTFILE2 = os.path.join(TESTDIR,
                              "1km_npp_20121004_0700_04851_caliop_viirs_match.h5")

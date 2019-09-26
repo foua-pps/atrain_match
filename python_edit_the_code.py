@@ -27,10 +27,7 @@ for filename in files:
     python_file = open(filename,'r') 
     line_list = [line for line in python_file]  
     for line in line_list:
-        for key in var_name_dict.keys():
-            line = line.replace(key,var_name_dict[key])
-
-        all_file += line
+        all_file += line.rstrip()+ "\n"
 
     
     python_file.close()

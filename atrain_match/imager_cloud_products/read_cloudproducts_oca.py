@@ -17,7 +17,7 @@
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
 """
   Use this module to read OCA cloudproducts
-  2019 SMHI, N.Hakansson 
+  2019 SMHI, N.Hakansson
 """
 
 import time
@@ -31,7 +31,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from atrain_match.imager_cloud_products.read_cloudproducts_and_nwp_pps import (
-    AllImagerData, AuxiliaryObj, 
+    AllImagerData, AuxiliaryObj,
     CtypeObj, CtthObj, CmaObj, CppObj,
     create_imager_time,
     ImagerAngObj)
@@ -165,13 +165,13 @@ def read_oca_geoobj(oca_nc, filename):
     cloudproducts.latitude, cloudproducts.nodata = scale_oca_var(oca_nc['data']['measurement_data']['latitude'])
     cloudproducts.num_of_lines = cloudproducts.longitude.shape[0]
     cloudproducts.nodata=-999
-    #sensing_start_time_utc and sensing_end_time_utc, 
+    #sensing_start_time_utc and sensing_end_time_utc,
     stime = getattr(oca_nc, "sensing_start_time_utc")
     etime = getattr(oca_nc, "sensing_end_time_utc")
     cloudproducts.sec1970_start = calendar.timegm(
-        time.strptime(stime, '%Y%m%d%H%M%S.%f')) 
+        time.strptime(stime, '%Y%m%d%H%M%S.%f'))
     cloudproducts.sec1970_end = calendar.timegm(
-        time.strptime(etime, '%Y%m%d%H%M%S.%f')) 
+        time.strptime(etime, '%Y%m%d%H%M%S.%f'))
     cloudproducts = create_imager_time(cloudproducts, values={})
     do_some_geo_obj_logging(cloudproducts)
     return cloudproducts

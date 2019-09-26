@@ -23,7 +23,7 @@ from datetime import datetime, timedelta
 from calendar import timegm
 TAI93 = datetime(1993, 1, 1)
 import atrain_match.config as config
-from atrain_match.matchobject_io import (TruthImagerTrackObject, 
+from atrain_match.matchobject_io import (TruthImagerTrackObject,
                             SynopObject)
 from atrain_match.truths.calipso import find_break_points
 from atrain_match.utils.runutils import do_some_logging
@@ -66,10 +66,10 @@ def match_synop_imager(synop, cloudproducts, SETTINGS):
     n_neighbours = 250
     if config.RESOLUTION == 5:
         n_neighbours = 16
-    mapper_and_dist = map_imager_distances(cloudproducts, 
-                                          synop.longitude.ravel(), 
-                                          synop.latitude.ravel(), 
-                                          radius_of_influence=SETTINGS["SYNOP_RADIUS"], 
+    mapper_and_dist = map_imager_distances(cloudproducts,
+                                          synop.longitude.ravel(),
+                                          synop.latitude.ravel(),
+                                          radius_of_influence=SETTINGS["SYNOP_RADIUS"],
                                           n_neighbours=n_neighbours)
     #pdb.set_trace()
     cal, cap = mapper_and_dist["mapper"]
@@ -80,7 +80,7 @@ def match_synop_imager(synop, cloudproducts, SETTINGS):
     calnan = np.where(cal_1 == config.NODATA, np.nan, cal_1)
     if (~np.isnan(calnan)).sum() == 0:
         logger.warning("No matches within region.")
-        return None   
+        return None
     #check if it is within time limits:
     if len(cloudproducts.time.shape)>1:
         imager_time_vector = [cloudproducts.time[line,pixel] for line, pixel in zip(cal_1,cap_1)]
@@ -92,7 +92,7 @@ def match_synop_imager(synop, cloudproducts, SETTINGS):
         logger.warning("No  matches in region within time threshold %d s.", SETTINGS["sec_timeThr_synop"])
         return None
     retv.synop = retv.synop.extract_elements(idx=idx_match)
- 
+
     # Synop line,pixel inside IMAGER swath (one nearest neighbour):
     retv.synop.imager_linnum = np.repeat(cal_1, idx_match).astype('i')
     retv.synop.imager_pixnum = np.repeat(cap_1, idx_match).astype('i')
@@ -107,7 +107,7 @@ def match_synop_imager(synop, cloudproducts, SETTINGS):
 
     do_some_logging(retv, synop)
     logger.debug("Extract imager along track!")
-    
+
     retv = imager_track_from_matched(retv, SETTINGS,
                                      cloudproducts,
                                      extract_radiances = False,

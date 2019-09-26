@@ -21,7 +21,7 @@ import logging
 import numpy as np
 logger = logging.getLogger(__name__)
 from atrain_match.matchobject_io import (IssObject,
-                            TruthImagerTrackObject)                            
+                            TruthImagerTrackObject)
 import atrain_match.config as config
 from atrain_match.utils.common import (MatchupError, ProcessingError,
                     elements_within_range)
@@ -46,7 +46,7 @@ def get_iss(filename):
     #3.       For safty, check also Feature_Type_Score (>5.0) and Extinction_QC_Flag_1064==0
 
     #used for cloud height validation, at certain modes it might be updated.
-    # Start from bottom and find hight of highest cloud. 
+    # Start from bottom and find hight of highest cloud.
     # Remember that layer_top_altitude contain also aerosols
     # This was not the case for CALIPSO-data
     # There can be a thin aerosol layer above the highest cloud!
@@ -65,7 +65,7 @@ def get_iss(filename):
         od_layer[od_layer<0] = 0.0
         iss.total_optical_depth_5km += od_layer
         is_not_very_thin = np.greater(od_layer, limit)
-        #is_cloudy = np.logical_and(is_cloudy, is_not_very_thin) 
+        #is_cloudy = np.logical_and(is_cloudy, is_not_very_thin)
         height_layer = iss.layer_top_altitude_fore_fov[:,layer]
         iss.validation_height[is_cloudy] = height_layer[is_cloudy]
 
@@ -84,13 +84,13 @@ def get_iss(filename):
     #0 = zero confidence
     # --- feature_type ---
     #0 = invalid
-    #1 = cloud    
-    #2 = undetermined    
+    #1 = cloud
+    #2 = undetermined
     #3 = aerosol
     # --- sky_condition_fore_fov ---
     #0 = clean skies (no clouds/aerosols)
-    #1 = clear skies (no clouds)       
-    #2 = cloudy skies (no aerosols)       
+    #1 = clear skies (no clouds)
+    #2 = cloudy skies (no aerosols)
     #3 = hazy/cloudy (both clouds/aerosols)
     iss.cloud_fraction = np.where(iss.sky_condition_fore_fov>1.5, 1.0,0.0)
     #print "iss cf", iss.cloud_fraction
@@ -103,12 +103,12 @@ def get_iss(filename):
 
 
 scip_these_larger_variables_until_needed_iss = {
-        # if any of these are needed remove them from the dictionary!  
+        # if any of these are needed remove them from the dictionary!
         # might need more work as they are 3D or 4D variables.
         "Constrained_Lidar_Ratio_Flag": True,
         "Attenuated_Backscatter_Statistics_1064_Fore_FOV": True,
         "Attenuated_Backscatter_Statistics_532_Fore_FOV":  True,
-        "Attenuated_Total_Color_Ratio_Statistics_Fore_FOV": True, 
+        "Attenuated_Total_Color_Ratio_Statistics_Fore_FOV": True,
         "Volume_Depolarization_Ratio_Statistics_1064_Fore_FOV": True,
         }
 def read_iss(filename):
@@ -129,16 +129,16 @@ def read_iss(filename):
                     continue
                 data = my_group[dataset].value
                 data = np.array(data)
-                setattr(retv, name, data) 
+                setattr(retv, name, data)
         h5file.close()
         retv.latitude = retv.cats_fore_fov_latitude[:,1]
-        retv.longitude = retv.cats_fore_fov_longitude[:,1] 
+        retv.longitude = retv.cats_fore_fov_longitude[:,1]
         # Elevation is given in km's. Convert to meters:
-        retv.elevation = retv.dem_surface_altitude_fore_fov*1000.0 
+        retv.elevation = retv.dem_surface_altitude_fore_fov*1000.0
         seconds_per_day = datetime.timedelta(days=1).total_seconds()
         midnight_sec_1970 = [ calendar.timegm(time.strptime(str(date_as_integer), "%Y%m%d")) for date_as_integer in retv.profile_utc_date]
         retv.sec_1970 = seconds_per_day*retv.profile_utc_time[:,1] + np.array(midnight_sec_1970)
-    return retv  
+    return retv
 
 
 def match_iss_imager(iss,cloudproducts, SETTINGS):
@@ -157,7 +157,7 @@ def match_iss_imager(iss,cloudproducts, SETTINGS):
         return None
     #check if it is within time limits:
     if len(cloudproducts.time.shape)>1:
-        imager_time_vector = [cloudproducts.time[line,pixel] for line, pixel 
+        imager_time_vector = [cloudproducts.time[line,pixel] for line, pixel
                               in zip(cal,cap)]
         imager_lines_sec_1970 = np.where(cal != config.NODATA, imager_time_vector, np.nan)
     else:
@@ -176,7 +176,7 @@ def match_iss_imager(iss,cloudproducts, SETTINGS):
     retv.iss.imager_pixnum = np.repeat(cap, idx_match).astype('i')
     # Imager time
     retv.imager.sec_1970 = np.repeat(imager_lines_sec_1970, idx_match)
-    retv.diff_sec_1970 = retv.iss.sec_1970 - retv.imager.sec_1970                        
+    retv.diff_sec_1970 = retv.iss.sec_1970 - retv.imager.sec_1970
 
     do_some_logging(retv, iss)
     logger.info("Generate the latitude,cloudtype tracks!")
@@ -199,13 +199,13 @@ def reshape_iss(issfiles, imager, SETTINGS):
         iss_break = np.argmin(np.abs(iss_start_all - iss_new_all[0]))+1
         # Concatenate the feature values
         iss = iss + newIss
- 
+
     # Finds Break point
     startBreak, endBreak = find_break_points(iss, imager, SETTINGS)
-    iss = iss.extract_elements(starti=startBreak, 
-                               endi=endBreak) 
+    iss = iss.extract_elements(starti=startBreak,
+                               endi=endBreak)
     return iss
-    
+
 
 if __name__ == "__main__":
     pass

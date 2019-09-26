@@ -26,76 +26,76 @@ from statistics.orrb_stat_class import OrrbStats
 
 # -----------------------------------------------------
 class CloudTypeStats(OrrbStats):
-    
+
     def do_stats(self):
         OrrbStats.do_stats(self)
 
         Num_cma = self.ac_data["Num"]
         CFC_TRUTH = np.divide(100.0 * (self.ac_data["n_cloudy_cloudy_cal"] +
-                                       self.ac_data["n_cloudy_clear_cal"]), 
+                                       self.ac_data["n_cloudy_clear_cal"]),
                               Num_cma)
         CFC_PPS = np.divide(100.0 * (self.ac_data["n_cloudy_cloudy_cal"] +
-                                      self.ac_data["n_clear_cloudy_cal"]), 
+                                      self.ac_data["n_clear_cloudy_cal"]),
                             Num_cma)
 
-        n_low_low = self.ac_data["n_low_low"] 
-        n_low_medium = self.ac_data["n_low_medium"] 
-        n_low_high = self.ac_data["n_low_high"] 
-        n_medium_low = self.ac_data["n_medium_low"] 
-        n_medium_medium = self.ac_data["n_medium_medium"] 
-        n_medium_high = self.ac_data["n_medium_high"] 
-        n_high_low = self.ac_data["n_high_low"] 
-        n_high_medium = self.ac_data["n_high_medium"] 
-        n_high_high = self.ac_data["n_high_high"] 
-        n_cirrus_low = self.ac_data["n_cirrus_low"] 
-        n_cirrus_medium_tp = self.ac_data["n_cirrus_medium_tp"] 
+        n_low_low = self.ac_data["n_low_low"]
+        n_low_medium = self.ac_data["n_low_medium"]
+        n_low_high = self.ac_data["n_low_high"]
+        n_medium_low = self.ac_data["n_medium_low"]
+        n_medium_medium = self.ac_data["n_medium_medium"]
+        n_medium_high = self.ac_data["n_medium_high"]
+        n_high_low = self.ac_data["n_high_low"]
+        n_high_medium = self.ac_data["n_high_medium"]
+        n_high_high = self.ac_data["n_high_high"]
+        n_cirrus_low = self.ac_data["n_cirrus_low"]
+        n_cirrus_medium_tp = self.ac_data["n_cirrus_medium_tp"]
         n_cirrus_high_tp = self.ac_data["n_cirrus_high_tp"]
-        n_cirrus_medium_op = self.ac_data["n_cirrus_medium_op"] 
-        n_cirrus_high_op = self.ac_data["n_cirrus_high_op"] 
+        n_cirrus_medium_op = self.ac_data["n_cirrus_medium_op"]
+        n_cirrus_high_op = self.ac_data["n_cirrus_high_op"]
         # This is really CMA buisness!
-        pps_undetected_low = self.ac_data["n_clear_low"] 
-        pps_undetected_medium = self.ac_data["n_clear_medium"] 
-        pps_undetected_high = self.ac_data["n_clear_high"] 
+        pps_undetected_low = self.ac_data["n_clear_low"]
+        pps_undetected_medium = self.ac_data["n_clear_medium"]
+        pps_undetected_high = self.ac_data["n_clear_high"]
         pps_false_low = self.ac_data["n_low_clear"] # This is really CMA buisness!
-        pps_false_medium = self.ac_data["n_medium_clear"] 
-        pps_false_high = self.ac_data["n_high_clear"] 
-        pps_false_cirrus = self.ac_data["n_cirrus_clear"] 
-        pps_false = (pps_false_low + pps_false_medium + 
+        pps_false_medium = self.ac_data["n_medium_clear"]
+        pps_false_high = self.ac_data["n_high_clear"]
+        pps_false_cirrus = self.ac_data["n_cirrus_clear"]
+        pps_false = (pps_false_low + pps_false_medium +
                      pps_false_high + pps_false_cirrus )
-        pps_undetected = (pps_undetected_low + pps_undetected_medium + 
+        pps_undetected = (pps_undetected_low + pps_undetected_medium +
                           pps_undetected_high)
         common_cloud_free = self.ac_data["n_clear_clear_cal"]
-   
 
-        pps_cirrus = (n_cirrus_low + 
-                      n_cirrus_medium_op + n_cirrus_medium_tp + 
+
+        pps_cirrus = (n_cirrus_low +
+                      n_cirrus_medium_op + n_cirrus_medium_tp +
                       n_cirrus_high_op + n_cirrus_high_tp)
-      
 
-        Num_ct = (n_low_low + n_low_medium + n_low_high + 
-                  n_medium_low + n_medium_medium + n_medium_high + 
-                  n_high_low + n_high_medium + n_high_high + 
-                  n_cirrus_low + 
-                  n_cirrus_medium_op +n_cirrus_high_op + 
+
+        Num_ct = (n_low_low + n_low_medium + n_low_high +
+                  n_medium_low + n_medium_medium + n_medium_high +
+                  n_high_low + n_high_medium + n_high_high +
+                  n_cirrus_low +
+                  n_cirrus_medium_op +n_cirrus_high_op +
                   n_cirrus_medium_tp +n_cirrus_high_tp )
 
-        N_low_cal = (n_low_low + n_medium_low + n_high_low 
+        N_low_cal = (n_low_low + n_medium_low + n_high_low
                      + n_cirrus_low)
-        N_medium_cal = (n_low_medium + n_medium_medium + n_high_medium + 
+        N_medium_cal = (n_low_medium + n_medium_medium + n_high_medium +
                         + n_cirrus_medium_tp + + n_cirrus_medium_op)
-        N_high_cal = (n_low_high + n_medium_high + n_high_high + 
+        N_high_cal = (n_low_high + n_medium_high + n_high_high +
                        + n_cirrus_high_op + n_cirrus_high_tp)
-     
-        N_low_pps = (n_low_low + n_low_medium + n_low_high )
-        N_medium_pps = (n_medium_low + n_medium_medium + 
-                        n_medium_high)
-        N_high_pps = (n_high_low + n_high_medium + n_high_high) 
 
-        N_cirrus_pps = pps_cirrus              
-     
+        N_low_pps = (n_low_low + n_low_medium + n_low_high )
+        N_medium_pps = (n_medium_low + n_medium_medium +
+                        n_medium_high)
+        N_high_pps = (n_high_low + n_high_medium + n_high_high)
+
+        N_cirrus_pps = pps_cirrus
+
         # numpy.divide handles potential division by zero
         pod_low = 100.0 * np.divide(float(n_low_low), N_low_cal)
-        far_low = 100.0 * np.divide(float(n_low_medium + 
+        far_low = 100.0 * np.divide(float(n_low_medium +
                                           n_low_high), N_low_pps)
         pod_medium = 100.0 * np.divide(
             float(n_medium_medium + n_cirrus_medium_tp), N_medium_cal)
@@ -107,7 +107,7 @@ class CloudTypeStats(OrrbStats):
         far_cirrus = 100.0 * np.divide(float(n_cirrus_low + n_cirrus_high_op + n_cirrus_medium_op ), N_cirrus_pps)
 
 
-    
+
         low_fraction_pps_rel = np.divide(float(N_low_pps), Num_ct) * 100.0
         low_fraction_cal_rel = np.divide(float(N_low_cal), Num_ct) * 100.0
         medium_fraction_pps_rel = np.divide(float(N_medium_pps), Num_ct) * 100.0
@@ -123,20 +123,20 @@ class CloudTypeStats(OrrbStats):
         high_fraction_pps_abs = high_fraction_pps_rel * 0.01 *CFC_PPS
         high_fraction_cal_abs = high_fraction_cal_rel * 0.01 *CFC_TRUTH
         cirrus_fraction_pps_abs = cirrus_fraction_pps_rel * 0.01 *CFC_PPS
-          
 
 
-        #Removed bc-RMS Not sure how ot interpret it                     
-        
+
+        #Removed bc-RMS Not sure how ot interpret it
+
         #POD,FAR,HR and KSS calculations =============================================================
 
         hitrate = np.divide(
             100.0*(
-                n_low_low + n_medium_medium + n_high_high + 
+                n_low_low + n_medium_medium + n_high_high +
                 n_cirrus_medium_tp + n_cirrus_high_tp),
             Num_ct)
-        
-       
+
+
         self.Num_cma = Num_cma
         self.common_cloud_free = common_cloud_free
         self.Num_ct = Num_ct
@@ -221,7 +221,7 @@ class CloudTypeStats(OrrbStats):
                      (self.pps_undetected, self.pps_undetected_low,
                       self.pps_undetected_medium, self.pps_undetected_high))
         lines.append("")
-        
+
         return lines
 
 

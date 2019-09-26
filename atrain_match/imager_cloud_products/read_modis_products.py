@@ -67,7 +67,7 @@ def find_modis_lvl2_file_from_pps(pps_imager_file, options):
     modis_06_filename = get_pps_file(pps_imager_file, options, values, 'modis_06_file', 'modis_06_dir')
     logger.info("MODIS-C6 file:  %s", os.path.basename(modis_06_filename))
     return modis_06_filename
-    
+
 def read_modis_h5(filename):
     h5file = h5py.File(filename, 'r')
     modis_06 = MOD06Obj()
@@ -104,9 +104,9 @@ def read_modis_h5(filename):
     modis_06.temperature[~tmask] = modis_06.temperature[~tmask]*t_gain - t_intercept*t_gain
     modis_06.lwp[~lwpmask] = modis_06.lwp[~lwpmask]*lwp_gain + lwp_intercept
     modis_06.height[hmask] = ATRAIN_MATCH_NODATA
-    modis_06.pressure[pmask] = ATRAIN_MATCH_NODATA    
-    modis_06.temperature[tmask] = ATRAIN_MATCH_NODATA 
-    modis_06.lwp[lwpmask] = ATRAIN_MATCH_NODATA 
+    modis_06.pressure[pmask] = ATRAIN_MATCH_NODATA
+    modis_06.temperature[tmask] = ATRAIN_MATCH_NODATA
+    modis_06.lwp[lwpmask] = ATRAIN_MATCH_NODATA
     modis_06.cloud_emissivity = h5file['mod06']['Data Fields']['cloud_emissivity_1km'].value.astype(np.float)
     modis_06.cloud_phase = h5file['mod06']['Data Fields']['Cloud_Phase_Infrared_1km'].value.astype(np.int)
     modis_06.latitude = h5file['mod06']['Geolocation Fields']['Latitude'].value.astype(np.float)

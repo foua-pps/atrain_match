@@ -22,7 +22,7 @@ import calendar
 from datetime import datetime, timedelta
 from calendar import timegm
 TAI93 = datetime(1993, 1, 1)
-from atrain_match.matchobject_io import (TruthImagerTrackObject, 
+from atrain_match.matchobject_io import (TruthImagerTrackObject,
                             MoraObject)
 from atrain_match.utils.runutils import do_some_logging
 import atrain_match.config as config
@@ -38,12 +38,12 @@ def get_mora_data(filename):
 
     convert_datefunc = lambda x: datetime.strptime(x.decode("utf-8"), '%Y%m%dT%H%M%S')
     #convert_datefunc = lambda x: x.decode("utf-8")
-    
+
     dtype = [('station', '|S5'),
-             ('lat', 'f8'), 
+             ('lat', 'f8'),
              ('lon', 'f8'),
-             ('x', 'f8'), 
-             ('date', object), 
+             ('x', 'f8'),
+             ('date', object),
              ('cloud_base_height', 'i4')]
 
     data = np.genfromtxt(filename,
@@ -59,11 +59,11 @@ def get_mora_data(filename):
                              4: convert_datefunc,
                                      #6: lambda x: float(x) / 10.,
                                      #7: lambda x: float(x) / 10.,
-                                     #8: lambda x: float(x) / 10., 
+                                     #8: lambda x: float(x) / 10.,
                          })
-    
+
     return pd.DataFrame(data)
-    
+
 def reshape_mora(morafiles, imager,  SETTINGS):
     start_t = datetime.utcfromtimestamp(imager.sec1970_start)
     end_t = datetime.utcfromtimestamp(imager.sec1970_end)
@@ -99,14 +99,14 @@ def match_mora_imager(mora, cloudproducts, SETTINGS):
     plt.plot(mora.longitude.ravel(), mora.latitude.ravel(),'b.')
     plt.show()
     """
-    cal, cap = map_imager(cloudproducts, 
+    cal, cap = map_imager(cloudproducts,
                          mora.longitude.ravel(),
                          mora.latitude.ravel(),
                           radius_of_influence=config.RESOLUTION*0.7*1000.0)
     calnan = np.where(cal == config.NODATA, np.nan, cal)
     if (~np.isnan(calnan)).sum() == 0:
         logger.warning("No matches within region.")
-        return None   
+        return None
     #check if it is within time limits:
     if len(cloudproducts.time.shape)>1:
         imager_time_vector = [cloudproducts.time[line,pixel] for line, pixel in zip(cal,cap)]
@@ -127,8 +127,8 @@ def match_mora_imager(mora, cloudproducts, SETTINGS):
 
     do_some_logging(retv, mora)
     logger.debug("Extract imager along track!")
-    
-    retv = imager_track_from_matched(retv, 
+
+    retv = imager_track_from_matched(retv,
                                      SETTINGS,
                                      cloudproducts,
                                      extract_nwp_segments = False)

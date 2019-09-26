@@ -17,7 +17,7 @@
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
 """
   Use this module to read patmosx cloudproducts
-  2018 SMHI, N.Hakansson 
+  2018 SMHI, N.Hakansson
 """
 
 import time
@@ -31,7 +31,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from atrain_match.imager_cloud_products.read_cloudproducts_and_nwp_pps import (
-    AllImagerData, 
+    AllImagerData,
     CtypeObj, CtthObj, CmaObj,
     create_imager_time,
     ImagerAngObj)
@@ -42,7 +42,7 @@ ATRAIN_MATCH_NODATA = config.NODATA
 
 def get_satid_datetime_orbit_from_fname_patmosx(imager_filename, SETTINGS, cross):
     # Get satellite name, time, and orbit number from imager_file
-    # patmosx_v05r03_NOAA-18_asc_d20090102_c20140317.nc 
+    # patmosx_v05r03_NOAA-18_asc_d20090102_c20140317.nc
     #patmosx_noaa-18_des_2009_122.level2b.hdf
 
     sl_ = os.path.basename(imager_filename).split('_')
@@ -76,7 +76,7 @@ def get_satid_datetime_orbit_from_fname_patmosx(imager_filename, SETTINGS, cross
 def patmosx_read_all(filename, cross, SETTINGS):
     if ".nc" in filename:
         return patmosx_read_all_nc(filename, cross, SETTINGS)
-    else:   
+    else:
         return patmosx_read_all_hdf(filename, cross, SETTINGS)
 
 def patmosx_read_all_nc(filename, cross, SETTINGS):
@@ -108,14 +108,14 @@ def read_patmosx_ctype_cmask_ctth(patmosx_nc):
     cma = CmaObj()
     ctth.height = patmosx_nc.variables['cld_height_acha'][0,:,:].astype(np.float)
     ctth.h_nodata = patmosx_nc.variables['cld_height_acha']._FillValue
-    if np.ma.is_masked(ctth.height):     
+    if np.ma.is_masked(ctth.height):
         ctth.height.data[ctth.height.mask]  = ATRAIN_MATCH_NODATA
         ctth.height = ctth.height.data
     ctth.height = 1000*ctth.height
     cf = patmosx_nc.variables['cloud_fraction'][0,:,:].astype(np.float)
     cma.cma_ext = np.where(cf>=0.5, 1, 0)
     if np.ma.is_masked(cf):
-       cma.cma_ext[cf.mask] = 255 
+       cma.cma_ext[cf.mask] = 255
     ctype.phaseflag = None
     ctype.ct_conditions = None
     return ctype, cma, ctth
@@ -159,7 +159,7 @@ def patmosx_read_all_hdf(filename, cross, SETTINGS):
     """
     from pyhdf.SD import SD, SDC
     from pyhdf.HDF import HDF, HC
-    import pyhdf.VS 
+    import pyhdf.VS
     patmosx_hdf = SD(filename, SDC.READ)
     logger.info("Opening file %s", filename)
     logger.info("Reading longitude, latitude and time ...")
@@ -212,8 +212,8 @@ def read_patmosx_angobj_hdf(patmosx_hdf):
     offset = patmosx_hdf.select(name).attributes()['add_offset']
     gain = patmosx_hdf.select(name).attributes()['scale_factor']
     angle_obj.satz.data =  temp * gain + offset
-    
-    name = 'solar_zenith_angle' 
+
+    name = 'solar_zenith_angle'
     temp = patmosx_hdf.select(name).get().astype(np.float)
     offset = patmosx_hdf.select(name).attributes()['add_offset']
     gain = patmosx_hdf.select(name).attributes()['scale_factor']

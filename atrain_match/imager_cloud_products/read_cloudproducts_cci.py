@@ -17,16 +17,16 @@
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
 """
   Use this module to read cci cloudproducts
-  2013 SMHI, N.Hakansson 
+  2013 SMHI, N.Hakansson
 """
 from atrain_match.imager_cloud_products.read_cloudproducts_and_nwp_pps import (AllImagerData,
                                                                   CtthObj, CppObj, CmaObj,
                                                                   ImagerAngObj)
 import os
-import netCDF4	
+import netCDF4
 import numpy as np
 import calendar
-import datetime 
+import datetime
 import logging
 logger = logging.getLogger(__name__)
 import time
@@ -39,14 +39,14 @@ def get_satid_datetime_orbit_from_fname_cci(imager_filename):
     #imager_file = "20080613002200-ESACCI-L2_CLOUD-CLD_PRODUCTS-IMAGERGAC-NOAA18-fv1.0.nc"
     sl_ = os.path.basename(imager_filename).split('-')
     date_time = datetime.datetime.strptime(sl_[0], '%Y%m%d%H%M%S')
-    
+
     sat_id = sl_[5].lower()
     values= {"satellite": sat_id,
              "date_time": date_time,
              "orbit": "99999",
              "date":date_time.strftime("%Y%m%d"),
              "year":date_time.year,
-             "month":"%02d"%(date_time.month),    
+             "month":"%02d"%(date_time.month),
              "time":date_time.strftime("%H%M"),
              #"basename":sat_id + "_" + date_time.strftime("%Y%m%d_%H%M_99999"),#"20080613002200-ESACCI",
              "ccifilename":imager_filename,
@@ -58,18 +58,18 @@ def daysafter4713bc_to_sec1970(bcdate_array):
     """Translating days after 4713bc 12:00 to sec since 1970
     """
     #import pps_time_util #@UnresolvedImport
-    #first date if several in the file, swath at midnight   
+    #first date if several in the file, swath at midnight
     bcdate = np.min(bcdate_array)
     # days since 4713 bc 12:00:00
     ddays = np.floor(bcdate)
-    #seconds after 12:00:00 
+    #seconds after 12:00:00
     dseconds = np.floor(24*60*60*(bcdate-ddays))
     mseconds = np.floor(10**6*(24*60*60*(bcdate-ddays)-dseconds))
     # to avoid too large numbers count from 1950-01-01 12:00
     # time datetime.datetime(1950, 1, 1, 12, 0,0,0) == julian day 2433283
     ddays = ddays-2433283
 
-    time_delta = datetime.timedelta(days=ddays, seconds=dseconds, 
+    time_delta = datetime.timedelta(days=ddays, seconds=dseconds,
                                     microseconds = mseconds)
     the_time = datetime.datetime(1950, 1, 1, 12, 0,0,0) + time_delta
     sec_1970 = calendar.timegm(the_time.timetuple()) + the_time.microsecond/(1.0*10**6)
@@ -121,7 +121,7 @@ def read_cci_angobj(cci_nc):
     """Read angles info from filename
     """
     my_angle_obj = ImagerAngObj()
-    my_angle_obj.satz.data = cci_nc.variables['satellite_zenith_view_no1'][::] 
+    my_angle_obj.satz.data = cci_nc.variables['satellite_zenith_view_no1'][::]
     my_angle_obj.sunz.data = cci_nc.variables['solar_zenith_view_no1'][::]
     my_angle_obj.azidiff = None #cci_nc.variables['rel_azimuth_view_no1']??
     return my_angle_obj
@@ -129,23 +129,23 @@ def read_cci_phase(cci_nc):
     """Read angles info from filename
     """
     cpp_obj = CppObj()
-    data = cci_nc.variables['phase'][::] 
+    data = cci_nc.variables['phase'][::]
     setattr(cpp_obj, 'cpp_phase', data)
     #if hasattr(phase, 'mask'):
     #    phase_out = np.where(phase.mask, -999, phase.data)
     #else:
     #    phase_out = phase.data
-    #print phase    
+    #print phase
     return cpp_obj
 
 def read_cci_geoobj(cci_nc):
- 
+
 
     """Read geolocation and time info from filename
     """
     cloudproducts = AllImagerData()
     logger.debug("Min lon: %s, max lon: %d",
-                 np.min(cci_nc.variables['lon'][::]), 
+                 np.min(cci_nc.variables['lon'][::]),
                  np.max(cci_nc.variables['lon'][::]))
     #cci_nc.variables['lon'].add_offset
     #cloudproducts.longitude = cci_nc.variables['lon'][::]
@@ -163,7 +163,7 @@ def read_cci_geoobj(cci_nc):
                           cci_nc.variables['lon'].valid_max)),
         cci_nc.variables['lon'][::],
         cloudproducts.nodata)
-    #cloudproducts.latitude = cci_nc.variables['lat'][::] 
+    #cloudproducts.latitude = cci_nc.variables['lat'][::]
     cloudproducts.latitude = np.where(
         np.logical_and(
             np.greater_equal(cci_nc.variables['lat'][::],
@@ -179,7 +179,7 @@ def read_cci_geoobj(cci_nc):
     time_temp = daysafter4713bc_to_sec1970(cci_nc.variables['time'][::])
     cloudproducts.time = time_temp[::]#[:,0] #time_temp[:,0]
 
-    cloudproducts.sec1970_start = np.min(cloudproducts.time)  
+    cloudproducts.sec1970_start = np.min(cloudproducts.time)
     cloudproducts.sec1970_end = np.max(cloudproducts.time)
     do_some_geo_obj_logging(cloudproducts)
     return  cloudproducts
@@ -193,25 +193,25 @@ def read_cci_ctth(cci_nc):
         cth_data = np.where(cth.mask, ATRAIN_MATCH_NODATA, cth.data)
     else:
         cth_data = cth.data # already scaled!
-  
+
     logger.info("Setting ctth for non cloudy pixels do nodata ...")
     cth_data[cci_nc.variables['cc_total'][::]<0.5]= ATRAIN_MATCH_NODATA
-   
+
 
     cth_corr = cci_nc.variables['cth_corrected'][::]
     if hasattr(cth_corr, 'mask'):
         cth_data_corr = np.where(cth_corr.mask, ATRAIN_MATCH_NODATA, cth_corr.data)
     else:
-        cth_data_corr = cth_corr.data # already scaled! 
+        cth_data_corr = cth_corr.data # already scaled!
     logger.debug("Setting ctth for non cloudy pixels do nodata ...")
     cth_data_corr[cci_nc.variables['cc_total'][::]<0.5]= ATRAIN_MATCH_NODATA
-   
+
     ctth.h_gain = 1.0
     ctth.h_intercept = 0.0
     ctth.h_nodata = ATRAIN_MATCH_NODATA
     ctth.height = 1000*cth_data
     ctth.height_corr = 1000*cth_data_corr
-        
+
     ctt = cci_nc.variables['ctt'][::]
     if hasattr(ctt, 'mask'):
         ctt_data = np.where(ctt.mask, ATRAIN_MATCH_NODATA, ctt.data)
@@ -219,12 +219,12 @@ def read_cci_ctth(cci_nc):
         ctt_data = ctt.data
     logger.debug("Setting ctth for non cloudy pixels do nodata ...")
     ctt_data[cci_nc.variables['cc_total'][::]<0.5]= ATRAIN_MATCH_NODATA
-   
+
     ctth.t_gain = 1.0
     ctth.t_intercept = 0.0
     ctth.t_nodata = ATRAIN_MATCH_NODATA
     ctth.temperature = ctt_data
-    
+
     ctp = cci_nc.variables['ctp'][::]
     if hasattr(ctp, 'mask'):
         ctp_data = np.where(ctp.mask,  ATRAIN_MATCH_NODATA, ctp.data)#Upscaled
@@ -236,8 +236,8 @@ def read_cci_ctth(cci_nc):
     logger.debug("Setting ctth for non cloudy pixels do nodata ...")
     ctp_data[cci_nc.variables['cc_total'][::]<0.5]= ATRAIN_MATCH_NODATA
     ctth.pressure =  ctp_data
- 
-   
+
+
     return ctth
 
 if __name__ == "__main__":

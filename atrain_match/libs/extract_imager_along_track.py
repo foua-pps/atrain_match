@@ -42,7 +42,7 @@ CHANNEL_MICRON_DESCRIPTIONS = {'11': ["avhrr channel 4 - 11um",
                                       "VIIRS M16",
                                       "Avhrr channel channel5."],
                                '06': [ "VIIRS M05",
-                                       "AVHRR ch 1", 
+                                       "AVHRR ch 1",
                                        "SEVIRI VIS006",
                                        "AVHRR ch1",
                                        "AVHRR ch_1",
@@ -71,7 +71,7 @@ CHANNEL_MICRON_DESCRIPTIONS = {'11': ["avhrr channel 4 - 11um",
                                        "MODIS 20",
                                        "3b",
                                        "AVHRR 3B"],
-                               '22': [ "VIIRS M11"],   
+                               '22': [ "VIIRS M11"],
                                '13': [ "VIIRS M09",
                                        "MODIS 26"],
                                '86': [ "VIIRS M14",
@@ -111,17 +111,17 @@ CHANNEL_MICRON_DESCRIPTIONS = {'11': ["avhrr channel 4 - 11um",
                                'modis_33': ['MODIS 33'],
                                'modis_34': ['MODIS 34'],
                                'modis_35': ['MODIS 35'],
-                               'modis_36': ['MODIS 36']                     
+                               'modis_36': ['MODIS 36']
                                }
 CHANNEL_MICRON_IMAGER_PPS = {'11': 3,
                             '12': 4,
                             '06': 0,
                             '09': 1,
                             '37': 2,
-                            '86': -1,               
+                            '86': -1,
                             '16': 5,
                             '22': -1,
-                            '13': -1} 
+                            '13': -1}
 CURRENTLY_UNUSED_SEVIRI_CHANNELS = ['seviri_bt73',
                                     'seviri_bt134',
                                     'seviri_bt97',
@@ -159,10 +159,10 @@ CURRENTLY_UNUSED_MODIS_CHANNELS = ['modis_3',
 
 def get_data_from_array(array, matched):
     if array is None:
-        return None        
+        return None
     return np.array([array[matched['row'][idx], matched['col'][idx]]
-                    for idx in range(matched['row'].shape[0])]) 
-    
+                    for idx in range(matched['row'].shape[0])])
+
 def get_data_from_array_nneigh(array, matched):
     if array is None:
         return None
@@ -172,7 +172,7 @@ def get_data_from_array_nneigh(array, matched):
         matched_i = {'row': matched['row'][:,i].copy(),
                      'col': matched['col'][:,i].copy()}
         matched_i['row'][nodata] = 0
-        matched_i['col'][nodata] = 0        
+        matched_i['col'][nodata] = 0
         out[:,i] = get_data_from_array(array, matched_i)
         out[nodata,i] = -9
     return out
@@ -193,24 +193,24 @@ def get_channel_data_from_object(imager_obj, chn_des, matched, nodata=-9):
     matched: dict of matched indices (row, col)
 
     """
-    channels = imager_obj.channel    
+    channels = imager_obj.channel
     numOfChannels = len(channels)
     #for ich in range(numOfChannels):
     #    if channels[ich].des in CHANNEL_MICRON_DESCRIPTIONS[chn_des]:
     #        chnum = ich
-    chnum = [ich for ich in range(numOfChannels) 
-             if channels[ich].des in CHANNEL_MICRON_DESCRIPTIONS[chn_des]]       
-            
+    chnum = [ich for ich in range(numOfChannels)
+             if channels[ich].des in CHANNEL_MICRON_DESCRIPTIONS[chn_des]]
+
     if len(chnum) == 0:
         #chnum = CHANNEL_MICRON_IMAGER_PPS[chn_des]
         logger.debug("Did not find pps channel number for channel "
                      "{:s}".format(chn_des))
-        return None, "" 
+        return None, ""
     else:
         chnum = chnum[0]
     if matched is None:
         return channels[chnum].data, ""
-    
+
     chdata_on_track = get_data_from_array(channels[chnum].data, matched)
     #np.array([channels[chnum].data[matched['row'][idx], matched['col'][idx]]
     #                   for idx in range(matched['row'].shape[0])])
@@ -224,7 +224,7 @@ def _interpolate_height_and_temperature_from_pressure(imager_obj,
                                                       level):
     """ Function to find height att pressure level (level)
     from segment_nwp, pressure and height vectors.
-    High means high in pressure. The level closest to ground i hi, and lo is at lower 
+    High means high in pressure. The level closest to ground i hi, and lo is at lower
     pressure further up in atmosphere.
     """
     if hasattr(imager_obj, "nwp_height") and imager_obj.nwp_height is not None:
@@ -249,7 +249,7 @@ def _interpolate_height_and_temperature_from_pressure(imager_obj,
     npix = pressure_v.shape[0]
     k = np.arange(npix)
     higher_index = np.array([nlev -1 - np.searchsorted(pressure_v[ind,:], level, side='right',
-                                                       sorter=range(nlev -1, -1, -1)) 
+                                                       sorter=range(nlev -1, -1, -1))
                              for ind in range(npix)])
     higher_index[higher_index >= (nlev - 1)] = nlev - 2
     lower_index = higher_index + 1
@@ -270,7 +270,7 @@ def _interpolate_height_and_temperature_from_pressure(imager_obj,
     level = np.log(level)
     # interpolate
     out_h = height_hi_ - (hi - level) * (height_hi_ - height_lo_) / (hi - lo)
-    return out_h 
+    return out_h
 
 
 def insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt):
@@ -295,7 +295,7 @@ def insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt):
         obt.imager.segment_tb11clfree_land
         obt.imager.segment_tb12clfree_land
         obt.imager.segment_tb11cloudy_surface
-        obt.imager.segment_tb12cloudy_surface  
+        obt.imager.segment_tb12cloudy_surface
         """
         def get_segment_row_col_idx(nwp_segments, row_matched, col_matched):
             segment_colidx = nwp_segments['colidx']
@@ -306,9 +306,9 @@ def insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt):
                 for s_row in range(nwp_segments['nocols']):
                     within_segment = np.logical_and(
                         np.logical_and(
-                            row_matched >= (segment_rowidx[s_row,s_col] 
+                            row_matched >= (segment_rowidx[s_row,s_col]
                                             - nwp_segments['segSizeX']/2),
-                            row_matched < (segment_rowidx[s_row,s_col] 
+                            row_matched < (segment_rowidx[s_row,s_col]
                                            + nwp_segments['segSizeX']/2)),
                         np.logical_and(
                             col_matched >= (segment_colidx[s_row,s_col]
@@ -317,7 +317,7 @@ def insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt):
                                            + nwp_segments['segSizeY']/2)))
                     seg_row[within_segment] = s_row
                     seg_col[within_segment] = s_col
-            return  seg_row.astype(np.int16), seg_col.astype(np.int16)   
+            return  seg_row.astype(np.int16), seg_col.astype(np.int16)
         seg_row, seg_col = get_segment_row_col_idx(nwp_segments, row_matched, col_matched)
         for data_set in ['surfaceLandTemp',
                          'surfaceSeaTemp',
@@ -340,26 +340,26 @@ def insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt):
             if data_set in nwp_segments.keys():
                 #'tb11cloudy_surface',
                 #'tb12cloudy_surface ',
-                setattr(obt.imager,'segment_nwp_' + data_set, 
+                setattr(obt.imager,'segment_nwp_' + data_set,
                         np.array([nwp_segments[data_set][seg_row[idx], seg_col[idx]]
                                   for idx in range(npix)]))
             elif 'clfree' in data_set or 'lowcloud' in data_set:
                 #these are nor always present
                 pass
 
-                
+
         for data_set in ['moist', 'pressure', 'geoheight', 'temp']:
-            setattr(obt.imager,'segment_nwp_' + data_set, 
+            setattr(obt.imager,'segment_nwp_' + data_set,
                               np.array([nwp_segments[data_set][seg_row[idx], seg_col[idx]]
                                         for idx in range(npix)]))
-        #Remove nodata and not used upper part of atmosphere   
+        #Remove nodata and not used upper part of atmosphere
         N = obt.imager.segment_nwp_pressure.shape[1]
         pressure_n_to_keep = np.sum(np.max(obt.imager.segment_nwp_pressure,axis=0)>50)
         logger.debug("Not saving upper %d levels of 3-D nwp from segment file"%(N-pressure_n_to_keep))
         logger.debug("Keeping %d lower levels of 3-D nwp from segment file"%(pressure_n_to_keep))
-        for data_set in ['segment_nwp_moist', 'segment_nwp_pressure', 
+        for data_set in ['segment_nwp_moist', 'segment_nwp_pressure',
                           'segment_nwp_geoheight', 'segment_nwp_temp']:
-            data = getattr(obt.imager, data_set) 
+            data = getattr(obt.imager, data_set)
             setattr(obt.imager, data_set, data[:,0:pressure_n_to_keep])
         return obt
 
@@ -372,28 +372,28 @@ def insert_nwp_h440_h680_data(obt):
 
 #---------------------------------------------------------------------------
 def imager_track_from_matched(obt, SETTINGS, cloudproducts,
-                              extract_radiances=True,                            
+                              extract_radiances=True,
                               extract_cma=True,
                               extract_ctth=True,
                               extract_ctype=True,
                               extract_cpp=True,
                               extract_aux_segments=True,
-                              extract_aux=True,  
+                              extract_aux=True,
                               aux_params=None,
                               extract_some_data_for_x_neighbours=False,
                               find_mean_data_for_x_neighbours=False):
-    aux_params_all = ["surftemp", 
-                      "t500", "t700", "t850", "t950", "ttro", 
+    aux_params_all = ["surftemp",
+                      "t500", "t700", "t850", "t950", "ttro",
                       "ciwv",
-                      "t900", "t1000", "t800", "t250", "t2m", 
-                      "ptro", "psur", 
+                      "t900", "t1000", "t800", "t250", "t2m",
+                      "ptro", "psur",
                       "h2m", "u10m", "v10m", "t2m",
-                      "snowa", "snowd", "seaice", 
+                      "snowa", "snowd", "seaice",
                       "landuse", "fractionofland", "elevation",
                       "r37_sza_correction_done"]
 
     if aux_params is None:
-        aux_params = aux_params_all 
+        aux_params = aux_params_all
         #For amsr-E matching (many neighbors) use only the needed nwp data
 
     aux_obj = cloudproducts.aux
@@ -407,7 +407,7 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
     cpp = cloudproducts.cpp
     nwp_segments = cloudproducts.nwp_segments
 
-  
+
     truth = getattr(obt, obt.truth_sat)
     row_matched = truth.imager_linnum
     col_matched = truth.imager_pixnum
@@ -429,20 +429,20 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
                     'cma_testlist3','cma_testlist4', 'cma_testlist5',
                     'cma_prob', 'cma_aerosolflag', 'cma_dust']:
         if extract_cma and hasattr(cma, varname):
-            setattr(obt.imager, varname, 
+            setattr(obt.imager, varname,
                     get_data_from_array(getattr(cma, varname), row_col))
             if find_mean_data_for_x_neighbours and varname=='cma_prob':
-                obt.imager.cma_prob_mean = get_mean_data_from_array_nneigh(cma.cma_prob, row_col_nneigh)   
-                                
+                obt.imager.cma_prob_mean = get_mean_data_from_array_nneigh(cma.cma_prob, row_col_nneigh)
+
     #cloud-type flags
     if extract_ctype and SETTINGS["PPS_VALIDATION"]:
         for (variable, outname) in  zip(
-                ['ct_quality', 'ct_conditions', 'ct_statusflag', 
+                ['ct_quality', 'ct_conditions', 'ct_statusflag',
                  'qualityflag', 'phaseflag'],
-                ['cloudtype_quality', 'cloudtype_conditions', 'cloudtype_status', 
+                ['cloudtype_quality', 'cloudtype_conditions', 'cloudtype_status',
                  'cloudtype_qflag', 'cloudtype_pflag'] ):
             if hasattr(ctype, variable):
-                setattr(obt.imager, outname, 
+                setattr(obt.imager, outname,
                         get_data_from_array(getattr(ctype,variable), row_col))
     for nwp_info in aux_params:
         if extract_aux and hasattr(aux_obj, nwp_info):
@@ -452,7 +452,7 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
         else:
             logger.debug("missing {:s}".format(nwp_info))
     CTTH_TYPES = SETTINGS["CTTH_TYPES"]
-    if len(CTTH_TYPES)>1 and SETTINGS["PPS_VALIDATION"]:        
+    if len(CTTH_TYPES)>1 and SETTINGS["PPS_VALIDATION"]:
         for ctth_type in CTTH_TYPES[1:]:
             if hasattr(aux_obj,ctth_type):
                 ctth_obj = getattr(aux_obj, ctth_type)
@@ -467,9 +467,9 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
                                             get_warmest_values)
     if imager_obj is not None:
         pass
-        #aux_obj = get_t11t12_texture_data_from_object(imager_obj, aux_obj, '11','12', 
-        #                                              'text_t11t12_square??') 
-    for texture in ["text_r06", "text_t11", "text_t37", "text_t37t12", 
+        #aux_obj = get_t11t12_texture_data_from_object(imager_obj, aux_obj, '11','12',
+        #                                              'text_t11t12_square??')
+    for texture in ["text_r06", "text_t11", "text_t37", "text_t37t12",
                     "text_t37t12_square", "text_t11t12_square", "text_t11t12"]:
         if hasattr(aux_obj, texture):
             data = getattr(aux_obj, texture)
@@ -477,26 +477,26 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
     if imager_obj is not None and SETTINGS["SAVE_NEIGHBOUR_INFO"]:
         neighbour_obj = get_warmest_values(imager_obj, row_col)
         for key in ["warmest_r06", "warmest_r09", "warmest_r16"]:
-            setattr(obt.imager, key + neighbour_obj.extra_info_sza_corr, 
+            setattr(obt.imager, key + neighbour_obj.extra_info_sza_corr,
                     getattr(neighbour_obj,key))
         for key in ["warmest_t11", "warmest_t12", "warmest_t37"]:
-            setattr(obt.imager, key, 
+            setattr(obt.imager, key,
                     getattr(neighbour_obj,key))
         neighbour_obj = get_darkest_values(imager_obj, row_col)
         for key in ["darkest_r06", "darkest_r09", "darkest_r16"]:
-            setattr(obt.imager, key + neighbour_obj.extra_info_sza_corr, 
+            setattr(obt.imager, key + neighbour_obj.extra_info_sza_corr,
                     getattr(neighbour_obj,key))
         for key in ["darkest_t11", "darkest_t12", "darkest_t37"]:
-            setattr(obt.imager, key, 
+            setattr(obt.imager, key,
                     getattr(neighbour_obj,key))
         neighbour_obj = get_coldest_values(imager_obj, row_col)
         for key in ["coldest_r06", "coldest_r09", "coldest_r16"]:
-            setattr(obt.imager, key + neighbour_obj.extra_info_sza_corr, 
+            setattr(obt.imager, key + neighbour_obj.extra_info_sza_corr,
                     getattr(neighbour_obj,key))
         for key in ["coldest_t11", "coldest_t12", "coldest_t37"]:
-            setattr(obt.imager, key, 
+            setattr(obt.imager, key,
                     getattr(neighbour_obj,key))
-    #Thresholds:    
+    #Thresholds:
     for thr in ["thr_t11ts_inv",
                 "thr_t85t11_inv",
                 "thr_t11t37_inv",
@@ -518,11 +518,11 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
             setattr(obt.imager, emis, get_data_from_array(data, row_col))
     if imager_obj is not None:
         temp_data, info = get_channel_data_from_object(imager_obj, '06', row_col)
-        setattr(obt.imager, "r06micron" + info, temp_data) 
-        # r09   
+        setattr(obt.imager, "r06micron" + info, temp_data)
+        # r09
         temp_data, info =  get_channel_data_from_object(imager_obj, '09', row_col)
         setattr(obt.imager, "r09micron" + info, temp_data)
-        # bt37   
+        # bt37
         temp_data, info =  get_channel_data_from_object(imager_obj, '37', row_col)
         setattr(obt.imager, "bt37micron" + info, temp_data)
         # b11
@@ -545,12 +545,12 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
         setattr(obt.imager, "r13micron" + info, temp_data)
         if obt.imager_instrument.lower() in ['modis']:
             for modis_channel in CURRENTLY_UNUSED_MODIS_CHANNELS:
-                modis_track, info = get_channel_data_from_object(imager_obj, 
+                modis_track, info = get_channel_data_from_object(imager_obj,
                                                                  modis_channel, row_col)
                 setattr(obt.imager, modis_channel + info, modis_track)
         if obt.imager_instrument.lower() in ['seviri']:
             for seviri_channel in CURRENTLY_UNUSED_SEVIRI_CHANNELS:
-                seviri_track, info = get_channel_data_from_object(imager_obj, 
+                seviri_track, info = get_channel_data_from_object(imager_obj,
                                                                   seviri_channel, row_col)
                 setattr(obt.imager, seviri_channel + info, seviri_track)
     #Angles, scale with gain and intercept when reading
@@ -568,20 +568,20 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
             data = getattr(ctth, ctth_product)
             if data is None:
                 continue
-            setattr(obt.imager, "ctth_" + ctth_product, get_data_from_array(data, row_col)) 
+            setattr(obt.imager, "ctth_" + ctth_product, get_data_from_array(data, row_col))
         if (SETTINGS["PPS_VALIDATION"] and hasattr(ctth, 'processingflag')):
             is_opaque = np.bitwise_and(np.right_shift(ctth.processingflag, 2), 1)
             obt.imager.ctth_opaque = get_data_from_array(is_opaque, row_col)
-    #NWP on ctth resolution        
+    #NWP on ctth resolution
     if nwp_segments is not None:
-        obt = insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt)  
-    if cpp is None:    
+        obt = insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt)
+    if cpp is None:
         logger.debug("Not extracting cpp")
     elif extract_some_data_for_x_neighbours:
         for data_set_name in cpp.__dict__.keys():
             data = getattr(cpp, data_set_name)
             if data is not None:
-                setattr(obt.imager, data_set_name,  
+                setattr(obt.imager, data_set_name,
                         get_data_from_array_nneigh(data, row_col_nneigh))
         for nwp_info in ["landuse", "fractionofland"]:
             data = getattr(aux_obj, nwp_info)
@@ -591,23 +591,23 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
         for data_set_name in cpp.__dict__.keys():
             data = getattr(cpp, data_set_name)
             if data is not None:
-                setattr(obt.imager, data_set_name,  
+                setattr(obt.imager, data_set_name,
                         get_data_from_array(data, row_col))
 
     obt = insert_nwp_h440_h680_data(obt)
 
-    #ADD CNN features  
-          
+    #ADD CNN features
+
     from atrain_match.utils.pps_prototyping_util import add_cnn_features
     if os.path.isfile(SETTINGS['CNN_PCKL_PATH']):
-        filters_dict = add_cnn_features(imager_obj.cnn_dict,  row_col, 
-                                        obt.imager.latitude, obt.imager.longitude, 
+        filters_dict = add_cnn_features(imager_obj.cnn_dict,  row_col,
+                                        obt.imager.latitude, obt.imager.longitude,
                                         SETTINGS)
         for filter_name in filters_dict.keys():
             setattr(obt.imager, filter_name, filters_dict[filter_name])
 
-           
+
     return obt
 
 
-    
+

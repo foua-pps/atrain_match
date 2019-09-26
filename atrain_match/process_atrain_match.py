@@ -18,7 +18,7 @@
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
 """
 This module is the main entry point for matching imager data with
-Cloudsat and Calipso. 
+Cloudsat and Calipso.
 """
 
 import logging
@@ -42,11 +42,11 @@ from atrain_match.utils.runutils import  parse_scenesfile_v2014
 def process_matchups(matchups, reprocess=False, debug=False):
     """
     Run the given *matchups* through the validation system.
-    
+
     *matchups* should be a list of :class:`common.Cross` instances.
-    
+
     If *reprocess* is True, disregard any previously generated matchup files.
-    
+
     """
 
     from atrain_match.utils.runutils import read_config_info
@@ -72,7 +72,7 @@ def process_matchups(matchups, reprocess=False, debug=False):
             logger.warning("Couldn't run truth_imager_match.")
             if debug is True:
                 raise
-                
+
     if len(no_matchup_files) > 0:
         logger.warning(
             "%d of %d cases had no matchups in region, within the time window:\n%s",
@@ -87,12 +87,12 @@ def process_matchups(matchups, reprocess=False, debug=False):
 def main():
     """
     Process command line options and run matchup and validation.
-    
+
     If *args* is provided, it should be a list of command line arguments (e.g.
     sys.argv[1:]).
-    
+
     For a complete usage description, run 'python process_master -h'.
-    
+
     """
     import argparse
     parser = argparse.ArgumentParser()
@@ -100,25 +100,25 @@ def main():
     parser.add_argument('--reprocess', '-r', const=True, nargs='?', required=False,
                         help="Disregard any previously generated Cloudsat- and "
                         "Calipso-IMAGER matchup files.")
-    parser.add_argument('-d', '--debug', const=True, nargs='?', required=False, 
+    parser.add_argument('-d', '--debug', const=True, nargs='?', required=False,
                         help="Get debug logging")
-    group.add_argument( '--pps_okay_scene', '-os', 
+    group.add_argument( '--pps_okay_scene', '-os',
                       help="Interpret arguments noaa19_20101201_1345_27891")
-    group.add_argument( '--pps_product_file', '-pf', 
-                      help="Interpret arguments as inputfile with "  
+    group.add_argument( '--pps_product_file', '-pf',
+                      help="Interpret arguments as inputfile with "
                       "list of pps files")
-    group.add_argument( '--cci_product_file', '-cf', 
-                      help="Interpret arguments as inputfile with "  
+    group.add_argument( '--cci_product_file', '-cf',
+                      help="Interpret arguments as inputfile with "
                       "list of cci files")
-    group.add_argument( '--maia_product_file', '-mf', 
-                      help="Interpret arguments as inputfile with "  
+    group.add_argument( '--maia_product_file', '-mf',
+                      help="Interpret arguments as inputfile with "
                       "list of maia files")
-    group.add_argument('--reshaped_product_file', '-rf', 
+    group.add_argument('--reshaped_product_file', '-rf',
                       help="Interpret arguments as reshaped_output_file")
     options = parser.parse_args()
-    
-  
-    reprocess = False    
+
+
+    reprocess = False
     if options.reprocess is not None:
         reprocess = options.reprocess
 
@@ -130,15 +130,15 @@ def main():
     if options.pps_okay_scene:
         # Simulate crosses from PPS scenes
         scene = options.pps_okay_scene
-        satname, time, orbit = parse_scene(scene) 
+        satname, time, orbit = parse_scene(scene)
         matchups.append(Cross(satname, time))
     elif options.pps_product_file is not None:
         pps_output_file = options.pps_product_file
         read_from_file = open(pps_output_file,'r')
-        for line in read_from_file:      
+        for line in read_from_file:
             if line.rstrip() in "":
                 pass
-            else:   
+            else:
                 satname, time = parse_scenesfile_v2014(line)
                 matchups.append(Cross(satname, time))
     elif options.cci_product_file is not None:
@@ -147,7 +147,7 @@ def main():
         for line in read_from_file:
             if line.rstrip() in "":
                 pass
-            else:    
+            else:
                 satname, time = parse_scenesfile_cci(line)
                 matchups.append(Cross(satname, time))
     elif options.maia_product_file is not None:
@@ -156,7 +156,7 @@ def main():
         for line in read_from_file:
             if line.rstrip() in "":
                 pass
-            else:    
+            else:
                 satname, time = parse_scenesfile_maia(line)
                 matchups.append(Cross(satname, time))
     elif options.reshaped_product_file is not None:
@@ -165,13 +165,13 @@ def main():
         for line in read_from_file:
             if line.rstrip() in "":
                 pass
-            else: 
+            else:
                 satname, time = parse_scenesfile_reshaped(line)
                 #print time
                 matchups.append(Cross(satname, time))
 
     process_matchups(matchups, reprocess, options.debug)
-    
+
     return 0
 
 #------------------------------------------------------------------------------

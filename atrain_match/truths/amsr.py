@@ -21,7 +21,7 @@ from datetime import datetime
 from calendar import timegm
 TAI93 = datetime(1993, 1, 1)
 import atrain_match.config as config
-from atrain_match.matchobject_io import (TruthImagerTrackObject, 
+from atrain_match.matchobject_io import (TruthImagerTrackObject,
                             AmsrObject)
 from atrain_match.truths.calipso import find_break_points
 from atrain_match.utils.runutils import do_some_logging
@@ -43,7 +43,7 @@ def get_amsr(filename):
     density = 1e3 # Density of water [kg m**-3]
     n_lat_scans = len(retv.latitude)*1.0/(len(retv.sec1993)) #= 242!
     #print n_lat_scans
-    epoch_diff = timegm(TAI93.utctimetuple())    
+    epoch_diff = timegm(TAI93.utctimetuple())
     nadir_sec_1970 = retv.sec1993 + epoch_diff
     retv.sec_1970 = np.repeat(nadir_sec_1970.ravel(), n_lat_scans)
     retv.sec1993 = None
@@ -56,27 +56,27 @@ def get_amsr(filename):
     #import matplotlib.pyplot as plt
     #plt.plot(retv.longitude, retv.latitude, '.')
     #plt.savefig('map_test.png')
-    return retv 
+    return retv
 
 def read_amsr_h5(filename):
     retv = AmsrObject()
 
     with h5py.File(filename, 'r') as f:
         #ravel AMSR-E data to 1 dimension
-        retv.longitude = f['Swath1/Geolocation Fields/Longitude'][:].ravel() 
-        retv.latitude = f['Swath1/Geolocation Fields/Latitude'][:].ravel()                        
+        retv.longitude = f['Swath1/Geolocation Fields/Longitude'][:].ravel()
+        retv.latitude = f['Swath1/Geolocation Fields/Latitude'][:].ravel()
         retv.sec1993 = f['Swath1/Geolocation Fields/Time']['Time'][:]
         #description='lwp (mm)',
-        lwp_gain = f['Swath1/Data Fields/High_res_cloud'].attrs['Scale']#.ravel() 
+        lwp_gain = f['Swath1/Data Fields/High_res_cloud'].attrs['Scale']#.ravel()
         retv.lwp_mm = f['Swath1/Data Fields/High_res_cloud'][:].ravel() * lwp_gain
     if f:
-        f.close() 
+        f.close()
     return retv
 
 def read_amsr_hdf4(filename):
     from pyhdf.SD import SD, SDC
     from pyhdf.HDF import HDF, HC
-    import pyhdf.VS 
+    import pyhdf.VS
 
     retv = AmsrObject()
     h4file = SD(filename, SDC.READ)
@@ -104,7 +104,7 @@ def read_amsr_hdf4(filename):
         if name in ["Time"]:
             data_handle = vs.attach(name)
             data = np.array(data_handle[:])
-            retv.all_arrays["sec1993"] = data 
+            retv.all_arrays["sec1993"] = data
             data_handle.detach()
         else:
             pass
@@ -135,12 +135,12 @@ def reshape_amsr(amsrfiles, imager, SETTINGS):
         amsr_break = np.argmin(np.abs(amsr_start_all - amsr_new_all[0]))+1
         # Concatenate the feature values
         amsr = amsr + newAmsr
-    
+
     # Finds Break point
     #import pdb; pdb.set_trace()
     startBreak, endBreak = find_break_points(amsr, imager, SETTINGS)
-    amsr = amsr.extract_elements(starti=startBreak, 
-                                 endi=endBreak) 
+    amsr = amsr.extract_elements(starti=startBreak,
+                                 endi=endBreak)
     return amsr
 
 
@@ -158,8 +158,8 @@ def match_amsr_imager(amsr, cloudproducts, SETTINGS):
     n_neighbours = 8
     if config.RESOLUTION == 5:
         n_neighbours = 5
-    mapper_and_dist = map_imager_distances(cloudproducts, 
-                                          amsr.longitude.ravel(), 
+    mapper_and_dist = map_imager_distances(cloudproducts,
+                                          amsr.longitude.ravel(),
                                           amsr.latitude.ravel(),
                                           radius_of_influence=AMSR_RADIUS,
                                           n_neighbours=n_neighbours)
@@ -171,7 +171,7 @@ def match_amsr_imager(amsr, cloudproducts, SETTINGS):
     calnan = np.where(cal_1 == config.NODATA, np.nan, cal_1)
     if (~np.isnan(calnan)).sum() == 0:
         logger.warning("No matches within region.")
-        return None   
+        return None
     #check if it is within time limits:
     if len(cloudproducts.time.shape)>1:
         imager_time_vector = [cloudproducts.time[line,pixel] for line, pixel in zip(cal_1,cap_1)]
@@ -188,7 +188,7 @@ def match_amsr_imager(amsr, cloudproducts, SETTINGS):
         logger.warning("No light (sunz<84)  matches in region within time threshold %d s.", SETTINGS["sec_timeThr"])
         return None
     retv.amsr = retv.amsr.extract_elements(idx=idx_match)
- 
+
     # Amsr line,pixel inside IMAGER swath (one neighbour):
     retv.amsr.imager_linnum = np.repeat(cal_1, idx_match).astype('i')
     retv.amsr.imager_pixnum = np.repeat(cap_1, idx_match).astype('i')
@@ -202,7 +202,7 @@ def match_amsr_imager(amsr, cloudproducts, SETTINGS):
 
     do_some_logging(retv, amsr)
     logger.debug("Extract imager lwp along track!")
-    
+
     retv = imager_track_from_matched(retv, SETTINGS,
                                      cloudproducts,
                                      extract_radiances = False,

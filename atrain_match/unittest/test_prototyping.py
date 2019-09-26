@@ -35,11 +35,11 @@ def get_warmest_index_old(t11,  matched):
     flat_index = np.array(flat_index, dtype=np.int)
     delta_row, delta_col = np.unravel_index(flat_index, (5,5))
     delta_row = delta_row - 2
-    delta_col = delta_col - 2    
+    delta_col = delta_col - 2
     new_row = row+delta_row
     new_col = col+delta_col
     new_row_matched = np.array([new_row[matched['row'][idx], matched['col'][idx]]
-                       for idx in range(matched['row'].shape[0])]) 
+                       for idx in range(matched['row'].shape[0])])
     new_col_matched = np.array([new_col[matched['row'][idx], matched['col'][idx]]
                        for idx in range(matched['row'].shape[0])])
     return new_row_matched, new_col_matched
@@ -47,17 +47,17 @@ def get_warmest_index_old(t11,  matched):
 
 
 
-class test_prototyping_utils(unittest.TestCase): 
+class test_prototyping_utils(unittest.TestCase):
 
     def setUp(self):
-        
+
         self.t11 = np.array([[1,43,3,4,5,6,7,8,9,35],
                             [ 1,2,3,4,5,6,7,8,9,10],
                             [ 1,2,3,4,25,6,7,8,9,10],
                             [ 1,2,3,4,5,6,7,8,9,101],
                              [ 11,2,3,4,5,6,7,8,9,101]])
 
-        
+
         self.matched = {'row': np.array([0,0,1,1,2,2,3,3,4,4]),
                         'col': np.array([0,1,2,3, 4, 5, 6, 7,8,9])}
 

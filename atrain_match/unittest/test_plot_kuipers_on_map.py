@@ -22,12 +22,12 @@ import numpy as np
 import unittest
 from atrain_match.reshaped_files_plotting.plot_kuipers_on_area_util import ppsStatsOnFibLatticeObject
 
-class test_kuipers_plot_on_map(unittest.TestCase): 
+class test_kuipers_plot_on_map(unittest.TestCase):
 
     def setUp(self):
         self.area = ppsStatsOnFibLatticeObject()
         self.area.N_detected_clouds =   np.array([10,  1000, 1000, 1000, 1000, 1000])
-        self.area.N_undetected_clouds = np.array([1000, 100,  100,  100,  100,  100]) 
+        self.area.N_undetected_clouds = np.array([1000, 100,  100,  100,  100,  100])
         self.area.N_detected_clear =    np.array([20,    80,  100,    0,  200,  100])
         self.area.N_false_clouds =      np.array([80,    20,    1,    1,  200,  300])
 
@@ -49,8 +49,8 @@ class test_kuipers_plot_on_map(unittest.TestCase):
 
     def test_calculate_kuipers(self):
         self.area.calculate_kuipers()
-        #print 
-        #print self.area.Kuipers                                                  
+        #print
+        #print self.area.Kuipers
         self.assertTrue(np.abs(self.area.Kuipers[0]+0.79) <0.01)
         self.assertTrue(np.abs(self.area.Kuipers[1]-0.709)<0.01)
         self.assertTrue(np.abs(self.area.Kuipers[2]-0.899)<0.01)

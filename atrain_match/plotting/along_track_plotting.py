@@ -24,12 +24,12 @@ from atrain_match.config import RESOLUTION
 from matplotlib import pyplot as plt
 
 # -----------------------------------------------------
-def plot_cal_clsat_geoprof_imager(match_clsat, 
-                                 match_calipso,  
-                                 imager_ctth_m_above_seasurface, 
-                                 plotpath, 
+def plot_cal_clsat_geoprof_imager(match_clsat,
+                                 match_calipso,
+                                 imager_ctth_m_above_seasurface,
+                                 plotpath,
                                  basename,
-                                 mode, 
+                                 mode,
                                  file_type='png',
                                  **options):
     instrument = 'imager'
@@ -43,22 +43,22 @@ def plot_cal_clsat_geoprof_imager(match_clsat,
     calipso_val_h = match_calipso.calipso.validation_height
     caliop_base[caliop_base<0]=-9
     caliop_height[caliop_height<0]=-9
-    pixel_position = np.arange(match_calipso.calipso.latitude.shape[0])                            
-    # Calculates Hihest Cloud Top   
+    pixel_position = np.arange(match_calipso.calipso.latitude.shape[0])
+    # Calculates Hihest Cloud Top
     if MAXHEIGHT is None:
         maxheight_calipso = np.nanmax(caliop_height)
         maxheight_imager = np.nanmax(imager_ctth_m_above_seasurface)
         max_height_sat = np.max([maxheight_calipso, maxheight_imager])
         maxheight = max_height_sat + 1000
     else:
-        maxheight =  MAXHEIGHT 
-    #PLOT    
+        maxheight =  MAXHEIGHT
+    #PLOT
     fig = plt.figure()
     #Plot ground
     ax = fig.add_subplot(111)
-    ax.vlines(pixel_position, 0, match_calipso.calipso.elevation, 
+    ax.vlines(pixel_position, 0, match_calipso.calipso.elevation,
               color='k', alpha=1.0)
-    #plot cloudsat if we have it    
+    #plot cloudsat if we have it
     if match_clsat is not None:
         #: Colors
         colors=[]
@@ -68,18 +68,18 @@ def plot_cal_clsat_geoprof_imager(match_clsat,
             colors.append(np.divide([100+(i-10)*5, 100+(i-10)*5, 100-(i-10)*5], 255.))
         for i in range(30,100):
             colors.append(np.divide([255, 50, 50], 255.))
-        
+
         # Plot CloudSat
         base_height = match_clsat.cloudsat.validation_height_base
         top_height = match_clsat.cloudsat.validation_height
         plot_these = top_height>0
         ax.vlines(pixel_position[match_clsat.cloudsat.calipso_index[plot_these]],
                   base_height[plot_these], top_height[plot_these], 'm',#color = colors[nidx], \
-                  linestyle = 'solid', linewidth = 1,  rasterized=True, label='CPR (CloudSat)')   
+                  linestyle = 'solid', linewidth = 1,  rasterized=True, label='CPR (CloudSat)')
         title = "%s-CloudSat-CALIOP Cloud Top Heights" % instrument.upper()
     else:
         title = "%s-CALIOP Cloud Top Heights" % instrument.upper()
-    #: Plot Caliop 
+    #: Plot Caliop
     caliop_label_set = False
     #Plot all 10 calipso layers
     for i in range(10):
@@ -87,7 +87,7 @@ def plot_cal_clsat_geoprof_imager(match_clsat,
         top_ok  = caliop_height[:,i]
         all_thin = calipso_val_h<=base_ok
         all_thick = np.logical_or(calipso_val_h>=top_ok, calipso_val_h<=0)
-        half_thin = np.logical_and(calipso_val_h>base_ok,  
+        half_thin = np.logical_and(calipso_val_h>base_ok,
                                   calipso_val_h<top_ok)
         all_thin = np.logical_and(all_thin,top_ok>0 )
         all_thick = np.logical_and(all_thick,top_ok>0 )
@@ -95,34 +95,34 @@ def plot_cal_clsat_geoprof_imager(match_clsat,
 
         if np.min(top_ok<0):
             #no more clouds, quit plotting calipso
-            break 
+            break
         if caliop_label_set:
-            ax.vlines(pixel_position[all_thick], 
-                      base_ok[all_thick], top_ok[all_thick], linewidth=0.5,  
-                      colors="g", linestyle='solid', 
-                      alpha=0.5 ,  rasterized=True)  
+            ax.vlines(pixel_position[all_thick],
+                      base_ok[all_thick], top_ok[all_thick], linewidth=0.5,
+                      colors="g", linestyle='solid',
+                      alpha=0.5 ,  rasterized=True)
         else:
-            ax.vlines(pixel_position[all_thick], 
+            ax.vlines(pixel_position[all_thick],
                       base_ok[all_thick], top_ok[all_thick],
-                      colors="g", linewidth=0.5, linestyle='solid', 
+                      colors="g", linewidth=0.5, linestyle='solid',
                       alpha=0.5, label='caliop',  rasterized=True)
             caliop_label_set = True
-        ax.vlines(pixel_position[all_thin], 
-                  base_ok[all_thin], top_ok[all_thin], linewidth=0.5,  
-                  colors="y", linestyle='solid', 
-                  alpha=0.5,  rasterized=True)   
-        ax.vlines(pixel_position[half_thin], 
-                  calipso_val_h[half_thin], top_ok[half_thin], linewidth=0.5,  
-                  colors="y", linestyle='solid', 
-                  alpha=0.5,  rasterized=True)    
-        #ax.vlines(pixel_position[half_thin], 
-        #          base_ok[half_thin], calipso_val_h[half_thin], linewidth=0.5,  
-        #          colors="g", linestyle='solid', 
-        #          alpha=0.5,  rasterized=True)    
+        ax.vlines(pixel_position[all_thin],
+                  base_ok[all_thin], top_ok[all_thin], linewidth=0.5,
+                  colors="y", linestyle='solid',
+                  alpha=0.5,  rasterized=True)
+        ax.vlines(pixel_position[half_thin],
+                  calipso_val_h[half_thin], top_ok[half_thin], linewidth=0.5,
+                  colors="y", linestyle='solid',
+                  alpha=0.5,  rasterized=True)
+        #ax.vlines(pixel_position[half_thin],
+        #          base_ok[half_thin], calipso_val_h[half_thin], linewidth=0.5,
+        #          colors="g", linestyle='solid',
+        #          alpha=0.5,  rasterized=True)
 
-    #: Plot Imager   
+    #: Plot Imager
     got_height = imager_ctth_m_above_seasurface>=0
-    ax.plot(pixel_position[got_height], imager_ctth_m_above_seasurface[got_height], 'b+', 
+    ax.plot(pixel_position[got_height], imager_ctth_m_above_seasurface[got_height], 'b+',
             label=instrument.upper(),  rasterized=True)
     ax.set_ylim(0, maxheight)
     #plt.show()
@@ -141,11 +141,11 @@ def plot_cal_clsat_geoprof_imager(match_clsat,
             fig.savefig(filename, format = filetype)
 
 #added plot with two pps cloud-heights and no cloudsat
-def drawCalPPSHeightPlot_PrototypePPSHeight(match_calipso_calipso, 
+def drawCalPPSHeightPlot_PrototypePPSHeight(match_calipso_calipso,
                                             data_ok,
                                             ctth_height1,
                                             ctth_height2,
-                                            plotpath, 
+                                            plotpath,
                                             basename,
                                             file_type='png',
                                             xmin=0,
@@ -160,7 +160,7 @@ def drawCalPPSHeightPlot_PrototypePPSHeight(match_calipso_calipso,
     if 'MAXHEIGHT' in options:
         MAXHEIGHT = options["MAXHEIGHT"]
 
-    
+
     # Prepare for Imager
     caliop_height = match_calipso_calipso.layer_top_altitude*1000
     caliop_base = match_calipso_calipso.layer_base_altitude*1000
@@ -169,8 +169,8 @@ def drawCalPPSHeightPlot_PrototypePPSHeight(match_calipso_calipso,
     pixel_position=np.arange(match_calipso_calipso.latitude.shape[0])
     pixel_position_ok = pixel_position[data_ok]
     imager_ctth_ok1 = ctth_height1[data_ok]
-    imager_ctth_ok2 = ctth_height2[data_ok]  
-#    # Calculates Hihest Cloud Top  
+    imager_ctth_ok2 = ctth_height2[data_ok]
+#    # Calculates Hihest Cloud Top
 
     if MAXHEIGHT is None:
         maxheight_calipso = np.nanmax(caliop_height)
@@ -178,7 +178,7 @@ def drawCalPPSHeightPlot_PrototypePPSHeight(match_calipso_calipso,
         max_height_sat = np.max([maxheight_calipso, maxheight_imager])
         maxheight = max_height_sat + 1000
     else:
-        maxheight =  MAXHEIGHT 
+        maxheight =  MAXHEIGHT
     fig = plt.figure(figsize = (20,15))
     title = "%s-CALIOP Cloud Top Heights" % instrument.upper()
     font = {'family' : 'normal',
@@ -188,9 +188,9 @@ def drawCalPPSHeightPlot_PrototypePPSHeight(match_calipso_calipso,
     for subplot_nr in [211, 212]:
         ax = fig.add_subplot(subplot_nr)
 
-        ax.vlines(pixel_position, 0, match_calipso_calipso.elevation, 
+        ax.vlines(pixel_position, 0, match_calipso_calipso.elevation,
                   color='k', alpha=1.0)
-        #: Plot Caliop 
+        #: Plot Caliop
         caliop_label_set = False
         #Plot all 10 calipso layers
         for i in range(10):
@@ -198,33 +198,33 @@ def drawCalPPSHeightPlot_PrototypePPSHeight(match_calipso_calipso,
             top_ok  = caliop_height[:,0]
             if np.min(top_ok<0):
                 #no more clouds, quit plotting calipso
-                break 
+                break
             if caliop_label_set:
-                ax.vlines(pixel_position, 
-                          base_ok, top_ok, linewidth=0.5,  
-                          colors="g", linestyle='solid', 
-                          alpha=1.0 )  
+                ax.vlines(pixel_position,
+                          base_ok, top_ok, linewidth=0.5,
+                          colors="g", linestyle='solid',
+                          alpha=1.0 )
             else:
-                ax.vlines(pixel_position, 
+                ax.vlines(pixel_position,
                           base_ok, top_ok,
-                          colors="g", linewidth=0.5, linestyle='solid', 
+                          colors="g", linewidth=0.5, linestyle='solid',
                           alpha=1.0, label='caliop')
                 caliop_label_set = True
         ax.set_ylabel("Cloud Height (meter)", fontsize=22)
-    #: Plot Imager   
+    #: Plot Imager
     ax = fig.add_subplot(211)
-    ax.plot(pixel_position_ok, imager_ctth_ok1, 'b+', linewidth=0.5, 
+    ax.plot(pixel_position_ok, imager_ctth_ok1, 'b+', linewidth=0.5,
             label=instrument.upper() + " old-CTTH")
     false = (caliop_height[:,0]<0)[data_ok]
-    ax.plot(pixel_position_ok[false], imager_ctth_ok1[false], 'r+', linewidth=0.5, 
+    ax.plot(pixel_position_ok[false], imager_ctth_ok1[false], 'r+', linewidth=0.5,
             label=instrument.upper() + " old-CTTH (false")
     plt.legend(fancybox=True, loc=1,  numpoints=4)
     ax.set_xlim(xmin, xmax)
     ax.set_ylim(0, maxheight)
     ax = fig.add_subplot(212)
-    ax.plot(pixel_position_ok, imager_ctth_ok2, 'c+', linewidth=0.5,  
+    ax.plot(pixel_position_ok, imager_ctth_ok2, 'c+', linewidth=0.5,
             label=instrument.upper() + " nn-CTTH")
-    ax.plot(pixel_position_ok[false], imager_ctth_ok2[false], 'm+', linewidth=0.5,  
+    ax.plot(pixel_position_ok[false], imager_ctth_ok2[false], 'm+', linewidth=0.5,
             label=instrument.upper() + " nn-CTTH (false)")
     plt.legend(fancybox=True, loc=1,  numpoints=4)
     ax.set_xlim(xmin,xmax)
@@ -232,7 +232,7 @@ def drawCalPPSHeightPlot_PrototypePPSHeight(match_calipso_calipso,
     plt.suptitle(title, fontsize=24)
     ax.set_xlabel("Track Position", fontsize=22)
 
-    #plt.show() 
+    #plt.show()
     if isinstance(file_type, str) == True:
         filename = "%s/%skm_%s_calipso_%s_clouds.%s" \
             % (plotpath, RESOLUTION, basename, instrument, file_type)
@@ -246,7 +246,7 @@ def drawCalPPSHeightPlot_PrototypePPSHeight(match_calipso_calipso,
     plt.close("all")
 
 # -----------------------------------------------------
-def plot_cal_clsat_cwc_imager(match_clsat, elevationcwc, data_okcwc, 
+def plot_cal_clsat_cwc_imager(match_clsat, elevationcwc, data_okcwc,
                              plotpath, basename, phase, **options):
 
     if 'instrument' in options:
@@ -261,9 +261,9 @@ def plot_cal_clsat_cwc_imager(match_clsat, elevationcwc, data_okcwc,
         y1=match_clsat.cloudsat.RVOD_liq_water_path
         #dataC=match_clsat.cloudsat.RVOD_liq_water_content
         y2 = match_clsat.imager.cpp_lwp
-    pixel_position=np.arange(match_clsat.cloudsat.latitude.shape[0]) 
+    pixel_position=np.arange(match_clsat.cloudsat.latitude.shape[0])
     use = np.logical_and(y1>=0, y2>=0)
-    # Findes max value and add 100							
+    # Findes max value and add 100
     fig = plt.figure()
     ax = fig.add_subplot(111)
     ax.plot(pixel_position[use], y1[use], "k." ,label='RVOD')
@@ -278,9 +278,9 @@ def plot_cal_clsat_cwc_imager(match_clsat, elevationcwc, data_okcwc,
     return
 
 # -----------------------------------------------------
-def plot_cal_clsat_imager_time_diff(match_clsat, 
-                                  match_calipso, 
-                                  plotpath, basename, 
+def plot_cal_clsat_imager_time_diff(match_clsat,
+                                  match_calipso,
+                                  plotpath, basename,
                                   resolution, file_type='png',
                                   **options):
     if 'instrument' in options:
@@ -304,33 +304,33 @@ def plot_cal_clsat_imager_time_diff(match_clsat,
         minvalue = np.min([np.nanmin(clsat_diff_sec_1970)/60.0, minvalue])
 
         biggest_Cloudsat_diff = np.nanmax(np.abs(clsat_diff_sec_1970/60.0))
-        ax.plot(pixel_position[match_clsat.cloudsat.calipso_index],clsat_diff_sec_1970/60.0, 'r+', 
-                label = "CloudSat (max time diff %.2f min)"%(biggest_Cloudsat_diff)) 
-        
+        ax.plot(pixel_position[match_clsat.cloudsat.calipso_index],clsat_diff_sec_1970/60.0, 'r+',
+                label = "CloudSat (max time diff %.2f min)"%(biggest_Cloudsat_diff))
+
     biggest_Calipso_diff = np.nanmax(np.abs(cal_diff_sec_1970/60.0))
-    ax.set_title(title)    
+    ax.set_title(title)
     ax.set_xlabel("Track Position")
     ax.set_ylabel(ylabel_str)
     ax.set_ylim(minvalue-5, maxvalue+5)
-    ax.plot(pixel_position, cal_diff_sec_1970/60.0,"g", 
+    ax.plot(pixel_position, cal_diff_sec_1970/60.0,"g",
             label = "CALIPSO (max time diff %.2f min)" %(biggest_Calipso_diff))
     ax.legend(numpoints=4)
-    
+
     if isinstance(file_type, str) == True:
-        fig.savefig("%s/%skm_%s_time_diff.%s" % (plotpath, 
+        fig.savefig("%s/%skm_%s_time_diff.%s" % (plotpath,
                                                  resolution, basename, file_type))
     else:
         for filetype in file_type:
             fig.savefig("%s/%skm_%s_time_diff.%s" % (plotpath,
                                                      resolution, basename, filetype))
     return
-            
-# -----------------------------------------------------   
-def plot_cal_clsat_imager_satz(match_clsat, 
-                              match_calipso, 
-                              plotpath, basename, 
-                              resolution, 
-                              file_type='eps', 
+
+# -----------------------------------------------------
+def plot_cal_clsat_imager_satz(match_clsat,
+                              match_calipso,
+                              plotpath, basename,
+                              resolution,
+                              file_type='eps',
                               **options):
 
     if 'instrument' in options:
@@ -339,12 +339,12 @@ def plot_cal_clsat_imager_satz(match_clsat,
         instrument = 'imager'
     pixel_position = np.arange(match_calipso.calipso.latitude.shape[0])
     # Plot Satellite Zenith Angle
-    fig = plt.figure() 
-    ax = fig.add_subplot(111) 
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
     if match_clsat is not None:
         ax.plot(pixel_position[match_clsat.cloudsat.calipso_index],
                 match_clsat.imager.satz,
-                'r+', 
+                'r+',
                 label = "%s satz - CloudSat" % instrument.upper())
     ax.set_xlabel("Track Position")
     ax.set_ylabel("satellite zenith angle [deg]")
@@ -362,17 +362,17 @@ def plot_cal_clsat_imager_satz(match_clsat,
 def map_imager_track(imager_lonlat, track_lonlat):
     """
     Plot *imager_lonlat* and *track_lonlat* on global map and return the figure.
-    
+
     """
     from mpl_toolkits.basemap import Basemap
-    
+
     fig = figure()
     ax = fig.add_subplot(111)
     m = Basemap(projection='cyl', llcrnrlon=-180, llcrnrlat=-90,
                 urcrnrlon=180, urcrnrlat=90, resolution='l', ax=ax)
-    
+
     m.drawcoastlines(linewidth=.5, color='grey')
-    
+
     # Don't draw each pixel, or the machine will choke!
     npixels = imager_lonlat[0].size
     from math import sqrt
@@ -382,5 +382,5 @@ def map_imager_track(imager_lonlat, track_lonlat):
                  imager_lonlat[1][_slice_2d], alpha=.5)
     m.plot(track_lonlat[0], track_lonlat[1], 'o', markersize=1, alpha=.1,
            label='track')
-    
+
     return fig

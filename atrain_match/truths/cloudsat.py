@@ -22,7 +22,7 @@ import os
 import logging
 logger = logging.getLogger(__name__)
 from atrain_match.matchobject_io import (CloudsatObject,
-                            TruthImagerTrackObject)                            
+                            TruthImagerTrackObject)
 import atrain_match.config as config
 from atrain_match.utils.common import (MatchupError, ProcessingError,
                     elements_within_range)
@@ -52,12 +52,12 @@ def add_validation_ctth_cloudsat(cloudsat):
         update_base = np.logical_and(top_height>0, validation_height_base>top_height)
         validation_height_base[update_base] =  top_height[update_base]
         cloudsat.validation_height_base = validation_height_base
-    cloudsat.validation_height_base[cloudsat.validation_height_base>=LARGE_POSITIVE] =-9 
+    cloudsat.validation_height_base[cloudsat.validation_height_base>=LARGE_POSITIVE] =-9
     return cloudsat
 
 def add_cloudsat_cloud_fraction(cloudsat):
     cloudsat_cloud_mask = cloudsat.CPR_Cloud_mask
-    cloudsat_cloud_mask = np.greater_equal(cloudsat_cloud_mask, 
+    cloudsat_cloud_mask = np.greater_equal(cloudsat_cloud_mask,
                                            config.CLOUDSAT_CLOUDY_THR)
     cloudsat_cloud_fraction = np.zeros(cloudsat.latitude.shape[0])
     sum_cloudsat_cloud_mask = np.sum(cloudsat_cloud_mask, axis=1)
@@ -71,15 +71,15 @@ def get_cloudsat(filename):
     # Read CLOUDSAT Radar data and add some variables
     if '.hdf' in filename:
         cloudsat = read_cloudsat_hdf4(filename)
-    elif '.h5' in filename: 
+    elif '.h5' in filename:
         cloudsat = read_cloudsat(filename)
     else:
         raise MatchupError(
             "Missing reader for CloudSat file type {:s}".format(
-                os.path.basename(fielname)))    
-    if 'GEOPROF' in os.path.basename(filename):     
+                os.path.basename(fielname)))
+    if 'GEOPROF' in os.path.basename(filename):
         cloudsat = add_validation_ctth_cloudsat(cloudsat)
-        cloudsat = add_cloudsat_cloud_fraction(cloudsat)      
+        cloudsat = add_cloudsat_cloud_fraction(cloudsat)
     return cloudsat
 
 def clsat_name_conversion(dataset_name_in_cloudsat_file, retv):
@@ -90,13 +90,13 @@ def clsat_name_conversion(dataset_name_in_cloudsat_file, retv):
         am_name = 'longitude'
     elif dataset_name_in_cloudsat_file == 'Latitude':
         am_name = 'latitude'
-    elif am_name.lower() in retv.all_arrays.keys():    
-        am_name = am_name.lower()    
-    return am_name    
+    elif am_name.lower() in retv.all_arrays.keys():
+        am_name = am_name.lower()
+    return am_name
 def read_cloudsat_hdf4(filename):
     from pyhdf.SD import SD, SDC
     from pyhdf.HDF import HDF, HC
-    import pyhdf.VS 
+    import pyhdf.VS
     def convert_data(data):
         if len(data.shape) == 2:
             if data.shape[1] == 1:
@@ -111,7 +111,7 @@ def read_cloudsat_hdf4(filename):
     #for idx,attr in enumerate(attributes.keys()):
     #    print idx, attr
     for idx,sds in enumerate(datasets.keys()):
-        #2D data, print idx, sds 
+        #2D data, print idx, sds
         data = h4file.select(sds).get()
         #print h4file.select(sds).attributes().keys()
         am_name = clsat_name_conversion(sds, retv)
@@ -146,7 +146,7 @@ def read_cloudsat_hdf4(filename):
                 raise MatchupError("Not default offset and factor. Fix code")
                 #The code below is probably ok, but make sure:
                 #the_data_scaled = convert_data(data)*factor + offset
-                #retv.all_arrays[am_name] = the_data_scaled 
+                #retv.all_arrays[am_name] = the_data_scaled
         data_handle.detach()
     #print data_handle.attrinfo()
     h4file.close()
@@ -156,7 +156,7 @@ def read_cloudsat_hdf4(filename):
     return retv
 
 def read_cloudsat(filename):
-    import h5py 
+    import h5py
     CLOUDSAT_TYPE = "GEOPROF"
     if 'CWC-RVOD' in os.path.basename(filename):
         CLOUDSAT_TYPE = 'CWC-RVOD'
@@ -182,7 +182,7 @@ def read_cloudsat(filename):
             am_name = lsat_name_conversion(dataset, retv)
             if am_name in retv.all_arrays.keys():
                 setattr(retv, am_name, get_data(tempG[dataset]))
-    h5file.close()    
+    h5file.close()
     # Convert from TAI time to UTC in seconds since 1970:
     dsec = time.mktime((1993,1,1,0,0,0,0,0,0)) - time.timezone
     retv.sec_1970 = retv.Profile_time.ravel() + retv.TAI_start + dsec
@@ -195,7 +195,7 @@ def match_cloudsat_imager(cloudsat,cloudproducts, SETTINGS):
     retv.cloudsat = cloudsat
     #Nina 20150313 Swithcing to mapping without area as in cpp. Following suggestion from Jakob
     from atrain_match.utils.common import map_imager
-    cal, cap = map_imager(cloudproducts, 
+    cal, cap = map_imager(cloudproducts,
                          cloudsat.longitude.ravel(),
                          cloudsat.latitude.ravel(),
                          radius_of_influence=config.RESOLUTION*0.7*1000.0) # somewhat larger than radius...
@@ -216,7 +216,7 @@ def match_cloudsat_imager(cloudsat,cloudproducts, SETTINGS):
         logger.warning("No matches in region within time threshold %d s.", SETTINGS["sec_timeThr"])
         return None
     retv.cloudsat = retv.cloudsat.extract_elements(idx=idx_match)
- 
+
     # Cloudsat line,pixel inside IMAGER swath:
     retv.cloudsat.imager_linnum = np.repeat(cal, idx_match).astype('i')
     retv.cloudsat.imager_pixnum = np.repeat(cap, idx_match).astype('i')
@@ -233,9 +233,9 @@ def match_cloudsat_imager(cloudsat,cloudproducts, SETTINGS):
 def merge_cloudsat(cloudsat, cloudsatlwp):
     #map cloudsat_lwp to cloudsat
     from atrain_match.utils.match import match_lonlat
-    source = (cloudsatlwp.longitude.astype(np.float64).reshape(-1,1), 
+    source = (cloudsatlwp.longitude.astype(np.float64).reshape(-1,1),
               cloudsatlwp.latitude.astype(np.float64).reshape(-1,1))
-    target = (cloudsat.longitude.astype(np.float64).reshape(-1,1), 
+    target = (cloudsat.longitude.astype(np.float64).reshape(-1,1),
               cloudsat.latitude.astype(np.float64).reshape(-1,1))
     mapper, dummy = match_lonlat(source, target, radius_of_influence=10, n_neighbours=1)
     cloudsat_lwp_index = mapper.rows.filled(config.NODATA).ravel()
@@ -243,19 +243,19 @@ def merge_cloudsat(cloudsat, cloudsatlwp):
     index = cloudsat_lwp_index.copy()
     index[index<0] = 0
     cloudsat.RVOD_liq_water_path = np.where(
-        cloudsat_lwp_index>=0, 
+        cloudsat_lwp_index>=0,
         cloudsatlwp.RVOD_liq_water_path[index],-9)
     cloudsat.RVOD_ice_water_path = np.where(
-        cloudsat_lwp_index>=0, 
+        cloudsat_lwp_index>=0,
         cloudsatlwp.RVOD_ice_water_path[index],-9)
     cloudsat.LO_RVOD_liquid_water_path = np.where(
-        cloudsat_lwp_index>=0, 
+        cloudsat_lwp_index>=0,
         cloudsatlwp.LO_RVOD_liquid_water_path[index],-9)
     cloudsat.IO_RVOD_ice_water_path = np.where(
-        cloudsat_lwp_index>=0, 
+        cloudsat_lwp_index>=0,
         cloudsatlwp.IO_RVOD_ice_water_path[index],-9)
     cloudsat.RVOD_CWC_status = np.where(
-        cloudsat_lwp_index>=0, 
+        cloudsat_lwp_index>=0,
         cloudsatlwp.RVOD_CWC_status[index],-9)
     return cloudsat
 
@@ -277,13 +277,13 @@ def reshapeCloudsat(cloudsatfiles, imager,  SETTINGS):
 
     # Finds Break point
     startBreak, endBreak = find_break_points(clsat, imager, SETTINGS)
-    clsat = clsat.extract_elements(starti=startBreak, 
-                                   endi=endBreak) 
+    clsat = clsat.extract_elements(starti=startBreak,
+                                   endi=endBreak)
     return clsat
-    
-    
+
+
 
 if __name__ == "__main__":
-    # Testing not tested for many years! 
-    pass 
+    # Testing not tested for many years!
+    pass
 

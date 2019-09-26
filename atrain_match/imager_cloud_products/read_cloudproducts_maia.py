@@ -17,7 +17,7 @@
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
 """
   Use this module to read maia cloudproducts
-  2016 SMHI, N.Hakansson 
+  2016 SMHI, N.Hakansson
 """
 
 import time
@@ -86,7 +86,7 @@ def maia_read_all(filename):
 
         logger.info("Reading surface temperature")
         surft = read_maia_surftemp(maia_h5)
-        cloudproducts.nwp = AuxiliaryObj({'surftemp':surft}) 
+        cloudproducts.nwp = AuxiliaryObj({'surftemp':surft})
         logger.info("Not reading cloud microphysical properties")
         logger.info("Not reading channel data")
 

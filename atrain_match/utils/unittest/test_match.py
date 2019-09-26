@@ -22,9 +22,9 @@
 #
 import numpy as np
 import unittest
-import match 
+import match
 
-class test_match_lon_lat(unittest.TestCase): 
+class test_match_lon_lat(unittest.TestCase):
 
     def setUp(self):
         lat = np.array([[999, 10, 15],
@@ -42,7 +42,7 @@ class test_match_lon_lat(unittest.TestCase):
 
     def test_match(self):
         mapper = match.match_lonlat(self.source3, self.target,
-                                      radius_of_influence=0.7*5*1000.0, 
+                                      radius_of_influence=0.7*5*1000.0,
                                       n_neighbours=1)
         print mapper.rows
         print mapper.cols.data[1]
@@ -51,7 +51,7 @@ class test_match_lon_lat(unittest.TestCase):
 
     def test_match_nodata(self):
          mapper = match.match_lonlat(self.source, self.target,
-                                      radius_of_influence=0.7*5*1000.0, 
+                                      radius_of_influence=0.7*5*1000.0,
                                       n_neighbours=1)
          print mapper.rows
          print mapper.cols.data[1]

@@ -29,7 +29,7 @@ from statistics.orrb_stat_class import OrrbStats
 class CloudFractionStats(OrrbStats):
     def do_stats(self):
         OrrbStats.do_stats(self)
-        
+
         n_clear_clear_cal = self.ac_data["n_clear_clear_cal"]
         n_clear_cloudy_cal = self.ac_data["n_clear_cloudy_cal"]
         n_cloudy_clear_cal = self.ac_data["n_cloudy_clear_cal"]
@@ -42,7 +42,7 @@ class CloudFractionStats(OrrbStats):
         if "step_cmaprob" in self.ac_data.keys ():
             step_cmaprob = int(self.ac_data["step_cmaprob"])
             n_clear_cmaprob = np.array(self.ac_data["n_clear_cmaprob"])
-            n_cloudy_cmaprob = np.array(self.ac_data["n_cloudy_cmaprob"])        
+            n_cloudy_cmaprob = np.array(self.ac_data["n_cloudy_cmaprob"])
             min_prob = np.array([percent*1.0 for percent in range(0,100,step_cmaprob)])
             max_prob = np.array([percent*1.0 for percent in range(step_cmaprob,100 + step_cmaprob,step_cmaprob)])
             limit_v =  np.array([percent*1.0 for percent in range(0,101,step_cmaprob)])
@@ -53,7 +53,7 @@ class CloudFractionStats(OrrbStats):
             print percent_cloudy_prob, Num_cloudy_tot, n_cloudy_cmaprob
             percent_clear_prob =  np.array([100.0/Num_clear_tot*np.int(nc)  for nc in n_clear_cmaprob])
             print percent_clear_prob
-            
+
 
             detected_clouds = np.array([np.sum(n_cloudy_cmaprob[min_prob>=limit]) for limit in limit_v])
             undetected_clouds = np.array([np.sum(n_cloudy_cmaprob[min_prob<limit]) for limit in limit_v])
@@ -73,21 +73,21 @@ class CloudFractionStats(OrrbStats):
             far_cloudy_prob = 100.0*false_clouds/(false_clouds + detected_clouds)
             far_clear_prob = 100.0*undetected_clouds/(undetected_clouds + detected_clear)
 
-            hitrate_prob = (1.0/(Num_cloudy_tot + Num_clear_tot) * 
+            hitrate_prob = (1.0/(Num_cloudy_tot + Num_clear_tot) *
                             (detected_clouds + detected_clear))
             if Num_cloudy_tot*Num_clear_tot ==0:
-                kuipers_prob = [-9  for limit in limit_v]  
-            else:    
+                kuipers_prob = [-9  for limit in limit_v]
+            else:
                 kuipers_prob = (
                     1.0 *(detected_clouds * detected_clear - undetected_clouds * false_clouds)/
-                    (Num_cloudy_tot*Num_clear_tot)) 
-            
-                            
+                    (Num_cloudy_tot*Num_clear_tot))
+
+
 
         Num = self.ac_data["Num"]
-        
+
         mean_CFC_cal = np.divide(100.0*(n_cloudy_cloudy_cal+n_cloudy_clear_cal), Num)
-        bias_cal = np.divide(1.*(n_clear_cloudy_cal - n_cloudy_clear_cal), Num)        
+        bias_cal = np.divide(1.*(n_clear_cloudy_cal - n_cloudy_clear_cal), Num)
         bias_cal_perc = np.divide(100.0*(n_clear_cloudy_cal - n_cloudy_clear_cal), Num)
         square_sum_cal =  (n_clear_clear_cal+n_cloudy_cloudy_cal)*bias_cal**2 + \
                             n_cloudy_clear_cal*(-1.0-bias_cal)**2 + \
@@ -97,14 +97,14 @@ class CloudFractionStats(OrrbStats):
         pod_clear_cal = np.divide(100.0*n_clear_clear_cal, n_clear_clear_cal+n_clear_cloudy_cal)
         far_cloudy_cal = np.divide(100.0*n_clear_cloudy_cal, n_cloudy_cloudy_cal+n_clear_cloudy_cal)
         far_clear_cal = np.divide(100.0*n_cloudy_clear_cal, n_clear_clear_cal+n_cloudy_clear_cal)
-    
+
         kuipers = np.divide(1.0*(n_clear_clear_cal*n_cloudy_cloudy_cal-n_cloudy_clear_cal*n_clear_cloudy_cal),
                          ((n_clear_clear_cal+n_clear_cloudy_cal)*(n_cloudy_clear_cal+n_cloudy_cloudy_cal)))
-    
+
         hitrate = np.divide(1.0*(n_clear_clear_cal+n_cloudy_cloudy_cal),
                          (n_clear_clear_cal+n_clear_cloudy_cal+n_cloudy_clear_cal+n_cloudy_cloudy_cal))
-    
-        #MODIS    
+
+        #MODIS
         if self.ac_data["got_cloudsat_modis_flag"]:
             bias_modis = np.divide(1.*(n_clear_cloudy_cal_MODIS - n_cloudy_clear_cal_MODIS), Num-1.)
             bias_modis_perc = np.divide(100.0*(n_clear_cloudy_cal_MODIS - n_cloudy_clear_cal_MODIS), Num-1.)
@@ -113,27 +113,27 @@ class CloudFractionStats(OrrbStats):
                                 n_clear_cloudy_cal*(1.0-bias_modis)**2
             rms_modis = 100.0*math.sqrt(np.divide(square_sum_modis, Num-1.))
             pod_cloudy_cal_MODIS = np.divide(
-                100.0 * n_cloudy_cloudy_cal_MODIS, 
+                100.0 * n_cloudy_cloudy_cal_MODIS,
                 n_cloudy_cloudy_cal_MODIS + n_cloudy_clear_cal_MODIS)
             pod_clear_cal_MODIS = np.divide(
-                100.0 * n_clear_clear_cal_MODIS, 
+                100.0 * n_clear_clear_cal_MODIS,
                 n_clear_clear_cal_MODIS + n_clear_cloudy_cal_MODIS)
             far_cloudy_cal_MODIS = np.divide(
-                100.0 * n_clear_cloudy_cal_MODIS, 
+                100.0 * n_clear_cloudy_cal_MODIS,
                 n_cloudy_cloudy_cal_MODIS+n_clear_cloudy_cal_MODIS)
             far_clear_cal_MODIS = np.divide(
-                100.0 * n_cloudy_clear_cal_MODIS, 
+                100.0 * n_cloudy_clear_cal_MODIS,
                 n_clear_clear_cal_MODIS+n_cloudy_clear_cal_MODIS)
             kuipers_MODIS = np.divide(
-                1.0 * (n_clear_clear_cal_MODIS * n_cloudy_cloudy_cal_MODIS - 
+                1.0 * (n_clear_clear_cal_MODIS * n_cloudy_cloudy_cal_MODIS -
                      n_cloudy_clear_cal_MODIS * n_clear_cloudy_cal_MODIS),
-                ((n_clear_clear_cal_MODIS + n_clear_cloudy_cal_MODIS) * 
-                 (n_cloudy_clear_cal_MODIS + n_cloudy_cloudy_cal_MODIS)))        
+                ((n_clear_clear_cal_MODIS + n_clear_cloudy_cal_MODIS) *
+                 (n_cloudy_clear_cal_MODIS + n_cloudy_cloudy_cal_MODIS)))
             hitrate_MODIS = np.divide(
                 1.0 * (n_clear_clear_cal_MODIS + n_cloudy_cloudy_cal_MODIS),
-                (n_clear_clear_cal_MODIS + n_clear_cloudy_cal_MODIS + 
+                (n_clear_clear_cal_MODIS + n_clear_cloudy_cal_MODIS +
                  n_cloudy_clear_cal_MODIS + n_cloudy_cloudy_cal_MODIS))
-        
+
         # Store values of interest as attributes
         if self.ac_data["got_cloudsat_modis_flag"]:
             self.bias_modis_perc = bias_modis_perc
@@ -166,7 +166,7 @@ class CloudFractionStats(OrrbStats):
             self.percent_clear_prob = percent_clear_prob
             self.percent_cloudy_prob = percent_cloudy_prob
     def printout(self):
- 
+
         lines = []
         if self.Num == 0:
             return lines
@@ -184,18 +184,18 @@ class CloudFractionStats(OrrbStats):
         lines.append("Hitrate: {:5.3f}".format( self.hitrate))
         lines.append("")
         if "step_cmaprob" in self.ac_data.keys():
-            lines.append("Results for CMAPROB")   
-            lines.append('Limit  POD-cloudy  POD-clear FAR-cloudy  FAR-clear Hitrate(%)  Kuipers   ')   
+            lines.append("Results for CMAPROB")
+            lines.append('Limit  POD-cloudy  POD-clear FAR-cloudy  FAR-clear Hitrate(%)  Kuipers   ')
             for ind, limit in enumerate(np.append(self.min_prob, [100])):
                 lines.append("L{:3.0f}: {:9.2f} {:9.2f} {:9.2f} {:9.2f} {:9.3f} {:9.3f}".format(
                     limit,
-                    self.pod_cloudy_prob[ind],  
+                    self.pod_cloudy_prob[ind],
                     self.pod_clear_prob[ind],
-                    self.far_cloudy_prob[ind],  
+                    self.far_cloudy_prob[ind],
                     self.far_clear_prob[ind],
-                    self.hitrate_prob[ind],  
+                    self.hitrate_prob[ind],
                     self.kuipers_prob[ind]))
-            lines.append('CMAPROB-interval   Truth Clouds(%)  Truth Clears(%)')   
+            lines.append('CMAPROB-interval   Truth Clouds(%)  Truth Clears(%)')
             for ind, limit in enumerate(self.min_prob):
                 upper_limit = "<=100"
                 if (ind + 1) < len(self.min_prob):
@@ -208,7 +208,7 @@ class CloudFractionStats(OrrbStats):
             lines.append("")
 
         if self.ac_data["got_cloudsat_modis_flag"]:
-            lines.append("Results for MODIS flag from CPR (CloudSat)")                
+            lines.append("Results for MODIS flag from CPR (CloudSat)")
             lines.append("Mean error MODIS: {:6.2f}".format( self.bias_modis_perc))
             lines.append("RMS error MODIS: {:6.2f}".format( self.rms_modis))
             lines.append("POD cloudy MODIS: {:6.2f}".format( self.pod_cloudy_cal_MODIS))
