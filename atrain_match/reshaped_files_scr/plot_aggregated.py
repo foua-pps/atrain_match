@@ -62,14 +62,14 @@ isWater = np.logical_and(np.equal(match_calipso.calipso.all_arrays['igbp_surface
 isClearWater = np.logical_and(isWater, np.equal(isCloud, False))
 isClearIce = np.logical_and(isIce, np.equal(isCloud, False))
 
-nodata = np.logical_or(t11<=-9, t12<=-9)
+nodata = np.logical_or(t11 <= -9, t12 <= -9)
 t11t12 = np.ma.array(t11 - t12, mask=nodata)
 
 # Masking out what is not a cloud ==> gives all cloudy pixels
-t11t12_cloud = np.ma.masked_where(isCloud==False, t11t12).compressed()
-t11t12_clear = np.ma.masked_where(isCloud==True, t11t12).compressed()
-t11t12_clear_ice = np.ma.masked_where(isClearIce==False, t11t12).compressed()
-t11t12_clear_water = np.ma.masked_where(isClearWater==False, t11t12).compressed()
+t11t12_cloud = np.ma.masked_where(isCloud == False, t11t12).compressed()
+t11t12_clear = np.ma.masked_where(isCloud == True, t11t12).compressed()
+t11t12_clear_ice = np.ma.masked_where(isClearIce == False, t11t12).compressed()
+t11t12_clear_water = np.ma.masked_where(isClearWater == False, t11t12).compressed()
 
 
 

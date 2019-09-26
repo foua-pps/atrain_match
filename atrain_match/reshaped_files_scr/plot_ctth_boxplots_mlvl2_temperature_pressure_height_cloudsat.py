@@ -33,25 +33,25 @@ from my_dir import ADIR
 def make_boxplot(match_clsat, name, month):
 
     height_c = match_clsat.cloudsat.all_arrays['clsat_max_height']
-    low_clouds = np.logical_and(height_c<2500, height_c>-9)
-    medium_clouds = np.logical_and(height_c>=2500, height_c<=5000)
-    high_clouds = np.logical_and(height_c>5000, height_c>-9)
+    low_clouds = np.logical_and(height_c < 2500, height_c > - 9)
+    medium_clouds = np.logical_and(height_c >= 2500, height_c <= 5000)
+    high_clouds = np.logical_and(height_c > 5000, height_c > - 9)
     height_mlvl2 = match_clsat.modis.all_arrays['height']
     height_pps = match_clsat.imager.all_arrays['imager_ctth_m_above_seasurface']
     sunz = match_clsat.imager.all_arrays['sunz']
-    use = np.logical_and(height_pps >-1,
-                         height_c>=0)
-    use = np.logical_and(height_pps <45000,use)
-    use = np.logical_and(use, height_mlvl2>-1)
-    use = np.logical_and(use, height_mlvl2<45000)
+    use = np.logical_and(height_pps > - 1,
+                         height_c >= 0)
+    use = np.logical_and(height_pps < 45000,use)
+    use = np.logical_and(use, height_mlvl2 > - 1)
+    use = np.logical_and(use, height_mlvl2 < 45000)
     low = np.logical_and(low_clouds,use)
     medium = np.logical_and(medium_clouds,use)
     high = np.logical_and(high_clouds,use)
     over_high_ground = np.logical_and(use,match_clsat.cloudsat.all_arrays['elevation']>5000)
     c_all = use #np.logical_or(high,np.logical_or(low,medium))
-    c_all_day = np.logical_and(use,sunz<80)
-    c_all_twilight = np.logical_and(use,np.logical_and(sunz<=95,sunz>=80))
-    c_all_night = np.logical_and(use,sunz>95)
+    c_all_day = np.logical_and(use,sunz < 80)
+    c_all_twilight = np.logical_and(use,np.logical_and(sunz <= 95,sunz >= 80))
+    c_all_night = np.logical_and(use,sunz > 95)
 
     pps_bias = height_pps - height_c
     pps_abias = np.abs(pps_bias)
@@ -75,7 +75,7 @@ def make_boxplot(match_clsat, name, month):
     ax.fill_between(np.arange(0,5),-1500,1500, facecolor='green', alpha=0.2)
     ax.fill_between(np.arange(0,5),2000,15000, facecolor='red', alpha=0.2)
     ax.fill_between(np.arange(0,5),-2000,-15000, facecolor='red', alpha=0.2)
-    for y_val in [-5,-4,-3,-2,2,3,4,5]:
+    for y_val in [-5, -4, -3, -2,2,3,4,5]:
         plt.plot(np.arange(0,5), y_val*1000 + 0*np.arange(0,5),':k', alpha=0.4)
         plt.plot(np.arange(0,5), -10*1000 + 0*np.arange(0,5),':k', alpha=0.4)
     plt.plot(np.arange(0,5), 0 + 0*np.arange(0,5),':k', alpha=0.4)
@@ -98,7 +98,7 @@ def make_boxplot(match_clsat, name, month):
     ax.fill_between(np.arange(0,8),-1500,1500, facecolor='green', alpha=0.2)
     ax.fill_between(np.arange(0,8),2000,15000, facecolor='red', alpha=0.2)
     ax.fill_between(np.arange(0,8),-2000,-15000, facecolor='red', alpha=0.2)
-    for y_val in [-5,-4,-3,-2,2,3,4,5]:
+    for y_val in [-5, -4, -3, -2,2,3,4,5]:
         plt.plot(np.arange(0,8), y_val*1000 + 0*np.arange(0,8),':k', alpha=0.4)
         plt.plot(np.arange(0,8), -10*1000 + 0*np.arange(0,8),':k', alpha=0.4)
     plt.plot(np.arange(0,8), 0 + 0*np.arange(0,8),':k', alpha=0.4)
@@ -122,7 +122,7 @@ def make_boxplot(match_clsat, name, month):
     ax.fill_between(np.arange(0,8),-1500,1500, facecolor='green', alpha=0.2)
     ax.fill_between(np.arange(0,8),2000,15000, facecolor='red', alpha=0.2)
     ax.fill_between(np.arange(0,8),-2000,-15000, facecolor='red', alpha=0.2)
-    for y_val in [-5,-4,-3,-2,2,3,4,5]:
+    for y_val in [-5, -4, -3, -2,2,3,4,5]:
         plt.plot(np.arange(0,8), y_val*1000 + 0*np.arange(0,8),':k', alpha=0.4)
         plt.plot(np.arange(0,8), -10*1000 + 0*np.arange(0,8),':k', alpha=0.4)
     plt.plot(np.arange(0,8), 0 + 0*np.arange(0,8),':k', alpha=0.4)
@@ -147,7 +147,7 @@ def make_boxplot(match_clsat, name, month):
     ax.fill_between(np.arange(0,8),-1500,1500, facecolor='green', alpha=0.2)
     ax.fill_between(np.arange(0,8),2000,15000, facecolor='red', alpha=0.2)
     ax.fill_between(np.arange(0,8),-2000,-15000, facecolor='red', alpha=0.2)
-    for y_val in [-5,-4,-3,-2,2,3,4,5]:
+    for y_val in [-5, -4, -3, -2,2,3,4,5]:
         plt.plot(np.arange(0,8), y_val*1000 + 0*np.arange(0,8),':k', alpha=0.4)
         plt.plot(np.arange(0,8), -10*1000 + 0*np.arange(0,8),':k', alpha=0.4)
     plt.plot(np.arange(0,8), 0 + 0*np.arange(0,8),':k', alpha=0.4)
@@ -178,7 +178,7 @@ def make_boxplot(match_clsat, name, month):
     ax.x_tick_list = [1,3]
     ax.x_tick_labels = labels=["%s \n MAE=%3.0f"%(name,pps_MAE),"modis_lvl2 \nMAE=%3.0f"%(mlvl2_MAE)]
 
-    for y_val in [-5,-4,-3,-2,-1,0,1,2,3,4,5]:
+    for y_val in [-5, -4, -3, -2, -1,0,1,2,3,4,5]:
         plt.plot(np.arange(0,5), y_val*2500 + 0*np.arange(0,5),':k', alpha=0.4)
     bplot = ax.violinplot([pps_bias[c_all],mlvl2_bias[c_all]],positions=[1,3],
                           widths=1.2,showextrema=False, showmedians=True)

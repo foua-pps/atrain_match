@@ -44,7 +44,7 @@ def crop_object(match_obj, use_in=None):
         y =match_obj.imager.all_arrays['ctth_height_corr']
     x = match_obj.calipso.all_arrays['validation_height']
     pps_profile_id = match_obj.calipso.sec_1970#profile_id[:,0]
-    use = np.logical_and(y>=0,x>=0)
+    use = np.logical_and(y >= 0,x >= 0)
     if use_in is not None:
         use = np.logical_and(use,use_in)
     for arnameca, valueca in match_obj.calipso.all_arrays.items():
@@ -74,15 +74,15 @@ def remove_missing(match_objPPS, match_objPATMOSX, common_index):
     use_patmosx =  use_patmosx_same_profile
     use_pps =    use_pps_same_profile
     """
-    pps_profile_id[~use_pps]=-111
+    pps_profile_id[~use_pps]= -111
     #remove doubles
     unique, index = np.unique(pps_profile_id, return_index=True)
-    pps_profile_id_new = -111+0*pps_profile_id.copy()
+    pps_profile_id_new = -111 + 0*pps_profile_id.copy()
     pps_profile_id_new[index] = unique
     pps_profile_id = pps_profile_id_new
 
     unique, index = np.unique(patmosx_profile_id, return_index=True)
-    patmosx_profile_id_new = -333+0*patmosx_profile_id.copy()
+    patmosx_profile_id_new = -333 + 0*patmosx_profile_id.copy()
     patmosx_profile_id_new[index] = unique
     patmosx_profile_id = patmosx_profile_id_new
 
@@ -106,11 +106,11 @@ def print_stats(match_objPPS, match_objPATMOSX, use_pps, use_patmosx):
 
     print(np.sum(use_pps), np.sum(use_patmosx))
 
-    use_patmosx =  np.logical_and(use_patmosx, x_patmosx>0)
-    use_pps =   np.logical_and(use_pps, x>0)
+    use_patmosx =  np.logical_and(use_patmosx, x_patmosx > 0)
+    use_pps =   np.logical_and(use_pps, x > 0)
 
-    bias_pps = y_pps[use_pps]-x[use_pps]
-    bias_patmosx = y_patmosx[use_patmosx]-x_patmosx[use_patmosx]
+    bias_pps = y_pps[use_pps] - x[use_pps]
+    bias_patmosx = y_patmosx[use_patmosx] - x_patmosx[use_patmosx]
     abias_pps = np.abs(bias_pps)
     abias_patmosx = np.abs(bias_patmosx)
 

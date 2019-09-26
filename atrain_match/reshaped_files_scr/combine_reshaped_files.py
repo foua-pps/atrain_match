@@ -48,7 +48,7 @@ for year in [2010]:
                 os.makedirs(OUT_DIR)
 
             files = sorted(glob(ROOT_DIR%(month,month,day)))
-            if len(files)==0:
+            if len(files) == 0:
                 continue
             num_n = 0
             num_d = 0
@@ -78,14 +78,14 @@ for year in [2010]:
                         match_calipso_day =  match_calipso_new
                     else:
                         match_calipso_day = match_calipso_day + match_calipso_new
-            if num_n>0:
+            if num_n > 0:
                 filename_night = outfile_template%(month,day,"00")
                 outfile = os.path.join(OUT_DIR, filename_night)
                 write_truth_imager_match_obj(
                     outfile, match_calipso_night, SETTINGS, imager_obj_name = 'pps')
                 match_calipso_night = None
 
-            if num_d>0:
+            if num_d > 0:
                 filename_day = outfile_template%(month,day,"12")
                 outfile = os.path.join(OUT_DIR, filename_day)
                 write_truth_imager_match_obj(

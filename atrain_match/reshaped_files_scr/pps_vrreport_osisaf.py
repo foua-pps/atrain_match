@@ -47,13 +47,13 @@ def my_measures(calipso_cfc, pps_cfc, calipso_snowi, pps_snowi,  thin, use):
         pps_snowi = pps_snowi[use]
         calipso_snowi = calipso_snowi[use]
 
-    c_cloudy_w = np.logical_and(calipso_snowi==0, calipso_cfc==1)
-    c_cloudy_i = np.logical_and(calipso_snowi>0, calipso_cfc==1)
-    c_water = np.logical_and(calipso_snowi==0, calipso_cfc==0)
-    c_ice = np.logical_and(calipso_snowi>0, calipso_cfc==0)
+    c_cloudy_w = np.logical_and(calipso_snowi == 0, calipso_cfc == 1)
+    c_cloudy_i = np.logical_and(calipso_snowi > 0, calipso_cfc == 1)
+    c_water = np.logical_and(calipso_snowi == 0, calipso_cfc == 0)
+    c_ice = np.logical_and(calipso_snowi > 0, calipso_cfc == 0)
     pps_ice = pps_snowi
-    pps_water = np.logical_and(pps_cfc==0, pps_snowi==0)
-    pps_cloud = pps_cfc==1
+    pps_water = np.logical_and(pps_cfc == 0, pps_snowi == 0)
+    pps_cloud = pps_cfc == 1
 
     indict = {}
     indict["pps_cloudy_c_cloudy_w"] = np.sum(np.logical_and(pps_cloud, c_cloudy_w))
@@ -103,9 +103,9 @@ def plot_cfc_table(match_calipso,cfc_limit=0.9,sat="modis"):
     (no_qflag, land_flag, sea_flag, coast_flag, all_lsc_flag) = get_land_coast_sea_info_pps2014(match_calipso.imager.cloudtype_conditions)
     (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag) = get_day_night_twilight_info_pps2014(match_calipso.imager.cloudtype_conditions)
     calipso_cfc = cfc.copy()
-    calipso_cfc[cfc<=cfc_limit] = 0
-    calipso_cfc[cfc>cfc_limit] = 1
-    calipso_cfc[cfc<0] = -1
+    calipso_cfc[cfc <= cfc_limit] = 0
+    calipso_cfc[cfc > cfc_limit] = 1
+    calipso_cfc[cfc < 0] = -1
     pps_cfc = 0*cfc.copy()
     pps_cfc[cma] = 1
     use = np.logical_or(cl,cma)

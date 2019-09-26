@@ -52,9 +52,9 @@ def make_violinplot(match_calipso, name, modis_lvl2=False):
                           match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>0)
     thin_top = np.logical_and(match_calipso.calipso.all_arrays['number_layers_found']>1, thin)
     thin_1_lay = np.logical_and(match_calipso.calipso.all_arrays['number_layers_found']==1, thin)
-    use = np.logical_and(height_pps >-1,
+    use = np.logical_and(height_pps > - 1,
                          match_calipso.calipso.all_arrays['layer_top_altitude'][:,0]>=0)
-    use = np.logical_and(height_pps <45000,use)
+    use = np.logical_and(height_pps < 45000,use)
     low = np.logical_and(low_clouds,use)
     medium = np.logical_and(medium_clouds,use)
     high = np.logical_and(high_clouds,use)
@@ -80,7 +80,7 @@ def make_violinplot(match_calipso, name, modis_lvl2=False):
     ax.fill_between(np.arange(0,8),-1500,1500, facecolor='green', alpha=0.2)
     ax.fill_between(np.arange(0,8),2000,20000, facecolor='red', alpha=0.2)
     ax.fill_between(np.arange(0,8),-2000,-20000, facecolor='red', alpha=0.2)
-    for y_val in [-5,-4,-3,-2,2,3,4,5]:
+    for y_val in [-5, -4, -3, -2,2,3,4,5]:
         plt.plot(np.arange(0,8), y_val*1000 + 0*np.arange(0,8),':k', alpha=0.4)
         plt.plot(np.arange(0,8), -10*1000 + 0*np.arange(0,8),':k', alpha=0.4)
     plt.plot(np.arange(0,8), 0 + 0*np.arange(0,8),':k', alpha=0.4)
@@ -110,9 +110,9 @@ def make_violinplot_temperature(match_calipso, name, modis_lvl2=False):
                           match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>0)
     thin_top = np.logical_and(match_calipso.calipso.all_arrays['number_layers_found']>1, thin)
     thin_1_lay = np.logical_and(match_calipso.calipso.all_arrays['number_layers_found']==1, thin)
-    use = np.logical_and(temp_pps >100,
+    use = np.logical_and(temp_pps > 100,
                          match_calipso.calipso.all_arrays['layer_top_altitude'][:,0]>=0)
-    use = np.logical_and(height_pps <45000,use)
+    use = np.logical_and(height_pps < 45000,use)
     low = np.logical_and(low_clouds,use)
     medium = np.logical_and(medium_clouds,use)
     high = np.logical_and(high_clouds,use)
@@ -138,7 +138,7 @@ def make_violinplot_temperature(match_calipso, name, modis_lvl2=False):
     ax.fill_between(np.arange(0,8),-7.5,7.5, facecolor='green', alpha=0.2)
     ax.fill_between(np.arange(0,8),10,200, facecolor='red', alpha=0.2)
     ax.fill_between(np.arange(0,8),-200,-10, facecolor='red', alpha=0.2)
-    for y_val in [-5,-4,-3,-2,-1,1,2,3,4,5]:
+    for y_val in [-5, -4, -3, -2, -1,1,2,3,4,5]:
         plt.plot(np.arange(0,8), y_val*20 + 0*np.arange(0,8),':k', alpha=0.4)
     plt.plot(np.arange(0,8), 0 + 0*np.arange(0,8),':k', alpha=0.4)
     bplot = ax.violinplot([bias[low],bias[medium],bias[high],bias[high_thick],bias[high_thin],bias[high_very_thin]],
@@ -166,9 +166,9 @@ def make_violinplot_pressure(match_calipso, name, modis_lvl2=False):
                           match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>0)
     thin_top = np.logical_and(match_calipso.calipso.all_arrays['number_layers_found']>1, thin)
     thin_1_lay = np.logical_and(match_calipso.calipso.all_arrays['number_layers_found']==1, thin)
-    use = np.logical_and(pressure_pps >0,
+    use = np.logical_and(pressure_pps > 0,
                          match_calipso.calipso.all_arrays['layer_top_altitude'][:,0]>=0)
-    use = np.logical_and(height_pps <45000,use)
+    use = np.logical_and(height_pps < 45000,use)
     low = np.logical_and(low_clouds,use)
     medium = np.logical_and(medium_clouds,use)
     high = np.logical_and(high_clouds,use)
@@ -194,7 +194,7 @@ def make_violinplot_pressure(match_calipso, name, modis_lvl2=False):
     ax.fill_between(np.arange(0,8),-150,150, facecolor='green', alpha=0.2)
     ax.fill_between(np.arange(0,8),200,2000, facecolor='red', alpha=0.2)
     ax.fill_between(np.arange(0,8),-2000,-200, facecolor='red', alpha=0.2)
-    for y_val in [-6,-4,-2,2,4,6,8,-8]:
+    for y_val in [-6, -4, -2,2,4,6,8, -8]:
         plt.plot(np.arange(0,8), y_val*100 + 0*np.arange(0,8),':k', alpha=0.4)
     plt.plot(np.arange(0,8), 0 + 0*np.arange(0,8),':k', alpha=0.4)
     bplot = ax.violinplot([bias[low],bias[medium],bias[high],bias[high_thick],bias[high_thin],bias[high_very_thin]],

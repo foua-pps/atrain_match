@@ -43,12 +43,12 @@ def make_pod_vector(match_calipso):
         pps_cloudy = np.logical_and(np.greater(match_calipso.imager.cloudtype,4),np.less(match_calipso.imager.cloudtype,20))
     igbp_st = getattr(match_calipso.calipso, 'igbp_surface_type')
     alat = np.abs(match_calipso.imager.all_arrays['latitude'])
-    use_all = np.logical_and(np.equal(igbp_st,17), alat<45)
+    use_all = np.logical_and(np.equal(igbp_st,17), alat < 45)
     use_all = np.logical_and(use_all,match_calipso.calipso.all_arrays["cloud_fraction"]>=1.0)
     sunz = match_calipso.imager.all_arrays['sunz']
-    if np.max(sunz)<5:
+    if np.max(sunz) < 5:
         sunz = 100*sunz
-    day = sunz<90
+    day = sunz < 90
 
     #feature = np.array(match_calipso.imager.all_arrays['bt11micron'])-match_calipso.imager.all_arrays['surftemp']
     #feature = match_calipso.imager.all_arrays['thr_t37t12'] - np.array(match_calipso.imager.all_arrays['bt37micron']) +match_calipso.imager.all_arrays['bt12micron']
@@ -56,22 +56,22 @@ def make_pod_vector(match_calipso):
     feature = od
     for i, lower in enumerate(limits):
         try:
-            upper = limits[i+1]
+            upper = limits[i + 1]
         except:
             upper = 100000
-        use = np.logical_and(use_all, np.logical_and(od>=lower,od<upper))
+        use = np.logical_and(use_all, np.logical_and(od >= lower,od < upper))
         use = np.logical_and(use, day)
 
         pod_d.append(np.sum(np.logical_and(use,pps_cloudy)) * 100.0/np.sum(use))
-        feature_d.append(np.sum(feature[np.logical_and(use,np.not_equal(pps_cloudy,True))]>297)*100.0/np.sum(use) )
+        feature_d.append(np.sum(feature[np.logical_and(use,np.not_equal(pps_cloudy,True))] > 297)*100.0/np.sum(use) )
         #feature_d.append(np.mean(feature[np.logical_and(use,np.equal(pps_cloudy,True))]))
 
-        use = np.logical_and(use_all, np.logical_and(od>=lower,od<upper))
+        use = np.logical_and(use_all, np.logical_and(od >= lower,od < upper))
         use = np.logical_and(use, np.not_equal(day,True))
         pod_n.append(np.sum(np.logical_and(use,pps_cloudy)) * 100.0/np.sum(use))
-        feature_n.append(np.sum(feature[np.logical_and(use,np.not_equal(pps_cloudy,True))]>297)*100.0/np.sum(use) )
+        feature_n.append(np.sum(feature[np.logical_and(use,np.not_equal(pps_cloudy,True))] > 297)*100.0/np.sum(use) )
         #feature_n.append(np.mean(feature[np.logical_and(use,np.equal(pps_cloudy,True))]))
-    use = np.logical_and(use_all,np.logical_and(od>=0.2,od<0.5))
+    use = np.logical_and(use_all,np.logical_and(od >= 0.2,od < 0.5))
     use = np.logical_and(use, np.not_equal(pps_cloudy,True))
     use_i = np.logical_and(use, day)
     from collections import Counter

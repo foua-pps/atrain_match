@@ -59,9 +59,9 @@ def plot_cfc_table(match_calipso,cfc_limit=0.9,sat="modis"):
         pps_snowi =np.logical_and(np.less_equal(match_calipso.imager.cloudtype,4),np.greater(match_calipso.imager.cloudtype,2))
 
     calipso_cfc = cfc.copy()
-    calipso_cfc[cfc<=cfc_limit] = 0
-    calipso_cfc[cfc>cfc_limit] = 1
-    calipso_cfc[cfc<0] = -1
+    calipso_cfc[cfc <= cfc_limit] = 0
+    calipso_cfc[cfc > cfc_limit] = 1
+    calipso_cfc[cfc < 0] = -1
     pps_cfc = 0*cfc.copy()
     pps_cfc[cma] = 1
     use = np.logical_or(cl,cma)
@@ -71,8 +71,8 @@ def plot_cfc_table(match_calipso,cfc_limit=0.9,sat="modis"):
 
     #import pdb
     #pdb.set_trace()
-    pps_cprob[np.isnan(pps_cprob)]=-9
-    use = np.logical_and(use, pps_cprob>0)
+    pps_cprob[np.isnan(pps_cprob)]= -9
+    use = np.logical_and(use, pps_cprob > 0)
     cl = np.logical_and(use,cl)
     cma = np.logical_and(use,cma)
 
@@ -82,28 +82,28 @@ def plot_cfc_table(match_calipso,cfc_limit=0.9,sat="modis"):
 
     for lower in range(0,99,5):
         upper = lower + 5
-        if upper ==100:
+        if upper == 100:
             upper = 101
         #ppsclear
-        use_i = np.logical_and(cl,pps_cprob>=lower)
-        use_i = np.logical_and(use_i,pps_cprob<upper)
-        pclear_cloudy_i = np.logical_and(use_i, calipso_cfc==1)
-        pclear_clear_i = np.logical_and(use_i, calipso_cfc==0)
-        use_i = np.logical_and(cma,pps_cprob>=lower)
-        use_i = np.logical_and(use_i,pps_cprob<upper)
-        pcloudy_cloudy_i = np.logical_and(use_i, calipso_cfc==1)
-        pcloudy_clear_i = np.logical_and(use_i, calipso_cfc==0)
+        use_i = np.logical_and(cl,pps_cprob >= lower)
+        use_i = np.logical_and(use_i,pps_cprob < upper)
+        pclear_cloudy_i = np.logical_and(use_i, calipso_cfc == 1)
+        pclear_clear_i = np.logical_and(use_i, calipso_cfc == 0)
+        use_i = np.logical_and(cma,pps_cprob >= lower)
+        use_i = np.logical_and(use_i,pps_cprob < upper)
+        pcloudy_cloudy_i = np.logical_and(use_i, calipso_cfc == 1)
+        pcloudy_clear_i = np.logical_and(use_i, calipso_cfc == 0)
         info += "{:d}<=CMAPROB<{:d}: {:d}-({:d}) {:d}-({:d}) {:d}-({:d}) {:d}-({:d})\n".format(
             lower,
             upper,
             np.sum(pclear_cloudy_i),
-            np.sum(np.logical_and(ct_quality==24,pclear_cloudy_i)),
+            np.sum(np.logical_and(ct_quality == 24,pclear_cloudy_i)),
             np.sum(pclear_clear_i),
-            np.sum(np.logical_and(ct_quality==24,pclear_clear_i)),
+            np.sum(np.logical_and(ct_quality == 24,pclear_clear_i)),
             np.sum(pcloudy_cloudy_i),
-            np.sum(np.logical_and(ct_quality==24,pcloudy_cloudy_i)),
+            np.sum(np.logical_and(ct_quality == 24,pcloudy_cloudy_i)),
             np.sum(pcloudy_clear_i),
-            np.sum(np.logical_and(ct_quality==24,pcloudy_clear_i)))
+            np.sum(np.logical_and(ct_quality == 24,pcloudy_clear_i)))
     print(info)
 
 
@@ -117,28 +117,28 @@ def plot_cfc_table(match_calipso,cfc_limit=0.9,sat="modis"):
 
     for lower in range(0,99,5):
         upper = lower + 5
-        if upper ==100:
+        if upper == 100:
             upper = 101
         #ppsclear
-        use_i = np.logical_and(cl,pps_cprob>=lower)
-        use_i = np.logical_and(use_i,pps_cprob<upper)
-        pclear_cloudy_i = np.logical_and(use_i, calipso_cfc==1)
-        pclear_clear_i = np.logical_and(use_i, calipso_cfc==0)
-        use_i = np.logical_and(cma,pps_cprob>=lower)
-        use_i = np.logical_and(use_i,pps_cprob<upper)
-        pcloudy_cloudy_i = np.logical_and(use_i, calipso_cfc==1)
-        pcloudy_clear_i = np.logical_and(use_i, calipso_cfc==0)
+        use_i = np.logical_and(cl,pps_cprob >= lower)
+        use_i = np.logical_and(use_i,pps_cprob < upper)
+        pclear_cloudy_i = np.logical_and(use_i, calipso_cfc == 1)
+        pclear_clear_i = np.logical_and(use_i, calipso_cfc == 0)
+        use_i = np.logical_and(cma,pps_cprob >= lower)
+        use_i = np.logical_and(use_i,pps_cprob < upper)
+        pcloudy_cloudy_i = np.logical_and(use_i, calipso_cfc == 1)
+        pcloudy_clear_i = np.logical_and(use_i, calipso_cfc == 0)
         info += "{:d}<=CMAPROB<{:d}: {:d}-({:d}) {:d}-({:d}) {:d}-({:d}) {:d}-({:d})\n".format(
             lower,
             upper,
             np.sum(pclear_cloudy_i),
-            np.sum(np.logical_and(cma_aerosol==1,pclear_cloudy_i)),
+            np.sum(np.logical_and(cma_aerosol == 1,pclear_cloudy_i)),
             np.sum(pclear_clear_i),
-            np.sum(np.logical_and(cma_aerosol==1,pclear_clear_i)),
+            np.sum(np.logical_and(cma_aerosol == 1,pclear_clear_i)),
             np.sum(pcloudy_cloudy_i),
-            np.sum(np.logical_and(cma_aerosol==1,pcloudy_cloudy_i)),
+            np.sum(np.logical_and(cma_aerosol == 1,pcloudy_cloudy_i)),
             np.sum(pcloudy_clear_i),
-            np.sum(np.logical_and(cma_aerosol==1,pcloudy_clear_i)))
+            np.sum(np.logical_and(cma_aerosol == 1,pcloudy_clear_i)))
     print(info)
     out_file_h.write("---------------------\n" )
     out_file_h.write(sat + ": \n" )

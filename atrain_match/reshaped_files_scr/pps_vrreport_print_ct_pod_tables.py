@@ -59,7 +59,7 @@ def plot_ct_table2(match_calipso):
         #    continue
         is_type_i = get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=type_i)
         pps_ctype = match_calipso.imager.all_arrays['cloudtype']
-        use = np.logical_and(pps_ctype>4,pps_ctype<23)
+        use = np.logical_and(pps_ctype > 4,pps_ctype < 23)
         is_type_i =np.logical_and(is_type_i, use)
         N = np.sum(is_type_i)
         print "N", ("%d"%(N)).rjust(9,' '),
@@ -83,7 +83,7 @@ def plot_ct_table4(match_calipso, use_in=None):
         #    continue
         is_type_i = get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=type_i)
         pps_ctype = match_calipso.imager.all_arrays['cloudtype']
-        use = np.logical_and(pps_ctype>0,pps_ctype<23)
+        use = np.logical_and(pps_ctype > 0,pps_ctype < 23)
         if use_in is not None:
             use = np.logical_and(use, use_in)
         is_type_i =np.logical_and(is_type_i, use)
@@ -100,19 +100,19 @@ def plot_ct_table5(match_calipso, use_in=None):
     from utils.get_flag_info import get_calipso_clouds_of_type_i
     fig = plt.figure(figsize = (30,64))
     pps_ctype = match_calipso.imager.all_arrays['cloudtype']
-    use = np.logical_and(pps_ctype>0,pps_ctype<23)
+    use = np.logical_and(pps_ctype > 0,pps_ctype < 23)
     use = np.logical_and(use, use_in)
     for type_i in [0,2,3,4,5,6,7]:
         is_type_i = get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=type_i)
         is_type_i =np.logical_and(is_type_i, use)
         N = np.sum(is_type_i)
         print "N", ("%d"%(N)).rjust(9,' '),
-        if N<50:
+        if N < 50:
             print "------------------", cc_type_name[type_i]
             continue
-        these = np.logical_and(is_type_i, pps_ctype <5)
+        these = np.logical_and(is_type_i, pps_ctype < 5)
         print ("%3.1f"%(np.sum(these)*1.0/N*100)).rjust(5,' '),
-        these = np.logical_and(is_type_i, pps_ctype >4)
+        these = np.logical_and(is_type_i, pps_ctype > 4)
         print ("%3.1f"%(np.sum(these)*1.0/N*100)).rjust(5,' '),
         print cc_type_name[type_i]
 
@@ -131,7 +131,7 @@ def table_21_do_for_atbd(match_calipso):
     caliop_ok = np.logical_or(np.logical_or(cirrus_clouds, low_clouds),
                               np.logical_or(high_clouds,medium_clouds))
     pps_ctype = match_calipso.imager.all_arrays['cloudtype']
-    use = np.logical_and(pps_ctype>4,pps_ctype<23)
+    use = np.logical_and(pps_ctype > 4,pps_ctype < 23)
     use = np.logical_and(use, np.logical_and(caliop_ok,match_calipso.calipso.all_arrays['cloud_fraction']>0.99))
     pps_frac = [pps_ctype_i in [10] for pps_ctype_i in pps_ctype]
     pps_very_low = [pps_ctype_i in [5] for pps_ctype_i in pps_ctype]
@@ -141,9 +141,9 @@ def table_21_do_for_atbd(match_calipso):
     pps_cirrus =  [pps_ctype_i in [11,12,13,14,15,16,17,18] for pps_ctype_i in pps_ctype]
     height_ = match_calipso.calipso.all_arrays['validation_height']
     elevation = match_calipso.calipso.all_arrays['elevation']
-    height_[elevation>0] = height_[elevation>0] - elevation[elevation>0]
-    pod_very_low = np.sum(np.logical_and(np.logical_and(use,pps_very_low), height_<500))*100.0/np.sum(np.logical_and(use,height_<500))
-    far_very_low = np.sum(np.logical_and(np.logical_and(use,pps_very_low), height_>=500))*100.0/np.sum(np.logical_and(use,pps_low))
+    height_[elevation > 0] = height_[elevation > 0] - elevation[elevation > 0]
+    pod_very_low = np.sum(np.logical_and(np.logical_and(use,pps_very_low), height_ < 500))*100.0/np.sum(np.logical_and(use,height_ < 500))
+    far_very_low = np.sum(np.logical_and(np.logical_and(use,pps_very_low), height_ >= 500))*100.0/np.sum(np.logical_and(use,pps_low))
     print "pod_very_low", pod_very_low
     print "far_very_low", far_very_low
 
@@ -162,7 +162,7 @@ def table_21_do_for_atbd(match_calipso):
         cirrus_clouds_i =  np.logical_and(cirrus_clouds,use_this)
         n_cirrus_ok = 1.0*np.sum(np.logical_and(pps_cirrus_i,cirrus_clouds_i))
         POD_cirrus =  100*n_cirrus_ok/np.sum(cirrus_clouds_i)
-        FAR_cirrus = 100*(np.sum(pps_cirrus_i)-n_cirrus_ok)/np.sum(pps_cirrus_i)
+        FAR_cirrus = 100*(np.sum(pps_cirrus_i) - n_cirrus_ok)/np.sum(pps_cirrus_i)
         medium_clouds_tp_i =  np.logical_and(medium_clouds_tp, use_this)
         high_clouds_tp_i =  np.logical_and(high_clouds_tp,use_this)
 
@@ -170,21 +170,21 @@ def table_21_do_for_atbd(match_calipso):
         low_clouds_i =  np.logical_and(low_clouds,use_this)
         n_low_ok = 1.0*np.sum(np.logical_and(pps_low_i,low_clouds_i))
         POD_low =  100*n_low_ok/np.sum(low_clouds_i)
-        FAR_low =  100*(np.sum(pps_low_i)-n_low_ok)*1.0/np.sum(pps_low_i)
+        FAR_low =  100*(np.sum(pps_low_i) - n_low_ok)*1.0/np.sum(pps_low_i)
 
         pps_medium_i = np.logical_and(pps_medium,use_this)
         medium_clouds_i =  np.logical_and(medium_clouds, use_this)
         n_medium_ok = 1.0*np.sum(np.logical_and(pps_medium_i,medium_clouds_i))
         n_medium_ok_cirrus = np.sum(np.logical_and(pps_cirrus_i, medium_clouds_tp_i))
         POD_medium =  100*(n_medium_ok + n_medium_ok_cirrus)/np.sum(medium_clouds_i)
-        FAR_medium =  100*(np.sum(pps_medium_i)-n_medium_ok)/np.sum(pps_medium_i)
+        FAR_medium =  100*(np.sum(pps_medium_i) - n_medium_ok)/np.sum(pps_medium_i)
 
         pps_high_i = np.logical_and(pps_high,use_this)
         high_clouds_i =  np.logical_and(high_clouds,use_this)
         n_high_ok = 1.0*np.sum(np.logical_and(pps_high_i,high_clouds_i))
         n_high_ok_cirrus = np.sum(np.logical_and(pps_cirrus_i, high_clouds_tp_i))
         POD_high =  100*(n_high_ok + n_high_ok_cirrus)/np.sum(high_clouds_i)
-        FAR_high = 100*(np.sum(pps_high_i)-n_high_ok)/np.sum(pps_high_i)
+        FAR_high = 100*(np.sum(pps_high_i) - n_high_ok)/np.sum(pps_high_i)
 #      ,                                low, frac, medium, high, cirrus
 #                                       |    low    |
 #N      4544   low overcast (tp)        |  X  |  X  |  -  |  -  |  -  | #

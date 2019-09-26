@@ -83,8 +83,8 @@ def my_measures(calipso_cfc, pps_cfc, calipso_snowi, pps_snowi,  thin, use):
     if thin is not None:
         if use is not None:
             thin = thin[use]
-        undet_cloudy_th = np.sum(np.logical_and(pps_cfc==0, np.logical_and(~thin,calipso_cfc==1)))
-        det_cloudy_th = np.sum(np.logical_and(pps_cfc==1, np.logical_and(~thin,calipso_cfc==1)))
+        undet_cloudy_th = np.sum(np.logical_and(pps_cfc == 0, np.logical_and(~thin,calipso_cfc == 1)))
+        det_cloudy_th = np.sum(np.logical_and(pps_cfc == 1, np.logical_and(~thin,calipso_cfc == 1)))
         measures["PODcy02"] =  det_cloudy_th*100.0/(det_cloudy_th + undet_cloudy_th)
 
 
@@ -108,14 +108,14 @@ def plot_cfc_table(match_calipso,cfc_limit=0.9,sat="modis"):
         cma = np.logical_and(np.greater(match_calipso.imager.cloudtype,4),np.less(match_calipso.imager.cloudtype,20))
         pps_snowi =np.logical_and(np.less_equal(match_calipso.imager.cloudtype,4),np.greater(match_calipso.imager.cloudtype,2))
 
-    thin = np.logical_and(od>0,
-                          od<0.2)
+    thin = np.logical_and(od > 0,
+                          od < 0.2)
     """
     my_fcf_values = set(cfc)
 
     for limit in sorted(my_fcf_values):
-        use = cfc==limit
-        use_thick = np.logical_and(cfc==limit,np.logical_or(od<0, od>0.225))
+        use = cfc == limit
+        use_thick = np.logical_and(cfc == limit,np.logical_or(od < 0, od > 0.225))
         ok_cma = np.logical_and(use, cma)
         ok_cl = np.logical_and(use, cl)
         ok_cma_thick = np.logical_and(use_thick, cma)
@@ -129,9 +129,9 @@ def plot_cfc_table(match_calipso,cfc_limit=0.9,sat="modis"):
     """
 
     calipso_cfc = cfc.copy()
-    calipso_cfc[cfc<=cfc_limit] = 0
-    calipso_cfc[cfc>cfc_limit] = 1
-    calipso_cfc[cfc<0] = -1
+    calipso_cfc[cfc <= cfc_limit] = 0
+    calipso_cfc[cfc > cfc_limit] = 1
+    calipso_cfc[cfc < 0] = -1
     pps_cfc = 0*cfc.copy()
     pps_cfc[cma] = 1
     use = np.logical_or(cl,cma)
@@ -229,14 +229,14 @@ def val_synop_cfc(match_calipso, sat):
                             match_calipso.imager.all_arrays['longitude']>-25)
     europe = np.logical_and(europe,match_calipso.imager.all_arrays['latitude']<72)
     europe = np.logical_and(europe,match_calipso.imager.all_arrays['latitude']>35)
-    use_pps = np.logical_or(match_calipso.imager.cfc_mean<0.25, match_calipso.imager.cfc_mean>=0.75)
-    use_synop = np.logical_or(match_calipso.synop.cloud_fraction<0.25, match_calipso.synop.cloud_fraction>=0.75)
+    use_pps = np.logical_or(match_calipso.imager.cfc_mean < 0.25, match_calipso.imager.cfc_mean >= 0.75)
+    use_synop = np.logical_or(match_calipso.synop.cloud_fraction < 0.25, match_calipso.synop.cloud_fraction >= 0.75)
     use_all = np.logical_and(use_pps, use_synop)
     use_all_europe = np.logical_and(use_all, europe)
     synop_cfc = 0*match_calipso.synop.cloud_fraction.copy()
-    synop_cfc[match_calipso.synop.cloud_fraction>=0.75] = 1.0
+    synop_cfc[match_calipso.synop.cloud_fraction >= 0.75] = 1.0
     pps_cfc = 0*match_calipso.imager.cfc_mean.copy()
-    pps_cfc[match_calipso.imager.cfc_mean>=0.75] = 1.0
+    pps_cfc[match_calipso.imager.cfc_mean >= 0.75] = 1.0
     def print_one_line(measures):
         info = ("{:3.1f} {:3.2f} {:3.1f} {:3.1f} {:3.1f} {:3.1f} {:d} \n"
                 .format(

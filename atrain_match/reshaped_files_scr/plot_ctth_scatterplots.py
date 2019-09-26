@@ -78,7 +78,7 @@ def do_one_subplot(plt_obj, ax, fig, compare, truth='height_c', vmax = 250, do_c
 
 
     from scipy.stats import gaussian_kde
-    n_edges = int(xmax*1.0/binsize)+1
+    n_edges = int(xmax*1.0/binsize) + 1
     #n_edges=3 for testing
     #print "bins", n_edges
     edgesx= np.linspace(xmin, xmax, n_edges)
@@ -91,8 +91,8 @@ def do_one_subplot(plt_obj, ax, fig, compare, truth='height_c', vmax = 250, do_c
     #print max(y), max(x)
     #print max(xi), max(yi)
     #print x[1:5], xi[1:5]
-    xi = xi-1
-    yi = yi-1
+    xi = xi - 1
+    yi = yi - 1
     #only needed if max to small !
     #n_edges =3,
     #edges: [0,1,2]
@@ -105,11 +105,11 @@ def do_one_subplot(plt_obj, ax, fig, compare, truth='height_c', vmax = 250, do_c
         print " n to large x values %d"%(np.sum(xi>=(n_edges-1)))
         print " n to large y values %d"%(np.sum(yi>=(n_edges-1)))
         #yi(yi==3)==2 no one
-        yi[yi==n_edges] = n_edges-1
-        xi[xi==n_edges] = n_edges-1
+        yi[yi == n_edges] = n_edges - 1
+        xi[xi == n_edges] = n_edges - 1
         #yi(yi==2)==1 This is what we need!
-        yi[yi==n_edges-1] = n_edges-2
-        xi[xi==n_edges-1] = n_edges-2
+        yi[yi == n_edges - 1] = n_edges - 2
+        xi[xi == n_edges - 1] = n_edges - 2
     z = H[xi,yi]
     #z=H[yi,xi]
 
@@ -198,7 +198,7 @@ def do_one_subplot(plt_obj, ax, fig, compare, truth='height_c', vmax = 250, do_c
 
 def do_the_scatter_plot(plt_obj_cali_new, plt_obj_csat_new, month):
     vmax = 300
-    if len(month)>3:
+    if len(month) > 3:
         print("Much data")
         vmax = 1800*2
 
@@ -251,7 +251,7 @@ def do_the_scatter_plot(plt_obj_cali_new, plt_obj_csat_new, month):
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_PLOTS/fig04_scatter_inferno_r_modified_max_pressure_%s.png"%(month), bbox_inches='tight')
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_PLOTS/fig04_%s.pdf"%(month), bbox_inches='tight')
     vmax = 200
-    if len(month)>3:
+    if len(month) > 3:
         print("Much data")
         vmax = 1250*2
 

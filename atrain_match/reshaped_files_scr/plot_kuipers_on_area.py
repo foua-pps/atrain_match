@@ -273,12 +273,12 @@ for filename in files:
     except:
         print("skipping file %s"%(filename))
         continue
-    if num_files_to_read==1:
+    if num_files_to_read == 1:
         print("Get info from one file!")
         temp_obj.get_some_info_from_caobj(match_calipso_new, PROCES_FOR_ART=PROCES_FOR_ART, PROCES_FOR_PRESSENTATIONS=PROCES_FOR_PRESSENTATIONS)
         print("Got info, now remap to the lattice")
         pplot_obj.add_detection_stats_on_fib_lattice(temp_obj)
-    elif num >num_files_to_read:
+    elif num > num_files_to_read:
         print("Get info from some %d files!"%(num_files_to_read))
         temp_obj.get_some_info_from_caobj(match_calipso, PROCES_FOR_ART=PROCES_FOR_ART, PROCES_FOR_PRESSENTATIONS=PROCES_FOR_PRESSENTATIONS)
         print("got info, now remap to the lattice")

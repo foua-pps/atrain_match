@@ -128,7 +128,7 @@ def extract_data(match_obj, sat='cloudsat'):
                                               height_c<=match_obj.imager.all_arrays['segment_nwp_h440'])
         pltObj.high_clouds = np.logical_and(height_c>match_obj.imager.all_arrays['segment_nwp_h440'], height_c>-9)
         elevation = match_obj.cloudsat.all_arrays['elevation']
-        elevation[elevation<0] = 0
+        elevation[elevation < 0] = 0
     elif  sat.lower() in 'calipso':
         height_c = 1000*match_obj.calipso.all_arrays['layer_top_altitude'][:,0]
         pltObj.pressure_c = match_obj.calipso.all_arrays['layer_top_pressure'][:,0]
@@ -136,7 +136,7 @@ def extract_data(match_obj, sat='cloudsat'):
         pltObj.high_clouds = get_calipso_high_clouds(match_obj)
         pltObj.medium_clouds = get_calipso_medium_clouds(match_obj)
         elevation = match_obj.calipso.all_arrays['elevation']
-        elevation[elevation<0] = 0
+        elevation[elevation < 0] = 0
         ninas_od = match_obj.calipso.all_arrays['total_optical_depth_5km']
         print "min optical depth", np.min(ninas_od[np.logical_and(height_c>0,ninas_od>0)])
         use_part = False
@@ -162,13 +162,13 @@ def extract_data(match_obj, sat='cloudsat'):
             low = np.logical_and(
                 use_part,height_c<(3000+match_obj.calipso.all_arrays['elevation']))
             medium = np.logical_and(medium_clouds,use_part)
-            high = np.logical_and(height_c>8000,use_part)
+            high = np.logical_and(height_c > 8000,use_part)
 
 
         pltObj.cflag =  match_obj.calipso.feature_classification_flags[::,0]
 
         elevation = match_obj.calipso.all_arrays['elevation']
-        elevation[elevation<0] = 0
+        elevation[elevation < 0] = 0
     pltObj.height_c = height_c
     pltObj.height_mlvl2 = match_obj.modis.all_arrays['height']#+elevation #??
     pltObj.pressure_mlvl2 = match_obj.modis.all_arrays['pressure']
@@ -179,8 +179,8 @@ def extract_data(match_obj, sat='cloudsat'):
     pltObj.pps_bias = pltObj.height_pps - height_c
     pltObj.old_bias = pltObj.height_old - height_c
     pltObj.mlvl2_bias = pltObj.height_mlvl2 - height_c
-    use =  height_c>=0
-    use = np.logical_and(use, pltObj.height_mlvl2>-1)
+    use =  height_c >= 0
+    use = np.logical_and(use, pltObj.height_mlvl2 > - 1)
     use = np.logical_and(use, match_obj.modis.all_arrays['pressure']>=70) #no_effekt
     use = np.logical_and(use,match_obj.imager.all_arrays['ctthnnant_height']>-1)
     use = np.logical_and(use,match_obj.imager.all_arrays['ctthold_height']>-1)
@@ -200,11 +200,11 @@ def extract_data(match_obj, sat='cloudsat'):
             #ok_pressure = pltObj.all_arrays[name]>=70
             pressure_name = name
         name = var.replace('_height', '').replace('ctth', 'height_')
-        pltObj.all_arrays[name] = match_obj.imager.all_arrays[var] +elevation
+        pltObj.all_arrays[name] = match_obj.imager.all_arrays[var] + elevation
         name = var.replace('_height', '').replace('ctth', 'bias_')
-        pltObj.all_arrays[name] = match_obj.imager.all_arrays[var] +elevation - height_c
+        pltObj.all_arrays[name] = match_obj.imager.all_arrays[var] + elevation - height_c
         #ok_ctth = np.logical_and(match_obj.imager.all_arrays[var]<550000, match_obj.imager.all_arrays[var]>-1)
-        ok_ctth = match_obj.imager.all_arrays[var]>-1
+        ok_ctth = match_obj.imager.all_arrays[var] > - 1
         ok_ctth = np.logical_and(ok_ctth, match_obj.imager.all_arrays['text_t11']>-1)
         use_all = np.logical_and(use_all, ok_ctth)
         if 'nnmi' in var:
@@ -258,9 +258,9 @@ def extract_data(match_obj, sat='cloudsat'):
     pltObj.ok_cma_mlvl2 = match_obj.modis.all_arrays['cloud_emissivity']<=100
     pltObj.ok_cma_pps = np.logical_or(match_obj.imager.all_arrays['cloudmask']==1,
                                       match_obj.imager.all_arrays['cloudmask']==2)
-    pltObj.ok_cma_pps = np.logical_and(pltObj.ok_cma_pps, height_c>=0)
-    pltObj.ok_cma_mlvl2 = np.logical_and(pltObj.ok_cma_mlvl2, height_c>=0)
-    pltObj.ok_modis = np.logical_and(pltObj.height_mlvl2>-1, pltObj.height_mlvl2<45000)
+    pltObj.ok_cma_pps = np.logical_and(pltObj.ok_cma_pps, height_c >= 0)
+    pltObj.ok_cma_mlvl2 = np.logical_and(pltObj.ok_cma_mlvl2, height_c >= 0)
+    pltObj.ok_modis = np.logical_and(pltObj.height_mlvl2 > - 1, pltObj.height_mlvl2 < 45000)
     pltObj.ok_cma = np.logical_and( pltObj.ok_modis,pltObj.ok_cma_pps)
 
     return pltObj
@@ -569,7 +569,7 @@ def plot_medium_bias_plot_from_saved_data(month):
             label.set_visible(False)
         for label in ax.xaxis.get_ticklabels()[::2]:
             label.set_visible(True)
-        ax.set_xlim(-maxx,maxx)
+        ax.set_xlim( - maxx,maxx)
         ax.set_ylim(0, maxy)
 
     x_data = {}
@@ -670,7 +670,7 @@ def make_profileplot(pltObj, month, day_str, sat='calipso'):
        hist_heights,bins = np.histogram(bias_v[selection],bins=bins)
        n_pix = np.sum(selection)
        hist_heights = hist_heights*100.0/n_pix
-       plt.plot(0.001*(bins[0:-1]+delta_h*0.5), hist_heights,
+       plt.plot(0.001*(bins[0:-1] + delta_h*0.5), hist_heights,
                 color,label=label)
        plt.xlabel(" Retrieved height - %s (km) "%(print_sat))
        plt.ylabel("Percent of data")
@@ -733,7 +733,7 @@ def investigate_nn_ctth_modis_lvl2_cloudsat():
     for month in [ "02", "04","06", "08","10", "12"]:#[ "03","05", "07","09", "11"]: #[ "02", "04","06", "08","10", "12"]:#, "03","05", "07","09", "11","01" ]:  #[ "06", "09"]:
         print ROOT_DIR%(day_str,month)
         files = glob(ROOT_DIR%(day_str,month))
-        name+=month
+        name +=month
         plt_obj_new = PlotAndDataObject()
         for filename in files:
             print filename
@@ -754,7 +754,7 @@ def investigate_nn_ctth_modis_lvl2():
     for month in [  "02", "04","06", "08","10","12"]:# ["01", "03","05", "07","09", "11"]: # #[ "06", "09"]:
         print ROOT_DIR%(day_str,month)
         files = glob(ROOT_DIR%(day_str,month))
-        name+=month
+        name +=month
         plt_obj_new = PlotAndDataObject()
         for filename in files:
             #print filename

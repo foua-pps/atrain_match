@@ -57,7 +57,7 @@ for filename in files:
     height_pps =  match_calipso.imager.all_arrays['ctth_height']
     height_pps_old =  match_calipso_OLD.imager.all_arrays['ctth_height']
     try:
-        use = np.logical_or(height_pps>0, height_pps_old>0)
+        use = np.logical_or(height_pps > 0, height_pps_old > 0)
     except:
         continue
     #use = np.logical_and(np.abs(match_calipso.imager.all_arrays['latitude'])>70, use)
@@ -74,7 +74,7 @@ for filename in files:
                                             "test_plot_file_part_nn_ctth_%s_%s"%(name,basename.split('.h5')[0]),
                                             file_type='png',
                                             xmin=xmin,
-                                            xmax=xmin+2500,
+                                            xmax=xmin + 2500,
                                             instrument='imager')#, MAXHEIGHT = 18000)
 
     #plt.show()

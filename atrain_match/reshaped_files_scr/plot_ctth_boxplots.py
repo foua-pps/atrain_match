@@ -69,9 +69,9 @@ def make_boxplot(match_calipso, name):
 
 
 
-    use = np.logical_and(height_pps >-1,
+    use = np.logical_and(height_pps > - 1,
                          match_calipso.calipso.all_arrays['layer_top_altitude'][:,0]>=0)
-    use = np.logical_and(height_pps <45000,use)
+    use = np.logical_and(height_pps < 45000,use)
 
     low = np.logical_and(low_clouds,use)
     medium = np.logical_and(medium_clouds,use)
@@ -107,7 +107,7 @@ def make_boxplot(match_calipso, name):
     ax.fill_between(np.arange(0,8),-1500,1500, facecolor='green', alpha=0.2)
     ax.fill_between(np.arange(0,8),2000,15000, facecolor='red', alpha=0.2)
     ax.fill_between(np.arange(0,8),-2000,-15000, facecolor='red', alpha=0.2)
-    for y_val in [-5,-4,-3,-2,2,3,4,5]:
+    for y_val in [-5, -4, -3, -2,2,3,4,5]:
         plt.plot(np.arange(0,8), y_val*1000 + 0*np.arange(0,8),':k')
         plt.plot(np.arange(0,8), -10*1000 + 0*np.arange(0,8),':k')
     plt.plot(np.arange(0,8), 0 + 0*np.arange(0,8),'k')

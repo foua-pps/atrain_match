@@ -74,16 +74,16 @@ def get_pps_aerosl(match_calipso):
     thr_t11t12_inv = match_calipso.imager.all_arrays['thr_t11t12_inv']
     thr_t11ts = match_calipso.imager.all_arrays['thr_t11ts']
     thr_t11ts_inv = match_calipso.imager.all_arrays['thr_t11ts_inv']
-    feature1 = t11-t12-thr_t11t12+0.25*(thr_t11t12-thr_t11t12_inv)>0
-    feature2 = t11-t12-thr_t11t12_inv-0.25*(thr_t11t12-thr_t11t12_inv)<0
-    feature3 = t11> ts#+thr_t11ts>0
-    feature4 = t11<ts#+thr_t11ts
-    feature5 = t950-t700>-100000
-    feature6 = t11-t86>0.5 #add if available
-    feature7 = t11-t12<0.5 #waterclouds day
-    feature8 = np.logical_and(r06<35, r06<350) #waterclouds day (better)
-    feature8 = np.logical_or(sunz>95, r06<35) # clean marine, waterclouds day (better)
-    feature9 = np.logical_or(sunz<70, t11-t12<0.0)
+    feature1 = t11 - t12 - thr_t11t12 + 0.25*(thr_t11t12 - thr_t11t12_inv) > 0
+    feature2 = t11 - t12 - thr_t11t12_inv - 0.25*(thr_t11t12 - thr_t11t12_inv) < 0
+    feature3 = t11 > ts#+thr_t11ts>0
+    feature4 = t11 < ts#+thr_t11ts
+    feature5 = t950 - t700 > - 100000
+    feature6 = t11 - t86 > 0.5 #add if available
+    feature7 = t11 - t12 < 0.5 #waterclouds day
+    feature8 = np.logical_and(r06 < 35, r06 < 350) #waterclouds day (better)
+    feature8 = np.logical_or(sunz > 95, r06 < 35) # clean marine, waterclouds day (better)
+    feature9 = np.logical_or(sunz < 70, t11 - t12 < 0.0)
     #feature10 = ts>260
 
 
@@ -94,8 +94,8 @@ def get_pps_aerosl(match_calipso):
     is_warm_dust = np.logical_and(feature8, np.logical_and(feature1,feature3))
 #    is_warm_dust = np.logical_and(feature3, feature3)
     dust_singal = np.logical_or(is_warm_dust, is_cold_dust)
-    safety_modis = np.logical_and(feature6, r13/np.cos(np.radians(sunz))<1.5)
-    return np.logical_and(dust_singal,ctype<5)#np.logical_and(dust_singal, feature6)
+    safety_modis = np.logical_and(feature6, r13/np.cos(np.radians(sunz)) < 1.5)
+    return np.logical_and(dust_singal,ctype < 5)#np.logical_and(dust_singal, feature6)
     #return dust_singal
 
 def get_calipso_cloudy_and_aerosl(match_calipso):
@@ -103,9 +103,9 @@ def get_calipso_cloudy_and_aerosl(match_calipso):
     nlay =np.where(match_calipso.calipso.all_arrays['number_layers_found']>0,1,0)
     meancl=ndimage.filters.uniform_filter1d(nlay*1.0, size=3)
     isAerosol = match_calipso.calipso_aerosol.all_arrays['number_layers_found']>0
-    isClear = nlay==0
+    isClear = nlay == 0
     isClear = np.logical_and(isClear, np.not_equal(isAerosol, True))
-    isCloudy = nlay>0
+    isCloudy = nlay > 0
 
     isCloudyAerosolMix = np.logical_and(isCloudy, isAerosol)
     isCloudy = np.logical_and(isCloudy, np.not_equal(isCloudyAerosolMix, True))
@@ -142,11 +142,11 @@ def is_pps_aerosol(match_calipso ,atype=None):
    use_e = np.logical_and(use_e,match_calipso.imager.all_arrays['longitude']>-30)
    use_e = np.logical_and(use_e,match_calipso.imager.all_arrays['longitude']<60)
 
-   use_d = np.logical_and(sunz<=70, use)
-   use_n = np.logical_and(sunz>=95, use)
-   use_t = np.logical_and(np.logical_and(sunz>70,sunz<95), use)
-   use_de = np.logical_and(sunz<=70, use_e)
-   use_ne = np.logical_and(sunz>=90, use_e)
+   use_d = np.logical_and(sunz <= 70, use)
+   use_n = np.logical_and(sunz >= 95, use)
+   use_t = np.logical_and(np.logical_and(sunz > 70,sunz < 95), use)
+   use_de = np.logical_and(sunz <= 70, use_e)
+   use_ne = np.logical_and(sunz >= 90, use_e)
    #use = np.logical_and(use,match_calipso.imager.all_arrays['surftemp']>273.15)
    print "all days"
    print len(sunz), len(sunz<90)
@@ -182,7 +182,7 @@ def is_pps_aerosol(match_calipso ,atype=None):
                   num_of_clouds_misclassed_as_aerosol2,
                   num_of_clear_misclassed_as_aerosol2,
 
-                  num_a-num_of_aerosol_detected,
+                  num_a - num_of_aerosol_detected,
                   #num_a-num_of_clouds_misclassed_as_aerosol,
                   #num_a-num_of_clear_misclassed_as_aerosol,
                   num_of_aerosol_detected,
@@ -202,17 +202,17 @@ def make_optical_depth_hist(match_calipso):
    import numpy as np
    isCloudy, isClear, isAerosol, isMix = get_calipso_cloudy_and_aerosl(match_calipso)
    aerosol_optical_depth = match_calipso.calipso_aerosol.all_arrays['feature_optical_depth_532'][:,0]
-   hist, bins = np.histogram(aerosol_optical_depth[aerosol_optical_depth>=0], bins=50)
+   hist, bins = np.histogram(aerosol_optical_depth[aerosol_optical_depth >= 0], bins=50)
    width = 0.7 * (bins[1] - bins[0])
    center = (bins[:-1] + bins[1:]) / 2
    plt.bar(center, hist, align='center', width=width)
    plt.show()
-   hist, bins = np.histogram(aerosol_optical_depth[aerosol_optical_depth>=0.2], bins=50)
+   hist, bins = np.histogram(aerosol_optical_depth[aerosol_optical_depth >= 0.2], bins=50)
    width = 0.7 * (bins[1] - bins[0])
    center = (bins[:-1] + bins[1:]) / 2
    plt.bar(center, hist, align='center', width=width)
    plt.show()
-   hist, bins = np.histogram(aerosol_optical_depth[aerosol_optical_depth>=0.5], bins=50)
+   hist, bins = np.histogram(aerosol_optical_depth[aerosol_optical_depth >= 0.5], bins=50)
    width = 0.7 * (bins[1] - bins[0])
    center = (bins[:-1] + bins[1:]) / 2
    plt.bar(center, hist, align='center', width=width)

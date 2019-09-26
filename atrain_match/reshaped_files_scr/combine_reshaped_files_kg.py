@@ -47,7 +47,7 @@ def remove_doubles(mObj, mObj2):
         doubles_time_and_id = [(mObj.calipso.sec_1970[ind], mObj.calipso.profile_id[ind,0]) for ind  in range(len(mObj.calipso.sec_1970)) if ind not in  non_doubles]
 
         extra_check = [time_and_id for time_and_id in doubles_time_and_id if time_and_id in zip(mObj2.calipso.sec_1970, mObj2.calipso.profile_id[:,0])]
-        if len(extra_check) != len(mObj.calipso.sec_1970)-len(non_doubles):
+        if len(extra_check) != len(mObj.calipso.sec_1970) - len(non_doubles):
             print("Some points identified as doubles does not have "
                   "the same time and profile id as ther corresponding double"
                   "There is something wrong (in the code) here!")
@@ -55,7 +55,7 @@ def remove_doubles(mObj, mObj2):
 
 
     print("Found {:d} doubles (out of {:d}) in the new object".format(
-        len(mObj.calipso.sec_1970)-len(non_doubles), len(mObj.calipso.sec_1970)))
+        len(mObj.calipso.sec_1970) - len(non_doubles), len(mObj.calipso.sec_1970)))
     #import pdb;pdb.set_trace()
     mObj = mObj.extract_elements(idx=np.array(non_doubles))
     return mObj
@@ -78,7 +78,7 @@ for satellite in SATELLITES:
             num_n = 0
             files = sorted(glob(ROOT_DIR%(year, month,
                                           year, month)))
-            if len(files)==0:
+            if len(files) == 0:
                 continue
             for filename in files:
                 print(os.path.basename(filename))
@@ -98,7 +98,7 @@ for satellite in SATELLITES:
                 else:
                     match_calipso_new  = remove_doubles(match_calipso_new, match_calipso_merged)
                     match_calipso_merged = match_calipso_merged + match_calipso_new
-            if num_n>0:
+            if num_n > 0:
                 filename_merged = outfile_template%(year,month)
                 outfile = os.path.join(OUT_DIR, filename_merged)
 

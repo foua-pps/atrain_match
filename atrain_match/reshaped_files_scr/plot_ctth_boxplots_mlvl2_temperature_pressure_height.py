@@ -48,17 +48,17 @@ def make_boxplot(match_calipso, name, month="xx", modis_lvl2=False, use_m2_pix=T
         if height_imager is None:
             height_imager = match_calipso.imager.all_arrays['ctth_height']+match_calipso.calipso.all_arrays['elevation']
 
-    use = np.logical_and(height_imager >-1,
-                         height_c>=0)
-    use = np.logical_and(height_imager <45000,use)
+    use = np.logical_and(height_imager > - 1,
+                         height_c >= 0)
+    use = np.logical_and(height_imager < 45000,use)
     USE_ONLY_PIXELS_WHERE_PPS_AND_MODIS_C6_HAVE_VALUES=use_m2_pix
     if USE_ONLY_PIXELS_WHERE_PPS_AND_MODIS_C6_HAVE_VALUES:
         height_mlvl2 = match_calipso.modis.all_arrays['height']
         height_pps = match_calipso.imager.all_arrays['imager_ctth_m_above_seasurface']
-        use = np.logical_and(use, height_mlvl2>-1)
-        use = np.logical_and(use, height_mlvl2<45000)
-        use = np.logical_and(use, height_pps>-1)
-        use = np.logical_and(use, height_pps<45000)
+        use = np.logical_and(use, height_mlvl2 > - 1)
+        use = np.logical_and(use, height_mlvl2 < 45000)
+        use = np.logical_and(use, height_pps > - 1)
+        use = np.logical_and(use, height_pps < 45000)
 
     thin = np.logical_and(match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']<0.30,
                           match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>0)
@@ -95,7 +95,7 @@ def make_boxplot(match_calipso, name, month="xx", modis_lvl2=False, use_m2_pix=T
     ax.fill_between(np.arange(0,8),-1500,1500, facecolor='green', alpha=0.2)
     ax.fill_between(np.arange(0,8),2000,15000, facecolor='red', alpha=0.2)
     ax.fill_between(np.arange(0,8),-2000,-15000, facecolor='red', alpha=0.2)
-    for y_val in [-5,-4,-3,-2,2,3,4,5]:
+    for y_val in [-5, -4, -3, -2,2,3,4,5]:
         plt.plot(np.arange(0,8), y_val*1000 + 0*np.arange(0,8),':k', alpha=0.4)
         plt.plot(np.arange(0,8), -10*1000 + 0*np.arange(0,8),':k', alpha=0.4)
     plt.plot(np.arange(0,8), 0 + 0*np.arange(0,8),':k', alpha=0.4)
@@ -108,9 +108,9 @@ def make_boxplot(match_calipso, name, month="xx", modis_lvl2=False, use_m2_pix=T
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_BOX/ctth_box_plot_%s_5_95_filt.png"%(name))
 
     elevation_zero = np.logical_and(use,match_calipso.calipso.all_arrays['elevation']>5000)
-    low_clouds = height_c<2500
-    medium_clouds = np.logical_and(height_c>=2500, height_c<=5000)
-    high_clouds = height_c>5000
+    low_clouds = height_c < 2500
+    medium_clouds = np.logical_and(height_c >= 2500, height_c <= 5000)
+    high_clouds = height_c > 5000
     low = np.logical_and(low_clouds,use)
     medium = np.logical_and(medium_clouds,use)
     high = np.logical_and(high_clouds,use)
@@ -122,7 +122,7 @@ def make_boxplot(match_calipso, name, month="xx", modis_lvl2=False, use_m2_pix=T
     ax.fill_between(np.arange(0,8),-1500,1500, facecolor='green', alpha=0.2)
     ax.fill_between(np.arange(0,8),2000,15000, facecolor='red', alpha=0.2)
     ax.fill_between(np.arange(0,8),-2000,-15000, facecolor='red', alpha=0.2)
-    for y_val in [-5,-4,-3,-2,2,3,4,5]:
+    for y_val in [-5, -4, -3, -2,2,3,4,5]:
         plt.plot(np.arange(0,8), y_val*1000 + 0*np.arange(0,8),':k', alpha=0.4)
         plt.plot(np.arange(0,8), -10*1000 + 0*np.arange(0,8),':k', alpha=0.4)
     plt.plot(np.arange(0,8), 0 + 0*np.arange(0,8),':k', alpha=0.4)
@@ -155,9 +155,9 @@ def make_boxplot_temperature(match_calipso, name, modis_lvl2=False):
                           match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>0)
     thin_top = np.logical_and(match_calipso.calipso.all_arrays['number_layers_found']>1, thin)
     thin_1_lay = np.logical_and(match_calipso.calipso.all_arrays['number_layers_found']==1, thin)
-    use = np.logical_and(temp_pps >100,
+    use = np.logical_and(temp_pps > 100,
                          match_calipso.calipso.all_arrays['layer_top_altitude'][:,0]>=0)
-    use = np.logical_and(height_pps <45000,use)
+    use = np.logical_and(height_pps < 45000,use)
     low = np.logical_and(low_clouds,use)
     medium = np.logical_and(medium_clouds,use)
     high = np.logical_and(high_clouds,use)
@@ -185,7 +185,7 @@ def make_boxplot_temperature(match_calipso, name, modis_lvl2=False):
     ax.fill_between(np.arange(0,8),-7.5,7.5, facecolor='green', alpha=0.2)
     ax.fill_between(np.arange(0,8),10,150, facecolor='red', alpha=0.2)
     ax.fill_between(np.arange(0,8),-20,-10, facecolor='red', alpha=0.2)
-    for y_val in [-5,-4,-3,-2,-1,1,2,3,4,5]:
+    for y_val in [-5, -4, -3, -2, -1,1,2,3,4,5]:
         plt.plot(np.arange(0,8), y_val*20 + 0*np.arange(0,8),':k', alpha=0.4)
     plt.plot(np.arange(0,8), 0 + 0*np.arange(0,8),':k', alpha=0.4)
     bplot = ax.boxplot([bias[low],bias[medium],bias[high],bias[high_thick],bias[high_thin],bias[high_very_thin]],whis=[5, 95],sym='',
@@ -216,7 +216,7 @@ def make_boxplot_pressure(match_calipso, name, modis_lvl2=False):
                           match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>0)
     thin_top = np.logical_and(match_calipso.calipso.all_arrays['number_layers_found']>1, thin)
     thin_1_lay = np.logical_and(match_calipso.calipso.all_arrays['number_layers_found']==1, thin)
-    use = np.logical_and(pressure_pps >0,
+    use = np.logical_and(pressure_pps > 0,
                          match_calipso.calipso.all_arrays['layer_top_altitude'][:,0]>=0)
     low = np.logical_and(low_clouds,use)
     medium = np.logical_and(medium_clouds,use)
@@ -245,7 +245,7 @@ def make_boxplot_pressure(match_calipso, name, modis_lvl2=False):
     ax.fill_between(np.arange(0,8),-150,150, facecolor='green', alpha=0.2)
     ax.fill_between(np.arange(0,8),200,2000, facecolor='red', alpha=0.2)
     ax.fill_between(np.arange(0,8),-2000,-200, facecolor='red', alpha=0.2)
-    for y_val in [-6,-4,-2,2,4,6,8,-8]:
+    for y_val in [-6, -4, -2,2,4,6,8, -8]:
         plt.plot(np.arange(0,8), y_val*100 + 0*np.arange(0,8),':k', alpha=0.4)
     plt.plot(np.arange(0,8), 0 + 0*np.arange(0,8),':k', alpha=0.4)
     bplot = ax.boxplot([bias[low],bias[medium],bias[high],bias[high_thick],bias[high_thin],bias[high_very_thin]],whis=[5, 95],sym='',

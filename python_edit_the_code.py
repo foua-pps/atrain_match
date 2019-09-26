@@ -4,56 +4,22 @@ files = glob.glob(ROOT_DIR + "/*.py")
 files = files + glob.glob(ROOT_DIR + "/*/*.py")
 files = files + glob.glob(ROOT_DIR + "/*/*/*.py")
 
+
 var_name_dict ={
-    "imagerAngObj)": "angle_obj)",
-    "imagerAngObj()": "ImagerAngObj()",
-    "ppsImagerObject":"ExtractedImagerObject",
-    "imagerAngObj =": "angle_obj =",
-    "imagerAngObj.": "angle_obj.",
-     " AngObj": " angle_obj",
-    "(AngObj": "(angle_obj",
-    "imagerObj": "imager_obj",
-    "dataObj": "imager_obj",
-    "caObj": "match_calipso",
-    "clsatObj": "match_clsat",
-    "Obj1": "calipso1km",
-    "Obj5": "calipso5km",
-    "CaObj":  "match_calipso",
-    "moraObj": "match_mora",
-    "synopObj": "match_synop",
-    "cObj": "match_obj",
-    "caObjAerosol": "calipso_aerosol",
-    "CalipsoCloudOpticalDepth_new":"optical_depth_height_filtering",
-    "CalipsoOpticalDepthHeightFiltering":"detection_height_filtering",
-    "CalipsoOpticalDepthSetThinToClearFiltering1km":"set_thin_to_clear_filtering_1km",
-    "drawCalClsatImagerPlotTimeDiff":"plot_cal_clsat_imager_time_diff",
-    "drawCalClsatGEOPROFImagerPlot":"plot_cal_clsat_geoprof_imager",
-    "drawCalClsatImagerPlotSATZ":"plot_cal_clsat_imager_satz",
-    "drawCalClsatCWCImagerPlot":"plot_cal_clsat_cwc_imager",
-    "plotSatelliteTrajectory":"plot_satellite_trajectory",
-    "CalculateStatistics":"calculate_statistics",
-    "readTruthImagerMatchObj":"read_truth_imager_match_obj",
-    "writeTruthImagerMatchObj":"write_truth_imager_match_obj",
-    "reshapeCloudsat ":"reshape_cloudsat ",
-    "mergeCloudsat":"merge_cloudsat",
-    "reshapeAmsr":"reshape_amsr",
-    "reshapeMora":"reshape_mora",
-    "reshapeSynop":"reshape_synop",
-    "reshapeIss":"reshape_iss",
-    "reshapeCalipso":"reshape_calipso",
-    "discardCalipsoFilesOutsideTimeRange":"discard_calipso_files_outside_time_range",
-    "add1kmTo5km":"add_1km_to_5km",
-    "addSingleShotTo5km":"add_singleshot_to5km",
-    "add5kmVariablesTo1kmresolution":"add_5km_variables_to_1km",
-    "adjust5kmTo1kmresolution":"adjust_5km_to_1km_resolution",
+    "readImagerData_nc": "read_imager_data_nc",
+    "readImagerData_h5": "read_imager_data_h5",
+    "createImagerTime": "create_imager_time",
+    "Obt":"obt",
+    "smallDataObject": "SmallDataObject"
 }
 
+# : D
 
 for filename in files:
     CONCAT = 0
     linec = ""
-    #if "reshaped_files_scr" in filename:
-    #    continue
+    if "reshaped_files_scr" not in filename:
+        continue
     if os.path.basename(filename) in "python_edit_the_code.py":
         continue
         print("do not edit %s"%(os.path.basename(filename)))
@@ -61,11 +27,59 @@ for filename in files:
     all_file=""
     python_file = open(filename,'r') 
     line_list = [line for line in python_file]  
+    com = False
     for line in line_list:
-        for key in var_name_dict.keys():
-            line = line.replace(key,var_name_dict[key])
+        
+        #if '"""' in line and com:
+        #    com = False
+        #if '"""' in line and not com:
+        #    com = True
 
-        all_file += line
+        if len(line.lstrip())>0 and line.lstrip()[0]!='#' and '"' not in line and "'" not in line and "print" not in line and line.lstrip()[0]!='*' and "avhrr channel" not in line and line.lstrip()[0]!='+' and not com and not "def" in line:
+
+            update = line
+            if len(line.split('#'))>1:
+                update = line.split('#')[0]
+            update_start = update    
+            for op in ['==', '<=', ">=", '+='  '*', '-', '+', '>', '<']:
+                update = update.replace(op, ' ' + op + ' ')
+                update = update.replace(op + '  ', op + ' ')
+                update = update.replace(op + '  ', op + ' ')
+                update = update.replace(op + '  ', op + ' ')
+                update = update.replace( '  ' + op, ' '+op)
+                update = update.replace( '  ' + op, ' '+op)
+                update = update.replace( '  ' + op, ' '+op)
+                update = update.replace( '  ' + op, ' '+op)
+            line = line.replace(update_start, update)
+        
+            
+        for value in range(0,10):
+            line = line.replace("( - %d"%(value), "(-%d"%(value))
+            line = line.replace("[ - %d"%(value), "[-%d"%(value))
+            line = line.replace(": - %d"%(value), ":-%d"%(value))
+            line = line.replace(", - %d"%(value), ", -%d"%(value))
+        line = line.replace("= - ", "= -")
+
+        line = line.replace( '< <', '<<')
+        line = line.replace( '< <', '<<')
+        line = line.replace( '> >', '>>')
+        line = line.replace( '> >', '>>')
+        line = line.replace( 'axis= -1', 'axis=-1')
+        line = line.replace( '* *', '**')
+        line = line.replace( ' ** ', '**')
+        line = line.replace( '< =', '<=')
+        line = line.replace( '+ =', '+=')
+        line = line.replace( '> =', '>=')
+        line = line.replace( '= =', '==')
+        line = line.replace( 'return - 9', 'return -9')
+        line = line.replace( 'nodata= -9', 'nodata=-9')
+        #line = line.replace( '100.0/', '100.0 / ')
+        
+
+        if len(line.split('"""'))>2:
+         # it was a one line comment
+            com = False
+        all_file += line.rstrip() +"\n"
 
     
     python_file.close()

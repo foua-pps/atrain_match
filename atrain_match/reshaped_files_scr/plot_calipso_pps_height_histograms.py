@@ -99,16 +99,16 @@ tsur = match_calipso.imager.all_arrays['surftemp']
 ctype = match_calipso.imager.all_arrays['cloudtype']
 
 isCloudy =  np.logical_and(isCloudyPPS,isCloudyCaliop)
-isCloudy =  np.logical_and(pps_temp>-9,isCloudy)
-isCloudy = np.logical_and(pps_temp>150,isCloudy)
-isCloudy = np.logical_and(cal_temp>150,isCloudy)
+isCloudy =  np.logical_and(pps_temp > - 9,isCloudy)
+isCloudy = np.logical_and(pps_temp > 150,isCloudy)
+isCloudy = np.logical_and(cal_temp > 150,isCloudy)
 
 
 """
 for ind in range(5,15):
     print ind
-    isCloudytypeT = np.logical_and(isCloudy,ctype==ind)
-    my_plot_histogram_hexbin(bt11[isCloudytypeT], np.abs(pps_temp[isCloudytypeT]-cal_temp[isCloudytypeT]),gridsize=30,
+    isCloudytypeT = np.logical_and(isCloudy,ctype == ind)
+    my_plot_histogram_hexbin(bt11[isCloudytypeT], np.abs(pps_temp[isCloudytypeT] - cal_temp[isCloudytypeT]),gridsize=30,
                                txlabel='bt11', tylabel='diff cal pps temp',file_name='misc_png/bt11_cal_minus_pps_temp_klass_%d.png'%(ind))
 """
 my_plot_histogram_hexbin(cal_temp[isCloudy], pps_temp[isCloudy],gridsize=30,

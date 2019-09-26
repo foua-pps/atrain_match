@@ -48,25 +48,25 @@ if blinn:
 
 def get_specular_refl_phong(azidiff, sunz, satz, exponent=25):
     a=1.0
-    B =np.where(azidiff>=90, np.cos(np.radians(azidiff)),0)#??
+    B =np.where(azidiff >= 90, np.cos(np.radians(azidiff)),0)#??
     B = np.cos(np.radians(azidiff))
-    cosalpha =  np.where(sunz>=90,0,np.cos(np.radians(sunz)))*np.cos(np.radians(satz)) -a*np.where(sunz>=90,0,np.sin(np.radians(sunz)))*np.sin(np.radians(satz))*B
+    cosalpha =  np.where(sunz >= 90,0,np.cos(np.radians(sunz)))*np.cos(np.radians(satz)) - a*np.where(sunz >= 90,0,np.sin(np.radians(sunz)))*np.sin(np.radians(satz))*B
     #refl = cosalpha**exponent
     #refl[refl==0] = -1
     return np.arccos(cosalpha)*180/np.pi
 
 def get_specular_refl_blinn_phong(azidiff, sunz, satz, exponent=4*25):
 
-    B =np.where(azidiff>=90, np.cos(np.radians(azidiff)),0)#??
+    B =np.where(azidiff >= 90, np.cos(np.radians(azidiff)),0)#??
     B = np.cos(np.radians(azidiff))
-    dev =  np.where(sunz>=90,0,np.cos(np.radians(sunz)))*np.cos(np.radians(satz)) + np.where(sunz>=90,0,np.sin(np.radians(sunz)))*np.sin(np.radians(satz))*B
-    cosalpha = (np.cos(np.radians(sunz))+np.cos(np.radians(satz)))/np.sqrt(2*(1+dev))
+    dev =  np.where(sunz >= 90,0,np.cos(np.radians(sunz)))*np.cos(np.radians(satz)) + np.where(sunz >= 90,0,np.sin(np.radians(sunz)))*np.sin(np.radians(satz))*B
+    cosalpha = (np.cos(np.radians(sunz)) + np.cos(np.radians(satz)))/np.sqrt(2*(1 + dev))
     #cosalpha = (np.cos(np.radians(sunz))+np.cos(np.radians(satz)))/(2*(1+dev))
     return np.arccos(cosalpha)*180/np.pi
 
 def get_sunglint_info_pps2014(cloudtype_conditions):
 
-    temp_val = (cloudtype_conditions>>3 & 1)
+    temp_val = (cloudtype_conditions >> 3 & 1)
     sunglint_flag = temp_val == 1
     return  sunglint_flag
 
@@ -88,9 +88,9 @@ for filename in files:
     i_degree_from_reflection = get_specular_refl_phong(i_azidiff, i_sunz, i_satz)
     i_cloudtype_conditions = getattr(i_match_calipso.imager, 'cloudtype_conditions')
     i_ppssg=get_sunglint_info_pps2014(i_cloudtype_conditions)
-    i_phongsg = i_degree_from_reflection<20
+    i_phongsg = i_degree_from_reflection < 20
     print(np.sum(i_phongsg),np.sum(i_ppssg))
-    if np.sum(i_phongsg)<np.sum(i_ppssg):
+    if np.sum(i_phongsg) < np.sum(i_ppssg):
         print("!!!!!!!!!!!!!!!!!!!!!")
     """
     match_calipso = match_calipso + i_match_calipso
@@ -119,8 +119,8 @@ scaler = 24.35 / (2 * mu0 + np.sqrt(498.5225 * mu0 * mu0 + 1))
 r06 = match_calipso.imager.all_arrays['r06micron']*scaler
 r09 = match_calipso.imager.all_arrays['r09micron']*scaler
 t11 = match_calipso.imager.all_arrays['bt11micron']
-isCloudfree = np.logical_and(isCloudfree, t11>275)
-isCloudfree = np.logical_and(isCloudfree, np.abs(t11-tsurf)<5)
+isCloudfree = np.logical_and(isCloudfree, t11 > 275)
+isCloudfree = np.logical_and(isCloudfree, np.abs(t11 - tsurf) < 5)
 nsidc_st = getattr(match_calipso.calipso, 'nsidc_surface_type')
 igbp_st = getattr(match_calipso.calipso, 'igbp_surface_type')
 cloudtype_conditions = getattr(match_calipso.imager, 'cloudtype_conditions')
@@ -148,7 +148,7 @@ if blinn:
 
 
 ppssg=get_sunglint_info_pps2014(cloudtype_conditions)
-phongsg = degree_from_reflection<15
+phongsg = degree_from_reflection < 15
 both = np.logical_and(ppssg,phongsg)
 neither = np.logical_and(~ppssg,~phongsg)
 onlypps = np.logical_and(ppssg,~phongsg)
@@ -164,7 +164,7 @@ pps_cloudy = np.logical_or(np.equal(match_calipso.imager.cloudmask,1),
 use = np.logical_or(pps_cloudy,pps_clear)
 use = np.logical_and(use, np.equal(nsidc_st,0))
 use = np.logical_and(use, np.equal(igbp_st,17))
-use = np.logical_and(use, sunz<90)
+use = np.logical_and(use, sunz < 90)
 clear[~use] = False
 cloudy[~use]= False
 print(my_title)
@@ -196,8 +196,8 @@ ax = fig.add_subplot(111)
 plt.fill_between([0,6.5],0,100, color='g', alpha=0.3)
 plt.fill_between([0,5.5],0,100, color='g', alpha=0.3)
 plt.fill_between([0,4.5],0,100, color='g', alpha=0.3)
-data=[np.array(ydat[np.logical_and(xdat>=ang,xdat<ang+5)]) for ang in range(0,150,5)]
-data2=[np.array(ydat2[np.logical_and(xdat2>=ang,xdat2<ang+5)]) for ang in range(0,150,5)]
+data=[np.array(ydat[np.logical_and(xdat >= ang,xdat < ang + 5)]) for ang in range(0,150,5)]
+data2=[np.array(ydat2[np.logical_and(xdat2 >= ang,xdat2 < ang + 5)]) for ang in range(0,150,5)]
 box = plt.boxplot(data,
                   labels=[str(ang+2)+"-"+str(ang+5) for ang in range(0,150,5)],
                   #positions=[str(ang+2) for ang in range(0,150,5)],
@@ -229,8 +229,8 @@ ax = fig.add_subplot(111)
 #plt.fill_between([0,6.5],0,100, color='g', alpha=0.3)
 #plt.fill_between([0,5.5],0,100, color='g', alpha=0.3)
 #plt.fill_between([0,4.5],0,100, color='g', alpha=0.3)
-data=[len(ydat[np.logical_and(xdat>=ang,xdat<ang+5)]) for ang in range(0,150,5)]
-data2=[len(ydat2[np.logical_and(xdat2>=ang,xdat2<ang+5)]) for ang in range(0,150,5)]
+data=[len(ydat[np.logical_and(xdat >= ang,xdat < ang + 5)]) for ang in range(0,150,5)]
+data2=[len(ydat2[np.logical_and(xdat2 >= ang,xdat2 < ang + 5)]) for ang in range(0,150,5)]
 plt.hist(xdat, bins=list(range(0,150,5)), color = 'b', alpha=0.5)
 plt.hist(xdat[xdat<30], bins=list(range(0,150,5)), color = 'c', alpha=1.0)
 plt.hist(xdat2, bins=list(range(0,150,5)), color = 'r', alpha=0.5)

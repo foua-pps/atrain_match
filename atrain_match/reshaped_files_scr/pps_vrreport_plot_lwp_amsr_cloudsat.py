@@ -67,7 +67,7 @@ def do_the_printing(aObj, name):
         lon = aObj.imager.all_arrays["longitude"]
         lat = aObj.imager.all_arrays["latitude"]
         xymax=170
-        diff = x-y
+        diff = x - y
         use = np.ones(diff.shape, dtype=bool)
         use_map = use
         conditions["use"] = use.copy()
@@ -84,10 +84,10 @@ def do_the_printing(aObj, name):
         conditions["no_cloudsat_precip"] =  np.bitwise_and(np.right_shift(aObj.cloudsat.RVOD_CWC_status,2),1)==0
         conditions["geoprof_cloudy"] = np.bitwise_and(np.right_shift(aObj.cloudsat.RVOD_CWC_status,0),10)==0
         conditions["without_zeros"] = np.logical_and(aObj.imager.cpp_lwp>0,
-                                                    aObj.cloudsat.RVOD_liq_water_path>0)
+                                                    aObj.cloudsat.RVOD_liq_water_path > 0)
 
-        use_sea = np.logical_and(use,aObj.imager.fractionofland <=0)
-        use_land = np.logical_and(use,aObj.imager.fractionofland >0)
+        use_sea = np.logical_and(use,aObj.imager.fractionofland <= 0)
+        use_land = np.logical_and(use,aObj.imager.fractionofland > 0)
         use_surfs = [use, use_sea, use_land]
         surf_names = ["all", "sea", "land"]
         scatter_bin_size=5.0
@@ -100,7 +100,7 @@ def do_the_printing(aObj, name):
             if surf == "all" and condition == "geoprof_cloudy":
                 use_map = use_i
             #print x, y
-            diff_i = x[use_i]- y[use_i]
+            diff_i = x[use_i] - y[use_i]
             print name, surf, condition, np.mean(diff_i), my_rms(diff_i), my_iqr(diff_i), np.median(diff_i), np.std(diff_i), len(diff_i)
 
             vmax = len(diff_i)*0.002
@@ -118,7 +118,7 @@ def do_the_printing(aObj, name):
 
             fig = plt.figure(figsize=(14, 4.5))
             ax = fig.add_subplot(131)
-            hist_heights, x_, hist_heights_gaussian = my_hist(x[use_i]-y[use_i], None, bmin=-3000, bmax=3000, delta_h=5, return_also_corresponding_gaussian=True)
+            hist_heights, x_, hist_heights_gaussian = my_hist(x[use_i] - y[use_i], None, bmin= -3000, bmax=3000, delta_h=5, return_also_corresponding_gaussian=True)
 
             ax.fill(x_, hist_heights_gaussian, color='silver')
             plt.plot(x_, hist_heights, "r-",  label = my_label(x[use_i]-y[use_i]))

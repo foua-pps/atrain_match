@@ -73,7 +73,7 @@ def my_label(data,use):
                  np.median(data[use]),
                  my_mae(data[use]),
                  my_iqr(data[use]),
-                 len(data[use][np.abs(data[use])>10])*100.0/len(data[use]),
+                 len(data[use][np.abs(data[use]) > 10])*100.0/len(data[use]),
                  len(data[use])
                             ))
     return label
@@ -83,7 +83,7 @@ def plot_all(match_obj, density, my_str=""):
     use_land, use_sea, use_coast, use  = get_land_sea(match_obj)
     x = match_obj.modis.all_arrays["lwp"]
     y = match_obj.imager.all_arrays["cpp_lwp"]*density
-    error = y-x
+    error = y - x
     print x
     print np.max(y)
     fig = plt.figure(figsize=(15, 11))

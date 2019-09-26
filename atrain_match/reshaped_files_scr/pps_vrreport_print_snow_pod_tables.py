@@ -54,8 +54,8 @@ def my_measures(calipso_cfc, pps_cfc, thin, use):
     indict["undet_cloudy"] = np.sum(np.logical_and(pps_cfc==0, calipso_cfc==1))
     indict["N"] = len(pps_cfc)
 
-    undet_cloudy_th = np.sum(np.logical_and(pps_cfc==0, np.logical_and(~thin,calipso_cfc==1)))
-    det_cloudy_th = np.sum(np.logical_and(pps_cfc==1, np.logical_and(~thin,calipso_cfc==1)))
+    undet_cloudy_th = np.sum(np.logical_and(pps_cfc == 0, np.logical_and(~thin,calipso_cfc == 1)))
+    det_cloudy_th = np.sum(np.logical_and(pps_cfc == 1, np.logical_and(~thin,calipso_cfc == 1)))
 
     measures = {}
     measures["bias"] = np.mean(pps_cfc-calipso_cfc)*100.0
@@ -87,9 +87,9 @@ def plot_cfc_table(match_calipso,cfc_limit=0.9,sat="modis"):
 
 
     calipso_cfc = cfc.copy()
-    calipso_cfc[cfc<=cfc_limit] = 0
-    calipso_cfc[cfc>cfc_limit] = 1
-    calipso_cfc[cfc<0] = -1
+    calipso_cfc[cfc <= cfc_limit] = 0
+    calipso_cfc[cfc > cfc_limit] = 1
+    calipso_cfc[cfc < 0] = -1
     pps_cfc = 0*cfc.copy()
     pps_cfc[cma] = 1
     use = np.logical_or(cl,cma)

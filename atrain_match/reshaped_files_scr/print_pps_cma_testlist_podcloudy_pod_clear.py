@@ -47,14 +47,14 @@ def print_common_stats(match_calipso, use, name_dict, mints, maxts, surface_type
     isCalipsoCloudy = match_calipso.calipso.all_arrays['cloud_fraction']>=0.5
 
     isCalipsoCloudy = np.logical_and(
-        nlay >=0,
+        nlay >= 0,
         match_calipso.calipso.all_arrays['cloud_fraction']>=0.5)
     isCalipsoCloudy = np.logical_and(
         isCalipsoCloudy,
         match_calipso.calipso.all_arrays['total_optical_depth_5km']>-0.1)
     isCalipsoClear = match_calipso.calipso.all_arrays['cloud_fraction']<0.5
     isCalipsoClear = nlay == 0
-    isCalipsoClear = np.logical_and(isCalipsoClear, meancl<0.01)
+    isCalipsoClear = np.logical_and(isCalipsoClear, meancl < 0.01)
     isCalipsoClear = np.logical_and(
         isCalipsoClear,
         match_calipso.calipso.all_arrays['total_optical_depth_5km']<0)
@@ -80,7 +80,7 @@ def print_common_stats(match_calipso, use, name_dict, mints, maxts, surface_type
     isCloudyPPS = np.logical_or(np.equal(match_calipso.imager.cloudmask,1),
                                    np.equal(match_calipso.imager.cloudmask,2))
 
-    gotLight = sunz<95
+    gotLight = sunz < 95
     nodata = np.sum(match_calipso.imager.all_arrays['cloudtype'][use]>200)
     use = np.logical_and(use, np.logical_or(isCloudyPPS, isClearPPS))
     use = np.logical_and(use, np.logical_or(isCalipsoCloudy, isCalipsoClear))
@@ -130,13 +130,13 @@ def print_common_stats(match_calipso, use, name_dict, mints, maxts, surface_type
     else:
         sys.exit()
     if illumination in ["day"]:
-        use = np.logical_and(use,sunz<=80)
+        use = np.logical_and(use,sunz <= 80)
     elif illumination in ["night"]:
-        use = np.logical_and(use,sunz>=95)
+        use = np.logical_and(use,sunz >= 95)
     elif illumination in ["twilight"]:
         use = np.logical_and(use,np.logical_and(
-            sunz<95,
-            sunz>80))
+            sunz < 95,
+            sunz > 80))
     elif illumination in ["dnt"]:
         pass
     else:
@@ -151,7 +151,7 @@ def print_common_stats(match_calipso, use, name_dict, mints, maxts, surface_type
                                            isCloudyPPS[use]))
     N_undetected_clouds = np.sum(np.logical_and(isCalipsoCloudy[use],
                                                 isClearPPS[use]))
-    N_clouds = N_detected_clouds +  N_undetected_clouds
+    N_clouds = N_detected_clouds + N_undetected_clouds
     N_clear = N_detected_clear + N_false_clouds
 
     Kuipers_devider = 1.0*(N_clouds)*(N_clear)
@@ -170,7 +170,7 @@ def print_common_stats(match_calipso, use, name_dict, mints, maxts, surface_type
 
     Num = np.sum(use)
     cfc = np.sum(isCalipsoCloudy[use])*1.0/Num
-    part_nodata = nodata*1.0/(nodata+Num)
+    part_nodata = nodata*1.0/(nodata + Num)
     all_out_text +=  "N: %d POD-cloudy: %3.1f FAR-cloudy: %3.1f POD-clear %3.1f %3.3f Hitrate:  %3.1f Kuipers:  %3.3f\n"%(
         Num, 100.0*PODcloudy, 100.0*FARcloudy , 100.0*PODclear, cfc, 100*Hitrate, Kuipers )
     print all_out_text
@@ -178,7 +178,7 @@ def print_common_stats(match_calipso, use, name_dict, mints, maxts, surface_type
     if v2014:
           outfile_h.write(all_out_text+"\n")
           Num = np.sum(use)
-          part_nodata = nodata*1.0/(nodata+Num)
+          part_nodata = nodata*1.0/(nodata + Num)
           return
     for var in ['cma_testlist0',
                 'cma_testlist1',
@@ -263,14 +263,14 @@ def print_common_stats(match_calipso, use, name_dict, mints, maxts, surface_type
                     ("%3.2f"%(MISScloudy*100)).rjust(5,' '),
                     ("%3.2f"%(MISScloudyOverSnow*100)).rjust(5,' '),
                     test_name)
-            elif clear_test and num_passed>0:
+            elif clear_test and num_passed > 0:
                 all_out_text += "N: %s POD-clear: %s FAR-clear: %s MISS-cloudy: %s %s \n"%(
                     str(num_passed).rjust(8,' '),
                     ("%3.2f"%(PODclear*100)).rjust(5,' '),
                     ("%3.2f"%(FARclear*100)).rjust(5,' '),
                     ("%3.2f"%(MISScloudy*100)).rjust(5,' '),
                     test_name)
-            elif num_passed>0:
+            elif num_passed > 0:
                 all_out_text_i = "N: %s POD-cloudy: %s FAR-cloudy: %s MISS-clear: %s MISS-snow: %s %s \n"%(
                     str(num_passed).rjust(8,' '),
                     ("%3.2f"%(PODcloudy*100)).rjust(5,' '),
@@ -296,7 +296,7 @@ def print_common_stats(match_calipso, use, name_dict, mints, maxts, surface_type
 
     outfile_h.write(all_out_text)
     Num = np.sum(use)
-    part_nodata = nodata*1.0/(nodata+Num)
+    part_nodata = nodata*1.0/(nodata + Num)
     #print "N: %d POD-cloudy: %3.2f FAR-cloudy: %3.2f POD-clear %3.2f"%(
     #    Num, PODcloudy, FARcloudy , PODclear)
 

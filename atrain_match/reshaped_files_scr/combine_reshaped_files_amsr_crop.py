@@ -52,7 +52,7 @@ for year in [2010]:#2012/02","2012/05", "2012/08", "2013/07", "2014/02", "2014/0
                 os.makedirs(OUT_DIR)
 
             files = glob(ROOT_DIR)
-            if len(files)==0:
+            if len(files) == 0:
                 continue
             num_n = 0
             for filename in files:
@@ -72,7 +72,7 @@ for year in [2010]:#2012/02","2012/05", "2012/08", "2013/07", "2014/02", "2014/0
                 diff, pps_lwp, amsr_lwp, selection = get_lwp_diff_inner(aObj_new, True)
 
 
-                if aObj.diff_sec_1970 is not None and len(diff)>0:
+                if aObj.diff_sec_1970 is not None and len(diff) > 0:
                     aObj.diff_sec_1970 = np.concatenate([aObj.diff_sec_1970, aObj_new.diff_sec_1970[selection]], 0)
                     aObj.imager.cpp_lwp =  np.concatenate([aObj.imager.cpp_lwp, pps_lwp.ravel()], 0)
                     aObj.amsr.lwp = np.concatenate([aObj.amsr.lwp, np.array(amsr_lwp).ravel()],0)
@@ -80,7 +80,7 @@ for year in [2010]:#2012/02","2012/05", "2012/08", "2013/07", "2014/02", "2014/0
                         aObj.imager.all_arrays[name] = np.concatenate([aObj.imager.all_arrays[name],
                                                                       aObj_new.imager.all_arrays[name][selection]],
                                                                      0)
-                elif len(diff)>0:
+                elif len(diff) > 0:
                     aObj.diff_sec_1970 = aObj_new.diff_sec_1970[selection]
                     aObj.imager.cpp_lwp =  pps_lwp.ravel()
                     aObj.amsr.lwp = np.array(amsr_lwp).ravel()
@@ -89,7 +89,7 @@ for year in [2010]:#2012/02","2012/05", "2012/08", "2013/07", "2014/02", "2014/0
 
 
                 num_n +=1
-            if num_n>0:
+            if num_n > 0:
                 filename_night = outfile_template
                 outfile = os.path.join(OUT_DIR, filename_night)
                 writeAmsrImagerMatchObj(

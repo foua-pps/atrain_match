@@ -61,15 +61,15 @@ def half_sample_mode(x, already_sorted=False):
     half_idx = int((len(x) + 1) / 2) # Round up to include the middle value, in the case of an odd-length array
 
     # Calculate all interesting ranges that span half of all data points
-    ranges = sorted_x[-half_idx:] - sorted_x[:half_idx]
+    ranges = sorted_x[ - half_idx:] - sorted_x[:half_idx]
     smallest_range_idx = np.argmin(ranges)
 
     # Now repeat the procedure on the half that spans the smallest range
-    x_subset = sorted_x[smallest_range_idx : (smallest_range_idx+half_idx)]
+    x_subset = sorted_x[smallest_range_idx : (smallest_range_idx + half_idx)]
     return half_sample_mode(x_subset, already_sorted=True)
 
 def my_iqr(data):
-    return np.percentile(data,75)- np.percentile(data,25)
+    return np.percentile(data,75) - np.percentile(data,25)
 
 def my_mode(bias):
     bmin = -40
@@ -80,7 +80,7 @@ def my_mode(bias):
     n_pix = len(bias)
     hist_heights = hist_heights*100.0/n_pix
     maxind = np.argmax(hist_heights)
-    maxind2 = len(hist_heights)-1 - np.argmax(hist_heights[::-1])
+    maxind2 = len(hist_heights) - 1 - np.argmax(hist_heights[::-1])
     if maxind != maxind2:
         print maxind, maxind2
         raise ValueError
@@ -108,7 +108,7 @@ def print_for_one(plt_obj, compare, truth='height_c'):
 
     compare_name = name_conversion[compare.split('_')[1]]
 
-    bias = y-x#+1465
+    bias = y - x#+1465
     AE = np.abs(bias)
     std = np.std(bias[use])
 
@@ -117,16 +117,16 @@ def print_for_one(plt_obj, compare, truth='height_c'):
         compare_name,
         #np.sum(AE[use_i]<=1000)*100.0/len(AE[use_i]),
         np.mean(AE[use_i]),
-        np.percentile(bias[use_i],75)- np.percentile(bias[use_i],25),
+        np.percentile(bias[use_i],75) - np.percentile(bias[use_i],25),
         np.sqrt(np.mean((bias[use_i]**2))),
         #np.sqrt(np.mean((bias[np.logical_and(use_i, AE<=2000)]**2))),
         #np.mean((AE[np.logical_and(use_i, AE>2000)])),
         np.std(bias[use_i]),
-        np.sum(AE[use_i]>250)*100.0/len(AE[use_i]),
-        np.sum(AE[use_i]>500)*100.0/len(AE[use_i]),
-        np.sum(AE[use_i]>1000)*100.0/len(AE[use_i]),
-        np.sum(AE[use_i]>2000)*100.0/len(AE[use_i]),
-        np.sum(AE[use_i]>2500)*100.0/len(AE[use_i]),
+        np.sum(AE[use_i] > 250)*100.0/len(AE[use_i]),
+        np.sum(AE[use_i] > 500)*100.0/len(AE[use_i]),
+        np.sum(AE[use_i] > 1000)*100.0/len(AE[use_i]),
+        np.sum(AE[use_i] > 2000)*100.0/len(AE[use_i]),
+        np.sum(AE[use_i] > 2500)*100.0/len(AE[use_i]),
         np.median(bias[use_i]),
         #my_mode(bias[use_i]),
         half_sample_mode(bias[use_i]),
@@ -148,9 +148,9 @@ def print_for_one(plt_obj, compare, truth='height_c'):
         np.median(bias[use_low]),
         np.median(bias[use_medium]),
         np.median(bias[use_high]),
-        np.percentile(bias[use_low],75)- np.percentile(bias[use_low],25),
-        np.percentile(bias[use_medium],75)- np.percentile(bias[use_medium],25),
-        np.percentile(bias[use_high],75)- np.percentile(bias[use_high],25),
+        np.percentile(bias[use_low],75) - np.percentile(bias[use_low],25),
+        np.percentile(bias[use_medium],75) - np.percentile(bias[use_medium],25),
+        np.percentile(bias[use_high],75) - np.percentile(bias[use_high],25),
         np.sqrt(np.mean((bias[use_low]**2))),
         np.sqrt(np.mean((bias[use_medium]**2))),
         np.sqrt(np.mean((bias[use_high]**2))))
@@ -164,7 +164,7 @@ def print_for_one(plt_obj, compare, truth='height_c'):
             use_i = np.logical_and(
                 use,
                 get_calipso_clouds_of_type_i_feature_classification_flags_one_layer(plt_obj.cflag,ind))
-            if np.sum(use_i)>0:
+            if np.sum(use_i) > 0:
                 print "%d &"%(np.sum(AE[use_i]>500)*100.0/len(AE[use_i])),
                 #print " %d &"%(np.mean(AE[use_i ])),
             else:
@@ -177,7 +177,7 @@ def print_for_one(plt_obj, compare, truth='height_c'):
             use_i = np.logical_and(
                 use,
                 get_calipso_clouds_of_type_i_feature_classification_flags_one_layer(plt_obj.cflag,ind))
-            if np.sum(use_i)>0:
+            if np.sum(use_i) > 0:
                 print "%d &"%(100.0*np.sum(use_i)/np.sum(use)),
                 print " %d &"%(np.mean(AE[use_i ])),
             else:
@@ -190,7 +190,7 @@ def print_for_one(plt_obj, compare, truth='height_c'):
             use_i = np.logical_and(
                 use,
                 get_calipso_clouds_of_type_i_feature_classification_flags_one_layer(plt_obj.cflag,ind))
-            if np.sum(use_i)>0:
+            if np.sum(use_i) > 0:
                 print " %d &"%(np.median(bias[use_i ])),
             else:
                 print "- &",
@@ -265,10 +265,10 @@ def print_for_one(plt_obj, compare, truth='height_c'):
     lim = 4500
     print "%s & %3.1f & %3.1f & %3.1f &  %3.1f"%(
         compare_name,
-        np.sum(np.logical_and(use, np.abs(bias)>lim))*100.0/np.sum(use),
-        np.sum(np.logical_and(use_low, np.abs(bias)>lim))*100.0/np.sum(use_low),
-        np.sum(np.logical_and(use_medium, np.abs(bias)>lim))*100.0/np.sum(use_medium),
-        np.sum(np.logical_and(use_high, np.abs(bias)>lim))*100.0/np.sum(use_high))
+        np.sum(np.logical_and(use, np.abs(bias) > lim))*100.0/np.sum(use),
+        np.sum(np.logical_and(use_low, np.abs(bias) > lim))*100.0/np.sum(use_low),
+        np.sum(np.logical_and(use_medium, np.abs(bias) > lim))*100.0/np.sum(use_medium),
+        np.sum(np.logical_and(use_high, np.abs(bias) > lim))*100.0/np.sum(use_high))
 
     """
     #print " precentile %3.4f & %d & %d & %d  & %d\\\\ "%(ind,
@@ -280,13 +280,13 @@ def print_for_one(plt_obj, compare, truth='height_c'):
     #IQR
     """
     print "%s & %d & %d& %d  & %d\\\\ "%(compare_name,
-        np.percentile(bias[use],75)-
+        np.percentile(bias[use],75) -
         np.percentile(bias[use],25),
-        np.percentile(bias[use_low],75)-
+        np.percentile(bias[use_low],75) -
         np.percentile(bias[use_low],25),
-        np.percentile(bias[use_medium],75)-
+        np.percentile(bias[use_medium],75) -
         np.percentile(bias[use_medium],25),
-        np.percentile(bias[use_high],75)-
+        np.percentile(bias[use_high],75) -
         np.percentile(bias[use_high],25)
     )
     """
@@ -311,18 +311,18 @@ def print_for_one(plt_obj, compare, truth='height_c'):
         print np.mean(bias[np.logical_and(use_low, bias<=lim)]),
         print np.std(bias[np.logical_and(use_low, bias<=lim)])
         print " %d, %d, %3.2f"%(
-            np.sum(np.logical_and(use_low, bias>lim)),
+            np.sum(np.logical_and(use_low, bias > lim)),
             np.sum(use_low),
-            np.sum(np.logical_and(use_low, bias>lim))*100.0/np.sum(use_low))
+            np.sum(np.logical_and(use_low, bias > lim))*100.0/np.sum(use_low))
         print " %d, %d, %3.2f"%(
-            np.sum(np.logical_and(use_low, np.abs(bias)>lim)),
+            np.sum(np.logical_and(use_low, np.abs(bias) > lim)),
             np.sum(use_low),
-            np.sum(np.logical_and(use_low, np.abs(bias)>lim))*100.0/np.sum(use_low))
+            np.sum(np.logical_and(use_low, np.abs(bias) > lim))*100.0/np.sum(use_low))
     print "part of all data with error above 4km %3.2f %3.2f %3.2f %3.2f"%(
-        np.sum(np.logical_and(use, np.abs(bias)>lim))*100.0/np.sum(use),
-        np.sum(np.logical_and(use_low, np.abs(bias)>lim))*100.0/np.sum(use_low),
-        np.sum(np.logical_and(use_medium, np.abs(bias)>lim))*100.0/np.sum(use_medium),
-        np.sum(np.logical_and(use_high, np.abs(bias)>lim))*100.0/np.sum(use_high))
+        np.sum(np.logical_and(use, np.abs(bias) > lim))*100.0/np.sum(use),
+        np.sum(np.logical_and(use_low, np.abs(bias) > lim))*100.0/np.sum(use_low),
+        np.sum(np.logical_and(use_medium, np.abs(bias) > lim))*100.0/np.sum(use_medium),
+        np.sum(np.logical_and(use_high, np.abs(bias) > lim))*100.0/np.sum(use_high))
     """
 def print_all(plt_obj_cali_new, plt_obj_csat_new, month):
 

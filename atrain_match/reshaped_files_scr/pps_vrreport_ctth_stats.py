@@ -65,7 +65,7 @@ def my_make_plot3(y, x, x2, mhl,use):
     fig = plt.figure(figsize=(15, 11))
     ax = fig.add_subplot(111)
     use_k = np.logical_and(mhl["all_clouds_tp_thin_1layers"],use)
-    abias1 = np.abs(y[use_k]-x[use_k])
+    abias1 = np.abs(y[use_k] - x[use_k])
     sort_ind = np.argsort(x[use_k])
     plt.plot(x[use_k][sort_ind],'g.')
     plt.plot(y[use_k][sort_ind],'b.', alpha=0.2)
@@ -73,22 +73,22 @@ def my_make_plot3(y, x, x2, mhl,use):
 def my_make_plot2(y, x, x2, mhl,use):
     fig = plt.figure(figsize=(15, 11))
     ax = fig.add_subplot(321)
-    use_k = np.logical_and(use,x2>0)
+    use_k = np.logical_and(use,x2 > 0)
     #use_k = np.logical_and(use_k,x-x2>3000)
 
     print(min(y[use_k]), len(use[use_k]))
-    abias1 = np.abs(y[use_k]-x[use_k])
-    abias2 = np.abs(y[use_k]-x2[use_k])
-    dist = 0.5*np.abs(x2[use_k]-x[use_k])
-    dist25 = 0.25*np.abs(x2[use_k]-x[use_k])
-    closer_to_top = np.logical_and(abias1<=abias2, np.logical_and(y[use_k]<=x[use_k], y[use_k]>=x2[use_k]))
-    closer_to_2 = np.logical_and(abias1>abias2, np.logical_and(y[use_k]<=x[use_k], y[use_k]>=x2[use_k]))
-    in_between = np.logical_and(y[use_k]<(x[use_k]), y[use_k]>(x2[use_k]))
-    in_between_2 = np.logical_and(in_between, np.logical_and(abias1>=1500,abias2>=1500))
-    close_to_level_2 = np.logical_and(abias1>2000,abias2<1500)
-    close_to_level_1 = abias1<1500
-    lower = np.logical_and(abias2>1500,y[use_k]<x2[use_k])
-    above = np.logical_and(abias1>1500,y[use_k]>x[use_k])
+    abias1 = np.abs(y[use_k] - x[use_k])
+    abias2 = np.abs(y[use_k] - x2[use_k])
+    dist = 0.5*np.abs(x2[use_k] - x[use_k])
+    dist25 = 0.25*np.abs(x2[use_k] - x[use_k])
+    closer_to_top = np.logical_and(abias1 <= abias2, np.logical_and(y[use_k] <= x[use_k], y[use_k] >= x2[use_k]))
+    closer_to_2 = np.logical_and(abias1 > abias2, np.logical_and(y[use_k] <= x[use_k], y[use_k] >= x2[use_k]))
+    in_between = np.logical_and(y[use_k] < (x[use_k]), y[use_k] > (x2[use_k]))
+    in_between_2 = np.logical_and(in_between, np.logical_and(abias1 >= 1500,abias2 >= 1500))
+    close_to_level_2 = np.logical_and(abias1 > 2000,abias2 < 1500)
+    close_to_level_1 = abias1 < 1500
+    lower = np.logical_and(abias2 > 1500,y[use_k] < x2[use_k])
+    above = np.logical_and(abias1 > 1500,y[use_k] > x[use_k])
     print("between", np.sum(in_between)*100.0/len(in_between),np.sum(in_between_2)*100.0/len(in_between_2))
     print("det layer two", np.sum(close_to_level_2)*100.0/len(close_to_level_2))
     print("det layer one", np.sum(close_to_level_1)*100.0/len(close_to_level_1))
@@ -96,7 +96,7 @@ def my_make_plot2(y, x, x2, mhl,use):
     print("above", np.sum(above)*100.0/len(above))
 
 
-    sort_ind = np.argsort(np.where(abias1<abias2, abias1, abias2))
+    sort_ind = np.argsort(np.where(abias1 < abias2, abias1, abias2))
     print( np.mean(np.where(abias1<abias2, abias1, abias2)), np.mean(abias1), np.mean(abias2))
     print(  np.sum(np.where(abias1<abias2, abias1, abias2)<1000)*100.0/len(abias1))
     print(  np.sum(np.where(abias1<abias2, abias1, abias2)<1500)*100.0/len(abias1)) #(70%)
@@ -161,10 +161,10 @@ def my_make_plot_example(bias, use, label_str):
     n_pix = 1000000
     ax = fig.add_subplot(221)
     temp_data = np.random.normal(900,1600, n_pix)
-    temp_data2 = np.concatenate([np.random.normal(-900,200, int(0.5*n_pix)), np.random.normal(+900,200, int(0.5*n_pix))])
-    hist_heights, x_m, dummy = my_hist(temp_data, None, bmin=-20*1000, bmax=20*1000, delta_h=100.0)
-    hist_heights2, x_m, dummy = my_hist(temp_data2, None, bmin=-20*1000, bmax=20*1000, delta_h=100.0)
-    hist_heights3, x_m, dummy = my_hist(bias, use, bmin=-20*1000, bmax=20*1000, delta_h=100.0)
+    temp_data2 = np.concatenate([np.random.normal(-900,200, int(0.5*n_pix)), np.random.normal( + 900,200, int(0.5*n_pix))])
+    hist_heights, x_m, dummy = my_hist(temp_data, None, bmin= -20*1000, bmax=20*1000, delta_h=100.0)
+    hist_heights2, x_m, dummy = my_hist(temp_data2, None, bmin= -20*1000, bmax=20*1000, delta_h=100.0)
+    hist_heights3, x_m, dummy = my_hist(bias, use, bmin= -20*1000, bmax=20*1000, delta_h=100.0)
     x_ = x_m*0.001
     ax = fig.add_subplot(221)
     #S1
@@ -246,13 +246,13 @@ def my_make_plot_example_aprox(bias, use, label_str, match_calipso):
     temp_data_iqr = np.random.normal(np.median(bias_i),my_iqr(bias_i)*20.0/27, n_pix)
 
     #temp_data2 = np.concatenate([np.random.normal(-900,200, int(0.5*n_pix)), np.random.normal(+900,200, int(0.5*n_pix))])
-    hist_heights_pps, x_m, dummy = my_hist(bias_i, None, bmin=-20*1000, bmax=20*1000, delta_h=100.0)
+    hist_heights_pps, x_m, dummy = my_hist(bias_i, None, bmin= -20*1000, bmax=20*1000, delta_h=100.0)
 
 
-    hist_heights_g, x_m, dummy = my_hist(temp_data_g, None, bmin=-20*1000, bmax=20*1000, delta_h=100.0)
-    hist_heights_iqr, x_m, dummy = my_hist(temp_data_iqr, None, bmin=-20*1000, bmax=20*1000, delta_h=100.0)
-    hist_heights_gs, x_m, dummy = my_hist(temp_data_gs, None, bmin=-20*1000, bmax=20*1000, delta_h=100.0)
-    hist_heights_iqrs, x_m, dummy = my_hist(temp_data_iqrs, None, bmin=-20*1000, bmax=20*1000, delta_h=100.0)
+    hist_heights_g, x_m, dummy = my_hist(temp_data_g, None, bmin= -20*1000, bmax=20*1000, delta_h=100.0)
+    hist_heights_iqr, x_m, dummy = my_hist(temp_data_iqr, None, bmin= -20*1000, bmax=20*1000, delta_h=100.0)
+    hist_heights_gs, x_m, dummy = my_hist(temp_data_gs, None, bmin= -20*1000, bmax=20*1000, delta_h=100.0)
+    hist_heights_iqrs, x_m, dummy = my_hist(temp_data_iqrs, None, bmin= -20*1000, bmax=20*1000, delta_h=100.0)
     #hist_heights3, x_m, dummy = my_hist(bias, use, bmin=-20*1000, bmax=20*1000, delta_h=100.0)
     x_ = x_m*0.001
 
@@ -265,7 +265,7 @@ def my_make_plot_example_aprox(bias, use, label_str, match_calipso):
         from scipy import asarray as ar,exp
 
         def gaus(x,a,x0,sigma):
-            return 8*exp(-np.abs(x-x0)*np.sqrt(2)/(sigma))
+            return 8*exp( - np.abs(x - x0)*np.sqrt(2)/(sigma))
 
         #popt,pcov = curve_fit(gaus,x,y,p0=[1,mean,sigma])
 
@@ -276,7 +276,7 @@ def my_make_plot_example_aprox(bias, use, label_str, match_calipso):
 
     dummy, mean_g, sigma_g = gaussian_fit(x_m, hist_heights_pps,bias_i)
     temp_data_fitted = np.random.laplace(np.median(bias),my_iqr(bias)*32/26.0, n_pix)
-    hist_heights_fitted, x_m, dummy = my_hist(temp_data_fitted, None, bmin=-20*1000, bmax=20*1000, delta_h=100.0)
+    hist_heights_fitted, x_m, dummy = my_hist(temp_data_fitted, None, bmin= -20*1000, bmax=20*1000, delta_h=100.0)
 
     fig = plt.figure(figsize=(7, 5))
     ax = fig.add_subplot(111)
@@ -449,11 +449,11 @@ def print_all_cloudsat(match_obj, compare, compare_name = "unknown"):
     x = match_obj.cloudsat.all_arrays['validation_height']
     y = match_obj.imager.all_arrays['imager_ctth_m_above_seasurface']
     mhl = get_cloudsat_low_medium_high_classification(match_obj)
-    use = np.logical_and(x>=0, np.logical_and(y>-9,y<65000))
+    use = np.logical_and(x >= 0, np.logical_and(y > - 9,y < 65000))
     if mhl is None:
         mhl = {}
     mhl["all"] = use.copy()
-    bias = y-x
+    bias = y - x
     out_file_h.write(compare_name + " CPR (CloudSat) :\n")
     for flag_key in ["all", "low_clouds", "medium_clouds", "high_clouds"]:
         if flag_key not in mhl.keys():
@@ -476,7 +476,7 @@ def print_all(match_obj, compare, compare_name = "unknown"):
     medium_clouds = get_calipso_medium_clouds(match_obj)
     mhl = get_calipso_low_medium_high_classification(match_obj)
 
-    use = np.logical_and(x>=0, np.logical_and(y>-9,y<65000))
+    use = np.logical_and(x >= 0, np.logical_and(y > - 9,y < 65000))
     use = np.logical_and(use, np.not_equal(match_obj.calipso.all_arrays['feature_classification_flags'][:,0],1))
     mhl["all"] =use
     use_inversion = get_inversion_info_pps2014(match_obj.imager.all_arrays["cloudtype_status"])
@@ -522,8 +522,8 @@ def print_all(match_obj, compare, compare_name = "unknown"):
     use_low = np.logical_and(use, low_clouds)
     use_medium = np.logical_and(use, medium_clouds)
     use_high = np.logical_and(use, high_clouds)
-    bias = y-x#+1465
-    bias_second_layer = y-x2
+    bias = y - x#+1465
+    bias_second_layer = y - x2
     abias = np.abs(bias)
 
     #my_make_plot_example(bias, use, compare_name)
@@ -541,12 +541,12 @@ def print_all(match_obj, compare, compare_name = "unknown"):
                         ndimage.filters.minimum_filter1d(match_obj.calipso.layer_top_pressure[:,0], size=9))
         val_geo = np.logical_and(
             val_geo,
-            var_pressure<200) #Pressure variation less than 200hPa
+            var_pressure < 200) #Pressure variation less than 200hPa
     var_pressure = (ndimage.filters.maximum_filter1d(match_obj.calipso.layer_top_pressure[:,0], size=9) -
                     ndimage.filters.minimum_filter1d(match_obj.calipso.layer_top_pressure[:,0], size=9))
     var_height = (ndimage.filters.maximum_filter1d(match_obj.calipso.layer_top_altitude[:,0]*1000, size=9) -
                   ndimage.filters.minimum_filter1d(match_obj.calipso.layer_top_altitude[:,0]*1000, size=9))
-    val_geo2 = var_pressure<100
+    val_geo2 = var_pressure < 100
     sunz = np.array(match_obj.imager.all_arrays['sunz'])
 
 
@@ -561,9 +561,9 @@ def print_all(match_obj, compare, compare_name = "unknown"):
     feature_array = (4*np.bitwise_and(np.right_shift(cflag,15),1) +
                      2*np.bitwise_and(np.right_shift(cflag,14),1) +
                      1*np.bitwise_and(np.right_shift(cflag,13),1))
-    feature_array_full = (2*np.bitwise_and(np.right_shift(cflag_full,4),1)+
+    feature_array_full = (2*np.bitwise_and(np.right_shift(cflag_full,4),1) +
                           1*np.bitwise_and(np.right_shift(cflag_full,3),1))
-    feature_array = (2*np.bitwise_and(np.right_shift(cflag,4),1)+
+    feature_array = (2*np.bitwise_and(np.right_shift(cflag,4),1) +
                      1*np.bitwise_and(np.right_shift(cflag,3),1))
     print np.mean(abias[use][feature_array==0]), len(abias[use][feature_array==0])
     print np.mean(abias[use][feature_array==1]), len(abias[use][feature_array==1])
@@ -587,7 +587,7 @@ def print_all(match_obj, compare, compare_name = "unknown"):
     plt.show()
     """
     #logger.info("Getting day/night info from sunz")
-    if np.max(sunz)<20:
+    if np.max(sunz) < 20:
         sunz =sunz*100.0
     day_flag = np.where(np.less_equal(sunz,80),1,0)
     night_flag =  np.where(np.greater_equal(sunz,95),1,0)
