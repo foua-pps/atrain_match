@@ -22,7 +22,7 @@ import numpy as np
 from scipy import ndimage
 from matchobject_io import readTruthImagerMatchObj
 from plotting.along_track_plotting import (drawCalClsatGEOPROFImagerPlot,
-                                           drawCalPPSHeightPlot_PrototypePPSHeight  ) 
+                                           drawCalPPSHeightPlot_PrototypePPSHeight  )
 from my_dir import ADIR
 ROOT_DIR = (ADIR + "/DATA_MISC/reshaped_files/"
             "global_modis_14th_created20161108/")
@@ -52,8 +52,8 @@ for filename in files:
     if match:
         name = match.group(1)
     basename = os.path.basename(filename)
-    caObj =  readTruthImagerMatchObj(filename) 
-    caObj_OLD =  readTruthImagerMatchObj(filename.replace(ROOT_DIR_v2018_GAC, ROOT_DIR_v2014_GAC)) 
+    caObj =  readTruthImagerMatchObj(filename)
+    caObj_OLD =  readTruthImagerMatchObj(filename.replace(ROOT_DIR_v2018_GAC, ROOT_DIR_v2014_GAC))
     height_pps =  caObj.imager.all_arrays['ctth_height']
     height_pps_old =  caObj_OLD.imager.all_arrays['ctth_height']
     try:
@@ -69,13 +69,13 @@ for filename in files:
     drawCalPPSHeightPlot_PrototypePPSHeight(caObj.calipso,
                                             use,
                                             height_pps_old + caObj.calipso.all_arrays['elevation'],
-                                            height_pps + caObj.calipso.all_arrays['elevation'],                          
+                                            height_pps + caObj.calipso.all_arrays['elevation'],
                                             ADIR + "/PICTURES_FROM_PYTHON/CTTH_LAPSE_RATE_INVESTIGATION/",
                                             "test_plot_file_part_nn_ctth_%s_%s"%(name,basename.split('.h5')[0]),
                                             file_type='png',
                                             xmin=xmin,
                                             xmax=xmin+2500,
                                             instrument='imager')#, MAXHEIGHT = 18000)
-    
+
     #plt.show()
     #plt.close("all")

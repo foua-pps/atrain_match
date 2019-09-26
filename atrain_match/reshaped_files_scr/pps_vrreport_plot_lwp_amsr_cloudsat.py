@@ -22,7 +22,7 @@ from matchobject_io import (readAmsrImagerMatchObj,
                             AmsrImagerTrackObject,
                             readCloudsatImagerMatchObj,
                             CloudsatImagerTrackObject)
-import matplotlib.pyplot as plt 
+import matplotlib.pyplot as plt
 from utils.validate_lwp_util import get_lwp_diff_inner
 from libs.truth_imager_statistics_lib import get_lwp_diff_inner_cloudsat
 
@@ -61,7 +61,7 @@ def do_the_printing(aObj, name):
         use_surfs = [use]
         surf_names = ["sea"]
         scatter_bin_size=5.0
-    elif "amsr" in  aObj.truth_sat:    
+    elif "amsr" in  aObj.truth_sat:
         y = aObj.amsr.lwp
         x = aObj.imager.cpp_lwp
         lon = aObj.imager.all_arrays["longitude"]
@@ -102,11 +102,11 @@ def do_the_printing(aObj, name):
             #print x, y
             diff_i = x[use_i]- y[use_i]
             print name, surf, condition, np.mean(diff_i), my_rms(diff_i), my_iqr(diff_i), np.median(diff_i), np.std(diff_i), len(diff_i)
-            
+
             vmax = len(diff_i)*0.002
             fig = plt.figure()
             ax = fig.add_subplot(111)
-            atrain_scatter(fig, ax, x[use_i] , y[use_i],   scatter_bin_size, xymin = 0,  xymax=1000, vmax=vmax, 
+            atrain_scatter(fig, ax, x[use_i] , y[use_i],   scatter_bin_size, xymin = 0,  xymax=1000, vmax=vmax,
                            do_colorbar=True, to_km=1.0, ptype='scatter')
             ax.plot([0,170],[0,170], ':w')
             ax.set_xlabel("PPS LWP g/m^2")
@@ -122,20 +122,20 @@ def do_the_printing(aObj, name):
 
             ax.fill(x_, hist_heights_gaussian, color='silver')
             plt.plot(x_, hist_heights, "r-",  label = my_label(x[use_i]-y[use_i]))
-            #ax.set_ylim(0,10)    
+            #ax.set_ylim(0,10)
             #ax.set_xlim(-4,6)
             ax.set_xlim([-500,600])
             ax.set_ylim([00,14])
             if "amsr" in  aObj.truth_sat:
                 ax.set_xlabel("error: PPS - AMSR-E LWP g/m^2")
-            else:    
+            else:
                 ax.set_xlabel("error: PPS - CPR (CloudSat) LWP g/m^2")
             ax.set_ylabel("percent of data")
                 #plt.yticks(np.arange(0,9,2.0))
             plt.legend()
 
             ax = fig.add_subplot(132)
-            b = atrain_scatter(fig, ax, x[use_i] , y[use_i],   scatter_bin_size, xymin = 0,  xymax=xymax, vmax=vmax, #140 
+            b = atrain_scatter(fig, ax, x[use_i] , y[use_i],   scatter_bin_size, xymin = 0,  xymax=xymax, vmax=vmax, #140
                            do_colorbar=False, to_km=1.0, ptype='scatter')
             ax.set_xlabel("PPS LWP g/m^2")
             ax.plot([0,170],[0,170], ':w')
@@ -147,7 +147,7 @@ def do_the_printing(aObj, name):
 
             else:
                 ax.set_ylabel("CPR (CloudSat) LWP g/m^2")
-                
+
             ax = fig.add_subplot(133)
             hist_heights_x, x_, hist_heights_gaussian = my_hist(x[use_i], None, bmin=0, bmax=300, delta_h=5)
             hist_heights_y, y_, hist_heights_gaussian = my_hist(y[use_i], None, bmin=0, bmax=300, delta_h=5)
@@ -165,21 +165,21 @@ def do_the_printing(aObj, name):
             plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/scatter_and_error_lwp_%s_%s_dist_all_cpp_170_%s_%s.png"%(aObj.truth_sat, name, surf, condition), bbox_inches='tight')
             #plt.show()
             plt.close('all')
-   
+
     from trajectory_plotting import plotSatelliteTrajectory
     import config
     #plotSatelliteTrajectory(lon, lat,
-    #                        ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_marble_lwp_%s_dist_all"%(aObj.truth_sat), 
+    #                        ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_marble_lwp_%s_dist_all"%(aObj.truth_sat),
     #                        config.AREA_CONFIG_FILE,
     #                        fig_type=['png'])
     plotSatelliteTrajectory(lon[use_map], lat[use_map],
-                            ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_marble_lwp_%s_%s_dist"%(aObj.truth_sat, name), 
+                            ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_marble_lwp_%s_%s_dist"%(aObj.truth_sat, name),
                             config.AREA_CONFIG_FILE,
                             fig_type=['png'])
     fig = plt.figure()
     ax = fig.add_subplot(111)
     from histogram_plotting import distribution_map
-    distribution_map(lon[use_map], 
+    distribution_map(lon[use_map],
                      lat[use_map])
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_white_lwp_%s_%s_dist_all_cpp.png"%(aObj.truth_sat, name), bbox_inches='tight')
 
@@ -196,13 +196,13 @@ if __name__ == "__main__":
     files = glob(ROOT_DIR_v2018_modis_amsr + "*h5")
     print files
     name = files[0].split('global_')[1][0:11]
-    
+
     if "amsr" in  os.path.basename(files[0]):
         aObj = AmsrImagerTrackObject()
         for filename in files:
             print  os.path.basename(filename)
             aObj += readAmsrImagerMatchObj(filename)
-    else: 
+    else:
         aObj = CloudsatImagerTrackObject()
         for filename in files:
             print  os.path.basename(filename)
@@ -212,10 +212,10 @@ if __name__ == "__main__":
 
                 continue
 
-            aObj_new = readCloudsatImagerMatchObj(filename) 
+            aObj_new = readCloudsatImagerMatchObj(filename)
             if aObj_new.cloudsat.RVOD_liq_water_path is None:
                 print  os.path.basename(filename)
             if len(aObj_new.cloudsat.RVOD_liq_water_path) == len(aObj_new.imager.cpp_lwp):
                 print "ok",  os.path.basename(filename)
-                aObj += aObj_new     
+                aObj += aObj_new
     do_the_printing(aObj, name)

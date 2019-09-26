@@ -20,7 +20,7 @@
 
 # Author(s):
 
-#   Adam.Dybbroe 
+#   Adam.Dybbroe
 
 """Read all matched data and make some plotting
 """
@@ -50,14 +50,14 @@ t86 = caObj.imager.all_arrays['bt86micron']
 t11 = caObj.imager.all_arrays['bt11micron']
 t12 = caObj.imager.all_arrays['bt12micron']
 
-# nsidc_surface_type 
+# nsidc_surface_type
 # 255 = Coast
 # 1-100 = Sea ice concentration %
 # 101 = Permamnent ice
 # 0 = Ice free
 isIce = np.logical_and(caObj.calipso.all_arrays['nsidc_surface_type'] >= 15,
                        caObj.calipso.all_arrays['nsidc_surface_type'] <= 100)
-isWater = np.logical_and(np.equal(caObj.calipso.all_arrays['igbp_surface_type'], 17), 
+isWater = np.logical_and(np.equal(caObj.calipso.all_arrays['igbp_surface_type'], 17),
                          np.equal(isIce, False))
 isClearWater = np.logical_and(isWater, np.equal(isCloud, False))
 isClearIce = np.logical_and(isIce, np.equal(isCloud, False))
@@ -78,7 +78,7 @@ import matplotlib.pyplot as plt
 fig = plt.figure(figsize=(9,8))
 ax = fig.add_subplot(311)
 
-n, bins, patches = ax.hist(t11t12_cloud, 
+n, bins, patches = ax.hist(t11t12_cloud,
                            100, range=[-10,20],
                            normed=1, facecolor='green', alpha=0.75,
                            label='cloudy')
@@ -88,7 +88,7 @@ ax.set_xlim(-8, 16)
 ax.legend()
 
 ax = fig.add_subplot(312)
-n, bins, patches = ax.hist(t11t12_clear_water, 
+n, bins, patches = ax.hist(t11t12_clear_water,
                            100, range=[-10,20],
                            normed=1, facecolor='blue', alpha=0.75,
                            label='open water (ice conc < 15%')
@@ -97,7 +97,7 @@ ax.set_ylabel('Frequency')
 ax.set_xlim(-8, 16)
 
 ax = fig.add_subplot(313)
-n, bins, patches = ax.hist(t11t12_clear_ice, 
+n, bins, patches = ax.hist(t11t12_clear_ice,
                            100, range=[-10,20],
                            normed=1, facecolor='red', alpha=0.75,
                            label='cloudfree sea ice')

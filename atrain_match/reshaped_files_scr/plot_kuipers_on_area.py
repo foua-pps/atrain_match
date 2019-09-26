@@ -107,7 +107,7 @@ elif isModisAllv2014:
 elif isModis1km_lvl2:
     num_files_to_read = 1
     isGAC=False
- 
+
     satellites = "eos_modis_lvl2_C6_1st_and_14th_all_val_test_font_testing_offset_calipso4"
     ROOT_DIR =  ADIR + "/DATA_MISC/reshaped_files/global_modis_01st_created20180316/"
     ROOT_DIR2 = ADIR + "/DATA_MISC/reshaped_files/global_modis_14th_created20180316/"
@@ -128,7 +128,7 @@ elif isModis1km_lvl2:
     #files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/11/*.h5")
     #files = glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/*/*.h5")
     #files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/*/*.h5")
- 
+
 
 elif isModis1km_ppsv2018:
     num_files_to_read = 1
@@ -161,7 +161,7 @@ elif isModis1km_lvl2_ppsv2018:
     files = files +glob(ROOT_DIR + "Reshaped_Files_merged_caliop/eos2/1km/2010/01/*0114_*.h5")
     files = files +glob(ROOT_DIR + "Reshaped_Files_merged_caliop/eos2/1km/2010/06/*0614_*.h5")
     files = files +glob(ROOT_DIR + "Reshaped_Files_merged_caliop/eos2/1km/2010/09/*0914_*.h5")
-    
+
 elif isModis1km_nnctth:
     num_files_to_read = 1
     isGAC=False
@@ -206,7 +206,7 @@ elif isGAC_v2014_morning_sat:
     #files = glob(ROOT_DIR + "noaa17/5km/20??/??/*/*h5")
     #files = files + glob(ROOT_DIR + "metop*/5km/20??/??/*/*h5")
     files = glob(ROOT_DIR + "merged/metop*h5")
-    files = files + glob(ROOT_DIR + "merged/noaa17*h5") 
+    files = files + glob(ROOT_DIR + "merged/noaa17*h5")
     satellites = "metopa_metopb_noaa17"
     if cci_orbits:
         satellites = "part_metopa_noaa17"
@@ -224,8 +224,8 @@ elif isGAC_v2014:
     if cci_orbits:
         satellites = "part_noaa18_noaa19"
         files = glob(ROOT_DIR + "merged/noaa18*200*h5") #06,07,08,09
-        files = files + glob(ROOT_DIR + "merged/noaa19*20*0*h5") #2009, 2010  
-        
+        files = files + glob(ROOT_DIR + "merged/noaa19*20*0*h5") #2009, 2010
+
 
 pplot_obj = PerformancePlottingObject()
 pplot_obj.flattice.set_flattice(radius_km=radius_km)
@@ -255,21 +255,21 @@ for filename in files:
             caObj_new.imager.all_arrays["cloudtype"] = np.where(
                 caObj_new.modis.all_arrays["cloud_emissivity"]>100,1,7)
             caObj_new.imager.all_arrays["ctth_temperature"] = (
-                caObj_new.modis.all_arrays["temperature"])       
+                caObj_new.modis.all_arrays["temperature"])
             caObj_new.imager.all_arrays["ctth_height"] = (
                 caObj_new.modis.all_arrays["height"])
         elif "eos_modis_v2014" in satellites and caObj_new.imager.all_arrays["ctthold_temperature"] is not None:
             caObj_new.imager.all_arrays["ctth_temperature"] = (
-                caObj_new.imager.all_arrays["ctthold_temperature"])       
+                caObj_new.imager.all_arrays["ctthold_temperature"])
             caObj_new.imager.all_arrays["ctth_height"] = (
                 caObj_new.imager.all_arrays["ctthold_height"])
         elif "eos_modis_v2018" in satellites and caObj_new.imager.all_arrays["ctthnnant_temperature"] is not None:
             caObj_new.imager.all_arrays["ctth_temperature"] = (
-                caObj_new.imager.all_arrays["ctthnnant_temperature"])       
+                caObj_new.imager.all_arrays["ctthnnant_temperature"])
             caObj_new.imager.all_arrays["ctth_height"] = (
                 caObj_new.imager.all_arrays["ctthnnant_height"])
 
-         
+
     except:
         print("skipping file %s"%(filename))
         continue
@@ -277,23 +277,23 @@ for filename in files:
         print("Get info from one file!")
         temp_obj.get_some_info_from_caobj(caObj_new, PROCES_FOR_ART=PROCES_FOR_ART, PROCES_FOR_PRESSENTATIONS=PROCES_FOR_PRESSENTATIONS)
         print("Got info, now remap to the lattice")
-        pplot_obj.add_detection_stats_on_fib_lattice(temp_obj)     
+        pplot_obj.add_detection_stats_on_fib_lattice(temp_obj)
     elif num >num_files_to_read:
         print("Get info from some %d files!"%(num_files_to_read))
         temp_obj.get_some_info_from_caobj(caObj, PROCES_FOR_ART=PROCES_FOR_ART, PROCES_FOR_PRESSENTATIONS=PROCES_FOR_PRESSENTATIONS)
         print("got info, now remap to the lattice")
-        pplot_obj.add_detection_stats_on_fib_lattice(temp_obj) 
+        pplot_obj.add_detection_stats_on_fib_lattice(temp_obj)
         print("Got info from some files!")
         caObj = caObj_new
         num=0
     else:
         caObj = caObj + caObj_new
 
-#Get info from the last files too 
+#Get info from the last files too
 if num_files_to_read!=1:
     print("Get info from last files!")
     temp_obj.get_some_info_from_caobj(caObj, PROCES_FOR_ART=PROCES_FOR_ART)
-    pplot_obj.add_detection_stats_on_fib_lattice(temp_obj) 
+    pplot_obj.add_detection_stats_on_fib_lattice(temp_obj)
 
 
 pplot_obj.flattice.calculate_ctth_pe1()
@@ -383,7 +383,7 @@ name = "fig_%s_ccm_%s_%sfilter_dnt_%s_r%skm_"%(
     pplot_obj.flattice.satellites,
     pplot_obj.flattice.cc_method,
     pplot_obj.flattice.filter_method,
-    pplot_obj.flattice.DNT, 
+    pplot_obj.flattice.DNT,
     pplot_obj.flattice.radius_km)
 print(name)
 for measure in pplot_obj.flattice.__dict__['all_arrays'].keys():

@@ -35,8 +35,8 @@ from utils.get_flag_info import (get_semi_opaque_info_pps2014,
                            get_calipso_medium_and_high_clouds_tp,
                            get_calipso_clouds_of_type_i,
                            get_calipso_low_clouds)
-from utils.stat_util import (HR_cma, K_cma, 
-                       PODcy, FARcy, 
+from utils.stat_util import (HR_cma, K_cma,
+                       PODcy, FARcy,
                        PODcl, FARcl)
 from my_dir import ADIR
 out_filename = ADIR + "/Documents/A_PPS_v2017/Validation_2018/results_cma.txt"
@@ -46,7 +46,7 @@ def my_measures(calipso_cfc, pps_cfc, calipso_snowi, pps_snowi,  thin, use):
     if use is not None:
         calipso_cfc = calipso_cfc[use]
         pps_cfc = pps_cfc[use]
- 
+
 
     indict = {}
     indict["det_cloudy"] = np.sum(np.logical_and(pps_cfc==1, calipso_cfc==1))
@@ -80,7 +80,7 @@ def my_measures(calipso_cfc, pps_cfc, calipso_snowi, pps_snowi,  thin, use):
         measures["PODsnow_much"] =  indict["det_snow_much"]*100.0/(indict["det_snow_much"] + indict["undet_snow_much"])
         measures["FARsnow"] =  indict["false_snow"]*100.0/(indict["N_pps_snow"])
         measures["FARsnow_bad"] =  indict["false_snow_more_than_cloud_issue"]*100.0/(indict["N_pps_snow"])
-    if thin is not None:  
+    if thin is not None:
         if use is not None:
             thin = thin[use]
         undet_cloudy_th = np.sum(np.logical_and(pps_cfc==0, np.logical_and(~thin,calipso_cfc==1)))
@@ -112,7 +112,7 @@ def plot_cfc_table(caObj,cfc_limit=0.9,sat="modis"):
                           od<0.2)
     """
     my_fcf_values = set(cfc)
-    
+
     for limit in sorted(my_fcf_values):
         use = cfc==limit
         use_thick = np.logical_and(cfc==limit,np.logical_or(od<0, od>0.225))
@@ -126,8 +126,8 @@ def plot_cfc_table(caObj,cfc_limit=0.9,sat="modis"):
         print "(%3.1f)"%(len(cfc[ok_cma_thick])*100.0/np.max([1,len(cfc[use_thick])]))
         print "cear" , "%3.1f"%(len(cfc[ok_cl])*100.0/len(cfc[use])),
         print ""
-    """    
-        
+    """
+
     calipso_cfc = cfc.copy()
     calipso_cfc[cfc<=cfc_limit] = 0
     calipso_cfc[cfc>cfc_limit] = 1
@@ -136,7 +136,7 @@ def plot_cfc_table(caObj,cfc_limit=0.9,sat="modis"):
     pps_cfc[cma] = 1
     use = np.logical_or(cl,cma)
 
-    
+
     europe = np.logical_and(caObj.imager.all_arrays['longitude']<60,
                             caObj.imager.all_arrays['longitude']>-25)
     europe = np.logical_and(europe,caObj.imager.all_arrays['latitude']<72)
@@ -151,7 +151,7 @@ def plot_cfc_table(caObj,cfc_limit=0.9,sat="modis"):
     measures_n = my_measures(calipso_cfc, pps_cfc, calipso_snowi, pps_snowi,  thin, np.logical_and(use, night_flag))
     measures_t = my_measures(calipso_cfc, pps_cfc,  calipso_snowi, pps_snowi, thin, np.logical_and(use,twilight_flag))
     measures_ds = my_measures(calipso_cfc, pps_cfc, calipso_snowi, pps_snowi,  thin, np.logical_and(sea_flag,np.logical_and(use, day_flag)))
-    measures_ts = my_measures(calipso_cfc, pps_cfc,  calipso_snowi, pps_snowi, thin, np.logical_and(sea_flag,np.logical_and(use,twilight_flag)))   
+    measures_ts = my_measures(calipso_cfc, pps_cfc,  calipso_snowi, pps_snowi, thin, np.logical_and(sea_flag,np.logical_and(use,twilight_flag)))
     measures_europe = my_measures(calipso_cfc, pps_cfc, calipso_snowi, pps_snowi,  thin, np.logical_and(europe,use))
     measures_nonpolar_night =  my_measures(calipso_cfc, pps_cfc,  calipso_snowi, pps_snowi, thin, np.logical_and(non_polar_night,use))
     def print_one_line(measures):
@@ -165,11 +165,11 @@ def plot_cfc_table(caObj,cfc_limit=0.9,sat="modis"):
                     measures["Farcy"],
                     measures["PODcl"],
                     measures["Farcl"],
-                    measures["N"], 
+                    measures["N"],
                     measures["PODsnow"],
                     measures["PODsnow_much"],
                     measures["FARsnow"],
-                    measures["FARsnow_bad"],   
+                    measures["FARsnow_bad"],
 
                 ))
         print(info)
@@ -189,10 +189,10 @@ def plot_cfc_table(caObj,cfc_limit=0.9,sat="modis"):
     out_file_h.write("CALIOP TWILIGHT:" + info)
 
     info = print_one_line(measures_ds)
-    out_file_h.write("CALIOP DAY SEA:" + info) 
+    out_file_h.write("CALIOP DAY SEA:" + info)
     info = print_one_line(measures_ts)
     out_file_h.write("CALIOP TWILIGHT SEA:" + info)
-    info = print_one_line(measures_europe) 
+    info = print_one_line(measures_europe)
     out_file_h.write("CALIOP EUROPE:" + info)
     info = print_one_line(measures_nonpolar_night)
     out_file_h.write("CALIOP NON-POLAR-NIGHT:" + info)
@@ -201,28 +201,28 @@ def plot_cfc_table(caObj,cfc_limit=0.9,sat="modis"):
     import config
     plotSatelliteTrajectory(caObj.calipso.all_arrays["longitude"][use],
                             caObj.calipso.all_arrays["latitude"][use],
-                            ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_marble_cfc_%s_dist"%(sat), 
+                            ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_marble_cfc_%s_dist"%(sat),
                             config.AREA_CONFIG_FILE,
                             fig_type=['png'])
     try:
         plotSatelliteTrajectory(caObj.calipso.all_arrays["longitude"][np.logical_and(europe,use)],
                                 caObj.calipso.all_arrays["latitude"][np.logical_and(europe,use)],
-                                ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_marble_cfc_%s_dist_europe"%(sat), 
+                                ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_marble_cfc_%s_dist_europe"%(sat),
                                 config.AREA_CONFIG_FILE,
                                 fig_type=['png'])
     except:
         pass
     from histogram_plotting import distribution_map
-    distribution_map(caObj.calipso.all_arrays["longitude"][use], 
+    distribution_map(caObj.calipso.all_arrays["longitude"][use],
                      caObj.calipso.all_arrays["latitude"][use])
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_white_cfc_%s_dist.png"%(sat), bbox_inches='tight')
     try:
-        distribution_map(caObj.calipso.all_arrays["longitude"][np.logical_and(europe,use)], 
+        distribution_map(caObj.calipso.all_arrays["longitude"][np.logical_and(europe,use)],
                          caObj.calipso.all_arrays["latitude"][np.logical_and(europe,use)])
         plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_white_cfc_%s_dist_europe.png"%(sat), bbox_inches='tight')
     except:
         pass
-    plt.close('all') 
+    plt.close('all')
 
 def val_synop_cfc(caObj, sat):
     europe = np.logical_and(caObj.imager.all_arrays['longitude']<60,
@@ -248,11 +248,11 @@ def val_synop_cfc(caObj, sat):
                     measures["Farcy"],
                     measures["PODcl"],
                     measures["Farcl"],
-                    measures["N"], 
+                    measures["N"],
                     #measures["PODsnow"],
                     #measures["PODsnow_much"],
                     #measures["FARsnow"],
-                    #measures["FARsnow_bad"],   
+                    #measures["FARsnow_bad"],
 
                 ))
         print(info)
@@ -276,14 +276,14 @@ def val_synop_cfc(caObj, sat):
     info = print_one_line(measures_t)
     out_file_h.write("SYNOP TWILIGHT:" + info)
 
-    info = print_one_line(measures_europe) 
+    info = print_one_line(measures_europe)
     out_file_h.write("SYNOP EUROPE:" + info)
 
 
 def plot_synop_cfc(caObj):
     print caObj.synop.all_arrays["longitude"]
     from histogram_plotting import distribution_map
-    distribution_map(caObj.synop.all_arrays["longitude"], 
+    distribution_map(caObj.synop.all_arrays["longitude"],
                      caObj.synop.all_arrays["latitude"])
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_white_cfc_synop_%s_dist.png"%(sat), bbox_inches='tight')
 
@@ -313,7 +313,7 @@ if __name__ == "__main__":
         files = glob(ROOT_DIR_INNER + "*cali*h5")
         if exclude_2009:
             files = [filename for filename in files if "/2009/" not in filename]
-        #print files    
+        #print files
         sat = ROOT_DIR_INNER.split("global_")[1].split("/Reshaped")[0]
         limit = 0.9
         if "gac" in sat:
@@ -331,7 +331,7 @@ if __name__ == "__main__":
     for ROOT_DIR in [ROOT_DIR_v2014_gac,
                      ROOT_DIR_v2018_gac]:
         process_one_case(ROOT_DIR, True)
-                        
+
     for ROOT_DIR in [ROOT_DIR_v2014_npp,
                      ROOT_DIR_v2018_npp,
                      ROOT_DIR_v2014_modis,

@@ -35,11 +35,11 @@ def make_pod_vector(caObj):
     #try:
     #    pps_cloudy = caObj.imager.all_arrays['cma_prob']>50
     #
-    #except:    
+    #except:
     if caObj.imager.all_arrays['cloudmask'] is not None:
         pps_cloudy = np.logical_or(caObj.imager.all_arrays['cloudmask']==1,
                                    caObj.imager.all_arrays['cloudmask']==2)
-    else:    
+    else:
         pps_cloudy = np.logical_and(np.greater(caObj.imager.cloudtype,4),np.less(caObj.imager.cloudtype,20))
     igbp_st = getattr(caObj.calipso, 'igbp_surface_type')
     alat = np.abs(caObj.imager.all_arrays['latitude'])
@@ -55,17 +55,17 @@ def make_pod_vector(caObj):
     feature =  np.array(caObj.imager.all_arrays['bt11micron'])# -caObj.imager.all_arrays['bt12micron'] - caObj.imager.all_arrays['thr_t11t12']
     feature = od
     for i, lower in enumerate(limits):
-        try:    
+        try:
             upper = limits[i+1]
         except:
             upper = 100000
         use = np.logical_and(use_all, np.logical_and(od>=lower,od<upper))
         use = np.logical_and(use, day)
-        
+
         pod_d.append(np.sum(np.logical_and(use,pps_cloudy)) * 100.0/np.sum(use))
         feature_d.append(np.sum(feature[np.logical_and(use,np.not_equal(pps_cloudy,True))]>297)*100.0/np.sum(use) )
         #feature_d.append(np.mean(feature[np.logical_and(use,np.equal(pps_cloudy,True))]))
-        
+
         use = np.logical_and(use_all, np.logical_and(od>=lower,od<upper))
         use = np.logical_and(use, np.not_equal(day,True))
         pod_n.append(np.sum(np.logical_and(use,pps_cloudy)) * 100.0/np.sum(use))
@@ -92,7 +92,7 @@ def make_pod_vector(caObj):
     except:
         pass
     return np.array(pod_d), np.array(pod_n), np.array(feature_d), np.array(feature_n)
-   
+
 
 BASE_DIR = ADIR + "/DATA_MISC/reshaped_files_validation_2018/"
 ROOT_DIR_v2014_GAC = (BASE_DIR + "global_gac_v2014_created20180927/Reshaped_Files/noaa18/5km/2009/*cali*h5")
@@ -122,8 +122,8 @@ cObjC = read_files(files)
 podC_d, podC_n, fC_d, fC_n = make_pod_vector(cObjC)
 name = "GAC"
 
- 
-from matplotlib import pyplot as plt    
+
+from matplotlib import pyplot as plt
 fig = plt.figure(figsize=(9, 11))
 ax = fig.add_subplot(211)
 plt.plot(limits, pod18_d-pod18_n, '-r.', label="PPS-v2018")

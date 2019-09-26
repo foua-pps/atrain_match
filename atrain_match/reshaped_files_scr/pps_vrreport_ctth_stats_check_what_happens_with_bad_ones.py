@@ -35,7 +35,7 @@ from utils.get_flag_info import (get_calipso_low_medium_high_classification,
 from scipy.stats import kurtosis, skewtest, skew, mode, kurtosis
 
 from utils.stat_util import (my_hist,
-                       my_iqr, 
+                       my_iqr,
                        my_rms,
                        my_mae,
                        half_sample_mode,
@@ -89,13 +89,13 @@ def my_make_plot2(y, x, x2, mhl,use):
     close_to_level_1 = abias1<1500
     lower = np.logical_and(abias2>1500,y[use_k]<x2[use_k])
     above = np.logical_and(abias1>1500,y[use_k]>x[use_k])
-    print("between", np.sum(in_between)*100.0/len(in_between),np.sum(in_between_2)*100.0/len(in_between_2)) 
+    print("between", np.sum(in_between)*100.0/len(in_between),np.sum(in_between_2)*100.0/len(in_between_2))
     print("det layer two", np.sum(close_to_level_2)*100.0/len(close_to_level_2))
     print("det layer one", np.sum(close_to_level_1)*100.0/len(close_to_level_1))
     print("lower", np.sum(lower)*100.0/len(lower))
     print("above", np.sum(above)*100.0/len(above))
-     
-    
+
+
     sort_ind = np.argsort(np.where(abias1<abias2, abias1, abias2))
     print( np.mean(np.where(abias1<abias2, abias1, abias2)), np.mean(abias1), np.mean(abias2))
     print(  np.sum(np.where(abias1<abias2, abias1, abias2)<1000)*100.0/len(abias1))
@@ -126,7 +126,7 @@ def my_make_plot2(y, x, x2, mhl,use):
 
 
 
-        
+
 def my_adjust_axis(ax):
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
@@ -135,7 +135,7 @@ def my_adjust_axis(ax):
     leg.get_frame().set_edgecolor('w')
     leg.get_frame().set_facecolor('w')
     #leg.get_frame().set_linewidth(0.0)
-    ax.set_ylim(0,10)    
+    ax.set_ylim(0,10)
     ax.set_xlim(-4,6)
     plt.yticks(np.arange(0,9,2.0))
     plt.yticks(np.arange(0,9,2.0))
@@ -172,7 +172,7 @@ def my_make_plot_example(bias, use, label_str):
     ax.fill(x_, hist_heights, color='silver',
              label = my_legend_text_6(temp_data, "Gaussian"))
 #    plt.plot([0.001*np.mean(temp_data),0.001*np.mean(temp_data)], [0,2.4], 'k:')
-    ax.set_ylabel('Percent')                                                             
+    ax.set_ylabel('Percent')
     my_adjust_axis(ax)
     ax.set_xticklabels([])
     #S2
@@ -187,7 +187,7 @@ def my_make_plot_example(bias, use, label_str):
     ax = fig.add_subplot(223)
     ax.set_title('c) Outside threshold accuracy', loc='left')
     bias_i = bias[use]
-    plt.plot(x_, hist_heights3, "r-",  
+    plt.plot(x_, hist_heights3, "r-",
              label = my_legend_text_6(bias_i, "PPS S-NPP"))
     #plt.plot([0.001*np.mean(bias_i),0.001*np.mean(bias_i)], [0,2], 'r:')
     my_adjust_axis(ax)
@@ -240,8 +240,8 @@ def my_make_plot_example_aprox(bias, use, label_str, caObj):
         else:
             temp_data_gs = np.concatenate([temp_data_gi, temp_data_gs ])
             temp_data_iqrs = np.concatenate([temp_data_iqri, temp_data_iqrs])
-    
-       
+
+
     temp_data_g = np.random.normal(np.mean(bias_i),np.std(bias_i), n_pix)
     temp_data_iqr = np.random.normal(np.median(bias_i),my_iqr(bias_i)*20.0/27, n_pix)
 
@@ -256,7 +256,7 @@ def my_make_plot_example_aprox(bias, use, label_str, caObj):
     #hist_heights3, x_m, dummy = my_hist(bias, use, bmin=-20*1000, bmax=20*1000, delta_h=100.0)
     x_ = x_m*0.001
 
-    
+
     def gaussian_fit(x,y, bias):
         n = len(x)                          #the number of data
         mean = np.median(bias)                   #note this correction
@@ -268,7 +268,7 @@ def my_make_plot_example_aprox(bias, use, label_str, caObj):
             return 8*exp(-np.abs(x-x0)*np.sqrt(2)/(sigma))
 
         #popt,pcov = curve_fit(gaus,x,y,p0=[1,mean,sigma])
-        
+
         plt.plot(x,y,'b+:',label='data')
         plt.plot(x,gaus(x,1, mean, sigma),'ro:',label='fit')
         plt.show()
@@ -282,7 +282,7 @@ def my_make_plot_example_aprox(bias, use, label_str, caObj):
     ax = fig.add_subplot(111)
     ax.fill(x_, hist_heights_fitted, color='silver',
             label = "\nGaussian\n" + my_legend_text_6(temp_data_fitted, ))
-    plt.plot(x_, hist_heights_pps, "r-",  
+    plt.plot(x_, hist_heights_pps, "r-",
              label = "NN-CTTH\n"+my_legend_text_6(bias_i, "PPS"  ))
     ax.set_xlim(-4,6)
     leg = plt.legend(loc="upper right", markerscale=2., numpoints=1,scatterpoints=1, bbox_to_anchor=(1.13, 1.2), framealpha=1.0, frameon=True)
@@ -298,12 +298,12 @@ def my_make_plot_example_aprox(bias, use, label_str, caObj):
     #ax.set_title('PPS-v2018', loc='left',  zorder=30)
     ax.fill(x_, hist_heights_g, color='silver',
              label = "\nGaussian\n" + my_legend_text(temp_data_g, ))
-    plt.plot(x_, hist_heights_pps, "r-",  
+    plt.plot(x_, hist_heights_pps, "r-",
              label = "NN-CTTH\n"+my_legend_text(bias_i, "PPS"  ))
     plt.plot([0.001*np.mean(bias_i),0.001*np.mean(bias_i)], [0,2], 'r:')
     ax.set_xlim(-4,6)
-    ax.set_ylabel('Percent') 
-    ax.set_xlabel('Error (km)')                                       
+    ax.set_ylabel('Percent')
+    ax.set_xlabel('Error (km)')
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
     ax.grid(True)
@@ -316,7 +316,7 @@ def my_make_plot_example_aprox(bias, use, label_str, caObj):
     print("gaussian inside {:3.1f}".format(np.sum(hist_heights_g[np.logical_and(x_>=-4, x_<=6)])))
     #plt.legend(frameon=False)
 
-    ax.set_ylim(0,10)    
+    ax.set_ylim(0,10)
     ax.set_xlim(-4,6)
     plt.yticks(np.arange(0,9,2.0))
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_ctth_error_and_gaussian_%s.png"%(label_str),bbox_inches='tight')
@@ -336,15 +336,15 @@ def my_make_plot_example_aprox(bias, use, label_str, caObj):
              label = my_legend_text_6(bias_i, "PPS"  ))
     plt.plot(x_-0.001*np.mean(bias_i), hist_heights_pps, "b-")
     ax.set_xlim(-4,6)
-    ax.set_ylabel('Percent') 
-    ax.set_xlabel('Error (km)')                                       
+    ax.set_ylabel('Percent')
+    ax.set_xlabel('Error (km)')
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
 
     leg = plt.legend(loc="upper right", markerscale=2., numpoints=1,scatterpoints=1, bbox_to_anchor=(1.13, 1.2),framealpha=1.0, frameon=True)
     leg.get_frame().set_facecolor('w')
     leg.get_frame().set_linewidth(0.0)
-    ax.set_ylim(0,10)    
+    ax.set_ylim(0,10)
     ax.set_xlim(-4,6)
     plt.yticks(np.arange(0,9,2.0))
     ax = fig.add_subplot(122)
@@ -353,18 +353,18 @@ def my_make_plot_example_aprox(bias, use, label_str, caObj):
     ax.set_title('Bias "corrected"', loc='left',  zorder=30)
     #ax.fill(x_-0.001*np.mean(temp_data_g), hist_heights_g, color='silver',
     #         label = my_legend_text(temp_data_g-0.001*np.mean(temp_data_g), "Gaussian (STD)"))
-    plt.fill(x_-0.001*np.mean(bias_i), hist_heights_pps, "b-", #alpha = 0.5,  
+    plt.fill(x_-0.001*np.mean(bias_i), hist_heights_pps, "b-", #alpha = 0.5,
              label = my_legend_text_6(bias_i-np.mean(bias_i), "PPS"  ))
     plt.plot(x_, hist_heights_pps, "r-")
     ax.set_xlim(-4,6)
-    #ax.set_ylabel('Percent') 
-    ax.set_xlabel('Error (km)')                                       
+    #ax.set_ylabel('Percent')
+    ax.set_xlabel('Error (km)')
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
     leg = plt.legend(loc="upper right", markerscale=2., numpoints=1,scatterpoints=1, bbox_to_anchor=(1.13, 1.2),framealpha=1.0, frameon=True)
     leg.get_frame().set_facecolor('w')
     leg.get_frame().set_linewidth(0.0)
-    ax.set_ylim(0,10)    
+    ax.set_ylim(0,10)
     ax.set_xlim(-4,6)
     plt.yticks(np.arange(0,9,2.0))
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_ctth_error_and_gaussian_and_biascorr_%s.png"%(label_str),bbox_inches='tight')
@@ -379,9 +379,9 @@ def my_make_plot_example_aprox(bias, use, label_str, caObj):
     ax.set_title('a) Equal bias/std')
     ax.fill(x_, hist_heights_g, color='silver',
              label = my_legend_text(temp_data_g, "Gaussian (STD)"))
-    plt.plot(x_, hist_heights_pps, "r-",  
+    plt.plot(x_, hist_heights_pps, "r-",
              label = "\n" + my_legend_text(bias_i, "PPS"))
-    ax.set_ylabel('Percent')  
+    ax.set_ylabel('Percent')
     my_adjust_axis(ax)
     ax.set_xticklabels([])
     #S2
@@ -397,7 +397,7 @@ def my_make_plot_example_aprox(bias, use, label_str, caObj):
     ax = fig.add_subplot(223)
     ax.set_title('c) Equal bias/std, sum of types')
 
-    plt.fill(x_, hist_heights_gs, color='silver',  
+    plt.fill(x_, hist_heights_gs, color='silver',
              label = "\n" + my_legend_text(temp_data_gs, "Gaussian \Sum (STD)"))
     plt.plot(x_, hist_heights_pps, "r-")#, label='PPS')
     my_adjust_axis(ax)
@@ -406,7 +406,7 @@ def my_make_plot_example_aprox(bias, use, label_str, caObj):
     #S4
     ax = fig.add_subplot(224)
     ax.set_title('d) Equal IQR/median, sum over cloud types')
-    ax.fill(x_, hist_heights_iqrs, color='grey',  
+    ax.fill(x_, hist_heights_iqrs, color='grey',
             label = "\n" + my_legend_text(temp_data_iqrs, "Gaussian \Sum (IQR)"))
     plt.plot(x_, hist_heights_pps, "r-")#, label='PPS')
 
@@ -421,12 +421,12 @@ def my_make_plot_example_aprox(bias, use, label_str, caObj):
 def my_print_one_line(out_file_h, bias, x, y, use_ind, compare_name, flag_key):
     out_line = "%s_%s %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %3.1f "%(
         compare_name, flag_key,
-        np.mean(bias[use_ind]), 
-        np.median(bias[use_ind]), 
+        np.mean(bias[use_ind]),
+        np.median(bias[use_ind]),
         my_iqr(bias[use_ind]),
         my_pe500m(bias[use_ind]),
         my_pe1000m(bias[use_ind]),
-        my_mae(bias[use_ind]), 
+        my_mae(bias[use_ind]),
         np.std(bias[use_ind]),
         len(bias[use_ind]),
         my_rms(bias[use_ind]),
@@ -436,13 +436,13 @@ def my_print_one_line(out_file_h, bias, x, y, use_ind, compare_name, flag_key):
         my_pe2000m(bias[use_ind]),
         my_pe2500m(bias[use_ind]),
         my_pe5000m(bias[use_ind]),
-        half_sample_mode(bias[use_ind]),         
-        skew(bias[use_ind]),#,                
+        half_sample_mode(bias[use_ind]),
+        skew(bias[use_ind]),#,
         #kurtosis(bias[use_ind])
     )
-    out_file_h.write(out_line) 
-    out_file_h.write("\n") 
-    print(out_line)  
+    out_file_h.write(out_line)
+    out_file_h.write("\n")
+    print(out_line)
 
 def print_all_cloudsat(cObj, compare, compare_name = "unknown"):
     from utils.get_flag_info import get_cloudsat_low_medium_high_classification
@@ -455,19 +455,19 @@ def print_all_cloudsat(cObj, compare, compare_name = "unknown"):
     mhl["all"] = use.copy()
     bias = y-x
     out_file_h.write(compare_name + " CPR (CloudSat) :\n")
-    for flag_key in ["all", "low_clouds", "medium_clouds", "high_clouds"]: 
+    for flag_key in ["all", "low_clouds", "medium_clouds", "high_clouds"]:
         if flag_key not in mhl.keys():
             continue
-        else:    
+        else:
             use_i = np.logical_and(use, np.logical_and(mhl[flag_key], use))
-            my_print_one_line(out_file_h, bias, x, y, use_i, "all", flag_key) 
+            my_print_one_line(out_file_h, bias, x, y, use_i, "all", flag_key)
 
 def print_all(cObj, compare, compare_name = "unknown"):
-    #x = getattr(plt_obj, truth) 
-    #y = getattr(plt_obj, compare) 
+    #x = getattr(plt_obj, truth)
+    #y = getattr(plt_obj, compare)
 
     x = cObj.calipso.all_arrays['validation_height']
-    x2 = cObj.calipso.all_arrays['layer_top_altitude'][:,1]*1000 
+    x2 = cObj.calipso.all_arrays['layer_top_altitude'][:,1]*1000
     y = cObj.imager.all_arrays['imager_ctth_m_above_seasurface']
     print( np.max(y), np.max(y[y<65000]))
     #pressure_c = cObj.calipso.all_arrays['layer_top_pressure'][:,0]
@@ -504,7 +504,7 @@ def print_all(cObj, compare, compare_name = "unknown"):
 
 
     mhl["all_clouds_tp_thin"] = np.logical_and(
-        mhl["clouds_tp"], 
+        mhl["clouds_tp"],
         np.logical_and(cObj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>=0,
                        cObj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']<=0.225))
     mhl["all_clouds_tp_not_thin"] = np.logical_and(
@@ -513,11 +513,11 @@ def print_all(cObj, compare, compare_name = "unknown"):
     mhl["all_clouds_tp_bad2"] = np.logical_and(
         mhl["high_clouds_tp_thin"],
         cObj.calipso.all_arrays['number_layers_found']>=2)
-           
+
     mhl["all_clouds_tp_bad3"] = np.logical_and(
         mhl["high_clouds_tp_thin"],
         cObj.calipso.all_arrays['number_layers_found']==1)
-   
+
 
     use_low = np.logical_and(use, low_clouds)
     use_medium = np.logical_and(use, medium_clouds)
@@ -537,14 +537,14 @@ def print_all(cObj, compare, compare_name = "unknown"):
     #cObj.calipso.layer_top_pressure[:,0][cObj.calipso.layer_top_pressure[:,0]<0] =1200
     #cObj.calipso.layer_top_altitude[:,0][cObj.calipso.layer_top_altitude[:,0]<0] =0
     if hasattr(cObj,'calipso'):
-        var_pressure = (ndimage.filters.maximum_filter1d(cObj.calipso.layer_top_pressure[:,0], size=9) - 
+        var_pressure = (ndimage.filters.maximum_filter1d(cObj.calipso.layer_top_pressure[:,0], size=9) -
                         ndimage.filters.minimum_filter1d(cObj.calipso.layer_top_pressure[:,0], size=9))
         val_geo = np.logical_and(
-            val_geo, 
+            val_geo,
             var_pressure<200) #Pressure variation less than 200hPa
-    var_pressure = (ndimage.filters.maximum_filter1d(cObj.calipso.layer_top_pressure[:,0], size=9) - 
+    var_pressure = (ndimage.filters.maximum_filter1d(cObj.calipso.layer_top_pressure[:,0], size=9) -
                     ndimage.filters.minimum_filter1d(cObj.calipso.layer_top_pressure[:,0], size=9))
-    var_height = (ndimage.filters.maximum_filter1d(cObj.calipso.layer_top_altitude[:,0]*1000, size=9) - 
+    var_height = (ndimage.filters.maximum_filter1d(cObj.calipso.layer_top_altitude[:,0]*1000, size=9) -
                   ndimage.filters.minimum_filter1d(cObj.calipso.layer_top_altitude[:,0]*1000, size=9))
     val_geo2 = var_pressure<100
     sunz = np.array(cObj.imager.all_arrays['sunz'])
@@ -555,11 +555,11 @@ def print_all(cObj, compare, compare_name = "unknown"):
     print cObj.calipso.all_arrays['feature_classification_flags'][use][:,0]
     cflag_full = cObj.calipso.all_arrays['feature_classification_flags'][:,0]
     cflag = cObj.calipso.all_arrays['feature_classification_flags'][:,0][use]
-    feature_array = (4*np.bitwise_and(np.right_shift(cflag,11),1) + 
-                     2*np.bitwise_and(np.right_shift(cflag,10),1) + 
+    feature_array = (4*np.bitwise_and(np.right_shift(cflag,11),1) +
+                     2*np.bitwise_and(np.right_shift(cflag,10),1) +
                      1*np.bitwise_and(np.right_shift(cflag,9),1))
-    feature_array = (4*np.bitwise_and(np.right_shift(cflag,15),1) + 
-                     2*np.bitwise_and(np.right_shift(cflag,14),1) + 
+    feature_array = (4*np.bitwise_and(np.right_shift(cflag,15),1) +
+                     2*np.bitwise_and(np.right_shift(cflag,14),1) +
                      1*np.bitwise_and(np.right_shift(cflag,13),1))
     feature_array_full = (2*np.bitwise_and(np.right_shift(cflag_full,4),1)+
                           1*np.bitwise_and(np.right_shift(cflag_full,3),1))
@@ -596,21 +596,21 @@ def print_all(cObj, compare, compare_name = "unknown"):
                        np.less(sunz,95)),
         1,0)
     out_file_h.write(compare_name + " CALIOP:\n")
-    #use = np.logical_and(use,feature_array_full==3) 
+    #use = np.logical_and(use,feature_array_full==3)
     my_list = sorted(mhl.keys())
     my_list = ["clouds_tp", "low_clouds_tp", "medium_clouds_tp", "high_clouds_tp",
                #"all_clouds_tp_not_thin", "low_clouds_tp_not_thin", "medium_clouds_tp_not_thin", "high_clouds_tp_not_thin",
                #"all_clouds_tp_thin", "low_clouds_tp_thin", "medium_clouds_tp_thin", "high_clouds_tp_thin",
                "clouds_op", "low_clouds_op", "medium_clouds_op", "high_clouds_op",
                "all_clouds_tp_bad2", "all_clouds_tp_bad3"]
-    for flag, compare_name in zip( [use, day_flag, night_flag, twilight_flag, val_geo, val_geo2], 
+    for flag, compare_name in zip( [use, day_flag, night_flag, twilight_flag, val_geo, val_geo2],
                                    ["all", "day", "night", "twilight", "geo-style", "no-edges"]):
         use_i = np.logical_and(use,  flag)
         my_print_one_line(out_file_h, bias, x, y, use_i, compare_name, "")
-    for flag_key in my_list:        
+    for flag_key in my_list:
         use_i = np.logical_and(use, np.logical_and(mhl[flag_key], use))
         my_print_one_line(out_file_h, bias, x, y, use_i, "all", flag_key)
-    for flag_key in my_list:        
+    for flag_key in my_list:
         use_i = np.logical_and(use, np.logical_and(mhl[flag_key], use_inversion))
         my_print_one_line(out_file_h, bias, x, y, use_i, "all", flag_key+'inversion')
     use_i = np.logical_and(use, np.logical_and(mhl["all_clouds_tp_bad2"], use))
@@ -643,25 +643,25 @@ if __name__ == "__main__":
 
 
     files = glob(ROOT_DIR_v2014_NPP)
-    out_file_h.write("NPP-v2014\n")    
+    out_file_h.write("NPP-v2014\n")
     cObj = read_files(files)
     print_all(cObj, None, "NPPv2014")
 
 
 
     files = glob(ROOT_DIR_v2018_NPP)
-    out_file_h.write("NPP-v2018\n")    
+    out_file_h.write("NPP-v2018\n")
     cObj = read_files(files)
     print_all(cObj, None, "NPPv2018")
     b=a
 
     files = glob(ROOT_DIR%("20100201"))
-    files = files + glob(ROOT_DIR%("20100401"))             
-    files = files + glob(ROOT_DIR%("20100601")) 
-    files = files + glob(ROOT_DIR%("20100801")) 
-    files = files + glob(ROOT_DIR%("20101001")) 
-    files = files + glob(ROOT_DIR%("20101201")) 
-    out_file_h.write("MODIS-C6\n")    
+    files = files + glob(ROOT_DIR%("20100401"))
+    files = files + glob(ROOT_DIR%("20100601"))
+    files = files + glob(ROOT_DIR%("20100801"))
+    files = files + glob(ROOT_DIR%("20101001"))
+    files = files + glob(ROOT_DIR%("20101201"))
+    out_file_h.write("MODIS-C6\n")
     cObj = read_files(files, truth='cloudsat')
     cObj.imager.all_arrays['imager_ctth_m_above_seasurface'] = cObj.modis.all_arrays["height"]
     print_all_cloudsat(cObj, None, "MODIS-C6")
@@ -669,92 +669,92 @@ if __name__ == "__main__":
 
     ROOT_DIR = ROOT_DIR_v2018
     files = glob(ROOT_DIR%("20100201"))
-    files = files + glob(ROOT_DIR%("20100401"))             
-    files = files + glob(ROOT_DIR%("20100601")) 
-    files = files + glob(ROOT_DIR%("20100801")) 
-    files = files + glob(ROOT_DIR%("20101001")) 
-    files = files + glob(ROOT_DIR%("20101201")) 
-    out_file_h.write("MODIS-C6\n")    
+    files = files + glob(ROOT_DIR%("20100401"))
+    files = files + glob(ROOT_DIR%("20100601"))
+    files = files + glob(ROOT_DIR%("20100801"))
+    files = files + glob(ROOT_DIR%("20101001"))
+    files = files + glob(ROOT_DIR%("20101201"))
+    out_file_h.write("MODIS-C6\n")
     cObj = read_files(files)
     cObj.imager.all_arrays['imager_ctth_m_above_seasurface'] = cObj.modis.all_arrays["height"]
     print_all(cObj, None, "MODIS-C6")
 
     files = glob(ROOT_DIR_v2014_GAC%("2006"))
     files = files + glob(ROOT_DIR_v2014_GAC%("2009"))
-    out_file_h.write("GAc-v2014\n")    
+    out_file_h.write("GAc-v2014\n")
     cObj = read_files(files)
     print_all(cObj, None, "GACv2014")
     files = glob(ROOT_DIR_v2018_GAC%("2006"))
     files = files + glob(ROOT_DIR_v2018_GAC%("2009"))
-    out_file_h.write("GAC-v2018\n")    
+    out_file_h.write("GAC-v2018\n")
     cObj = read_files(files)
     print_all(cObj, None, "GACv2018")
 
     files = glob(ROOT_DIR_v2014_GAC_clsat) #only 2009
-    out_file_h.write("GAc-v2014\n")    
+    out_file_h.write("GAc-v2014\n")
     cObj = read_files(files, truth='cloudsat')
     print_all_cloudsat(cObj, None, "GACv2014")
     files = glob(ROOT_DIR_v2018_GAC_clsat) #only 2009
-    out_file_h.write("GAC-v2018\n")    
+    out_file_h.write("GAC-v2018\n")
     cObj = read_files(files, truth='cloudsat')
     print_all_cloudsat(cObj, None, "GACv2018")
 
 
     files = glob(ROOT_DIR_v2018_NPP_clsat)
-    out_file_h.write("NPP-v2018\n")    
+    out_file_h.write("NPP-v2018\n")
     cObj = read_files(files, truth='cloudsat')
     print_all_cloudsat(cObj, None, "NPPv2018")
     files = glob(ROOT_DIR_v2014_NPP_clsat)
-    out_file_h.write("NPP-v2014\n")    
+    out_file_h.write("NPP-v2014\n")
     cObj = read_files(files, truth='cloudsat')
     print_all_cloudsat(cObj, None, "NPPv2014")
 
     ROOT_DIR = ROOT_DIR_v2014_clsat
     files = glob(ROOT_DIR%("20100201"))
-    files = files + glob(ROOT_DIR%("20100401"))             
-    files = files + glob(ROOT_DIR%("20100601")) 
-    files = files + glob(ROOT_DIR%("20100801")) 
-    files = files + glob(ROOT_DIR%("20101001")) 
-    files = files + glob(ROOT_DIR%("20101201")) 
-    out_file_h.write("MODIS-v2014\n")    
+    files = files + glob(ROOT_DIR%("20100401"))
+    files = files + glob(ROOT_DIR%("20100601"))
+    files = files + glob(ROOT_DIR%("20100801"))
+    files = files + glob(ROOT_DIR%("20101001"))
+    files = files + glob(ROOT_DIR%("20101201"))
+    out_file_h.write("MODIS-v2014\n")
     cObj = read_files(files, truth='cloudsat')
     print_all_cloudsat(cObj, None, "MODISv2014")
 
     ROOT_DIR = ROOT_DIR_v2018_clsat
     files = glob(ROOT_DIR%("20100201"))
-    files = files + glob(ROOT_DIR%("20100401"))             
-    files = files + glob(ROOT_DIR%("20100601")) 
-    files = files + glob(ROOT_DIR%("20100801")) 
-    files = files + glob(ROOT_DIR%("20101001")) 
-    files = files + glob(ROOT_DIR%("20101201")) 
-    out_file_h.write("MODIS-v2018\n")    
+    files = files + glob(ROOT_DIR%("20100401"))
+    files = files + glob(ROOT_DIR%("20100601"))
+    files = files + glob(ROOT_DIR%("20100801"))
+    files = files + glob(ROOT_DIR%("20101001"))
+    files = files + glob(ROOT_DIR%("20101201"))
+    out_file_h.write("MODIS-v2018\n")
     cObj = read_files(files, truth='cloudsat')
     print_all_cloudsat(cObj, None, "MODISv2018")
 
 
-    
+
 
 
 
     ROOT_DIR = ROOT_DIR_v2014
     files = glob(ROOT_DIR%("20100201"))
-    files = files + glob(ROOT_DIR%("20100401"))             
-    files = files + glob(ROOT_DIR%("20100601")) 
-    files = files + glob(ROOT_DIR%("20100801")) 
-    files = files + glob(ROOT_DIR%("20101001")) 
-    files = files + glob(ROOT_DIR%("20101201")) 
-    out_file_h.write("MODIS-v2014\n")    
+    files = files + glob(ROOT_DIR%("20100401"))
+    files = files + glob(ROOT_DIR%("20100601"))
+    files = files + glob(ROOT_DIR%("20100801"))
+    files = files + glob(ROOT_DIR%("20101001"))
+    files = files + glob(ROOT_DIR%("20101201"))
+    out_file_h.write("MODIS-v2014\n")
     cObj = read_files(files)
     print_all(cObj, None, "eos2v2014")
 
     ROOT_DIR = ROOT_DIR_v2018
     files = glob(ROOT_DIR%("20100201"))
-    files = files + glob(ROOT_DIR%("20100401"))             
-    files = files + glob(ROOT_DIR%("20100601")) 
-    files = files + glob(ROOT_DIR%("20100801")) 
-    files = files + glob(ROOT_DIR%("20101001")) 
-    files = files + glob(ROOT_DIR%("20101201")) 
-    out_file_h.write("MODIS-v2018\n")    
+    files = files + glob(ROOT_DIR%("20100401"))
+    files = files + glob(ROOT_DIR%("20100601"))
+    files = files + glob(ROOT_DIR%("20100801"))
+    files = files + glob(ROOT_DIR%("20101001"))
+    files = files + glob(ROOT_DIR%("20101201"))
+    out_file_h.write("MODIS-v2018\n")
     cObj = read_files(files)
     print_all(cObj, None, "eos2v2018")
 

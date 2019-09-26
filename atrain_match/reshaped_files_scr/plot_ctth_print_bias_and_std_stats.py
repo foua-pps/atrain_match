@@ -74,7 +74,7 @@ def my_iqr(data):
 def my_mode(bias):
     bmin = -40
     bmax = 40
-    delta_h = 100.0   
+    delta_h = 100.0
     bins = np.arange(bmin*1000,bmax*1000,delta_h)
     hist_heights,bins = np.histogram(bias,bins=bins)
     n_pix = len(bias)
@@ -89,8 +89,8 @@ def my_mode(bias):
 
 
 def print_for_one(plt_obj, compare, truth='height_c'):
-    x = getattr(plt_obj, truth) 
-    y = getattr(plt_obj, compare) 
+    x = getattr(plt_obj, truth)
+    y = getattr(plt_obj, compare)
     use = np.logical_and(x>=0, getattr(plt_obj, 'use_all'))
     use_low = np.logical_and(use, plt_obj.low_clouds)
     use_medium = np.logical_and(use, plt_obj.medium_clouds)
@@ -109,15 +109,15 @@ def print_for_one(plt_obj, compare, truth='height_c'):
     compare_name = name_conversion[compare.split('_')[1]]
 
     bias = y-x#+1465
-    AE = np.abs(bias)    
+    AE = np.abs(bias)
     std = np.std(bias[use])
 
     use_i = use
     print "%s & %d & %d & %d & %d & %d & %d & %d & %d & %d & %d & %d & %d & %3.1f  \\\\"%(
         compare_name,
         #np.sum(AE[use_i]<=1000)*100.0/len(AE[use_i]),
-        np.mean(AE[use_i]), 
-        np.percentile(bias[use_i],75)- np.percentile(bias[use_i],25), 
+        np.mean(AE[use_i]),
+        np.percentile(bias[use_i],75)- np.percentile(bias[use_i],25),
         np.sqrt(np.mean((bias[use_i]**2))),
         #np.sqrt(np.mean((bias[np.logical_and(use_i, AE<=2000)]**2))),
         #np.mean((AE[np.logical_and(use_i, AE>2000)])),
@@ -127,10 +127,10 @@ def print_for_one(plt_obj, compare, truth='height_c'):
         np.sum(AE[use_i]>1000)*100.0/len(AE[use_i]),
         np.sum(AE[use_i]>2000)*100.0/len(AE[use_i]),
         np.sum(AE[use_i]>2500)*100.0/len(AE[use_i]),
-        np.median(bias[use_i]), 
+        np.median(bias[use_i]),
         #my_mode(bias[use_i]),
         half_sample_mode(bias[use_i]),
-        np.mean(bias[use_i]),  
+        np.mean(bias[use_i]),
         skew(bias[use_i])#,
         #kurtosis(bias[use_i])
         )
@@ -155,7 +155,7 @@ def print_for_one(plt_obj, compare, truth='height_c'):
         np.sqrt(np.mean((bias[use_medium]**2))),
         np.sqrt(np.mean((bias[use_high]**2))))
     """
-    
+
     if plt_obj.cflag is not None:
         pass
         """
@@ -168,7 +168,7 @@ def print_for_one(plt_obj, compare, truth='height_c'):
                 print "%d &"%(np.sum(AE[use_i]>500)*100.0/len(AE[use_i])),
                 #print " %d &"%(np.mean(AE[use_i ])),
             else:
-               print "- &", 
+               print "- &",
         print "\\\\"
         """
         """
@@ -181,11 +181,11 @@ def print_for_one(plt_obj, compare, truth='height_c'):
                 print "%d &"%(100.0*np.sum(use_i)/np.sum(use)),
                 print " %d &"%(np.mean(AE[use_i ])),
             else:
-               print "- &", 
+               print "- &",
         print "\\\\"
         """
         """
-        print " %s %d &"%(compare_name, np.median(bias[use])),        
+        print " %s %d &"%(compare_name, np.median(bias[use])),
         for ind in range(8):
             use_i = np.logical_and(
                 use,
@@ -193,72 +193,72 @@ def print_for_one(plt_obj, compare, truth='height_c'):
             if np.sum(use_i)>0:
                 print " %d &"%(np.median(bias[use_i ])),
             else:
-                print "- &", 
+                print "- &",
         print "\\\\"
         """
-    """    
-    else:    
-        print " %s & %d& %d& %d &  %d& %d& %d \\\\ "%(compare_name, #np.mean(AE[use]), 
-                                                      np.mean(AE[use_low]),  
-                                                      np.mean(AE[use_medium]), 
+    """
+    else:
+        print " %s & %d& %d& %d &  %d& %d& %d \\\\ "%(compare_name, #np.mean(AE[use]),
+                                                      np.mean(AE[use_low]),
+                                                      np.mean(AE[use_medium]),
                                                       np.mean(AE[use_high]),
-                                                      np.median(bias[use_low]),  
-                                                      np.median(bias[use_medium]), 
+                                                      np.median(bias[use_low]),
+                                                      np.median(bias[use_medium]),
                                                       np.median(bias[use_high]))
- 
-    
-    print "N   : %s %d %d %d  %d "%(compare_name, 
-                                    len(AE[use]), 
-                                    len(AE[use_low]),  
-                                    len(AE[use_medium]), 
+
+
+    print "N   : %s %d %d %d  %d "%(compare_name,
+                                    len(AE[use]),
+                                    len(AE[use_low]),
+                                    len(AE[use_medium]),
                                     len(AE[use_high]))
 
 
-    print "MAE : %s & %3.1f& %3.1f& %3.1f & %3.1f\\\\ "%(compare_name, np.mean(AE[use]), 
-                                                np.mean(AE[use_low]),  
-                                                np.mean(AE[use_medium]), 
+    print "MAE : %s & %3.1f& %3.1f& %3.1f & %3.1f\\\\ "%(compare_name, np.mean(AE[use]),
+                                                np.mean(AE[use_low]),
+                                                np.mean(AE[use_medium]),
                                                 np.mean(AE[use_high]))
-    print "Bias: %s & %3.1f & %3.1f & %3.1f &  %3.1f\\\\ "%(compare_name, np.mean(bias[use]), 
-                                                np.mean(bias[use_low]),  
-                                                np.mean(bias[use_medium]), 
+    print "Bias: %s & %3.1f & %3.1f & %3.1f &  %3.1f\\\\ "%(compare_name, np.mean(bias[use]),
+                                                np.mean(bias[use_low]),
+                                                np.mean(bias[use_medium]),
                                                 np.mean(bias[use_high]))
 
-    print "Std :%s & %3.1f & %3.1f & %3.1f  & %3.1f\\\\ "%(compare_name, np.std(bias[use]), 
-                                               np.std(bias[use_low]),  
-                                               np.std(bias[use_medium]), 
+    print "Std :%s & %3.1f & %3.1f & %3.1f  & %3.1f\\\\ "%(compare_name, np.std(bias[use]),
+                                               np.std(bias[use_low]),
+                                               np.std(bias[use_medium]),
                                                np.std(bias[use_high]))
-    
+
     """
     """
-    print "%s & %d & %d & %d &  %d"%(compare_name, np.mean(bias[use]), 
-                                                np.mean(bias[use_low]),  
-                                                np.mean(bias[use_medium]), 
+    print "%s & %d & %d & %d &  %d"%(compare_name, np.mean(bias[use]),
+                                                np.mean(bias[use_low]),
+                                                np.mean(bias[use_medium]),
                                                 np.mean(bias[use_high])),
 
-    print " & %d & %d & %d  & %d "%( np.std(bias[use]), 
-                                               np.std(bias[use_low]),  
-                                               np.std(bias[use_medium]), 
+    print " & %d & %d & %d  & %d "%( np.std(bias[use]),
+                                               np.std(bias[use_low]),
+                                               np.std(bias[use_medium]),
                                                np.std(bias[use_high])),
-    
 
-    print " & %3.1f & %3.1f & %3.1f &  %3.1f \\\\"%(skew(bias[use]), 
-                                     skew(bias[use_low]),  
-                                     skew(bias[use_medium]), 
+
+    print " & %3.1f & %3.1f & %3.1f &  %3.1f \\\\"%(skew(bias[use]),
+                                     skew(bias[use_low]),
+                                     skew(bias[use_medium]),
                                      skew(bias[use_high]))
     """
-    #print " & %3.1f & %3.1f & %3.1f &  %3.1f \\\\"%(skewtest(bias[use])[1], 
-    #                                 skewtest(bias[use_low])[1],  
-    #                                 skewtest(bias[use_medium])[1], 
+    #print " & %3.1f & %3.1f & %3.1f &  %3.1f \\\\"%(skewtest(bias[use])[1],
+    #                                 skewtest(bias[use_low])[1],
+    #                                 skewtest(bias[use_medium])[1],
     #                                 skewtest(bias[use_high])[1])
     #
     """
-    print "mode %s & %d & %d & %d &  %d"%(compare_name, my_mode(bias[use]), 
-                                     my_mode(bias[use_low]),  
-                                     my_mode(bias[use_medium]), 
+    print "mode %s & %d & %d & %d &  %d"%(compare_name, my_mode(bias[use]),
+                                     my_mode(bias[use_low]),
+                                     my_mode(bias[use_medium]),
                                      my_mode(bias[use_high]))
-    print "%s & %d & %d & %d &  %d \\\\"%(compare_name, np.median(bias[use]), 
-                                                        np.median(bias[use_low]),  
-                                                     np.median(bias[use_medium]), 
+    print "%s & %d & %d & %d &  %d \\\\"%(compare_name, np.median(bias[use]),
+                                                        np.median(bias[use_low]),
+                                                     np.median(bias[use_medium]),
                                                         np.median(bias[use_high]))
    """
     """
@@ -269,23 +269,23 @@ def print_for_one(plt_obj, compare, truth='height_c'):
         np.sum(np.logical_and(use_low, np.abs(bias)>lim))*100.0/np.sum(use_low),
         np.sum(np.logical_and(use_medium, np.abs(bias)>lim))*100.0/np.sum(use_medium),
         np.sum(np.logical_and(use_high, np.abs(bias)>lim))*100.0/np.sum(use_high))
-    
+
     """
     #print " precentile %3.4f & %d & %d & %d  & %d\\\\ "%(ind,
-    #                                                     np.percentile(bias[use],ind), 
-    #                                                     np.percentile(bias[use_low],ind),  
-    #                                                     np.percentile(bias[use_medium],ind), 
-    #                                                     np.percentile(bias[use_high],ind))  
+    #                                                     np.percentile(bias[use],ind),
+    #                                                     np.percentile(bias[use_low],ind),
+    #                                                     np.percentile(bias[use_medium],ind),
+    #                                                     np.percentile(bias[use_high],ind))
 
     #IQR
     """
     print "%s & %d & %d& %d  & %d\\\\ "%(compare_name,
-        np.percentile(bias[use],75)- 
-        np.percentile(bias[use],25), 
-        np.percentile(bias[use_low],75)-  
-        np.percentile(bias[use_low],25),  
-        np.percentile(bias[use_medium],75)- 
-        np.percentile(bias[use_medium],25), 
+        np.percentile(bias[use],75)-
+        np.percentile(bias[use],25),
+        np.percentile(bias[use_low],75)-
+        np.percentile(bias[use_low],25),
+        np.percentile(bias[use_medium],75)-
+        np.percentile(bias[use_medium],25),
         np.percentile(bias[use_high],75)-
         np.percentile(bias[use_high],25)
     )
@@ -294,29 +294,29 @@ def print_for_one(plt_obj, compare, truth='height_c'):
     #print "%s & %d & %d& %d  & %d\\\\ "%(
     #    compare_name,
     #    np.median(np.abs(bias[use] - np.median(bias[use]))),
-    #    np.median(np.abs(bias[use_low] - np.median(bias[use_low]))), 
-    #    np.median(np.abs(bias[use_medium] - np.median(bias[use_medium]))), 
+    #    np.median(np.abs(bias[use_low] - np.median(bias[use_low]))),
+    #    np.median(np.abs(bias[use_medium] - np.median(bias[use_medium]))),
     #    np.median(np.abs(bias[use_high] - np.median(bias[use_high])))
     #)
 
     """
         lim = np.percentile(bias[use_low],ind)
         print np.mean(bias[np.logical_and(use_low, bias>lim)]),
-        print np.std(bias[np.logical_and(use_low, bias<lim)]) 
+        print np.std(bias[np.logical_and(use_low, bias<lim)])
     print "satz %3.2f, %3.2f"%(np.min(plt_obj.satz[use]),
-                               np.max(plt_obj.satz[use]) ) 
+                               np.max(plt_obj.satz[use]) )
     for lim in [1500, 4000]:
         print "lim", lim
         print np.mean(bias[np.logical_and(use_low, bias>lim)]),
-        print np.mean(bias[np.logical_and(use_low, bias<=lim)]), 
-        print np.std(bias[np.logical_and(use_low, bias<=lim)]) 
+        print np.mean(bias[np.logical_and(use_low, bias<=lim)]),
+        print np.std(bias[np.logical_and(use_low, bias<=lim)])
         print " %d, %d, %3.2f"%(
-            np.sum(np.logical_and(use_low, bias>lim)), 
-            np.sum(use_low), 
+            np.sum(np.logical_and(use_low, bias>lim)),
+            np.sum(use_low),
             np.sum(np.logical_and(use_low, bias>lim))*100.0/np.sum(use_low))
         print " %d, %d, %3.2f"%(
-            np.sum(np.logical_and(use_low, np.abs(bias)>lim)), 
-            np.sum(use_low), 
+            np.sum(np.logical_and(use_low, np.abs(bias)>lim)),
+            np.sum(use_low),
             np.sum(np.logical_and(use_low, np.abs(bias)>lim))*100.0/np.sum(use_low))
     print "part of all data with error above 4km %3.2f %3.2f %3.2f %3.2f"%(
         np.sum(np.logical_and(use, np.abs(bias)>lim))*100.0/np.sum(use),
@@ -385,7 +385,7 @@ def get_plot_object_nn_ctth_modis_lvl2(month):
     files = glob(ROOT_DIR%(day_str,month))
     for filename in files:
         print filename
-        caObj_new = readCaliopImagerMatchObj(filename)  
+        caObj_new = readCaliopImagerMatchObj(filename)
         plt_obj += extract_data(caObj_new, sat='calipso')
     return plt_obj
 
@@ -403,7 +403,7 @@ def do_the_printing():
         print_all(plt_obj_cali_new, plt_obj_csat_new, month)
         plt_obj_cali += plt_obj_cali_new
         plt_obj_csat += plt_obj_csat_new
-  
+
     print_all(plt_obj_cali,plt_obj_csat, merged_months)
 
 if __name__ == "__main__":

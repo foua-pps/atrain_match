@@ -33,8 +33,8 @@ from utils.get_flag_info import (get_semi_opaque_info_pps2014,
                            get_calipso_medium_and_high_clouds_tp,
                            get_calipso_clouds_of_type_i,
                            get_calipso_low_clouds)
-from utils.stat_util import (HR_cma, K_cma, 
-                       PODcy, FARcy, 
+from utils.stat_util import (HR_cma, K_cma,
+                       PODcy, FARcy,
                        PODcl, FARcl)
 from my_dir import ADIR
 out_filename = ADIR + "/Documents/A_PPS_v2017/Validation_2018/results_cma_cmap.txt"
@@ -76,26 +76,26 @@ def plot_cfc_table(caObj,cfc_limit=0.9,sat="modis"):
     cl = np.logical_and(use,cl)
     cma = np.logical_and(use,cma)
 
- 
-    info = ("CALIPSO-cloudy	CALIPSO-clear	CALIPSO-cloudy	CALISPO-clear\n" + 
+
+    info = ("CALIPSO-cloudy	CALIPSO-clear	CALIPSO-cloudy	CALISPO-clear\n" +
             "Cma-clear	Cma-clear	Cma-cloudy	Cma-Cloudy \n")
 
     for lower in range(0,99,5):
         upper = lower + 5
         if upper ==100:
             upper = 101
-        #ppsclear    
+        #ppsclear
         use_i = np.logical_and(cl,pps_cprob>=lower)
         use_i = np.logical_and(use_i,pps_cprob<upper)
-        pclear_cloudy_i = np.logical_and(use_i, calipso_cfc==1) 
+        pclear_cloudy_i = np.logical_and(use_i, calipso_cfc==1)
         pclear_clear_i = np.logical_and(use_i, calipso_cfc==0)
         use_i = np.logical_and(cma,pps_cprob>=lower)
         use_i = np.logical_and(use_i,pps_cprob<upper)
-        pcloudy_cloudy_i = np.logical_and(use_i, calipso_cfc==1) 
+        pcloudy_cloudy_i = np.logical_and(use_i, calipso_cfc==1)
         pcloudy_clear_i = np.logical_and(use_i, calipso_cfc==0)
         info += "{:d}<=CMAPROB<{:d}: {:d}-({:d}) {:d}-({:d}) {:d}-({:d}) {:d}-({:d})\n".format(
-            lower, 
-            upper, 
+            lower,
+            upper,
             np.sum(pclear_cloudy_i),
             np.sum(np.logical_and(ct_quality==24,pclear_cloudy_i)),
             np.sum(pclear_clear_i),
@@ -112,25 +112,25 @@ def plot_cfc_table(caObj,cfc_limit=0.9,sat="modis"):
     out_file_h.write(sat + ": \n" )
     out_file_h.write(info)
 
-    info = ("CALIPSO-cloudy	CALIPSO-clear	CALIPSO-cloudy	CALISPO-clear\n" + 
+    info = ("CALIPSO-cloudy	CALIPSO-clear	CALIPSO-cloudy	CALISPO-clear\n" +
             "Cma-clear	Cma-clear	Cma-cloudy	Cma-Cloudy \n")
 
     for lower in range(0,99,5):
         upper = lower + 5
         if upper ==100:
             upper = 101
-        #ppsclear    
+        #ppsclear
         use_i = np.logical_and(cl,pps_cprob>=lower)
         use_i = np.logical_and(use_i,pps_cprob<upper)
-        pclear_cloudy_i = np.logical_and(use_i, calipso_cfc==1) 
+        pclear_cloudy_i = np.logical_and(use_i, calipso_cfc==1)
         pclear_clear_i = np.logical_and(use_i, calipso_cfc==0)
         use_i = np.logical_and(cma,pps_cprob>=lower)
         use_i = np.logical_and(use_i,pps_cprob<upper)
-        pcloudy_cloudy_i = np.logical_and(use_i, calipso_cfc==1) 
+        pcloudy_cloudy_i = np.logical_and(use_i, calipso_cfc==1)
         pcloudy_clear_i = np.logical_and(use_i, calipso_cfc==0)
         info += "{:d}<=CMAPROB<{:d}: {:d}-({:d}) {:d}-({:d}) {:d}-({:d}) {:d}-({:d})\n".format(
-            lower, 
-            upper, 
+            lower,
+            upper,
             np.sum(pclear_cloudy_i),
             np.sum(np.logical_and(cma_aerosol==1,pclear_cloudy_i)),
             np.sum(pclear_clear_i),
@@ -170,7 +170,7 @@ if __name__ == "__main__":
         files = glob(ROOT_DIR_INNER + "*cali*h5")
         if exclude_2009:
             files = [filename for filename in files if "/2009/" not in filename]
-        #print files    
+        #print files
         sat = ROOT_DIR_INNER.split("global_")[1].split("/Reshaped")[0]
         limit = 0.9
         if "gac" in sat:
@@ -181,7 +181,7 @@ if __name__ == "__main__":
     #for ROOT_DIR in [ROOT_DIR_v2014_gac,
     #                 ROOT_DIR_v2018_gac]:
     #    process_one_case(ROOT_DIR, True)
-                        
+
     for ROOT_DIR in [#ROOT_DIR_v2014_npp,
                      ROOT_DIR_v2018_npp,
                      #ROOT_DIR_v2014_modis,

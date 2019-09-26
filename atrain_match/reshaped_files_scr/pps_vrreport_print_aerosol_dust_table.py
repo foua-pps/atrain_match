@@ -86,9 +86,9 @@ def get_pps_aerosl(caObj):
     feature9 = np.logical_or(sunz<70, t11-t12<0.0)
     #feature10 = ts>260
 
-     
+
     is_cold_dust = np.logical_and(np.logical_and(feature4,feature5), np.logical_and(
-        np.logical_and(feature2,feature9), 
+        np.logical_and(feature2,feature9),
         np.logical_and(feature7, feature8)))
     is_cold_dust_nonday = np.logical_and(feature4, np.logical_and(feature2, np.logical_and(feature6, feature7)))
     is_warm_dust = np.logical_and(feature8, np.logical_and(feature1,feature3))
@@ -98,8 +98,8 @@ def get_pps_aerosl(caObj):
     return np.logical_and(dust_singal,ctype<5)#np.logical_and(dust_singal, feature6)
     #return dust_singal
 
-def get_calipso_cloudy_and_aerosl(caObj):    
-    from scipy import stats, ndimage    
+def get_calipso_cloudy_and_aerosl(caObj):
+    from scipy import stats, ndimage
     nlay =np.where(caObj.calipso.all_arrays['number_layers_found']>0,1,0)
     meancl=ndimage.filters.uniform_filter1d(nlay*1.0, size=3)
     isAerosol = caObj.calipso_aerosol.all_arrays['number_layers_found']>0
@@ -122,7 +122,7 @@ def get_calipso_cloudy_and_aerosl(caObj):
 
 
 def is_pps_aerosol(caObj ,atype=None):
-   print atype 
+   print atype
    cf_flag =  caObj.imager.all_arrays['cloudtype_status']
    sunz =  caObj.imager.all_arrays['sunz']
    #isPPSAerosol = cf_flag>=62 #egentligen bit 5 betyder aerosol se upp för fler bitar senare!
@@ -131,17 +131,17 @@ def is_pps_aerosol(caObj ,atype=None):
    print len(caObj.imager.cma_dust)
    print len(caObj.imager.cma_aerosolflag)
 
-   isPPSAerosol_all = caObj.imager.cma_aerosolflag 
+   isPPSAerosol_all = caObj.imager.cma_aerosolflag
 
    isCloudy, isClear, isAerosol_ncm, isMix, isDust, isCleanMarine = get_calipso_cloudy_and_aerosl(caObj)
 
-   
+
    use = caObj.imager.all_arrays['sunz']<20000
    use_e = np.logical_and(use,caObj.imager.all_arrays['latitude']>-15)
    use_e = np.logical_and(use_e,caObj.imager.all_arrays['latitude']<45)
    use_e = np.logical_and(use_e,caObj.imager.all_arrays['longitude']>-30)
    use_e = np.logical_and(use_e,caObj.imager.all_arrays['longitude']<60)
-    
+
    use_d = np.logical_and(sunz<=70, use)
    use_n = np.logical_and(sunz>=95, use)
    use_t = np.logical_and(np.logical_and(sunz>70,sunz<95), use)
@@ -171,23 +171,23 @@ def is_pps_aerosol(caObj ,atype=None):
            #select_from = np.logical_and(use_k,isClear)
            #the_clear = np.random.choice(isPPSAerosol[select_from],np.int(num_a))
            #num_of_clear_misclassed_as_aerosol = np.sum(the_clear)
-           
+
 
            num_of_clouds_misclassed_as_aerosol2 = sum(np.logical_and(isCloudy, isPPSAerosol)[use_k])*num_a/num_cloud
-           num_of_clear_misclassed_as_aerosol2 = sum(np.logical_and(isClear, isPPSAerosol)[use_k])*num_a/num_clear 
-           num_of_aerosol_detected = sum(np.logical_and(isAerosol, isPPSAerosol)[use_k]) 
+           num_of_clear_misclassed_as_aerosol2 = sum(np.logical_and(isClear, isPPSAerosol)[use_k])*num_a/num_clear
+           num_of_aerosol_detected = sum(np.logical_and(isAerosol, isPPSAerosol)[use_k])
 
 
            print (num_a,
-                  num_of_clouds_misclassed_as_aerosol2, 
-                  num_of_clear_misclassed_as_aerosol2, 
+                  num_of_clouds_misclassed_as_aerosol2,
+                  num_of_clear_misclassed_as_aerosol2,
 
                   num_a-num_of_aerosol_detected,
-                  #num_a-num_of_clouds_misclassed_as_aerosol, 
-                  #num_a-num_of_clear_misclassed_as_aerosol, 
+                  #num_a-num_of_clouds_misclassed_as_aerosol,
+                  #num_a-num_of_clear_misclassed_as_aerosol,
                   num_of_aerosol_detected,
-                  #num_of_clouds_misclassed_as_aerosol, 
-                  #num_of_clear_misclassed_as_aerosol, 
+                  #num_of_clouds_misclassed_as_aerosol,
+                  #num_of_clear_misclassed_as_aerosol,
                   num_cloud,
                   num_clear)
 
@@ -227,19 +227,19 @@ for filename in files:
         continue
 
     if caObj.imager.cma_dust is None:
-        for var_name in ['number_layers_found', 
+        for var_name in ['number_layers_found',
                          'layer_top_altitude', 'feature_classification_flags']:
-            
+
             caObj.calipso.all_arrays[var_name] = newObj.calipso.all_arrays[var_name]
             caObj.calipso_aerosol.all_arrays[var_name] = newObj.calipso_aerosol.all_arrays[var_name]
         for var_name in ['cma_dust', 'cma_aerosolflag', 'sunz', 'longitude', 'latitude']:
             caObj.imager.all_arrays[var_name] = newObj.imager.all_arrays[var_name]
 
 
-    else:    
-        for var_name in ['number_layers_found', 
+    else:
+        for var_name in ['number_layers_found',
                          'layer_top_altitude', 'feature_classification_flags']:
-            caObj.calipso.all_arrays[var_name] = np.concatenate([caObj.calipso.all_arrays[var_name], 
+            caObj.calipso.all_arrays[var_name] = np.concatenate([caObj.calipso.all_arrays[var_name],
                                                                   newObj.calipso.all_arrays[var_name]])
             caObj.calipso_aerosol.all_arrays[var_name] = np.concatenate([caObj.calipso_aerosol.all_arrays[var_name],
                                                                           newObj.calipso_aerosol.all_arrays[var_name]])

@@ -29,17 +29,17 @@ def get_clear_cloudy_vectors(caObj, use):#, both_have_ct):
     nlay =np.where(caObj.calipso.all_arrays['number_layers_found']>0,1,0)
     meancl=ndimage.filters.uniform_filter1d(nlay*1.0, size=3)
     isCalipsoCloudy = np.logical_and(
-        nlay > 0, 
+        nlay > 0,
         caObj.calipso.all_arrays['cloud_fraction']>0.5)
     isCalipsoCloudy = np.logical_and(
-        isCalipsoCloudy, 
+        isCalipsoCloudy,
         caObj.calipso.all_arrays['total_optical_depth_5km']>0.15)
     isCalipsoClear = np.logical_and(nlay == 0, meancl<0.01)
     isCalipsoClear = np.logical_and(
-        isCalipsoClear, 
+        isCalipsoClear,
         caObj.calipso.all_arrays['total_optical_depth_5km']<0)
     isCloudyPPSorMAIA = np.logical_and(caObj.imager.all_arrays['cloudtype']>4,
-                                       caObj.imager.all_arrays['cloudtype']<21) 
+                                       caObj.imager.all_arrays['cloudtype']<21)
     isClearPPSorMAIA = np.logical_and(caObj.imager.all_arrays['cloudtype']>0,
                                       caObj.imager.all_arrays['cloudtype']<5)
     nodata = np.sum(caObj.imager.all_arrays['cloudtype'][use]>200)
@@ -48,22 +48,22 @@ def get_clear_cloudy_vectors(caObj, use):#, both_have_ct):
     #use = np.logical_and(use, both_have_ct)
     #print isCalipsoCloudy[use].all()
     #print np.sum(isCalipsoCloudy[use])
-    #print np.sum(np.logical_and(isCalipsoCloudy[use], 
+    #print np.sum(np.logical_and(isCalipsoCloudy[use],
     #                            isCloudyPPSorMAIA[use]))
 
     N_clouds = 1.0*np.sum(isCalipsoCloudy[use])
     N_clear = 1.0*np.sum(isCalipsoClear[use])
     N_detected_clouds= 1.0*np.sum(
-        np.logical_and(isCalipsoCloudy[use], 
+        np.logical_and(isCalipsoCloudy[use],
                        isCloudyPPSorMAIA[use]))
     N_undetected_clouds = 1.0*np.sum(
-        np.logical_and(isCalipsoCloudy[use], 
+        np.logical_and(isCalipsoCloudy[use],
                        isClearPPSorMAIA[use]))
     N_detected_clear = 1.0*np.sum(
-        np.logical_and(isCalipsoClear[use], 
+        np.logical_and(isCalipsoClear[use],
                        isClearPPSorMAIA[use]))
     N_false_clouds = 1.0*np.sum(
-        np.logical_and(isCalipsoClear[use], 
+        np.logical_and(isCalipsoClear[use],
                        isCloudyPPSorMAIA[use]))
 
     PODcloudy = np.divide(N_detected_clouds,N_clouds)
@@ -71,14 +71,14 @@ def get_clear_cloudy_vectors(caObj, use):#, both_have_ct):
     PODclear = np.divide(N_detected_clear,N_clear)
     FARclear = np.divide(N_undetected_clouds,np.sum(isClearPPSorMAIA[use]))
     Kuipers_devider = (N_clouds*N_clear)
-    Kuipers = np.divide((N_detected_clouds*N_detected_clear - 
+    Kuipers = np.divide((N_detected_clouds*N_detected_clear -
                    N_false_clouds*N_undetected_clouds),Kuipers_devider)
     Num = np.sum(use)
     Hitrate = np.divide(N_detected_clouds + N_detected_clear,N_clouds+N_clear)
     #part_nodata = nodata*1.0/(nodata+Num)
     max_time_diff = np.max(caObj.diff_sec_1970[use])
     #print "N: %d POD-cloudy: %3.2f FAR-cloudy: %3.2f POD-clear %3.2f Max-time-diff %ds"%(# Part-CT-nodata: %3.2f"%(Num, PODcloudy, FARcloudy , PODclear, max_time_diff)#, part_nodata)
-    print "%d"%(Num), "%3.2f"%(PODcloudy), "%3.2f"%(FARcloudy) , "%3.2f"%(PODclear), "%3.2f"%(FARclear),  "%3.3f"%(Hitrate), "%3.3f"%(Kuipers), "%d"%(max_time_diff)           
+    print "%d"%(Num), "%3.2f"%(PODcloudy), "%3.2f"%(FARcloudy) , "%3.2f"%(PODclear), "%3.2f"%(FARclear),  "%3.3f"%(Hitrate), "%3.3f"%(Kuipers), "%d"%(max_time_diff)
 
 def print_common_stats(caObjMAIA, caObjPPS, y_month, satellite, dnt='all'):
     pps_sec_1970 = caObjPPS.calipso.all_arrays['sec_1970']
@@ -87,15 +87,15 @@ def print_common_stats(caObjMAIA, caObjPPS, y_month, satellite, dnt='all'):
     maia_lat = caObjMAIA.calipso.all_arrays['latitude']
     min_time_pps =  np.min(pps_sec_1970)
     max_time_pps =  np.max(pps_sec_1970)
-    min_time_maia =  np.min(maia_sec_1970) 
+    min_time_maia =  np.min(maia_sec_1970)
     max_time_maia =  np.max(maia_sec_1970)
     min_lat_pps =  np.min(pps_lat)
     max_lat_pps =  np.max(pps_lat)
-    min_lat_maia =  np.min(maia_lat) 
+    min_lat_maia =  np.min(maia_lat)
     max_lat_maia =  np.max(maia_lat)
-    
 
-        
+
+
 
     maia_profile_id = caObjMAIA.calipso.profile_id
     pps_profile_id = caObjPPS.calipso.profile_id
@@ -107,7 +107,7 @@ def print_common_stats(caObjMAIA, caObjPPS, y_month, satellite, dnt='all'):
     pps_profile_id[caObjPPS.imager.all_arrays['cloudtype']>20]=-9
     maia_profile_id[caObjMAIA.imager.all_arrays['cloudtype']<1]=-9
     maia_profile_id[caObjMAIA.imager.all_arrays['cloudtype']>20]=-9
-    #profile_id_in_both = np.intersect1d(maia_profile_id,pps_profile_id) 
+    #profile_id_in_both = np.intersect1d(maia_profile_id,pps_profile_id)
 
     use_pps = pps_sec_1970>0
     use_maia = maia_sec_1970>0
@@ -165,9 +165,9 @@ for y_month in ['2012/06','2012/07','2012/08','2012/10','2015/1201','2015/1207',
     caObjMAIA = CalipsoImagerTrackObject()
     caObjPPS = CalipsoImagerTrackObject()
     for filename in maia_files:
-        caObjMAIA +=  readCaliopImagerMatchObj(filename)  
+        caObjMAIA +=  readCaliopImagerMatchObj(filename)
     for filename in pps_files:
-        caObjPPS +=  readCaliopImagerMatchObj(filename) 
+        caObjPPS +=  readCaliopImagerMatchObj(filename)
     satellite = 'Suomi-NPP'
 
 
@@ -178,8 +178,8 @@ for y_month in ['2012/06','2012/07','2012/08','2012/10','2015/1201','2015/1207',
             print_common_stats(caObjMAIA, caObjPPS,y_month, satellite, dnt=dnt)
     elif y_month in ['2015/07']:
         for dnt in ['day', 'twilight', 'night']:
-            print_common_stats(caObjMAIA, caObjPPS,y_month, satellite, dnt=dnt)           
-    else: 
+            print_common_stats(caObjMAIA, caObjPPS,y_month, satellite, dnt=dnt)
+    else:
         #for dnt in ['day and twilight', 'night']:
         #print "Year, month, satellite %s %s"%(y_month, satellite)
         print_common_stats(caObjMAIA, caObjPPS, y_month, satellite,)

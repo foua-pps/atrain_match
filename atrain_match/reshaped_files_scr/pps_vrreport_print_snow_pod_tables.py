@@ -35,8 +35,8 @@ from utils.get_flag_info import (get_semi_opaque_info_pps2014,
                            get_calipso_medium_and_high_clouds_tp,
                            get_calipso_clouds_of_type_i,
                            get_calipso_low_clouds)
-from utils.stat_util import (HR_cma, K_cma, 
-                       PODcy, FARcy, 
+from utils.stat_util import (HR_cma, K_cma,
+                       PODcy, FARcy,
                        PODcl, FARcl)
 from my_dir import ADIR
 out_filename = ADIR + "/Documents/A_PPS_v2017/Validation_2018/results_cma_snow.txt"
@@ -46,7 +46,7 @@ def my_measures(calipso_cfc, pps_cfc, thin, use):
     thin = thin[use]
     calipso_cfc = calipso_cfc[use]
     pps_cfc = pps_cfc[use]
-    
+
     indict = {}
     indict["det_cloudy"] = np.sum(np.logical_and(pps_cfc==1, calipso_cfc==1))
     indict["det_clear"] = np.sum(np.logical_and(pps_cfc==0, calipso_cfc==0))
@@ -72,7 +72,7 @@ def my_measures(calipso_cfc, pps_cfc, thin, use):
 def plot_cfc_table(caObj,cfc_limit=0.9,sat="modis"):
 
     from utils.get_flag_info import get_calipso_clouds_of_type_i
-    
+
     cfc = caObj.calipso.all_arrays['cloud_fraction']
     od = caObj.calipso.all_arrays['total_optical_depth_5km']
     cma = np.logical_or(caObj.imager.all_arrays['cloudmask']==1,
@@ -85,7 +85,7 @@ def plot_cfc_table(caObj,cfc_limit=0.9,sat="modis"):
         cma = np.logical_and(np.greater(caObj.imager.cloudtype,4),np.less(caObj.imager.cloudtype,20))
         pps_snowi =np.logical_and(np.less_equal(caObj.imager.cloudtype,4),np.greater(caObj.imager.cloudtype,2))
 
-        
+
     calipso_cfc = cfc.copy()
     calipso_cfc[cfc<=cfc_limit] = 0
     calipso_cfc[cfc>cfc_limit] = 1
@@ -94,8 +94,8 @@ def plot_cfc_table(caObj,cfc_limit=0.9,sat="modis"):
     pps_cfc[cma] = 1
     use = np.logical_or(cl,cma)
 
-    
-    
+
+
     europe = np.logical_and(caObj.imager.all_arrays['longitude']<60,
                             caObj.imager.all_arrays['longitude']>-25)
     europe = np.logical_and(europe,caObj.imager.all_arrays['latitude']<72)
@@ -120,7 +120,7 @@ def plot_cfc_table(caObj,cfc_limit=0.9,sat="modis"):
                     measures["Farcy"],
                     measures["PODcl"],
                     measures["Farcl"],
-                    measures["N"] 
+                    measures["N"]
                 ))
         print(info)
         return info
@@ -136,7 +136,7 @@ def plot_cfc_table(caObj,cfc_limit=0.9,sat="modis"):
     out_file_h.write("CALIOP NIGHT:" + info)
     info = print_one_line(measures_t)
     out_file_h.write("CALIOP TWILIGHT:" + info)
-    info = print_one_line(measures_europe) 
+    info = print_one_line(measures_europe)
     out_file_h.write("CALIOP EUROPE:" + info)
     info = print_one_line(measures_nonpolar_night)
     out_file_h.write("CALIOP NON-POLAR-NIGHT:" + info)
@@ -145,28 +145,28 @@ def plot_cfc_table(caObj,cfc_limit=0.9,sat="modis"):
     import config
     plotSatelliteTrajectory(caObj.calipso.all_arrays["longitude"][day_flag],
                             caObj.calipso.all_arrays["latitude"][day_flag],
-                            ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_marble_cfc_%s_dist"%(sat), 
+                            ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_marble_cfc_%s_dist"%(sat),
                             config.AREA_CONFIG_FILE,
                             fig_type=['png'])
     try:
         plotSatelliteTrajectory(caObj.calipso.all_arrays["longitude"][np.logical_and(europe,use)],
                                 caObj.calipso.all_arrays["latitude"][np.logical_and(europe,use)],
-                                ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_marble_cfc_%s_dist_europe"%(sat), 
+                                ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_marble_cfc_%s_dist_europe"%(sat),
                                 config.AREA_CONFIG_FILE,
                                 fig_type=['png'])
     except:
         pass
     from histogram_plotting import distribution_map
-    distribution_map(caObj.calipso.all_arrays["longitude"][use], 
+    distribution_map(caObj.calipso.all_arrays["longitude"][use],
                      caObj.calipso.all_arrays["latitude"][use])
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_white_cfc_%s_dist.png"%(sat), bbox_inches='tight')
     try:
-        distribution_map(caObj.calipso.all_arrays["longitude"][np.logical_and(europe,use)], 
+        distribution_map(caObj.calipso.all_arrays["longitude"][np.logical_and(europe,use)],
                          caObj.calipso.all_arrays["latitude"][np.logical_and(europe,use)])
         plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_white_cfc_%s_dist_europe.png"%(sat), bbox_inches='tight')
     except:
         pass
-    plt.close('all')  
+    plt.close('all')
 # ----------------------------------------
 
 if __name__ == "__main__":
@@ -192,7 +192,7 @@ if __name__ == "__main__":
         files = glob(ROOT_DIR_INNER + "*cali*h5")
         if exclude_2009:
             files = [filename for filename in files if "/2009/" not in filename]
-        #print files    
+        #print files
         sat = ROOT_DIR_INNER.split("global_")[1].split("/Reshaped")[0]
         limit = 0.9
         if "gac" in sat:
@@ -202,7 +202,7 @@ if __name__ == "__main__":
     for ROOT_DIR in [ROOT_DIR_v2014_gac,
                      ROOT_DIR_v2018_gac]:
         process_one_case(ROOT_DIR, True)
-                        
+
     for ROOT_DIR in [ROOT_DIR_v2014_npp,
                      ROOT_DIR_v2018_npp,
                      ROOT_DIR_v2014_modis,

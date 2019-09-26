@@ -47,8 +47,8 @@ cc_type_name={
 }
 ct_min_v =[1,2,3,4,5,10,7,8,11]
 ct_max_v= [1,2,3,4,6,10,7,9,20]
-  
-       
+
+
 def plot_ct_table2(caObj):
 
     from utils.get_flag_info import get_calipso_clouds_of_type_i
@@ -69,7 +69,7 @@ def plot_ct_table2(caObj):
             print ("%3.1f"%(np.sum(these)*1.0/N*100)).rjust(5,' '),
         print cc_type_name[type_i], np.percentile(caObj.calipso.all_arrays['layer_top_pressure'][:,0][
             np.logical_and(these,
-                           caObj.calipso.all_arrays['layer_top_pressure'][:,0]>0)],0.1) 
+                           caObj.calipso.all_arrays['layer_top_pressure'][:,0]>0)],0.1)
 
 
 
@@ -109,7 +109,7 @@ def plot_ct_table5(caObj, use_in=None):
         print "N", ("%d"%(N)).rjust(9,' '),
         if N<50:
             print "------------------", cc_type_name[type_i]
-            continue 
+            continue
         these = np.logical_and(is_type_i, pps_ctype <5)
         print ("%3.1f"%(np.sum(these)*1.0/N*100)).rjust(5,' '),
         these = np.logical_and(is_type_i, pps_ctype >4)
@@ -136,8 +136,8 @@ def table_21_do_for_atbd(caObj):
     pps_frac = [pps_ctype_i in [10] for pps_ctype_i in pps_ctype]
     pps_very_low = [pps_ctype_i in [5] for pps_ctype_i in pps_ctype]
     pps_low = [pps_ctype_i in [5,6,10] for pps_ctype_i in pps_ctype]
-    pps_medium = [pps_ctype_i in [7] for pps_ctype_i in pps_ctype] 
-    pps_high = [pps_ctype_i in [8,9] for pps_ctype_i in pps_ctype] 
+    pps_medium = [pps_ctype_i in [7] for pps_ctype_i in pps_ctype]
+    pps_high = [pps_ctype_i in [8,9] for pps_ctype_i in pps_ctype]
     pps_cirrus =  [pps_ctype_i in [11,12,13,14,15,16,17,18] for pps_ctype_i in pps_ctype]
     height_ = caObj.calipso.all_arrays['validation_height']
     elevation = caObj.calipso.all_arrays['elevation']
@@ -148,13 +148,13 @@ def table_21_do_for_atbd(caObj):
     print "far_very_low", far_very_low
 
     part_fractional = np.sum(np.logical_and(use,pps_frac))*100.0/np.sum(use)
-     
+
     print "part_fractional",part_fractional
-    #print "POD low medium high FAR low medium high" 
+    #print "POD low medium high FAR low medium high"
     print "|POD-low| POD-m| POD-high| (POD-cirrus)| FAR-low | FAR-m| FAR-high FAR-cirrus|"
     for use_i, name in zip( [ all_dnt_flag, day_flag, night_flag, twilight_flag ],
                           ["all", "day", "night", "twilight"]):
-        
+
 
 
         use_this = np.logical_and(use, use_i)
@@ -162,7 +162,7 @@ def table_21_do_for_atbd(caObj):
         cirrus_clouds_i =  np.logical_and(cirrus_clouds,use_this)
         n_cirrus_ok = 1.0*np.sum(np.logical_and(pps_cirrus_i,cirrus_clouds_i))
         POD_cirrus =  100*n_cirrus_ok/np.sum(cirrus_clouds_i)
-        FAR_cirrus = 100*(np.sum(pps_cirrus_i)-n_cirrus_ok)/np.sum(pps_cirrus_i)  
+        FAR_cirrus = 100*(np.sum(pps_cirrus_i)-n_cirrus_ok)/np.sum(pps_cirrus_i)
         medium_clouds_tp_i =  np.logical_and(medium_clouds_tp, use_this)
         high_clouds_tp_i =  np.logical_and(high_clouds_tp,use_this)
 
@@ -170,13 +170,13 @@ def table_21_do_for_atbd(caObj):
         low_clouds_i =  np.logical_and(low_clouds,use_this)
         n_low_ok = 1.0*np.sum(np.logical_and(pps_low_i,low_clouds_i))
         POD_low =  100*n_low_ok/np.sum(low_clouds_i)
-        FAR_low =  100*(np.sum(pps_low_i)-n_low_ok)*1.0/np.sum(pps_low_i) 
+        FAR_low =  100*(np.sum(pps_low_i)-n_low_ok)*1.0/np.sum(pps_low_i)
 
         pps_medium_i = np.logical_and(pps_medium,use_this)
         medium_clouds_i =  np.logical_and(medium_clouds, use_this)
-        n_medium_ok = 1.0*np.sum(np.logical_and(pps_medium_i,medium_clouds_i)) 
+        n_medium_ok = 1.0*np.sum(np.logical_and(pps_medium_i,medium_clouds_i))
         n_medium_ok_cirrus = np.sum(np.logical_and(pps_cirrus_i, medium_clouds_tp_i))
-        POD_medium =  100*(n_medium_ok + n_medium_ok_cirrus)/np.sum(medium_clouds_i)        
+        POD_medium =  100*(n_medium_ok + n_medium_ok_cirrus)/np.sum(medium_clouds_i)
         FAR_medium =  100*(np.sum(pps_medium_i)-n_medium_ok)/np.sum(pps_medium_i)
 
         pps_high_i = np.logical_and(pps_high,use_this)
@@ -184,16 +184,16 @@ def table_21_do_for_atbd(caObj):
         n_high_ok = 1.0*np.sum(np.logical_and(pps_high_i,high_clouds_i))
         n_high_ok_cirrus = np.sum(np.logical_and(pps_cirrus_i, high_clouds_tp_i))
         POD_high =  100*(n_high_ok + n_high_ok_cirrus)/np.sum(high_clouds_i)
-        FAR_high = 100*(np.sum(pps_high_i)-n_high_ok)/np.sum(pps_high_i) 
+        FAR_high = 100*(np.sum(pps_high_i)-n_high_ok)/np.sum(pps_high_i)
 #      ,                                low, frac, medium, high, cirrus
-#                                       |    low    | 
+#                                       |    low    |
 #N      4544   low overcast (tp)        |  X  |  X  |  -  |  -  |  -  | #
 #N     13452   transition stratocumulus |  X  |  X  |  -  |  -  |  -  | # CALIPSO-low
 #N      1256   low broken cumulus       |  X  |  X  |  -  |  -  |  -  | #
 #N      9003   altocumulus (tp)         |  -  |  -  |  X  |  -  |  X  | - CALIPSO-medium
 #N      6779   altostratus (oq)         |  -  |  -  |  X  |  -  |  -  | -
 #N     52393   cirrus (tp)              |  -  |  -  |  -  |  X  |  X  | # CALIPSO-high
-#N     13099   convective (op)          |  -  |  -  |  -  |  X  |  -  | # 
+#N     13099   convective (op)          |  -  |  -  |  -  |  X  |  -  | #
 #POD-L M   HIGH
 #72.6   64.1   62.8   (45.5)   48.5   73.9   5.4   27.9
 #73.3   61.5   63.4   (45.3)   49.7   69.6   6.4   31.8
@@ -211,7 +211,7 @@ def table_21_do_for_atbd(caObj):
 
 # a) 4- CALIPSO categories: low, medium-op, high-op, cirrus => FAR high very large because so many more cirrus clouds and some treated as opaque. And the true opaque are few!
 # b) Split pps cirrus on pressure => pod high 30% (nows it is cirrus, predict it a bit to low) Already there in CTTH validaion
-# c) Make treat all cirrus-medium and cirrus-high as correct => Gives impression always good to put cirrus. (Hides the fact that cirrus class is really doing ok!)        
+# c) Make treat all cirrus-medium and cirrus-high as correct => Gives impression always good to put cirrus. (Hides the fact that cirrus class is really doing ok!)
 
 
         #print "%3.1f %3.1f %3.1f (%3.1f) %3.1f %3.1f %3.1f %3.1f"%(POD_low, POD_medium, POD_high, POD_cirrus,
@@ -255,16 +255,16 @@ if __name__ == "__main__":
     ROOT_DIR_v2018 = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_modis_v2018_created20180920/Reshaped_Files_merged_caliop/eos2/1km/2010/*/*%s*h5")
     ROOT_DIR = ROOT_DIR_v2014
     files = glob(ROOT_DIR%("20100201"))
-    files = files + glob(ROOT_DIR%("20100401"))             
-    files = files + glob(ROOT_DIR%("20100601")) 
-    files = files + glob(ROOT_DIR%("20100801")) 
-    files = files + glob(ROOT_DIR%("20101001")) 
-    files = files + glob(ROOT_DIR%("20101201")) 
+    files = files + glob(ROOT_DIR%("20100401"))
+    files = files + glob(ROOT_DIR%("20100601"))
+    files = files + glob(ROOT_DIR%("20100801"))
+    files = files + glob(ROOT_DIR%("20101001"))
+    files = files + glob(ROOT_DIR%("20101201"))
 
     ROOT_DIR_v2014 = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_viirs_v2014_created20180914/Reshaped_Files_merged_caliop/npp/1km/2015/*/")
     ROOT_DIR_v2018 = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_viirs_v2018_created20180907/Reshaped_Files_merged_caliop/npp/1km/2015/*/")
     #files = glob(ROOT_DIR_v2018 + "*h5")
-   
+
 
     caObj = read_files(files)
 

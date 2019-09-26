@@ -50,13 +50,13 @@ for year in [2010]:
             files = sorted(glob(ROOT_DIR%(month,month,day)))
             if len(files)==0:
                 continue
-            num_n = 0  
+            num_n = 0
             num_d = 0
             for filename in files:
                 print(os.path.basename(filename))
-                #caObj_new=readTruthImagerMatchObj(filename, truth=truth) 
+                #caObj_new=readTruthImagerMatchObj(filename, truth=truth)
                 try:
-                    caObj_new=readTruthImagerMatchObj(filename, truth=truth) 
+                    caObj_new=readTruthImagerMatchObj(filename, truth=truth)
                 except:
                     print("problem with", os.path.basename(filename))
                     continue
@@ -64,31 +64,31 @@ for year in [2010]:
                 #    print("Missing RVOD_CWC_status")
                 #    continue
                 if int(os.path.basename(filename).split('_')[3][0:2])<12:
-                    #time between 0000 and 11:59                
+                    #time between 0000 and 11:59
                     num_n +=1
                     print("reading",os.path.basename(filename))
                     if caObj_night is None:
-                        caObj_night =  caObj_new  
-                    else:    
-                        caObj_night = caObj_night + caObj_new             
+                        caObj_night =  caObj_new
+                    else:
+                        caObj_night = caObj_night + caObj_new
                 else :
                     num_d +=1
                     print("reading",os.path.basename(filename))
                     if caObj_day is None:
-                        caObj_day =  caObj_new  
-                    else:    
+                        caObj_day =  caObj_new
+                    else:
                         caObj_day = caObj_day + caObj_new
             if num_n>0:
                 filename_night = outfile_template%(month,day,"00")
                 outfile = os.path.join(OUT_DIR, filename_night)
                 writeTruthImagerMatchObj(
-                    outfile, caObj_night, SETTINGS, imager_obj_name = 'pps')   
+                    outfile, caObj_night, SETTINGS, imager_obj_name = 'pps')
                 caObj_night = None
 
             if num_d>0:
                 filename_day = outfile_template%(month,day,"12")
                 outfile = os.path.join(OUT_DIR, filename_day)
                 writeTruthImagerMatchObj(
-                    outfile, caObj_day, SETTINGS, imager_obj_name = 'pps')   
-                caObj_day = None 
+                    outfile, caObj_day, SETTINGS, imager_obj_name = 'pps')
+                caObj_day = None
 

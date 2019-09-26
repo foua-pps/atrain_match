@@ -33,8 +33,8 @@ from utils.get_flag_info import (get_semi_opaque_info_pps2014,
                            get_calipso_medium_and_high_clouds_tp,
                            get_calipso_clouds_of_type_i,
                            get_calipso_low_clouds)
-from utils.stat_util import (HR_cma, K_cma, 
-                       PODcy, FARcy, 
+from utils.stat_util import (HR_cma, K_cma,
+                       PODcy, FARcy,
                        PODcl, FARcl)
 from my_dir import ADIR
 out_filename = ADIR + "/Documents/A_PPS_v2017/Validation_2018/results_cma_osisaf.txt"
@@ -111,16 +111,16 @@ def plot_cfc_table(caObj,cfc_limit=0.9,sat="modis"):
     use = np.logical_or(cl,cma)
     use = np.logical_and(use, sea_flag)
     thin = None
-    measures = my_measures(calipso_cfc, pps_cfc, calipso_snowi, pps_snowi,  thin, 
+    measures = my_measures(calipso_cfc, pps_cfc, calipso_snowi, pps_snowi,  thin,
                            use)
-    measures_d = my_measures(calipso_cfc, pps_cfc, calipso_snowi, pps_snowi,  thin, 
+    measures_d = my_measures(calipso_cfc, pps_cfc, calipso_snowi, pps_snowi,  thin,
                               np.logical_and(use, day_flag))
-    measures_t = my_measures(calipso_cfc, pps_cfc,  calipso_snowi, pps_snowi, thin, 
+    measures_t = my_measures(calipso_cfc, pps_cfc,  calipso_snowi, pps_snowi, thin,
                               np.logical_and(use,twilight_flag))
-    measures_n = my_measures(calipso_cfc, pps_cfc,  calipso_snowi, pps_snowi, thin, 
+    measures_n = my_measures(calipso_cfc, pps_cfc,  calipso_snowi, pps_snowi, thin,
                               np.logical_and(use,night_flag))
     def print_one_line(measures):
-        info = "CALIOP-CLOUD(W) CALIOP-CLOUD(I) CALIOP-WATER CALIOP-ICE\n" 
+        info = "CALIOP-CLOUD(W) CALIOP-CLOUD(I) CALIOP-WATER CALIOP-ICE\n"
         info += ("*********\nPPS-CLOUD: {:3.1f} {:3.1f} {:3.1f} {:3.1f} \nPPS-WATER {:3.1f} {:3.1f} {:3.1f} {:3.1f} \nPPS-ICE {:3.1f} {:3.1f} {:3.1f} {:3.1f} \n"
                 .format(
                     measures["pps_cloudy_c_cloudy_w"] ,
@@ -131,10 +131,10 @@ def plot_cfc_table(caObj,cfc_limit=0.9,sat="modis"):
                     measures["pps_water_c_cloudy_i"] ,
                     measures["pps_water_c_water"] ,
                     measures["pps_water_c_ice"] ,
-                    measures["pps_ice_c_cloudy_w"], 
+                    measures["pps_ice_c_cloudy_w"],
                     measures["pps_ice_c_cloudy_i"] ,
                     measures["pps_ice_c_water"] ,
-                    measures["pps_ice_c_ice"] 
+                    measures["pps_ice_c_ice"]
                 ))
         info += " POD-C:{:3.1f} POD-W:{:3.1f} POD-I:{:3.1f} \n FAR-C:{:3.1f} FAR-W(cloud):{:3.1f} FAR-I(cloud):{:3.1f} \n".format(
             measures["pod_cloudy"], measures["pod_water"], measures["pod_ice"], measures["far_cloudy"], measures["far_water"],measures["far_ice"],)
@@ -183,7 +183,7 @@ if __name__ == "__main__":
         files = glob(ROOT_DIR_INNER + "*cali*h5")
         if exclude_2009:
             files = [filename for filename in files if "/2009/" not in filename]
-        #print files    
+        #print files
         sat = ROOT_DIR_INNER.split("global_")[1].split("/Reshaped")[0]
         limit = 0.9
         if "gac" in sat:
@@ -195,7 +195,7 @@ if __name__ == "__main__":
     for ROOT_DIR in [ROOT_DIR_v2014_gac,
                      ROOT_DIR_v2018_gac]:
         process_one_case(ROOT_DIR, True)
-                        
+
     for ROOT_DIR in [ROOT_DIR_v2014_npp,
                      ROOT_DIR_v2018_npp,
                      ROOT_DIR_v2014_modis,

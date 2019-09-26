@@ -50,8 +50,8 @@ tag_dict = {"old": "(a) PPS-v2014",
 }
 
 def do_one_subplot(plt_obj, ax, fig, compare, truth='height_c', vmax = 250, do_colorbar = False, ptype='scatter', height_calipso=False):
-    x = getattr(plt_obj, truth) 
-    y = getattr(plt_obj, compare) 
+    x = getattr(plt_obj, truth)
+    y = getattr(plt_obj, compare)
     use = np.logical_and(x>=0, getattr(plt_obj, 'use_all'))
     x = x[use]
     y = y[use]
@@ -75,8 +75,8 @@ def do_one_subplot(plt_obj, ax, fig, compare, truth='height_c', vmax = 250, do_c
         print tag
         if tag in compare:
             the_title = tag_dict[tag]
-       
-    
+
+
     from scipy.stats import gaussian_kde
     n_edges = int(xmax*1.0/binsize)+1
     #n_edges=3 for testing
@@ -86,16 +86,16 @@ def do_one_subplot(plt_obj, ax, fig, compare, truth='height_c', vmax = 250, do_c
     #print edgesx
     H, xe, ye = np.histogram2d(x, y, bins=[edgesx,edgesy])
     #print H
-    xi = np.searchsorted(edgesx, x)# - edgesx[0])/(n_edges+1)).astype(np.int)               
+    xi = np.searchsorted(edgesx, x)# - edgesx[0])/(n_edges+1)).astype(np.int)
     yi = np.searchsorted(edgesy, y)#np.floor((y - edgesy[0])/(n_edges+1)).astype(np.int)  #-1?
-    #print max(y), max(x) 
+    #print max(y), max(x)
     #print max(xi), max(yi)
     #print x[1:5], xi[1:5]
     xi = xi-1
     yi = yi-1
     #only needed if max to small !
-    #n_edges =3, 
-    #edges: [0,1,2] 
+    #n_edges =3,
+    #edges: [0,1,2]
     #np.searchsorted [(0),1,2,(3)]
     #xi-t [(-1),0,1,(2)]
     # dim(H)=2x2
@@ -103,15 +103,15 @@ def do_one_subplot(plt_obj, ax, fig, compare, truth='height_c', vmax = 250, do_c
     if 'pressure' not in truth:
         print compare
         print " n to large x values %d"%(np.sum(xi>=(n_edges-1)))
-        print " n to large y values %d"%(np.sum(yi>=(n_edges-1)))        
+        print " n to large y values %d"%(np.sum(yi>=(n_edges-1)))
         #yi(yi==3)==2 no one
-        yi[yi==n_edges] = n_edges-1 
+        yi[yi==n_edges] = n_edges-1
         xi[xi==n_edges] = n_edges-1
         #yi(yi==2)==1 This is what we need!
         yi[yi==n_edges-1] = n_edges-2
         xi[xi==n_edges-1] = n_edges-2
-    z = H[xi,yi] 
-    #z=H[yi,xi] 
+    z = H[xi,yi]
+    #z=H[yi,xi]
 
     import copy;
     my_cmap=copy.copy(matplotlib.cm.viridis)
@@ -121,7 +121,7 @@ def do_one_subplot(plt_obj, ax, fig, compare, truth='height_c', vmax = 250, do_c
     print "perc90", perc90
     #z[z>perc90]=perc90
     #nicer but too slow
-    #points = np.vstack([x,y])   
+    #points = np.vstack([x,y])
     #kde= gaussian_kde(points)
     #z=kde(points)
     idx = z.argsort()
@@ -131,13 +131,13 @@ def do_one_subplot(plt_obj, ax, fig, compare, truth='height_c', vmax = 250, do_c
     #ax.fill_betweenx(xc, y2, y1, facecolor='green', alpha=0.3)
     #plt.scatter(x[idx], y[idx], c=z[idx], edgecolor='', cmap='OrRd', label=label)
     #my_cmap=copy.copy(matplotlib.cm.BrBG)
-    
+
     my_cmap = copy.copy(matplotlib.cm.get_cmap("inferno_r", lut=100))
     cmap_vals = my_cmap(np.arange(100)) #extractvalues as an array
     print cmap_vals[0]
     cmap_vals[0:5] = cmap_vals[5] #change the first values
     my_cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
-        "new_inferno_r", cmap_vals) 
+        "new_inferno_r", cmap_vals)
 
 
     z_values_to_use = z[idx]
@@ -145,27 +145,27 @@ def do_one_subplot(plt_obj, ax, fig, compare, truth='height_c', vmax = 250, do_c
     more = z_values_to_use > 10
 
     if ptype in ['hexbin']:
-        b =plt.hexbin(to_km*x,to_km*y, gridsize=binsize,  cmap=my_cmap,  
+        b =plt.hexbin(to_km*x,to_km*y, gridsize=binsize,  cmap=my_cmap,
                       vmin=10, vmax=vmax)
     if ptype in ['hist2d']:
-        b =plt.hist2d(to_km*x,to_km*y,bins=binsize,  cmap=my_cmap,  
+        b =plt.hist2d(to_km*x,to_km*y,bins=binsize,  cmap=my_cmap,
                       vmin=1, vmax=vmax)
     if ptype in ['scatter']:
 
-        #plt.scatter(to_km*x[idx][few], to_km*y[idx][few], c=z[idx][few], 
-        #            edgecolor='', cmap='inferno_r', vmin=1, vmax=vmax, 
+        #plt.scatter(to_km*x[idx][few], to_km*y[idx][few], c=z[idx][few],
+        #            edgecolor='', cmap='inferno_r', vmin=1, vmax=vmax,
         #            alpha=0.2,marker='.',edgecolors=None)
-        #b = plt.scatter(to_km*x[idx][more], to_km*y[idx][more], c=z[idx][more], 
-        #                edgecolor='', cmap='inferno_r', vmin=1, vmax=vmax, 
+        #b = plt.scatter(to_km*x[idx][more], to_km*y[idx][more], c=z[idx][more],
+        #                edgecolor='', cmap='inferno_r', vmin=1, vmax=vmax,
         #                alpha=1.0, marker='.',edgecolors=None)
-        b = plt.scatter(to_km*x[idx], to_km*y[idx], c=z[idx], 
-                        edgecolor='', cmap=my_cmap, vmin=1, vmax=vmax, 
+        b = plt.scatter(to_km*x[idx], to_km*y[idx], c=z[idx],
+                        edgecolor='', cmap=my_cmap, vmin=1, vmax=vmax,
                         alpha=1.0, marker='.', edgecolors=None,  rasterized=True)
-        #b = plt.plot(to_km*x[idx], to_km*y[idx], c=z[idx], 
-        #              cmap=my_cmap, vmin=1, vmax=vmax, 
+        #b = plt.plot(to_km*x[idx], to_km*y[idx], c=z[idx],
+        #              cmap=my_cmap, vmin=1, vmax=vmax,
         #             alpha=1.0, marker='.',  rasterized=True)
 
-        if 'pressure' in truth: 
+        if 'pressure' in truth:
             ax.text(to_km*xmax*0.95, to_km*xmax*0.05, the_title, bbox={'facecolor':'blue', 'alpha':0.0, 'pad':1})
             #plt.plot([xmin, 0.9*to_km*xmax],[xmin+25, 0.9*to_km*xmax+25],'w', alpha=0.5)
             #plt.plot([xmin, 0.9*to_km*xmax],[xmin-25, 0.9*to_km*xmax-25],'w', alpha=0.5)
@@ -178,23 +178,23 @@ def do_one_subplot(plt_obj, ax, fig, compare, truth='height_c', vmax = 250, do_c
     #plt.scatter(x,y, alpha=0.1, label=label)
 
     ax.set_ylim(ymin,to_km*ymax)
-    ax.set_xlim(xmin,to_km*xmax) 
+    ax.set_xlim(xmin,to_km*xmax)
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
-    if 'pressure' in truth:        
+    if 'pressure' in truth:
         plt.gca().invert_xaxis()
         plt.gca().invert_yaxis()
         plt.xticks([950, 550, 150])
         plt.yticks([950, 550, 150])
-    else:  
+    else:
         plt.xticks([5, 10, 15])
         plt.yticks([0, 5, 10, 15])
-        
-                
+
+
     if do_colorbar and ptype in ['scatter']:
         cax = fig.add_axes([0.80, 0.65, 0.06, 0.22])
         cbar = fig.colorbar(b, cax=cax, )
-        
+
 
 def do_the_scatter_plot(plt_obj_cali_new, plt_obj_csat_new, month):
     vmax = 300
@@ -305,7 +305,7 @@ def get_plot_object_nn_ctth_modis_lvl2(month):
     files = glob(ROOT_DIR%(day_str,month))
     for filename in files:
         print filename
-        caObj_new = readCaliopImagerMatchObj(filename)  
+        caObj_new = readCaliopImagerMatchObj(filename)
         plt_obj += extract_data(caObj_new, sat='calipso')
     return plt_obj
 
@@ -323,7 +323,7 @@ def do_the_plots():
         do_the_scatter_plot(plt_obj_cali_new, plt_obj_csat_new, month)
         plt_obj_cali += plt_obj_cali_new
         plt_obj_csat += plt_obj_csat_new
-  
+
     do_the_scatter_plot(plt_obj_cali,plt_obj_csat, merged_months)
 
 if __name__ == "__main__":

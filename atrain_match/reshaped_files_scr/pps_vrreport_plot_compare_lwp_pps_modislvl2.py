@@ -56,7 +56,7 @@ def get_land_sea(cObj):
     use_coast = np.logical_and(use, coast_flag)
     use_sea = np.logical_and(use, sea_flag)
     return use_land, use_sea, use_coast, use
- 
+
 
 def my_label(data,use):
     label = (#"{:s}\n"
@@ -102,7 +102,7 @@ def plot_all(cObj, density, my_str=""):
     plt.plot(x_, hist_heights,'b-', label=my_label(error, use_land))
     plt.title("Land")
     ax.set_xlim([-500,600])
-    ax.set_ylim([00,14]) 
+    ax.set_ylim([00,14])
     plt.legend()
     ax = fig.add_subplot(223)
     hist_heights, x_ , gaussian= my_hist(error, use_sea, return_also_corresponding_gaussian=True)
@@ -133,11 +133,11 @@ def plot_all(cObj, density, my_str=""):
     import config
     plotSatelliteTrajectory(cObj.calipso.all_arrays["longitude"][use],
                             cObj.calipso.all_arrays["latitude"][use],
-                            ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_marble_lwp_modis_lvl2_dist", 
+                            ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_marble_lwp_modis_lvl2_dist",
                             config.AREA_CONFIG_FILE,
                             fig_type=['png'])
     from histogram_plotting import distribution_map
-    distribution_map(cObj.calipso.all_arrays["longitude"][use], 
+    distribution_map(cObj.calipso.all_arrays["longitude"][use],
                      cObj.calipso.all_arrays["latitude"][use])
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_white_lwp_modis_lvl2_dist", bbox_inches='tight')
 
@@ -148,11 +148,11 @@ def get_ca_object_nn_ctth_modis_lvl2():
         "global_modis_v2018_created20180920/"
         "Reshaped_Files_merged_caliop/eos2/1km/2010/*/*%s*cali*h5")
     files = glob(ROOT_DIR%("20100201"))
-    files = files + glob(ROOT_DIR%("20100401"))             
-    files = files + glob(ROOT_DIR%("20100601")) 
-    files = files + glob(ROOT_DIR%("20100801")) 
-    files = files + glob(ROOT_DIR%("20101001")) 
-    files = files + glob(ROOT_DIR%("20101201")) 
+    files = files + glob(ROOT_DIR%("20100401"))
+    files = files + glob(ROOT_DIR%("20100601"))
+    files = files + glob(ROOT_DIR%("20100801"))
+    files = files + glob(ROOT_DIR%("20101001"))
+    files = files + glob(ROOT_DIR%("20101201"))
     #ROOT_DIR = (
     #    ADIR + "/DATA_MISC/"
     #    "reshaped_files_validation_2018/"
@@ -167,14 +167,14 @@ def get_ca_object_nn_ctth_modis_lvl2():
 
     for filename in files:
         print filename
-        cObj += readCaliopImagerMatchObj(filename)  
+        cObj += readCaliopImagerMatchObj(filename)
     return cObj, density
 
 def do_the_printing():
 
     cObj_cali, density = get_ca_object_nn_ctth_modis_lvl2()
 
-  
+
     plot_all(cObj_cali, density,"")
 
 if __name__ == "__main__":

@@ -56,18 +56,18 @@ def make_boxplot(clsatObj, name, month):
     pps_bias = height_pps - height_c
     pps_abias = np.abs(pps_bias)
     pps_MAE = np.mean(pps_abias[c_all])
-    pps_MAEd = np.mean(pps_abias[c_all_day]) 
-    pps_MAEn = np.mean(pps_abias[c_all_night]) 
-    pps_MAEt = np.mean(pps_abias[c_all_twilight]) 
+    pps_MAEd = np.mean(pps_abias[c_all_day])
+    pps_MAEn = np.mean(pps_abias[c_all_night])
+    pps_MAEt = np.mean(pps_abias[c_all_twilight])
     mlvl2_bias = height_mlvl2 - height_c
     mlvl2_abias = np.abs(mlvl2_bias)
-    mlvl2_MAE = np.mean(mlvl2_abias[c_all]) 
-    mlvl2_MAEd = np.mean(mlvl2_abias[c_all_day]) 
-    mlvl2_MAEn = np.mean(mlvl2_abias[c_all_night]) 
-    mlvl2_MAEt = np.mean(mlvl2_abias[c_all_twilight]) 
+    mlvl2_MAE = np.mean(mlvl2_abias[c_all])
+    mlvl2_MAEd = np.mean(mlvl2_abias[c_all_day])
+    mlvl2_MAEn = np.mean(mlvl2_abias[c_all_night])
+    mlvl2_MAEt = np.mean(mlvl2_abias[c_all_twilight])
     from matplotlib import rcParams
     rcParams.update({'figure.autolayout': True})
-    fig = plt.figure(figsize = (6,9))        
+    fig = plt.figure(figsize = (6,9))
     ax = fig.add_subplot(111)
     plt.xticks(rotation=50)
     ax.fill_between(np.arange(0,5),-500,500, facecolor='green', alpha=0.6)
@@ -88,9 +88,9 @@ def make_boxplot(clsatObj, name, month):
     plt.title("Cloudsat PPS/MODIS-LVL2 \nHeight bias comparison %s"%(month))
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_BOX_cloudsat/"
                 "ctth_box_plot_csat_pps_and_lvl2modis_%s_5_95_filt.png"%(month))
-    
+
     #LowMediumHigh
-    fig = plt.figure(figsize = (6,9))        
+    fig = plt.figure(figsize = (6,9))
     ax = fig.add_subplot(111)
     plt.xticks(rotation=50)
     ax.fill_between(np.arange(0,8),-500,500, facecolor='green', alpha=0.6)
@@ -103,9 +103,9 @@ def make_boxplot(clsatObj, name, month):
         plt.plot(np.arange(0,8), -10*1000 + 0*np.arange(0,8),':k', alpha=0.4)
     plt.plot(np.arange(0,8), 0 + 0*np.arange(0,8),':k', alpha=0.4)
     bplot = ax.boxplot([pps_bias[low],pps_bias[medium],pps_bias[high],pps_bias[over_high_ground]],
-                       whis=[5, 95],sym='',                       
+                       whis=[5, 95],sym='',
                        labels=["low <2.5km","medium","high>5km","ground>5km"],
-                       showmeans=True, patch_artist=True)                     
+                       showmeans=True, patch_artist=True)
     ax.set_ylim(-8000,8000)
     for box in bplot['boxes']:
         box.set_facecolor('0.9')
@@ -114,7 +114,7 @@ def make_boxplot(clsatObj, name, month):
                 "ctth_box_plot_csat_modis_%s_%s_5_95_filt.png"%(name,month))
 
     #LowMediumHigh
-    fig = plt.figure(figsize = (6,9))        
+    fig = plt.figure(figsize = (6,9))
     ax = fig.add_subplot(111)
     plt.xticks(rotation=50)
     ax.fill_between(np.arange(0,8),-500,500, facecolor='green', alpha=0.6)
@@ -129,7 +129,7 @@ def make_boxplot(clsatObj, name, month):
     bplot = ax.boxplot([mlvl2_bias[low],mlvl2_bias[medium],mlvl2_bias[high],mlvl2_bias[over_high_ground]],
                        whis=[5, 95],sym='',
                        labels=["low <2.5km","medium","high>5km","ground>5km"],
-                       showmeans=True, patch_artist=True      )                
+                       showmeans=True, patch_artist=True      )
     ax.set_ylim(-8000,8000)
     for box in bplot['boxes']:
         box.set_facecolor('0.9')
@@ -139,7 +139,7 @@ def make_boxplot(clsatObj, name, month):
 
 
     #DNT
-    fig = plt.figure(figsize = (16,9))        
+    fig = plt.figure(figsize = (16,9))
     ax = fig.add_subplot(111)
     plt.xticks(rotation=50)
     ax.fill_between(np.arange(0,8),-500,500, facecolor='green', alpha=0.6)
@@ -167,7 +167,7 @@ def make_boxplot(clsatObj, name, month):
                 "ctth_box_plot_dnt_csat_pps_and_lvl2modis_%s_5_95_filt.png"%(month))
 
     #VIOLIN
-    fig = plt.figure(figsize = (6,9))        
+    fig = plt.figure(figsize = (6,9))
     ax = fig.add_subplot(111)
     plt.xticks(rotation=50)
     #ax.fill_between(np.arange(0,5),-500,500, facecolor='green', alpha=0.6)
@@ -194,7 +194,7 @@ def make_boxplot(clsatObj, name, month):
 
 def investigate_nn_ctth_modis_lvl2():
     #november
- 
+
     ROOT_DIR_MODIS_nn_imager = (
         ADIR + "/DATA_MISC/reshaped_files/"
         "global_modis_14th_created20170324/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/*h5")
@@ -203,10 +203,10 @@ def investigate_nn_ctth_modis_lvl2():
 #        ADIR + "/DATA_MISC/reshaped_files/"
 #        "global_modis_14th_created20161108/Reshaped_Files/merged/*%s*h5")
 
-    for month in [ "06", "09"]:#, "02","03","04","05","07","08","10","11","12","01"]:    
+    for month in [ "06", "09"]:#, "02","03","04","05","07","08","10","11","12","01"]:
         for ROOT_DIR, name in zip(
                 [ROOT_DIR_MODIS_nn_imager],
-                 #ROOT_DIR_MODIS_old], 
+                 #ROOT_DIR_MODIS_old],
                 ["nnIMAGER"]):
             #name = "%s_%s"%(name, month)
             print ROOT_DIR
@@ -217,7 +217,7 @@ def investigate_nn_ctth_modis_lvl2():
                 clsatObj +=  readCloudsatImagerMatchObj(filename)
             make_boxplot(clsatObj, name, month )
 
-        
+
 if __name__ == "__main__":
     investigate_nn_ctth_modis_lvl2()
-  
+

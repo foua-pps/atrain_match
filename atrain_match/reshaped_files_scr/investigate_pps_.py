@@ -27,16 +27,16 @@ def print_common_stats(caObj, use, name_dict):
     nlay =np.where(caObj.calipso.all_arrays['number_layers_found']>0,1,0)
     meancl=ndimage.filters.uniform_filter1d(nlay*1.0, size=3)
     isCalipsoCloudy = np.logical_and(
-        nlay > 0, 
+        nlay > 0,
         caObj.calipso.all_arrays['cloud_fraction']>0.5)
     isCalipsoCloudy = np.logical_and(
-        isCalipsoCloudy, 
+        isCalipsoCloudy,
         caObj.calipso.all_arrays['total_optical_depth_5km']>0.15)
     #isCalipsoClear = caObj.calipso.all_arrays['cloud_fraction']<0.5
     isCalipsoClear = nlay == 0
     isCalipsoClear = np.logical_and(isCalipsoClear, meancl<0.01)
     isCalipsoClear = np.logical_and(
-        isCalipsoClear, 
+        isCalipsoClear,
         caObj.calipso.all_arrays['total_optical_depth_5km']<0)
     isCalipsoSnowIce = np.logical_and(
         isCalipsoClear,
@@ -61,7 +61,7 @@ def test_1(caObj, isCloudy, isClear):
     good = np.logical_and(test_is_on, isCloudy)
     fig = plt.figure()
     plt.plot( feature2[bad],feature1[bad], 'b.')
-    plt.plot( feature2[good],feature1[good], 'g.')    
+    plt.plot( feature2[good],feature1[good], 'g.')
     plt.show()
     fig.savefig("pps_investigation_test1.png", format = 'png')
 
@@ -75,7 +75,7 @@ def test_2(caObj, isCloudy, isClear):
     good = np.logical_and(test_is_on, isCloudy)
     fig = plt.figure()
     plt.plot( feature2[bad],feature1[bad], 'b.')
-    plt.plot( feature2[good],feature1[good], 'g.')    
+    plt.plot( feature2[good],feature1[good], 'g.')
     plt.show()
     fig.savefig("pps_investigation_test2.png", format = 'png')
 
@@ -89,7 +89,7 @@ def test_3(caObj, isCloudy, isClear):
     good = np.logical_and(test_is_on, isCloudy)
     fig = plt.figure()
     plt.plot( feature2[bad],feature1[bad], 'b.')
-    plt.plot( feature2[good],feature1[good], 'g.')    
+    plt.plot( feature2[good],feature1[good], 'g.')
     plt.show()
     fig.savefig("pps_investigation_test3.png", format = 'png')
 
@@ -103,7 +103,7 @@ def test_4(caObj, isCloudy, isClear):
     good = np.logical_and(test_is_on, isCloudy)
     fig = plt.figure()
     plt.plot( feature2[bad],feature1[bad], 'b.')
-    plt.plot( feature2[good],feature1[good], 'g.')    
+    plt.plot( feature2[good],feature1[good], 'g.')
     plt.show()
     fig.savefig("pps_investigation_test4.png", format = 'png')
 
@@ -131,10 +131,10 @@ for line in TEST_NAMEFILE:
         var = 'cma_testlist' + list_nr
         name_dict[var][int(bit)] =  name
 
-    
+
 caObjPPS = CalipsoImagerTrackObject()
 for filename in files:
-    caObjPPS +=  readCaliopImagerMatchObj(filename) 
+    caObjPPS +=  readCaliopImagerMatchObj(filename)
     print "Scene %s"%(os.path.basename(filename))
     use = caObjPPS.imager.all_arrays['bt11micron']>-9
 print_common_stats(caObjPPS, use, name_dict)

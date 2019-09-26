@@ -54,10 +54,10 @@ print(matplotlib.rcParams)
 #plt.rc('font', family='sans serif')
 #plt.rcParams["font.family"] = "Verdana"
 
-from matchobject_io import DataObject        
+from matchobject_io import DataObject
 class ppsMatch_Imager_CalipsoObject(DataObject):
     def __init__(self):
-        DataObject.__init__(self)                            
+        DataObject.__init__(self)
         self.all_arrays = {
             'detected_clouds': None,
             'undetected_clouds': None,
@@ -68,7 +68,7 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
             'lats': None,
             'lons': None}
     def get_some_info_from_caobj(self, caObj, PROCES_FOR_ART=False, PROCES_FOR_PRESSENTATIONS=False):
-        self.set_false_and_missed_cloudy_and_clear(caObj=caObj, PROCES_FOR_ART=PROCES_FOR_ART, 
+        self.set_false_and_missed_cloudy_and_clear(caObj=caObj, PROCES_FOR_ART=PROCES_FOR_ART,
                                                    PROCES_FOR_PRESSENTATIONS = PROCES_FOR_PRESSENTATIONS)
         self.set_r13_extratest(caObj=caObj)
         self.get_thr_offset(caObj=caObj)
@@ -87,48 +87,48 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         lon = caObj.imager.all_arrays['longitude']
         if caObj.imager.all_arrays['cloudmask'] is not None:
             isCloudyPPS = np.logical_or(caObj.imager.all_arrays['cloudmask']==1,
-                                        caObj.imager.all_arrays['cloudmask']==2) 
+                                        caObj.imager.all_arrays['cloudmask']==2)
             isClearPPS = np.logical_or(caObj.imager.all_arrays['cloudmask']==0,
                                        caObj.imager.all_arrays['cloudmask']==3)
         else:
             isCloudyPPS = np.logical_and(caObj.imager.all_arrays['cloudtype']>4,
-                                         caObj.imager.all_arrays['cloudtype']<21) 
+                                         caObj.imager.all_arrays['cloudtype']<21)
             isClearPPS = np.logical_and(caObj.imager.all_arrays['cloudtype']>0,
                                         caObj.imager.all_arrays['cloudtype']<5)
 
 
         isCloudyPPS = np.logical_and(caObj.imager.all_arrays['cloudtype']>4,
-                                     caObj.imager.all_arrays['cloudtype']<21) 
+                                     caObj.imager.all_arrays['cloudtype']<21)
         isClearPPS = np.logical_and(caObj.imager.all_arrays['cloudtype']>0,
                                     caObj.imager.all_arrays['cloudtype']<5)
         nlay =np.where(caObj.calipso.all_arrays['number_layers_found']>0,1,0)
         meancl=ndimage.filters.uniform_filter1d(nlay*1.0, size=3)
         if self.cc_method == 'BASIC' and self.isGAC:
             isCalipsoCloudy = nlay>0
-            isCalipsoClear = np.not_equal(isCalipsoCloudy, True) 
+            isCalipsoClear = np.not_equal(isCalipsoCloudy, True)
         elif self.cc_method == 'BASIC':
             isCalipsoCloudy = nlay>0
-            isCalipsoClear = np.not_equal(isCalipsoCloudy, True)   
+            isCalipsoClear = np.not_equal(isCalipsoCloudy, True)
         elif self.cc_method == 'KG' and self.isGAC:
             isCalipsoCloudy = np.logical_and(
                 caObj.calipso.all_arrays['cloud_fraction']>0.5,
                 caObj.calipso.all_arrays['total_optical_depth_5km']>0.15)
             isCalipsoClear = np.not_equal(isCalipsoCloudy, True)
-        elif self.cc_method == 'Nina' and self.isGAC:    
+        elif self.cc_method == 'Nina' and self.isGAC:
             isCalipsoCloudy = np.logical_and(
                 caObj.calipso.all_arrays['cloud_fraction']>0.5,
                 caObj.calipso.all_arrays['total_optical_depth_5km']>0.15)
             #exclude pixels that might be cloud contaminated
             isCalipsoClear = np.logical_and(nlay == 0, meancl<0.01)
             isCalipsoClear = np.logical_and(
-                isCalipsoClear, 
+                isCalipsoClear,
                 caObj.calipso.all_arrays['total_optical_depth_5km']<0)
         elif self.cc_method == 'KG':
             isCalipsoCloudy = nlay>0
-            isCalipsoClear = np.not_equal(isCalipsoCloudy, True)   
+            isCalipsoClear = np.not_equal(isCalipsoCloudy, True)
         elif self.cc_method == 'Nina':
             #isCalipsoCloudy = np.logical_or(
-            #    caObj.calipso.all_arrays['total_optical_depth_5km']>0.15, 
+            #    caObj.calipso.all_arrays['total_optical_depth_5km']>0.15,
             #    np.logical_and(caObj.calipso.all_arrays['total_optical_depth_5km']<0,
             #                   nlay>0))
             isCalipsoCloudy = nlay>0
@@ -145,7 +145,7 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         if self.filter_method == "satz":
             satz = caObj.imager.all_arrays['satz']
             isCloudyPPS = np.logical_and(isCloudyPPS,  satz<=30)
-            isClearPPS =  np.logical_and(isClearPPS,  satz<=30) 
+            isClearPPS =  np.logical_and(isClearPPS,  satz<=30)
         if self.DNT in ["day"]:
             isCloudyPPS = np.logical_and(isCloudyPPS,  sunz<=80)
             isClearPPS =  np.logical_and(isClearPPS,  sunz<=80)
@@ -156,7 +156,7 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
             isCloudyPPS = np.logical_and(isCloudyPPS,  sunz>80)
             isClearPPS =  np.logical_and(isClearPPS,  sunz>80)
             isCloudyPPS = np.logical_and(isCloudyPPS,  sunz<95)
-            isClearPPS =  np.logical_and(isClearPPS,  sunz<95)                  
+            isClearPPS =  np.logical_and(isClearPPS,  sunz<95)
         if self.DNT in ["all"]:
             pass
         undetected_clouds = np.logical_and(isCalipsoCloudy, isClearPPS)
@@ -174,17 +174,17 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         if PROCES_FOR_ART:
             detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['warmest_t12']>-9)
             detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['coldest_t12']>-9)
-            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['psur']>-9) 
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['psur']>-9)
             detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['surftemp']>-9)
             detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['t950']>-9)
             detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['t850']>-9)
             detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['t700']>-9)
             detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['t500']>-9)
-            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['t250']>-9)        
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['t250']>-9)
             detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['text_t11']>-9) #without this 1793146 pixels
-            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['text_t11t12']>-9) 
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['text_t11t12']>-9)
             detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['warmest_t11']>-9)
-            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['coldest_t11']>-9)                                             
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['coldest_t11']>-9)
             detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['modis_27']>-1)
             detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['modis_28']>-1)
             detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['modis_33']>-1)
@@ -203,17 +203,17 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         if PROCES_FOR_PRESSENTATIONS:
             detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['warmest_t12']>-9)
             detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['coldest_t12']>-9)
-            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['psur']>-9) 
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['psur']>-9)
             detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['surftemp']>-9)
             detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['t950']>-9)
             detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['t850']>-9)
             detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['t700']>-9)
             detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['t500']>-9)
-            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['t250']>-9)        
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['t250']>-9)
             detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['text_t11']>-9) #without this 1793146 pixels
-            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['text_t11t12']>-9) 
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['text_t11t12']>-9)
             detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['warmest_t11']>-9)
-            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['coldest_t11']>-9)                       
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['coldest_t11']>-9)
             detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['text_t37']>-9)
             detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['warmest_t37']>-9)
             detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['coldest_t37']>-9)
@@ -223,7 +223,7 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
             detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['bt86micron']>-1)
             detected_height = np.logical_and(detected_height, caObj.imager.all_arrays['ciwv']>-9)
             detected_height = np.logical_and(detected_height, caObj.modis.all_arrays["height"]>-9)
-            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays["ctth_height"]>-9) 
+            detected_height = np.logical_and(detected_height, caObj.imager.all_arrays["ctth_height"]>-9)
 
 
         detected_height = np.logical_and(detected_height,
@@ -236,7 +236,7 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         self.undetected_clouds = undetected_clouds[use]
         self.detected_clear = detected_clear[use]
         self.latitude = caObj.imager.latitude[use]
-        self.longitude = caObj.imager.longitude[use] 
+        self.longitude = caObj.imager.longitude[use]
         self.use = use
         self.detected_height = detected_height[use]
         self.detected_temperature = detected_temperature[use]
@@ -244,12 +244,12 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
     def set_r13_extratest(self,caObj):
         if np.size(caObj.imager.all_arrays['r13micron'])==1 and caObj.imager.all_arrays['r13micron'] is None:
             self.new_false_clouds = np.zeros(self.false_clouds.shape)
-            self.new_detected_clouds = np.zeros(self.false_clouds.shape)  
+            self.new_detected_clouds = np.zeros(self.false_clouds.shape)
             return
         r13 = caObj.imager.all_arrays['r13micron']
         sunz =  caObj.imager.all_arrays['sunz']
         sunz_cos = sunz.copy()
-        sunz_cos[sunz>87] =87    
+        sunz_cos[sunz>87] =87
         r13[sunz<90] = r13[sunz<90]/np.cos(np.radians(sunz_cos[sunz<90]))
         isCloud_r13 = np.logical_and(r13>2.0, caObj.imager.all_arrays['ciwv']>3)
         new_detected_clouds = np.logical_and(self.detected_clouds,
@@ -266,17 +266,17 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
             self.t11t37_offset = np.zeros(self.false_clouds.shape)
             self.t37t12_offset = np.zeros(self.false_clouds.shape)
             return
-        t11ts_offset = (caObj.imager.all_arrays['bt11micron'] - 
-                        caObj.imager.all_arrays['surftemp'] - 
+        t11ts_offset = (caObj.imager.all_arrays['bt11micron'] -
+                        caObj.imager.all_arrays['surftemp'] -
                         caObj.imager.all_arrays['thr_t11ts_inv'])
-        t11t12_offset = (caObj.imager.all_arrays['bt11micron'] - 
-                        caObj.imager.all_arrays['bt12micron'] - 
+        t11t12_offset = (caObj.imager.all_arrays['bt11micron'] -
+                        caObj.imager.all_arrays['bt12micron'] -
                         caObj.imager.all_arrays['thr_t11t12'])
-        t37t12_offset = (caObj.imager.all_arrays['bt37micron'] - 
-                        caObj.imager.all_arrays['bt12micron'] - 
+        t37t12_offset = (caObj.imager.all_arrays['bt37micron'] -
+                        caObj.imager.all_arrays['bt12micron'] -
                         caObj.imager.all_arrays['thr_t37t12'])
-        t11t37_offset = (caObj.imager.all_arrays['bt11micron'] - 
-                        caObj.imager.all_arrays['bt37micron'] - 
+        t11t37_offset = (caObj.imager.all_arrays['bt11micron'] -
+                        caObj.imager.all_arrays['bt37micron'] -
                         caObj.imager.all_arrays['thr_t11t37'])
         t11ts_offset = t11ts_offset[self.use]
         t11ts_offset[self.detected_clouds] = 99999
@@ -310,44 +310,44 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
 
     def get_ctth_bias(self, caObj):
         height_c = (1000*(
-            caObj.calipso.all_arrays['layer_top_altitude'][self.use,0]) - 
+            caObj.calipso.all_arrays['layer_top_altitude'][self.use,0]) -
             caObj.calipso.all_arrays['elevation'][self.use])
         if "cci" in self.satellites:
             height_c = 1000*caObj.calipso.all_arrays[
-                'layer_top_altitude'][self.use,0]   
+                'layer_top_altitude'][self.use,0]
         if "modis_lvl2" in self.satellites:
             height_c = 1000*caObj.calipso.all_arrays[
-                'layer_top_altitude'][self.use,0]  
+                'layer_top_altitude'][self.use,0]
 
         height_pps = caObj.imager.all_arrays['ctth_height'][self.use]
         delta_h = height_pps - height_c
         self.height_bias = delta_h
         self.height_bias[~self.detected_height]=0
-        
+
         self.detected_height_both = np.where(self.detected_height, False,self.detected_height)
         self.height_mae_diff = 0*self.height_bias
         if caObj.modis.all_arrays["height"] is not None:
-            height_modis = caObj.modis.all_arrays["height"][self.use]   
+            height_modis = caObj.modis.all_arrays["height"][self.use]
             delta_h_modis = height_modis - 1000*caObj.calipso.all_arrays[
-                'layer_top_altitude'][self.use,0] 
-            self.detected_height_both = np.logical_and(self.detected_height,height_modis>0) 
+                'layer_top_altitude'][self.use,0]
+            self.detected_height_both = np.logical_and(self.detected_height,height_modis>0)
             mae_pps = np.abs(self.height_bias.copy())
             mae_modis = np.abs(delta_h_modis)
-            diff_mae = mae_modis - mae_pps 
+            diff_mae = mae_modis - mae_pps
             diff_mae[~self.detected_height_both] = 0
-        
+
             self.height_mae_diff = diff_mae
 
         try:
             #tsur = caObj.imager.all_arrays['surftemp']
-            tsur = caObj.imager.all_arrays['segment_nwp_temp'][:,0] 
+            tsur = caObj.imager.all_arrays['segment_nwp_temp'][:,0]
             #temperature_pps = caObj.imager.all_arrays['ctth_temperature']
             temperature_pps = caObj.imager.all_arrays['bt12micron']
             temp_diff = temperature_pps - tsur
             rate_neg = -1.0/6.5
             rate_pos = +1.0/3.0
-            new_pps_h = rate_neg*temp_diff*1000 
-            new_pps_h[temp_diff>0] = rate_pos*temp_diff[temp_diff>0]*1000 
+            new_pps_h = rate_neg*temp_diff*1000
+            new_pps_h[temp_diff>0] = rate_pos*temp_diff[temp_diff>0]*1000
             new_pps_h[new_pps_h<100] = 100
             keep = (
                 (tsur - caObj.imager.all_arrays['ctth_temperature'])/
@@ -364,7 +364,7 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
     def get_ctth_bias_low(self, caObj):
         from utils.get_flag_info import get_calipso_low_clouds
         low_clouds = get_calipso_low_clouds(caObj)
-        detected_low = np.logical_and(self.detected_height, 
+        detected_low = np.logical_and(self.detected_height,
                                       low_clouds[self.use])
         delta_h = self.height_bias.copy()
         delta_h[~detected_low]=0
@@ -373,7 +373,7 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         delta_h = self.lapse_bias.copy()
         delta_h[~detected_low]=0
         self.lapse_bias_low = delta_h
- 
+
 
     def get_ctth_bias_high(self, caObj):
         from utils.get_flag_info import get_calipso_high_clouds
@@ -395,7 +395,7 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         temperature_pps = caObj.imager.all_arrays['ctth_temperature'][self.use]
         try:
             temperature_c = 273.15 + caObj.calipso.all_arrays['midlayer_temperature'][self.use,0]
-            
+
             delta_t = temperature_pps - temperature_c
             delta_t[~detected_low]=0
             delta_t[temperature_c<0]=0
@@ -428,7 +428,7 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
 
 class ppsStatsOnFibLatticeObject(DataObject):
     def __init__(self):
-        DataObject.__init__(self)                            
+        DataObject.__init__(self)
         self.all_arrays = {
             'definition': None,
             'lats': None,
@@ -443,7 +443,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
             'N_clear':None,
             'N_clouds':None,
             'N': None,
-            'Kuipers': None}  
+            'Kuipers': None}
     def set_flattice(self, radius_km=200):
         self.radius_km = radius_km
         self.lons, self.lats =get_fibonacci_spread_points_on_earth(radius_km = radius_km)
@@ -462,7 +462,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
         self.Sum_ctth_bias_temperature_low = np.zeros(self.lats.shape)
         self.Sum_ctth_bias_temperature_low_t11 = np.zeros(self.lats.shape)
         self.Min_lapse_rate = np.zeros(self.lats.shape)
-        self.N_ctth_error_above_1km = np.zeros(self.lats.shape) 
+        self.N_ctth_error_above_1km = np.zeros(self.lats.shape)
         self.N_new_false_clouds = np.zeros(self.lats.shape)
         self.N_new_detected_clouds = np.zeros(self.lats.shape)
         self.N_false_clouds = np.zeros(self.lats.shape)
@@ -495,7 +495,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
         self.Sum_ctth_bias_temperature_low_t11 = 1.0*np.array(self.Sum_ctth_bias_temperature_low_t11)
         self.Min_lapse_rate = 1.0*np.array(self.Min_lapse_rate)
         self.N_detected_clouds = 1.0*np.array(self.N_detected_clouds)
-        self.N_undetected_clouds = 1.0*np.array(self.N_undetected_clouds)  
+        self.N_undetected_clouds = 1.0*np.array(self.N_undetected_clouds)
         self.N_false_clouds = 1.0*np.array(self.N_false_clouds)
         self.N_detected_clear = 1.0*np.array(self.N_detected_clear)
         self.N_new_detected_clouds = 1.0*np.array(self.N_new_detected_clouds)
@@ -504,15 +504,15 @@ class ppsStatsOnFibLatticeObject(DataObject):
     def find_number_of_clouds_clear(self):
         self.np_float_array()
         self.N_clear = self.N_detected_clear+self.N_false_clouds
-        self.N_clouds = self.N_detected_clouds+self.N_undetected_clouds 
+        self.N_clouds = self.N_detected_clouds+self.N_undetected_clouds
         self.N = self.N_clear + self.N_clouds
         self.Number_of = np.ma.masked_array(self.N, mask=self.N<0)
-    
-    def _remap_a_score_on_an_area(self, plot_area_name='npole', vmin=0.0, vmax=1.0, 
+
+    def _remap_a_score_on_an_area(self, plot_area_name='npole', vmin=0.0, vmax=1.0,
                                   score='Kuipers'):
         from pyresample import image, geometry
         area_def = utils.parse_area_file(
-            'reshaped_files_scr/region_config_test.cfg',  
+            'reshaped_files_scr/region_config_test.cfg',
             plot_area_name)[0]
         data = getattr(self, score)
         data = data.copy()
@@ -521,14 +521,14 @@ class ppsStatsOnFibLatticeObject(DataObject):
             data[np.logical_and(np.equal(data.mask,False),data<vmin)]=vmin #do not wan't low ex hitrates set to nodata!
         else:
             data[data>vmax]=vmax
-            data[data<vmin]=vmin   
+            data[data<vmin]=vmin
         #lons = np.ma.masked_array(self.lons, mask=data.mask)
         #lats = np.ma.masked_array(self.lats, mask=data.mask)
         lons = self.lons
         lats = self.lats
         swath_def = geometry.SwathDefinition(lons=lons, lats=lats)
         swath_con = image.ImageContainerNearest(
-            data, swath_def, 
+            data, swath_def,
             radius_of_influence=self.radius_km*1000*2.5,
             epsilon=1.0)
         area_con = swath_con.resample(area_def)
@@ -538,21 +538,21 @@ class ppsStatsOnFibLatticeObject(DataObject):
         matplotlib.rcParams['image.cmap']= "BrBG"
         if "FAR" in score:
             matplotlib.rcParams['image.cmap']= "BrBG"
-        elif "diff" in score:  
+        elif "diff" in score:
             matplotlib.rcParams['image.cmap']= "BrBG"
         elif "mae" in score:
             matplotlib.rcParams['image.cmap']= "Reds"
         else:
             matplotlib.rcParams['image.cmap']= "BrBG"
-        plot_label =score.replace('_','-')    
+        plot_label =score.replace('_','-')
         if "mae" in score:
             plot_label =""
         pr.plot.save_quicklook(self.PLOT_DIR_SCORE + self.PLOT_FILENAME_START+
                                plot_area_name +'.png',
-                               area_def, result, 
+                               area_def, result,
                                vmin=vmin, vmax=vmax, label=plot_label)
 
-    def _remap_a_score_on_an_robinson_projection(self, vmin=0.0, vmax=1.0, 
+    def _remap_a_score_on_an_robinson_projection(self, vmin=0.0, vmax=1.0,
                                                  score='Kuipers', screen_out_valid=False):
 
         lons = self.lons
@@ -586,29 +586,29 @@ class ppsStatsOnFibLatticeObject(DataObject):
         lon_min = -179.9
         lat_max = 83.0
         lon_max = 179.9
-            
+
         fig = plt.figure(figsize = (16,9))
         ax = fig.add_subplot(111)
-        import copy; 
+        import copy;
         if "FAR" in score:
             my_cmap=copy.copy(matplotlib.cm.BrBG)
-        elif "diff" in score:  
+        elif "diff" in score:
             my_cmap=copy.copy(matplotlib.cm.BrBG)
         elif "mae" in score:
             my_cmap=copy.copy(matplotlib.cm.Reds)
         elif "ctth_pe" in score:
             my_cmap=copy.copy(matplotlib.cm.BrBG_r)
-        else:    
+        else:
             my_cmap=copy.copy(matplotlib.cm.BrBG)
         if score in "Bias" and screen_out_valid:
-            #This screens out values between -5 and +5% 
+            #This screens out values between -5 and +5%
             vmax=25
-            vmin=-25            
+            vmin=-25
             my_cmap=copy.copy(matplotlib.cm.get_cmap("BrBG", lut=100))
             cmap_vals = my_cmap(np.arange(100)) #extractvalues as an array
             cmap_vals[39:61] = [0.9, 0.9, 0.9, 1] #change the first value
             my_cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
-                "newBrBG", cmap_vals) 
+                "newBrBG", cmap_vals)
         if score in "RMS" and screen_out_valid:
             # This screens out values beteen 0 and 20%. 41/100=20%
             vmax=50
@@ -617,10 +617,10 @@ class ppsStatsOnFibLatticeObject(DataObject):
             cmap_vals = my_cmap(np.arange(100)) #extract values as an array
             cmap_vals[0:41] = [0.9, 0.9, 0.9, 1] #change the first value
             my_cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
-                "newBrBG", cmap_vals) 
-            
+                "newBrBG", cmap_vals)
 
-      
+
+
 
         #to mask out where we lack data
         data[np.logical_and(data>vmax,~the_mask)]=vmax
@@ -630,8 +630,8 @@ class ppsStatsOnFibLatticeObject(DataObject):
         yi = np.linspace(lat_min, lat_max, numrows)
         xi, yi = np.meshgrid(xi, yi)
         # interpolate
-        x, y, z = (np.array(lons.ravel()), 
-                   np.array(lats.ravel()), 
+        x, y, z = (np.array(lons.ravel()),
+                   np.array(lats.ravel()),
                    np.array(data.ravel()))
         my_cmap.set_over(color='0.5',alpha=1)
         zi = griddata((x, y), z, (xi, yi), method='nearest')
@@ -647,7 +647,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
         tick_locator = matplotlib.ticker.MaxNLocator(nbins=10)
         cb.locator = tick_locator
         cb.ax.yaxis.set_major_locator(matplotlib.ticker.AutoLocator())
-        cb.update_ticks()   
+        cb.update_ticks()
         if not "mae" in score:
             ax.set_title(score.replace('_','-'), usetex=True)
         if score in ["ctth_mae"]:
@@ -655,22 +655,22 @@ class ppsStatsOnFibLatticeObject(DataObject):
             if "v2014" in self.PLOT_FILENAME_START:
                 text_i = "(a)"
             if "v2018" in self.PLOT_FILENAME_START:
-                text_i = "(c)"    
+                text_i = "(c)"
             plt.text(0.01, 0.95, text_i, fontsize=36,transform=ax.transAxes, bbox=dict(facecolor='w', edgecolor='w', alpha=1.0))
-                
+
         plt.savefig(self.PLOT_DIR_SCORE + self.PLOT_FILENAME_START+
                     '_robinson_' +'.pdf', bbox_inches='tight')
         plt.savefig(self.PLOT_DIR_SCORE + self.PLOT_FILENAME_START+
                     '_robinson_' +'.png', bbox_inches='tight')
         plt.close('all')
 
-    def remap_and_plot_score_on_several_areas(self, vmin=0.0, vmax=1.0, 
+    def remap_and_plot_score_on_several_areas(self, vmin=0.0, vmax=1.0,
                                               score='Kuipers', screen_out_valid=False):
         self.PLOT_DIR_SCORE = self.PLOT_DIR + "/%s/%s/"%(score, self.satellites)
         self.PLOT_FILENAME_START = "fig_%s_ccm_%s_%sfilter_dnt_%s_%s_r%skm_"%(
             self.satellites,self.cc_method,self.filter_method,
             self.DNT, score, self.radius_km)
-         
+
         if not os.path.exists(self.PLOT_DIR_SCORE):
             os.makedirs(self.PLOT_DIR_SCORE)
         for plot_area_name in [
@@ -682,11 +682,11 @@ class ppsStatsOnFibLatticeObject(DataObject):
                 #'npole', #good
                 'ease_nh_test',
                 'ease_sh_test' ]:
-            self._remap_a_score_on_an_area(plot_area_name=plot_area_name, 
+            self._remap_a_score_on_an_area(plot_area_name=plot_area_name,
                                            vmin=vmin, vmax=vmax, score=score)
         #the real robinson projection
         if "metop" not in self.satellites:
-            self._remap_a_score_on_an_robinson_projection(vmin=vmin, vmax=vmax, 
+            self._remap_a_score_on_an_robinson_projection(vmin=vmin, vmax=vmax,
                                                           score=score, screen_out_valid=False)
     def calculate_kuipers(self):
         self.np_float_array()
@@ -695,13 +695,13 @@ class ppsStatsOnFibLatticeObject(DataObject):
         N_clouds = self.N_clouds
         N_detected_clouds = self.N_detected_clouds
         N_detected_clear = self.N_detected_clear
-        #Typically we have N_clear/N_clouds = 30/70 
+        #Typically we have N_clear/N_clouds = 30/70
         #In areas with only clouds or only clears the Kuipers will be ==0
         #Even if all clouds/clears are classified correctly!
-        #Do something for these set to none or update   
+        #Do something for these set to none or update
         Kuipers_devider = (N_clouds)*(N_clear)
         Kuipers_devider[Kuipers_devider==0] = 1.0
-        Kuipers = (N_detected_clouds*N_detected_clear - 
+        Kuipers = (N_detected_clouds*N_detected_clear -
                    self.N_false_clouds*self.N_undetected_clouds)/Kuipers_devider
         the_mask = np.logical_or(self.N_clear<20, self.N_clouds<20)
         the_mask = np.logical_or(the_mask, self.N_clouds < 0.01*self.N_clear)
@@ -709,7 +709,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
         use = np.logical_or(self.lats>=70,~the_mask)
         self.Kuipers_total_mean_polar = (
             (
-                np.sum(N_detected_clouds[use])*np.sum(N_detected_clear[use]) - 
+                np.sum(N_detected_clouds[use])*np.sum(N_detected_clear[use]) -
                 np.sum(self.N_false_clouds[use])*np.sum(self.N_undetected_clouds[use]))/((np.sum(N_clouds[use]))*(np.sum(N_clear[use]))))
         Kuipers = np.ma.masked_array(Kuipers, mask=the_mask)
         self.Kuipers = Kuipers
@@ -805,7 +805,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
             the_mask = self.N_detected_height_type[cc_type]<10
             ctth_bias_type_i = self.Sum_height_bias_type[cc_type]*1.0/self.N_detected_height_type[cc_type]
             ctth_bias_type_i = np.ma.masked_array(ctth_bias_type_i, mask=the_mask)
-            setattr(self, "ctth_bias_type_%d"%(cc_type), ctth_bias_type_i)   
+            setattr(self, "ctth_bias_type_%d"%(cc_type), ctth_bias_type_i)
 
     def calculate_hitrate(self):
         self.np_float_array()
@@ -816,7 +816,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
         Hitrate = np.ma.masked_array(Hitrate, mask=the_mask)
         use = np.logical_or(self.lats>=70,~the_mask)
         self.Hitrate_total_mean_polar = (
-            np.sum(self.N_detected_clouds[use]) + 
+            np.sum(self.N_detected_clouds[use]) +
             np.sum(self.N_detected_clear[use]))*1.0/(
                 np.sum(self.N[use]))
         self.Hitrate = Hitrate
@@ -828,7 +828,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
             self.N_detected_clouds + self.N_detected_clear)*1.0/(
                 self.N_clear + self.N_clouds)
         new_Hitrate = (
-            self.N_detected_clouds + self.N_new_detected_clouds - 
+            self.N_detected_clouds + self.N_new_detected_clouds -
             self.N_new_false_clouds+ self.N_detected_clear)*1.0/(
                 self.N_clear + self.N_clouds)
         the_mask = self.N<20
@@ -847,10 +847,10 @@ class ppsStatsOnFibLatticeObject(DataObject):
         self.np_float_array()
         self.find_number_of_clouds_clear()
         ThreatScoreClear = (
-            self.N_detected_clear)*1.0/( self.N_clear + 
+            self.N_detected_clear)*1.0/( self.N_clear +
                                          self.N_undetected_clouds)
         the_mask = self.N_clear<20
-        ThreatScoreClear = np.ma.masked_array(ThreatScoreClear, 
+        ThreatScoreClear = np.ma.masked_array(ThreatScoreClear,
                                               mask=the_mask)
         self.Threat_Score_Clear = ThreatScoreClear
     def calculate_pod_clear(self):
@@ -860,7 +860,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
             self.N_detected_clear)*1.0/(self.N_clear)
         the_mask = self.N_clear<20
         PODclear = np.ma.masked_array(PODclear, mask=the_mask)
-        self.PODclear = PODclear 
+        self.PODclear = PODclear
         use = np.logical_or(self.lats>=70,~the_mask)
         self.PODclear_total_mean_polar = (
             np.sum(self.N_detected_clear[use]))*1.0/(
@@ -887,20 +887,20 @@ class ppsStatsOnFibLatticeObject(DataObject):
                                            self.N_undetected_clouds)
         the_mask = self.N_clear<20
         FARclear = np.ma.masked_array(FARclear, mask=the_mask)
-        self.FARclear = FARclear 
+        self.FARclear = FARclear
     def calculate_far_cloudy(self):
         self.np_float_array()
         self.find_number_of_clouds_clear()
         FARcloudy = (
             self.N_false_clouds)*1.0/(self.N_detected_clouds+
-                                      self.N_false_clouds)     
+                                      self.N_false_clouds)
         the_mask = self.N_clouds<20
         FARcloudy = np.ma.masked_array(FARcloudy, mask=the_mask)
         self.FARcloudy = FARcloudy
         use = np.logical_or(self.lats>=70,~the_mask)
         self.FARcloudy_total_mean_polar = (
             np.sum(self.N_false_clouds[use]))*1.0/(
-                np.sum(self.N_detected_clouds[use])+ 
+                np.sum(self.N_detected_clouds[use])+
                 np.sum(self.N_false_clouds[use]))
     def calculate_calipso_cfc(self):
         self.np_float_array()
@@ -924,11 +924,11 @@ class ppsStatsOnFibLatticeObject(DataObject):
         self.calculate_calipso_cfc()
         self.calculate_pps_cfc()
         Bias = self.pps_cfc - self.calipso_cfc
-        the_mask = self.N<20 
+        the_mask = self.N<20
         Bias = np.ma.masked_array(Bias, mask=the_mask)
         use = np.logical_or(self.lats>=70,~the_mask)
         self.Bias_total_mean_polar = 100*(
-            -np.sum(self.N_undetected_clouds[use]) + 
+            -np.sum(self.N_undetected_clouds[use]) +
             np.sum(self.N_false_clouds[use]))*1.0/(np.sum(self.N[use]))
         self.Bias = Bias
     def calculate_rms(self):
@@ -936,12 +936,12 @@ class ppsStatsOnFibLatticeObject(DataObject):
         self.calculate_calipso_cfc()
         self.find_number_of_clouds_clear()
         self.calculate_bias()
-        RMS = np.sqrt((self.N_false_clouds*(100.0 - 0.0 - self.Bias)**2 + 
-                       self.N_undetected_clouds*(0.0 - 100.0 -self.Bias)**2 + 
-                       self.N_detected_clear*self.Bias**2 + 
+        RMS = np.sqrt((self.N_false_clouds*(100.0 - 0.0 - self.Bias)**2 +
+                       self.N_undetected_clouds*(0.0 - 100.0 -self.Bias)**2 +
+                       self.N_detected_clear*self.Bias**2 +
                        self.N_detected_clouds*self.Bias**2)/(
                    self.N))
-        the_mask = self.N<20 
+        the_mask = self.N<20
         RMS = np.ma.masked_array(RMS, mask=the_mask)
         self.RMS = RMS
 
@@ -958,10 +958,10 @@ class PerformancePlottingObject:
         max_distance=self.flattice.radius_km*1000*2.5
         area_def = SwathDefinition(*(self.flattice.lons,
                                      self.flattice.lats))
-        target_def = SwathDefinition(*(my_obj.longitude, 
-                                       my_obj.latitude)) 
+        target_def = SwathDefinition(*(my_obj.longitude,
+                                       my_obj.latitude))
         valid_in, valid_out, indices, distances = get_neighbour_info(
-            area_def, target_def, radius_of_influence=max_distance, 
+            area_def, target_def, radius_of_influence=max_distance,
             epsilon=100, neighbours=1)
         cols = get_sample_from_neighbour_info('nn', target_def.shape,
                                               np.array(range(0,len(lats))),
@@ -978,11 +978,11 @@ class PerformancePlottingObject:
         undetected_clouds = my_obj.undetected_clouds[valid_out]
         new_detected_clouds = my_obj.new_detected_clouds[valid_out]
         new_false_clouds = my_obj.new_false_clouds[valid_out]
-        lapse_rate = my_obj.lapse_rate[valid_out]  
-        t11ts_offset = my_obj.t11ts_offset[valid_out] 
-        t11t12_offset = my_obj.t11t12_offset[valid_out] 
-        t37t12_offset = my_obj.t37t12_offset[valid_out] 
-        t11t37_offset = my_obj.t11t37_offset[valid_out] 
+        lapse_rate = my_obj.lapse_rate[valid_out]
+        t11ts_offset = my_obj.t11ts_offset[valid_out]
+        t11t12_offset = my_obj.t11t12_offset[valid_out]
+        t37t12_offset = my_obj.t37t12_offset[valid_out]
+        t11t37_offset = my_obj.t11t37_offset[valid_out]
         height_bias_low = my_obj.height_bias_low[valid_out]
         height_bias = my_obj.height_bias[valid_out]
         height_mae_diff = my_obj.height_mae_diff[valid_out]
@@ -994,9 +994,9 @@ class PerformancePlottingObject:
         is_clear = np.logical_or(detected_clear,false_clouds)
         #lets make things faster, I'm tired of waiting!
         cols[distances>max_distance]=-9 #don't use pixles matched too far away!
-        import time        
-        tic = time.time()      
-        arr, counts = np.unique(cols, return_index=False, return_counts=True)        
+        import time
+        tic = time.time()
+        arr, counts = np.unique(cols, return_index=False, return_counts=True)
         for d in arr[arr>0]:
             use = cols==d
             ind = np.where(use)[0]
@@ -1023,7 +1023,7 @@ class PerformancePlottingObject:
             self.flattice.Sum_ctth_bias_temperature_low[d] += np.sum(temperature_bias_low[ind])
             self.flattice.Sum_ctth_bias_temperature_low_t11[d] += np.sum(temperature_bias_low_t11[ind])
             self.flattice.Min_lapse_rate[d] = np.min([self.flattice.Min_lapse_rate[d],
-                                                      np.min(lapse_rate[ind])])  
+                                                      np.min(lapse_rate[ind])])
             if np.sum(is_clear[ind])>0:
                 self.flattice.Min_t11ts_offset[d] = np.min([self.flattice.Min_t11ts_offset[d],
                                                             np.percentile(t11ts_offset[ind][is_clear[ind]], 5)])
@@ -1095,7 +1095,7 @@ def get_fibonacci_spread_points_on_earth(radius_km):
     return longitude, latitude
 
 
-    
+
 
 
 
