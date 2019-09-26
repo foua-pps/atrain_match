@@ -486,7 +486,7 @@ def read_files(files, truth='calipso', read_all=True, read_var=[]):
     tObj = read_truth_imager_match_obj(files.pop(), truth=truth)
     if len(files) > 0:
         for filename in files:
-            tObj + = read_truth_imager_match_obj(filename, truth=truth, read_all=read_all, read_var=read_var)
+            tObj += read_truth_imager_match_obj(filename, truth=truth, read_all=read_all, read_var=read_var)
     return tObj
 
 

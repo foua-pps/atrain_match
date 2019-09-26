@@ -63,7 +63,7 @@ def get_iss(filename):
         od_layer[od_layer == -1] = 5.0
         od_layer[od_layer == -999.9] = 5.0
         od_layer[od_layer < 0] = 0.0
-        iss.total_optical_depth_5km + = od_layer
+        iss.total_optical_depth_5km += od_layer
         is_not_very_thin = np.greater(od_layer, limit)
         # is_cloudy = np.logical_and(is_cloudy, is_not_very_thin)
         height_layer = iss.layer_top_altitude_fore_fov[:, layer]
