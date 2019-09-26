@@ -483,28 +483,28 @@ def print_all(match_obj, compare, compare_name = "unknown"):
     mhl["high_clouds_tp_thin"] = np.logical_and(
         mhl["high_clouds_tp"],
         np.logical_and(match_obj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>=0,
-                       match_obj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']<=0.225))
+                       match_obj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km'] <= 0.225))
     mhl["high_clouds_tp_not_thin"] = np.logical_and(
         mhl["high_clouds_tp"], ~mhl["high_clouds_tp_thin"])
 
     mhl["medium_clouds_tp_thin"] = np.logical_and(
         mhl["medium_clouds_tp"],
         np.logical_and(match_obj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>=0,
-                      match_obj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']<=0.225))
+                      match_obj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km'] <= 0.225))
     mhl["medium_clouds_tp_not_thin"] = np.logical_and(
         mhl["medium_clouds_tp"], ~mhl["medium_clouds_tp_thin"])
 
     mhl["low_clouds_tp_thin"] = np.logical_and(
         mhl["low_clouds_tp"],
         np.logical_and(match_obj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>=0,
-                      match_obj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']<=0.225))
+                      match_obj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km'] <= 0.225))
     mhl["low_clouds_tp_not_thin"] = np.logical_and(
         mhl["low_clouds_tp"], ~mhl["low_clouds_tp_thin"] )
 
     mhl["all_clouds_tp_thin"] = np.logical_and(
         mhl["clouds_tp"],
         np.logical_and(match_obj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>=0,
-                       match_obj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']<=0.225))
+                       match_obj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km'] <= 0.225))
     mhl["all_clouds_tp_not_thin"] = np.logical_and(
         mhl["clouds_tp"], ~mhl["all_clouds_tp_thin"] )
 

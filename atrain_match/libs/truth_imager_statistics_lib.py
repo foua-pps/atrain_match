@@ -351,7 +351,7 @@ def  get_lwp_diff_inner_cloudsat(aObj, val_subset, wide_selection=False):
         # exclude not seen in GEOPROF
         selection = np.logical_and(selection, np.bitwise_and(np.right_shift(aObj.cloudsat.RVOD_CWC_status, 0), 10)==0)  # clear geoprof
         # exclude cloudsat ice water path
-        selection = np.logical_and(selection, aObj.cloudsat.RVOD_ice_water_path<=0)
+        selection = np.logical_and(selection, aObj.cloudsat.RVOD_ice_water_path <= 0)
 
     selection = np.logical_and(val_subset, selection)
     lwp_diff = aObj.imager.cpp_lwp - aObj.cloudsat.RVOD_liq_water_path
@@ -361,7 +361,7 @@ def  get_lwp_diff_inner_cloudsat(aObj, val_subset, wide_selection=False):
                                aObj.cloudsat.LO_RVOD_liquid_water_path>=0)
     selection1 = np.logical_and(selection1, aObj.imager.cpp_phase == 1)
     selection1 = np.logical_and(selection1, aObj.cloudsat.cloud_fraction >0)
-    # selection = np.logical_and(selection, aObj.imager.fractionofland <=0)
+    # selection = np.logical_and(selection, aObj.imager.fractionofland <= 0)
     selection1 = np.logical_and(val_subset, selection1)
     lwp_diff_lo = aObj.imager.cpp_lwp - aObj.cloudsat.LO_RVOD_liquid_water_path
     lwp_diff_lo = lwp_diff_lo[selection1]

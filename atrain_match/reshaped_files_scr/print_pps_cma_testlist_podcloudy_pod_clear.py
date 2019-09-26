@@ -76,7 +76,7 @@ def print_common_stats(match_calipso, use, name_dict, mints, maxts, surface_type
     # print np.sum(isCalipsoSnowIce)
     isCalipsoNotSnowIce = np.logical_and(
         isCalipsoClear,
-        match_calipso.calipso.all_arrays['nsidc_surface_type']<=0)
+        match_calipso.calipso.all_arrays['nsidc_surface_type'] <= 0)
     isClearPPS = np.logical_or(np.equal(match_calipso.imager.cloudmask, 3),
                                    np.equal(match_calipso.imager.cloudmask, 0))
     isCloudyPPS = np.logical_or(np.equal(match_calipso.imager.cloudmask, 1),

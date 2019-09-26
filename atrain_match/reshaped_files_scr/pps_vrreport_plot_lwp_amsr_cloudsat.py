@@ -83,7 +83,7 @@ def do_the_printing(aObj, name):
         lon = aObj.cloudsat.all_arrays["longitude"]
         lat = aObj.cloudsat.all_arrays["latitude"]
         conditions["use"] = use.copy()
-        conditions["no_cloudsat_iwp"] = aObj.cloudsat.RVOD_ice_water_path<=0
+        conditions["no_cloudsat_iwp"] = aObj.cloudsat.RVOD_ice_water_path <= 0
         conditions["no_cloudsat_precip"] = np.bitwise_and(np.right_shift(aObj.cloudsat.RVOD_CWC_status, 2), 1)==0
         conditions["geoprof_cloudy"] = np.bitwise_and(np.right_shift(aObj.cloudsat.RVOD_CWC_status, 0), 10)==0
         conditions["without_zeros"] = np.logical_and(aObj.imager.cpp_lwp>0,

@@ -41,17 +41,17 @@ def get_lwp_diff_inner(aObj, val_subset, threshold=LWP_THRESHOLD):
 
      Returns array with the differences for used selected pixels.
     """
-    use_sea = np.logical_or(aObj.imager.fractionofland <=0,
-                            aObj.amsr.imager_linnum_nneigh <=0)  # might have less than 8 neighbours
+    use_sea = np.logical_or(aObj.imager.fractionofland <= 0,
+                            aObj.amsr.imager_linnum_nneigh <= 0)  # might have less than 8 neighbours
     use_phase = np.logical_or(aObj.imager.cpp_phase == 1,
-                              aObj.amsr.imager_linnum_nneigh <=0)  # might have less than 8 neighbours
+                              aObj.amsr.imager_linnum_nneigh <= 0)  # might have less than 8 neighbours
     # exclude very high values
     aObj.imager.cpp_lwp[aObj.imager.cpp_lwp>LWP_THRESHOLD_CPP] = -9
 
     use_lwp = np.logical_or(aObj.imager.cpp_lwp>=0,
-                            aObj.amsr.imager_linnum_nneigh <=0)  # might have less than 8 neighbours
+                            aObj.amsr.imager_linnum_nneigh <= 0)  # might have less than 8 neighbours
     use_lwp_upper = np.logical_or(aObj.imager.cpp_lwp<LWP_THRESHOLD_CPP,
-                                  aObj.amsr.imager_linnum_nneigh <=0)
+                                  aObj.amsr.imager_linnum_nneigh <= 0)
 
     # use = use_sea
     use = np.logical_and(use_sea, use_phase)

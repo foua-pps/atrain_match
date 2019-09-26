@@ -453,7 +453,7 @@ def add_5km_variables_to_1km(calipso1km, calipso5km, CALIPSO_version):
     calipso1km.cloud_fraction[
         isCloudOnlyIn5km] = 0.15
     if CALIPSO_version == 4:
-        isCloudOnlyIn300m = np.logical_and(calipso1km.cloud_fraction<=0,
+        isCloudOnlyIn300m = np.logical_and(calipso1km.cloud_fraction <= 0,
                                            cfc_single_shot_1km_from_5km_file>0)
         calipso1km.cloud_fraction[
             isCloudOnlyIn300m] = cfc_single_shot_1km_from_5km_file[isCloudOnlyIn300m]
