@@ -34,6 +34,7 @@ import atrain_match.config as config
 ATRAIN_MATCH_NODATA = config.NODATA
 from atrain_match.utils.runutils import do_some_geo_obj_logging
 
+
 def get_satid_datetime_orbit_from_fname_cci(imager_filename):
     # Get satellite name, time, and orbit number from imager_file
     # imager_file = "20080613002200-ESACCI-L2_CLOUD-CLD_PRODUCTS-IMAGERGAC-NOAA18-fv1.0.nc"
@@ -53,6 +54,7 @@ def get_satid_datetime_orbit_from_fname_cci(imager_filename):
              "ppsfilename":None}
     values['basename'] = values["satellite"] + "_" + values["date"] + "_" + values["time"] + "_" + values["orbit"]
     return values
+
 
 def daysafter4713bc_to_sec1970(bcdate_array):
     """Translating days after 4713bc 12:00 to sec since 1970
@@ -75,6 +77,7 @@ def daysafter4713bc_to_sec1970(bcdate_array):
     sec_1970 = calendar.timegm(the_time.timetuple()) + the_time.microsecond/(1.0*10**6)
     sec_1970_array = 24*60*60*(bcdate_array - bcdate) + sec_1970
     return sec_1970_array
+
 
 def cci_read_all(filename):
     """Read geolocation, angles info, ctth, and cloudtype
@@ -117,6 +120,7 @@ def read_cci_cma(cci_nc):
     # ctype.landseaflag = cci_nc.variables['lsflag'][::]
     return cma
 
+
 def read_cci_angobj(cci_nc):
     """Read angles info from filename
     """
@@ -125,6 +129,8 @@ def read_cci_angobj(cci_nc):
     my_angle_obj.sunz.data = cci_nc.variables['solar_zenith_view_no1'][::]
     my_angle_obj.azidiff = None  # cci_nc.variables['rel_azimuth_view_no1']??
     return my_angle_obj
+
+
 def read_cci_phase(cci_nc):
     """Read angles info from filename
     """
@@ -138,8 +144,8 @@ def read_cci_phase(cci_nc):
     # print phase
     return cpp_obj
 
-def read_cci_geoobj(cci_nc):
 
+def read_cci_geoobj(cci_nc):
 
     """Read geolocation and time info from filename
     """
@@ -184,6 +190,7 @@ def read_cci_geoobj(cci_nc):
     do_some_geo_obj_logging(cloudproducts)
     return  cloudproducts
 
+
 def read_cci_ctth(cci_nc):
     """Read cloud top: temperature, height and pressure from filename
     """
@@ -196,7 +203,6 @@ def read_cci_ctth(cci_nc):
 
     logger.info("Setting ctth for non cloudy pixels do nodata ...")
     cth_data[cci_nc.variables['cc_total'][::]<0.5]= ATRAIN_MATCH_NODATA
-
 
     cth_corr = cci_nc.variables['cth_corrected'][::]
     if hasattr(cth_corr, 'mask'):
@@ -236,7 +242,6 @@ def read_cci_ctth(cci_nc):
     logger.debug("Setting ctth for non cloudy pixels do nodata ...")
     ctp_data[cci_nc.variables['cc_total'][::]<0.5]= ATRAIN_MATCH_NODATA
     ctth.pressure = ctp_data
-
 
     return ctth
 

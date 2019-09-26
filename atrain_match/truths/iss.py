@@ -33,6 +33,7 @@ import time
 import datetime
 import calendar
 
+
 def get_iss(filename):
     # Read ISS Radar data for calipso something is done in this function:
     limit = 0.02
@@ -100,8 +101,6 @@ def get_iss(filename):
     iss.validation_height[iss.cloud_fraction < 0.5] = -9  # should not be needed
     return iss
 
-
-
 scip_these_larger_variables_until_needed_iss = {
         # if any of these are needed remove them from the dictionary!
         # might need more work as they are 3D or 4D variables.
@@ -111,6 +110,8 @@ scip_these_larger_variables_until_needed_iss = {
         "Attenuated_Total_Color_Ratio_Statistics_Fore_FOV": True,
         "Volume_Depolarization_Ratio_Statistics_1064_Fore_FOV": True,
         }
+
+
 def read_iss(filename):
     import h5py
     import pdb, sys
@@ -184,7 +185,6 @@ def match_iss_imager(iss, cloudproducts, SETTINGS):
     return retv
 
 
-
 def reshape_iss(issfiles, imager, SETTINGS):
     import sys
     imager_end = imager.sec1970_end
@@ -205,7 +205,6 @@ def reshape_iss(issfiles, imager, SETTINGS):
     iss = iss.extract_elements(starti=startBreak,
                                endi=endBreak)
     return iss
-
 
 if __name__ == "__main__":
     pass

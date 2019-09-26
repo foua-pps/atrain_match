@@ -25,6 +25,7 @@ from statistics.orrb_stat_class import OrrbStats
 import numpy as np
 # -----------------------------------------------------
 
+
 def bias_corrected_rms(rms, bias, N):
     # ie formula should be bcRMS= sqrt(RMS^2-c*bias^2),
     # where c=N/(N-1). However our Ns are usually large
@@ -46,7 +47,6 @@ class CloudLwpStats(OrrbStats):
         mean_error_amsr_all_sum = self.ac_data["mean_error_amsr_all_sum"]
         rms_error_amsr_all_sum = self.ac_data["rms_error_amsr_all_sum"]
 
-
         self.amsr_all_samples = amsr_all_samples
         self.bias_amsr_all = np.divide(
                 mean_error_amsr_all_sum, amsr_all_samples )
@@ -57,7 +57,6 @@ class CloudLwpStats(OrrbStats):
                 self.rms_amsr_all,
                 self.bias_amsr_all,
                 amsr_all_samples)
-
 
     def printout(self):
         lines = []
@@ -70,7 +69,6 @@ class CloudLwpStats(OrrbStats):
         lines.append("bc-RMS error total cases: %.1f" % self.bcrms_amsr_all)
 
         return lines
-
 
 if __name__ == "__main__":
     stats = CloudTopStats()

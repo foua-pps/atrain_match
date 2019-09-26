@@ -42,7 +42,6 @@ CALIPSO_QUAL_VALUES = dict(none=0,
                            medium=2,
                            high=3)
 
-
 #  CPP cph value meanings, from v2014
 CPP_PHASE_VALUES = dict(liquid=1,
                         ice=2,
@@ -57,14 +56,11 @@ CPP_PHASE_VALUES_v2012 = dict(no_cloud=0,
                         uncertain=6,
                         no_observation=-1)
 
-
 #  Cloud type phase value equivalents
 CTYPE_PHASE_BITS = {'Not processed or undefined': 1,
                     'Water': 2,
                     'Ice': 4,
                     'Tb11 below 260K': 8}
-
-
 
 
 def get_bits(value, bits, shift=False):
@@ -88,6 +84,7 @@ def get_bits(value, bits, shift=False):
     if shift:
         return selected >> min(bits)
     return selected
+
 
 def get_calipso_phase_inner(features, qual_min=CALIPSO_QUAL_VALUES['medium'],
                             max_layers=1, same_phase_in_top_three_lay=True):
@@ -119,14 +116,11 @@ def get_calipso_phase_inner(features, qual_min=CALIPSO_QUAL_VALUES['medium'],
     # Don't care about pixels with lower than *qual_min* quality
     return np.ma.array(phase, mask=qual < qual_min)
 
-
-
     # from atrain_match.utils.plotting import distribution_map
     # fig = distribution_map(lon, lat)
     # fig.suptitle("Distribution of valid pixels in cloud phase validation\n" +
     #              "Number of Pixels: %d" % lon.size)
     # fig.savefig('cph_distribution_all.pdf')
-
 
 if __name__ == '__main__':
     pass

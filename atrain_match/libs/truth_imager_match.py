@@ -59,7 +59,6 @@ analysis program has been complemented with the following:
 Updated 20190913
 Nina
 
-
 """
 
 # change log i found in git
@@ -101,6 +100,7 @@ from atrain_match.truths.calipso import (  # check_total_optical_depth_and_warn,
                             adjust_5km_to_1km_resolution)
 from atrain_match.matchobject_io import (write_truth_imager_match_obj,
                             read_truth_imager_match_obj)
+
 
 class ppsFiles(object):
     def __init__(self, file_name_dict):
@@ -153,6 +153,7 @@ def get_time_list(cross_time, time_window, delta_t_in_seconds):
             tobj2 = tobj2 - delta_t
     return tlist
 
+
 def find_closest_nwp_file(cloudproducts, AM_PATHS, values, SETTINGS):
     date_time = datetime.fromtimestamp((cloudproducts.sec1970_end*0.5 +
                                         cloudproducts.sec1970_start*0.5), my_tz.utc)
@@ -175,6 +176,7 @@ def find_closest_nwp_file(cloudproducts, AM_PATHS, values, SETTINGS):
                 return tmplist[0]
     return None
 
+
 def find_truth_files_inner(date_time, time_window, AM_PATHS, values, truth='calipso'):
     """Find the matching Calipso file"""
     tlist = get_time_list(date_time, time_window, 600)
@@ -191,6 +193,7 @@ def find_truth_files_inner(date_time, time_window, AM_PATHS, values, truth='cali
         logger.debug("globbing" + os.path.join(calipso_dir, calipso_file_pattern))
         flist.extend([ s for s in tmplist if s not in flist ])
     return flist
+
 
 def get_satid_datetime_orbit_from_fname(filename, SETTINGS, cross=None, as_oldstyle=False):
     from atrain_match.imager_cloud_products.read_cloudproducts_and_nwp_pps import get_satid_datetime_orbit_from_fname_pps
@@ -234,6 +237,7 @@ def insert_info_in_filename_or_path(file_or_name_path, values, datetime_obj=None
         return file_or_name_path
     name = datetime_obj.strftime(file_or_name_path)
     return name
+
 
 def find_truth_files(date_time, AM_PATHS, SETTINGS, values, truth='calipso'):
     my_sec_THR = SETTINGS['sec_timeThr']
@@ -284,6 +288,8 @@ def find_radiance_file(cross, AM_PATHS):
         raise MatchupError("No dir or file found with radiance data!\n" +
                            "Searching for %s %s" % (AM_PATHS['radiance_dir'], AM_PATHS['radiance_file']))
     return found_file, tobj
+
+
 def find_cci_cloud_file(cross, AM_PATHS):
     found_file, tobj= find_imager_file(cross,
                                       AM_PATHS['cci_dir'],
@@ -292,6 +298,8 @@ def find_cci_cloud_file(cross, AM_PATHS):
         raise MatchupError("No dir or file found with cci cloud data!\n" +
                            "Searching under %s" % AM_PATHS['cci_dir'])
     return found_file, tobj
+
+
 def find_oca_cloud_file(cross, AM_PATHS):
     found_file, tobj= find_imager_file(cross,
                                       AM_PATHS['oca_dir'],
@@ -300,6 +308,8 @@ def find_oca_cloud_file(cross, AM_PATHS):
         raise MatchupError("No dir or file found with oca cloud data!\n" +
                            "Searching under %s" % AM_PATHS['oca_dir'])
     return found_file, tobj
+
+
 def find_maia_cloud_file(cross, AM_PATHS):
     found_file, tobj= find_imager_file(cross,
                                        AM_PATHS['maia_dir'],
@@ -308,6 +318,7 @@ def find_maia_cloud_file(cross, AM_PATHS):
         raise MatchupError("No dir or file found with maia cloud data!\n" +
                            "Searching under %s" % AM_PATHS['maia_dir'])
     return found_file, tobj
+
 
 def find_patmosx_cloud_file(cross, AM_PATHS):
     found_file, tobj= find_imager_file(cross,
@@ -385,6 +396,7 @@ def require_h5(files, SETTINGS):
             raise ValueError("File format of %r not recognized" % f)
     return h5_files
 
+
 def get_pps_file(imager_file, AM_PATHS, values, type_of_file, file_dir,
                  OnlyPrintInDebugMode=False,
                  FailIfRequestedAndMissing=False):
@@ -415,6 +427,7 @@ def get_pps_file(imager_file, AM_PATHS, values, type_of_file, file_dir,
             logger.info("No %s file found corresponding to %s.", type_of_file, imager_file)
             return None
 
+
 def check_cfc_configuration(file_name_dict, SETTINGS):
     if  (file_name_dict['cma'] is None and
          file_name_dict['cloudtype'] is None and
@@ -439,6 +452,7 @@ def check_cfc_configuration(file_name_dict, SETTINGS):
             "\n\tError: USE_CMAPROB_FOR_CFC_STATISTICS=True, but..."
             "\n\t... no cmaprob file in atrain_match.cfg")
         raise MatchupError("Configure problems, see messages above.")
+
 
 def find_files_from_imager(imager_file, AM_PATHS, SETTINGS, as_oldstyle=False):
     """
@@ -527,6 +541,7 @@ def find_files_from_imager(imager_file, AM_PATHS, SETTINGS, as_oldstyle=False):
     ppsfiles = ppsFiles(file_name_dict)
     return  ppsfiles
 
+
 def get_cloudsat_matchups(cloudsat_files, cloudsat_files_lwp, cloudproducts, SETTINGS):
     """
     Read Cloudsat data and match with the given PPS data.
@@ -548,6 +563,7 @@ def get_cloudsat_matchups(cloudsat_files, cloudsat_files_lwp, cloudproducts, SET
     cl_matchup = match_cloudsat_imager(cloudsat, cloudproducts, SETTINGS)
     return cl_matchup
 
+
 def get_iss_matchups(iss_files, cloudproducts, SETTINGS):
     """
     Read Iss data and match with the given PPS data.
@@ -555,6 +571,7 @@ def get_iss_matchups(iss_files, cloudproducts, SETTINGS):
     iss = reshape_iss(iss_files, cloudproducts, SETTINGS)
     cl_matchup = match_iss_imager(iss, cloudproducts, SETTINGS)
     return cl_matchup
+
 
 def get_amsr_matchups(amsr_files, cloudproducts, SETTINGS):
     """
@@ -564,6 +581,7 @@ def get_amsr_matchups(amsr_files, cloudproducts, SETTINGS):
     am_matchup = match_amsr_imager(amsr, cloudproducts, SETTINGS)
     return am_matchup
 
+
 def get_synop_matchups(synop_files, cloudproducts, SETTINGS):
     """
     Read Synop data and match with the given PPS data.
@@ -572,6 +590,7 @@ def get_synop_matchups(synop_files, cloudproducts, SETTINGS):
     synop_matchup = match_synop_imager(synop, cloudproducts, SETTINGS)
     return synop_matchup
 
+
 def get_mora_matchups(mora_files, cloudproducts, SETTINGS):
     """
     Read Mora data and match with the given PPS data.
@@ -579,7 +598,6 @@ def get_mora_matchups(mora_files, cloudproducts, SETTINGS):
     mora = reshape_mora(mora_files, cloudproducts, SETTINGS)
     mora_matchup = match_mora_imager(mora, cloudproducts, SETTINGS)
     return mora_matchup
-
 
 
 def get_calipso_matchups(calipso_files, values,
@@ -691,15 +709,22 @@ def get_calipso_matchups(calipso_files, values,
     ca_matchup = match_calipso_imager(values, calipso, calipso_aerosol,
                                       cloudproducts, SETTINGS)
     return ca_matchup
+
+
 def read_cloud_cci(imager_file):
     from atrain_match.imager_cloud_products.read_cloudproducts_cci import cci_read_all
     return cci_read_all(imager_file)
+
+
 def read_cloud_oca(imager_file):
     from atrain_match.imager_cloud_products.read_cloudproducts_oca import oca_read_all
     return oca_read_all(imager_file)
+
+
 def read_cloud_maia(imager_file):
     from atrain_match.imager_cloud_products.read_cloudproducts_maia import maia_read_all
     return maia_read_all(imager_file)
+
 
 def read_cloud_patmosx(imager_file, cross, SETTINGS):
     from atrain_match.imager_cloud_products.read_cloudproducts_patmosx import patmosx_read_all
@@ -709,6 +734,7 @@ def read_cloud_patmosx(imager_file, cross, SETTINGS):
 def read_pps_data(pps_files, imager_file, SETTINGS):
     from atrain_match.imager_cloud_products.read_cloudproducts_and_nwp_pps import pps_read_all
     return pps_read_all(pps_files, imager_file, SETTINGS)
+
 
 def get_additional_calipso_files_if_requested(calipso_files, SETTINGS):
     import glob
@@ -899,6 +925,7 @@ def add_additional_clousat_calipso_index_vars(match_clsat, match_calipso):
     """
     return match_clsat, match_calipso
 
+
 def add_modis_lvl2_clousat_(match_clsat, match_calipso):
     # add modis lvl2 to cloudsat
     if match_clsat is not None and match_calipso is not None:
@@ -1013,7 +1040,6 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
         raise MatchupError(
             "Couldn't find any matching CALIPSO/CLoudSat/ISS data")
 
-
     # STEP 3 Read imager data:
     if (SETTINGS['PPS_VALIDATION'] ):
         cloudproducts =read_pps_data(pps_files, imager_file, SETTINGS)
@@ -1098,7 +1124,6 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
           and mora_matchup is None):
         raise MatchupError("No matches with any truth.")
 
-
     # Get satellite name, time, and orbit number from imager_file
     date_time = values["date_time"]
     # basename = '_'.join(os.path.basename(imager_file).split('_')[:4])
@@ -1179,7 +1204,6 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
     cloudsat_matchup, calipso_matchup = add_additional_clousat_calipso_index_vars(cloudsat_matchup, calipso_matchup)
     cloudsat_matchup, calipso_matchup, iss_matchup = add_elevation_corrected_imager_ctth(cloudsat_matchup, calipso_matchup, iss_matchup, SETTINGS)
 
-
     # imager_name
     imager_obj_name = 'pps'
     if SETTINGS['CCI_CLOUD_VALIDATION']:
@@ -1217,6 +1241,7 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
             'basename': basename,
             'values':values}
 
+
 def check_if_got_all_match_files(cross, AM_PATHS, SETTINGS):
     values = {}
     values["satellite"] = cross.satellite1.lower()
@@ -1238,6 +1263,7 @@ def check_if_got_all_match_files(cross, AM_PATHS, SETTINGS):
     # If no reshaped file where missing, return true:
     return True
 
+
 def run(cross, AM_PATHS, SETTINGS, reprocess=False):
     """
     The main work horse.
@@ -1247,5 +1273,4 @@ def run(cross, AM_PATHS, SETTINGS, reprocess=False):
     # Match the data that we need:
     if reprocess or not check_if_got_all_match_files(cross, AM_PATHS, SETTINGS):
         matchup_results = get_matchups_from_data(cross, AM_PATHS, SETTINGS)
-
 

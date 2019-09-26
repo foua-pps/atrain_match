@@ -20,6 +20,8 @@ Configuration file for ``atrain_match``.
 Configuration options not meant ot be changed.
 The user configurable options are set in atrain_match.cfg
 """
+
+
 def str2bool(v):
   return str(v).lower() in ("yes", "true", "t", "1")
 import os
@@ -83,7 +85,6 @@ for mode in list(ALLOWED_MODES):
   for DNT in ['_DAY', '_NIGHT', '_TWILIGHT']:
     ALLOWED_MODES.append(mode + DNT)
 
-
 COMPRESS_LVL = 6  # : Compresssion level for generated matched files (h5)
 NODATA = -9
 #  Recommended cloud threshold for the CloudSat cloud mask. In 5km data this
@@ -103,7 +104,4 @@ PPS_FORMAT_2012_OR_EARLIER = False
 #  Surfaces for which statistics should be summarized
 SURFACES = PROCESS_SURFACES
 DNT_FLAG = ['ALL', 'DAY', 'NIGHT', 'TWILIGHT']
-
-
-
 

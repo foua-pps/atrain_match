@@ -72,7 +72,6 @@ def plot_ct_table2(match_calipso):
                            match_calipso.calipso.all_arrays['layer_top_pressure'][:, 0]>0)], 0.1)
 
 
-
 def plot_ct_table4(match_calipso, use_in=None):
 
     from utils.get_flag_info import get_calipso_clouds_of_type_i
@@ -94,6 +93,7 @@ def plot_ct_table4(match_calipso, use_in=None):
             these = np.logical_and(is_type_i, pps_ok)
             print ("%3.1f"%(np.sum(these)*1.0/N*100)).rjust(5, ' '),
         print cc_type_name[type_i]
+
 
 def plot_ct_table5(match_calipso, use_in=None):
 
@@ -155,8 +155,6 @@ def table_21_do_for_atbd(match_calipso):
     for use_i, name in zip( [ all_dnt_flag, day_flag, night_flag, twilight_flag ],
                           ["all", "day", "night", "twilight"]):
 
-
-
         use_this = np.logical_and(use, use_i)
         pps_cirrus_i = np.logical_and(pps_cirrus, use_this)
         cirrus_clouds_i = np.logical_and(cirrus_clouds, use_this)
@@ -200,7 +198,6 @@ def table_21_do_for_atbd(match_calipso):
 # 72.9   69.0   62.3   (44.5)   48.8   78.2   2.7   22.8
 # 67.3   60.2   62.2   (51.9)   36.0   69.9   16.7  33.6
 
-
 # Comparing appel and pears in a fair way.
 # a)
 # POD low medium high FAR low medium high
@@ -213,15 +210,10 @@ def table_21_do_for_atbd(match_calipso):
 # b) Split pps cirrus on pressure => pod high 30% (nows it is cirrus, predict it a bit to low) Already there in CTTH validaion
 # c) Make treat all cirrus-medium and cirrus-high as correct => Gives impression always good to put cirrus. (Hides the fact that cirrus class is really doing ok!)
 
-
         # print "%3.1f %3.1f %3.1f (%3.1f) %3.1f %3.1f %3.1f %3.1f"%(POD_low, POD_medium, POD_high, POD_cirrus,
         #                                                        FAR_low, FAR_medium, FAR_high, FAR_cirrus)
         print "|%3.1f| %3.1f| %3.1f| (%3.1f)| %3.1f| %3.1f| %3.1f| %3.1f| %d"%(POD_low, POD_medium, POD_high, POD_cirrus,
                                                                                FAR_low, FAR_medium, FAR_high, FAR_cirrus, np.sum(use_this))
-
-
-
-
 
 # ----------------------------------------
 if __name__ == "__main__":
@@ -249,8 +241,6 @@ if __name__ == "__main__":
         ADIR + "/DATA_MISC/reshaped_files_jenkins_npp_modis/"
         "ATRAIN_RESULTS_NPP_C4/Reshaped_Files/npp/1km/2015/07/*/")
 
-
-
     ROOT_DIR_v2014 = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_modis_v2014_created20180920/Reshaped_Files_merged_caliop/eos2/1km/2010/*/*%s*h5")
     ROOT_DIR_v2018 = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_modis_v2018_created20180920/Reshaped_Files_merged_caliop/eos2/1km/2010/*/*%s*h5")
     ROOT_DIR = ROOT_DIR_v2014
@@ -264,7 +254,6 @@ if __name__ == "__main__":
     ROOT_DIR_v2014 = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_viirs_v2014_created20180914/Reshaped_Files_merged_caliop/npp/1km/2015/*/")
     ROOT_DIR_v2018 = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_viirs_v2018_created20180907/Reshaped_Files_merged_caliop/npp/1km/2015/*/")
     # files = glob(ROOT_DIR_v2018 + "*h5")
-
 
     match_calipso = read_files(files)
 

@@ -23,6 +23,7 @@ Extract and plot NWP profiles
 import logging
 logging.basicConfig(level=logging.INFO)
 
+
 def profile(field, y_coords, selection):
     """
     Produce a profile plot of *field* vs *y_coords* in *selection* pixels.
@@ -144,7 +145,6 @@ def generate_profile(grib_name, lon_name, lat_name, pressure=False,
 
     from pylab import show
     show()
-
 
 if __name__ == '__main__':
     from optparse import OptionParser

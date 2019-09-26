@@ -34,6 +34,8 @@ from utils.get_flag_info import (get_semi_opaque_info_pps2014,
                            get_calipso_medium_clouds,
                            get_calipso_low_clouds)
 from my_dir import ADIR
+
+
 def make_boxplot(match_calipso, name):
     low_clouds = get_calipso_low_clouds(match_calipso)
     high_clouds = get_calipso_high_clouds(match_calipso)
@@ -66,8 +68,6 @@ def make_boxplot(match_calipso, name):
     # height_c[np.abs(bias_3)<np.abs(bias)] = height_c3[np.abs(bias_3)<np.abs(bias)]
     # height_c[~thin_top] = height_c1[~thin_top]
     # height_c[thin_top] = height_c2[thin_top]
-
-
 
     use = np.logical_and(height_pps > - 1,
                          match_calipso.calipso.all_arrays['layer_top_altitude'][:, 0]>=0)
@@ -125,7 +125,6 @@ def make_boxplot(match_calipso, name):
     # plt.show()
 
 
-
 def investigate_nn_ctth():
     ROOT_DIR_GAC_nnNina = (ADIR + "/DATA_MISC/reshaped_files/"
                        "ATRAIN_RESULTS_GAC_nnNina/Reshaped_Files/noaa18/")
@@ -169,6 +168,7 @@ def investigate_nn_ctth():
         make_boxplot(match_calipso, name)
     # make_compare(caobj_dict['old'], caobj_dict['nn20161125'], 'test')
     # make_compare(caobj_dict['nn20161130'], caobj_dict['nn20161125'], 'test2')
+
 
 def investigate_nn_ctth_viirs():
     ROOT_DIR_v2014 = (
@@ -227,6 +227,7 @@ def investigate_nn_ctth_viirs():
             match_calipso += readCaliopImagerMatchObj(filename)
         caobj_dict[name] = match_calipso
         make_boxplot(match_calipso, name)
+
 
 def investigate_nn_ctth_modis_may():
    # november

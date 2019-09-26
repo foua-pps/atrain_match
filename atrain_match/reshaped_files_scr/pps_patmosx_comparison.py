@@ -24,7 +24,6 @@ import numpy as np
 from scipy import ndimage
 from matchobject_io import (read_files)
 
-
 from utils.stat_util import (my_hist,
                        my_iqr,
                        my_rms,
@@ -38,6 +37,8 @@ from utils.stat_util import (my_hist,
                        my_pe2500m,
                        my_pe5000m)
 from my_dir import ADIR
+
+
 def crop_object(match_obj, use_in=None):
     y =match_obj.imager.all_arrays['ctth_height']
     if 'ctth_height_corr' in match_obj.imager.all_arrays.keys() and   match_obj.imager.all_arrays['ctth_height_corr'] is not None:
@@ -93,6 +94,7 @@ def remove_missing(match_objPPS, match_objPATMOSX, common_index):
     """
     return use_pps, use_patmosx
 
+
 def print_stats(match_objPPS, match_objPATMOSX, use_pps, use_patmosx):
 
     # print(sorted(patmosx_profile_id[use_patmosx])[-10:])
@@ -138,7 +140,6 @@ if __name__ == "__main__":
     PPS14_ROOT_DIR = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_gac_v2014_created20180927/Reshaped_Files/noaa18/5km/2009/5km_noaa18_2009*cali*h5")
     CCI_ROOT_DIR = (ADIR + "/DATA_MISC/reshaped_files_cci_noaa18_2009/V2/*2009*h5")
 
-
     patmosx_files = glob(PATMOSX_ROOT_DIR)
 
     match_objPATMOSX = read_files(glob(PATMOSX_ROOT_DIR))
@@ -160,7 +161,6 @@ if __name__ == "__main__":
 
     use_pps_v14, use_patmosx = remove_missing(match_objPPS14, match_objPATMOSX, common_index)
     use_pps, use_cci = remove_missing(match_objPPS, match_objCCI, common_index)
-
 
     print("PPS-v2014")
     print_stats(match_objPPS14, match_objPATMOSX, use_pps_v14, use_patmosx)

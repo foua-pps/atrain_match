@@ -64,6 +64,7 @@ def get_mora_data(filename):
 
     return pd.DataFrame(data)
 
+
 def reshape_mora(morafiles, imager, SETTINGS):
     start_t = datetime.utcfromtimestamp(imager.sec1970_start)
     end_t = datetime.utcfromtimestamp(imager.sec1970_end)
@@ -81,6 +82,7 @@ def reshape_mora(morafiles, imager, SETTINGS):
     retv.cloud_base_height = np.array(panda_moras['cloud_base_height'])
     retv.sec_1970 = np.array([calendar.timegm(tobj.timetuple()) for tobj in panda_moras['date']])
     return retv
+
 
 def match_mora_imager(mora, cloudproducts, SETTINGS):
     retv = TruthImagerTrackObject('mora')

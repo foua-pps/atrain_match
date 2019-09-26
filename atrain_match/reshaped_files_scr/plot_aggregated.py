@@ -32,7 +32,6 @@ from scipy import histogram
 
 ROOT_DIR = "/local_disk/laptop/NowcastingSaf/FA/cloud_week_2013may/atrain_matchdata"
 
-
 files = glob(ROOT_DIR + "/2012/??/arctic_europe_1km/*h5")
 
 from matchobject_io import (readCaliopImagerMatchObj,
@@ -70,8 +69,6 @@ t11t12_cloud = np.ma.masked_where(isCloud == False, t11t12).compressed()
 t11t12_clear = np.ma.masked_where(isCloud == True, t11t12).compressed()
 t11t12_clear_ice = np.ma.masked_where(isClearIce == False, t11t12).compressed()
 t11t12_clear_water = np.ma.masked_where(isClearWater == False, t11t12).compressed()
-
-
 
 import matplotlib.pyplot as plt
 

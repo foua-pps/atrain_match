@@ -25,6 +25,7 @@ from statistics.orrb_stat_class import OrrbStats
 import numpy as np
 # -----------------------------------------------------
 
+
 def bias_corrected_rms(rms, bias, N):
     # ie formula should be bcRMS= sqrt(RMS^2-c*bias^2),
     # where c=N/(N-1). However our Ns are usually large
@@ -142,7 +143,6 @@ class CloudTopStats(OrrbStats):
             self.bias_cal_high[tc] = np.divide(
                 mean_error_cal_high_sum[tc], cal_high_samples[tc])
 
-
             self.rms_cal_low[tc] = math.sqrt(
                 np.divide(rms_error_cal_low_sum[tc], cal_low_samples[tc]))
             self.rms_cal_medium[tc]= math.sqrt(
@@ -158,7 +158,6 @@ class CloudTopStats(OrrbStats):
             self.mae_cal_high[tc] = np.divide(mae_error_cal_high_sum[tc],
                                               cal_high_samples[tc])
 
-
             self.bcrms_cal_low[tc] = bias_corrected_rms(
                 self.rms_cal_low[tc],
                 self.bias_cal_low[tc],
@@ -171,8 +170,6 @@ class CloudTopStats(OrrbStats):
                 self.rms_cal_high[tc],
                 self.bias_cal_high[tc],
                 cal_high_samples[tc])
-
-
 
     def printout(self):
         lines = []
@@ -225,7 +222,6 @@ class CloudTopStats(OrrbStats):
                 lines.append("Imager estimated POD-cloudy total-level cases: %3.2f" % self.estimate_pod_cloudy_all[tc])
                 lines.append("")
         return lines
-
 
 if __name__ == "__main__":
     stats = CloudTopStats()

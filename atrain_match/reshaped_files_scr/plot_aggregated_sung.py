@@ -46,6 +46,7 @@ blinn=True
 if blinn:
     my_title= my_title+"blinn"
 
+
 def get_specular_refl_phong(azidiff, sunz, satz, exponent=25):
     a=1.0
     B =np.where(azidiff >= 90, np.cos(np.radians(azidiff)), 0)#??
@@ -54,6 +55,7 @@ def get_specular_refl_phong(azidiff, sunz, satz, exponent=25):
     # refl = cosalpha**exponent
     # refl[refl==0] = -1
     return np.arccos(cosalpha)*180/np.pi
+
 
 def get_specular_refl_blinn_phong(azidiff, sunz, satz, exponent=4*25):
 
@@ -64,12 +66,12 @@ def get_specular_refl_blinn_phong(azidiff, sunz, satz, exponent=4*25):
     # cosalpha = (np.cos(np.radians(sunz))+np.cos(np.radians(satz)))/(2*(1+dev))
     return np.arccos(cosalpha)*180/np.pi
 
+
 def get_sunglint_info_pps2014(cloudtype_conditions):
 
     temp_val = (cloudtype_conditions >> 3 & 1)
     sunglint_flag = temp_val == 1
     return  sunglint_flag
-
 
 files = glob(ROOT_DIR)
 
@@ -94,7 +96,6 @@ for filename in files:
         print("!!!!!!!!!!!!!!!!!!!!!")
     """
     match_calipso = match_calipso + i_match_calipso
-
 
 isCloudfree = np.logical_and(
     match_calipso.calipso.all_arrays['number_layers_found'] == 0,
@@ -127,7 +128,6 @@ cloudtype_conditions = getattr(match_calipso.imager, 'cloudtype_conditions')
 
 # r09 = r06/r09
 
-
 isCloudfree = np.logical_and(isCloudfree, np.equal(nsidc_st, 0))
 isCloudfree = np.logical_and(isCloudfree, np.equal(igbp_st, 17))
 isPPSSG = np.logical_and(
@@ -137,15 +137,11 @@ isPPSSGn = np.logical_and(
     isCloudfree,
     ~get_sunglint_info_pps2014(cloudtype_conditions))
 
-
-
-
 import matplotlib.pyplot as plt
 
 degree_from_reflection = get_specular_refl_phong(azidiff, sunz, satz)
 if blinn:
     degree_from_reflection = get_specular_refl_blinn_phong(azidiff, sunz, satz)
-
 
 ppssg=get_sunglint_info_pps2014(cloudtype_conditions)
 phongsg = degree_from_reflection < 15
@@ -180,7 +176,6 @@ for selection, name in zip([both, neither, onlypps, onlyphong],
         100*n_ok_clear/n_clear,
         np.sum(selection))
     )
-
 
 xdat = degree_from_reflection[isCloudfree]
 ydat = r09[isCloudfree]
@@ -298,9 +293,5 @@ ax1.set_ylim([0, 100])
 plt.xlabel("Angle between mirror reflection and satellite")
 plt.ylabel("Reflectance R06 (%)")
 # plt.show()
-
-
-
-
 
 # plot for polar!

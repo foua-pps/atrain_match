@@ -24,6 +24,8 @@ import numpy as np
 import unittest
 from atrain_match.utils.pps_prototyping_util import  (get_warmest_or_coldest_index)
 from atrain_match.matchobject_io import CalipsoObject
+
+
 def get_warmest_index_old(t11, matched):
     from scipy.ndimage.filters import generic_filter
     row, col = np.indices(t11.shape)
@@ -45,8 +47,6 @@ def get_warmest_index_old(t11, matched):
     return new_row_matched, new_col_matched
 
 
-
-
 class test_prototyping_utils(unittest.TestCase):
 
     def setUp(self):
@@ -57,11 +57,8 @@ class test_prototyping_utils(unittest.TestCase):
                             [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 101],
                              [ 11, 2, 3, 4, 5, 6, 7, 8, 9, 101]])
 
-
         self.matched = {'row': np.array([0, 0, 1, 1, 2, 2, 3, 3, 4, 4]),
                         'col': np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])}
-
-
 
     def test_warmest(self):
         retv = get_warmest_or_coldest_index(self.t11, self.matched)
@@ -76,6 +73,8 @@ class test_prototyping_utils(unittest.TestCase):
         self.assertTrue((out_c[7:10] == [9, 9, 9]).all())
         self.assertTrue((out_c == out_c2).all())
         self.assertTrue((out_r == out_r2).all())
+
+
 def suite():
     """The suite for test_utils.
     """

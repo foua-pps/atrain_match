@@ -18,8 +18,6 @@
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
 # -*- coding: utf-8 -*-
 
-
-
 """Read all matched data and make some plotting of thresholds
 0 = not determined
 1 = clean marine
@@ -54,6 +52,7 @@ ROOT_DIR = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_modis_v2018
 files = glob(ROOT_DIR+"*.h5")
 from utils.get_flag_info import get_calipso_aerosol_of_type_i
 
+
 def get_pps_aerosl(match_calipso):
     sunz = match_calipso.imager.all_arrays['sunz']
     ts = match_calipso.imager.all_arrays['surftemp']
@@ -86,7 +85,6 @@ def get_pps_aerosl(match_calipso):
     feature9 = np.logical_or(sunz < 70, t11 - t12 < 0.0)
     # feature10 = ts>260
 
-
     is_cold_dust = np.logical_and(np.logical_and(feature4, feature5), np.logical_and(
         np.logical_and(feature2, feature9),
         np.logical_and(feature7, feature8)))
@@ -97,6 +95,7 @@ def get_pps_aerosl(match_calipso):
     safety_modis = np.logical_and(feature6, r13/np.cos(np.radians(sunz)) < 1.5)
     return np.logical_and(dust_singal, ctype < 5)#np.logical_and(dust_singal, feature6)
     # return dust_singal
+
 
 def get_calipso_cloudy_and_aerosl(match_calipso):
     from scipy import stats, ndimage
@@ -135,7 +134,6 @@ def is_pps_aerosol(match_calipso , atype=None):
 
    isCloudy, isClear, isAerosol_ncm, isMix, isDust, isCleanMarine = get_calipso_cloudy_and_aerosl(match_calipso)
 
-
    use = match_calipso.imager.all_arrays['sunz']<20000
    use_e = np.logical_and(use, match_calipso.imager.all_arrays['latitude']>-15)
    use_e = np.logical_and(use_e, match_calipso.imager.all_arrays['latitude']<45)
@@ -172,11 +170,9 @@ def is_pps_aerosol(match_calipso , atype=None):
            # the_clear = np.random.choice(isPPSAerosol[select_from], np.int(num_a))
            # num_of_clear_misclassed_as_aerosol = np.sum(the_clear)
 
-
            num_of_clouds_misclassed_as_aerosol2 = sum(np.logical_and(isCloudy, isPPSAerosol)[use_k])*num_a/num_cloud
            num_of_clear_misclassed_as_aerosol2 = sum(np.logical_and(isClear, isPPSAerosol)[use_k])*num_a/num_clear
            num_of_aerosol_detected = sum(np.logical_and(isAerosol, isPPSAerosol)[use_k])
-
 
            print (num_a,
                   num_of_clouds_misclassed_as_aerosol2,
@@ -197,6 +193,8 @@ def is_pps_aerosol(match_calipso , atype=None):
            print "POD aerosl", POD_aero
            print "FAR aerosl", FAR_aero2
            print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
+
+
 def make_optical_depth_hist(match_calipso):
    import matplotlib.pyplot as plt
    import numpy as np
@@ -235,7 +233,6 @@ for filename in files:
         for var_name in ['cma_dust', 'cma_aerosolflag', 'sunz', 'longitude', 'latitude']:
             match_calipso.imager.all_arrays[var_name] = newObj.imager.all_arrays[var_name]
 
-
     else:
         for var_name in ['number_layers_found',
                          'layer_top_altitude', 'feature_classification_flags']:
@@ -247,10 +244,7 @@ for filename in files:
             match_calipso.imager.all_arrays[var_name] = np.concatenate([match_calipso.imager.all_arrays[var_name],
                                                                 newObj.imager.all_arrays[var_name]])
 
-
 # make_optical_depth_hist(match_calipso)
 
 is_pps_aerosol(match_calipso)
-
-
 

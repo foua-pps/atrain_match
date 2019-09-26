@@ -33,6 +33,7 @@ from atrain_match.libs.extract_imager_along_track import imager_track_from_match
 import logging
 logger = logging.getLogger(__name__)
 
+
 def reshape_synop(synopfiles, imager, SETTINGS):
     start_t = datetime.utcfromtimestamp(imager.sec1970_start)
     end_t = datetime.utcfromtimestamp(imager.sec1970_end)
@@ -57,6 +58,7 @@ def reshape_synop(synopfiles, imager, SETTINGS):
 
     retv.sec_1970 = np.array([calendar.timegm(tobj.timetuple()) for tobj in panda_synops['date']])
     return retv
+
 
 def match_synop_imager(synop, cloudproducts, SETTINGS):
     retv = TruthImagerTrackObject(truth='synop')

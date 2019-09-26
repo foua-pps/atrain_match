@@ -29,6 +29,8 @@ from utils.get_flag_info import get_pixels_where_test_is_passed
 
 v2014 = False
 from my_dir import ADIR
+
+
 def print_common_stats(match_calipso, use, name_dict, mints, maxts, surface_type, illumination, basename_outfile="basename_outfile"):
     if v2014:
         sunz = 100*match_calipso.imager.all_arrays['sunz']
@@ -142,7 +144,6 @@ def print_common_stats(match_calipso, use, name_dict, mints, maxts, surface_type
     else:
         sys.exit()
 
-
     N_detected_clouds = np.sum(np.logical_and(isCalipsoCloudy[use],
                                               isCloudyPPS[use]))
     N_detected_clear = np.sum(np.logical_and(isCalipsoClear[use],
@@ -160,13 +161,11 @@ def print_common_stats(match_calipso, use, name_dict, mints, maxts, surface_type
     Kuipers = (N_detected_clouds*N_detected_clear -
                N_false_clouds*N_undetected_clouds)/Kuipers_devider
 
-
     NALL = N_clouds + N_clear
     PODcloudy = N_detected_clouds*1.0/N_clouds
     FARcloudy = N_false_clouds *1.0/np.sum(isCloudyPPS[use])
     PODclear = N_detected_clear*1.0/N_clear
     Hitrate = (N_detected_clear + N_detected_clouds)*1.0/NALL
-
 
     Num = np.sum(use)
     cfc = np.sum(isCalipsoCloudy[use])*1.0/Num
@@ -300,8 +299,6 @@ def print_common_stats(match_calipso, use, name_dict, mints, maxts, surface_type
     # print "N: %d POD-cloudy: %3.2f FAR-cloudy: %3.2f POD-clear %3.2f"%(
     #   Num, PODcloudy, FARcloudy , PODclear)
 
-
-
 ROOT_DIR = (ADIR + "/DATA_MISC/reshaped_files/"
             "global_modis_14th_created20170519/")
 ROOT_DIR_GAC = (ADIR + "/DATA_MISC/reshaped_files/"
@@ -367,7 +364,6 @@ for line in TEST_NAMEFILE:
         (name, list_nr, bit) = (list_of_line[1].replace('SM_ACMG_', ''), list_of_line[2].replace(', ', ''), list_of_line[3])
         var = 'cma_testlist' + list_nr
         name_dict[var][int(bit)] = name
-
 
 match_calipsoPPS = CalipsoImagerTrackObject()
 for filename in files:

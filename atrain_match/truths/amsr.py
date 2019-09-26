@@ -32,6 +32,8 @@ from atrain_match.utils.validate_lwp_util import LWP_THRESHOLD
 import logging
 logger = logging.getLogger(__name__)
 AMSR_RADIUS = 5.4e3  # 3.7e3 to include 5km pixels parly overlapping amsr-e footprint
+
+
 def get_amsr(filename):
 
     if ".h5" in filename:
@@ -58,6 +60,7 @@ def get_amsr(filename):
     # plt.savefig('map_test.png')
     return retv
 
+
 def read_amsr_h5(filename):
     retv = AmsrObject()
 
@@ -72,6 +75,7 @@ def read_amsr_h5(filename):
     if f:
         f.close()
     return retv
+
 
 def read_amsr_hdf4(filename):
     from pyhdf.SD import SD, SDC
@@ -142,7 +146,6 @@ def reshape_amsr(amsrfiles, imager, SETTINGS):
     amsr = amsr.extract_elements(starti=startBreak,
                                  endi=endBreak)
     return amsr
-
 
 
 def match_amsr_imager(amsr, cloudproducts, SETTINGS):

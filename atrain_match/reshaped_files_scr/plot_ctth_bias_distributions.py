@@ -45,12 +45,12 @@ print matplotlib.rcParams
 # rc('text.latex', preamble=r'\usepackage{times}')
 delta_h = 100.0
 
-
 from utils.get_flag_info import get_calipso_clouds_of_type_i
 from utils.get_flag_info import (get_semi_opaque_info_pps2014,
                            get_calipso_high_clouds,
                            get_calipso_medium_clouds,
                            get_calipso_low_clouds)
+
 
 class PlotAndDataObject(DataObject):
     def __init__(self):
@@ -105,6 +105,7 @@ class PlotAndDataObject(DataObject):
             'ok_modis': None,
             'ok_cma':None
         }
+
 
 def extract_data(match_obj, sat='cloudsat'):
     pltObj = PlotAndDataObject()
@@ -163,7 +164,6 @@ def extract_data(match_obj, sat='cloudsat'):
                 use_part, height_c<(3000+match_obj.calipso.all_arrays['elevation']))
             medium = np.logical_and(medium_clouds, use_part)
             high = np.logical_and(height_c > 8000, use_part)
-
 
         pltObj.cflag = match_obj.calipso.feature_classification_flags[::, 0]
 
@@ -224,7 +224,6 @@ def extract_data(match_obj, sat='cloudsat'):
         # for pressure scatter plot:
         # use_all = np.logical_and(use_all, ok_pressure)
 
-
         use_all = np.logical_and(use_all, match_obj.imager.all_arrays['warmest_t12']>-9)
         use_all = np.logical_and(use_all, match_obj.imager.all_arrays['coldest_t12']>-9)
         use_all = np.logical_and(use_all, match_obj.imager.all_arrays['psur']>-9)
@@ -264,6 +263,7 @@ def extract_data(match_obj, sat='cloudsat'):
     pltObj.ok_cma = np.logical_and( pltObj.ok_modis, pltObj.ok_cma_pps)
 
     return pltObj
+
 
 def print_stats(pltObj, month, day_strm, sat='CLOUDSAT_OR_CALIPSO'):
     pps_bias = pltObj.pps_bias
@@ -320,6 +320,7 @@ def print_stats(pltObj, month, day_strm, sat='CLOUDSAT_OR_CALIPSO'):
                                          len(bias_v[medium_print])*100/n_all,
                                          len(bias_v[high_print])*100/n_all)
 
+
 def print_data_for_figure_2(pltObj, month, day_str, sat='calipso'):
     out_filename = "%s/data_fig1_%s.txt"%(MYPATH, month)
     if sat.lower() in ["cloudsat"]:
@@ -368,6 +369,7 @@ def print_data_for_figure_2(pltObj, month, day_str, sat='calipso'):
     out_text = print_one(out_text, old_bias, use,  "PPS-v2014", "All")
     out_file_h.write(out_text)
     out_file_h.write("\n")
+
 
 def replot_figure2_from_saved_data(month):
     out_filename = "%s/data_fig1_%s.txt"%(MYPATH, month)
@@ -444,8 +446,6 @@ def replot_figure2_from_saved_data(month):
             bias_data[sat][cloudc][algorithm] = np.array([np.float(s) for s in data])[0]
         if '_median' in line:
             median_data[sat][cloudc][algorithm] = np.array([np.float(s) for s in data])[0]
-
-
 
     ax = fig.add_subplot(321)
     plt.subplots_adjust(wspace=0, hspace=0)
@@ -643,6 +643,7 @@ def plot_medium_bias_plot_from_saved_data(month):
         plot_one(ax, x_data, y_data, median_data, bias_data, std_data, "cloudsat", cloudc, "NN-AVHRR", " (e) ", maxx, maxy, True)
         plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_PLOTS/fig08_bias_median_%s_%s_e.pdf"%(cloudc, month), bbox_inches='tight')
 
+
 def make_profileplot(pltObj, month, day_str, sat='calipso'):
     print_stats(pltObj, month, day_str, sat=sat)
     print_data_for_figure_2(pltObj, month, day_str, sat=sat)
@@ -721,6 +722,7 @@ def make_profileplot(pltObj, month, day_str, sat='calipso'):
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_BOX_%s/ctth_bias_profile_%s_%s_%s.pdf"%(sat, day_str, month, sat))
     plt.close("all")
 
+
 def investigate_nn_ctth_modis_lvl2_cloudsat():
     day_str="01st"
     ROOT_DIR = (
@@ -743,6 +745,7 @@ def investigate_nn_ctth_modis_lvl2_cloudsat():
         make_profileplot(plt_obj_new, month=month, day_str=day_str, sat='cloudsat')
     make_profileplot(plt_obj, month=name, day_str=day_str, sat='cloudsat')
 
+
 def investigate_nn_ctth_modis_lvl2():
     day_str="01st"
     ROOT_DIR = (
@@ -764,15 +767,12 @@ def investigate_nn_ctth_modis_lvl2():
         make_profileplot(plt_obj_new, month=month, day_str=day_str, sat='calipso')
     make_profileplot(plt_obj, month=name, day_str=day_str, sat='calipso')
 
-
 if __name__ == "__main__":
     for month in ["02", "04", "06", "08", "10", "12", "020406081012"]:
         replot_figure2_from_saved_data(month)
         plot_medium_bias_plot_from_saved_data(month)
         print "hej"
 
-
     # investigate_nn_ctth_modis_lvl2_cloudsat()
     # investigate_nn_ctth_modis_lvl2()
-
 

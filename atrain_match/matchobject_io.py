@@ -30,6 +30,7 @@ import numpy as np
 import h5py
 from atrain_match.utils.common import write_match_objects
 
+
 class DataObject(object):
     """
     Class to handle data objects with several arrays.
@@ -116,7 +117,6 @@ class DataObject(object):
             if value is not None and len(value.shape) > 1 and value.shape[1] == 1:
                 self.all_arrays[key] = self.all_arrays[key].ravel()
 
-
         return self
 
     def mask_nodata(self, nodata):
@@ -163,6 +163,7 @@ class ExtractedImagerObject(DataObject):
             'sunz': None,
 
         }
+
 
 class ModisObject(DataObject):
     def __init__(self):
@@ -244,6 +245,7 @@ class CalipsoObject(DataObject):
             'cloudsat_index': None,
             }
 
+
 class CloudsatObject(DataObject):
     def __init__(self):
         DataObject.__init__(self)
@@ -277,6 +279,7 @@ class CloudsatObject(DataObject):
             'calipso_feature_classification_flags': None
                            }
 
+
 class IssObject(DataObject):
     def __init__(self):
         DataObject.__init__(self)
@@ -300,6 +303,7 @@ class IssObject(DataObject):
             'sky_condition_fore_fov': None,
         }
 
+
 class AmsrObject(DataObject):
     def __init__(self):
         DataObject.__init__(self)
@@ -313,6 +317,7 @@ class AmsrObject(DataObject):
             'sec_1970': None,
             'lwp': None}
 
+
 class MoraObject(DataObject):
     def __init__(self):
         DataObject.__init__(self)
@@ -323,6 +328,7 @@ class MoraObject(DataObject):
             'imager_pixnum': None,
             'cloud_base_height': None,
             'sec_1970': None}
+
 
 class SynopObject(DataObject):
     def __init__(self):
@@ -346,6 +352,7 @@ class SynopObject(DataObject):
             'dtemp': None,
             'sec_1970': None,
             'pressure': None}
+
 
 class TruthImagerTrackObject:
     def __init__(self, truth='calipso'):
@@ -473,6 +480,7 @@ def read_truth_imager_match_obj(filename, truth='calipso',
     h5file.close()
     return retv
 
+
 def read_files(files, truth='calipso', read_all=True, read_var=[]):
     tObj = read_truth_imager_match_obj(files.pop(), truth=truth)
     if len(files) > 0:
@@ -481,6 +489,8 @@ def read_files(files, truth='calipso', read_all=True, read_var=[]):
     return tObj
 
 # write matchup files
+
+
 def write_truth_imager_match_obj(filename, match_obj, SETTINGS=None, imager_obj_name = 'pps'):
     """
     Write *match_obj* to *filename*.

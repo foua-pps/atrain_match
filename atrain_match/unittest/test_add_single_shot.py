@@ -65,7 +65,6 @@ class test_addSingleShot(unittest.TestCase):
         self.obt5.feature_optical_depth_532[:, 0] = np.array([-9, -9, -9, -9, -9, -9, -9, 10.0, 0.3]).ravel()
         self.obt5.feature_classification_flags[:, 0] = np.array([-9, -9, -9, -9, -9, -9, -9, 2, 3]).ravel()
 
-
     def test_new_code(self):
         out1 = add_singleshot_to5km(self.obt5)
         out2 = add_singleshot_to5km_old(self.obt5)

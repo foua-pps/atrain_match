@@ -20,11 +20,12 @@
 # This program calculates basic statistics for the cloud type (CTY) product for
 # each month
 
-
 import numpy as np
 from statistics.orrb_stat_class import OrrbStats
 
 # -----------------------------------------------------
+
+
 class CloudTypeStats(OrrbStats):
 
     def do_stats(self):
@@ -66,11 +67,9 @@ class CloudTypeStats(OrrbStats):
                           pps_undetected_high)
         common_cloud_free = self.ac_data["n_clear_clear_cal"]
 
-
         pps_cirrus = (n_cirrus_low +
                       n_cirrus_medium_op + n_cirrus_medium_tp +
                       n_cirrus_high_op + n_cirrus_high_tp)
-
 
         Num_ct = (n_low_low + n_low_medium + n_low_high +
                   n_medium_low + n_medium_medium + n_medium_high +
@@ -106,8 +105,6 @@ class CloudTypeStats(OrrbStats):
             float(n_high_low + n_high_medium), N_high_pps)
         far_cirrus = 100.0 * np.divide(float(n_cirrus_low + n_cirrus_high_op + n_cirrus_medium_op ), N_cirrus_pps)
 
-
-
         low_fraction_pps_rel = np.divide(float(N_low_pps), Num_ct) * 100.0
         low_fraction_cal_rel = np.divide(float(N_low_cal), Num_ct) * 100.0
         medium_fraction_pps_rel = np.divide(float(N_medium_pps), Num_ct) * 100.0
@@ -124,8 +121,6 @@ class CloudTypeStats(OrrbStats):
         high_fraction_cal_abs = high_fraction_cal_rel * 0.01 * CFC_TRUTH
         cirrus_fraction_pps_abs = cirrus_fraction_pps_rel * 0.01 * CFC_PPS
 
-
-
         # Removed bc-RMS Not sure how ot interpret it
 
         # POD, FAR, HR and KSS calculations =============================================================
@@ -135,7 +130,6 @@ class CloudTypeStats(OrrbStats):
                 n_low_low + n_medium_medium + n_high_high +
                 n_cirrus_medium_tp + n_cirrus_high_tp),
             Num_ct)
-
 
         self.Num_cma = Num_cma
         self.common_cloud_free = common_cloud_free
@@ -223,7 +217,6 @@ class CloudTypeStats(OrrbStats):
         lines.append("")
 
         return lines
-
 
 if __name__ == "__main__":
     stats = CloudTypeStats()

@@ -51,6 +51,8 @@ tag_dict = {"old": "(a) PPS-v2014",
 
 }
 # https://stats.stackexchange.com/questions/278237/half-sample-mode-estimate-of-sample-of-weighted-data
+
+
 def half_sample_mode(x, already_sorted=False):
     if len(x) < 3:
         return np.mean(x)
@@ -68,8 +70,10 @@ def half_sample_mode(x, already_sorted=False):
     x_subset = sorted_x[smallest_range_idx : (smallest_range_idx + half_idx)]
     return half_sample_mode(x_subset, already_sorted=True)
 
+
 def my_iqr(data):
     return np.percentile(data, 75) - np.percentile(data, 25)
+
 
 def my_mode(bias):
     bmin = -40
@@ -134,7 +138,6 @@ def print_for_one(plt_obj, compare, truth='height_c'):
         skew(bias[use_i])#,
         # kurtosis(bias[use_i])
         )
-
 
     """
     print "%s & %d & %d & %d & %d & %d & %d & %d & %d & %d & %d &  %d & %d & %d & %d & %d &   \\\\"%(
@@ -206,13 +209,11 @@ def print_for_one(plt_obj, compare, truth='height_c'):
                                                       np.median(bias[use_medium]),
                                                       np.median(bias[use_high]))
 
-
     print "N   : %s %d %d %d  %d "%(compare_name,
                                     len(AE[use]),
                                     len(AE[use_low]),
                                     len(AE[use_medium]),
                                     len(AE[use_high]))
-
 
     print "MAE : %s & %3.1f& %3.1f& %3.1f & %3.1f\\\\ "%(compare_name, np.mean(AE[use]),
                                                 np.mean(AE[use_low]),
@@ -239,7 +240,6 @@ def print_for_one(plt_obj, compare, truth='height_c'):
                                                np.std(bias[use_low]),
                                                np.std(bias[use_medium]),
                                                np.std(bias[use_high])),
-
 
     print " & %3.1f & %3.1f & %3.1f &  %3.1f \\\\"%(skew(bias[use]),
                                      skew(bias[use_low]),
@@ -324,6 +324,8 @@ def print_for_one(plt_obj, compare, truth='height_c'):
         np.sum(np.logical_and(use_medium, np.abs(bias) > lim))*100.0/np.sum(use_medium),
         np.sum(np.logical_and(use_high, np.abs(bias) > lim))*100.0/np.sum(use_high))
     """
+
+
 def print_all(plt_obj_cali_new, plt_obj_csat_new, month):
 
     print "CALIOP height", month
@@ -356,6 +358,7 @@ def print_all(plt_obj_cali_new, plt_obj_csat_new, month):
     print_for_one(plt_obj_csat_new, 'height_nnmint')
     print_for_one(plt_obj_csat_new, 'height_nna1nt')
 
+
 def get_plot_object_nn_ctth_modis_lvl2_cloudsat(month):
     day_str="01st"
     ROOT_DIR = (
@@ -373,6 +376,7 @@ def get_plot_object_nn_ctth_modis_lvl2_cloudsat(month):
         plt_obj += extract_data(match_clsat_new, sat='cloudsat')
     return plt_obj
 
+
 def get_plot_object_nn_ctth_modis_lvl2(month):
     day_str="01st"
     ROOT_DIR = (
@@ -388,6 +392,7 @@ def get_plot_object_nn_ctth_modis_lvl2(month):
         match_calipso_new = readCaliopImagerMatchObj(filename)
         plt_obj += extract_data(match_calipso_new, sat='calipso')
     return plt_obj
+
 
 def do_the_printing():
 

@@ -25,6 +25,8 @@ from scipy import ndimage
 from matchobject_io import (readCaliopImagerMatchObj,
                             CalipsoImagerTrackObject)
 from my_dir import ADIR
+
+
 def get_clear_cloudy_vectors(match_calipso, use):#, both_have_ct):
     nlay =np.where(match_calipso.calipso.all_arrays['number_layers_found']>0, 1, 0)
     meancl=ndimage.filters.uniform_filter1d(nlay*1.0, size=3)
@@ -80,6 +82,7 @@ def get_clear_cloudy_vectors(match_calipso, use):#, both_have_ct):
     # print "N: %d POD-cloudy: %3.2f FAR-cloudy: %3.2f POD-clear %3.2f Max-time-diff %ds"%(# Part-CT-nodata: %3.2f"%(Num, PODcloudy, FARcloudy , PODclear, max_time_diff)# , part_nodata)
     print "%d"%(Num), "%3.2f"%(PODcloudy), "%3.2f"%(FARcloudy) , "%3.2f"%(PODclear), "%3.2f"%(FARclear), "%3.3f"%(Hitrate), "%3.3f"%(Kuipers), "%d"%(max_time_diff)
 
+
 def print_common_stats(match_calipsoMAIA, match_calipsoPPS, y_month, satellite, dnt='all'):
     pps_sec_1970 = match_calipsoPPS.calipso.all_arrays['sec_1970']
     maia_sec_1970 = match_calipsoMAIA.calipso.all_arrays['sec_1970']
@@ -93,9 +96,6 @@ def print_common_stats(match_calipsoMAIA, match_calipsoPPS, y_month, satellite, 
     max_lat_pps = np.max(pps_lat)
     min_lat_maia = np.min(maia_lat)
     max_lat_maia = np.max(maia_lat)
-
-
-
 
     maia_profile_id = match_calipsoMAIA.calipso.profile_id
     pps_profile_id = match_calipsoPPS.calipso.profile_id
@@ -142,7 +142,6 @@ def print_common_stats(match_calipsoMAIA, match_calipsoPPS, y_month, satellite, 
     use_pps = np.logical_and(use_pps, use_pps_same_profile)
     # print np.sum(use_maia), np.sum(use_pps)
 
-
     # both_have_ct = np.logical_and(match_calipsoMAIA.imager.all_arrays['cloudtype']<20,
     #                             match_calipsoPPS.imager.all_arrays['cloudtype']<200)
 
@@ -151,7 +150,6 @@ def print_common_stats(match_calipsoMAIA, match_calipsoPPS, y_month, satellite, 
         get_clear_cloudy_vectors(match_calipsoMAIA, use_maia)
         print "PPS", y_month, satellite, int(min(sunz[use_pps])), int(max(sunz[use_pps])),
         get_clear_cloudy_vectors(match_calipsoPPS, use_pps)#, both_have_ct)
-
 
 MAIA_ROOT_DIR = (ADIR + "/VALIDATIONS/MAIA/Reshaped_Files/"
                  "*/1km/")
@@ -169,7 +167,6 @@ for y_month in ['2012/06', '2012/07', '2012/08', '2012/10', '2015/1201', '2015/1
     for filename in pps_files:
         match_calipsoPPS += readCaliopImagerMatchObj(filename)
     satellite = 'Suomi-NPP'
-
 
     if y_month in ['2015/1201', '2015/1207']:
         satellite = 'Metop-B'

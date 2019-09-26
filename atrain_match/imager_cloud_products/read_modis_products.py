@@ -27,6 +27,8 @@ logger = logging.getLogger(__name__)
 from atrain_match.config import NODATA
 from atrain_match.libs.extract_imager_along_track import get_data_from_array
 ATRAIN_MATCH_NODATA = NODATA
+
+
 class MOD06Obj:
     # skeleton container for v2014 cloudtype
     def __init__(self):
@@ -36,6 +38,7 @@ class MOD06Obj:
         self.cloud_emissivity = None
         self.cloud_phase = None
         self.lwp = None
+
 
 def add_modis_06(ca_matchup, pps_imager_file, options):
 
@@ -60,6 +63,7 @@ def add_modis_06(ca_matchup, pps_imager_file, options):
     ca_matchup.modis.longitude_5km = get_data_from_array( modis_06.longitude, index_5km)
     return ca_matchup
 
+
 def find_modis_lvl2_file_from_pps(pps_imager_file, options):
     from atrain_match.libs.truth_imager_match import get_pps_file
     from imager_cloud_products.read_cloudproducts_and_nwp_pps import get_satid_datetime_orbit_from_fname_pps
@@ -68,6 +72,7 @@ def find_modis_lvl2_file_from_pps(pps_imager_file, options):
     logger.info("MODIS-C6 file:  %s", os.path.basename(modis_06_filename))
     return modis_06_filename
 
+
 def read_modis_h5(filename):
     h5file = h5py.File(filename, 'r')
     modis_06 = MOD06Obj()
@@ -75,7 +80,6 @@ def read_modis_h5(filename):
     modis_06.temperature = h5file['mod06']['Data Fields']['cloud_top_temperature_1km'].value
     modis_06.pressure = h5file['mod06']['Data Fields']['cloud_top_pressure_1km'].value
     modis_06.lwp = h5file['mod06']['Data Fields']['Cloud_Water_Path'].value
-
 
     h_gain = h5file['mod06']['Data Fields']['cloud_top_height_1km'].attrs['scale_factor']
     h_intercept = h5file['mod06']['Data Fields']['cloud_top_height_1km'].attrs['add_offset']

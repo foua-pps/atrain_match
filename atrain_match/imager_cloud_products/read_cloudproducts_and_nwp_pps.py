@@ -35,6 +35,8 @@ if config.RESOLUTION == 1:
     DSEC_PER_AVHRR_SCALINE = 1.0 / 6.  # Full scan period, i.e. the time
                                     # interval between two consecutive
                                     # lines (sec)
+
+
 def get_satid_datetime_orbit_from_fname_pps(imager_filename, as_oldstyle=False):
     # import runutils
     # satname, _datetime, orbit = runutils.parse_scene(imager_filename)
@@ -157,6 +159,7 @@ class AuxiliaryObj(object):
         self.elevation = None
         self.__dict__.update(array_dict)
 
+
 class SmallDataObject(object):
     def __init__(self):
         self.data=None
@@ -164,6 +167,8 @@ class SmallDataObject(object):
         self.intercept = 0.0
         self.no_data = 0.0
         self.missing_data = 0.0
+
+
 class ImagerAngObj(object):
     def __init__(self):
         self.satz = SmallDataObject()
@@ -171,6 +176,7 @@ class ImagerAngObj(object):
         self.satazimuth = SmallDataObject()
         self.sunazimuth = SmallDataObject()
         self.azidiff = SmallDataObject()
+
 
 class NewImagerData:
     def __init__(self):
@@ -181,6 +187,7 @@ class NewImagerData:
         self.missingdata = -999
         self.channel = []
 
+
 class ImagerChannelData:
     def __init__(self):
         self.channel = ""
@@ -189,6 +196,8 @@ class ImagerChannelData:
         self.intercept = 0.0
         self.SZA_corr_done = False
         self.data = None
+
+
 class CmaObj:
     # skeleton container for v2018 cma
     def __init__(self):
@@ -203,6 +212,7 @@ class CmaObj:
         self.cma_testlist4 = None  # new in v2018
         self.cma_testlist5 = None  # new in v2018
 
+
 class CtypeObj:
     # skeleton container for v2014 cloudtype
     def __init__(self):
@@ -211,6 +221,8 @@ class CtypeObj:
         self.ct_quality = None
         self.ct_conditions = None
         self.phaseflag = None  # v2012
+
+
 class CtthObj:
     # skeleton container for v2014 cloudtype
     def __init__(self):
@@ -219,6 +231,8 @@ class CtthObj:
         self.temperature = None
         self.pressure = None
         self.ctth_statusflag = None
+
+
 class CppObj:
     # skeleton container for v2018 cpp
     def __init__(self):
@@ -233,6 +247,8 @@ class CppObj:
         self.cpp_reff = None
 
 # def read_ctth_v2012 might be needed?
+
+
 def read_ctth_h5(filename):
     h5file = h5py.File(filename, 'r')
     ctth = CtthObj()
@@ -263,6 +279,7 @@ def read_ctth_h5(filename):
                  np.min(ctth.height), np.max(ctth.height), ctth.h_nodata)
     h5file.close()
     return ctth
+
 
 def read_ctth_nc(filename):
     pps_nc = netCDF4.Dataset(filename, 'r', format='NETCDF4')
@@ -296,6 +313,7 @@ def read_ctth_nc(filename):
     pps_nc.close()
     return ctth
 
+
 def read_cloudtype_h5(filename):
     h5file = h5py.File(filename, 'r')
     ctype = CtypeObj()
@@ -306,6 +324,7 @@ def read_cloudtype_h5(filename):
     h5file.close()
     return ctype
 
+
 def read_cloudtype_nc(filename):
     pps_nc = netCDF4.Dataset(filename, 'r', format='NETCDF4')
     ctype = CtypeObj()
@@ -315,6 +334,7 @@ def read_cloudtype_nc(filename):
     ctype.ct_quality = pps_nc.variables['ct_quality'][0, :, :]
     pps_nc.close()
     return ctype
+
 
 def read_cma_h5(filename):
     h5file = h5py.File(filename, 'r')
@@ -333,6 +353,7 @@ def read_cma_h5(filename):
     h5file.close()
     return cma
 
+
 def read_cmaprob_h5(filename, cma):
     h5file = h5py.File(filename, 'r')
     if cma is None:
@@ -348,6 +369,7 @@ def read_cmaprob_h5(filename, cma):
     h5file.close()
     return cma
 
+
 def read_cmaprob_nc(filename, cma):
     pps_nc = netCDF4.Dataset(filename, 'r', format='NETCDF4')
     if cma is None:
@@ -358,6 +380,7 @@ def read_cmaprob_nc(filename, cma):
     cma.cma_prob = pps_nc.variables['cmaprob'][0, :, :]
     pps_nc.close()
     return cma
+
 
 def read_cma_nc(filename):
     pps_nc = netCDF4.Dataset(filename, 'r', format='NETCDF4')
@@ -440,6 +463,7 @@ def read_imager_data_nc(pps_nc):
             imager_data.missing_data = fill_value
     return imager_data
 
+
 def read_pps_angobj_nc(pps_nc):
     """Read angles info from filename
     """
@@ -502,6 +526,7 @@ def read_pps_angobj_nc(pps_nc):
         angle_obj.satazimuth.data = angle_obj.satazimuth.data.data
     return angle_obj
 
+
 def read_pps_angobj_h5(filename):
     """Read angles info from filename
     """
@@ -550,6 +575,7 @@ def read_pps_angobj_h5(filename):
     h5file.close()
     return angle_obj
 
+
 def read_pps_geoobj_nc(pps_nc):
     """Read geolocation and time info from filename
     """
@@ -594,6 +620,7 @@ def read_pps_geoobj_nc(pps_nc):
     do_some_geo_obj_logging(all_imager_obj)
     return  all_imager_obj
 
+
 def read_pps_geoobj_h5(filename):
     """Read geolocation and time info from filename
     """
@@ -619,6 +646,7 @@ def read_pps_geoobj_h5(filename):
 
     return  all_imager_obj
 
+
 def read_cpp_h5(filename):
     density = 1e3
     h5file = h5py.File(filename, 'r')
@@ -631,6 +659,7 @@ def read_cpp_h5(filename):
         setattr(cpp_obj, cpp_key, data)
     h5file.close()
     return cpp_obj
+
 
 def read_cpp_h5_one_var(h5file, cpp_key):
     if cpp_key in h5file.keys():
@@ -651,6 +680,7 @@ def read_cpp_h5_one_var(h5file, cpp_key):
     else:
         logger.debug("NO %s field, Continue ", cpp_key)
         return None
+
 
 def read_cpp_nc_one_var(ncFile, cpp_key):
     density = 1e3
@@ -698,6 +728,7 @@ def read_nwp_h5(filename, nwp_key):
         logger.debug("NO NWP %s File, Continue", nwp_key)
         return None
 
+
 def read_etc_nc(ncFile, etc_key):
     if etc_key in ncFile.variables.keys():
         logger.debug("Read %s", etc_key)
@@ -711,6 +742,7 @@ def read_etc_nc(ncFile, etc_key):
     else:
         logger.debug("NO %s field, Continue ", etc_key)
         return None
+
 
 def read_segment_data(filename):
     import h5py
@@ -1062,7 +1094,6 @@ def pps_read_all(pps_files, imager_file, SETTINGS):
     cloudproducts.nwp_segments = read_segment_data(getattr(pps_files, 'nwp_segments'))
 
     return cloudproducts
-
 
 if __name__ == "__main__":
     pass

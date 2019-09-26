@@ -40,6 +40,7 @@ from my_dir import ADIR
 out_filename = ADIR + "/Documents/A_PPS_v2017/Validation_2018/results_cma_osisaf.txt"
 out_file_h = open(out_filename, 'w')
 
+
 def my_measures(calipso_cfc, pps_cfc, calipso_snowi, pps_snowi, thin, use):
     if use is not None:
         calipso_cfc = calipso_cfc[use]
@@ -75,10 +76,6 @@ def my_measures(calipso_cfc, pps_cfc, calipso_snowi, pps_snowi, thin, use):
     indict["far_cloudy"] = (indict["pps_cloudy_c_ice"]+indict["pps_cloudy_c_water"])*100.0/(indict["pps_cloudy_c_cloudy_w"]+indict["pps_cloudy_c_cloudy_i"] + indict["pps_cloudy_c_ice"]+indict["pps_cloudy_c_water"])
     indict["far_water"] = (indict["pps_water_c_cloudy_i"]+indict["pps_water_c_cloudy_w"])*100.0/(indict["pps_water_c_cloudy_w"]+indict["pps_water_c_cloudy_i"] + indict["pps_water_c_ice"]+indict["pps_water_c_water"])
     indict["far_ice"] = (indict["pps_ice_c_cloudy_i"]+indict["pps_ice_c_cloudy_w"])*100.0/(indict["pps_ice_c_cloudy_w"]+indict["pps_ice_c_cloudy_i"] + indict["pps_ice_c_ice"]+indict["pps_ice_c_water"])
-
-
-
-
 
     return indict
 
@@ -141,8 +138,6 @@ def plot_cfc_table(match_calipso, cfc_limit=0.9, sat="modis"):
         print(info)
         return info
 
-
-
     out_file_h.write("---------------------\n" )
     out_file_h.write(sat + ": \n" )
     info = print_one_line(measures)
@@ -153,9 +148,6 @@ def plot_cfc_table(match_calipso, cfc_limit=0.9, sat="modis"):
     out_file_h.write("CALIOP-NIGHT: " + info)
     info = print_one_line(measures_t)
     out_file_h.write("CALIOP-TWILIGHT: " + info)
-
-
-
 
 # ----------------------------------------
 
@@ -168,7 +160,6 @@ if __name__ == "__main__":
     ROOT_DIR_v2018 = (
         ADIR + "/DATA_MISC/reshaped_files_jenkins_npp_modis/"
         "ATRAIN_RESULTS_NPP_C4/Reshaped_Files/npp/1km/2015/07/*/")
-
 
     ROOT_DIR_v2014_npp = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_viirs_v2014_created20180914/Reshaped_Files_merged_caliop/npp/1km/2015/*/")
     ROOT_DIR_v2018_npp = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_viirs_v2018_created20180907/Reshaped_Files_merged_caliop/npp/1km/2015/*/")
@@ -190,7 +181,6 @@ if __name__ == "__main__":
             limit = 0.5
         match_calipso = read_files(files, 'calipso')
         plot_cfc_table(match_calipso, limit, sat=sat)
-
 
     for ROOT_DIR in [ROOT_DIR_v2014_gac,
                      ROOT_DIR_v2018_gac]:

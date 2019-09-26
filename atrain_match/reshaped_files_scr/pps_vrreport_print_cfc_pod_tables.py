@@ -42,11 +42,11 @@ from my_dir import ADIR
 out_filename = ADIR + "/Documents/A_PPS_v2017/Validation_2018/results_cma.txt"
 out_file_h = open(out_filename, 'a')
 
+
 def my_measures(calipso_cfc, pps_cfc, calipso_snowi, pps_snowi, thin, use):
     if use is not None:
         calipso_cfc = calipso_cfc[use]
         pps_cfc = pps_cfc[use]
-
 
     indict = {}
     indict["det_cloudy"] = np.sum(np.logical_and(pps_cfc==1, calipso_cfc==1))
@@ -86,7 +86,6 @@ def my_measures(calipso_cfc, pps_cfc, calipso_snowi, pps_snowi, thin, use):
         undet_cloudy_th = np.sum(np.logical_and(pps_cfc == 0, np.logical_and(~thin, calipso_cfc == 1)))
         det_cloudy_th = np.sum(np.logical_and(pps_cfc == 1, np.logical_and(~thin, calipso_cfc == 1)))
         measures["PODcy02"] = det_cloudy_th*100.0/(det_cloudy_th + undet_cloudy_th)
-
 
     return measures
 
@@ -136,7 +135,6 @@ def plot_cfc_table(match_calipso, cfc_limit=0.9, sat="modis"):
     pps_cfc[cma] = 1
     use = np.logical_or(cl, cma)
 
-
     europe = np.logical_and(match_calipso.imager.all_arrays['longitude']<60,
                             match_calipso.imager.all_arrays['longitude']>-25)
     europe = np.logical_and(europe, match_calipso.imager.all_arrays['latitude']<72)
@@ -174,8 +172,6 @@ def plot_cfc_table(match_calipso, cfc_limit=0.9, sat="modis"):
                 ))
         print(info)
         return info
-
-
 
     out_file_h.write("---------------------\n" )
     out_file_h.write(sat + ": \n" )
@@ -223,6 +219,7 @@ def plot_cfc_table(match_calipso, cfc_limit=0.9, sat="modis"):
     except:
         pass
     plt.close('all')
+
 
 def val_synop_cfc(match_calipso, sat):
     europe = np.logical_and(match_calipso.imager.all_arrays['longitude']<60,
@@ -298,7 +295,6 @@ if __name__ == "__main__":
     ROOT_DIR_v2018 = (
         ADIR + "/DATA_MISC/reshaped_files_jenkins_npp_modis/"
         "ATRAIN_RESULTS_NPP_C4/Reshaped_Files/npp/1km/2015/07/*/")
-
 
     ROOT_DIR_v2014_npp = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_viirs_v2014_created20180914/Reshaped_Files_merged_caliop/npp/1km/2015/*/")
     ROOT_DIR_v2018_npp = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_viirs_v2018_created20180907/Reshaped_Files_merged_caliop/npp/1km/2015/*/")

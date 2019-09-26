@@ -26,6 +26,7 @@ from matchobject_io import read_files
 limits = [0.1*ind for ind in range(0, 10)]
 limits = limits + [ind for ind in range(1, 6)]
 
+
 def make_pod_vector(match_calipso):
     pod_d = []
     pod_n = []
@@ -93,7 +94,6 @@ def make_pod_vector(match_calipso):
         pass
     return np.array(pod_d), np.array(pod_n), np.array(feature_d), np.array(feature_n)
 
-
 BASE_DIR = ADIR + "/DATA_MISC/reshaped_files_validation_2018/"
 ROOT_DIR_v2014_GAC = (BASE_DIR + "global_gac_v2014_created20180927/Reshaped_Files/noaa18/5km/2009/*cali*h5")
 ROOT_DIR_v2018_GAC = (BASE_DIR + "global_gac_v2018_created20180927/Reshaped_Files/noaa18/5km/2009/*cali*h5")
@@ -121,7 +121,6 @@ files = glob(ROOT_DIR_CCI)
 match_objC = read_files(files)
 podC_d, podC_n, fC_d, fC_n = make_pod_vector(match_objC)
 name = "GAC"
-
 
 from matplotlib import pyplot as plt
 fig = plt.figure(figsize=(9, 11))

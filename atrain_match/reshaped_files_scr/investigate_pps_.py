@@ -23,6 +23,8 @@ from matchobject_io import (readCaliopImagerMatchObj,
                             CalipsoImagerTrackObject)
 from utils.get_flag_info import get_pixels_where_test_is_passed
 from my_dir import ADIR
+
+
 def print_common_stats(match_calipso, use, name_dict):
     nlay =np.where(match_calipso.calipso.all_arrays['number_layers_found']>0, 1, 0)
     meancl=ndimage.filters.uniform_filter1d(nlay*1.0, size=3)
@@ -51,6 +53,7 @@ def print_common_stats(match_calipso, use, name_dict):
     test_3(match_calipso, isCalipsoCloudy, isCalipsoClear)
     test_4(match_calipso, isCalipsoCloudy, isCalipsoClear)
 
+
 def test_1(match_calipso, isCloudy, isClear):
     test_is_on = get_pixels_where_test_is_passed(
         match_calipso.imager.all_arrays['cma_testlist1'], bit_nr=5)
@@ -64,6 +67,7 @@ def test_1(match_calipso, isCloudy, isClear):
     plt.plot( feature2[good], feature1[good], 'g.')
     plt.show()
     fig.savefig("pps_investigation_test1.png", format = 'png')
+
 
 def test_2(match_calipso, isCloudy, isClear):
     test_is_on = get_pixels_where_test_is_passed(
@@ -79,6 +83,7 @@ def test_2(match_calipso, isCloudy, isClear):
     plt.show()
     fig.savefig("pps_investigation_test2.png", format = 'png')
 
+
 def test_3(match_calipso, isCloudy, isClear):
     test_is_on = get_pixels_where_test_is_passed(
         match_calipso.imager.all_arrays['cma_testlist1'], bit_nr=12)
@@ -92,6 +97,7 @@ def test_3(match_calipso, isCloudy, isClear):
     plt.plot( feature2[good], feature1[good], 'g.')
     plt.show()
     fig.savefig("pps_investigation_test3.png", format = 'png')
+
 
 def test_4(match_calipso, isCloudy, isClear):
     test_is_on = get_pixels_where_test_is_passed(
@@ -115,7 +121,6 @@ ROOT_DIR_GAC = (ADIR + "/DATA_MISC/reshaped_files/"
 files = glob(ROOT_DIR + "Reshaped_Files/merged/modis*h5")
 files = glob(ROOT_DIR_GAC + "5km/2009/*/*/*h5")
 
-
 test_list_file = ADIR + "/git/acpg_develop/acpg/pges/cloudmask/pps_pge01_cmasktests.h"
 TEST_NAMEFILE = open(test_list_file, 'r')
 name_dict = {'cma_testlist0': {},
@@ -130,7 +135,6 @@ for line in TEST_NAMEFILE:
         (name, list_nr, bit) = (list_of_line[1].replace('SM_ACMG_', ''), list_of_line[2].replace(', ', ''), list_of_line[3])
         var = 'cma_testlist' + list_nr
         name_dict[var][int(bit)] = name
-
 
 match_calipsoPPS = CalipsoImagerTrackObject()
 for filename in files:

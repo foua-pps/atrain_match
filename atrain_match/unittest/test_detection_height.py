@@ -59,8 +59,6 @@ def CalipsoCloudOpticalDepth(cloud_top, cloud_base, optical_depth, cloud_fractio
     return new_cloud_top, new_cloud_base, new_cloud_fraction, new_fcf, new_validation_height
 
 
-
-
 class test_detection_height(unittest.TestCase):
 
     def setUp(self):
@@ -95,9 +93,6 @@ class test_detection_height(unittest.TestCase):
         self.obt5.feature_classification_flags[:, 0] = np.array([-9, 8, 7, 6, 1, 2, 3]).ravel()
         self.obt5.feature_classification_flags[:, 1] = np.array([-9, -9, -9, 4, 1, 2, 2]).ravel()
         self.obt5.feature_classification_flags[:, 2] = np.array([-9, -9, -9, -9, 9, 1, 1]).ravel()
-
-
-
 
     def test_detection(self):
         calipso = detection_height_from_5km_data(self.obt1, self.obt5, limit_ctop=1.0)

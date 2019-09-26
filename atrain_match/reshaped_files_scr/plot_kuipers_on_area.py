@@ -129,7 +129,6 @@ elif isModis1km_lvl2:
     # files = glob(ROOT_DIR + "Reshaped_Files_merged/eos2/1km/2010/*/*.h5")
     # files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged/eos2/1km/2010/*/*.h5")
 
-
 elif isModis1km_ppsv2018:
     num_files_to_read = 1
     isGAC=False
@@ -145,7 +144,6 @@ elif isModis1km_ppsv2018:
     files = files +glob(ROOT_DIR + "Reshaped_Files_merged_caliop/eos2/1km/2010/01/*0114_*.h5")
     files = files +glob(ROOT_DIR + "Reshaped_Files_merged_caliop/eos2/1km/2010/06/*0614_*.h5")
     files = files +glob(ROOT_DIR + "Reshaped_Files_merged_caliop/eos2/1km/2010/09/*0914_*.h5")
-
 
 elif isModis1km_lvl2_ppsv2018:
     num_files_to_read = 1
@@ -184,14 +182,12 @@ elif isModis1km_nnctth:
     files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/09/*.h5")
     # files = files +glob(ROOT_DIR2 + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/11/*.h5")
 
-
     # ROOT_DIR2 = ADIR + "/DATA_MISC/reshaped_files/global_modis_14th_created20171121/"
     # files = glob(ROOT_DIR2 + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/*/*.h5")
     # satellites = "eos_modis_v2018_14th_all_14_offset_rttov12"
     # ROOT_DIR2 = ADIR + "/DATA_MISC/reshaped_files/global_modis_14th_created20170519/"
     # files = glob(ROOT_DIR2 + "Reshaped_Files_merged_calipso_cbase/eos2/1km/2010/*/*.h5")
     # satellites = "eos_modis_v2018_14th_all_14_offset_rttov9"
-
 
 elif isNPP_v2014:
     num_files_to_read = 30
@@ -225,7 +221,6 @@ elif isGAC_v2014:
         satellites = "part_noaa18_noaa19"
         files = glob(ROOT_DIR + "merged/noaa18*200*h5") #06, 07, 08, 09
         files = files + glob(ROOT_DIR + "merged/noaa19*20*0*h5") #2009, 2010
-
 
 pplot_obj = PerformancePlottingObject()
 pplot_obj.flattice.set_flattice(radius_km=radius_km)
@@ -269,7 +264,6 @@ for filename in files:
             match_calipso_new.imager.all_arrays["ctth_height"] = (
                 match_calipso_new.imager.all_arrays["ctthnnant_height"])
 
-
     except:
         print("skipping file %s"%(filename))
         continue
@@ -294,7 +288,6 @@ if num_files_to_read!=1:
     print("Get info from last files!")
     temp_obj.get_some_info_from_caobj(match_calipso, PROCES_FOR_ART=PROCES_FOR_ART)
     pplot_obj.add_detection_stats_on_fib_lattice(temp_obj)
-
 
 pplot_obj.flattice.calculate_ctth_pe1()
 pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=0, vmax=100.0, score='ctth_pe1')
@@ -342,7 +335,6 @@ pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-10.0, vmax=10.0,
 pplot_obj.flattice.calculate_temperature_bias_t11()
 pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-10.0, vmax=10.0, score='ctth_bias_temperature_low_t11')
 
-
 pplot_obj.flattice.calculate_height_bias_type()
 pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-2000.0, vmax=2000.0, score='ctth_bias_type_0')
 pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-2000.0, vmax=2000.0, score='ctth_bias_type_1')
@@ -352,11 +344,6 @@ pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-2000.0, vmax=200
 pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-2000.0, vmax=2000.0, score='ctth_bias_type_5')
 pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-4000.0, vmax=4000.0, score='ctth_bias_type_6')
 pplot_obj.flattice.remap_and_plot_score_on_several_areas( vmin=-4000.0, vmax=4000.0, score='ctth_bias_type_7')
-
-
-
-
-
 
 # Calcualte threat_score
 pplot_obj.flattice.calculate_threat_score()

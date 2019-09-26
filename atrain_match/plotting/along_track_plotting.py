@@ -24,6 +24,8 @@ from atrain_match.config import RESOLUTION
 from matplotlib import pyplot as plt
 
 # -----------------------------------------------------
+
+
 def plot_cal_clsat_geoprof_imager(match_clsat,
                                  match_calipso,
                                  imager_ctth_m_above_seasurface,
@@ -141,6 +143,8 @@ def plot_cal_clsat_geoprof_imager(match_clsat,
             fig.savefig(filename, format = filetype)
 
 # added plot with two pps cloud-heights and no cloudsat
+
+
 def drawCalPPSHeightPlot_PrototypePPSHeight(match_calipso_calipso,
                                             data_ok,
                                             ctth_height1,
@@ -159,7 +163,6 @@ def drawCalPPSHeightPlot_PrototypePPSHeight(match_calipso_calipso,
     MAXHEIGHT = None
     if 'MAXHEIGHT' in options:
         MAXHEIGHT = options["MAXHEIGHT"]
-
 
     # Prepare for Imager
     caliop_height = match_calipso_calipso.layer_top_altitude * 1000
@@ -246,6 +249,8 @@ def drawCalPPSHeightPlot_PrototypePPSHeight(match_calipso_calipso,
     plt.close("all")
 
 # -----------------------------------------------------
+
+
 def plot_cal_clsat_cwc_imager(match_clsat, elevationcwc, data_okcwc,
                              plotpath, basename, phase,**options):
 
@@ -278,6 +283,8 @@ def plot_cal_clsat_cwc_imager(match_clsat, elevationcwc, data_okcwc,
     return
 
 # -----------------------------------------------------
+
+
 def plot_cal_clsat_imager_time_diff(match_clsat,
                                   match_calipso,
                                   plotpath, basename,
@@ -326,6 +333,8 @@ def plot_cal_clsat_imager_time_diff(match_clsat,
     return
 
 # -----------------------------------------------------
+
+
 def plot_cal_clsat_imager_satz(match_clsat,
                               match_calipso,
                               plotpath, basename,

@@ -60,7 +60,6 @@ out_filename = ADIR + "/Documents/A_PPS_v2017/Validation_2018/results_ctth_polar
 out_file_h = open(out_filename, 'a')
 
 
-
 def my_make_plot3(y, x, x2, mhl, use):
     fig = plt.figure(figsize=(15, 11))
     ax = fig.add_subplot(111)
@@ -70,6 +69,8 @@ def my_make_plot3(y, x, x2, mhl, use):
     plt.plot(x[use_k][sort_ind], 'g.')
     plt.plot(y[use_k][sort_ind], 'b.', alpha=0.2)
     # plt.show()
+
+
 def my_make_plot2(y, x, x2, mhl, use):
     fig = plt.figure(figsize=(15, 11))
     ax = fig.add_subplot(321)
@@ -95,12 +96,10 @@ def my_make_plot2(y, x, x2, mhl, use):
     print("lower", np.sum(lower)*100.0/len(lower))
     print("above", np.sum(above)*100.0/len(above))
 
-
     sort_ind = np.argsort(np.where(abias1 < abias2, abias1, abias2))
     print( np.mean(np.where(abias1<abias2, abias1, abias2)), np.mean(abias1), np.mean(abias2))
     print(  np.sum(np.where(abias1<abias2, abias1, abias2)<1000)*100.0/len(abias1))
     print(  np.sum(np.where(abias1<abias2, abias1, abias2)<1500)*100.0/len(abias1)) #(70%)
-
 
     sort_ind_top = np.argsort(abias1[closer_to_top])
     sort_ind_2 = np.argsort(abias2[closer_to_2])
@@ -125,8 +124,6 @@ def my_make_plot2(y, x, x2, mhl, use):
     # plt.show()
 
 
-
-
 def my_adjust_axis(ax):
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
@@ -139,6 +136,7 @@ def my_adjust_axis(ax):
     ax.set_xlim(-4, 6)
     plt.yticks(np.arange(0, 9, 2.0))
     plt.yticks(np.arange(0, 9, 2.0))
+
 
 def my_legend_text_6(data, text = "text"):
     # label1 = text
@@ -153,6 +151,7 @@ def my_legend_text_6(data, text = "text"):
     )
     label = label2 + label3 + label4 +'%'
     return label
+
 
 def my_make_plot_example(bias, use, label_str):
     plt.style.use('seaborn-white')
@@ -241,13 +240,11 @@ def my_make_plot_example_aprox(bias, use, label_str, match_calipso):
             temp_data_gs = np.concatenate([temp_data_gi, temp_data_gs ])
             temp_data_iqrs = np.concatenate([temp_data_iqri, temp_data_iqrs])
 
-
     temp_data_g = np.random.normal(np.mean(bias_i), np.std(bias_i), n_pix)
     temp_data_iqr = np.random.normal(np.median(bias_i), my_iqr(bias_i)*20.0/27, n_pix)
 
     # temp_data2 = np.concatenate([np.random.normal(-900, 200, int(0.5*n_pix)), np.random.normal(+900, 200, int(0.5*n_pix))])
     hist_heights_pps, x_m, dummy = my_hist(bias_i, None, bmin= -20*1000, bmax=20*1000, delta_h=100.0)
-
 
     hist_heights_g, x_m, dummy = my_hist(temp_data_g, None, bmin= -20*1000, bmax=20*1000, delta_h=100.0)
     hist_heights_iqr, x_m, dummy = my_hist(temp_data_iqr, None, bmin= -20*1000, bmax=20*1000, delta_h=100.0)
@@ -255,7 +252,6 @@ def my_make_plot_example_aprox(bias, use, label_str, match_calipso):
     hist_heights_iqrs, x_m, dummy = my_hist(temp_data_iqrs, None, bmin= -20*1000, bmax=20*1000, delta_h=100.0)
     # hist_heights3, x_m, dummy = my_hist(bias, use, bmin=-20*1000, bmax=20*1000, delta_h=100.0)
     x_ = x_m*0.001
-
 
     def gaussian_fit(x, y, bias):
         n = len(x)                          #the number of data
@@ -321,7 +317,6 @@ def my_make_plot_example_aprox(bias, use, label_str, match_calipso):
     plt.yticks(np.arange(0, 9, 2.0))
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_ctth_error_and_gaussian_%s.png"%(label_str), bbox_inches='tight')
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/val_report_ctth_error_and_gaussian_%s.pdf"%(label_str), bbox_inches='tight')
-
 
     plt.style.use('seaborn-white')
     fig = plt.figure(figsize=(12, 4.5))
@@ -444,6 +439,7 @@ def my_print_one_line(out_file_h, bias, x, y, use_ind, compare_name, flag_key):
     out_file_h.write("\n")
     print(out_line)
 
+
 def print_all_cloudsat(match_obj, compare, compare_name = "unknown"):
     from utils.get_flag_info import get_cloudsat_low_medium_high_classification
     x = match_obj.cloudsat.all_arrays['validation_height']
@@ -461,6 +457,7 @@ def print_all_cloudsat(match_obj, compare, compare_name = "unknown"):
         else:
             use_i = np.logical_and(use, np.logical_and(mhl[flag_key], use))
             my_print_one_line(out_file_h, bias, x, y, use_i, "all", flag_key)
+
 
 def print_all(match_obj, compare, compare_name = "unknown"):
     # x = getattr(plt_obj, truth)
@@ -502,7 +499,6 @@ def print_all(match_obj, compare, compare_name = "unknown"):
     mhl["low_clouds_tp_not_thin"] = np.logical_and(
         mhl["low_clouds_tp"], ~mhl["low_clouds_tp_thin"] )
 
-
     mhl["all_clouds_tp_thin"] = np.logical_and(
         mhl["clouds_tp"],
         np.logical_and(match_obj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>=0,
@@ -517,7 +513,6 @@ def print_all(match_obj, compare, compare_name = "unknown"):
     mhl["all_clouds_tp_bad3"] = np.logical_and(
         mhl["high_clouds_tp_thin"],
         match_obj.calipso.all_arrays['number_layers_found']==1)
-
 
     use_low = np.logical_and(use, low_clouds)
     use_medium = np.logical_and(use, medium_clouds)
@@ -549,7 +544,6 @@ def print_all(match_obj, compare, compare_name = "unknown"):
     val_geo2 = var_pressure < 100
     sunz = np.array(match_obj.imager.all_arrays['sunz'])
 
-
     """
     fig = plt.figure(figsize=(15, 11))
     print match_obj.calipso.all_arrays['feature_classification_flags'][use][:, 0]
@@ -573,7 +567,6 @@ def print_all(match_obj, compare, compare_name = "unknown"):
     print my_rms(abias[use][feature_array==1]), len(abias[use][feature_array==1])
     print my_rms(abias[use][feature_array==2]), len(abias[use][feature_array==2])
     print my_rms(abias[use][feature_array==3]), len(abias[use][feature_array==3])
-
 
     fig = plt.figure(figsize=(15, 11))
     ax = fig.add_subplot(111)
@@ -617,7 +610,6 @@ def print_all(match_obj, compare, compare_name = "unknown"):
     my_print_one_line(out_file_h, bias_second_layer, x2, y, use_i, "all", "all_clouds_tp_bad2")
     plt.close('all')
 
-
 if __name__ == "__main__":
 
     from matchobject_io import read_files
@@ -640,14 +632,10 @@ if __name__ == "__main__":
 # between 27.16770203522559 12.67069745562212
 # between 38.70328344488811 22.066300881905146
 
-
-
     files = glob(ROOT_DIR_v2014_NPP)
     out_file_h.write("NPP-v2014\n")
     match_obj = read_files(files)
     print_all(match_obj, None, "NPPv2014")
-
-
 
     files = glob(ROOT_DIR_v2018_NPP)
     out_file_h.write("NPP-v2018\n")
@@ -665,7 +653,6 @@ if __name__ == "__main__":
     match_obj = read_files(files, truth='cloudsat')
     match_obj.imager.all_arrays['imager_ctth_m_above_seasurface'] = match_obj.modis.all_arrays["height"]
     print_all_cloudsat(match_obj, None, "MODIS-C6")
-
 
     ROOT_DIR = ROOT_DIR_v2018
     files = glob(ROOT_DIR%("20100201"))
@@ -699,7 +686,6 @@ if __name__ == "__main__":
     match_obj = read_files(files, truth='cloudsat')
     print_all_cloudsat(match_obj, None, "GACv2018")
 
-
     files = glob(ROOT_DIR_v2018_NPP_clsat)
     out_file_h.write("NPP-v2018\n")
     match_obj = read_files(files, truth='cloudsat')
@@ -731,11 +717,6 @@ if __name__ == "__main__":
     match_obj = read_files(files, truth='cloudsat')
     print_all_cloudsat(match_obj, None, "MODISv2018")
 
-
-
-
-
-
     ROOT_DIR = ROOT_DIR_v2014
     files = glob(ROOT_DIR%("20100201"))
     files = files + glob(ROOT_DIR%("20100401"))
@@ -757,5 +738,4 @@ if __name__ == "__main__":
     out_file_h.write("MODIS-v2018\n")
     match_obj = read_files(files)
     print_all(match_obj, None, "eos2v2018")
-
 

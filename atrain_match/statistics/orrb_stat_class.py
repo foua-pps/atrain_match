@@ -21,6 +21,7 @@ Created on Oct 18, 2010
 '''
 import numpy as np
 
+
 class OrrbStats():
     """Abstract class for accumulating statistics from atrain_match. (What does
     orrb stand for?)"""
@@ -34,7 +35,6 @@ class OrrbStats():
             self.accumulate_data(results_files)
         if self.results_files is not None or ac_data is not None:
             self.do_stats()
-
 
     def read_one_file(self, datafile):
         # print datafile
@@ -175,7 +175,6 @@ class OrrbStats():
                         acu["n_cloudy_cmaprob"] = cal_data
                     else:
                         acu["n_cloudy_cmaprob"] = [acu["n_cloudy_cmaprob"][i] + cal_data[i] for i in range(len(cal_data))]
-
 
                 if  key in cfc_stats_labels_modis:
                     got_cloudsat_modis_flag = True
@@ -331,5 +330,4 @@ class OrrbStats():
             for l in lines_to_write:
                 f.write(l + '\n')
             f.close()
-
 

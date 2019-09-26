@@ -26,6 +26,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 def compile_stats(results_files, write=True, outfile_cfc="merged_sat_file_cfc", truth_sat='calipso'):
     """Run through all summary statistics."""
 
@@ -100,10 +101,8 @@ if __name__ == '__main__':
                          help="Depricated: write results to file")
     (options) = parser.parse_args()
 
-
     from atrain_match.utils.runutils import read_config_info
     AM_PATHS, SETTINGS = read_config_info()
-
 
     # Find all wanted modes (dnt)
     modes_list =[]
@@ -158,7 +157,6 @@ if __name__ == '__main__':
                                  'year': year,
                                  'day': day})
 
-
     if len(modes_dnt_list) == 0 :
         logger.warning("No modes selected!")
         parser.print_help()
@@ -211,7 +209,4 @@ if __name__ == '__main__':
             compile_stats(results_files, outfile_cfc=compiled_file_cfc, truth_sat=truth_sat)
     if options.write == True:
         logger.warning("Results always written to file, -w flag is depricated")
-
-
-
 

@@ -41,6 +41,8 @@ from scipy.stats import kurtosis, skewtest, skew, mode, kurtosis
 matplotlib.rcParams.update(matplotlib.rcParamsDefault)
 matplotlib.rcParams.update({'font.size': 16})
 from my_dir import ADIR
+
+
 def get_land_sea(match_obj):
 
     use = np.logical_and(match_obj.modis.all_arrays["lwp"]>=0,
@@ -141,6 +143,7 @@ def plot_all(match_obj, density, my_str=""):
                      match_obj.calipso.all_arrays["latitude"][use])
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_white_lwp_modis_lvl2_dist", bbox_inches='tight')
 
+
 def get_ca_object_nn_ctth_modis_lvl2():
     ROOT_DIR = (
         ADIR + "/DATA_MISC/"
@@ -170,10 +173,10 @@ def get_ca_object_nn_ctth_modis_lvl2():
         match_obj += readCaliopImagerMatchObj(filename)
     return match_obj, density
 
+
 def do_the_printing():
 
     match_obj_cali, density = get_ca_object_nn_ctth_modis_lvl2()
-
 
     plot_all(match_obj_cali, density, "")
 

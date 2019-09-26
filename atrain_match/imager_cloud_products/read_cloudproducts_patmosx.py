@@ -40,6 +40,7 @@ import atrain_match.config as config
 ATRAIN_MATCH_NODATA = config.NODATA
 # from atrain_match.utils.get_flag_info import get_patmosx_ct_flag, get_day_night_twilight_info_patmosx
 
+
 def get_satid_datetime_orbit_from_fname_patmosx(imager_filename, SETTINGS, cross):
     # Get satellite name, time, and orbit number from imager_file
     # patmosx_v05r03_NOAA-18_asc_d20090102_c20140317.nc
@@ -73,11 +74,13 @@ def get_satid_datetime_orbit_from_fname_patmosx(imager_filename, SETTINGS, cross
         values["date"] + "_" + values["time"] + "_" + values["orbit"] + "_" + asc_or_des
     return values
 
+
 def patmosx_read_all(filename, cross, SETTINGS):
     if ".nc" in filename:
         return patmosx_read_all_nc(filename, cross, SETTINGS)
     else:
         return patmosx_read_all_hdf(filename, cross, SETTINGS)
+
 
 def patmosx_read_all_nc(filename, cross, SETTINGS):
     """Read geolocation, angles info, ctth, and cma
@@ -99,6 +102,7 @@ def patmosx_read_all_nc(filename, cross, SETTINGS):
     logger.info("Not reading cloud microphysical properties")
     logger.info("Not reading channel data")
     return cloudproducts
+
 
 def read_patmosx_ctype_cmask_ctth(patmosx_nc):
     """Read cloudtype and flag info from filename
@@ -129,7 +133,6 @@ def read_patmosx_angobj(patmosx_nc):
     angle_obj.sunz.data = patmosx_nc.variables['solar_zenith_angle'][0, :, :].astype(np.float)
     angle_obj.azidiff.data = None
     return angle_obj
-
 
 
 def read_patmosx_geoobj(patmosx_nc, filename, cross, SETTINGS):
@@ -177,6 +180,7 @@ def patmosx_read_all_hdf(filename, cross, SETTINGS):
     logger.info("Not reading channel data")
     return imagerAngObj, ctth, imagercloudproducts, ctype, imager_obj, surft, cpp, cma
 
+
 def read_patmosx_ctype_cmask_ctth_hdf(patmosx_hdf):
     """Read cloudtype and flag info from filename
     """
@@ -222,7 +226,6 @@ def read_patmosx_angobj_hdf(patmosx_hdf):
     return angle_obj
 
 
-
 def read_patmosx_geoobj_hdf(patmosx_hdf, filename, cross, SETTINGS):
     """Read geolocation and time info from filename
     """
@@ -255,7 +258,6 @@ def read_patmosx_geoobj_hdf(patmosx_hdf, filename, cross, SETTINGS):
     cloudproducts.time = seconds +  time_sec_1970
     do_some_geo_obj_logging(cloudproducts)
     return cloudproducts
-
 
 if __name__ == "__main__":
     pass

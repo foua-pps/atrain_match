@@ -50,7 +50,6 @@ def imshow_lwps(amsr_lwp, cpp_lwp, time_diff, sea, title=None, lwp_max=None):
     # executed.
     # Sara Hornquist 2015-03-12
 
-
     # Use average of all IMAGER pixels in AMSR footprint
     if len(cpp_lwp) == 3:
         cpp_lwp = cpp_lwp.mean(axis=-1)
@@ -206,7 +205,6 @@ def plot_fields(fields, break_value=None):
     # colour on the theshold it self.
     # Sara Hornquist 2015-03-12
 
-
     lon_0 = fields[0].lon.mean()
     lat_0 = fields[0].lat.mean()
 
@@ -310,6 +308,7 @@ def density(x, y, bins=None, log=True):
     fig.colorbar(im)
 
     return fig
+
 
 def atrain_scatter(fig, ax, x, y, binsize, xymin = None, xymax=None, vmax=250,
                    do_colorbar=True, to_km=1.0, ptype='scatter'):

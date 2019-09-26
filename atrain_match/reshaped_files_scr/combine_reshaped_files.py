@@ -22,7 +22,6 @@ import os
 from matchobject_io import (read_truth_imager_match_obj,
                             write_truth_imager_match_obj)
 
-
 instrument = "modis"
 satellite = "eos2"
 truth = "calipso"

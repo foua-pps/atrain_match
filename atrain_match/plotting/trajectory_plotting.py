@@ -17,6 +17,7 @@
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
 """New plotting routines using pyresample functionality"""
 
+
 def plot_satellite_trajectory(longitude,
                             latitude,
                             trajectoryname,

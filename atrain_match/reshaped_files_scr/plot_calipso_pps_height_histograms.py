@@ -18,8 +18,6 @@
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
 # -*- coding: utf-8 -*-
 
-
-
 """Read all matched data and make some plotting of thresholds
 """
 
@@ -33,7 +31,6 @@ from matchobject_io import (readCaliopImagerMatchObj,
                             CalipsoImagerTrackObject)
 import matplotlib.pyplot as plt
 from my_dir import ADIR
-
 
 isACPGv2012=False
 isGAC_v2014_morning_sat = True
@@ -52,6 +49,7 @@ elif isGAC_v2014:
     ROOT_DIR = ADIR + "/DATA_MISC/reshaped_files/clara_a2_rerun/Reshaped_Files_CLARA_A2_final/"
     files = glob(ROOT_DIR + "noaa18/5km/20??/??/*/*noaa*h5")
     files = files + glob(ROOT_DIR + "noaa19/5km/20??/??/*/*noaa*h5")
+
 
 def  my_plot_histogram_hexbin(x, y,
                               bins='log',
@@ -102,7 +100,6 @@ isCloudy = np.logical_and(isCloudyPPS, isCloudyCaliop)
 isCloudy = np.logical_and(pps_temp > - 9, isCloudy)
 isCloudy = np.logical_and(pps_temp > 150, isCloudy)
 isCloudy = np.logical_and(cal_temp > 150, isCloudy)
-
 
 """
 for ind in range(5, 15):

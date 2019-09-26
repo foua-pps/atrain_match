@@ -26,6 +26,8 @@ import numpy as np
 from statistics.orrb_stat_class import OrrbStats
 
 # -----------------------------------------------------
+
+
 class CloudFractionStats(OrrbStats):
     def do_stats(self):
         OrrbStats.do_stats(self)
@@ -54,7 +56,6 @@ class CloudFractionStats(OrrbStats):
             percent_clear_prob = np.array([100.0 / Num_clear_tot * np.int(nc)  for nc in n_clear_cmaprob])
             print percent_clear_prob
 
-
             detected_clouds = np.array([np.sum(n_cloudy_cmaprob[min_prob >= limit]) for limit in limit_v])
             undetected_clouds = np.array([np.sum(n_cloudy_cmaprob[min_prob < limit]) for limit in limit_v])
             detected_clear = np.array([np.sum(n_clear_cmaprob[max_prob <= limit]) for limit in limit_v])
@@ -81,8 +82,6 @@ class CloudFractionStats(OrrbStats):
                 kuipers_prob = (
                     1.0 * (detected_clouds * detected_clear - undetected_clouds * false_clouds) /
                     (Num_cloudy_tot * Num_clear_tot))
-
-
 
         Num = self.ac_data["Num"]
 
@@ -218,7 +217,6 @@ class CloudFractionStats(OrrbStats):
             lines.append("Kuipers MODIS: {:5.3f}".format( self.kuipers_MODIS))
             lines.append("Hitrate MODIS: {:5.3f}".format( self.hitrate_MODIS))
         return lines
-
 
 if __name__ == "__main__":
     stats = CloudFractionStats()

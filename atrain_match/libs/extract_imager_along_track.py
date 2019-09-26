@@ -157,11 +157,13 @@ CURRENTLY_UNUSED_MODIS_CHANNELS = ['modis_3',
                                    'modis_35',
                                    'modis_36']
 
+
 def get_data_from_array(array, matched):
     if array is None:
         return None
     return np.array([array[matched['row'][idx], matched['col'][idx]]
                     for idx in range(matched['row'].shape[0])])
+
 
 def get_data_from_array_nneigh(array, matched):
     if array is None:
@@ -176,6 +178,7 @@ def get_data_from_array_nneigh(array, matched):
         out[:, i] = get_data_from_array(array, matched_i)
         out[nodata, i] = -9
     return out
+
 
 def get_mean_data_from_array_nneigh(array, matched):
     if array is None:
@@ -347,7 +350,6 @@ def insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt):
                 # these are nor always present
                 pass
 
-
         for data_set in ['moist', 'pressure', 'geoheight', 'temp']:
             setattr(obt.imager, 'segment_nwp_' + data_set,
                               np.array([nwp_segments[data_set][seg_row[idx], seg_col[idx]]
@@ -363,6 +365,7 @@ def insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt):
             setattr(obt.imager, data_set, data[:, 0:pressure_n_to_keep])
         return obt
 
+
 def insert_nwp_h440_h680_data(obt):
     data = _interpolate_height_and_temperature_from_pressure(obt.imager, 440)
     setattr(obt.imager, 'segment_nwp_h440', data)
@@ -371,6 +374,8 @@ def insert_nwp_h440_h680_data(obt):
     return obt
 
 # ---------------------------------------------------------------------------
+
+
 def imager_track_from_matched(obt, SETTINGS, cloudproducts,
                               extract_radiances=True,
                               extract_cma=True,
@@ -398,7 +403,6 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
 
     aux_obj = cloudproducts.aux
 
-
     imager_obj = cloudproducts.imager_channeldata
     angle_obj = cloudproducts.imager_angles
     ctth = cloudproducts.ctth
@@ -406,7 +410,6 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
     ctype = cloudproducts.ctype
     cpp = cloudproducts.cpp
     nwp_segments = cloudproducts.nwp_segments
-
 
     truth = getattr(obt, obt.truth_sat)
     row_matched = truth.imager_linnum
@@ -606,8 +609,5 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
         for filter_name in filters_dict.keys():
             setattr(obt.imager, filter_name, filters_dict[filter_name])
 
-
     return obt
-
-
 

@@ -35,6 +35,8 @@ from utils.get_flag_info import (get_semi_opaque_info_pps2014,
                            get_calipso_low_clouds)
 from my_dir import ADIR
 labels=["low", "medium", "high-all", "high-thick\n od>0.4", "high-thin \n 0.1<od<0.4", "high-vthin\n od<0.1"],
+
+
 def make_violinplot(match_calipso, name, modis_lvl2=False):
     low_clouds = get_calipso_low_clouds(match_calipso)
     high_clouds = get_calipso_high_clouds(match_calipso)
@@ -146,6 +148,7 @@ def make_violinplot_temperature(match_calipso, name, modis_lvl2=False):
     ax.set_ylim(-150, 150)
     plt.title(name)
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_BOX/ctth_violin_temperature_%s_5_95_filt.png"%(name))
+
 
 def make_violinplot_pressure(match_calipso, name, modis_lvl2=False):
     low_clouds = get_calipso_low_clouds(match_calipso)

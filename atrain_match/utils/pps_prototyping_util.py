@@ -23,6 +23,7 @@ import atrain_match.config as config
 from atrain_match.libs.extract_imager_along_track import CHANNEL_MICRON_IMAGER_PPS, CHANNEL_MICRON_DESCRIPTIONS
 from atrain_match.libs.extract_imager_along_track import get_channel_data_from_object, get_data_from_array
 
+
 def get_t11t12_texture_data_from_object(imager_obj, aux_obj, ch11, ch12, text_name):
     # https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
     t11 = get_channel_data_from_objectfull_resolution(imager_obj, ch11, nodata=-9)
@@ -36,8 +37,6 @@ def get_t11t12_texture_data_from_object(imager_obj, aux_obj, ch11, ch12, text_na
     t11t12_texture = mean_of_squared - mean**2
     setattr(aux_obj, text_name, t11t12_texture)
     return aux_obj
-
-
 
 
 class NeighbourObj(object):
@@ -61,6 +60,7 @@ class NeighbourObj(object):
         self.coldest_r09 = None
         self.coldest_r06 = None
         self.extra_info_sza_corr = ""
+
 
 def get_data_from_array_fill_outside(array, matched, Fill=0):
     row_index = matched['row'].copy()
@@ -104,7 +104,6 @@ def get_warmest_or_coldest_index(t11, matched, warmest=True):
     return new_row_col
 
 
-
 def get_warmest_values(imager_obj, matched):
     nobj = NeighbourObj()
     t11 = get_channel_data_from_objectfull_resolution(imager_obj, '11', nodata=-9)
@@ -118,6 +117,7 @@ def get_warmest_values(imager_obj, matched):
     nobj.warmest_r09 = get_channel_data_from_object(imager_obj, '09', new_row_col)[0]
     return nobj
 
+
 def get_coldest_values(imager_obj, matched):
     nobj = NeighbourObj()
     t11 = get_channel_data_from_objectfull_resolution(imager_obj, '11', nodata=-9)
@@ -130,6 +130,7 @@ def get_coldest_values(imager_obj, matched):
     nobj.coldest_r16=get_channel_data_from_object(imager_obj, '16', new_row_col)[0]
     nobj.coldest_r09=get_channel_data_from_object(imager_obj, '09', new_row_col)[0]
     return nobj
+
 
 def get_darkest_values(imager_obj, matched):
     nobj = NeighbourObj()
@@ -145,6 +146,7 @@ def get_darkest_values(imager_obj, matched):
     nobj.darkest_r09=get_channel_data_from_object(imager_obj, '09', new_row_col)[0]
     return nobj
 
+
 def add_cnn_features_full(imager_obj, imagerGeoObj, SETTINGS):
     from cloud_collocations.cloud_net import CloudNetBase
     from cloud_collocations.cloud_net import FeatureModel
@@ -158,6 +160,7 @@ def add_cnn_features_full(imager_obj, imagerGeoObj, SETTINGS):
     lats_f = m.resample_coordinates(imagerGeoObj.latitude)
     lons_f = m.resample_coordinates(imagerGeoObj.longitude)
     return {'filter_response': filter_response, 'lats_f': lats_f, 'lons_f':lons_f}
+
 
 def add_cnn_features(cnn_dict, matched, lats_matched, lons_matched, SETTINGS):
     from atrain_match.utils.match import match_lonlat
@@ -183,7 +186,6 @@ def add_cnn_features(cnn_dict, matched, lats_matched, lons_matched, SETTINGS):
             feature_i[cnn_feature_index_R, cnn_feature_index_C],
       - 9)
     return the_filters_dict
-
 
 
 def get_channel_data_from_objectfull_resolution(imager_obj, chn_des, nodata=-9):

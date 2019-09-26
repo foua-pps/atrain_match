@@ -20,7 +20,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-
 def get_semi_opaque_info_pps2014(ctth_status):
     logger.debug("Assuming cloudtype flags structure from pps v2014")
     temp_val = (ctth_status >> 7 & 1)
@@ -28,17 +27,20 @@ def get_semi_opaque_info_pps2014(ctth_status):
     opaque_flag = temp_val == 0
     return  semi_flag, opaque_flag
 
+
 def get_semi_opaque_info_pps2012(ctth_opaque):
     logger.info("Assuming  pps v2012")
     semi_flag = ctth_opaque == 0
     opaque_flag = ctth_opaque == 1
     return  semi_flag, opaque_flag
 
+
 def get_sunglint_info_pps2014(cloudtype_conditions):
     logger.debug("Assuming cloudtype flags structure from pps v2014")
     temp_val = (cloudtype_conditions >> 3 & 1)
     sunglint_flag = temp_val == 1
     return  sunglint_flag
+
 
 def get_high_terrain_info_pps2014(cloudtype_conditions):
     logger.debug("Assuming cloudtype flags structure from pps v2014")
@@ -47,6 +49,7 @@ def get_high_terrain_info_pps2014(cloudtype_conditions):
     logger.debug("Number of mountain %d"%(len(cloudtype_conditions[mountin_flag==True])))
     return  mountin_flag
 
+
 def get_mountin_info_pps2014(cloudtype_conditions):
     logger.debug("Assuming cloudtype flags structure from pps v2014")
     temp_val = (cloudtype_conditions >> 7 & 1)
@@ -54,11 +57,13 @@ def get_mountin_info_pps2014(cloudtype_conditions):
     logger.debug("Number of mountain %d"%(len(cloudtype_conditions[mountin_flag==True])))
     return  mountin_flag
 
+
 def get_inversion_info_pps2014(cloudtype_status):
     logger.debug("Assuming cloudtype flags structure from pps v2014")
     flag_temp = (cloudtype_status >> 0 & 1) + 0
     inversion_flag = flag_temp == 1
     return inversion_flag
+
 
 def get_land_coast_sea_info_pps2014(cloudtype_conditions):
     logger.debug("Assuming cloudtype flags structure from pps v2014")
@@ -73,6 +78,7 @@ def get_land_coast_sea_info_pps2014(cloudtype_conditions):
     logger.debug("Number true coast %d"%(len(cloudtype_conditions[true_coast==True])))
     all_lsc_flag = np.bool_(np.ones(cloudtype_conditions.shape))
     return (no_qflag, land_flag, sea_flag, coast_flag, all_lsc_flag)
+
 
 def get_land_coast_sea_info_pps2012(cloudtype_qflag):
     logger.info("Assuming cloudtype flags structure from pps v2012")
@@ -90,19 +96,19 @@ def get_land_coast_sea_info_pps2012(cloudtype_qflag):
     return (no_qflag, land_flag, sea_flag, coast_flag, all_lsc_flag)
 
 
-
-
 def get_ice_info_pps2014(cloudtype_status):
     logger.debug("Assuming cloudtype flags structure from pps v2014")
     ice_flag_temp = (cloudtype_status >> 3 & 1) + 0
     ice_flag = ice_flag_temp == 1
     return ice_flag
 
+
 def get_ice_info_pps2012(cloudtype_qflag):
     logger.info("Assuming cloudtype flags structure from pps v2012")
     ice_flag_temp = (cloudtype_qflag >> 15 & 1) + 0
     ice_flag = ice_flag_temp == 1
     return ice_flag
+
 
 def get_day_night_twilight_info_pps2014(cloudtype_conditions):
     logger.debug("Assuming cloudtype flags structure from pps v2014")
@@ -117,6 +123,7 @@ def get_day_night_twilight_info_pps2014(cloudtype_conditions):
     all_dnt_flag = np.bool_(np.ones(cloudtype_conditions.shape))
     return (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag)
 
+
 def get_day_night_twilight_info_pps2012(cloudtype_qflag):
     logger.info("Assuming cloudtype flags structure from pps v2012")
     no_qflag = cloudtype_qflag == 0
@@ -129,17 +136,20 @@ def get_day_night_twilight_info_pps2012(cloudtype_qflag):
     all_dnt_flag = np.bool_(np.ones(cloudtype_qflag.shape))
     return (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag)
 
+
 def get_sunglint_info_pps2012(cloudtype_qflag):
     logger.info("Assuming cloudtype flags structure from pps v2012")
     no_qflag = cloudtype_qflag == 0
     sunglint_flag = (((cloudtype_qflag >> 4) & 1) == 1) & ~no_qflag
     return  sunglint_flag
 
+
 def get_mountin_info_pps2012(cloudtype_qflag):
     logger.info("Assuming cloudtype flags structure from pps v2012")
     no_qflag = cloudtype_qflag == 0
     mountin_flag = (((cloudtype_qflag >> 5) & 1) == 1) & ~no_qflag
     return  mountin_flag
+
 
 def get_inversion_info_pps2012(cloudtype_qflag):
     logger.info("Assuming cloudtype flags structure from pps v2012")
@@ -179,6 +189,8 @@ def get_calipso_aerosol_of_type_i(match_calipso, atype=0):
 # 5 = altostratus (opaque)
 # 6 = cirrus (transparent)
 # 7 = deep convective (opaque)
+
+
 def get_calipso_clouds_of_type_i_feature_classification_flags_one_layer(cflag, calipso_cloudtype=0):
     # bits 10-12, start at 1 counting
     cal_vert_feature = np.zeros(cflag.shape) - 9.0
@@ -191,10 +203,12 @@ def get_calipso_clouds_of_type_i_feature_classification_flags_one_layer(cflag, c
     is_requested_type = cal_vert_feature == calipso_cloudtype
     return is_requested_type
 
+
 def get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=0):
     # bits 10-12, start at 1 counting
     cflag = match_calipso.calipso.feature_classification_flags[::, 0]
     return get_calipso_clouds_of_type_i_feature_classification_flags_one_layer(cflag, calipso_cloudtype=calipso_cloudtype)
+
 
 def get_calipso_op(match_calipso):
     # type 1, 2, 5, 7 are low cloudtypes
@@ -207,6 +221,8 @@ def get_calipso_op(match_calipso):
             get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=7)))
     return calipso_low
     # type 0, 1, 2, 3 are low cloudtypes
+
+
 def get_calipso_tp(match_calipso):
     calipso_low = np.logical_or(
         np.logical_or(
@@ -216,8 +232,6 @@ def get_calipso_tp(match_calipso):
             get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=4),
             get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=6)))
     return calipso_low
-
-
 
 
 def get_calipso_low_clouds(match_calipso):
@@ -231,12 +245,15 @@ def get_calipso_low_clouds(match_calipso):
             get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=3)))
     return calipso_low
 
+
 def get_calipso_low_clouds_tp(match_calipso):
     # type 0, 1, 2, 3 are low cloudtypes
     calipso_low = np.logical_or(
             get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=0),
             get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=3))
     return calipso_low
+
+
 def get_calipso_low_clouds_op(match_calipso):
     # type 0, 1, 2, 3 are low cloudtypes
     calipso_low = np.logical_or(
@@ -244,12 +261,15 @@ def get_calipso_low_clouds_op(match_calipso):
             get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=2))
     return calipso_low
 
+
 def get_calipso_high_clouds(match_calipso):
     # type 6, 7 are high cloudtypes
     calipso_high = np.logical_or(
         get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=6),
         get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=7))
     return calipso_high
+
+
 def get_calipso_medium_clouds(match_calipso):
     # type 6, 7 are high cloudtypes
     calipso_high = np.logical_or(
@@ -257,15 +277,13 @@ def get_calipso_medium_clouds(match_calipso):
         get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=5))
     return calipso_high
 
+
 def get_calipso_medium_and_high_clouds_tp(match_calipso):
     # type 0, 1, 2, 3 are low cloudtypes
     calipso_transp = np.logical_or(
         get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=4),
         get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=6))
     return calipso_transp
-
-
-
 
 
 def get_calipso_low_medium_high_classification(match_calipso):
@@ -283,6 +301,7 @@ def get_calipso_low_medium_high_classification(match_calipso):
     mlh_class['high_clouds_op'] = get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=7)
     return mlh_class
 
+
 def get_cloudsat_low_medium_high_classification(match_clsat):
     mlh_class = {}
     if not hasattr( match_clsat.imager, 'segment_nwp_h440') :
@@ -297,6 +316,8 @@ def get_cloudsat_low_medium_high_classification(match_clsat):
     return mlh_class
 
 # cci FLAGS
+
+
 def get_land_coast_sea_info_cci2014(lsflag):
     logger.info("Assuming cloudtype flags structure from CCI v2014?")
     land_flag = lsflag
@@ -304,6 +325,8 @@ def get_land_coast_sea_info_cci2014(lsflag):
     coast_flag = None
     all_lsc_flag = np.bool_(np.ones(lsflag))
     return (no_qflag, land_flag, sea_flag, coast_flag, all_lsc_flag)
+
+
 def get_day_night_twilight_info_cci2014(sunz):
     sunz = np.array(sunz)
     logger.info("Getting day/night info from sunz")
@@ -321,6 +344,7 @@ def get_day_night_twilight_info_cci2014(sunz):
     all_dnt_flag = np.bool_(np.ones(sunz.shape))
     return (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag)
 
+
 def get_maia_ct_flag(ct_flag):
     # bits 4-8, start at 0 counting
     maia_ct_flag = (16 * np.bitwise_and(np.right_shift(ct_flag, 8), 1) +
@@ -329,6 +353,8 @@ def get_maia_ct_flag(ct_flag):
                     2 * np.bitwise_and(np.right_shift(ct_flag, 5), 1) +
                     1 * np.bitwise_and(np.right_shift(ct_flag, 4), 1))
     return  maia_ct_flag
+
+
 def get_day_night_twilight_info_maia(cm_flag):
     # bit 13-14
     maia_cm_flag = (2 * np.bitwise_and(np.right_shift(cm_flag, 14), 1) +
@@ -342,6 +368,7 @@ def get_day_night_twilight_info_maia(cm_flag):
     all_dnt_flag = np.ones(maia_cm_flag.shape)
     no_qflag = 0 * all_dnt_flag  # dummy flag
     return (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag)
+
 
 def get_pixels_where_test_is_passed(cma_testlist, bit_nr=0):
     # print bit_nr,

@@ -23,7 +23,6 @@ from datetime import datetime
 import logging
 logger = logging.getLogger(__name__)
 
-
 import atrain_match.config as config
 from atrain_match.utils.common import (MatchupError, TimeMatchError,
                     InputError, ProcessingError,
@@ -32,6 +31,7 @@ from atrain_match.utils.common import (MatchupError, TimeMatchError,
 from atrain_match.matchobject_io import (TruthImagerTrackObject,
                             CalipsoObject)
 from atrain_match.utils.runutils import do_some_logging
+
 
 def add_validation_ctth_calipso(calipso):
     calipso.validation_height = calipso.layer_top_altitude[:, 0].copy()
@@ -90,6 +90,7 @@ def match_calipso_imager(values,
     logger.debug("max_cloud_top_calipso: %2.1f", max_cloud_top_calipso)
     return retv
 
+
 def get_calipso(filename, res, ALAY=False):
     from scipy import ndimage
     # Read CALIPSO Lidar (CALIOP) data:
@@ -121,7 +122,6 @@ def get_calipso(filename, res, ALAY=False):
         # Strange - this will give 0 cloud fraction in points with no data, wouldn't it????/KG
     return cal
 
-
 # READING DATA FROM CALIOP:
 scip_these_larger_variables_until_needed = {
     # if any of these are needed just rempve them from the dictionary!
@@ -141,6 +141,7 @@ atrain_match_names = {
     "Snow_Ice_Surface_Type": "nsidc_surface_type",
     # Add "_tai" to the profile_time name to not forget it is tai time
     "Profile_Time": "profile_time_tai"}
+
 
 def rearrange_calipso_the_single_shot_info(retv, singleshotdata):
 
@@ -206,6 +207,7 @@ def rearrange_calipso_the_single_shot_info(retv, singleshotdata):
         setattr(retv, name, cfc_single_shots)
     return retv
 
+
 def read_calipso(filename):
     logger.debug("Reading file %s", filename)
     retv = CalipsoObject()
@@ -237,6 +239,7 @@ def read_calipso(filename):
         retv.elevation = retv.dem_surface_elevation[:, 2] * 1000.0
     setattr(retv, "sec_1970", retv.profile_time_tai + dsec)
     return retv
+
 
 def read_calipso_hdf4(filename, retv):
     from pyhdf.SD import SD, SDC
@@ -286,6 +289,7 @@ def read_calipso_hdf4(filename, retv):
                 singleshotdata)
     return retv
 
+
 def read_calipso_h5(filename, retv):
     import h5py
     if filename is not None:
@@ -323,6 +327,7 @@ def read_calipso_h5(filename, retv):
         h5file.close()
     return retv
 
+
 def discard_calipso_files_outside_time_range(calipsofiles_list, cloudproducts, values, SETTINGS, res=config.RESOLUTION, ALAY=False):
     imager_end = cloudproducts.sec1970_end
     imager_start = cloudproducts.sec1970_start
@@ -338,6 +343,7 @@ def discard_calipso_files_outside_time_range(calipsofiles_list, cloudproducts, v
             calipso_within_time_range.append(current_file)
     return calipso_within_time_range
 
+
 def reshape_calipso(calipsofiles, res=config.RESOLUTION, ALAY=False):
     # concatenate and reshape calipso files
     startCalipso = get_calipso(calipsofiles[0], res, ALAY=ALAY)
@@ -352,6 +358,7 @@ def reshape_calipso(calipsofiles, res=config.RESOLUTION, ALAY=False):
         startCalipso = startCalipso + newCalipso
 
     return startCalipso
+
 
 def find_break_points(startCalipso, cloudproducts, SETTINGS):
     """
@@ -369,6 +376,7 @@ def find_break_points(startCalipso, cloudproducts, SETTINGS):
         start_break = start_break - 1  # Minus one to get one extra, just to be certain
     return start_break, end_break
 
+
 def adjust_5km_to_1km_resolution(calipso5km):
     logger.debug("Repeat 5km calipso data to fit 1km resoluiton")
     calipso= CalipsoObject()
@@ -377,6 +385,7 @@ def adjust_5km_to_1km_resolution(calipso5km):
             new_values = np.repeat(value, 5, axis=0)
             calipso.all_arrays[arname] = new_values
     return calipso
+
 
 def add_5km_variables_to_1km(calipso1km, calipso5km, CALIPSO_version):
     logger.debug("Repeat 5km calipso data to fit 1km resoluiton")
@@ -448,6 +457,7 @@ def add_5km_variables_to_1km(calipso1km, calipso5km, CALIPSO_version):
         calipso1km.cloud_fraction[
             isCloudOnlyIn300m] = cfc_single_shot_1km_from_5km_file[isCloudOnlyIn300m]
     return calipso1km
+
 
 def add_1km_to_5km(calipso1km, calipso5km):
     # First check if length of 5 km and 1 km arrays correspond
@@ -609,6 +619,7 @@ def add_singleshot_to5km(calipso5km, SETTINGS):  # Valid only for CALIPSO-CALIOP
     calipso5km.cloud_fraction = cfc
     return calipso5km
 
+
 def optical_depth_height_filtering(calipso, min_optical_depth, use_old_method=False,
                                  limit_ctop=0.2):
     new_cloud_top = np.ones(calipso.layer_top_altitude.shape)*config.NODATA*1.0
@@ -694,6 +705,7 @@ def check_total_optical_depth_and_warn(match_calipso):
         # print np.where(badPix)
         # print obj.layer_top_altitude[0, badPix]
         # print obj.layer_base_altitude[0, badPix]
+
 
 def detection_height_filtering(match_calipso):
     if match_calipso.calipso.detection_height_5km is None:

@@ -25,6 +25,8 @@ import numpy as np
 from statistics.orrb_stat_class import OrrbStats
 
 # -----------------------------------------------------
+
+
 class CloudPhaseStats(OrrbStats):
     def do_stats(self):
         OrrbStats.do_stats(self)
@@ -88,7 +90,6 @@ class CloudPhaseStats(OrrbStats):
         lines.append("CPH N Ice ok: %.2f" % self.n_ice_ice)
         lines.append("")
         return lines
-
 
 if __name__ == "__main__":
     stats = CloudPhaseStats()

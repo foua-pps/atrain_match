@@ -46,6 +46,7 @@ import atrain_match.config as config
    one of the several surface categories.
 """
 
+
 def add_validation_ctth(match_clsat, match_calipso):
     if match_clsat is not None:
         if match_clsat.cloudsat.validation_height is None:
@@ -56,6 +57,7 @@ def add_validation_ctth(match_clsat, match_calipso):
         if match_calipso.calipso.validation_height is None:
             match_calipso.calipso = add_validation_ctth_calipso(match_calipso.calipso)
     return match_clsat, match_calipso
+
 
 def get_matchups(cross, AM_PATHS, SETTINGS, reprocess):
     """
@@ -87,7 +89,6 @@ def get_matchups(cross, AM_PATHS, SETTINGS, reprocess):
         #        td = date_time_imager-cross.time
         #        diff_imager_seconds=abs(td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
 
-
         for truth in ['cloudsat', 'amsr', 'iss', 'synop', 'mora', 'calipso']:
             if not SETTINGS[truth.upper() + '_MATCHING']:
                 logger.info(
@@ -110,7 +111,6 @@ def get_matchups(cross, AM_PATHS, SETTINGS, reprocess):
                     Obj_dict[truth] = read_truth_imager_match_obj(match_file, truth = truth)
                     basename = '_'.join(os.path.basename(match_file).split('_')[1:5])
 
-
     if  (all([obj_i is None for obj_i in Obj_dict.values()])):
         pass
     else:
@@ -127,7 +127,6 @@ def get_matchups(cross, AM_PATHS, SETTINGS, reprocess):
                 raise MatchupError(
                     "Couldn't find calipso already processed matchup file, "
                     "USE_EXISTING_RESHAPED_FILES = True!")
-
 
     redo_matching = False
     for truth in ['cloudsat', 'amsr', 'iss', 'synop',
@@ -150,6 +149,7 @@ def get_matchups(cross, AM_PATHS, SETTINGS, reprocess):
                     truth=truth))
 
     return out_dict
+
 
 def plot_some_figures(match_clsat, match_calipso, values, basename, process_mode,
                       AM_PATHS, SETTINGS, amObj = None, match_synop = None, moObj= None):
@@ -221,6 +221,7 @@ def plot_some_figures(match_clsat, match_calipso, values, basename, process_mode
                                  plotpath, basename, phase,
                                  instrument=match_clsat.imager_instrument)
 
+
 def split_process_mode_and_dnt_part(process_mode_dnt):
     mode_dnt = process_mode_dnt.split('_')
     if len(mode_dnt) == 1:
@@ -267,7 +268,6 @@ def process_one_mode(process_mode_dnt, match_calipso, match_clsat, issObj, amObj
     calculate_statistics(process_mode, statfilename, match_calipso, match_clsat,
                         issObj, amObj, syObj, SETTINGS, dnt_flag)
     # =============================================================
-
 
 
 def run(cross, run_modes, AM_PATHS, SETTINGS, reprocess=False):

@@ -92,6 +92,7 @@ def process_matchups(matchups, run_modes, reprocess=False, debug=False):
                        '\n'.join([str(m) for m in problematic]))
     return outstatus
 
+
 def main():
     """
     Process command line options and run matchup and validation.

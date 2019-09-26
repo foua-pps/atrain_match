@@ -49,6 +49,7 @@ tag_dict = {"old": "(a) PPS-v2014",
 
 }
 
+
 def do_one_subplot(plt_obj, ax, fig, compare, truth='height_c', vmax = 250, do_colorbar = False, ptype='scatter', height_calipso=False):
     x = getattr(plt_obj, truth)
     y = getattr(plt_obj, compare)
@@ -75,7 +76,6 @@ def do_one_subplot(plt_obj, ax, fig, compare, truth='height_c', vmax = 250, do_c
         print tag
         if tag in compare:
             the_title = tag_dict[tag]
-
 
     from scipy.stats import gaussian_kde
     n_edges = int(xmax*1.0/binsize) + 1
@@ -139,7 +139,6 @@ def do_one_subplot(plt_obj, ax, fig, compare, truth='height_c', vmax = 250, do_c
     my_cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
         "new_inferno_r", cmap_vals)
 
-
     z_values_to_use = z[idx]
     few = z_values_to_use <= 10
     more = z_values_to_use > 10
@@ -190,7 +189,6 @@ def do_one_subplot(plt_obj, ax, fig, compare, truth='height_c', vmax = 250, do_c
         plt.xticks([5, 10, 15])
         plt.yticks([0, 5, 10, 15])
 
-
     if do_colorbar and ptype in ['scatter']:
         cax = fig.add_axes([0.80, 0.65, 0.06, 0.22])
         cbar = fig.colorbar(b, cax=cax, )
@@ -201,8 +199,6 @@ def do_the_scatter_plot(plt_obj_cali_new, plt_obj_csat_new, month):
     if len(month) > 3:
         print("Much data")
         vmax = 1800*2
-
-
 
     fig = plt.figure(figsize=(11, 11))
 
@@ -278,6 +274,7 @@ def do_the_scatter_plot(plt_obj_cali_new, plt_obj_csat_new, month):
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_PLOTS/fig03_cloudsat_scatter_inferno_r_modified_max_height_%s.png"%(month), bbox_inches='tight')
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_PLOTS/fig03_%s.pdf"%(month), bbox_inches='tight')
 
+
 def get_plot_object_nn_ctth_modis_lvl2_cloudsat(month):
     day_str="01st"
     ROOT_DIR = (
@@ -294,6 +291,7 @@ def get_plot_object_nn_ctth_modis_lvl2_cloudsat(month):
         plt_obj += extract_data(match_clsat_new, sat='cloudsat')
     return plt_obj
 
+
 def get_plot_object_nn_ctth_modis_lvl2(month):
     day_str="01st"
     ROOT_DIR = (
@@ -308,6 +306,7 @@ def get_plot_object_nn_ctth_modis_lvl2(month):
         match_calipso_new = readCaliopImagerMatchObj(filename)
         plt_obj += extract_data(match_calipso_new, sat='calipso')
     return plt_obj
+
 
 def do_the_plots():
 

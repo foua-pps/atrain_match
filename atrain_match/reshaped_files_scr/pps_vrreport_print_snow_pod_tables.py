@@ -42,6 +42,7 @@ from my_dir import ADIR
 out_filename = ADIR + "/Documents/A_PPS_v2017/Validation_2018/results_cma_snow.txt"
 out_file_h = open(out_filename, 'a')
 
+
 def my_measures(calipso_cfc, pps_cfc, thin, use):
     thin = thin[use]
     calipso_cfc = calipso_cfc[use]
@@ -69,6 +70,7 @@ def my_measures(calipso_cfc, pps_cfc, thin, use):
     measures["N"] = indict["N"]
     return measures
 
+
 def plot_cfc_table(match_calipso, cfc_limit=0.9, sat="modis"):
 
     from utils.get_flag_info import get_calipso_clouds_of_type_i
@@ -85,7 +87,6 @@ def plot_cfc_table(match_calipso, cfc_limit=0.9, sat="modis"):
         cma = np.logical_and(np.greater(match_calipso.imager.cloudtype, 4), np.less(match_calipso.imager.cloudtype, 20))
         pps_snowi =np.logical_and(np.less_equal(match_calipso.imager.cloudtype, 4), np.greater(match_calipso.imager.cloudtype, 2))
 
-
     calipso_cfc = cfc.copy()
     calipso_cfc[cfc <= cfc_limit] = 0
     calipso_cfc[cfc > cfc_limit] = 1
@@ -93,8 +94,6 @@ def plot_cfc_table(match_calipso, cfc_limit=0.9, sat="modis"):
     pps_cfc = 0*cfc.copy()
     pps_cfc[cma] = 1
     use = np.logical_or(cl, cma)
-
-
 
     europe = np.logical_and(match_calipso.imager.all_arrays['longitude']<60,
                             match_calipso.imager.all_arrays['longitude']>-25)
@@ -124,7 +123,6 @@ def plot_cfc_table(match_calipso, cfc_limit=0.9, sat="modis"):
                 ))
         print(info)
         return info
-
 
     out_file_h.write("---------------------\n" )
     out_file_h.write(sat + ": \n" )
@@ -178,7 +176,6 @@ if __name__ == "__main__":
     ROOT_DIR_v2018 = (
         ADIR + "/DATA_MISC/reshaped_files_jenkins_npp_modis/"
         "ATRAIN_RESULTS_NPP_C4/Reshaped_Files/npp/1km/2015/07/*/")
-
 
     ROOT_DIR_v2014_npp = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_viirs_v2014_created20180914/Reshaped_Files_merged_caliop/npp/1km/2015/*/")
     ROOT_DIR_v2018_npp = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_viirs_v2018_created20180907/Reshaped_Files_merged_caliop/npp/1km/2015/*/")

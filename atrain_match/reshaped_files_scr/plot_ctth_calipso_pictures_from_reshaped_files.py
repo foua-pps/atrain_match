@@ -43,7 +43,6 @@ ROOT_DIR_v2014_GAC = (BASE_DIR + "global_gac_v2014_created20180927/Reshaped_File
 ROOT_DIR_v2018_GAC = (BASE_DIR + "global_gac_v2018_created20180927/Reshaped_Files/noaa18/5km/")
 re_name = re.compile("_global_(\w+_\w+_\w+)\/")
 
-
 files = glob(ROOT_DIR_v2018_GAC + "/200*/*cali*h5")
 # for ROOT_DIR in [ROOT_DIR_GAC_nn_imager, ROOT_DIR_GAC_nn, ROOT_DIR_GAC_nn_new]:
 for filename in files:

@@ -76,7 +76,6 @@ def plot_cfc_table(match_calipso, cfc_limit=0.9, sat="modis"):
     cl = np.logical_and(use, cl)
     cma = np.logical_and(use, cma)
 
-
     info = ("CALIPSO-cloudy	CALIPSO-clear	CALIPSO-cloudy	CALISPO-clear\n" +
             "Cma-clear	Cma-clear	Cma-cloudy	Cma-Cloudy \n")
 
@@ -105,8 +104,6 @@ def plot_cfc_table(match_calipso, cfc_limit=0.9, sat="modis"):
             np.sum(pcloudy_clear_i),
             np.sum(np.logical_and(ct_quality == 24, pcloudy_clear_i)))
     print(info)
-
-
 
     out_file_h.write("---------------------\n" )
     out_file_h.write(sat + ": \n" )
@@ -155,7 +152,6 @@ if __name__ == "__main__":
     ROOT_DIR_v2018 = (
         ADIR + "/DATA_MISC/reshaped_files_jenkins_npp_modis/"
         "ATRAIN_RESULTS_NPP_C4/Reshaped_Files/npp/1km/2015/07/*/")
-
 
     ROOT_DIR_v2014_npp = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_viirs_v2014_created20180914/Reshaped_Files_merged_caliop/npp/1km/2015/*/")
     ROOT_DIR_v2018_npp = (ADIR + "/DATA_MISC/reshaped_files_validation_2018/global_viirs_v2018_created20180907/Reshaped_Files_merged_caliop/npp/1km/2015/*/")

@@ -23,6 +23,7 @@ import numpy as np
 import logging
 logger = logging.getLogger(__name__)
 
+
 class Cross:
     """A cross where two satellites (almost) meet."""
     def __init__(self, satellite, time):
@@ -34,24 +35,29 @@ class Cross:
     def __str__(self):
         return self.__repr__()
 
+
 class MatchupError(Exception):
     """This exception is used when a problem matching IMAGER data with
     Cloudsat / CALIPSO data has occured."""
     pass
+
 
 class TimeMatchError(Exception):
     """This exception is used when the time in a file is not
     the same as the time in the filename."""
     pass
 
+
 class InputError(Exception):
     """This exception is used when the input does
     not match what is expected."""
     pass
 
+
 class ProcessingError(Exception):
     """This exception is used when the processing fails."""
     pass
+
 
 def elements_within_range(compare, base, _range):
     """Compare arrays *compare* and *base*, elementwise. Returns an array with
@@ -60,6 +66,7 @@ def elements_within_range(compare, base, _range):
     c = np.array(compare)
     b = np.array(base)
     return np.logical_and(c > b - _range, c < b + _range)
+
 
 def map_imager_distances(imager, lon, lat, radius_of_influence, n_neighbours=1):
     """
@@ -92,6 +99,7 @@ def map_imager_distances(imager, lon, lat, radius_of_influence, n_neighbours=1):
            "distances": distances}
 
     return out
+
 
 def map_imager(imager, lon, lat, radius_of_influence, n_neighbours=1):
     """
@@ -173,8 +181,6 @@ def write_match_objects(filename, datasets, groups, group_attrs_dict, SETTINGS=N
                     # print "writing", array_name
                     g.create_dataset(array_name, data=array,
                                      compression=COMPRESS_LVL)
-
-
 
 if __name__ == "__main__":
     pass

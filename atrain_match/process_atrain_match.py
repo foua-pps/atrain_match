@@ -84,6 +84,7 @@ def process_matchups(matchups, reprocess=False, debug=False):
                        '\n'.join([str(m) for m in problematic]))
     return outstatus
 
+
 def main():
     """
     Process command line options and run matchup and validation.
@@ -116,7 +117,6 @@ def main():
     group.add_argument('--reshaped_product_file', '-rf',
                       help="Interpret arguments as reshaped_output_file")
     options = parser.parse_args()
-
 
     reprocess = False
     if options.reprocess is not None:

@@ -27,6 +27,7 @@ import numpy as np
 import time
 import re
 
+
 def read_config_info():
     import os
     from configparser import ConfigParser
@@ -120,7 +121,6 @@ def unzip_file(filename):
     return None
 
 
-
 def parse_scene(filename):
     """
     Parse scene string (e.g. 'noaa19_20100110_1045_04767') and return
@@ -209,6 +209,7 @@ def parse_scenesfile_maia(filename):
 
     return satname, _datetime
 
+
 def parse_scenesfile_reshaped(filename):
     """
     Parse maia file:  # 5km_noaa18_20090328_1855_99999_caliop_imager_match.h5
@@ -246,6 +247,7 @@ def do_some_geo_obj_logging(GeoObj):
                      GeoObj.latitude)),
                  np.max(GeoObj.latitude))
 
+
 def do_some_logging(retv, match_obj):
     logger.debug("Start and end times: %s %s",
               time.gmtime(match_obj.sec_1970[0]),
@@ -256,7 +258,6 @@ def do_some_logging(retv, match_obj):
           time.gmtime(retv.imager.sec_1970[0]))
     logger.debug("IMAGER observation time of last imager-reference match: %s",
           time.gmtime(retv.imager.sec_1970[-1]))
-
 
 if __name__ == "__main__":
     pass

@@ -31,6 +31,7 @@ from atrain_match.libs.extract_imager_along_track import imager_track_from_match
 from atrain_match.truths.calipso import (find_break_points)
 from atrain_match.utils.runutils import do_some_logging
 
+
 def add_validation_ctth_cloudsat(cloudsat):
     # CLOUDSAT VALIDATION HEIGHT!
     # The restriction to use only pixels where imager and cloudsat
@@ -55,6 +56,7 @@ def add_validation_ctth_cloudsat(cloudsat):
     cloudsat.validation_height_base[cloudsat.validation_height_base >= LARGE_POSITIVE] = -9
     return cloudsat
 
+
 def add_cloudsat_cloud_fraction(cloudsat):
     cloudsat_cloud_mask = cloudsat.CPR_Cloud_mask
     cloudsat_cloud_mask = np.greater_equal(cloudsat_cloud_mask,
@@ -66,6 +68,7 @@ def add_cloudsat_cloud_fraction(cloudsat):
     cloudsat_cloud_fraction[sum_cloudsat_cloud_mask > 2] = 1  # requires at least two cloudy bins
     cloudsat.cloud_fraction = cloudsat_cloud_fraction
     return cloudsat
+
 
 def get_cloudsat(filename):
     # Read CLOUDSAT Radar data and add some variables
@@ -82,6 +85,7 @@ def get_cloudsat(filename):
         cloudsat = add_cloudsat_cloud_fraction(cloudsat)
     return cloudsat
 
+
 def clsat_name_conversion(dataset_name_in_cloudsat_file, retv):
     am_name = dataset_name_in_cloudsat_file
     if dataset_name_in_cloudsat_file == 'DEM_elevation':
@@ -93,6 +97,8 @@ def clsat_name_conversion(dataset_name_in_cloudsat_file, retv):
     elif am_name.lower() in retv.all_arrays.keys():
         am_name = am_name.lower()
     return am_name
+
+
 def read_cloudsat_hdf4(filename):
     from pyhdf.SD import SD, SDC
     from pyhdf.HDF import HDF, HC
@@ -154,6 +160,7 @@ def read_cloudsat_hdf4(filename):
     dsec = time.mktime((1993, 1, 1, 0, 0, 0, 0, 0, 0)) - time.timezone
     retv.sec_1970 = retv.Profile_time.ravel() + retv.TAI_start + dsec
     return retv
+
 
 def read_cloudsat(filename):
     import h5py
@@ -230,6 +237,7 @@ def match_cloudsat_imager(cloudsat, cloudproducts, SETTINGS):
                                      cloudproducts)
     return retv
 
+
 def merge_cloudsat(cloudsat, cloudsatlwp):
     # map cloudsat_lwp to cloudsat
     from atrain_match.utils.match import match_lonlat
@@ -280,8 +288,6 @@ def reshapeCloudsat(cloudsatfiles, imager, SETTINGS):
     clsat = clsat.extract_elements(starti=startBreak,
                                    endi=endBreak)
     return clsat
-
-
 
 if __name__ == "__main__":
     # Testing not tested for many years!

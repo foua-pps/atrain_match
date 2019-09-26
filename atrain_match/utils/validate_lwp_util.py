@@ -24,15 +24,16 @@ import numpy as np
 import logging
 logger = logging.getLogger(__name__)
 
-
 #  Default threshold for lwp screening [g m**-2]
 LWP_THRESHOLD = 170
 LWP_THRESHOLD_CPP = 3000
 DO_PLOT = False
 
+
 def get_lwp_diff(aObj, val_subset, threshold=LWP_THRESHOLD):
     retv = get_lwp_diff_inner(aObj, val_subset, threshold=LWP_THRESHOLD)
     return retv[0]
+
 
 def get_lwp_diff_inner(aObj, val_subset, threshold=LWP_THRESHOLD):
     """
@@ -76,10 +77,9 @@ def get_lwp_diff_inner(aObj, val_subset, threshold=LWP_THRESHOLD):
 
     return [lwp_diff[selection], cpp_mean[selection], aObj.amsr.lwp[selection], selection]
 
-
-
-
 """
+
+
 def validate_all(filenames):
     from atrain_match..plotting import plot_hist, density, distribution_map
     mean = lwp_diff.mean()
@@ -91,8 +91,6 @@ def validate_all(filenames):
     print("Mean: %.2f" % mean)
     print("Median: %.2f" % median)
     print("Standard deviation: %.2f" % std)
-
-
 
     # Density plot
     fig2 = density(cwp, lwp,

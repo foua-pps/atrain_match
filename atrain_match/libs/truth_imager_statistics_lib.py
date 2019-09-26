@@ -46,6 +46,7 @@ from atrain_match.utils.get_flag_info import (
 
 from atrain_match.utils.stat_util import my_iqr
 
+
 def calculate_ctth_stats(val_subset, imager_ctth_m_above_seasurface, truth_sat_validation_height, imager_is_cloudy):
 
     imager_have_hight_for_selection = np.logical_and(
@@ -97,6 +98,7 @@ def calculate_ctth_stats(val_subset, imager_ctth_m_above_seasurface, truth_sat_v
                                                n_only_truth_had_height,
                                                n_only_truth_had_height_both_had_cloud,
                                                MAE)
+
 
 def get_subset_for_mode(match_obj, mode):
     match_obj_truth_sat = getattr(match_obj, match_obj.truth_sat)
@@ -238,6 +240,7 @@ def get_subset_for_mode(match_obj, mode):
 
     return cal_subset
 
+
 def get_day_night_info(match_obj, SETTINGS):
     daynight_flags = None
     match_obj_imager = getattr(match_obj, 'imager')  # Same as match_obj.imager
@@ -263,6 +266,8 @@ def get_day_night_info(match_obj, SETTINGS):
     return daynight_flags
 
 """
+
+
 def get_semi_opaque_info(match_calipso):
     semi_flag = None
     opaque_flag = None
@@ -278,6 +283,7 @@ def get_semi_opaque_info(match_calipso):
                 match_calipso.imager.ctth_status)
     return semi_flag, opaque_flag
 """
+
 
 def find_imager_clear_cloudy(match_obj, SETTINGS):
     if 'SYNOP' in  match_obj.truth_sat.upper():
@@ -303,6 +309,7 @@ def find_imager_clear_cloudy(match_obj, SETTINGS):
                               " in atrain_match.cfg to True.")
     return imager_clear, imager_cloudy
 
+
 def find_truth_clear_cloudy(match_obj, val_subset, SETTINGS):
 
     # For the combined 1km + 5km dataset cloud_fraction can only have values (0.0, 0.2, 0.4, 0.6, 0.8, 1.0). So the threshold should
@@ -325,6 +332,7 @@ def find_truth_clear_cloudy(match_obj, val_subset, SETTINGS):
         truth_cloudy = np.logical_and(
             np.greater(match_obj_truth_sat.cloud_fraction, 0.5), val_subset)
     return truth_clear, truth_cloudy
+
 
 def  get_lwp_diff_inner_cloudsat(aObj, val_subset, wide_selection=False):
     selection = np.logical_and(aObj.imager.cpp_lwp>=0,
@@ -354,6 +362,7 @@ def  get_lwp_diff_inner_cloudsat(aObj, val_subset, wide_selection=False):
     lwp_diff_lo = aObj.imager.cpp_lwp - aObj.cloudsat.LO_RVOD_liquid_water_path
     lwp_diff_lo = lwp_diff_lo[selection1]
     return lwp_diff, lwp_diff_lo, aObj.imager.cpp_lwp, aObj.cloudsat.RVOD_liq_water_path, selection
+
 
 def print_cpp_lwp_stats(aObj, statfile, val_subset):
     # CLOUD LWP EVALUATION
@@ -420,9 +429,6 @@ def print_cpp_lwp_stats(aObj, statfile, val_subset):
         aObj.truth_sat.upper(), RMS_difference_lo))
 
 
-
-
-
 def print_cpp_stats(match_obj, statfile, val_subset, SETTINGS):
     # CLOUD PHASE EVALUATION
     # =======================
@@ -477,6 +483,7 @@ def print_cpp_stats(match_obj, statfile, val_subset, SETTINGS):
     statfile.write("CLOUD PHASE %s-IMAGER POD-ICE: %3.2f \n" % (match_obj.truth_sat.upper(), pod_ice))
     statfile.write("CLOUD PHASE %s-IMAGER Hitrate: %3.2f \n" % (match_obj.truth_sat.upper(), hitrate))
 
+
 def print_cmask_stats(match_obj, statfile, val_subset, SETTINGS):
     # CLOUD MASK EVALUATION
     # =======================
@@ -510,7 +517,6 @@ def print_cmask_stats(match_obj, statfile, val_subset, SETTINGS):
         pod_clear = float(n_clear_clear)/nclear
     if nclear_pps > 0:
         far_clear = float(n_cloudy_clear)/nclear_pps
-
 
     if (n_clear_clear+n_clear_cloudy+n_cloudy_clear+n_cloudy_cloudy) > 0:
         mean_caliop=((n_clear_clear+n_clear_cloudy)*0.0 + (n_cloudy_clear+n_cloudy_cloudy)*1.0)/(n_clear_clear+n_clear_cloudy+n_cloudy_clear+n_cloudy_cloudy)
@@ -671,7 +677,6 @@ def print_calipso_stats_ctype(match_calipso, statfile, val_subset, low_medium_hi
                                     val_subset)
         imager_low = np.logical_or(imager_low, imager_frac)
 
-
     else:
         logger.error("Assuming cloudtype structure from pps v2012")
 
@@ -683,7 +688,6 @@ def print_calipso_stats_ctype(match_calipso, statfile, val_subset, low_medium_hi
         np.logical_and(np.less_equal(match_calipso.imager.cloudtype, 4),
                        np.greater(match_calipso.imager.cloudtype, 0)),
         val_subset)
-
 
     # Notice that we have unfortunately changed order in notation compared to cloud mask
     # Here the PPS category is mentioned first and then the CALIOP category
@@ -752,7 +756,6 @@ def print_calipso_stats_ctype(match_calipso, statfile, val_subset, low_medium_hi
         imager_cirrus,
         np.logical_and(calipso_clear, imager_cirrus)).shape[0]
 
-
     pod_low = -9.0
     far_low = -9.0
     pod_medium = -9.0
@@ -783,7 +786,6 @@ def print_calipso_stats_ctype(match_calipso, statfile, val_subset, low_medium_hi
         far_high = float(n_high_low+n_high_medium)/N_pps_high
     if N_pps_cirrus >0:
         far_cirrus = float(n_cirrus_low+n_cirrus_medium_op +n_cirrus_high_op)/N_pps_cirrus
-
 
     statfile.write("CLOUD TYPE %s-IMAGER TABLE: %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n" % (
         match_calipso.truth_sat.upper(),
@@ -827,6 +829,7 @@ def print_height_all_low_medium_high(NAME, val_subset, statfile,
                                      truth_sat_validation_height, imager_is_cloudy)
     statfile.write("CLOUD HEIGHT %s HIGH: %s \n" % (NAME, out_stats))
 
+
 def print_stats_ctop(match_obj, statfile, val_subset, low_medium_high_class, SETTINGS):
     if match_obj.imager.ctth_height is None:
         logger.warning("There are no ctth height data.")
@@ -834,7 +837,6 @@ def print_stats_ctop(match_obj, statfile, val_subset, low_medium_high_class, SET
 
     # CORRELATION: CALIOP - IMAGER HEIGHT
     # FIRST TOTAL FIGURES
-
 
     match_obj_imager = getattr(match_obj, 'imager')  # Same as match_obj.imager
     match_obj_truth_sat= getattr(match_obj, match_obj.truth_sat)  # match_obj.calipso or match_obj.iss
@@ -850,7 +852,6 @@ def print_stats_ctop(match_obj, statfile, val_subset, low_medium_high_class, SET
     val_subset = np.logical_and(
         val_subset,
         match_obj_truth_sat.cloud_fraction >= SETTINGS["CALIPSO_CLOUDY_MIN_CFC"])
-
 
     # print "ALL CLOUDS:"
     print_height_all_low_medium_high(match_obj.truth_sat.upper(),
@@ -1010,7 +1011,6 @@ def calculate_statistics(mode, statfilename, match_calipso, match_clsat, issObj,
         else:
             raise ProcessingError("Unknown DNT-flag %s"%(dnt_flag.upper()))
         return dnt_subset
-
 
     if match_clsat is not None:
         logger.info("Cloudsat Statistics")

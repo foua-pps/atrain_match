@@ -30,6 +30,8 @@ matplotlib.rcParams.update({'font.size': 16})
 
 from utils.get_flag_info import (get_semi_opaque_info_pps2014)
 from my_dir import ADIR
+
+
 def make_boxplot(match_clsat, name, month):
 
     height_c = match_clsat.cloudsat.all_arrays['clsat_max_height']
@@ -137,7 +139,6 @@ def make_boxplot(match_clsat, name, month):
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_BOX_cloudsat/"
                 "ctth_box_plot_csat_modis_lvl2_C6_%s_5_95_filt.png"%(month))
 
-
     # DNT
     fig = plt.figure(figsize = (16, 9))
     ax = fig.add_subplot(111)
@@ -191,7 +192,6 @@ def make_boxplot(match_clsat, name, month):
                 "ctth_violin_csat_pps_and_lvl2modis_%s_5_95_filt.png"%(month))
 
 
-
 def investigate_nn_ctth_modis_lvl2():
     # november
 
@@ -216,7 +216,6 @@ def investigate_nn_ctth_modis_lvl2():
                 # print filename
                 match_clsat += readCloudsatImagerMatchObj(filename)
             make_boxplot(match_clsat, name, month )
-
 
 if __name__ == "__main__":
     investigate_nn_ctth_modis_lvl2()

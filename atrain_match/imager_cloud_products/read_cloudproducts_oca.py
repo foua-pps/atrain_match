@@ -40,6 +40,7 @@ import atrain_match.config as config
 ATRAIN_MATCH_NODATA = config.NODATA
 # from atrain_match.utils.get_flag_info import get_oca_ct_flag, get_day_night_twilight_info_oca
 
+
 def get_satid_datetime_orbit_from_fname_oca(imager_filename, SETTINGS, cross):
     # Get satellite name, time, and orbit number from imager_file
     # W_de-airbusDS-friedrichshafen, SAT, SGA1-VII-02-OCA_C_EUM_20190811211148_G_D_20070912114935_20070912115438_T_X____.nc
@@ -63,8 +64,10 @@ def get_satid_datetime_orbit_from_fname_oca(imager_filename, SETTINGS, cross):
         values["date"] + "_" + values["time"] + "_" + values["orbit"] + "_" + ""
     return values
 
+
 def oca_read_all(filename):
     return oca_read_all_nc(filename)
+
 
 def oca_read_all_nc(filename):
     """Read geolocation, angles info, ctth, and cma
@@ -89,6 +92,7 @@ def oca_read_all_nc(filename):
     cloudproducts.longitude[cloudproducts.longitude>180] = cloudproducts.longitude[cloudproducts.longitude>180]-360
     return cloudproducts
 
+
 def scale_oca_var(oca_var):
     likely_unscaled = oca_var[:, :].data
     # Variables are scaled if inside valid_min/valid_max)
@@ -99,6 +103,7 @@ def scale_oca_var(oca_var):
     out = likely_unscaled
     out[likely_unscaled == nodata] = ATRAIN_MATCH_NODATA
     return out.astype(np.float), nodata
+
 
 def read_oca_ctype_cmask_ctth(oca_nc):
     """Read ctth pressure file
@@ -115,6 +120,7 @@ def read_oca_ctype_cmask_ctth(oca_nc):
     ctype.ct_conditions = None
     return ctype, cma, ctth
 
+
 def read_oca_cpp(oca_nc):
     """Read ctype and flag info from filename
     """
@@ -124,6 +130,7 @@ def read_oca_cpp(oca_nc):
     cpp.phase, nodata = scale_oca_var(
         oca_nc['data']['measurement_data']['phase'])
     return cpp
+
 
 def read_oca_secondlayer_info(oca_nc):
     """Read ctth pressure file, for second layer
@@ -175,8 +182,6 @@ def read_oca_geoobj(oca_nc, filename):
     cloudproducts = create_imager_time(cloudproducts, values={})
     do_some_geo_obj_logging(cloudproducts)
     return cloudproducts
-
-
 
 if __name__ == "__main__":
     pass

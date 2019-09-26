@@ -29,6 +29,8 @@ from libs.truth_imager_statistics_lib import get_lwp_diff_inner_cloudsat
 from histogram_plotting import atrain_scatter
 from utils.stat_util import (my_hist, my_iqr, my_rms, my_pex, my_mae)
 from my_dir import ADIR
+
+
 def my_label(data):
     label = (#"{:s}\n"
              "bias = {:3.1f}\n"
@@ -48,6 +50,7 @@ def my_label(data):
                  len(data)
                             ))
     return label
+
 
 def do_the_printing(aObj, name):
     conditions = {}

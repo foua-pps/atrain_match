@@ -39,6 +39,7 @@ MAKE_EXTRA_CHECK = False
 SETTINGS ={"WRITE_ONLY_THE_MOST_IMPORTANT_STUFF_TO_FILE": False}
 tic = time.time()
 
+
 def remove_doubles(mObj, mObj2):
     non_doubles = [ind for ind in range(len(mObj.calipso.sec_1970)) if mObj.calipso.sec_1970[ind] not in mObj2.calipso.sec_1970]
 
@@ -52,7 +53,6 @@ def remove_doubles(mObj, mObj2):
                   "the same time and profile id as ther corresponding double"
                   "There is something wrong (in the code) here!")
             raise ValueError
-
 
     print("Found {:d} doubles (out of {:d}) in the new object".format(
         len(mObj.calipso.sec_1970) - len(non_doubles), len(mObj.calipso.sec_1970)))
@@ -106,6 +106,5 @@ for satellite in SATELLITES:
                 write_truth_imager_match_obj(
                     outfile, match_calipso_merged, SETTINGS, imager_obj_name = 'pps')
                 match_calipso_merged = None
-
 
 print(time.time()-tic)

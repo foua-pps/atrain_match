@@ -32,7 +32,6 @@ from matplotlib import rc
 print(matplotlib.rcParams)
 matplotlib.rcParams.update({'image.cmap': "BrBG"})
 
-
 matplotlib.rc('image', cmap='BrBG')
 plt.rcParams['image.cmap'] = 'BrBG'
 
@@ -55,6 +54,8 @@ print(matplotlib.rcParams)
 # plt.rcParams["font.family"] = "Verdana"
 
 from matchobject_io import DataObject
+
+
 class ppsMatch_Imager_CalipsoObject(DataObject):
     def __init__(self):
         DataObject.__init__(self)
@@ -95,7 +96,6 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
                                          match_calipso.imager.all_arrays['cloudtype']<21)
             isClearPPS = np.logical_and(match_calipso.imager.all_arrays['cloudtype']>0,
                                         match_calipso.imager.all_arrays['cloudtype']<5)
-
 
         isCloudyPPS = np.logical_and(match_calipso.imager.all_arrays['cloudtype']>4,
                                      match_calipso.imager.all_arrays['cloudtype']<21)
@@ -224,7 +224,6 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
             detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays['ciwv']>-9)
             detected_height = np.logical_and(detected_height, match_calipso.modis.all_arrays["height"]>-9)
             detected_height = np.logical_and(detected_height, match_calipso.imager.all_arrays["ctth_height"]>-9)
-
 
         detected_height = np.logical_and(detected_height,
                                          match_calipso.calipso.all_arrays['layer_top_altitude'][:, 0]>-1)
@@ -374,7 +373,6 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         delta_h[~detected_low]=0
         self.lapse_bias_low = delta_h
 
-
     def get_ctth_bias_high(self, match_calipso):
         from utils.get_flag_info import get_calipso_high_clouds
         high_clouds = get_calipso_high_clouds(match_calipso)
@@ -386,7 +384,6 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         delta_h = self.lapse_bias.copy()
         delta_h[~detected_high]=0
         self.lapse_bias_high = delta_h
-
 
     def get_ctth_bias_low_temperature(self, match_calipso):
         from utils.get_flag_info import get_calipso_low_clouds
@@ -422,8 +419,6 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         delta_h[~detected_typei]=0
         self.height_bias_type[calipso_cloudtype] = delta_h
         self.detected_height_type[calipso_cloudtype] = detected_typei
-
-
 
 
 class ppsStatsOnFibLatticeObject(DataObject):
@@ -618,9 +613,6 @@ class ppsStatsOnFibLatticeObject(DataObject):
             cmap_vals[0:41] = [0.9, 0.9, 0.9, 1] #change the first value
             my_cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
                 "newBrBG", cmap_vals)
-
-
-
 
         # to mask out where we lack data
         data[np.logical_and(data > vmax, ~the_mask)]=vmax
@@ -1093,10 +1085,4 @@ def get_fibonacci_spread_points_on_earth(radius_km):
     if np.isnan(np.max(latitude)):
         raise ValueError
     return longitude, latitude
-
-
-
-
-
-
 

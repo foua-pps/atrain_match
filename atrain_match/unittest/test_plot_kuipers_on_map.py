@@ -22,6 +22,7 @@ import numpy as np
 import unittest
 from atrain_match.reshaped_files_plotting.plot_kuipers_on_area_util import ppsStatsOnFibLatticeObject
 
+
 class test_kuipers_plot_on_map(unittest.TestCase):
 
     def setUp(self):
@@ -45,7 +46,6 @@ class test_kuipers_plot_on_map(unittest.TestCase):
         self.area.N_new_detected_clouds = dummy
         self.area.N_new_false_clouds = dummy
         self.area.N_detected_height_low = dummy
-
 
     def test_calculate_kuipers(self):
         self.area.calculate_kuipers()

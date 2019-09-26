@@ -53,8 +53,16 @@ for filename in files:
          # it was a one line comment
             com = False
         all_file += line.rstrip() +"\n"
+    all_file=all_file.replace("\ndef","\n\n\ndef")
+    all_file=all_file.replace("\nclass","\n\n\nclass")
+    all_file= all_file.replace("\n\n\n","\n\n")   
+    all_file=all_file.replace("\n\n\n","\n\n")
+    all_file=all_file.replace("\n\n\n","\n\n")
+    all_file=all_file.replace("\n\n\n","\n\n")
+    all_file=all_file.replace("\ndef","\n\ndef")
+    all_file=all_file.replace("\nclass","\n\nclass")
 
-    
+
     python_file.close()
     python_file = open(filename,'w')
     python_file.write(all_file)

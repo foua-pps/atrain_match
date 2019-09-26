@@ -84,9 +84,6 @@ class MatchMapper(object):
         return self._pixel_mask
 
 
-
-
-
 def match_lonlat(source, target,
                  radius_of_influence=0.7*RESOLUTION*1000.0,
                  n_neighbours=1):
@@ -160,7 +157,6 @@ def match_lonlat(source, target,
                 raise ValueError(
                     'We count on the first neighbour beeing the closest')
 
-
     rows = np.array(rows)
     cols = np.array(cols)
     # import pdb; pdb.set_trace()
@@ -183,6 +179,4 @@ def match_lonlat(source, target,
     cols[mask] = NODATA
     # import pdb; pdb.set_trace()
     return MatchMapper(rows, cols, mask), distances
-
-
 

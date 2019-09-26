@@ -35,6 +35,8 @@ from utils.get_flag_info import (get_semi_opaque_info_pps2014,
                            get_calipso_low_clouds)
 
 from my_dir import ADIR
+
+
 def make_boxplot(match_calipso, name, month="xx", modis_lvl2=False, use_m2_pix=True):
     low_clouds = get_calipso_low_clouds(match_calipso)
     high_clouds = get_calipso_high_clouds(match_calipso)
@@ -66,7 +68,6 @@ def make_boxplot(match_calipso, name, month="xx", modis_lvl2=False, use_m2_pix=T
                           match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>0)
     thin_top = np.logical_and(match_calipso.calipso.all_arrays['number_layers_found']>1, thin)
     thin_1_lay = np.logical_and(match_calipso.calipso.all_arrays['number_layers_found']==1, thin)
-
 
     low = np.logical_and(low_clouds, use)
     medium = np.logical_and(medium_clouds, use)
@@ -135,6 +136,7 @@ def make_boxplot(match_calipso, name, month="xx", modis_lvl2=False, use_m2_pix=T
     plt.title("Calipso %s \nHeight bias comparison MAE= %3.0f"%(name, MAE))
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_BOX/ctth_box_plot_hkm_%s_5_95_filt.png"%(name))
 
+
 def make_boxplot_temperature(match_calipso, name, modis_lvl2=False):
     low_clouds = get_calipso_low_clouds(match_calipso)
     high_clouds = get_calipso_high_clouds(match_calipso)
@@ -195,6 +197,7 @@ def make_boxplot_temperature(match_calipso, name, modis_lvl2=False):
         box.set_facecolor('0.9')
     plt.title(name)
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_BOX/ctth_box_plot_temperature_%s_5_95_filt.png"%(name))
+
 
 def make_boxplot_pressure(match_calipso, name, modis_lvl2=False):
     low_clouds = get_calipso_low_clouds(match_calipso)
