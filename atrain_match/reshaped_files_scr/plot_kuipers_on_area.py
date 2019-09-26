@@ -23,7 +23,7 @@
 import os
 from glob import glob
 import numpy as np
-from matchobject_io import (readTruthImagerMatchObj,
+from matchobject_io import (read_truth_imager_match_obj,
                             CalipsoImagerTrackObject)
 from plot_kuipers_on_area_util import (PerformancePlottingObject,
                                        ppsMatch_Imager_CalipsoObject)
@@ -236,7 +236,7 @@ pplot_obj.flattice.filter_method = filter_method
 pplot_obj.flattice.cc_method = method
 pplot_obj.flattice.isGAC=isGAC
 
-caObj = CalipsoImagerTrackObject()
+match_calipso = CalipsoImagerTrackObject()
 temp_obj = ppsMatch_Imager_CalipsoObject()
 temp_obj.DNT = pplot_obj.flattice.DNT
 temp_obj.satellites = pplot_obj.flattice.satellites
@@ -250,24 +250,24 @@ for filename in files:
 
     num +=1
     try :
-        caObj_new=readTruthImagerMatchObj(filename)#, var_to_skip='segment')
+        match_calipso_new=read_truth_imager_match_obj(filename)#, var_to_skip='segment')
         if "modis_lvl2" in satellites:
-            caObj_new.imager.all_arrays["cloudtype"] = np.where(
-                caObj_new.modis.all_arrays["cloud_emissivity"]>100,1,7)
-            caObj_new.imager.all_arrays["ctth_temperature"] = (
-                caObj_new.modis.all_arrays["temperature"])
-            caObj_new.imager.all_arrays["ctth_height"] = (
-                caObj_new.modis.all_arrays["height"])
-        elif "eos_modis_v2014" in satellites and caObj_new.imager.all_arrays["ctthold_temperature"] is not None:
-            caObj_new.imager.all_arrays["ctth_temperature"] = (
-                caObj_new.imager.all_arrays["ctthold_temperature"])
-            caObj_new.imager.all_arrays["ctth_height"] = (
-                caObj_new.imager.all_arrays["ctthold_height"])
-        elif "eos_modis_v2018" in satellites and caObj_new.imager.all_arrays["ctthnnant_temperature"] is not None:
-            caObj_new.imager.all_arrays["ctth_temperature"] = (
-                caObj_new.imager.all_arrays["ctthnnant_temperature"])
-            caObj_new.imager.all_arrays["ctth_height"] = (
-                caObj_new.imager.all_arrays["ctthnnant_height"])
+            match_calipso_new.imager.all_arrays["cloudtype"] = np.where(
+                match_calipso_new.modis.all_arrays["cloud_emissivity"]>100,1,7)
+            match_calipso_new.imager.all_arrays["ctth_temperature"] = (
+                match_calipso_new.modis.all_arrays["temperature"])
+            match_calipso_new.imager.all_arrays["ctth_height"] = (
+                match_calipso_new.modis.all_arrays["height"])
+        elif "eos_modis_v2014" in satellites and match_calipso_new.imager.all_arrays["ctthold_temperature"] is not None:
+            match_calipso_new.imager.all_arrays["ctth_temperature"] = (
+                match_calipso_new.imager.all_arrays["ctthold_temperature"])
+            match_calipso_new.imager.all_arrays["ctth_height"] = (
+                match_calipso_new.imager.all_arrays["ctthold_height"])
+        elif "eos_modis_v2018" in satellites and match_calipso_new.imager.all_arrays["ctthnnant_temperature"] is not None:
+            match_calipso_new.imager.all_arrays["ctth_temperature"] = (
+                match_calipso_new.imager.all_arrays["ctthnnant_temperature"])
+            match_calipso_new.imager.all_arrays["ctth_height"] = (
+                match_calipso_new.imager.all_arrays["ctthnnant_height"])
 
 
     except:
@@ -275,24 +275,24 @@ for filename in files:
         continue
     if num_files_to_read==1:
         print("Get info from one file!")
-        temp_obj.get_some_info_from_caobj(caObj_new, PROCES_FOR_ART=PROCES_FOR_ART, PROCES_FOR_PRESSENTATIONS=PROCES_FOR_PRESSENTATIONS)
+        temp_obj.get_some_info_from_caobj(match_calipso_new, PROCES_FOR_ART=PROCES_FOR_ART, PROCES_FOR_PRESSENTATIONS=PROCES_FOR_PRESSENTATIONS)
         print("Got info, now remap to the lattice")
         pplot_obj.add_detection_stats_on_fib_lattice(temp_obj)
     elif num >num_files_to_read:
         print("Get info from some %d files!"%(num_files_to_read))
-        temp_obj.get_some_info_from_caobj(caObj, PROCES_FOR_ART=PROCES_FOR_ART, PROCES_FOR_PRESSENTATIONS=PROCES_FOR_PRESSENTATIONS)
+        temp_obj.get_some_info_from_caobj(match_calipso, PROCES_FOR_ART=PROCES_FOR_ART, PROCES_FOR_PRESSENTATIONS=PROCES_FOR_PRESSENTATIONS)
         print("got info, now remap to the lattice")
         pplot_obj.add_detection_stats_on_fib_lattice(temp_obj)
         print("Got info from some files!")
-        caObj = caObj_new
+        match_calipso = match_calipso_new
         num=0
     else:
-        caObj = caObj + caObj_new
+        match_calipso = match_calipso + match_calipso_new
 
 #Get info from the last files too
 if num_files_to_read!=1:
     print("Get info from last files!")
-    temp_obj.get_some_info_from_caobj(caObj, PROCES_FOR_ART=PROCES_FOR_ART)
+    temp_obj.get_some_info_from_caobj(match_calipso, PROCES_FOR_ART=PROCES_FOR_ART)
     pplot_obj.add_detection_stats_on_fib_lattice(temp_obj)
 
 

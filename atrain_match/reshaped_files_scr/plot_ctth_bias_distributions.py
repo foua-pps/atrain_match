@@ -106,158 +106,158 @@ class PlotAndDataObject(DataObject):
             'ok_cma':None
         }
 
-def extract_data(cObj, sat='cloudsat'):
+def extract_data(match_obj, sat='cloudsat'):
     pltObj = PlotAndDataObject()
-    print("max_pressure %d"%(0.01*np.max(cObj.imager.all_arrays['psur'])))
+    print("max_pressure %d"%(0.01*np.max(match_obj.imager.all_arrays['psur'])))
     if sat.lower() in 'cloudsat':
-        pltObj.height_c2 = cObj.cloudsat.all_arrays['clsat_max_height']
-        clsat_max_height = -9 + 0*np.zeros(cObj.cloudsat.latitude.shape)
+        pltObj.height_c2 = match_obj.cloudsat.all_arrays['clsat_max_height']
+        clsat_max_height = -9 + 0*np.zeros(match_obj.cloudsat.latitude.shape)
         #for i in range(125):
-        #    height = cObj.cloudsat.Height[:,i]
-        #    cmask_ok = cObj.cloudsat.CPR_Cloud_mask[:,i]
+        #    height = match_obj.cloudsat.Height[:,i]
+        #    cmask_ok = match_obj.cloudsat.CPR_Cloud_mask[:,i]
         #    top_height = height+120
         #    #top_height[height<240*4] = -9999 #Do not use not sure why these are not used Nina 20170317
         #    is_cloudy = cmask_ok > 30
         #    top_height[~is_cloudy] = -9999
         #    clsat_max_height[clsat_max_height<top_height] =  top_height[clsat_max_height<top_height]
         #height_c =  clsat_max_height
-        height_c = cObj.cloudsat.validation_height
+        height_c = match_obj.cloudsat.validation_height
 
-        pltObj.low_clouds = np.logical_and(height_c<cObj.imager.all_arrays['segment_nwp_h680'], height_c>-9)
-        pltObj.medium_clouds = np.logical_and(height_c>=cObj.imager.all_arrays['segment_nwp_h680'],
-                                              height_c<=cObj.imager.all_arrays['segment_nwp_h440'])
-        pltObj.high_clouds = np.logical_and(height_c>cObj.imager.all_arrays['segment_nwp_h440'], height_c>-9)
-        elevation = cObj.cloudsat.all_arrays['elevation']
+        pltObj.low_clouds = np.logical_and(height_c<match_obj.imager.all_arrays['segment_nwp_h680'], height_c>-9)
+        pltObj.medium_clouds = np.logical_and(height_c>=match_obj.imager.all_arrays['segment_nwp_h680'],
+                                              height_c<=match_obj.imager.all_arrays['segment_nwp_h440'])
+        pltObj.high_clouds = np.logical_and(height_c>match_obj.imager.all_arrays['segment_nwp_h440'], height_c>-9)
+        elevation = match_obj.cloudsat.all_arrays['elevation']
         elevation[elevation<0] = 0
     elif  sat.lower() in 'calipso':
-        height_c = 1000*cObj.calipso.all_arrays['layer_top_altitude'][:,0]
-        pltObj.pressure_c = cObj.calipso.all_arrays['layer_top_pressure'][:,0]
-        pltObj.low_clouds = get_calipso_low_clouds(cObj)
-        pltObj.high_clouds = get_calipso_high_clouds(cObj)
-        pltObj.medium_clouds = get_calipso_medium_clouds(cObj)
-        elevation = cObj.calipso.all_arrays['elevation']
+        height_c = 1000*match_obj.calipso.all_arrays['layer_top_altitude'][:,0]
+        pltObj.pressure_c = match_obj.calipso.all_arrays['layer_top_pressure'][:,0]
+        pltObj.low_clouds = get_calipso_low_clouds(match_obj)
+        pltObj.high_clouds = get_calipso_high_clouds(match_obj)
+        pltObj.medium_clouds = get_calipso_medium_clouds(match_obj)
+        elevation = match_obj.calipso.all_arrays['elevation']
         elevation[elevation<0] = 0
-        ninas_od = cObj.calipso.all_arrays['total_optical_depth_5km']
+        ninas_od = match_obj.calipso.all_arrays['total_optical_depth_5km']
         print "min optical depth", np.min(ninas_od[np.logical_and(height_c>0,ninas_od>0)])
         use_part = False
         part = "all"
         if use_part:
             part = "single_layer_sea_below_60_in5km_as_art"
             use_part = np.logical_and(
-                use_part,cObj.calipso.all_arrays['number_layers_found']==1)
+                use_part,match_obj.calipso.all_arrays['number_layers_found']==1)
             use_part = np.logical_and(
-                use_part,np.abs(cObj.calipso.all_arrays['latitude'])<60)
+                use_part,np.abs(match_obj.calipso.all_arrays['latitude'])<60)
             use = np.logical_and(
-                use_part,np.equal(cObj.calipso.igbp_surface_type,17))
-            #use = np.logical_and(use_part,height_c<3000+cObj.calipso.all_arrays['elevation'])
-            use_part = np.logical_and(use_part,cObj.calipso.all_arrays[
+                use_part,np.equal(match_obj.calipso.igbp_surface_type,17))
+            #use = np.logical_and(use_part,height_c<3000+match_obj.calipso.all_arrays['elevation'])
+            use_part = np.logical_and(use_part,match_obj.calipso.all_arrays[
                 'feature_optical_depth_532_top_layer_5km']>0)
             use_part = np.logical_and(use_part,
-                                 cObj.calipso.all_arrays[
+                                 match_obj.calipso.all_arrays[
                                      'feature_optical_depth_532_top_layer_5km']==
-                                 cObj.calipso.all_arrays['total_optical_depth_5km'])
+                                 match_obj.calipso.all_arrays['total_optical_depth_5km'])
             part = "single_layer_sea_below_60_in5km_all_od_top"
             low = np.logical_and(low_clouds,use_part)
             #low = np.logical_and(height_c<low_clouds,use_part)
             low = np.logical_and(
-                use_part,height_c<(3000+cObj.calipso.all_arrays['elevation']))
+                use_part,height_c<(3000+match_obj.calipso.all_arrays['elevation']))
             medium = np.logical_and(medium_clouds,use_part)
             high = np.logical_and(height_c>8000,use_part)
 
 
-        pltObj.cflag =  cObj.calipso.feature_classification_flags[::,0]
+        pltObj.cflag =  match_obj.calipso.feature_classification_flags[::,0]
 
-        elevation = cObj.calipso.all_arrays['elevation']
+        elevation = match_obj.calipso.all_arrays['elevation']
         elevation[elevation<0] = 0
     pltObj.height_c = height_c
-    pltObj.height_mlvl2 = cObj.modis.all_arrays['height']#+elevation #??
-    pltObj.pressure_mlvl2 = cObj.modis.all_arrays['pressure']
-    #height_pps = cObj.imager.all_arrays['imager_ctth_m_above_seasurface']
-    pltObj.satz = cObj.imager.all_arrays['satz']
-    pltObj.height_pps = cObj.imager.all_arrays['ctthnnant_height']+elevation
-    pltObj.height_old = cObj.imager.all_arrays['ctthold_height']+elevation
+    pltObj.height_mlvl2 = match_obj.modis.all_arrays['height']#+elevation #??
+    pltObj.pressure_mlvl2 = match_obj.modis.all_arrays['pressure']
+    #height_pps = match_obj.imager.all_arrays['imager_ctth_m_above_seasurface']
+    pltObj.satz = match_obj.imager.all_arrays['satz']
+    pltObj.height_pps = match_obj.imager.all_arrays['ctthnnant_height']+elevation
+    pltObj.height_old = match_obj.imager.all_arrays['ctthold_height']+elevation
     pltObj.pps_bias = pltObj.height_pps - height_c
     pltObj.old_bias = pltObj.height_old - height_c
     pltObj.mlvl2_bias = pltObj.height_mlvl2 - height_c
     use =  height_c>=0
     use = np.logical_and(use, pltObj.height_mlvl2>-1)
-    use = np.logical_and(use, cObj.modis.all_arrays['pressure']>=70) #no_effekt
-    use = np.logical_and(use,cObj.imager.all_arrays['ctthnnant_height']>-1)
-    use = np.logical_and(use,cObj.imager.all_arrays['ctthold_height']>-1)
-    #use = np.logical_and(use,cObj.imager.all_arrays['ctthnnant_height']<55000)no_effekt
-    use = np.logical_and(use,cObj.imager.all_arrays['ctthold_pressure']>=70*100)
-    use = np.logical_and(use,cObj.modis.all_arrays['cloud_emissivity']<=100)
+    use = np.logical_and(use, match_obj.modis.all_arrays['pressure']>=70) #no_effekt
+    use = np.logical_and(use,match_obj.imager.all_arrays['ctthnnant_height']>-1)
+    use = np.logical_and(use,match_obj.imager.all_arrays['ctthold_height']>-1)
+    #use = np.logical_and(use,match_obj.imager.all_arrays['ctthnnant_height']<55000)no_effekt
+    use = np.logical_and(use,match_obj.imager.all_arrays['ctthold_pressure']>=70*100)
+    use = np.logical_and(use,match_obj.modis.all_arrays['cloud_emissivity']<=100)
     pltObj.use = use
     use_all = use.copy()
     for var in ['ctthnnant_height','ctthnna1nt_height','ctthnnvnt_height','ctthnnm2nt_height','ctthnnmintnco2_height', 'ctthnnmint_height', 'ctthold_height']:
         name = var.replace('_height', '').replace('ctth', 'pressure_')
         #print name
-        pltObj.all_arrays[name] = 0.01*cObj.imager.all_arrays[var.replace('height','pressure')]
-        update = pltObj.all_arrays[name] > 0.01*cObj.imager.all_arrays['psur']
+        pltObj.all_arrays[name] = 0.01*match_obj.imager.all_arrays[var.replace('height','pressure')]
+        update = pltObj.all_arrays[name] > 0.01*match_obj.imager.all_arrays['psur']
         if 'old' not in name:
-            update = pltObj.all_arrays[name] > 0.01*cObj.imager.all_arrays['psur']
-            pltObj.all_arrays[name][update] = 0.01*cObj.imager.all_arrays['psur'][update]
+            update = pltObj.all_arrays[name] > 0.01*match_obj.imager.all_arrays['psur']
+            pltObj.all_arrays[name][update] = 0.01*match_obj.imager.all_arrays['psur'][update]
             #ok_pressure = pltObj.all_arrays[name]>=70
             pressure_name = name
         name = var.replace('_height', '').replace('ctth', 'height_')
-        pltObj.all_arrays[name] = cObj.imager.all_arrays[var] +elevation
+        pltObj.all_arrays[name] = match_obj.imager.all_arrays[var] +elevation
         name = var.replace('_height', '').replace('ctth', 'bias_')
-        pltObj.all_arrays[name] = cObj.imager.all_arrays[var] +elevation - height_c
-        #ok_ctth = np.logical_and(cObj.imager.all_arrays[var]<550000, cObj.imager.all_arrays[var]>-1)
-        ok_ctth = cObj.imager.all_arrays[var]>-1
-        ok_ctth = np.logical_and(ok_ctth, cObj.imager.all_arrays['text_t11']>-1)
+        pltObj.all_arrays[name] = match_obj.imager.all_arrays[var] +elevation - height_c
+        #ok_ctth = np.logical_and(match_obj.imager.all_arrays[var]<550000, match_obj.imager.all_arrays[var]>-1)
+        ok_ctth = match_obj.imager.all_arrays[var]>-1
+        ok_ctth = np.logical_and(ok_ctth, match_obj.imager.all_arrays['text_t11']>-1)
         use_all = np.logical_and(use_all, ok_ctth)
         if 'nnmi' in var:
-            ok_ctth = np.logical_and(ok_ctth, cObj.imager.all_arrays['modis_27']>-1)
+            ok_ctth = np.logical_and(ok_ctth, match_obj.imager.all_arrays['modis_27']>-1)
         if 'nna1' in var:
-            ok_ctth = np.logical_and(ok_ctth, cObj.imager.all_arrays['bt37micron']>-1)
+            ok_ctth = np.logical_and(ok_ctth, match_obj.imager.all_arrays['bt37micron']>-1)
         if 'nnv' in var or 'nnm' in var:
-            ok_ctth = np.logical_and(ok_ctth, cObj.imager.all_arrays['bt86micron']>-1)
+            ok_ctth = np.logical_and(ok_ctth, match_obj.imager.all_arrays['bt86micron']>-1)
         if 'nna1' not in var:
-            ok_ctth = np.logical_and(ok_ctth, cObj.imager.all_arrays['bt12micron']>-1)
+            ok_ctth = np.logical_and(ok_ctth, match_obj.imager.all_arrays['bt12micron']>-1)
         if 'nnm' in var:
-            ok_ctth = np.logical_and(ok_ctth, cObj.imager.all_arrays['modis_28']>-1)
+            ok_ctth = np.logical_and(ok_ctth, match_obj.imager.all_arrays['modis_28']>-1)
         if 'ctthnnmint_height' == var:
-            ok_ctth = np.logical_and(ok_ctth, cObj.imager.all_arrays['modis_33']>-1)
-        ok_ctth = np.logical_and(ok_ctth, cObj.imager.all_arrays['bt11micron']>-1)
+            ok_ctth = np.logical_and(ok_ctth, match_obj.imager.all_arrays['modis_33']>-1)
+        ok_ctth = np.logical_and(ok_ctth, match_obj.imager.all_arrays['bt11micron']>-1)
         use_all = np.logical_and(use_all, ok_ctth)
         # for pressure scatter plot:
         #use_all = np.logical_and(use_all, ok_pressure)
 
 
-        use_all = np.logical_and(use_all, cObj.imager.all_arrays['warmest_t12']>-9)
-        use_all = np.logical_and(use_all, cObj.imager.all_arrays['coldest_t12']>-9)
-        use_all = np.logical_and(use_all, cObj.imager.all_arrays['psur']>-9)
-        use_all = np.logical_and(use_all, cObj.imager.all_arrays['surftemp']>-9)
-        use_all = np.logical_and(use_all, cObj.imager.all_arrays['t950']>-9)
-        use_all = np.logical_and(use_all, cObj.imager.all_arrays['t850']>-9)
-        use_all = np.logical_and(use_all, cObj.imager.all_arrays['t700']>-9)
-        use_all = np.logical_and(use_all, cObj.imager.all_arrays['t500']>-9)
-        use_all = np.logical_and(use_all, cObj.imager.all_arrays['t250']>-9)
+        use_all = np.logical_and(use_all, match_obj.imager.all_arrays['warmest_t12']>-9)
+        use_all = np.logical_and(use_all, match_obj.imager.all_arrays['coldest_t12']>-9)
+        use_all = np.logical_and(use_all, match_obj.imager.all_arrays['psur']>-9)
+        use_all = np.logical_and(use_all, match_obj.imager.all_arrays['surftemp']>-9)
+        use_all = np.logical_and(use_all, match_obj.imager.all_arrays['t950']>-9)
+        use_all = np.logical_and(use_all, match_obj.imager.all_arrays['t850']>-9)
+        use_all = np.logical_and(use_all, match_obj.imager.all_arrays['t700']>-9)
+        use_all = np.logical_and(use_all, match_obj.imager.all_arrays['t500']>-9)
+        use_all = np.logical_and(use_all, match_obj.imager.all_arrays['t250']>-9)
 
-        use_all = np.logical_and(use_all, cObj.imager.all_arrays['text_t11']>-9) #without this 1793146 pixels
-        use_all = np.logical_and(use_all, cObj.imager.all_arrays['text_t11t12']>-9)
-        use_all = np.logical_and(use_all, cObj.imager.all_arrays['warmest_t11']>-9)
-        use_all = np.logical_and(use_all, cObj.imager.all_arrays['coldest_t11']>-9)
-        use_all = np.logical_and(use_all, cObj.imager.all_arrays['modis_27']>-1)
-        use_all = np.logical_and(use_all, cObj.imager.all_arrays['modis_28']>-1)
-        use_all = np.logical_and(use_all, cObj.imager.all_arrays['modis_33']>-1)
-        use_all = np.logical_and(use_all, cObj.imager.all_arrays['text_t37']>-9)
-        use_all = np.logical_and(use_all, cObj.imager.all_arrays['warmest_t37']>-9)
-        use_all = np.logical_and(use_all, cObj.imager.all_arrays['coldest_t37']>-9)
-        use_all = np.logical_and(use_all, cObj.imager.all_arrays['bt11micron']>-1)
-        use_all = np.logical_and(use_all, cObj.imager.all_arrays['bt12micron']>-1)
-        use_all = np.logical_and(use_all, cObj.imager.all_arrays['bt37micron']>-1)
-        use_all = np.logical_and(use_all, cObj.imager.all_arrays['bt86micron']>-1)
-        use_all = np.logical_and(use_all, cObj.imager.all_arrays['ciwv']>-9)
+        use_all = np.logical_and(use_all, match_obj.imager.all_arrays['text_t11']>-9) #without this 1793146 pixels
+        use_all = np.logical_and(use_all, match_obj.imager.all_arrays['text_t11t12']>-9)
+        use_all = np.logical_and(use_all, match_obj.imager.all_arrays['warmest_t11']>-9)
+        use_all = np.logical_and(use_all, match_obj.imager.all_arrays['coldest_t11']>-9)
+        use_all = np.logical_and(use_all, match_obj.imager.all_arrays['modis_27']>-1)
+        use_all = np.logical_and(use_all, match_obj.imager.all_arrays['modis_28']>-1)
+        use_all = np.logical_and(use_all, match_obj.imager.all_arrays['modis_33']>-1)
+        use_all = np.logical_and(use_all, match_obj.imager.all_arrays['text_t37']>-9)
+        use_all = np.logical_and(use_all, match_obj.imager.all_arrays['warmest_t37']>-9)
+        use_all = np.logical_and(use_all, match_obj.imager.all_arrays['coldest_t37']>-9)
+        use_all = np.logical_and(use_all, match_obj.imager.all_arrays['bt11micron']>-1)
+        use_all = np.logical_and(use_all, match_obj.imager.all_arrays['bt12micron']>-1)
+        use_all = np.logical_and(use_all, match_obj.imager.all_arrays['bt37micron']>-1)
+        use_all = np.logical_and(use_all, match_obj.imager.all_arrays['bt86micron']>-1)
+        use_all = np.logical_and(use_all, match_obj.imager.all_arrays['ciwv']>-9)
 
         pltObj.all_arrays[name.replace('bias_','ok_')] =  ok_ctth
         print "excluded", np.sum(pltObj.all_arrays[pressure_name][use_all]<70)
 
     pltObj.use_all = use_all
-    pltObj.ok_cma_mlvl2 = cObj.modis.all_arrays['cloud_emissivity']<=100
-    pltObj.ok_cma_pps = np.logical_or(cObj.imager.all_arrays['cloudmask']==1,
-                                      cObj.imager.all_arrays['cloudmask']==2)
+    pltObj.ok_cma_mlvl2 = match_obj.modis.all_arrays['cloud_emissivity']<=100
+    pltObj.ok_cma_pps = np.logical_or(match_obj.imager.all_arrays['cloudmask']==1,
+                                      match_obj.imager.all_arrays['cloudmask']==2)
     pltObj.ok_cma_pps = np.logical_and(pltObj.ok_cma_pps, height_c>=0)
     pltObj.ok_cma_mlvl2 = np.logical_and(pltObj.ok_cma_mlvl2, height_c>=0)
     pltObj.ok_modis = np.logical_and(pltObj.height_mlvl2>-1, pltObj.height_mlvl2<45000)
@@ -727,7 +727,7 @@ def investigate_nn_ctth_modis_lvl2_cloudsat():
         ADIR + "/DATA_MISC/reshaped_files/"
         "global_modis_%s_created20180316/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/*h5")
         #"global_modis_%s_created20170330/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/*h5")
-    #clsatObj = CloudsatImagerTrackObject()
+    #match_clsat = CloudsatImagerTrackObject()
     plt_obj = PlotAndDataObject()
     name=""
     for month in [ "02", "04","06", "08","10", "12"]:#[ "03","05", "07","09", "11"]: #[ "02", "04","06", "08","10", "12"]:#, "03","05", "07","09", "11","01" ]:  #[ "06", "09"]:
@@ -737,8 +737,8 @@ def investigate_nn_ctth_modis_lvl2_cloudsat():
         plt_obj_new = PlotAndDataObject()
         for filename in files:
             print filename
-            clsatObj_new =  readCloudsatImagerMatchObj(filename)
-            plt_obj_new += extract_data(clsatObj_new, sat='cloudsat')
+            match_clsat_new =  readCloudsatImagerMatchObj(filename)
+            plt_obj_new += extract_data(match_clsat_new, sat='cloudsat')
         plt_obj +=  plt_obj_new
         make_profileplot(plt_obj_new, month=month,day_str=day_str, sat='cloudsat')
     make_profileplot(plt_obj, month=name,day_str=day_str, sat='cloudsat')
@@ -758,8 +758,8 @@ def investigate_nn_ctth_modis_lvl2():
         plt_obj_new = PlotAndDataObject()
         for filename in files:
             #print filename
-            caObj_new = readCaliopImagerMatchObj(filename)
-            plt_obj_new += extract_data(caObj_new, sat='calipso')
+            match_calipso_new = readCaliopImagerMatchObj(filename)
+            plt_obj_new += extract_data(match_calipso_new, sat='calipso')
         plt_obj +=  plt_obj_new
         make_profileplot(plt_obj_new, month=month,day_str=day_str, sat='calipso')
     make_profileplot(plt_obj, month=name,day_str=day_str, sat='calipso')

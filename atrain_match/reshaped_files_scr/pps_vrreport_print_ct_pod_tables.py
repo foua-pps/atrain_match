@@ -49,7 +49,7 @@ ct_min_v =[1,2,3,4,5,10,7,8,11]
 ct_max_v= [1,2,3,4,6,10,7,9,20]
 
 
-def plot_ct_table2(caObj):
+def plot_ct_table2(match_calipso):
 
     from utils.get_flag_info import get_calipso_clouds_of_type_i
     fig = plt.figure(figsize = (30,64))
@@ -57,8 +57,8 @@ def plot_ct_table2(caObj):
     for type_i in range(0,8):
         #if type_i ==1:
         #    continue
-        is_type_i = get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=type_i)
-        pps_ctype = caObj.imager.all_arrays['cloudtype']
+        is_type_i = get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=type_i)
+        pps_ctype = match_calipso.imager.all_arrays['cloudtype']
         use = np.logical_and(pps_ctype>4,pps_ctype<23)
         is_type_i =np.logical_and(is_type_i, use)
         N = np.sum(is_type_i)
@@ -67,13 +67,13 @@ def plot_ct_table2(caObj):
             pps_ok = np.logical_and(pps_ctype >= ct_min_v[ind_ct], pps_ctype <= ct_max_v[ind_ct])
             these = np.logical_and(is_type_i, pps_ok)
             print ("%3.1f"%(np.sum(these)*1.0/N*100)).rjust(5,' '),
-        print cc_type_name[type_i], np.percentile(caObj.calipso.all_arrays['layer_top_pressure'][:,0][
+        print cc_type_name[type_i], np.percentile(match_calipso.calipso.all_arrays['layer_top_pressure'][:,0][
             np.logical_and(these,
-                           caObj.calipso.all_arrays['layer_top_pressure'][:,0]>0)],0.1)
+                           match_calipso.calipso.all_arrays['layer_top_pressure'][:,0]>0)],0.1)
 
 
 
-def plot_ct_table4(caObj, use_in=None):
+def plot_ct_table4(match_calipso, use_in=None):
 
     from utils.get_flag_info import get_calipso_clouds_of_type_i
     fig = plt.figure(figsize = (30,64))
@@ -81,8 +81,8 @@ def plot_ct_table4(caObj, use_in=None):
     for type_i in range(0,8):
         #if type_i ==1:
         #    continue
-        is_type_i = get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=type_i)
-        pps_ctype = caObj.imager.all_arrays['cloudtype']
+        is_type_i = get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=type_i)
+        pps_ctype = match_calipso.imager.all_arrays['cloudtype']
         use = np.logical_and(pps_ctype>0,pps_ctype<23)
         if use_in is not None:
             use = np.logical_and(use, use_in)
@@ -95,15 +95,15 @@ def plot_ct_table4(caObj, use_in=None):
             print ("%3.1f"%(np.sum(these)*1.0/N*100)).rjust(5,' '),
         print cc_type_name[type_i]
 
-def plot_ct_table5(caObj, use_in=None):
+def plot_ct_table5(match_calipso, use_in=None):
 
     from utils.get_flag_info import get_calipso_clouds_of_type_i
     fig = plt.figure(figsize = (30,64))
-    pps_ctype = caObj.imager.all_arrays['cloudtype']
+    pps_ctype = match_calipso.imager.all_arrays['cloudtype']
     use = np.logical_and(pps_ctype>0,pps_ctype<23)
     use = np.logical_and(use, use_in)
     for type_i in [0,2,3,4,5,6,7]:
-        is_type_i = get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=type_i)
+        is_type_i = get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=type_i)
         is_type_i =np.logical_and(is_type_i, use)
         N = np.sum(is_type_i)
         print "N", ("%d"%(N)).rjust(9,' '),
@@ -117,30 +117,30 @@ def plot_ct_table5(caObj, use_in=None):
         print cc_type_name[type_i]
 
 
-def table_21_do_for_atbd(caObj):
-    cloudtype_conditions = caObj.imager.all_arrays[ 'cloudtype_conditions']
-    cloudtype_status = caObj.imager.all_arrays[ 'cloudtype_status']
+def table_21_do_for_atbd(match_calipso):
+    cloudtype_conditions = match_calipso.imager.all_arrays[ 'cloudtype_conditions']
+    cloudtype_status = match_calipso.imager.all_arrays[ 'cloudtype_status']
     (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag) =     get_day_night_twilight_info_pps2014(cloudtype_conditions)
-    low_clouds = get_calipso_low_clouds(caObj)
-    high_clouds_tp = get_calipso_clouds_of_type_i(caObj, 6)
-    medium_clouds_tp = get_calipso_clouds_of_type_i(caObj, 4)
-    medium_clouds = get_calipso_medium_clouds(caObj)
-    high_clouds = get_calipso_high_clouds(caObj)
+    low_clouds = get_calipso_low_clouds(match_calipso)
+    high_clouds_tp = get_calipso_clouds_of_type_i(match_calipso, 6)
+    medium_clouds_tp = get_calipso_clouds_of_type_i(match_calipso, 4)
+    medium_clouds = get_calipso_medium_clouds(match_calipso)
+    high_clouds = get_calipso_high_clouds(match_calipso)
 
-    cirrus_clouds = get_calipso_medium_and_high_clouds_tp(caObj)
+    cirrus_clouds = get_calipso_medium_and_high_clouds_tp(match_calipso)
     caliop_ok = np.logical_or(np.logical_or(cirrus_clouds, low_clouds),
                               np.logical_or(high_clouds,medium_clouds))
-    pps_ctype = caObj.imager.all_arrays['cloudtype']
+    pps_ctype = match_calipso.imager.all_arrays['cloudtype']
     use = np.logical_and(pps_ctype>4,pps_ctype<23)
-    use = np.logical_and(use, np.logical_and(caliop_ok,caObj.calipso.all_arrays['cloud_fraction']>0.99))
+    use = np.logical_and(use, np.logical_and(caliop_ok,match_calipso.calipso.all_arrays['cloud_fraction']>0.99))
     pps_frac = [pps_ctype_i in [10] for pps_ctype_i in pps_ctype]
     pps_very_low = [pps_ctype_i in [5] for pps_ctype_i in pps_ctype]
     pps_low = [pps_ctype_i in [5,6,10] for pps_ctype_i in pps_ctype]
     pps_medium = [pps_ctype_i in [7] for pps_ctype_i in pps_ctype]
     pps_high = [pps_ctype_i in [8,9] for pps_ctype_i in pps_ctype]
     pps_cirrus =  [pps_ctype_i in [11,12,13,14,15,16,17,18] for pps_ctype_i in pps_ctype]
-    height_ = caObj.calipso.all_arrays['validation_height']
-    elevation = caObj.calipso.all_arrays['elevation']
+    height_ = match_calipso.calipso.all_arrays['validation_height']
+    elevation = match_calipso.calipso.all_arrays['elevation']
     height_[elevation>0] = height_[elevation>0] - elevation[elevation>0]
     pod_very_low = np.sum(np.logical_and(np.logical_and(use,pps_very_low), height_<500))*100.0/np.sum(np.logical_and(use,height_<500))
     far_very_low = np.sum(np.logical_and(np.logical_and(use,pps_very_low), height_>=500))*100.0/np.sum(np.logical_and(use,pps_low))
@@ -266,9 +266,9 @@ if __name__ == "__main__":
     #files = glob(ROOT_DIR_v2018 + "*h5")
 
 
-    caObj = read_files(files)
+    match_calipso = read_files(files)
 
-    plot_ct_table4(caObj)
-    plot_ct_table2(caObj)
-    table_21_do_for_atbd(caObj)
+    plot_ct_table4(match_calipso)
+    plot_ct_table2(match_calipso)
+    table_21_do_for_atbd(match_calipso)
 

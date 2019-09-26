@@ -83,25 +83,25 @@ def my_measures(calipso_cfc, pps_cfc, calipso_snowi, pps_snowi,  thin, use):
     return indict
 
 
-def plot_cfc_table(caObj,cfc_limit=0.9,sat="modis"):
+def plot_cfc_table(match_calipso,cfc_limit=0.9,sat="modis"):
 
     from utils.get_flag_info import get_calipso_clouds_of_type_i
     #cal_subset = np.logical_and(np.equal(nsidc_st,0),np.equal(igbp_st,17))
-    cfc = caObj.calipso.all_arrays['cloud_fraction']
-    calipso_snowi = caObj.calipso.all_arrays['nsidc_surface_type']
-    od = caObj.calipso.all_arrays['total_optical_depth_5km']
-    cma = np.logical_or(caObj.imager.all_arrays['cloudmask']==1,
-                         caObj.imager.all_arrays['cloudmask']==2)
-    cl = np.logical_or(caObj.imager.all_arrays['cloudmask']==0,
-                         caObj.imager.all_arrays['cloudmask']==3)
-    pps_snowi =  caObj.imager.all_arrays['cloudmask']==3
-    if caObj.imager.all_arrays['cloudmask'] is None:
-        cl =np.logical_and(np.less_equal(caObj.imager.cloudtype,4),np.greater(caObj.imager.cloudtype,0))
-        cma = np.logical_and(np.greater(caObj.imager.cloudtype,4),np.less(caObj.imager.cloudtype,20))
-        pps_snowi =np.logical_and(np.less_equal(caObj.imager.cloudtype,4),np.greater(caObj.imager.cloudtype,2))
+    cfc = match_calipso.calipso.all_arrays['cloud_fraction']
+    calipso_snowi = match_calipso.calipso.all_arrays['nsidc_surface_type']
+    od = match_calipso.calipso.all_arrays['total_optical_depth_5km']
+    cma = np.logical_or(match_calipso.imager.all_arrays['cloudmask']==1,
+                         match_calipso.imager.all_arrays['cloudmask']==2)
+    cl = np.logical_or(match_calipso.imager.all_arrays['cloudmask']==0,
+                         match_calipso.imager.all_arrays['cloudmask']==3)
+    pps_snowi =  match_calipso.imager.all_arrays['cloudmask']==3
+    if match_calipso.imager.all_arrays['cloudmask'] is None:
+        cl =np.logical_and(np.less_equal(match_calipso.imager.cloudtype,4),np.greater(match_calipso.imager.cloudtype,0))
+        cma = np.logical_and(np.greater(match_calipso.imager.cloudtype,4),np.less(match_calipso.imager.cloudtype,20))
+        pps_snowi =np.logical_and(np.less_equal(match_calipso.imager.cloudtype,4),np.greater(match_calipso.imager.cloudtype,2))
 
-    (no_qflag, land_flag, sea_flag, coast_flag, all_lsc_flag) = get_land_coast_sea_info_pps2014(caObj.imager.cloudtype_conditions)
-    (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag) = get_day_night_twilight_info_pps2014(caObj.imager.cloudtype_conditions)
+    (no_qflag, land_flag, sea_flag, coast_flag, all_lsc_flag) = get_land_coast_sea_info_pps2014(match_calipso.imager.cloudtype_conditions)
+    (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag) = get_day_night_twilight_info_pps2014(match_calipso.imager.cloudtype_conditions)
     calipso_cfc = cfc.copy()
     calipso_cfc[cfc<=cfc_limit] = 0
     calipso_cfc[cfc>cfc_limit] = 1
@@ -188,8 +188,8 @@ if __name__ == "__main__":
         limit = 0.9
         if "gac" in sat:
             limit = 0.5
-        caObj = read_files(files, 'calipso')
-        plot_cfc_table(caObj, limit, sat=sat)
+        match_calipso = read_files(files, 'calipso')
+        plot_cfc_table(match_calipso, limit, sat=sat)
 
 
     for ROOT_DIR in [ROOT_DIR_v2014_gac,

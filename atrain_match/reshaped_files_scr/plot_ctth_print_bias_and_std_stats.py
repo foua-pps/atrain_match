@@ -363,14 +363,14 @@ def get_plot_object_nn_ctth_modis_lvl2_cloudsat(month):
         #"global_modis_%s_created20170519/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/*h5")
         "global_modis_%s_created20180316/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/*h5")
         #"global_modis_%s_created20170330/Reshaped_Files_merged_cloudsat/eos2/1km/2010/%s/*h5")
-    #clsatObj = CloudsatImagerTrackObject()
+    #match_clsat = CloudsatImagerTrackObject()
     plt_obj = PlotAndDataObject()
     print ROOT_DIR%(day_str,month)
     files = glob(ROOT_DIR%(day_str,month))
     for filename in files:
         print filename
-        clsatObj_new =  readCloudsatImagerMatchObj(filename)
-        plt_obj += extract_data(clsatObj_new, sat='cloudsat')
+        match_clsat_new =  readCloudsatImagerMatchObj(filename)
+        plt_obj += extract_data(match_clsat_new, sat='cloudsat')
     return plt_obj
 
 def get_plot_object_nn_ctth_modis_lvl2(month):
@@ -385,8 +385,8 @@ def get_plot_object_nn_ctth_modis_lvl2(month):
     files = glob(ROOT_DIR%(day_str,month))
     for filename in files:
         print filename
-        caObj_new = readCaliopImagerMatchObj(filename)
-        plt_obj += extract_data(caObj_new, sat='calipso')
+        match_calipso_new = readCaliopImagerMatchObj(filename)
+        plt_obj += extract_data(match_calipso_new, sat='calipso')
     return plt_obj
 
 def do_the_printing():

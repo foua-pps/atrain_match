@@ -69,21 +69,21 @@ def my_measures(calipso_cfc, pps_cfc, thin, use):
     measures["N"] =  indict["N"]
     return measures
 
-def plot_cfc_table(caObj,cfc_limit=0.9,sat="modis"):
+def plot_cfc_table(match_calipso,cfc_limit=0.9,sat="modis"):
 
     from utils.get_flag_info import get_calipso_clouds_of_type_i
 
-    cfc = caObj.calipso.all_arrays['cloud_fraction']
-    od = caObj.calipso.all_arrays['total_optical_depth_5km']
-    cma = np.logical_or(caObj.imager.all_arrays['cloudmask']==1,
-                         caObj.imager.all_arrays['cloudmask']==2)
-    cl = np.logical_or(caObj.imager.all_arrays['cloudmask']==0,
-                         caObj.imager.all_arrays['cloudmask']==3)
-    pps_snowi =  caObj.imager.all_arrays['cloudmask']==3
-    if caObj.imager.all_arrays['cloudmask'] is None:
-        cl =np.logical_and(np.less_equal(caObj.imager.cloudtype,4),np.greater(caObj.imager.cloudtype,0))
-        cma = np.logical_and(np.greater(caObj.imager.cloudtype,4),np.less(caObj.imager.cloudtype,20))
-        pps_snowi =np.logical_and(np.less_equal(caObj.imager.cloudtype,4),np.greater(caObj.imager.cloudtype,2))
+    cfc = match_calipso.calipso.all_arrays['cloud_fraction']
+    od = match_calipso.calipso.all_arrays['total_optical_depth_5km']
+    cma = np.logical_or(match_calipso.imager.all_arrays['cloudmask']==1,
+                         match_calipso.imager.all_arrays['cloudmask']==2)
+    cl = np.logical_or(match_calipso.imager.all_arrays['cloudmask']==0,
+                         match_calipso.imager.all_arrays['cloudmask']==3)
+    pps_snowi =  match_calipso.imager.all_arrays['cloudmask']==3
+    if match_calipso.imager.all_arrays['cloudmask'] is None:
+        cl =np.logical_and(np.less_equal(match_calipso.imager.cloudtype,4),np.greater(match_calipso.imager.cloudtype,0))
+        cma = np.logical_and(np.greater(match_calipso.imager.cloudtype,4),np.less(match_calipso.imager.cloudtype,20))
+        pps_snowi =np.logical_and(np.less_equal(match_calipso.imager.cloudtype,4),np.greater(match_calipso.imager.cloudtype,2))
 
 
     calipso_cfc = cfc.copy()
@@ -96,13 +96,13 @@ def plot_cfc_table(caObj,cfc_limit=0.9,sat="modis"):
 
 
 
-    europe = np.logical_and(caObj.imager.all_arrays['longitude']<60,
-                            caObj.imager.all_arrays['longitude']>-25)
-    europe = np.logical_and(europe,caObj.imager.all_arrays['latitude']<72)
-    europe = np.logical_and(europe,caObj.imager.all_arrays['latitude']>35)
+    europe = np.logical_and(match_calipso.imager.all_arrays['longitude']<60,
+                            match_calipso.imager.all_arrays['longitude']>-25)
+    europe = np.logical_and(europe,match_calipso.imager.all_arrays['latitude']<72)
+    europe = np.logical_and(europe,match_calipso.imager.all_arrays['latitude']>35)
     (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag
-    ) = get_day_night_twilight_info_pps2014(caObj.imager.all_arrays['cloudtype_conditions'])
-    non_polar_night = np.logical_or(~night_flag, np.abs(caObj.imager.all_arrays['latitude'])<75)
+    ) = get_day_night_twilight_info_pps2014(match_calipso.imager.all_arrays['cloudtype_conditions'])
+    non_polar_night = np.logical_or(~night_flag, np.abs(match_calipso.imager.all_arrays['latitude'])<75)
     measures = my_measures(calipso_cfc, pps_cfc, thin, use)
     measures_d = my_measures(calipso_cfc, pps_cfc, thin, np.logical_and(use,day_flag))
     measures_n = my_measures(calipso_cfc, pps_cfc, thin, np.logical_and(use, night_flag))
@@ -141,28 +141,28 @@ def plot_cfc_table(caObj,cfc_limit=0.9,sat="modis"):
     info = print_one_line(measures_nonpolar_night)
     out_file_h.write("CALIOP NON-POLAR-NIGHT:" + info)
 
-    from trajectory_plotting import plotSatelliteTrajectory
+    from trajectory_plotting import plot_satellite_trajectory
     import config
-    plotSatelliteTrajectory(caObj.calipso.all_arrays["longitude"][day_flag],
-                            caObj.calipso.all_arrays["latitude"][day_flag],
+    plot_satellite_trajectory(match_calipso.calipso.all_arrays["longitude"][day_flag],
+                            match_calipso.calipso.all_arrays["latitude"][day_flag],
                             ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_marble_cfc_%s_dist"%(sat),
                             config.AREA_CONFIG_FILE,
                             fig_type=['png'])
     try:
-        plotSatelliteTrajectory(caObj.calipso.all_arrays["longitude"][np.logical_and(europe,use)],
-                                caObj.calipso.all_arrays["latitude"][np.logical_and(europe,use)],
+        plot_satellite_trajectory(match_calipso.calipso.all_arrays["longitude"][np.logical_and(europe,use)],
+                                match_calipso.calipso.all_arrays["latitude"][np.logical_and(europe,use)],
                                 ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_marble_cfc_%s_dist_europe"%(sat),
                                 config.AREA_CONFIG_FILE,
                                 fig_type=['png'])
     except:
         pass
     from histogram_plotting import distribution_map
-    distribution_map(caObj.calipso.all_arrays["longitude"][use],
-                     caObj.calipso.all_arrays["latitude"][use])
+    distribution_map(match_calipso.calipso.all_arrays["longitude"][use],
+                     match_calipso.calipso.all_arrays["latitude"][use])
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_white_cfc_%s_dist.png"%(sat), bbox_inches='tight')
     try:
-        distribution_map(caObj.calipso.all_arrays["longitude"][np.logical_and(europe,use)],
-                         caObj.calipso.all_arrays["latitude"][np.logical_and(europe,use)])
+        distribution_map(match_calipso.calipso.all_arrays["longitude"][np.logical_and(europe,use)],
+                         match_calipso.calipso.all_arrays["latitude"][np.logical_and(europe,use)])
         plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_white_cfc_%s_dist_europe.png"%(sat), bbox_inches='tight')
     except:
         pass
@@ -197,8 +197,8 @@ if __name__ == "__main__":
         limit = 0.9
         if "gac" in sat:
             limit = 0.5
-        caObj = read_files(files)
-        plot_cfc_table(caObj, limit, sat=sat)
+        match_calipso = read_files(files)
+        plot_cfc_table(match_calipso, limit, sat=sat)
     for ROOT_DIR in [ROOT_DIR_v2014_gac,
                      ROOT_DIR_v2018_gac]:
         process_one_case(ROOT_DIR, True)

@@ -34,31 +34,31 @@ from utils.get_flag_info import (get_semi_opaque_info_pps2014,
                            get_calipso_medium_clouds,
                            get_calipso_low_clouds)
 from my_dir import ADIR
-def make_boxplot(caObj, name):
-    low_clouds = get_calipso_low_clouds(caObj)
-    high_clouds = get_calipso_high_clouds(caObj)
-    medium_clouds = get_calipso_medium_clouds(caObj)
-    height_c = (1000*caObj.calipso.all_arrays['layer_top_altitude'][:,0] -
-                caObj.calipso.all_arrays['elevation'])
-    height_c1 = (1000*caObj.calipso.all_arrays['layer_top_altitude'][:,0] -
-                 caObj.calipso.all_arrays['elevation'])
-    height_c2 = (1000*caObj.calipso.all_arrays['layer_top_altitude'][:,1] -
-                 caObj.calipso.all_arrays['elevation'])
-    height_c3 = (1000*caObj.calipso.all_arrays['layer_top_altitude'][:,2] -
-                 caObj.calipso.all_arrays['elevation'])
-    height_c4 = (1000*caObj.calipso.all_arrays['layer_top_altitude'][:,3] -
-                 caObj.calipso.all_arrays['elevation'])
-    height_pps = caObj.imager.all_arrays['ctth_height']
+def make_boxplot(match_calipso, name):
+    low_clouds = get_calipso_low_clouds(match_calipso)
+    high_clouds = get_calipso_high_clouds(match_calipso)
+    medium_clouds = get_calipso_medium_clouds(match_calipso)
+    height_c = (1000*match_calipso.calipso.all_arrays['layer_top_altitude'][:,0] -
+                match_calipso.calipso.all_arrays['elevation'])
+    height_c1 = (1000*match_calipso.calipso.all_arrays['layer_top_altitude'][:,0] -
+                 match_calipso.calipso.all_arrays['elevation'])
+    height_c2 = (1000*match_calipso.calipso.all_arrays['layer_top_altitude'][:,1] -
+                 match_calipso.calipso.all_arrays['elevation'])
+    height_c3 = (1000*match_calipso.calipso.all_arrays['layer_top_altitude'][:,2] -
+                 match_calipso.calipso.all_arrays['elevation'])
+    height_c4 = (1000*match_calipso.calipso.all_arrays['layer_top_altitude'][:,3] -
+                 match_calipso.calipso.all_arrays['elevation'])
+    height_pps = match_calipso.imager.all_arrays['ctth_height']
     bias_1 =  height_pps - height_c1
     bias_2 =  height_pps - height_c2
     bias_3 =  height_pps - height_c3
     bias_4 =  height_pps - height_c4
-    thin = np.logical_and(caObj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']<0.30,
-                          caObj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>0)
-    very_thin = np.logical_and(caObj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']<0.10,
-                          caObj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>0)
-    thin_top = np.logical_and(caObj.calipso.all_arrays['number_layers_found']>1, thin)
-    thin_1_lay = np.logical_and(caObj.calipso.all_arrays['number_layers_found']==1, thin)
+    thin = np.logical_and(match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']<0.30,
+                          match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>0)
+    very_thin = np.logical_and(match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']<0.10,
+                          match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>0)
+    thin_top = np.logical_and(match_calipso.calipso.all_arrays['number_layers_found']>1, thin)
+    thin_1_lay = np.logical_and(match_calipso.calipso.all_arrays['number_layers_found']==1, thin)
     #height_c[thin_top] =  height_c2[thin_top]
     #height_c[np.abs(bias_1)<np.abs(bias_2)] =  height_c1[np.abs(bias_1)<np.abs(bias_2)]
     #height_c[np.abs(bias_2)<np.abs(bias_1)] =  height_c2[np.abs(bias_2)<np.abs(bias_1)]
@@ -70,7 +70,7 @@ def make_boxplot(caObj, name):
 
 
     use = np.logical_and(height_pps >-1,
-                         caObj.calipso.all_arrays['layer_top_altitude'][:,0]>=0)
+                         match_calipso.calipso.all_arrays['layer_top_altitude'][:,0]>=0)
     use = np.logical_and(height_pps <45000,use)
 
     low = np.logical_and(low_clouds,use)
@@ -162,11 +162,11 @@ def investigate_nn_ctth():
                                "gac_nnIMAGER_tuned", "gac_nnIMAGER1_tuned",
                                "gac_v2014_12x12","gac_CTTHold_12x12", "gac_17var_modis_noaa19"]):
         files = glob(ROOT_DIR + "5km/2009/*/*/*h5")
-        caObj = CalipsoImagerTrackObject()
+        match_calipso = CalipsoImagerTrackObject()
         for filename in files:
-            caObj +=  readCaliopImagerMatchObj(filename)
-        caobj_dict[name] = caObj
-        make_boxplot(caObj, name)
+            match_calipso +=  readCaliopImagerMatchObj(filename)
+        caobj_dict[name] = match_calipso
+        make_boxplot(match_calipso, name)
     #make_compare(caobj_dict['old'],caobj_dict['nn20161125'],'test')
     #make_compare(caobj_dict['nn20161130'],caobj_dict['nn20161125'],'test2')
 
@@ -221,12 +221,12 @@ def investigate_nn_ctth_viirs():
         print ROOT_DIR
         files = glob(ROOT_DIR + "*.h5")
         print files
-        caObj = CalipsoImagerTrackObject()
+        match_calipso = CalipsoImagerTrackObject()
         for filename in files:
             #print filename
-            caObj +=  readCaliopImagerMatchObj(filename)
-        caobj_dict[name] = caObj
-        make_boxplot(caObj, name)
+            match_calipso +=  readCaliopImagerMatchObj(filename)
+        caobj_dict[name] = match_calipso
+        make_boxplot(match_calipso, name)
 
 def investigate_nn_ctth_modis_may():
    #november
@@ -256,12 +256,12 @@ def investigate_nn_ctth_modis_may():
              "modis_november_CTTHold"]):
         print name
         files = glob(ROOT_DIR + "/*11*.h5")
-        caObj = CalipsoImagerTrackObject()
+        match_calipso = CalipsoImagerTrackObject()
         for filename in files:
             #print filename
-            caObj +=  readCaliopImagerMatchObj(filename)
-        caobj_dict[name] = caObj
-        make_boxplot(caObj, name)
+            match_calipso +=  readCaliopImagerMatchObj(filename)
+        caobj_dict[name] = match_calipso
+        make_boxplot(match_calipso, name)
     #make_compare(caobj_dict["modis_nn18var"],
     #             caobj_dict["modis_CTTHold"],
     #             'compare_modis')
@@ -311,12 +311,12 @@ def investigate_nn_ctth_modis_november():
              "modis_nov_nnIMAGER_tuned",
 ]):
         files = glob(ROOT_DIR + "/*11*.h5")
-        caObj = CalipsoImagerTrackObject()
+        match_calipso = CalipsoImagerTrackObject()
         for filename in files:
             #print filename
-            caObj +=  readCaliopImagerMatchObj(filename)
-        caobj_dict[name] = caObj
-        make_boxplot(caObj, name)
+            match_calipso +=  readCaliopImagerMatchObj(filename)
+        caobj_dict[name] = match_calipso
+        make_boxplot(match_calipso, name)
     #make_compare(caobj_dict["modis_nn18var"],
     #             caobj_dict["modis_CTTHold"],
     #             'compare_modis')

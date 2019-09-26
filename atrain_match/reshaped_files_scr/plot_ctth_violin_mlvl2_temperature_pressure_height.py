@@ -35,25 +35,25 @@ from utils.get_flag_info import (get_semi_opaque_info_pps2014,
                            get_calipso_low_clouds)
 from my_dir import ADIR
 labels=["low","medium","high-all","high-thick\n od>0.4","high-thin \n 0.1<od<0.4","high-vthin\n od<0.1"],
-def make_violinplot(caObj, name, modis_lvl2=False):
-    low_clouds = get_calipso_low_clouds(caObj)
-    high_clouds = get_calipso_high_clouds(caObj)
-    medium_clouds = get_calipso_medium_clouds(caObj)
-    height_c = (1000*caObj.calipso.all_arrays['layer_top_altitude'][:,0] -
-                caObj.calipso.all_arrays['elevation'])
+def make_violinplot(match_calipso, name, modis_lvl2=False):
+    low_clouds = get_calipso_low_clouds(match_calipso)
+    high_clouds = get_calipso_high_clouds(match_calipso)
+    medium_clouds = get_calipso_medium_clouds(match_calipso)
+    height_c = (1000*match_calipso.calipso.all_arrays['layer_top_altitude'][:,0] -
+                match_calipso.calipso.all_arrays['elevation'])
     if modis_lvl2:
-        height_pps = caObj.modis.all_arrays['height']
+        height_pps = match_calipso.modis.all_arrays['height']
     else:
-        height_pps = caObj.imager.all_arrays['ctth_height']
+        height_pps = match_calipso.imager.all_arrays['ctth_height']
         print "min/max height", np.min( height_pps), np.max(height_pps)
-    thin = np.logical_and(caObj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']<0.30,
-                          caObj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>0)
-    very_thin = np.logical_and(caObj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']<0.10,
-                          caObj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>0)
-    thin_top = np.logical_and(caObj.calipso.all_arrays['number_layers_found']>1, thin)
-    thin_1_lay = np.logical_and(caObj.calipso.all_arrays['number_layers_found']==1, thin)
+    thin = np.logical_and(match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']<0.30,
+                          match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>0)
+    very_thin = np.logical_and(match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']<0.10,
+                          match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>0)
+    thin_top = np.logical_and(match_calipso.calipso.all_arrays['number_layers_found']>1, thin)
+    thin_1_lay = np.logical_and(match_calipso.calipso.all_arrays['number_layers_found']==1, thin)
     use = np.logical_and(height_pps >-1,
-                         caObj.calipso.all_arrays['layer_top_altitude'][:,0]>=0)
+                         match_calipso.calipso.all_arrays['layer_top_altitude'][:,0]>=0)
     use = np.logical_and(height_pps <45000,use)
     low = np.logical_and(low_clouds,use)
     medium = np.logical_and(medium_clouds,use)
@@ -91,27 +91,27 @@ def make_violinplot(caObj, name, modis_lvl2=False):
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_BOX/ctth_violin_%s_5_95_filt.png"%(name))
 
 
-def make_violinplot_temperature(caObj, name, modis_lvl2=False):
-    low_clouds = get_calipso_low_clouds(caObj)
-    high_clouds = get_calipso_high_clouds(caObj)
-    medium_clouds = get_calipso_medium_clouds(caObj)
-    temp_c = caObj.calipso.all_arrays['layer_top_temperature'][:,0] +273.15
+def make_violinplot_temperature(match_calipso, name, modis_lvl2=False):
+    low_clouds = get_calipso_low_clouds(match_calipso)
+    high_clouds = get_calipso_high_clouds(match_calipso)
+    medium_clouds = get_calipso_medium_clouds(match_calipso)
+    temp_c = match_calipso.calipso.all_arrays['layer_top_temperature'][:,0] +273.15
     if modis_lvl2:
-        temp_pps = caObj.modis.all_arrays['temperature']
+        temp_pps = match_calipso.modis.all_arrays['temperature']
     else:
-        temp_pps = caObj.imager.all_arrays['ctth_temperature']
+        temp_pps = match_calipso.imager.all_arrays['ctth_temperature']
     if modis_lvl2:
-        height_pps = caObj.modis.all_arrays['height']
+        height_pps = match_calipso.modis.all_arrays['height']
     else:
-        height_pps = caObj.imager.all_arrays['ctth_height']
-    thin = np.logical_and(caObj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']<0.30,
-                          caObj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>0)
-    very_thin = np.logical_and(caObj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']<0.10,
-                          caObj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>0)
-    thin_top = np.logical_and(caObj.calipso.all_arrays['number_layers_found']>1, thin)
-    thin_1_lay = np.logical_and(caObj.calipso.all_arrays['number_layers_found']==1, thin)
+        height_pps = match_calipso.imager.all_arrays['ctth_height']
+    thin = np.logical_and(match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']<0.30,
+                          match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>0)
+    very_thin = np.logical_and(match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']<0.10,
+                          match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>0)
+    thin_top = np.logical_and(match_calipso.calipso.all_arrays['number_layers_found']>1, thin)
+    thin_1_lay = np.logical_and(match_calipso.calipso.all_arrays['number_layers_found']==1, thin)
     use = np.logical_and(temp_pps >100,
-                         caObj.calipso.all_arrays['layer_top_altitude'][:,0]>=0)
+                         match_calipso.calipso.all_arrays['layer_top_altitude'][:,0]>=0)
     use = np.logical_and(height_pps <45000,use)
     low = np.logical_and(low_clouds,use)
     medium = np.logical_and(medium_clouds,use)
@@ -147,27 +147,27 @@ def make_violinplot_temperature(caObj, name, modis_lvl2=False):
     plt.title(name)
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/CTTH_BOX/ctth_violin_temperature_%s_5_95_filt.png"%(name))
 
-def make_violinplot_pressure(caObj, name, modis_lvl2=False):
-    low_clouds = get_calipso_low_clouds(caObj)
-    high_clouds = get_calipso_high_clouds(caObj)
-    medium_clouds = get_calipso_medium_clouds(caObj)
-    pressure_c = caObj.calipso.all_arrays['layer_top_pressure'][:,0]
+def make_violinplot_pressure(match_calipso, name, modis_lvl2=False):
+    low_clouds = get_calipso_low_clouds(match_calipso)
+    high_clouds = get_calipso_high_clouds(match_calipso)
+    medium_clouds = get_calipso_medium_clouds(match_calipso)
+    pressure_c = match_calipso.calipso.all_arrays['layer_top_pressure'][:,0]
     if modis_lvl2:
-        pressure_pps = caObj.modis.all_arrays['pressure']
+        pressure_pps = match_calipso.modis.all_arrays['pressure']
     else:
-        pressure_pps = 0.01*caObj.imager.all_arrays['ctth_pressure']
+        pressure_pps = 0.01*match_calipso.imager.all_arrays['ctth_pressure']
     if modis_lvl2:
-        height_pps = caObj.modis.all_arrays['height']
+        height_pps = match_calipso.modis.all_arrays['height']
     else:
-        height_pps = caObj.imager.all_arrays['ctth_height']
-    thin = np.logical_and(caObj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']<0.30,
-                          caObj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>0)
-    very_thin = np.logical_and(caObj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']<0.10,
-                          caObj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>0)
-    thin_top = np.logical_and(caObj.calipso.all_arrays['number_layers_found']>1, thin)
-    thin_1_lay = np.logical_and(caObj.calipso.all_arrays['number_layers_found']==1, thin)
+        height_pps = match_calipso.imager.all_arrays['ctth_height']
+    thin = np.logical_and(match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']<0.30,
+                          match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>0)
+    very_thin = np.logical_and(match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']<0.10,
+                          match_calipso.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>0)
+    thin_top = np.logical_and(match_calipso.calipso.all_arrays['number_layers_found']>1, thin)
+    thin_1_lay = np.logical_and(match_calipso.calipso.all_arrays['number_layers_found']==1, thin)
     use = np.logical_and(pressure_pps >0,
-                         caObj.calipso.all_arrays['layer_top_altitude'][:,0]>=0)
+                         match_calipso.calipso.all_arrays['layer_top_altitude'][:,0]>=0)
     use = np.logical_and(height_pps <45000,use)
     low = np.logical_and(low_clouds,use)
     medium = np.logical_and(medium_clouds,use)
@@ -226,16 +226,16 @@ def investigate_nn_ctth_modis_lvl2():
             name = "%s_%s"%(name, month)
             print ROOT_DIR
             files = glob(ROOT_DIR%(month))
-            caObj = CalipsoImagerTrackObject()
+            match_calipso = CalipsoImagerTrackObject()
             for filename in files:
                 #print filename
-                caObj +=  readCaliopImagerMatchObj(filename)
+                match_calipso +=  readCaliopImagerMatchObj(filename)
             modis_lvl2 = False
             if "modis_lvl2"  in name:
                 modis_lvl2 = True
-            make_violinplot(caObj, name, modis_lvl2=modis_lvl2 )
-            make_violinplot_pressure(caObj, name, modis_lvl2=modis_lvl2)
-            make_violinplot_temperature(caObj, name, modis_lvl2=modis_lvl2)
+            make_violinplot(match_calipso, name, modis_lvl2=modis_lvl2 )
+            make_violinplot_pressure(match_calipso, name, modis_lvl2=modis_lvl2)
+            make_violinplot_temperature(match_calipso, name, modis_lvl2=modis_lvl2)
 
 if __name__ == "__main__":
     investigate_nn_ctth_modis_lvl2()

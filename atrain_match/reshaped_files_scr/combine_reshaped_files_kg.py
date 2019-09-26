@@ -22,8 +22,8 @@
 import numpy as np
 from glob import glob
 import os
-from matchobject_io import (readTruthImagerMatchObj,
-                            writeTruthImagerMatchObj)
+from matchobject_io import (read_truth_imager_match_obj,
+                            write_truth_imager_match_obj)
 
 import time
 
@@ -60,7 +60,7 @@ def remove_doubles(mObj, mObj2):
     mObj = mObj.extract_elements(idx=np.array(non_doubles))
     return mObj
 
-caObj_merged = None
+match_calipso_merged = None
 for satellite in SATELLITES:
     ROOT_DIR = BASE_DIR + "/{satellite}/5km/%s/%s/*%s%s*_*{truth}*.h5".format(
         satellite=satellite, truth=truth)
@@ -82,30 +82,30 @@ for satellite in SATELLITES:
                 continue
             for filename in files:
                 print(os.path.basename(filename))
-                #caObj_new=readTruthImagerMatchObj(filename, truth=truth)
+                #match_calipso_new=read_truth_imager_match_obj(filename, truth=truth)
                 try:
-                    caObj_new=readTruthImagerMatchObj(filename, truth=truth)
+                    match_calipso_new=read_truth_imager_match_obj(filename, truth=truth)
                 except:
                     print("problem with", os.path.basename(filename))
                     continue
-                    #if caObj_new.cloudsat.RVOD_CWC_status is None or len(caObj_new.cloudsat.RVOD_CWC_status) != len(caObj_new.avhrr.cpp_lwp):
+                    #if match_calipso_new.cloudsat.RVOD_CWC_status is None or len(match_calipso_new.cloudsat.RVOD_CWC_status) != len(match_calipso_new.avhrr.cpp_lwp):
                     #    print("Missing RVOD_CWC_status")
                     #    continue
                 num_n +=1
                 print("reading",os.path.basename(filename))
-                if caObj_merged is None:
-                    caObj_merged =  caObj_new
+                if match_calipso_merged is None:
+                    match_calipso_merged =  match_calipso_new
                 else:
-                    caObj_new  = remove_doubles(caObj_new, caObj_merged)
-                    caObj_merged = caObj_merged + caObj_new
+                    match_calipso_new  = remove_doubles(match_calipso_new, match_calipso_merged)
+                    match_calipso_merged = match_calipso_merged + match_calipso_new
             if num_n>0:
                 filename_merged = outfile_template%(year,month)
                 outfile = os.path.join(OUT_DIR, filename_merged)
 
-                print(len(caObj_merged.calipso.sec_1970))
-                writeTruthImagerMatchObj(
-                    outfile, caObj_merged, SETTINGS, imager_obj_name = 'pps')
-                caObj_merged = None
+                print(len(match_calipso_merged.calipso.sec_1970))
+                write_truth_imager_match_obj(
+                    outfile, match_calipso_merged, SETTINGS, imager_obj_name = 'pps')
+                match_calipso_merged = None
 
 
 print(time.time()-tic)

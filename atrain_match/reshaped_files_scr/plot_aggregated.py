@@ -38,26 +38,26 @@ files = glob(ROOT_DIR + "/2012/??/arctic_europe_1km/*h5")
 from matchobject_io import (readCaliopImagerMatchObj,
                             CalipsoImagerTrackObject)
 
-caObj = CalipsoImagerTrackObject()
+match_calipso = CalipsoImagerTrackObject()
 for filename in files:
     print os.path.basename(filename)
-    caObj = caObj + readCaliopImagerMatchObj(filename)
+    match_calipso = match_calipso + readCaliopImagerMatchObj(filename)
 
-isCloud = caObj.calipso.all_arrays['number_layers_found'] > 0
-r16 = caObj.imager.all_arrays['r16micron']
-t37 = caObj.imager.all_arrays['bt37micron']
-t86 = caObj.imager.all_arrays['bt86micron']
-t11 = caObj.imager.all_arrays['bt11micron']
-t12 = caObj.imager.all_arrays['bt12micron']
+isCloud = match_calipso.calipso.all_arrays['number_layers_found'] > 0
+r16 = match_calipso.imager.all_arrays['r16micron']
+t37 = match_calipso.imager.all_arrays['bt37micron']
+t86 = match_calipso.imager.all_arrays['bt86micron']
+t11 = match_calipso.imager.all_arrays['bt11micron']
+t12 = match_calipso.imager.all_arrays['bt12micron']
 
 # nsidc_surface_type
 # 255 = Coast
 # 1-100 = Sea ice concentration %
 # 101 = Permamnent ice
 # 0 = Ice free
-isIce = np.logical_and(caObj.calipso.all_arrays['nsidc_surface_type'] >= 15,
-                       caObj.calipso.all_arrays['nsidc_surface_type'] <= 100)
-isWater = np.logical_and(np.equal(caObj.calipso.all_arrays['igbp_surface_type'], 17),
+isIce = np.logical_and(match_calipso.calipso.all_arrays['nsidc_surface_type'] >= 15,
+                       match_calipso.calipso.all_arrays['nsidc_surface_type'] <= 100)
+isWater = np.logical_and(np.equal(match_calipso.calipso.all_arrays['igbp_surface_type'], 17),
                          np.equal(isIce, False))
 isClearWater = np.logical_and(isWater, np.equal(isCloud, False))
 isClearIce = np.logical_and(isIce, np.equal(isCloud, False))

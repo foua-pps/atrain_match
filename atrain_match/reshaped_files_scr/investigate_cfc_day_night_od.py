@@ -26,33 +26,33 @@ from matchobject_io import read_files
 limits = [0.1*ind for ind in range(0,10)]
 limits = limits + [ind for ind in range(1,6)]
 
-def make_pod_vector(caObj):
+def make_pod_vector(match_calipso):
     pod_d = []
     pod_n = []
     feature_n = []
     feature_d = []
-    od = caObj.calipso.all_arrays["total_optical_depth_5km"]
+    od = match_calipso.calipso.all_arrays["total_optical_depth_5km"]
     #try:
-    #    pps_cloudy = caObj.imager.all_arrays['cma_prob']>50
+    #    pps_cloudy = match_calipso.imager.all_arrays['cma_prob']>50
     #
     #except:
-    if caObj.imager.all_arrays['cloudmask'] is not None:
-        pps_cloudy = np.logical_or(caObj.imager.all_arrays['cloudmask']==1,
-                                   caObj.imager.all_arrays['cloudmask']==2)
+    if match_calipso.imager.all_arrays['cloudmask'] is not None:
+        pps_cloudy = np.logical_or(match_calipso.imager.all_arrays['cloudmask']==1,
+                                   match_calipso.imager.all_arrays['cloudmask']==2)
     else:
-        pps_cloudy = np.logical_and(np.greater(caObj.imager.cloudtype,4),np.less(caObj.imager.cloudtype,20))
-    igbp_st = getattr(caObj.calipso, 'igbp_surface_type')
-    alat = np.abs(caObj.imager.all_arrays['latitude'])
+        pps_cloudy = np.logical_and(np.greater(match_calipso.imager.cloudtype,4),np.less(match_calipso.imager.cloudtype,20))
+    igbp_st = getattr(match_calipso.calipso, 'igbp_surface_type')
+    alat = np.abs(match_calipso.imager.all_arrays['latitude'])
     use_all = np.logical_and(np.equal(igbp_st,17), alat<45)
-    use_all = np.logical_and(use_all,caObj.calipso.all_arrays["cloud_fraction"]>=1.0)
-    sunz = caObj.imager.all_arrays['sunz']
+    use_all = np.logical_and(use_all,match_calipso.calipso.all_arrays["cloud_fraction"]>=1.0)
+    sunz = match_calipso.imager.all_arrays['sunz']
     if np.max(sunz)<5:
         sunz = 100*sunz
     day = sunz<90
 
-    #feature = np.array(caObj.imager.all_arrays['bt11micron'])-caObj.imager.all_arrays['surftemp']
-    #feature = caObj.imager.all_arrays['thr_t37t12'] - np.array(caObj.imager.all_arrays['bt37micron']) +caObj.imager.all_arrays['bt12micron']
-    feature =  np.array(caObj.imager.all_arrays['bt11micron'])# -caObj.imager.all_arrays['bt12micron'] - caObj.imager.all_arrays['thr_t11t12']
+    #feature = np.array(match_calipso.imager.all_arrays['bt11micron'])-match_calipso.imager.all_arrays['surftemp']
+    #feature = match_calipso.imager.all_arrays['thr_t37t12'] - np.array(match_calipso.imager.all_arrays['bt37micron']) +match_calipso.imager.all_arrays['bt12micron']
+    feature =  np.array(match_calipso.imager.all_arrays['bt11micron'])# -match_calipso.imager.all_arrays['bt12micron'] - match_calipso.imager.all_arrays['thr_t11t12']
     feature = od
     for i, lower in enumerate(limits):
         try:
@@ -76,19 +76,19 @@ def make_pod_vector(caObj):
     use_i = np.logical_and(use, day)
     from collections import Counter
     try :
-        print(Counter(caObj.imager.all_arrays['cma_testlist0'][use_i]))
-        print(Counter(caObj.imager.all_arrays['cma_testlist1'][use_i]))
-        print(Counter(caObj.imager.all_arrays['cma_testlist2'][use_i]))
-        print(Counter(caObj.imager.all_arrays['cma_testlist3'][use_i]))
-        print(Counter(caObj.imager.all_arrays['cma_testlist4'][use_i]))
-        print(Counter(caObj.imager.all_arrays['cma_testlist5'][use_i]))
+        print(Counter(match_calipso.imager.all_arrays['cma_testlist0'][use_i]))
+        print(Counter(match_calipso.imager.all_arrays['cma_testlist1'][use_i]))
+        print(Counter(match_calipso.imager.all_arrays['cma_testlist2'][use_i]))
+        print(Counter(match_calipso.imager.all_arrays['cma_testlist3'][use_i]))
+        print(Counter(match_calipso.imager.all_arrays['cma_testlist4'][use_i]))
+        print(Counter(match_calipso.imager.all_arrays['cma_testlist5'][use_i]))
         use_i = np.logical_and(use, np.not_equal(day,True))
-        print(Counter(caObj.imager.all_arrays['cma_testlist0'][use_i]))
-        print(Counter(caObj.imager.all_arrays['cma_testlist1'][use_i]))
-        print(Counter(caObj.imager.all_arrays['cma_testlist2'][use_i]))
-        print(Counter(caObj.imager.all_arrays['cma_testlist3'][use_i]))
-        print(Counter(caObj.imager.all_arrays['cma_testlist4'][use_i]))
-        print(Counter(caObj.imager.all_arrays['cma_testlist5'][use_i]))
+        print(Counter(match_calipso.imager.all_arrays['cma_testlist0'][use_i]))
+        print(Counter(match_calipso.imager.all_arrays['cma_testlist1'][use_i]))
+        print(Counter(match_calipso.imager.all_arrays['cma_testlist2'][use_i]))
+        print(Counter(match_calipso.imager.all_arrays['cma_testlist3'][use_i]))
+        print(Counter(match_calipso.imager.all_arrays['cma_testlist4'][use_i]))
+        print(Counter(match_calipso.imager.all_arrays['cma_testlist5'][use_i]))
     except:
         pass
     return np.array(pod_d), np.array(pod_n), np.array(feature_d), np.array(feature_n)
@@ -108,18 +108,18 @@ ROOT_DIR_CCI = (ADIR + "/DATA_MISC/reshaped_files_cci_noaa18_2009/V2/*2009*h5")
 re_name = re.compile("_global_(\w+_\w+_\w+)\/")
 
 files = glob(ROOT_DIR_v2014_GAC)
-cObj2014 = read_files(files)
-pod14_d, pod14_n, f14_d, f14_n = make_pod_vector(cObj2014)
-cObj2014 = None
+match_obj2014 = read_files(files)
+pod14_d, pod14_n, f14_d, f14_n = make_pod_vector(match_obj2014)
+match_obj2014 = None
 files = glob(ROOT_DIR_v2018_GAC)
-cObj2018 = read_files(files)
-pod18_d, pod18_n, f18_d, f18_n = make_pod_vector(cObj2018)
+match_obj2018 = read_files(files)
+pod18_d, pod18_n, f18_d, f18_n = make_pod_vector(match_obj2018)
 files = glob(ROOT_DIR_PATMOSX)
-cObjP = read_files(files)
-podP_d, podP_n, fP_d, fP_n = make_pod_vector(cObjP)
+match_objP = read_files(files)
+podP_d, podP_n, fP_d, fP_n = make_pod_vector(match_objP)
 files = glob(ROOT_DIR_CCI)
-cObjC = read_files(files)
-podC_d, podC_n, fC_d, fC_n = make_pod_vector(cObjC)
+match_objC = read_files(files)
+podC_d, podC_n, fC_d, fC_n = make_pod_vector(match_objC)
 name = "GAC"
 
 

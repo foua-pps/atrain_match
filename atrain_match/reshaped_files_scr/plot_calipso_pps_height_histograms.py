@@ -79,24 +79,24 @@ def  my_plot_histogram_hexbin(x, y,
     plt.show()
     return 1
 
-caObj = CalipsoImagerTrackObject()
+match_calipso = CalipsoImagerTrackObject()
 for filename in files:
     print os.path.basename(filename)
-    caObj = caObj + readCaliopImagerMatchObj(filename)
+    match_calipso = match_calipso + readCaliopImagerMatchObj(filename)
 
-isCloudyPPS = np.logical_and(caObj.imager.all_arrays['cloudtype']>4,
-                             caObj.imager.all_arrays['cloudtype']<21)
-isCloudyCaliop = caObj.calipso.all_arrays['number_layers_found']>0
+isCloudyPPS = np.logical_and(match_calipso.imager.all_arrays['cloudtype']>4,
+                             match_calipso.imager.all_arrays['cloudtype']<21)
+isCloudyCaliop = match_calipso.calipso.all_arrays['number_layers_found']>0
 isCloudyCaliop = np.logical_and(isCloudyCaliop,
-                                 caObj.calipso.all_arrays['total_optical_depth_5km']>0.5)
+                                 match_calipso.calipso.all_arrays['total_optical_depth_5km']>0.5)
 
-cal_temp = caObj.calipso.all_arrays['midlayer_temperature'][:,0]+273.15
-cal_height = 1000*caObj.calipso.all_arrays['layer_top_altitude'][:,0]
-pps_temp = caObj.imager.all_arrays['ctth_temperature']
-pps_height = caObj.imager.all_arrays['ctth_height']
-bt11 = caObj.imager.all_arrays['bt11micron']
-tsur = caObj.imager.all_arrays['surftemp']
-ctype = caObj.imager.all_arrays['cloudtype']
+cal_temp = match_calipso.calipso.all_arrays['midlayer_temperature'][:,0]+273.15
+cal_height = 1000*match_calipso.calipso.all_arrays['layer_top_altitude'][:,0]
+pps_temp = match_calipso.imager.all_arrays['ctth_temperature']
+pps_height = match_calipso.imager.all_arrays['ctth_height']
+bt11 = match_calipso.imager.all_arrays['bt11micron']
+tsur = match_calipso.imager.all_arrays['surftemp']
+ctype = match_calipso.imager.all_arrays['cloudtype']
 
 isCloudy =  np.logical_and(isCloudyPPS,isCloudyCaliop)
 isCloudy =  np.logical_and(pps_temp>-9,isCloudy)

@@ -20,8 +20,8 @@ from glob import glob
 import re
 import numpy as np
 from scipy import ndimage
-from matchobject_io import readTruthImagerMatchObj
-from plotting.along_track_plotting import (drawCalClsatGEOPROFImagerPlot,
+from matchobject_io import read_truth_imager_match_obj
+from plotting.along_track_plotting import (plot_cal_clsat_geoprof_imager,
                                            drawCalPPSHeightPlot_PrototypePPSHeight  )
 from my_dir import ADIR
 ROOT_DIR = (ADIR + "/DATA_MISC/reshaped_files/"
@@ -52,24 +52,24 @@ for filename in files:
     if match:
         name = match.group(1)
     basename = os.path.basename(filename)
-    caObj =  readTruthImagerMatchObj(filename)
-    caObj_OLD =  readTruthImagerMatchObj(filename.replace(ROOT_DIR_v2018_GAC, ROOT_DIR_v2014_GAC))
-    height_pps =  caObj.imager.all_arrays['ctth_height']
-    height_pps_old =  caObj_OLD.imager.all_arrays['ctth_height']
+    match_calipso =  read_truth_imager_match_obj(filename)
+    match_calipso_OLD =  read_truth_imager_match_obj(filename.replace(ROOT_DIR_v2018_GAC, ROOT_DIR_v2014_GAC))
+    height_pps =  match_calipso.imager.all_arrays['ctth_height']
+    height_pps_old =  match_calipso_OLD.imager.all_arrays['ctth_height']
     try:
         use = np.logical_or(height_pps>0, height_pps_old>0)
     except:
         continue
-    #use = np.logical_and(np.abs(caObj.imager.all_arrays['latitude'])>70, use)
-    xmin = [i for i,x in enumerate(caObj.imager.all_arrays['latitude']) if x<-50]
+    #use = np.logical_and(np.abs(match_calipso.imager.all_arrays['latitude'])>70, use)
+    xmin = [i for i,x in enumerate(match_calipso.imager.all_arrays['latitude']) if x<-50]
     try:
         xmin = xmin[0]
     except:
         xmin = 0
-    drawCalPPSHeightPlot_PrototypePPSHeight(caObj.calipso,
+    drawCalPPSHeightPlot_PrototypePPSHeight(match_calipso.calipso,
                                             use,
-                                            height_pps_old + caObj.calipso.all_arrays['elevation'],
-                                            height_pps + caObj.calipso.all_arrays['elevation'],
+                                            height_pps_old + match_calipso.calipso.all_arrays['elevation'],
+                                            height_pps + match_calipso.calipso.all_arrays['elevation'],
                                             ADIR + "/PICTURES_FROM_PYTHON/CTTH_LAPSE_RATE_INVESTIGATION/",
                                             "test_plot_file_part_nn_ctth_%s_%s"%(name,basename.split('.h5')[0]),
                                             file_type='png',

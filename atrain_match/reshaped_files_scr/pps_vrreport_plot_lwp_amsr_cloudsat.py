@@ -166,13 +166,13 @@ def do_the_printing(aObj, name):
             #plt.show()
             plt.close('all')
 
-    from trajectory_plotting import plotSatelliteTrajectory
+    from trajectory_plotting import plot_satellite_trajectory
     import config
-    #plotSatelliteTrajectory(lon, lat,
+    #plot_satellite_trajectory(lon, lat,
     #                        ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_marble_lwp_%s_dist_all"%(aObj.truth_sat),
     #                        config.AREA_CONFIG_FILE,
     #                        fig_type=['png'])
-    plotSatelliteTrajectory(lon[use_map], lat[use_map],
+    plot_satellite_trajectory(lon[use_map], lat[use_map],
                             ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_marble_lwp_%s_%s_dist"%(aObj.truth_sat, name),
                             config.AREA_CONFIG_FILE,
                             fig_type=['png'])

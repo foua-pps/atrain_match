@@ -207,7 +207,7 @@ def my_make_plot_example(bias, use, label_str):
     #plt.show()
 
 
-def my_make_plot_example_aprox(bias, use, label_str, caObj):
+def my_make_plot_example_aprox(bias, use, label_str, match_calipso):
     def my_legend_text(data, text = "text"):
         #label1 = text
         label2 = "bias: {:d}\n".format(np.int(np.mean(data)))
@@ -230,7 +230,7 @@ def my_make_plot_example_aprox(bias, use, label_str, caObj):
     for type_i in range(0,8):
         #if type_i ==1:
         #    continue
-        is_type_i = np.logical_and(use, get_calipso_clouds_of_type_i(caObj, calipso_cloudtype=type_i))
+        is_type_i = np.logical_and(use, get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=type_i))
         n_pix_i = np.int(np.sum(is_type_i)*1.0/N_all*n_pix)
         temp_data_gi = np.random.normal(np.mean(bias[is_type_i]),np.std(bias[is_type_i]), n_pix_i)
         temp_data_iqri = np.random.normal(np.median(bias[is_type_i]),my_iqr(bias[is_type_i])*20.0/27, n_pix_i)
@@ -444,11 +444,11 @@ def my_print_one_line(out_file_h, bias, x, y, use_ind, compare_name, flag_key):
     out_file_h.write("\n")
     print(out_line)
 
-def print_all_cloudsat(cObj, compare, compare_name = "unknown"):
+def print_all_cloudsat(match_obj, compare, compare_name = "unknown"):
     from utils.get_flag_info import get_cloudsat_low_medium_high_classification
-    x = cObj.cloudsat.all_arrays['validation_height']
-    y = cObj.imager.all_arrays['imager_ctth_m_above_seasurface']
-    mhl = get_cloudsat_low_medium_high_classification(cObj)
+    x = match_obj.cloudsat.all_arrays['validation_height']
+    y = match_obj.imager.all_arrays['imager_ctth_m_above_seasurface']
+    mhl = get_cloudsat_low_medium_high_classification(match_obj)
     use = np.logical_and(x>=0, np.logical_and(y>-9,y<65000))
     if mhl is None:
         mhl = {}
@@ -462,61 +462,61 @@ def print_all_cloudsat(cObj, compare, compare_name = "unknown"):
             use_i = np.logical_and(use, np.logical_and(mhl[flag_key], use))
             my_print_one_line(out_file_h, bias, x, y, use_i, "all", flag_key)
 
-def print_all(cObj, compare, compare_name = "unknown"):
+def print_all(match_obj, compare, compare_name = "unknown"):
     #x = getattr(plt_obj, truth)
     #y = getattr(plt_obj, compare)
 
-    x = cObj.calipso.all_arrays['validation_height']
-    x2 = cObj.calipso.all_arrays['layer_top_altitude'][:,1]*1000
-    y = cObj.imager.all_arrays['imager_ctth_m_above_seasurface']
+    x = match_obj.calipso.all_arrays['validation_height']
+    x2 = match_obj.calipso.all_arrays['layer_top_altitude'][:,1]*1000
+    y = match_obj.imager.all_arrays['imager_ctth_m_above_seasurface']
     print( np.max(y), np.max(y[y<65000]))
-    #pressure_c = cObj.calipso.all_arrays['layer_top_pressure'][:,0]
-    low_clouds = get_calipso_low_clouds(cObj)
-    high_clouds = get_calipso_high_clouds(cObj)
-    medium_clouds = get_calipso_medium_clouds(cObj)
-    mhl = get_calipso_low_medium_high_classification(cObj)
+    #pressure_c = match_obj.calipso.all_arrays['layer_top_pressure'][:,0]
+    low_clouds = get_calipso_low_clouds(match_obj)
+    high_clouds = get_calipso_high_clouds(match_obj)
+    medium_clouds = get_calipso_medium_clouds(match_obj)
+    mhl = get_calipso_low_medium_high_classification(match_obj)
 
     use = np.logical_and(x>=0, np.logical_and(y>-9,y<65000))
-    use = np.logical_and(use, np.not_equal(cObj.calipso.all_arrays['feature_classification_flags'][:,0],1))
+    use = np.logical_and(use, np.not_equal(match_obj.calipso.all_arrays['feature_classification_flags'][:,0],1))
     mhl["all"] =use
-    use_inversion = get_inversion_info_pps2014(cObj.imager.all_arrays["cloudtype_status"])
+    use_inversion = get_inversion_info_pps2014(match_obj.imager.all_arrays["cloudtype_status"])
 
     mhl["high_clouds_tp_thin"] = np.logical_and(
         mhl["high_clouds_tp"],
-        np.logical_and(cObj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>=0,
-                       cObj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']<=0.225))
+        np.logical_and(match_obj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>=0,
+                       match_obj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']<=0.225))
     mhl["high_clouds_tp_not_thin"] = np.logical_and(
         mhl["high_clouds_tp"], ~mhl["high_clouds_tp_thin"])
 
     mhl["medium_clouds_tp_thin"] = np.logical_and(
         mhl["medium_clouds_tp"],
-        np.logical_and(cObj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>=0,
-                      cObj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']<=0.225))
+        np.logical_and(match_obj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>=0,
+                      match_obj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']<=0.225))
     mhl["medium_clouds_tp_not_thin"] = np.logical_and(
         mhl["medium_clouds_tp"], ~mhl["medium_clouds_tp_thin"])
 
     mhl["low_clouds_tp_thin"] = np.logical_and(
         mhl["low_clouds_tp"],
-        np.logical_and(cObj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>=0,
-                      cObj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']<=0.225))
+        np.logical_and(match_obj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>=0,
+                      match_obj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']<=0.225))
     mhl["low_clouds_tp_not_thin"] = np.logical_and(
         mhl["low_clouds_tp"],~mhl["low_clouds_tp_thin"] )
 
 
     mhl["all_clouds_tp_thin"] = np.logical_and(
         mhl["clouds_tp"],
-        np.logical_and(cObj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>=0,
-                       cObj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']<=0.225))
+        np.logical_and(match_obj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']>=0,
+                       match_obj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km']<=0.225))
     mhl["all_clouds_tp_not_thin"] = np.logical_and(
         mhl["clouds_tp"],~mhl["all_clouds_tp_thin"] )
 
     mhl["all_clouds_tp_bad2"] = np.logical_and(
         mhl["high_clouds_tp_thin"],
-        cObj.calipso.all_arrays['number_layers_found']>=2)
+        match_obj.calipso.all_arrays['number_layers_found']>=2)
 
     mhl["all_clouds_tp_bad3"] = np.logical_and(
         mhl["high_clouds_tp_thin"],
-        cObj.calipso.all_arrays['number_layers_found']==1)
+        match_obj.calipso.all_arrays['number_layers_found']==1)
 
 
     use_low = np.logical_and(use, low_clouds)
@@ -528,33 +528,33 @@ def print_all(cObj, compare, compare_name = "unknown"):
 
     #my_make_plot_example(bias, use, compare_name)
     #my_make_plot2(y, x, x2, mhl, mhl["all"])
-    my_make_plot_example_aprox(bias, use, compare_name, cObj)
+    my_make_plot_example_aprox(bias, use, compare_name, match_obj)
 
     from scipy import  ndimage
-    maxct = ndimage.filters.maximum_filter1d(cObj.imager.cloudtype, size=9)
-    minct = ndimage.filters.minimum_filter1d(cObj.imager.cloudtype, size=9)
+    maxct = ndimage.filters.maximum_filter1d(match_obj.imager.cloudtype, size=9)
+    minct = ndimage.filters.minimum_filter1d(match_obj.imager.cloudtype, size=9)
     val_geo = np.equal(maxct,minct)
-    #cObj.calipso.layer_top_pressure[:,0][cObj.calipso.layer_top_pressure[:,0]<0] =1200
-    #cObj.calipso.layer_top_altitude[:,0][cObj.calipso.layer_top_altitude[:,0]<0] =0
-    if hasattr(cObj,'calipso'):
-        var_pressure = (ndimage.filters.maximum_filter1d(cObj.calipso.layer_top_pressure[:,0], size=9) -
-                        ndimage.filters.minimum_filter1d(cObj.calipso.layer_top_pressure[:,0], size=9))
+    #match_obj.calipso.layer_top_pressure[:,0][match_obj.calipso.layer_top_pressure[:,0]<0] =1200
+    #match_obj.calipso.layer_top_altitude[:,0][match_obj.calipso.layer_top_altitude[:,0]<0] =0
+    if hasattr(match_obj,'calipso'):
+        var_pressure = (ndimage.filters.maximum_filter1d(match_obj.calipso.layer_top_pressure[:,0], size=9) -
+                        ndimage.filters.minimum_filter1d(match_obj.calipso.layer_top_pressure[:,0], size=9))
         val_geo = np.logical_and(
             val_geo,
             var_pressure<200) #Pressure variation less than 200hPa
-    var_pressure = (ndimage.filters.maximum_filter1d(cObj.calipso.layer_top_pressure[:,0], size=9) -
-                    ndimage.filters.minimum_filter1d(cObj.calipso.layer_top_pressure[:,0], size=9))
-    var_height = (ndimage.filters.maximum_filter1d(cObj.calipso.layer_top_altitude[:,0]*1000, size=9) -
-                  ndimage.filters.minimum_filter1d(cObj.calipso.layer_top_altitude[:,0]*1000, size=9))
+    var_pressure = (ndimage.filters.maximum_filter1d(match_obj.calipso.layer_top_pressure[:,0], size=9) -
+                    ndimage.filters.minimum_filter1d(match_obj.calipso.layer_top_pressure[:,0], size=9))
+    var_height = (ndimage.filters.maximum_filter1d(match_obj.calipso.layer_top_altitude[:,0]*1000, size=9) -
+                  ndimage.filters.minimum_filter1d(match_obj.calipso.layer_top_altitude[:,0]*1000, size=9))
     val_geo2 = var_pressure<100
-    sunz = np.array(cObj.imager.all_arrays['sunz'])
+    sunz = np.array(match_obj.imager.all_arrays['sunz'])
 
 
     """
     fig = plt.figure(figsize=(15, 11))
-    print cObj.calipso.all_arrays['feature_classification_flags'][use][:,0]
-    cflag_full = cObj.calipso.all_arrays['feature_classification_flags'][:,0]
-    cflag = cObj.calipso.all_arrays['feature_classification_flags'][:,0][use]
+    print match_obj.calipso.all_arrays['feature_classification_flags'][use][:,0]
+    cflag_full = match_obj.calipso.all_arrays['feature_classification_flags'][:,0]
+    cflag = match_obj.calipso.all_arrays['feature_classification_flags'][:,0][use]
     feature_array = (4*np.bitwise_and(np.right_shift(cflag,11),1) +
                      2*np.bitwise_and(np.right_shift(cflag,10),1) +
                      1*np.bitwise_and(np.right_shift(cflag,9),1))
@@ -579,11 +579,11 @@ def print_all(cObj, compare, compare_name = "unknown"):
     ax = fig.add_subplot(111)
     #plt.plot(var_pressure[use], abias[use],'b.', alpha=0.02)
     #plt.plot(var_height[use], abias[use],'b.', alpha=0.02)
-    #plt.plot(cObj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km'][use], abias[use],'b.', alpha=0.02)
-    #plt.plot(cObj.calipso.all_arrays['cfc_single_shots_1km_from_5km_file'][use]+0.01), abias[use],'b.', alpha=0.02)
+    #plt.plot(match_obj.calipso.all_arrays['feature_optical_depth_532_top_layer_5km'][use], abias[use],'b.', alpha=0.02)
+    #plt.plot(match_obj.calipso.all_arrays['cfc_single_shots_1km_from_5km_file'][use]+0.01), abias[use],'b.', alpha=0.02)
     #ax.set_xlim([-1.0,1.0])
     plt.plot(feature_array, abias[use],'b.', alpha=0.02)
-    #plt.plot(cObj.calipso.layer_top_altitude[:,0][use],abias[use],'r.', alpha=0.05)
+    #plt.plot(match_obj.calipso.layer_top_altitude[:,0][use],abias[use],'r.', alpha=0.05)
     plt.show()
     """
     #logger.info("Getting day/night info from sunz")
@@ -644,15 +644,15 @@ if __name__ == "__main__":
 
     files = glob(ROOT_DIR_v2014_NPP)
     out_file_h.write("NPP-v2014\n")
-    cObj = read_files(files)
-    print_all(cObj, None, "NPPv2014")
+    match_obj = read_files(files)
+    print_all(match_obj, None, "NPPv2014")
 
 
 
     files = glob(ROOT_DIR_v2018_NPP)
     out_file_h.write("NPP-v2018\n")
-    cObj = read_files(files)
-    print_all(cObj, None, "NPPv2018")
+    match_obj = read_files(files)
+    print_all(match_obj, None, "NPPv2018")
     b=a
 
     files = glob(ROOT_DIR%("20100201"))
@@ -662,9 +662,9 @@ if __name__ == "__main__":
     files = files + glob(ROOT_DIR%("20101001"))
     files = files + glob(ROOT_DIR%("20101201"))
     out_file_h.write("MODIS-C6\n")
-    cObj = read_files(files, truth='cloudsat')
-    cObj.imager.all_arrays['imager_ctth_m_above_seasurface'] = cObj.modis.all_arrays["height"]
-    print_all_cloudsat(cObj, None, "MODIS-C6")
+    match_obj = read_files(files, truth='cloudsat')
+    match_obj.imager.all_arrays['imager_ctth_m_above_seasurface'] = match_obj.modis.all_arrays["height"]
+    print_all_cloudsat(match_obj, None, "MODIS-C6")
 
 
     ROOT_DIR = ROOT_DIR_v2018
@@ -675,39 +675,39 @@ if __name__ == "__main__":
     files = files + glob(ROOT_DIR%("20101001"))
     files = files + glob(ROOT_DIR%("20101201"))
     out_file_h.write("MODIS-C6\n")
-    cObj = read_files(files)
-    cObj.imager.all_arrays['imager_ctth_m_above_seasurface'] = cObj.modis.all_arrays["height"]
-    print_all(cObj, None, "MODIS-C6")
+    match_obj = read_files(files)
+    match_obj.imager.all_arrays['imager_ctth_m_above_seasurface'] = match_obj.modis.all_arrays["height"]
+    print_all(match_obj, None, "MODIS-C6")
 
     files = glob(ROOT_DIR_v2014_GAC%("2006"))
     files = files + glob(ROOT_DIR_v2014_GAC%("2009"))
     out_file_h.write("GAc-v2014\n")
-    cObj = read_files(files)
-    print_all(cObj, None, "GACv2014")
+    match_obj = read_files(files)
+    print_all(match_obj, None, "GACv2014")
     files = glob(ROOT_DIR_v2018_GAC%("2006"))
     files = files + glob(ROOT_DIR_v2018_GAC%("2009"))
     out_file_h.write("GAC-v2018\n")
-    cObj = read_files(files)
-    print_all(cObj, None, "GACv2018")
+    match_obj = read_files(files)
+    print_all(match_obj, None, "GACv2018")
 
     files = glob(ROOT_DIR_v2014_GAC_clsat) #only 2009
     out_file_h.write("GAc-v2014\n")
-    cObj = read_files(files, truth='cloudsat')
-    print_all_cloudsat(cObj, None, "GACv2014")
+    match_obj = read_files(files, truth='cloudsat')
+    print_all_cloudsat(match_obj, None, "GACv2014")
     files = glob(ROOT_DIR_v2018_GAC_clsat) #only 2009
     out_file_h.write("GAC-v2018\n")
-    cObj = read_files(files, truth='cloudsat')
-    print_all_cloudsat(cObj, None, "GACv2018")
+    match_obj = read_files(files, truth='cloudsat')
+    print_all_cloudsat(match_obj, None, "GACv2018")
 
 
     files = glob(ROOT_DIR_v2018_NPP_clsat)
     out_file_h.write("NPP-v2018\n")
-    cObj = read_files(files, truth='cloudsat')
-    print_all_cloudsat(cObj, None, "NPPv2018")
+    match_obj = read_files(files, truth='cloudsat')
+    print_all_cloudsat(match_obj, None, "NPPv2018")
     files = glob(ROOT_DIR_v2014_NPP_clsat)
     out_file_h.write("NPP-v2014\n")
-    cObj = read_files(files, truth='cloudsat')
-    print_all_cloudsat(cObj, None, "NPPv2014")
+    match_obj = read_files(files, truth='cloudsat')
+    print_all_cloudsat(match_obj, None, "NPPv2014")
 
     ROOT_DIR = ROOT_DIR_v2014_clsat
     files = glob(ROOT_DIR%("20100201"))
@@ -717,8 +717,8 @@ if __name__ == "__main__":
     files = files + glob(ROOT_DIR%("20101001"))
     files = files + glob(ROOT_DIR%("20101201"))
     out_file_h.write("MODIS-v2014\n")
-    cObj = read_files(files, truth='cloudsat')
-    print_all_cloudsat(cObj, None, "MODISv2014")
+    match_obj = read_files(files, truth='cloudsat')
+    print_all_cloudsat(match_obj, None, "MODISv2014")
 
     ROOT_DIR = ROOT_DIR_v2018_clsat
     files = glob(ROOT_DIR%("20100201"))
@@ -728,8 +728,8 @@ if __name__ == "__main__":
     files = files + glob(ROOT_DIR%("20101001"))
     files = files + glob(ROOT_DIR%("20101201"))
     out_file_h.write("MODIS-v2018\n")
-    cObj = read_files(files, truth='cloudsat')
-    print_all_cloudsat(cObj, None, "MODISv2018")
+    match_obj = read_files(files, truth='cloudsat')
+    print_all_cloudsat(match_obj, None, "MODISv2018")
 
 
 
@@ -744,8 +744,8 @@ if __name__ == "__main__":
     files = files + glob(ROOT_DIR%("20101001"))
     files = files + glob(ROOT_DIR%("20101201"))
     out_file_h.write("MODIS-v2014\n")
-    cObj = read_files(files)
-    print_all(cObj, None, "eos2v2014")
+    match_obj = read_files(files)
+    print_all(match_obj, None, "eos2v2014")
 
     ROOT_DIR = ROOT_DIR_v2018
     files = glob(ROOT_DIR%("20100201"))
@@ -755,7 +755,7 @@ if __name__ == "__main__":
     files = files + glob(ROOT_DIR%("20101001"))
     files = files + glob(ROOT_DIR%("20101201"))
     out_file_h.write("MODIS-v2018\n")
-    cObj = read_files(files)
-    print_all(cObj, None, "eos2v2018")
+    match_obj = read_files(files)
+    print_all(match_obj, None, "eos2v2018")
 
 

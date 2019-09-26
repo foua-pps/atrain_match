@@ -29,11 +29,11 @@ from utils.get_flag_info import get_pixels_where_test_is_passed
 
 v2014 = False
 from my_dir import ADIR
-def print_common_stats(caObj, use, name_dict, mints, maxts, surface_type, illumination, basename_outfile="basename_outfile"):
+def print_common_stats(match_calipso, use, name_dict, mints, maxts, surface_type, illumination, basename_outfile="basename_outfile"):
     if v2014:
-        sunz = 100*caObj.imager.all_arrays['sunz']
+        sunz = 100*match_calipso.imager.all_arrays['sunz']
     else:
-        sunz = caObj.imager.all_arrays['sunz']
+        sunz = match_calipso.imager.all_arrays['sunz']
     print np.min(sunz), np.max(sunz)
 
     outfile=(ADIR + "/DATA_MISC/cma_log_files_can_be_removed_after_some_time"
@@ -41,87 +41,87 @@ def print_common_stats(caObj, use, name_dict, mints, maxts, surface_type, illumi
     print outfile
     outfile_h = open(outfile,'w')
     all_out_text = ""
-    nlay =np.where(caObj.calipso.all_arrays['number_layers_found']>0,1,0)
+    nlay =np.where(match_calipso.calipso.all_arrays['number_layers_found']>0,1,0)
     meancl=ndimage.filters.uniform_filter1d(nlay*1.0, size=3)
     """
-    isCalipsoCloudy = caObj.calipso.all_arrays['cloud_fraction']>=0.5
+    isCalipsoCloudy = match_calipso.calipso.all_arrays['cloud_fraction']>=0.5
 
     isCalipsoCloudy = np.logical_and(
         nlay >=0,
-        caObj.calipso.all_arrays['cloud_fraction']>=0.5)
+        match_calipso.calipso.all_arrays['cloud_fraction']>=0.5)
     isCalipsoCloudy = np.logical_and(
         isCalipsoCloudy,
-        caObj.calipso.all_arrays['total_optical_depth_5km']>-0.1)
-    isCalipsoClear = caObj.calipso.all_arrays['cloud_fraction']<0.5
+        match_calipso.calipso.all_arrays['total_optical_depth_5km']>-0.1)
+    isCalipsoClear = match_calipso.calipso.all_arrays['cloud_fraction']<0.5
     isCalipsoClear = nlay == 0
     isCalipsoClear = np.logical_and(isCalipsoClear, meancl<0.01)
     isCalipsoClear = np.logical_and(
         isCalipsoClear,
-        caObj.calipso.all_arrays['total_optical_depth_5km']<0)
+        match_calipso.calipso.all_arrays['total_optical_depth_5km']<0)
     """
-    isCalipsoCloudy = caObj.calipso.all_arrays['cloud_fraction']>=0.5
+    isCalipsoCloudy = match_calipso.calipso.all_arrays['cloud_fraction']>=0.5
     isCalipsoCloudy = np.logical_and(
         isCalipsoCloudy,
-        np.logical_or(caObj.calipso.all_arrays['total_optical_depth_5km']>0.1,
-                       caObj.calipso.all_arrays['total_optical_depth_5km']<0))
-    isCalipsoClear = caObj.calipso.all_arrays['cloud_fraction']<0.0001
+        np.logical_or(match_calipso.calipso.all_arrays['total_optical_depth_5km']>0.1,
+                       match_calipso.calipso.all_arrays['total_optical_depth_5km']<0))
+    isCalipsoClear = match_calipso.calipso.all_arrays['cloud_fraction']<0.0001
     isCalipsoSnowIce = np.logical_and(
         isCalipsoClear,
-        caObj.calipso.all_arrays['nsidc_surface_type']>50)
+        match_calipso.calipso.all_arrays['nsidc_surface_type']>50)
     isCalipsoSnowIceWithCloudAbove = np.logical_and(
         isCalipsoCloudy,
-        caObj.calipso.all_arrays['nsidc_surface_type']>5)
+        match_calipso.calipso.all_arrays['nsidc_surface_type']>5)
     #print np.sum(isCalipsoSnowIce)
     isCalipsoNotSnowIce = np.logical_and(
         isCalipsoClear,
-        caObj.calipso.all_arrays['nsidc_surface_type']<=0)
-    isClearPPS = np.logical_or(np.equal(caObj.imager.cloudmask,3),
-                                   np.equal(caObj.imager.cloudmask,0))
-    isCloudyPPS = np.logical_or(np.equal(caObj.imager.cloudmask,1),
-                                   np.equal(caObj.imager.cloudmask,2))
+        match_calipso.calipso.all_arrays['nsidc_surface_type']<=0)
+    isClearPPS = np.logical_or(np.equal(match_calipso.imager.cloudmask,3),
+                                   np.equal(match_calipso.imager.cloudmask,0))
+    isCloudyPPS = np.logical_or(np.equal(match_calipso.imager.cloudmask,1),
+                                   np.equal(match_calipso.imager.cloudmask,2))
 
     gotLight = sunz<95
-    nodata = np.sum(caObj.imager.all_arrays['cloudtype'][use]>200)
+    nodata = np.sum(match_calipso.imager.all_arrays['cloudtype'][use]>200)
     use = np.logical_and(use, np.logical_or(isCloudyPPS, isClearPPS))
     use = np.logical_and(use, np.logical_or(isCalipsoCloudy, isCalipsoClear))
-    use = np.logical_and(use, caObj.imager.all_arrays['surftemp']<=maxts)
-    use = np.logical_and(use, caObj.imager.all_arrays['surftemp']>mints)
+    use = np.logical_and(use, match_calipso.imager.all_arrays['surftemp']<=maxts)
+    use = np.logical_and(use, match_calipso.imager.all_arrays['surftemp']>mints)
     from utils.get_flag_info import  get_land_coast_sea_info_pps2014
     (no_qflag, land_flag, sea_flag, coast_flag, all_lsc_flag
-    ) = get_land_coast_sea_info_pps2014(caObj.imager.all_arrays['cloudtype_conditions'])
+    ) = get_land_coast_sea_info_pps2014(match_calipso.imager.all_arrays['cloudtype_conditions'])
     if surface_type in ["land"]:
-        #use = np.logical_and(use,np.not_equal(caObj.calipso.igbp_surface_type,17))
+        #use = np.logical_and(use,np.not_equal(match_calipso.calipso.igbp_surface_type,17))
         use = np.logical_and(use, land_flag)
     elif surface_type in ["emiss"]:
-        #use = np.logical_and(use,np.not_equal(caObj.calipso.igbp_surface_type,17))
+        #use = np.logical_and(use,np.not_equal(match_calipso.calipso.igbp_surface_type,17))
         use = np.logical_and(use, np.logical_or(land_flag,coast_flag))
-        use = np.logical_and(use, caObj.imager.all_arrays['emis1']<1.0)
+        use = np.logical_and(use, match_calipso.imager.all_arrays['emis1']<1.0)
     elif surface_type in ["emiss_coast"]:
-        #use = np.logical_and(use,np.not_equal(caObj.calipso.igbp_surface_type,17))
+        #use = np.logical_and(use,np.not_equal(match_calipso.calipso.igbp_surface_type,17))
         use = np.logical_and(use, coast_flag)
-        use = np.logical_and(use, caObj.imager.all_arrays['emis1']<1.0)
+        use = np.logical_and(use, match_calipso.imager.all_arrays['emis1']<1.0)
     elif surface_type in ["emiss_land"]:
-        #use = np.logical_and(use,np.not_equal(caObj.calipso.igbp_surface_type,17))
+        #use = np.logical_and(use,np.not_equal(match_calipso.calipso.igbp_surface_type,17))
         use = np.logical_and(use, land_flag)
-        use = np.logical_and(use, caObj.imager.all_arrays['emis1']<1.0)
+        use = np.logical_and(use, match_calipso.imager.all_arrays['emis1']<1.0)
     elif surface_type in ["noemiss_coast"]:
-        #use = np.logical_and(use,np.not_equal(caObj.calipso.igbp_surface_type,17))
+        #use = np.logical_and(use,np.not_equal(match_calipso.calipso.igbp_surface_type,17))
         use = np.logical_and(use, coast_flag)
-        use = np.logical_and(use, caObj.imager.all_arrays['emis1']==1.0)
+        use = np.logical_and(use, match_calipso.imager.all_arrays['emis1']==1.0)
     elif surface_type in ["noemiss_land"]:
-        #use = np.logical_and(use,np.not_equal(caObj.calipso.igbp_surface_type,17))
+        #use = np.logical_and(use,np.not_equal(match_calipso.calipso.igbp_surface_type,17))
         use = np.logical_and(use, land_flag)
-        use = np.logical_and(use, caObj.imager.all_arrays['emis1']==1.0)
+        use = np.logical_and(use, match_calipso.imager.all_arrays['emis1']==1.0)
     elif surface_type in ["noemiss"]:
-        #use = np.logical_and(use,np.not_equal(caObj.calipso.igbp_surface_type,17))
+        #use = np.logical_and(use,np.not_equal(match_calipso.calipso.igbp_surface_type,17))
         use = np.logical_and(use, np.logical_or(land_flag,coast_flag))
-        use = np.logical_and(use, caObj.imager.all_arrays['emis1']==1.0)
+        use = np.logical_and(use, match_calipso.imager.all_arrays['emis1']==1.0)
         import matplotlib.pyplot as plt
-        plt.plot(caObj.imager.all_arrays['longitude'][use],caObj.imager.all_arrays['latitude'][use], 'b.')
+        plt.plot(match_calipso.imager.all_arrays['longitude'][use],match_calipso.imager.all_arrays['latitude'][use], 'b.')
         plt.savefig('emiss_missing.png')
         #plt.show()
     elif surface_type in ["sea"]:
-        #use = np.logical_and(use,np.equal(caObj.calipso.igbp_surface_type,17))
+        #use = np.logical_and(use,np.equal(match_calipso.calipso.igbp_surface_type,17))
         use = np.logical_and(use, sea_flag)
     elif surface_type in ["coast"]:
         use = np.logical_and(use, coast_flag)
@@ -193,14 +193,14 @@ def print_common_stats(caObj, use, name_dict, mints, maxts, surface_type, illumi
                 print "not using", var, bit_nr
                 continue
             test_is_on = get_pixels_where_test_is_passed(
-                caObj.imager.all_arrays[var], bit_nr=bit_nr)
+                match_calipso.imager.all_arrays[var], bit_nr=bit_nr)
             all_pix = np.logical_and(all_pix,np.equal(test_is_on,False))
             use_this_test = np.logical_and(use, test_is_on)
-            #caObj.imager.all_arrays[var].
+            #match_calipso.imager.all_arrays[var].
             #print np.sum(test_is_on), np.sum(all_pix), np.sum(use)
-            #print np.sum(caObj.imager.all_arrays[var]==4)
+            #print np.sum(match_calipso.imager.all_arrays[var]==4)
             #print np.sum(np.logical_and(~test_is_on,
-            #                            caObj.imager.all_arrays[var]==4))
+            #                            match_calipso.imager.all_arrays[var]==4))
             PODcloudy = (np.sum(np.logical_and(isCalipsoCloudy[use_this_test],
                                                isCloudyPPS[use_this_test]))*1.0
                          /np.sum(isCalipsoCloudy[use]))
@@ -369,13 +369,13 @@ for line in TEST_NAMEFILE:
         name_dict[var][int(bit)] =  name
 
 
-caObjPPS = CalipsoImagerTrackObject()
+match_calipsoPPS = CalipsoImagerTrackObject()
 for filename in files:
     print filename
-    caObjPPS +=  readCaliopImagerMatchObj(filename)
+    match_calipsoPPS +=  readCaliopImagerMatchObj(filename)
     print "Scene %s"%(os.path.basename(filename))
-use = caObjPPS.imager.all_arrays['bt11micron']>-9
-#use = caObjPPS.imager.all_arrays['sunz']>95
+use = match_calipsoPPS.imager.all_arrays['bt11micron']>-9
+#use = match_calipsoPPS.imager.all_arrays['sunz']>95
 basename_outfile = filename.split("/Reshaped_Files")[0]
 basename_outfile = basename_outfile.split("/")[-1]
 print basename_outfile
@@ -386,9 +386,9 @@ for illumination in ["dnt", "day", "night", "twilight"]:
         for mints, maxts in zip([190, 190, 270],# 190, 260, 280, 290, 300],
                                 [380, 270, 380]):#, 260, 280, 290, 300, 380 ]):
             pass
-            print_common_stats(caObjPPS, use, name_dict, mints, maxts, surface_type, illumination, basename_outfile=basename_outfile)
+            print_common_stats(match_calipsoPPS, use, name_dict, mints, maxts, surface_type, illumination, basename_outfile=basename_outfile)
 #for surface_type in [ "all","land", "sea",]:
 #    for mints, maxts in zip([ 190],
 #                            [ 380 ]):
-#        print_common_stats(caObjPPS, use, name_dict, mints, maxts, surface_type, basename_outfile=basename_outfile)
+#        print_common_stats(match_calipsoPPS, use, name_dict, mints, maxts, surface_type, basename_outfile=basename_outfile)
 

@@ -23,40 +23,40 @@ from matchobject_io import (readCaliopImagerMatchObj,
                             CalipsoImagerTrackObject)
 from utils.get_flag_info import get_pixels_where_test_is_passed
 from my_dir import ADIR
-def print_common_stats(caObj, use, name_dict):
-    nlay =np.where(caObj.calipso.all_arrays['number_layers_found']>0,1,0)
+def print_common_stats(match_calipso, use, name_dict):
+    nlay =np.where(match_calipso.calipso.all_arrays['number_layers_found']>0,1,0)
     meancl=ndimage.filters.uniform_filter1d(nlay*1.0, size=3)
     isCalipsoCloudy = np.logical_and(
         nlay > 0,
-        caObj.calipso.all_arrays['cloud_fraction']>0.5)
+        match_calipso.calipso.all_arrays['cloud_fraction']>0.5)
     isCalipsoCloudy = np.logical_and(
         isCalipsoCloudy,
-        caObj.calipso.all_arrays['total_optical_depth_5km']>0.15)
-    #isCalipsoClear = caObj.calipso.all_arrays['cloud_fraction']<0.5
+        match_calipso.calipso.all_arrays['total_optical_depth_5km']>0.15)
+    #isCalipsoClear = match_calipso.calipso.all_arrays['cloud_fraction']<0.5
     isCalipsoClear = nlay == 0
     isCalipsoClear = np.logical_and(isCalipsoClear, meancl<0.01)
     isCalipsoClear = np.logical_and(
         isCalipsoClear,
-        caObj.calipso.all_arrays['total_optical_depth_5km']<0)
+        match_calipso.calipso.all_arrays['total_optical_depth_5km']<0)
     isCalipsoSnowIce = np.logical_and(
         isCalipsoClear,
-        caObj.calipso.all_arrays['nsidc_surface_type']>50)
+        match_calipso.calipso.all_arrays['nsidc_surface_type']>50)
     print np.sum(isCalipsoSnowIce)
     isCalipsoNotSnowIce = np.logical_and(
         isCalipsoClear,
-        caObj.calipso.all_arrays['nsidc_surface_type']<=0)
+        match_calipso.calipso.all_arrays['nsidc_surface_type']<=0)
 
-    test_1(caObj, isCalipsoCloudy, isCalipsoClear)
-    test_2(caObj, isCalipsoCloudy, isCalipsoClear)
-    test_3(caObj, isCalipsoCloudy, isCalipsoClear)
-    test_4(caObj, isCalipsoCloudy, isCalipsoClear)
+    test_1(match_calipso, isCalipsoCloudy, isCalipsoClear)
+    test_2(match_calipso, isCalipsoCloudy, isCalipsoClear)
+    test_3(match_calipso, isCalipsoCloudy, isCalipsoClear)
+    test_4(match_calipso, isCalipsoCloudy, isCalipsoClear)
 
-def test_1(caObj, isCloudy, isClear):
+def test_1(match_calipso, isCloudy, isClear):
     test_is_on = get_pixels_where_test_is_passed(
-        caObj.imager.all_arrays['cma_testlist1'], bit_nr=5)
+        match_calipso.imager.all_arrays['cma_testlist1'], bit_nr=5)
     import matplotlib.pyplot as plt
-    feature1 = caObj.imager.all_arrays['text_t11t12']
-    feature2 = caObj.imager.all_arrays['bt11micron']
+    feature1 = match_calipso.imager.all_arrays['text_t11t12']
+    feature2 = match_calipso.imager.all_arrays['bt11micron']
     bad = np.logical_and(test_is_on, isClear)
     good = np.logical_and(test_is_on, isCloudy)
     fig = plt.figure()
@@ -65,12 +65,12 @@ def test_1(caObj, isCloudy, isClear):
     plt.show()
     fig.savefig("pps_investigation_test1.png", format = 'png')
 
-def test_2(caObj, isCloudy, isClear):
+def test_2(match_calipso, isCloudy, isClear):
     test_is_on = get_pixels_where_test_is_passed(
-        caObj.imager.all_arrays['cma_testlist1'], bit_nr=11)
+        match_calipso.imager.all_arrays['cma_testlist1'], bit_nr=11)
     import matplotlib.pyplot as plt
-    feature1 = caObj.imager.all_arrays['bt11micron'] - caObj.imager.all_arrays['bt37micron']
-    feature2 = caObj.imager.all_arrays['bt37micron']
+    feature1 = match_calipso.imager.all_arrays['bt11micron'] - match_calipso.imager.all_arrays['bt37micron']
+    feature2 = match_calipso.imager.all_arrays['bt37micron']
     bad = np.logical_and(test_is_on, isClear)
     good = np.logical_and(test_is_on, isCloudy)
     fig = plt.figure()
@@ -79,12 +79,12 @@ def test_2(caObj, isCloudy, isClear):
     plt.show()
     fig.savefig("pps_investigation_test2.png", format = 'png')
 
-def test_3(caObj, isCloudy, isClear):
+def test_3(match_calipso, isCloudy, isClear):
     test_is_on = get_pixels_where_test_is_passed(
-        caObj.imager.all_arrays['cma_testlist1'], bit_nr=12)
+        match_calipso.imager.all_arrays['cma_testlist1'], bit_nr=12)
     import matplotlib.pyplot as plt
-    feature1 = caObj.imager.all_arrays['text_t11t12']
-    feature2 = caObj.imager.all_arrays['bt11micron']
+    feature1 = match_calipso.imager.all_arrays['text_t11t12']
+    feature2 = match_calipso.imager.all_arrays['bt11micron']
     bad = np.logical_and(test_is_on, isClear)
     good = np.logical_and(test_is_on, isCloudy)
     fig = plt.figure()
@@ -93,12 +93,12 @@ def test_3(caObj, isCloudy, isClear):
     plt.show()
     fig.savefig("pps_investigation_test3.png", format = 'png')
 
-def test_4(caObj, isCloudy, isClear):
+def test_4(match_calipso, isCloudy, isClear):
     test_is_on = get_pixels_where_test_is_passed(
-        caObj.imager.all_arrays['cma_testlist2'], bit_nr=4)
+        match_calipso.imager.all_arrays['cma_testlist2'], bit_nr=4)
     import matplotlib.pyplot as plt
-    feature1 = caObj.imager.all_arrays['bt11micron'] - caObj.imager.all_arrays['bt12micron']
-    feature2 = caObj.imager.all_arrays['surftemp']
+    feature1 = match_calipso.imager.all_arrays['bt11micron'] - match_calipso.imager.all_arrays['bt12micron']
+    feature2 = match_calipso.imager.all_arrays['surftemp']
     bad = np.logical_and(test_is_on, isClear)
     good = np.logical_and(test_is_on, isCloudy)
     fig = plt.figure()
@@ -132,9 +132,9 @@ for line in TEST_NAMEFILE:
         name_dict[var][int(bit)] =  name
 
 
-caObjPPS = CalipsoImagerTrackObject()
+match_calipsoPPS = CalipsoImagerTrackObject()
 for filename in files:
-    caObjPPS +=  readCaliopImagerMatchObj(filename)
+    match_calipsoPPS +=  readCaliopImagerMatchObj(filename)
     print "Scene %s"%(os.path.basename(filename))
-    use = caObjPPS.imager.all_arrays['bt11micron']>-9
-print_common_stats(caObjPPS, use, name_dict)
+    use = match_calipsoPPS.imager.all_arrays['bt11micron']>-9
+print_common_stats(match_calipsoPPS, use, name_dict)

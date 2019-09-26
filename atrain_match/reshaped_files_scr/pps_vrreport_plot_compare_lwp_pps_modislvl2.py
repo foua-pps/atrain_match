@@ -41,16 +41,16 @@ from scipy.stats import kurtosis, skewtest, skew, mode, kurtosis
 matplotlib.rcParams.update(matplotlib.rcParamsDefault)
 matplotlib.rcParams.update({'font.size': 16})
 from my_dir import ADIR
-def get_land_sea(cObj):
+def get_land_sea(match_obj):
 
-    use = np.logical_and(cObj.modis.all_arrays["lwp"]>=0,
-                         cObj.imager.all_arrays["cpp_lwp"]>=0)
+    use = np.logical_and(match_obj.modis.all_arrays["lwp"]>=0,
+                         match_obj.imager.all_arrays["cpp_lwp"]>=0)
     use = np.logical_and(use,
-                         cObj.imager.all_arrays["cpp_phase"]==1)
-    use = np.logical_and(cObj.modis.all_arrays["cloud_phase"]==1,
+                         match_obj.imager.all_arrays["cpp_phase"]==1)
+    use = np.logical_and(match_obj.modis.all_arrays["cloud_phase"]==1,
                          use)
     retv = get_land_coast_sea_info_pps2014(
-        cObj.imager.all_arrays['cloudtype_conditions'])
+        match_obj.imager.all_arrays['cloudtype_conditions'])
     (no_qflag, land_flag, sea_flag, coast_flag, all_lsc_flag) =  retv
     use_land = np.logical_and(use, land_flag)
     use_coast = np.logical_and(use, coast_flag)
@@ -79,10 +79,10 @@ def my_label(data,use):
     return label
 
 
-def plot_all(cObj, density, my_str=""):
-    use_land, use_sea, use_coast, use  = get_land_sea(cObj)
-    x = cObj.modis.all_arrays["lwp"]
-    y = cObj.imager.all_arrays["cpp_lwp"]*density
+def plot_all(match_obj, density, my_str=""):
+    use_land, use_sea, use_coast, use  = get_land_sea(match_obj)
+    x = match_obj.modis.all_arrays["lwp"]
+    y = match_obj.imager.all_arrays["cpp_lwp"]*density
     error = y-x
     print x
     print np.max(y)
@@ -129,16 +129,16 @@ def plot_all(cObj, density, my_str=""):
     plt.show()
     fig = plt.figure(figsize=(15, 11))
     ax = fig.add_subplot(221)
-    from trajectory_plotting import plotSatelliteTrajectory
+    from trajectory_plotting import plot_satellite_trajectory
     import config
-    plotSatelliteTrajectory(cObj.calipso.all_arrays["longitude"][use],
-                            cObj.calipso.all_arrays["latitude"][use],
+    plot_satellite_trajectory(match_obj.calipso.all_arrays["longitude"][use],
+                            match_obj.calipso.all_arrays["latitude"][use],
                             ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_marble_lwp_modis_lvl2_dist",
                             config.AREA_CONFIG_FILE,
                             fig_type=['png'])
     from histogram_plotting import distribution_map
-    distribution_map(cObj.calipso.all_arrays["longitude"][use],
-                     cObj.calipso.all_arrays["latitude"][use])
+    distribution_map(match_obj.calipso.all_arrays["longitude"][use],
+                     match_obj.calipso.all_arrays["latitude"][use])
     plt.savefig(ADIR + "/PICTURES_FROM_PYTHON/VAL_2018_PLOTS/map_white_lwp_modis_lvl2_dist", bbox_inches='tight')
 
 def get_ca_object_nn_ctth_modis_lvl2():
@@ -162,20 +162,20 @@ def get_ca_object_nn_ctth_modis_lvl2():
     if "v2014" in ROOT_DIR:
         density = 1e3
 
-    cObj = CalipsoImagerTrackObject()
+    match_obj = CalipsoImagerTrackObject()
     print ROOT_DIR
 
     for filename in files:
         print filename
-        cObj += readCaliopImagerMatchObj(filename)
-    return cObj, density
+        match_obj += readCaliopImagerMatchObj(filename)
+    return match_obj, density
 
 def do_the_printing():
 
-    cObj_cali, density = get_ca_object_nn_ctth_modis_lvl2()
+    match_obj_cali, density = get_ca_object_nn_ctth_modis_lvl2()
 
 
-    plot_all(cObj_cali, density,"")
+    plot_all(match_obj_cali, density,"")
 
 if __name__ == "__main__":
     do_the_printing()

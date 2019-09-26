@@ -73,57 +73,57 @@ def get_sunglint_info_pps2014(cloudtype_conditions):
 
 files = glob(ROOT_DIR)
 
-from matchobject_io import (readTruthImagerMatchObj,
+from matchobject_io import (read_truth_imager_match_obj,
                             TruthImagerTrackObject)
 
-caObj = TruthImagerTrackObject(truth='calipso')
+match_calipso = TruthImagerTrackObject(truth='calipso')
 for filename in files:
     print(os.path.basename(filename))
-    i_caObj = readTruthImagerMatchObj(filename, skip_var=['cal_MODIS_cflag'])
+    i_match_calipso = read_truth_imager_match_obj(filename, skip_var=['cal_MODIS_cflag'])
     """
 
-    i_sunz = i_caObj.imager.all_arrays['sunz']
-    i_satz = i_caObj.imager.all_arrays['satz']
-    i_azidiff = i_caObj.imager.all_arrays['azidiff']
+    i_sunz = i_match_calipso.imager.all_arrays['sunz']
+    i_satz = i_match_calipso.imager.all_arrays['satz']
+    i_azidiff = i_match_calipso.imager.all_arrays['azidiff']
     i_degree_from_reflection = get_specular_refl_phong(i_azidiff, i_sunz, i_satz)
-    i_cloudtype_conditions = getattr(i_caObj.imager, 'cloudtype_conditions')
+    i_cloudtype_conditions = getattr(i_match_calipso.imager, 'cloudtype_conditions')
     i_ppssg=get_sunglint_info_pps2014(i_cloudtype_conditions)
     i_phongsg = i_degree_from_reflection<20
     print(np.sum(i_phongsg),np.sum(i_ppssg))
     if np.sum(i_phongsg)<np.sum(i_ppssg):
         print("!!!!!!!!!!!!!!!!!!!!!")
     """
-    caObj = caObj + i_caObj
+    match_calipso = match_calipso + i_match_calipso
 
 
 isCloudfree = np.logical_and(
-    caObj.calipso.all_arrays['number_layers_found'] == 0,
-    caObj.calipso.all_arrays['cloud_fraction'] ==0)
+    match_calipso.calipso.all_arrays['number_layers_found'] == 0,
+    match_calipso.calipso.all_arrays['cloud_fraction'] ==0)
 #isCloudfree = np.logical_and(
 #    isCloudfree,
-#    caObj.calipso.all_arrays['column_optical_depth_tropospheric_aerosols_532'] ==0)
-sunz = caObj.imager.all_arrays['sunz']
-satz = caObj.imager.all_arrays['satz']
-azidiff = caObj.imager.all_arrays['azidiff']
-tsurf = caObj.imager.all_arrays['surftemp']
+#    match_calipso.calipso.all_arrays['column_optical_depth_tropospheric_aerosols_532'] ==0)
+sunz = match_calipso.imager.all_arrays['sunz']
+satz = match_calipso.imager.all_arrays['satz']
+azidiff = match_calipso.imager.all_arrays['azidiff']
+tsurf = match_calipso.imager.all_arrays['surftemp']
 
 print(sunz)
 
-print(caObj.imager.all_arrays.keys())
+print(match_calipso.imager.all_arrays.keys())
 
 print(sunz)
 mu0 = np.cos(np.radians(sunz))
 scaler = 24.35 / (2 * mu0 + np.sqrt(498.5225 * mu0 * mu0 + 1))
 
-#r16 = caObj.imager.all_arrays['r16micron']*scaler
-r06 = caObj.imager.all_arrays['r06micron']*scaler
-r09 = caObj.imager.all_arrays['r09micron']*scaler
-t11 = caObj.imager.all_arrays['bt11micron']
+#r16 = match_calipso.imager.all_arrays['r16micron']*scaler
+r06 = match_calipso.imager.all_arrays['r06micron']*scaler
+r09 = match_calipso.imager.all_arrays['r09micron']*scaler
+t11 = match_calipso.imager.all_arrays['bt11micron']
 isCloudfree = np.logical_and(isCloudfree, t11>275)
 isCloudfree = np.logical_and(isCloudfree, np.abs(t11-tsurf)<5)
-nsidc_st = getattr(caObj.calipso, 'nsidc_surface_type')
-igbp_st = getattr(caObj.calipso, 'igbp_surface_type')
-cloudtype_conditions = getattr(caObj.imager, 'cloudtype_conditions')
+nsidc_st = getattr(match_calipso.calipso, 'nsidc_surface_type')
+igbp_st = getattr(match_calipso.calipso, 'igbp_surface_type')
+cloudtype_conditions = getattr(match_calipso.imager, 'cloudtype_conditions')
 
 #r09 = r06/r09
 
@@ -153,14 +153,14 @@ both = np.logical_and(ppssg,phongsg)
 neither = np.logical_and(~ppssg,~phongsg)
 onlypps = np.logical_and(ppssg,~phongsg)
 onlyphong = np.logical_and(~ppssg,phongsg)
-clear = caObj.calipso.all_arrays['cloud_fraction'] ==0
-cloudy =  caObj.calipso.all_arrays['cloud_fraction'] >=0.98
-#pps_clear =  caObj.imager.all_arrays['cloudmask'] ==0
-#pps_cloudy = caObj.imager.all_arrays['cloudmask'] ==1
-pps_clear = np.logical_or(np.equal(caObj.imager.cloudmask,3),
-                          np.equal(caObj.imager.cloudmask,0))
-pps_cloudy = np.logical_or(np.equal(caObj.imager.cloudmask,1),
-                           np.equal(caObj.imager.cloudmask,2))
+clear = match_calipso.calipso.all_arrays['cloud_fraction'] ==0
+cloudy =  match_calipso.calipso.all_arrays['cloud_fraction'] >=0.98
+#pps_clear =  match_calipso.imager.all_arrays['cloudmask'] ==0
+#pps_cloudy = match_calipso.imager.all_arrays['cloudmask'] ==1
+pps_clear = np.logical_or(np.equal(match_calipso.imager.cloudmask,3),
+                          np.equal(match_calipso.imager.cloudmask,0))
+pps_cloudy = np.logical_or(np.equal(match_calipso.imager.cloudmask,1),
+                           np.equal(match_calipso.imager.cloudmask,2))
 use = np.logical_or(pps_cloudy,pps_clear)
 use = np.logical_and(use, np.equal(nsidc_st,0))
 use = np.logical_and(use, np.equal(igbp_st,17))

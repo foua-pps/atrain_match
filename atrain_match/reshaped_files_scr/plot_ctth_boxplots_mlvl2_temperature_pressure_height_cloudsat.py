@@ -30,15 +30,15 @@ matplotlib.rcParams.update({'font.size': 16})
 
 from utils.get_flag_info import (get_semi_opaque_info_pps2014)
 from my_dir import ADIR
-def make_boxplot(clsatObj, name, month):
+def make_boxplot(match_clsat, name, month):
 
-    height_c = clsatObj.cloudsat.all_arrays['clsat_max_height']
+    height_c = match_clsat.cloudsat.all_arrays['clsat_max_height']
     low_clouds = np.logical_and(height_c<2500, height_c>-9)
     medium_clouds = np.logical_and(height_c>=2500, height_c<=5000)
     high_clouds = np.logical_and(height_c>5000, height_c>-9)
-    height_mlvl2 = clsatObj.modis.all_arrays['height']
-    height_pps = clsatObj.imager.all_arrays['imager_ctth_m_above_seasurface']
-    sunz = clsatObj.imager.all_arrays['sunz']
+    height_mlvl2 = match_clsat.modis.all_arrays['height']
+    height_pps = match_clsat.imager.all_arrays['imager_ctth_m_above_seasurface']
+    sunz = match_clsat.imager.all_arrays['sunz']
     use = np.logical_and(height_pps >-1,
                          height_c>=0)
     use = np.logical_and(height_pps <45000,use)
@@ -47,7 +47,7 @@ def make_boxplot(clsatObj, name, month):
     low = np.logical_and(low_clouds,use)
     medium = np.logical_and(medium_clouds,use)
     high = np.logical_and(high_clouds,use)
-    over_high_ground = np.logical_and(use,clsatObj.cloudsat.all_arrays['elevation']>5000)
+    over_high_ground = np.logical_and(use,match_clsat.cloudsat.all_arrays['elevation']>5000)
     c_all = use #np.logical_or(high,np.logical_or(low,medium))
     c_all_day = np.logical_and(use,sunz<80)
     c_all_twilight = np.logical_and(use,np.logical_and(sunz<=95,sunz>=80))
@@ -211,11 +211,11 @@ def investigate_nn_ctth_modis_lvl2():
             #name = "%s_%s"%(name, month)
             print ROOT_DIR
             files = glob(ROOT_DIR%(month))
-            clsatObj = CloudsatImagerTrackObject()
+            match_clsat = CloudsatImagerTrackObject()
             for filename in files:
                 #print filename
-                clsatObj +=  readCloudsatImagerMatchObj(filename)
-            make_boxplot(clsatObj, name, month )
+                match_clsat +=  readCloudsatImagerMatchObj(filename)
+            make_boxplot(match_clsat, name, month )
 
 
 if __name__ == "__main__":

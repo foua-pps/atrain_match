@@ -38,36 +38,36 @@ from utils.stat_util import (my_hist,
                        my_pe2500m,
                        my_pe5000m)
 from my_dir import ADIR
-def crop_object(cObj, use_in=None):
-    y =cObj.imager.all_arrays['ctth_height']
-    if 'ctth_height_corr' in cObj.imager.all_arrays.keys() and   cObj.imager.all_arrays['ctth_height_corr'] is not None:
-        y =cObj.imager.all_arrays['ctth_height_corr']
-    x = cObj.calipso.all_arrays['validation_height']
-    pps_profile_id = cObj.calipso.sec_1970#profile_id[:,0]
+def crop_object(match_obj, use_in=None):
+    y =match_obj.imager.all_arrays['ctth_height']
+    if 'ctth_height_corr' in match_obj.imager.all_arrays.keys() and   match_obj.imager.all_arrays['ctth_height_corr'] is not None:
+        y =match_obj.imager.all_arrays['ctth_height_corr']
+    x = match_obj.calipso.all_arrays['validation_height']
+    pps_profile_id = match_obj.calipso.sec_1970#profile_id[:,0]
     use = np.logical_and(y>=0,x>=0)
     if use_in is not None:
         use = np.logical_and(use,use_in)
-    for arnameca, valueca in cObj.calipso.all_arrays.items():
-        if cObj.calipso.all_arrays[arnameca] is None:
+    for arnameca, valueca in match_obj.calipso.all_arrays.items():
+        if match_obj.calipso.all_arrays[arnameca] is None:
             pass
         elif arnameca in ['ctth_height','validation_height', 'sec_1970','imager_ctth_m_above_seasurface','ctth_height_corr']:
-            cObj.calipso.all_arrays[arnameca] = cObj.calipso.all_arrays[arnameca][use]
+            match_obj.calipso.all_arrays[arnameca] = match_obj.calipso.all_arrays[arnameca][use]
         else:
-            cObj.calipso.all_arrays[arnameca] = None
-    for arnameca, valueca in cObj.imager.all_arrays.items():
-        if cObj.imager.all_arrays[arnameca] is None:
+            match_obj.calipso.all_arrays[arnameca] = None
+    for arnameca, valueca in match_obj.imager.all_arrays.items():
+        if match_obj.imager.all_arrays[arnameca] is None:
             pass
         elif arnameca in ['ctth_height','validation_height', 'sec_1970','imager_ctth_m_above_seasurface','ctth_height_corr']:
-            cObj.imager.all_arrays[arnameca] = cObj.imager.all_arrays[arnameca][use]
+            match_obj.imager.all_arrays[arnameca] = match_obj.imager.all_arrays[arnameca][use]
         else:
-            cObj.imager.all_arrays[arnameca] = None
-    return cObj
+            match_obj.imager.all_arrays[arnameca] = None
+    return match_obj
 
 
-def remove_missing(cObjPPS, cObjPATMOSX, common_index):
+def remove_missing(match_objPPS, match_objPATMOSX, common_index):
 
-    patmosx_profile_id = cObjPATMOSX.calipso.sec_1970#profile_id[:,0]
-    pps_profile_id = cObjPPS.calipso.sec_1970#profile_id[:,0]
+    patmosx_profile_id = match_objPATMOSX.calipso.sec_1970#profile_id[:,0]
+    pps_profile_id = match_objPPS.calipso.sec_1970#profile_id[:,0]
 
     use_patmosx_same_profile = np.array([p_id in common_index for p_id in patmosx_profile_id])
     use_pps_same_profile =  np.array([p_id in  common_index for p_id in pps_profile_id])
@@ -93,16 +93,16 @@ def remove_missing(cObjPPS, cObjPATMOSX, common_index):
     """
     return use_pps, use_patmosx
 
-def print_stats(cObjPPS, cObjPATMOSX, use_pps, use_patmosx):
+def print_stats(match_objPPS, match_objPATMOSX, use_pps, use_patmosx):
 
     #print(sorted(patmosx_profile_id[use_patmosx])[-10:])
     #print(sorted(pps_profile_id[use_pps])[-10:])
-    x = cObjPPS.calipso.all_arrays['validation_height']
-    x_patmosx = cObjPATMOSX.calipso.all_arrays['validation_height']
-    y_pps = cObjPPS.imager.all_arrays['imager_ctth_m_above_seasurface']
-    if 'ctth_height_corr' in cObjPPS.imager.all_arrays.keys() and   cObjPPS.imager.all_arrays['ctth_height_corr'] is not None:
-        y_pps =cObjPPS.imager.all_arrays['ctth_height_corr']
-    y_patmosx =cObjPATMOSX.imager.all_arrays['ctth_height']
+    x = match_objPPS.calipso.all_arrays['validation_height']
+    x_patmosx = match_objPATMOSX.calipso.all_arrays['validation_height']
+    y_pps = match_objPPS.imager.all_arrays['imager_ctth_m_above_seasurface']
+    if 'ctth_height_corr' in match_objPPS.imager.all_arrays.keys() and   match_objPPS.imager.all_arrays['ctth_height_corr'] is not None:
+        y_pps =match_objPPS.imager.all_arrays['ctth_height_corr']
+    y_patmosx =match_objPATMOSX.imager.all_arrays['ctth_height']
 
     print(np.sum(use_pps), np.sum(use_patmosx))
 
@@ -141,34 +141,34 @@ if __name__ == "__main__":
 
     patmosx_files = glob(PATMOSX_ROOT_DIR)
 
-    cObjPATMOSX =  read_files(glob(PATMOSX_ROOT_DIR))
-    cObjPATMOSX = crop_object(cObjPATMOSX, use_in=None)
-    cObjPPS =  read_files(glob(PPS_ROOT_DIR))
-    cObjPPS = crop_object(cObjPPS, use_in=None)
-    cObjPPS14 =  read_files(glob(PPS14_ROOT_DIR))
-    cObjPPS14 =  crop_object(cObjPPS14, use_in=None)
-    cObjCCI =  read_files(glob(CCI_ROOT_DIR))
-    cObjCCI =  crop_object(cObjCCI, use_in=None)
+    match_objPATMOSX =  read_files(glob(PATMOSX_ROOT_DIR))
+    match_objPATMOSX = crop_object(match_objPATMOSX, use_in=None)
+    match_objPPS =  read_files(glob(PPS_ROOT_DIR))
+    match_objPPS = crop_object(match_objPPS, use_in=None)
+    match_objPPS14 =  read_files(glob(PPS14_ROOT_DIR))
+    match_objPPS14 =  crop_object(match_objPPS14, use_in=None)
+    match_objCCI =  read_files(glob(CCI_ROOT_DIR))
+    match_objCCI =  crop_object(match_objCCI, use_in=None)
 
-    patmosx_profile_id = cObjPATMOSX.calipso.sec_1970#profile_id[:,0]
-    pps_profile_id = cObjPPS.calipso.sec_1970#profile_id[:,0]
-    pps14_profile_id = cObjPPS14.calipso.sec_1970#profile_id[:,0]
-    cci_profile_id = cObjCCI.calipso.sec_1970#profile_id[:,0]
+    patmosx_profile_id = match_objPATMOSX.calipso.sec_1970#profile_id[:,0]
+    pps_profile_id = match_objPPS.calipso.sec_1970#profile_id[:,0]
+    pps14_profile_id = match_objPPS14.calipso.sec_1970#profile_id[:,0]
+    cci_profile_id = match_objCCI.calipso.sec_1970#profile_id[:,0]
     common_index1 = np.intersect1d(patmosx_profile_id,  pps_profile_id)
     common_index2 = np.intersect1d(cci_profile_id,  pps14_profile_id)
     common_index = np.intersect1d(common_index1,common_index2)
 
-    use_pps_v14, use_patmosx = remove_missing(cObjPPS14, cObjPATMOSX, common_index)
-    use_pps, use_cci = remove_missing(cObjPPS, cObjCCI, common_index)
+    use_pps_v14, use_patmosx = remove_missing(match_objPPS14, match_objPATMOSX, common_index)
+    use_pps, use_cci = remove_missing(match_objPPS, match_objCCI, common_index)
 
 
     print("PPS-v2014")
-    print_stats(cObjPPS14, cObjPATMOSX, use_pps_v14, use_patmosx)
+    print_stats(match_objPPS14, match_objPATMOSX, use_pps_v14, use_patmosx)
     print("PPS-vCCI")
-    print_stats(cObjCCI, cObjPATMOSX, use_cci, use_patmosx)
+    print_stats(match_objCCI, match_objPATMOSX, use_cci, use_patmosx)
     print("PPS-v2018")
-    print_stats(cObjPPS, cObjPATMOSX, use_pps, use_patmosx)
+    print_stats(match_objPPS, match_objPATMOSX, use_pps, use_patmosx)
     print("Dummy")
-    cObjPPS.imager.all_arrays['imager_ctth_m_above_seasurface'][:] = np.mean(cObjPPS.calipso.all_arrays['validation_height'][use_pps])
-    print(np.mean(cObjPPS.calipso.all_arrays['validation_height'][use_pps]))
-    print_stats(cObjPPS, cObjPATMOSX, use_pps, use_patmosx)
+    match_objPPS.imager.all_arrays['imager_ctth_m_above_seasurface'][:] = np.mean(match_objPPS.calipso.all_arrays['validation_height'][use_pps])
+    print(np.mean(match_objPPS.calipso.all_arrays['validation_height'][use_pps]))
+    print_stats(match_objPPS, match_objPATMOSX, use_pps, use_patmosx)
