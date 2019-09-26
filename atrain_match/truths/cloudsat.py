@@ -101,7 +101,7 @@ def clsat_name_conversion(dataset_name_in_cloudsat_file, retv):
 def read_cloudsat_hdf4(filename):
     from pyhdf.SD import SD, SDC
     from pyhdf.HDF import HDF  # HC
-    # import pyhdf.VS
+    import pyhdf.VS
 
     def convert_data(data):
         if len(data.shape) == 2:
