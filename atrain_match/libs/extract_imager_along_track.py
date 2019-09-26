@@ -604,7 +604,7 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
 
     from atrain_match.utils.pps_prototyping_util import add_cnn_features
     if os.path.isfile(SETTINGS['CNN_PCKL_PATH']):
-        filters_dict = add_cnn_features(imager_obj.cnn_dict, row_col,
+        filters_dict = add_cnn_features(cloudproducts.cnn_dict, row_col,
                                         obt.imager.latitude, obt.imager.longitude,
                                         SETTINGS)
         for filter_name in filters_dict.keys():

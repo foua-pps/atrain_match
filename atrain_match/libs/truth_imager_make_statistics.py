@@ -18,7 +18,7 @@
 
 
 import atrain_match.config as config
-from atrain_match.config import INSTRUMENT
+# from atrain_match.config import INSTRUMENT
 import os
 import numpy as np
 import logging
@@ -94,19 +94,6 @@ def get_matchups(cross, AM_PATHS, SETTINGS, reprocess):
         raise ValueError('Need satellite1 and time (cross: %s)' % cross)
 
     if reprocess is False or SETTINGS['USE_EXISTING_RESHAPED_FILES']:
-        diff_imager_seconds = None
-        imager_file = None
-        # if not SETTINGS['USE_EXISTING_RESHAPED_FILES']:
-        #    if SETTINGS['PPS_VALIDATION']:
-        #        imager_file, tobj = find_radiance_file(cross, AM_PATHS)
-        #    if (SETTINGS['CCI_CLOUD_VALIDATION']):
-        #        imager_file, tobj = find_cci_cloud_file(cross, AM_PATHS)
-        #    if imager_file is not None:
-        #        values_imager = get_satid_datetime_orbit_from_fname(imager_file, SETTINGS, cross)
-        #        date_time_imager = values_imager["date_time"]
-        #        td = date_time_imager-cross.time
-        #        diff_imager_seconds=abs(td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
-
         for truth in ['cloudsat', 'amsr', 'iss', 'synop', 'mora', 'calipso']:
             if not SETTINGS[truth.upper() + '_MATCHING']:
                 logger.info(
@@ -170,7 +157,7 @@ def get_matchups(cross, AM_PATHS, SETTINGS, reprocess):
 
 
 def plot_some_figures(match_clsat, match_calipso, values, basename, process_mode,
-                      AM_PATHS, SETTINGS, amObj=None, match_synop=None, moObj=None):
+                      AM_PATHS, SETTINGS, am_obj=None, match_synop=None, mo_obj=None):
 
     logger.info("Plotting")
     file_type = SETTINGS['PLOT_TYPES']
@@ -254,7 +241,7 @@ def split_process_mode_and_dnt_part(process_mode_dnt):
     return process_mode, dnt_flag
 
 
-def process_one_mode(process_mode_dnt, match_calipso, match_clsat, issObj, amObj, syObj,
+def process_one_mode(process_mode_dnt, match_calipso, match_clsat, iss_obj, am_obj, sy_obj,
                      min_optical_depth, values, AM_PATHS, SETTINGS, basename):
 
     # Get result filename
@@ -279,12 +266,12 @@ def process_one_mode(process_mode_dnt, match_calipso, match_clsat, issObj, amObj
     logger.debug("Plotting")
     if process_mode_dnt in SETTINGS['PLOT_MODES']:
         plot_some_figures(match_clsat, match_calipso, values, basename, process_mode,
-                          AM_PATHS, SETTINGS, amObj=amObj)
+                          AM_PATHS, SETTINGS, am_obj=am_obj)
     # ==============================================================
     # Calculate Statistics
     logger.debug("Calculating statistics")
     calculate_statistics(process_mode, statfilename, match_calipso, match_clsat,
-                         issObj, amObj, syObj, SETTINGS, dnt_flag)
+                         iss_obj, am_obj, sy_obj, SETTINGS, dnt_flag)
     # =============================================================
 
 
@@ -293,7 +280,7 @@ def run(cross, run_modes, AM_PATHS, SETTINGS, reprocess=False):
     The main work horse.
     """
     logger.info("Case: %s", str(cross))
-    sensor = INSTRUMENT.get(cross.satellite1.lower(), 'imager')
+    # sensor = INSTRUMENT.get(cross.satellite1.lower(), 'imager')
 
     if (not SETTINGS['USE_CMA_FOR_CFC_STATISTICS'] and
         not SETTINGS['USE_CT_FOR_CFC_STATISTICS'] and
@@ -307,10 +294,10 @@ def run(cross, run_modes, AM_PATHS, SETTINGS, reprocess=False):
     # Get the data that we need:
     matchup_results = get_matchups(cross, AM_PATHS, SETTINGS, reprocess)
     match_calipso = matchup_results['calipso']
-    issObj = matchup_results['iss']
-    amObj = matchup_results['amsr']
-    syObj = matchup_results['synop']
-    moObj = matchup_results['mora']
+    iss_obj = matchup_results['iss']
+    am_obj = matchup_results['amsr']
+    sy_obj = matchup_results['synop']
+    mo_obj = matchup_results['mora']
     match_clsat = matchup_results['cloudsat']
     values = matchup_results['values']
     basename = matchup_results['basename']
@@ -320,8 +307,8 @@ def run(cross, run_modes, AM_PATHS, SETTINGS, reprocess=False):
     logger.info("Adding validation height missing in old reshaped files")
     match_clsat, match_calipso = add_validation_ctth(match_clsat, match_calipso)
     # Calculate hight from sea surface
-    match_clsat, match_calipso, issObj = add_elevation_corrected_imager_ctth(
-        match_clsat, match_calipso, issObj, SETTINGS)
+    match_clsat, match_calipso, iss_obj = add_elevation_corrected_imager_ctth(
+        match_clsat, match_calipso, iss_obj, SETTINGS)
     calipso_original = CalipsoObject()
     # Save data orignal data that we might edit for some modes
     if match_calipso is not None:
@@ -355,7 +342,7 @@ def run(cross, run_modes, AM_PATHS, SETTINGS, reprocess=False):
         for min_optical_depth in optical_depths:
             # For some modes these are updated, so reset calipso data to original
             if match_calipso is not None:
-                # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+                # -------------------------------------------------------------
                 match_calipso.calipso.layer_top_altitude = calipso_original.layer_top_altitude.copy()
                 match_calipso.calipso.layer_base_altitude = calipso_original.layer_base_altitude.copy()
                 match_calipso.calipso.cloud_fraction = calipso_original.cloud_fraction.copy()
@@ -363,7 +350,7 @@ def run(cross, run_modes, AM_PATHS, SETTINGS, reprocess=False):
                 match_calipso.calipso.validation_height = calipso_original.validation_height.copy()
                 match_calipso.calipso.layer_top_pressure = calipso_original.layer_top_pressure.copy()
                 match_calipso.calipso.layer_base_pressure = calipso_original.layer_base_pressure.copy()
-                # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+                # -------------------------------------------------------------
             # If mode = OPTICAL_DEPTH -> Change cloud -top and -base profile
             if match_calipso is not None and process_mode == 'OPTICAL_DEPTH':
                 use_old_method = SETTINGS['KG_OLD_METHOD_CLOUD_CENTER_AS_HEIGHT']
@@ -391,11 +378,11 @@ def run(cross, run_modes, AM_PATHS, SETTINGS, reprocess=False):
                 match_calipso.calipso.validation_height = retv[1]
             # Time to process results files for one mode:
             process_one_mode(process_mode_dnt,
-                             match_calipso, match_clsat, issObj, amObj, syObj,
+                             match_calipso, match_clsat, iss_obj, am_obj, sy_obj,
                              min_optical_depth, values,
                              AM_PATHS, SETTINGS, basename)
     # We are done, free some memory:
     match_calipso = None
     match_clsat = None
-    issObj = None
-    amObj = None
+    iss_obj = None
+    am_obj = None

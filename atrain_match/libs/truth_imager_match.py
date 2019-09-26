@@ -380,10 +380,10 @@ def require_h5(files, SETTINGS):
             h5_files.append(f)
         elif f.endswith('.hdf'):
             h5_file = f.replace('.hdf', '.h5')
-            if not h5_file in files:
+            if h5_file not in files:
                 print(f)
                 # sys.exit()
-                command = '%s %s' % (H4H5_EXECUTABLE, f)
+                command = '%s %s' % (SETTINGS["H4H5_EXECUTABLE"], f)
                 logger.info("Converting %s to HDF5", f)
                 if os.system(command):
                     raise RuntimeError("Couldn't convert %r to HDF5" % f)
@@ -396,10 +396,10 @@ def require_h5(files, SETTINGS):
 def get_pps_file(imager_file, AM_PATHS, values, type_of_file, file_dir,
                  OnlyPrintInDebugMode=False,
                  FailIfRequestedAndMissing=False):
-    if not type_of_file in AM_PATHS and OnlyPrintInDebugMode:
+    if type_of_file not in AM_PATHS and OnlyPrintInDebugMode:
         logger.debug("No %s file in cfg-file.", type_of_file)
         return None
-    elif not type_of_file in AM_PATHS:
+    elif type_of_file not in AM_PATHS:
         logger.info("No %s file in cfg-file.", type_of_file)
         return None
     date_time = values["date_time"]
@@ -633,8 +633,8 @@ def get_calipso_matchups(calipso_files, values,
         calipso1km = reshape_calipso(cafiles1km, res=1)
         calipso5km = calipso
         calipso = add_1km_to_5km(calipso1km, calipso5km)
-        calipso = time_reshape_calipso(calipso,
-                                       start_break=startBreak, end_break=endBreak)
+        calipso = calipso.extract_elements(starti=startBreak,
+                                           endi=endBreak)
         calipso = total_and_top_layer_optical_depth_5km(calipso, SETTINGS, resolution=5)
 
     elif cafiles5km is not None and CALIPSO_version == 4 and config.RESOLUTION == 1:
@@ -739,7 +739,7 @@ def get_additional_calipso_files_if_requested(calipso_files, SETTINGS):
     calipso5km_aerosol = None
 
     if config.RESOLUTION == 5:
-        if SETTINGS['ALSO_USE_1KM_FILES'] == True:
+        if SETTINGS['ALSO_USE_1KM_FILES']:
             logger.info("Search for CALIPSO 1km data too")
             calipso1km = []
             calipso5km = []
@@ -770,7 +770,7 @@ def get_additional_calipso_files_if_requested(calipso_files, SETTINGS):
                                    "\tlen(calipso_files) = %d\n" % len(calipso_files) +
                                    "\tlen(calipso1km) = %d" % len(calipso1km))
     if config.RESOLUTION == 1:
-        if SETTINGS['ALSO_USE_5KM_FILES'] == True:
+        if SETTINGS['ALSO_USE_5KM_FILES']:
             logger.info("Search for CALIPSO 5km data too")
             calipso5km = []
             calipso1km = []
@@ -925,12 +925,18 @@ def add_additional_clousat_calipso_index_vars(match_clsat, match_calipso):
 def add_modis_lvl2_clousat_(match_clsat, match_calipso):
     # add modis lvl2 to cloudsat
     if match_clsat is not None and match_calipso is not None:
-        match_clsat.modis.all_arrays["height"] = match_calipso.modis.all_arrays["height"][match_clsat.cloudsat.calipso_index]
-        match_clsat.modis.all_arrays["temperature"] = match_calipso.modis.all_arrays["temperature"][match_clsat.cloudsat.calipso_index]
-        match_clsat.modis.all_arrays["pressure"] = match_calipso.modis.all_arrays["pressure"][match_clsat.cloudsat.calipso_index]
-        match_clsat.modis.all_arrays["cloud_emissivity"] = match_calipso.modis.all_arrays["cloud_emissivity"][match_clsat.cloudsat.calipso_index]
-        match_clsat.modis.all_arrays["latitude_5km"] = match_calipso.modis.all_arrays["latitude_5km"][match_clsat.cloudsat.calipso_index]
-        match_clsat.modis.all_arrays["longitude_5km"] = match_calipso.modis.all_arrays["longitude_5km"][match_clsat.cloudsat.calipso_index]
+        match_clsat.modis.all_arrays["height"] = match_calipso.modis.all_arrays["height"][
+            match_clsat.cloudsat.calipso_index]
+        match_clsat.modis.all_arrays["temperature"] = match_calipso.modis.all_arrays["temperature"][
+            match_clsat.cloudsat.calipso_index]
+        match_clsat.modis.all_arrays["pressure"] = match_calipso.modis.all_arrays["pressure"][
+            match_clsat.cloudsat.calipso_index]
+        match_clsat.modis.all_arrays["cloud_emissivity"] = match_calipso.modis.all_arrays["cloud_emissivity"][
+            match_clsat.cloudsat.calipso_index]
+        match_clsat.modis.all_arrays["latitude_5km"] = match_calipso.modis.all_arrays["latitude_5km"][
+            match_clsat.cloudsat.calipso_index]
+        match_clsat.modis.all_arrays["longitude_5km"] = match_calipso.modis.all_arrays["longitude_5km"][
+            match_clsat.cloudsat.calipso_index]
     return match_clsat
 
 
@@ -1041,9 +1047,9 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
         cloudproducts = read_pps_data(pps_files, imager_file, SETTINGS)
         if os.path.isfile(SETTINGS['CNN_PCKL_PATH']):
             from atrain_match.utils.pps_prototyping_util import add_cnn_features_full
-            imager_obj.cnn_dict = add_cnn_features_full(cloudproducts.imager_channeldata,
-                                                        cloudproducts,
-                                                        SETTINGS)
+            cloudproducts.cnn_dict = add_cnn_features_full(cloudproducts.imager_channeldata,
+                                                           cloudproducts,
+                                                           SETTINGS)
     if (SETTINGS['CCI_CLOUD_VALIDATION']):
         cloudproducts = read_cloud_cci(imager_file)
         cloudproducts.satellite = values["satellite"]

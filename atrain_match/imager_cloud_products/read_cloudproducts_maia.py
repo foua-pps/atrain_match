@@ -24,7 +24,7 @@ from atrain_match.utils.get_flag_info import get_maia_ct_flag, get_day_night_twi
 import atrain_match.config as config
 from atrain_match.utils.runutils import do_some_geo_obj_logging
 from atrain_match.imager_cloud_products.read_cloudproducts_and_nwp_pps import (
-    AllImagerData,
+    AllImagerData, AuxiliaryObj,
     CtypeObj, CtthObj, CmaObj,
     create_imager_time,
     ImagerAngObj)
@@ -81,7 +81,7 @@ def maia_read_all(filename):
         ctype, cma, ctth = read_maia_ctype_cmask_ctth(maia_h5)
         cloudproducts.cma = cma
         cloudproducts.ctth = ctth
-        cloudproducts.ctype = cype
+        cloudproducts.ctype = ctype
 
         logger.info("Reading surface temperature")
         surft = read_maia_surftemp(maia_h5)

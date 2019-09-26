@@ -15,7 +15,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
-from atrain_match.utils.common import InputError
+# from atrain_match.utils.common import InputError
 from atrain_match.utils.runutils import do_some_geo_obj_logging
 import atrain_match.config as config
 import numpy as np
@@ -1068,9 +1068,9 @@ def pps_read_all(pps_files, imager_file, SETTINGS):
     if pps_files.cmaprob is not None:
         logger.info("Read PPS Cloud mask prob")
         if '.nc' in pps_files.cmaprob:
-            cloudproducts.cma = read_cmaprob_nc(pps_files.cmaprob, cma)
+            cloudproducts.cma = read_cmaprob_nc(pps_files.cmaprob, cloudproducts.cma)
         else:
-            cloudproducts.cma = read_cmaprob_h5(pps_files.cmaprob, cma)
+            cloudproducts.cma = read_cmaprob_h5(pps_files.cmaprob, cloudproducts.cma)
     # CTYPE
     if pps_files.cloudtype is not None:
         logger.info("Read PPS Cloud type")

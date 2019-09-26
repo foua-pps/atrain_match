@@ -21,7 +21,7 @@
 """
 
 from atrain_match.imager_cloud_products.read_cloudproducts_and_nwp_pps import (
-    AllImagerData,
+    AllImagerData, CppObj,
     CtthObj, CmaObj,
     ImagerAngObj)
 from atrain_match.utils.runutils import do_some_geo_obj_logging

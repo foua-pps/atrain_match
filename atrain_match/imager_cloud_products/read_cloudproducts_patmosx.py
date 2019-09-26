@@ -159,8 +159,8 @@ def patmosx_read_all_hdf(filename, cross, SETTINGS):
     """Read geolocation, angles info, ctth, and cma
     """
     from pyhdf.SD import SD, SDC
-    #from pyhdf.HDF import HDF, HC
-    #import pyhdf.VS
+    # from pyhdf.HDF import HDF, HC
+    # import pyhdf.VS
     patmosx_hdf = SD(filename, SDC.READ)
     logger.info("Opening file %s", filename)
     logger.info("Reading longitude, latitude and time ...")
@@ -176,7 +176,7 @@ def patmosx_read_all_hdf(filename, cross, SETTINGS):
     logger.info("Not reading surface temperature")
     logger.info("Not reading cloud microphysical properties")
     logger.info("Not reading channel data")
-    return imagerAngObj, ctth, imagercloudproducts, ctype, imager_obj, surft, cpp, cma
+    return cloudproducts
 
 
 def read_patmosx_ctype_cmask_ctth_hdf(patmosx_hdf):
