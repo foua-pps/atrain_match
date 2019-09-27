@@ -37,11 +37,11 @@ analysis program has been complemented with the following:
  * Program can read satellite data from: PPS, CCI and MAIA. When satllite data
    comes from PPS-MODIS also modis lvl-2 data can be matched.
    Files to read imager satellite data:
-      read_cloudproducts_and_nwp_pps.py
-      read_cloudproducts_maia.py
-      read_cloudproducts_cci.py
+      read_pps.py
+      read_maia.py
+      read_cci.py
       read_modis_products.py
-      read_cloudproducts_patmosx.py
+      read_patmosx.py
 
  * Format of matchup files, and reading and writing can be found in matchobject_io.py.
 
@@ -192,11 +192,11 @@ def find_truth_files_inner(date_time, time_window, AM_PATHS, values, truth='cali
 
 
 def get_satid_datetime_orbit_from_fname(filename, SETTINGS, cross=None, as_oldstyle=False):
-    from atrain_match.imager_cloud_products.read_cloudproducts_and_nwp_pps import get_satid_datetime_orbit_from_fname_pps
-    from atrain_match.imager_cloud_products.read_cloudproducts_cci import get_satid_datetime_orbit_from_fname_cci
-    from atrain_match.imager_cloud_products.read_cloudproducts_oca import get_satid_datetime_orbit_from_fname_oca
-    from atrain_match.imager_cloud_products.read_cloudproducts_maia import get_satid_datetime_orbit_from_fname_maia
-    from atrain_match.imager_cloud_products.read_cloudproducts_patmosx import get_satid_datetime_orbit_from_fname_patmosx
+    from atrain_match.cloudproducts.read_pps import get_satid_datetime_orbit_from_fname_pps
+    from atrain_match.cloudproducts.read_cci import get_satid_datetime_orbit_from_fname_cci
+    from atrain_match.cloudproducts.read_oca import get_satid_datetime_orbit_from_fname_oca
+    from atrain_match.cloudproducts.read_maia import get_satid_datetime_orbit_from_fname_maia
+    from atrain_match.cloudproducts.read_patmosx import get_satid_datetime_orbit_from_fname_patmosx
     # Get satellite name, time, and orbit number from imager_file
     if SETTINGS['PPS_VALIDATION']:
         values = get_satid_datetime_orbit_from_fname_pps(filename, as_oldstyle=as_oldstyle)
@@ -708,27 +708,27 @@ def get_calipso_matchups(calipso_files, values,
 
 
 def read_cloud_cci(imager_file):
-    from atrain_match.imager_cloud_products.read_cloudproducts_cci import cci_read_all
+    from atrain_match.cloudproducts.read_cci import cci_read_all
     return cci_read_all(imager_file)
 
 
 def read_cloud_oca(imager_file):
-    from atrain_match.imager_cloud_products.read_cloudproducts_oca import oca_read_all
+    from atrain_match.cloudproducts.read_oca import oca_read_all
     return oca_read_all(imager_file)
 
 
 def read_cloud_maia(imager_file):
-    from atrain_match.imager_cloud_products.read_cloudproducts_maia import maia_read_all
+    from atrain_match.cloudproducts.read_maia import maia_read_all
     return maia_read_all(imager_file)
 
 
 def read_cloud_patmosx(imager_file, cross, SETTINGS):
-    from atrain_match.imager_cloud_products.read_cloudproducts_patmosx import patmosx_read_all
+    from atrain_match.cloudproducts.read_patmosx import patmosx_read_all
     return patmosx_read_all(imager_file, cross, SETTINGS)
 
 
 def read_pps_data(pps_files, imager_file, SETTINGS):
-    from atrain_match.imager_cloud_products.read_cloudproducts_and_nwp_pps import pps_read_all
+    from atrain_match.cloudproducts.read_pps import pps_read_all
     return pps_read_all(pps_files, imager_file, SETTINGS)
 
 
@@ -1159,7 +1159,7 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
             continue
         # add modis lvl2
         if SETTINGS['MATCH_MODIS_LVL2']:
-            from atrain_match.imager_cloud_products.read_modis_products import add_modis_06
+            from atrain_match.cloudproducts.read_modis_products import add_modis_06
             if matchup.imager_instrument in ['modis']:
                 matchup = add_modis_06(matchup, imager_file, AM_PATHS)
         if SETTINGS['ADD_NWP']:

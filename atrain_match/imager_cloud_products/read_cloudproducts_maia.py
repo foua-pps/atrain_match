@@ -23,7 +23,7 @@
 from atrain_match.utils.get_flag_info import get_maia_ct_flag, get_day_night_twilight_info_maia
 import atrain_match.config as config
 from atrain_match.utils.runutils import do_some_geo_obj_logging
-from atrain_match.imager_cloud_products.read_cloudproducts_and_nwp_pps import (
+from atrain_match.cloudproducts.read_pps import (
     AllImagerData, AuxiliaryObj,
     CtypeObj, CtthObj, CmaObj,
     create_imager_time,

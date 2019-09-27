@@ -6,14 +6,13 @@ files = files + glob.glob(ROOT_DIR + "/*/*/*.py")
 
 
 var_name_dict ={
-    "readImagerData_nc": "read_imager_data_nc",
-    "readImagerData_h5": "read_imager_data_h5",
-    "createImagerTime": "create_imager_time",
-    "Obt":"obt",
-    "smallDataObject": "SmallDataObject"
+    "imager_cloud_products": "cloudproducts",
+    "read_cloudproducts_": "read_",
+    "read_cloudproducts_and_nwp_": "read_",
+    "read_and_nwp_": "read_",
 }
 
-# : D
+
 
 for filename in files:
     CONCAT = 0
@@ -30,6 +29,8 @@ for filename in files:
     com = False
     inside_function_class_dif = False
     for line in line_list:
+        for key in var_name_dict.keys():
+            line = line.replace(key,var_name_dict[key])
         
         #if '"""' in line and com:
         #    com = False
@@ -46,15 +47,8 @@ for filename in files:
 
 
         #line = line.replace( '%d"%(', '{:d}".format(')
-        line = line.replace( '>=', ' >= ')
-        line = line.replace( '  >=', ' >=')
-        line = line.replace( '>=  ', '>= ')
-        line = line.replace( ' ,', ',')
-        line = line.replace( ' ,', ',')
-        line = line.replace( '#,', '# ,')
-        if len(line.split('"""'))>2:
-         # it was a one line comment
-            com = False
+        # it was a one line comment
+         
         all_file += line.rstrip() + "\n"
 
 

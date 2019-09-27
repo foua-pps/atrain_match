@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Scripts to match level2 products to CALIOP, CloudSat (CPR), Synop, etc
-"""
+"""Scripts to match level2 products to CALIOP, CloudSat (CPR), Synop, etc."""
 
 from setuptools import find_packages, setup
 

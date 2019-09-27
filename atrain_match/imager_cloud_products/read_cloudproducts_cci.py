@@ -20,7 +20,7 @@
   2013 SMHI, N.Hakansson
 """
 
-from atrain_match.imager_cloud_products.read_cloudproducts_and_nwp_pps import (
+from atrain_match.cloudproducts.read_pps import (
     AllImagerData, CppObj,
     CtthObj, CmaObj,
     ImagerAngObj)
