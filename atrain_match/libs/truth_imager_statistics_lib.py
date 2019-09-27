@@ -251,28 +251,6 @@ def get_day_night_info(match_obj, SETTINGS):
     return daynight_flags
 
 
-"""
-
-
-def get_semi_opaque_info(match_calipso):
-    semi_flag = None
-    opaque_flag = None
-    if hasattr(match_calipso.imager, 'cloudtype_qflag'):
-        # print match_calipso.imager.ctth_opaque
-        if match_calipso.imager.ctth_opaque is not None:
-            semi_flag, opaque_flag = get_semi_opaque_info_pps2012(
-                match_calipso.imager.ctth_opaque)
-    if hasattr(match_calipso.imager, 'cloudtype_conditions'):
-        if match_calipso.imager.ctth_status is not None:
-            # print match_calipso.imager.ctth_status
-            semi_flag, opaque_flag = get_semi_opaque_info_pps2014(
-                match_calipso.imager.ctth_status)
-    return semi_flag, opaque_flag
-
-
-"""
-
-
 def find_imager_clear_cloudy(match_obj, SETTINGS):
     if 'SYNOP' in match_obj.truth_sat.upper():
         imager_clear = match_obj.imager.cfc_mean < SETTINGS["PPS_SYNOP_CLEAR_MAX_CFC"]
@@ -991,7 +969,7 @@ def print_main_stats(match_obj, statfile):
         num_val_data_ok))
 
 
-def calculate_statistics(mode, statfilename, match_calipso, match_clsat, issObj, amObj, syObj,
+def calculate_statistics(mode, statfilename, match_calipso, match_clsat, match_iss, match_amsr, match_synop,
                          SETTINGS,
                          dnt_flag=None):
 
@@ -1049,35 +1027,35 @@ def calculate_statistics(mode, statfilename, match_calipso, match_clsat, issObj,
             print_cpp_stats(match_calipso, statfile, val_subset, SETTINGS)
             statfile.close()
 
-    if issObj is not None:
-        val_subset = get_subset_for_mode(issObj, mode)
+    if match_iss is not None:
+        val_subset = get_subset_for_mode(match_iss, mode)
         if val_subset is not None:
             statfile = open(statfilename.replace('xxx', 'iss'), "w")
-            val_subset = get_day_night_subset(issObj, val_subset, SETTINGS)
-            print_main_stats(issObj, statfile)
-            print_cmask_stats(issObj, statfile, val_subset, SETTINGS)
-            print_cmask_prob_stats(issObj, statfile, val_subset, SETTINGS)
-            # print_calipso_stats_ctype(issObj, statfile, val_subset, cal_vert_feature)
-            print_stats_ctop(issObj, statfile, val_subset, None, SETTINGS)
+            val_subset = get_day_night_subset(match_iss, val_subset, SETTINGS)
+            print_main_stats(match_iss, statfile)
+            print_cmask_stats(match_iss, statfile, val_subset, SETTINGS)
+            print_cmask_prob_stats(match_iss, statfile, val_subset, SETTINGS)
+            # print_calipso_stats_ctype(match_iss, statfile, val_subset, cal_vert_feature)
+            print_stats_ctop(match_iss, statfile, val_subset, None, SETTINGS)
             statfile.close()
 
-    if amObj is not None:
+    if match_amsr is not None:
         logger.info("AMSR-E Statistics")
-        val_subset = get_subset_for_mode(amObj, mode)
+        val_subset = get_subset_for_mode(match_amsr, mode)
         if val_subset is not None:
-            val_subset = get_day_night_subset(amObj, val_subset, SETTINGS)
+            val_subset = get_day_night_subset(match_amsr, val_subset, SETTINGS)
             statfile = open(statfilename.replace('xxx', 'amsr'), "w")
-            print_main_stats(amObj, statfile)
-            print_cpp_lwp_stats(amObj, statfile, val_subset)
+            print_main_stats(match_amsr, statfile)
+            print_cpp_lwp_stats(match_amsr, statfile, val_subset)
             statfile.close()
 
-    if syObj is not None:
+    if match_synop is not None:
         logger.info("SYNOP Statistics")
-        val_subset = get_subset_for_mode(syObj, mode)
+        val_subset = get_subset_for_mode(match_synop, mode)
         if val_subset is not None:
-            val_subset = get_day_night_subset(syObj, val_subset, SETTINGS)
+            val_subset = get_day_night_subset(match_synop, val_subset, SETTINGS)
             statfile = open(statfilename.replace('xxx', 'synop'), "w")
-            print_main_stats(syObj, statfile)
-            print_cmask_stats(syObj, statfile, val_subset, SETTINGS)
-            print_cmask_prob_stats(syObj, statfile, val_subset, SETTINGS)
+            print_main_stats(match_synop, statfile)
+            print_cmask_stats(match_synop, statfile, val_subset, SETTINGS)
+            print_cmask_prob_stats(match_synop, statfile, val_subset, SETTINGS)
             statfile.close()

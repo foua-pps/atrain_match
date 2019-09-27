@@ -3,16 +3,15 @@
 This program is used to process and output statistics for the inter-comparison
 of for example PPS results and CloudSat/CALIPSO observations. 
 
- * The main running program is: process_atrain_match.py which will do matchups.
- 
- * The main running program is: process_master.py will do matchups and result for
-   each case. And compile_stat.py accumulates statistics.
+ * The main running program is: process_atrain_match.py which will do matchups or
+    process_master.py will do matchups and retrieve result foreach case.
    
- * The process_master.py will use: truth_imager_match.py for matching
-   and truth_imager_statistics.py for statistics.
+ * The program truth_imager_match.py is the main library for matching
+   and truth_imager_make_statistics(_lib).py is the main libaries for statistics.
 
  * The compile_stat.py accumulates statistics uses the module statistics to
-   accumulate statistics.  
+   accumulate statistics (only run if process_master have been used and there exist
+   statistics).  
 
  * Program is updated wo be able to use CALIOP-CALIPSO, CPR (CloudSat), AMSR_E, Synop  
    or CATS (ISS) as truth. Modules used to handle the truths (read, reshape, etc):
@@ -56,7 +55,7 @@ of for example PPS results and CloudSat/CALIPSO observations.
 
  * Configuration in the etc/atrain_match.cfg. There are some enironment variables that need to be set:
  
-        ATRAINMATCH_CONFIG_DIR #path to atrain_match.cfg
-        AREA_CONFIG_FILE       #only for plotting
-        VALIDATION_RESULTS_DIR #path to validation main directory
-        ATRAIN_RESOLUTION      #1 or 5
+        ATRAINMATCH_CONFIG_DIR # path to atrain_match.cfg
+        AREA_CONFIG_FILE       # only for plotting
+        VALIDATION_RESULTS_DIR # path to validation main directory
+        ATRAIN_RESOLUTION      # 1 or 5

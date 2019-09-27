@@ -49,21 +49,6 @@ from atrain_match.matchobject_io import (read_truth_imager_match_obj,
 
 logger = logging.getLogger(__name__)
 
-"""
- * The main running program is: process_master.py and compile_stat.py will
-   accumulate statistics.
-
- * The Vertical Feature Mask parameter in the CALIPSO dataset has been used to
-   subdivide results into three cloud groups: Low, Medium and High. This has
-   enabled an evaluation of PPS Cloud Type results and a further sub-division
-   of Cloud Top Height results
-
- * The National Snow and Ice Data Center (NSIDC) ice and snow mapping results
-   have been added to the extracted Calipso parameters. Together with the IGBP
-   land use classification it is then possible to isolate the study to focus on
-   one of the several surface categories.
-"""
-
 
 def add_validation_ctth(match_clsat, match_calipso):
     if match_clsat is not None:
@@ -294,9 +279,9 @@ def run(cross, run_modes, AM_PATHS, SETTINGS, reprocess=False):
     # Get the data that we need:
     matchup_results = get_matchups(cross, AM_PATHS, SETTINGS, reprocess)
     match_calipso = matchup_results['calipso']
-    iss_obj = matchup_results['iss']
-    am_obj = matchup_results['amsr']
-    sy_obj = matchup_results['synop']
+    match_iss = matchup_results['iss']
+    match_amsr = matchup_results['amsr']
+    match_synop = matchup_results['synop']
     # mo_obj = matchup_results['mora']
     match_clsat = matchup_results['cloudsat']
     values = matchup_results['values']
@@ -307,8 +292,8 @@ def run(cross, run_modes, AM_PATHS, SETTINGS, reprocess=False):
     logger.info("Adding validation height missing in old reshaped files")
     match_clsat, match_calipso = add_validation_ctth(match_clsat, match_calipso)
     # Calculate hight from sea surface
-    match_clsat, match_calipso, iss_obj = add_elevation_corrected_imager_ctth(
-        match_clsat, match_calipso, iss_obj, SETTINGS)
+    match_clsat, match_calipso, match_iss = add_elevation_corrected_imager_ctth(
+        match_clsat, match_calipso, match_iss, SETTINGS)
     calipso_original = CalipsoObject()
     # Save data orignal data that we might edit for some modes
     if match_calipso is not None:
@@ -379,11 +364,11 @@ def run(cross, run_modes, AM_PATHS, SETTINGS, reprocess=False):
                 match_calipso.calipso.validation_height = retv[1]
             # Time to process results files for one mode:
             process_one_mode(process_mode_dnt,
-                             match_calipso, match_clsat, iss_obj, am_obj, sy_obj,
+                             match_calipso, match_clsat, match_iss, match_amsr, match_synop,
                              min_optical_depth, values,
                              AM_PATHS, SETTINGS, basename)
     # We are done, free some memory:
     match_calipso = None
     match_clsat = None
-    iss_obj = None
-    am_obj = None
+    match_iss = None
+    match_amsr = None
