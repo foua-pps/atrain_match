@@ -17,7 +17,6 @@
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
 """The main matching program."""
 
-# change log i found in git
 from atrain_match.matchobject_io import write_truth_imager_match_obj
 from atrain_match.truths.calipso import (
     total_and_top_layer_optical_depth_5km,
@@ -515,36 +514,28 @@ def get_cloudsat_matchups(cloudsat_files, cloudsat_files_lwp, cloudproducts, SET
 
 
 def get_iss_matchups(iss_files, cloudproducts, SETTINGS):
-    """
-    Read Iss data and match with the given PPS data.
-    """
+    """Read Iss data and match with the given PPS data."""
     iss = reshape_iss(iss_files, cloudproducts, SETTINGS)
     cl_matchup = match_iss_imager(iss, cloudproducts, SETTINGS)
     return cl_matchup
 
 
 def get_amsr_matchups(amsr_files, cloudproducts, SETTINGS):
-    """
-    Read Amsr data and match with the given PPS data.
-    """
+    """Read Amsr data and match with the given PPS data."""
     amsr = reshape_amsr(amsr_files, cloudproducts, SETTINGS)
     am_matchup = match_amsr_imager(amsr, cloudproducts, SETTINGS)
     return am_matchup
 
 
 def get_synop_matchups(synop_files, cloudproducts, SETTINGS):
-    """
-    Read Synop data and match with the given PPS data.
-    """
+    """Read Synop data and match with the given PPS data."""
     synop = reshape_synop(synop_files, cloudproducts, SETTINGS)
     synop_matchup = match_synop_imager(synop, cloudproducts, SETTINGS)
     return synop_matchup
 
 
 def get_mora_matchups(mora_files, cloudproducts, SETTINGS):
-    """
-    Read Mora data and match with the given PPS data.
-    """
+    """Read Mora data and match with the given PPS data."""
     mora = reshape_mora(mora_files, cloudproducts, SETTINGS)
     mora_matchup = match_mora_imager(mora, cloudproducts, SETTINGS)
     return mora_matchup
@@ -555,9 +546,7 @@ def get_calipso_matchups(calipso_files, values,
                          AM_PATHS, SETTINGS,
                          cafiles1km=None, cafiles5km=None,
                          cafiles5km_aerosol=None):
-    """
-    Read Calipso data and match with the given PPS data.
-    """
+    """Read Calipso data and match with the given PPS data."""
     # First remove files clearly outside time limit from the lists
     # When combinating 5km and 1km data some expensive calculations are done
     # before cutting the data that fits the time condition.
@@ -956,10 +945,8 @@ def add_elevation_corrected_imager_ctth(match_clsat, match_calipso, match_iss, S
 
 
 def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
-    """
-    Retrieve Cloudsat- and Calipso-IMAGER matchups from Cloudsat, Calipso, and
-    PPS files.
-    """
+    """Find files and retrieve matchup from data."""
+
     # STEP 1 get imager files
     if SETTINGS['PPS_VALIDATION']:
         imager_file, tobj = find_radiance_file(cross, AM_PATHS)
@@ -1018,7 +1005,7 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
         cloudproducts.satellite = values["satellite"]
 
     # STEP 4 get matchups
-    # ClloudSat
+    # CloudSat
     cloudsat_matchup = None
     if (SETTINGS['PPS_VALIDATION'] and SETTINGS['CLOUDSAT_MATCHING'] and
             truth_files['cloudsat'] is not None):
