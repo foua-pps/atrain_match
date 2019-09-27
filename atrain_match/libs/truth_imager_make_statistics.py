@@ -27,7 +27,7 @@ import logging
 from atrain_match.utils.common import MatchupError
 
 from atrain_match.libs.truth_imager_match import (get_matchups_from_data,
-                                                  find_imager_file,
+                                                  find_main_cloudproduct_file,
                                                   insert_info_in_filename_or_path,
                                                   add_additional_clousat_calipso_index_vars,
                                                   add_elevation_corrected_imager_ctth)
@@ -90,7 +90,7 @@ def get_matchups(cross, AM_PATHS, SETTINGS, reprocess):
             else:
                 values["atrain_sat"] = truth
                 values["atrain_datatype"] = truth
-                match_file, date_time = find_imager_file(
+                match_file, date_time = find_main_cloudproduct_file(
                     cross,
                     AM_PATHS['reshape_dir'],
                     AM_PATHS['reshape_file'],
