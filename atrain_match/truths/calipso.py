@@ -334,7 +334,7 @@ def discard_calipso_files_outside_time_range(calipsofiles_list, cloudproducts, v
         new_calipso = get_calipso(current_file, res, ALAY=ALAY)
         cal_new_all = new_calipso.sec_1970
         if (cal_new_all[0] > imager_end + SETTINGS["sec_timeThr"] or
-            cal_new_all[-1] + SETTINGS["sec_timeThr"] < imager_start):
+                cal_new_all[-1] + SETTINGS["sec_timeThr"] < imager_start):
             pass
             # print "skipping file %s outside time_limits"%(current_file)
         else:
@@ -463,7 +463,8 @@ def add_1km_to_5km(calipso1km, calipso5km):
     # (i.e. 1 km array = 5 times longer array)
     # Here we check the middle time (index 1) out of the three time values
     # given (start, mid, end) for 5 km data
-    length_ok = (calipso5km.profile_utc_time[:, 1] == calipso1km.profile_utc_time[2::5]).sum() == calipso5km.profile_utc_time.shape[0]
+    length_ok = (calipso5km.profile_utc_time[:, 1] == calipso1km.profile_utc_time[2::5]).sum(
+    ) == calipso5km.profile_utc_time.shape[0]
     if not length_ok:
         print("length mismatch")
         raise(ProcessingError)

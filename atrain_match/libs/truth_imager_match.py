@@ -89,7 +89,7 @@ class ppsFiles(object):
 
 
 def get_time_list(cross_time, time_window, delta_t_in_seconds):
-    """Helper function, return a list of date_times within timewindow.""" 
+    """Helper function, return a list of date_times within timewindow."""
     tlist = []
     delta_t = timedelta(seconds=delta_t_in_seconds)  # search per minute!delta_t_in_seconds=60
     tobj1 = cross_time  # end_time
@@ -238,8 +238,8 @@ def find_truth_files(date_time, AM_PATHS, SETTINGS, values, truth='calipso'):
 def find_pps_cloud_files(cross, AM_PATHS, SETTINGS):
     """Find main cloudproduct file with lat/lon PPS, and the additional files."""
     found_file, tobj = find_main_cloudproduct_file(cross,
-                                        AM_PATHS['radiance_dir'],
-                                        AM_PATHS['radiance_file'])
+                                                   AM_PATHS['radiance_dir'],
+                                                   AM_PATHS['radiance_file'])
     if not found_file:
         raise MatchupError("No dir or file found with radiance data!\n" +
                            "Searching for %s %s" % (AM_PATHS['radiance_dir'], AM_PATHS['radiance_file']))
@@ -250,8 +250,8 @@ def find_pps_cloud_files(cross, AM_PATHS, SETTINGS):
 def find_cci_cloud_file(cross, AM_PATHS):
     """Find main cloudproduct file with lat/lon CCI."""
     found_file, tobj = find_main_cloudproduct_file(cross,
-                                        AM_PATHS['cci_dir'],
-                                        AM_PATHS['cci_file'])
+                                                   AM_PATHS['cci_dir'],
+                                                   AM_PATHS['cci_file'])
     if not found_file:
         raise MatchupError("No dir or file found with cci cloud data!\n" +
                            "Searching under %s" % AM_PATHS['cci_dir'])
@@ -261,8 +261,8 @@ def find_cci_cloud_file(cross, AM_PATHS):
 def find_oca_cloud_file(cross, AM_PATHS):
     """Find main cloudproduct file with lat/lon OCA."""
     found_file, tobj = find_main_cloudproduct_file(cross,
-                                        AM_PATHS['oca_dir'],
-                                        AM_PATHS['oca_file'])
+                                                   AM_PATHS['oca_dir'],
+                                                   AM_PATHS['oca_file'])
     if not found_file:
         raise MatchupError("No dir or file found with oca cloud data!\n" +
                            "Searching under %s" % AM_PATHS['oca_dir'])
@@ -272,8 +272,8 @@ def find_oca_cloud_file(cross, AM_PATHS):
 def find_maia_cloud_file(cross, AM_PATHS):
     """Find main cloudproduct file with lat/lon MAIA."""
     found_file, tobj = find_main_cloudproduct_file(cross,
-                                        AM_PATHS['maia_dir'],
-                                        AM_PATHS['maia_file'])
+                                                   AM_PATHS['maia_dir'],
+                                                   AM_PATHS['maia_file'])
     if not found_file:
         raise MatchupError("No dir or file found with maia cloud data!\n" +
                            "Searching under %s" % AM_PATHS['maia_dir'])
@@ -283,8 +283,8 @@ def find_maia_cloud_file(cross, AM_PATHS):
 def find_patmosx_cloud_file(cross, AM_PATHS):
     """Find main cloudproduct file with lat/lon PATMOSX."""
     found_file, tobj = find_main_cloudproduct_file(cross,
-                                        AM_PATHS['patmosx_dir'],
-                                        AM_PATHS['patmosx_file'])
+                                                   AM_PATHS['patmosx_dir'],
+                                                   AM_PATHS['patmosx_file'])
     if not found_file:
         raise MatchupError("No dir or file found with patmosx cloud data!\n" +
                            "Searching under %s" % AM_PATHS['patmosx_dir'])
@@ -357,8 +357,8 @@ def require_h5(files, SETTINGS):
 
 
 def get_one_pps_file(imager_file, AM_PATHS, values, type_of_file, file_dir,
-                 OnlyPrintInDebugMode=False,
-                 FailIfRequestedAndMissing=False):
+                     OnlyPrintInDebugMode=False,
+                     FailIfRequestedAndMissing=False):
     """Find one cloudproduct file for PPS, when main file is found."""
     if type_of_file not in AM_PATHS and OnlyPrintInDebugMode:
         logger.debug("No %s file in cfg-file.", type_of_file)
@@ -423,13 +423,13 @@ def find_pps_files_from_imager_file(imager_file, AM_PATHS, SETTINGS, as_oldstyle
                                                  as_oldstyle=as_oldstyle)
     file_name_dict = {}
     file_name_dict['cma'] = get_one_pps_file(imager_file, AM_PATHS, values,
-                                         'cma_file', 'cma_dir',
-                                         FailIfRequestedAndMissing=True)
-    file_name_dict['cloudtype'] = get_one_pps_file(imager_file, AM_PATHS, values,
-                                               'cloudtype_file', 'cloudtype_dir',
-                                               FailIfRequestedAndMissing=True)
-    file_name_dict['cmaprob'] = get_one_pps_file(imager_file, AM_PATHS, values, 'cmaprob_file', 'cmaprob_dir',
+                                             'cma_file', 'cma_dir',
                                              FailIfRequestedAndMissing=True)
+    file_name_dict['cloudtype'] = get_one_pps_file(imager_file, AM_PATHS, values,
+                                                   'cloudtype_file', 'cloudtype_dir',
+                                                   FailIfRequestedAndMissing=True)
+    file_name_dict['cmaprob'] = get_one_pps_file(imager_file, AM_PATHS, values, 'cmaprob_file', 'cmaprob_dir',
+                                                 FailIfRequestedAndMissing=True)
     # Check cfc configuration
     check_cfc_configuration(file_name_dict, SETTINGS)
     # For CTTH can have several files:
@@ -439,59 +439,59 @@ def find_pps_files_from_imager_file(imager_file, AM_PATHS, SETTINGS, as_oldstyle
         for ctth_type in SETTINGS['CTTH_TYPES']:
             values['ctth_type'] = ctth_type
             ctth_files[ctth_type] = get_one_pps_file(imager_file, AM_PATHS, values,
-                                                 'ctth_file', 'ctth_dir',
-                                                 FailIfRequestedAndMissing=True)
+                                                     'ctth_file', 'ctth_dir',
+                                                     FailIfRequestedAndMissing=True)
         file_name_dict.update({'ctth': ctth_files})
 
     file_name_dict['cpp'] = get_one_pps_file(imager_file, AM_PATHS, values, 'cpp_file', 'cpp_dir',
-                                         FailIfRequestedAndMissing=True)
+                                             FailIfRequestedAndMissing=True)
     file_name_dict['sunsatangles'] = get_one_pps_file(imager_file, AM_PATHS, values, 'sunsatangles_file',
-                                                  'sunsatangles_dir',
-                                                  FailIfRequestedAndMissing=True)
+                                                      'sunsatangles_dir',
+                                                      FailIfRequestedAndMissing=True)
     file_name_dict['physiography'] = get_one_pps_file(imager_file, AM_PATHS, values, 'physiography_file',
-                                                  'physiography_dir',
-                                                  FailIfRequestedAndMissing=True)
+                                                      'physiography_dir',
+                                                      FailIfRequestedAndMissing=True)
     file_name_dict['r37'] = get_one_pps_file(imager_file, AM_PATHS, values, 'r37_file', 'r37_dir',
-                                         FailIfRequestedAndMissing=True)
+                                             FailIfRequestedAndMissing=True)
 
     file_name_dict['nwp_tsur'] = get_one_pps_file(imager_file, AM_PATHS, values,
-                                              'nwp_tsur_file', 'nwp_nwp_dir',
-                                              FailIfRequestedAndMissing=True)
+                                                  'nwp_tsur_file', 'nwp_nwp_dir',
+                                                  FailIfRequestedAndMissing=True)
     file_name_dict['emis'] = get_one_pps_file(imager_file, AM_PATHS, values,
-                                          'emis_file', 'emis_dir',
-                                          FailIfRequestedAndMissing=True)
+                                              'emis_file', 'emis_dir',
+                                              FailIfRequestedAndMissing=True)
 
     file_name_dict['seaice'] = get_one_pps_file(imager_file, AM_PATHS, values,
-                                            'seaice_file', 'seaice_dir',
-                                            FailIfRequestedAndMissing=True)
+                                                'seaice_file', 'seaice_dir',
+                                                FailIfRequestedAndMissing=True)
     # Textures and Thresholds:
     file_name_dict['text_t11'] = get_one_pps_file(imager_file, AM_PATHS, values,
-                                              'text_t11_file', 'text_dir',
-                                              FailIfRequestedAndMissing=True)
+                                                  'text_t11_file', 'text_dir',
+                                                  FailIfRequestedAndMissing=True)
     file_name_dict['thr_t11ts'] = get_one_pps_file(imager_file, AM_PATHS, values,
-                                               'thr_t11ts_file', 'thr_dir',
-                                               FailIfRequestedAndMissing=True)
+                                                   'thr_t11ts_file', 'thr_dir',
+                                                   FailIfRequestedAndMissing=True)
     # More NWP, textures and thresholds for v2014:
     for nwp_file in ['nwp_t500', 'nwp_t700',
                      'nwp_t850', 'nwp_t950', 'nwp_ciwv', 'nwp_ttro']:
         file_name_dict[nwp_file] = get_one_pps_file(imager_file, AM_PATHS, values,
-                                                nwp_file+'_file', 'nwp_nwp_dir',
-                                                OnlyPrintInDebugMode=True)
+                                                    nwp_file+'_file', 'nwp_nwp_dir',
+                                                    OnlyPrintInDebugMode=True)
     for text_file in ['text_r06', 'text_t37t12', 'text_t37']:
         file_name_dict[text_file] = get_one_pps_file(imager_file, AM_PATHS, values,
-                                                 text_file+'_file', 'text_dir',
-                                                 OnlyPrintInDebugMode=True)
+                                                     text_file+'_file', 'text_dir',
+                                                     OnlyPrintInDebugMode=True)
 
     for thr_file in ['thr_t11ts_inv', 'thr_t11t37_inv',
                      'thr_t37t12_inv', 'thr_t11t12_inv',
                      'thr_t11ts', 'thr_t11t37', 'thr_t37t12', 'thr_t11t12',
                      'thr_r09', 'thr_r06', 'thr_t85t11_inv', 'thr_t85t11']:
         file_name_dict[thr_file] = get_one_pps_file(imager_file, AM_PATHS, values,
-                                                thr_file+'_file', 'thr_dir',
-                                                OnlyPrintInDebugMode=True)
+                                                    thr_file+'_file', 'thr_dir',
+                                                    OnlyPrintInDebugMode=True)
     file_name_dict['nwp_segments'] = get_one_pps_file(imager_file, AM_PATHS,
-                                                  values,
-                                                  'segment_file', 'segment_dir')
+                                                      values,
+                                                      'segment_file', 'segment_dir')
     # -------------------------------------#
     ppsfiles = ppsFiles(file_name_dict)
     return ppsfiles

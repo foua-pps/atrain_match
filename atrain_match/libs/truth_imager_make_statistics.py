@@ -113,7 +113,7 @@ def get_matchups(cross, AM_PATHS, SETTINGS, reprocess):
         values['month'] = "%02d" % (date_time.month)
         out_dict = {'basename': basename, 'values': values}
 
-    # Redo matching if missing (we might want to remove this in future.) 
+    # Redo matching if missing (we might want to remove this in future.)
     # And require that matchups are alredy done.
     # ================================================================
     if SETTINGS['USE_EXISTING_RESHAPED_FILES']:

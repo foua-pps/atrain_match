@@ -317,7 +317,8 @@ def get_lwp_diff_inner_cloudsat(match_obj, val_subset, wide_selection=False):
         pass
     else:
         # exclude risk for precipitation contamination
-        selection = np.logical_and(selection, np.bitwise_and(np.right_shift(match_obj.cloudsat.RVOD_CWC_status, 2), 1) == 0)
+        selection = np.logical_and(selection, np.bitwise_and(
+            np.right_shift(match_obj.cloudsat.RVOD_CWC_status, 2), 1) == 0)
         # exclude not seen in GEOPROF
         selection = np.logical_and(selection, np.bitwise_and(np.right_shift(
             match_obj.cloudsat.RVOD_CWC_status, 0), 10) == 0)  # clear geoprof
