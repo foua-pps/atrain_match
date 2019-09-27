@@ -1,2 +1,0 @@
-export PYTHONPATH=${PWD}:${PWD}/atrain_match/:${PWD}/etc/:${PWD}/reshaped_files_analyze_scripts/:${PWD}/reshaped_files_plotting/:${PWD}/statistics/:${PWD}/unittest/:${PWD}/plotting/:${PWD}/libs
-
