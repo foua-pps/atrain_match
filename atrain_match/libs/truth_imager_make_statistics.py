@@ -52,6 +52,8 @@ logger = logging.getLogger(__name__)
 
 
 def add_validation_ctth(match_clsat, match_calipso):
+    """ Add CPR (CloudSat) validation height if not in file already. """
+    # Helper function to allow reprocessing of older matchup-files.
     if match_clsat is not None:
         if match_clsat.cloudsat.validation_height is None:
             match_clsat.cloudsat = add_validation_ctth_cloudsat(match_clsat.cloudsat)
@@ -111,6 +113,9 @@ def get_matchups(cross, AM_PATHS, SETTINGS, reprocess):
         values['month'] = "%02d" % (date_time.month)
         out_dict = {'basename': basename, 'values': values}
 
+    # Redo matching if missing (we might want to remove this in future.) 
+    # And require that matchups are alredy done.
+    # ================================================================
     if SETTINGS['USE_EXISTING_RESHAPED_FILES']:
         for truth in ['cloudsat', 'amsr', 'iss', 'synop',
                       'mora', 'calipso']:
@@ -118,8 +123,6 @@ def get_matchups(cross, AM_PATHS, SETTINGS, reprocess):
                 raise MatchupError(
                     "Couldn't find calipso already processed matchup file, "
                     "USE_EXISTING_RESHAPED_FILES = True!")
-
-    # Redo matching if missing (we might want to remove this in future.)            
     redo_matching = False
     for truth in ['cloudsat', 'amsr', 'iss', 'synop',
                   'mora', 'calipso']:
@@ -139,7 +142,7 @@ def get_matchups(cross, AM_PATHS, SETTINGS, reprocess):
                 "Couldn't find "
                 "{truth} matchup and {truth}_REQUIRED is True!".format(
                     truth=truth))
-
+    # ================================================================
     return out_dict
 
 
@@ -234,7 +237,6 @@ def process_one_mode(process_mode_dnt, match_calipso, match_clsat, iss_obj, am_o
     """Make plots and statistics for one imager cloudproduct matchup (with one or several truths)."""
 
     # Get result filename
-    # =============================================================
     process_mode, dnt_flag = split_process_mode_and_dnt_part(process_mode_dnt)
     min_depth_to_file_name = ""
     if process_mode == 'OPTICAL_DEPTH':
@@ -250,18 +252,15 @@ def process_one_mode(process_mode_dnt, match_calipso, match_clsat, iss_obj, am_o
         basename=values['basename'],
         truth_sat="xxx")
     statfilename = os.path.join(result_path, result_file)
-    # =============================================================
-    # Draw plot
+    # Draw plots
     logger.debug("Plotting")
     if process_mode_dnt in SETTINGS['PLOT_MODES']:
         plot_some_figures(match_clsat, match_calipso, values, basename, process_mode,
                           AM_PATHS, SETTINGS, am_obj=am_obj)
-    # ==============================================================
     # Calculate Statistics
     logger.debug("Calculating statistics")
     calculate_statistics(process_mode, statfilename, match_calipso, match_clsat,
                          iss_obj, am_obj, sy_obj, SETTINGS, dnt_flag)
-    # =============================================================
 
 
 def run(cross, run_modes, AM_PATHS, SETTINGS, reprocess=False):

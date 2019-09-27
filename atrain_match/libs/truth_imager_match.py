@@ -89,6 +89,7 @@ class ppsFiles(object):
 
 
 def get_time_list(cross_time, time_window, delta_t_in_seconds):
+    """Helper function, return a list of date_times within timewindow.""" 
     tlist = []
     delta_t = timedelta(seconds=delta_t_in_seconds)  # search per minute!delta_t_in_seconds=60
     tobj1 = cross_time  # end_time
@@ -105,6 +106,7 @@ def get_time_list(cross_time, time_window, delta_t_in_seconds):
 
 
 def find_closest_nwp_file(cloudproducts, AM_PATHS, values, SETTINGS):
+    """Find the NWP-grib file closest in time to middle time of imager cloudproduct."""
     date_time = datetime.fromtimestamp((cloudproducts.sec1970_end*0.5 +
                                         cloudproducts.sec1970_start*0.5), my_tz.utc)
     delta_3h = timedelta(hours=SETTINGS['MAX_NWP_TDIFF_HOURS'])
@@ -128,7 +130,7 @@ def find_closest_nwp_file(cloudproducts, AM_PATHS, values, SETTINGS):
 
 
 def find_truth_files_inner(date_time, time_window, AM_PATHS, values, truth='calipso'):
-    """Find the matching Calipso file"""
+    """Find the matching truth files, inner functions."""
     tlist = get_time_list(date_time, time_window, 600)
     flist = []
     for tobj in tlist:
@@ -146,6 +148,7 @@ def find_truth_files_inner(date_time, time_window, AM_PATHS, values, truth='cali
 
 
 def get_satid_datetime_orbit_from_fname(filename, SETTINGS, cross=None, as_oldstyle=False):
+    """Get satid datetime and orbit from filename."""
     from atrain_match.cloudproducts.read_pps import get_satid_datetime_orbit_from_fname_pps
     from atrain_match.cloudproducts.read_cci import get_satid_datetime_orbit_from_fname_cci
     from atrain_match.cloudproducts.read_oca import get_satid_datetime_orbit_from_fname_oca
@@ -166,6 +169,7 @@ def get_satid_datetime_orbit_from_fname(filename, SETTINGS, cross=None, as_oldst
 
 
 def insert_info_in_filename_or_path(file_or_name_path, values, datetime_obj=None):
+    """Fill placeholders in filename/pathnames from atrain_match.cfg with correct data."""
     # file_or_name_path = file_or_name_path.format(**values)
     satellite = values.get("satellite", "*")
     file_or_name_path = file_or_name_path.format(
@@ -190,6 +194,7 @@ def insert_info_in_filename_or_path(file_or_name_path, values, datetime_obj=None
 
 
 def find_truth_files(date_time, AM_PATHS, SETTINGS, values, truth='calipso'):
+    """Find files for truth that can have a match in time with the cloudproduct from imager."""
     my_sec_THR = SETTINGS['sec_timeThr']
     TRUTH_FILE_LENGTH = config.CALIPSO_FILE_LENGTH
     if truth in ['cloudsat']:
@@ -231,6 +236,7 @@ def find_truth_files(date_time, AM_PATHS, SETTINGS, values, truth='calipso'):
 
 
 def find_radiance_file(cross, AM_PATHS):
+    """Find main cloudproduct file with lat/lon PPS."""
     found_file, tobj = find_imager_file(cross,
                                         AM_PATHS['radiance_dir'],
                                         AM_PATHS['radiance_file'])
@@ -241,6 +247,7 @@ def find_radiance_file(cross, AM_PATHS):
 
 
 def find_cci_cloud_file(cross, AM_PATHS):
+    """Find main cloudproduct file with lat/lon CCI."""
     found_file, tobj = find_imager_file(cross,
                                         AM_PATHS['cci_dir'],
                                         AM_PATHS['cci_file'])
@@ -251,6 +258,7 @@ def find_cci_cloud_file(cross, AM_PATHS):
 
 
 def find_oca_cloud_file(cross, AM_PATHS):
+    """Find main cloudproduct file with lat/lon OCA."""
     found_file, tobj = find_imager_file(cross,
                                         AM_PATHS['oca_dir'],
                                         AM_PATHS['oca_file'])
@@ -261,6 +269,7 @@ def find_oca_cloud_file(cross, AM_PATHS):
 
 
 def find_maia_cloud_file(cross, AM_PATHS):
+    """Find main cloudproduct file with lat/lon MAIA."""
     found_file, tobj = find_imager_file(cross,
                                         AM_PATHS['maia_dir'],
                                         AM_PATHS['maia_file'])
@@ -271,6 +280,7 @@ def find_maia_cloud_file(cross, AM_PATHS):
 
 
 def find_patmosx_cloud_file(cross, AM_PATHS):
+    """Find main cloudproduct file with lat/lon PATMOSX."""
     found_file, tobj = find_imager_file(cross,
                                         AM_PATHS['patmosx_dir'],
                                         AM_PATHS['patmosx_file'])
@@ -281,6 +291,7 @@ def find_patmosx_cloud_file(cross, AM_PATHS):
 
 
 def find_imager_file(cross, filedir_pattern, filename_pattern, values=None):
+    """Find main cloudproduct file with lat/lon (inner function)."""
     if values is None:
         values = {}
 
@@ -322,10 +333,7 @@ def find_imager_file(cross, filedir_pattern, filename_pattern, values=None):
 
 
 def require_h5(files, SETTINGS):
-    """
-    Convert any '.hdf' files in *files* to '.h5'. Returns a list of '.h5' files.
-
-    """
+    """Convert any '.hdf' files in *files* to '.h5'. Returns a list of '.h5' files."""
     if not SETTINGS["H4H5_EXECUTABLE"]:
         return files
     h5_files = []
@@ -350,6 +358,7 @@ def require_h5(files, SETTINGS):
 def get_pps_file(imager_file, AM_PATHS, values, type_of_file, file_dir,
                  OnlyPrintInDebugMode=False,
                  FailIfRequestedAndMissing=False):
+    """Find one cloudproduct file for PPS."""
     if type_of_file not in AM_PATHS and OnlyPrintInDebugMode:
         logger.debug("No %s file in cfg-file.", type_of_file)
         return None
@@ -405,11 +414,7 @@ def check_cfc_configuration(file_name_dict, SETTINGS):
 
 
 def find_files_from_imager(imager_file, AM_PATHS, SETTINGS, as_oldstyle=False):
-    """
-    Find all files needed to process matchup from source data files.
-    """
-    # Let's get the satellite and the date-time of the pps radiance
-    # (imager/viirs) file:
+    """Find all addidional files needed to process matchup for PPS."""
     logger.debug("IMAGER: %s", imager_file)
     values = get_satid_datetime_orbit_from_fname(imager_file,
                                                  SETTINGS,
@@ -492,9 +497,7 @@ def find_files_from_imager(imager_file, AM_PATHS, SETTINGS, as_oldstyle=False):
 
 
 def get_cloudsat_matchups(cloudsat_files, cloudsat_files_lwp, cloudproducts, SETTINGS):
-    """
-    Read Cloudsat data and match with the given PPS data.
-    """
+    """Read Cloudsat data and match with the given PPS data."""
     cloudsat_lwp = None
     cloudsat = None
     if cloudsat_files is not None:
