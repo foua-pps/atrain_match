@@ -199,9 +199,9 @@ def reshape_iss(issfiles, imager, SETTINGS):
         iss = iss + newIss
 
     # Finds Break point
-    startBreak, endBreak = find_break_points(iss, imager, SETTINGS)
-    iss = iss.extract_elements(starti=startBreak,
-                               endi=endBreak)
+    start_break, end_break = find_break_points(iss, imager, SETTINGS)
+    iss = iss.extract_elements(starti=start_break,
+                               endi=end_break)
     return iss
 
 

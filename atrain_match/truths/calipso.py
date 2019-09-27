@@ -331,8 +331,8 @@ def discard_calipso_files_outside_time_range(calipsofiles_list, cloudproducts, v
     imager_start = cloudproducts.sec1970_start
     calipso_within_time_range = []
     for current_file in calipsofiles_list:
-        newCalipso = get_calipso(current_file, res, ALAY=ALAY)
-        cal_new_all = newCalipso.sec_1970
+        new_calipso = get_calipso(current_file, res, ALAY=ALAY)
+        cal_new_all = new_calipso.sec_1970
         if (cal_new_all[0] > imager_end + SETTINGS["sec_timeThr"] or
             cal_new_all[-1] + SETTINGS["sec_timeThr"] < imager_start):
             pass
@@ -345,21 +345,21 @@ def discard_calipso_files_outside_time_range(calipsofiles_list, cloudproducts, v
 
 def reshape_calipso(calipsofiles, res=config.RESOLUTION, ALAY=False):
     # concatenate and reshape calipso files
-    startCalipso = get_calipso(calipsofiles[0], res, ALAY=ALAY)
+    start_calipso = get_calipso(calipsofiles[0], res, ALAY=ALAY)
     # Concatenate the data from the different files
     for i in range(len(calipsofiles) - 1):
-        newCalipso = get_calipso(calipsofiles[i + 1], res, ALAY=ALAY)
-        cal_start_all = startCalipso.profile_time_tai
-        cal_new_all = newCalipso.profile_time_tai
+        new_calipso = get_calipso(calipsofiles[i + 1], res, ALAY=ALAY)
+        cal_start_all = start_calipso.profile_time_tai
+        cal_new_all = new_calipso.profile_time_tai
         if not cal_start_all[0] < cal_new_all[0]:
             raise ProcessingError("Calipso files are in the wrong order!")
         # Concatenate the feature values
-        startCalipso = startCalipso + newCalipso
+        start_calipso = start_calipso + new_calipso
 
-    return startCalipso
+    return start_calipso
 
 
-def find_break_points(startCalipso, cloudproducts, SETTINGS):
+def find_break_points(calipso, cloudproducts, SETTINGS):
     """
     Find the start and end point where calipso and imager matches is within
     time limits.
@@ -367,9 +367,9 @@ def find_break_points(startCalipso, cloudproducts, SETTINGS):
     imager_end = cloudproducts.sec1970_end
     imager_start = cloudproducts.sec1970_start
     # Finds Break point
-    start_break = np.argmin((np.abs((startCalipso.sec_1970)
+    start_break = np.argmin((np.abs((calipso.sec_1970)
                                     - (imager_start - SETTINGS["sec_timeThr"]))))
-    end_break = np.argmin((np.abs((startCalipso.sec_1970)
+    end_break = np.argmin((np.abs((calipso.sec_1970)
                                   - (imager_end + SETTINGS["sec_timeThr"])))) + 2    # Plus two, just to be certain
     if start_break != 0:
         start_break = start_break - 1  # Minus one to get one extra, just to be certain

@@ -136,9 +136,9 @@ def reshape_amsr(amsrfiles, imager, SETTINGS):
             raise ProcessingError("AMSR files are in the wrong order")
         # Concatenate the feature values
         amsr = amsr + new_amsr
-    startBreak, endBreak = find_break_points(amsr, imager, SETTINGS)
-    amsr = amsr.extract_elements(starti=startBreak,
-                                 endi=endBreak)
+    start_break, end_break = find_break_points(amsr, imager, SETTINGS)
+    amsr = amsr.extract_elements(starti=start_break,
+                                 endi=end_break)
     return amsr
 
 

@@ -285,9 +285,9 @@ def reshapeCloudsat(cloudsatfiles, imager, SETTINGS):
         # print("taistart", clsat.TAI_start)
 
     # Finds Break point
-    startBreak, endBreak = find_break_points(clsat, imager, SETTINGS)
-    clsat = clsat.extract_elements(starti=startBreak,
-                                   endi=endBreak)
+    start_break, end_break = find_break_points(clsat, imager, SETTINGS)
+    clsat = clsat.extract_elements(starti=start_break,
+                                   endi=end_break)
     return clsat
 
 
