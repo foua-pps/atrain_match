@@ -15,7 +15,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
-# Program truth_imager_statistics.py
+"""Library that perfrom statistics on one matchup file."""
+
 from atrain_match.utils.stat_util import my_iqr
 from atrain_match.utils.get_flag_info import (
     get_calipso_low_medium_high_classification,
@@ -31,6 +32,7 @@ logger = logging.getLogger(__name__)
 
 
 def calculate_ctth_stats(val_subset, imager_ctth_m_above_seasurface, truth_sat_validation_height, imager_is_cloudy):
+    """Calculate CTTH statistics."""
 
     imager_have_hight_for_selection = np.logical_and(
         val_subset,
@@ -86,6 +88,7 @@ def calculate_ctth_stats(val_subset, imager_ctth_m_above_seasurface, truth_sat_v
 
 
 def get_subset_for_mode(match_obj, mode):
+    """Find the selection of pixels for one mode (like POLAR_SNOW_FREE_ICE)."""
     match_obj_truth_sat = getattr(match_obj, match_obj.truth_sat)
     latitude_abs = np.abs(getattr(match_obj_truth_sat, 'latitude'))
     if match_obj.truth_sat.lower() in ['calipso']:
@@ -252,6 +255,7 @@ def get_day_night_info(match_obj, SETTINGS):
 
 
 def find_imager_clear_cloudy(match_obj, SETTINGS):
+    """Find imager clear and cloudy pixels."""
     if 'SYNOP' in match_obj.truth_sat.upper():
         imager_clear = match_obj.imager.cfc_mean < SETTINGS["PPS_SYNOP_CLEAR_MAX_CFC"]
         imager_cloudy = match_obj.imager.cfc_mean >= SETTINGS["PPS_SYNOP_CLOUDY_MIN_CFC"]
@@ -279,7 +283,7 @@ def find_imager_clear_cloudy(match_obj, SETTINGS):
 
 
 def find_truth_clear_cloudy(match_obj, val_subset, SETTINGS):
-
+    """Find clear and cloudy pixels for the truth."""
     # For the combined 1km + 5km dataset cloud_fraction can only have values
     # (0.0, 0.2, 0.4, 0.6, 0.8, 1.0). So the threshold should
     # really be set to 0.4, i.e., at least two 1 km columns should be cloudy!.
@@ -303,50 +307,52 @@ def find_truth_clear_cloudy(match_obj, val_subset, SETTINGS):
     return truth_clear, truth_cloudy
 
 
-def get_lwp_diff_inner_cloudsat(aObj, val_subset, wide_selection=False):
-    selection = np.logical_and(aObj.imager.cpp_lwp >= 0,
-                               aObj.cloudsat.RVOD_liq_water_path >= 0)
-    selection = np.logical_and(selection, aObj.imager.cpp_phase == 1)
+def get_lwp_diff_inner_cloudsat(match_obj, val_subset, wide_selection=False):
+    """Find lwp difference between imager and CPR (CloudSat)."""
+    selection = np.logical_and(match_obj.imager.cpp_lwp >= 0,
+                               match_obj.cloudsat.RVOD_liq_water_path >= 0)
+    selection = np.logical_and(selection, match_obj.imager.cpp_phase == 1)
 
     if wide_selection:
         pass
     else:
         # exclude risk for precipitation contamination
-        selection = np.logical_and(selection, np.bitwise_and(np.right_shift(aObj.cloudsat.RVOD_CWC_status, 2), 1) == 0)
+        selection = np.logical_and(selection, np.bitwise_and(np.right_shift(match_obj.cloudsat.RVOD_CWC_status, 2), 1) == 0)
         # exclude not seen in GEOPROF
         selection = np.logical_and(selection, np.bitwise_and(np.right_shift(
-            aObj.cloudsat.RVOD_CWC_status, 0), 10) == 0)  # clear geoprof
+            match_obj.cloudsat.RVOD_CWC_status, 0), 10) == 0)  # clear geoprof
         # exclude cloudsat ice water path
-        selection = np.logical_and(selection, aObj.cloudsat.RVOD_ice_water_path <= 0)
+        selection = np.logical_and(selection, match_obj.cloudsat.RVOD_ice_water_path <= 0)
 
     selection = np.logical_and(val_subset, selection)
-    lwp_diff = aObj.imager.cpp_lwp - aObj.cloudsat.RVOD_liq_water_path
+    lwp_diff = match_obj.imager.cpp_lwp - match_obj.cloudsat.RVOD_liq_water_path
     lwp_diff = lwp_diff[selection]
 
-    selection1 = np.logical_and(aObj.imager.cpp_lwp >= 0,
-                                aObj.cloudsat.LO_RVOD_liquid_water_path >= 0)
-    selection1 = np.logical_and(selection1, aObj.imager.cpp_phase == 1)
-    selection1 = np.logical_and(selection1, aObj.cloudsat.cloud_fraction > 0)
-    # selection = np.logical_and(selection, aObj.imager.fractionofland <= 0)
+    selection1 = np.logical_and(match_obj.imager.cpp_lwp >= 0,
+                                match_obj.cloudsat.LO_RVOD_liquid_water_path >= 0)
+    selection1 = np.logical_and(selection1, match_obj.imager.cpp_phase == 1)
+    selection1 = np.logical_and(selection1, match_obj.cloudsat.cloud_fraction > 0)
+    # selection = np.logical_and(selection, match_obj.imager.fractionofland <= 0)
     selection1 = np.logical_and(val_subset, selection1)
-    lwp_diff_lo = aObj.imager.cpp_lwp - aObj.cloudsat.LO_RVOD_liquid_water_path
+    lwp_diff_lo = match_obj.imager.cpp_lwp - match_obj.cloudsat.LO_RVOD_liquid_water_path
     lwp_diff_lo = lwp_diff_lo[selection1]
-    return lwp_diff, lwp_diff_lo, aObj.imager.cpp_lwp, aObj.cloudsat.RVOD_liq_water_path, selection
+    return lwp_diff, lwp_diff_lo, match_obj.imager.cpp_lwp, match_obj.cloudsat.RVOD_liq_water_path, selection
 
 
-def print_cpp_lwp_stats(aObj, statfile, val_subset):
+def print_cpp_lwp_stats(match_obj, statfile, val_subset):
+    """Print lwp statistics for AMSR-E or CPR (CloudSat) matchup file."""
     # CLOUD LWP EVALUATION
     # =======================
     # AMSR-E - IMAGER
     # OR CLOUDSAT CWC-RVOD- IMAGER
-    if aObj.imager.cpp_lwp is None:
+    if match_obj.imager.cpp_lwp is None:
         logger.warning("There are no cpp data.")
         return
-    if "amsr" in aObj.truth_sat:
+    if "amsr" in match_obj.truth_sat:
         from atrain_match.utils.validate_lwp_util import get_lwp_diff
-        lwp_diff = get_lwp_diff(aObj, val_subset)
-    elif "cloudsat" in aObj.truth_sat:
-        lwp_diff, lwp_diff_lo, dummy, dummy2, dummy3 = get_lwp_diff_inner_cloudsat(aObj, val_subset)
+        lwp_diff = get_lwp_diff(match_obj, val_subset)
+    elif "cloudsat" in match_obj.truth_sat:
+        lwp_diff, lwp_diff_lo, dummy, dummy2, dummy3 = get_lwp_diff_inner_cloudsat(match_obj, val_subset)
 
     if len(lwp_diff) > 0:
         bias = np.mean(lwp_diff)
@@ -362,7 +368,7 @@ def print_cpp_lwp_stats(aObj, statfile, val_subset):
         N = 0
         median = -9
         iqr = -9
-    if "cloudsat" in aObj.truth_sat and len(lwp_diff_lo) > 0:
+    if "cloudsat" in match_obj.truth_sat and len(lwp_diff_lo) > 0:
         bias_lo = np.mean(lwp_diff_lo)
         diff_squared_lo = lwp_diff_lo*lwp_diff_lo
         RMS_difference_lo = np.sqrt(np.mean(diff_squared_lo))
@@ -378,28 +384,29 @@ def print_cpp_lwp_stats(aObj, statfile, val_subset):
         median_lo = -9
 
     statfile.write("CLOUD LWP %s-IMAGER TABLE: %3.2f %3.2f %d\n" % (
-        aObj.truth_sat.upper(), bias, RMS_difference, N))
+        match_obj.truth_sat.upper(), bias, RMS_difference, N))
     statfile.write("CLOUD LWP %s-IMAGER TABLE lo: %3.2f %3.2f %d\n" % (
-        aObj.truth_sat.upper(), bias_lo, RMS_difference_lo, N_lo))
+        match_obj.truth_sat.upper(), bias_lo, RMS_difference_lo, N_lo))
     statfile.write("CLOUD LWP %s-IMAGER bias: %3.2f \n" % (
-        aObj.truth_sat.upper(), bias))
+        match_obj.truth_sat.upper(), bias))
     statfile.write("CLOUD LWP %s-IMAGER median: %3.2f \n" % (
-        aObj.truth_sat.upper(), median))
+        match_obj.truth_sat.upper(), median))
     statfile.write("CLOUD LWP %s-IMAGER IQR: %3.2f \n" % (
-        aObj.truth_sat.upper(), iqr))
+        match_obj.truth_sat.upper(), iqr))
     statfile.write("CLOUD LWP %s-IMAGER std: %3.2f \n" % (
-        aObj.truth_sat.upper(), RMS_difference))
+        match_obj.truth_sat.upper(), RMS_difference))
     statfile.write("CLOUD LWP %s-IMAGER bias lo: %3.2f \n" % (
-        aObj.truth_sat.upper(), bias_lo))
+        match_obj.truth_sat.upper(), bias_lo))
     statfile.write("CLOUD LWP %s-IMAGER median lo: %3.2f \n" % (
-        aObj.truth_sat.upper(), median_lo))
+        match_obj.truth_sat.upper(), median_lo))
     statfile.write("CLOUD LWP %s-IMAGER IQR lo: %3.2f \n" % (
-        aObj.truth_sat.upper(), iqr_lo))
+        match_obj.truth_sat.upper(), iqr_lo))
     statfile.write("CLOUD LWP %s-IMAGER std lo: %3.2f \n" % (
-        aObj.truth_sat.upper(), RMS_difference_lo))
+        match_obj.truth_sat.upper(), RMS_difference_lo))
 
 
 def print_cpp_stats(match_obj, statfile, val_subset, SETTINGS):
+    """Print Cpp statistics for CALIOPSO."""
     # CLOUD PHASE EVALUATION
     # =======================
     # CLOUD PHASE: CALIOP/ISS - IMAGER
@@ -456,6 +463,7 @@ def print_cpp_stats(match_obj, statfile, val_subset, SETTINGS):
 
 
 def print_cmask_stats(match_obj, statfile, val_subset, SETTINGS):
+    """Print cloudmask statistics."""
     # CLOUD MASK EVALUATION
     # =======================
     # CORRELATION CLOUD MASK: CALIOP/ISS - IMAGER
@@ -508,6 +516,7 @@ def print_cmask_stats(match_obj, statfile, val_subset, SETTINGS):
 
 
 def print_cmask_prob_stats(match_obj, statfile, val_subset, SETTINGS):
+    """Print cloud probability statistics."""
     # CLOUD MASK PROB EVALUATION
     # =======================
     # CORRELATION CLOUD MASK: CALIOP/ISS - IMAGER
@@ -541,6 +550,7 @@ def print_cmask_prob_stats(match_obj, statfile, val_subset, SETTINGS):
 
 
 def print_modis_stats(match_obj, statfile, val_subset, cal_modis_cflag, SETTINGS):
+    """Print CPR (CloudSat) MODIS flag statistics compared to CALIOP or CPR (CloudSat)."""
     # CORRELATION CLOUD MASK: CALIOP - MODIS
     truth_clear, truth_cloudy = find_truth_clear_cloudy(match_obj, val_subset, SETTINGS)
     if cal_modis_cflag is None:
@@ -614,6 +624,7 @@ def print_modis_stats(match_obj, statfile, val_subset, cal_modis_cflag, SETTINGS
 
 
 def print_calipso_stats_ctype(match_calipso, statfile, val_subset, low_medium_high_class, SETTINGS):
+    """Print cloud type statistics (CALIOP)."""
     if SETTINGS["CCI_CLOUD_VALIDATION"]:
         logger.info("Cloudtype validation not useful for CCI validation")
         return
@@ -788,6 +799,7 @@ def print_calipso_stats_ctype(match_calipso, statfile, val_subset, low_medium_hi
 def print_height_all_low_medium_high(NAME, val_subset, statfile,
                                      low_medium_high_class, imager_ctth_m_above_seasurface,
                                      truth_sat_validation_height, imager_is_cloudy):
+    """Print all CTTH statistics for one case (thin/thick/geostyle etc.)."""
     out_stats = calculate_ctth_stats(val_subset, imager_ctth_m_above_seasurface,
                                      truth_sat_validation_height, imager_is_cloudy)
     statfile.write("CLOUD HEIGHT %s ALL: %s\n" % (NAME, out_stats))
@@ -812,6 +824,7 @@ def print_height_all_low_medium_high(NAME, val_subset, statfile,
 
 
 def print_stats_ctop(match_obj, statfile, val_subset, low_medium_high_class, SETTINGS):
+    """Print all CTTH statistics."""
     if match_obj.imager.ctth_height is None:
         logger.warning("There are no ctth height data.")
         return
@@ -947,23 +960,21 @@ def print_stats_ctop(match_obj, statfile, val_subset, low_medium_high_class, SET
 
 
 def print_main_stats(match_obj, statfile):
+    """Print some geolocation and time information about the match."""
     val_object = getattr(match_obj, match_obj.truth_sat)
     num_val_data_ok = len(match_obj.diff_sec_1970)
     statfile.write("%s min and max time diff: %3.2f %3.2f \n" % (
         match_obj.truth_sat.upper(),
         match_obj.diff_sec_1970.min(),
         match_obj.diff_sec_1970.max()))
-
     statfile.write("%s start and stop Latitude: %3.2f %3.2f \n" % (
         match_obj.truth_sat.upper(),
         val_object.latitude[0],
         val_object.latitude[-1]))
-
     statfile.write("%s start and stop Longitude: %3.2f %3.2f \n" % (
         match_obj.truth_sat.upper(),
         val_object.longitude[0],
         val_object.longitude[-1]))
-
     statfile.write("%s-IMAGER number of matches: %d\n" % (
         match_obj.truth_sat.upper(),
         num_val_data_ok))
@@ -972,6 +983,7 @@ def print_main_stats(match_obj, statfile):
 def calculate_statistics(mode, statfilename, match_calipso, match_clsat, match_iss, match_amsr, match_synop,
                          SETTINGS,
                          dnt_flag=None):
+    """Calculate all requested statistics, for all matches with one imager cloudproduct file (main function)."""
 
     def get_day_night_subset(match_obj, val_subset, SETTINGS):
         (no_qflag, night_flag, twilight_flag,

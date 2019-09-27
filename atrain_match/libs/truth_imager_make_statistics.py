@@ -15,6 +15,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
+"""The main program for making statistics program."""
 
 
 import atrain_match.config as config
@@ -64,9 +65,9 @@ def add_validation_ctth(match_clsat, match_calipso):
 
 def get_matchups(cross, AM_PATHS, SETTINGS, reprocess):
     """
-    Retrieve Cloudsat- and Calipso-IMAGER matchups. If *reprocess* is False, and if
+    Retrieve matchups files. If *reprocess* is False, and if
     matchup files exist, get matchups directly from the processed files.
-    Otherwise process Cloudsat, Calipso, and PPS files first.
+    Otherwise process matchup files first.
     """
     values = {}
     Obj_dict = {}
@@ -118,6 +119,7 @@ def get_matchups(cross, AM_PATHS, SETTINGS, reprocess):
                     "Couldn't find calipso already processed matchup file, "
                     "USE_EXISTING_RESHAPED_FILES = True!")
 
+    # Redo matching if missing (we might want to remove this in future.)            
     redo_matching = False
     for truth in ['cloudsat', 'amsr', 'iss', 'synop',
                   'mora', 'calipso']:
@@ -143,7 +145,7 @@ def get_matchups(cross, AM_PATHS, SETTINGS, reprocess):
 
 def plot_some_figures(match_clsat, match_calipso, values, basename, process_mode,
                       AM_PATHS, SETTINGS, am_obj=None, match_synop=None, mo_obj=None):
-
+    """Plot the matchup track and trajectory etc. for one matchup file."""
     logger.info("Plotting")
     file_type = SETTINGS['PLOT_TYPES']
 
@@ -213,6 +215,7 @@ def plot_some_figures(match_clsat, match_calipso, values, basename, process_mode
 
 
 def split_process_mode_and_dnt_part(process_mode_dnt):
+    """Slit the process mode to two parts mode and day/night/twilight (DNT)."""
     mode_dnt = process_mode_dnt.split('_')
     if len(mode_dnt) == 1:
         process_mode = process_mode_dnt
@@ -228,6 +231,7 @@ def split_process_mode_and_dnt_part(process_mode_dnt):
 
 def process_one_mode(process_mode_dnt, match_calipso, match_clsat, iss_obj, am_obj, sy_obj,
                      min_optical_depth, values, AM_PATHS, SETTINGS, basename):
+    """Make plots and statistics for one imager cloudproduct matchup (with one or several truths)."""
 
     # Get result filename
     # =============================================================
@@ -261,9 +265,7 @@ def process_one_mode(process_mode_dnt, match_calipso, match_clsat, iss_obj, am_o
 
 
 def run(cross, run_modes, AM_PATHS, SETTINGS, reprocess=False):
-    """
-    The main work horse.
-    """
+    """The main work horse."""
     logger.info("Case: %s", str(cross))
     # sensor = INSTRUMENT.get(cross.satellite1.lower(), 'imager')
 
