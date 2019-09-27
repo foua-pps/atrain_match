@@ -29,7 +29,7 @@ from atrain_match.utils.runutils import parse_scenesfile_reshaped
 from atrain_match.utils.common import Cross
 from atrain_match.libs import truth_imager_match
 import atrain_match.config as config
-from atrain_match.utils.common import (InputError, MatchupError)
+from atrain_match.utils.common import  MatchupError
 import logging
 logging.basicConfig(
     format='%(levelname)s |%(asctime)s|: %(message)s',

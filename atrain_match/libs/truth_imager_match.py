@@ -15,51 +15,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
-"""
-Program truth_imager_match.py is run via process_master.py or process_master_only_match.py.
-
-This program is used to process matchups for the inter-comparison
-of IMAGER PPS results and CloudSat/CALIPSO observations. It may be run
-repeatedly and supervised or process_master_only_match.py.
-
-This particular version of Adam's original CloudSat/CALIPSO matchup and
-analysis program has been complemented with the following:
-
- * Program is updated wo be able to use CALIOP-CALIPSO, CPR (CloudSat), AMSR_E
-   or CATS (ISS) as truth. Modules used to handle the truths:
-      cloudsat.py
-      calipso.py
-      amsr.py
-      iss.py
-      synop.py
-      mora.py
-
- * Program can read satellite data from: PPS, CCI and MAIA. When satllite data
-   comes from PPS-MODIS also modis lvl-2 data can be matched.
-   Files to read imager satellite data:
-      read_pps.py
-      read_maia.py
-      read_cci.py
-      read_modis_products.py
-      read_patmosx.py
-
- * Format of matchup files, and reading and writing can be found in matchobject_io.py.
-
- * The main running program is: process_master_only_match.py or process_master.py.
-
- * From 20190913 statistcs will be handled by truth_imager_make_statistics.py.
-
- * Imager cloud top height datasets are recalculated to heights above mean
-   sea level using CloudSat and CALIPSO elevation data
-
- * The MODIS cloud flag has been added to the extracted CALIPSO dataset. This
-   enables direct comparisons to the MODIS cloud mask! Consequently,
-   corresponding MODIS Cloud Mask statistics are calculated and printed.
-
-Updated 20190913
-Nina
-
-"""
+"""The main matching program."""
 
 # change log i found in git
 from atrain_match.matchobject_io import write_truth_imager_match_obj
@@ -93,7 +49,6 @@ try:
 except ImportError:
     import pytz as my_tz
 from glob import glob
-#import time
 
 logger = logging.getLogger(__name__)
 
@@ -461,7 +416,6 @@ def find_files_from_imager(imager_file, AM_PATHS, SETTINGS, as_oldstyle=False):
                                                  SETTINGS,
                                                  cross=None,
                                                  as_oldstyle=as_oldstyle)
-    date_time = values["date_time"]
     file_name_dict = {}
     file_name_dict['cma'] = get_pps_file(imager_file, AM_PATHS, values,
                                          'cma_file', 'cma_dir',
@@ -512,7 +466,7 @@ def find_files_from_imager(imager_file, AM_PATHS, SETTINGS, as_oldstyle=False):
     file_name_dict['thr_t11ts'] = get_pps_file(imager_file, AM_PATHS, values,
                                                'thr_t11ts_file', 'thr_dir',
                                                FailIfRequestedAndMissing=True)
-    # # # # More NWP, textures and thresholds for v2014:
+    # More NWP, textures and thresholds for v2014:
     for nwp_file in ['nwp_t500', 'nwp_t700',
                      'nwp_t850', 'nwp_t950', 'nwp_ciwv', 'nwp_ttro']:
         file_name_dict[nwp_file] = get_pps_file(imager_file, AM_PATHS, values,
@@ -533,7 +487,7 @@ def find_files_from_imager(imager_file, AM_PATHS, SETTINGS, as_oldstyle=False):
     file_name_dict['nwp_segments'] = get_pps_file(imager_file, AM_PATHS,
                                                   values,
                                                   'segment_file', 'segment_dir')
-    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    # -------------------------------------#
     ppsfiles = ppsFiles(file_name_dict)
     return ppsfiles
 
@@ -940,7 +894,7 @@ def add_modis_lvl2_clousat_(match_clsat, match_calipso):
     return match_clsat
 
 
-def add_elevation_corrected_imager_ctth(match_clsat, match_calipso, issObj, SETTINGS):
+def add_elevation_corrected_imager_ctth(match_clsat, match_calipso, match_iss, SETTINGS):
     # # Cloudsat # #
     if match_clsat is None or match_clsat.imager.ctth_height is None:
         pass
@@ -983,22 +937,22 @@ def add_elevation_corrected_imager_ctth(match_clsat, match_calipso, issObj, SETT
             got_height = imager_ctth_m_above_seasurface >= 0
             imager_ctth_m_above_seasurface[got_height] += cal_elevation[got_height]*1.0
         match_calipso.imager.imager_ctth_m_above_seasurface = imager_ctth_m_above_seasurface
-    if issObj is None or issObj.imager.ctth_height is None:
+    if match_iss is None or match_iss.imager.ctth_height is None:
         pass
-    elif issObj.imager.imager_ctth_m_above_seasurface is None:
-        iss_elevation = np.where(np.less_equal(issObj.iss.elevation, 0),
-                                 0, issObj.iss.elevation)
-        num_iss_data_ok = len(issObj.iss.elevation)
+    elif match_iss.imager.imager_ctth_m_above_seasurface is None:
+        iss_elevation = np.where(np.less_equal(match_iss.iss.elevation, 0),
+                                 0, match_iss.iss.elevation)
+        num_iss_data_ok = len(match_iss.iss.elevation)
         logger.info("Length of ISS array: %d", num_iss_data_ok)
-        imager_ctth_m_above_seasurface = issObj.imager.ctth_height.copy()
+        imager_ctth_m_above_seasurface = match_iss.imager.ctth_height.copy()
         if SETTINGS["CCI_CLOUD_VALIDATION"]:
             # ctth relative mean sea level
             pass
         else:  # ctth relative topography
             got_height = imager_ctth_m_above_seasurface >= 0
             imager_ctth_m_above_seasurface[got_height] += iss_elevation[got_height]*1.0
-        issObj.imager.imager_ctth_m_above_seasurface = imager_ctth_m_above_seasurface
-    return match_clsat, match_calipso, issObj
+        match_iss.imager.imager_ctth_m_above_seasurface = imager_ctth_m_above_seasurface
+    return match_clsat, match_calipso, match_iss
 
 
 def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
@@ -1234,7 +1188,6 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
                                          imager_obj_name=imager_obj_name)
 
     # no longer return the matchup data?
-    aux_obj = None
     return {'cloudsat': cloudsat_matchup,
             'calipso': calipso_matchup,
             'iss': iss_matchup,
@@ -1268,11 +1221,10 @@ def check_if_got_all_match_files(cross, AM_PATHS, SETTINGS):
 
 
 def run(cross, AM_PATHS, SETTINGS, reprocess=False):
-    """
-    The main work horse.
-    """
+    """The main work horse."""
+
     logger.info("Case: %s", str(cross))
-    sensor = INSTRUMENT.get(cross.satellite1.lower(), 'imager')
+    # sensor = INSTRUMENT.get(cross.satellite1.lower(), 'imager')
     # Match the data that we need:
     if reprocess or not check_if_got_all_match_files(cross, AM_PATHS, SETTINGS):
         matchup_results = get_matchups_from_data(cross, AM_PATHS, SETTINGS)

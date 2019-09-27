@@ -302,7 +302,8 @@ def find_imager_clear_cloudy(match_obj, SETTINGS):
 
 def find_truth_clear_cloudy(match_obj, val_subset, SETTINGS):
 
-    # For the combined 1km + 5km dataset cloud_fraction can only have values (0.0, 0.2, 0.4, 0.6, 0.8, 1.0). So the threshold should
+    # For the combined 1km + 5km dataset cloud_fraction can only have values
+    # (0.0, 0.2, 0.4, 0.6, 0.8, 1.0). So the threshold should
     # really be set to 0.4, i.e., at least two 1 km columns should be cloudy!.
     # Imager cloudy clear
     match_obj_truth_sat = getattr(match_obj, match_obj.truth_sat)
@@ -521,7 +522,6 @@ def print_cmask_stats(match_obj, statfile, val_subset, SETTINGS):
 
     statfile.write("CLOUD MASK %s-IMAGER TABLE: %s %s %s %s \n" %
                    (match_obj.truth_sat.upper(), n_clear_clear, n_clear_cloudy, n_cloudy_clear, n_cloudy_cloudy))
-    # statfile.write("CLOUD MASK %s-IMAGER PROB:%3.2f \n" % (match_obj.truth_sat.upper(), pod_cloudy, pod_clear, far_cloudy, far_clear, bias))
     statfile.write("CLOUD MASK %s-IMAGER POD-CLOUDY: %3.2f \n" % (match_obj.truth_sat.upper(), pod_cloudy*100))
     statfile.write("CLOUD MASK %s-IMAGER POD-CLEAR:  %3.2f \n" % (match_obj.truth_sat.upper(), pod_clear*100))
     statfile.write("CLOUD MASK %s-IMAGER FAR-CLOUDY: %3.2f \n" % (match_obj.truth_sat.upper(), far_cloudy*100))
@@ -622,7 +622,7 @@ def print_modis_stats(match_obj, statfile, val_subset, cal_modis_cflag, SETTINGS
         bias = -9.0
     statfile.write("CLOUD MASK %s-MODIS TABLE: %s %s %s %s \n" %
                    (match_obj.truth_sat.upper(), n_clear_clear, n_clear_cloudy, n_cloudy_clear, n_cloudy_cloudy))
-    # statfile.write("CLOUD MASK %s-MODIS FROM CLOUDSAT FLAG PROB: %f %f %f %f %f \n" % (pod_cloudy, pod_clear, far_cloudy, far_clear, bias))
+
     statfile.write("CLOUD MASK %s-MODIS FROM CLOUDSAT FLAG POD-CLOUDY:  %3.2f \n" %
                    (match_obj.truth_sat.upper(), pod_cloudy*100))
     statfile.write("CLOUD MASK %s-MODIS FROM CLOUDSAT FLAG POD-CLEAR:   %3.2f \n" %

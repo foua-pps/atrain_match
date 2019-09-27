@@ -412,7 +412,7 @@ class TruthImagerTrackObject:
                 self.diff_sec_1970 = self.diff_sec_1970[starti:endi]
         except ValueError:
             # print "Don't concatenate member diff_sec_1970... " + str(e)
-            self.diff_sec_1970 = other.diff_sec_1970
+            self.diff_sec_1970 = self.diff_sec_1970
         return self
 
 

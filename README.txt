@@ -1,8 +1,10 @@
 
 
 This program is used to process and output statistics for the inter-comparison
-of AVHRR PPS results and CloudSat/CALIPSO observations. It may be run
-repeatedly and supervised by program process_master.py.
+of for example PPS results and CloudSat/CALIPSO observations. 
+
+ * The main running program is: process_atrain_match.py which will do matchups.
+ 
  * The main running program is: process_master.py will do matchups and result for
    each case. And compile_stat.py accumulates statistics.
    
@@ -12,7 +14,7 @@ repeatedly and supervised by program process_master.py.
  * The compile_stat.py accumulates statistics uses the module statistics to
    accumulate statistics.  
 
- * Program is updated wo be able to use CALIOP-CALIPSO, CPR (CloudSat), AMSR_E 
+ * Program is updated wo be able to use CALIOP-CALIPSO, CPR (CloudSat), AMSR_E, Synop  
    or CATS (ISS) as truth. Modules used to handle the truths (read, reshape, etc):
       cloudsat.py
       calipso.py
@@ -21,12 +23,14 @@ repeatedly and supervised by program process_master.py.
       synop.py
       mora.py
 
- * Program can read satellite data from: PPS, CCI and MAIA. When satllite data 
+ * Program can read satellite data from: PPS, CCI and MAIA etc. When satllite data 
    comes from PPS-MODIS also modis lvl-2 data can be matched.
    Files to read imager satellite data:
-      read_cloudproducts_and_nwp_pps.py  
-      read_cloudproducts_maia.py
-      read_cloudproducts_cci.py          
+      read_pps.py  
+      read_maia.py
+      read_cci.py  
+      read_oca.py
+      read_patmosx.py        
       read_modis_products.py
 
  * Format of matchup files, and reading and writing ot these can be found in matchobject_io.py.
