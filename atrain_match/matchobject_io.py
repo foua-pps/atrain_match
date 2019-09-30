@@ -466,6 +466,9 @@ def get_stuff_to_read_from_a_reshaped_file(h5file, retv):
     if 'cmaprob_cots' in h5file:
         h5_groups.append(h5file['/cmaprob_cots'])
         data_objects.append(retv.extra)
+    if 'extra' in h5file:
+        h5_groups.append(h5file['/extra'])
+        data_objects.append(retv.extra)
     return (h5_groups, data_objects)
 
 
