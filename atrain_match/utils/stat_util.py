@@ -117,7 +117,7 @@ def my_mode(bias):
     return mode
 
 
-def HR_cma(indict):
+def hr_cma(indict):
     det_clear = indict["det_clear"]
     det_cloudy = indict["det_cloudy"]
     N = indict["N"]
@@ -133,25 +133,25 @@ def K_cma(indict):
         (det_clear + false_cloudy) * (det_cloudy + undet_cloudy))
 
 
-def PODcy(indict):
+def pod_cy(indict):
     det_cloudy = indict["det_cloudy"]
     undet_cloudy = indict["undet_cloudy"]
     return det_cloudy * 100.0 / (det_cloudy + undet_cloudy)
 
 
-def FARcy(indict):
+def far_cy(indict):
     det_cloudy = indict["det_cloudy"]
     false_cloudy = indict["false_cloudy"]
     return false_cloudy * 100.0 / (false_cloudy + det_cloudy)
 
 
-def PODcl(indict):
+def pod_cl(indict):
     det_clear = indict["det_clear"]
     false_cloudy = indict["false_cloudy"]
     return det_clear * 100.0 / (det_clear + false_cloudy)
 
 
-def FARcl(indict):
+def far_cl(indict):
     det_clear = indict["det_clear"]
     undet_cloudy = indict["undet_cloudy"]
     return undet_cloudy * 100.0 / (det_clear + undet_cloudy)

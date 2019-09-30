@@ -54,21 +54,19 @@ class DataObject(object):
         """Adding two objects together"""
         # Check if we have an empty object
         # modis objects does not have longitude attribute
-        if (not hasattr(self, "longitude") and
-            hasattr(self, "height")
-                and self.all_arrays["height"] is None):
-            print("First object is None!, returning second object")
+        is_empty_self = True
+        is_empty_other = True
+        for key in self.all_arrays.keys():
+            if self.all_arrays[key] is not None and len(self.all_arrays[key])>0:
+                is_empty_self = False
+        for key in other.all_arrays.keys():
+            if other.all_arrays[key] is not None and len(other.all_arrays[key])>0:
+                is_empty_other = False
+        if is_empty_self:
+            # print("First object is None!, returning second object")
             return other
-        if (not hasattr(other, "longitude") and
-            hasattr(other, "height")
-                and other.all_arrays["height"] is None):
-            print("Second object is None!, returning first object")
-            return self
-        if self.all_arrays["longitude"] is None:
-            print("First object is None!, returning second object")
-            return other
-        if other.all_arrays["longitude"] is None:
-            print("Second object is None!, returning first object")
+        if is_empty_other:
+            # print("Second object is None!, returning first object")
             return self
         for key in self.all_arrays:
             try:
@@ -176,6 +174,13 @@ class ModisObject(DataObject):
             'cloud_emissivity': None,
             'cloud_phase': None,
             'lwp': None}
+
+
+class ExtraObject(DataObject):
+    def __init__(self):
+        DataObject.__init__(self)
+        self.all_arrays = {
+            'name': None}
 
 
 class CalipsoObject(DataObject):
@@ -372,6 +377,7 @@ class TruthImagerTrackObject:
             self.mora = MoraObject()
         elif truth in 'iss':
             self.iss = IssObject()
+        self.extra = ExtraObject()    
         self.diff_sec_1970 = None
         self.truth_sat = truth
         self.imager_instrument = 'imager'
@@ -386,7 +392,7 @@ class TruthImagerTrackObject:
     def __add__(self, other):
         """Concatenating two objects together"""
         for object_name in ['imager', 'calipso', 'calipso_aerosol', 'amsr',
-                            'cloudsat', 'iss', 'mora', 'synop', 'modis']:
+                            'cloudsat', 'iss', 'mora', 'synop', 'modis', 'extra']:
             if hasattr(self, object_name):
                 setattr(self, object_name,
                         getattr(self, object_name) +
@@ -401,7 +407,7 @@ class TruthImagerTrackObject:
 
     def extract_elements(self, idx=None, starti=None, endi=None):
         for object_name in ['imager', 'calipso', 'calipso_aerosol', 'amsr',
-                            'cloudsat', 'iss', 'mora', 'synop', 'modis']:
+                            'cloudsat', 'iss', 'mora', 'synop', 'modis', 'extra']:
             if hasattr(self, object_name):
                 obj = getattr(self, object_name)
                 setattr(self, object_name, obj.extract_elements(idx=idx, starti=starti, endi=endi))
@@ -457,6 +463,9 @@ def get_stuff_to_read_from_a_reshaped_file(h5file, retv):
     if 'synop' in h5file.keys():
         h5_groups.append(h5file['/synop'])
         data_objects.append(retv.synop)
+    if 'cmaprob_cots' in h5file:
+        h5_groups.append(h5file['/cmaprob_cots'])
+        data_objects.append(retv.extra)
     return (h5_groups, data_objects)
 
 
@@ -476,7 +485,7 @@ def read_truth_imager_match_obj(filename, truth='calipso',
                 atrain_match_name = dataset
                 if atrain_match_name in ["snow_ice_surface_type"]:
                     atrain_match_name = "nsidc_surface_type"
-                setattr(data_obj, dataset, group[dataset].value)
+                setattr(data_obj, atrain_match_name, group[dataset].value)
     retv.diff_sec_1970 = h5file['diff_sec_1970'].value
     h5file.close()
     return retv
@@ -494,15 +503,13 @@ def read_files(files, truth='calipso', read_all=True, read_var=[]):
 
 
 def write_truth_imager_match_obj(filename, match_obj, SETTINGS=None, imager_obj_name='pps'):
-    """
-    Write *match_obj* to *filename*.
-    """
+    """Write *match_obj* to *filename*."""
     datasets = {'diff_sec_1970': match_obj.diff_sec_1970}
     groups = {imager_obj_name: match_obj.imager.all_arrays}
     imager_attrs = {'imager_instrument': match_obj.imager_instrument}
     groups_attrs = {imager_obj_name: imager_attrs}
     for name in ['calipso', 'calipso_aerosol', 'iss',
-                 'amsr', 'synop', 'mora', 'cloudsat']:
+                 'amsr', 'synop', 'mora', 'cloudsat', 'extra']:
         if hasattr(match_obj, name):
             groups[name] = getattr(match_obj, name).all_arrays
     write_match_objects(filename, datasets, groups, groups_attrs, SETTINGS=SETTINGS)
