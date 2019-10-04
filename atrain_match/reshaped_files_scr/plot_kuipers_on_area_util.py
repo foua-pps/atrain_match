@@ -111,11 +111,11 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         nlay = np.where(match_calipso.calipso.all_arrays['number_layers_found'] > 0, 1, 0)
         meancl = ndimage.filters.uniform_filter1d(nlay*1.0, size=3)
         if self.cc_method == 'BASIC' and self.isGAC:
-            isCalipsoCloudy = nlay > 0
-            isCalipsoClear = np.not_equal(isCalipsoCloudy, True)
+            isCalipsoCloudy = nlay > 0  # With ALL 300m data
+            isCalipsoClear = nlay == 0  # np.not_equal(isCalipsoCloudy, True)
         elif self.cc_method == 'BASIC':
             isCalipsoCloudy = nlay > 0
-            isCalipsoClear = np.not_equal(isCalipsoCloudy, True)
+            isCalipsoClear = nlay==0  # np.not_equal(isCalipsoCloudy, True)
         elif self.cc_method == 'KG' and self.isGAC:
             isCalipsoCloudy = np.logical_and(
                 match_calipso.calipso.all_arrays['cloud_fraction'] > 0.5,
@@ -137,7 +137,7 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
                 # High confidence cloudy
                 np.logical_and(nlay > 0, conf_medium_or_high),
                 # or clouds from 300m data
-                np.logical_and(match_calipso.calipso.all_arrays['cloud_fraction'] > 0.5,
+                np.logical_and(match_calipso.calipso.all_arrays['cloud_fraction'] > 0.0,
                                match_calipso.calipso.all_arrays['cloud_fraction'] < 1.0))
             isCalipsoClear = nlay == 0
         elif self.cc_method == 'Abhay':
