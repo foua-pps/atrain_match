@@ -35,6 +35,7 @@ def str2bool(v):
 RESOLUTION = int(os.environ.get('ATRAIN_RESOLUTION', 5))
 #  Region configuaration file with area definitons, needed for plotting
 AREA_CONFIG_FILE = os.environ.get('AREA_CONFIG_FILE', './areas.def')
+AREA_CONFIG_FILE_PLOTS_ON_AREA = os.environ.get('AREA_CONFIG_FILE_PLOTS_ON_AREA', './region_config_test.cfg')
 #  Base directory for validation results
 _validation_results_dir = os.environ.get(
     'VALIDATION_RESULTS_DIR',

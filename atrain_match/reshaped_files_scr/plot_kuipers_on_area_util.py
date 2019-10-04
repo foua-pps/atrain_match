@@ -15,7 +15,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
-from matchobject_io import DataObject
 import numpy as np
 from pyresample import utils
 from pyresample.geometry import SwathDefinition
@@ -23,6 +22,7 @@ from pyresample.kd_tree import get_neighbour_info
 from pyresample.kd_tree import get_sample_from_neighbour_info
 import pyresample as pr
 import os
+import matplotlib
 from mpl_toolkits.basemap import Basemap
 from scipy.interpolate import griddata
 from scipy import ndimage
@@ -30,6 +30,13 @@ import matplotlib
 import matplotlib.pyplot as plt
 # matplotlib.use("TkAgg")
 from matplotlib import rc
+from atrain_match.matchobject_io import DataObject
+from atrain_match.utils.get_flag_info import (get_calipso_low_clouds,
+                                              get_calipso_cad_score,
+                                              get_calipso_clouds_of_type_i,
+                                              get_calipso_low_clouds,
+                                              get_calipso_high_clouds)
+
 print(matplotlib.rcParams)
 matplotlib.rcParams.update({'image.cmap': "BrBG"})
 
@@ -47,10 +54,10 @@ plt.rcParams['image.cmap'] = 'BrBG'
 matplotlib.rcParams.update({'image.cmap': 'BrBG'})
 matplotlib.rcParams['image.cmap'] = "BrBG"
 matplotlib.rcParams.update({'font.size': 30})
-plt.rc('text', usetex=True)
-plt.rc('font', family='serif')
+# plt.rc('text', usetex=False)
+# plt.rc('font', family='serif')
 
-print(matplotlib.rcParams)
+# print(matplotlib.rcParams)
 # plt.rc('font', family='sans serif')
 # plt.rcParams["font.family"] = "Verdana"
 
@@ -123,6 +130,21 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
             isCalipsoClear = np.logical_and(
                 isCalipsoClear,
                 match_calipso.calipso.all_arrays['total_optical_depth_5km'] < 0)
+        elif self.cc_method == 'Abhay' and self.isGAC:
+            #Excude pixels with low_cad_score
+            conf_medium_or_high, conf_no, conf_low = get_calipso_cad_score(match_calipso)
+            isCalipsoCloudy = np.logical_or(
+                # High confidence cloudy
+                np.logical_and(nlay > 0, conf_medium_or_high),
+                # or clouds from 300m data
+                np.logical_and(match_calipso.calipso.all_arrays['cloud_fraction'] > 0.5,
+                               match_calipso.calipso.all_arrays['cloud_fraction'] < 1.0))
+            isCalipsoClear = nlay == 0
+        elif self.cc_method == 'Abhay':
+            #Excude pixels with low_cad_score
+            conf_medium_or_high, conf_no, conf_low = get_calipso_cad_score(match_calipso)
+            isCalipsoCloudy = np.logical_and(nlay > 0, conf_medium_or_high)
+            isCalipsoClear = nlay == 0
         elif self.cc_method == 'KG':
             isCalipsoCloudy = nlay > 0
             isCalipsoClear = np.not_equal(isCalipsoCloudy, True)
@@ -245,7 +267,8 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         self.detected_temperature = detected_temperature[use]
 
     def set_r13_extratest(self, match_calipso):
-        if np.size(match_calipso.imager.all_arrays['r13micron']) == 1 and match_calipso.imager.all_arrays['r13micron'] is None:
+        if ('r13micron' not in match_calipso.imager.all_arrays.keys() or 
+            match_calipso.imager.all_arrays['r13micron'] is None):
             self.new_false_clouds = np.zeros(self.false_clouds.shape)
             self.new_detected_clouds = np.zeros(self.false_clouds.shape)
             return
@@ -263,7 +286,8 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         self.new_detected_clouds = new_detected_clouds
 
     def get_thr_offset(self, match_calipso):
-        if np.size(match_calipso.imager.all_arrays['surftemp']) == 1 and match_calipso.imager.all_arrays['surftemp'] is None:
+        if ('surftemp' not in match_calipso.imager.all_arrays.keys() or 
+            match_calipso.imager.all_arrays['surftemp'] is None):
             self.t11ts_offset = np.zeros(self.false_clouds.shape)
             self.t11t12_offset = np.zeros(self.false_clouds.shape)
             self.t11t37_offset = np.zeros(self.false_clouds.shape)
@@ -299,13 +323,13 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         self.t11t37_offset = t11t37_offset
 
     def get_lapse_rate(self, match_calipso):
-        if np.size(match_calipso.imager.all_arrays['surftemp']) == 1 and match_calipso.imager.all_arrays['surftemp'] is None:
+        if ('surftemp' not in match_calipso.imager.all_arrays.keys() or 
+            match_calipso.imager.all_arrays['surftemp'] is None):
             self.lapse_rate = np.zeros(self.false_clouds.shape)
             return
-        from utils.get_flag_info import get_calipso_low_clouds
         low_clouds = get_calipso_low_clouds(match_calipso)
-        delta_h = match_calipso.calipso.all_arrays['layer_top_altitude'][:,
-                                                                         0] - 0.001*match_calipso.calipso.all_arrays['elevation'][:]
+        delta_h = (match_calipso.calipso.all_arrays['layer_top_altitude'][:,0] 
+                   - 0.001*match_calipso.calipso.all_arrays['elevation'][:])
         delta_t = (273.15 + match_calipso.calipso.all_arrays['layer_top_temperature']
                    [:, 0] - match_calipso.imager.all_arrays['surftemp'][:])
         lapse_rate = delta_t/delta_h
@@ -368,7 +392,6 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
             self.lapse_bias = 0 * height_c
 
     def get_ctth_bias_low(self, match_calipso):
-        from utils.get_flag_info import get_calipso_low_clouds
         low_clouds = get_calipso_low_clouds(match_calipso)
         detected_low = np.logical_and(self.detected_height,
                                       low_clouds[self.use])
@@ -381,7 +404,6 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         self.lapse_bias_low = delta_h
 
     def get_ctth_bias_high(self, match_calipso):
-        from utils.get_flag_info import get_calipso_high_clouds
         high_clouds = get_calipso_high_clouds(match_calipso)
         detected_high = np.logical_and(self.detected_height, high_clouds[self.use])
         delta_h = self.height_bias.copy()
@@ -393,7 +415,6 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         self.lapse_bias_high = delta_h
 
     def get_ctth_bias_low_temperature(self, match_calipso):
-        from utils.get_flag_info import get_calipso_low_clouds
         low_clouds = get_calipso_low_clouds(match_calipso)
         detected_low = np.logical_and(self.detected_height, low_clouds[self.use])
         temperature_pps = match_calipso.imager.all_arrays['ctth_temperature'][self.use]
@@ -419,7 +440,6 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         self.temperature_bias_low_t11 = delta_t_t11
 
     def get_ctth_bias_type(self, match_calipso, calipso_cloudtype=0):
-        from utils.get_flag_info import get_calipso_clouds_of_type_i
         wanted_clouds = get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=calipso_cloudtype)
         detected_typei = np.logical_and(self.detected_height, wanted_clouds[self.use])
         delta_h = self.height_bias.copy()
@@ -516,9 +536,12 @@ class ppsStatsOnFibLatticeObject(DataObject):
     def _remap_a_score_on_an_area(self, plot_area_name='npole', vmin=0.0, vmax=1.0,
                                   score='Kuipers'):
         from pyresample import image, geometry
-        area_def = utils.parse_area_file(
-            'reshaped_files_scr/region_config_test.cfg',
-            plot_area_name)[0]
+        #area_def = utils.parse_area_file(
+        #    'reshaped_files_scr/region_config_test.cfg',
+        #    plot_area_name)[0]
+        from atrain_match.config import AREA_CONFIG_FILE_PLOTS_ON_AREA
+        from pyresample import load_area
+        area_def = load_area(AREA_CONFIG_FILE_PLOTS_ON_AREA, plot_area_name)
         data = getattr(self, score)
         data = data.copy()
         if np.ma.is_masked(data):
@@ -530,15 +553,26 @@ class ppsStatsOnFibLatticeObject(DataObject):
             data[data < vmin] = vmin
         # lons = np.ma.masked_array(self.lons, mask=data.mask)
         # lats = np.ma.masked_array(self.lats, mask=data.mask)
+        #area_def = load_area('areas.cfg', 'ease_sh')
+        #swath_def = SwathDefinition(lons, lats)
+        #result = resample_nearest(swath_def, tb37v, area_def,
+        #                   radius_of_influence=20000, fill_value=None)
+        #save_quicklook('tb37v_quick.png', area_def, result, label='Tb 37v (K)')
+
         lons = self.lons
         lats = self.lats
         swath_def = geometry.SwathDefinition(lons=lons, lats=lats)
-        swath_con = image.ImageContainerNearest(
-            data, swath_def,
-            radius_of_influence=self.radius_km*1000*2.5,
-            epsilon=1.0)
-        area_con = swath_con.resample(area_def)
-        result = area_con.image_data
+        #swath_con = image.ImageContainerNearest(
+        #    data, swath_def,
+        #    radius_of_influence=self.radius_km*1000*2.5,
+        #    epsilon=1.0)
+        #area_con = swath_con.resample(area_def)
+        #result = area_con.image_data
+        from pyresample.kd_tree import resample_nearest
+        result = resample_nearest(
+            swath_def, data, area_def,
+            radius_of_influence=self.radius_km*1000*2.5, fill_value=None)
+
         # pr.plot.show_quicklook(area_def, result,
         #                     vmin=vmin, vmax=vmax, label=score)
         matplotlib.rcParams['image.cmap'] = "BrBG"
@@ -553,11 +587,23 @@ class ppsStatsOnFibLatticeObject(DataObject):
         plot_label = score.replace('_', '-')
         if "mae" in score:
             plot_label = ""
+
+        crs = area_def.to_cartopy_crs()
+        ax = plt.axes(projection=crs)
+        ax.coastlines()
+        ax.set_global()
+        plt.imshow(result, transform=crs, extent=crs.bounds, origin='upper', 
+                   vmin=vmin, vmax=vmax, label=plot_label)
+        plt.colorbar()
+        plt.savefig(self.PLOT_DIR_SCORE + self.PLOT_FILENAME_START +
+                               plot_area_name + '.png')
+        """
+        Alway gives jet colormap ??
         pr.plot.save_quicklook(self.PLOT_DIR_SCORE + self.PLOT_FILENAME_START +
                                plot_area_name + '.png',
                                area_def, result,
-                               vmin=vmin, vmax=vmax, label=plot_label)
-
+                               vmin=vmin, vmax=vmax, label=plot_label, cmap=matplotlib.rcParams['image.cmap'])
+        """
     def _remap_a_score_on_an_robinson_projection(self, vmin=0.0, vmax=1.0,
                                                  score='Kuipers', screen_out_valid=False):
 
@@ -652,7 +698,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
         cb.ax.yaxis.set_major_locator(matplotlib.ticker.AutoLocator())
         cb.update_ticks()
         if not "mae" in score:
-            ax.set_title(score.replace('_', '-'), usetex=True)
+            ax.set_title(score.replace('_', '-'), usetex=False)
         if score in ["ctth_mae"]:
             text_i = "(b)"
             if "v2014" in self.PLOT_FILENAME_START:

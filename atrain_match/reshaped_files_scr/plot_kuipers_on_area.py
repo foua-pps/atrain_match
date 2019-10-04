@@ -23,15 +23,16 @@
 import os
 from glob import glob
 import numpy as np
-from matchobject_io import (read_truth_imager_match_obj,
-                            CalipsoImagerTrackObject)
-from plot_kuipers_on_area_util import (PerformancePlottingObject,
-                                       ppsMatch_Imager_CalipsoObject)
-from my_dir import ADIR
+from atrain_match.matchobject_io import (read_truth_imager_match_obj,
+                                         TruthImagerTrackObject)
+from atrain_match.reshaped_files_scr.plot_kuipers_on_area_util import (PerformancePlottingObject,
+                                                                       ppsMatch_Imager_CalipsoObject)
+#from my_dir import ADIR
+ADIR = "/home/a001865/"
 isGAC_CCI = False
 isGAC_CCI_morning = False
 isModis1km = False
-isModis1km_lvl2_ppsv2018 = True
+isModis1km_lvl2_ppsv2018 = False
 isModis1km_ppsv2018 = False
 isModis1km_lvl2 = False
 isModisAllv2018 = False
@@ -40,16 +41,17 @@ isModisAll_lvl2 = False
 isModis1km_nnctth = False
 isNPP_v2014 = False
 isGAC_v2014_morning_sat = False
-isGAC_v2014 = False
+isGAC_v2014 = True
+isGAC_v2018 = False
 cci_orbits = False
-method = 'BASIC'  # Nina or KG or BASIC==no filter
+method = 'Abhay'  # Nina or KG or BASIC==no filter
 DNT = "all"  # "all/day/night/twilight"
 filter_method = 'no'  # no or satz
-radius_km = 250  # t.ex 75 250 500 300
+radius_km = 75  # t.ex 75 250 500 300
 BASE_PLOT_DIR = ADIR + "/PICTURES_FROM_PYTHON/ATRAIN_MATCH_KUIPERS_PLOT_CCI_PPS_BrBG_2"
 
 PROCES_FOR_ART = False
-PROCES_FOR_PRESSENTATIONS = True
+PROCES_FOR_PRESSENTATIONS = False
 
 onlyCirrus = False
 isACPGv2012 = False
@@ -216,7 +218,18 @@ elif isGAC_v2014:
     ROOT_DIR = ADIR + "/DATA_MISC/reshaped_files/clara_a2_rerun/Reshaped_Files_CLARA_A2_final/"
     files = glob(ROOT_DIR + "merged/noaa18*h5")
     files = files + glob(ROOT_DIR + "merged/noaa19*h5")
-    # files = glob(ROOT_DIR + "merged/noaa19*2014*h5")
+    #files = glob(ROOT_DIR + "merged/noaa19*2014*h5")
+    if cci_orbits:
+        satellites = "part_noaa18_noaa19"
+        files = glob(ROOT_DIR + "merged/noaa18*200*h5")  # 06, 07, 08, 09
+        files = files + glob(ROOT_DIR + "merged/noaa19*20*0*h5")  # 2009, 2010
+
+elif isGAC_v2018:
+    num_files_to_read = 1
+    isGAC = True
+    satellites = "pps2018_nooa18_nooaa19"
+    ROOT_DIR = ADIR + "/DATA_MISC/tau_cmaprob/"
+    files = glob(ROOT_DIR + "*h5")
     if cci_orbits:
         satellites = "part_noaa18_noaa19"
         files = glob(ROOT_DIR + "merged/noaa18*200*h5")  # 06, 07, 08, 09
@@ -231,7 +244,7 @@ pplot_obj.flattice.filter_method = filter_method
 pplot_obj.flattice.cc_method = method
 pplot_obj.flattice.isGAC = isGAC
 
-match_calipso = CalipsoImagerTrackObject()
+match_calipso = TruthImagerTrackObject()
 temp_obj = ppsMatch_Imager_CalipsoObject()
 temp_obj.DNT = pplot_obj.flattice.DNT
 temp_obj.satellites = pplot_obj.flattice.satellites
@@ -245,7 +258,7 @@ for filename in files:
 
     num += 1
     try:
-        match_calipso_new = read_truth_imager_match_obj(filename)  # , var_to_skip='segment')
+        match_calipso_new = read_truth_imager_match_obj(filename, read_all=True)  # , var_to_skip='segment')
         if "modis_lvl2" in satellites:
             match_calipso_new.imager.all_arrays["cloudtype"] = np.where(
                 match_calipso_new.modis.all_arrays["cloud_emissivity"] > 100, 1, 7)
