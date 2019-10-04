@@ -27,6 +27,10 @@ from atrain_match.matchobject_io import (read_truth_imager_match_obj,
                                          TruthImagerTrackObject)
 from atrain_match.reshaped_files_scr.plot_kuipers_on_area_util import (PerformancePlottingObject,
                                                                        ppsMatch_Imager_CalipsoObject)
+
+cots = [0.0,0.05,0.10,0.15,0.20,0.25,0.30,0.35,0.40,0.45,0.50,0.60,0.70,0.80,0.90,1.0,2.0,3.0,4.0,5.0]
+
+chosen_cot = 5.0
 #from my_dir import ADIR
 ADIR = "/home/a001865/"
 isGAC_CCI = False
@@ -47,7 +51,7 @@ cci_orbits = False
 method = 'BASIC'  # Nina or KG or BASIC==no filter
 DNT = "all"  # "all/day/night/twilight"
 filter_method = 'no'  # no or satz
-radius_km = 75  # t.ex 75 250 500 300
+radius_km = 250  # t.ex 75 250 500 300
 BASE_PLOT_DIR = ADIR + "/PICTURES_FROM_PYTHON/ATRAIN_MATCH_KUIPERS_PLOT_CCI_PPS_BrBG_2"
 
 PROCES_FOR_ART = False
@@ -225,7 +229,7 @@ elif isGAC_v2014:
         files = files + glob(ROOT_DIR + "merged/noaa19*20*0*h5")  # 2009, 2010
 
 elif isGAC_v2018:
-    num_files_to_read = 1
+    num_files_to_read = 8
     isGAC = True
     satellites = "pps2018_nooa18_noaa19"
     ROOT_DIR = ADIR + "/DATA_MISC/tau_cmaprob/"
@@ -242,6 +246,7 @@ pplot_obj.flattice.DNT = DNT
 pplot_obj.flattice.satellites = satellites
 pplot_obj.flattice.filter_method = filter_method
 pplot_obj.flattice.cc_method = method
+pplot_obj.flattice.cotfilt_value = chosen_cot # Testing adding extra parameter
 pplot_obj.flattice.isGAC = isGAC
 
 match_calipso = TruthImagerTrackObject()
@@ -250,6 +255,7 @@ temp_obj.DNT = pplot_obj.flattice.DNT
 temp_obj.satellites = pplot_obj.flattice.satellites
 temp_obj.filter_method = pplot_obj.flattice.filter_method
 temp_obj.cc_method = pplot_obj.flattice.cc_method
+temp_obj.cotfilt_value = pplot_obj.flattice.cotfilt_value
 temp_obj.isGAC = pplot_obj.flattice.isGAC
 
 num = 0
@@ -303,6 +309,9 @@ if num_files_to_read != 1:
     print("Get info from last files!")
     temp_obj.get_some_info_from_caobj(match_calipso, PROCES_FOR_ART=PROCES_FOR_ART)
     pplot_obj.add_detection_stats_on_fib_lattice(temp_obj)
+
+pplot_obj.flattice.calculate_cds()
+pplot_obj.flattice.remap_and_plot_score_on_several_areas(vmin=0, vmax=5.0, score='cds')
 
 pplot_obj.flattice.calculate_ctth_pe1()
 pplot_obj.flattice.remap_and_plot_score_on_several_areas(vmin=0, vmax=100.0, score='ctth_pe1')

@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
 import numpy as np
+import copy
 from pyresample import utils
 from pyresample.geometry import SwathDefinition
 from pyresample.kd_tree import get_neighbour_info
@@ -36,6 +37,8 @@ from atrain_match.utils.get_flag_info import (get_calipso_low_clouds,
                                               get_calipso_clouds_of_type_i,
                                               get_calipso_low_clouds,
                                               get_calipso_high_clouds)
+cots = [0.0,0.05,0.10,0.15,0.20,0.25,0.30,0.35,0.40,0.45,0.50,0.60,0.70,0.80,0.90,1.0,2.0,3.0,4.0,5.0]
+
 
 print(matplotlib.rcParams)
 matplotlib.rcParams.update({'image.cmap': "BrBG"})
@@ -78,6 +81,7 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
     def get_some_info_from_caobj(self, match_calipso, PROCES_FOR_ART=False, PROCES_FOR_PRESSENTATIONS=False):
         self.set_false_and_missed_cloudy_and_clear(match_calipso=match_calipso, PROCES_FOR_ART=PROCES_FOR_ART,
                                                    PROCES_FOR_PRESSENTATIONS=PROCES_FOR_PRESSENTATIONS)
+        self.get_detection_for_cots(match_calipso)
         self.set_r13_extratest(match_calipso=match_calipso)
         self.get_thr_offset(match_calipso=match_calipso)
         self.get_lapse_rate(match_calipso=match_calipso)
@@ -104,13 +108,13 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
             isClearPPS = np.logical_and(match_calipso.imager.all_arrays['cloudtype'] > 0,
                                         match_calipso.imager.all_arrays['cloudtype'] < 5)
 
-        isCloudyPPS = np.logical_and(match_calipso.imager.all_arrays['cloudtype'] > 4,
-                                     match_calipso.imager.all_arrays['cloudtype'] < 21)
-        isClearPPS = np.logical_and(match_calipso.imager.all_arrays['cloudtype'] > 0,
-                                    match_calipso.imager.all_arrays['cloudtype'] < 5)
+        # isCloudyPPS = np.logical_and(match_calipso.imager.all_arrays['cloudtype'] > 4,
+        #                             match_calipso.imager.all_arrays['cloudtype'] < 21)
+        # isClearPPS = np.logical_and(match_calipso.imager.all_arrays['cloudtype'] > 0,
+        #                            match_calipso.imager.all_arrays['cloudtype'] < 5)
         nlay = np.where(match_calipso.calipso.all_arrays['number_layers_found'] > 0, 1, 0)
         meancl = ndimage.filters.uniform_filter1d(nlay*1.0, size=3)
-        if self.cc_method == 'BASICOLD' and self.isGAC::
+        if self.cc_method == 'BASICOLD' and self.isGAC:
             # BASIC before 20181009
             # Buggy for 1km data as cloud_fraction was calcualted with mean filter
             # From neighbours.
@@ -119,6 +123,37 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         elif self.cc_method == 'BASIC':
             isCalipsoCloudy = nlay > 0  # With ALL 300m data for 5km! Updated 
             isCalipsoClear = nlay == 0  # np.not_equal(isCalipsoCloudy, True)
+        elif self.cc_method == 'COTFILT':
+            filtcot = self.cotfilt_value
+            # Let's try to correct for the "artificial" jump in CFC at cot value 1.0 due to 
+            # added 1 km CALIPSO clouds with cot set to 1.0. These clouds should be moved to 
+            # the other extreme at cot = 5.0 (they are definitely bright clouds!)
+            is_artificial_cloudy = np.logical_and(
+                match_calipso.calipso.all_arrays['cloud_fraction'] < 1.0,
+                match_calipso.calipso.all_arrays['total_optical_depth_5km'] == 1.0)
+            is_artificial_cloudy = np.logical_and(
+                is_artificial_cloudy,
+                match_calipso.calipso.all_arrays['cloud_fraction'] > 0.5)                                
+            if filtcot > 1.0:
+                # ("Artificial" jump in CFC due to added 1 km CALIPSO clouds with tau=1.0 ==> 
+                # remove jump and add these cases to category 5.0!
+                # Note that 300m data have total_optical_thickness=1.0, should ahve been 5.0
+                # We must add them here!
+                isCalipsoCloudy = np.logical_and(
+                    match_calipso.calipso.all_arrays['cloud_fraction'] > 0.5,
+                    match_calipso.calipso.all_arrays['total_optical_depth_5km'] >= filtcot)
+                isCalipsoCloudy = np.logical_or(isCalipsoCloudy, is_artificial_cloudy)
+                isCalipsoClear = np.not_equal(isCalipsoCloudy, True)
+            else:     
+                # Note that 300m data have total_optical_thickness=1.0, should ahve been 5.0
+                # They are still here as 1.0 is larger than filtcot!
+                isCalipsoCloudy = np.logical_and(
+                    match_calipso.calipso.all_arrays['cloud_fraction'] > 0.5,
+                    # match_calipso.calipso.all_arrays['total_optical_depth_5km']>filtcot)  #  serious error!!!!
+                    match_calipso.calipso.all_arrays['total_optical_depth_5km'] >= filtcot)
+                # match_calipso.calipso.all_arrays['total_optical_depth_5km']>0.225)
+                # Changed COT threshold from 0.15 to 0.225 when going to CALIPSO version 4.10/KG 2017-04-20
+                isCalipsoClear = np.not_equal(isCalipsoCloudy, True)
         elif self.cc_method == 'KG' and self.isGAC:
             isCalipsoCloudy = np.logical_and(
                 match_calipso.calipso.all_arrays['cloud_fraction'] > 0.5,
@@ -269,6 +304,51 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         self.use = use
         self.detected_height = detected_height[use]
         self.detected_temperature = detected_temperature[use]
+
+    def get_detection_for_cots(self, match_calipso):
+        # ccm method sould be  BASIC/BASICOLD/COTFILT (not one removing thin clouds)
+        if match_calipso.imager.all_arrays['cloudmask'] is not None:
+            isCloudyPPS = np.logical_or(match_calipso.imager.all_arrays['cloudmask'] == 1,
+                                        match_calipso.imager.all_arrays['cloudmask'] == 2)
+            isClearPPS = np.logical_or(match_calipso.imager.all_arrays['cloudmask'] == 0,
+                                       match_calipso.imager.all_arrays['cloudmask'] == 3)
+        else:
+            isCloudyPPS = np.logical_and(match_calipso.imager.all_arrays['cloudtype'] > 4,
+                                         match_calipso.imager.all_arrays['cloudtype'] < 21)
+            isClearPPS = np.logical_and(match_calipso.imager.all_arrays['cloudtype'] > 0,
+                                        match_calipso.imager.all_arrays['cloudtype'] < 5)
+        is_artificial_cloudy = np.logical_and(
+            match_calipso.calipso.all_arrays['cloud_fraction'] < 1.0,
+            match_calipso.calipso.all_arrays['total_optical_depth_5km'] == 1.0)
+        is_artificial_cloudy = np.logical_and(
+            is_artificial_cloudy,
+            match_calipso.calipso.all_arrays['cloud_fraction'] > 0.5) 
+        setattr(self, "detected_clouds_filtcot", {})
+        setattr(self, "undetected_clouds_filtcot", {})
+        self.detected_clouds_filtcot = {}
+        self.undetected_clouds_filtcot = {}
+        isCalipsoCloudy_all = match_calipso.calipso.all_arrays['cloud_fraction'] > 0.5
+        for ind, filtcot in enumerate(cots):
+            if ind == len(cots)-1:
+                filtcot_upper = 99999999.999
+            else:    
+                filtcot_upper = cots[ind+1]          
+            isCalipsoCloudy = np.logical_and(
+                match_calipso.calipso.all_arrays['total_optical_depth_5km'] < filtcot_upper,
+                match_calipso.calipso.all_arrays['total_optical_depth_5km'] >= filtcot)
+            isCalipsoCloudy = np.logical_and(isCalipsoCloudy, isCalipsoCloudy_all)
+            if filtcot>=5.0:
+                # Artifically cloudy should have optical thickness 5.0
+                isCalipsoCloudy = np.logical_or(isCalipsoCloudy, is_artificial_cloudy) 
+            else:
+                isCalipsoCloudy = np.logical_and(isCalipsoCloudy, ~is_artificial_cloudy)  
+            isCalipsoClear = np.not_equal(isCalipsoCloudy, True)
+            detected_clouds = np.logical_and(isCalipsoCloudy, isCloudyPPS)
+            undetected_clouds = np.logical_and(isCalipsoCloudy, isClearPPS)            
+            # self.false_clouds = false_clouds[use]
+            self.detected_clouds_filtcot[filtcot] = detected_clouds[self.use]
+            self.undetected_clouds_filtcot[filtcot] = undetected_clouds[self.use]
+            # self.detected_clear = detected_clear[use]                
 
     def set_r13_extratest(self, match_calipso):
         if ('r13micron' not in match_calipso.imager.all_arrays.keys() or 
@@ -495,6 +575,11 @@ class ppsStatsOnFibLatticeObject(DataObject):
         self.N_false_clouds = np.zeros(self.lats.shape)
         self.N_detected_clouds = np.zeros(self.lats.shape)
         self.N_undetected_clouds = np.zeros(self.lats.shape)
+        self.N_detected_clouds_filtcot = {}
+        self.N_undetected_clouds_filtcot = {}
+        for cot in cots:
+            self.N_detected_clouds_filtcot[cot] = np.zeros(self.lats.shape)
+            self.N_undetected_clouds_filtcot[cot] = np.zeros(self.lats.shape)
         self.N_detected_clear = np.zeros(self.lats.shape)
         self.N_detected_height_low = np.zeros(self.lats.shape)
         self.N_detected_height_high = np.zeros(self.lats.shape)
@@ -548,30 +633,25 @@ class ppsStatsOnFibLatticeObject(DataObject):
         area_def = load_area(AREA_CONFIG_FILE_PLOTS_ON_AREA, plot_area_name)
         data = getattr(self, score)
         data = data.copy()
-        if np.ma.is_masked(data):
+        # WARNING DATA SEEM TO BE STRECHED BETWEEN VMAX AND VMIN!!
+        if np.ma.is_masked(data): 
+            #data[data.mask] = 2*vmax
             data[np.logical_and(np.equal(data.mask, False), data > vmax)] = vmax
             # do not wan't low ex hitrates set to nodata!
             data[np.logical_and(np.equal(data.mask, False), data < vmin)] = vmin
+            data = data.data
         else:
             data[data > vmax] = vmax
             data[data < vmin] = vmin
-        # lons = np.ma.masked_array(self.lons, mask=data.mask)
-        # lats = np.ma.masked_array(self.lats, mask=data.mask)
-        #area_def = load_area('areas.cfg', 'ease_sh')
-        #swath_def = SwathDefinition(lons, lats)
-        #result = resample_nearest(swath_def, tb37v, area_def,
-        #                   radius_of_influence=20000, fill_value=None)
-        #save_quicklook('tb37v_quick.png', area_def, result, label='Tb 37v (K)')
-
         lons = self.lons
         lats = self.lats
         swath_def = geometry.SwathDefinition(lons=lons, lats=lats)
-        #swath_con = image.ImageContainerNearest(
-        #    data, swath_def,
-        #    radius_of_influence=self.radius_km*1000*2.5,
-        #    epsilon=1.0)
-        #area_con = swath_con.resample(area_def)
-        #result = area_con.image_data
+        # swath_con = image.ImageContainerNearest(
+        #     data, swath_def,
+        #     radius_of_influence=self.radius_km*1000*2.5,
+        #     epsilon=1.0)
+        # area_con = swath_con.resample(area_def)
+        # result = area_con.image_data
         from pyresample.kd_tree import resample_nearest
         result = resample_nearest(
             swath_def, data, area_def,
@@ -579,28 +659,46 @@ class ppsStatsOnFibLatticeObject(DataObject):
 
         # pr.plot.show_quicklook(area_def, result,
         #                     vmin=vmin, vmax=vmax, label=score)
-        matplotlib.rcParams['image.cmap'] = "BrBG"
+        my_cmap = copy.copy(matplotlib.cm.BrBG)
         if "FAR" in score:
             matplotlib.rcParams['image.cmap'] = "BrBG"
+            my_cmap = copy.copy(matplotlib.cm.BrBG)
         elif "diff" in score:
             matplotlib.rcParams['image.cmap'] = "BrBG"
+            my_cmap = copy.copy(matplotlib.cm.BrBG)
         elif "mae" in score:
             matplotlib.rcParams['image.cmap'] = "Reds"
+            my_cmap = copy.copy(matplotlib.cm.Reds)
         else:
             matplotlib.rcParams['image.cmap'] = "BrBG"
+            my_cmap = copy.copy(matplotlib.cm.BrBG)
         plot_label = score.replace('_', '-')
         if "mae" in score:
             plot_label = ""
+        if "cds" in score:
+            from atrain_match.reshaped_files_scr.cds_colormap import get_cds_colormap
+            my_cmap = get_cds_colormap()
 
+        my_cmap.set_over(color='0.2', alpha=1)
+        my_cmap.set_under(color='0.2', alpha=1)
+        my_cmap.set_bad(color='0.2', alpha=1)
         crs = area_def.to_cartopy_crs()
         ax = plt.axes(projection=crs)
         ax.coastlines()
         ax.set_global()
+        if np.ma.is_masked(result):   
+            result.data[result.mask] = np.nan
+            result.mask = result.data > vmax        
+        else:
+            result = np.ma.masked_array(result, mask=result > vmax)
+
+        result.data[result.mask] = np.nan
+
         plt.imshow(result, transform=crs, extent=crs.bounds, origin='upper', 
-                   vmin=vmin, vmax=vmax, label=plot_label)
+                   vmin=vmin, vmax=vmax, label=plot_label, cmap=my_cmap)
         plt.colorbar()
         plt.savefig(self.PLOT_DIR_SCORE + self.PLOT_FILENAME_START +
-                               plot_area_name + '.png')
+                               plot_area_name + '.png', bbox_inches='tight')
         """
         Alway gives jet colormap ??
         pr.plot.save_quicklook(self.PLOT_DIR_SCORE + self.PLOT_FILENAME_START +
@@ -673,7 +771,10 @@ class ppsStatsOnFibLatticeObject(DataObject):
             cmap_vals = my_cmap(np.arange(100))  # extract values as an array
             cmap_vals[0:41] = [0.9, 0.9, 0.9, 1]  # change the first value
             my_cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
-                "newBrBG", cmap_vals)
+                "newBrBG", cmap_vals)  
+        if "cds" in score:
+            from atrain_match.reshaped_files_scr.cds_colormap import get_cds_colormap
+            my_cmap = get_cds_colormap()
 
         # to mask out where we lack data
         data[np.logical_and(data > vmax, ~the_mask)] = vmax
@@ -871,6 +972,18 @@ class ppsStatsOnFibLatticeObject(DataObject):
             ctth_bias_type_i = np.ma.masked_array(ctth_bias_type_i, mask=the_mask)
             setattr(self, "ctth_bias_type_{:d}".format(cc_type), ctth_bias_type_i)
 
+    def calculate_cds(self):
+        self.np_float_array()
+        the_mask = self.N_detected_clouds + self.N_undetected_clouds < 100
+        cds = 0 * self.N_detected_clouds.copy()
+        for cot in cots[::-1]:
+            update = np.logical_and(
+                self.N_detected_clouds_filtcot[cot] > 0,
+                self.N_detected_clouds_filtcot[cot] >= self.N_undetected_clouds_filtcot[cot])
+            cds[update] = cot
+        cds = np.ma.masked_array(cds, mask=the_mask)    
+        setattr(self, "cds", cds)
+
     def calculate_hitrate(self):
         self.np_float_array()
         self.find_number_of_clouds_clear()
@@ -1049,6 +1162,12 @@ class PerformancePlottingObject:
         false_clouds = my_obj.false_clouds[valid_out]
         undetected_clouds = my_obj.undetected_clouds[valid_out]
         new_detected_clouds = my_obj.new_detected_clouds[valid_out]
+        undetected_clouds_filtcot = {}
+        detected_clouds_filtcot = {}
+        for cot in cots:
+            undetected_clouds_filtcot[cot] = my_obj.undetected_clouds_filtcot[cot][valid_out]
+            detected_clouds_filtcot[cot] = my_obj.detected_clouds_filtcot[cot][valid_out]
+
         new_false_clouds = my_obj.new_false_clouds[valid_out]
         lapse_rate = my_obj.lapse_rate[valid_out]
         t11ts_offset = my_obj.t11ts_offset[valid_out]
@@ -1129,6 +1248,10 @@ class PerformancePlottingObject:
             cc_type = 7
             self.flattice.Sum_height_bias_type[cc_type][d] += np.sum(my_obj.height_bias_type[cc_type][ind])
             self.flattice.N_detected_height_type[cc_type][d] += np.sum(my_obj.detected_height_type[cc_type][ind])
+            
+            for cot in cots:
+                self.flattice.N_detected_clouds_filtcot[cot][d] += np.sum(detected_clouds_filtcot[cot][ind])
+                self.flattice.N_undetected_clouds_filtcot[cot][d] += np.sum(undetected_clouds_filtcot[cot][ind])
 
         print("mapping took %1.4f seconds" % (time.time()-tic))
 
