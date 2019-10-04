@@ -110,16 +110,22 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
                                     match_calipso.imager.all_arrays['cloudtype'] < 5)
         nlay = np.where(match_calipso.calipso.all_arrays['number_layers_found'] > 0, 1, 0)
         meancl = ndimage.filters.uniform_filter1d(nlay*1.0, size=3)
-        if self.cc_method == 'BASIC' and self.isGAC:
-            isCalipsoCloudy = nlay > 0  # With ALL 300m data
-            isCalipsoClear = nlay == 0  # np.not_equal(isCalipsoCloudy, True)
+        if self.cc_method == 'BASICOLD' and self.isGAC::
+            # BASIC before 20181009
+            # Buggy for 1km data as cloud_fraction was calcualted with mean filter
+            # From neighbours.
+            isCalipsoCloudy = nmatch_calipso.calipso.all_arrays['cloud_fraction'] > 0.5
+            isCalipsoClear = np.not_equal(isCalipsoCloudy, True)
         elif self.cc_method == 'BASIC':
-            isCalipsoCloudy = nlay > 0
-            isCalipsoClear = nlay==0  # np.not_equal(isCalipsoCloudy, True)
+            isCalipsoCloudy = nlay > 0  # With ALL 300m data for 5km! Updated 
+            isCalipsoClear = nlay == 0  # np.not_equal(isCalipsoCloudy, True)
         elif self.cc_method == 'KG' and self.isGAC:
             isCalipsoCloudy = np.logical_and(
                 match_calipso.calipso.all_arrays['cloud_fraction'] > 0.5,
                 match_calipso.calipso.all_arrays['total_optical_depth_5km'] > 0.15)
+            isCalipsoClear = np.not_equal(isCalipsoCloudy, True)
+        elif self.cc_method == 'KG':
+            isCalipsoCloudy = nlay > 0
             isCalipsoClear = np.not_equal(isCalipsoCloudy, True)
         elif self.cc_method == 'Nina' and self.isGAC:
             isCalipsoCloudy = np.logical_and(
@@ -130,24 +136,6 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
             isCalipsoClear = np.logical_and(
                 isCalipsoClear,
                 match_calipso.calipso.all_arrays['total_optical_depth_5km'] < 0)
-        elif self.cc_method == 'Abhay' and self.isGAC:
-            #Excude pixels with low_cad_score
-            conf_medium_or_high, conf_no, conf_low = get_calipso_cad_score(match_calipso)
-            isCalipsoCloudy = np.logical_or(
-                # High confidence cloudy
-                np.logical_and(nlay > 0, conf_medium_or_high),
-                # or clouds from 300m data
-                np.logical_and(match_calipso.calipso.all_arrays['cloud_fraction'] > 0.0,
-                               match_calipso.calipso.all_arrays['cloud_fraction'] < 1.0))
-            isCalipsoClear = nlay == 0
-        elif self.cc_method == 'Abhay':
-            #Excude pixels with low_cad_score
-            conf_medium_or_high, conf_no, conf_low = get_calipso_cad_score(match_calipso)
-            isCalipsoCloudy = np.logical_and(nlay > 0, conf_medium_or_high)
-            isCalipsoClear = nlay == 0
-        elif self.cc_method == 'KG':
-            isCalipsoCloudy = nlay > 0
-            isCalipsoClear = np.not_equal(isCalipsoCloudy, True)
         elif self.cc_method == 'Nina':
             # isCalipsoCloudy = np.logical_or(
             #   match_calipso.calipso.all_arrays['total_optical_depth_5km']>0.15,
@@ -156,9 +144,25 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
             isCalipsoCloudy = nlay > 0
             # exclude pixels that might be cloud contaminated
             isCalipsoClear = np.logical_and(nlay == 0, meancl < 0.01)
+            # and not or! dangerous for broken clouds!
             isCalipsoClear = np.logical_and(
                 isCalipsoClear,
-                match_calipso.calipso.all_arrays['total_optical_depth_5km'] < 0)  # dangerous for broken clouds!
+                match_calipso.calipso.all_arrays['total_optical_depth_5km'] < 0) 
+        elif self.cc_method == 'Abhay' and self.isGAC:
+            # Excude pixels with low_cad_score, compare with mode BASIC
+            conf_medium_or_high, conf_no, conf_low = get_calipso_cad_score(match_calipso)
+            isCalipsoCloudy = np.logical_or(
+                # High confidence cloudy
+                np.logical_and(nlay > 0, conf_medium_or_high),
+                # clouds clouds from 300m data
+                np.logical_and(match_calipso.calipso.all_arrays['cloud_fraction'] > 0.0,
+                               match_calipso.calipso.all_arrays['cloud_fraction'] < 1.0))
+            isCalipsoClear = nlay == 0
+        elif self.cc_method == 'Abhay':
+            #Excude pixels with low_cad_score
+            conf_medium_or_high, conf_no, conf_low = get_calipso_cad_score(match_calipso)
+            isCalipsoCloudy = np.logical_and(nlay > 0, conf_medium_or_high)
+            isCalipsoClear = nlay == 0 
         use_ok_lat_lon = np.logical_and(np.logical_and(lat >= -90, lat <= 90),
                                         np.logical_and(lon >= -180, lat <= 180))
         isCloudyPPS = np.logical_and(isCloudyPPS, use_ok_lat_lon)

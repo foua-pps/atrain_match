@@ -44,7 +44,7 @@ isGAC_v2014_morning_sat = False
 isGAC_v2014 = True
 isGAC_v2018 = False
 cci_orbits = False
-method = 'Abhay'  # Nina or KG or BASIC==no filter
+method = 'BASIC'  # Nina or KG or BASIC==no filter
 DNT = "all"  # "all/day/night/twilight"
 filter_method = 'no'  # no or satz
 radius_km = 75  # t.ex 75 250 500 300
@@ -205,35 +205,35 @@ elif isGAC_v2014_morning_sat:
     # files = files + glob(ROOT_DIR + "metop*/5km/20??/??/*/*h5")
     files = glob(ROOT_DIR + "merged/metop*h5")
     files = files + glob(ROOT_DIR + "merged/noaa17*h5")
-    satellites = "metopa_metopb_noaa17"
+    satellites = "claraa2_metopa_metopb_noaa17"
     if cci_orbits:
-        satellites = "part_metopa_noaa17"
+        satellites = "claraa2_part_metopa_noaa17"
         files = glob(ROOT_DIR + "merged/noaa17*2006*h5")
         files = files + glob(ROOT_DIR + "merged/noaa17*2007*h5")
         files = files + glob(ROOT_DIR + "merged/metopa*20*0*h5")  # 07.08.09.10
 elif isGAC_v2014:
     num_files_to_read = 1
     isGAC = True
-    satellites = "nooa18_nooaa19"
+    satellites = "claraa2_noaa18_noaa19"
     ROOT_DIR = ADIR + "/DATA_MISC/reshaped_files/clara_a2_rerun/Reshaped_Files_CLARA_A2_final/"
     files = glob(ROOT_DIR + "merged/noaa18*h5")
     files = files + glob(ROOT_DIR + "merged/noaa19*h5")
     #files = glob(ROOT_DIR + "merged/noaa19*2014*h5")
     if cci_orbits:
-        satellites = "part_noaa18_noaa19"
+        satellites = "part_claraa2_noaa18_noaa19"
         files = glob(ROOT_DIR + "merged/noaa18*200*h5")  # 06, 07, 08, 09
         files = files + glob(ROOT_DIR + "merged/noaa19*20*0*h5")  # 2009, 2010
 
 elif isGAC_v2018:
     num_files_to_read = 1
     isGAC = True
-    satellites = "pps2018_nooa18_nooaa19"
+    satellites = "pps2018_nooa18_noaa19"
     ROOT_DIR = ADIR + "/DATA_MISC/tau_cmaprob/"
     files = glob(ROOT_DIR + "*h5")
     if cci_orbits:
         satellites = "part_noaa18_noaa19"
         files = glob(ROOT_DIR + "merged/noaa18*200*h5")  # 06, 07, 08, 09
-        files = files + glob(ROOT_DIR + "merged/noaa19*20*0*h5")  # 2009, 2010
+        files = files + glob(ROOT_DIR + "merged/noaa19*20?0*h5")  # 2009, 2010
 
 pplot_obj = PerformancePlottingObject()
 pplot_obj.flattice.set_flattice(radius_km=radius_km)
