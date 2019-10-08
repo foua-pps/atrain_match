@@ -39,14 +39,15 @@ from atrain_match.utils.get_flag_info import (get_calipso_low_clouds,
                                               get_calipso_low_clouds,
                                               get_calipso_high_clouds)
 COMPRESS_LVL = 6
-cots = [0.0,0.05,0.10,0.15,0.20,0.25,0.30,0.35,0.40,0.45,0.50,0.60,0.70,0.80,0.90,1.0,2.0,3.0,4.0,5.0]
+cots = [0.0, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40,
+        0.45, 0.50, 0.60, 0.70, 0.80, 0.90, 1.0, 2.0, 3.0, 4.0, 5.0]
 cots_mid = []
 for ind, filtcot in enumerate(cots):
     if ind == len(cots)-1:
         filtcot_upper = 999.999
-    else:    
-        filtcot_upper = cots[ind+1]         
-    cots_mid += ["{:0.3f}".format(0.5 * (filtcot + filtcot_upper))]   
+    else:
+        filtcot_upper = cots[ind+1]
+    cots_mid += ["{:0.3f}".format(0.5 * (filtcot + filtcot_upper))]
 
 print(matplotlib.rcParams)
 matplotlib.rcParams.update({'image.cmap': "BrBG"})
@@ -85,7 +86,6 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
             'new_false_clouds': None,
             'lats': None,
             'lons': None}
-        
 
     def get_some_info_from_caobj(self, match_calipso, PROCES_FOR_ART=False, PROCES_FOR_PRESSENTATIONS=False):
         self.set_false_and_missed_cloudy_and_clear(match_calipso=match_calipso, PROCES_FOR_ART=PROCES_FOR_ART,
@@ -130,21 +130,21 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
             isCalipsoCloudy = nmatch_calipso.calipso.all_arrays['cloud_fraction'] > 0.5
             isCalipsoClear = np.not_equal(isCalipsoCloudy, True)
         elif self.cc_method == 'BASIC':
-            isCalipsoCloudy = nlay > 0  # With ALL 300m data for 5km! Updated 
+            isCalipsoCloudy = nlay > 0  # With ALL 300m data for 5km! Updated
             isCalipsoClear = nlay == 0  # np.not_equal(isCalipsoCloudy, True)
         elif self.cc_method == 'COTFILT':
             filtcot = self.cotfilt_value
-            # Let's try to correct for the "artificial" jump in CFC at cot value 1.0 due to 
-            # added 1 km CALIPSO clouds with cot set to 1.0. These clouds should be moved to 
+            # Let's try to correct for the "artificial" jump in CFC at cot value 1.0 due to
+            # added 1 km CALIPSO clouds with cot set to 1.0. These clouds should be moved to
             # the other extreme at cot = 5.0 (they are definitely bright clouds!)
             is_artificial_cloudy = np.logical_and(
                 match_calipso.calipso.all_arrays['cloud_fraction'] < 1.0,
                 match_calipso.calipso.all_arrays['total_optical_depth_5km'] == 1.0)
             is_artificial_cloudy = np.logical_and(
                 is_artificial_cloudy,
-                match_calipso.calipso.all_arrays['cloud_fraction'] > 0.5)                                
+                match_calipso.calipso.all_arrays['cloud_fraction'] > 0.5)
             if filtcot > 1.0:
-                # ("Artificial" jump in CFC due to added 1 km CALIPSO clouds with tau=1.0 ==> 
+                # ("Artificial" jump in CFC due to added 1 km CALIPSO clouds with tau=1.0 ==>
                 # remove jump and add these cases to category 5.0!
                 # Note that 300m data have total_optical_thickness=1.0, should ahve been 5.0
                 # We must add them here!
@@ -153,7 +153,7 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
                     match_calipso.calipso.all_arrays['total_optical_depth_5km'] >= filtcot)
                 isCalipsoCloudy = np.logical_or(isCalipsoCloudy, is_artificial_cloudy)
                 isCalipsoClear = np.not_equal(isCalipsoCloudy, True)
-            else:     
+            else:
                 # Note that 300m data have total_optical_thickness=1.0, should ahve been 5.0
                 # They are still here as 1.0 is larger than filtcot!
                 isCalipsoCloudy = np.logical_and(
@@ -191,7 +191,7 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
             # and not or! dangerous for broken clouds!
             isCalipsoClear = np.logical_and(
                 isCalipsoClear,
-                match_calipso.calipso.all_arrays['total_optical_depth_5km'] < 0) 
+                match_calipso.calipso.all_arrays['total_optical_depth_5km'] < 0)
         elif self.cc_method == 'Abhay' and self.isGAC:
             # Excude pixels with low_cad_score, compare with mode BASIC
             conf_medium_or_high, conf_no, conf_low = get_calipso_cad_score(match_calipso)
@@ -203,10 +203,10 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
                                match_calipso.calipso.all_arrays['cloud_fraction'] < 1.0))
             isCalipsoClear = nlay == 0
         elif self.cc_method == 'Abhay':
-            #Excude pixels with low_cad_score
+            # Excude pixels with low_cad_score
             conf_medium_or_high, conf_no, conf_low = get_calipso_cad_score(match_calipso)
             isCalipsoCloudy = np.logical_and(nlay > 0, conf_medium_or_high)
-            isCalipsoClear = nlay == 0 
+            isCalipsoClear = nlay == 0
         use_ok_lat_lon = np.logical_and(np.logical_and(lat >= -90, lat <= 90),
                                         np.logical_and(lon >= -180, lat <= 180))
         isCloudyPPS = np.logical_and(isCloudyPPS, use_ok_lat_lon)
@@ -331,7 +331,7 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
             match_calipso.calipso.all_arrays['total_optical_depth_5km'] == 1.0)
         is_artificial_cloudy = np.logical_and(
             is_artificial_cloudy,
-            match_calipso.calipso.all_arrays['cloud_fraction'] > 0.5) 
+            match_calipso.calipso.all_arrays['cloud_fraction'] > 0.5)
         setattr(self, "detected_clouds_filtcot", {})
         setattr(self, "undetected_clouds_filtcot", {})
         self.detected_clouds_filtcot = {}
@@ -340,29 +340,29 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         for ind, filtcot in enumerate(cots):
             if ind == len(cots)-1:
                 filtcot_upper = 99999999.999
-            else:    
-                filtcot_upper = cots[ind+1]          
+            else:
+                filtcot_upper = cots[ind+1]
             isCalipsoCloudy = np.logical_and(
                 match_calipso.calipso.all_arrays['total_optical_depth_5km'] < filtcot_upper,
                 match_calipso.calipso.all_arrays['total_optical_depth_5km'] >= filtcot)
             isCalipsoCloudy = np.logical_and(isCalipsoCloudy, isCalipsoCloudy_all)
-            if filtcot>=5.0:
+            if filtcot >= 5.0:
                 # Artifically cloudy should have optical thickness 5.0
-                isCalipsoCloudy = np.logical_or(isCalipsoCloudy, is_artificial_cloudy) 
+                isCalipsoCloudy = np.logical_or(isCalipsoCloudy, is_artificial_cloudy)
             else:
-                isCalipsoCloudy = np.logical_and(isCalipsoCloudy, ~is_artificial_cloudy)  
+                isCalipsoCloudy = np.logical_and(isCalipsoCloudy, ~is_artificial_cloudy)
             isCalipsoClear = np.not_equal(isCalipsoCloudy, True)
             detected_clouds = np.logical_and(isCalipsoCloudy, isCloudyPPS)
-            undetected_clouds = np.logical_and(isCalipsoCloudy, isClearPPS)            
+            undetected_clouds = np.logical_and(isCalipsoCloudy, isClearPPS)
             # self.false_clouds = false_clouds[use]
             filtcot_mid = cots_mid[ind]
             self.detected_clouds_filtcot[filtcot_mid] = detected_clouds[self.use]
             self.undetected_clouds_filtcot[filtcot_mid] = undetected_clouds[self.use]
-            # self.detected_clear = detected_clear[use]                
+            # self.detected_clear = detected_clear[use]
 
     def set_r13_extratest(self, match_calipso):
-        if ('r13micron' not in match_calipso.imager.all_arrays.keys() or 
-            match_calipso.imager.all_arrays['r13micron'] is None):
+        if ('r13micron' not in match_calipso.imager.all_arrays.keys() or
+                match_calipso.imager.all_arrays['r13micron'] is None):
             self.new_false_clouds = np.zeros(self.false_clouds.shape)
             self.new_detected_clouds = np.zeros(self.false_clouds.shape)
             return
@@ -380,8 +380,8 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         self.new_detected_clouds = new_detected_clouds
 
     def get_thr_offset(self, match_calipso):
-        if ('surftemp' not in match_calipso.imager.all_arrays.keys() or 
-            match_calipso.imager.all_arrays['surftemp'] is None):
+        if ('surftemp' not in match_calipso.imager.all_arrays.keys() or
+                match_calipso.imager.all_arrays['surftemp'] is None):
             self.t11ts_offset = np.zeros(self.false_clouds.shape)
             self.t11t12_offset = np.zeros(self.false_clouds.shape)
             self.t11t37_offset = np.zeros(self.false_clouds.shape)
@@ -417,12 +417,12 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
         self.t11t37_offset = t11t37_offset
 
     def get_lapse_rate(self, match_calipso):
-        if ('surftemp' not in match_calipso.imager.all_arrays.keys() or 
-            match_calipso.imager.all_arrays['surftemp'] is None):
+        if ('surftemp' not in match_calipso.imager.all_arrays.keys() or
+                match_calipso.imager.all_arrays['surftemp'] is None):
             self.lapse_rate = np.zeros(self.false_clouds.shape)
             return
         low_clouds = get_calipso_low_clouds(match_calipso)
-        delta_h = (match_calipso.calipso.all_arrays['layer_top_altitude'][:,0] 
+        delta_h = (match_calipso.calipso.all_arrays['layer_top_altitude'][:, 0]
                    - 0.001*match_calipso.calipso.all_arrays['elevation'][:])
         delta_t = (273.15 + match_calipso.calipso.all_arrays['layer_top_temperature']
                    [:, 0] - match_calipso.imager.all_arrays['surftemp'][:])
@@ -561,8 +561,6 @@ class ppsStatsOnFibLatticeObject(DataObject):
             'N': None,
             'Kuipers': None}
 
-
-            
     def write_fibbonacci_grid(self, filename=None):
         """Write match objects to HDF5 file *filename*."""
         # pplot_obj.flattice.set_flattice(radius_km=radius_km)
@@ -582,15 +580,15 @@ class ppsStatsOnFibLatticeObject(DataObject):
             for key in self.all_arrays.keys():
                 print(key)
                 data = self.all_arrays[key]
-                if  data is not None:
+                if data is not None:
                     if hasattr(data, 'keys'):
                         # Some lattice data stored as dictionaries
                         for key_inner in data.keys():
-                            f.create_dataset(key + str(key_inner), data=data[key_inner], compression=COMPRESS_LVL)                             
-                    elif np.size(data) > 1:    
-                        f.create_dataset(key, data=data, compression=COMPRESS_LVL)  
-                    else:                    
-                        f.create_dataset(key, data=data)                
+                            f.create_dataset(key + str(key_inner), data=data[key_inner], compression=COMPRESS_LVL)
+                    elif np.size(data) > 1:
+                        f.create_dataset(key, data=data, compression=COMPRESS_LVL)
+                    else:
+                        f.create_dataset(key, data=data)
             #f.create_dataset('fibonacci_radius_km', self.radius_km)
             f.close()
 
@@ -668,7 +666,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
     def _remap_a_score_on_an_area(self, plot_area_name='npole', vmin=0.0, vmax=1.0,
                                   score='Kuipers'):
         from pyresample import image, geometry
-        #area_def = utils.parse_area_file(
+        # area_def = utils.parse_area_file(
         #    'reshaped_files_scr/region_config_test.cfg',
         #    plot_area_name)[0]
         from atrain_match.config import AREA_CONFIG_FILE_PLOTS_ON_AREA
@@ -677,7 +675,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
         data = getattr(self, score)
         data = data.copy()
         # WARNING DATA SEEM TO BE STRECHED BETWEEN VMAX AND VMIN!!
-        if np.ma.is_masked(data): 
+        if np.ma.is_masked(data):
             #data[data.mask] = 2*vmax
             data[np.logical_and(np.equal(data.mask, False), data > vmax)] = vmax
             # do not wan't low ex hitrates set to nodata!
@@ -729,19 +727,19 @@ class ppsStatsOnFibLatticeObject(DataObject):
         ax = plt.axes(projection=crs)
         ax.coastlines()
         ax.set_global()
-        if np.ma.is_masked(result):   
+        if np.ma.is_masked(result):
             result.data[result.mask] = np.nan
-            result.mask = result.data > vmax        
+            result.mask = result.data > vmax
         else:
             result = np.ma.masked_array(result, mask=result > vmax)
 
         result.data[result.mask] = np.nan
 
-        plt.imshow(result, transform=crs, extent=crs.bounds, origin='upper', 
+        plt.imshow(result, transform=crs, extent=crs.bounds, origin='upper',
                    vmin=vmin, vmax=vmax, label=plot_label, cmap=my_cmap)
         plt.colorbar()
         plt.savefig(self.PLOT_DIR_SCORE + self.PLOT_FILENAME_START +
-                               plot_area_name + '.png', bbox_inches='tight')
+                    plot_area_name + '.png', bbox_inches='tight')
         """
         Alway gives jet colormap ??
         pr.plot.save_quicklook(self.PLOT_DIR_SCORE + self.PLOT_FILENAME_START +
@@ -749,6 +747,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
                                area_def, result,
                                vmin=vmin, vmax=vmax, label=plot_label, cmap=matplotlib.rcParams['image.cmap'])
         """
+
     def _remap_a_score_on_an_robinson_projection(self, vmin=0.0, vmax=1.0,
                                                  score='Kuipers', screen_out_valid=False):
 
@@ -814,7 +813,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
             cmap_vals = my_cmap(np.arange(100))  # extract values as an array
             cmap_vals[0:41] = [0.9, 0.9, 0.9, 1]  # change the first value
             my_cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
-                "newBrBG", cmap_vals)  
+                "newBrBG", cmap_vals)
         if "cds" in score:
             from atrain_match.reshaped_files_scr.cds_colormap import get_cds_colormap
             my_cmap = get_cds_colormap()
@@ -1025,7 +1024,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
                 self.N_detected_clouds_filtcot[cot] > 0,
                 self.N_detected_clouds_filtcot[cot] >= self.N_undetected_clouds_filtcot[cot])
             cds[update] = cot
-        cds = np.ma.masked_array(cds, mask=the_mask)    
+        cds = np.ma.masked_array(cds, mask=the_mask)
         setattr(self, "cds", cds)
 
     def calculate_hitrate(self):
@@ -1292,7 +1291,7 @@ class PerformancePlottingObject:
             cc_type = 7
             self.flattice.Sum_height_bias_type[cc_type][d] += np.sum(my_obj.height_bias_type[cc_type][ind])
             self.flattice.N_detected_height_type[cc_type][d] += np.sum(my_obj.detected_height_type[cc_type][ind])
-            
+
             for cot in cots_mid:
                 self.flattice.N_detected_clouds_filtcot[cot][d] += np.sum(detected_clouds_filtcot[cot][ind])
                 self.flattice.N_undetected_clouds_filtcot[cot][d] += np.sum(undetected_clouds_filtcot[cot][ind])

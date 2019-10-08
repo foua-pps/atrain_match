@@ -28,7 +28,8 @@ from atrain_match.matchobject_io import (read_truth_imager_match_obj,
 from atrain_match.reshaped_files_scr.plot_kuipers_on_area_util import (PerformancePlottingObject,
                                                                        ppsMatch_Imager_CalipsoObject)
 
-cots = [0.0,0.05,0.10,0.15,0.20,0.25,0.30,0.35,0.40,0.45,0.50,0.60,0.70,0.80,0.90,1.0,2.0,3.0,4.0,5.0]
+cots = [0.0, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40,
+        0.45, 0.50, 0.60, 0.70, 0.80, 0.90, 1.0, 2.0, 3.0, 4.0, 5.0]
 
 chosen_cot = 5.0
 #from my_dir import ADIR
@@ -246,7 +247,7 @@ pplot_obj.flattice.DNT = DNT
 pplot_obj.flattice.satellites = satellites
 pplot_obj.flattice.filter_method = filter_method
 pplot_obj.flattice.cc_method = method
-pplot_obj.flattice.cotfilt_value = chosen_cot # Testing adding extra parameter
+pplot_obj.flattice.cotfilt_value = chosen_cot  # Testing adding extra parameter
 pplot_obj.flattice.isGAC = isGAC
 
 match_calipso = TruthImagerTrackObject()

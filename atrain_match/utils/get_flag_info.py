@@ -157,10 +157,11 @@ def get_inversion_info_pps2012(cloudtype_qflag):
     inversion_flag = (((cloudtype_qflag >> 6) & 1) == 1) & ~no_qflag
     return inversion_flag
 
-# high confidence = |CAD score| >= 70 
+# high confidence = |CAD score| >= 70
 # medium confidence = 50 <= |CAD score| < 70
 # low confidence = 20 <= |CAD score| < 50
 # no confidence = |CAD score| < 20
+
 
 def get_calipso_cad_score(match_calipso):
     # bits 4-5, start at 1 counting
@@ -175,13 +176,14 @@ def get_calipso_cad_score(match_calipso):
     is_no_low = cal_vert_feature == 1
     return is_medium_or_high, is_no_confidence, is_no_low
 
+
 def get_calipso_cad_score_also_nodata(match_calipso):
     # bits 4-5, start at 1 counting
     cflag = match_calipso.calipso.feature_classification_flags[::, 0]
     cal_vert_feature = np.zeros(cflag.shape) - 9.0
     feature_array = (2 * np.bitwise_and(np.right_shift(cflag, 4), 1) +
                      1 * np.bitwise_and(np.right_shift(cflag, 3), 1))
-    #Include also nodata retrievals
+    # Include also nodata retrievals
     cal_vert_feature[:] = feature_array[:]
     is_medium_or_high = cal_vert_feature >= 2
     is_no_confidence = cal_vert_feature == 0

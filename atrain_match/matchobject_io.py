@@ -57,10 +57,10 @@ class DataObject(object):
         is_empty_self = True
         is_empty_other = True
         for key in self.all_arrays.keys():
-            if self.all_arrays[key] is not None and len(self.all_arrays[key])>0:
+            if self.all_arrays[key] is not None and len(self.all_arrays[key]) > 0:
                 is_empty_self = False
         for key in other.all_arrays.keys():
-            if other.all_arrays[key] is not None and len(other.all_arrays[key])>0:
+            if other.all_arrays[key] is not None and len(other.all_arrays[key]) > 0:
                 is_empty_other = False
         if is_empty_self:
             # print("First object is None!, returning second object")
@@ -377,7 +377,7 @@ class TruthImagerTrackObject:
             self.mora = MoraObject()
         elif truth in 'iss':
             self.iss = IssObject()
-        self.extra = ExtraObject()    
+        self.extra = ExtraObject()
         self.diff_sec_1970 = None
         self.truth_sat = truth
         self.imager_instrument = 'imager'
