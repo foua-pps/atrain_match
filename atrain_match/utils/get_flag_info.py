@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_semi_opaque_info_pps2014(ctth_status):
+    """Get opaque/semitransparent flag from PPS-v2014 or later."""
     logger.debug("Assuming cloudtype flags structure from pps v2014")
     temp_val = (ctth_status >> 7 & 1)
     semi_flag = temp_val == 1
@@ -29,6 +30,7 @@ def get_semi_opaque_info_pps2014(ctth_status):
 
 
 def get_semi_opaque_info_pps2012(ctth_opaque):
+    """Get opaque/semitransparent flag from PPS-v2012."""
     logger.info("Assuming  pps v2012")
     semi_flag = ctth_opaque == 0
     opaque_flag = ctth_opaque == 1
@@ -36,6 +38,7 @@ def get_semi_opaque_info_pps2012(ctth_opaque):
 
 
 def get_sunglint_info_pps2014(cloudtype_conditions):
+    """Get sunglint flag from PPS-v2014 or later."""
     logger.debug("Assuming cloudtype flags structure from pps v2014")
     temp_val = (cloudtype_conditions >> 3 & 1)
     sunglint_flag = temp_val == 1
@@ -43,6 +46,7 @@ def get_sunglint_info_pps2014(cloudtype_conditions):
 
 
 def get_high_terrain_info_pps2014(cloudtype_conditions):
+    """Get high terrain flag from PPS-v2014 or later."""
     logger.debug("Assuming cloudtype flags structure from pps v2014")
     temp_val = (cloudtype_conditions >> 6 & 1)
     mountin_flag = temp_val == 1
@@ -51,6 +55,7 @@ def get_high_terrain_info_pps2014(cloudtype_conditions):
 
 
 def get_mountin_info_pps2014(cloudtype_conditions):
+    """Get mountain flag from PPS-v2014 or later."""
     logger.debug("Assuming cloudtype flags structure from pps v2014")
     temp_val = (cloudtype_conditions >> 7 & 1)
     mountin_flag = temp_val == 1
@@ -59,6 +64,7 @@ def get_mountin_info_pps2014(cloudtype_conditions):
 
 
 def get_inversion_info_pps2014(cloudtype_status):
+    """Get inversion flag from PPS-v2014 or later."""
     logger.debug("Assuming cloudtype flags structure from pps v2014")
     flag_temp = (cloudtype_status >> 0 & 1) + 0
     inversion_flag = flag_temp == 1
@@ -66,6 +72,7 @@ def get_inversion_info_pps2014(cloudtype_status):
 
 
 def get_land_coast_sea_info_pps2014(cloudtype_conditions):
+    """Get land/sea/coast flag from PPS-v2014 or later."""
     logger.debug("Assuming cloudtype flags structure from pps v2014")
     sealand_val = (cloudtype_conditions >> 4 & 1) + (cloudtype_conditions >> 5 & 1) * 2
     no_qflag = sealand_val == 0
@@ -81,6 +88,7 @@ def get_land_coast_sea_info_pps2014(cloudtype_conditions):
 
 
 def get_land_coast_sea_info_pps2012(cloudtype_qflag):
+    """Get land/sea/coast flag from PPS-v2012."""
     logger.info("Assuming cloudtype flags structure from pps v2012")
     land_sea_val = (cloudtype_qflag >> 0 & 1)
     coast_val = (cloudtype_qflag >> 1 & 1)
@@ -97,6 +105,7 @@ def get_land_coast_sea_info_pps2012(cloudtype_qflag):
 
 
 def get_ice_info_pps2014(cloudtype_status):
+    """Get ice flag from PPS-v2014 or later."""
     logger.debug("Assuming cloudtype flags structure from pps v2014")
     ice_flag_temp = (cloudtype_status >> 3 & 1) + 0
     ice_flag = ice_flag_temp == 1
@@ -104,6 +113,7 @@ def get_ice_info_pps2014(cloudtype_status):
 
 
 def get_ice_info_pps2012(cloudtype_qflag):
+    """Get ice flag from PPS-v2012."""
     logger.info("Assuming cloudtype flags structure from pps v2012")
     ice_flag_temp = (cloudtype_qflag >> 15 & 1) + 0
     ice_flag = ice_flag_temp == 1
@@ -111,6 +121,7 @@ def get_ice_info_pps2012(cloudtype_qflag):
 
 
 def get_day_night_twilight_info_pps2014(cloudtype_conditions):
+    """Get day/night/twilight flag from PPS-v2014 or later."""
     logger.debug("Assuming cloudtype flags structure from pps v2014")
     daynight_val = (cloudtype_conditions >> 1 & 1) + (cloudtype_conditions >> 2 & 1) * 2
     no_qflag = daynight_val == 0
@@ -125,6 +136,7 @@ def get_day_night_twilight_info_pps2014(cloudtype_conditions):
 
 
 def get_day_night_twilight_info_pps2012(cloudtype_qflag):
+    """Get day/night/twilight flag from PPS-v2012."""
     logger.info("Assuming cloudtype flags structure from pps v2012")
     no_qflag = cloudtype_qflag == 0
     night_flag = (((cloudtype_qflag >> 2) & 1) == 1) & ~no_qflag
@@ -164,6 +176,7 @@ def get_inversion_info_pps2012(cloudtype_qflag):
 
 
 def get_calipso_cad_score(match_calipso):
+    """Get quality (CAD score) from CALIPSO (not for clear pixels)."""
     # bits 4-5, start at 1 counting
     cflag = match_calipso.calipso.feature_classification_flags[::, 0]
     cal_vert_feature = np.zeros(cflag.shape) - 9.0
@@ -201,6 +214,7 @@ def get_calipso_cad_score_also_nodata(match_calipso):
 
 
 def get_calipso_aerosol_of_type_i(match_calipso, atype=0):
+    """Get CALIPSO aerosols of type i."""
     # bits 10-12, start at 1 counting
     cflag = match_calipso.calipso_aerosol.feature_classification_flags[::, 0]
     cal_vert_feature = np.zeros(cflag.shape) - 9.0
@@ -225,6 +239,7 @@ def get_calipso_aerosol_of_type_i(match_calipso, atype=0):
 
 
 def get_calipso_clouds_of_type_i_feature_classification_flags_one_layer(cflag, calipso_cloudtype=0):
+    """Get CALIPSO clouds of type i from one layer."""
     # bits 10-12, start at 1 counting
     cal_vert_feature = np.zeros(cflag.shape) - 9.0
     feature_array = (4 * np.bitwise_and(np.right_shift(cflag, 11), 1) +
@@ -237,6 +252,7 @@ def get_calipso_clouds_of_type_i_feature_classification_flags_one_layer(cflag, c
 
 
 def get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=0):
+   """Get CALIPSO clouds of type i from top layer."""
     # bits 10-12, start at 1 counting
     cflag = match_calipso.calipso.feature_classification_flags[::, 0]
     return get_calipso_clouds_of_type_i_feature_classification_flags_one_layer(
@@ -245,6 +261,7 @@ def get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=0):
 
 
 def get_calipso_op(match_calipso):
+    """Get CALIPSO opaque clouds."""
     # type 1, 2, 5, 7 are opaque cloudtypes
     calipso_low = np.logical_or(
         np.logical_or(
@@ -257,6 +274,7 @@ def get_calipso_op(match_calipso):
 
 
 def get_calipso_tp(match_calipso):
+    """Get CALIPSO semi-transparent clouds."""
     calipso_low = np.logical_or(
         np.logical_or(
             get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=0),
@@ -268,6 +286,7 @@ def get_calipso_tp(match_calipso):
 
 
 def get_calipso_low_clouds(match_calipso):
+    """Get CALIPSO low clouds."""
     # type 0, 1, 2, 3 are low cloudtypes
     calipso_low = np.logical_or(
         np.logical_or(
@@ -280,6 +299,7 @@ def get_calipso_low_clouds(match_calipso):
 
 
 def get_calipso_low_clouds_tp(match_calipso):
+    """Get CALIPSO low and transparent clouds."""
     # type 0, 1, 2, 3 are low cloudtypes
     calipso_low = np.logical_or(
         get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=0),
@@ -288,6 +308,7 @@ def get_calipso_low_clouds_tp(match_calipso):
 
 
 def get_calipso_low_clouds_op(match_calipso):
+    """Get CALIPSO low and opaque clouds."""
     # type 0, 1, 2, 3 are low cloudtypes
     calipso_low = np.logical_or(
         get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=1),
@@ -296,6 +317,7 @@ def get_calipso_low_clouds_op(match_calipso):
 
 
 def get_calipso_high_clouds(match_calipso):
+    """Get CALIPSO high clouds."""
     # type 6, 7 are high cloudtypes
     calipso_high = np.logical_or(
         get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=6),
@@ -304,6 +326,7 @@ def get_calipso_high_clouds(match_calipso):
 
 
 def get_calipso_medium_clouds(match_calipso):
+    """Get CALIPSO medium clouds."""
     # type 6, 7 are high cloudtypes
     calipso_high = np.logical_or(
         get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=4),
@@ -312,6 +335,7 @@ def get_calipso_medium_clouds(match_calipso):
 
 
 def get_calipso_medium_and_high_clouds_tp(match_calipso):
+    """Get CALIPSO medium transparent and high transparent clouds."""
     # type 0, 1, 2, 3 are low cloudtypes
     calipso_transp = np.logical_or(
         get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=4),
@@ -320,6 +344,7 @@ def get_calipso_medium_and_high_clouds_tp(match_calipso):
 
 
 def get_calipso_low_medium_high_classification(match_calipso):
+    """Get CALIPSO clouds that are transparent/opaque and/or low/medium/high."""
     mlh_class = {}
     mlh_class['clouds_op'] = get_calipso_op(match_calipso)
     mlh_class['clouds_tp'] = get_calipso_tp(match_calipso)

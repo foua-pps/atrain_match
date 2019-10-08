@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_t11t12_texture_data_from_object(imager_obj, aux_obj, ch11, ch12, text_name):
+    """Get standard deviation for t11-t12 in 5x5 neighbourhood."""
     # https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
     t11 = get_channel_data_from_objectfull_resolution(imager_obj, ch11, nodata=-9)
     t12 = get_channel_data_from_objectfull_resolution(imager_obj, ch12, nodata=-9)
@@ -62,6 +63,7 @@ class NeighbourObj(object):
 
 
 def get_data_from_array_fill_outside(array, matched, Fill=0):
+    """Extract data from array for index in matched."""
     row_index = matched['row'].copy()
     col_index = matched['col'].copy()
     row_lim, col_lim = array.shape
@@ -77,6 +79,7 @@ def get_data_from_array_fill_outside(array, matched, Fill=0):
 
 
 def get_warmest_or_coldest_index(t11, matched, warmest=True):
+    """Get index for coldedest pixel in 5x5 neighbourhood."""
     FILL = 999999.9  # coldest
     if warmest:
         FILL = -99
@@ -104,6 +107,7 @@ def get_warmest_or_coldest_index(t11, matched, warmest=True):
 
 
 def get_warmest_values(imager_obj, matched):
+    """Get channel values for neighbour that is warmest (channel 11)."""
     nobj = NeighbourObj()
     t11 = get_channel_data_from_objectfull_resolution(imager_obj, '11', nodata=-9)
     new_row_col = get_warmest_or_coldest_index(t11, matched)
@@ -118,6 +122,7 @@ def get_warmest_values(imager_obj, matched):
 
 
 def get_coldest_values(imager_obj, matched):
+    """Get channel values for neighbour that is coldest (channel 11)."""
     nobj = NeighbourObj()
     t11 = get_channel_data_from_objectfull_resolution(imager_obj, '11', nodata=-9)
     new_row_col = get_warmest_or_coldest_index(t11, matched, warmest=False)
@@ -132,6 +137,7 @@ def get_coldest_values(imager_obj, matched):
 
 
 def get_darkest_values(imager_obj, matched):
+    """Get channel values for neighbour that is darkest (channel 0.6 or 0.9)."""
     nobj = NeighbourObj()
     r09 = get_channel_data_from_objectfull_resolution(imager_obj, '09', nodata=-9)
     r06 = get_channel_data_from_objectfull_resolution(imager_obj, '06', nodata=-9)
@@ -187,9 +193,7 @@ def add_cnn_features(cnn_dict, matched, lats_matched, lons_matched, SETTINGS):
 
 
 def get_channel_data_from_objectfull_resolution(imager_obj, chn_des, nodata=-9):
-    """Get the IMAGER/VIIRS channel data on the track
-    matched: dict of matched indices (row, col)
-    """
+    """Get the IMAGER/VIIRS channel data on full resolution for chosen channel."""
     try:
         channels = imager_obj.channels
     except:
