@@ -15,7 +15,4 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
-"""
-Modules for plotting
-
-"""
+"""Modules for calcualting and plotting scores on are from reshaped files."""

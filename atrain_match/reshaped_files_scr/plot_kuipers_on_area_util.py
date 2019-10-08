@@ -104,14 +104,14 @@ class MatchImagerCalipso(DataObject):
         lon = match_calipso.imager.all_arrays['longitude']
         if match_calipso.imager.all_arrays['cloudmask'] is not None:
             cloudy_imager = np.logical_or(match_calipso.imager.all_arrays['cloudmask'] == 1,
-                                        match_calipso.imager.all_arrays['cloudmask'] == 2)
+                                          match_calipso.imager.all_arrays['cloudmask'] == 2)
             clear_imager = np.logical_or(match_calipso.imager.all_arrays['cloudmask'] == 0,
-                                       match_calipso.imager.all_arrays['cloudmask'] == 3)
+                                         match_calipso.imager.all_arrays['cloudmask'] == 3)
         else:
             cloudy_imager = np.logical_and(match_calipso.imager.all_arrays['cloudtype'] > 4,
-                                         match_calipso.imager.all_arrays['cloudtype'] < 21)
+                                           match_calipso.imager.all_arrays['cloudtype'] < 21)
             clear_imager = np.logical_and(match_calipso.imager.all_arrays['cloudtype'] > 0,
-                                        match_calipso.imager.all_arrays['cloudtype'] < 5)
+                                          match_calipso.imager.all_arrays['cloudtype'] < 5)
 
         # cloudy_imager = np.logical_and(match_calipso.imager.all_arrays['cloudtype'] > 4,
         #                             match_calipso.imager.all_arrays['cloudtype'] < 21)
@@ -123,7 +123,7 @@ class MatchImagerCalipso(DataObject):
             # BASIC before 20181009
             # Buggy for 1km data as cloud_fraction was calcualted with mean filter
             # From neighbours.
-            calipso_cloudy = nmatch_calipso.calipso.all_arrays['cloud_fraction'] > 0.5
+            calipso_cloudy = match_calipso.calipso.all_arrays['cloud_fraction'] > 0.5
             calipso_clear = np.not_equal(calipso_cloudy, True)
         elif self.cc_method == 'BASIC':
             calipso_cloudy = nlay > 0  # With ALL 300m data for 5km! Updated
@@ -314,14 +314,14 @@ class MatchImagerCalipso(DataObject):
         # ccm method sould be  BASIC/BASICOLD/COTFILT (not one removing thin clouds)
         if match_calipso.imager.all_arrays['cloudmask'] is not None:
             cloudy_imager = np.logical_or(match_calipso.imager.all_arrays['cloudmask'] == 1,
-                                        match_calipso.imager.all_arrays['cloudmask'] == 2)
+                                          match_calipso.imager.all_arrays['cloudmask'] == 2)
             clear_imager = np.logical_or(match_calipso.imager.all_arrays['cloudmask'] == 0,
-                                       match_calipso.imager.all_arrays['cloudmask'] == 3)
+                                         match_calipso.imager.all_arrays['cloudmask'] == 3)
         else:
             cloudy_imager = np.logical_and(match_calipso.imager.all_arrays['cloudtype'] > 4,
-                                         match_calipso.imager.all_arrays['cloudtype'] < 21)
+                                           match_calipso.imager.all_arrays['cloudtype'] < 21)
             clear_imager = np.logical_and(match_calipso.imager.all_arrays['cloudtype'] > 0,
-                                        match_calipso.imager.all_arrays['cloudtype'] < 5)
+                                          match_calipso.imager.all_arrays['cloudtype'] < 5)
         is_artificial_cloudy = np.logical_and(
             match_calipso.calipso.all_arrays['cloud_fraction'] < 1.0,
             match_calipso.calipso.all_arrays['total_optical_depth_5km'] == 1.0)
@@ -903,9 +903,9 @@ class StatsOnFibonacciLattice(DataObject):
         the_mask = np.logical_or(the_mask, self.num_clear < 0.01*self.num_clouds)
         use = np.logical_or(self.lats >= 70, ~the_mask)
         self.Kuipers_total_mean_polar = (
-            (
-                np.sum(num_detected_clouds[use])*np.sum(num_detected_clear[use]) -
-                np.sum(self.num_false_clouds[use])*np.sum(self.num_undetected_clouds[use]))/((np.sum(num_clouds[use]))*(np.sum(num_clear[use]))))
+            (np.sum(num_detected_clouds[use])*np.sum(num_detected_clear[use]) -
+             np.sum(self.num_false_clouds[use])*np.sum(self.num_undetected_clouds[use]))
+            /((np.sum(num_clouds[use]))*(np.sum(num_clear[use]))))
         Kuipers = np.ma.masked_array(Kuipers, mask=the_mask)
         self.Kuipers = Kuipers
 
@@ -1066,7 +1066,7 @@ class StatsOnFibonacciLattice(DataObject):
         self.find_number_of_clouds_clear()
         ThreatScoreClear = (
             self.num_detected_clear)*1.0/(self.num_clear +
-                                        self.num_undetected_clouds)
+                                          self.num_undetected_clouds)
         the_mask = self.num_clear < 20
         ThreatScoreClear = np.ma.masked_array(ThreatScoreClear,
                                               mask=the_mask)
@@ -1103,7 +1103,7 @@ class StatsOnFibonacciLattice(DataObject):
         self.find_number_of_clouds_clear()
         FARclear = (
             self.num_undetected_clouds)*1.0/(self.num_detected_clear +
-                                           self.num_undetected_clouds)
+                                             self.num_undetected_clouds)
         the_mask = self.num_clear < 20
         FARclear = np.ma.masked_array(FARclear, mask=the_mask)
         self.FARclear = FARclear
@@ -1113,7 +1113,7 @@ class StatsOnFibonacciLattice(DataObject):
         self.find_number_of_clouds_clear()
         FARcloudy = (
             self.num_false_clouds)*1.0/(self.num_detected_clouds +
-                                      self.num_false_clouds)
+                                        self.num_false_clouds)
         the_mask = self.num_clouds < 20
         FARcloudy = np.ma.masked_array(FARcloudy, mask=the_mask)
         self.FARcloudy = FARcloudy

@@ -6,10 +6,14 @@ files = files + glob.glob(ROOT_DIR + "/*/*/*.py")
 
 
 var_name_dict ={
-    "imager_cloud_products": "cloudproducts",
-    "read_cloudproducts_": "read_",
-    "read_cloudproducts_and_nwp_": "read_",
-    "read_and_nwp_": "read_",
+    "ppsMatch_Imager_CalipsoObject": "MatchImagerCalipso",
+    "ppsStatsOnFibLatticeObject": "StatsOnFibonacciLattice",
+    "N_": "num_",
+    "Sum": "sum",
+    "isCalipsoClear": "_calipso_clear", 
+    "isCalipsoCloudy": "_calipso_cloudy",
+    "isCloudyPPS": "cloudy_imager",
+    "isClearPPS": "clear_imager",
 }
 
 
