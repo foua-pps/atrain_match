@@ -391,7 +391,7 @@ pplot_obj.flattice.calculate_far_clear()
 pplot_obj.flattice.remap_and_plot_score_on_several_areas(score='FARclear', vmax=0.5)
 pplot_obj.flattice.calculate_rms()
 pplot_obj.flattice.remap_and_plot_score_on_several_areas(score='RMS', vmax=50.0, screen_out_valid=True)
-pplot_obj.flattice.write_fibbonacci_grid()
+pplot_obj.flattice.write_fibonacci_grid()
 
 name = "fig_%s_ccm_%s_%sfilter_dnt_%s_r%skm_" % (
     pplot_obj.flattice.satellites,

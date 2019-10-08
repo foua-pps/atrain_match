@@ -18,17 +18,15 @@
 import numpy as np
 import copy
 import h5py
-from pyresample import utils
 from pyresample.geometry import SwathDefinition
 from pyresample.kd_tree import get_neighbour_info
 from pyresample.kd_tree import get_sample_from_neighbour_info
-import pyresample as pr
+# import pyresample as pr
 import os
 import matplotlib
 from mpl_toolkits.basemap import Basemap
 from scipy.interpolate import griddata
 from scipy import ndimage
-import matplotlib
 import matplotlib.pyplot as plt
 # matplotlib.use("TkAgg")
 from matplotlib import rc
@@ -36,7 +34,6 @@ from atrain_match.matchobject_io import DataObject
 from atrain_match.utils.get_flag_info import (get_calipso_low_clouds,
                                               get_calipso_cad_score,
                                               get_calipso_clouds_of_type_i,
-                                              get_calipso_low_clouds,
                                               get_calipso_high_clouds)
 COMPRESS_LVL = 6
 cots = [0.0, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40,
@@ -49,7 +46,6 @@ for ind, filtcot in enumerate(cots):
         filtcot_upper = cots[ind+1]
     cots_mid += ["{:0.3f}".format(0.5 * (filtcot + filtcot_upper))]
 
-print(matplotlib.rcParams)
 matplotlib.rcParams.update({'image.cmap': "BrBG"})
 
 matplotlib.rc('image', cmap='BrBG')
@@ -481,7 +477,7 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
             self.lapse_bias = new_pps_h[self.use] - height_c
             self.lapse_bias[~self.detected_height] = 0
             self.lapse_bias[temperature_pps < 0] = 0
-        except:
+        except (TypeError, KeyError):
             # raise
             self.lapse_bias = 0 * height_c
 
@@ -519,7 +515,7 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
             delta_t[~detected_low] = 0
             delta_t[temperature_c < 0] = 0
             delta_t[temperature_pps < 0] = 0
-        except:
+        except (TypeError, KeyError):
             delta_t = 0*temperature_pps
         try:
             temperature_pps = match_calipso.imager.all_arrays['bt11micron'][self.use]
@@ -527,7 +523,7 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
             delta_t_t11[~detected_low] = 0
             delta_t_t11[temperature_c < 0] = 0
             delta_t_t11[temperature_pps < 0] = 0
-        except:
+        except (TypeError, KeyError):
             delta_t_t11 = 0*delta_t
         self.temperature_bias_low = delta_t
         # self.temperature_bias_low[~detected_low]=0
@@ -561,7 +557,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
             'N': None,
             'Kuipers': None}
 
-    def write_fibbonacci_grid(self, filename=None):
+    def write_fibonacci_grid(self, filename=None):
         """Write match objects to HDF5 file *filename*."""
         # pplot_obj.flattice.set_flattice(radius_km=radius_km)
         # pplot_obj.flattice.PLOT_DIR = BASE_PLOT_DIR
@@ -589,7 +585,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
                         f.create_dataset(key, data=data, compression=COMPRESS_LVL)
                     else:
                         f.create_dataset(key, data=data)
-            #f.create_dataset('fibonacci_radius_km', self.radius_km)
+            # f.create_dataset('fibonacci_radius_km', self.radius_km)
             f.close()
 
     def set_flattice(self, radius_km=200):
@@ -665,20 +661,17 @@ class ppsStatsOnFibLatticeObject(DataObject):
 
     def _remap_a_score_on_an_area(self, plot_area_name='npole', vmin=0.0, vmax=1.0,
                                   score='Kuipers'):
-        from pyresample import image, geometry
-        # area_def = utils.parse_area_file(
-        #    'reshaped_files_scr/region_config_test.cfg',
-        #    plot_area_name)[0]
+        from pyresample geometry
         from atrain_match.config import AREA_CONFIG_FILE_PLOTS_ON_AREA
         from pyresample import load_area
         area_def = load_area(AREA_CONFIG_FILE_PLOTS_ON_AREA, plot_area_name)
         data = getattr(self, score)
         data = data.copy()
-        # WARNING DATA SEEM TO BE STRECHED BETWEEN VMAX AND VMIN!!
+        # warning data seem to be streched between vmax and vmin!!
         if np.ma.is_masked(data):
-            #data[data.mask] = 2*vmax
+            # data[data.mask] = 2*vmax
             data[np.logical_and(np.equal(data.mask, False), data > vmax)] = vmax
-            # do not wan't low ex hitrates set to nodata!
+            # do not wan't low scores hitrates set to nodata!
             data[np.logical_and(np.equal(data.mask, False), data < vmin)] = vmin
             data = data.data
         else:
@@ -844,7 +837,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
         cb.locator = tick_locator
         cb.ax.yaxis.set_major_locator(matplotlib.ticker.AutoLocator())
         cb.update_ticks()
-        if not "mae" in score:
+        if "mae" not in score:
             ax.set_title(score.replace('_', '-'), usetex=False)
         if score in ["ctth_mae"]:
             text_i = "(b)"

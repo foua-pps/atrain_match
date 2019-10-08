@@ -92,7 +92,8 @@ for satellite in SATELLITES:
                 except:
                     print("problem with", os.path.basename(filename))
                     continue
-                    # if match_calipso_new.cloudsat.RVOD_CWC_status is None or len(match_calipso_new.cloudsat.RVOD_CWC_status) != len(match_calipso_new.avhrr.cpp_lwp):
+                    # if (match_calipso_new.cloudsat.RVOD_CWC_status is None or
+                    # len(match_calipso_new.cloudsat.RVOD_CWC_status) != len(match_calipso_new.avhrr.cpp_lwp)):
                     #   print("Missing RVOD_CWC_status")
                     #   continue
                 num_n += 1
