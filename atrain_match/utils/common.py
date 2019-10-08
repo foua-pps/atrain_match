@@ -15,10 +15,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
-'''
-Created on Oct 19, 2010
+"""Module with exceptions, mapper, writer etc."""
 
-'''
 import numpy as np
 import logging
 logger = logging.getLogger(__name__)
@@ -40,40 +38,43 @@ class Cross:
 
 
 class MatchupError(Exception):
-    """This exception is used when a problem matching IMAGER data with
-    Cloudsat / CALIPSO data has occured."""
+    """This exception is used when a problem matching IMAGER data with Cloudsat / CALIPSO data has occured."""
+
     pass
 
 
 class TimeMatchError(Exception):
-    """This exception is used when the time in a file is not
-    the same as the time in the filename."""
+    """This exception is used when the time in a file is not the same as the time in the filename."""
+
     pass
 
 
 class InputError(Exception):
-    """This exception is used when the input does
-    not match what is expected."""
+    """This exception is used when the input does not match what is expected."""
+
     pass
 
 
 class ProcessingError(Exception):
     """This exception is used when the processing fails."""
+
     pass
 
 
 def elements_within_range(compare, base, _range):
-    """Compare arrays *compare* and *base*, elementwise. Returns an array with
+    """Compare arrays *compare* and *base*, elementwise.
+
+    Returns an array with
     elements set to True if compare[i] is within (base[i]-_range, base[i]+_range),
-    otherwise false."""
+    otherwise false.
+    """
     c = np.array(compare)
     b = np.array(base)
     return np.logical_and(c > b - _range, c < b + _range)
 
 
 def map_imager_distances(imager, lon, lat, radius_of_influence, n_neighbours=1):
-    """
-    Map IMAGER object *imager* to (lon, lat).
+    """Map IMAGER object to (lon, lat).
 
     A better use of this function would be to return *mapper*! But the calling
     functions would need some adjustment...
@@ -117,8 +118,7 @@ def map_imager(imager, lon, lat, radius_of_influence, n_neighbours=1):
 
 
 def write_match_objects(filename, datasets, groups, group_attrs_dict, SETTINGS=None):
-    """
-    Write match objects to HDF5 file *filename*.
+    """Write match objects to HDF5 file *filename*.
 
     Arguments:
 
