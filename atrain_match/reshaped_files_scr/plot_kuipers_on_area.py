@@ -51,7 +51,7 @@ cci_orbits = False
 method = 'BASIC'  # Nina or KG or BASIC==no filter
 DNT = "all"  # "all/day/night/twilight"
 filter_method = 'no'  # no or satz
-radius_km = 250  # t.ex 75 250 500 300
+radius_km = 300  # t.ex 75 250 500 300
 BASE_PLOT_DIR = ADIR + "/PICTURES_FROM_PYTHON/ATRAIN_MATCH_KUIPERS_PLOT_CCI_PPS_BrBG_2"
 
 PROCES_FOR_ART = False
@@ -218,11 +218,11 @@ elif isGAC_v2014_morning_sat:
 elif isGAC_v2014:
     num_files_to_read = 1
     isGAC = True
-    satellites = "claraa2_noaa18_noaa19"
+    satellites = "recalc_claraa2_noaa18_noaa19"
     ROOT_DIR = ADIR + "/DATA_MISC/reshaped_files/clara_a2_rerun/Reshaped_Files_CLARA_A2_final/"
     files = glob(ROOT_DIR + "merged/noaa18*h5")
     files = files + glob(ROOT_DIR + "merged/noaa19*h5")
-    #files = glob(ROOT_DIR + "merged/noaa19*2014*h5")
+    files = glob(ROOT_DIR + "merged/noaa19*2014*h5")
     if cci_orbits:
         satellites = "part_claraa2_noaa18_noaa19"
         files = glob(ROOT_DIR + "merged/noaa18*200*h5")  # 06, 07, 08, 09
@@ -311,6 +311,7 @@ if num_files_to_read != 1:
     pplot_obj.add_detection_stats_on_fib_lattice(temp_obj)
 
 pplot_obj.flattice.calculate_cds()
+print(np.mean(pplot_obj.flattice.cds), np.median(pplot_obj.flattice.cds))
 pplot_obj.flattice.remap_and_plot_score_on_several_areas(vmin=0, vmax=5.0, score='cds')
 
 pplot_obj.flattice.calculate_ctth_pe1()
@@ -389,6 +390,7 @@ pplot_obj.flattice.calculate_far_clear()
 pplot_obj.flattice.remap_and_plot_score_on_several_areas(score='FARclear', vmax=0.5)
 pplot_obj.flattice.calculate_rms()
 pplot_obj.flattice.remap_and_plot_score_on_several_areas(score='RMS', vmax=50.0, screen_out_valid=True)
+pplot_obj.flattice.write_fibbonacci_grid()
 
 name = "fig_%s_ccm_%s_%sfilter_dnt_%s_r%skm_" % (
     pplot_obj.flattice.satellites,

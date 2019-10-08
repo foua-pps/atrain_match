@@ -17,6 +17,7 @@
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
 import numpy as np
 import copy
+import h5py
 from pyresample import utils
 from pyresample.geometry import SwathDefinition
 from pyresample.kd_tree import get_neighbour_info
@@ -37,6 +38,7 @@ from atrain_match.utils.get_flag_info import (get_calipso_low_clouds,
                                               get_calipso_clouds_of_type_i,
                                               get_calipso_low_clouds,
                                               get_calipso_high_clouds)
+COMPRESS_LVL = 6
 cots = [0.0,0.05,0.10,0.15,0.20,0.25,0.30,0.35,0.40,0.45,0.50,0.60,0.70,0.80,0.90,1.0,2.0,3.0,4.0,5.0]
 cots_mid = []
 for ind, filtcot in enumerate(cots):
@@ -44,7 +46,7 @@ for ind, filtcot in enumerate(cots):
         filtcot_upper = 999.999
     else:    
         filtcot_upper = cots[ind+1]         
-    cots_mid += [0.5 * (filtcot + filtcot_upper) ]   
+    cots_mid += ["{:0.3f}".format(0.5 * (filtcot + filtcot_upper))]   
 
 print(matplotlib.rcParams)
 matplotlib.rcParams.update({'image.cmap': "BrBG"})
@@ -83,6 +85,7 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
             'new_false_clouds': None,
             'lats': None,
             'lons': None}
+        
 
     def get_some_info_from_caobj(self, match_calipso, PROCES_FOR_ART=False, PROCES_FOR_PRESSENTATIONS=False):
         self.set_false_and_missed_cloudy_and_clear(match_calipso=match_calipso, PROCES_FOR_ART=PROCES_FOR_ART,
@@ -557,6 +560,39 @@ class ppsStatsOnFibLatticeObject(DataObject):
             'N_clouds': None,
             'N': None,
             'Kuipers': None}
+
+
+            
+    def write_fibbonacci_grid(self, filename=None):
+        """Write match objects to HDF5 file *filename*."""
+        # pplot_obj.flattice.set_flattice(radius_km=radius_km)
+        # pplot_obj.flattice.PLOT_DIR = BASE_PLOT_DIR
+        # pplot_obj.flattice.DNT = DNT
+        # pplot_obj.flattice.satellites = satellites
+        # pplot_obj.flattice.filter_method = filter_method
+        # pplot_obj.flattice.cc_method = method
+        # pplot_obj.flattice.cotfilt_value = chosen_cot # Testing adding extra parameter
+        # plot_obj.flattice.isGAC = isGAC
+        if filename is None:
+            filename = "%s/h5files/f_lattice_%s_ccm_%s_%sfilter_dnt_%s_r%skm.h5" % (
+                self.PLOT_DIR, self.satellites, self.cc_method, self.filter_method,
+                self.DNT,  self.radius_km)
+        self.h5_file_file = filename
+        with h5py.File(filename, 'w') as f:
+            for key in self.all_arrays.keys():
+                print(key)
+                data = self.all_arrays[key]
+                if  data is not None:
+                    if hasattr(data, 'keys'):
+                        # Some lattice data stored as dictionaries
+                        for key_inner in data.keys():
+                            f.create_dataset(key + str(key_inner), data=data[key_inner], compression=COMPRESS_LVL)                             
+                    elif np.size(data) > 1:    
+                        f.create_dataset(key, data=data, compression=COMPRESS_LVL)  
+                    else:                    
+                        f.create_dataset(key, data=data)                
+            #f.create_dataset('fibonacci_radius_km', self.radius_km)
+            f.close()
 
     def set_flattice(self, radius_km=200):
         self.radius_km = radius_km
