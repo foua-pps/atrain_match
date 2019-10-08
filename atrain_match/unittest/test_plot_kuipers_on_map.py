@@ -20,32 +20,32 @@
 #
 import numpy as np
 import unittest
-from atrain_match.reshaped_files_plotting.plot_kuipers_on_area_util import ppsStatsOnFibLatticeObject
+from atrain_match.reshaped_files_plotting.plot_kuipers_on_area_util import StatsOnFibonacciLattice
 
 
 class test_kuipers_plot_on_map(unittest.TestCase):
 
     def setUp(self):
-        self.area = ppsStatsOnFibLatticeObject()
-        self.area.N_detected_clouds = np.array([10, 1000, 1000, 1000, 1000, 1000])
-        self.area.N_undetected_clouds = np.array([1000, 100, 100, 100, 100, 100])
-        self.area.N_detected_clear = np.array([20, 80, 100, 0, 200, 100])
-        self.area.N_false_clouds = np.array([80, 20, 1, 1, 200, 300])
+        self.area = StatsOnFibonacciLattice()
+        self.area.num_detected_clouds = np.array([10, 1000, 1000, 1000, 1000, 1000])
+        self.area.num_undetected_clouds = np.array([1000, 100, 100, 100, 100, 100])
+        self.area.num_detected_clear = np.array([20, 80, 100, 0, 200, 100])
+        self.area.num_false_clouds = np.array([80, 20, 1, 1, 200, 300])
 
         dummy = 0 * np.array([80, 20, 1, 1, 200, 300])
-        self.area.Sum_ctth_mae_low = dummy
-        self.area.Sum_ctth_mae_high = dummy
-        self.area.Sum_ctth_mae = dummy
-        self.area.Sum_ctth_mae_diff = dummy
+        self.area.sum_ctth_mae_low = dummy
+        self.area.sum_ctth_mae_high = dummy
+        self.area.sum_ctth_mae = dummy
+        self.area.sum_ctth_mae_diff = dummy
 
-        self.area.Sum_ctth_bias_low = dummy
-        self.area.Sum_lapse_bias_low = dummy
-        self.area.Sum_ctth_bias_temperature_low = dummy
-        self.area.Sum_ctth_bias_temperature_low_t11 = dummy
+        self.area.sum_ctth_bias_low = dummy
+        self.area.sum_lapse_bias_low = dummy
+        self.area.sum_ctth_bias_temperature_low = dummy
+        self.area.sum_ctth_bias_temperature_low_t11 = dummy
         self.area.Min_lapse_rate = dummy
-        self.area.N_new_detected_clouds = dummy
-        self.area.N_new_false_clouds = dummy
-        self.area.N_detected_height_low = dummy
+        self.area.num_new_detected_clouds = dummy
+        self.area.num_new_false_clouds = dummy
+        self.area.num_detected_height_low = dummy
 
     def test_calculate_kuipers(self):
         self.area.calculate_kuipers()

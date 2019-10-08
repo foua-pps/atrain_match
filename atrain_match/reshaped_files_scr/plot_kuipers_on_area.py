@@ -26,7 +26,7 @@ import numpy as np
 from atrain_match.matchobject_io import (read_truth_imager_match_obj,
                                          TruthImagerTrackObject)
 from atrain_match.reshaped_files_scr.plot_kuipers_on_area_util import (PerformancePlottingObject,
-                                                                       ppsMatch_Imager_CalipsoObject)
+                                                                       MatchImagerCalipso)
 
 cots = [0.0, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40,
         0.45, 0.50, 0.60, 0.70, 0.80, 0.90, 1.0, 2.0, 3.0, 4.0, 5.0]
@@ -251,7 +251,7 @@ pplot_obj.flattice.cotfilt_value = chosen_cot  # Testing adding extra parameter
 pplot_obj.flattice.isGAC = isGAC
 
 match_calipso = TruthImagerTrackObject()
-temp_obj = ppsMatch_Imager_CalipsoObject()
+temp_obj = MatchImagerCalipso()
 temp_obj.DNT = pplot_obj.flattice.DNT
 temp_obj.satellites = pplot_obj.flattice.satellites
 temp_obj.filter_method = pplot_obj.flattice.filter_method
@@ -347,7 +347,7 @@ if 'modis' in satellites and 1 == 2:
     pplot_obj.flattice.remap_and_plot_score_on_several_areas(score='increased_Hitrate', vmin=-0.05, vmax=0.05)
 
 pplot_obj.flattice.calculate_height_mae()
-pplot_obj.flattice.remap_and_plot_score_on_several_areas(vmin=00.0, vmax=500.0, score='N_detected_height_both')
+pplot_obj.flattice.remap_and_plot_score_on_several_areas(vmin=00.0, vmax=500.0, score='num_detected_height_both')
 pplot_obj.flattice.remap_and_plot_score_on_several_areas(vmin=-1500.0, vmax=1500.0, score='ctth_mae_diff')
 pplot_obj.flattice.remap_and_plot_score_on_several_areas(vmin=000.0, vmax=2500.0, score='ctth_mae')
 pplot_obj.flattice.remap_and_plot_score_on_several_areas(vmin=000.0, vmax=2000.0, score='ctth_mae_low')
