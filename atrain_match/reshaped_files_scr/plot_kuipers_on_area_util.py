@@ -661,10 +661,14 @@ class StatsOnFibonacciLattice(DataObject):
 
     def _remap_a_score_on_an_area(self, plot_area_name='npole', vmin=0.0, vmax=1.0,
                                   score='Kuipers'):
-        from pyresample geometry
-        from atrain_match.config import AREA_CONFIG_FILE_PLOTS_Onum_AREA
+        from pyresample import geometry
+        from atrain_match.config import AREA_CONFIG_FILE_PLOTS_ON_AREA
         from pyresample import load_area
-        area_def = load_area(AREA_CONFIG_FILE_PLOTS_Onum_AREA, plot_area_name)
+        try:
+            area_def = load_area(AREA_CONFIG_FILE_PLOTS_ON_AREA, plot_area_name)
+        except AttributeError as e:
+            print("Have you set AREA_CONFIG_FILE_PLOTS_ON_AREA?")
+            raise e
         data = getattr(self, score)
         data = data.copy()
         # warning data seem to be streched between vmax and vmin!!
