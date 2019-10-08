@@ -361,23 +361,29 @@ def get_calipso_low_medium_high_classification(match_calipso):
 
 
 def get_cloudsat_low_medium_high_classification(match_clsat):
+    """Get low, medium and high clouds from CPR (CloudSat)."""
     mlh_class = {}
-    if not hasattr(match_clsat.imager, 'segment_nwp_h440'):
-        return None
-    if match_clsat.imager.all_arrays['segment_nwp_h440'] is None:
-        return None
+    h440 = None
+    h680 = None    
+    if (hasattr(match_clsat.imager, 'segment_nwp_h440') and
+        match_clsat.imager.all_arrays['segment_nwp_h440'] is not None:
+        h680 = match_clsat.imager.all_arrays['segment_nwp_h680']
+        h440 = match_clsat.imager.all_arrays['segment_nwp_h440']
+    if (hasattr(match_clsat.imager, 'nwp_h440') and
+        match_clsat.imager.all_arrays['nwp_h440'] is not None:
+        h680 = match_clsat.imager.all_arrays['nwp_h680']
+        h440 = match_clsat.imager.all_arrays['nwp_h440']
+
     clsat_h = match_clsat.cloudsat.validation_height
-    mlh_class['low_clouds'] = np.less_equal(clsat_h, match_clsat.imager.all_arrays['segment_nwp_h680'])
-    mlh_class['medium_clouds'] = np.logical_and(np.greater(clsat_h, match_clsat.imager.all_arrays['segment_nwp_h680']),
-                                                np.less(clsat_h, match_clsat.imager.all_arrays['segment_nwp_h440']))
-    mlh_class['high_clouds'] = np.greater_equal(clsat_h, match_clsat.imager.all_arrays['segment_nwp_h440'])
+        mlh_class['low_clouds'] = np.less_equal(clsat_h, h680)
+    mlh_class['medium_clouds'] = np.logical_and(np.greater(clsat_h, h680),
+                                                np.less(clsat_h, h440))
+    mlh_class['high_clouds'] = np.greater_equal(clsat_h, h440)
     return mlh_class
 
-# cci FLAGS
-
-
 def get_land_coast_sea_info_cci2014(lsflag):
-    logger.info("Assuming cloudtype flags structure from CCI v2014?")
+    """Get land/sea/cost flag from CCI lsflag."""    
+    logger.info("Assuming cloudtype flags structure from CCI v3?")        
     land_flag = lsflag
     sea_flag = 1 - lsflag
     coast_flag = None
@@ -387,6 +393,7 @@ def get_land_coast_sea_info_cci2014(lsflag):
 
 
 def get_day_night_twilight_info_cci2014(sunz):
+    """Get day/night/twilight flag from sun zenith angle.""" 
     sunz = np.array(sunz)
     logger.info("Getting day/night info from sunz")
     no_qflag = np.zeros(sunz.shape)
@@ -405,6 +412,7 @@ def get_day_night_twilight_info_cci2014(sunz):
 
 
 def get_maia_ct_flag(ct_flag):
+    """Get maia cloud type flag."""
     # bits 4-8, start at 0 counting
     maia_ct_flag = (16 * np.bitwise_and(np.right_shift(ct_flag, 8), 1) +
                     8 * np.bitwise_and(np.right_shift(ct_flag, 7), 1) +
@@ -415,6 +423,7 @@ def get_maia_ct_flag(ct_flag):
 
 
 def get_day_night_twilight_info_maia(cm_flag):
+    """Get day/night/twilight flag from MAIA cm_flag.""" 
     # bit 13-14
     maia_cm_flag = (2 * np.bitwise_and(np.right_shift(cm_flag, 14), 1) +
                     1 * np.bitwise_and(np.right_shift(cm_flag, 13), 1))
@@ -430,6 +439,7 @@ def get_day_night_twilight_info_maia(cm_flag):
 
 
 def get_pixels_where_test_is_passed(cma_testlist, bit_nr=0):
+    """Get testflag for one CMA test.""" 
     # print bit_nr,
     # print
     test_was_fullfilled = (cma_testlist.astype(np.uint16) >> bit_nr & 1)
