@@ -38,7 +38,13 @@ from atrain_match.utils.get_flag_info import (get_calipso_low_clouds,
                                               get_calipso_low_clouds,
                                               get_calipso_high_clouds)
 cots = [0.0,0.05,0.10,0.15,0.20,0.25,0.30,0.35,0.40,0.45,0.50,0.60,0.70,0.80,0.90,1.0,2.0,3.0,4.0,5.0]
-
+cots_mid = []
+for ind, filtcot in enumerate(cots):
+    if ind == len(cots)-1:
+        filtcot_upper = 999.999
+    else:    
+        filtcot_upper = cots[ind+1]         
+    cots_mid += [0.5 * (filtcot + filtcot_upper) ]   
 
 print(matplotlib.rcParams)
 matplotlib.rcParams.update({'image.cmap': "BrBG"})
@@ -346,8 +352,9 @@ class ppsMatch_Imager_CalipsoObject(DataObject):
             detected_clouds = np.logical_and(isCalipsoCloudy, isCloudyPPS)
             undetected_clouds = np.logical_and(isCalipsoCloudy, isClearPPS)            
             # self.false_clouds = false_clouds[use]
-            self.detected_clouds_filtcot[filtcot] = detected_clouds[self.use]
-            self.undetected_clouds_filtcot[filtcot] = undetected_clouds[self.use]
+            filtcot_mid = cots_mid[ind]
+            self.detected_clouds_filtcot[filtcot_mid] = detected_clouds[self.use]
+            self.undetected_clouds_filtcot[filtcot_mid] = undetected_clouds[self.use]
             # self.detected_clear = detected_clear[use]                
 
     def set_r13_extratest(self, match_calipso):
@@ -577,7 +584,7 @@ class ppsStatsOnFibLatticeObject(DataObject):
         self.N_undetected_clouds = np.zeros(self.lats.shape)
         self.N_detected_clouds_filtcot = {}
         self.N_undetected_clouds_filtcot = {}
-        for cot in cots:
+        for cot in cots_mid:
             self.N_detected_clouds_filtcot[cot] = np.zeros(self.lats.shape)
             self.N_undetected_clouds_filtcot[cot] = np.zeros(self.lats.shape)
         self.N_detected_clear = np.zeros(self.lats.shape)
@@ -976,7 +983,8 @@ class ppsStatsOnFibLatticeObject(DataObject):
         self.np_float_array()
         the_mask = self.N_detected_clouds + self.N_undetected_clouds < 100
         cds = 0 * self.N_detected_clouds.copy()
-        for cot in cots[::-1]:
+        cots_largest_first = cots_mid[::-1]
+        for cot in cots_largest_first:
             update = np.logical_and(
                 self.N_detected_clouds_filtcot[cot] > 0,
                 self.N_detected_clouds_filtcot[cot] >= self.N_undetected_clouds_filtcot[cot])
@@ -1164,7 +1172,7 @@ class PerformancePlottingObject:
         new_detected_clouds = my_obj.new_detected_clouds[valid_out]
         undetected_clouds_filtcot = {}
         detected_clouds_filtcot = {}
-        for cot in cots:
+        for cot in cots_mid:
             undetected_clouds_filtcot[cot] = my_obj.undetected_clouds_filtcot[cot][valid_out]
             detected_clouds_filtcot[cot] = my_obj.detected_clouds_filtcot[cot][valid_out]
 
@@ -1249,7 +1257,7 @@ class PerformancePlottingObject:
             self.flattice.Sum_height_bias_type[cc_type][d] += np.sum(my_obj.height_bias_type[cc_type][ind])
             self.flattice.N_detected_height_type[cc_type][d] += np.sum(my_obj.detected_height_type[cc_type][ind])
             
-            for cot in cots:
+            for cot in cots_mid:
                 self.flattice.N_detected_clouds_filtcot[cot][d] += np.sum(detected_clouds_filtcot[cot][ind])
                 self.flattice.N_undetected_clouds_filtcot[cot][d] += np.sum(undetected_clouds_filtcot[cot][ind])
 
