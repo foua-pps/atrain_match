@@ -488,7 +488,7 @@ def read_truth_imager_match_obj(filename, truth='calipso',
                 atrain_match_name = dataset
                 if atrain_match_name in ["snow_ice_surface_type"]:
                     atrain_match_name = "nsidc_surface_type"
-                setattr(data_obj, atrain_match_name, group[dataset].value)
+                setattr(data_obj, atrain_match_name, group[dataset][...])
     retv.diff_sec_1970 = h5file['diff_sec_1970'].value
     h5file.close()
     return retv
