@@ -15,7 +15,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
-# from atrain_match.utils.common import InputError
+"""Reader for PPS cloudproducts and intermediate files."""
+
 from atrain_match.utils.runutils import do_some_geo_obj_logging
 import atrain_match.config as config
 import numpy as np
@@ -30,15 +31,9 @@ logger = logging.getLogger(__name__)
 ATRAIN_MATCH_NODATA = config.NODATA
 # logger.debug('Just so you know: this module has a logger...')
 
-DSEC_PER_AVHRR_SCALINE = 1.0/6. * 4  # A "work for the time being" solution.
-if config.RESOLUTION == 1:
-    DSEC_PER_AVHRR_SCALINE = 1.0 / 6.  # Full scan period, i.e. the time
-    # interval between two consecutive
-    # lines (sec)
-
 
 def get_satid_datetime_orbit_from_fname_pps(imager_filename, as_oldstyle=False):
-    # import runutils
+    """Get sattelite start time, orbit etc from PPS filename."""
     # satname, _datetime, orbit = runutils.parse_scene(imager_filename)
     # returnd orbit as int, loosing leeding zeros, use %05d to get it right.
     # Get satellite name, time, and orbit number from imager_file
@@ -81,8 +76,7 @@ def get_satid_datetime_orbit_from_fname_pps(imager_filename, as_oldstyle=False):
 
 
 def create_imager_time(obt, values=None):
-    """ Function to make crate a matrix with time for each pixel
-    from objects start anf end time """
+    """Make matrix with time for each pixel from start and end time."""
     if obt.sec1970_start < 0:
         obt.sec1970_start = calendar.timegm(values['date_time'])
     if obt.sec1970_end < obt.sec1970_start:
@@ -92,7 +86,10 @@ def create_imager_time(obt, values=None):
 
 
 class AllImagerData(object):
+    """Class to hold all imager cloudproduct data."""
+
     def __init__(self, array_dict=None):
+        """Init with data from array_dict, or empty."""
         self.latitude = None
         self.longitude = None
         self.nodata = None  # latlon nodata
@@ -115,7 +112,10 @@ class AllImagerData(object):
 
 
 class AuxiliaryObj(object):
+    """Class to hold auxiliary cloudproduct data."""
+
     def __init__(self, array_dict):
+        """Init with arrays from dictionary array_dict."""
         self.surftemp = None
         self.t500 = None
         self.t700 = None
@@ -161,6 +161,16 @@ class AuxiliaryObj(object):
 
 
 class SmallDataObject(object):
+    """Object to hold data, gain intercept etc.
+
+    This might be unneeded, as we now scale data directly when
+    reading.
+
+    TODO:
+        Remove
+
+    """
+
     def __init__(self):
         self.data = None
         self.gain = 1.0
@@ -170,6 +180,8 @@ class SmallDataObject(object):
 
 
 class ImagerAngObj(object):
+    """Class to hold imager angle data."""
+
     def __init__(self):
         self.satz = SmallDataObject()
         self.sunz = SmallDataObject()
@@ -179,17 +191,17 @@ class ImagerAngObj(object):
 
 
 class NewImagerData:
+    """Class to hold imager channel data."""
+
     def __init__(self):
-        self.des = ""
-        self.no_data = -999
-        self.missing_data = -999
-        self.nodata = -999
-        self.missingdata = -999
         self.channel = []
 
 
 class ImagerChannelData:
+    """Class to hold imager channel data for one channel."""
+
     def __init__(self):
+        """Init empty object."""
         self.channel = ""
         self.des = ""
         self.gain = 1.0
@@ -199,8 +211,10 @@ class ImagerChannelData:
 
 
 class CmaObj:
-    # skeleton container for v2018 cma
+    """Class to hold imager data for CMA and CMAPROB."""
+
     def __init__(self):
+        """Init all datasets to None."""
         self.cma_ext = None
         self.cma_bin = None
         self.cma_prob = None
@@ -214,8 +228,10 @@ class CmaObj:
 
 
 class CtypeObj:
-    # skeleton container for v2014 cloudtype
+    """Class to hold imager data for cloud type."""
+
     def __init__(self):
+        """Init all datasets to None."""
         self.cloudtype = None
         self.ct_statusflag = None
         self.ct_quality = None
@@ -224,8 +240,10 @@ class CtypeObj:
 
 
 class CtthObj:
-    # skeleton container for v2014 cloudtype
+    """Class to hold imager data for CTTH."""
+
     def __init__(self):
+        """Init all datasets to None."""
         self.height = None
         self.height_corr = None
         self.temperature = None
@@ -234,8 +252,10 @@ class CtthObj:
 
 
 class CppObj:
-    # skeleton container for v2018 cpp
+    """Class to hold imager data for CPP."""
+
     def __init__(self):
+        """Init all datasets to None."""
         self.cpp_cot = None
         self.cpp_cwp = None
         self.cpp_dcot = None
@@ -245,9 +265,6 @@ class CppObj:
         self.cpp_phase = None
         self.cpp_phase_extended = None
         self.cpp_reff = None
-
-# def read_ctth_v2012 might be needed?
-
 
 def read_ctth_h5(filename):
     h5file = h5py.File(filename, 'r')
@@ -282,6 +299,7 @@ def read_ctth_h5(filename):
 
 
 def read_ctth_nc(filename):
+    """Read for PPS CTTH from netcdf file."""
     pps_nc = netCDF4.Dataset(filename, 'r', format='NETCDF4')
     ctth = CtthObj()
     ctth.height = pps_nc.variables['ctth_alti'][0, :, :].astype(np.float)
@@ -326,6 +344,7 @@ def read_cloudtype_h5(filename):
 
 
 def read_cloudtype_nc(filename):
+    """Read for PPS cloud type from netcdf file."""
     pps_nc = netCDF4.Dataset(filename, 'r', format='NETCDF4')
     ctype = CtypeObj()
     ctype.cloudtype = pps_nc.variables['ct'][0, :, :]
@@ -371,6 +390,7 @@ def read_cmaprob_h5(filename, cma):
 
 
 def read_cmaprob_nc(filename, cma):
+    """Read for PPS cloud probability from netcdf file."""
     pps_nc = netCDF4.Dataset(filename, 'r', format='NETCDF4')
     if cma is None:
         cma = CmaObj()
@@ -383,6 +403,7 @@ def read_cmaprob_nc(filename, cma):
 
 
 def read_cma_nc(filename):
+    """Read for PPS cloud mask from netcdf file."""
     pps_nc = netCDF4.Dataset(filename, 'r', format='NETCDF4')
     cma = CmaObj()
     if 'cma_extended' not in pps_nc.variables.keys():
@@ -430,6 +451,7 @@ def read_cma_nc(filename):
 
 
 def read_imager_data_nc(pps_nc):
+    """Read for PPS level1c from netcdf file."""
     imager_data = NewImagerData()
     for var in pps_nc.variables.keys():
         if 'image' in var or hasattr(pps_nc.variables[var], "sensor"):
@@ -465,8 +487,7 @@ def read_imager_data_nc(pps_nc):
 
 
 def read_pps_angobj_nc(pps_nc):
-    """Read angles info from filename
-    """
+    """Read for PPS level1c from netcdf file."""
     angle_obj = ImagerAngObj()
     for varname in pps_nc.variables.keys():
         this_is = "non_angle_variable"
@@ -578,8 +599,7 @@ def read_pps_angobj_h5(filename):
 
 
 def read_pps_geoobj_nc(pps_nc):
-    """Read geolocation and time info from filename
-    """
+    """Read geolocation and time info from netcdf file."""
     all_imager_obj = AllImagerData()
 
     longitude = pps_nc.variables['lon'][::]
@@ -623,8 +643,7 @@ def read_pps_geoobj_nc(pps_nc):
 
 
 def read_pps_geoobj_h5(filename):
-    """Read geolocation and time info from filename
-    """
+    """Read geolocation and time info from filename hdf5."""
     h5file = h5py.File(filename, 'r')
     all_imager_obj = AllImagerData()
     in_fillvalue1 = h5file['where/lon/what'].attrs['nodata']
@@ -684,6 +703,7 @@ def read_cpp_h5_one_var(h5file, cpp_key):
 
 
 def read_cpp_nc_one_var(ncFile, cpp_key):
+    """Read one CPP dataset from netcdf file."""
     density = 1e3
     if cpp_key in ncFile.variables.keys():
         logger.debug("Read %s", cpp_key)
@@ -703,6 +723,7 @@ def read_cpp_nc_one_var(ncFile, cpp_key):
 
 
 def read_cpp_nc(filename):
+    """Read all CPP datasets from netcdf file."""
     pps_nc_cpp = netCDF4.Dataset(filename, 'r', format='NETCDF4')
     cpp_obj = CppObj()
     for cpp_key in cpp_obj.__dict__.keys():
@@ -731,6 +752,7 @@ def read_nwp_h5(filename, nwp_key):
 
 
 def read_etc_nc(ncFile, etc_key):
+    """Read a datasets from netcdf file."""
     if etc_key in ncFile.variables.keys():
         logger.debug("Read %s", etc_key)
         nwp_var = ncFile.variables[etc_key][0, :, :]
@@ -907,6 +929,7 @@ def read_imager_data_h5(filename):
 
 
 def read_all_intermediate_files(pps_files, SETTINGS):
+    """Read data sets from pps intermediate files."""
 
     CTTH_TYPES = SETTINGS['CTTH_TYPES']
     aux_dict = {}
@@ -1020,6 +1043,7 @@ def read_all_intermediate_files(pps_files, SETTINGS):
 
 
 def pps_read_all(pps_files, imager_file, SETTINGS):
+    """Read all PPS data and return cloudproducts object."""
     logger.info("Read Imager geolocation data")
     if '.nc' in imager_file:
         pps_nc = netCDF4.Dataset(imager_file, 'r', format='NETCDF4')
