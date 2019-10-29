@@ -20,7 +20,7 @@
 # This program calculates basic statistics for the cloud top (CTH) product for
 # each month
 
-from statistics.orrb_stat_class import OrrbStats
+from atrain_match.statistics.orrb_stat_class import OrrbStats
 import numpy as np
 # -----------------------------------------------------
 

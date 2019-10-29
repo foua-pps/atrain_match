@@ -32,7 +32,7 @@ def compile_stats(results_files, write=True, outfile_cfc="merged_sat_file_cfc", 
 
     # Always do CFC statistics, as it then that we read data
     # print("=========== Cloud fraction ============")
-    from statistics import orrb_CFC_stat
+    from atrain_match.statistics import orrb_CFC_stat
     # read all results statistics only for cfc, resuse for cth, cty and cph
     cfc_stats = orrb_CFC_stat.CloudFractionStats(results_files=results_files, truth_sat=truth_sat)
     cfc_stats.write(outfile_cfc)
@@ -40,21 +40,21 @@ def compile_stats(results_files, write=True, outfile_cfc="merged_sat_file_cfc", 
     if truth_sat not in ['amsr']:
         # note = "========== Cloud top height ==========="
         compiled_cth_file_name = outfile_cfc.replace('_cfc_', '_cth_')
-        from statistics import orrb_CTH_stat
+        from atrain_match.statistics import orrb_CTH_stat
         cth_stats = orrb_CTH_stat.CloudTopStats(ac_data=cfc_stats.ac_data, truth_sat=truth_sat)
         cth_stats.write(compiled_cth_file_name)
 
     if truth_sat not in ['amsr']:
         # print("============= Cloud type ==============")
         compiled_cty_file_name = outfile_cfc.replace('_cfc_', '_cty_')
-        from statistics import orrb_CTY_stat
+        from atrain_match.statistics import orrb_CTY_stat
         cty_stats = orrb_CTY_stat.CloudTypeStats(ac_data=cfc_stats.ac_data, truth_sat=truth_sat)
         cty_stats.write(compiled_cty_file_name)
 
     if truth_sat not in ['amsr']:
         # note = "========== Cloud phase ==========="
         compiled_cph_file_name = outfile_cfc.replace('_cfc_', '_cph_')
-        from statistics import orrb_CPH_stat
+        from atrain_match.statistics import orrb_CPH_stat
         cth_stats = orrb_CPH_stat.CloudPhaseStats(ac_data=cfc_stats.ac_data, truth_sat=truth_sat)
         cth_stats.write(compiled_cph_file_name)
 
@@ -62,7 +62,7 @@ def compile_stats(results_files, write=True, outfile_cfc="merged_sat_file_cfc", 
     if truth_sat in ['amsr']:
         # note = "========== Cloud lwp ==========="
         compiled_lwp_file_name = outfile_cfc.replace('_cfc_', '_lwp_')
-        from statistics import orrb_LWP_stat
+        from atrain_match.statistics import orrb_LWP_stat
         cth_stats = orrb_LWP_stat.CloudLwpStats(ac_data=cfc_stats.ac_data, truth_sat=truth_sat)
         cth_stats.write(compiled_lwp_file_name)
 

@@ -21,7 +21,7 @@
 # each month
 
 import math
-from statistics.orrb_stat_class import OrrbStats
+from atrain_match.statistics.orrb_stat_class import OrrbStats
 import numpy as np
 # -----------------------------------------------------
 

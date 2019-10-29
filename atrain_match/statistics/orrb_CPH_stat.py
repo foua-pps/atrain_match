@@ -22,7 +22,7 @@
 
 import numpy as np
 
-from statistics.orrb_stat_class import OrrbStats
+from atrain_match.statistics.orrb_stat_class import OrrbStats
 
 # -----------------------------------------------------
 
