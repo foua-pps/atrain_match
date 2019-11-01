@@ -97,79 +97,71 @@ class CloudTopStats(OrrbStats):
         self.mae_cal_low = {}
         self.mae_cal_medium = {}
         self.mae_cal_high = {}
+        self.pe250_cal_all = {}
+        self.pe250_cal_low = {}
+        self.pe250_cal_medium = {}
+        self.pe250_cal_high = {}
+        self.pe2500_cal_all = {}
+        self.pe2500_cal_low = {}
+        self.pe2500_cal_medium = {}
+        self.pe2500_cal_high = {}
+        self.pe500_cal_all = {}
+        self.pe500_cal_low = {}
+        self.pe500_cal_medium = {}
+        self.pe500_cal_high = {}
+        self.pe1000_cal_all = {}
+        self.pe1000_cal_low = {}
+        self.pe1000_cal_medium = {}
+        self.pe1000_cal_high = {}
+
         for tc in cal_all_samples.keys():
+            for clev in ["all", "low", "medium", "high"]:
             # numpy.divide handles potential division by zero
-            self.retrieval_rate_all[tc] = (
-                cal_all_samples[tc] /
-                (cal_all_samples[tc] + n_missed_ctth_all[tc]))
-            self.estimate_pod_cloudy_all[tc] = (
-                cal_all_samples[tc] /
-                (cal_all_samples[tc] + n_missed_cma_all[tc]))
-            self.bias_cal_all[tc] = np.divide(
-                mean_error_cal_all_sum[tc], cal_all_samples[tc])
-            self.mae_cal_all[tc] = np.divide(
-                mae_error_cal_all_sum[tc], cal_all_samples[tc])
-            self.rms_cal_all[tc] = math.sqrt(
-                np.divide(rms_error_cal_all_sum[tc], cal_all_samples[tc]))
-            self.bcrms_cal_all[tc] = bias_corrected_rms(
-                self.rms_cal_all[tc],
-                self.bias_cal_all[tc],
-                cal_all_samples[tc])
-        for tc in cal_low_samples.keys():
-            self.retrieval_rate_low[tc] = (
-                cal_low_samples[tc] /
-                (cal_low_samples[tc] + n_missed_ctth_low[tc]))
-            self.retrieval_rate_medium[tc] = (
-                cal_medium_samples[tc] /
-                (cal_medium_samples[tc] + n_missed_ctth_medium[tc]))
-            self.retrieval_rate_high[tc] = (
-                cal_high_samples[tc] /
-                (cal_high_samples[tc] + n_missed_ctth_high[tc]))
-
-            self.estimate_pod_cloudy_low[tc] = (
-                cal_low_samples[tc] /
-                (cal_low_samples[tc] + n_missed_cma_low[tc]))
-            self.estimate_pod_cloudy_medium[tc] = (
-                cal_medium_samples[tc] /
-                (cal_medium_samples[tc] + n_missed_cma_medium[tc]))
-            self.estimate_pod_cloudy_high[tc] = (
-                cal_high_samples[tc] /
-                (cal_high_samples[tc] + n_missed_cma_high[tc]))
-
-            self.bias_cal_low[tc] = np.divide(
-                mean_error_cal_low_sum[tc], cal_low_samples[tc])
-            self.bias_cal_medium[tc] = np.divide(
-                mean_error_cal_medium_sum[tc], cal_medium_samples[tc])
-            self.bias_cal_high[tc] = np.divide(
-                mean_error_cal_high_sum[tc], cal_high_samples[tc])
-
-            self.rms_cal_low[tc] = math.sqrt(
-                np.divide(rms_error_cal_low_sum[tc], cal_low_samples[tc]))
-            self.rms_cal_medium[tc] = math.sqrt(
-                np.divide(rms_error_cal_medium_sum[tc],
-                          cal_medium_samples[tc]))
-            self.rms_cal_high[tc] = math.sqrt(
-                np.divide(rms_error_cal_high_sum[tc], cal_high_samples[tc]))
-
-            self.mae_cal_low[tc] = np.divide(mae_error_cal_low_sum[tc],
-                                             cal_low_samples[tc])
-            self.mae_cal_medium[tc] = np.divide(mae_error_cal_medium_sum[tc],
-                                                cal_medium_samples[tc])
-            self.mae_cal_high[tc] = np.divide(mae_error_cal_high_sum[tc],
-                                              cal_high_samples[tc])
-
-            self.bcrms_cal_low[tc] = bias_corrected_rms(
-                self.rms_cal_low[tc],
-                self.bias_cal_low[tc],
-                cal_low_samples[tc])
-            self.bcrms_cal_medium[tc] = bias_corrected_rms(
-                self.rms_cal_medium[tc],
-                self.bias_cal_medium[tc],
-                cal_medium_samples[tc])
-            self.bcrms_cal_high[tc] = bias_corrected_rms(
-                self.rms_cal_high[tc],
-                self.bias_cal_high[tc],
-                cal_high_samples[tc])
+                N_CTTH = self.ac_data["cal_{clev}_samples".format(clev=clev)][tc]
+                stats = getattr(self, "retrieval_rate_{clev}".format(clev=clev))
+                stats[tc] = (
+                    N_CTTH /
+                    (N_CTTH + 
+                     self.ac_data["n_missed_ctth_{clev}".format(clev=clev)][tc]))
+                stats = getattr(self, "estimate_pod_cloudy_{clev}".format(clev=clev))
+                stats[tc] = (
+                    N_CTTH /
+                    (N_CTTH + 
+                     self.ac_data["n_missed_cma_{clev}".format(clev=clev)][tc]))
+                stats = getattr(self, "bias_cal_{clev}".format(clev=clev))
+                stats[tc] = np.divide(
+                    self.ac_data["mean_error_cal_{clev}_sum".format(clev=clev)][tc], 
+                    N_CTTH)
+                stats = getattr(self, "mae_cal_{clev}".format(clev=clev))
+                stats[tc] = np.divide(
+                    self.ac_data["mae_error_cal_{clev}_sum".format(clev=clev)][tc], 
+                    N_CTTH)
+                stats = getattr(self, "rms_cal_{clev}".format(clev=clev))
+                stats[tc] = math.sqrt(
+                    np.divide(self.ac_data["rms_error_cal_{clev}_sum".format(clev=clev)][tc], 
+                              N_CTTH))
+                stats = getattr(self, "bcrms_cal_{clev}".format(clev=clev))
+                stats[tc] = bias_corrected_rms(
+                    getattr(self, "rms_cal_{clev}".format(clev=clev))[tc],
+                    getattr(self, "bias_cal_{clev}".format(clev=clev))[tc],
+                    N_CTTH)
+                stats = getattr(self, "pe250_cal_{clev}".format(clev=clev))
+                stats[tc] = np.divide(
+                     100.0*self.ac_data["n_over_250_cal_{clev}".format(clev=clev)][tc], 
+                    N_CTTH)
+                stats = getattr(self, "pe500_cal_{clev}".format(clev=clev))
+                stats[tc] = np.divide(
+                     100.0*self.ac_data["n_over_500_cal_{clev}".format(clev=clev)][tc], 
+                    N_CTTH)
+                stats = getattr(self, "pe2500_cal_{clev}".format(clev=clev))
+                stats[tc] = np.divide(
+                     100.0*self.ac_data["n_over_2500_cal_{clev}".format(clev=clev)][tc], 
+                    N_CTTH)    
+                stats = getattr(self, "pe1000_cal_{clev}".format(clev=clev))
+                stats[tc] = np.divide(
+                    100.0*self.ac_data["n_over_1000_cal_{clev}".format(clev=clev)][tc], 
+                    N_CTTH)
+                
 
     def printout(self):
         lines = []
@@ -190,6 +182,10 @@ class CloudTopStats(OrrbStats):
             lines.append("Mean absolute error low-level cases: %.0f" % self.mae_cal_low[tc])
             lines.append("Mean absolute error medium-level cases: %.0f" % self.mae_cal_medium[tc])
             lines.append("Mean absolute error high-level cases: %.0f" % self.mae_cal_high[tc])
+            lines.append("Part of error above 500m total cases: %.0f" % self.pe500_cal_all[tc])
+            lines.append("Part of error above 500m low-level cases: %.0f" % self.pe500_cal_low[tc])
+            lines.append("Part of error above 500m medium-level cases: %.0f" % self.pe500_cal_medium[tc])
+            lines.append("Part of error above 500m high-level cases: %.0f" % self.pe500_cal_high[tc])
             lines.append("Mean error total cases: %.0f" % self.bias_cal_all[tc])
             lines.append("Mean error low-level cases: %.0f" % self.bias_cal_low[tc])
             lines.append("Mean error medium-level cases: %.0f" % self.bias_cal_medium[tc])
@@ -206,6 +202,18 @@ class CloudTopStats(OrrbStats):
             lines.append("Imager estimated POD-cloudy low-level cases: %3.2f" % self.estimate_pod_cloudy_low[tc])
             lines.append("Imager estimated POD-cloudy medium-level cases: %3.2f" % self.estimate_pod_cloudy_medium[tc])
             lines.append("Imager estimated POD-cloudy high-level cases: %3.2f" % self.estimate_pod_cloudy_high[tc])
+            lines.append("Part of error above 2500m total cases: %.0f" % self.pe2500_cal_all[tc])
+            lines.append("Part of error above 2500m low-level cases: %.0f" % self.pe2500_cal_low[tc])
+            lines.append("Part of error above 2500m medium-level cases: %.0f" % self.pe2500_cal_medium[tc])
+            lines.append("Part of error above 2500m high-level cases: %.0f" % self.pe2500_cal_high[tc])
+            lines.append("Part of error above 250m total cases: %.0f" % self.pe250_cal_all[tc])
+            lines.append("Part of error above 250m low-level cases: %.0f" % self.pe250_cal_low[tc])
+            lines.append("Part of error above 250m medium-level cases: %.0f" % self.pe250_cal_medium[tc])
+            lines.append("Part of error above 250m high-level cases: %.0f" % self.pe250_cal_high[tc])
+            lines.append("Part of error above 1000m total cases: %.0f" % self.pe1000_cal_all[tc])
+            lines.append("Part of error above 1000m low-level cases: %.0f" % self.pe1000_cal_low[tc])
+            lines.append("Part of error above 1000m medium-level cases: %.0f" % self.pe1000_cal_medium[tc])
+            lines.append("Part of error above 1000m high-level cases: %.0f" % self.pe1000_cal_high[tc])
             lines.append("")
         for tc in self.cal_all_samples.keys():
             if tc in self.cal_low_samples.keys():

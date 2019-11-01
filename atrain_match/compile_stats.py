@@ -98,9 +98,6 @@ if __name__ == '__main__':
                         nargs='?', required=False,
                         help='calculate the statistic for the optical '
                         'thickness filters')
-    parser.add_argument('--write', '-w', const=True, nargs='?',
-                        required=False,
-                        help="Depricated: write results to file")
     (options) = parser.parse_args()
 
     from atrain_match.utils.runutils import read_config_info
@@ -112,8 +109,6 @@ if __name__ == '__main__':
         New_DNT_FLAG = ['']
     else:
         New_DNT_FLAG = ['', '_DAY', '_NIGHT', '_TWILIGHT']
-    if options.write:
-        logger.warning("Results always written to file, -w flag is depricated")
     if options.basic:
         modes_list.append('BASIC')
     if options.standard:
@@ -209,5 +204,3 @@ if __name__ == '__main__':
                 min_opt_depth="")
             compiled_file_cfc = os.path.join(compiled_dir, compiled_file_cfc)
             compile_stats(results_files, outfile_cfc=compiled_file_cfc, truth_sat=truth_sat)
-    if options.write:
-        logger.warning("Results always written to file, -w flag is depricated")

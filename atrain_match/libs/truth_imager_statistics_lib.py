@@ -61,6 +61,10 @@ def calculate_ctth_stats(val_subset, imager_ctth_m_above_seasurface, truth_sat_v
     #        RMS_difference_biascorr = -9.0
     diff_squared_biascorr = np.array([-9.0])
     MAE = -9
+    n_above_250 = 0
+    n_above_500 = 0
+    n_above_1000 = 0
+    n_above_2500 = 0
     if len(truth_sat_validation_height_work) > 0:
         if len(imager_height_work) > 20:
             corr_caliop_imager = np.corrcoef(truth_sat_validation_height_work,
@@ -73,18 +77,28 @@ def calculate_ctth_stats(val_subset, imager_ctth_m_above_seasurface, truth_sat_v
         diff_squared = diff * diff
         RMS_difference = np.sqrt(np.mean(diff_squared))
         diff_squared_biascorr = (diff - bias) * (diff - bias)
+        n_above_250 = np.sum(np.abs(diff) > 250)
+        n_above_500 = np.sum(np.abs(diff) > 500)
+        n_above_1000 = np.sum(np.abs(diff) > 1000)
+        n_above_2500 = np.sum(np.abs(diff) > 2500)
 
 
 #        RMS_difference_biascorr = np.sqrt(np.mean(diff_squared_biascorr))
 
     # return (corr_caliop_imager, bias, RMS_difference, imager_height_work, diff_squared_biascorr)
-    return "%3.2f %3.2f %3.2f %d %d %d %3.2f" % (corr_caliop_imager,
-                                                 bias,
-                                                 RMS_difference,
-                                                 len(imager_height_work),
-                                                 n_only_truth_had_height,
-                                                 n_only_truth_had_height_both_had_cloud,
-                                                 MAE)
+    return "%3.2f %3.2f %3.2f %d %d %d %3.2f %d %d %d %d" % (
+        corr_caliop_imager,
+        bias,
+        RMS_difference,
+        len(imager_height_work),
+        n_only_truth_had_height,
+        n_only_truth_had_height_both_had_cloud,
+        MAE,
+        n_above_250,
+        n_above_500,
+        n_above_1000,
+        n_above_2500,
+    )
 
 
 def get_subset_for_mode(match_obj, mode):
