@@ -418,16 +418,16 @@ def get_day_night_twilight_info_cci2014(sunz):
     sunz = np.array(sunz)
     logger.info("Getting day/night info from sunz")
     no_qflag = np.zeros(sunz.shape)
-    day_flag = np.where(np.less_equal(sunz, 80), 1, 0)
-    night_flag = np.where(np.greater_equal(sunz, 95), 1, 0)
+    day_flag = np.where(np.less_equal(sunz, 80), True, False)
+    night_flag = np.where(np.greater_equal(sunz, 95), True, False)
     twilight_flag = np.where(
         np.logical_and(np.greater(sunz, 80),
                        np.less(sunz, 95)),
-        1, 0)
-    no_qflag = np.where(np.isnan(sunz), 1, 0)
-    logger.debug("number of day {:d}".format(len(sunz[day_flag])))
-    logger.debug("number of night {:d}".format(len(sunz[night_flag])))
-    logger.debug("number of twilight {:d}".format(len(sunz[twilight_flag])))
+        True, False)
+    no_qflag = np.where(np.isnan(sunz), True, False)
+    logger.debug("number of day {:d}".format(np.sum(day_flag)))
+    logger.debug("number of night {:d}".format(np.sum(night_flag)))
+    logger.debug("number of twilight {:d}".format(np.sum(twilight_flag)))
     all_dnt_flag = np.bool_(np.ones(sunz.shape))
     return (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag)
 
@@ -448,12 +448,12 @@ def get_day_night_twilight_info_maia(cm_flag):
     # bit 13-14
     maia_cm_flag = (2 * np.bitwise_and(np.right_shift(cm_flag, 14), 1) +
                     1 * np.bitwise_and(np.right_shift(cm_flag, 13), 1))
-    day_flag = np.where(maia_cm_flag == 2, 1, 0)  # include also sunglint in day ==3
-    night_flag = np.where(maia_cm_flag == 0, 1, 0)
-    twilight_flag = np.where(maia_cm_flag == 1, 1, 0)
-    logger.debug("number of day {:d}".format(len(maia_cm_flag[day_flag])))
-    logger.debug("number of night {:d}".format(len(maia_cm_flag[night_flag])))
-    logger.debug("number of twilight {:d}".format(len(maia_cm_flag[twilight_flag])))
+    day_flag = np.where(maia_cm_flag == 2, True, False)  # include also sunglint in day ==3
+    night_flag = np.where(maia_cm_flag == 0, True, False)
+    twilight_flag = np.where(maia_cm_flag == 1, True, False)
+    logger.debug("number of day {:d}".format(np.sum(day_flag)))
+    logger.debug("number of night {:d}".format(np.sum(night_flag)))
+    logger.debug("number of twilight {:d}".format(np.sum(twilight_flag)))
     all_dnt_flag = np.ones(maia_cm_flag.shape)
     no_qflag = 0 * all_dnt_flag  # dummy flag
     return (no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag)

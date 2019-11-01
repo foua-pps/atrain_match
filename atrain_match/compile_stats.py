@@ -82,7 +82,7 @@ if __name__ == '__main__':
                         help="Calculate the statistic for mode BASIC")
     parser.add_argument('--satz', '-z', const=True, nargs='?',
                         required=False,
-                        help="Calculate the statistic for mode BASIC")
+                        help="Calculate the statistic for mode SATZ")
     parser.add_argument('--standard', '-t', const=True, nargs='?',
                         required=False,
                         help="Calculate the statistic for mode STANDARD")
