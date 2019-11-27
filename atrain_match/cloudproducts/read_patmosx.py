@@ -15,10 +15,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
-"""
-  Use this module to read patmosx cloudproducts
-  2018 SMHI, N.Hakansson
-"""
+
+"""Use this module to read patmosx cloudproducts."""
 
 import atrain_match.config as config
 from atrain_match.utils.runutils import do_some_geo_obj_logging
@@ -81,8 +79,7 @@ def patmosx_read_all(filename, cross, SETTINGS):
 
 
 def patmosx_read_all_nc(filename, cross, SETTINGS):
-    """Read geolocation, angles info, ctth, and cma
-    """
+    """Read geolocation, angles info, ctth, and cma."""
     patmosx_nc = netCDF4.Dataset(filename, 'r', format='NETCDF4')
     logger.info("Opening file %s", filename)
     logger.info("Reading longitude, latitude and time ...")
@@ -103,8 +100,7 @@ def patmosx_read_all_nc(filename, cross, SETTINGS):
 
 
 def read_patmosx_ctype_cmask_ctth(patmosx_nc):
-    """Read cloudtype and flag info from filename
-    """
+    """Read cloudtype and flag info from filename."""
     ctth = CtthObj()
     ctype = CtypeObj()
     cma = CmaObj()
@@ -124,8 +120,7 @@ def read_patmosx_ctype_cmask_ctth(patmosx_nc):
 
 
 def read_patmosx_angobj(patmosx_nc):
-    """Read angles info from filename
-    """
+    """Read angles info from filename."""
     angle_obj = ImagerAngObj()
     angle_obj.satz.data = patmosx_nc.variables['sensor_zenith_angle'][0, :, :].astype(np.float)
     angle_obj.sunz.data = patmosx_nc.variables['solar_zenith_angle'][0, :, :].astype(np.float)
@@ -134,8 +129,7 @@ def read_patmosx_angobj(patmosx_nc):
 
 
 def read_patmosx_geoobj(patmosx_nc, filename, cross, SETTINGS):
-    """Read geolocation and time info from filename
-    """
+    """Read geolocation and time info from filename."""
     cloudproducts = AllImagerData()
     latitude_v = patmosx_nc.variables['latitude'][:].astype(np.float)
     longitude_v = patmosx_nc.variables['longitude'][:].astype(np.float)
@@ -156,8 +150,7 @@ def read_patmosx_geoobj(patmosx_nc, filename, cross, SETTINGS):
 
 
 def patmosx_read_all_hdf(filename, cross, SETTINGS):
-    """Read geolocation, angles info, ctth, and cma
-    """
+    """Read geolocation, angles info, ctth, and cma."""
     from pyhdf.SD import SD, SDC
     # from pyhdf.HDF import HDF, HC
     # import pyhdf.VS
@@ -180,8 +173,7 @@ def patmosx_read_all_hdf(filename, cross, SETTINGS):
 
 
 def read_patmosx_ctype_cmask_ctth_hdf(patmosx_hdf):
-    """Read cloudtype and flag info from filename
-    """
+    """Read cloudtype and flag info from filename."""
     ctth = CtthObj()
     ctype = CtypeObj()
     cma = CmaObj()
@@ -206,8 +198,7 @@ def read_patmosx_ctype_cmask_ctth_hdf(patmosx_hdf):
 
 
 def read_patmosx_angobj_hdf(patmosx_hdf):
-    """Read angles info from filename
-    """
+    """Read angles info from filename."""
     angle_obj = ImagerAngObj()
     name = 'sensor_zenith_angle'
     temp = patmosx_hdf.select(name).get().astype(np.float)
@@ -225,8 +216,7 @@ def read_patmosx_angobj_hdf(patmosx_hdf):
 
 
 def read_patmosx_geoobj_hdf(patmosx_hdf, filename, cross, SETTINGS):
-    """Read geolocation and time info from filename
-    """
+    """Read geolocation and time info from filename."""
     cloudproducts = AllImagerData()
     name = 'latitude'
     temp = patmosx_hdf.select(name).get().astype(np.float)

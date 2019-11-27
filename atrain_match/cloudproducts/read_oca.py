@@ -15,10 +15,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
-"""
-  Use this module to read OCA cloudproducts
-  2019 SMHI, N.Hakansson
-"""
+"""Use this module to read OCA cloudproducts."""
 
 import atrain_match.config as config
 from atrain_match.utils.runutils import do_some_geo_obj_logging
@@ -70,8 +67,7 @@ def oca_read_all(filename):
 
 
 def oca_read_all_nc(filename):
-    """Read geolocation, angles info, ctth, and cma
-    """
+    """Read geolocation, angles info, ctth, and cma."""
     oca_nc = netCDF4.Dataset(filename, 'r', format='NETCDF4')
     logger.info("Opening file %s", filename)
     logger.info("Reading longitude, latitude and time ...")
@@ -106,8 +102,7 @@ def scale_oca_var(oca_var):
 
 
 def read_oca_ctype_cmask_ctth(oca_nc):
-    """Read ctth pressure file
-    """
+    """Read ctth pressure file."""
     ctth = CtthObj()
     ctype = CtypeObj()
     cma = CmaObj()
@@ -122,8 +117,7 @@ def read_oca_ctype_cmask_ctth(oca_nc):
 
 
 def read_oca_cpp(oca_nc):
-    """Read ctype and flag info from filename
-    """
+    """Read ctype and flag info from filename."""
     cpp = CppObj()
     cpp.lwp, nodata = scale_oca_var(
         oca_nc['data']['measurement_data']['lwp'])
@@ -133,8 +127,7 @@ def read_oca_cpp(oca_nc):
 
 
 def read_oca_secondlayer_info(oca_nc):
-    """Read ctth pressure file, for second layer
-    """
+    """Read ctth pressure file, for second layer."""
     ctth2 = CtthObj()
     ctth2.pressure, ctth2.p_nodata = scale_oca_var(
         oca_nc['data']['measurement_data']['ctp'])
@@ -146,8 +139,7 @@ def read_oca_secondlayer_info(oca_nc):
 
 
 def read_oca_angobj(oca_nc):
-    """Read angles info from filename
-    """
+    """Read angles info from filename."""
     angle_obj = ImagerAngObj()
     angle_obj.satz.data, nodata = scale_oca_var(
         oca_nc['data']['measurement_data']['observation_zenith'])
@@ -164,8 +156,7 @@ def read_oca_angobj(oca_nc):
 
 
 def read_oca_geoobj(oca_nc, filename):
-    """Read geolocation and time info from filename
-    """
+    """Read geolocation and time info from filename."""
     cloudproducts = AllImagerData()
     # import pdb;pdb.set_trace()
     cloudproducts.longitude, cloudproducts.nodata = scale_oca_var(oca_nc['data']['measurement_data']['longitude'])

@@ -549,8 +549,7 @@ def read_pps_angobj_nc(pps_nc):
 
 
 def read_pps_angobj_h5(filename):
-    """Read angles info from filename
-    """
+    """Read angles info from file filename."""
     h5file = h5py.File(filename, 'r')
     angle_obj = ImagerAngObj()
 

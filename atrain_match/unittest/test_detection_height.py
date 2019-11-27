@@ -15,11 +15,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
-# -*- coding: utf-8 -*-
-#
-# test_match.py
 """for the match module match.py """
-#
+
 import numpy as np
 import unittest
 from atrain_match.libs.truth_imager_prepare import (detection_height_from_5km_data,
