@@ -705,19 +705,23 @@ class StatsOnFibonacciLattice(DataObject):
         result.data[result.mask] = np.nan
 
         if 'robin' in plot_area_name:
-            # needed for imshow but not for meshgrid?
-            # imshow need rektangular area and will plot 
-            # outside earth boarders does handle nan's
-            # imshow need lat/lon grided data
+            # imshow and meshgrid needs 2D data
             # hackto make data in corners white
-            # pcolormesh does not handle nans ?
-            # and it need extent, but it it can not read it!
-            # pcolor also need extent
             lon, lat = area_def.get_lonlats()
-            xshape, yshape = result.data.shape
-            result.data[:,0:yshape//2][lon[:,0:yshape//2]>0] = 2*vmax
-            result.data[:,yshape//2:][lon[:,yshape//2:]<0] = 2*vmax
- 
+            yshape, xshape = result.data.shape
+            result.data[:,0:xshape//2][lon[:,0:xshape//2]>0] = 2*vmax
+            result.data[:,xshape//2:][lon[:,xshape//2:]<0] = 2*vmax
+            
+        #yshape, xshape = result.data.shape
+        #xi = list(range(xshape))
+        #yi = list(range(yshape))
+        #lonsi, latsi = np.meshgrid(xi, yi)
+        #print(lonsi.shape)
+        #plt.pcolormesh(lon, lat, result.data, transform=crs,
+        #               vmin=vmin, vmax=vmax, cmap=my_cmap)
+        #plt.pcolormesh(lonsi, latsi, result.data, transform=crs,
+        #               vmin=vmin, vmax=vmax, cmap=my_cmap)
+
         plt.imshow(result,  transform=crs, extent=crs.bounds,
                    vmin=vmin, vmax=vmax, label=plot_label, cmap=my_cmap)
         ax.set_global()
