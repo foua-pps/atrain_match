@@ -21,6 +21,10 @@ import h5py
 from pyresample.geometry import SwathDefinition
 from pyresample.kd_tree import get_neighbour_info
 from pyresample.kd_tree import get_sample_from_neighbour_info
+from pyresample.kd_tree import resample_nearest
+from pyresample import geometry
+from atrain_match.config import AREA_CONFIG_FILE_PLOTS_ON_AREA
+from pyresample import load_area
 # import pyresample as pr
 import os
 import matplotlib
@@ -639,9 +643,6 @@ class StatsOnFibonacciLattice(DataObject):
 
     def _remap_a_score_on_an_area(self, plot_area_name='antarctica', vmin=0.0, vmax=1.0,
                                   score='Kuipers'):
-        from pyresample import geometry
-        from atrain_match.config import AREA_CONFIG_FILE_PLOTS_ON_AREA
-        from pyresample import load_area
         if 1==1:
             try:
                 area_def = load_area(AREA_CONFIG_FILE_PLOTS_ON_AREA, plot_area_name)
@@ -649,16 +650,17 @@ class StatsOnFibonacciLattice(DataObject):
                 print("Have you set AREA_CONFIG_FILE_PLOTS_ON_AREA?")
                 raise e
                 print("hello")
-        if 'robin' in plot_area_name and 1==2:
+        if 'robin' in plot_area_name:
             from pyresample.geometry import AreaDefinition
             import cartopy.crs as ccrs
-            crs = ccrs.Robinson()
+            crs = ccrs.Robinson() # Need the cartopy definition to get boarders
             #{'a': 6378137.0, 'proj': 'robin', 'lon_0': 0}
             #crs.x_limits
             # (-17005833.33052523, 17005833.33052523)
 
             # (-8625155.12857459, 8625155.12857459)
             #crs.y_limits
+            # Needed for imshow or pixture will be white
             crs.bounds = (crs.x_limits[0], crs.x_limits[1], 
                           crs.y_limits[0], crs.y_limits[1])
             area_def = AreaDefinition('robinson',
@@ -674,37 +676,65 @@ class StatsOnFibonacciLattice(DataObject):
         else:
             crs = area_def.to_cartopy_crs()
 
+        plot_label = score.replace('_', '-')
+        if "mae" in score:
+            plot_label = ""
 
         data = getattr(self, score)
         data = data.copy()
-        # warning data seem to be streched between vmax and vmin!!
-        if np.ma.is_masked(data):
-            # data[data.mask] = 2*vmax
-            data[np.logical_and(np.equal(data.mask, False), data > vmax)] = vmax
-            # do not wan't low scores hitrates set to nodata!
-            data[np.logical_and(np.equal(data.mask, False), data < vmin)] = vmin
-            data = data.data
-        else:
-            data[data > vmax] = vmax
-            data[data < vmin] = vmin
-            
-   
+        self.truncate_data(data, vmin, vmax)
         lons = self.lons
         lats = self.lats
         swath_def = geometry.SwathDefinition(lons=lons, lats=lats)
-        # swath_con = image.ImageContainerNearest(
-        #     data, swath_def,
-        #     radius_of_influence=self.radius_km*1000*2.5,
-        #     epsilon=1.0)
-        # area_con = swath_con.resample(area_def)
-        # result = area_con.image_data
-        from pyresample.kd_tree import resample_nearest
         result = resample_nearest(
             swath_def, data, area_def,
             radius_of_influence=self.radius_km*1000*2.5, fill_value=None)
+        my_cmap, vmin, vmax = self._get_colormap(score, vmin, vmax)
 
-        # pr.plot.show_quicklook(area_def, result,
-        #                     vmin=vmin, vmax=vmax, label=score)
+        fig = plt.figure(figsize=(16, 9))
+        ax = fig.add_subplot(111)
+        ax = plt.axes(projection=crs)
+        ax.coastlines()
+        ax.set_global()
+        ax.gridlines(edgecolor='black')
+        if np.ma.is_masked(result):
+            result.data[result.mask] = np.nan
+            result.mask = result.data > vmax  #?
+        else:
+            result = np.ma.masked_array(result, mask=result > vmax)
+        result.data[result.mask] = np.nan
+
+        extra = '_no_hack_to_remove_corners'       
+        if 'robin' in plot_area_name:
+            #needed for imshow but not for meshgrid
+            # imshow need rektangular area and will plot 
+            # outside earth boarders does handle nan's
+            # imshow need lat/lon grided data
+            # hackto make data in corners white
+            # pcolormesh does not handle nans ?
+            # and it need extent, but it it can not read it!
+            # pcolor also need extent
+            extra = ''
+            lon, lat = area_def.get_lonlats()
+            xshape, yshape = result.data.shape
+            result.data[:,0:yshape//2][lon[:,0:yshape//2]>0] = 2*vmax
+            result.data[:,yshape//2:][lon[:,yshape//2:]<0] = 2*vmax
+ 
+        plt.imshow(result,  transform=crs, extent=crs.bounds,
+                   vmin=vmin, vmax=vmax, label=plot_label, cmap=my_cmap)
+        ax.set_global()
+        plt.colorbar()
+        filename = self.PLOT_DIR_SCORE + self.PLOT_FILENAME_START + plot_area_name + extra + '.png'
+        plt.savefig(filename, bbox_inches='tight')
+        import pyresample as pr
+        pr.plot.save_quicklook(self.PLOT_DIR_SCORE + self.PLOT_FILENAME_START +
+                               plot_area_name + extra + 'quick.png',
+                               area_def, result,
+                               vmin=vmin, vmax=vmax, label=plot_label, cmap=my_cmap)
+
+
+    def _get_colormap(self, score, vmin, vmax):
+        """Find colormap for the score."""
         my_cmap = copy.copy(matplotlib.cm.BrBG)
         if "FAR" in score:
             # matplotlib.rcParams['image.cmap'] = "BrBG"
@@ -712,22 +742,93 @@ class StatsOnFibonacciLattice(DataObject):
         elif "diff" in score:
             my_cmap = copy.copy(matplotlib.cm.BrBG)
         elif "mae" in score:
-             my_cmap = copy.copy(matplotlib.cm.Reds)
+            my_cmap = copy.copy(matplotlib.cm.Reds)
         elif "ctth_pe" in score:
             my_cmap = copy.copy(matplotlib.cm.BrBG_r)
         else:
-             my_cmap = copy.copy(matplotlib.cm.BrBG)
-        plot_label = score.replace('_', '-')
-        if "mae" in score:
-            plot_label = ""
+            my_cmap = copy.copy(matplotlib.cm.BrBG)
         if "cds" in score:
             from atrain_match.reshaped_files_scr.cds_colormap import get_cds_colormap
             my_cmap = get_cds_colormap()
-
+        if score in "Bias" and screen_out_valid:
+            # This screens out values between -5 and +5%
+            vmax = 25
+            vmin = -25
+            my_cmap = copy.copy(matplotlib.cm.get_cmap("BrBG", lut=100))
+            cmap_vals = my_cmap(np.arange(100))  # extractvalues as an array
+            cmap_vals[39:61] = [0.9, 0.9, 0.9, 1]  # change the first value
+            my_cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
+                "newBrBG", cmap_vals)
+        if score in "RMS" and screen_out_valid:
+            # This screens out values beteen 0 and 20%. 41/100=20%
+            vmax = 50
+            vmin = 0
+            my_cmap = copy.copy(matplotlib.cm.get_cmap("BrBG", lut=100))
+            cmap_vals = my_cmap(np.arange(100))  # extract values as an array
+            cmap_vals[0:41] = [0.9, 0.9, 0.9, 1]  # change the first value
+            my_cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
+                "newBrBG", cmap_vals)
         my_cmap.set_over(color='white', alpha=1.0)
-        my_cmap.set_under(color='0.02', alpha=0.2)
-        my_cmap.set_bad(color='0.02', alpha=0.2)
+        my_cmap.set_under(color='0.5', alpha=0.2)
+        my_cmap.set_bad(color='0.5', alpha=0.2)
+        return my_cmap, vmin, vmax
 
+    def truncate_data(self, data, vmin, vmax):
+        """Truncate data to [vmin, vmax]."""
+        if np.ma.is_masked(data):
+            the_mask = data.mask
+            data[np.logical_and(data > vmax, ~the_mask)] = vmax
+            data[np.logical_and(data < vmin, ~the_mask)] = vmin
+            # do not wan't low scores hitrates set to nodata!
+        else:
+            data[data > vmax] = vmax
+            data[data < vmin] = vmin  
+        
+    def _remap_a_score_on_an_area_new(self, plot_area_name='antarctica', vmin=0.0, vmax=1.0,
+                                      score='Kuipers'):
+        try:
+            area_def = load_area(AREA_CONFIG_FILE_PLOTS_ON_AREA, plot_area_name)
+        except AttributeError as e:
+            print("Have you set AREA_CONFIG_FILE_PLOTS_ON_AREA?")
+            raise e
+        if 'robin' in plot_area_name:
+            from pyresample.geometry import AreaDefinition
+            import cartopy.crs as ccrs
+            crs = ccrs.Robinson() # Need the cartopy definition to get boarders around globe
+            #{'a': 6378137.0, 'proj': 'robin', 'lon_0': 0}
+            #crs.x_limits
+            # (-17005833.33052523, 17005833.33052523)
+
+            # (-8625155.12857459, 8625155.12857459)
+            #crs.y_limits
+            # Needed for imshow or pixture will be white
+            crs.bounds = (crs.x_limits[0], crs.x_limits[1], 
+                          crs.y_limits[0], crs.y_limits[1])
+            area_def = AreaDefinition('robinson',
+                                      'hej',
+                                      'hoj',
+                                      projection=crs.proj4_params,
+                                      width=1000, height=500, 
+                                      area_extent=(crs.x_limits[0],
+                                                   crs.y_limits[0],
+                                                   crs.x_limits[1],
+                                                   crs.y_limits[1]
+                                               ))
+        else:
+            crs = area_def.to_cartopy_crs()
+
+        data = getattr(self, score)
+        data = data.copy()
+        self.truncate_data(data, vmin, vmax)
+        lons = self.lons
+        lats = self.lats
+        swath_def = geometry.SwathDefinition(lons=lons, lats=lats)
+        result = resample_nearest(
+            swath_def, data, area_def,
+            radius_of_influence=self.radius_km*1000*2.5, fill_value=None)
+
+        my_cmap, vmin, vmax = self._get_colormap(score, vmin, vmax)
+   
         #create_areas_def(self)
         #crs.to_dict()
         fig = plt.figure(figsize=(16, 9))
@@ -742,46 +843,18 @@ class StatsOnFibonacciLattice(DataObject):
         else:
             result = np.ma.masked_array(result, mask=result > vmax)
         result.data[result.mask] = np.nan
-        
-        if 'robin' in plot_area_name:
-            #needed for imshow but not for meshgrid
-            #imshow need lat/lon grided data
-            #hackto make data in corners white
-            lon, lat = area_def.get_lonlats()
-            xshape, yshape = result.data.shape
-            result.data[:,0:yshape//2][lon[:,0:yshape//2]>0] = 2*vmax
-            result.data[:,yshape//2:][lon[:,yshape//2:]<0] = 2*vmax
  
-        if 1==1:
-            # imshow need rektangular area and will plot 
-            # outside earth boarders does handle nan's
-            plt.imshow(result,  transform=crs, extent=crs.bounds,
-                       vmin=vmin, vmax=vmax, label=plot_label, cmap=my_cmap)
-            plottype = '_imshow'
-        else:    
-            # pcolormesh does not handle nans
-            # and it need extent, but it it can not read it!
-            result.data[result.mask]
-            plt.pcolormesh(lat, lon, result.data, extent=crs.bounds, 
-                           vmin=vmin, vmax=vmax, label=plot_label, cmap=my_cmap)
-            plottype = '_pcolormesh'
-            #pcolor: 'PolyCollection' object has no property 'extent'
 
-            
-        #import pdb;pdb.set_trace()
-
-        #plt.imshow(result, transform=robinson)
+        plt.imshow(result,  transform=crs, extent=crs.bounds,
+                   vmin=vmin, vmax=vmax, label=plot_label, cmap=my_cmap)
         ax.set_global()
         plt.colorbar()
-        filename = self.PLOT_DIR_SCORE + self.PLOT_FILENAME_START + plot_area_name + plottype + '.png'
+        filename = self.PLOT_DIR_SCORE + self.PLOT_FILENAME_START + "test" + plot_area_name + '.png'
         plt.savefig(filename, bbox_inches='tight')
-        """
-        Alway gives jet colormap ??
-        pr.plot.save_quicklook(self.PLOT_DIR_SCORE + self.PLOT_FILENAME_START +
-                               plot_area_name + '.png',
-                               area_def, result,
-                               vmin=vmin, vmax=vmax, label=plot_label, cmap=matplotlib.rcParams['image.cmap'])
-        """
+
+
+
+
 
     def _remap_a_score_on_an_robinson_projection(self, vmin=0.0, vmax=1.0,
                                                  score='Kuipers', screen_out_valid=False):
@@ -823,43 +896,14 @@ class StatsOnFibonacciLattice(DataObject):
         ax = plt.axes(projection=ccrs.Robinson())
         ax.coastlines()
         ax.set_global()
-        import copy
-        if "FAR" in score:
-            my_cmap = copy.copy(matplotlib.cm.BrBG)
-        elif "diff" in score:
-            my_cmap = copy.copy(matplotlib.cm.BrBG)
-        elif "mae" in score:
-            my_cmap = copy.copy(matplotlib.cm.Reds)
-        elif "ctth_pe" in score:
-            my_cmap = copy.copy(matplotlib.cm.BrBG_r)
-        else:
-            my_cmap = copy.copy(matplotlib.cm.BrBG)
-        if score in "Bias" and screen_out_valid:
-            # This screens out values between -5 and +5%
-            vmax = 25
-            vmin = -25
-            my_cmap = copy.copy(matplotlib.cm.get_cmap("BrBG", lut=100))
-            cmap_vals = my_cmap(np.arange(100))  # extractvalues as an array
-            cmap_vals[39:61] = [0.9, 0.9, 0.9, 1]  # change the first value
-            my_cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
-                "newBrBG", cmap_vals)
-        if score in "RMS" and screen_out_valid:
-            # This screens out values beteen 0 and 20%. 41/100=20%
-            vmax = 50
-            vmin = 0
-            my_cmap = copy.copy(matplotlib.cm.get_cmap("BrBG", lut=100))
-            cmap_vals = my_cmap(np.arange(100))  # extract values as an array
-            cmap_vals[0:41] = [0.9, 0.9, 0.9, 1]  # change the first value
-            my_cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
-                "newBrBG", cmap_vals)
-        if "cds" in score:
-            from atrain_match.reshaped_files_scr.cds_colormap import get_cds_colormap
-            my_cmap = get_cds_colormap()
+  
+        my_cmap, vmin, vmax = self._get_colormap(score, vmin, vmax)
+  
 
         # to mask out where we lack data
         data[np.logical_and(data > vmax, ~the_mask)] = vmax
         data[np.logical_and(data < vmin, ~the_mask)] = vmin
-        data[the_mask] = 2*vmax  # give no data value that will be masked white
+        data[the_mask] = vmin - 100  # give no data value that will be masked grey
         xi = np.linspace(lon_min, lon_max, numcols)
         yi = np.linspace(lat_min, lat_max, numrows)
         xi, yi = np.meshgrid(xi, yi)
@@ -867,8 +911,8 @@ class StatsOnFibonacciLattice(DataObject):
         x, y, z = (np.array(lons.ravel()),
                    np.array(lats.ravel()),
                    np.array(data.ravel()))
-        my_cmap.set_over(color='0.5', alpha=1)
         zi = griddata((x, y), z, (xi, yi), method='nearest')
+        #my_cmap.set_under(color='0.5', alpha=1)
         im1 = plt.pcolormesh(xi, yi, zi, cmap=my_cmap, transform=ccrs.PlateCarree(),
                              vmin=vmin, vmax=vmax, rasterized=True)
         im1.set_clim([vmin, vmax])  # to get nice ticks in the colorbar
@@ -894,9 +938,78 @@ class StatsOnFibonacciLattice(DataObject):
                      bbox=dict(facecolor='w', edgecolor='w', alpha=1.0))
 
         plt.savefig(self.PLOT_DIR_SCORE + self.PLOT_FILENAME_START +
-                    '_robinson_' + '.pdf', bbox_inches='tight')
+                    '_robinson_' + 'pcolormesh.pdf', bbox_inches='tight')
         plt.savefig(self.PLOT_DIR_SCORE + self.PLOT_FILENAME_START +
-                    '_robinson_' + '.png', bbox_inches='tight')
+                    '_robinson_' + 'pcolormesh.png', bbox_inches='tight')
+        plt.close('all')
+
+
+    def _remap_a_score_on_an_robinson_projection_use_pyresample(self, vmin=0.0, vmax=1.0,
+                                                                score='Kuipers', screen_out_valid=False):
+
+        lons = self.lons
+        lats = self.lats
+        plt.close('all')
+        data = getattr(self, score)
+        data = data.copy()
+        self.truncate_data(data, vmin, vmax)
+
+        numcols = 4000
+        numrows = 2000
+        lat_min = -83.0
+        lon_min = -179.9
+        lat_max = 83.0
+        lon_max = 179.9
+        xi = np.linspace(lon_min, lon_max, numcols)
+        yi = np.linspace(lat_min, lat_max, numrows)
+        lonsi, latsi = np.meshgrid(xi, yi)
+
+        swath_def = geometry.SwathDefinition(lons=lons, lats=lats)
+        area_def =  geometry.SwathDefinition(lons=lonsi, lats=latsi)
+        result = resample_nearest(
+            swath_def, data, area_def,
+            radius_of_influence=self.radius_km*1000*2.5, fill_value=None)
+
+
+        fig = plt.figure(figsize=(16, 9))
+        ax = fig.add_subplot(111)
+        import cartopy.crs as ccrs
+        ax = plt.axes(projection=ccrs.Robinson())
+        ax.coastlines()
+        ax.set_global()
+  
+        my_cmap, vmin, vmax = self._get_colormap(score, vmin, vmax)
+  
+        result.data[result.mask] =  vmin - 100
+        im1 = plt.pcolormesh(lonsi, latsi, result.data, 
+                             cmap=my_cmap,  transform=ccrs.PlateCarree(),
+                             vmin=vmin, vmax=vmax, rasterized=True)
+        im1.set_clim([vmin, vmax])  # to get nice ticks in the colorbar
+        # draw som lon/lat lines
+        #my_proj1.drawparallels(np.arange(-90., 90., 30.))
+        #my_proj1.drawmeridians(np.arange(-180., 180., 60.))
+        #my_proj1.drawcoastlines()
+        #my_proj1.drawmapboundary(fill_color='1.0')  # 0.9 light grey"
+        #cb = ax.colorbar(im1, "right", size="5%", pad="2%")
+        #tick_locator = matplotlib.ticker.MaxNLocator(nbins=10)
+        #cb.locator = tick_locator
+        #cb.ax.yaxis.set_major_locator(matplotlib.ticker.AutoLocator())
+        #cb.update_ticks()
+        if "mae" not in score:
+            ax.set_title(score.replace('_', '-'), usetex=False)
+        if score in ["ctth_mae"]:
+            text_i = "(b)"
+            if "v2014" in self.PLOT_FILENAME_START:
+                text_i = "(a)"
+            if "v2018" in self.PLOT_FILENAME_START:
+                text_i = "(c)"
+            plt.text(0.01, 0.95, text_i, fontsize=36, transform=ax.transAxes,
+                     bbox=dict(facecolor='w', edgecolor='w', alpha=1.0))
+
+        plt.savefig(self.PLOT_DIR_SCORE + self.PLOT_FILENAME_START +
+                    '_robinson_' + 'pcolormesh_pyresampel.pdf', bbox_inches='tight')
+        plt.savefig(self.PLOT_DIR_SCORE + self.PLOT_FILENAME_START +
+                    '_robinson_' + 'pcolormesh_pyresample.png', bbox_inches='tight')
         plt.close('all')
 
     def remap_and_plot_score_on_several_areas(self, vmin=0.0, vmax=1.0,
@@ -918,13 +1031,16 @@ class StatsOnFibonacciLattice(DataObject):
                 #'arctica',
                 # 'npole', # good
                 'robinson',
-                'ease_nh',
-                'ease_sh']:
+                #'ease_nh',
+                #'ease_sh'
+        ]:
             self._remap_a_score_on_an_area(plot_area_name=plot_area_name,
                                            vmin=vmin, vmax=vmax, score=score)
         # the real robinson projection
         if "metop" not in self.satellites:
             self._remap_a_score_on_an_robinson_projection(vmin=vmin, vmax=vmax,
+                                                          score=score, screen_out_valid=False)
+            self._remap_a_score_on_an_robinson_projection_use_pyresample(vmin=vmin, vmax=vmax,
                                                           score=score, screen_out_valid=False)
 
     def calculate_kuipers(self):
