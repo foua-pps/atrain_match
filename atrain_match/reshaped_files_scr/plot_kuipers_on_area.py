@@ -46,13 +46,13 @@ isModisAll_lvl2 = False
 isModis1km_nnctth = False
 isNPP_v2014 = False
 isGAC_v2014_morning_sat = False
-isGAC_v2014 = True
-isGAC_v2018 = False
+isGAC_v2014 = False
+isGAC_v2018 = True
 cci_orbits = False
 method = 'BASIC'  # Nina or KG or BASIC==no filter
 DNT = "all"  # "all/day/night/twilight"
 filter_method = 'no'  # no or satz
-radius_km = 300  # t.ex 75 250 500 300
+radius_km = 250  # t.ex 75 250 500 300
 BASE_PLOT_DIR = ADIR + "/PICTURES_FROM_PYTHON/ATRAIN_MATCH_KUIPERS_PLOT_CCI_PPS_BrBG_2"
 
 PROCES_FOR_ART = False
@@ -230,11 +230,15 @@ elif isGAC_v2014:
         files = files + glob(ROOT_DIR + "merged/noaa19*20*0*h5")  # 2009, 2010
 
 elif isGAC_v2018:
-    num_files_to_read = 8
+    num_files_to_read = 12
     isGAC = True
-    satellites = "pps2018_nooa18_noaa19"
+    satellites = "pps2018_nooa18_noaa19_test_pcw"
     ROOT_DIR = ADIR + "/DATA_MISC/tau_cmaprob/"
+    ROOT_DIR = ADIR + "/DATA_MISC/tau_cmaprob/"
+    ROOT_DIR = ADIR + "/NN_CTTH/data/training_data_gac_era5/"
+
     files = glob(ROOT_DIR + "*h5")
+    files = glob(ROOT_DIR + "*201009*h5")
     if cci_orbits:
         satellites = "part_noaa18_noaa19"
         files = glob(ROOT_DIR + "merged/noaa18*200*h5")  # 06, 07, 08, 09
@@ -311,12 +315,13 @@ if num_files_to_read != 1:
     temp_obj.get_some_info_from_caobj(match_calipso, PROCES_FOR_ART=PROCES_FOR_ART)
     pplot_obj.add_detection_stats_on_fib_lattice(temp_obj)
 
+pplot_obj.flattice.calculate_ctth_pe1()
+pplot_obj.flattice.remap_and_plot_score_on_several_areas(vmin=0, vmax=100.0, score='ctth_pe1')
+
 pplot_obj.flattice.calculate_cds()
 print(np.mean(pplot_obj.flattice.cds), np.median(pplot_obj.flattice.cds))
 pplot_obj.flattice.remap_and_plot_score_on_several_areas(vmin=0, vmax=5.0, score='cds')
 
-pplot_obj.flattice.calculate_ctth_pe1()
-pplot_obj.flattice.remap_and_plot_score_on_several_areas(vmin=0, vmax=100.0, score='ctth_pe1')
 
 pplot_obj.flattice.calculate_bias()
 pplot_obj.flattice.remap_and_plot_score_on_several_areas(vmin=-25.0, vmax=25.0, score='Bias', screen_out_valid=True)

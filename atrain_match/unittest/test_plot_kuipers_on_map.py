@@ -20,7 +20,7 @@
 #
 import numpy as np
 import unittest
-from atrain_match.reshaped_files_plotting.plot_kuipers_on_area_util import StatsOnFibonacciLattice
+from atrain_match.reshaped_files_scr.plot_kuipers_on_area_util import StatsOnFibonacciLattice
 
 
 class test_kuipers_plot_on_map(unittest.TestCase):
@@ -31,6 +31,7 @@ class test_kuipers_plot_on_map(unittest.TestCase):
         self.area.num_undetected_clouds = np.array([1000, 100, 100, 100, 100, 100])
         self.area.num_detected_clear = np.array([20, 80, 100, 0, 200, 100])
         self.area.num_false_clouds = np.array([80, 20, 1, 1, 200, 300])
+        self.area.lats = np.array([80, 20, 1, 1, 200, 300])
 
         dummy = 0 * np.array([80, 20, 1, 1, 200, 300])
         self.area.sum_ctth_mae_low = dummy
