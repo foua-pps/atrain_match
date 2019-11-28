@@ -522,6 +522,8 @@ class MatchImagerCalipso(DataObject):
         self.detected_height_type[calipso_cloudtype] = detected_typei
 
 
+
+
 class StatsOnFibonacciLattice(DataObject):
     def __init__(self):
         DataObject.__init__(self)
@@ -813,6 +815,7 @@ class StatsOnFibonacciLattice(DataObject):
                                            screen_out_valid=screen_out_valid)
 
     def calculate_kuipers(self):
+        """Calculate kuipers."""
         self.np_float_array()
         self.find_number_of_clouds_clear()
         num_clear = self.num_clear
@@ -839,36 +842,42 @@ class StatsOnFibonacciLattice(DataObject):
         self.Kuipers = Kuipers
 
     def calculate_lapse_rate(self):
+        """Calculate lapse_rate."""
         self.np_float_array()
         the_mask = self.Min_lapse_rate > - 0.001
         lapse_rate = np.ma.masked_array(self.Min_lapse_rate, mask=the_mask)
         self.lapse_rate = lapse_rate
 
     def calculate_t11ts_offset(self):
+        """Calculate t11ts_offset."""
         self.np_float_array()
         the_mask = self.num_clear < 10
         t11ts_offset = np.ma.masked_array(self.Min_t11ts_offset, mask=the_mask)
         self.t11ts_offset = t11ts_offset
 
     def calculate_t11t12_offset(self):
+        """Calculate t11t12_offset."""
         self.np_float_array()
         the_mask = self.num_clear < 10
         t11t12_offset = np.ma.masked_array(self.Max_t11t12_offset, mask=the_mask)
         self.t11t12_offset = t11t12_offset
 
     def calculate_t37t12_offset(self):
+        """Calculate t37t12_offset."""
         self.np_float_array()
         the_mask = self.num_clear < 10
         t37t12_offset = np.ma.masked_array(self.Max_t37t12_offset, mask=the_mask)
         self.t37t12_offset = t37t12_offset
 
     def calculate_t11t37_offset(self):
+        """Calculate t11t37_offset."""
         self.np_float_array()
         the_mask = self.num_clear < 10
         t11t37_offset = np.ma.masked_array(self.Max_t11t37_offset, mask=the_mask)
         self.t11t37_offset = t11t37_offset
 
     def calculate_temperature_bias(self):
+        """Calculate temperature_bias."""
         self.np_float_array()
         the_mask = self.num_detected_height_low < 10
         ctth_bias_temperature_low = self.sum_ctth_bias_temperature_low*1.0/self.num_detected_height_low
@@ -876,6 +885,7 @@ class StatsOnFibonacciLattice(DataObject):
         self.ctth_bias_temperature_low = ctth_bias_temperature_low
 
     def calculate_temperature_bias_t11(self):
+        """Calculate temperature_bias_t11."""
         self.np_float_array()
         the_mask = self.num_detected_height_low < 10
         ctth_bias_temperature_low_t11 = self.sum_ctth_bias_temperature_low_t11*1.0/self.num_detected_height_low
@@ -883,6 +893,7 @@ class StatsOnFibonacciLattice(DataObject):
         self.ctth_bias_temperature_low_t11 = ctth_bias_temperature_low_t11
 
     def calculate_height_bias(self):
+        """Calculate height_bias."""
         self.np_float_array()
         the_mask = self.num_detected_height_low < 10
         ctth_bias_low = self.sum_ctth_bias_low*1.0/self.num_detected_height_low
@@ -894,6 +905,7 @@ class StatsOnFibonacciLattice(DataObject):
         self.ctth_bias_high = ctth_bias_high
 
     def calculate_height_mae(self):
+        """Calculate height_mae."""
         self.np_float_array()
         the_mask = self.num_detected_height_low < 10
         ctth_mae_low = self.sum_ctth_mae_low*1.0/self.num_detected_height_low
@@ -915,6 +927,7 @@ class StatsOnFibonacciLattice(DataObject):
         self.num_detected_height_both = np.ma.masked_array(self.num_detected_height_both, mask=the_mask)
 
     def calculate_ctth_pe1(self):
+        """Calculate ctth_pe1."""
         self.np_float_array()
         the_mask = self.num_detected_height < 10
         ctth_pe1 = self.num_ctth_error_above_1km*100.0/self.num_detected_height
@@ -922,6 +935,7 @@ class StatsOnFibonacciLattice(DataObject):
         self.ctth_pe1 = ctth_pe1
 
     def calculate_height_bias_lapse(self):
+        """Calculate height_bias_lapse."""
         self.np_float_array()
         the_mask = self.num_detected_height_low < 10
         lapse_bias_low = self.sum_lapse_bias_low*1.0/self.num_detected_height_low
@@ -933,6 +947,7 @@ class StatsOnFibonacciLattice(DataObject):
         self.lapse_bias_high = lapse_bias_high
 
     def calculate_height_bias_type(self):
+        """Calculate height_bias_type."""
         self.np_float_array()
         for cc_type in range(8):
             the_mask = self.num_detected_height_type[cc_type] < 10
@@ -941,6 +956,7 @@ class StatsOnFibonacciLattice(DataObject):
             setattr(self, "ctth_bias_type_{:d}".format(cc_type), ctth_bias_type_i)
 
     def calculate_cds(self):
+        """Calculate cds."""
         self.np_float_array()
         the_mask = self.num_detected_clouds + self.num_undetected_clouds < 100
         cds = 0 * self.num_detected_clouds.copy()
@@ -954,6 +970,7 @@ class StatsOnFibonacciLattice(DataObject):
         setattr(self, "cds", cds)
 
     def calculate_hitrate(self):
+        """Calculate hitrate."""
         self.np_float_array()
         self.find_number_of_clouds_clear()
         Hitrate = (self.num_detected_clouds + self.num_detected_clear)*1.0/(
@@ -968,6 +985,7 @@ class StatsOnFibonacciLattice(DataObject):
         self.Hitrate = Hitrate
 
     def calculate_increased_hitrate(self):
+        """Calculate increased_hitrate."""
         self.np_float_array()
         self.find_number_of_clouds_clear()
         Hitrate = (
@@ -982,6 +1000,7 @@ class StatsOnFibonacciLattice(DataObject):
         self.increased_Hitrate = increased_Hitrate
 
     def calculate_threat_score(self):
+        """Calculate threat_score."""
         self.np_float_array()
         self.find_number_of_clouds_clear()
         ThreatScore = (
@@ -991,6 +1010,7 @@ class StatsOnFibonacciLattice(DataObject):
         self.Threat_Score = ThreatScore
 
     def calculate_threat_score_clear(self):
+        """Calculate threat_score_clear."""
         self.np_float_array()
         self.find_number_of_clouds_clear()
         ThreatScoreClear = (
@@ -1002,6 +1022,7 @@ class StatsOnFibonacciLattice(DataObject):
         self.Threat_Score_Clear = ThreatScoreClear
 
     def calculate_pod_clear(self):
+        """Calculate pod_clear."""
         self.np_float_array()
         self.find_number_of_clouds_clear()
         PODclear = (
@@ -1015,6 +1036,7 @@ class StatsOnFibonacciLattice(DataObject):
                 np.sum(self.num_clear[use]))
 
     def calculate_pod_cloudy(self):
+        """Calculate pod_cloudy."""
         self.np_float_array()
         self.find_number_of_clouds_clear()
         PODcloudy = (
@@ -1028,6 +1050,7 @@ class StatsOnFibonacciLattice(DataObject):
                 np.sum(self.num_clouds[use]))
 
     def calculate_far_clear(self):
+        """Calculate far_clear."""
         self.np_float_array()
         self.find_number_of_clouds_clear()
         FARclear = (
@@ -1038,6 +1061,7 @@ class StatsOnFibonacciLattice(DataObject):
         self.FARclear = FARclear
 
     def calculate_far_cloudy(self):
+        """Calculate far_cloudy."""
         self.np_float_array()
         self.find_number_of_clouds_clear()
         FARcloudy = (
@@ -1053,6 +1077,7 @@ class StatsOnFibonacciLattice(DataObject):
                 np.sum(self.num_false_clouds[use]))
 
     def calculate_calipso_cfc(self):
+        """Calculate calipso_cfc."""
         self.np_float_array()
         self.find_number_of_clouds_clear()
         calipso_cfc = 100*(
@@ -1062,6 +1087,7 @@ class StatsOnFibonacciLattice(DataObject):
         self.calipso_cfc = calipso_cfc
 
     def calculate_pps_cfc(self):
+        """Calculate pps_cfc."""
         self.np_float_array()
         self.find_number_of_clouds_clear()
         pps_cfc = 100*(
@@ -1071,6 +1097,7 @@ class StatsOnFibonacciLattice(DataObject):
         self.pps_cfc = pps_cfc
 
     def calculate_bias(self):
+        """Calculate bias."""
         self.np_float_array()
         self.find_number_of_clouds_clear()
         self.calculate_calipso_cfc()
@@ -1085,6 +1112,7 @@ class StatsOnFibonacciLattice(DataObject):
         self.Bias = Bias
 
     def calculate_rms(self):
+        """Calculate rms."""
         self.np_float_array()
         self.calculate_calipso_cfc()
         self.find_number_of_clouds_clear()
