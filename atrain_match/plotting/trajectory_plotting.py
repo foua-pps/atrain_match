@@ -15,7 +15,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
-"""New plotting routines using pyresample functionality"""
+"""New plotting routines using pyresample functionality."""
 
 
 def plot_satellite_trajectory(longitude,
@@ -24,10 +24,9 @@ def plot_satellite_trajectory(longitude,
                               area_config_file,
                               fig_type='eps',
                               **options):
-    """Plot a trajectory of geolocations (lon, lat) on a map"""
+    """Plot a trajectory of geolocations (lon, lat) on a map."""
     import numpy as np
-    import os
-
+ 
     if 'trajectory_plot_area' in options:
         area_id = options['trajectory_plot_area']
     else:

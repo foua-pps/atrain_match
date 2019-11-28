@@ -18,12 +18,11 @@
 # -*- coding: utf-8 -*-
 # Program truth_imager_plot.py
 
+"""Plotting functions to plot CALIOP, CPR (CloudSat) and colocated imager data along track."""
 import numpy as np
 from atrain_match.config import RESOLUTION
 
 from matplotlib import pyplot as plt
-
-# -----------------------------------------------------
 
 
 def plot_cal_clsat_geoprof_imager(match_clsat,
@@ -34,6 +33,7 @@ def plot_cal_clsat_geoprof_imager(match_clsat,
                                   mode,
                                   file_type='png',
                                   **options):
+    """Plot imager co-located data on CALIOP and CPR (Cloudsat) track."""
     instrument = 'imager'
     if 'instrument' in options:
         instrument = options['instrument']
@@ -143,9 +143,6 @@ def plot_cal_clsat_geoprof_imager(match_clsat,
             fig.savefig(filename, format=filetype)
 
 
-# added plot with two pps cloud-heights and no cloudsat
-
-
 def drawCalPPSHeightPlot_PrototypePPSHeight(match_calipso_calipso,
                                             data_ok,
                                             ctth_height1,
@@ -156,6 +153,7 @@ def drawCalPPSHeightPlot_PrototypePPSHeight(match_calipso_calipso,
                                             xmin=0,
                                             xmax=-1,
                                             **options):
+    """Plot two different cloud heights with CALIOP."""
     if xmax < 0:
         xmax = len(data_ok)
     instrument = 'imager'
@@ -175,9 +173,7 @@ def drawCalPPSHeightPlot_PrototypePPSHeight(match_calipso_calipso,
     imager_ctth_ok1 = ctth_height1[data_ok]
     imager_ctth_ok2 = ctth_height2[data_ok]
 
-
-#    # Calculates Hihest Cloud Top
-
+    # Calculates Hihest Cloud Top
     if MAXHEIGHT is None:
         maxheight_calipso = np.nanmax(caliop_height)
         maxheight_imager = np.nanmax(ctth_height1)
@@ -237,8 +233,6 @@ def drawCalPPSHeightPlot_PrototypePPSHeight(match_calipso_calipso,
     ax.set_ylim(0, maxheight)
     plt.suptitle(title, fontsize=24)
     ax.set_xlabel("Track Position", fontsize=22)
-
-    # plt.show()
     if isinstance(file_type, str):
         filename = "%s/%skm_%s_calipso_%s_clouds.%s" \
             % (plotpath, RESOLUTION, basename, instrument, file_type)
@@ -251,16 +245,9 @@ def drawCalPPSHeightPlot_PrototypePPSHeight(match_calipso_calipso,
     # plt.show()
     plt.close("all")
 
-# -----------------------------------------------------
-
 
 def plot_cal_clsat_cwc_imager(match_clsat, elevationcwc, data_okcwc,
                               plotpath, basename, phase, **options):
-
-    if 'instrument' in options:
-        instrument = options['instrument']
-    else:
-        instrument = 'imager'
     if phase == 'IW':
         y1 = match_clsat.cloudsat.RVOD_ice_water_path
         # dataC=match_clsat.cloudsat.RVOD_ice_water_content
@@ -282,11 +269,7 @@ def plot_cal_clsat_cwc_imager(match_clsat, elevationcwc, data_okcwc,
     ax.set_title("CloudSat %sP" % (phase))
     filename = "%s/%ikm_%s_cloudsat_rvod_%sP." % (plotpath, RESOLUTION, basename, phase)
     fig.savefig(filename + 'png')
-    # -------------------------------------------------------
     return
-
-
-# -----------------------------------------------------
 
 
 def plot_cal_clsat_imager_time_diff(match_clsat,
@@ -294,6 +277,7 @@ def plot_cal_clsat_imager_time_diff(match_clsat,
                                     plotpath, basename,
                                     resolution, file_type='png',
                                     **options):
+    """Plot time difference between imager and CALIOP, CPR (CloudSat)."""
     if 'instrument' in options:
         instrument = options['instrument']
     else:
@@ -337,16 +321,13 @@ def plot_cal_clsat_imager_time_diff(match_clsat,
     return
 
 
-# -----------------------------------------------------
-
-
 def plot_cal_clsat_imager_satz(match_clsat,
                                match_calipso,
                                plotpath, basename,
                                resolution,
                                file_type='eps',
                                **options):
-
+    """Plot the satellite zenith angle for the track."""
     if 'instrument' in options:
         instrument = options['instrument']
     else:
@@ -371,30 +352,3 @@ def plot_cal_clsat_imager_satz(match_clsat,
         for filetype in file_type:
             fig.savefig("%s/%skm_%s_satz.%s" % (plotpath, resolution, basename, filetype))
     return
-
-
-def map_imager_track(imager_lonlat, track_lonlat):
-    """
-    Plot *imager_lonlat* and *track_lonlat* on global map and return the figure.
-
-    """
-    from mpl_toolkits.basemap import Basemap
-
-    fig = figure()
-    ax = fig.add_subplot(111)
-    m = Basemap(projection='cyl', llcrnrlon=-180, llcrnrlat=-90,
-                urcrnrlon=180, urcrnrlat=90, resolution='l', ax=ax)
-
-    m.drawcoastlines(linewidth=.5, color='grey')
-
-    # Don't draw each pixel, or the machine will choke!
-    npixels = imager_lonlat[0].size
-    from math import sqrt
-    step = int(round(sqrt(npixels / 1e5)))  # Will give a total of about 1e5 pixels
-    _slice_2d = (slice(None, None, step), ) * 2
-    m.pcolormesh(imager_lonlat[0][_slice_2d], imager_lonlat[1][_slice_2d],
-                 imager_lonlat[1][_slice_2d], alpha=.5)
-    m.plot(track_lonlat[0], track_lonlat[1], 'o', markersize=1, alpha=.1,
-           label='track')
-
-    return fig
