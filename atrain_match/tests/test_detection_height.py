@@ -19,8 +19,8 @@
 
 import numpy as np
 import unittest
-from atrain_match.libs.truth_imager_prepare import (detection_height_from_5km_data,
-                                                    optical_depth_height_filtering)
+from atrain_match.truths.calipso import (optical_depth_height_filtering,
+                                         detection_height_filtering)
 from atrain_match.matchobject_io import CalipsoObject
 
 
@@ -60,11 +60,11 @@ class test_detection_height(unittest.TestCase):
     def setUp(self):
 
         self.obt5 = CalipsoObject()
-        self.obt1 = CalipsoObject()
+        self.calipso = CalipsoObject()
         self.obt5.profile_utc_time = np.zeros((7, 3))
-        self.obt1.profile_utc_time = np.zeros((35, 1)) - 10
-        self.obt1.profile_utc_time[0:7] = 0
-        self.obt1.number_layers_found = np.ones((35, 1))
+        self.calipso.profile_utc_time = np.zeros((35, 1)) - 10
+        self.calipso.profile_utc_time[0:7] = 0
+        self.calipso.number_layers_found = np.ones((35, 1))
         self.obt5.layer_top_altitude = np.zeros((7, 10)) - 9
         self.obt5.layer_base_altitude = np.zeros((7, 10)) - 9
         self.obt5.layer_top_pressure = np.zeros((7, 10)) - 9
@@ -73,7 +73,7 @@ class test_detection_height(unittest.TestCase):
         self.obt5.number_layers_found = np.array([1, 1, 1, 3, 3, 3, 3])
         self.obt5.cloud_fraction = np.array([1, 1, 1, 1, 1, 1, 1])
         self.obt5.feature_classification_flags = np.zeros((7, 10)) - 9
-        self.obt1.total_optical_depth_5km = np.repeat(np.array([0.1, 9.0, 0.3, 0.2, 3.6, 10.4, 0.9]), 5, axis=0)
+        self.calipso.total_optical_depth_5km = np.repeat(np.array([0.1, 9.0, 0.3, 0.2, 3.6, 10.4, 0.9]), 5, axis=0)
 
         self.obt5.layer_top_altitude[:, 0] = np.array([-9, 9.2, 8.3, 7.6, 5.3, 2.2, 5.0]).ravel()
         self.obt5.layer_top_altitude[:, 1] = np.array([-9, -9, -9, 6.1, 4.3, 1.2, 4.9]).ravel()
@@ -90,34 +90,53 @@ class test_detection_height(unittest.TestCase):
         self.obt5.feature_classification_flags[:, 1] = np.array([-9, -9, -9, 4, 1, 2, 2]).ravel()
         self.obt5.feature_classification_flags[:, 2] = np.array([-9, -9, -9, -9, 9, 1, 1]).ravel()
 
+        self.calipso.layer_top_altitude = np.repeat(self.obt5.layer_top_altitude, 5, axis=0)
+        self.calipso.layer_base_altitude = np.repeat(self.obt5.layer_base_altitude, 5, axis=0)
+        self.calipso.layer_base_altitude[:, 0] = np.repeat(
+            np.array([-9, 2.4, 6.7, 4.7, 1.3, 2.0, 3.1]).ravel(), 5, axis=0)
+        self.calipso.validation_height = self.calipso.layer_top_altitude[:,0]
+
+    def test_detction_hight_5km(self):
+        cloud_top5km, _, _, _, _, _, _,  detection_height_5km = optical_depth_height_filtering(
+            self.obt5, 0.5, use_old_method=True, limit_ctop=0.2)
+        np.testing.assert_almost_equal(detection_height_5km, [-9, 8700, 7300, 4600, 3300, 2100, 3500])
+        cloud_top5km, _, _, _, _, _, _,  detection_height_5km = optical_depth_height_filtering(
+            self.obt5, 0.5, use_old_method=False, limit_ctop=1.0)
+        expected = [-9.0,  9078, 7300, 4600, 2223, 2180, 2100]
+        np.testing.assert_almost_equal(detection_height_5km, expected, decimal=0)       
+
     def test_detection(self):
-        calipso = detection_height_from_5km_data(self.obt1, self.obt5, limit_ctop=1.0)
-        print("dh", calipso.detection_height_5km[0::5])
-        self.assertEqual(calipso.detection_height_5km[0], -9)
-        self.assertTrue(np.abs(calipso.detection_height_5km[5] - 9.08 * 1000) < 100)
-        self.assertTrue(np.abs(calipso.detection_height_5km[10] - 7.3 * 1000) < 100)
-        self.assertTrue(np.abs(calipso.detection_height_5km[15] - 6.6 * 1000) < 100)
-        self.assertTrue(np.abs(calipso.detection_height_5km[20] - 2.22 * 1000) < 100)
-        self.assertTrue(np.abs(calipso.detection_height_5km[25] - 2.18 * 1000) < 100)
-        self.assertTrue(np.abs(calipso.detection_height_5km[30] - 3.1 * 1000) < 100)
+        
+        self.calipso.detection_height_5km = np.repeat( [-9.0,  9078, 7300, 4600, 2223, 2180, 2100], 5)
+        detection_height = detection_height_filtering(self)
+        print(detection_height)
+        #self.assertEqual(detection_height_5km, xx)
+
+        #calipso = detection_height_from_5km_data(self.obt1, self.obt5, limit_ctop=1.0)
+        #print("dh", calipso.detection_height_5km[0::5])
+        self.assertEqual(detection_height[0], -9)
+        self.assertTrue(np.abs(detection_height[5] - 9.08 * 1000) < 100)
+        self.assertTrue(np.abs(detection_height[10] - 7.3 * 1000) < 100)
+        self.assertTrue(np.abs(detection_height[15] - 4.7 * 1000) < 100)
+        self.assertTrue(np.abs(detection_height[20] - 2.22 * 1000) < 100)
+        self.assertTrue(np.abs(detection_height[25] - 2.18 * 1000) < 100)
+        self.assertTrue(np.abs(detection_height[30] - 3.1 * 1000) < 100)
+        
 
     def test_ninas_code(self):
-        out1 = optical_depth_height_filtering(self.obt5, 0.5, use_old_method=True,
-                                              limit_ctop=1.0)
-        out2 = CalipsoCloudOpticalDepth(self.obt5.layer_top_altitude,
+        out1 = optical_depth_height_filtering(
+            self.obt5, 0.5, use_old_method=True, limit_ctop=1.0)
+        out_old = CalipsoCloudOpticalDepth(self.obt5.layer_top_altitude,
                                         self.obt5.layer_base_altitude,
                                         self.obt5.feature_optical_depth_532,
                                         self.obt5.cloud_fraction,
                                         self.obt5.feature_classification_flags,
                                         0.5)
-        # This is what I think we should do
-        # out3 = optical_depth_height_filtering(self.obt5, 0.5, use_old_method=False,
-        #                                       limit_ctop=0.1)
-        self.assertTrue((np.equal(out1[0], out2[0])).all())
-        self.assertTrue((np.equal(out1[2], out2[2])).all())
-        self.assertTrue((np.equal(out1[3], out2[3])).all())
-        self.assertTrue((np.equal(out1[4], out2[4])).all())
-        self.assertTrue((np.equal(out1[1], out2[1])).all())
+        self.assertTrue((np.equal(out1[0], out_old[0])).all())
+        self.assertTrue((np.equal(out1[2], out_old[2])).all())
+        self.assertTrue((np.equal(out1[3], out_old[3])).all())
+        self.assertTrue((np.equal(out1[4], out_old[4])).all())
+        self.assertTrue((np.equal(out1[1], out_old[1])).all())
 
 
 def suite():

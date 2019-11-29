@@ -680,11 +680,20 @@ def optical_depth_height_filtering(calipso, min_optical_depth, use_old_method=Fa
             filtered_to_low = new_cloud_top[:, 0] < new_cloud_top[:, layer_j]
             new_cloud_top[filtered_to_low, 0] = new_cloud_top[filtered_to_low, layer_j]
 
+    lowest_positive_cloud_base = calipso.layer_base_altitude.copy()
+    lowest_positive_cloud_base[lowest_positive_cloud_base < 0] = 99999
+    lowest_positive_cloud_base = np.min(lowest_positive_cloud_base, axis=1)
+    lowest_positive_cloud_base[lowest_positive_cloud_base == 99999] = -9
+
     new_validation_height = new_cloud_top[:, 0].copy()
     new_validation_height[new_validation_height >= 0] = new_validation_height[new_validation_height >= 0]*1000
     new_validation_height[new_validation_height < 0] = -9
+
+    detection_height = new_validation_height.copy()
+    detection_height[detection_height < 0] = lowest_positive_cloud_base[detection_height < 0] * 1000.0  #ok in val h?
+    detection_height[detection_height < 0] = -9
     return (new_cloud_top, new_cloud_base, new_cloud_fraction, new_fcf, new_validation_height,
-            new_cloud_top_pressure, new_cloud_base_pressure)
+            new_cloud_top_pressure, new_cloud_base_pressure, detection_height)
 
 
 def check_total_optical_depth_and_warn(match_calipso):
@@ -720,7 +729,7 @@ def detection_height_filtering(match_calipso):
         new_cloud_tops)
     clouds_to_update = np.logical_and(
         match_calipso.calipso.layer_top_altitude[:, 0]*1000 > match_calipso.calipso.detection_height_5km,
-        np.not_equal(match_calipso.calipso.detection_height_5km, -9))
+        np.not_equal(match_calipso.calipso.detection_height_5km, -9))  # Dont update clouds only in 1km
     return np.where(clouds_to_update,
                     new_cloud_tops,
                     match_calipso.calipso.validation_height)
@@ -766,7 +775,7 @@ def total_and_top_layer_optical_depth_5km(calipso, SETTINGS, resolution=5):
         logger.info("Find detection height using 5km data")
         retv = optical_depth_height_filtering(calipso, 0.0,
                                               limit_ctop=SETTINGS['OPTICAL_LIMIT_CLOUD_TOP'])
-        cloud_top5km, dummy, dummy, dummy, detection_height, dummy, dummy = retv
+        cloud_top5km, _, _, _, _, _, _, detection_height = retv
         calipso.detection_height_5km = detection_height
     else:
         calipso.detection_height_5km = None
