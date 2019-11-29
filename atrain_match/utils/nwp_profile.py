@@ -15,20 +15,14 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
-"""
-Extract and plot NWP profiles
-
-"""
+"""Module to extract and plot NWP profiles."""
 
 import logging
 logging.basicConfig(level=logging.INFO)
 
 
 def profile(field, y_coords, selection):
-    """
-    Produce a profile plot of *field* vs *y_coords* in *selection* pixels.
-
-    """
+    """Produce a profile plot of *field* vs *y_coords* in *selection* pixels."""
     from matplotlib import pyplot as plt
     import numpy as np
 
