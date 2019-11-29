@@ -116,29 +116,29 @@ class CloudTopStats(OrrbStats):
 
         for tc in cal_all_samples.keys():
             for clev in ["all", "low", "medium", "high"]:
-            # numpy.divide handles potential division by zero
+                # numpy.divide handles potential division by zero
                 N_CTTH = self.ac_data["cal_{clev}_samples".format(clev=clev)][tc]
                 stats = getattr(self, "retrieval_rate_{clev}".format(clev=clev))
                 stats[tc] = (
                     N_CTTH /
-                    (N_CTTH + 
+                    (N_CTTH +
                      self.ac_data["n_missed_ctth_{clev}".format(clev=clev)][tc]))
                 stats = getattr(self, "estimate_pod_cloudy_{clev}".format(clev=clev))
                 stats[tc] = (
                     N_CTTH /
-                    (N_CTTH + 
+                    (N_CTTH +
                      self.ac_data["n_missed_cma_{clev}".format(clev=clev)][tc]))
                 stats = getattr(self, "bias_cal_{clev}".format(clev=clev))
                 stats[tc] = np.divide(
-                    self.ac_data["mean_error_cal_{clev}_sum".format(clev=clev)][tc], 
+                    self.ac_data["mean_error_cal_{clev}_sum".format(clev=clev)][tc],
                     N_CTTH)
                 stats = getattr(self, "mae_cal_{clev}".format(clev=clev))
                 stats[tc] = np.divide(
-                    self.ac_data["mae_error_cal_{clev}_sum".format(clev=clev)][tc], 
+                    self.ac_data["mae_error_cal_{clev}_sum".format(clev=clev)][tc],
                     N_CTTH)
                 stats = getattr(self, "rms_cal_{clev}".format(clev=clev))
                 stats[tc] = math.sqrt(
-                    np.divide(self.ac_data["rms_error_cal_{clev}_sum".format(clev=clev)][tc], 
+                    np.divide(self.ac_data["rms_error_cal_{clev}_sum".format(clev=clev)][tc],
                               N_CTTH))
                 stats = getattr(self, "bcrms_cal_{clev}".format(clev=clev))
                 stats[tc] = bias_corrected_rms(
@@ -147,21 +147,20 @@ class CloudTopStats(OrrbStats):
                     N_CTTH)
                 stats = getattr(self, "pe250_cal_{clev}".format(clev=clev))
                 stats[tc] = np.divide(
-                     100.0*self.ac_data["n_over_250_cal_{clev}".format(clev=clev)][tc], 
+                    100.0*self.ac_data["n_over_250_cal_{clev}".format(clev=clev)][tc],
                     N_CTTH)
                 stats = getattr(self, "pe500_cal_{clev}".format(clev=clev))
                 stats[tc] = np.divide(
-                     100.0*self.ac_data["n_over_500_cal_{clev}".format(clev=clev)][tc], 
+                    100.0*self.ac_data["n_over_500_cal_{clev}".format(clev=clev)][tc],
                     N_CTTH)
                 stats = getattr(self, "pe2500_cal_{clev}".format(clev=clev))
                 stats[tc] = np.divide(
-                     100.0*self.ac_data["n_over_2500_cal_{clev}".format(clev=clev)][tc], 
-                    N_CTTH)    
+                    100.0*self.ac_data["n_over_2500_cal_{clev}".format(clev=clev)][tc],
+                    N_CTTH)
                 stats = getattr(self, "pe1000_cal_{clev}".format(clev=clev))
                 stats[tc] = np.divide(
-                    100.0*self.ac_data["n_over_1000_cal_{clev}".format(clev=clev)][tc], 
+                    100.0*self.ac_data["n_over_1000_cal_{clev}".format(clev=clev)][tc],
                     N_CTTH)
-                
 
     def printout(self):
         lines = []

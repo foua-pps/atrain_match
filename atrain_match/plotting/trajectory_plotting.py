@@ -26,7 +26,7 @@ def plot_satellite_trajectory(longitude,
                               **options):
     """Plot a trajectory of geolocations (lon, lat) on a map."""
     import numpy as np
- 
+
     if 'trajectory_plot_area' in options:
         area_id = options['trajectory_plot_area']
     else:

@@ -24,13 +24,14 @@ logger = logging.getLogger(__name__)
 # 2 = water
 # 3 = horizontally oriented ic
 
+
 def get_calipso_phase_cloud(match, phase='water'):
     """Get CALIOP pixels determined to be water clouds."""
     # bits 6-7, start at 1 counting
     cflag = match.calipso.feature_classification_flags[::, 0]
     cal_vert_feature = np.zeros(cflag.shape) - 9.0
     feature_array = (2 * np.bitwise_and(np.right_shift(cflag, 6), 1) +
-             1 * np.bitwise_and(np.right_shift(cflag, 5), 1))
+                     1 * np.bitwise_and(np.right_shift(cflag, 5), 1))
     cal_vert_feature = np.where(
         np.not_equal(cflag, 1), feature_array, cal_vert_feature)
     if phase == 'water':
@@ -39,6 +40,7 @@ def get_calipso_phase_cloud(match, phase='water'):
         selected = np.logical_or(cal_vert_feature == 1,
                                  cal_vert_feature == 3)
     return selected
+
 
 def get_semi_opaque_info_pps2014(ctth_status):
     """Get opaque/semitransparent flag from PPS-v2014 or later."""

@@ -260,7 +260,7 @@ class OrrbStats():
                     continue
                 if data_one_cat[3] <= 0:
                     data_one_cat[3] = 0
-                    
+
                 if type_of_clouds not in acu["cal_{cloud_level}_samples".format(
                         cloud_level=cloud_level.lower())].keys():
                     acu["cal_{cloud_level}_samples".format(
@@ -296,7 +296,7 @@ class OrrbStats():
                     cloud_level=cloud_level.lower())][type_of_clouds] += data_one_cat[3]*data_one_cat[2]*data_one_cat[2]
                 acu["mae_error_cal_{cloud_level}_sum".format(
                     cloud_level=cloud_level.lower())][type_of_clouds] += data_one_cat[3]*data_one_cat[6]
-                if len(data_one_cat)>8:
+                if len(data_one_cat) > 8:
                     acu["n_over_250_cal_{cloud_level}".format(
                         cloud_level=cloud_level.lower())][type_of_clouds] += data_one_cat[7]
                     acu["n_over_500_cal_{cloud_level}".format(
@@ -304,7 +304,7 @@ class OrrbStats():
                     acu["n_over_1000_cal_{cloud_level}".format(
                         cloud_level=cloud_level.lower())][type_of_clouds] += data_one_cat[9]
                     acu["n_over_2500_cal_{cloud_level}".format(
-                        cloud_level=cloud_level.lower())][type_of_clouds] +=  data_one_cat[10]
+                        cloud_level=cloud_level.lower())][type_of_clouds] += data_one_cat[10]
 
         acu['got_cloudsat_modis_flag'] = got_cloudsat_modis_flag
         acu["Num"] = (acu["n_cloudy_cloudy_cal"] + acu["n_cloudy_clear_cal"] +

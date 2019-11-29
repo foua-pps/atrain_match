@@ -53,7 +53,6 @@ for ind, filtcot in enumerate(cots):
     cots_mid += ["{:0.3f}".format(0.5 * (filtcot + filtcot_upper))]
 
 
-
 class MatchImagerCalipso(DataObject):
     def __init__(self):
         DataObject.__init__(self)
@@ -522,8 +521,6 @@ class MatchImagerCalipso(DataObject):
         self.detected_height_type[calipso_cloudtype] = detected_typei
 
 
-
-
 class StatsOnFibonacciLattice(DataObject):
     def __init__(self):
         DataObject.__init__(self)
@@ -645,30 +642,30 @@ class StatsOnFibonacciLattice(DataObject):
         self.N = self.num_clear + self.num_clouds
         self.Number_of = np.ma.masked_array(self.N, mask=self.N < 0)
 
-    def _remap_a_score_on_an_area(self, plot_area_name='antarctica', 
+    def _remap_a_score_on_an_area(self, plot_area_name='antarctica',
                                   vmin=0.0, vmax=1.0,
                                   score='Kuipers', screen_out_valid=False):
         if 'robin' in plot_area_name:
-            # Need crs from cartopy to get map boarder, the elipse. 
+            # Need crs from cartopy to get map boarder, the elipse.
             crs = ccrs.Robinson()
             # {'a': 6378137.0, 'proj': 'robin', 'lon_0': 0}
-            # crs.x_limits crs.y_limits 
+            # crs.x_limits crs.y_limits
             # (-17005833.33052523, 17005833.33052523)
             # (-8625155.12857459, 8625155.12857459)
             # Bounds needed for imshow or picture will be white
-            crs.bounds = (crs.x_limits[0], crs.x_limits[1], 
+            crs.bounds = (crs.x_limits[0], crs.x_limits[1],
                           crs.y_limits[0], crs.y_limits[1])
             # create pyresample area_def object
             area_def = AreaDefinition('robinson',
                                       'robinson',
                                       'robinson',
                                       projection=crs.proj4_params,
-                                      width=1000, height=500, 
+                                      width=1000, height=500,
                                       area_extent=(crs.x_limits[0],  # not same as crs.bounds
                                                    crs.y_limits[0],
                                                    crs.x_limits[1],
                                                    crs.y_limits[1])
-            )
+                                      )
         else:
             # For rectangular areas use the area_def from pyresample
             try:
@@ -692,7 +689,7 @@ class StatsOnFibonacciLattice(DataObject):
         result = resample_nearest(
             swath_def, data, area_def,
             radius_of_influence=self.radius_km*1000*2.5, fill_value=None)
-        my_cmap, vmin, vmax = self._get_colormap(score, vmin, vmax, 
+        my_cmap, vmin, vmax = self._get_colormap(score, vmin, vmax,
                                                  screen_out_valid=screen_out_valid)
 
         fig = plt.figure(figsize=(16, 9))
@@ -712,9 +709,9 @@ class StatsOnFibonacciLattice(DataObject):
             # hack to make data in corners white (data in corners caused by bug in PROJ)
             lon, lat = area_def.get_lonlats()
             yshape, xshape = result.data.shape
-            result.data[:,0:xshape//2][lon[:,0:xshape//2]>0] = 2*vmax
-            result.data[:,xshape//2:][lon[:,xshape//2:]<0] = 2*vmax
-            
+            result.data[:, 0:xshape//2][lon[:, 0:xshape//2] > 0] = 2*vmax
+            result.data[:, xshape//2:][lon[:, xshape//2:] < 0] = 2*vmax
+
         # yshape, xshape = result.data.shape
         # xi = list(range(xshape))
         # yi = list(range(yshape))
@@ -737,7 +734,6 @@ class StatsOnFibonacciLattice(DataObject):
         #                       plot_area_name + extra + 'quick.png',
         #                       area_def, result,
         #                       vmin=vmin, vmax=vmax, label=plot_label, cmap=my_cmap)
-
 
     def _get_colormap(self, score, vmin, vmax, screen_out_valid=False):
         """Find colormap for the score."""
@@ -788,8 +784,7 @@ class StatsOnFibonacciLattice(DataObject):
             # do not wan't low scores hitrates set to nodata!
         else:
             data[data > vmax] = vmax
-            data[data < vmin] = vmin  
- 
+            data[data < vmin] = vmin
 
     def remap_and_plot_score_on_several_areas(self, vmin=0.0, vmax=1.0,
                                               score='Kuipers', screen_out_valid=False):
@@ -797,10 +792,10 @@ class StatsOnFibonacciLattice(DataObject):
         self.PLOT_FILENAME_START = "fig_%s_ccm_%s_%sfilter_dnt_%s_%s_r%skm_" % (
             self.satellites, self.cc_method, self.filter_method,
             self.DNT, score, self.radius_km)
- 
+
         if not os.path.exists(self.PLOT_DIR_SCORE):
             os.makedirs(self.PLOT_DIR_SCORE)
-        plt.close('all')    
+        plt.close('all')
         for plot_area_name in [
                 # 'antarctica',
                 # 'arctica',
@@ -811,7 +806,7 @@ class StatsOnFibonacciLattice(DataObject):
                 print("Not making robinson projection for metops.")
                 continue
             self._remap_a_score_on_an_area(plot_area_name=plot_area_name,
-                                           vmin=vmin, vmax=vmax, score=score, 
+                                           vmin=vmin, vmax=vmax, score=score,
                                            screen_out_valid=screen_out_valid)
 
     def calculate_kuipers(self):
@@ -837,7 +832,7 @@ class StatsOnFibonacciLattice(DataObject):
         self.Kuipers_total_mean_polar = (
             (np.sum(num_detected_clouds[use])*np.sum(num_detected_clear[use]) -
              np.sum(self.num_false_clouds[use])*np.sum(self.num_undetected_clouds[use]))
-            /((np.sum(num_clouds[use]))*(np.sum(num_clear[use]))))
+            / ((np.sum(num_clouds[use]))*(np.sum(num_clear[use]))))
         Kuipers = np.ma.masked_array(Kuipers, mask=the_mask)
         self.Kuipers = Kuipers
 

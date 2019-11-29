@@ -266,6 +266,7 @@ class CppObj:
         self.cpp_phase_extended = None
         self.cpp_reff = None
 
+
 def read_ctth_h5(filename):
     h5file = h5py.File(filename, 'r')
     ctth = CtthObj()
