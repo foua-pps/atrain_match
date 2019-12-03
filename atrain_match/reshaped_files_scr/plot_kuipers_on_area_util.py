@@ -1248,15 +1248,18 @@ class PerformancePlottingObject:
         print("mapping took %1.4f seconds" % (time.time()-tic))
 
 
-def get_fibonacci_spread_points_on_earth(radius_km):
+def get_fibonacci_spread_points_on_earth(radius_km, num_points=None):
     # Earth area = 510072000km2
     # 4000 point with radius~200km
     # 1000 point with radium~100km
     # 25000 radius 80km
     # 64000 radius 5km
-    EARTH_AREA = 510072000
-    POINT_AREA = radius_km * radius_km * 3.14
-    n = int(EARTH_AREA / POINT_AREA)
+    if num_points is None:
+        EARTH_AREA = 510072000
+        POINT_AREA = radius_km * radius_km * 3.14
+        n = int(EARTH_AREA / POINT_AREA)
+    else:
+        n = num_points
     # http://arxiv.org/pdf/0912.4540.pdf
     # Alvaro Gonzalez: Measurement of areas on sphere usig Fibonacci and latitude-longitude grid.
     # import math
