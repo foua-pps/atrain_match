@@ -1105,7 +1105,7 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
         if SETTINGS['MATCH_MODIS_LVL2']:
             from atrain_match.cloudproducts.read_modis_products import add_modis_06
             if matchup.imager_instrument in ['modis']:
-                matchup = add_modis_06(matchup, imager_file, AM_PATHS)
+                matchup = add_modis_06(matchup, AM_PATHS, cross)
         if SETTINGS['ADD_NWP']:
             import pps_nwp
             from atrain_match.libs.extract_imager_along_track import _interpolate_height_and_temperature_from_pressure

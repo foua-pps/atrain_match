@@ -363,7 +363,7 @@ class SynopObject(DataObject):
 class TruthImagerTrackObject:
     def __init__(self, truth='calipso'):
         self.imager = ExtractedImagerObject()
-        self.modis = ModisObject()
+        self.modis_lvl2 = ModisObject()
         if truth in 'calipso':
             self.calipso = CalipsoObject()
             self.calipso_aerosol = CalipsoObject()
@@ -447,7 +447,7 @@ def get_stuff_to_read_from_a_reshaped_file(h5file, retv):
         data_objects.append(retv.imager)
     if 'modis_lvl2' in h5file.keys():
         h5_groups.append(h5file['/modis_lvl2'])
-        data_objects.append(retv.modis)
+        data_objects.append(retv.modis_lvl2)
     if 'cloudsat' in h5file.keys():
         h5_groups.append(h5file['/cloudsat'])
         data_objects.append(retv.cloudsat)
@@ -511,7 +511,7 @@ def write_truth_imager_match_obj(filename, match_obj, SETTINGS=None, imager_obj_
     groups = {imager_obj_name: match_obj.imager.all_arrays}
     imager_attrs = {'imager_instrument': match_obj.imager_instrument}
     groups_attrs = {imager_obj_name: imager_attrs}
-    for name in ['calipso', 'calipso_aerosol', 'iss',
+    for name in ['calipso', 'calipso_aerosol', 'iss', 'modis_lvl2',
                  'amsr', 'synop', 'mora', 'cloudsat', 'extra']:
         if hasattr(match_obj, name):
             groups[name] = getattr(match_obj, name).all_arrays

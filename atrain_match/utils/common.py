@@ -148,15 +148,16 @@ def write_match_objects(filename, datasets, groups, group_attrs_dict, SETTINGS=N
                              compression=COMPRESS_LVL)
 
         for group_name, group_object in groups.items():
-            skip_some = False
             if SETTINGS is not None and group_name in ['calipso',
                                                        'calipso_aerosol'
                                                        'cloudsat',
                                                        'iss',
                                                        'mora',
-                                                       'synop',
-                                                       'modis']:
+                                                       'synop']:
                 skip_some = SETTINGS["WRITE_ONLY_THE_MOST_IMPORTANT_STUFF_TO_FILE"]
+            else:
+                #modis_lvl2, pps, oca, patmosx, or maia
+                skip_some = False 
 
             try:
                 attrs_dict = group_attrs_dict[group_name]
