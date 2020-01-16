@@ -620,21 +620,25 @@ def read_pps_geoobj_nc(pps_nc):
     # pdb.set_trace()
     time_temp = pps_nc.variables['time'].units  # to 1970 s
     seconds = np.float64(pps_nc.variables['time'][::])  # from PPS often 0
-    if 'T' in time_temp:
-        time_obj = time.strptime(time_temp, 'seconds since %Y-%m-%dT%H:%M:%S+00:00')
-    elif time_temp == u'seconds since 1970-01-01':
-        time_obj = time.strptime(time_temp, 'seconds since %Y-%m-%d')
-    else:
-        time_obj = time.strptime(time_temp, 'seconds since %Y-%m-%d %H:%M:%S.%f +00:00')
+    if 'seconds' in time_temp:
+        if 'T' in time_temp:
+            time_obj = time.strptime(time_temp, 'seconds since %Y-%m-%dT%H:%M:%S+00:00')
+        elif time_temp == u'seconds since 1970-01-01':
+            time_obj = time.strptime(time_temp, 'seconds since %Y-%m-%d')
+        else:
+            time_obj = time.strptime(time_temp, 'seconds since %Y-%m-%d %H:%M:%S.%f +00:00')
 
-    sec_since_1970 = calendar.timegm(time_obj)
+        sec_since_1970 = calendar.timegm(time_obj)
 
-    all_imager_obj.sec1970_start = (sec_since_1970 +
-                                    np.float64(np.min(pps_nc.variables['time_bnds'][::])) +
-                                    seconds)
-    all_imager_obj.sec1970_end = (sec_since_1970 +
-                                  np.float64(np.max(pps_nc.variables['time_bnds'][::])) +
-                                  seconds)
+        all_imager_obj.sec1970_start = (sec_since_1970 +
+                                        np.float64(np.min(pps_nc.variables['time_bnds'][::])) +
+                                        seconds)
+        all_imager_obj.sec1970_end = (sec_since_1970 +
+                                      np.float64(np.max(pps_nc.variables['time_bnds'][::])) +
+                                      seconds)
+    else:    
+        all_imager_obj.sec1970_start = calendar.timegm(time.strptime(pps_nc.start_time,  '%Y-%m-%d %H:%M:%S'))
+        all_imager_obj.sec1970_end = calendar.timegm(time.strptime(pps_nc.end_time,  '%Y-%m-%d %H:%M:%S'))
     # print type(all_imager_obj.sec1970_start)
     all_imager_obj.sec1970_start = np.float64(all_imager_obj.sec1970_start)
     all_imager_obj.sec1970_end = np.float64(all_imager_obj.sec1970_end)

@@ -67,10 +67,14 @@ def read_config_info():
 
     if (SETTINGS['COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC'] or
             SETTINGS['CALCULATE_DETECTION_HEIGHT_FROM_5KM_DATA']):
+        logger.info("Setting ALSO_USE_5KM_FILES = True as "
+                    "COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC = True or "
+                    "CALCULATE_DETECTION_HEIGHT_FROM_5KM_DATA = True")
         SETTINGS['ALSO_USE_5KM_FILES'] = True  # 5km data is required also for 1km processing
     SETTINGS['sec_timeThr'] = SETTINGS['MINUTES_TIMETHR']*60.0
     SETTINGS['sec_timeThr_synop'] = SETTINGS['MINUTES_TIMETHR_SYNOP']*60.0
     SETTINGS['SAT_ORBIT_DURATION'] = SETTINGS['SAT_ORBIT_DURATION_MINUTES']*60.0
+    print(SETTINGS['ALSO_USE_5KM_FILES'])
     return AM_PATHS, SETTINGS
 
 
