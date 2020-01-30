@@ -148,11 +148,12 @@ def rearrange_calipso_the_single_shot_info(retv, singleshotdata):
     data = singleshotdata[name]
     data = np.array(data)
     data_reshaped_15 = data.reshape(-1, 15)
-    single_shot_cloud_cleared_array = np.sum(data_reshaped_15 == 0, axis=1)  # Number of clear
+    single_shot_cloud_cleared_array = np.sum(data_reshaped_15 == 0, axis=1).astype(np.int8)  # Number of clear
     single_shot_cloud_cleared_array = 15 - single_shot_cloud_cleared_array  # Number of cloudy
     name = "number_cloudy_single_shots"  # New name used here
     # pdb.set_trace()
-    setattr(retv, name, np.array(single_shot_cloud_cleared_array))
+    setattr(retv, name, np.array(single_shot_cloud_cleared_array).astype(np.int8))
+    setattr(retv, "single_shot_data", np.array(data_reshaped_15).astype(np.int8))
     # We need also average cloud top and cloud base for single_shot clouds
     data = singleshotdata["ssLayer_Base_Altitude"]
     data = np.array(data)
@@ -164,7 +165,7 @@ def rearrange_calipso_the_single_shot_info(retv, singleshotdata):
                          np.divide(np.sum(base_array, axis=1), single_shot_cloud_cleared_array),
                          - 9.0)  # Calculate average cloud base
     name = "average_cloud_base_single_shots"
-    setattr(retv, name, base_mean)
+    setattr(retv, name, base_mean.astype(np.float32))
 
     data = singleshotdata["ssLayer_Top_Pressure"]
     data = np.array(data)
@@ -176,7 +177,7 @@ def rearrange_calipso_the_single_shot_info(retv, singleshotdata):
                         np.divide(np.sum(top_array, axis=1), single_shot_cloud_cleared_array),
                         - 9.0)  # Calculate average cloud top
     name = "average_cloud_top_pressure_single_shots"
-    setattr(retv, name, top_mean)
+    setattr(retv, name, top_mean.astype(np.float32))
 
     data = singleshotdata["ssLayer_Top_Altitude"]
     data = np.array(data)
@@ -189,7 +190,7 @@ def rearrange_calipso_the_single_shot_info(retv, singleshotdata):
                         - 9.0)  # Calculate average cloud top
     name = "average_cloud_top_single_shots"
     # pdb.set_trace()
-    setattr(retv, name, top_mean)
+    setattr(retv, name, top_mean.astype(np.float32))
     # extract less information for 1km matching
     if config.RESOLUTION == 1:
         # create 1km  singel shot cfc
@@ -200,7 +201,7 @@ def rearrange_calipso_the_single_shot_info(retv, singleshotdata):
         cfc_single_shots = (3 - single_shot_num_clear_array) / 3.0  # Number of cloudy
         name = "cfc_single_shots_1km_from_5km_file"  # New name used here
         # pdb.set_trace()
-        setattr(retv, name, cfc_single_shots)
+        setattr(retv, name, cfc_single_shots.astype(np.float32))
     return retv
 
 
@@ -255,6 +256,7 @@ def read_calipso_hdf4(filename, retv):
         # attributes = h4file.attributes()
         singleshotdata = {}
         for idx, dataset in enumerate(datasets.keys()):
+            print(dataset)
             # non-goups
             if dataset in scip_these_larger_variables_until_needed.keys():
                 logger.debug("Not reading " + dataset)
@@ -547,7 +549,6 @@ def add_1km_to_5km(calipso1km, calipso5km):
             feature_array = np.asarray(feature_array_list)
             calipso5km.feature_classification_flags[i, 0] = np.median(
                 feature_array[:])  # However, let's take the median value
-            calipso5km.single_shot_cloud_cleared_fraction[i] = 0.0  # Not used later
             calipso5km.cloud_fraction[i] = cfc
     return calipso5km
 
@@ -770,7 +771,7 @@ def total_and_top_layer_optical_depth_5km(calipso, SETTINGS, resolution=5):
         print("ERROR this fuction is only for 5km data!")
         print("These features can then added to 1km data set")
     calipso.feature_optical_depth_532_top_layer_5km = o_depth_top_layer
-    calipso.total_optical_depth_5km = total_o_depth
+    calipso.total_optical_depth_5km = total_o_depth.astype(np.float32)
     if SETTINGS['CALCULATE_DETECTION_HEIGHT_FROM_5KM_DATA']:
         logger.info("Find detection height using 5km data")
         retv = optical_depth_height_filtering(calipso, 0.0,
