@@ -256,7 +256,6 @@ def read_calipso_hdf4(filename, retv):
         # attributes = h4file.attributes()
         singleshotdata = {}
         for idx, dataset in enumerate(datasets.keys()):
-            print(dataset)
             # non-goups
             if dataset in scip_these_larger_variables_until_needed.keys():
                 logger.debug("Not reading " + dataset)
@@ -494,7 +493,7 @@ def add_1km_to_5km(calipso1km, calipso5km):
         "\n Number of 1 km FOVS: {:d}".format(len_1km) +
         "\n Number of cloudy 1 km FOVS:   {3.3f}".format(cfc_1km) +
         "\n Cloudy fraction 1 km:  {3.3f}".format(float(cfc_1km)/float(len_1km)))
-    print(output)
+    # print(output)
     # Now calculate the cloud fraction in 5 km data from 1 km data
     # (discretized to 0.0, 0.2, 0.4, 0.6, 0.8 and 1.0).
     # In addition, if there are cloud layers in 5 km data but nothing in 1 km
