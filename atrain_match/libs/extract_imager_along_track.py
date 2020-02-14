@@ -242,10 +242,6 @@ def _interpolate_height_and_temperature_from_pressure(imager_obj,
         psur = imager_obj.segment_nwp_surfacePressure
     else:
         return None
-    values_h = imager_obj.segment_nwp_geoheight
-    pressure_v = imager_obj.segment_nwp_pressure
-    surface_h = imager_obj.segment_nwp_surfaceGeoHeight
-    psur = imager_obj.segment_nwp_surfacePressure
     # import pdb
     # pdb.set_trace()
     nlev = pressure_v.shape[1]
