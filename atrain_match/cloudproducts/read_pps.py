@@ -457,6 +457,8 @@ def read_imager_data_nc(pps_nc):
     for var in pps_nc.variables.keys():
         if 'image' in var or hasattr(pps_nc.variables[var], "sensor"):
             image = pps_nc.variables[var]
+            if not hasattr(image, 'id_tag'):
+                continue
             if image.id_tag in ['satzenith', 'sunzenith',
                                 'azimuthdiff',
                                 'sunazimuth', 'satazimuth']:
