@@ -60,6 +60,14 @@ def process_matchups(matchups, run_modes, reprocess=False, debug=False):
     from atrain_match.utils.runutils import read_config_info
     AM_PATHS, SETTINGS = read_config_info()
 
+    if not SETTINGS['CALCULATE_DETECTION_HEIGHT_FROM_5KM_DATA']:
+        for remove_mode in ['STANDARD']:
+            logger.warning("Not running mode {:s} when CALCULATE_DETECTION_HEIGHT_FROM_5KM_DATA is false".format(remove_mode))
+            run_modes = [mode for mode in run_modes if remove_mode not in mode]
+    if not SETTINGS['ALSO_USE_5KM_FILES'] and not config.RESOLUTION==5:
+        for remove_mode in ['OPTICAL_DEPTH_THIN_IS_CLEAR', 'STANDARD']:
+            logger.warning("Not running mode {:s} when ALSO_USE_5KM_FILES is false and using 1km RESOLUTION".format(remove_mode))
+            run_modes = [mode for mode in run_modes if remove_mode not in mode]
     problematic = set()
     no_matchup_files = []
     outstatus = 0
