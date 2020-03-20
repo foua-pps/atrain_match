@@ -57,20 +57,8 @@ INSTRUMENT = {'npp': 'viirs',
 
 # ========== Process modes ==========#
 #  Processing modes which can be handled for all resolutions
-ALLOWED_MODES = ['BASIC', 'STANDARD']
-# if AMSR_MATCHING:
-ALLOWED_MODES.append('SATZ_HIGH')
-ALLOWED_MODES.append('SATZ_LOW')
-if RESOLUTION == 1:
-    # if CALCULATE_DETECTION_HEIGHT_FROM_5KM_DATA:
-    ALLOWED_MODES.append('OPTICAL_DEPTH_THIN_IS_CLEAR')
-    # Filter thin CALIPSO pixels. Define OPTICAL_DETECTION_LIMIT
-elif RESOLUTION == 5:
-    ALLOWED_MODES.append('OPTICAL_DEPTH')
-    # Filter out cases with the thinnest topmost CALIPSO layers.
-    # Define MIN_OPTICAL_DEPTH above
-else:
-    raise ValueError("RESOLUTION == %s not supported" % str(RESOLUTION))
+ALLOWED_MODES = []
+MODES_NO_DNT = ['BASIC']
 PROCESS_SURFACES = [
     "ICE_COVER_SEA", "ICE_FREE_SEA", "SNOW_COVER_LAND", "SNOW_FREE_LAND",
     "COASTAL_ZONE",
@@ -83,11 +71,26 @@ PROCESS_SURFACES = [
     "POLAR", "POLAR_SNOW_FREE_LAND", "POLAR_ICE_FREE_SEA",
     "POLAR_SNOW_COVER_LAND", "POLAR_ICE_COVER_SEA"]
 for surface in PROCESS_SURFACES:
-    ALLOWED_MODES.append(surface)
-# add the _NIGHT, _DAY and _TWILIGTH versions of all modes
-for mode in list(ALLOWED_MODES):
-    for DNT in ['_DAY', '_NIGHT', '_TWILIGHT']:
-        ALLOWED_MODES.append(mode + DNT)
+    MODES_NO_DNT.append(surface)
+  
+if RESOLUTION == 1:
+    # if CALCULATE_DETECTION_HEIGHT_FROM_5KM_DATA:
+    MODES_NO_DNT.append('OPTICAL_DEPTH_THIN_IS_CLEAR')
+    # Filter thin CALIPSO pixels. Define OPTICAL_DETECTION_LIMIT
+elif RESOLUTION == 5:
+    MODES_NO_DNT.append('OPTICAL_DEPTH')
+    # Filter out cases with the thinnest topmost CALIPSO layers.
+    # Define MIN_OPTICAL_DEPTH above
+else:
+    raise ValueError("RESOLUTION == %s not supported" % str(RESOLUTION))
+
+for mode in ['STANDARD', 'HIGH_SATZ', 'LOW_SATZ']:
+    MODES_NO_DNT.append(mode)
+
+# add the mode and  _NIGHT, _DAY and _TWILIGTH versions of all modes
+for mode in MODES_NO_DNT:
+    for DNT in ['', '_DAY', '_NIGHT', '_TWILIGHT']:
+        ALLOWED_MODES.append(mode + DNT) 
 
 COMPRESS_LVL = 6  # : Compresssion level for generated matched files (h5)
 NODATA = -9
