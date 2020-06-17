@@ -474,6 +474,7 @@ def read_imager_data_nc(pps_nc):
             else:
                 one_channel.data = data_temporary
             one_channel.des = image.description
+            #one_channel.id_tag = image.id_tag
             if hasattr(pps_nc.variables[var], "sun_zenith_angle_correction_applied"):
                 corr_done_attr = pps_nc.variables[var].sun_zenith_angle_correction_applied
                 if corr_done_attr.upper() in ["TRUE"]:
