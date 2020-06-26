@@ -597,6 +597,9 @@ the_used_variables = [
     "layer_top_altitude_5km",
     "layer_top_pressure_5km",
     'number_cloudy_single_shots',
+    "average_cloud_base_single_shots_5km",
+    "average_cloud_top_pressure_single_shots_5km",
+    "average_cloud_top_single_shots_5km",
     # CLOUDSAT only
     'clsat_max_height',
     'validation_height_base',

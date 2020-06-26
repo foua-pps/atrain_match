@@ -164,7 +164,7 @@ def get_satid_datetime_orbit_from_fname(filename, SETTINGS, cross=None, as_oldst
     if SETTINGS['PATMOSX_VALIDATION']:
         values = get_satid_datetime_orbit_from_fname_patmosx(filename, SETTINGS, cross)
     if SETTINGS['OCA_VALIDATION']:
-        values = get_satid_datetime_orbit_from_fname_oca(filename, SETTINGS, cross)
+        values = get_satid_datetime_orbit_from_fname_oca(filename)
     return values
 
 
@@ -1011,7 +1011,7 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
     # STEP 4 get matchups
     # CloudSat
     cloudsat_matchup = None
-    if (SETTINGS['PPS_VALIDATION'] and SETTINGS['CLOUDSAT_MATCHING'] and
+    if ((SETTINGS['PPS_VALIDATION'] or SETTINGS['OCA_VALIDATION'])  and SETTINGS['CLOUDSAT_MATCHING'] and
             truth_files['cloudsat'] is not None):
         logger.info("Read CLOUDSAT data")
         cloudsat_matchup = get_cloudsat_matchups(truth_files['cloudsat'],
@@ -1146,6 +1146,11 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
             setattr(matchup.imager, 'nwp_h440', data)
             data = _interpolate_height_and_temperature_from_pressure(matchup.imager, 680)
             setattr(matchup.imager, 'nwp_h680', data)
+            if SETTINGS['OCA_VALIDATION'] and matchup.imager.ctth_height is None:
+                data = _interpolate_height_and_temperature_from_pressure(matchup.imager, None,
+                                                                         list_of_levels=matchup.imager.ctth_pressure)
+                data[matchup.imager.ctth_pressure<0] = -9
+                setattr(matchup.imager, 'ctth_height', data)
 
     # add additional vars to cloudsat and calipso objects and print them to file:
     cloudsat_matchup, calipso_matchup = add_additional_clousat_calipso_index_vars(cloudsat_matchup, calipso_matchup)

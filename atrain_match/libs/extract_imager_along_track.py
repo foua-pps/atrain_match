@@ -237,7 +237,7 @@ def get_channel_data_from_object(imager_obj, chn_des, matched, nodata=-9):
 
 
 def _interpolate_height_and_temperature_from_pressure(imager_obj,
-                                                      level):
+                                                      level, list_of_levels=None):
     """ Function to find height att pressure level (level)
     from segment_nwp, pressure and height vectors.
     High means high in pressure. The level closest to ground i hi, and lo is at lower
@@ -260,9 +260,15 @@ def _interpolate_height_and_temperature_from_pressure(imager_obj,
     nlev = pressure_v.shape[1]
     npix = pressure_v.shape[0]
     k = np.arange(npix)
-    higher_index = np.array([nlev - 1 - np.searchsorted(pressure_v[ind, :], level, side='right',
-                                                        sorter=range(nlev - 1, -1, -1))
-                             for ind in range(npix)])
+    if list_of_levels is None:
+        higher_index = np.array([nlev - 1 - np.searchsorted(pressure_v[ind, :], level, side='right',
+                                                            sorter=range(nlev - 1, -1, -1))
+                                 for ind in range(npix)])
+    else:
+        higher_index = np.array([nlev - 1 - np.searchsorted(pressure_v[ind, :], list_of_levels[ind], side='right',
+                                                            sorter=range(nlev - 1, -1, -1))
+                                 for ind in range(npix)])
+        level = list_of_levels
     higher_index[higher_index >= (nlev - 1)] = nlev - 2
     lower_index = higher_index + 1
     # update "lo" where level is between surface and first level in array
@@ -385,7 +391,7 @@ def insert_nwp_h440_h680_data(obt):
 
 # ---------------------------------------------------------------------------
 
-
+from atrain_match.cloudproducts.read_oca import OCA_READ_EXTRA
 def imager_track_from_matched(obt, SETTINGS, cloudproducts,
                               extract_radiances=True,
                               extract_cma=True,
@@ -405,7 +411,9 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
                       "h2m", "u10m", "v10m", "t2m",
                       "snowa", "snowd", "seaice",
                       "landuse", "fractionofland", "elevation",
-                      "r37_sza_correction_done"]
+                      "r37_sza_correction_done",
+
+    ] + OCA_READ_EXTRA
 
     if aux_params is None:
         aux_params = aux_params_all
@@ -436,6 +444,7 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
         obt.imager.cloudtype = get_data_from_array(ctype.cloudtype, row_col)
     if extract_cma and cma is not None:
         obt.imager.cloudmask = get_data_from_array(cma.cma_ext, row_col)
+        obt.imager.cloudmask_bin = get_data_from_array(cma.cma_bin, row_col)
         if find_mean_data_for_x_neighbours:
             obt.imager.cfc_mean = get_mean_data_from_array_nneigh(cma.cma_bin, row_col_nneigh)
     for varname in ['cma_testlist0', 'cma_testlist1', 'cma_testlist2',

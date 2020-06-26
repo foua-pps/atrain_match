@@ -400,7 +400,9 @@ def add_5km_variables_to_1km(calipso1km, calipso5km, CALIPSO_version):
             "column_optical_depth_tropospheric_aerosols_uncertainty_532",
             "column_optical_depth_cloud_532",
             "column_optical_depth_cloud_uncertainty_532",
-
+            "average_cloud_base_single_shots",
+            "average_cloud_top_pressure_single_shots",
+            "average_cloud_top_single_shots",
             # "feature_optical_depth_532",
             # "feature_optical_depth_uncertainty_532"
     ]:

@@ -154,6 +154,8 @@ def plot_some_figures(match_clsat, match_calipso, values, basename, process_mode
 
     plotpath = insert_info_in_filename_or_path(AM_PATHS['plot_dir'], values,
                                                datetime_obj=values['date_time'])
+    if not os.path.exists(plotpath):
+        os.makedirs(plotpath)
 
     # TRAJECTORY
     if match_calipso is not None and 1 == 2:
