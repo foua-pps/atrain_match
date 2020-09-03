@@ -84,6 +84,7 @@ class ppsFiles(object):
         self.thr_t85t11 = None
         self.thr_r06 = None
         self.thr_r09 = None
+        self.nnextra = None
         self.nwp_segments = None
         self.__dict__.update(file_name_dict)
 
@@ -492,6 +493,9 @@ def find_pps_files_from_imager_file(imager_file, AM_PATHS, SETTINGS, as_oldstyle
     file_name_dict['nwp_segments'] = get_one_pps_file(imager_file, AM_PATHS,
                                                       values,
                                                       'segment_file', 'segment_dir')
+    file_name_dict['nnextra'] = get_one_pps_file(imager_file, AM_PATHS,
+                                                 values,
+                                                 'nnextra_file', 'nnextra_dir')   
     # -------------------------------------#
     ppsfiles = ppsFiles(file_name_dict)
     return ppsfiles

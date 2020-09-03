@@ -413,14 +413,16 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
                       "landuse", "fractionofland", "elevation",
                       "r37_sza_correction_done",
 
-    ] + OCA_READ_EXTRA
-
-    if aux_params is None:
-        aux_params = aux_params_all
-        # For amsr-E matching (many neighbors) use only the needed nwp data
-
+    ] + OCA_READ_EXTRA # And NN-extra!
+    
     aux_obj = cloudproducts.aux
-
+    if aux_params is None:
+        #aux_params = aux_params_all
+        aux_params = dir(aux_obj)
+        # For amsr-E matching (many neighbors) use only the needed nwp data
+        aux_params = [param for param in aux_params if '__' not in param]
+        aux_params = [param for param in aux_params if 'CTTH' not in param]
+    
     imager_obj = cloudproducts.imager_channeldata
     angle_obj = cloudproducts.imager_angles
     ctth = cloudproducts.ctth
@@ -449,7 +451,7 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
             obt.imager.cfc_mean = get_mean_data_from_array_nneigh(cma.cma_bin, row_col_nneigh)
     for varname in ['cma_testlist0', 'cma_testlist1', 'cma_testlist2',
                     'cma_testlist3', 'cma_testlist4', 'cma_testlist5',
-                    'cma_prob', 'cma_aerosolflag', 'cma_dust']:
+                    'cma_prob', 'cma_aerosolflag', 'cma_dust', 'cma_quality']:
         if extract_cma and hasattr(cma, varname):
             setattr(obt.imager, varname,
                     get_data_from_array(getattr(cma, varname), row_col))

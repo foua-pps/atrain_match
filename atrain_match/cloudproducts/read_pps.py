@@ -216,6 +216,7 @@ class CmaObj:
     def __init__(self):
         """Init all datasets to None."""
         self.cma_ext = None
+        self.cma_quality = None
         self.cma_bin = None
         self.cma_prob = None
         self.cma_aflag = None
@@ -416,6 +417,7 @@ def read_cma_nc(filename):
     cma.cma_bin[cma.cma_ext == 2] = 1.0
     cma.cma_bin[cma.cma_ext < 0] = ATRAIN_MATCH_NODATA
     cma.cma_bin[cma.cma_ext > 10] = ATRAIN_MATCH_NODATA
+    cma.cma_quality = pps_nc.variables['cma_quality'][0, :, :]
 
     # cma.cma_testlist0 = pps_nc.variables['cma_testlist0'][0, :, :]
     # cma.cma_testlist1 = pps_nc.variables['cma_testlist1'][0, :, :]
@@ -940,6 +942,15 @@ def read_all_intermediate_files(pps_files, SETTINGS):
 
     CTTH_TYPES = SETTINGS['CTTH_TYPES']
     aux_dict = {}
+    if pps_files.nnextra is None:
+        pass
+    else:
+        pps_nc_nnextra = netCDF4.Dataset(pps_files.nnextra, 'r', format='NETCDF4')
+        for item in pps_nc_nnextra.variables.keys():
+            if item[0:2] =='nn':
+                aux_dict[item] = read_etc_nc(pps_nc_nnextra, item)
+        pps_nc_nnextra.close()
+        
     if pps_files.seaice is None:
         pass
     elif '.nc' in pps_files.seaice:

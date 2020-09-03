@@ -37,7 +37,9 @@ logger = logging.getLogger(__name__)
 
 ATRAIN_MATCH_NODATA = config.NODATA
 # from atrain_match.utils.get_flag_info import get_oca_ct_flag, get_day_night_twilight_info_oca
-OCA_READ_EXTRA = ['ctp2', 'ctt2', 'moca_model_final', 'err_log_cot', 'err_ctp', 'err_cre', 'err_log_cot2', 'err_ctp2', 'err_cre2']
+OCA_READ_EXTRA_ONLY_OCA = ['ctp2', 'ctt2', 'moca_model_final', 'err_log_cot', 'err_ctp', 'err_cre', 'err_log_cot2', 'err_ctp2', 'err_cre2']
+
+OCA_READ_EXTRA = OCA_READ_EXTRA_ONLY_OCA + ['flag_cm']
 
 def get_satid_datetime_orbit_from_fname_oca(imager_filename):
     # Get satellite name, time, and orbit number from imager_file
@@ -216,7 +218,9 @@ def oca_read_all_nc_modis(filename):
     cloudproducts.cma = cma
     cloudproducts.ctth = ctth
     cloudproducts.ctype = ctype
-    cloudproducts.aux = read_oca_secondlayer_etc_info_modis(oca_nc)
+    aux_dict = read_oca_secondlayer_etc_info_modis(oca_nc)
+    aux_dict['flag_cm'] = read_oca_secondlayer_etc_info_modis(oca_nc_clm, params=['flag_cm'])['flag_cm']
+    cloudproducts.aux = AuxiliaryObj(aux_dict)
     logger.info("Not reading cloud microphysical properties")
     # cloudproducts.cpp = read_oca_cpp(oca_nc)
     logger.info("Not reading surface temperature")
@@ -267,14 +271,13 @@ def read_oca_cpp_modis(oca_nc):
         oca_nc['moca_model_final'])
     return cpp
 
-def read_oca_secondlayer_etc_info_modis(oca_nc):
+def read_oca_secondlayer_etc_info_modis(oca_nc, params=OCA_READ_EXTRA_ONLY_OCA):
     """Read ctth pressure file, for second layer."""
     aux_dict = {}
-    for param in OCA_READ_EXTRA:
+    for param in params:
         aux_dict[param], _ = scale_oca_var_modis(
             oca_nc[param])
-    aux_obj = AuxiliaryObj(aux_dict)
-    return aux_obj
+    return aux_dict
 
 
 def read_oca_angobj_modis(oca_nc):
