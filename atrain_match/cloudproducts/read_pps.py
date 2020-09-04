@@ -461,6 +461,8 @@ def read_imager_data_nc(pps_nc):
             image = pps_nc.variables[var]
             if not hasattr(image, 'id_tag'):
                 continue
+            if id_tag in ["qual_flags"]:
+                continue
             if image.id_tag in ['satzenith', 'sunzenith',
                                 'azimuthdiff',
                                 'sunazimuth', 'satazimuth']:
