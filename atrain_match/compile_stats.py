@@ -98,6 +98,15 @@ if __name__ == '__main__':
                         nargs='?', required=False,
                         help='calculate the statistic for the optical '
                         'thickness filters')
+    parser.add_argument('--satellites', '-sat', metavar='satellites', type=str,
+                        nargs='*', required=False,
+                        help='List of satellite to combine, '
+                        'overrides SATELLITES in atrain_match.cfg')
+    parser.add_argument('--years', '-y', metavar='years', type=str,
+                        nargs='*', required=False,
+                        help='List of year to combine, '
+                        'overrides YEARS in atrain_match.cfg')
+       
     (options) = parser.parse_args()
 
     from atrain_match.utils.runutils import read_config_info
@@ -137,6 +146,14 @@ if __name__ == '__main__':
                 # modes_list.append("OPTICAL_DEPTH-%0.2_%sf"(dnt, cot))# if like this
                 modes_dnt_list.append("OPTICAL_DEPTH%s-%0.2f" % (dnt, cot))
 
+    MY_YEARS = SETTINGS["YEARS"]
+    MY_SATELLITES = SETTINGS["SATELLITES"]
+    if options.satellites:
+        MY_SATELLITES = options.satellites
+    if options.years:
+        MY_YEARS = options.years
+    years_string = "_".join(MY_YEARS)    
+    satellites_string = "_".join(MY_SATELLITES) 
     # get cases
     CASES = []
     month_list = ["*"]
@@ -145,8 +162,8 @@ if __name__ == '__main__':
         month_list = ["{:02d}".format(int(ind)) for ind in SETTINGS["MONTHS"]]
     if "DAY" in SETTINGS.keys() and len(SETTINGS["DAYS"]) > 0:
         day_list = ["{:02d}".format(int(ind)) for ind in SETTINGS["DAYS"]]
-    for sat in SETTINGS["SATELLITES"]:
-        for year in SETTINGS["YEARS"]:
+    for sat in MY_SATELLITES:
+        for year in MY_YEARS:
             for month in month_list:
                 for day in day_list:
                     CASES.append({'satname': sat,
@@ -190,14 +207,20 @@ if __name__ == '__main__':
                 continue
             # compile and write results
             compiled_dir = AM_PATHS['compiled_stats_dir'].format(
-                val_dir=_validation_results_dir)
+                val_dir=_validation_results_dir,
+                satellite=satellites_string,
+                resolution=str(RESOLUTION),
+                month=case['month'],
+                year=years_string,
+                mode=process_mode_dnt,
+                truth_sat=truth_sat)
             if not os.path.exists(compiled_dir):
                 os.makedirs(compiled_dir)
             compiled_file_cfc = AM_PATHS['compiled_stats_filename'].format(
-                satellite=case['satname'],
+                satellite=satellites_string,
                 resolution=str(RESOLUTION),
                 month=case['month'],
-                year=case['year'],
+                year=years_string,
                 mode=process_mode_dnt,
                 truth_sat=truth_sat,
                 stat_type='cfc',
