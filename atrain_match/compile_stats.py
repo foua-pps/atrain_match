@@ -98,15 +98,18 @@ if __name__ == '__main__':
                         nargs='?', required=False,
                         help='calculate the statistic for the optical '
                         'thickness filters')
-    parser.add_argument('--satellites', '-sat', metavar='satellites', type=str,
+    parser.add_argument('--satellites', '-sat', metavar='noaa18', type=str,
                         nargs='*', required=False,
                         help='List of satellite to combine, '
                         'overrides SATELLITES in atrain_match.cfg')
-    parser.add_argument('--years', '-y', metavar='years', type=str,
+    parser.add_argument('--years', '-y', metavar='YYYY', type=str,
                         nargs='*', required=False,
                         help='List of year to combine, '
                         'overrides YEARS in atrain_match.cfg')
-       
+    parser.add_argument('--months', '-m', metavar='mm', type=str,
+                        nargs='*', required=False,
+                        help='List of year to combine, '
+                        'overrides YEARS in atrain_match.cfg')      
     (options) = parser.parse_args()
 
     from atrain_match.utils.runutils import read_config_info
@@ -160,6 +163,9 @@ if __name__ == '__main__':
     day_list = ["*"]
     if "MONTH" in SETTINGS.keys() and len(SETTINGS["MONTHS"]) > 0:
         month_list = ["{:02d}".format(int(ind)) for ind in SETTINGS["MONTHS"]]
+    if options.months:
+        month_list = ["{:02d}".format(int(ind)) for ind in options.months]
+        
     if "DAY" in SETTINGS.keys() and len(SETTINGS["DAYS"]) > 0:
         day_list = ["{:02d}".format(int(ind)) for ind in SETTINGS["DAYS"]]
     for sat in MY_SATELLITES:
