@@ -643,9 +643,16 @@ def read_pps_geoobj_nc(pps_nc):
         all_imager_obj.sec1970_end = (sec_since_1970 +
                                       np.float64(np.max(pps_nc.variables['time_bnds'][::])) +
                                       seconds)
-    else:    
-        all_imager_obj.sec1970_start = calendar.timegm(time.strptime(pps_nc.start_time,  '%Y-%m-%d %H:%M:%S'))
-        all_imager_obj.sec1970_end = calendar.timegm(time.strptime(pps_nc.end_time,  '%Y-%m-%d %H:%M:%S'))
+    else:
+        try:
+            all_imager_obj.sec1970_start = calendar.timegm(time.strptime(pps_nc.variables['lon'].start_time,
+                                                                         '%Y-%m-%d %H:%M:%S.%f'))
+            all_imager_obj.sec1970_end = calendar.timegm(time.strptime(pps_nc.variables['lon'].end_time,
+                                                                       '%Y-%m-%d %H:%M:%S.%f'))
+
+        except:    
+            all_imager_obj.sec1970_start = calendar.timegm(time.strptime(pps_nc.start_time,  '%Y-%m-%d %H:%M:%S'))
+            all_imager_obj.sec1970_end = calendar.timegm(time.strptime(pps_nc.end_time,  '%Y-%m-%d %H:%M:%S'))
     # print type(all_imager_obj.sec1970_start)
     all_imager_obj.sec1970_start = np.float64(all_imager_obj.sec1970_start)
     all_imager_obj.sec1970_end = np.float64(all_imager_obj.sec1970_end)
