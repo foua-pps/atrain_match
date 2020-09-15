@@ -126,7 +126,8 @@ if __name__ == '__main__':
     if options.standard:
         modes_list.append('STANDARD')
     if options.satz:
-        modes_list.append(['SATZ_LOW', 'SATZ_70', 'SATZ_HIGH'])
+        for mode in ['SATZ_LOW', 'SATZ_70', 'SATZ_HIGH']:
+            modes_list.append(mode)
     if options.odticfilter:  # I prefer this one! /KG
         print('Will calculate statistic for mode OPTICAL_DEPTH_THIN_IS_CLEAR')
         modes_list.append('OPTICAL_DEPTH_THIN_IS_CLEAR')
