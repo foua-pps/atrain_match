@@ -120,6 +120,8 @@ def get_subset_for_mode(match_obj, mode):
         cal_subset = match_obj.imager.all_arrays['satz'] < 20
     elif mode == 'SATZ_HIGH':
         cal_subset = match_obj.imager.all_arrays['satz'] >= 20
+    elif mode == 'SATZ_70':
+        cal_subset = match_obj.imager.all_arrays['satz'] <= 70.53
     elif mode == 'OPTICAL_DEPTH':
         cal_subset = np.bool_(np.ones(latitude_abs.shape))
     elif mode == 'STANDARD':

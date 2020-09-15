@@ -84,7 +84,7 @@ elif RESOLUTION == 5:
 else:
     raise ValueError("RESOLUTION == %s not supported" % str(RESOLUTION))
 
-for mode in ['STANDARD', 'SATZ_HIGH', 'SATZ_LOW']:
+for mode in ['STANDARD', 'SATZ_HIGH', 'SATZ_LOW', 'SATZ_70']:
     MODES_NO_DNT.append(mode)
 
 # add the mode and  _NIGHT, _DAY and _TWILIGTH versions of all modes
