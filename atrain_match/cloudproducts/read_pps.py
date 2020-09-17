@@ -64,7 +64,7 @@ def get_satid_datetime_orbit_from_fname_pps(imager_filename, as_oldstyle=False):
                   "year": date_time.year,
                   "month": "%02d" % (date_time.month),
                   "lines_lines": "*",
-                  "time": date_time.strftime("%H%M"),
+                  "time": date_time.strftime("%H%M%S"),
                   "ppsfilename": imager_filename}
     values['basename'] = (values["satellite"] +
                           "_" + values["date"] +
