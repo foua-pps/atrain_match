@@ -326,31 +326,37 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
                                                          get_darkest_values,
                                                          get_warmest_values)
 
+    imager_channels = [key for key in imager_obj.channel if 'ch_' in key]
     if imager_obj is not None and SETTINGS["SAVE_NEIGHBOUR_INFO"]:
         warm_row_col = get_warmest_values(imager_obj, row_col)
-        for key in imager_obj.channel.keys():
+        for key in imager_channels:
             atrain_name = get_atrain_name(imager_obj.channel[key])
             atrain_name = 'warmest_'  +atrain_name.replace('micron',''). replace('b','')
             data = get_channel_data_from_object(imager_obj, key, warm_row_col)
             setattr(obt.imager, atrain_name, data)            
         cold_row_col = get_coldest_values(imager_obj, row_col)
-        for key in imager_obj.channel.keys():
+        for key in imager_channels:
             atrain_name = get_atrain_name(imager_obj.channel[key])
             atrain_name = 'coldest_'  + atrain_name.replace('micron',''). replace('b','')
             data = get_channel_data_from_object(imager_obj, key, cold_row_col)
             setattr(obt.imager, atrain_name, data)
         dark_row_col = get_darkest_values(imager_obj, row_col)
-        for key in imager_obj.channel.keys():
+        for key in imager_channels:
             atrain_name = get_atrain_name(imager_obj.channel[key])
             atrain_name = 'darkest_'  + atrain_name.replace('micron',''). replace('b','')
             data = get_channel_data_from_object(imager_obj, key, dark_row_col)
-            setattr(obt.imager, atrain_name, data)    
-
+            setattr(obt.imager, atrain_name, data)
+            
+    if 'qual_flags' in imager_obj.channel:
+        qual = imager_obj.channel['qual_flags'].data
+        setattr(obt.imager, 'qual_flags', qual[truth.imager_linnum,:])
+        
     # Imager data        
     if imager_obj is not None:
-        for key in imager_obj.channel:
+        for key in imager_channels:
             atrain_name = get_atrain_name(imager_obj.channel[key])
-            setattr(obt.imager, atrain_name, get_data_from_array(imager_obj.channel[key].data, row_col))  
+            data = get_data_from_array(imager_obj.channel[key].data, row_col)
+            setattr(obt.imager, atrain_name, data)  
       
     # Angles, scale with gain and intercept when reading
     for angle in ['satz', 'sunz', 'azidiff', 'sunazimuth', 'satazimuth']:

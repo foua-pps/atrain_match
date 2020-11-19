@@ -456,6 +456,12 @@ def read_cma_nc(filename):
 def read_imager_data_nc(pps_nc):
     """Read for PPS level1c from netcdf file."""
     imager_data = NewImagerData()
+
+    bad = None
+    if 'qual_flags' in pps_nc.variables.keys():
+        qual = pps_nc.variables['qual_flags'][0,:,:]
+        bad = np.sum(qual[:, 1:], axis=1) > 0
+        
     for var in pps_nc.variables.keys():
         if 'image' in var or hasattr(pps_nc.variables[var], "sensor"):
             image = pps_nc.variables[var]
@@ -466,8 +472,7 @@ def read_imager_data_nc(pps_nc):
                                 'azimuthdiff',
                                 'sunazimuth', 'satazimuth']:
                 continue
-
-            logger.debug("reading channel %s", image.description)
+            logger.debug("reading channel %s", id_tag)
             one_channel = ImagerChannelData()
             # channel = image.channel
             data_temporary = image[0, :, :]
@@ -476,7 +481,10 @@ def read_imager_data_nc(pps_nc):
                 one_channel.data[data_temporary.mask] = ATRAIN_MATCH_NODATA
             else:
                 one_channel.data = data_temporary
+            if bad is not None and id_tag != 'qual_flags':
+                one_channel.data[bad,:] = ATRAIN_MATCH_NODATA
             if hasattr(image, 'description'):
+                logger.debug("reading channel %s", image.description)
                 one_channel.des = image.description
             one_channel.id_tag = image.id_tag
             if hasattr(pps_nc.variables[var], "sun_zenith_angle_correction_applied"):
