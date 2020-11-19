@@ -49,9 +49,11 @@ INSTRUMENT = {'npp': 'viirs',
               'meteosat9': 'seviri',
               'meteosat10': 'seviri',
               'meteosat11': 'seviri',
+              'fy3d': 'mersi2',
               'noaa20': 'viirs',
               'sga1': 'metimage',
               'epsga1': 'metimage',
+              'metopsga1': 'metimage',
               'eos1': 'modis',
               'eos2': 'modis'}
 

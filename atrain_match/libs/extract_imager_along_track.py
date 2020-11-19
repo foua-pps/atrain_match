@@ -19,166 +19,6 @@ import numpy as np
 import logging
 import os
 logger = logging.getLogger(__name__)
-CHANNEL_MICRON_DESCRIPTIONS = {'11': ["avhrr channel 4 - 11um",
-                                      "Avhrr channel channel4.",
-                                      "AVHRR ch4",
-                                      "AVHRR ch 4",
-                                      "AVHRR ch_4",
-                                      "SEVIRI IR_108",
-                                      "channel4",
-                                      "AVHRR 4",
-                                      "AVHRR-1 4",
-                                      "AVHRR-2 4",
-                                      "AVHRR-3 4",
-                                      "MODIS 31",
-                                      "VIIRS M15",
-                                      "Avhrr channel channel4."],
-                               '12': ["avhrr channel 5 - 12um",
-                                      "Avhrr channel channel5.",
-                                      "AVHRR ch5",
-                                      "AVHRR ch 5",
-                                      "AVHRR ch_5",
-                                      "SEVIRI IR_120",
-                                      "channel5",
-                                      "AVHRR 5",
-                                      "AVHRR-1 5",
-                                      "AVHRR-2 5",
-                                      "AVHRR-3 5",
-                                      "MODIS 32",
-                                      "VIIRS M16",
-                                      "Avhrr channel channel5."],
-                               '06': ["VIIRS M05",
-                                      "AVHRR ch 1",
-                                      "SEVIRI VIS006",
-                                      "AVHRR ch1",
-                                      "AVHRR ch_1",
-                                      "AVHRR 1",
-                                      "AVHRR-1 1",
-                                      "AVHRR-2 1",
-                                      "AVHRR-3 1",
-                                      "MODIS 1"],
-                               '09': ["VIIRS M07",
-                                      "AVHRR ch 2",
-                                      "AVHRR ch2",
-                                      "AVHRR ch_2",
-                                      "AVHRR 2",
-                                      "AVHRR-1 2",
-                                      "AVHRR-2 2",
-                                      "AVHRR-3 2",
-                                      "SEVIRI VIS008",
-                                      "MODIS 2"],
-                               '16': ["VIIRS M10",
-                                      "AVHRR ch 3a",
-                                      "3a",
-                                      "SEVIRI IR_016",
-                                      "AVHRR ch3a",
-                                      "AVHRR ch_3a",
-                                      "AVHRR 3A",
-                                      "AVHRR-1 3A",
-                                      "AVHRR-2 3A",
-                                      "AVHRR-3 3A",
-                                      "MODIS 6"],
-                               '37': ["VIIRS M12",
-                                      "AVHRR ch 3b",
-                                      "SEVIRI IR_039",
-                                      "AVHRR ch_3b",
-                                      "AVHRR ch3b",
-                                      "AVHRR-1 3",
-                                      "AVHRR-1 3B",
-                                      "AVHRR-2 3B",
-                                      "AVHRR-3 3B",
-                                      "AVHRR-2 3",
-                                      "AVHRR-3 3",
-                                      "AVHRR 3B",
-                                      "MODIS 20",
-                                      "3b",
-                                      "AVHRR 3B"],
-                               '22': ["VIIRS M11"],
-                               '13': ["VIIRS M09",
-                                      "MODIS 26"],
-                               '86': ["VIIRS M14",
-                                      "SEVIRI IR_087",
-                                      "MODIS 29"],
-                               'seviri_bt73': ['SEVIRI WV_073'],
-                               'seviri_bt134': ['SEVIRI IR_134'],
-                               'seviri_bt97': ['SEVIRI IR_097'],
-                               'seviri_bt62': ['SEVIRI WV_062'],
-
-                               'modis_3': ['MODIS 3'],
-                               'modis_4': ['MODIS 4'],
-                               'modis_5': ['MODIS 5'],
-                               'modis_7': ['MODIS 7'],
-                               'modis_8': ['MODIS 8'],
-                               'modis_9': ['MODIS 9'],
-                               'modis_10': ['MODIS 10'],
-                               'modis_11': ['MODIS 11'],
-                               'modis_12': ['MODIS 12'],
-                               'modis_13lo': ['MODIS 13lo'],
-                               'modis_13hi': ['MODIS 13hi'],
-                               'modis_14lo': ['MODIS 14lo'],
-                               'modis_14hi': ['MODIS 14hi'],
-                               'modis_15': ['MODIS 15'],
-                               'modis_16': ['MODIS 16'],
-                               'modis_17': ['MODIS 17'],
-                               'modis_18': ['MODIS 18'],
-                               'modis_19': ['MODIS 19'],
-                               'modis_21': ['MODIS 21'],
-                               'modis_22': ['MODIS 22'],
-                               'modis_23': ['MODIS 23'],
-                               'modis_24': ['MODIS 24'],
-                               'modis_25': ['MODIS 25'],
-                               'modis_27': ['MODIS 27'],
-                               'modis_28': ['MODIS 28'],
-                               'modis_30': ['MODIS 30'],
-                               'modis_33': ['MODIS 33'],
-                               'modis_34': ['MODIS 34'],
-                               'modis_35': ['MODIS 35'],
-                               'modis_36': ['MODIS 36']
-                               }
-CHANNEL_MICRON_IMAGER_PPS = {'11': 3,
-                             '12': 4,
-                             '06': 0,
-                             '09': 1,
-                             '37': 2,
-                             '86': -1,
-                             '16': 5,
-                             '22': -1,
-                             '13': -1}
-CURRENTLY_UNUSED_SEVIRI_CHANNELS = ['seviri_bt73',
-                                    'seviri_bt134',
-                                    'seviri_bt97',
-                                    'seviri_bt62']
-CURRENTLY_UNUSED_MODIS_CHANNELS = ['modis_3',
-                                   'modis_4',
-                                   'modis_5',
-                                   'modis_7',
-                                   'modis_8',
-                                   'modis_9',
-                                   'modis_10',
-                                   'modis_11',
-                                   'modis_12',
-                                   'modis_13lo',
-                                   'modis_13hi',
-                                   'modis_14lo',
-                                   'modis_14hi',
-                                   'modis_15',
-                                   'modis_16',
-                                   'modis_17',
-                                   'modis_18',
-                                   'modis_19',
-                                   'modis_21',
-                                   'modis_22',
-                                   'modis_23',
-                                   'modis_24',
-                                   'modis_25',
-                                   'modis_27',
-                                   'modis_28',
-                                   'modis_30',
-                                   'modis_33',
-                                   'modis_34',
-                                   'modis_35',
-                                   'modis_36']
-
 
 def get_data_from_array(array, matched):
     if array is None:
@@ -212,37 +52,24 @@ def get_mean_data_from_array_nneigh(array, matched):
     return sum_out_all * 1.0 / n_ok
 
 
+def get_atrain_name(ch):
+    out = ch.id_tag.replace('tb', 'bt').replace('ch_', '') + 'micron'
+    if ch.SZA_corr_done:
+        out += "_sza_correction_done"
+    return out
+
 def get_channel_data_from_object(imager_obj, chn_des, matched, nodata=-9):
     """Get the IMAGER/VIIRS channel data on the track
 
     matched: dict of matched indices (row, col)
 
     """
-    channels = imager_obj.channel
-    numOfChannels = len(channels)
-    # for ich in range(numOfChannels):
-    #    if channels[ich].des in CHANNEL_MICRON_DESCRIPTIONS[chn_des]:
-    #        chnum = ich
-    chnum = [ich for ich in range(numOfChannels)
-             if channels[ich].des in CHANNEL_MICRON_DESCRIPTIONS[chn_des]]
-
-    if len(chnum) == 0:
-        # chnum = CHANNEL_MICRON_IMAGER_PPS[chn_des]
-        logger.debug("Did not find pps channel number for channel "
-                     "{:s}".format(chn_des))
-        return None, ""
-    else:
-        chnum = chnum[0]
     if matched is None:
-        return channels[chnum].data, ""
+        return imager_obj.channel[chn_des].data
+    else:
+        chdata_on_track = get_data_from_array(imager_obj.channel[chn_des].data, matched)
+        return np.array(chdata_on_track)
 
-    chdata_on_track = get_data_from_array(channels[chnum].data, matched)
-    # np.array([channels[chnum].data[matched['row'][idx], matched['col'][idx]]
-    #                   for idx in range(matched['row'].shape[0])])
-    extra_info = ""
-    if channels[chnum].SZA_corr_done:
-        extra_info = "_sza_correction_done"
-    return np.array(chdata_on_track), extra_info
 
 
 def _interpolate_height_and_temperature_from_pressure(imager_obj,
@@ -408,7 +235,7 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
                               extract_ctype=True,
                               extract_cpp=True,
                               extract_aux_segments=True,
-                              extract_aux=True,
+                              extract_aux=True, 
                               aux_params=None,
                               extract_some_data_for_x_neighbours=False,
                               find_mean_data_for_x_neighbours=False):
@@ -425,12 +252,12 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
     ] + OCA_READ_EXTRA # And NN-extra!
     
     aux_obj = cloudproducts.aux
+     # For amsr-E matching (many neighbors) use only the needed nwp data (aux_params != None)
     if aux_params is None:
-        #aux_params = aux_params_all
+        # aux_params = aux_params_all
         aux_params = dir(aux_obj)
-        # For amsr-E matching (many neighbors) use only the needed nwp data
         aux_params = [param for param in aux_params if '__' not in param]
-        aux_params = [param for param in aux_params if 'CTTH' not in param]
+
     
     imager_obj = cloudproducts.imager_channeldata
     angle_obj = cloudproducts.imager_angles
@@ -477,115 +304,54 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
             if hasattr(ctype, variable):
                 setattr(obt.imager, outname,
                         get_data_from_array(getattr(ctype, variable), row_col))
-    for nwp_info in aux_params:
-        if extract_aux and hasattr(aux_obj, nwp_info):
-            data = getattr(aux_obj, nwp_info)
-            if data is not None:
-                setattr(obt.imager, nwp_info, get_data_from_array(data, row_col))
-        else:
-            logger.debug("missing {:s}".format(nwp_info))
-    CTTH_TYPES = SETTINGS["CTTH_TYPES"]
-    if len(CTTH_TYPES) > 1 and SETTINGS["PPS_VALIDATION"]:
-        for ctth_type in CTTH_TYPES[1:]:
-            if hasattr(aux_obj, ctth_type):
+                
+    # Emiss, threhsolds, texture, nwp etc
+    for key in aux_params:
+        if extract_aux and hasattr(aux_obj, key):
+            if 'CTTH' in key:
+                ctth_type = key
                 ctth_obj = getattr(aux_obj, ctth_type)
-            else:
-                continue
-            for data_set in ["pressure", "temperature", "height"]:
-                data = getattr(ctth_obj, data_set)
-                name = "%s_%s" % (ctth_type.lower(), data_set)
-                setattr(obt.imager, name, get_data_from_array(data, row_col))
+                for data_set in ["pressure", "temperature", "height"]:
+                    data = getattr(ctth_obj, data_set)
+                    name = "%s_%s" % (ctth_type.lower(), data_set)
+                    setattr(obt.imager, name, get_data_from_array(data, row_col))
+            else:    
+                data = getattr(aux_obj, key)
+                if data is not None:
+                    setattr(obt.imager, key, get_data_from_array(data, row_col))
+        else:
+            logger.debug("missing {:s}".format(key))
+  
     from atrain_match.utils.pps_prototyping_util import (get_coldest_values,
                                                          get_darkest_values,
                                                          get_warmest_values)
-    if imager_obj is not None:
-        pass
-        # aux_obj = get_t11t12_texture_data_from_object(imager_obj, aux_obj, '11', '12',
-        #                                              'text_t11t12_square??')
-    for texture in ["text_r06", "text_t11", "text_t37", "text_t37t12",
-                    "text_t37t12_square", "text_t11t12_square", "text_t11t12"]:
-        if hasattr(aux_obj, texture):
-            data = getattr(aux_obj, texture)
-            setattr(obt.imager, texture, get_data_from_array(data, row_col))
+
     if imager_obj is not None and SETTINGS["SAVE_NEIGHBOUR_INFO"]:
-        neighbour_obj = get_warmest_values(imager_obj, row_col)
-        for key in ["warmest_r06", "warmest_r09", "warmest_r16"]:
-            setattr(obt.imager, key + neighbour_obj.extra_info_sza_corr,
-                    getattr(neighbour_obj, key))
-        for key in ["warmest_t11", "warmest_t12", "warmest_t37"]:
-            setattr(obt.imager, key,
-                    getattr(neighbour_obj, key))
-        neighbour_obj = get_darkest_values(imager_obj, row_col)
-        for key in ["darkest_r06", "darkest_r09", "darkest_r16"]:
-            setattr(obt.imager, key + neighbour_obj.extra_info_sza_corr,
-                    getattr(neighbour_obj, key))
-        for key in ["darkest_t11", "darkest_t12", "darkest_t37"]:
-            setattr(obt.imager, key,
-                    getattr(neighbour_obj, key))
-        neighbour_obj = get_coldest_values(imager_obj, row_col)
-        for key in ["coldest_r06", "coldest_r09", "coldest_r16"]:
-            setattr(obt.imager, key + neighbour_obj.extra_info_sza_corr,
-                    getattr(neighbour_obj, key))
-        for key in ["coldest_t11", "coldest_t12", "coldest_t37"]:
-            setattr(obt.imager, key,
-                    getattr(neighbour_obj, key))
-    # Thresholds:
-    for thr in ["thr_t11ts_inv",
-                "thr_t85t11_inv",
-                "thr_t11t37_inv",
-                "thr_t37t12_inv",
-                "thr_t11t12_inv",
-                "thr_t85t11",
-                "thr_t11ts",
-                "thr_t11t37",
-                "thr_t37t12",
-                "thr_t11t12",
-                "thr_r06",
-                "thr_r09"]:
-        if hasattr(aux_obj, thr):
-            data = getattr(aux_obj, thr)
-            setattr(obt.imager, thr, get_data_from_array(data, row_col))
-    for emis in ["emis1", "emis6", "emis8", "emis9"]:
-        if hasattr(aux_obj, emis):
-            data = getattr(aux_obj, emis)
-            setattr(obt.imager, emis, get_data_from_array(data, row_col))
+        warm_row_col = get_warmest_values(imager_obj, row_col)
+        for key in imager_obj.channel.keys():
+            atrain_name = get_atrain_name(imager_obj.channel[key])
+            atrain_name = 'warmest_'  +atrain_name.replace('micron',''). replace('b','')
+            data = get_channel_data_from_object(imager_obj, key, warm_row_col)
+            setattr(obt.imager, atrain_name, data)            
+        cold_row_col = get_coldest_values(imager_obj, row_col)
+        for key in imager_obj.channel.keys():
+            atrain_name = get_atrain_name(imager_obj.channel[key])
+            atrain_name = 'coldest_'  + atrain_name.replace('micron',''). replace('b','')
+            data = get_channel_data_from_object(imager_obj, key, cold_row_col)
+            setattr(obt.imager, atrain_name, data)
+        dark_row_col = get_darkest_values(imager_obj, row_col)
+        for key in imager_obj.channel.keys():
+            atrain_name = get_atrain_name(imager_obj.channel[key])
+            atrain_name = 'darkest_'  + atrain_name.replace('micron',''). replace('b','')
+            data = get_channel_data_from_object(imager_obj, key, dark_row_col)
+            setattr(obt.imager, atrain_name, data)    
+
+    # Imager data        
     if imager_obj is not None:
-        temp_data, info = get_channel_data_from_object(imager_obj, '06', row_col)
-        setattr(obt.imager, "r06micron" + info, temp_data)
-        # r09
-        temp_data, info = get_channel_data_from_object(imager_obj, '09', row_col)
-        setattr(obt.imager, "r09micron" + info, temp_data)
-        # bt37
-        temp_data, info = get_channel_data_from_object(imager_obj, '37', row_col)
-        setattr(obt.imager, "bt37micron" + info, temp_data)
-        # b11
-        temp_data, info = get_channel_data_from_object(imager_obj, '11', row_col)
-        setattr(obt.imager, "bt11micron" + info, temp_data)
-        # b12
-        temp_data, info = get_channel_data_from_object(imager_obj, '12', row_col)
-        setattr(obt.imager, "bt12micron" + info, temp_data)
-        # b86
-        temp_data, info = get_channel_data_from_object(imager_obj, '86', row_col)
-        setattr(obt.imager, "bt86micron" + info, temp_data)
-        # b16
-        temp_data, info = get_channel_data_from_object(imager_obj, '16', row_col)
-        setattr(obt.imager, "r16micron" + info, temp_data)
-        # b22
-        temp_data, info = get_channel_data_from_object(imager_obj, '22', row_col)
-        setattr(obt.imager, "r22micron" + info, temp_data)
-        # b13
-        temp_data, info = get_channel_data_from_object(imager_obj, '13', row_col)
-        setattr(obt.imager, "r13micron" + info, temp_data)
-        if obt.imager_instrument.lower() in ['modis']:
-            for modis_channel in CURRENTLY_UNUSED_MODIS_CHANNELS:
-                modis_track, info = get_channel_data_from_object(imager_obj,
-                                                                 modis_channel, row_col)
-                setattr(obt.imager, modis_channel + info, modis_track)
-        if obt.imager_instrument.lower() in ['seviri']:
-            for seviri_channel in CURRENTLY_UNUSED_SEVIRI_CHANNELS:
-                seviri_track, info = get_channel_data_from_object(imager_obj,
-                                                                  seviri_channel, row_col)
-                setattr(obt.imager, seviri_channel + info, seviri_track)
+        for key in imager_obj.channel:
+            atrain_name = get_atrain_name(imager_obj.channel[key])
+            setattr(obt.imager, atrain_name, get_data_from_array(imager_obj.channel[key].data, row_col))  
+      
     # Angles, scale with gain and intercept when reading
     for angle in ['satz', 'sunz', 'azidiff', 'sunazimuth', 'satazimuth']:
         data = getattr(angle_obj, angle)

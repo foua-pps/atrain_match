@@ -16,7 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
 from atrain_match.libs.extract_imager_along_track import get_channel_data_from_object
-from atrain_match.libs.extract_imager_along_track import CHANNEL_MICRON_DESCRIPTIONS
 import atrain_match.config as config
 import numpy as np
 import logging
@@ -109,47 +108,27 @@ def get_warmest_or_coldest_index(t11, matched, warmest=True):
 def get_warmest_values(imager_obj, matched):
     """Get channel values for neighbour that is warmest (channel 11)."""
     nobj = NeighbourObj()
-    t11 = get_channel_data_from_objectfull_resolution(imager_obj, '11', nodata=-9)
+    t11 = get_channel_data_from_objectfull_resolution(imager_obj, 'ch_tb11', nodata=-9)
     new_row_col = get_warmest_or_coldest_index(t11, matched)
-    nobj.warmest_t11 = get_channel_data_from_object(imager_obj, '11', new_row_col)[0]
-    nobj.warmest_t12 = get_channel_data_from_object(imager_obj, '12', new_row_col)[0]
-    nobj.warmest_t37 = get_channel_data_from_object(imager_obj, '37', new_row_col)[0]
-    nobj.warmest_r06, nobj.extra_info_sza_corr = get_channel_data_from_object(
-        imager_obj, '06', new_row_col)
-    nobj.warmest_r16 = get_channel_data_from_object(imager_obj, '16', new_row_col)[0]
-    nobj.warmest_r09 = get_channel_data_from_object(imager_obj, '09', new_row_col)[0]
-    return nobj
+    return new_row_col
 
 
 def get_coldest_values(imager_obj, matched):
     """Get channel values for neighbour that is coldest (channel 11)."""
     nobj = NeighbourObj()
-    t11 = get_channel_data_from_objectfull_resolution(imager_obj, '11', nodata=-9)
+    t11 = get_channel_data_from_objectfull_resolution(imager_obj, 'ch_tb11', nodata=-9)
     new_row_col = get_warmest_or_coldest_index(t11, matched, warmest=False)
-    nobj.coldest_t11 = get_channel_data_from_object(imager_obj, '11', new_row_col)[0]
-    nobj.coldest_t12 = get_channel_data_from_object(imager_obj, '12', new_row_col)[0]
-    nobj.coldest_t37 = get_channel_data_from_object(imager_obj, '37', new_row_col)[0]
-    nobj.coldest_r06, nobj.extra_info_sza_corr = get_channel_data_from_object(
-        imager_obj, '06', new_row_col)
-    nobj.coldest_r16 = get_channel_data_from_object(imager_obj, '16', new_row_col)[0]
-    nobj.coldest_r09 = get_channel_data_from_object(imager_obj, '09', new_row_col)[0]
-    return nobj
+    return new_row_col 
 
 
 def get_darkest_values(imager_obj, matched):
     """Get channel values for neighbour that is darkest (channel 0.6 or 0.9)."""
     nobj = NeighbourObj()
-    r09 = get_channel_data_from_objectfull_resolution(imager_obj, '09', nodata=-9)
-    r06 = get_channel_data_from_objectfull_resolution(imager_obj, '06', nodata=-9)
+    r09 = get_channel_data_from_objectfull_resolution(imager_obj, 'ch_r09', nodata=-9)
+    r06 = get_channel_data_from_objectfull_resolution(imager_obj, 'ch_r06', nodata=-9)
     darkest = np.where(r09 > r06, r06, r09)
     new_row_col = get_warmest_or_coldest_index(darkest, matched, warmest=False)
-    nobj.darkest_t11 = get_channel_data_from_object(imager_obj, '11', new_row_col)[0]
-    nobj.darkest_t12 = get_channel_data_from_object(imager_obj, '12', new_row_col)[0]
-    nobj.darkest_t37 = get_channel_data_from_object(imager_obj, '37', new_row_col)[0]
-    nobj.darkest_r06, nobj.extra_info_sza_corr = get_channel_data_from_object(imager_obj, '06', new_row_col)
-    nobj.darkest_r16 = get_channel_data_from_object(imager_obj, '16', new_row_col)[0]
-    nobj.darkest_r09 = get_channel_data_from_object(imager_obj, '09', new_row_col)[0]
-    return nobj
+    return new_row_col
 
 
 def add_cnn_features_full(imager_obj, imagerGeoObj, SETTINGS):
@@ -158,8 +137,8 @@ def add_cnn_features_full(imager_obj, imagerGeoObj, SETTINGS):
     print(SETTINGS['CNN_PCKL_PATH'])
     cnn = CloudNetBase.load(SETTINGS['CNN_PCKL_PATH'])
     m = FeatureModel(cnn)
-    im11 = get_channel_data_from_objectfull_resolution(imager_obj, '11', nodata=-9)
-    im12 = get_channel_data_from_objectfull_resolution(imager_obj, '12', nodata=-9)
+    im11 = get_channel_data_from_objectfull_resolution(imager_obj, 'ch_tb11', nodata=-9)
+    im12 = get_channel_data_from_objectfull_resolution(imager_obj, 'ch_tb12', nodata=-9)
     filter_response = m.apply(np.array([im11, im12]))
     lats_f = m.resample_coordinates(imagerGeoObj.latitude)
     lons_f = m.resample_coordinates(imagerGeoObj.longitude)
@@ -194,20 +173,8 @@ def add_cnn_features(cnn_dict, matched, lats_matched, lons_matched, SETTINGS):
 
 def get_channel_data_from_objectfull_resolution(imager_obj, chn_des, nodata=-9):
     """Get the IMAGER/VIIRS channel data on full resolution for chosen channel."""
-    try:
-        channels = imager_obj.channels
-    except:
-        channels = imager_obj.channel
 
-    numOfChannels = len(channels)
-    chnum = -1
-    for ich in range(numOfChannels):
-        if channels[ich].des in CHANNEL_MICRON_DESCRIPTIONS[chn_des]:
-            chnum = ich
-    if chnum == -1:
-        raise ValueError
-    temp = channels[chnum].data
-    chdata = channels[chnum].data * channels[chnum].gain + channels[chnum].intercept
-    chdata[np.logical_or(np.equal(temp, imager_obj.nodata),
-                         np.equal(temp, imager_obj.missing_data))] = nodata
-    return chdata
+    chdata = imager_obj.channel[chn_des].data
+    chdata[np.logical_or(np.equal(chdata, imager_obj.nodata),
+                         np.equal(chdata, imager_obj.missing_data))] = nodata
+    return imager_obj.channel[chn_des].data

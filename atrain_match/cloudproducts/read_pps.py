@@ -194,7 +194,7 @@ class NewImagerData:
     """Class to hold imager channel data."""
 
     def __init__(self):
-        self.channel = []
+        self.channel = {}
 
 
 class ImagerChannelData:
@@ -461,8 +461,7 @@ def read_imager_data_nc(pps_nc):
             image = pps_nc.variables[var]
             if not hasattr(image, 'id_tag'):
                 continue
-            if image.id_tag in ["qual_flags"]:
-                continue
+            id_tag = image.id_tag
             if image.id_tag in ['satzenith', 'sunzenith',
                                 'azimuthdiff',
                                 'sunazimuth', 'satazimuth']:
@@ -477,15 +476,16 @@ def read_imager_data_nc(pps_nc):
                 one_channel.data[data_temporary.mask] = ATRAIN_MATCH_NODATA
             else:
                 one_channel.data = data_temporary
-            one_channel.des = image.description
-            #one_channel.id_tag = image.id_tag
+            if hasattr(image, 'description'):
+                one_channel.des = image.description
+            one_channel.id_tag = image.id_tag
             if hasattr(pps_nc.variables[var], "sun_zenith_angle_correction_applied"):
                 corr_done_attr = pps_nc.variables[var].sun_zenith_angle_correction_applied
                 if corr_done_attr.upper() in ["TRUE"]:
                     one_channel.SZA_corr_done = True
             one_channel.gain = 1.0  # data already scaled
             one_channel.intercept = 0.0  # data already scaled
-            imager_data.channel.append(one_channel)
+            imager_data.channel[id_tag] = one_channel
             fill_value = pps_nc.variables[var]._FillValue
             imager_data.nodata = fill_value
             imager_data.missingdata = fill_value
