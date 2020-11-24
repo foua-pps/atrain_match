@@ -31,13 +31,13 @@ instrument = "avhrr"
 truth = "calipso"
 version = "v2018"
 
-SATELLITES = ["noaa18", "noaa19"]
+SATELLITES = ["noaa18", "noaa19", "noaa17", "metopa", "metopb"]
 YEAR_LIST = ['2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015']
-BASE_DIR = "/home/a001865/DATA_MISC/reshaped_files_from_kg_temp"
+BASE_DIR = '/nobackup/smhid14/sm_erjoh/pps/Atrain_match/patchCMSAF_Oct2020_qualityflagcheck/Reshaped_Files'
+# BASE_DIR = "/home/a001865/DATA_MISC/reshaped_files_from_kg_temp"
 MAKE_EXTRA_CHECK = False
 
 SETTINGS = {"WRITE_ONLY_THE_MOST_IMPORTANT_STUFF_TO_FILE": False}
-tic = time.time()
 
 
 def remove_doubles(mObj, mObj2):
@@ -69,67 +69,74 @@ def remove_doubles(mObj, mObj2):
     # import pdb;pdb.set_trace()
         
 
-files_cant_read = []
-files_all_doubles = []
-match_calipso_merged = None
-for satellite in SATELLITES:
-    ROOT_DIR = BASE_DIR + "/{satellite}/5km/%s/%s/*%s%s*_*{truth}*.h5".format(
-        satellite=satellite, truth=truth)
-    print(ROOT_DIR)
-    OUT_DIR_TEMPLATE = BASE_DIR + "_merged_{truth}/{satellite}/".format(
-        truth=truth, satellite=satellite)
-    outfile_template = "5km_{satellite}_%s%s01_0000_99999_{truth}_{instrument}_match.h5".format(
-        satellite=satellite, truth=truth, instrument=instrument)
-
-    for year in YEAR_LIST:
-        for month in ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]:
-            num_n = 0
-            files_all_doubles_month = []
-            files = sorted(glob(ROOT_DIR % (year, month,
-                                            year, month)))
-            if len(files) == 0:
-                continue
-            print('\n Year = %s, mon = %s \n' %(year, month))
-            OUT_DIR = OUT_DIR_TEMPLATE
-            if not os.path.exists(OUT_DIR):
-                os.makedirs(OUT_DIR)
-            for filename in files:
-                print(os.path.basename(filename))
-                # match_calipso_new=read_truth_imager_match_obj(filename, truth=truth)
-                try:
-                    match_calipso_new = read_truth_imager_match_obj(filename, truth=truth)
-                except:
-                    print("problem with", os.path.basename(filename))
-                    files_cant_read.append(filename)
+if __name__ == '__main__':
+    '''
+    Creates monthly merged reshape files.
+    BASE_DIR is the dir where original reshape files are stored
+    Merged results will be in BASE_DIR + _merged_{truth}/{satellite}/
+    '''
+    tic = time.time()
+    files_cant_read = []
+    files_all_doubles = []
+    match_calipso_merged = None
+    for satellite in SATELLITES:
+        ROOT_DIR = BASE_DIR + "/{satellite}/5km/%s/%s/*%s%s*_*{truth}*.h5".format(
+            satellite=satellite, truth=truth)
+        print(ROOT_DIR)
+        OUT_DIR_TEMPLATE = BASE_DIR + "_merged_{truth}/{satellite}/".format(
+            truth=truth, satellite=satellite)
+        outfile_template = "5km_{satellite}_%s%s01_0000_99999_{truth}_{instrument}_match.h5".format(
+            satellite=satellite, truth=truth, instrument=instrument)
+    
+        for year in YEAR_LIST:
+            for month in ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]:
+                num_n = 0
+                files_all_doubles_month = []
+                files = sorted(glob(ROOT_DIR % (year, month,
+                                                year, month)))
+                if len(files) == 0:
                     continue
-                    # if (match_calipso_new.cloudsat.RVOD_CWC_status is None or
-                    # len(match_calipso_new.cloudsat.RVOD_CWC_status) != len(match_calipso_new.avhrr.cpp_lwp)):
-                    #   print("Missing RVOD_CWC_status")
-                    #   continue
-                    
-                print("reading", os.path.basename(filename))
-                if match_calipso_merged is None:
-                    match_calipso_merged = match_calipso_new
-                else:
-                    match_calipso_new = remove_doubles(match_calipso_new, match_calipso_merged)
-                    if match_calipso_new == -1:
-                        files_all_doubles.append(filename)
-                        files_all_doubles_month.append(filename)
+                print('\n Year = %s, mon = %s \n' %(year, month))
+                OUT_DIR = OUT_DIR_TEMPLATE
+                if not os.path.exists(OUT_DIR):
+                    os.makedirs(OUT_DIR)
+                for filename in files:
+                    print(os.path.basename(filename))
+                    # match_calipso_new=read_truth_imager_match_obj(filename, truth=truth)
+                    try:
+                        match_calipso_new = read_truth_imager_match_obj(filename, truth=truth)
+                    except:
+                        print("problem with", os.path.basename(filename))
+                        files_cant_read.append(filename)
                         continue
-                    match_calipso_merged = match_calipso_merged + match_calipso_new
-                num_n += 1
-
-            if num_n > 0:
-                filename_merged = outfile_template % (year, month)
-                outfile = os.path.join(OUT_DIR, filename_merged)
-
-                print(len(match_calipso_merged.calipso.sec_1970))
-                write_truth_imager_match_obj(
-                    outfile, match_calipso_merged, SETTINGS, imager_obj_name='pps')
-                match_calipso_merged = None
-                print("File with all doublets %s files" %len(files_all_doubles_month))
-
-print("Could not read %s files" %len(files_cant_read))
-print("File with all doublets %s files, total" %len(files_all_doubles))
-print(time.time()-tic)
-
+                        # if (match_calipso_new.cloudsat.RVOD_CWC_status is None or
+                        # len(match_calipso_new.cloudsat.RVOD_CWC_status) != len(match_calipso_new.avhrr.cpp_lwp)):
+                        #   print("Missing RVOD_CWC_status")
+                        #   continue
+                        
+                    print("reading", os.path.basename(filename))
+                    if match_calipso_merged is None:
+                        match_calipso_merged = match_calipso_new
+                    else:
+                        match_calipso_new = remove_doubles(match_calipso_new, match_calipso_merged)
+                        if match_calipso_new == -1:
+                            files_all_doubles.append(filename)
+                            files_all_doubles_month.append(filename)
+                            continue
+                        match_calipso_merged = match_calipso_merged + match_calipso_new
+                    num_n += 1
+    
+                if num_n > 0:
+                    filename_merged = outfile_template % (year, month)
+                    outfile = os.path.join(OUT_DIR, filename_merged)
+    
+                    print(len(match_calipso_merged.calipso.sec_1970))
+                    write_truth_imager_match_obj(
+                        outfile, match_calipso_merged, SETTINGS, imager_obj_name='pps')
+                    match_calipso_merged = None
+                    print("File with all doublets %s files" %len(files_all_doubles_month))
+    
+    print("Could not read %s files" %len(files_cant_read))
+    print("File with all doublets %s files, total" %len(files_all_doubles))
+    print(time.time()-tic)
+    
