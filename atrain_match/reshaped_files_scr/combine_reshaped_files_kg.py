@@ -22,8 +22,12 @@
 import numpy as np
 from glob import glob
 import os
-from atrain_match.matchobject_io import (read_truth_imager_match_obj, 
-                                         write_truth_imager_match_obj)
+try:
+    from matchobject_io import (read_truth_imager_match_obj,
+                                write_truth_imager_match_obj)
+except:
+    from atrain_match.matchobject_io import (read_truth_imager_match_obj, 
+                                             write_truth_imager_match_obj)
 
 import time
 import pdb
