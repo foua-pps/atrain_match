@@ -41,7 +41,7 @@ _validation_results_dir = os.environ.get(
     'VALIDATION_RESULTS_DIR',
     "/nobackup/smhid12/atrain_match_test_CALIPSOv4")
 ATRAIN_MATCH_CONFIG_PATH = os.environ.get('ATRAINMATCH_CONFIG_DIR', './etc')
-
+ATRAIN_MATCH_CONFIG_FILE = os.environ.get('ATRAINMATCH_CONFIG_FILE', 'atrain_match.cfg')
 # All non-imager satellites need to be here. Imager is default.
 INSTRUMENT = {'npp': 'viirs',
               'noaa18': 'avhrr',

@@ -33,7 +33,8 @@ def read_config_info():
     from configparser import ConfigParser
     CONF = ConfigParser()
     from atrain_match.config import ATRAIN_MATCH_CONFIG_PATH
-    config_file = os.path.join(ATRAIN_MATCH_CONFIG_PATH, "atrain_match.cfg")
+    from atrain_match.config import ATRAIN_MATCH_CONFIG_FILE
+    config_file = os.path.join(ATRAIN_MATCH_CONFIG_PATH, ATRAIN_MATCH_CONFIG_FILE)
     if not os.path.isfile(config_file):
         raise IOError("Couldn't find config file %s." % (config_file))
     CONF.read(config_file)
