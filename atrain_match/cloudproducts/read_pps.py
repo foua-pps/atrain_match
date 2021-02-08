@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+#-*- coding: utf-8 -*-
 # Copyright (c) 2009-2019 atrain_match developers
 #
 # This file is part of atrain_match.
@@ -739,7 +739,7 @@ def read_cpp_nc_one_var(ncFile, cpp_key):
             cpp_data[cpp_var.mask] = ATRAIN_MATCH_NODATA
         else:
             cpp_data = cpp_var
-        if cpp_key in ["cpp_lwp"]:
+        if cpp_key in ["cpp_lwp", "cmic_lwp"]:
             logger.debug("Convert from CPP-lwp from to g/m-2")
             cpp_data[cpp_data > 0] = density * cpp_data[cpp_data > 0]
         return cpp_data
@@ -753,8 +753,14 @@ def read_cpp_nc(filename):
     pps_nc_cpp = netCDF4.Dataset(filename, 'r', format='NETCDF4')
     cpp_obj = CppObj()
     for cpp_key in cpp_obj.__dict__.keys():
+        cpp_key_new = cpp_key
         data = read_cpp_nc_one_var(pps_nc_cpp, cpp_key)
+        if data is None:    
+            cpp_key_new = cpp_key.replace("cpp","cmic")
+            data = read_cpp_nc_one_var(pps_nc_cpp, cpp_key_new)    
         setattr(cpp_obj, cpp_key, data)
+        if data is not None:
+            logger.debug("Read cpp_keys: %s, %s", cpp_key, cpp_key_new)
     pps_nc_cpp.close()
     return cpp_obj
 
