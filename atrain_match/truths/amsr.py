@@ -80,7 +80,7 @@ def read_amsr_h5(filename):
 def read_amsr_hdf4(filename):
     from pyhdf.SD import SD, SDC
     from pyhdf.HDF import HDF  # HC
-    # import pyhdf.VS
+    import pyhdf.VS
 
     retv = AmsrObject()
     h4file = SD(filename, SDC.READ)
@@ -210,3 +210,9 @@ def match_amsr_imager(amsr, cloudproducts, SETTINGS):
                                      aux_params=['fractionofland', 'landuse'],
                                      extract_some_data_for_x_neighbours=True)
     return retv
+
+# ------------------------------------------------------------------------------
+if __name__ == '__main__':
+
+    filename = "/home/a001865/temp/AMSR_E_L2_Ocean_V06_201002011115_A.hdf"
+    read_amsr_hdf4(filename)
