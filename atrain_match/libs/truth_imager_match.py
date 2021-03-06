@@ -697,6 +697,7 @@ def get_additional_calipso_files_if_requested(calipso_files, SETTINGS):
             for file5km in calipso_files:
                 file1km = file5km.replace('/5km/', '/1km/').\
                     replace('05kmCLay', '01kmCLay').\
+                    replace('CLAY_5KM_V42', 'CLAY_1KM_V42').\
                     replace('-Prov-V3-01.', '*').\
                     replace('-Prov-V3-02.', '*').\
                     replace('-Prov-V3-30.', '*').\
@@ -728,6 +729,7 @@ def get_additional_calipso_files_if_requested(calipso_files, SETTINGS):
             for file1km in calipso_files:
                 file5km = file1km.replace('/1km/', '/5km/').\
                     replace('01kmCLay', '05kmCLay').\
+                    replace('CLAY_1KM_V42', 'CLAY_5KM_V42').\
                     replace('-Standard-V4-10.', '*').\
                     replace('-Standard-V4-20.', '*').\
                     replace('-ValStage1-V3-30.', '*').\
