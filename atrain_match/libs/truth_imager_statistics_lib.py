@@ -839,6 +839,9 @@ def print_height_all_low_medium_high(NAME, val_subset, statfile,
     if low_medium_high_class is None:
         # Nothing more can be done!
         return
+    if 'low_clouds' not in low_medium_high_class:
+        # Nothing more can be done!
+        return
     cal_low_ok = np.logical_and(low_medium_high_class['low_clouds'],
                                 val_subset)
     out_stats = calculate_ctth_stats(cal_low_ok, imager_ctth_m_above_seasurface,
