@@ -33,7 +33,7 @@ filename = TESTFILE
 def get_synop_data(filename):
     """Get all Synop data from one file."""
 
-    def convert_datefunc(x): return datetime.strptime(x, '%Y%m%d%H%M')
+    def convert_datefunc(x): return datetime.strptime(x.decode('utf8'), '%Y%m%d%H%M')
 
     dtype = [('date', object), ('station', '|S5'),
              ('lat', 'f8'), ('lon', 'f8'),

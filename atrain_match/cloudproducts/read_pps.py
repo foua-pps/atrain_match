@@ -400,6 +400,10 @@ def read_cmaprob_nc(filename, cma):
         if 'cmaprob' not in pps_nc.variables.keys():
             logger.error("\n This file looks not like a CMAPROB-file like a normal CMA-file %s", filename)
     cma.cma_prob = pps_nc.variables['cmaprob'][0, :, :]
+    if np.ma.is_masked(cma.cma_prob):
+        mask = cma.cma_prob.mask
+        cma.cma_prob =  cma.cma_prob.data
+        cma.cma_prob[mask] =  ATRAIN_MATCH_NODATA
     pps_nc.close()
     return cma
 

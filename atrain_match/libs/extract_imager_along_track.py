@@ -327,7 +327,7 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
                                                          get_warmest_values)
 
     imager_channels = [key for key in imager_obj.channel if 'ch_' in key]
-    if imager_obj is not None and SETTINGS["SAVE_NEIGHBOUR_INFO"]:
+    if imager_obj is not None and SETTINGS["SAVE_NEIGHBOUR_INFO"]  and extract_radiances:
         warm_row_col = get_warmest_values(imager_obj, row_col)
         for key in imager_channels:
             atrain_name = get_atrain_name(imager_obj.channel[key])
@@ -352,7 +352,7 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
         setattr(obt.imager, 'qual_flags', qual[truth.imager_linnum,:])
         
     # Imager data        
-    if imager_obj is not None:
+    if imager_obj is not None and extract_radiances:
         for key in imager_channels:
             atrain_name = get_atrain_name(imager_obj.channel[key])
             data = get_data_from_array(imager_obj.channel[key].data, row_col)
@@ -365,7 +365,7 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
             setattr(obt.imager, angle, get_data_from_array(data.data, row_col))
     if ctth is None:
         logger.info("Not extracting ctth")
-    else:
+    elif extract_ctth:
         logger.debug("Extracting ctth along track ")
         if hasattr(ctth, 'ctth_statusflag') and SETTINGS["PPS_VALIDATION"]:
             obt.imager.ctth_status = get_data_from_array(ctth.ctth_statusflag, row_col)
@@ -380,7 +380,7 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
     # NWP on ctth resolution
     if nwp_segments is not None:
         obt = insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt)
-    if cpp is None:
+    if cpp is None or not extract_cpp:
         logger.debug("Not extracting cpp")
     elif extract_some_data_for_x_neighbours:
         for data_set_name in cpp.__dict__.keys():

@@ -111,7 +111,9 @@ def match_synop_imager(synop, cloudproducts, SETTINGS):
     retv = imager_track_from_matched(retv, SETTINGS,
                                      cloudproducts,
                                      extract_radiances=False,
-                                     extract_nwp_segments=False,
+                                     extract_ctth=False,
+                                     extract_cpp=False,
+                                     extract_aux_segments=False,
                                      aux_params=['fractionofland', 'landuse'],
                                      find_mean_data_for_x_neighbours=True)
     return retv
