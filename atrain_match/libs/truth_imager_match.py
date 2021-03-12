@@ -113,7 +113,7 @@ def find_closest_nwp_file(cloudproducts, AM_PATHS, values, SETTINGS):
     delta_3h = timedelta(hours=SETTINGS['MAX_NWP_TDIFF_HOURS'])
     tlist = get_time_list(date_time, [delta_3h, delta_3h], 60*60)  # time_window +/- 3h
     for tobj in tlist:
-        for prognosis_length in range(15):
+        for prognosis_length in range(16):
             values['plus_hours'] = "{:03d}".format(prognosis_length)
             grib_datetime = tobj - timedelta(hours=prognosis_length)
             grib_dir = insert_info_in_filename_or_path(
