@@ -496,12 +496,12 @@ def read_truth_imager_match_obj(filename, truth='calipso',
     return retv
 
 
-def read_files(files, truth='calipso', read_all=True, read_var=[]):
+def read_files(files, truth='calipso', read_all=True, read_var=[], skip_var=[]):
     my_files = files.copy()
-    tObj = read_truth_imager_match_obj(my_files.pop(), truth=truth)
+    tObj = read_truth_imager_match_obj(my_files.pop(), truth=truth, read_all=read_all, read_var=read_var, skip_var=skip_var)
     if len(my_files) > 0:
         for filename in my_files:
-            tObj += read_truth_imager_match_obj(filename, truth=truth, read_all=read_all, read_var=read_var)
+            tObj += read_truth_imager_match_obj(filename, truth=truth, read_all=read_all, read_var=read_var, skip_var=skip_var)
     return tObj
 
 

@@ -756,6 +756,7 @@ def get_additional_calipso_files_if_requested(calipso_files, SETTINGS):
         calipso5km_aerosol = []
         for cfile in calipso_files:
             file5km_aerosol = cfile.replace('/CLAY/', '/ALAY/').\
+                replace('CLAY', 'ALAY').\
                 replace('CLay', 'ALay').\
                 replace('/1km/', '/5km/').\
                 replace('01km', '05km').\
