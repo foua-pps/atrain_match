@@ -196,6 +196,21 @@ def get_inversion_info_pps2012(cloudtype_qflag):
 # low confidence = 20 <= |CAD score| < 50
 # no confidence = |CAD score| < 20
 
+def get_calipso_20km_80km_det(match_calipso):
+    """Get quality (CAD score) from CALIPSO (not for clear pixels)."""
+    # bits 4-5, start at 1 counting
+    cflag = match_calipso.calipso.feature_classification_flags[::, 0]
+    cal_vert_feature = np.zeros(cflag.shape) - 9.0
+    feature_array = (4 * np.bitwise_and(np.right_shift(cflag, 15), 1) +
+                     2 * np.bitwise_and(np.right_shift(cflag, 14), 1) +
+                     1 * np.bitwise_and(np.right_shift(cflag, 13), 1))
+    cal_vert_feature = np.where(
+        np.not_equal(cflag, 1), feature_array, cal_vert_feature)
+    is20 = cal_vert_feature == 4
+    is80 = cal_vert_feature == 5
+    is5 = cal_vert_feature == 3
+    is1 = cal_vert_feature == 2
+    return is1, is5, is20, is80
 
 def get_calipso_cad_score(match_calipso):
     """Get quality (CAD score) from CALIPSO (not for clear pixels)."""
@@ -210,6 +225,8 @@ def get_calipso_cad_score(match_calipso):
     is_no_confidence = cal_vert_feature == 0
     is_no_low = cal_vert_feature == 1
     return is_medium_or_high, is_no_confidence, is_no_low
+
+
 
 
 def get_calipso_cad_score_also_nodata(match_calipso):
