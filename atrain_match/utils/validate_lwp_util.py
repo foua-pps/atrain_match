@@ -58,6 +58,11 @@ def get_lwp_diff_inner(aObj, val_subset, threshold=LWP_THRESHOLD):
     use = np.logical_and(use, use_lwp)
     # use = np.logical_and(use, use_lwp_upper)
     selection = use.all(axis=-1)
+     # At some point pygac did not mask bad data
+    if 'qual_flags' in aObj.imager.all_arrays:
+        qual = aObj.imager.all_arrays['qual_flags']
+        bad_qual = np.sum(qual[:, 1:], axis=1) > 0
+        selection = np.logical_and(selection, ~bad_qual)   
     selection = np.logical_and(val_subset, selection)
     # import pdb; pdb.set_trace()
     cpp_lwp = aObj.imager.cpp_lwp
