@@ -198,7 +198,7 @@ class CalipsoObject(DataObject):
             'cloud_fraction': None,
             'validation_height': None,
             'sec_1970': None,
-
+            'minimum_laser_energy_532': None,
             'layer_top_altitude': None,
             'layer_top_temperature': None,
             'layer_top_pressure': None,
