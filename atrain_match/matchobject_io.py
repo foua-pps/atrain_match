@@ -563,7 +563,10 @@ the_used_variables = [
     # CALIPSO write do not combine
     'cal_modis_cflag',
     'cloudsat_index',
+
     # CALIPSO only (ISS?)
+    'minimum_laser_energy_532',
+
     "average_cloud_top_pressure_single_shots",
     "average_cloud_top_pressure_single_shots_1km",
     "average_cloud_top_single_shots",
