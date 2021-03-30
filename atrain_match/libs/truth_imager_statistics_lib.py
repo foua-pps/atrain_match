@@ -258,6 +258,11 @@ def get_subset_for_mode(match_obj, mode):
     else:
         raise ProcessingError('Unknown mode')
 
+
+    if match_obj.truth_sat.lower() in ['calipso']:
+        if hasattr(match_obj_truth_sat, 'minimum_laser_energy_532')
+        energy = getattr(match_obj_truth_sat, 'minimum_laser_energy_532')
+        cal_subset = np.logical_and(cal_subset, energy > 0.08)
     return cal_subset
 
 
