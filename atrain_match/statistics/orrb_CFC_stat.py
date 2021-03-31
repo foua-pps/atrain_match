@@ -24,7 +24,7 @@ import math
 import numpy as np
 
 from atrain_match.statistics.orrb_stat_class import OrrbStats
-
+from atrain_match.statistics.scores import ScoreUtils
 # -----------------------------------------------------
 
 
@@ -61,14 +61,6 @@ class CloudFractionStats(OrrbStats):
             detected_clear = np.array([np.sum(n_clear_cmaprob[max_prob <= limit]) for limit in limit_v])
             false_clouds = np.array([np.sum(n_clear_cmaprob[max_prob > limit]) for limit in limit_v])
 
-            print(max_prob)
-            print(limit_v)
-
-            print(false_clouds)
-            print(detected_clear)
-            print(detected_clouds)
-            print(undetected_clouds)
-
             pod_cloudy_prob = 100.0 / Num_cloudy_tot * detected_clouds
             pod_clear_prob = 100.0 / Num_clear_tot * detected_clear
             far_cloudy_prob = 100.0 * false_clouds / (false_clouds + detected_clouds)
@@ -85,57 +77,49 @@ class CloudFractionStats(OrrbStats):
 
         Num = self.ac_data["Num"]
 
-        mean_CFC_cal = np.divide(100.0 * (n_cloudy_cloudy_cal + n_cloudy_clear_cal), Num)
-        bias_cal = np.divide(1. * (n_clear_cloudy_cal - n_cloudy_clear_cal), Num)
-        bias_cal_perc = np.divide(100.0 * (n_clear_cloudy_cal - n_cloudy_clear_cal), Num)
+        scu = ScoreUtils(n_cloudy_cloudy_cal,
+                         n_clear_cloudy_cal,
+                         n_cloudy_clear_cal,
+                         n_clear_clear_cal,
+                         Num)
+
+        mean_CFC_cal = 100. * scu.mean()
+        bias_cal = scu.bias()
+        bias_cal_perc = 100. * bias_cal
+        pod_cloudy_cal = 100. * scu.pod_1()
+        pod_clear_cal = 100. * scu.pod_0()
+        far_cloudy_cal = 100. * scu.far_1()
+        far_clear_cal = 100. * scu.far_0()
+        kuipers = scu.kuiper()
+        heidke = scu.heidke()
+        hitrate = scu.hitrate()        
+
         square_sum_cal = (n_clear_clear_cal + n_cloudy_cloudy_cal) * bias_cal**2 + \
-            n_cloudy_clear_cal * (-1.0 - bias_cal)**2 + \
-            n_clear_cloudy_cal * (1.0 - bias_cal)**2
-        rms_cal = 100.0 * math.sqrt(np.divide(square_sum_cal, Num - 1.))
-        pod_cloudy_cal = np.divide(100.0 * n_cloudy_cloudy_cal, (n_cloudy_cloudy_cal + n_cloudy_clear_cal))
-        pod_clear_cal = np.divide(100.0 * n_clear_clear_cal, n_clear_clear_cal + n_clear_cloudy_cal)
-        far_cloudy_cal = np.divide(100.0 * n_clear_cloudy_cal, n_cloudy_cloudy_cal + n_clear_cloudy_cal)
-        far_clear_cal = np.divide(100.0 * n_cloudy_clear_cal, n_clear_clear_cal + n_cloudy_clear_cal)
-
-        kuipers = np.divide(1.0 * (n_clear_clear_cal * n_cloudy_cloudy_cal - n_cloudy_clear_cal * n_clear_cloudy_cal),
-                            ((n_clear_clear_cal + n_clear_cloudy_cal) * (n_cloudy_clear_cal + n_cloudy_cloudy_cal)))
-
-        heidke = np.divide(2.0 * ((n_clear_clear_cal * n_cloudy_cloudy_cal)- (n_cloudy_clear_cal * n_clear_cloudy_cal)),
-                            ((n_clear_clear_cal + n_clear_cloudy_cal)*(n_clear_cloudy_cal + n_cloudy_cloudy_cal) + \
-                            (n_clear_clear_cal + n_cloudy_clear_cal)*(n_cloudy_clear_cal + n_cloudy_cloudy_cal)))
-
-        hitrate = np.divide(1.0 * (n_clear_clear_cal + n_cloudy_cloudy_cal),
-                            (n_clear_clear_cal + n_clear_cloudy_cal + n_cloudy_clear_cal + n_cloudy_cloudy_cal))
+            n_cloudy_clear_cal * (-1. - bias_cal)**2 + \
+            n_clear_cloudy_cal * (1. - bias_cal)**2
+        rms_cal = 100. * math.sqrt(np.divide(square_sum_cal, Num - 1.))
 
         # MODIS
         if self.ac_data["got_cloudsat_modis_flag"]:
-            bias_modis = np.divide(1. * (n_clear_cloudy_cal_MODIS - n_cloudy_clear_cal_MODIS), Num - 1.)
-            bias_modis_perc = np.divide(100.0 * (n_clear_cloudy_cal_MODIS - n_cloudy_clear_cal_MODIS), Num - 1.)
+            scu_modis = ScoreUtils(n_cloudy_cloudy_cal_MODIS,
+                                   n_clear_cloudy_cal_MODIS,
+                                   n_cloudy_clear_cal_MODIS,
+                                   n_clear_clear_cal_MODIS,
+                                   Num)
+
+            bias_modis = scu_modis.bias()
+            bias_modis_perc = 100. * bias_modis
+            pod_cloudy_cal_MODIS = 100. * scu_modis.pod_1()
+            pod_clear_cal_MODIS = 100. * scu_modis.pod_0()
+            far_cloudy_cal_MODIS = 100. * scu_modis.far_1()
+            far_clear_cal_MODIS = 100. * scu_modis.far_0()
+            kuipers_MODIS = scu_modis.kuiper()
+            hitrate_MODIS = scu_modis.hitrate()
+            
             square_sum_modis = (n_clear_clear_cal + n_cloudy_cloudy_cal) * bias_modis**2 + \
-                n_cloudy_clear_cal * (-1.0 - bias_modis)**2 + \
-                n_clear_cloudy_cal * (1.0 - bias_modis)**2
-            rms_modis = 100.0 * math.sqrt(np.divide(square_sum_modis, Num - 1.))
-            pod_cloudy_cal_MODIS = np.divide(
-                100.0 * n_cloudy_cloudy_cal_MODIS,
-                n_cloudy_cloudy_cal_MODIS + n_cloudy_clear_cal_MODIS)
-            pod_clear_cal_MODIS = np.divide(
-                100.0 * n_clear_clear_cal_MODIS,
-                n_clear_clear_cal_MODIS + n_clear_cloudy_cal_MODIS)
-            far_cloudy_cal_MODIS = np.divide(
-                100.0 * n_clear_cloudy_cal_MODIS,
-                n_cloudy_cloudy_cal_MODIS + n_clear_cloudy_cal_MODIS)
-            far_clear_cal_MODIS = np.divide(
-                100.0 * n_cloudy_clear_cal_MODIS,
-                n_clear_clear_cal_MODIS + n_cloudy_clear_cal_MODIS)
-            kuipers_MODIS = np.divide(
-                1.0 * (n_clear_clear_cal_MODIS * n_cloudy_cloudy_cal_MODIS -
-                       n_cloudy_clear_cal_MODIS * n_clear_cloudy_cal_MODIS),
-                ((n_clear_clear_cal_MODIS + n_clear_cloudy_cal_MODIS) *
-                 (n_cloudy_clear_cal_MODIS + n_cloudy_cloudy_cal_MODIS)))
-            hitrate_MODIS = np.divide(
-                1.0 * (n_clear_clear_cal_MODIS + n_cloudy_cloudy_cal_MODIS),
-                (n_clear_clear_cal_MODIS + n_clear_cloudy_cal_MODIS +
-                 n_cloudy_clear_cal_MODIS + n_cloudy_cloudy_cal_MODIS))
+                n_cloudy_clear_cal * (-1. - bias_modis)**2 + \
+                n_clear_cloudy_cal * (1. - bias_modis)**2
+            rms_modis = 100. * math.sqrt(np.divide(square_sum_modis, Num - 1.))
 
         # Store values of interest as attributes
         if self.ac_data["got_cloudsat_modis_flag"]:
