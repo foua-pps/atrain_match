@@ -100,6 +100,10 @@ class CloudFractionStats(OrrbStats):
         kuipers = np.divide(1.0 * (n_clear_clear_cal * n_cloudy_cloudy_cal - n_cloudy_clear_cal * n_clear_cloudy_cal),
                             ((n_clear_clear_cal + n_clear_cloudy_cal) * (n_cloudy_clear_cal + n_cloudy_cloudy_cal)))
 
+        heidke = np.divide(2.0 * ((n_clear_clear_cal * n_cloudy_cloudy_cal)- (n_cloudy_clear_cal * n_clear_cloudy_cal)),
+                            ((n_clear_clear_cal + n_clear_cloudy_cal)*(n_clear_cloudy_cal + n_cloudy_cloudy_cal) + \
+                            (n_clear_clear_cal + n_cloudy_clear_cal)*(n_cloudy_clear_cal + n_cloudy_cloudy_cal)))
+
         hitrate = np.divide(1.0 * (n_clear_clear_cal + n_cloudy_cloudy_cal),
                             (n_clear_clear_cal + n_clear_cloudy_cal + n_cloudy_clear_cal + n_cloudy_cloudy_cal))
 
@@ -181,6 +185,7 @@ class CloudFractionStats(OrrbStats):
         lines.append("FAR cloudy: {:6.2f}".format(self.far_cloudy_cal))
         lines.append("FAR clear:  {:6.2f}".format(self.far_clear_cal))
         lines.append("Kuipers: {:5.3f}".format(self.kuipers))
+        lines.append("Heidke: {:5.3f}".format(self.heidke))
         lines.append("Hitrate: {:5.3f}".format(self.hitrate))
         lines.append("")
         if "step_cmaprob" in self.ac_data.keys():
