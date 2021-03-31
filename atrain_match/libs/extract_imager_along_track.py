@@ -326,7 +326,9 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
                                                          get_darkest_values,
                                                          get_warmest_values)
 
-    imager_channels = [key for key in imager_obj.channel if 'ch_' in key]
+    if imager_obj is not None:
+        imager_channels = [key for key in imager_obj.channel if 'ch_' in key]
+
     if imager_obj is not None and SETTINGS["SAVE_NEIGHBOUR_INFO"]  and extract_radiances:
         warm_row_col = get_warmest_values(imager_obj, row_col)
         for key in imager_channels:
@@ -346,10 +348,11 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
             atrain_name = 'darkest_'  + atrain_name.replace('micron',''). replace('b','')
             data = get_channel_data_from_object(imager_obj, key, dark_row_col)
             setattr(obt.imager, atrain_name, data)
-            
-    if 'qual_flags' in imager_obj.channel:
-        qual = imager_obj.channel['qual_flags'].data
-        setattr(obt.imager, 'qual_flags', qual[truth.imager_linnum,:])
+
+    if imager_obj is not None:            
+        if 'qual_flags' in imager_obj.channel:
+            qual = imager_obj.channel['qual_flags'].data
+            setattr(obt.imager, 'qual_flags', qual[truth.imager_linnum,:])
         
     # Imager data        
     if imager_obj is not None and extract_radiances:
