@@ -140,6 +140,7 @@ class CloudFractionStats(OrrbStats):
         self.far_cloudy_cal = far_cloudy_cal
         self.far_clear_cal = far_clear_cal
         self.kuipers = kuipers
+        self.heidke = heidke
         self.hitrate = hitrate
         if "step_cmaprob" in self.ac_data.keys():
             self.pod_clear_prob = pod_clear_prob

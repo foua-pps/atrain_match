@@ -27,7 +27,7 @@ class ScoreUtils:
         self.d = d
         if num is not None:
             self.n = num
-        else
+        else:
             self.n = a + b + c + d
 
     def hitrate(self):
@@ -122,4 +122,4 @@ class ScoreUtils:
 
     def mean(self):
         """ Calculates the mean. """       
-        return np.divide(self.a + self.c), self.n)
+        return np.divide(self.a + self.c, self.n)
