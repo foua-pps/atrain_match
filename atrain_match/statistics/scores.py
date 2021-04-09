@@ -120,6 +120,6 @@ class ScoreUtils:
         """ Calculates the bias (mean error). """
         return np.divide(self.b - self.c, self.n)
 
-    def mean(self):
+    def mean(self, x, y):
         """ Calculates the mean. """       
-        return np.divide(self.a + self.c, self.n)
+        return np.divide(x + y, self.n)

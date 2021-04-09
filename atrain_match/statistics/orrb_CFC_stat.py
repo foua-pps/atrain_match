@@ -83,7 +83,8 @@ class CloudFractionStats(OrrbStats):
                          n_clear_clear_cal,
                          Num)
 
-        mean_CFC_cal = 100. * scu.mean()
+        mean_CFC_cal = 100. * scu.mean(n_cloudy_cloudy_cal, n_cloudy_clear_cal)
+        mean_CFC_img = 100 * scu.mean(n_cloudy_cloudy_cal, n_clear_cloudy_cal)
         bias_cal = scu.bias()
         bias_cal_perc = 100. * bias_cal
         pod_cloudy_cal = 100. * scu.pod_1()
@@ -133,6 +134,7 @@ class CloudFractionStats(OrrbStats):
             self.hitrate_MODIS = hitrate_MODIS
         self.Num = Num
         self.mean_CFC_cal = mean_CFC_cal
+        self.mean_CFC_img = mean_CFC_img
         self.bias_cal_perc = bias_cal_perc
         self.rms_cal = rms_cal
         self.pod_cloudy_cal = pod_cloudy_cal
@@ -163,6 +165,7 @@ class CloudFractionStats(OrrbStats):
         lines.append("")
         lines.append("Total number of {:s} matched FOVs: {:.0f}".format(self.truth_sat.upper(), self.Num))
         lines.append("Mean CFC {:s}: {:6.2f} ".format(self.truth_sat.upper(), self.mean_CFC_cal))
+        lines.append("Mean CFC imager: {:6.2f} ".format(self.mean_CFC_img))
         lines.append("Mean error: {:6.2f}".format(self.bias_cal_perc))
         lines.append("RMS error:  {:6.2f}".format(self.rms_cal))
         lines.append("POD cloudy: {:6.2f}".format(self.pod_cloudy_cal))
