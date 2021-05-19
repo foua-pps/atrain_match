@@ -66,7 +66,7 @@ class test_addSingleShot(unittest.TestCase):
         self.obt5.feature_classification_flags[:, 0] = np.array([-9, -9, -9, -9, -9, -9, -9, 2, 3]).ravel()
 
     def test_new_code(self):
-        out1 = add_singleshot_to5km(self.obt5)
+        out1 = add_singleshot_to5km(self.obt5, SETTINGS = {'CALIPSO_CLOUDY_MIN_CFC': 0.5})
         out2 = add_singleshot_to5km_old(self.obt5)
         # This is what I think we should do
 
