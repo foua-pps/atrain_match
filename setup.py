@@ -18,11 +18,7 @@ README = open('README.txt', 'r').read()
 
 setup(name=NAME,
       description="Library modules used for matching satellite swaths",
-      author=("Nina Hakansson <nina.hakansson@smhi.se>, "
-              "Jakob Malm <jakob.malm@smhi.se>, "
-              "Adam Dybbroe <adam.dybbroe@smhi.se>, "
-              "Erik Johansson <erik.johansson@smhi.se>, "
-              "Karl-Göran Karlsson <kgkarl@smhi.se>"),
+      author=("The atrain_match developers"),
       author_email="FoUa@smhi.se",
       long_description=README,
       classifiers=["Development Status :: 3 - Alpha",
