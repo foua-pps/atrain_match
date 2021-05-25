@@ -87,6 +87,8 @@ def get_cloudsat(filename):
 
 def clsat_name_conversion(dataset_name_in_cloudsat_file, retv):
     am_name = dataset_name_in_cloudsat_file
+    if "RVOD_" in am_name:
+        am_name = am_name.replace("RVOD_", '')
     if dataset_name_in_cloudsat_file == 'DEM_elevation':
         am_name = 'elevation'
     elif dataset_name_in_cloudsat_file == 'Longitude':
@@ -131,10 +133,15 @@ def read_cloudsat_hdf4(filename):
         # 1D data compound/Vdata
         name = item[0]
         data_handle = vs.attach(name)
-        data = np.array(data_handle[:])
+        try:
+            data = np.array(data_handle[:])
+        except:
+            logger.debug("Cant read {:s}".format(name))
         # attrinfo_dic = data_handle.attrinfo()
         factor = data_handle.findattr('factor')
         offset = data_handle.findattr('offset')
+        long_name = data_handle.findattr('long_name')
+        logger.debug(name, long_name, factor, offset)
         # print data_handle.factor
         am_name = clsat_name_conversion(name, retv)
         if am_name in retv.all_arrays.keys():
@@ -251,21 +258,9 @@ def merge_cloudsat(cloudsat, cloudsatlwp):
     # Transfer CloudSat LWP to ordinary cloudsat obj
     index = cloudsat_lwp_index.copy()
     index[index < 0] = 0
-    cloudsat.RVOD_liq_water_path = np.where(
-        cloudsat_lwp_index >= 0,
-        cloudsatlwp.RVOD_liq_water_path[index], -9)
-    cloudsat.RVOD_ice_water_path = np.where(
-        cloudsat_lwp_index >= 0,
-        cloudsatlwp.RVOD_ice_water_path[index], -9)
-    cloudsat.LO_RVOD_liquid_water_path = np.where(
-        cloudsat_lwp_index >= 0,
-        cloudsatlwp.LO_RVOD_liquid_water_path[index], -9)
-    cloudsat.IO_RVOD_ice_water_path = np.where(
-        cloudsat_lwp_index >= 0,
-        cloudsatlwp.IO_RVOD_ice_water_path[index], -9)
-    cloudsat.RVOD_CWC_status = np.where(
-        cloudsat_lwp_index >= 0,
-        cloudsatlwp.RVOD_CWC_status[index], -9)
+    for key in cloudsatlwp.all_arrays.keys():
+        if key not in cloudsat.all_arrays.keys() or cloudsat.all_arrays[key] is None:
+            cloudsat.all_arrays[key] = cloudsatlwp.all_arrays[key] 
     return cloudsat
 
 
