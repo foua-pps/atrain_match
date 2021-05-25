@@ -135,8 +135,9 @@ def read_cloudsat_hdf4(filename):
         data_handle = vs.attach(name)
         try:
             data = np.array(data_handle[:])
-        except:
+        except:  # noqa E722
             logger.debug("Cant read {:s}".format(name))
+            continue
         # attrinfo_dic = data_handle.attrinfo()
         factor = data_handle.findattr('factor')
         offset = data_handle.findattr('offset')
