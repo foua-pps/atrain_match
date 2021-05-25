@@ -263,6 +263,9 @@ class CppObj:
         self.cpp_dcwp = None
         self.cpp_lwp = None
         self.cpp_iwp = None
+        self.cpp_quality = None
+        self.cpp_status_flag = None
+        self.cpp_conditions = None
         self.cpp_phase = None
         self.cpp_phase_extended = None
         self.cpp_reff = None
