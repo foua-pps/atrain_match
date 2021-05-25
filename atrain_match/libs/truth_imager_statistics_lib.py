@@ -360,8 +360,8 @@ def get_lwp_diff_inner_cloudsat(match_obj, val_subset, wide_selection=False):
             # exclude not seen in GEOPROF
             selection = np.logical_and(selection, np.bitwise_and(np.right_shift(
                 match_obj.cloudsat.CWC_status, 0), 10) == 0)  # clear geoprof
-        elif hasattr(match_obj.cloudsat, 'cloud_fraction'):    
-            selection = np.logical_and(selection, match_obj.cloudsat.cloud_fraction > 0)  #exclude clear geoprof
+        elif hasattr(match_obj.cloudsat, 'cloud_fraction'):
+            selection = np.logical_and(selection, match_obj.cloudsat.cloud_fraction > 0)  # Exclude clear geoprof
         # exclude cloudsat ice water path
         selection = np.logical_and(selection, match_obj.cloudsat.ice_water_path <= 0)
 

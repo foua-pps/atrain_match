@@ -260,7 +260,7 @@ def merge_cloudsat(cloudsat, cloudsatlwp):
     index[index < 0] = 0
     for key in cloudsatlwp.all_arrays.keys():
         if key not in cloudsat.all_arrays.keys() or cloudsat.all_arrays[key] is None:
-            cloudsat.all_arrays[key] = cloudsatlwp.all_arrays[key] 
+            cloudsat.all_arrays[key] = cloudsatlwp.all_arrays[key]
     return cloudsat
 
 
