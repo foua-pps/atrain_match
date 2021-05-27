@@ -87,8 +87,6 @@ def get_cloudsat(filename):
 
 def clsat_name_conversion(dataset_name_in_cloudsat_file, retv):
     am_name = dataset_name_in_cloudsat_file
-    if "RVOD_" in am_name:
-        am_name = am_name.replace("RVOD_", '')
     if dataset_name_in_cloudsat_file == 'DEM_elevation':
         am_name = 'elevation'
     elif dataset_name_in_cloudsat_file == 'Longitude':
@@ -136,6 +134,7 @@ def read_cloudsat_hdf4(filename):
         try:
             data = np.array(data_handle[:])
         except:  # noqa E722
+            data_handle.detach()
             logger.debug("Cant read {:s}".format(name))
             continue
         # attrinfo_dic = data_handle.attrinfo()
@@ -260,8 +259,31 @@ def merge_cloudsat(cloudsat, cloudsatlwp):
     index = cloudsat_lwp_index.copy()
     index[index < 0] = 0
     for key in cloudsatlwp.all_arrays.keys():
+        if cloudsatlwp.all_arrays[key] is None:
+            continue
         if key not in cloudsat.all_arrays.keys() or cloudsat.all_arrays[key] is None:
-            cloudsat.all_arrays[key] = cloudsatlwp.all_arrays[key]
+            #cloudsat.all_arrays[key] = cloudsatlwp.all_arrays[key]
+            if cloudsatlwp.all_arrays[key].ndim == 1:
+                cloudsat.all_arrays[key] = np.where(
+                    cloudsat_lwp_index >= 0,
+                    cloudsatlwp.all_arrays[key][index], -9)
+            else:
+                cloudsat.all_arrays[key] = np.zeros(cloudsat.all_arrays["Height"].shape)
+                # data
+                cloudsat.all_arrays[key][:,:] = cloudsatlwp.all_arrays[key][index,:]
+                # nodata where data are missing
+                cloudsat.all_arrays[key][cloudsat_lwp_index < 0,:] = -9
+        if key in ["liq_water_path, ice_water_path, precip_water_path"]:
+            # kg/m2 to g/m2 R05
+            density = 1000
+            cloudsat.all_arrays[key + "_gm2"] = np.where(
+                cloudsat.all_arrays[key]<0, -9, density * cloudsat.all_arrays[key])
+        if key in ["RVOD_liq_water_path, RVOD_ice_water_path"]:
+            # already in g/m2 R05
+            density = 1.0
+            cloudsat.all_arrays[key.replace("RVOD_","") + "_gm2"] = np.where(
+                cloudsat.all_arrays[key]<0, -9, density * cloudsat.all_arrays[key])       
+
     return cloudsat
 
 

@@ -274,15 +274,19 @@ class CloudsatObject(DataObject):
             'Height': None,
             'LO_liquid_water_path': None,
             'io_ice_water_path': None,
-            'liq_water_path': None,
-            'ice_water_path': None,
+            'liq_water_path': None,  # kg!/m2 R05
+            'ice_water_path': None,  # kg!/m2 R05
+            'liq_water_path_gm2': None,  # g/m2 R05 & R04
+            'ice_water_path_gm2': None,  # g/m2 R05 & R04
             'ice_water_content': None,
             'liq_water_content': None,
             'cloud_liq_water_path': None,
             'cloud_ice_water_path': None,
             'precip_liq_water_path': None,
             'precip_ice_water_path': None,
-            "CWC_status": None,
+            "RVOD_CWC_status": None,
+            'RVOD_liq_water_path': None, # g/m2 R04
+            'RVOD_ice_water_path': None, # g/m2 R04
             'Phase': None,
             'Profile_time': None,
             'TAI_start': None,
@@ -568,7 +572,13 @@ the_used_variables = [
     'cloud_ice_water_path',
     'precip_liq_water_path',
     'precip_ice_water_path',
-    "CWC_status",
+    'liq_water_path_gm2',
+    'precip_water_path_gm2',
+    'precip_ice_path_gm2',
+    'cloud_water_path_gm2',
+    'cloud_ice_path_gm2',
+    'ice_water_path_gm2',
+    "RVOD_CWC_status",
     # CALIPSO write do not combine
     'cal_modis_cflag',
     'cloudsat_index',
