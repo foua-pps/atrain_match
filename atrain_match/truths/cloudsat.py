@@ -273,7 +273,8 @@ def merge_cloudsat(cloudsat, cloudsatlwp):
                 cloudsat.all_arrays[key][:,:] = cloudsatlwp.all_arrays[key][index,:]
                 # nodata where data are missing
                 cloudsat.all_arrays[key][cloudsat_lwp_index < 0,:] = -9
-        if key in ["liq_water_path, ice_water_path, precip_water_path"]:
+        if key in ["liq_water_path, , precip_liq_water_path", "cloud_liq_water_path",
+                   "ice_water_path", "precip_ice_water_path", "cloud_ice_water_path"]:
             # kg/m2 to g/m2 R05
             density = 1000
             cloudsat.all_arrays[key + "_gm2"] = np.where(

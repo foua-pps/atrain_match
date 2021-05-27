@@ -272,21 +272,21 @@ class CloudsatObject(DataObject):
             'MODIS_Cloud_Fraction': None,
             'MODIS_cloud_flag': None,
             'Height': None,
-            'LO_liquid_water_path': None,
-            'io_ice_water_path': None,
-            'liq_water_path': None,  # kg!/m2 R05
-            'ice_water_path': None,  # kg!/m2 R05
+            'RVOD_LO_liquid_water_path': None,
+            'RVOD_IO_ice_water_path': None,
+            #'liq_water_path': None,  # kg!/m2 R05
+            #'ice_water_path': None,  # kg!/m2 R05
+            #'RVOD_liq_water_path': None,  # g/m2 R04
+            #'RVOD_ice_water_path': None,  # g/m2 R04
+            'precip_liq_water_path_gm2': None,  # g/m2 R05 & R04
+            'cloud_liq_water_path_gm2': None,  # g/m2 R05 & R04
+            'precip_ice_water_path_gm2': None,  # g/m2 R05 & R04
+            'cloud_ice_water_path_gm2': None,  # g/m2 R05 & R04
             'liq_water_path_gm2': None,  # g/m2 R05 & R04
             'ice_water_path_gm2': None,  # g/m2 R05 & R04
             'ice_water_content': None,
             'liq_water_content': None,
-            'cloud_liq_water_path': None,
-            'cloud_ice_water_path': None,
-            'precip_liq_water_path': None,
-            'precip_ice_water_path': None,
             "RVOD_CWC_status": None,
-            'RVOD_liq_water_path': None, # g/m2 R04
-            'RVOD_ice_water_path': None, # g/m2 R04
             'Phase': None,
             'Profile_time': None,
             'TAI_start': None,
@@ -564,20 +564,20 @@ the_used_variables = [
     # Cloudsat
     'cloud_fraction',
     'validation_height',
-    'LO_liquid_water_path',
-    # io_ice_water_path': None,
-    'liq_water_path',
-    'ice_water_path',
-    'cloud_liq_water_path',
-    'cloud_ice_water_path',
-    'precip_liq_water_path',
-    'precip_ice_water_path',
-    'liq_water_path_gm2',
-    'precip_water_path_gm2',
-    'precip_ice_path_gm2',
-    'cloud_water_path_gm2',
-    'cloud_ice_path_gm2',
-    'ice_water_path_gm2',
+    'RVOD_LO_liquid_water_path',
+    'RVOD_IO_ice_water_path',
+    #'liq_water_path',  # kg!/m2 R05
+    #'ice_water_path',  # kg!/m2 R05
+    #'RVOD_liq_water_path',  # g/m2 R04
+    #'RVOD_ice_water_path',  # g/m2 R04
+    'precip_liq_water_path_gm2',  # g/m2 R05 & R04
+    'cloud_liq_water_path_gm2',  # g/m2 R05 & R04
+    'precip_ice_water_path_gm2',  # g/m2 R05 & R04
+    'cloud_ice_water_path_gm2',  # g/m2 R05 & R04
+    'liq_water_path_gm2',  # g/m2 R05 & R04
+    'ice_water_path_gm2',  # g/m2 R05 & R04
+    'ice_water_content',
+    'liq_water_content',
     "RVOD_CWC_status",
     # CALIPSO write do not combine
     'cal_modis_cflag',
