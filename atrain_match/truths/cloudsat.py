@@ -174,7 +174,9 @@ def read_cloudsat(filename):
     CLOUDSAT_TYPE = "GEOPROF"
     if 'CWC-RVOD' in os.path.basename(filename):
         CLOUDSAT_TYPE = 'CWC-RVOD'
-
+    if 'CWC-RO' in os.path.basename(filename):
+        CLOUDSAT_TYPE = 'CWC-RO'
+        
     def get_data(dataset):
         type_name = dataset.value.dtype.names
         try:
@@ -280,11 +282,15 @@ def merge_cloudsat(cloudsat, cloudsatlwp):
             cloudsat.all_arrays[key + "_gm2"] = np.where(
                 cloudsat.all_arrays[key]<0, -9, density * cloudsat.all_arrays[key])
         if key in ["RVOD_liq_water_path, RVOD_ice_water_path"]:
-            # already in g/m2 R05
+            # already in g/m2 R04 RVOD
             density = 1.0
             cloudsat.all_arrays[key.replace("RVOD_","") + "_gm2"] = np.where(
                 cloudsat.all_arrays[key]<0, -9, density * cloudsat.all_arrays[key])       
-
+        if key in ["RO_liq_water_path, RO_ice_water_path"]:
+            # already in g/m2 RO-05 (not in RVOD-05)
+            density = 1.0
+            cloudsat.all_arrays[key.replace("RO_","") + "_gm2"] = np.where(
+                cloudsat.all_arrays[key]<0, -9, density * cloudsat.all_arrays[key]) 
     return cloudsat
 
 

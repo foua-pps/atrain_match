@@ -272,8 +272,10 @@ class CloudsatObject(DataObject):
             'MODIS_Cloud_Fraction': None,
             'MODIS_cloud_flag': None,
             'Height': None,
-            'RVOD_LO_liquid_water_path': None,
-            'RVOD_IO_ice_water_path': None,
+            'LO_RVOD_liquid_water_path': None,
+            'IO_RVOD_ice_water_path': None,
+            'LO_RO_liquid_water_path': None,
+            'IO_RO_ice_water_path': None,
             #'liq_water_path': None,  # kg!/m2 R05
             #'ice_water_path': None,  # kg!/m2 R05
             #'RVOD_liq_water_path': None,  # g/m2 R04
@@ -287,6 +289,7 @@ class CloudsatObject(DataObject):
             'ice_water_content': None,
             'liq_water_content': None,
             "RVOD_CWC_status": None,
+            "RO_CWC_status": None,
             'Phase': None,
             'Profile_time': None,
             'TAI_start': None,
@@ -564,8 +567,10 @@ the_used_variables = [
     # Cloudsat
     'cloud_fraction',
     'validation_height',
-    'RVOD_LO_liquid_water_path',
-    'RVOD_IO_ice_water_path',
+    'LO_RVOD_liquid_water_path',
+    'IO_RVOD_ice_water_path',
+    'LO_RO_liquid_water_path',
+    'IO_RO_ice_water_path',
     #'liq_water_path',  # kg!/m2 R05
     #'ice_water_path',  # kg!/m2 R05
     #'RVOD_liq_water_path',  # g/m2 R04
