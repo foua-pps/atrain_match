@@ -381,12 +381,12 @@ def get_lwp_diff_inner_cloudsat(match_obj, val_subset, wide_selection=False):
 
     if getattr(match_obj.cloudsat, "LO_liquid_water_path", None) is not None:
         selection1 = np.logical_and(match_obj.imager.cpp_lwp >= 0,
-                                    match_obj.cloudsat.RVOD_LO_liquid_water_path >= 0)
+                                    match_obj.cloudsat.LO_RVOD_liquid_water_path >= 0)
         selection1 = np.logical_and(selection1, match_obj.imager.cpp_phase == 1)
         selection1 = np.logical_and(selection1, match_obj.cloudsat.cloud_fraction > 0)
         # selection = np.logical_and(selection, match_obj.imager.fractionofland <= 0)
         selection1 = np.logical_and(val_subset, selection1)
-        lwp_diff_lo = match_obj.imager.cpp_lwp - match_obj.cloudsat.RVOD_LO_liquid_water_path
+        lwp_diff_lo = match_obj.imager.cpp_lwp - match_obj.cloudsat.LO_RVOD_liquid_water_path
         lwp_diff_lo = lwp_diff_lo[selection1]
     elif getattr(match_obj.cloudsat, "LO_RO_liquid_water_path", None) is not None:
         selection1 = np.logical_and(match_obj.imager.cpp_lwp >= 0,
