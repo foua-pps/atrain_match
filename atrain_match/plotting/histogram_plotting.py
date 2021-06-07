@@ -26,10 +26,10 @@ import numpy as np
 import logging
 logger = logging.getLogger(__name__)
 
-try:
-    matplotlib.use('agg', warn=False)
-except TypeError:  # For some reason, I don't always have 'warn'
-    matplotlib.use('agg')
+#try:
+#    matplotlib.use('agg', warn=False)
+#except TypeError:  # For some reason, I don't always have 'warn'
+#    matplotlib.use('agg')
 
 
 def imshow_lwps(amsr_lwp, cpp_lwp, time_diff, sea, title=None, lwp_max=None):
@@ -351,7 +351,7 @@ def atrain_scatter(fig, ax, x, y, binsize, xymin=None, xymax=None, vmax=250,
                        vmin=1, vmax=vmax)
     if ptype in ['scatter']:
         b = plt.scatter(to_km*x[idx], to_km*y[idx], c=z[idx],
-                        edgecolor='', cmap=my_cmap, vmin=1, vmax=vmax,
+                        cmap=my_cmap, vmin=1, vmax=vmax,
                         alpha=1.0, marker='.', edgecolors=None, rasterized=True)
 
     ax.set_ylim(xymin, to_km*xymax)
