@@ -137,6 +137,8 @@ def read_cci_phase(cci_nc):
     """
     cpp_obj = CppObj()
     data = cci_nc.variables['ann_phase'][::]
+    data = np.squeeze(data)
+    
     setattr(cpp_obj, 'cpp_phase', data)
     # if hasattr(phase, 'mask'):
     #    phase_out = np.where(phase.mask, -999, phase.data)
