@@ -136,7 +136,7 @@ def read_cci_phase(cci_nc):
     """Read angles info from filename
     """
     cpp_obj = CppObj()
-    data = cci_nc.variables['phase'][::]
+    data = cci_nc.variables['ann_phase'][::]
     setattr(cpp_obj, 'cpp_phase', data)
     # if hasattr(phase, 'mask'):
     #    phase_out = np.where(phase.mask, -999, phase.data)
