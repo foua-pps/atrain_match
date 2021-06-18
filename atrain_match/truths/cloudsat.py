@@ -272,9 +272,9 @@ def merge_cloudsat(cloudsat, cloudsatlwp):
             else:
                 cloudsat.all_arrays[key] = np.zeros(cloudsat.all_arrays["Height"].shape)
                 # data
-                cloudsat.all_arrays[key][:,:] = cloudsatlwp.all_arrays[key][index,:]
+                cloudsat.all_arrays[key][:, :] = cloudsatlwp.all_arrays[key][index, :]
                 # nodata where data are missing
-                cloudsat.all_arrays[key][cloudsat_lwp_index < 0,:] = -9
+                cloudsat.all_arrays[key][cloudsat_lwp_index < 0, :] = -9
         if key.lower() in ["liq_water_path", "precip_liq_water_path", "cloud_liq_water_path",
                            "ice_water_path"]:
             # kg/m2 to g/m2 R05
@@ -284,12 +284,12 @@ def merge_cloudsat(cloudsat, cloudsatlwp):
         if key in ["RVOD_liq_water_path, RVOD_ice_water_path"]:
             # already in g/m2 R04 RVOD
             density = 1.0
-            cloudsat.all_arrays[key.replace("RVOD_","") + "_gm2"] = np.where(
+            cloudsat.all_arrays[key.replace("RVOD_", "") + "_gm2"] = np.where(
                 cloudsat.all_arrays[key]<0, -9, density * cloudsat.all_arrays[key])       
         if key in ["RO_liq_water_path", "RO_ice_water_path"]:
             # already in g/m2 RO-05 (not in RVOD-05)
             density = 1.0
-            cloudsat.all_arrays[key.replace("RO_","") + "_gm2"] = np.where(
+            cloudsat.all_arrays[key.replace("RO_", "") + "_gm2"] = np.where(
                 cloudsat.all_arrays[key]<0, -9, density * cloudsat.all_arrays[key]) 
     return cloudsat
 
