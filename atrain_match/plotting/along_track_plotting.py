@@ -45,7 +45,11 @@ def plot_cal_clsat_geoprof_imager(match_clsat,
     calipso_val_h = match_calipso.calipso.validation_height
     caliop_base[caliop_base < 0] = -9
     caliop_height[caliop_height < 0] = -9
-    pixel_position = np.arange(match_calipso.calipso.latitude.shape[0])
+    if RESOLUTION == 5 and match_clsat is not None:
+        # Cloudsat has highest res
+        pixel_position = np.arange(match_clsat.cloudsat.latitude.shape[0])[match_calipso.calipso.cloudsat_index]
+    else:    
+        pixel_position = np.arange(match_calipso.calipso.latitude.shape[0])    
     # Calculates Hihest Cloud Top
     if MAXHEIGHT is None:
         maxheight_calipso = np.nanmax(caliop_height)
@@ -75,7 +79,11 @@ def plot_cal_clsat_geoprof_imager(match_clsat,
         base_height = match_clsat.cloudsat.validation_height_base
         top_height = match_clsat.cloudsat.validation_height
         plot_these = top_height > 0
-        ax.vlines(pixel_position[match_clsat.cloudsat.calipso_index[plot_these]],
+        if RESOLUTION == 5:
+            clsat_pos = np.arange(match_clsat.cloudsat.latitude.shape[0])[plot_these]
+        else:    
+            clsat_pos = pixel_position[match_clsat.cloudsat.calipso_index[plot_these]]
+        ax.vlines(clsat_pos,
                   base_height[plot_these], top_height[plot_these], 'm',  # color = colors[nidx], \
                   linestyle='solid', linewidth=1, rasterized=True, label='CPR (CloudSat)')
         title = "%s-CloudSat-CALIOP Cloud Top Heights" % instrument.upper()
@@ -287,27 +295,31 @@ def plot_cal_clsat_imager_time_diff(match_clsat,
     # Plot time diff
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    maxvalue = np.nanmax(cal_diff_sec_1970) / 60.0
-    minvalue = np.nanmin(cal_diff_sec_1970) / 60.0
+    maxvalue = np.nanmax(cal_diff_sec_1970)
+    minvalue = np.nanmin(cal_diff_sec_1970)
     title = "Time Difference CALIPSO - %s" % instrument.upper()
     ylabel_str = "Time diff (CALIPSO - %s)[min]" % instrument.upper()
     if match_clsat is not None:
         clsat_diff_sec_1970 = match_clsat.diff_sec_1970 / 60.0
         title = "Time Difference Between %s and CloudSat/CALIPSO" % instrument.upper()
         ylabel_str = "Time diff (CALIPSO/CloudSat - %s)[min]" % instrument.upper()
-        maxvalue = np.max([np.nanmax(clsat_diff_sec_1970) / 60.0, maxvalue])
-        minvalue = np.min([np.nanmin(clsat_diff_sec_1970) / 60.0, minvalue])
+        maxvalue = np.max([np.nanmax(clsat_diff_sec_1970), maxvalue])
+        minvalue = np.min([np.nanmin(clsat_diff_sec_1970), minvalue])
 
-        biggest_Cloudsat_diff = np.nanmax(np.abs(clsat_diff_sec_1970 / 60.0))
-        ax.plot(pixel_position[match_clsat.cloudsat.calipso_index], clsat_diff_sec_1970/60.0, 'r+',
+        biggest_Cloudsat_diff = np.nanmax(np.abs(clsat_diff_sec_1970 ))
+        # For 5km data many cloudsat index are -9 as cloudsat has smalles res
+        # For now just exclude those
+        use = match_clsat.cloudsat.calipso_index > 0
+        ax.plot(pixel_position[match_clsat.cloudsat.calipso_index[use]],
+                clsat_diff_sec_1970[use], 'r+',
                 label="CloudSat (max time diff %.2f min)" % (biggest_Cloudsat_diff))
 
-    biggest_Calipso_diff = np.nanmax(np.abs(cal_diff_sec_1970 / 60.0))
+    biggest_Calipso_diff = np.nanmax(np.abs(cal_diff_sec_1970 ))
     ax.set_title(title)
     ax.set_xlabel("Track Position")
     ax.set_ylabel(ylabel_str)
-    ax.set_ylim(minvalue - 5, maxvalue + 5)
-    ax.plot(pixel_position, cal_diff_sec_1970/60.0, "g",
+    ax.set_ylim(minvalue - 1, maxvalue + 1)
+    ax.plot(pixel_position, cal_diff_sec_1970, "g",
             label="CALIPSO (max time diff %.2f min)" % (biggest_Calipso_diff))
     ax.legend(numpoints=4)
 
@@ -337,8 +349,9 @@ def plot_cal_clsat_imager_satz(match_clsat,
     fig = plt.figure()
     ax = fig.add_subplot(111)
     if match_clsat is not None:
-        ax.plot(pixel_position[match_clsat.cloudsat.calipso_index],
-                match_clsat.imager.satz,
+        use = match_clsat.cloudsat.calipso_index>0
+        ax.plot(pixel_position[match_clsat.cloudsat.calipso_index][use],
+                match_clsat.imager.satz[use],
                 'r+',
                 label="%s satz - CloudSat" % instrument.upper())
     ax.set_xlabel("Track Position")
