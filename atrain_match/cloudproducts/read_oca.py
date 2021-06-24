@@ -45,7 +45,11 @@ def get_satid_datetime_orbit_from_fname_oca(imager_filename):
     # Get satellite name, time, and orbit number from imager_file
     # W_de-airbusDS-friedrichshafen, SAT, SGA1-VII-02-OCA_C_EUM_20190811211148_G_D_20070912114935_20070912115438_T_X____.nc
     sl_ = os.path.basename(imager_filename).split('_')
-    if 'MYD03' in os.path.basename(imager_filename):
+    if "OCA_SEV_MET" in os.path.basename(imager_filename):
+        # MYD03.A2008054.0955_OCA_20080223_095500.nc
+        date_time = datetime.strptime(sl_[-1], '%Y%m%d%H%M.nc')
+        sat_id = 'meteosat9' #
+    elif 'MYD03' in os.path.basename(imager_filename):
         # MYD03.A2008054.0955_OCA_20080223_095500.nc
         date_time = datetime.strptime(sl_[2] + sl_[3], '%Y%m%d%H%M%S.nc')
         sat_id = 'eos2' #
@@ -84,6 +88,16 @@ def oca_read_all(filename):
         cloudproducts.instrument = 'modis'
         do_some_geo_obj_logging(cloudproducts)
         return(cloudproducts)
+    elif "OCA_SEV_MET" in  os.path.basename(filename):
+        cloudproducts = oca_read_all_nc_modis(filename)
+        logger.info("No timeinfo in OCA-MODIS file calculate from filename +15min")
+        time_info = get_satid_datetime_orbit_from_fname_oca(filename)
+        cloudproducts.sec1970_start = calendar.timegm(time_info["date_time"].timetuple())
+        cloudproducts.sec1970_end = cloudproducts.sec1970_start + 60*15
+        cloudproducts = create_imager_time(cloudproducts, values={})
+        cloudproducts.instrument = 'SEVIRI-OCA'
+        do_some_geo_obj_logging(cloudproducts)
+        return(cloudproducts)   
     return oca_read_all_nc(filename)
 
 
@@ -200,26 +214,27 @@ def read_oca_geoobj(oca_nc, filename):
 # OCA MODIS completely different format!!!!!!!!!!!!!!!!!!!!!11
 
 
-def oca_read_all_nc_modis(filename):
+def oca_read_all_nc_modis(filename, clm_separate_file=False):
     """Read geolocation, angles info, ctth, and cma."""
     oca_nc = h5netcdf.File(filename, 'r')
     my_dir = os.path.dirname(filename)
-    my_file = os.path.basename(filename).replace('OCA', 'CLM')
-    oca_nc_clm = h5netcdf.File(os.path.join(my_dir,my_file))
-    logger.info("Opening file %s", filename)
+    if clm_separate_file:
+        my_file = os.path.basename(filename).replace('OCA', 'CLM')
+        oca_nc_clm = h5netcdf.File(os.path.join(my_dir, my_file))
+        logger.info("Opening file %s", filename)
+        cma = read_oca_cmask_modis(oca_nc_clm)
     logger.info("Reading longitude, latitude and time ...")
     cloudproducts = read_oca_geoobj_modis(oca_nc, filename)
     logger.info("Reading angles ...")
     cloudproducts.imager_angles = read_oca_angobj_modis(oca_nc)
     logger.info("Reading cloud pressure ...")
     # , angle_obj)
-    cma = read_oca_cmask_modis(oca_nc_clm)
     ctype, cma, ctth = read_oca_ctype_cmask_ctth_modis(oca_nc)
     cloudproducts.cma = cma
     cloudproducts.ctth = ctth
     cloudproducts.ctype = ctype
     aux_dict = read_oca_secondlayer_etc_info_modis(oca_nc)
-    aux_dict['flag_cm'] = read_oca_secondlayer_etc_info_modis(oca_nc_clm, params=['flag_cm'])['flag_cm']
+    #? aux_dict['flag_cm'] = read_oca_secondlayer_etc_info_modis(oca_nc_clm, params=['flag_cm'])['flag_cm']
     cloudproducts.aux = AuxiliaryObj(aux_dict)
     logger.info("Not reading cloud microphysical properties")
     # cloudproducts.cpp = read_oca_cpp(oca_nc)
@@ -245,8 +260,9 @@ def read_oca_ctype_cmask_ctth_modis(oca_nc):
     cma = CmaObj()
     ctth.pressure, ctth.p_nodata = scale_oca_var_modis(
         oca_nc['ctp'])
-    ctth.temperature, ctth.t_nodata = scale_oca_var_modis(
-        oca_nc['ctt'])
+    if 'ctt' in oca_nc.keys():
+        ctth.temperature, ctth.t_nodata = scale_oca_var_modis(
+            oca_nc['ctt'])
     
     cma.cma_ext = np.where(oca_nc['moca_model_final'][:] > 0, 1, 0)
     ctype.phaseflag = None
@@ -256,10 +272,15 @@ def read_oca_ctype_cmask_ctth_modis(oca_nc):
 def read_oca_cmask_modis(oca_nc):
     """Read ctth pressure file."""
     cma = CmaObj()
-    cma.cma_ext = np.where(oca_nc['flag_cm'][:] > 1, 1, 0)
-    cma.cma_bin = np.int64(0*cma.cma_ext.copy())
-    cma.cma_bin[oca_nc['flag_cm'][:] == 3] = 1.0
-    cma.cma_bin[oca_nc['flag_cm'][:] == 4] = 1.0
+    if 'flag_cm' in oca_nc.keys():
+        cma.cma_ext = np.where(oca_nc['flag_cm'][:] > 1, 1, 0)
+        cma.cma_bin = np.int64(0*cma.cma_ext.copy())
+        cma.cma_bin[oca_nc['flag_cm'][:] == 3] = 1.0
+        cma.cma_bin[oca_nc['flag_cm'][:] == 4] = 1.0
+    else:
+        import pdb;pdb.set_trace()
+        cma.cma_ext = np.where(oca_nc['moca_model_final'][:] >= 1, 1, 0)
+        cma.cma_bin = np.int64(0*cma.cma_ext.copy())
     return cma
 
 def read_oca_cpp_modis(oca_nc):
@@ -275,8 +296,9 @@ def read_oca_secondlayer_etc_info_modis(oca_nc, params=OCA_READ_EXTRA_ONLY_OCA):
     """Read ctth pressure file, for second layer."""
     aux_dict = {}
     for param in params:
-        aux_dict[param], _ = scale_oca_var_modis(
-            oca_nc[param])
+        if param in oca_nc.keys():
+            aux_dict[param], _ = scale_oca_var_modis(
+                oca_nc[param])
     return aux_dict
 
 
@@ -289,8 +311,9 @@ def read_oca_angobj_modis(oca_nc):
         oca_nc['sunzen'])
     angle_obj.satazimuth.data = None
     angle_obj.sunazimuth.data = None
-    angle_obj.azidiff.data, _ = scale_oca_var_modis(
-        oca_nc['sun_sat_azi'])
+    if 'sun_sat_azi' in oca_nc.keys():
+        angle_obj.azidiff.data, _ = scale_oca_var_modis(
+            oca_nc['sun_sat_azi'])
     return angle_obj
 
 def read_oca_geoobj_modis(oca_nc, filename):
