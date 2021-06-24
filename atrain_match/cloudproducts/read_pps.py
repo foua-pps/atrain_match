@@ -466,7 +466,7 @@ def read_imager_data_nc(pps_nc):
 
     bad = None
     if 'qual_flags' in pps_nc.variables.keys():
-        qual = pps_nc.variables['qual_flags'][0,:,:]
+        qual = pps_nc.variables['qual_flags'][0, :, :]
         bad = np.sum(qual[:, 1:], axis=1) > 0
         
     for var in pps_nc.variables.keys():
@@ -489,7 +489,7 @@ def read_imager_data_nc(pps_nc):
             else:
                 one_channel.data = data_temporary
             if bad is not None and id_tag != 'qual_flags':
-                one_channel.data[bad,:] = ATRAIN_MATCH_NODATA
+                one_channel.data[bad, :] = ATRAIN_MATCH_NODATA
             if hasattr(image, 'description'):
                 logger.debug("reading channel %s", image.description)
                 one_channel.des = image.description
@@ -763,7 +763,7 @@ def read_cpp_nc(filename):
         cpp_key_new = cpp_key
         data = read_cpp_nc_one_var(pps_nc_cpp, cpp_key)
         if data is None:    
-            cpp_key_new = cpp_key.replace("cpp","cmic")
+            cpp_key_new = cpp_key.replace("cpp", "cmic")
             data = read_cpp_nc_one_var(pps_nc_cpp, cpp_key_new)    
         setattr(cpp_obj, cpp_key, data)
         if data is not None:
