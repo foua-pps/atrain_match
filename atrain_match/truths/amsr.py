@@ -66,7 +66,7 @@ def get_amsr(filename):
     logger.info("Extract {} lwp between 0 and {} g/m-2".format(AMSR_SENSOR,
                                                                LWP_THRESHOLD))
     use_amsr = np.logical_and(retv.lwp >= 0,
-                              retv.lwp < LWP_THRESHOLD * 100)
+                              retv.lwp < LWP_THRESHOLD)
     retv = retv.extract_elements(idx=use_amsr)
     return retv
 
