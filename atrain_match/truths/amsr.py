@@ -28,6 +28,7 @@ import h5py
 import numpy as np
 from datetime import datetime
 from calendar import timegm
+
 TAI93 = datetime(1993, 1, 1)
 
 logger = logging.getLogger(__name__)
@@ -101,7 +102,6 @@ def read_amsr2_h5(filename):
     if f:
         f.close()
     return retv
-
 
 
 def read_amsre_hdf4(filename):
