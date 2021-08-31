@@ -36,32 +36,42 @@ AMSR_RADIUS = 5.4e3  # 3.7e3 to include 5km pixels parly overlapping amsr-e foot
 
 def get_amsr(filename):
 
-    if ".h5" in filename:
-        retv = read_amsr_h5(filename)
+    if SETTINGS['AMSR_SENSOR'].lower() in ['amsre', 'amsr-e']:
+        AMSR_SENSOR = 'AMSR-E'
+        lwp_conversion = 1E3 # Density of water [kg m**-3]
+    elif SETTINGS['AMSR_SENSOR'].lower() in ['amsr2', 'amsr-2']:
+        AMSR_SENSOR = 'AMSR2'
+        lwp_conversion = 1E3 # kg m^-2 to g m^-2
     else:
-        # hdf4 file:
-        retv = read_amsr_hdf4(filename)
+        raise Exception('Please specifiy AMSR_SENSOR in the config ' +\
+                        ' file. [AMSR2, AMSR-E]')
 
-    density = 1e3  # Density of water [kg m**-3]
+    if AMSR_SENSOR == 'AMSR-E':
+        if ".h5" in filename:
+            retv = read_amsre_h5(filename)
+        else:
+            # hdf4 file:
+            retv = read_amsre_hdf4(filename)
+    elif AMSR_SENSOR == 'AMSR2':
+        retv = read_amsr2_h5(filename)
+
     n_lat_scans = len(retv.latitude) * 1.0 / (len(retv.sec1993))  # = 242!
-    # print n_lat_scans
     epoch_diff = timegm(TAI93.utctimetuple())
     nadir_sec_1970 = retv.sec1993 + epoch_diff
     retv.sec_1970 = np.repeat(nadir_sec_1970.ravel(), n_lat_scans)
     retv.sec1993 = None
-    retv.lwp = retv.lwp_mm.ravel() * density  # [mm * kg m**-3 = g m**-2]
+    # convert to g m^-2
+    retv.lwp = retv.lwp_mm.ravel() * lwp_conversion
 
-    logger.info("Extract AMSR-E lwp between 0 and %d g/m-2", LWP_THRESHOLD)
+    logger.info("Extract {} lwp between 0 and {} g/m-2".format(AMSR_SENSOR,
+                                                               LWP_THRESHOLD))
     use_amsr = np.logical_and(retv.lwp >= 0,
                               retv.lwp < LWP_THRESHOLD * 100)
     retv = retv.extract_elements(idx=use_amsr)
-    # import matplotlib.pyplot as plt
-    # plt.plot(retv.longitude, retv.latitude, '.')
-    # plt.savefig('map_test.png')
     return retv
 
 
-def read_amsr_h5(filename):
+def read_amsre_h5(filename):
     retv = AmsrObject()
 
     with h5py.File(filename, 'r') as f:
@@ -75,9 +85,26 @@ def read_amsr_h5(filename):
     if f:
         f.close()
     return retv
+  
+  
+def read_amsr2_h5(filename):
+    retv = AmsrObject()
+
+    with h5py.File(filename, 'r') as f:
+        # ravel AMSR-E data to 1 dimension
+        retv.longitude = f['Longitude of Observation Point'][:].ravel()
+        retv.latitude = f['Latitude of Observation Point'][:].ravel()
+        retv.sec1993 = f['Scan Time'][:]
+        # description='lwp (mm)',
+        lwp_gain = f['Geophysical Data'].attrs['SCALE FACTOR']  # .ravel()
+        retv.lwp_mm = f['Geophysical Data'][:].ravel() * lwp_gain
+    if f:
+        f.close()
+    return retv
 
 
-def read_amsr_hdf4(filename):
+
+def read_amsre_hdf4(filename):
     from pyhdf.SD import SD, SDC
     from pyhdf.HDF import HDF  # HC
     import pyhdf.VS
