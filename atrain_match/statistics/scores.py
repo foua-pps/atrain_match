@@ -2,7 +2,8 @@
 import numpy as np
 
 class ScoreUtils:
-    def __init__(self, a, b, c, d, num=None):
+    def __init__(self, hits, false_alarms, misses, 
+                 correct_negatives, num=None):
 
         """ 
         Initialize ScoreUtils class. Takes contigency table elements 
@@ -21,14 +22,14 @@ class ScoreUtils:
         is calculated as a + b + c + d.
 
         """
-        self.a = a
-        self.b = b
-        self.c = c
-        self.d = d
+        self.a = hits
+        self.b = false_alarms
+        self.c = misses
+        self.d = correct_negatives
         if num is not None:
             self.n = num
         else:
-            self.n = a + b + c + d
+            self.n = self.a + self.b + self.c + self.d
 
     def hitrate(self):
         """
