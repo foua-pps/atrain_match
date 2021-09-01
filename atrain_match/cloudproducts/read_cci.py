@@ -103,10 +103,20 @@ def cci_read_all(filename):
     cloudproducts.cpp = read_cci_phase(cci_nc)
     logger.debug("Reading LWP")
     cloudproducts.cpp = read_cci_lwp(cci_nc, cloudproducts.cpp)
+    logger.debug("Reading LSM")
+    cloudproducts.aux = read_cci_lsm(cci_nc)
     logger.debug("Not reading channel data")
     if cci_nc:
         cci_nc.close()
     return cloudproducts
+  
+  
+def read_cci_lsm(cci_nc):
+    """ Read land-sea mask from CCI file.
+    """
+    fractionofland = cci_nc.variables['lsflag'][::]
+    aux = AuxiliaryObj({'fractionofland': fractionofland})
+    return aux
 
 
 def read_cci_cma(cci_nc):
