@@ -180,16 +180,29 @@ def parse_scenesfile_v2014(filename):
 def parse_scenesfile_cci(filename):
     """
     Parse cci file: 20080613002200-ESACCI-L2_CLOUD-CLD_PRODUCTS-IMAGERGAC-NOAA18-fv1.0.nc
+    OR
+    Parse cci file: 20190713002200-ESACCI-L2_CLOUD-CLD_PRODUCTS-SEVIRI-MSG4-fv1.0.nc
     """
     from datetime import datetime
     import re
     filename = os.path.basename(filename)
     if not filename:
         raise ValueError("No file %r" % filename)
-    match = re.match(
-        r"(\d\d\d\d\d\d\d\d)(\d\d\d\d).+IMAGERGAC-([^-]+)-", filename)
+
+    # CCI data
+    if "IMAGERGAC" in filename:
+        match = re.match(
+            r"(\d\d\d\d\d\d\d\d)(\d\d\d\d).+IMAGERGAC-([^-]+)-", filename)
+    # CCI+ data
+    elif "SEVIRI" in filename:
+        match = re.match(
+            r"(\d\d\d\d\d\d\d\d)(\d\d\d\d).+SEVIRI-([^-]+)-", filename)
+    else:
+        raise ValueError("atrain_match not able to handle %r files" % filename)
+
     if not match:
         raise ValueError("Couldn't parse cci file %r" % filename)
+
     date_s, time_s, satname = match.groups()
     _datetime = datetime.strptime(date_s + time_s, '%Y%m%d%H%M')
 
