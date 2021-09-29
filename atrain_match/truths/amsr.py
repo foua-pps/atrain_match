@@ -40,12 +40,17 @@ def get_amsr(filename):
     if SETTINGS['AMSR_SENSOR'].lower() in ['amsre', 'amsr-e']:
         AMSR_SENSOR = 'AMSR-E'
         lwp_conversion = 1E3 # Density of water [kg m**-3]
-    elif SETTINGS['AMSR_SENSOR'].lower() in ['amsr2', 'amsr-2']:
+    elif SETTINGS['AMSR_SENSOR'].lower() == 'amsr2_jaxa':
         AMSR_SENSOR = 'AMSR2'
+        AMSR2_DATA_SOURCE = 'JAXA'
+        lwp_conversion = 1E3 # kg m^-2 to g m^-2
+    elif SETTINGS['AMSR_SENSOR'].lower() == 'amsr2_nsidc':
+        AMSR_SENSOR = 'AMSR2'
+        AMSR2_DATA_SOURCE = 'NSIDC'
         lwp_conversion = 1E3 # kg m^-2 to g m^-2
     else:
         raise Exception('Please specifiy AMSR_SENSOR in the config ' +\
-                        ' file. [AMSR2, AMSR-E]')
+                        ' file. [AMSR2_JAXA, AMSR2_NSIDC, AMSR-E]')
 
     if AMSR_SENSOR == 'AMSR-E':
         if ".h5" in filename:
@@ -54,7 +59,12 @@ def get_amsr(filename):
             # hdf4 file:
             retv = read_amsre_hdf4(filename)
     elif AMSR_SENSOR == 'AMSR2':
-        retv = read_amsr2_h5(filename)
+        if AMSR2_DATA_SOURCE == 'JAXA':
+            # HDF5 format
+            retv = read_amsr2_h5(filename)
+        else:
+            # HDF-EOS5 format
+            retv = read_amsr2_he5(filename)
 
     n_lat_scans = len(retv.latitude) * 1.0 / (len(retv.sec1993))  # = 242!
     epoch_diff = timegm(TAI93.utctimetuple())
@@ -102,7 +112,22 @@ def read_amsr2_h5(filename):
     if f:
         f.close()
     return retv
+  
 
+def read_amsr2_he5(filename):
+  retv = AmsrObject()
+  with h5py.File(filename, 'r') as f:
+      geoloc = f['HDFEOS']['SWATHS']['AMSR2_L1R']['Geolocation Fields']
+      data = f['HDFEOS']['SWATHS']['AMSR2_L1R']['Data Fields']
+      
+      retv.longitude = geoloc['Longitude'][:].ravel()
+      retv.latitude = geoloc['Latitude'][:].ravel()
+      retv.sec1993 = geoloc['tai93time'][:]
+      retv.lwp_mm = data['CloudWaterPath'][:].ravel()
+  if f:
+      f.close()
+  return retv
+  
 
 def read_amsre_hdf4(filename):
     from pyhdf.SD import SD, SDC
