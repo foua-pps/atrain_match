@@ -115,18 +115,18 @@ def read_amsr2_h5(filename):
   
 
 def read_amsr2_he5(filename):
-  retv = AmsrObject()
-  with h5py.File(filename, 'r') as f:
-      geoloc = f['HDFEOS']['SWATHS']['AMSR2_L1R']['Geolocation Fields']
-      data = f['HDFEOS']['SWATHS']['AMSR2_L1R']['Data Fields']
+    retv = AmsrObject()
+    with h5py.File(filename, 'r') as f:
+        geoloc = f['HDFEOS']['SWATHS']['AMSR2_L1R']['Geolocation Fields']
+        data = f['HDFEOS']['SWATHS']['AMSR2_L1R']['Data Fields']
       
-      retv.longitude = geoloc['Longitude'][:].ravel()
-      retv.latitude = geoloc['Latitude'][:].ravel()
-      retv.sec1993 = geoloc['tai93time'][:]
-      retv.lwp_mm = data['CloudWaterPath'][:].ravel()
-  if f:
-      f.close()
-  return retv
+        retv.longitude = geoloc['Longitude'][:].ravel()
+        retv.latitude = geoloc['Latitude'][:].ravel()
+        retv.sec1993 = geoloc['tai93time'][:]
+        retv.lwp_mm = data['CloudWaterPath'][:].ravel()
+    if f:
+        f.close()
+    return retv
   
 
 def read_amsre_hdf4(filename):
