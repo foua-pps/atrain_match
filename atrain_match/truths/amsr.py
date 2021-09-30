@@ -50,15 +50,9 @@ def calculate_amsr_rof(overlap, imager_radius):
 
 def get_amsr_rof(SETTINGS, imager):
     """ Get radius of influence as a function of overlap and imager pixel size. """
-    
-    if imager == 'seviri':
-        imager_radius = SETTINGS['AMSR_SEVIRI_PIXEL_RADIUS']
-    elif imager == 'avhrr':
-        imager_radius = SETTINGS['AMSR_GAC_PIXEL_RADIUS']
-    else:
-        imager_radius = SETTINGS['AMSR_IMAGER_1KM_PIXEL_RADIUS']
-            
-    return calculate_amsr_rof(SETTINGS['AMSR_OVERLAP'], imager_radius)
+    imager_radius = SETTINGS['AMSR_IMAGER_PIXEL_RADIUS']
+    overlap = SETTINGS['AMSR_OVERLAP']   
+    return calculate_amsr_rof(overlap, imager_radius)
 
 
 def get_amsr(filename, SETTINGS):
