@@ -32,7 +32,34 @@ from calendar import timegm
 TAI93 = datetime(1993, 1, 1)
 
 logger = logging.getLogger(__name__)
-AMSR_RADIUS = 5.4e3  # 3.7e3 to include 5km pixels parly overlapping amsr-e footprint
+
+
+def calculate_amsr_rof(overlap, imager_radius):
+    """ Calculate radius of influence for nearest neighbour search. 
+        
+        100% overlap:  fov_semi_minor_axis_diam / 2 -IMAGER_RADIUS
+        50% overlap :  fov_semi_minor_axis_diam / 2 
+        25% overlap:  fov_semi_minor_axis_diam / 2  + 0.5*IMAGER_RADIUS
+    """
+    fov_semi_minor_axis_diam = 7000.
+    rof = 0.5*fov_semi_minor_axis_diam + imager_radius - 2*overlap*imager_radius
+    return rof
+
+
+def get_amsr_rof(SETTINGS, imager):
+    """ Get radius of influence as a function of overlap and imager pixel size. """
+    if SETTINGS['AMSR_IMAGER_RADIUS'] < 0:
+        if imager == 'seviri':
+            # pixel size 4.8 x 3 km
+            imager_radius = 5660.
+        elif imager == 'avhrr':
+            # pixel size 4.3 x 3 km
+            imager_radius = 5325
+        elif imager == 'viirs':
+            pass
+        elif imager == 'modis':
+            pass
+    return calculate_amsr_rof(SETTINGS['AMSR_OVERLAP'], imager_radius)
 
 
 def get_amsr(filename, SETTINGS):
@@ -207,6 +234,12 @@ def match_amsr_imager(amsr, cloudproducts, SETTINGS):
     n_neighbours = 8
     if config.RESOLUTION == 5:
         n_neighbours = 5
+    
+    if SETTINGS['AMSR_RADIUS'] < 0:
+        AMSR_RADIUS = get_amsr_rof(SETTINGS, cloudproducts.imager)
+    else:
+        AMSR_RADIUS = SETTINGS['AMSR_RADIUS']
+        
     mapper_and_dist = map_imager_distances(cloudproducts,
                                            amsr.longitude.ravel(),
                                            amsr.latitude.ravel(),
