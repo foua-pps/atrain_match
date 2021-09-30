@@ -232,10 +232,10 @@ def match_amsr_imager(amsr, cloudproducts, SETTINGS):
     if config.RESOLUTION == 5:
         n_neighbours = 5
     
-    if SETTINGS['AMSR_RADIUS'] < 0:
+    if SETTINGS['AMSR_ROF'] < 0:
         AMSR_RADIUS = get_amsr_rof(SETTINGS, cloudproducts.imager)
     else:
-        AMSR_RADIUS = SETTINGS['AMSR_RADIUS']
+        AMSR_RADIUS = SETTINGS['AMSR_ROF']
         
     mapper_and_dist = map_imager_distances(cloudproducts,
                                            amsr.longitude.ravel(),
