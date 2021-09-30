@@ -54,8 +54,13 @@ of for example PPS results and CloudSat/CALIPSO observations.
  * Modules: reshaped_files_scr example script to plot things from reshaped files.
 
  * Configuration in the etc/atrain_match.cfg. There are some enironment variables that need to be set:
- 
+
+        ATRAIN_MATCH_CONFIG_FILE # Name of atrain_match config file default atrain_match.cfg
         ATRAINMATCH_CONFIG_DIR # path to atrain_match.cfg
         AREA_CONFIG_FILE       # only for plotting
         VALIDATION_RESULTS_DIR # path to validation main directory
         ATRAIN_RESOLUTION      # 1 or 5
+
+Run unit test with:
+
+* python -m unittest atrain_match/tests/__init__.py 
