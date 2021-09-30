@@ -53,6 +53,9 @@ def get_amsr_rof(SETTINGS, imager):
     imager_radius = SETTINGS['AMSR_IMAGER_PIXEL_RADIUS']
     overlap = SETTINGS['AMSR_OVERLAP']   
     
+    if imager_radius < 0:
+        raise Exception('Imager radius cannot be < 0.')
+    
     if overlap < 0 or overlap > 1:
         raise Exception('AMSR_OVERLAP in SETTINGS has to be [0, 1]. ' \
                         'Your overlap is {}'.format(overlap))
