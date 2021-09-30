@@ -43,8 +43,8 @@ def calculate_amsr_rof(overlap, imager_radius):
         50% overlap :  fov_semi_minor_axis_diam / 2 
         25% overlap:  fov_semi_minor_axis_diam / 2  + 0.5*IMAGER_RADIUS
     """
-    fov_semi_minor_axis_diam = 7000.
-    rof = 0.5*fov_semi_minor_axis_diam + imager_radius - 2*overlap*imager_radius
+    fov_semi_minor_diam = config.AMSR_SEMI_MINOR_DIAMETER
+    rof = 0.5*fov_semi_minor_diam + imager_radius - 2*overlap*imager_radius
     return rof
 
 
