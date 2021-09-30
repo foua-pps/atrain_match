@@ -37,6 +37,8 @@ logger = logging.getLogger(__name__)
 def calculate_amsr_rof(overlap, imager_radius):
     """ Calculate radius of influence for nearest neighbour search. 
         
+        A AMSR footprint of the 36GHz channel (7x12 km) is assumed.
+        
         100% overlap:  fov_semi_minor_axis_diam / 2 -IMAGER_RADIUS
         50% overlap :  fov_semi_minor_axis_diam / 2 
         25% overlap:  fov_semi_minor_axis_diam / 2  + 0.5*IMAGER_RADIUS
