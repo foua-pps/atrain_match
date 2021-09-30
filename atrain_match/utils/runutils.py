@@ -65,6 +65,9 @@ def read_config_info():
             value_ = np.float(values[0])
         elif name in ['AMSR_SENSOR']:
             value_ = values[0]
+        elif name in ['AMSR_ROF', 'AMSR_OVERLAP', 'AMSR_GAC_PIXEL_RADIUS', 
+                      'AMSR_SEVIRI_PIXEL_RADIUS', 'AMSR_IMAGER_1KM_PIXEL_RADIUS']:
+            value_ = float(values[0])
     
         SETTINGS[name.upper()] = value_
 
