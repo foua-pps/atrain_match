@@ -52,6 +52,10 @@ def get_amsr_rof(SETTINGS, imager):
     """ Get radius of influence as a function of overlap and imager pixel size. """
     imager_radius = SETTINGS['AMSR_IMAGER_PIXEL_RADIUS']
     overlap = SETTINGS['AMSR_OVERLAP']   
+    
+    if overlap < 0 or overlap > 1:
+        raise Exception('AMSR_OVERLAP in SETTINGS has to be [0, 1]. ' \
+                        'Your overlap is {}'.format(overlap))
     return calculate_amsr_rof(overlap, imager_radius)
 
 
