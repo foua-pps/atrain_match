@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 AMSR_RADIUS = 5.4e3  # 3.7e3 to include 5km pixels parly overlapping amsr-e footprint
 
 
-def get_amsr(filename):
+def get_amsr(filename, SETTINGS):
 
     if SETTINGS['AMSR_SENSOR'].lower() in ['amsre', 'amsr-e']:
         AMSR_SENSOR = 'AMSR-E'
