@@ -119,7 +119,7 @@ def read_amsre_h5(filename):
         retv.sec1993 = f['Swath1/Geolocation Fields/Time']['Time'][:]
         # description='lwp (mm)',
         lwp_gain = f['Swath1/Data Fields/High_res_cloud'].attrs['Scale']  # .ravel()
-        retv.lwp_mm = f['Swath1/Data Fields/High_res_cloud'][:].ravel() * lwp_gain
+        retv.lwp_mm = np.squeeze(f['Swath1/Data Fields/High_res_cloud'][:]).ravel() * lwp_gain
     if f:
         f.close()
     return retv
