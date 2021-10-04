@@ -150,13 +150,18 @@ def read_cci_phase(cci_nc):
     cpp_obj = CppObj()
     data = cci_nc.variables['ann_phase'][::]
     data = np.squeeze(data)
-    
+    data = np.where(data < 1, ATRAIN_MATCH_NODATA, data)
     setattr(cpp_obj, 'cpp_phase', data)
-    # if hasattr(phase, 'mask'):
-    #    phase_out = np.where(phase.mask, -999, phase.data)
-    # else:
-    #    phase_out = phase.data
-    # print phase
+    
+    data = cci_nc.variables['qcflag'][::]
+    data = np.squeeze(data)
+    setattr(cpp_obj, 'cpp_quality', data)
+    
+    data = cci_nc.variables['cot'][::]
+    data = np.squeeze(data)
+    data = np.where(data < 1, ATRAIN_MATCH_NODATA, data)
+    setattr(cpp_obj, 'cpp_cot', data)
+    
     return cpp_obj
   
   
