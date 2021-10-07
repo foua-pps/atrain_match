@@ -151,6 +151,9 @@ def read_amsr2_he5(filename):
         retv.latitude = geoloc['Latitude'][:].ravel()
         retv.sec1993 = geoloc['tai93time'][:]
         retv.lwp_mm = data['CloudWaterPath'][:].ravel()
+        retv.pixel_status = data['PixelStatus'][:].ravel()
+        retv.quality = data['QualityFlag'][:].ravel()
+        retv.surface_type = data['SurfaceTypeIndex'][:].ravel()
     if f:
         f.close()
     return retv
