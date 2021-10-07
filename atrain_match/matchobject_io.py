@@ -343,7 +343,10 @@ class AmsrObject(DataObject):
             'imager_linnum_nneigh': None,
             'imager_pixnum_nneigh': None,
             'sec_1970': None,
-            'lwp': None}
+            'lwp': None,
+            'pixel_status': None,
+            'quality': None,
+            'surface_type': None}
 
 
 class MoraObject(DataObject):
@@ -570,6 +573,9 @@ the_used_variables = [
     # AMSR
     'lwp',
     'imager_amsr_dist',
+    'pixel_status',
+    'quality',
+    'surface_type',
     # MORA
     'cloud_base_height',
     # Cloudsat
