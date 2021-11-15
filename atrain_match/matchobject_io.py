@@ -459,6 +459,9 @@ def get_stuff_to_read_from_a_reshaped_file(h5file, retv):
     if 'cci' in h5file.keys():
         h5_groups.append(h5file['/cci'])
         data_objects.append(retv.imager)
+    if 'seviri_hrit' in h5file.keys():
+        h5_groups.append(h5file['/seviri_hrit'])
+        data_objects.append(retv.imager)
     if 'maia' in h5file.keys():
         h5_groups.append(h5file['/maia'])
     if 'oca' in h5file.keys():
