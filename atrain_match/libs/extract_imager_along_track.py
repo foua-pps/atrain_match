@@ -415,3 +415,41 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
             setattr(obt.imager, filter_name, filters_dict[filter_name])
 
     return obt
+
+def imager_track_from_matched_hrit(obt, SETTINGS, cloudproducts,
+                              extract_radiances=True,
+                              extract_cma=True,
+                              extract_ctth=True,
+                              extract_ctype=True,
+                              extract_cpp=True,
+                              extract_aux_segments=True,
+                              extract_aux=True,
+                              aux_params=None,
+                              extract_some_data_for_x_neighbours=False,
+                              find_mean_data_for_x_neighbours=False):
+
+
+    truth = getattr(obt, obt.truth_sat)
+    row_matched = truth.imager_linnum
+    col_matched = truth.imager_pixnum
+    row_col = {'row': row_matched, 'col': col_matched}
+
+    obt.imager.latitude = get_data_from_array(cloudproducts.latitude, row_col)
+    obt.imager.longitude = get_data_from_array(cloudproducts.longitude, row_col)
+    obt.imager.vis006 = get_data_from_array(cloudproducts.vis006, row_col)
+    obt.imager.vis008 = get_data_from_array(cloudproducts.vis008, row_col)
+    obt.imager.ir_016 = get_data_from_array(cloudproducts.ir_016, row_col)
+    obt.imager.ir_039 = get_data_from_array(cloudproducts.ir_039, row_col)
+    obt.imager.ir_062 = get_data_from_array(cloudproducts.ir_062, row_col)
+    obt.imager.ir_073 = get_data_from_array(cloudproducts.ir_073, row_col)
+    obt.imager.ir_087 = get_data_from_array(cloudproducts.ir_087, row_col)
+    obt.imager.ir_097 = get_data_from_array(cloudproducts.ir_097, row_col)
+    obt.imager.ir_108 = get_data_from_array(cloudproducts.ir_108, row_col)
+    obt.imager.ir_120 = get_data_from_array(cloudproducts.ir_120, row_col)
+    obt.imager.ir_134 = get_data_from_array(cloudproducts.ir_134, row_col)
+    obt.imager.satzen = get_data_from_array(cloudproducts.satzen, row_col)
+    obt.imager.solzen = get_data_from_array(cloudproducts.solzen, row_col)
+    obt.imager.satazi = get_data_from_array(cloudproducts.satazi, row_col)
+    obt.imager.time = get_data_from_array(cloudproducts.time, row_col)
+
+    return obt
