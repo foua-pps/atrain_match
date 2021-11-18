@@ -308,6 +308,14 @@ class CloudsatObject(DataObject):
         }
 
 
+class DardarObject(DataObject):
+    def __init__(self):
+        DataObject.__init__(self)
+        self.all_arrays = {
+
+        }
+
+
 class IssObject(DataObject):
     def __init__(self):
         DataObject.__init__(self)
