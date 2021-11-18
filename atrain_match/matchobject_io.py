@@ -634,8 +634,8 @@ the_used_variables = [
     'cloudsat_index',
 
     # DARDAR
-    'height',
-    'Z',
+    #'height',
+    #'Z',
     'bscat',
     'bscat_perp',
     'instrument_flag',

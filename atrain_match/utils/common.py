@@ -153,7 +153,8 @@ def write_match_objects(filename, datasets, groups, group_attrs_dict, SETTINGS=N
                                                        'cloudsat',
                                                        'iss',
                                                        'mora',
-                                                       'synop']:
+                                                       'synop',
+                                                       'dardar']:
                 skip_some = SETTINGS["WRITE_ONLY_THE_MOST_IMPORTANT_STUFF_TO_FILE"]
             else:
                 #modis_lvl2, pps, oca, patmosx, or maia
