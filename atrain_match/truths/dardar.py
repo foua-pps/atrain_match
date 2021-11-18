@@ -22,16 +22,108 @@ from atrain_match.libs.extract_imager_along_track import imager_track_from_match
 from atrain_match.utils.common import (MatchupError, ProcessingError,
                                        elements_within_range)
 import atrain_match.config as config
-from atrain_match.matchobject_io import (CloudsatObject,
+from atrain_match.matchobject_io import (DardarObject,
                                          TruthImagerTrackObject)
 import time
+import datetime as dt
 import numpy as np
 import os
 import logging
+from netCDF4 import Dataset
 logger = logging.getLogger(__name__)
 
+
 def get_dardar(filename):
-    pass
+    if filename.endswith('.nc'):
+        dardar = read_dardar_nc(filename)
+    return dardar
+
 
 def read_dardar_nc(filename):
-    pass
+
+    retv = DardarObject()
+    ds = Dataset(filename, 'r')
+    for v in ds.variables:
+        if v in retv.all_arrays.keys():
+            #retv.all_arrays[v] = ds[v][:]
+            setattr(retv, v, ds[v][:])
+
+    time_unit = ds['time'].units.split(' ')  # e.g. seconds since 2019 02 03 00:00:00 UTC
+    year = int(time_unit[2])
+    month = int(time_unit[3])
+    day = int(time_unit[4])
+    hour = int(time_unit[5].split(':')[0])
+    min = int(time_unit[5].split(':')[1])
+    sec = int(time_unit[5].split(':')[2])
+    # number of seconds between start of day of aquesition time and 1970/01/01 00:00:00
+    dsec = dt.datetime(year, month, day, hour, min, sec) - dt.datetime(1970, 1, 1, 0, 0, 0)
+    dsec = dsec.total_seconds()
+    # seconds since 1970 are seconds between start of day of aquesition and 1970
+    # + seconds between start of day of aquesition and measurement
+    #retv.all_arrays['sec_1970'] = ds['time'][:] + dsec
+    retv.sec_1970 = ds['time'][:] + dsec
+
+    ds.close()
+    return retv
+
+
+def reshape_dardar(dardarfiles, imager, SETTINGS):
+    dardar = get_dardar(dardarfiles[0])
+    for i in range(len(dardarfiles) - 1):
+        new_dardar = get_dardar(dardarfiles[i + 1])
+        dardar_start_all = dardar.sec_1970.ravel()
+        dardar_new_all = new_dardar.sec_1970.ravel()
+        if not dardar_start_all[0] < dardar_new_all[0]:
+            raise ProcessingError("DARDAR files are in the wrong order!")
+        dardar = dardar + new_dardar
+
+    # Finds Break point
+    start_break, end_break = find_break_points(dardar, imager, SETTINGS)
+    dardar= dardar.extract_elements(starti=start_break,
+                                    endi=end_break)
+    return dardar
+
+
+def match_dardar_imager(dardar, cloudproducts, SETTINGS):
+    retv = TruthImagerTrackObject(truth='dardar')
+    retv.imager_instrument = cloudproducts.instrument.lower()
+    retv.dardar = dardar
+    # Nina 20150313 Swithcing to mapping without area as in cpp. Following suggestion from Jakob
+    from atrain_match.utils.common import map_imager
+    cal, cap = map_imager(cloudproducts,
+                          dardar.longitude.ravel(),
+                          dardar.latitude.ravel(),
+                          radius_of_influence=config.RESOLUTION * 0.7 * 1000.0)  # somewhat larger than radius...
+    calnan = np.where(cal == config.NODATA, np.nan, cal)
+    if (~np.isnan(calnan)).sum() == 0:
+        logger.warning("No matches within region.")
+        return None
+    # check if it is within time limits:
+    if len(cloudproducts.time.shape) > 1:
+        imager_time_vector = [cloudproducts.time[line, pixel] for line, pixel in zip(cal, cap)]
+        imager_lines_sec_1970 = np.where(cal != config.NODATA, imager_time_vector, np.nan)
+    else:
+        imager_lines_sec_1970 = np.where(cal != config.NODATA, cloudproducts.time[cal], np.nan)
+    # Find all matching Cloudsat pixels within +/- sec_timeThr from the IMAGER data
+    idx_match = elements_within_range(cloudsat.sec_1970, imager_lines_sec_1970, SETTINGS["sec_timeThr"])
+
+    if idx_match.sum() == 0:
+        logger.warning("No matches in region within time threshold %d s.", SETTINGS["sec_timeThr"])
+        return None
+    retv.cloudsat = retv.cloudsat.extract_elements(idx=idx_match)
+
+    # Cloudsat line, pixel inside IMAGER swath:
+    retv.cloudsat.imager_linnum = np.repeat(cal, idx_match).astype('i')
+    retv.cloudsat.imager_pixnum = np.repeat(cap, idx_match).astype('i')
+
+    # Imager time
+    retv.imager.sec_1970 = np.repeat(imager_lines_sec_1970, idx_match)
+    retv.diff_sec_1970 = retv.cloudsat.sec_1970 - retv.imager.sec_1970
+    do_some_logging(retv, cloudsat)
+    logger.debug("Generate the latitude, cloudtype tracks!")
+    retv = imager_track_from_matched(retv, SETTINGS,
+                                     cloudproducts)
+    return retv
+
+if __name__ == '__main__':
+    get_dardar('/cmsaf/cmsaf-cld8/EXTERNAL_DATA/DARDAR/DARDAR-CLOUD.v3.00/2019/02/03/DARDAR-CLOUD_2019034002856_68008_V3-00.nc')
