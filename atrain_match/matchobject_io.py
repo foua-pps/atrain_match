@@ -565,7 +565,7 @@ def write_truth_imager_match_obj(filename, match_obj, SETTINGS=None, imager_obj_
     groups = {imager_obj_name: match_obj.imager.all_arrays}
     imager_attrs = {'imager_instrument': match_obj.imager_instrument}
     groups_attrs = {imager_obj_name: imager_attrs}
-    for name in ['calipso', 'calipso_aerosol', 'iss', 'modis_lvl2', 'dardar'
+    for name in ['calipso', 'calipso_aerosol', 'iss', 'modis_lvl2', 'dardar',
                  'amsr', 'synop', 'mora', 'cloudsat', 'extra']:
         if hasattr(match_obj, name):
             groups[name] = getattr(match_obj, name).all_arrays
