@@ -74,7 +74,6 @@ def read_dardar_nc(filename):
 def reshape_dardar(dardarfiles, imager, SETTINGS):
     dardar = get_dardar(dardarfiles[0])
     for i in range(len(dardarfiles) - 1):
-        print(dardarfiles[i+1])
         new_dardar = get_dardar(dardarfiles[i + 1])
         dardar_start_all = dardar.sec_1970.ravel()
         dardar_new_all = new_dardar.sec_1970.ravel()
