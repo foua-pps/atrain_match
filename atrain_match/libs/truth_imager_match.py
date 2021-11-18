@@ -348,7 +348,6 @@ def require_h5(files, SETTINGS):
         elif f.endswith('.hdf'):
             h5_file = f.replace('.hdf', '.h5')
             if h5_file not in files:
-                print(f)
                 # sys.exit()
                 command = '%s %s' % (SETTINGS["H4H5_EXECUTABLE"], f)
                 logger.info("Converting %s to HDF5", f)
@@ -1072,10 +1071,10 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
 
     # DARDAR
     dardar_matchup = None
-    if ((SETTINGS['PPS_VALIDATION'] or SETTINGS['OCA_VALIDATION'] or SETTINGS['CCI_VALIDATION'])
+    if ((SETTINGS['PPS_VALIDATION'] or SETTINGS['OCA_VALIDATION'] or SETTINGS['CCI_CLOUD_VALIDATION'])
             and SETTINGS['DARDAR_MATCHING'] and truth_files['dardar'] is not None):
         logger.info("Read DARDAR data")
-        cloudsat_matchup = get_dardar_matchups(truth_files['dardar'], cloudproducts, SETTINGS)
+        dardar_matchup = get_dardar_matchups(truth_files['dardar'], cloudproducts, SETTINGS)
 
     if calipso_matchup is None and SETTINGS['CALIPSO_REQUIRED']:
         raise MatchupError("No matches with CALIPSO.")
@@ -1122,10 +1121,9 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
         os.makedirs(os.path.dirname(rematched_path))
 
     for matchup, name in zip([cloudsat_matchup, iss_matchup, amsr_matchup,
-                              synop_matchup, mora_matchup, calipso_matchup,
-                              dardar_matchup],
+                              synop_matchup, mora_matchup, calipso_matchup],
                              ['CloudSat', 'ISS', 'AMSR-E',
-                              'SYNOP', 'MORA', 'CALIPSO', 'DARDAR']):
+                              'SYNOP', 'MORA', 'CALIPSO']):
         if matchup is None:
             continue
         # add modis lvl2
