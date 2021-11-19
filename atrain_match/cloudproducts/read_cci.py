@@ -172,7 +172,7 @@ def read_cci_phase(cci_nc):
     data = np.squeeze(data)
     # split LWP from CWP
     data = np.where(cpp_obj.cpp_phase == 2, ATRAIN_MATCH_NODATA, data)
-    #data = np.where(data < 1, ATRAIN_MATCH_NODATA, data)
+    data = np.where(data <= 0, ATRAIN_MATCH_NODATA, data)
     setattr(cpp_obj, 'cpp_lwp', data)
     return cpp_obj
 
