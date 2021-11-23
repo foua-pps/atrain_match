@@ -102,7 +102,11 @@ def cci_read_all(filename):
     logger.debug("Reading cloud phase")
     cloudproducts.cpp = read_cci_phase(cci_nc)
     logger.debug("Reading LWP")
-    cloudproducts.cpp = read_cci_lwp(cci_nc, cloudproducts.cpp)
+    cloudproducts.cpp = read_cci_lwp(cci_nc, cloudproducts.cpp, cloudproducts.cma)
+    logger.debug("Reading IWP")
+    cloudproducts.cpp = read_cci_iwp(cci_nc, cloudproducts.cpp, cloudproducts.cma)
+    logger.debug("Reading CER")
+    cloudproducts.cpp = read_cci_cer(cci_nc, cloudproducts.cpp, cloudproducts.cma)
     logger.debug("Not reading channel data")
     if cci_nc:
         cci_nc.close()
@@ -140,25 +144,55 @@ def read_cci_phase(cci_nc):
     cpp_obj = CppObj()
     data = cci_nc.variables['ann_phase'][::]
     data = np.squeeze(data)
-    
+    data = np.where(data < 1, ATRAIN_MATCH_NODATA, data)
     setattr(cpp_obj, 'cpp_phase', data)
-    # if hasattr(phase, 'mask'):
-    #    phase_out = np.where(phase.mask, -999, phase.data)
-    # else:
-    #    phase_out = phase.data
-    # print phase
+
+    data = cci_nc.variables['qcflag'][::]
+    data = np.squeeze(data)
+    setattr(cpp_obj, 'cpp_quality', data)
+   
+    data = cci_nc.variables['cot'][::]
+    data = np.squeeze(data)
+    setattr(cpp_obj, 'cpp_cot', data)
+ 
     return cpp_obj
   
   
-  def read_cci_lwp(cci_nc, cpp_obj):
+def read_cci_lwp(cci_nc, cpp_obj, cma_obj):
     """ Read LWP from CCI file 
     """
     data = cci_nc.variables['cwp'][::]
     data = np.squeeze(data)
+    data = np.where(cma_obj.cma_ext < 0.5, 0, data)
     # split LWP from CWP
     data = np.where(cpp_obj.cpp_phase == 2, ATRAIN_MATCH_NODATA, data)
-    data = np.where(data < 1, ATRAIN_MATCH_NODATA, data)
+    data = np.where(data < 0, ATRAIN_MATCH_NODATA, data)
     setattr(cpp_obj, 'cpp_lwp', data)
+    return cpp_obj
+
+
+def read_cci_cer(cci_nc, cpp_obj, cma_obj):
+    """ Read LWP from CCI file
+    """
+    data = cci_nc.variables['cer'][::]
+    data = np.squeeze(data)
+    data = np.where(cma_obj.cma_ext < 0.5, 0, data)
+    # split LWP from CWP
+    data = np.where(data < 0, ATRAIN_MATCH_NODATA, data)
+    setattr(cpp_obj, 'cpp_cer', data)
+    return cpp_obj
+
+
+def read_cci_iwp(cci_nc, cpp_obj, cma_obj):
+    """ Read IWP from CCI file
+    """
+    data = cci_nc.variables['cwp'][::]
+    data = np.squeeze(data)
+    data = np.where(cma_obj.cma_ext < 0.5, 0, data)
+    # split IWP from CWP
+    data = np.where(cpp_obj.cpp_phase == 1, ATRAIN_MATCH_NODATA, data)
+    data = np.where(data < 0, ATRAIN_MATCH_NODATA, data)
+    setattr(cpp_obj, 'cpp_iwp', data)
     return cpp_obj
 
 

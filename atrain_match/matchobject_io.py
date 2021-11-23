@@ -147,9 +147,10 @@ class ExtractedImagerObject(DataObject):
             'cfc_mean': None,
             'cma_prob': None,
             'cma_prob_mean': None,
-
+            'cpp_iwp': None,
             'cpp_lwp': None,
             'cpp_phase': None,
+            'cpp_cer': None,
             # Quality flags
             'cloudtype_qflag': None,
             'cloudtype_phaseflag': None,
@@ -441,7 +442,7 @@ class TruthImagerTrackObject:
 
     def __add__(self, other):
         """Concatenating two objects together"""
-        for object_name in ['imager', 'calipso', 'calipso_aerosol', 'amsr', 'dardar'
+        for object_name in ['imager', 'calipso', 'calipso_aerosol', 'amsr', 'dardar',
                             'cloudsat', 'iss', 'mora', 'synop', 'modis_lvl2', 'modis', 'extra']:
             if hasattr(self, object_name):
                 setattr(self, object_name,

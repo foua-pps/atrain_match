@@ -33,6 +33,8 @@ from netCDF4 import Dataset
 logger = logging.getLogger(__name__)
 
 
+DARDAR_RADIUS = 1.5E3
+
 def get_dardar(filename):
     if filename.endswith('.nc'):
         dardar = read_dardar_nc(filename)
@@ -47,7 +49,7 @@ def read_dardar_nc(filename):
         if v in retv.all_arrays.keys():
             #retv.all_arrays[v] = ds[v][:]
             setattr(retv, v, ds[v][:])
-
+    retv.iwc = retv.iwc * 1E3 * 1E2
     time_unit = ds['time'].units.split(' ')  # e.g. seconds since 2019 02 03 00:00:00 UTC
     year = int(time_unit[2])
     month = int(time_unit[3])
@@ -93,22 +95,35 @@ def match_dardar_imager(dardar, cloudproducts, SETTINGS):
     retv.imager_instrument = cloudproducts.instrument.lower()
     retv.dardar = dardar
     # Nina 20150313 Swithcing to mapping without area as in cpp. Following suggestion from Jakob
-    from atrain_match.utils.common import map_imager
-    cal, cap = map_imager(cloudproducts,
-                          dardar.longitude.ravel(),
-                          dardar.latitude.ravel(),
-                          radius_of_influence=config.RESOLUTION * 0.7 * 1000.0)  # somewhat larger than radius...
-    calnan = np.where(cal == config.NODATA, np.nan, cal)
+    #from atrain_match.utils.common import map_imager
+
+    from atrain_match.utils.common import map_imager_distances
+    n_neighbours = 5
+    if config.RESOLUTION == 5:
+        n_neighbours = 3
+
+    mapper_and_dist = map_imager_distances(cloudproducts,
+                                           dardar.longitude.ravel(),
+                                           dardar.latitude.ravel(),
+                                           radius_of_influence=DARDAR_RADIUS,
+                                           n_neighbours=n_neighbours)
+
+    cal, cap = mapper_and_dist["mapper"]
+    distances = mapper_and_dist["distances"]
+    cal_1 = cal[:, 0]
+    cap_1 = cap[:, 0]
+
+    calnan = np.where(cal_1 == config.NODATA, np.nan, cal_1)
     if (~np.isnan(calnan)).sum() == 0:
         logger.warning("No matches within region.")
         return None
     # check if it is within time limits:
     if len(cloudproducts.time.shape) > 1:
-        imager_time_vector = [cloudproducts.time[line, pixel] for line, pixel in zip(cal, cap)]
-        imager_lines_sec_1970 = np.where(cal != config.NODATA, imager_time_vector, np.nan)
+        imager_time_vector = [cloudproducts.time[line, pixel] for line, pixel in zip(cal_1, cap_1)]
+        imager_lines_sec_1970 = np.where(cal_1 != config.NODATA, imager_time_vector, np.nan)
     else:
-        imager_lines_sec_1970 = np.where(cal != config.NODATA, cloudproducts.time[cal], np.nan)
-    # Find all matching Cloudsat pixels within +/- sec_timeThr from the IMAGER data
+        imager_lines_sec_1970 = np.where(cal_1 != config.NODATA, cloudproducts.time[cal_1], np.nan)
+    # Find all matching DARDAR pixels within +/- sec_timeThr from the IMAGER data
     idx_match = elements_within_range(dardar.sec_1970, imager_lines_sec_1970, SETTINGS["sec_timeThr"])
 
     if idx_match.sum() == 0:
@@ -118,9 +133,12 @@ def match_dardar_imager(dardar, cloudproducts, SETTINGS):
     print(idx_match.shape)
     retv.dardar = retv.dardar.extract_elements(idx=idx_match)
 
-    # Cloudsat line, pixel inside IMAGER swath:
-    retv.dardar.imager_linnum = np.repeat(cal, idx_match).astype('i')
-    retv.dardar.imager_pixnum = np.repeat(cap, idx_match).astype('i')
+    # DARDAR line, pixel inside IMAGER swath:
+    retv.dardar.imager_linnum = np.repeat(cal_1, idx_match).astype('i')
+    retv.dardar.imager_pixnum = np.repeat(cap_1, idx_match).astype('i')
+    retv.dardar.imager_linnum_nneigh = np.repeat(cal, idx_match, axis=0)
+    retv.dardar.imager_pixnum_nneigh = np.repeat(cap, idx_match, axis=0)
+    retv.dardar.imager_amsr_dist = np.repeat(distances, idx_match, axis=0)
 
     # Imager time
     retv.imager.sec_1970 = np.repeat(imager_lines_sec_1970, idx_match)
@@ -128,7 +146,12 @@ def match_dardar_imager(dardar, cloudproducts, SETTINGS):
     do_some_logging(retv, dardar)
     logger.debug("Generate the latitude, cloudtype tracks!")
     retv = imager_track_from_matched(retv, SETTINGS,
-                                     cloudproducts)
+                                     cloudproducts,
+                                     extract_radiances=False,
+                                     extract_aux_segments=False,
+                                     extract_ctth=False,
+                                     extract_ctype=False,
+                                     extract_some_data_for_x_neighbours=True)
     return retv
 
 if __name__ == '__main__':
