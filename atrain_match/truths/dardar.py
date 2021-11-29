@@ -32,24 +32,31 @@ import logging
 from netCDF4 import Dataset
 logger = logging.getLogger(__name__)
 
-
+# radius of influence [m]
 DARDAR_RADIUS = 1.5E3
+# kg to g conversion
+KG_TO_G = 1E3
+# vertical resolution [m]
+DARDAR_DZ = 60
 
 def get_dardar(filename):
+  """ Call DARDAR reader if filetype is netCDF """
     if filename.endswith('.nc'):
         dardar = read_dardar_nc(filename)
     return dardar
 
 
 def read_dardar_nc(filename):
-
+    """ Read DARDAR netCDF file into processing structures. """
     retv = DardarObject()
     ds = Dataset(filename, 'r')
     for v in ds.variables:
         if v in retv.all_arrays.keys():
             #retv.all_arrays[v] = ds[v][:]
             setattr(retv, v, ds[v][:])
-    retv.iwc = retv.iwc * 1E3 * 1E2
+    # convert from kg/m^3 to g/m^2. to get iwp integrate column
+    retv.iwc = retv.iwc * KG_TO_G * DARDAR_DZ
+    # get time information
     time_unit = ds['time'].units.split(' ')  # e.g. seconds since 2019 02 03 00:00:00 UTC
     year = int(time_unit[2])
     month = int(time_unit[3])
@@ -62,7 +69,7 @@ def read_dardar_nc(filename):
     ds['time'].set_auto_mask(False)
     time = ds['time'][:]
 
-    # number of seconds between start of day of aquesition time and 1970/01/01 00:00:00
+    # number of seconds between start of day of aquesition and 1970/01/01 00:00:00
     dsec = dt.datetime(year, month, day, hour, min, sec) - dt.datetime(1970, 1, 1, 0, 0, 0)
     dsec = dsec.total_seconds()
     # seconds since 1970 are seconds between start of day of aquesition and 1970
@@ -74,6 +81,7 @@ def read_dardar_nc(filename):
 
 
 def reshape_dardar(dardarfiles, imager, SETTINGS):
+    """ Reshape DARDAR. """
     dardar = get_dardar(dardarfiles[0])
     for i in range(len(dardarfiles) - 1):
         new_dardar = get_dardar(dardarfiles[i + 1])
@@ -91,6 +99,7 @@ def reshape_dardar(dardarfiles, imager, SETTINGS):
 
 
 def match_dardar_imager(dardar, cloudproducts, SETTINGS):
+    """ Run collocation. """
     retv = TruthImagerTrackObject(truth='dardar')
     retv.imager_instrument = cloudproducts.instrument.lower()
     retv.dardar = dardar
