@@ -115,3 +115,7 @@ PPS_FORMAT_2012_OR_EARLIER = False
 #  Surfaces for which statistics should be summarized
 SURFACES = PROCESS_SURFACES
 DNT_FLAG = ['ALL', 'DAY', 'NIGHT', 'TWILIGHT']
+
+# AMSR footprint size of 36 GHz channel
+AMSR_SEMI_MINOR_DIAMETER = 7000.
+AMSR_SEMI_MAJOR_DIAMETER = 12000.
