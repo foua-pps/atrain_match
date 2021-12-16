@@ -63,7 +63,11 @@ def read_config_info():
             value_ = False
         elif len(values) == 1 and re.match(r"\d+.*\d*", values[0]):
             value_ = np.float(values[0])
-
+        elif name in ['AMSR_SENSOR']:
+            value_ = values[0]
+        elif name in ['AMSR_ROF', 'AMSR_OVERLAP', 'AMSR_IMAGER_PIXEL_RADIUS']:
+            value_ = float(values[0])
+    
         SETTINGS[name.upper()] = value_
 
     if (SETTINGS['COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC'] or
