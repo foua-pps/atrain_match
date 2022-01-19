@@ -165,7 +165,7 @@ def read_cci_phase(cci_nc):
     return cpp_obj
   
   
-  def read_cci_lwp(cci_nc, cpp_obj):
+def read_cci_lwp(cci_nc, cpp_obj):
     """ Read LWP from CCI file 
     """
     data = cci_nc.variables['cwp'][::]
