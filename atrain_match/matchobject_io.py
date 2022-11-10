@@ -147,9 +147,10 @@ class ExtractedImagerObject(DataObject):
             'cfc_mean': None,
             'cma_prob': None,
             'cma_prob_mean': None,
-
+            'cpp_iwp': None,
             'cpp_lwp': None,
             'cpp_phase': None,
+            'cpp_cer': None,
             # Quality flags
             'cloudtype_qflag': None,
             'cloudtype_phaseflag': None,
@@ -216,7 +217,7 @@ class CalipsoObject(DataObject):
             'feature_optical_depth_532': None,
             'tropopause_height': None,
             'profile_id': None,
-
+            'cad_score': None,
             # If a combination of 5 and 1km data are used for RESOLUTION=1
             # "column_optical_depth_tropospheric_aerosols_1064_5km": None,
             # "column_optical_depth_tropospheric_aerosols_1064": None,
@@ -305,6 +306,32 @@ class CloudsatObject(DataObject):
             'calipso_layer_base_altitude': None,
             'calipso_layer_top_altitude': None,
             'calipso_feature_classification_flags': None
+        }
+
+
+class DardarObject(DataObject):
+    def __init__(self):
+        DataObject.__init__(self)
+        self.all_arrays = {
+            'sec_1970': None,
+            'latitude': None,
+            'longitude': None,
+            'imager_linnum': None,
+            'imager_pixnum': None,
+            #'height': None,
+            #'Z': None,
+            'bscat': None,
+            'bscat_perp': None,
+            'instrument_flag': None,
+            'iwc': None,
+            'Target_Lidar_Mask': None,
+            'effective_radius': None,
+            'N0star': None,
+            'temperature': None,
+            'day_night_flag': None,
+            'land_water_mask': None,
+            'tropopause_height': None,
+            'DARMASK_Simplified_Categorization': None
         }
 
 
@@ -402,6 +429,8 @@ class TruthImagerTrackObject:
             self.mora = MoraObject()
         elif truth in 'iss':
             self.iss = IssObject()
+        elif truth in 'dardar':
+            self.dardar = DardarObject()
         self.extra = ExtraObject()
         self.diff_sec_1970 = None
         self.truth_sat = truth
@@ -416,7 +445,7 @@ class TruthImagerTrackObject:
 
     def __add__(self, other):
         """Concatenating two objects together"""
-        for object_name in ['imager', 'calipso', 'calipso_aerosol', 'amsr',
+        for object_name in ['imager', 'calipso', 'calipso_aerosol', 'amsr', 'dardar',
                             'cloudsat', 'iss', 'mora', 'synop', 'modis_lvl2', 'modis', 'extra']:
             if hasattr(self, object_name):
                 setattr(self, object_name,
@@ -431,7 +460,7 @@ class TruthImagerTrackObject:
         return self
 
     def extract_elements(self, idx=None, starti=None, endi=None):
-        for object_name in ['imager', 'calipso', 'calipso_aerosol', 'amsr',
+        for object_name in ['imager', 'calipso', 'calipso_aerosol', 'amsr', 'dardar',
                             'cloudsat', 'iss', 'mora', 'synop', 'modis', 'extra']:
             if hasattr(self, object_name):
                 obj = getattr(self, object_name)
@@ -479,6 +508,9 @@ def get_stuff_to_read_from_a_reshaped_file(h5file, retv):
     if 'cloudsat' in h5file.keys():
         h5_groups.append(h5file['/cloudsat'])
         data_objects.append(retv.cloudsat)
+    if 'dardar' in h5file.keys():
+        h5_groups.append(h5file['/dardar'])
+        data_objects.append(retv.dardar)
     if 'iss' in h5file.keys():
         h5_groups.append(h5file['/iss'])
         data_objects.append(retv.iss)
@@ -540,7 +572,7 @@ def write_truth_imager_match_obj(filename, match_obj, SETTINGS=None, imager_obj_
     groups = {imager_obj_name: match_obj.imager.all_arrays}
     imager_attrs = {'imager_instrument': match_obj.imager_instrument}
     groups_attrs = {imager_obj_name: imager_attrs}
-    for name in ['calipso', 'calipso_aerosol', 'iss', 'modis_lvl2',
+    for name in ['calipso', 'calipso_aerosol', 'iss', 'modis_lvl2', 'dardar',
                  'amsr', 'synop', 'mora', 'cloudsat', 'extra']:
         if hasattr(match_obj, name):
             groups[name] = getattr(match_obj, name).all_arrays
@@ -611,9 +643,25 @@ the_used_variables = [
     'cal_modis_cflag',
     'cloudsat_index',
 
+    # DARDAR
+    #'height',
+    #'Z',
+    'bscat',
+    'bscat_perp',
+    'instrument_flag',
+    'iwc',
+    'Target_Lidar_Mask',
+    'effective_radius',
+    'N0star',
+    'temperature',
+    'day_night_flag',
+    'land_water_mask',
+    'tropopause_height',
+    'DARMASK_Simplified_Categorization',
+
     # CALIPSO only (ISS?)
     'minimum_laser_energy_532',
-
+    'cad_score',
     "average_cloud_top_pressure_single_shots",
     "average_cloud_top_pressure_single_shots_1km",
     "average_cloud_top_single_shots",

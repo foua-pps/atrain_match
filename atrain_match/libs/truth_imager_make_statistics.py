@@ -74,7 +74,7 @@ def get_matchups(cross, AM_PATHS, SETTINGS, reprocess):
     values = {}
     Obj_dict = {}
     out_dict = {}
-    for truth in ['cloudsat', 'amsr', 'iss', 'synop', 'mora', 'calipso']:
+    for truth in ['cloudsat', 'amsr', 'iss', 'synop', 'mora', 'calipso', 'dardar']:
         Obj_dict[truth] = None
     try:
         values["satellite"] = cross.satellite1.lower()
@@ -82,7 +82,7 @@ def get_matchups(cross, AM_PATHS, SETTINGS, reprocess):
         raise ValueError('Need satellite1 and time (cross: %s)' % cross)
 
     if reprocess is False or SETTINGS['USE_EXISTING_RESHAPED_FILES']:
-        for truth in ['cloudsat', 'amsr', 'iss', 'synop', 'mora', 'calipso']:
+        for truth in ['cloudsat', 'amsr', 'iss', 'synop', 'mora', 'calipso', 'dardar']:
             if not SETTINGS[truth.upper() + '_MATCHING']:
                 logger.info(
                     "{truth} matching turned off {truth}_MATCHING]=False.".format(
@@ -118,25 +118,25 @@ def get_matchups(cross, AM_PATHS, SETTINGS, reprocess):
     # ================================================================
     if SETTINGS['USE_EXISTING_RESHAPED_FILES']:
         for truth in ['cloudsat', 'amsr', 'iss', 'synop',
-                      'mora', 'calipso']:
+                      'mora', 'calipso', 'dardar']:
             if Obj_dict[truth] is None and SETTINGS[truth.upper()+'_REQUIRED']:
                 raise MatchupError(
                     "Couldn't find calipso already processed matchup file, "
                     "USE_EXISTING_RESHAPED_FILES = True!")
     redo_matching = False
     for truth in ['cloudsat', 'amsr', 'iss', 'synop',
-                  'mora', 'calipso']:
+                  'mora', 'calipso', 'dardar']:
         out_dict[truth] = Obj_dict[truth]
     if (all(obj_i is None for obj_i in Obj_dict.values())):
         out_dict = get_matchups_from_data(cross, AM_PATHS, SETTINGS)
     for truth in ['cloudsat', 'amsr', 'iss', 'synop',
-                  'mora', 'calipso']:
+                  'mora', 'calipso', 'dardar']:
         if Obj_dict[truth] is None and SETTINGS[truth.upper()+'_REQUIRED']:
             redo_matching = True
     if redo_matching:
         out_dict = get_matchups_from_data(cross, AM_PATHS, SETTINGS)
     for truth in ['cloudsat', 'amsr', 'iss', 'synop',
-                  'mora', 'calipso']:
+                  'mora', 'calipso', 'dardar']:
         if out_dict[truth] is None and SETTINGS[truth.upper()+'_REQUIRED']:
             raise MatchupError(
                 "Couldn't find "
@@ -234,8 +234,8 @@ def split_process_mode_and_dnt_part(process_mode_dnt):
     return process_mode, dnt_flag
 
 
-def process_one_mode(process_mode_dnt, match_calipso, match_clsat, iss_obj, am_obj, sy_obj,
-                     min_optical_depth, values, AM_PATHS, SETTINGS, basename):
+def process_one_mode(process_mode_dnt, match_calipso, match_clsat, iss_obj, am_obj, sy_obj, 
+                     match_dardar, min_optical_depth, values, AM_PATHS, SETTINGS, basename):
     """Make plots and statistics for one imager cloudproduct matchup (with one or several truths)."""
 
     # Get result filename
@@ -285,6 +285,7 @@ def run(cross, run_modes, AM_PATHS, SETTINGS, reprocess=False):
     match_iss = matchup_results['iss']
     match_amsr = matchup_results['amsr']
     match_synop = matchup_results['synop']
+    match_dardar = matchup_results['dardar']
     # mo_obj = matchup_results['mora']
     match_clsat = matchup_results['cloudsat']
     values = matchup_results['values']
@@ -367,7 +368,7 @@ def run(cross, run_modes, AM_PATHS, SETTINGS, reprocess=False):
                 match_calipso.calipso.validation_height = retv[1]
             # Time to process results files for one mode:
             process_one_mode(process_mode_dnt,
-                             match_calipso, match_clsat, match_iss, match_amsr, match_synop,
+                             match_calipso, match_clsat, match_iss, match_amsr, match_synop, match_dardar,
                              min_optical_depth, values,
                              AM_PATHS, SETTINGS, basename)
     # We are done, free some memory:
@@ -375,3 +376,4 @@ def run(cross, run_modes, AM_PATHS, SETTINGS, reprocess=False):
     match_clsat = None
     match_iss = None
     match_amsr = None
+    match_dardar = None
