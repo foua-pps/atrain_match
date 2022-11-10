@@ -41,8 +41,8 @@ DARDAR_DZ = 60
 
 def get_dardar(filename):
   """ Call DARDAR reader if filetype is netCDF """
-    if filename.endswith('.nc'):
-        dardar = read_dardar_nc(filename)
+  if filename.endswith('.nc'):
+    dardar = read_dardar_nc(filename)
     return dardar
 
 
