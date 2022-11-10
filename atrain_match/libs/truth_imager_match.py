@@ -35,6 +35,7 @@ from atrain_match.truths.amsr import (reshape_amsr, match_amsr_imager)
 from atrain_match.truths.cloudsat import (reshapeCloudsat,
                                           match_cloudsat_imager,
                                           merge_cloudsat)
+from atrain_match.truths.dardar import (reshape_dardar, match_dardar_imager)
 from atrain_match.utils.common import MatchupError, ProcessingError
 from atrain_match.config import INSTRUMENT
 import atrain_match.config as config
@@ -210,6 +211,8 @@ def find_truth_files(date_time, AM_PATHS, SETTINGS, values, truth='calipso'):
     if truth in ['synop']:
         TRUTH_FILE_LENGTH = config.SYNOP_FILE_LENGTH
         my_sec_THR = SETTINGS['sec_timeThr_synop']
+    if truth in ['dardar']:
+        TRUTH_FILE_LENGTH = config.DARDAR_FILE_LENGTH
     # might need to geth this in before looking for matchups
     tdelta_before = timedelta(seconds=(TRUTH_FILE_LENGTH +
                                        my_sec_THR))
@@ -345,7 +348,6 @@ def require_h5(files, SETTINGS):
         elif f.endswith('.hdf'):
             h5_file = f.replace('.hdf', '.h5')
             if h5_file not in files:
-                print(f)
                 # sys.exit()
                 command = '%s %s' % (SETTINGS["H4H5_EXECUTABLE"], f)
                 logger.info("Converting %s to HDF5", f)
@@ -526,6 +528,12 @@ def get_iss_matchups(iss_files, cloudproducts, SETTINGS):
     iss = reshape_iss(iss_files, cloudproducts, SETTINGS)
     cl_matchup = match_iss_imager(iss, cloudproducts, SETTINGS)
     return cl_matchup
+
+
+def get_dardar_matchups(dardar_files, cloudproducts, SETTINGS):
+    dardar = reshape_dardar(dardar_files, cloudproducts, SETTINGS)
+    dardar_matchup = match_dardar_imager(dardar, cloudproducts, SETTINGS)
+    return dardar_matchup
 
 
 def get_amsr_matchups(amsr_files, cloudproducts, SETTINGS):
@@ -977,7 +985,7 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
 
     # Step 2 get truth satellite files
     truth_files = {}
-    for truth in ['cloudsat', 'amsr', 'iss', 'synop', 'mora', 'cloudsat_lwp', 'calipso']:
+    for truth in ['cloudsat', 'amsr', 'iss', 'synop', 'mora', 'cloudsat_lwp', 'calipso', 'dardar']:
         truth_files[truth] = None
         if (SETTINGS[truth.replace("_lwp", "").upper()+'_MATCHING'] and truth + '_file' in AM_PATHS.keys()):
             truth_files[truth] = find_truth_files(date_time, AM_PATHS, SETTINGS, values, truth=truth)
@@ -1018,7 +1026,7 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
     # STEP 4 get matchups
     # CloudSat
     cloudsat_matchup = None
-    if ((SETTINGS['PPS_VALIDATION'] or SETTINGS['OCA_VALIDATION'])  and SETTINGS['CLOUDSAT_MATCHING'] and
+    if ((SETTINGS['PPS_VALIDATION'] or SETTINGS['OCA_VALIDATION']) and SETTINGS['CLOUDSAT_MATCHING'] and
             truth_files['cloudsat'] is not None):
         logger.info("Read CLOUDSAT data")
         cloudsat_matchup = get_cloudsat_matchups(truth_files['cloudsat'],
@@ -1061,6 +1069,13 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
                                                AM_PATHS, SETTINGS,
                                                calipso1km, calipso5km, calipso5km_aerosol)
 
+    # DARDAR
+    dardar_matchup = None
+    if ((SETTINGS['PPS_VALIDATION'] or SETTINGS['OCA_VALIDATION'] or SETTINGS['CCI_CLOUD_VALIDATION'])
+            and SETTINGS['DARDAR_MATCHING'] and truth_files['dardar'] is not None):
+        logger.info("Read DARDAR data")
+        dardar_matchup = get_dardar_matchups(truth_files['dardar'], cloudproducts, SETTINGS)
+
     if calipso_matchup is None and SETTINGS['CALIPSO_REQUIRED']:
         raise MatchupError("No matches with CALIPSO.")
     elif cloudsat_matchup is None and SETTINGS['CLOUDSAT_REQUIRED']:
@@ -1073,9 +1088,11 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
         raise MatchupError("No matches with SYNOP.")
     elif mora_matchup is None and SETTINGS['MORA_REQUIRED']:
         raise MatchupError("No matches with MORA.")
+    elif dardar_matchup is None and SETTINGS['DARDAR_REQUIRED']:
+        raise MatchupError("No matches with DARDAR.")
     elif (calipso_matchup is None and cloudsat_matchup is None and iss_matchup is None
           and amsr_matchup is None and synop_matchup is None
-          and mora_matchup is None):
+          and mora_matchup is None and dardar_matchup is None):
         raise MatchupError("No matches with any truth.")
 
     # Get satellite name, time, and orbit number from imager_file
@@ -1177,9 +1194,10 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
 
     # write matchups
     for matchup, name in zip([cloudsat_matchup, iss_matchup, amsr_matchup,
-                              synop_matchup, mora_matchup, calipso_matchup],
+                              synop_matchup, mora_matchup, calipso_matchup,
+                              dardar_matchup],
                              ['CloudSat', 'ISS', 'AMSR-E',
-                              'SYNOP', 'MORA', 'CALIPSO']):
+                              'SYNOP', 'MORA', 'CALIPSO', 'DARDAR']):
         if matchup is None:
             logger.debug("No {:s} Match File created".format(name))
         else:
@@ -1197,14 +1215,16 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
             'amsr': amsr_matchup,
             'synop': synop_matchup,
             'mora': mora_matchup,
+            'dardar': dardar_matchup,
             'basename': basename,
-            'values': values}
+            'values': values
+            }
 
 
 def check_if_got_all_match_files(cross, AM_PATHS, SETTINGS):
     values = {}
     values["satellite"] = cross.satellite1.lower()
-    for truth in ['cloudsat', 'amsr', 'iss', 'synop', 'mora', 'calipso']:
+    for truth in ['cloudsat', 'amsr', 'iss', 'synop', 'mora', 'calipso', 'dardar']:
         if not SETTINGS[truth.upper() + '_MATCHING']:
             logger.info(
                 "{truth} matching turned off {truth}_MATCHING]=False.".format(

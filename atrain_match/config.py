@@ -105,6 +105,7 @@ CLOUDSAT_CLOUDY_THR = 30.0
 #  File lenghts, normally no need to update
 CALIPSO_FILE_LENGTH = 60*60  # s calipso files are shorter 60 minutes
 CLOUDSAT_FILE_LENGTH = 120*60  # s cloudsat files are shorter 120 minutes
+DARDAR_FILE_LENGTH = 120*60  # s dardar files are shorter 120 minutes
 ISS_FILE_LENGTH = 60*60  # s iss files are shorter 60 minutes
 AMSR_FILE_LENGTH = 60*60  # AMSR-Es  files are shorter 60 minutes
 SYNOP_FILE_LENGTH = 24*60  # s Our synop data comes in 1 day files

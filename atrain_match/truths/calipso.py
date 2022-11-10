@@ -77,7 +77,17 @@ def match_calipso_imager(values,
     retv.diff_sec_1970 = retv.calipso.sec_1970 - retv.imager.sec_1970
     do_some_logging(retv, calipso)
     logger.debug("Generate the latitude, cloudtype tracks!")
-    from atrain_match.libs.extract_imager_along_track import imager_track_from_matched
+    
+    # attribute type is only defined if atrain_match is run with collocate_hrit.py
+    if not hasattr(cloudproducts, 'type'):
+        from atrain_match.libs.extract_imager_along_track import imager_track_from_matched
+    if hasattr(cloudproducts, 'type'):
+        if cloudproducts.type == 'hrit':
+            from atrain_match.libs.extract_imager_along_track import \
+            imager_track_from_matched_hrit as imager_track_from_matched
+        else:
+            raise Exception('cloudproducts has attribute type but type is not hrit!')
+
     retv = imager_track_from_matched(retv, SETTINGS,
                                      cloudproducts)
     if calipso_aerosol is not None:
