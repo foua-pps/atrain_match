@@ -28,40 +28,88 @@ import h5py
 import numpy as np
 from datetime import datetime
 from calendar import timegm
+
 TAI93 = datetime(1993, 1, 1)
 
 logger = logging.getLogger(__name__)
-AMSR_RADIUS = 5.4e3  # 3.7e3 to include 5km pixels parly overlapping amsr-e footprint
 
 
-def get_amsr(filename):
+def calculate_amsr_rof(overlap, imager_radius):
+    """ Calculate radius of influence for nearest neighbour search. 
+        
+        A AMSR footprint of the 36GHz channel (7x12 km) is assumed.
+        
+        100% overlap:  fov_semi_minor_axis_diam / 2 -IMAGER_RADIUS
+        50% overlap :  fov_semi_minor_axis_diam / 2 
+        25% overlap:  fov_semi_minor_axis_diam / 2  + 0.5*IMAGER_RADIUS
+    """
+    fov_semi_minor_diam = config.AMSR_SEMI_MINOR_DIAMETER
+    rof = 0.5*fov_semi_minor_diam + imager_radius - 2*overlap*imager_radius
+    return rof
 
-    if ".h5" in filename:
-        retv = read_amsr_h5(filename)
+
+def get_amsr_rof(SETTINGS, imager):
+    """ Get radius of influence as a function of overlap and imager pixel size. """
+    imager_radius = SETTINGS['AMSR_IMAGER_PIXEL_RADIUS']
+    overlap = SETTINGS['AMSR_OVERLAP']   
+    
+    if imager_radius < 0:
+        raise Exception('Imager radius cannot be < 0.')
+    
+    if overlap < 0 or overlap > 1:
+        raise Exception('AMSR_OVERLAP in SETTINGS has to be [0, 1]. ' \
+                        'Your overlap is {}'.format(overlap))
+    return calculate_amsr_rof(overlap, imager_radius)
+
+
+def get_amsr(filename, SETTINGS):
+
+    if SETTINGS['AMSR_SENSOR'].lower() in ['amsre', 'amsr-e']:
+        AMSR_SENSOR = 'AMSR-E'
+        lwp_conversion = 1E3 # Density of water [kg m**-3]
+    elif SETTINGS['AMSR_SENSOR'].lower() == 'amsr2_jaxa':
+        AMSR_SENSOR = 'AMSR2'
+        AMSR2_DATA_SOURCE = 'JAXA'
+        lwp_conversion = 1E3 # kg m^-2 to g m^-2
+    elif SETTINGS['AMSR_SENSOR'].lower() == 'amsr2_nsidc':
+        AMSR_SENSOR = 'AMSR2'
+        AMSR2_DATA_SOURCE = 'NSIDC'
+        lwp_conversion = 1E3 # kg m^-2 to g m^-2
     else:
-        # hdf4 file:
-        retv = read_amsr_hdf4(filename)
+        raise Exception('Please specifiy AMSR_SENSOR in the config ' +\
+                        ' file. [AMSR2_JAXA, AMSR2_NSIDC, AMSR-E]')
 
-    density = 1e3  # Density of water [kg m**-3]
+    if AMSR_SENSOR == 'AMSR-E':
+        if ".h5" in filename:
+            retv = read_amsre_h5(filename)
+        else:
+            # hdf4 file:
+            retv = read_amsre_hdf4(filename)
+    elif AMSR_SENSOR == 'AMSR2':
+        if AMSR2_DATA_SOURCE == 'JAXA':
+            # HDF5 format
+            retv = read_amsr2_h5(filename)
+        else:
+            # HDF-EOS5 format
+            retv = read_amsr2_he5(filename)
+
     n_lat_scans = len(retv.latitude) * 1.0 / (len(retv.sec1993))  # = 242!
-    # print n_lat_scans
     epoch_diff = timegm(TAI93.utctimetuple())
     nadir_sec_1970 = retv.sec1993 + epoch_diff
     retv.sec_1970 = np.repeat(nadir_sec_1970.ravel(), n_lat_scans)
     retv.sec1993 = None
-    retv.lwp = retv.lwp_mm.ravel() * density  # [mm * kg m**-3 = g m**-2]
+    # convert to g m^-2
+    retv.lwp = retv.lwp_mm.ravel() * lwp_conversion
 
-    logger.info("Extract AMSR-E lwp between 0 and %d g/m-2", LWP_THRESHOLD)
+    logger.info("Extract {} lwp between 0 and {} g/m-2".format(AMSR_SENSOR,
+                                                               LWP_THRESHOLD))
     use_amsr = np.logical_and(retv.lwp >= 0,
-                              retv.lwp < LWP_THRESHOLD * 100)
+                              retv.lwp < LWP_THRESHOLD)
     retv = retv.extract_elements(idx=use_amsr)
-    # import matplotlib.pyplot as plt
-    # plt.plot(retv.longitude, retv.latitude, '.')
-    # plt.savefig('map_test.png')
     return retv
 
 
-def read_amsr_h5(filename):
+def read_amsre_h5(filename):
     retv = AmsrObject()
 
     with h5py.File(filename, 'r') as f:
@@ -71,13 +119,47 @@ def read_amsr_h5(filename):
         retv.sec1993 = f['Swath1/Geolocation Fields/Time']['Time'][:]
         # description='lwp (mm)',
         lwp_gain = f['Swath1/Data Fields/High_res_cloud'].attrs['Scale']  # .ravel()
-        retv.lwp_mm = f['Swath1/Data Fields/High_res_cloud'][:].ravel() * lwp_gain
+        retv.lwp_mm = np.squeeze(f['Swath1/Data Fields/High_res_cloud'][:]).ravel() * lwp_gain
     if f:
         f.close()
     return retv
+  
+  
+def read_amsr2_h5(filename):
+    retv = AmsrObject()
 
+    with h5py.File(filename, 'r') as f:
+        # ravel AMSR-E data to 1 dimension
+        retv.longitude = f['Longitude of Observation Point'][:].ravel()
+        retv.latitude = f['Latitude of Observation Point'][:].ravel()
+        retv.sec1993 = f['Scan Time'][:]
+        # description='lwp (mm)',
+        lwp_gain = f['Geophysical Data'].attrs['SCALE FACTOR']  # .ravel()
+        retv.lwp_mm = f['Geophysical Data'][:].ravel() * lwp_gain
+    if f:
+        f.close()
+    return retv
+  
 
-def read_amsr_hdf4(filename):
+def read_amsr2_he5(filename):
+    retv = AmsrObject()
+    with h5py.File(filename, 'r') as f:
+        geoloc = f['HDFEOS']['SWATHS']['AMSR2_L1R']['Geolocation Fields']
+        data = f['HDFEOS']['SWATHS']['AMSR2_L1R']['Data Fields']
+      
+        retv.longitude = geoloc['Longitude'][:].ravel()
+        retv.latitude = geoloc['Latitude'][:].ravel()
+        retv.sec1993 = geoloc['tai93time'][:]
+        retv.lwp_mm = data['CloudWaterPath'][:].ravel()
+        retv.pixel_status = data['PixelStatus'][:].ravel()
+        retv.quality = data['QualityFlag'][:].ravel()
+        retv.surface_type = data['SurfaceTypeIndex'][:].ravel()
+    if f:
+        f.close()
+    return retv
+  
+
+def read_amsre_hdf4(filename):
     from pyhdf.SD import SD, SDC
     from pyhdf.HDF import HDF  # HC
     import pyhdf.VS
@@ -155,6 +237,12 @@ def match_amsr_imager(amsr, cloudproducts, SETTINGS):
     n_neighbours = 8
     if config.RESOLUTION == 5:
         n_neighbours = 5
+    
+    if SETTINGS['AMSR_ROF'] < 0:
+        AMSR_RADIUS = get_amsr_rof(SETTINGS, cloudproducts.imager)
+    else:
+        AMSR_RADIUS = SETTINGS['AMSR_ROF']
+        
     mapper_and_dist = map_imager_distances(cloudproducts,
                                            amsr.longitude.ravel(),
                                            amsr.latitude.ravel(),

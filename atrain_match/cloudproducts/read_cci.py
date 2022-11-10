@@ -102,15 +102,20 @@ def cci_read_all(filename):
     logger.debug("Reading cloud phase")
     cloudproducts.cpp = read_cci_phase(cci_nc)
     logger.debug("Reading LWP")
-    cloudproducts.cpp = read_cci_lwp(cci_nc, cloudproducts.cpp, cloudproducts.cma)
-    logger.debug("Reading IWP")
-    cloudproducts.cpp = read_cci_iwp(cci_nc, cloudproducts.cpp, cloudproducts.cma)
-    logger.debug("Reading CER")
-    cloudproducts.cpp = read_cci_cer(cci_nc, cloudproducts.cpp, cloudproducts.cma)
+    logger.debug("Reading LSM")
+    cloudproducts.aux = read_cci_lsm(cci_nc)
     logger.debug("Not reading channel data")
     if cci_nc:
         cci_nc.close()
     return cloudproducts
+  
+  
+def read_cci_lsm(cci_nc):
+    """ Read land-sea mask from CCI file.
+    """
+    fractionofland = cci_nc.variables['lsflag'][::]
+    aux = AuxiliaryObj({'fractionofland': fractionofland})
+    return aux
 
 
 def read_cci_cma(cci_nc):
@@ -159,6 +164,8 @@ def read_cci_phase(cci_nc):
   
   
 def read_cci_lwp(cci_nc, cpp_obj, cma_obj):
+(cci_nc, cpp_obj):
+
     """ Read LWP from CCI file 
     """
     data = cci_nc.variables['cwp'][::]
@@ -167,6 +174,7 @@ def read_cci_lwp(cci_nc, cpp_obj, cma_obj):
     # split LWP from CWP
     data = np.where(cpp_obj.cpp_phase == 2, ATRAIN_MATCH_NODATA, data)
     data = np.where(data < 0, ATRAIN_MATCH_NODATA, data)
+
     setattr(cpp_obj, 'cpp_lwp', data)
     return cpp_obj
 

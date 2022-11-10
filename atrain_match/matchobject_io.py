@@ -217,7 +217,7 @@ class CalipsoObject(DataObject):
             'feature_optical_depth_532': None,
             'tropopause_height': None,
             'profile_id': None,
-
+            'cad_score': None,
             # If a combination of 5 and 1km data are used for RESOLUTION=1
             # "column_optical_depth_tropospheric_aerosols_1064_5km": None,
             # "column_optical_depth_tropospheric_aerosols_1064": None,
@@ -370,7 +370,10 @@ class AmsrObject(DataObject):
             'imager_linnum_nneigh': None,
             'imager_pixnum_nneigh': None,
             'sec_1970': None,
-            'lwp': None}
+            'lwp': None,
+            'pixel_status': None,
+            'quality': None,
+            'surface_type': None}
 
 
 class MoraObject(DataObject):
@@ -602,6 +605,9 @@ the_used_variables = [
     # AMSR
     'lwp',
     'imager_amsr_dist',
+    'pixel_status',
+    'quality',
+    'surface_type',
     # MORA
     'cloud_base_height',
     # Cloudsat
@@ -652,7 +658,7 @@ the_used_variables = [
 
     # CALIPSO only (ISS?)
     'minimum_laser_energy_532',
-
+    'cad_score',
     "average_cloud_top_pressure_single_shots",
     "average_cloud_top_pressure_single_shots_1km",
     "average_cloud_top_single_shots",

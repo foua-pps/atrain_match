@@ -1041,8 +1041,8 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
                                        cloudproducts, SETTINGS)
     # AMSR
     amsr_matchup = None
-    if (SETTINGS['PPS_VALIDATION'] and SETTINGS['AMSR_MATCHING'] and
-            truth_files['amsr'] is not None):
+    if ((SETTINGS['CCI_CLOUD_VALIDATION'] or SETTINGS['PPS_VALIDATION']) 
+        and SETTINGS['AMSR_MATCHING'] and truth_files['amsr'] is not None):
         logger.info("Read AMSR data")
         amsr_matchup = get_amsr_matchups(truth_files['amsr'],
                                          cloudproducts, SETTINGS)
