@@ -23,7 +23,7 @@
 from atrain_match.cloudproducts.read_pps import (
     AllImagerData, CppObj,
     CtthObj, CmaObj,
-    ImagerAngObj)
+    ImagerAngObj, AuxiliaryObj)
 from atrain_match.utils.runutils import do_some_geo_obj_logging
 import atrain_match.config as config
 import os
@@ -163,9 +163,8 @@ def read_cci_phase(cci_nc):
     return cpp_obj
   
   
-def read_cci_lwp(cci_nc, cpp_obj, cma_obj):
-(cci_nc, cpp_obj):
 
+def read_cci_lwp(cci_nc, cpp_obj):
     """ Read LWP from CCI file 
     """
     data = cci_nc.variables['cwp'][::]

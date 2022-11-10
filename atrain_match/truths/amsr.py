@@ -48,7 +48,7 @@ def calculate_amsr_rof(overlap, imager_radius):
     return rof
 
 
-def get_amsr_rof(SETTINGS, imager):
+def get_amsr_rof(SETTINGS):
     """ Get radius of influence as a function of overlap and imager pixel size. """
     imager_radius = SETTINGS['AMSR_IMAGER_PIXEL_RADIUS']
     overlap = SETTINGS['AMSR_OVERLAP']   
@@ -209,9 +209,9 @@ def read_amsre_hdf4(filename):
 
 
 def reshape_amsr(amsrfiles, imager, SETTINGS):
-    amsr = get_amsr(amsrfiles[0])
+    amsr = get_amsr(amsrfiles[0], SETTINGS)
     for i in range(len(amsrfiles) - 1):
-        new_amsr = get_amsr(amsrfiles[i + 1])
+        new_amsr = get_amsr(amsrfiles[i + 1], SETTINGS)
         amsr_start_all = amsr.sec_1970.ravel()
         amsr_new_all = new_amsr.sec_1970.ravel()
         if not amsr_start_all[0] < amsr_new_all[0]:
@@ -239,7 +239,7 @@ def match_amsr_imager(amsr, cloudproducts, SETTINGS):
         n_neighbours = 5
     
     if SETTINGS['AMSR_ROF'] < 0:
-        AMSR_RADIUS = get_amsr_rof(SETTINGS, cloudproducts.imager)
+        AMSR_RADIUS = get_amsr_rof(SETTINGS)
     else:
         AMSR_RADIUS = SETTINGS['AMSR_ROF']
         
