@@ -36,6 +36,15 @@ logger = logging.getLogger(__name__)
 ATRAIN_MATCH_NODATA = config.NODATA
 
 
+class UncObj;
+    def __init__(self):
+        self.cma_unc = None
+        self.cph_unc = None
+        self.ctp_unc = None
+        self.ctt_unc = None
+        self.cth_unc = None
+        self.cwp_unc = None
+
 def get_satid_datetime_orbit_from_fname_cci(imager_filename):
     # Get satellite name, time, and orbit number from imager_file
     # imager_file = "20080613002200-ESACCI-L2_CLOUD-CLD_PRODUCTS-IMAGERGAC-NOAA18-fv1.0.nc"
@@ -105,10 +114,34 @@ def cci_read_all(filename):
     logger.debug("Reading LSM")
     cloudproducts.aux = read_cci_lsm(cci_nc)
     logger.debug("Not reading channel data")
+    cloudproducts.unc = read_cci_uncertainties(cci_nc)
+    logger.debug("Reading uncertainties")
     if cci_nc:
         cci_nc.close()
     return cloudproducts
   
+  
+def read_cci_uncertainties(cci_nc):
+    """ Read uncertainties from CCI file. """
+    unc = UncObj()
+    unc.cma_unc = np.squeeze(cci_nc.variables['cldmask_uncertainty'][::])
+    unc.cma_unc = np.where(unc.cma_unc < 0, ATRAIN_MATCH_NODATA, unc.cma_unc)
+    
+    unc.cph_unc = np.squeeze(cci_nc.variables['ann_phase_uncertainty'][::])
+    unc.cph_unc = np.where(unc.cph_unc < 1, ATRAIN_MATCH_NODATA, unc.cph_unc)
+    
+    unc.ctp_unc = np.squeeze(cci_nc.variables['ctp_uncertainty'][::])
+    unc.ctp_unc = np.where(unc.ctp_unc < 1, ATRAIN_MATCH_NODATA, unc.ctp_unc)
+    
+    unc.ctt_unc = np.squeeze(cci_nc.variables['ctt_uncertainty'][::])
+    unc.ctt_unc = np.where(unc.ctt_unc < 1, ATRAIN_MATCH_NODATA, unc.ctt_unc)
+    
+    unc.cth_unc = np.squeeze(cci_nc.variables['cth_uncertainty'][::])
+    unc.cth_unc = np.where(unc.cth_unc < 1, ATRAIN_MATCH_NODATA, unc.cth_unc)
+    
+    unc.cwp_unc = np.squeeze(cci_nc.variables['cwp_uncertainty'][::])
+    unc.cwp_unc = np.where(unc.cwp_unc < 1, ATRAIN_MATCH_NODATA, unc.cwp_unc)
+    return unc
   
 def read_cci_lsm(cci_nc):
     """ Read land-sea mask from CCI file.
