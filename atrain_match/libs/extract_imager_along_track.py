@@ -237,7 +237,7 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
                               extract_aux_segments=True,
                               extract_aux=True, 
                               aux_params=None,
-                              extract_unc=True
+                              extract_unc=True,
                               extract_some_data_for_x_neighbours=False,
                               find_mean_data_for_x_neighbours=False):
     aux_params_all = ["surftemp",
