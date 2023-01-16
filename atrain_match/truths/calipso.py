@@ -81,6 +81,7 @@ def match_calipso_imager(values,
     # attribute type is only defined if atrain_match is run with etc/collocate_hrit_caliop.py
     if not hasattr(cloudproducts, 'type'):
         from atrain_match.libs.extract_imager_along_track import imager_track_from_matched
+    else:
         if cloudproducts.type == 'hrit':
             from atrain_match.libs.extract_imager_along_track import \
             imager_track_from_matched_hrit as imager_track_from_matched

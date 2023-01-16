@@ -228,10 +228,11 @@ def match_amsr_imager(amsr, cloudproducts, SETTINGS):
     retv = TruthImagerTrackObject(truth='amsr')
     retv.imager_instrument = cloudproducts.instrument.lower()
     retv.amsr = amsr
-    if (getattr(cloudproducts.cpp, "cpp_lwp") < 0).all():
-        logger.warning("Not matching AMSR-E with scene with no lwp.")
-        return None
-        # return MatchupError("No imager Lwp.") # if only LWP matching?
+    if getattr(cloudproducts.cpp, "cpp_lwp") is not None:
+        if (getattr(cloudproducts.cpp, "cpp_lwp") < 0).all():
+            logger.warning("Not matching AMSR-E with scene with no lwp.")
+            return None
+            # return MatchupError("No imager Lwp.") # if only LWP matching?
 
     from atrain_match.utils.common import map_imager_distances
     n_neighbours = 8
