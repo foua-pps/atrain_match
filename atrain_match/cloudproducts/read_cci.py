@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 ATRAIN_MATCH_NODATA = config.NODATA
 
 
-class UncObj;
+class UncObj:
     def __init__(self):
         self.cma_unc = None
         self.cph_unc = None
