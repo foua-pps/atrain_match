@@ -237,6 +237,7 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
                               extract_aux_segments=True,
                               extract_aux=True, 
                               aux_params=None,
+                              extract_unc=True
                               extract_some_data_for_x_neighbours=False,
                               find_mean_data_for_x_neighbours=False):
     aux_params_all = ["surftemp",
@@ -265,6 +266,7 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
     cma = cloudproducts.cma
     ctype = cloudproducts.ctype
     cpp = cloudproducts.cpp
+    unc_obj = cloudproducts.unc
     nwp_segments = cloudproducts.nwp_segments
 
     truth = getattr(obt, obt.truth_sat)
@@ -403,6 +405,19 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
                         get_data_from_array(data, row_col))
 
     obt = insert_nwp_h440_h680_data(obt)
+    
+    # extract cci uncertainties if requested
+    if unc_obj is not None and extract_unc:
+        if extract_some_data_for_x_neighbours:
+            extractor = row_col_nneigh
+        else:
+            extractor = row_col
+            
+        for data_set_name in unc_obj.__dict__.keys():
+            data = getattr(unc_obj, data_set_name)
+            if data is not None:
+                setattr(obt.imager, data_set_name,
+                        get_data_from_array(data, extractor))
 
     # ADD CNN features
 
