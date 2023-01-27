@@ -116,6 +116,9 @@ class CloudTopStats(OrrbStats):
 
         for tc in cal_all_samples.keys():
             for clev in ["all", "low", "medium", "high"]:
+                print(clev)
+                if "cal_{clev}_samples".format(clev=clev) not in self.ac_data:
+                    continue
                 # numpy.divide handles potential division by zero
                 N_CTTH = self.ac_data["cal_{clev}_samples".format(clev=clev)][tc]
                 stats = getattr(self, "retrieval_rate_{clev}".format(clev=clev))

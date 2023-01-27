@@ -34,9 +34,7 @@ def plot_cal_clsat_geoprof_imager(match_clsat,
                                   file_type='png',
                                   **options):
     """Plot imager co-located data on CALIOP and CPR (Cloudsat) track."""
-    instrument = 'imager'
-    if 'instrument' in options:
-        instrument = options['instrument']
+    instrument = match_calipso.imager_instrument
     MAXHEIGHT = None
     if 'MAXHEIGHT' in options:
         MAXHEIGHT = options["MAXHEIGHT"]

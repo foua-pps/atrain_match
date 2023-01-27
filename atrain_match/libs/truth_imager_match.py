@@ -275,6 +275,10 @@ def find_oca_cloud_file(cross, AM_PATHS):
 def find_extra_product_files(cross, AM_PATHS, SETTINGS):
     """Find main cloudproduct file with lat/lon OCA."""
     extra_product_files = {}
+    if SETTINGS['OCA_VALIDATION']:
+        extra_product_files["oca_cma"], tobj = find_main_cloudproduct_file(cross,
+                                                                              AM_PATHS['oca_dir_cma'],
+                                                                              AM_PATHS['oca_file_cma'])
     if SETTINGS['CLAAS3_VALIDATION']:
         extra_product_files["cma_claas3"], tobj = find_main_cloudproduct_file(cross,
                                                                               AM_PATHS['claas3_dir_cma'],
