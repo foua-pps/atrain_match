@@ -104,6 +104,7 @@ class AllImagerData(object):
         self.type = None
         self.cma = None
         self.ctth = None
+        self.unc = None
         self.aux = AuxiliaryObj({'surftemp': None})
         self.cpp = None
         self.nwp_segments = None

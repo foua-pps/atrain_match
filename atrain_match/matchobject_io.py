@@ -161,7 +161,13 @@ class ExtractedImagerObject(DataObject):
             # Angles
             'satz': None,
             'sunz': None,
-
+            #Uncertainties
+            'cma_unc': None,
+            'cph_unc': None,
+            'cth_unc': None,
+            'ctp_unc': None,
+            'ctt_unc': None,
+            'cwp_unc': None
         }
 
 
