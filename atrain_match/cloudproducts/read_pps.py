@@ -101,7 +101,7 @@ class AllImagerData(object):
         # self.imager_geo = None
         self.imager_angles = None
         self.imager_channeldata = None
-        self.ctype = None
+        self.type = None
         self.cma = None
         self.ctth = None
         self.unc = None

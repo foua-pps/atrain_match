@@ -79,14 +79,13 @@ def match_calipso_imager(values,
     logger.debug("Generate the latitude, cloudtype tracks!")
     
     # attribute type is only defined if atrain_match is run with etc/collocate_hrit_caliop.py
-    if not hasattr(cloudproducts, 'type'):
+    if cloudproducts.type is None:
         from atrain_match.libs.extract_imager_along_track import imager_track_from_matched
-    else:
-        if cloudproducts.type == 'hrit':
-            from atrain_match.libs.extract_imager_along_track import \
+    elif cloudproducts.type == 'hrit':
+        from atrain_match.libs.extract_imager_along_track import \
             imager_track_from_matched_hrit as imager_track_from_matched
-        else:
-            raise Exception('cloudproducts has attribute type but type is not hrit!')
+    else:
+        raise Exception('cloudproducts attribute unknown!')
 
     retv = imager_track_from_matched(retv, SETTINGS,
                                      cloudproducts)

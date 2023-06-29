@@ -53,6 +53,13 @@ def get_satid_datetime_orbit_from_fname_oca(imager_filename):
         # MYD03.A2008054.0955_OCA_20080223_095500.nc
         date_time = datetime.strptime(sl_[2] + sl_[3], '%Y%m%d%H%M%S.nc')
         sat_id = 'eos2' #
+    elif 'SGA1-VII' in os.path.basename(imager_filename):
+        # MYD03.A2008054.0955_OCA_20080223_095500.nc
+        date_time = datetime.strptime(sl_[7], '%Y%m%d%H%M%S')
+        sat_id = 'metopsga1' #
+    elif 'MET09+SEVIRI' in os.path.basename(imager_filename):
+        date_time = datetime.strptime(sl_[4], '%Y%m%d%H%M%S')
+        sat_id = 'meteosat9'
     else:
         #W_xx-eumetsat-darmstadt,SAT,SGA1-VII-02-CTP_C_EUM_20191028185827_G_D_20070912115940_20070912120443_T_N____.nc
         # W_de-airbusDS-friedrichshafen, SAT, SGA1-VII-02-OCA_C_EUM_20190811211148_G_D_20070912114935_20070912115438_T_X____.nc  
@@ -77,51 +84,117 @@ def get_satid_datetime_orbit_from_fname_oca(imager_filename):
     return values
 
 
-def oca_read_all(filename):
+def oca_read_all(filename, extra_files):
     if 'MYD' in os.path.basename(filename):
-        cloudproducts = oca_read_all_nc_modis(filename)
+        cloudproducts, aux_dict = oca_read_all_nc_modis(filename)
         logger.info("No timeinfo in OCA-MODIS file calculate from filename + 5min")
-        time_info = get_satid_datetime_orbit_from_fname_oca(filename)
-        cloudproducts.sec1970_start = calendar.timegm(time_info["date_time"].timetuple())
-        cloudproducts.sec1970_end = cloudproducts.sec1970_start + 60*5
-        cloudproducts = create_imager_time(cloudproducts, values={})
+        seconds = 5*60
         cloudproducts.instrument = 'modis'
-        do_some_geo_obj_logging(cloudproducts)
-        return(cloudproducts)
+    elif 'MET09+SEVIRI' in  os.path.basename(filename):
+        cloudproducts, aux_dict = oca_read_all_nc_cdr(filename)
+        logger.info("Calculate time from filename + 12min")
+        seconds = 12*60
     elif "OCA_SEV_MET" in  os.path.basename(filename):
-        cloudproducts = oca_read_all_nc_modis(filename)
-        logger.info("No timeinfo in OCA-MODIS file calculate from filename +15min")
+        cloudproducts, aux_dict = oca_read_all_nc_modis(filename)
+        logger.info("No timeinfo in OCA-SEVIRI file calculate from filename +15min")
+        seconds = 15*60
+        cloudproducts.instrument = 'SEVIRI-OCA'
+    else:
+        cloudproducts, aux_dict = oca_read_all_nc(filename, extra_files)
+
+    if  cloudproducts.sec1970_start is None:   
         time_info = get_satid_datetime_orbit_from_fname_oca(filename)
         cloudproducts.sec1970_start = calendar.timegm(time_info["date_time"].timetuple())
-        cloudproducts.sec1970_end = cloudproducts.sec1970_start + 60*15
+        cloudproducts.sec1970_end = cloudproducts.sec1970_start + seconds
         cloudproducts = create_imager_time(cloudproducts, values={})
-        cloudproducts.instrument = 'SEVIRI-OCA'
-        do_some_geo_obj_logging(cloudproducts)
-        return(cloudproducts)   
-    return oca_read_all_nc(filename)
+        do_some_geo_obj_logging(cloudproducts, extra_files)
+        
+    aux_dict = add_claas3(cloudproducts, extra_files, aux_dict)
+    cloudproducts.aux = AuxiliaryObj(aux_dict)
+    return cloudproducts
 
-
-def oca_read_all_nc(filename):
+def add_claas3(cloudproducts, extra_files, aux_dict):
+    """Add claas3 data."""
+    if "cma_claas3" in extra_files:
+        from atrain_match.utils.get_flag_info import get_day_night_twilight_info_pps2014
+        claas3_nc = netCDF4.Dataset(extra_files["cma_claas3"], 'r', format='NETCDF4')
+        aux_dict["claas3_cma"] = np.squeeze(claas3_nc['cma'][:,-1::-1,-1::-1])
+        aux_dict["claas3_cma_prob"] = np.squeeze(claas3_nc['cma_prob'][:,-1::-1,-1::-1])
+        aux_dict["claas3_conditions"] = np.squeeze(claas3_nc['conditions'][:,-1::-1,-1::-1])
+        claas3_nc.close()
+        claas3_nc = netCDF4.Dataset(extra_files["cth_claas3"], 'r', format='NETCDF4')
+        aux_dict["claas3_cth"] = np.squeeze(claas3_nc['cth'][:,-1::-1,-1::-1])
+        aux_dict["claas3_ctp"] = np.squeeze(claas3_nc['ctp'][:,-1::-1,-1::-1])
+        aux_dict["claas3_ctt"] = np.squeeze(claas3_nc['ctt'][:,-1::-1,-1::-1])
+        aux_dict["claas3_cth_unc"] = np.squeeze(claas3_nc['cth_unc'][:,-1::-1,-1::-1])
+        aux_dict["claas3_ctp_unc"] = np.squeeze(claas3_nc['ctp_unc'][:,-1::-1,-1::-1])
+        aux_dict["claas3_ctt_unc"] = np.squeeze(claas3_nc['ctt_unc'][:,-1::-1,-1::-1])
+        #aux_dict["claas3_conditions"] = np.squeeze(claas3_nc['conditions'][:,-1::-1,-1::-1])
+        claas3_nc.close()
+        claas3_nc = netCDF4.Dataset(extra_files["cpp_claas3"], 'r', format='NETCDF4')
+        aux_dict["claas3_cph"] = np.squeeze(claas3_nc['cph'][:,-1::-1,-1::-1])
+        aux_dict["claas3_cwp"] = np.squeeze(claas3_nc['cwp'][:,-1::-1,-1::-1])
+        claas3_nc.close()
+        no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag = get_day_night_twilight_info_pps2014(aux_dict["claas3_conditions"])
+        cloudproducts.imager_angles.sunz = np.where(night_flag, 100, 90)
+        cloudproducts.imager_angles.sunz = np.where(day_flag, 10,  cloudproducts.imager_angles.sunz)
+    for key in aux_dict:
+        if "claas3" in key:
+            aux_dict[key][aux_dict[key].mask] =  ATRAIN_MATCH_NODATA
+    return aux_dict
+     
+def oca_read_all_nc_cdr(filename):
     """Read geolocation, angles info, ctth, and cma."""
     oca_nc = netCDF4.Dataset(filename, 'r', format='NETCDF4')
     logger.info("Opening file %s", filename)
     logger.info("Reading longitude, latitude and time ...")
+    cloudproducts = read_oca_geoobj_modis(oca_nc, filename)
+    cloudproducts.imager_angles = ImagerAngObj()
+    cloudproducts.imager_angles.sunz = np.where(cloudproducts.longitude >-999999, 0, 100)
+    #cloudproducts.imager_angles.satz = np.where(cloudproducts.longitude >-999999, 0, 100)
+    
+    logger.info("Reading angles ...")
+    # No angles!
+    logger.info("Reading cloud pressure ...")
+    # , angle_obj)
+    ctype, cma, ctth, aux_dict = read_oca_ctype_cmask_ctth_cdr(oca_nc)
+    
+    cloudproducts.cma = cma
+    cloudproducts.ctth = ctth
+    cloudproducts.ctype = ctype
+    aux_dict = read_oca_secondlayer_info(oca_nc, aux_dict=aux_dict)
+    logger.info("Not reading cloud microphysical properties")
+    # cloudproducts.cpp = read_oca_cpp(oca_nc)
+    logger.info("Not reading surface temperature")
+    logger.info("Not reading channel data")
+    cloudproducts.longitude[cloudproducts.longitude > 180] = cloudproducts.longitude[cloudproducts.longitude > 180]-360
+    oca_nc.close()
+    return cloudproducts, aux_dict
+
+    
+def oca_read_all_nc(filename, extra_files):
+    """Read geolocation, angles info, ctth, and cma."""
+    oca_nc = netCDF4.Dataset(filename, 'r', format='NETCDF4')
+    logger.info("Opening file %s", filename)
+    logger.info("Reading longitude, latitude and time normal nc...")
     cloudproducts = read_oca_geoobj(oca_nc, filename)
     logger.info("Reading angles ...")
     cloudproducts.imager_angles = read_oca_angobj(oca_nc)
     logger.info("Reading cloud pressure ...")
     # , angle_obj)
     ctype, cma, ctth = read_oca_ctype_cmask_ctth(oca_nc)
+    if "oca_cma" in extra_files:
+        cma = read_oca_cmask_epssg(extra_files["oca_cma"])
     cloudproducts.cma = cma
     cloudproducts.ctth = ctth
     cloudproducts.ctype = ctype
-    cloudproducts.aux = read_oca_secondlayer_info(oca_nc)
+    aux_dict = read_oca_secondlayer_info(oca_nc)
     logger.info("Not reading cloud microphysical properties")
     # cloudproducts.cpp = read_oca_cpp(oca_nc)
     logger.info("Not reading surface temperature")
     logger.info("Not reading channel data")
     cloudproducts.longitude[cloudproducts.longitude > 180] = cloudproducts.longitude[cloudproducts.longitude > 180]-360
-    return cloudproducts
+    return cloudproducts, aux_dict
 
 
 def scale_oca_var(oca_var):
@@ -145,6 +218,9 @@ def read_oca_ctype_cmask_ctth(oca_nc):
         oca_nc['data']['measurement_data']['ctp'])
     ctth.temperature, ctth.t_nodata = scale_oca_var(
         oca_nc['data']['measurement_data']['ctt'])
+    ctth.height, ctth.h_nodata = scale_oca_var(
+        oca_nc['data']['measurement_data']['cth'])
+    ctth.height = ctth.height * 1000 # km =>m
     cma.cma_ext = np.where(ctth.pressure > 0, 1, 0)
     ctype.phaseflag = None
     ctype.ct_conditions = None
@@ -161,16 +237,16 @@ def read_oca_cpp(oca_nc):
     return cpp
 
 
-def read_oca_secondlayer_info(oca_nc):
+def read_oca_secondlayer_info(oca_nc, aux_dict={}):
     """Read ctth pressure file, for second layer."""
-    ctth2 = CtthObj()
-    ctth2.pressure, ctth2.p_nodata = scale_oca_var(
-        oca_nc['data']['measurement_data']['ctp'])
-    ctth2.temperature, ctth2.t_nodata = scale_oca_var(
-        oca_nc['data']['measurement_data']['ctt'])
-    aux_dict = {"CTTH2": ctth2}
-    aux_obj = AuxiliaryObj(aux_dict)
-    return aux_obj
+    try:
+        ctp2, ____ = scale_oca_var(
+            oca_nc['cloud_top_pressure_lower_layer'])
+        aux_dict['oca_cloud_top_pressure_lower_layer'] = ctp2
+    except (KeyError, IndexError):
+        pass
+        
+    return aux_dict
 
 
 def read_oca_angobj(oca_nc):
@@ -180,11 +256,19 @@ def read_oca_angobj(oca_nc):
         oca_nc['data']['measurement_data']['observation_zenith'])
     angle_obj.sunz.data, nodata = scale_oca_var(
         oca_nc['data']['measurement_data']['solar_zenith'])
-    angle_obj.satazimuth.data, nodata = scale_oca_var(
-        oca_nc['data']['measurement_data']['observation_azimuth'])
-    angle_obj.sunazimuth.data, nodata = scale_oca_var(
-        oca_nc['data']['measurement_data']['solar_azimuth'])
+    #angle_obj.satazimuth.data, nodata = scale_oca_var(
+    #    oca_nc['data']['measurement_data']['observation_azimuth'])
+    #angle_obj.sunazimuth.data, nodata = scale_oca_var(
+    #    oca_nc['data']['measurement_data']['solar_azimuth'])
     angle_obj.azidiff.data = None
+
+    from geotiepoints.viiinterpolator import tie_points_interpolation
+    import xarray as xr
+    if angle_obj.satz.data.shape[0] <200:        
+        print("interpolating!")
+        angle_obj.satz.data, angle_obj.sunz.data = np.array(tie_points_interpolation([xr.DataArray(angle_obj.satz.data), xr.DataArray(angle_obj.sunz.data)], 4,8))
+
+
     return angle_obj
 
 # filling on, default _FillValue of 4294967295 used
@@ -196,17 +280,37 @@ def read_oca_geoobj(oca_nc, filename):
     # import pdb;pdb.set_trace()
     cloudproducts.longitude, cloudproducts.nodata = scale_oca_var(oca_nc['data']['measurement_data']['longitude'])
     cloudproducts.latitude, cloudproducts.nodata = scale_oca_var(oca_nc['data']['measurement_data']['latitude'])
+
+    from geotiepoints.viiinterpolator import tie_points_geo_interpolation
+    import xarray as xr
+    if cloudproducts.longitude.shape[0] < 200:
+        print("interpolating!", cloudproducts.longitude[0::4,0::3].shape)
+        lon_interp, lat_interp = tie_points_geo_interpolation(
+            
+            xr.DataArray(cloudproducts.longitude), xr.DataArray(cloudproducts.latitude),  4, 8)
+        cloudproducts.longitude = np.array(lon_interp)
+        cloudproducts.latitude = np.array(lat_interp)
+        
     cloudproducts.num_of_lines = cloudproducts.longitude.shape[0]
     cloudproducts.nodata = -999
     # sensing_start_time_utc and sensing_end_time_utc,
     stime = getattr(oca_nc, "sensing_start_time_utc")
     etime = getattr(oca_nc, "sensing_end_time_utc")
-    cloudproducts.sec1970_start = calendar.timegm(
-        time.strptime(stime, '%Y%m%d%H%M%S.%f'))
-    cloudproducts.sec1970_end = calendar.timegm(
-        time.strptime(etime, '%Y%m%d%H%M%S.%f'))
-    cloudproducts = create_imager_time(cloudproducts, values={})
-    do_some_geo_obj_logging(cloudproducts)
+    try:
+        cloudproducts.sec1970_start = calendar.timegm(
+            time.strptime(stime, '%Y%m%d%H%M%S.%f'))
+        cloudproducts.sec1970_end = calendar.timegm(
+            time.strptime(etime, '%Y%m%d%H%M%S.%f'))
+        cloudproducts = create_imager_time(cloudproducts, values={})
+        do_some_geo_obj_logging(cloudproducts)
+    except:
+        cloudproducts.sec1970_start = calendar.timegm(
+            time.strptime(stime, '%Y-%m-%d %H:%M:%S.%f'))
+        cloudproducts.sec1970_end = calendar.timegm(
+            time.strptime(etime, '%Y-%m-%d %H:%M:%S.%f'))
+        cloudproducts = create_imager_time(cloudproducts, values={})
+        do_some_geo_obj_logging(cloudproducts)
+
     return cloudproducts
 
 
@@ -229,19 +333,18 @@ def oca_read_all_nc_modis(filename, clm_separate_file=False):
     cloudproducts.imager_angles = read_oca_angobj_modis(oca_nc)
     logger.info("Reading cloud pressure ...")
     # , angle_obj)
-    ctype, cma, ctth = read_oca_ctype_cmask_ctth_modis(oca_nc)
+    ctype, cma_dummy, ctth = read_oca_ctype_cmask_ctth_modis(oca_nc)
     cloudproducts.cma = cma
     cloudproducts.ctth = ctth
     cloudproducts.ctype = ctype
     aux_dict = read_oca_secondlayer_etc_info_modis(oca_nc)
     #? aux_dict['flag_cm'] = read_oca_secondlayer_etc_info_modis(oca_nc_clm, params=['flag_cm'])['flag_cm']
-    cloudproducts.aux = AuxiliaryObj(aux_dict)
     logger.info("Not reading cloud microphysical properties")
     # cloudproducts.cpp = read_oca_cpp(oca_nc)
     logger.info("Not reading surface temperature")
     logger.info("Not reading channel data")
     cloudproducts.longitude[cloudproducts.longitude > 180] = cloudproducts.longitude[cloudproducts.longitude > 180]-360
-    return cloudproducts
+    return cloudproducts, aux_dict
 
 
 def scale_oca_var_modis(oca_var):
@@ -269,8 +372,49 @@ def read_oca_ctype_cmask_ctth_modis(oca_nc):
     ctype.ct_conditions = None
     return ctype, cma, ctth
 
-def read_oca_cmask_modis(oca_nc):
+def read_oca_ctype_cmask_ctth_cdr(oca_nc):
     """Read ctth pressure file."""
+    ctth = CtthObj()
+    ctype = CtypeObj()
+    cma = CmaObj()
+    aux_dict = {}
+    pressure, ___ = scale_oca_var(
+        oca_nc['cloud_top_pressure'])
+    pressure_error, ___ = scale_oca_var(
+        oca_nc['cloud_top_pressure_error_log'])
+    ctth_pressure_error = np.power(10, pressure_error) * 0.01 #hPa
+    aux_dict["oca_cloud_top_pressure"] = pressure * 0.01
+    aux_dict["oca_cloud_top_pressure_error"] = ctth_pressure_error
+    
+    cma_prob, ___ = scale_oca_var(oca_nc['cloud_probability'])
+    cma.cma_ext = np.where(cma_prob > 50, 1, 0)
+    aux_dict["oca_cloud_probability"] = cma_prob    
+    ctype.phaseflag = None
+    ctype.ct_conditions = None
+    return ctype, cma, ctth, aux_dict
+
+def read_oca_cmask_epssg(filename):
+    """Read cmask file."""
+    oca_nc = netCDF4.Dataset(filename, 'r', format='NETCDF4')
+    cma = CmaObj()
+    try:
+        cm_flag = oca_nc['data']['measurement_data']['flag_cm'][:]
+        cma.cma_ext = np.where(cm_flag > 2, 1, 0)
+        cma.cma_ext[cm_flag>200] = -9
+        cma.cma_ext[cm_flag==5] = -9
+        cma.cma_bin = np.int64(0*cma.cma_ext.copy())
+        cma.cma_bin[cm_flag == 3] = 1.0
+        cma.cma_bin[cm_flag == 4] = 1.0
+        
+    except:
+        import pdb;pdb.set_trace()
+        cma.cma_ext = np.where(oca_nc['moca_model_final'][:] >= 1, 1, 0)
+        cma.cma_bin = np.int64(0*cma.cma_ext.copy())
+    oca_nc.close()    
+    return cma
+
+def read_oca_cmask_modis(oca_nc):
+    """Read cmask file."""
     cma = CmaObj()
     if 'flag_cm' in oca_nc.keys():
         cma.cma_ext = np.where(oca_nc['flag_cm'][:] > 1, 1, 0)

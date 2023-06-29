@@ -121,9 +121,13 @@ def main():
                         "Calipso-IMAGER matchup files.")
     parser.add_argument('-d', '--debug', const=True, nargs='?', required=False,
                         help="Get debug logging")
-    group.add_argument('--pps_okay_scene', '-os',
-                       help="Interpret arguments as PPS okay scenes instead of "
-                       "sno_output_files (e.g. noaa19_20101201_1345_27891*)")
+    group.add_argument('--scene', '-os',
+                       help="Interpret arguments as scenes "
+                       " (e.g. noaa19_20101201_1345_27891)")
+    group.add_argument('--sat_date_time_orbit_file', '-sf',
+                       help="Interpret arguments as input file with scenes "
+                       "(noaa19_20101201_1345_27891)")
+        
     group.add_argument('--pps_product_file', '-pf',
                        help="Interpret arguments as inputfile with "
                        "list of pps files")
@@ -153,11 +157,23 @@ def main():
         logging.getLogger().setLevel(logging.DEBUG)
 
     matchups = []
-    if options.pps_okay_scene:
+    if options.scene:
         # Simulate crosses from PPS scenes
-        scene = options.pps_okay_scene
+        scene = options.scene
         satname, time, orbit = parse_scene(scene)
         matchups.append(Cross(satname, time))
+    if options.sat_date_time_orbit_file:
+        pps_output_file = options.sat_date_time_orbit_file
+        read_from_file = open(pps_output_file, 'r')
+        for line in read_from_file:
+            if line.rstrip() in "":
+                pass
+            else:
+                satname, time = parse_scene(scene)
+                matchups.append(Cross(satname, time))                
+        scene = options.pps_okay_scene
+        satname, time, orbit = parse_scene(scene)
+        matchups.append(Cross(satname, time))     
     elif options.pps_product_file is not None:
         pps_output_file = options.pps_product_file
         read_from_file = open(pps_output_file, 'r')

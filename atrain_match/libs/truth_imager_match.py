@@ -272,6 +272,24 @@ def find_oca_cloud_file(cross, AM_PATHS):
                            "Searching under %s" % AM_PATHS['oca_dir'])
     return found_file, tobj
 
+def find_extra_product_files(cross, AM_PATHS, SETTINGS):
+    """Find main cloudproduct file with lat/lon OCA."""
+    extra_product_files = {}
+    if SETTINGS['OCA_VALIDATION']:
+        extra_product_files["oca_cma"], tobj = find_main_cloudproduct_file(cross,
+                                                                              AM_PATHS['oca_dir_cma'],
+                                                                              AM_PATHS['oca_file_cma'])
+    if SETTINGS['CLAAS3_VALIDATION']:
+        extra_product_files["cma_claas3"], tobj = find_main_cloudproduct_file(cross,
+                                                                              AM_PATHS['claas3_dir_cma'],
+                                                                              AM_PATHS['claas3_cma'])
+        extra_product_files["cth_claas3"], tobj = find_main_cloudproduct_file(cross,
+                                                                              AM_PATHS['claas3_dir_cth'],
+                                                                              AM_PATHS['claas3_cth'])
+        extra_product_files["cpp_claas3"], tobj = find_main_cloudproduct_file(cross,
+                                                                              AM_PATHS['claas3_dir_cpp'],
+                                                                              AM_PATHS['claas3_cpp'])
+    return extra_product_files
 
 def find_maia_cloud_file(cross, AM_PATHS):
     """Find main cloudproduct file with lat/lon MAIA."""
@@ -671,9 +689,9 @@ def read_cloud_cci(imager_file):
     return cci_read_all(imager_file)
 
 
-def read_cloud_oca(imager_file):
+def read_cloud_oca(imager_file, extra_product_files):
     from atrain_match.cloudproducts.read_oca import oca_read_all
-    return oca_read_all(imager_file)
+    return oca_read_all(imager_file, extra_files=extra_product_files)
 
 
 def read_cloud_maia(imager_file):
@@ -967,6 +985,8 @@ def add_elevation_corrected_imager_ctth(match_clsat, match_calipso, match_iss, S
 def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
     """Find files and retrieve matchup from data."""
 
+    extra_product_files = {}
+    
     # STEP 1 get imager files
     if SETTINGS['PPS_VALIDATION']:
         pps_files, imager_file, tobj = find_pps_cloud_files(cross, AM_PATHS, SETTINGS)
@@ -978,6 +998,8 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
         imager_file, tobj = find_patmosx_cloud_file(cross, AM_PATHS)
     if SETTINGS['OCA_VALIDATION']:
         imager_file, tobj = find_oca_cloud_file(cross, AM_PATHS)
+    extra_product_files = find_extra_product_files(cross, AM_PATHS, SETTINGS)
+ 
     if not imager_file:
         raise MatchupError("No imager file found!\ncross = " + str(cross))
     values = get_satid_datetime_orbit_from_fname(imager_file, SETTINGS, cross)
@@ -1020,7 +1042,7 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
         cloudproducts = read_cloud_patmosx(imager_file, cross, SETTINGS)
         cloudproducts.satellite = values["satellite"]
     if (SETTINGS['OCA_VALIDATION']):
-        cloudproducts = read_cloud_oca(imager_file)
+        cloudproducts = read_cloud_oca(imager_file, extra_product_files)
         cloudproducts.satellite = values["satellite"]
 
     # STEP 4 get matchups
