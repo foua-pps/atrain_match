@@ -50,8 +50,8 @@ def add_modis_06(ca_matchup, AM_PATHS, cross):
 
     index = {'row': row_matched,
              'col': col_matched}
-    index_5km = {'row': np.floor(row_matched/5).astype(np.int),
-                 'col': np.floor(col_matched/5).astype(np.int)}
+    index_5km = {'row': np.floor(row_matched/5).astype(np.int64),
+                 'col': np.floor(col_matched/5).astype(np.int64)}
 
     ca_matchup.modis_lvl2.height = get_data_from_array(modis_06.height, index)
     ca_matchup.modis_lvl2.temperature = get_data_from_array(modis_06.temperature, index)
@@ -85,7 +85,7 @@ def read_modis_h5(filename):
     modis_06.multilayer = h5file['mod06']['Data Fields']['Cloud_Multi_Layer_Flag'][:]
     modis_06.optical_depth = h5file['mod06']['Data Fields']['Cloud_Optical_Thickness'][:]
     modis_06.cloud_emissivity = h5file['mod06']['Data Fields']['cloud_emissivity_1km'][:].astype(float)
-    modis_06.cloud_phase = h5file['mod06']['Data Fields']['Cloud_Phase_Infrared_1km'][:].astype(np.int)
+    modis_06.cloud_phase = h5file['mod06']['Data Fields']['Cloud_Phase_Infrared_1km'][:].astype(np.int64)
     modis_06.latitude = h5file['mod06']['Geolocation Fields']['Latitude'][:].astype(float)
     modis_06.longitude = h5file['mod06']['Geolocation Fields']['Longitude'][:].astype(float)
 
@@ -144,7 +144,7 @@ def read_modis_hdf(filename):
     modis_06.multilayer = h4file.select('Cloud_Multi_Layer_Flag').get()
     modis_06.optical_depth = h4file.select('Cloud_Optical_Thickness').get()
     modis_06.cloud_emissivity = h4file.select('cloud_emissivity_1km').get().astype(float)
-    modis_06.cloud_phase = h4file.select('Cloud_Phase_Infrared_1km').get().astype(np.int)
+    modis_06.cloud_phase = h4file.select('Cloud_Phase_Infrared_1km').get().astype(np.int64)
     modis_06.latitude = h4file.select('Latitude').get().astype(float)
     modis_06.longitude = h4file.select('Longitude').get().astype(float)
 
