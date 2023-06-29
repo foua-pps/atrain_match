@@ -10,3 +10,4 @@ RELEASE-VERSION
 doc/.build*
 *#*
 *.egg*
+build/*
