@@ -275,9 +275,9 @@ class CppObj:
 def read_ctth_h5(filename):
     h5file = h5py.File(filename, 'r')
     ctth = CtthObj()
-    ctth.height = h5file['ctth_alti'].value.astype(np.float)
-    ctth.temperature = h5file['ctth_tempe'].value.astype(np.float)
-    ctth.pressure = h5file['ctth_pres'].value.astype(np.float)
+    ctth.height = h5file['ctth_alti'].value.astype(float)
+    ctth.temperature = h5file['ctth_tempe'].value.astype(float)
+    ctth.pressure = h5file['ctth_pres'].value.astype(float)
     ctth.ctth_statusflag = h5file['ctth_status_flag'].value
     ctth.h_gain = h5file['ctth_alti'].attrs['scale_factor']
     ctth.h_intercept = h5file['ctth_alti'].attrs['add_offset']
@@ -308,9 +308,9 @@ def read_ctth_nc(filename):
     """Read for PPS CTTH from netcdf file."""
     pps_nc = netCDF4.Dataset(filename, 'r', format='NETCDF4')
     ctth = CtthObj()
-    ctth.height = pps_nc.variables['ctth_alti'][0, :, :].astype(np.float)
-    ctth.temperature = pps_nc.variables['ctth_tempe'][0, :, :].astype(np.float)
-    ctth.pressure = pps_nc.variables['ctth_pres'][0, :, :].astype(np.float)
+    ctth.height = pps_nc.variables['ctth_alti'][0, :, :].astype(float)
+    ctth.temperature = pps_nc.variables['ctth_tempe'][0, :, :].astype(float)
+    ctth.pressure = pps_nc.variables['ctth_pres'][0, :, :].astype(float)
     ctth.ctth_statusflag = pps_nc.variables['ctth_status_flag'][0, :, :]
     # Currently unpacked arrays later in calipso.py
     ctth.h_gain = 1.0
@@ -528,27 +528,27 @@ def read_pps_angobj_nc(pps_nc):
                 this_is = pps_nc.variables[varname].id_tag
 
         if this_is in['satzenith']:
-            angle_obj.satz.data = pps_nc.variables[varname][0, :, :].astype(np.float)
+            angle_obj.satz.data = pps_nc.variables[varname][0, :, :].astype(float)
             angle_obj.satz.no_data = pps_nc.variables[varname]._FillValue
             angle_obj.satz.intercept = pps_nc.variables[varname].add_offset
             angle_obj.satz.gain = pps_nc.variables[varname].scale_factor
         elif this_is in['sunzenith']:
-            angle_obj.sunz.data = pps_nc.variables[varname][0, :, :].astype(np.float)
+            angle_obj.sunz.data = pps_nc.variables[varname][0, :, :].astype(float)
             angle_obj.sunz.no_data = pps_nc.variables[varname]._FillValue
             angle_obj.sunz.intercept = pps_nc.variables[varname].add_offset
             angle_obj.sunz.gain = pps_nc.variables[varname].scale_factor
         elif this_is in['azimuthdiff']:
-            angle_obj.azidiff.data = pps_nc.variables[varname][0, :, :].astype(np.float)
+            angle_obj.azidiff.data = pps_nc.variables[varname][0, :, :].astype(float)
             angle_obj.azidiff.no_data = pps_nc.variables[varname]._FillValue
             angle_obj.azidiff.intercept = pps_nc.variables[varname].add_offset
             angle_obj.azidiff.gain = pps_nc.variables[varname].scale_factor
         elif this_is in['sunazimuth']:
-            angle_obj.sunazimuth.data = pps_nc.variables[varname][0, :, :].astype(np.float)
+            angle_obj.sunazimuth.data = pps_nc.variables[varname][0, :, :].astype(float)
             angle_obj.sunazimuth.no_data = pps_nc.variables[varname]._FillValue
             angle_obj.sunazimuth.intercept = pps_nc.variables[varname].add_offset
             angle_obj.sunazimuth.gain = pps_nc.variables[varname].scale_factor
         elif this_is in['satazimuth']:
-            angle_obj.satazimuth.data = pps_nc.variables[varname][0, :, :].astype(np.float)
+            angle_obj.satazimuth.data = pps_nc.variables[varname][0, :, :].astype(float)
             angle_obj.satazimuth.no_data = pps_nc.variables[varname]._FillValue
             angle_obj.satazimuth.intercept = pps_nc.variables[varname].add_offset
             angle_obj.satazimuth.gain = pps_nc.variables[varname].scale_factor
@@ -583,14 +583,14 @@ def read_pps_angobj_h5(filename):
             if (image.attrs['description'] == "sun zenith angle" or
                     image.attrs['description'] == "Solar zenith angle"):
                 # print "reading sunz"
-                angle_obj.sunz.data = image['data'].value.astype(np.float)
+                angle_obj.sunz.data = image['data'].value.astype(float)
                 angle_obj.sunz.gain = image['what'].attrs['gain']
                 angle_obj.sunz.intercept = image['what'].attrs['offset']
                 angle_obj.sunz.no_data = image['what'].attrs['nodata']
                 angle_obj.sunz.missing_data = image['what'].attrs['missingdata']
             elif (image.attrs['description'] == "satellite zenith angle" or
                   image.attrs['description'] == "Satellite zenith angle"):
-                angle_obj.satz.data = image['data'].value.astype(np.float)
+                angle_obj.satz.data = image['data'].value.astype(float)
                 angle_obj.satz.gain = image['what'].attrs['gain']
                 angle_obj.satz.intercept = image['what'].attrs['offset']
                 angle_obj.satz.no_data = image['what'].attrs['nodata']
@@ -599,7 +599,7 @@ def read_pps_angobj_h5(filename):
                   "relative sun-satellite azimuth difference angle" or
                   image.attrs['description'] ==
                   "Relative satellite-sun azimuth angle"):
-                angle_obj.azidiff.data = image['data'].value.astype(np.float)
+                angle_obj.azidiff.data = image['data'].value.astype(float)
                 angle_obj.azidiff.gain = image['what'].attrs['gain']
                 angle_obj.azidiff.intercept = image['what'].attrs['offset']
                 angle_obj.azidiff.no_data = image['what'].attrs['nodata']
@@ -743,7 +743,7 @@ def read_cpp_nc_one_var(ncFile, cpp_key):
         logger.debug("Read %s", cpp_key)
         cpp_var = ncFile.variables[cpp_key][0, :, :]
         if np.ma.is_masked(cpp_var):
-            cpp_data = cpp_var.data.astype(np.float)
+            cpp_data = cpp_var.data.astype(float)
             cpp_data[cpp_var.mask] = ATRAIN_MATCH_NODATA
         else:
             cpp_data = cpp_var
@@ -834,7 +834,7 @@ def read_segment_data(filename):
             intercept = h5file.attrs['p_intercept']
             nodata = h5file.attrs['p_nodata']
             # data[data!=nodata] = data[data!=nodata] * (gain/100) + intercept/100 # Pa => hPa
-            data_float = np.array(data, dtype=np.float)
+            data_float = np.array(data, dtype=float)
             data_float[data != nodata] = data_float[data != nodata] * (gain/100) + intercept/100  # Pa => hPa
             product[pressure_data] = data_float
         logger.debug("Read segment info height")
@@ -853,7 +853,7 @@ def read_segment_data(filename):
             gain = h5file.attrs['t_gain']
             intercept = h5file.attrs['t_intercept']
             nodata = h5file.attrs['t_nodata']
-            data_float = np.array(data, dtype=np.float)
+            data_float = np.array(data, dtype=float)
             data_float[data != nodata] = data_float[data != nodata] * gain + intercept
             product[temperature_data] = data_float
         for temperature_data in ['t850', 'ttro', 'surfaceLandTemp', 'surfaceSeaTemp']:
@@ -861,7 +861,7 @@ def read_segment_data(filename):
             gain = h5file.attrs['t_gain']
             intercept = h5file.attrs['t_intercept']
             nodata = h5file.attrs['t_nodata']
-            data_float = np.array(data, dtype=np.float)
+            data_float = np.array(data, dtype=float)
             data_float[data != nodata] = data_float[data != nodata] * gain + intercept
             product[temperature_data] = data_float
         for misc_data in ['meanElevation', 'fractionOfLand']:
@@ -886,7 +886,7 @@ def read_segment_data(filename):
                 gain = h5file.attrs['t_gain']
                 intercept = h5file.attrs['tb_intercept']
                 nodata = h5file.attrs['t_nodata']
-                data_float = np.array(data, dtype=np.float)
+                data_float = np.array(data, dtype=float)
                 data_float[data != nodata] = data_float[data != nodata] * gain + intercept
                 name = tb_data
                 name = name.replace('4', '11')

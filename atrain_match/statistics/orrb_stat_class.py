@@ -47,7 +47,7 @@ class OrrbStats():
             if self.truth_sat.upper() not in line:
                 continue
             what, data = line.rstrip().split(':')
-            data = np.array([np.float(item) for item in data.lstrip().split(" ")])
+            data = np.array([float(item) for item in data.lstrip().split(" ")])
             if what in data_dict.keys():
                 print(what)
                 raise KeyError("Key should not be already in list")

@@ -104,13 +104,13 @@ def read_patmosx_ctype_cmask_ctth(patmosx_nc):
     ctth = CtthObj()
     ctype = CtypeObj()
     cma = CmaObj()
-    ctth.height = patmosx_nc.variables['cld_height_acha'][0, :, :].astype(np.float)
+    ctth.height = patmosx_nc.variables['cld_height_acha'][0, :, :].astype(float)
     ctth.h_nodata = patmosx_nc.variables['cld_height_acha']._FillValue
     if np.ma.is_masked(ctth.height):
         ctth.height.data[ctth.height.mask] = ATRAIN_MATCH_NODATA
         ctth.height = ctth.height.data
     ctth.height = 1000*ctth.height
-    cf = patmosx_nc.variables['cloud_fraction'][0, :, :].astype(np.float)
+    cf = patmosx_nc.variables['cloud_fraction'][0, :, :].astype(float)
     cma.cma_ext = np.where(cf >= 0.5, 1, 0)
     if np.ma.is_masked(cf):
         cma.cma_ext[cf.mask] = 255
@@ -122,8 +122,8 @@ def read_patmosx_ctype_cmask_ctth(patmosx_nc):
 def read_patmosx_angobj(patmosx_nc):
     """Read angles info from filename."""
     angle_obj = ImagerAngObj()
-    angle_obj.satz.data = patmosx_nc.variables['sensor_zenith_angle'][0, :, :].astype(np.float)
-    angle_obj.sunz.data = patmosx_nc.variables['solar_zenith_angle'][0, :, :].astype(np.float)
+    angle_obj.satz.data = patmosx_nc.variables['sensor_zenith_angle'][0, :, :].astype(float)
+    angle_obj.sunz.data = patmosx_nc.variables['solar_zenith_angle'][0, :, :].astype(float)
     angle_obj.azidiff.data = None
     return angle_obj
 
@@ -131,8 +131,8 @@ def read_patmosx_angobj(patmosx_nc):
 def read_patmosx_geoobj(patmosx_nc, filename, cross, SETTINGS):
     """Read geolocation and time info from filename."""
     cloudproducts = AllImagerData()
-    latitude_v = patmosx_nc.variables['latitude'][:].astype(np.float)
-    longitude_v = patmosx_nc.variables['longitude'][:].astype(np.float)
+    latitude_v = patmosx_nc.variables['latitude'][:].astype(float)
+    longitude_v = patmosx_nc.variables['longitude'][:].astype(float)
     cloudproducts.latitude = np.repeat(latitude_v[:, np.newaxis], len(longitude_v), axis=1)
     cloudproducts.longitude = np.repeat(longitude_v[np.newaxis, :], len(latitude_v), axis=0)
     cloudproducts.nodata = -999
@@ -140,7 +140,7 @@ def read_patmosx_geoobj(patmosx_nc, filename, cross, SETTINGS):
     date_time_end = cross.time + timedelta(seconds=SETTINGS['SAT_ORBIT_DURATION'])
     cloudproducts.sec1970_start = calendar.timegm(date_time_start.timetuple())
     cloudproducts.sec1970_end = calendar.timegm(date_time_end.timetuple())
-    frac_hour = patmosx_nc.variables['scan_line_time'][0, :, :].astype(np.float)
+    frac_hour = patmosx_nc.variables['scan_line_time'][0, :, :].astype(float)
     if np.ma.is_masked(frac_hour):
         frac_hour = frac_hour.data
     seconds = frac_hour*60*60.0
@@ -201,13 +201,13 @@ def read_patmosx_angobj_hdf(patmosx_hdf):
     """Read angles info from filename."""
     angle_obj = ImagerAngObj()
     name = 'sensor_zenith_angle'
-    temp = patmosx_hdf.select(name).get().astype(np.float)
+    temp = patmosx_hdf.select(name).get().astype(float)
     offset = patmosx_hdf.select(name).attributes()['add_offset']
     gain = patmosx_hdf.select(name).attributes()['scale_factor']
     angle_obj.satz.data = temp * gain + offset
 
     name = 'solar_zenith_angle'
-    temp = patmosx_hdf.select(name).get().astype(np.float)
+    temp = patmosx_hdf.select(name).get().astype(float)
     offset = patmosx_hdf.select(name).attributes()['add_offset']
     gain = patmosx_hdf.select(name).attributes()['scale_factor']
     angle_obj.sunz.data = temp * gain + offset
@@ -219,12 +219,12 @@ def read_patmosx_geoobj_hdf(patmosx_hdf, filename, cross, SETTINGS):
     """Read geolocation and time info from filename."""
     cloudproducts = AllImagerData()
     name = 'latitude'
-    temp = patmosx_hdf.select(name).get().astype(np.float)
+    temp = patmosx_hdf.select(name).get().astype(float)
     offset = patmosx_hdf.select(name).attributes()['add_offset']
     gain = patmosx_hdf.select(name).attributes()['scale_factor']
     latitude_v = temp * gain + offset
     name = 'longitude'
-    temp = patmosx_hdf.select(name).get().astype(np.float)
+    temp = patmosx_hdf.select(name).get().astype(float)
     offset = patmosx_hdf.select(name).attributes()['add_offset']
     gain = patmosx_hdf.select(name).attributes()['scale_factor']
     longitude_v = temp * gain + offset
@@ -236,7 +236,7 @@ def read_patmosx_geoobj_hdf(patmosx_hdf, filename, cross, SETTINGS):
     date_time_end = cross.time + timedelta(seconds=SETTINGS['SAT_ORBIT_DURATION'])
     cloudproducts.sec1970_start = calendar.timegm(date_time_start.timetuple())
     cloudproducts.sec1970_end = calendar.timegm(date_time_end.timetuple())
-    frac_hour = patmosx_hdf.select('scan_line_time').get().astype(np.float)
+    frac_hour = patmosx_hdf.select('scan_line_time').get().astype(float)
     if np.ma.is_masked(frac_hour):
         frac_hour = frac_hour.data
     seconds = frac_hour*60*60.0
