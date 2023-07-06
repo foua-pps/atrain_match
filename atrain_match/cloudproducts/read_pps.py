@@ -26,7 +26,7 @@ import h5py
 import logging
 import time
 import calendar
-from datetime import datetime
+from datetime import datetime, timedelta
 logger = logging.getLogger(__name__)
 ATRAIN_MATCH_NODATA = config.NODATA
 # logger.debug('Just so you know: this module has a logger...')
@@ -54,6 +54,11 @@ def get_satid_datetime_orbit_from_fname_pps(imager_filename, as_oldstyle=False):
         sl_ = os.path.basename(imager_filename).split('_')
         date_time = datetime.strptime(sl_[5], '%Y%m%dT%H%M%S%fZ')
         date_time_end = datetime.strptime(sl_[6].split('Z')[0], '%Y%m%dT%H%M%S%f')
+        if "000Z.nc" in imager_filename and "seviri" in imager_filename:
+            # S_NWC_seviri_meteosat9_99999_20100714T1200000Z_20100714T1215000Z.nc
+            # S_NWC_seviri_meteosat9_99999_20100714T1200107Z_20100714T1212417Z.nc
+            date_time_end = date_time_end - timedelta(seconds=(60*2 + 18))
+            date_time = date_time - timedelta(seconds=10)
 
         values = {"satellite": sl_[3],
                   "date_time": date_time,
