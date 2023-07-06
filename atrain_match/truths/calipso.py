@@ -187,7 +187,29 @@ def rearrange_calipso_the_single_shot_info(retv, singleshotdata):
                         - 9.0)  # Calculate average cloud top
     name = "average_cloud_top_pressure_single_shots"
     setattr(retv, name, top_mean.astype(np.float32))
-
+    top_median = np.where(single_shot_cloud_cleared_array > 0,
+                          np.divide(np.sum(top_array, axis=1), single_shot_cloud_cleared_array),
+                          - 9.0)  # Calculate average cloud top
+    name = "median_cloud_top_pressure_single_shots"
+    setattr(retv, name, top_median.astype(np.float32))
+    
+    data = singleshotdata["ssLayer_Top_Temperature"]
+    data = np.array(data)
+    data_reshaped_5 = data.reshape(-1, 5)
+    top_array = data_reshaped_5[:, 0]
+    top_array = top_array.reshape(-1, 15)
+    top_array = np.where(top_array > -999, top_array, 0.0)
+    top_mean = np.where(single_shot_cloud_cleared_array > 0,
+                        np.divide(np.sum(top_array, axis=1), single_shot_cloud_cleared_array),
+                        - 9.0)  # Calculate average cloud top
+    name = "average_cloud_top_temperature_single_shots"
+    setattr(retv, name, top_mean.astype(np.float32))
+    top_median = np.where(single_shot_cloud_cleared_array > 0,
+                        np.divide(np.sum(top_array, axis=1), single_shot_cloud_cleared_array),
+                        - 9.0)  # Calculate average cloud top
+    name = "median_cloud_top_temperature_single_shots"
+    setattr(retv, name, top_median.astype(np.float32))
+    
     data = singleshotdata["ssLayer_Top_Altitude"]
     data = np.array(data)
     data_reshaped_5 = data.reshape(-1, 5)
@@ -274,6 +296,7 @@ def read_calipso_hdf4(filename, retv):
                 continue
             if dataset in ["ssNumber_Layers_Found",
                            "ssLayer_Base_Altitude",
+                           "ssLayer_Top_Temperature",
                            "ssLayer_Top_Pressure",
                            "ssLayer_Top_Altitude"]:
                 singleshotdata[dataset] = h4file.select(dataset).get()
@@ -411,8 +434,12 @@ def add_5km_variables_to_1km(calipso1km, calipso5km, CALIPSO_version):
             "column_optical_depth_cloud_uncertainty_532",
             "average_cloud_base_single_shots",
             "average_cloud_top_pressure_single_shots",
+            "average_cloud_top_temperature_single_shots",
+            "median_cloud_top_pressure_single_shots",
+            "median_cloud_top_temperature_single_shots",
             "average_cloud_top_single_shots",
             # "feature_optical_depth_532",
+            
             # "feature_optical_depth_uncertainty_532"
     ]:
         if CALIPSO_version == 3:
