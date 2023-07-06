@@ -351,6 +351,27 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
             data = get_channel_data_from_object(imager_obj, key, dark_row_col)
             setattr(obt.imager, atrain_name, data)
 
+        for delta_r in range(-2,3):
+            for delta_c in range(-2,3):
+                if delta_r == 0 and delta_c == 0:
+                    # Actual pixel
+                    continue
+                for key in imager_channels:
+                    max_row, max_col =imager_obj.channel[key].data.shape
+                    atrain_name = key.replace('micron','')
+                    atrain_name = atrain_name + '_neighbour_r{:d}_{:d}'.format(delta_r, delta_c)
+                    new_r = row_col['row'] + delta_r
+                    new_r[new_r < 0] = 0
+                    new_c = row_col['col'] + delta_c
+                    new_c[new_c < 0] = 0
+                    new_r[new_r >= max_row] = max_row-1
+                    new_c[new_c >= max_col] = max_col-1
+                    new_row_col = {'row': new_r,
+                                   'col': new_c}
+                    new_row_col['row']
+                    data = get_channel_data_from_object(imager_obj, key, new_row_col)
+                    setattr(obt.imager, atrain_name, data)
+
     if imager_obj is not None:            
         if 'qual_flags' in imager_obj.channel:
             qual = imager_obj.channel['qual_flags'].data
