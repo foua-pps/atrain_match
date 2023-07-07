@@ -54,11 +54,6 @@ def get_satid_datetime_orbit_from_fname_pps(imager_filename, as_oldstyle=False):
         sl_ = os.path.basename(imager_filename).split('_')
         date_time = datetime.strptime(sl_[5], '%Y%m%dT%H%M%S%fZ')
         date_time_end = datetime.strptime(sl_[6].split('Z')[0], '%Y%m%dT%H%M%S%f')
-        if "000Z.nc" in imager_filename and "seviri" in imager_filename:
-            # S_NWC_seviri_meteosat9_99999_20100714T1200000Z_20100714T1215000Z.nc
-            # S_NWC_seviri_meteosat9_99999_20100714T1200107Z_20100714T1212417Z.nc
-            date_time_end = date_time_end - timedelta(seconds=(60*2 + 18))
-            date_time = date_time - timedelta(seconds=10)
 
         values = {"satellite": sl_[3],
                   "date_time": date_time,
@@ -648,7 +643,14 @@ def read_pps_geoobj_nc(pps_nc):
     # pdb.set_trace()
     time_temp = pps_nc.variables['time'].units  # to 1970 s
     seconds = np.float64(pps_nc.variables['time'][::])  # from PPS often 0
-    if 'seconds' in time_temp:
+    if hasattr(pps_nc.variables['image1'], "time_parameters_observation_end_time"):
+        logger.debug("Getting time info for matching from time_parameters_observation_end/start_time")
+        
+        all_imager_obj.sec1970_start = calendar.timegm(time.strptime(pps_nc.variables['image1'].time_parameters_observation_start_time,
+                                                                     '%Y-%m-%d %H:%M:%S.%f'))
+        all_imager_obj.sec1970_end = calendar.timegm(time.strptime(pps_nc.variables['image1'].time_parameters_observation_end_time,
+                                                                       '%Y-%m-%d %H:%M:%S.%f'))
+    elif 'seconds' in time_temp:
         if 'T' in time_temp:
             time_obj = time.strptime(time_temp, 'seconds since %Y-%m-%dT%H:%M:%S+00:00')
         elif time_temp == u'seconds since 1970-01-01':
