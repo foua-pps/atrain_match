@@ -188,7 +188,7 @@ def rearrange_calipso_the_single_shot_info(retv, singleshotdata):
     name = "average_cloud_top_pressure_single_shots"
     setattr(retv, name, top_mean.astype(np.float32))
     top_median = np.where(single_shot_cloud_cleared_array > 0,
-                          np.divide(np.sum(top_array, axis=1), single_shot_cloud_cleared_array),
+                          np.median(top_array, axis=1),
                           - 9.0)  # Calculate average cloud top
     name = "median_cloud_top_pressure_single_shots"
     setattr(retv, name, top_median.astype(np.float32))
@@ -205,7 +205,7 @@ def rearrange_calipso_the_single_shot_info(retv, singleshotdata):
     name = "average_cloud_top_temperature_single_shots"
     setattr(retv, name, top_mean.astype(np.float32))
     top_median = np.where(single_shot_cloud_cleared_array > 0,
-                        np.divide(np.sum(top_array, axis=1), single_shot_cloud_cleared_array),
+                        np.median(top_array, axis=1),
                         - 9.0)  # Calculate average cloud top
     name = "median_cloud_top_temperature_single_shots"
     setattr(retv, name, top_median.astype(np.float32))
