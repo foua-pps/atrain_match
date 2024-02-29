@@ -322,8 +322,8 @@ def atrain_scatter(fig, ax, x, y, binsize, xymin=None, xymax=None, vmax=250,
     edgesx = np.linspace(xymin, xymax, n_edges)
     edgesy = np.linspace(xymin, xymax, n_edges)
     H, xe, ye = np.histogram2d(x, y, bins=[edgesx, edgesy])
-    xi = np.searchsorted(edgesx, x)  # - edgesx[0])/(n_edges+1)).astype(np.int)
-    yi = np.searchsorted(edgesy, y)  # np.floor((y - edgesy[0])/(n_edges+1)).astype(np.int)  # -1?
+    xi = np.searchsorted(edgesx, x)  # - edgesx[0])/(n_edges+1)).astype(np.int64)
+    yi = np.searchsorted(edgesy, y)  # np.floor((y - edgesy[0])/(n_edges+1)).astype(np.int64)  # -1?
     xi = xi-1
     yi = yi-1
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #

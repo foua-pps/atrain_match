@@ -148,7 +148,7 @@ def read_cloudsat_hdf4(filename):
             # To save RAM and disk only read what we use!
             if factor is None and offset is None:
                 retv.all_arrays[am_name] = convert_data(data)
-            elif np.float(factor.get()) == 1.0 and np.float(offset.get()) == 0.0:
+            elif float(factor.get()) == 1.0 and float(offset.get()) == 0.0:
                 retv.all_arrays[am_name] = convert_data(data)
             else:
                 if factor is None:

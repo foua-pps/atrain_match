@@ -34,8 +34,8 @@ class MatchMapper(object):
 
     def __init__(self, rows, cols, pixel_mask, time_diff=None,
                  time_threshold=None):
-        self._rows = np.array(rows).astype(np.int)
-        self._cols = np.array(cols).astype(np.int)
+        self._rows = np.array(rows).astype(np.int64)
+        self._cols = np.array(cols).astype(np.int64)
         self._pixel_mask = pixel_mask
         self._time_diff = time_diff
         self.time_threshold = time_threshold

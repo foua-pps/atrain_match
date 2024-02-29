@@ -50,8 +50,8 @@ def add_modis_06(ca_matchup, AM_PATHS, cross):
 
     index = {'row': row_matched,
              'col': col_matched}
-    index_5km = {'row': np.floor(row_matched/5).astype(np.int),
-                 'col': np.floor(col_matched/5).astype(np.int)}
+    index_5km = {'row': np.floor(row_matched/5).astype(np.int64),
+                 'col': np.floor(col_matched/5).astype(np.int64)}
 
     ca_matchup.modis_lvl2.height = get_data_from_array(modis_06.height, index)
     ca_matchup.modis_lvl2.temperature = get_data_from_array(modis_06.temperature, index)
@@ -84,10 +84,10 @@ def read_modis_h5(filename):
     modis_06.lwp = h5file['mod06']['Data Fields']['Cloud_Water_Path'][:]
     modis_06.multilayer = h5file['mod06']['Data Fields']['Cloud_Multi_Layer_Flag'][:]
     modis_06.optical_depth = h5file['mod06']['Data Fields']['Cloud_Optical_Thickness'][:]
-    modis_06.cloud_emissivity = h5file['mod06']['Data Fields']['cloud_emissivity_1km'][:].astype(np.float)
-    modis_06.cloud_phase = h5file['mod06']['Data Fields']['Cloud_Phase_Infrared_1km'][:].astype(np.int)
-    modis_06.latitude = h5file['mod06']['Geolocation Fields']['Latitude'][:].astype(np.float)
-    modis_06.longitude = h5file['mod06']['Geolocation Fields']['Longitude'][:].astype(np.float)
+    modis_06.cloud_emissivity = h5file['mod06']['Data Fields']['cloud_emissivity_1km'][:].astype(float)
+    modis_06.cloud_phase = h5file['mod06']['Data Fields']['Cloud_Phase_Infrared_1km'][:].astype(np.int64)
+    modis_06.latitude = h5file['mod06']['Geolocation Fields']['Latitude'][:].astype(float)
+    modis_06.longitude = h5file['mod06']['Geolocation Fields']['Longitude'][:].astype(float)
 
     h_gain = h5file['mod06']['Data Fields']['cloud_top_height_1km'].attrs['scale_factor']
     h_intercept = h5file['mod06']['Data Fields']['cloud_top_height_1km'].attrs['add_offset']
@@ -113,11 +113,11 @@ def read_modis_h5(filename):
     lwpmask = modis_06.lwp == lwp_nodata
     odmask = modis_06.optical_depth == od_nodata
 
-    modis_06.height = modis_06.height.astype(np.float)
-    modis_06.pressure = modis_06.pressure.astype(np.float)
-    modis_06.temperature = modis_06.temperature.astype(np.float)
-    modis_06.lwp = modis_06.lwp.astype(np.float)
-    modis_06.optical_depth = modis_06.optical_depth.astype(np.float)
+    modis_06.height = modis_06.height.astype(float)
+    modis_06.pressure = modis_06.pressure.astype(float)
+    modis_06.temperature = modis_06.temperature.astype(float)
+    modis_06.lwp = modis_06.lwp.astype(float)
+    modis_06.optical_depth = modis_06.optical_depth.astype(float)
     modis_06.height[~hmask] = modis_06.height[~hmask] * h_gain + h_intercept
     modis_06.pressure[~pmask] = modis_06.pressure[~pmask] * p_gain + p_intercept
     modis_06.temperature[~tmask] = modis_06.temperature[~tmask] * t_gain - t_intercept * t_gain
@@ -143,10 +143,10 @@ def read_modis_hdf(filename):
     modis_06.lwp = h4file.select('Cloud_Water_Path').get()
     modis_06.multilayer = h4file.select('Cloud_Multi_Layer_Flag').get()
     modis_06.optical_depth = h4file.select('Cloud_Optical_Thickness').get()
-    modis_06.cloud_emissivity = h4file.select('cloud_emissivity_1km').get().astype(np.float)
-    modis_06.cloud_phase = h4file.select('Cloud_Phase_Infrared_1km').get().astype(np.int)
-    modis_06.latitude = h4file.select('Latitude').get().astype(np.float)
-    modis_06.longitude = h4file.select('Longitude').get().astype(np.float)
+    modis_06.cloud_emissivity = h4file.select('cloud_emissivity_1km').get().astype(float)
+    modis_06.cloud_phase = h4file.select('Cloud_Phase_Infrared_1km').get().astype(np.int64)
+    modis_06.latitude = h4file.select('Latitude').get().astype(float)
+    modis_06.longitude = h4file.select('Longitude').get().astype(float)
 
     h_gain = h4file.select('cloud_top_height_1km').attributes()['scale_factor']
     h_intercept = h4file.select('cloud_top_height_1km').attributes()['add_offset']
@@ -172,11 +172,11 @@ def read_modis_hdf(filename):
     lwpmask = modis_06.lwp == lwp_nodata
     odmask = modis_06.optical_depth == od_nodata
 
-    modis_06.height = modis_06.height.astype(np.float)
-    modis_06.pressure = modis_06.pressure.astype(np.float)
-    modis_06.temperature = modis_06.temperature.astype(np.float)
-    modis_06.lwp = modis_06.lwp.astype(np.float)
-    modis_06.optical_depth = modis_06.optical_depth.astype(np.float)
+    modis_06.height = modis_06.height.astype(float)
+    modis_06.pressure = modis_06.pressure.astype(float)
+    modis_06.temperature = modis_06.temperature.astype(float)
+    modis_06.lwp = modis_06.lwp.astype(float)
+    modis_06.optical_depth = modis_06.optical_depth.astype(float)
     modis_06.height[~hmask] = modis_06.height[~hmask] * h_gain + h_intercept
     modis_06.pressure[~pmask] = modis_06.pressure[~pmask] * p_gain + p_intercept
     modis_06.temperature[~tmask] = modis_06.temperature[~tmask] * t_gain - t_intercept * t_gain

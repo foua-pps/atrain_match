@@ -34,7 +34,7 @@ def get_warmest_index_old(t11, matched):
                                 size=5,
                                 mode='constant',
                                 cval=-9999999999999)
-    flat_index = np.array(flat_index, dtype=np.int)
+    flat_index = np.array(flat_index, dtype=np.int64)
     delta_row, delta_col = np.unravel_index(flat_index, (5, 5))
     delta_row = delta_row - 2
     delta_col = delta_col - 2

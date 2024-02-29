@@ -49,7 +49,7 @@ def read_config_info():
             value = value.replace(' ', '')
         values = value.split(',')
         if name in ['MIN_OPTICAL_DEPTH']:
-            value_ = [np.float(val_i) for val_i in values]
+            value_ = [float(val_i) for val_i in values]
         elif name in ["COMPILE_STATISTICS_TRUTH", "PLOT_MODES",
                       "PLOT_TYPES", "CTTH_TYPES",
                       'SATELLITES', 'YEARS', 'MONTHS']:
@@ -62,7 +62,7 @@ def read_config_info():
         elif len(values) == 1 and 'false' in values[0].lower():
             value_ = False
         elif len(values) == 1 and re.match(r"\d+.*\d*", values[0]):
-            value_ = np.float(values[0])
+            value_ = float(values[0])
         elif name in ['AMSR_SENSOR']:
             value_ = values[0]
         elif name in ['AMSR_ROF', 'AMSR_OVERLAP', 'AMSR_IMAGER_PIXEL_RADIUS']:
