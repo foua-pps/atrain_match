@@ -103,6 +103,7 @@ class AllImagerData(object):
         self.imager_channeldata = None
         self.type = None
         self.cma = None
+        self.ctype = None
         self.ctth = None
         self.unc = None
         self.aux = AuxiliaryObj({'surftemp': None})
