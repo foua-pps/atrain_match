@@ -864,42 +864,7 @@ def add_additional_clousat_calipso_index_vars(match_clsat, match_calipso):
                 temp_data = np.where(match_clsat.cloudsat.calipso_index >= 0, data_calipso[index], -9)
                 setattr(match_clsat.cloudsat, 'calipso_{:s}'.format(var_1d_name), temp_data)
 
-        """
-        match_clsat.cloudsat.calipso_feature_classification_flags= np.where(
-            match_clsat.cloudsat.calipso_index >= 0,
-            match_calipso.calipso.feature_classification_flags[index, 0],
-            -9)
-        # first bas layer use height not pressure as cloudsat uses height
-        match_clsat.cloudsat.calipso_layer_base_altitude = np.where(
-            match_clsat.cloudsat.calipso_index >= 0,
-            match_calipso.calipso.layer_base_altitude[index, 0],
-            -9)
-        for layer in range(1, 10):
-            match_clsat.cloudsat.calipso_layer_base_altitude = np.where(
-                np.logical_and(np.logical_and(match_clsat.cloudsat.calipso_index >= 0,
-                                              match_calipso.calipso.layer_base_altitude[index, layer]>0),
-                               match_calipso.calipso.layer_base_altitude[index, layer]<
-                               match_calipso.calipso.layer_base_altitude[index, layer-1]),
 
-                match_calipso.calipso.layer_base_altitude[index, layer],
-            match_clsat.cloudsat.calipso_layer_base_altitude)
-        match_clsat.cloudsat.calipso_layer_base_altitude[match_clsat.cloudsat.calipso_layer_base_altitude<-999] = -9.0
-        # first bas layer use height not pressure as cloudsat uses height
-        match_clsat.cloudsat.calipso_layer_top_altitude = np.where(
-            match_clsat.cloudsat.calipso_index >= 0,
-            match_calipso.calipso.layer_top_altitude[index, 0],
-            -9)
-        for layer in range(1, 10):
-            match_clsat.cloudsat.calipso_layer_top_altitude = np.where(
-                np.logical_and(np.logical_and(match_clsat.cloudsat.calipso_index >= 0,
-                                              match_calipso.calipso.layer_top_altitude[index, layer]>0),
-                               match_calipso.calipso.layer_top_altitude[index, layer]>
-                               match_calipso.calipso.layer_top_altitude[index, layer-1]),
-
-                match_calipso.calipso.layer_top_altitude[index, layer],
-            match_clsat.cloudsat.calipso_layer_top_altitude)
-        match_clsat.cloudsat.calipso_layer_top_altitude[match_clsat.cloudsat.calipso_layer_top_altitude<-999] = -9.0
-    """
     return match_clsat, match_calipso
 
 
