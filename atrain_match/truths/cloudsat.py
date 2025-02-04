@@ -141,7 +141,9 @@ def read_cloudsat_hdf4(filename):
         factor = data_handle.findattr('factor')
         offset = data_handle.findattr('offset')
         long_name = data_handle.findattr('long_name')
-        logger.debug(name, long_name, factor, offset)
+        print(name, long_name, factor, offset)
+        if factor is not None:
+            logger.debug("{:s} {:s} {:3.1f} {:3.1f}".format(name, long_name, factor, offset))
         # print data_handle.factor
         am_name = clsat_name_conversion(name, retv)
         if am_name in retv.all_arrays.keys():

@@ -8,7 +8,7 @@
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
-# atrain_match is distributed in the hope that it will be useful, but
+# atrain_match is distributed in the hope that it will e useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # General Public License for more details.
@@ -581,77 +581,35 @@ def get_calipso_matchups(calipso_files, values,
                          cafiles1km=None, cafiles5km=None,
                          cafiles5km_aerosol=None):
     """Read Calipso data and match with the given PPS data."""
-    # First remove files clearly outside time limit from the lists
-    # When combinating 5km and 1km data some expensive calculations are done
-    # before cutting the data that fits the time condition.
-    # It is unnessecary to do this for files where no-pixel will match!
-    calipso_files = discard_calipso_files_outside_time_range(
-        calipso_files, cloudproducts, values, SETTINGS)
-    if cafiles1km is not None:
-        cafiles1km = discard_calipso_files_outside_time_range(
-            cafiles1km, cloudproducts, values, SETTINGS, res=1)
-    if cafiles5km is not None:
-        cafiles5km = discard_calipso_files_outside_time_range(
-            cafiles5km, cloudproducts, values, SETTINGS, res=5)
-    if cafiles5km_aerosol is not None:
-        cafiles5km_aerosol = discard_calipso_files_outside_time_range(
-            cafiles5km_aerosol, cloudproducts, values, SETTINGS, res=5, ALAY=True)
-    CALIPSO_version = 4
-    if len(calipso_files) > 0 and 'V3' in os.path.basename(calipso_files[0]):
-        logger.info("CALIPSO version 3 data!")
-        CALIPSO_version = 3
 
     calipso = reshape_calipso(calipso_files)
     # find time breakpoints, but don't cut the data yet ..
     startBreak, endBreak = find_break_points(calipso, cloudproducts, SETTINGS)
-    if cafiles1km is not None and CALIPSO_version == 3 and config.RESOLUTION == 5:
-        # RESOLUTION 5km also have 1km data
-        logger.info("Calipso version 3 data used and old 1 km restore method!")
-        calipso1km = reshape_calipso(cafiles1km, res=1)
-        calipso5km = calipso
-        calipso = add_1km_to_5km(calipso1km, calipso5km)
-        calipso = calipso.extract_elements(starti=startBreak,
-                                           endi=endBreak)
-        calipso = total_and_top_layer_optical_depth_5km(calipso, SETTINGS, resolution=5)
 
-    elif cafiles5km is not None and CALIPSO_version == 4 and config.RESOLUTION == 1:
+    if cafiles5km is not None and config.RESOLUTION == 1:
         # RESOLUTION 1km also have 5km data calipso version 4
         logger.info("Calipso version 4, single shot fraction and "
                     "old 5km restored optical depth method used!")
         calipso1km = calipso
         calipso5km = reshape_calipso(cafiles5km, res=5)
-        calipso5km = add_singleshot_to5km(calipso5km, SETTINGS)
+        #calipso5km = add_singleshot_to5km(calipso5km, SETTINGS)
         calipso5km = total_and_top_layer_optical_depth_5km(calipso5km, SETTINGS, resolution=5)
-        calipso1km = add_5km_variables_to_1km(calipso1km, calipso5km, CALIPSO_version)
+        calipso1km = add_5km_variables_to_1km(calipso1km, calipso5km)
         calipso = calipso1km.extract_elements(starti=startBreak,
                                               endi=endBreak)
-
-    elif cafiles5km is not None and CALIPSO_version == 3 and config.RESOLUTION == 1:
-        # RESOLUTION 1km also have 5km data calipso version 3
-        logger.info("Calipso version 3 data used and old 5 km restored optical depth method!")
-        calipso1km = calipso
-        calipso5km = reshape_calipso(cafiles5km, res=5)
-        calipso5km = total_and_top_layer_optical_depth_5km(calipso5km, SETTINGS, resolution=5)
-        calipso1km = add_5km_variables_to_1km(calipso1km, calipso5km, CALIPSO_version)
-        calipso = calipso1km.extract_elements(starti=startBreak,
-                                              endi=endBreak)
-    elif CALIPSO_version == 4 and config.RESOLUTION == 5 and SETTINGS['ALSO_USE_SINGLE_SHOT_CLOUD_CLEARED']:
-
+    elif config.RESOLUTION == 5 and SETTINGS['ALSO_USE_SINGLE_SHOT_CLOUD_CLEARED']:
         # RESOLUTION exclusively 5km data but additional clouds taken from 330 m single shot resolution
         logger.info("Calipso version 4 data used and new single shot restore method!")
-        # calipso5km = reshape_calipso(cafiles5km, res=5)
-        calipso5km = reshape_calipso(calipso_files)
-        calipso = add_singleshot_to5km(calipso5km, SETTINGS)
-
+        calipso = add_singleshot_to5km(calipso, SETTINGS)
         calipso = calipso.extract_elements(starti=startBreak,
                                            endi=endBreak)
         calipso = total_and_top_layer_optical_depth_5km(calipso, SETTINGS, resolution=5)
-    elif CALIPSO_version == 4 and config.RESOLUTION == 5 and SETTINGS['ALSO_USE_1KM_FILES']:
-
+    
+    elif config.RESOLUTION == 5 and SETTINGS['ALSO_USE_1KM_FILES']:
         # RESOLUTION exclusively 5km data but additional clouds taken from 1 km data
         logger.info("Calipso version 4 data used but old method combining 1 km and 5 km data!")
         # calipso5km = reshape_calipso(cafiles5km, res=5)
-        calipso5km = reshape_calipso(calipso_files)
+        calipso5km = calipso
         calipso1km = reshape_calipso(cafiles1km, res=1)
         calipso = add_1km_to_5km(calipso1km, calipso5km)
         calipso = calipso.extract_elements(starti=startBreak,
@@ -841,8 +799,16 @@ def add_additional_clousat_calipso_index_vars(match_clsat, match_calipso):
         for var_2d_name in ['feature_classification_flags',
                             'layer_base_altitude',
                             'layer_top_altitude',
+                            'layer_base_pressure',
+                            'layer_top_pressure',
+                            'layer_top_temperature'
+                            'layer_base_temperature',
                             'feature_optical_depth_532',
-                            'feature_optical_depth_532_5km']:
+                            'feature_optical_depth_532_5km',                            
+                            "layer_top_altitude_5km",
+                            "layer_top_pressure_5km",
+
+                            ]:
             if hasattr(match_calipso.calipso, var_2d_name):
                 data_calipso = getattr(match_calipso.calipso, var_2d_name)
                 if data_calipso is None:
@@ -855,7 +821,23 @@ def add_additional_clousat_calipso_index_vars(match_clsat, match_calipso):
         for var_1d_name in ['column_optical_depth_tropospheric_aerosols_532',
                             'column_optical_depth_tropospheric_aerosols_532_5km',
                             'column_optical_depth_aerosols_532',
-                            'column_optical_depth_aerosols_532_5km']:
+                            'column_optical_depth_aerosols_532_5km',
+                            "number_layers_found_5km",
+                            "number_layers_found",
+                            "average_cloud_top_pressure_single_shots",
+                            "average_cloud_top_altitude_single_shots",
+                            "average_cloud_top_temperature_single_shots",
+                            "median_cloud_top_pressure_single_shots",
+                            "median_cloud_top_temperature_single_shots",
+                            "median_cloud_top_altitude_single_shots",
+                            "average_cloud_base_pressure_single_shots",
+                            "average_cloud_base_altitude_single_shots",
+                            "average_cloud_base_temperature_single_shots",
+                            "median_cloud_base_pressure_single_shots",
+                            "median_cloud_base_temperature_single_shots",
+                            "median_cloud_base_altitude_single_shots",
+
+                            ]:
 
             if hasattr(match_calipso.calipso, var_1d_name):
                 data_calipso = getattr(match_calipso.calipso, var_1d_name)
@@ -1120,7 +1102,8 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
                 matchup = add_modis_06(matchup, AM_PATHS, cross)
         if SETTINGS['ADD_NWP']:
             import pps_nwp
-            from atrain_match.libs.extract_imager_along_track import _interpolate_height_and_temperature_from_pressure
+            from atrain_match.libs.extract_imager_along_track import (_interpolate_height_and_temperature_from_pressure,
+                                                                      _interpolate_pressure_from_height)
             nwp_file = find_closest_nwp_file(cloudproducts, AM_PATHS,
                                              values, SETTINGS)
             logger.debug(nwp_file)
@@ -1153,10 +1136,14 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
                 field = 0.01*field[:]
                 field.units = 'hPa'
             matchup.imager.nwp_psur = field[:].astype(np.float32).transpose()
-            data = _interpolate_height_and_temperature_from_pressure(matchup.imager, 440)
-            setattr(matchup.imager, 'nwp_h440', data)
-            data = _interpolate_height_and_temperature_from_pressure(matchup.imager, 680)
-            setattr(matchup.imager, 'nwp_h680', data)
+            for pressure in [1000, 950, 900, 850, 800, 700, 680, 500, 440, 250, 100]:
+                data = _interpolate_height_and_temperature_from_pressure(matchup.imager, pressure)
+                setattr(matchup.imager, "nwp_h{:d}".format(pressure), data)
+
+            if name == 'CloudSat':
+                data = _interpolate_pressure_from_height(matchup.imager, matchup.cloudsat.validation_height_base)
+                setattr(matchup.cloudsat, 'cloudsat_cloud_base_pressure', data)
+            
             if SETTINGS['OCA_VALIDATION'] and matchup.imager.ctth_height is None:
                 data = _interpolate_height_and_temperature_from_pressure(matchup.imager, None,
                                                                          list_of_levels=matchup.imager.ctth_pressure)
