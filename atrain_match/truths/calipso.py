@@ -326,23 +326,6 @@ def read_calipso_h5(filename, retv):
     return retv
 
 
-def discard_calipso_files_outside_time_range(calipsofiles_list, cloudproducts, values,
-                                             SETTINGS, res=config.RESOLUTION, ALAY=False):
-    imager_end = cloudproducts.sec1970_end
-    imager_start = cloudproducts.sec1970_start
-    calipso_within_time_range = []
-    for current_file in calipsofiles_list:
-        new_calipso = get_calipso(current_file, res, ALAY=ALAY)
-        cal_new_all = new_calipso.sec_1970
-        if (cal_new_all[0] > imager_end + SETTINGS["sec_timeThr"] or
-                cal_new_all[-1] + SETTINGS["sec_timeThr"] < imager_start):
-            pass
-            # print "skipping file %s outside time_limits"%(current_file)
-        else:
-            logger.debug("Keeping file %s inside time_limits", os.path.basename(current_file))
-            calipso_within_time_range.append(current_file)
-    return calipso_within_time_range
-
 
 def reshape_calipso(calipsofiles, res=config.RESOLUTION, ALAY=False):
     # concatenate and reshape calipso files
