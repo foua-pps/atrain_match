@@ -21,7 +21,6 @@ from atrain_match.matchobject_io import write_truth_imager_match_obj
 from atrain_match.truths.calipso import (
     total_and_top_layer_optical_depth_5km,
     reshape_calipso,
-    discard_calipso_files_outside_time_range,
     match_calipso_imager,
     find_break_points,
     add_1km_to_5km,
@@ -1102,7 +1101,7 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
                 matchup = add_modis_06(matchup, AM_PATHS, cross)
         if SETTINGS['ADD_NWP']:
             import pps_nwp
-            from atrain_match.libs.extract_imager_along_track import (_interpolate_height_and_temperature_from_pressure,
+            from atrain_match.libs.extract_imager_along_track import (_interpolate_height_or_temperature_from_pressure,
                                                                       _interpolate_pressure_from_height)
             nwp_file = find_closest_nwp_file(cloudproducts, AM_PATHS,
                                              values, SETTINGS)
@@ -1117,6 +1116,8 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
                     gribfile.get_gh_surface()[:].astype(np.float32))
             setattr(matchup.imager, "nwp_temperature",
                     gribfile.get_t_vertical()[0, :, :].astype(np.float32).transpose())
+            setattr(matchup.imager, "nwp_tsur",
+                    gribfile.get_t_surface()[:].astype(np.float32).transpose())
             setattr(matchup.imager, "nwp_h2m",
                     gribfile.get_h_2meter()[:].astype(np.float32))
             setattr(matchup.imager, "nwp_t2m",
@@ -1125,6 +1126,9 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
                     gribfile.get_u_10meter()[:].astype(np.float32))
             setattr(matchup.imager, "nwp_v10m",
                     gribfile.get_v_10meter()[:].astype(np.float32))
+            for pressure in [1000, 950, 900, 850, 800, 700, 680, 500, 440, 250, 100]:
+                setattr(matchup.imager, f"nwp_q{pressure}",
+                        gribfile.get_q_pressure(pressure)[:].astype(np.float32))
             # get pressure variables in hPs
             field = gribfile.get_p_vertical()
             if field.units == 'Pa':
@@ -1137,15 +1141,17 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
                 field.units = 'hPa'
             matchup.imager.nwp_psur = field[:].astype(np.float32).transpose()
             for pressure in [1000, 950, 900, 850, 800, 700, 680, 500, 440, 250, 100]:
-                data = _interpolate_height_and_temperature_from_pressure(matchup.imager, pressure)
+                data = _interpolate_height_or_temperature_from_pressure(matchup.imager, pressure)
                 setattr(matchup.imager, "nwp_h{:d}".format(pressure), data)
-
             if name == 'CloudSat':
-                data = _interpolate_pressure_from_height(matchup.imager, matchup.cloudsat.validation_height_base)
-                setattr(matchup.cloudsat, 'cloudsat_cloud_base_pressure', data)
-            
+                data_pressure = _interpolate_pressure_from_height(matchup.imager, matchup.cloudsat.validation_height_base)
+                setattr(matchup.cloudsat, 'cloudsat_cloud_base_pressure', data_pressure)
+                data = _interpolate_height_or_temperature_from_pressure(matchup.imager, None, list_of_levels=data_pressure, temperature=True)
+                data[data_pressure<0] = -9
+                setattr(matchup.cloudsat, 'cloudsat_cloud_base_temperature', data)
+                
             if SETTINGS['OCA_VALIDATION'] and matchup.imager.ctth_height is None:
-                data = _interpolate_height_and_temperature_from_pressure(matchup.imager, None,
+                data = _interpolate_height_or_temperature_from_pressure(matchup.imager, None,
                                                                          list_of_levels=matchup.imager.ctth_pressure)
                 data[matchup.imager.ctth_pressure<0] = -9
                 setattr(matchup.imager, 'ctth_height', data)

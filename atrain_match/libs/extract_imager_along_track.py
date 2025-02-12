@@ -122,19 +122,25 @@ def _interpolate_pressure_from_height(imager_obj, list_of_levels):
     return out_pressure
 
 
-def _interpolate_height_and_temperature_from_pressure(imager_obj,
-                                                      level, list_of_levels=None):
-    """ Function to find height att pressure level (level)
-    from segment_nwp, pressure and height vectors.
+def _interpolate_height_or_temperature_from_pressure(imager_obj,
+                                                     level,
+                                                     list_of_levels=None,
+                                                     temperature=False,):
+    """ Function to find height or temperature at pressure level (level)
+    from nwp, pressure and height vectors.
     High means high in pressure. The level closest to ground i hi, and lo is at lower
     pressure further up in atmosphere.
     """
     if hasattr(imager_obj, "nwp_height") and imager_obj.nwp_height is not None:
-        values_h = imager_obj.nwp_height
         pressure_v = imager_obj.nwp_pressure
-        surface_h = imager_obj.nwp_surface_h
         psur = imager_obj.nwp_psur
-    else:
+        if temperature:
+            values_h = imager_obj.nwp_temperature
+            surface_height = imager_obj.nwp_tsur
+        else:
+            values_h = imager_obj.nwp_height
+            surface_height = imager_obj.nwp_surface_h
+    else:            
         return None
     # import pdb
     # pdb.set_trace()
@@ -162,7 +168,7 @@ def _interpolate_height_and_temperature_from_pressure(imager_obj,
     height_lo_ = values_h[k, lower_index]*1.0
     # update "hi" where level is between surface and first level in array
     hi[below_level_1] = psur[below_level_1]
-    height_hi_[below_level_1] = surface_h[below_level_1]
+    height_hi_[below_level_1] = surface_height[below_level_1]
     # log pressures
     hi = np.log(hi)
     lo = np.log(lo)
@@ -170,23 +176,6 @@ def _interpolate_height_and_temperature_from_pressure(imager_obj,
     # interpolate
     out_h = height_hi_ - (hi - level) * (height_hi_ - height_lo_) / (hi - lo)
     return out_h
-
-
-
-def insert_nwp_h440_h680_data(obt):
-    data = _interpolate_height_and_temperature_from_pressure(obt.imager, 440)
-    setattr(obt.imager, 'segment_nwp_h440', data)
-    data = _interpolate_height_and_temperature_from_pressure(obt.imager, 680)
-    setattr(obt.imager, 'segment_nwp_h680', data)
-    data = _interpolate_height_and_temperature_from_pressure(obt.imager, 850)
-    setattr(obt.imager, 'segment_nwp_h850', data)
-    data = _interpolate_height_and_temperature_from_pressure(obt.imager, 800)
-    setattr(obt.imager, 'segment_nwp_h800', data)
-    data = _interpolate_height_and_temperature_from_pressure(obt.imager, 950)
-    setattr(obt.imager, 'segment_nwp_h950', data)
-    data = _interpolate_height_and_temperature_from_pressure(obt.imager, 900)
-    setattr(obt.imager, 'segment_nwp_h900', data)
-    return obt
 
 
 # ---------------------------------------------------------------------------
