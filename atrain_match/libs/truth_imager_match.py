@@ -587,8 +587,7 @@ def get_calipso_matchups(calipso_files, values,
 
     if cafiles5km is not None and config.RESOLUTION == 1:
         # RESOLUTION 1km also have 5km data calipso version 4
-        logger.info("Calipso version 4, single shot fraction and "
-                    "old 5km restored optical depth method used!")
+        logger.info("Calipso version 4, 1 km resolution, add things from 5km files")
         calipso1km = calipso
         calipso5km = reshape_calipso(cafiles5km, res=5)
         #calipso5km = add_singleshot_to5km(calipso5km, SETTINGS)
@@ -615,7 +614,7 @@ def get_calipso_matchups(calipso_files, values,
                                            endi=endBreak)
         calipso = total_and_top_layer_optical_depth_5km(calipso, SETTINGS, resolution=5)
     else:
-        logger.warning("Old metod, only one resolution used, expect bad results!")
+        logger.warning("Old metod, only one resolution used, expect worse results!")
         calipso = calipso.extract_elements(starti=startBreak,
                                            endi=endBreak)
         if config.RESOLUTION == 5:
@@ -1143,6 +1142,9 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
             for pressure in [1000, 950, 900, 850, 800, 700, 680, 500, 440, 250, 100]:
                 data = _interpolate_height_or_temperature_from_pressure(matchup.imager, pressure)
                 setattr(matchup.imager, "nwp_h{:d}".format(pressure), data)
+            for pressure in [1000, 960, 950, 925, 900, 850, 800, 700, 680, 500, 440, 400, 350, 300, 250, 200, 100]:
+                setattr(matchup.imager, f"nwp_t{pressure}",
+                        gribfile.get_t_pressure(pressure)[:].astype(np.float32))
             if name == 'CloudSat':
                 data_pressure = _interpolate_pressure_from_height(matchup.imager, matchup.cloudsat.validation_height_base)
                 setattr(matchup.cloudsat, 'cloudsat_cloud_base_pressure', data_pressure)

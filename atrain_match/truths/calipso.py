@@ -161,7 +161,7 @@ def get_one_singleshot_dataset(ssNumber_Layers_Found, data, retv, ssName, out_na
         layer_data = np.array(layer_data).reshape(-1, number_of_single_shots_per_pixel)
 
     is_cloudy = getattr(retv, "cfc_single_shots")
-    layer_data = np.where(layer_data > -9998, layer_data, np.NaN)
+    layer_data = np.where(layer_data > -9998, layer_data, np.nan)
     layer_mean = np.where(is_cloudy, np.nanmean(layer_data, axis=1), -9.0)  # Calculate average cloud base
     layer_median = np.where(is_cloudy, np.nanmedian(layer_data, axis=1), -9.0)  # Calculate median cloud base
     name = "average_" + out_name
