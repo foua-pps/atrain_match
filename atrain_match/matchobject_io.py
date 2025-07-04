@@ -319,6 +319,18 @@ class CloudsatObject(DataObject):
             'calipso_feature_classification_flags': None
         }
 
+class EarthCareObject(DataObject):
+    def __init__(self):
+        DataObject.__init__(self)
+        self.all_arrays = {
+            'sec_1970': None,
+            'latitude': None,
+            'longitude': None,
+            'imager_linnum': None,
+            'imager_pixnum': None,
+            'validation_height': None,
+            'cloud_fraction': None,
+        }
 
 class DardarObject(DataObject):
     def __init__(self):
@@ -442,6 +454,8 @@ class TruthImagerTrackObject:
             self.iss = IssObject()
         elif truth in 'dardar':
             self.dardar = DardarObject()
+        elif truth in 'Earthcare':
+            self.dardar = EarthcareObject()
         self.extra = ExtraObject()
         self.diff_sec_1970 = None
         self.truth_sat = truth
@@ -456,7 +470,7 @@ class TruthImagerTrackObject:
 
     def __add__(self, other):
         """Concatenating two objects together"""
-        for object_name in ['imager', 'calipso', 'calipso_aerosol', 'amsr', 'dardar',
+        for object_name in ['imager', 'calipso', 'calipso_aerosol', 'amsr', 'dardar', 'earthcare'
                             'cloudsat', 'iss', 'mora', 'synop', 'modis_lvl2', 'modis', 'extra']:
             if hasattr(self, object_name):
                 setattr(self, object_name,
@@ -471,7 +485,7 @@ class TruthImagerTrackObject:
         return self
 
     def extract_elements(self, idx=None, starti=None, endi=None):
-        for object_name in ['imager', 'calipso', 'calipso_aerosol', 'amsr', 'dardar',
+        for object_name in ['imager', 'calipso', 'calipso_aerosol', 'amsr', 'dardar', 'earthcare',
                             'cloudsat', 'iss', 'mora', 'synop', 'modis', 'extra']:
             if hasattr(self, object_name):
                 obj = getattr(self, object_name)
@@ -522,6 +536,9 @@ def get_stuff_to_read_from_a_reshaped_file(h5file, retv):
     if 'dardar' in h5file.keys():
         h5_groups.append(h5file['/dardar'])
         data_objects.append(retv.dardar)
+    if 'earthcare' in h5file.keys():
+        h5_groups.append(h5file['/earthcare'])
+        data_objects.append(retv.earthcare)
     if 'iss' in h5file.keys():
         h5_groups.append(h5file['/iss'])
         data_objects.append(retv.iss)
@@ -586,7 +603,7 @@ def write_truth_imager_match_obj(filename, match_obj, SETTINGS=None, imager_obj_
     groups = {imager_obj_name: match_obj.imager.all_arrays}
     imager_attrs = {'imager_instrument': match_obj.imager_instrument}
     groups_attrs = {imager_obj_name: imager_attrs}
-    for name in ['calipso', 'calipso_aerosol', 'iss', 'modis_lvl2', 'dardar',
+    for name in ['calipso', 'calipso_aerosol', 'iss', 'modis_lvl2', 'dardar', 'earthcare',
                  'amsr', 'synop', 'mora', 'cloudsat', 'extra']:
         if hasattr(match_obj, name):
             groups[name] = getattr(match_obj, name).all_arrays

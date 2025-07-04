@@ -51,6 +51,7 @@ INSTRUMENT = {'npp': 'viirs',
               'meteosat11': 'seviri',
               'fy3d': 'mersi2',
               'noaa20': 'viirs',
+              'noaa21': 'viirs',
               'sga1': 'metimage',
               'epsga1': 'metimage',
               'metopsga1': 'metimage',
@@ -110,6 +111,7 @@ ISS_FILE_LENGTH = 60*60  # s iss files are shorter 60 minutes
 AMSR_FILE_LENGTH = 60*60  # AMSR-Es  files are shorter 60 minutes
 SYNOP_FILE_LENGTH = 24*60  # s Our synop data comes in 1 day files
 MORA_FILE_LENGTH = 24*60  # s Our MORA data comes in 1 day files
+EARTHCARE_FILE_LENGTH = 11*60  # s Our MORA data comes in 1 day files
 
 #  Maybe depricated?:
 PPS_FORMAT_2012_OR_EARLIER = False

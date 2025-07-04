@@ -1047,6 +1047,7 @@ def print_main_stats(match_obj, statfile):
 
 
 def calculate_statistics(mode, statfilename, match_calipso, match_clsat, match_iss, match_amsr, match_synop,
+                         match_earthcare,
                          SETTINGS,
                          dnt_flag=None):
     """Calculate all requested statistics, for all matches with one imager cloudproduct file (main function)."""
@@ -1115,6 +1116,18 @@ def calculate_statistics(mode, statfilename, match_calipso, match_clsat, match_i
             print_cmask_prob_stats(match_iss, statfile, val_subset, SETTINGS)
             # print_calipso_stats_ctype(match_iss, statfile, val_subset, cal_vert_feature)
             print_stats_ctop(match_iss, statfile, val_subset, None, SETTINGS)
+            statfile.close()
+
+    if match_earthcare is not None:
+        val_subset = get_subset_for_mode(match_earthcare, mode)
+        if val_subset is not None:
+            statfile = open(statfilename.replace('xxx', 'earthcare'), "w")
+            val_subset = get_day_night_subset(match_earthcare, val_subset, SETTINGS)
+            print_main_stats(match_earthcare, statfile)
+            print_cmask_stats(match_earthcare, statfile, val_subset, SETTINGS)
+            print_cmask_prob_stats(match_earthcare, statfile, val_subset, SETTINGS)
+            # print_calipso_stats_ctype(match_earthcare, statfile, val_subset, cal_vert_feature)
+            print_stats_ctop(match_earthcare, statfile, val_subset, None, SETTINGS)
             statfile.close()
 
     if match_amsr is not None:

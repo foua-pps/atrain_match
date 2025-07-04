@@ -41,7 +41,7 @@ from atrain_match.utils.common import MatchupError
 import logging
 logging.basicConfig(
     format='%(levelname)s |%(asctime)s|: %(message)s',
-    level=logging.INFO,
+    level=logging.DEBUG,
     # datefmt='%Y-%m-%d %H:%M:%S')
     datefmt='%H:%M:%S')
 logger = logging.getLogger(__name__)
