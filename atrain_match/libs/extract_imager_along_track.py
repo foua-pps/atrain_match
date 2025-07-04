@@ -70,26 +70,77 @@ def get_channel_data_from_object(imager_obj, chn_des, matched, nodata=-9):
         chdata_on_track = get_data_from_array(imager_obj.channel[chn_des].data, matched)
         return np.array(chdata_on_track)
 
-
-
-def _interpolate_height_and_temperature_from_pressure(imager_obj,
-                                                      level, list_of_levels=None):
+def _interpolate_pressure_from_height(imager_obj, list_of_levels):
     """ Function to find height att pressure level (level)
-    from segment_nwp, pressure and height vectors.
+    from segment_nwp, pressure and height vectors.le
     High means high in pressure. The level closest to ground i hi, and lo is at lower
     pressure further up in atmosphere.
     """
     if hasattr(imager_obj, "nwp_height") and imager_obj.nwp_height is not None:
-        values_h = imager_obj.nwp_height
+        height_h = imager_obj.nwp_height
         pressure_v = imager_obj.nwp_pressure
         surface_h = imager_obj.nwp_surface_h
         psur = imager_obj.nwp_psur
-    elif hasattr(imager_obj, "segment_nwp_geoheight") and imager_obj.segment_nwp_geoheight is not None:
-        values_h = imager_obj.segment_nwp_geoheight
-        pressure_v = imager_obj.segment_nwp_pressure
-        surface_h = imager_obj.segment_nwp_surfaceGeoHeight
-        psur = imager_obj.segment_nwp_surfacePressure
     else:
+        return None
+    
+    nlev = pressure_v.shape[1]
+    npix = pressure_v.shape[0]
+    k = np.arange(npix)
+
+    higher_index = np.array([np.searchsorted(height_h[ind, :], list_of_levels[ind], side='right')
+                             for ind in range(npix)])
+
+    
+    higher_index[higher_index >= (nlev - 1)] = nlev - 2
+    lower_index = higher_index - 1
+
+        
+    # update "lo" where level is between surface and first level in array
+    below_level_1 = list_of_levels < height_h[:, 0]
+    lower_index[below_level_1] = 0
+
+
+    # get pressure and height for layer below and above level
+    hi = pressure_v[k, higher_index]
+    lo = pressure_v[k, lower_index]
+    height_hi_ = height_h[k, higher_index]*1.0
+    height_lo_ = height_h[k, lower_index]*1.0
+    # update "hi" where level is between surface and first level in array
+    lo[below_level_1] = psur[below_level_1]
+    height_lo_[below_level_1] = surface_h[below_level_1]
+    # log pressures
+    hi = np.log(hi)
+    lo = np.log(lo)
+    #level = np.log(level)
+    # interpolate
+    #out_h = height_hi_ - (hi - level) * (height_hi_ - height_lo_) / (hi - lo)
+    #(hi - level) * (height_hi_ - height_lo_) / (hi - lo) = height_hi_ - out_h
+    out_pressure = np.exp(hi - (height_hi_ - list_of_levels) *  (hi - lo) /  (height_hi_ - height_lo_))
+    out_pressure[list_of_levels < 0] = -9
+
+    return out_pressure
+
+
+def _interpolate_height_or_temperature_from_pressure(imager_obj,
+                                                     level,
+                                                     list_of_levels=None,
+                                                     temperature=False,):
+    """ Function to find height or temperature at pressure level (level)
+    from nwp, pressure and height vectors.
+    High means high in pressure. The level closest to ground i hi, and lo is at lower
+    pressure further up in atmosphere.
+    """
+    if hasattr(imager_obj, "nwp_height") and imager_obj.nwp_height is not None:
+        pressure_v = imager_obj.nwp_pressure
+        psur = imager_obj.nwp_psur
+        if temperature:
+            values_h = imager_obj.nwp_temperature
+            surface_height = imager_obj.nwp_tsur
+        else:
+            values_h = imager_obj.nwp_height
+            surface_height = imager_obj.nwp_surface_h
+    else:            
         return None
     # import pdb
     # pdb.set_trace()
@@ -117,7 +168,7 @@ def _interpolate_height_and_temperature_from_pressure(imager_obj,
     height_lo_ = values_h[k, lower_index]*1.0
     # update "hi" where level is between surface and first level in array
     hi[below_level_1] = psur[below_level_1]
-    height_hi_[below_level_1] = surface_h[below_level_1]
+    height_hi_[below_level_1] = surface_height[below_level_1]
     # log pressures
     hi = np.log(hi)
     lo = np.log(lo)
@@ -125,104 +176,6 @@ def _interpolate_height_and_temperature_from_pressure(imager_obj,
     # interpolate
     out_h = height_hi_ - (hi - level) * (height_hi_ - height_lo_) / (hi - lo)
     return out_h
-
-
-def insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt):
-    npix = row_matched.shape[0]
-    """
-        # obt.imager.segment_nwgeoheight
-        obt.imager.segment_nwp_moist
-        obt.imager.segment_nwp_pressure
-        obt.imager.segment_nwp_temp
-        obt.imager.segment_surfaceLandTemp
-        obt.imager.segment_surfaceSeaTemp
-        obt.imager.segment_surfaceGeoHeight
-        obt.imager.segment_surfaceMoist
-        obt.imager.segment_surfacePressure
-        obt.imager.segment_fractionOfLand
-        obt.imager.segment_meanElevation
-        obt.imager.segment_ptro
-        obt.imager.segment_ttro
-        # obt.imager.segment_t850
-        obt.imager.segment_tb11clfree_sea
-        obt.imager.segment_tb12clfree_sea
-        obt.imager.segment_tb11clfree_land
-        obt.imager.segment_tb12clfree_land
-        obt.imager.segment_tb11cloudy_surface
-        obt.imager.segment_tb12cloudy_surface
-        """
-    def get_segment_row_col_idx(nwp_segments, row_matched, col_matched):
-        segment_colidx = nwp_segments['colidx']
-        segment_rowidx = nwp_segments['rowidx']
-        seg_row = np.zeros(np.size(row_matched)) - 9
-        seg_col = np.zeros(np.size(col_matched)) - 9
-        for s_col in range(nwp_segments['norows']):
-            for s_row in range(nwp_segments['nocols']):
-                within_segment = np.logical_and(
-                    np.logical_and(
-                        row_matched >= (segment_rowidx[s_row, s_col]
-                                        - nwp_segments['segSizeX']/2),
-                        row_matched < (segment_rowidx[s_row, s_col]
-                                       + nwp_segments['segSizeX']/2)),
-                    np.logical_and(
-                        col_matched >= (segment_colidx[s_row, s_col]
-                                        - nwp_segments['segSizeY']/2),
-                        col_matched < (segment_colidx[s_row, s_col]
-                                       + nwp_segments['segSizeY']/2)))
-                seg_row[within_segment] = s_row
-                seg_col[within_segment] = s_col
-        return seg_row.astype(np.int16), seg_col.astype(np.int16)
-    seg_row, seg_col = get_segment_row_col_idx(nwp_segments, row_matched, col_matched)
-    for data_set in ['surfaceLandTemp',
-                     'surfaceSeaTemp',
-                     'surfaceGeoHeight',
-                     'surfaceMoist',
-                     'surfacePressure',
-                     'fractionOfLand',
-                     'meanElevation',
-                     'ptro',
-                     'ttro',
-                     't850',
-                     'tb11clfree_sea',
-                     'tb12clfree_sea',
-                     'tb11clfree_land',
-                     'tb12clfree_land',
-                     'tb11lowcloud_sea',
-                     'tb12lowcloud_sea',
-                     'tb11lowcloud_land',
-                     'tb12lowcloud_land']:
-        if data_set in nwp_segments.keys():
-            # 'tb11cloudy_surface',
-            # 'tb12cloudy_surface ',
-            setattr(obt.imager, 'segment_nwp_' + data_set,
-                    np.array([nwp_segments[data_set][seg_row[idx], seg_col[idx]]
-                              for idx in range(npix)]))
-        elif 'clfree' in data_set or 'lowcloud' in data_set:
-            # these are nor always present
-            pass
-
-    for data_set in ['moist', 'pressure', 'geoheight', 'temp']:
-        setattr(obt.imager, 'segment_nwp_' + data_set,
-                np.array([nwp_segments[data_set][seg_row[idx], seg_col[idx]]
-                          for idx in range(npix)]))
-    # Remove nodata and not used upper part of atmosphere
-    N = obt.imager.segment_nwp_pressure.shape[1]
-    pressure_n_to_keep = np.sum(np.max(obt.imager.segment_nwp_pressure, axis=0) > 50)
-    logger.debug("Not saving upper %d levels of 3-D nwp from segment file" % (N-pressure_n_to_keep))
-    logger.debug("Keeping %d lower levels of 3-D nwp from segment file" % (pressure_n_to_keep))
-    for data_set in ['segment_nwp_moist', 'segment_nwp_pressure',
-                     'segment_nwp_geoheight', 'segment_nwp_temp']:
-        data = getattr(obt.imager, data_set)
-        setattr(obt.imager, data_set, data[:, 0:pressure_n_to_keep])
-    return obt
-
-
-def insert_nwp_h440_h680_data(obt):
-    data = _interpolate_height_and_temperature_from_pressure(obt.imager, 440)
-    setattr(obt.imager, 'segment_nwp_h440', data)
-    data = _interpolate_height_and_temperature_from_pressure(obt.imager, 680)
-    setattr(obt.imager, 'segment_nwp_h680', data)
-    return obt
 
 
 # ---------------------------------------------------------------------------
@@ -403,9 +356,7 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
         if (SETTINGS["PPS_VALIDATION"] and hasattr(ctth, 'processingflag')):
             is_opaque = np.bitwise_and(np.right_shift(ctth.processingflag, 2), 1)
             obt.imager.ctth_opaque = get_data_from_array(is_opaque, row_col)
-    # NWP on ctth resolution
-    if nwp_segments is not None:
-        obt = insert_nwp_segments_data(nwp_segments, row_matched, col_matched, obt)
+
     if cpp is None or not extract_cpp:
         logger.debug("Not extracting cpp")
     elif extract_some_data_for_x_neighbours:
@@ -425,8 +376,6 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
                 setattr(obt.imager, data_set_name,
                         get_data_from_array(data, row_col))
 
-    obt = insert_nwp_h440_h680_data(obt)
-    
     # extract cci uncertainties if requested
     if unc_obj is not None and extract_unc:
         if extract_some_data_for_x_neighbours:

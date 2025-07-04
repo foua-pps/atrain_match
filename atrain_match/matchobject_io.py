@@ -244,23 +244,21 @@ class CalipsoObject(DataObject):
             'detection_height_5km': None,
             'total_optical_depth_5km': None,
             "feature_optical_depth_532_top_layer_5km": None,
-            'cfc_single_shots_1km_from_5km_file': None,
-            "average_cloud_top_pressure_single_shots": None,
-            "average_cloud_top_pressure_single_shots_5km": None,
-            "average_cloud_top_temperature_single_shots": None,
-            "average_cloud_top_temperature_single_shots_5km": None,
-            "median_cloud_top_pressure_single_shots": None,
-            "median_cloud_top_pressure_single_shots_5km": None,
-            "median_cloud_top_temperature_single_shots": None,
-            "median_cloud_top_temperature_single_shots_5km": None,
-            "average_cloud_top_single_shots": None,            
-            "average_cloud_top_single_shots_5km": None,
-            "average_cloud_base_single_shots": None,
-            "average_cloud_base_single_shots_5km": None,
             
             "single_shot_data": None,
             # Variables derived from 5km file to 1kmresolution_
-            'cfc_single_shots_1km_from_5km_file': None,
+            
+            'cfc_single_shots': None,
+            "average_cloud_top_pressure_single_shots": None,
+            "average_cloud_top_temperature_single_shots": None,
+            "average_cloud_top_single_shots": None,            
+            "average_cloud_base_single_shots": None,
+            "average_cloud_base_pressure_single_shots": None,
+            "median_cloud_top_pressure_single_shots": None,
+            "median_cloud_top_temperature_single_shots": None,
+            "median_cloud_top_single_shots": None,            
+            "median_cloud_base_single_shots": None,
+            "median_cloud_base_pressure_single_shots": None,            
 
             # From cloudsat:
             'cal_modis_cflag': None,
@@ -297,7 +295,7 @@ class CloudsatObject(DataObject):
             'RO_liq_water_path': None,  # g/m2 R05
             'RO_ice_water_path': None,  # g/m2 R05
             'precip_liq_water_path_gm2': None,  # g/m2
-            'cloud_liq_water_path_gm2': None,  # g/m2 
+            'cloud_liq_water_path_gm2': None,  # g/m2 aa
             'precip_ice_water_path_gm2': None,  # g/m2 
             'cloud_ice_water_path_gm2': None,  # g/m2
             'liq_water_path_gm2': None,  # g/m2
@@ -679,21 +677,19 @@ the_used_variables = [
     'minimum_laser_energy_532',
     'cad_score',
     "average_cloud_top_pressure_single_shots",
-    "average_cloud_top_pressure_single_shots_1km",
-    "average_cloud_top_single_shots",
-    "average_cloud_top_single_shots_1km",
-    "average_cloud_top_pressure_single_shots",
-    "average_cloud_top_pressure_single_shots_5km",
+    "average_cloud_top_altitude_single_shots",
     "average_cloud_top_temperature_single_shots",
-    "average_cloud_top_temperature_single_shots_5km",
     "median_cloud_top_pressure_single_shots",
-    "median_cloud_top_pressure_single_shots_5km",
     "median_cloud_top_temperature_single_shots",
-    "median_cloud_top_temperature_single_shots_5km",
-    "average_cloud_top_single_shots",            
-    "average_cloud_top_single_shots_5km",
-    "average_cloud_base_single_shots",
-    "average_cloud_base_single_shots_5km",
+    "median_cloud_top_altitude_single_shots",
+    "average_cloud_base_pressure_single_shots",
+    "average_cloud_base_altitude_single_shots",
+    "average_cloud_base_temperature_single_shots",
+    "median_cloud_base_pressure_single_shots",
+    "median_cloud_base_temperature_single_shots",
+    "median_cloud_base_altitude_single_shots",
+      
+  
     'profile_id',
     'layer_top_altitude',
     'layer_top_altitude_fore_fov',
@@ -701,6 +697,7 @@ the_used_variables = [
     'layer_top_pressure',
     'layer_base_altitude',
     'layer_base_pressure',
+    'layer_base_temperature',
     'midlayer_temperature',
     'number_layers_found',
     'igbp_surface_type',
@@ -734,6 +731,11 @@ the_used_variables = [
     'MODIS_cloud_flag',
     'calipso_layer_base_altitude',
     'calipso_layer_top_altitude',
+    'calipso_layer_base_temperature',
+    'calipso_layer_top_temperature',
+    'calipso_layer_base_pressure',
+    'calipso_layer_top_pressure',
+    'cloudsat_cloud_base_pressure',
     'calipso_feature_classification_flags']
 # ----------------------------------------
 if __name__ == "__main__":
