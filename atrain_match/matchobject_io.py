@@ -454,8 +454,8 @@ class TruthImagerTrackObject:
             self.iss = IssObject()
         elif truth in 'dardar':
             self.dardar = DardarObject()
-        elif truth in 'Earthcare':
-            self.dardar = EarthcareObject()
+        elif truth in 'earthcare':
+            self.earthcare = EarthCareObject()
         self.extra = ExtraObject()
         self.diff_sec_1970 = None
         self.truth_sat = truth

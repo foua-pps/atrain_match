@@ -24,6 +24,62 @@ from atrain_match.config import RESOLUTION
 
 from matplotlib import pyplot as plt
 
+def plot_earthcare_imager(match_earthcare,
+                          imager_ctth_m_above_seasurface,
+                          plotpath,
+                          basename,
+                          mode,
+                          file_type='png',
+                          **options):
+    """Plot imager co-located data on EARTHCARE and CPR (Cloudsat) track."""
+    instrument = match_earthcare.imager_instrument
+    MAXHEIGHT = None
+    if 'MAXHEIGHT' in options:
+        MAXHEIGHT = options["MAXHEIGHT"]
+    earthcare_val_h = match_earthcare.earthcare.validation_height
+    #earthcare_val_h2 = match_earthcare.earthcare.thick_validation_height 
+    
+ 
+    pixel_position = np.arange(match_earthcare.earthcare.latitude.shape[0])    
+    # Calculates Hihest Cloud Top
+    if MAXHEIGHT is None:
+        maxheight_earthcare = np.nanmax(earthcare_val_h)
+        maxheight_imager = np.nanmax(imager_ctth_m_above_seasurface)
+        max_height_sat = np.max([maxheight_earthcare, maxheight_imager])
+        maxheight = max_height_sat + 1000
+    else:
+        maxheight = MAXHEIGHT
+    # PLOT
+    fig = plt.figure()
+    # Plot ground
+    ax = fig.add_subplot(111)
+    #ax.vlines(pixel_position, 0, match_earthcare.earthcare.elevation,
+    #          color='k', alpha=1.0)
+    title = "%s-EarthCare Cloud Top Heights" % instrument.upper()
+    #  Plot Earthcare
+    earthcare_label_set = False
+    got_height = earthcare_val_h >= 0
+    ax.plot(pixel_position[got_height], earthcare_val_h[got_height], 'g|',
+            label="EarthCare", rasterized=True)
+
+    #  Plot Imager
+    got_height = imager_ctth_m_above_seasurface >= 0
+    ax.plot(pixel_position[got_height], imager_ctth_m_above_seasurface[got_height], 'b+',
+            label=instrument.upper(), rasterized=True)
+    ax.set_ylim(0, maxheight)
+    # plt.show()
+    ax.set_title(title)
+    ax.set_xlabel("Track Position")
+    ax.set_ylabel("Cloud Height (meter)")
+    plt.legend(fancybox=True, loc=1, numpoints=4)
+    if isinstance(file_type, str):
+        file_type = [file_type]
+    for filetype in file_type:
+        filename = "%s/%skm_%s_earthcare_%s_clouds_%s.%s" \
+            % (plotpath, RESOLUTION, basename, instrument, mode.lower(), filetype)
+        fig.savefig(filename, format=filetype)
+
+
 
 def plot_cal_clsat_geoprof_imager(match_clsat,
                                   match_calipso,
@@ -147,6 +203,8 @@ def plot_cal_clsat_geoprof_imager(match_clsat,
             filename = "%s/%skm_%s_cloudsat_calipso_%s_clouds_%s.%s" \
                 % (plotpath, RESOLUTION, basename, instrument, mode.lower(), filetype)
             fig.savefig(filename, format=filetype)
+
+
 
 
 def drawCalPPSHeightPlot_PrototypePPSHeight(match_calipso_calipso,

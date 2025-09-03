@@ -43,6 +43,7 @@ from atrain_match.libs.truth_imager_statistics_lib import (calculate_statistics)
 from atrain_match.plotting.trajectory_plotting import plot_satellite_trajectory
 from atrain_match.plotting.along_track_plotting import (plot_cal_clsat_imager_time_diff,
                                                         plot_cal_clsat_geoprof_imager,
+                                                        plot_earthcare_imager,
                                                         plot_cal_clsat_imager_satz,
                                                         plot_cal_clsat_cwc_imager)
 from atrain_match.matchobject_io import (read_truth_imager_match_obj,
@@ -146,7 +147,7 @@ def get_matchups(cross, AM_PATHS, SETTINGS, reprocess):
     return out_dict
 
 
-def plot_some_figures(match_clsat, match_calipso, values, basename, process_mode,
+def plot_some_figures(match_clsat, match_calipso, match_earthcare, values, basename, process_mode,
                       AM_PATHS, SETTINGS, am_obj=None, match_synop=None, mo_obj=None):
     """Plot the matchup track and trajectory etc. for one matchup file."""
     logger.info("Plotting")
@@ -173,7 +174,16 @@ def plot_some_figures(match_clsat, match_calipso, values, basename, process_mode
                                   config.AREA_CONFIG_FILE,
                                   file_type,
                                   **AM_PATHS)
-
+    if (match_earthcare is not None):
+        # HEIGHT
+        plot_earthcare_imager(match_earthcare,
+                              match_earthcare.imager.imager_ctth_m_above_seasurface,
+                              plotpath,
+                              basename,
+                              process_mode,
+                              file_type,
+                              instrument=match_earthcare.imager_instrument,
+                              MAXHEIGHT=SETTINGS["MAXHEIGHT"])
     if (match_calipso is not None):
         # HEIGHT
         plot_cal_clsat_geoprof_imager(match_clsat,
@@ -257,7 +267,7 @@ def process_one_mode(process_mode_dnt, match_calipso, match_clsat, iss_obj, am_o
     # Draw plots
     logger.debug("Plotting")
     if process_mode_dnt in SETTINGS['PLOT_MODES']:
-        plot_some_figures(match_clsat, match_calipso, values, basename, process_mode,
+        plot_some_figures(match_clsat, match_calipso, match_earthcare, values, basename, process_mode,
                           AM_PATHS, SETTINGS, am_obj=am_obj)
     # Calculate Statistics
     logger.debug("Calculating statistics")

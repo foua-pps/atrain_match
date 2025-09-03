@@ -37,9 +37,11 @@ def read_earthcare(filename):
     retv.latitude = ncf["ScienceData"]["latitude"][:]
     retv.longitude = ncf["ScienceData"]["longitude"][:]
     validation_height = ncf["ScienceData"]["ATLID_cloud_top_height"][:]
-    validation_height[validation_height > 99999] = 1 
+    validation_height[validation_height > 99999] = -9 
     retv.cloud_fraction = np.where(validation_height > 0, 1, 0)
     retv.validation_height = validation_height
+    #retv.thick_validation_height = ncf["ScienceData"]["ATLID_thick_cloud_top_height"][:]
+    #retv.thick_validation_height[ retv.thick_validation_height >9999 ] = -9
     import datetime
     ep = datetime.datetime(1970,1,1,0,0,0)
     ep2 = datetime.datetime(2000,1,1,0,0,0)
