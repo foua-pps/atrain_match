@@ -31,6 +31,23 @@ import logging
 import netCDF4
 logger = logging.getLogger(__name__)
 
+def get_earthcare_classification(simplified_uppermost_cloud_classification):
+    """Earthcare cloud type."""
+    # 0 – no cloud,
+    # 1 – thick cloud,
+    # 2 – thin cloud,
+    # 3 – thin over thick cloud,
+    # 4 – thick over thick cloud,
+    # 5 – thin over thin cloud
+    # 6 – no cloud, but probably cloud influenced
+    #import pdb;pdb.set_trace()
+    cloud_fraction = np.where(simplified_uppermost_cloud_classification.data == 0, 0, 1)
+    cloud_fraction[simplified_uppermost_cloud_classification.data == 6] = 0.1
+    cloud_fraction[simplified_uppermost_cloud_classification.data == 2] = 1.0
+    cloud_fraction[simplified_uppermost_cloud_classification.data == 5] = 1.0
+    cloud_fraction[simplified_uppermost_cloud_classification.mask] = -9
+    return cloud_fraction
+
 def read_earthcare(filename):
     retv = EarthCareObject()
     ncf = netCDF4.Dataset(filename, 'r', format='NETCDF4')
@@ -38,7 +55,7 @@ def read_earthcare(filename):
     retv.longitude = ncf["ScienceData"]["longitude"][:]
     validation_height = ncf["ScienceData"]["ATLID_cloud_top_height"][:]
     validation_height[validation_height > 99999] = -9 
-    retv.cloud_fraction = np.where(validation_height > 0, 1, 0)
+    retv.cloud_fraction = get_earthcare_classification(ncf["ScienceData"]["simplified_uppermost_cloud_classification"][:])
     retv.validation_height = validation_height
     #retv.thick_validation_height = ncf["ScienceData"]["ATLID_thick_cloud_top_height"][:]
     #retv.thick_validation_height[ retv.thick_validation_height >9999 ] = -9

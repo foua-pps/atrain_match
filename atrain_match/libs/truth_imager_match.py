@@ -1256,5 +1256,7 @@ def run(cross, AM_PATHS, SETTINGS, reprocess=False):
     logger.info("Case: %s", str(cross))
     # sensor = INSTRUMENT.get(cross.satellite1.lower(), 'imager')
     # Match the data that we need:
-    if reprocess or not check_if_got_all_match_files(cross, AM_PATHS, SETTINGS):
+    if reprocess:
         matchup_results = get_matchups_from_data(cross, AM_PATHS, SETTINGS)
+    elif not check_if_got_all_match_files(cross, AM_PATHS, SETTINGS):
+        matchup_results = get_matchups_from_data(cross, AM_PATHS, SETTINGS) 
