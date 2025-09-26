@@ -470,7 +470,7 @@ class TruthImagerTrackObject:
 
     def __add__(self, other):
         """Concatenating two objects together"""
-        for object_name in ['imager', 'calipso', 'calipso_aerosol', 'amsr', 'dardar', 'earthcare'
+        for object_name in ['imager', 'calipso', 'calipso_aerosol', 'amsr', 'dardar', 'earthcare',
                             'cloudsat', 'iss', 'mora', 'synop', 'modis_lvl2', 'modis', 'extra']:
             if hasattr(self, object_name):
                 setattr(self, object_name,
