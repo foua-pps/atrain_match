@@ -263,6 +263,9 @@ class CalipsoObject(DataObject):
             # From cloudsat:
             'cal_modis_cflag': None,
             'cloudsat_index': None,
+            'tropopause_temperature': None,
+            'tropopause_height': None,
+            
         }
 
 
@@ -673,7 +676,8 @@ the_used_variables = [
     # CALIPSO write do not combine
     'cal_modis_cflag',
     'cloudsat_index',
-
+    'tropopause_height',
+    'tropopause_temperature',
     # DARDAR
     #'height',
     #'Z',
