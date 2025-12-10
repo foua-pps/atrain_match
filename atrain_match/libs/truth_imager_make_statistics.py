@@ -43,6 +43,7 @@ from atrain_match.libs.truth_imager_statistics_lib import (calculate_statistics)
 from atrain_match.plotting.trajectory_plotting import plot_satellite_trajectory
 from atrain_match.plotting.along_track_plotting import (plot_cal_clsat_imager_time_diff,
                                                         plot_cal_clsat_geoprof_imager,
+                                                        plot_earthcare_imager,
                                                         plot_cal_clsat_imager_satz,
                                                         plot_cal_clsat_cwc_imager)
 from atrain_match.matchobject_io import (read_truth_imager_match_obj,
@@ -74,7 +75,7 @@ def get_matchups(cross, AM_PATHS, SETTINGS, reprocess):
     values = {}
     Obj_dict = {}
     out_dict = {}
-    for truth in ['cloudsat', 'amsr', 'iss', 'synop', 'mora', 'calipso', 'dardar']:
+    for truth in ['cloudsat', 'amsr', 'iss', 'synop', 'mora', 'calipso', 'dardar', 'earthcare']:
         Obj_dict[truth] = None
     try:
         values["satellite"] = cross.satellite1.lower()
@@ -82,7 +83,7 @@ def get_matchups(cross, AM_PATHS, SETTINGS, reprocess):
         raise ValueError('Need satellite1 and time (cross: %s)' % cross)
 
     if reprocess is False or SETTINGS['USE_EXISTING_RESHAPED_FILES']:
-        for truth in ['cloudsat', 'amsr', 'iss', 'synop', 'mora', 'calipso', 'dardar']:
+        for truth in ['cloudsat', 'amsr', 'iss', 'synop', 'mora', 'calipso', 'dardar', 'earthcare']:
             if not SETTINGS[truth.upper() + '_MATCHING']:
                 logger.info(
                     "{truth} matching turned off {truth}_MATCHING]=False.".format(
@@ -118,25 +119,25 @@ def get_matchups(cross, AM_PATHS, SETTINGS, reprocess):
     # ================================================================
     if SETTINGS['USE_EXISTING_RESHAPED_FILES']:
         for truth in ['cloudsat', 'amsr', 'iss', 'synop',
-                      'mora', 'calipso', 'dardar']:
+                      'mora', 'calipso', 'dardar', 'earthcare']:
             if Obj_dict[truth] is None and SETTINGS[truth.upper()+'_REQUIRED']:
                 raise MatchupError(
                     "Couldn't find calipso already processed matchup file, "
                     "USE_EXISTING_RESHAPED_FILES = True!")
     redo_matching = False
     for truth in ['cloudsat', 'amsr', 'iss', 'synop',
-                  'mora', 'calipso', 'dardar']:
+                  'mora', 'calipso', 'dardar', 'earthcare']:
         out_dict[truth] = Obj_dict[truth]
     if (all(obj_i is None for obj_i in Obj_dict.values())):
         out_dict = get_matchups_from_data(cross, AM_PATHS, SETTINGS)
     for truth in ['cloudsat', 'amsr', 'iss', 'synop',
-                  'mora', 'calipso', 'dardar']:
+                  'mora', 'calipso', 'dardar', 'earthcare']:
         if Obj_dict[truth] is None and SETTINGS[truth.upper()+'_REQUIRED']:
             redo_matching = True
     if redo_matching:
         out_dict = get_matchups_from_data(cross, AM_PATHS, SETTINGS)
     for truth in ['cloudsat', 'amsr', 'iss', 'synop',
-                  'mora', 'calipso', 'dardar']:
+                  'mora', 'calipso', 'dardar', 'earthcare']:
         if out_dict[truth] is None and SETTINGS[truth.upper()+'_REQUIRED']:
             raise MatchupError(
                 "Couldn't find "
@@ -146,7 +147,7 @@ def get_matchups(cross, AM_PATHS, SETTINGS, reprocess):
     return out_dict
 
 
-def plot_some_figures(match_clsat, match_calipso, values, basename, process_mode,
+def plot_some_figures(match_clsat, match_calipso, match_earthcare, values, basename, process_mode,
                       AM_PATHS, SETTINGS, am_obj=None, match_synop=None, mo_obj=None):
     """Plot the matchup track and trajectory etc. for one matchup file."""
     logger.info("Plotting")
@@ -173,7 +174,16 @@ def plot_some_figures(match_clsat, match_calipso, values, basename, process_mode
                                   config.AREA_CONFIG_FILE,
                                   file_type,
                                   **AM_PATHS)
-
+    if (match_earthcare is not None):
+        # HEIGHT
+        plot_earthcare_imager(match_earthcare,
+                              match_earthcare.imager.imager_ctth_m_above_seasurface,
+                              plotpath,
+                              basename,
+                              process_mode,
+                              file_type,
+                              instrument=match_earthcare.imager_instrument,
+                              MAXHEIGHT=SETTINGS["MAXHEIGHT"])
     if (match_calipso is not None):
         # HEIGHT
         plot_cal_clsat_geoprof_imager(match_clsat,
@@ -235,7 +245,7 @@ def split_process_mode_and_dnt_part(process_mode_dnt):
 
 
 def process_one_mode(process_mode_dnt, match_calipso, match_clsat, iss_obj, am_obj, sy_obj, 
-                     match_dardar, min_optical_depth, values, AM_PATHS, SETTINGS, basename):
+                     match_dardar, match_earthcare, min_optical_depth, values, AM_PATHS, SETTINGS, basename):
     """Make plots and statistics for one imager cloudproduct matchup (with one or several truths)."""
 
     # Get result filename
@@ -257,12 +267,12 @@ def process_one_mode(process_mode_dnt, match_calipso, match_clsat, iss_obj, am_o
     # Draw plots
     logger.debug("Plotting")
     if process_mode_dnt in SETTINGS['PLOT_MODES']:
-        plot_some_figures(match_clsat, match_calipso, values, basename, process_mode,
+        plot_some_figures(match_clsat, match_calipso, match_earthcare, values, basename, process_mode,
                           AM_PATHS, SETTINGS, am_obj=am_obj)
     # Calculate Statistics
     logger.debug("Calculating statistics")
     calculate_statistics(process_mode, statfilename, match_calipso, match_clsat,
-                         iss_obj, am_obj, sy_obj, SETTINGS, dnt_flag)
+                         iss_obj, am_obj, sy_obj, match_earthcare, SETTINGS, dnt_flag)
 
 
 def run(cross, run_modes, AM_PATHS, SETTINGS, reprocess=False):
@@ -286,6 +296,7 @@ def run(cross, run_modes, AM_PATHS, SETTINGS, reprocess=False):
     match_amsr = matchup_results['amsr']
     match_synop = matchup_results['synop']
     match_dardar = matchup_results['dardar']
+    match_earthcare = matchup_results['earthcare']
     # mo_obj = matchup_results['mora']
     match_clsat = matchup_results['cloudsat']
     values = matchup_results['values']
@@ -296,8 +307,8 @@ def run(cross, run_modes, AM_PATHS, SETTINGS, reprocess=False):
     logger.info("Adding validation height missing in old reshaped files")
     match_clsat, match_calipso = add_validation_ctth(match_clsat, match_calipso)
     # Calculate hight from sea surface
-    match_clsat, match_calipso, match_iss = add_elevation_corrected_imager_ctth(
-        match_clsat, match_calipso, match_iss, SETTINGS)
+    match_clsat, match_calipso, match_iss, match_earthcare = add_elevation_corrected_imager_ctth(
+        match_clsat, match_calipso, match_iss, match_earthcare, SETTINGS)
     calipso_original = CalipsoObject()
     # Save data orignal data that we might edit for some modes
     if match_calipso is not None:
@@ -369,6 +380,7 @@ def run(cross, run_modes, AM_PATHS, SETTINGS, reprocess=False):
             # Time to process results files for one mode:
             process_one_mode(process_mode_dnt,
                              match_calipso, match_clsat, match_iss, match_amsr, match_synop, match_dardar,
+                             match_earthcare,
                              min_optical_depth, values,
                              AM_PATHS, SETTINGS, basename)
     # We are done, free some memory:

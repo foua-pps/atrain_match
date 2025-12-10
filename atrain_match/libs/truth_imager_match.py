@@ -35,6 +35,7 @@ from atrain_match.truths.cloudsat import (reshapeCloudsat,
                                           match_cloudsat_imager,
                                           merge_cloudsat)
 from atrain_match.truths.dardar import (reshape_dardar, match_dardar_imager)
+from atrain_match.truths.earthcare import (reshape_earthcare, match_earthcare_imager)
 from atrain_match.utils.common import MatchupError, ProcessingError
 from atrain_match.config import INSTRUMENT
 import atrain_match.config as config
@@ -200,6 +201,8 @@ def find_truth_files(date_time, AM_PATHS, SETTINGS, values, truth='calipso'):
     TRUTH_FILE_LENGTH = config.CALIPSO_FILE_LENGTH
     if truth in ['cloudsat']:
         TRUTH_FILE_LENGTH = config.CLOUDSAT_FILE_LENGTH
+    if truth in ['earthcare']:
+        TRUTH_FILE_LENGTH = config.EARTHCARE_FILE_LENGTH
     if truth in ['iss']:
         TRUTH_FILE_LENGTH = config.ISS_FILE_LENGTH
     if truth in ['amsr']:
@@ -539,6 +542,11 @@ def get_cloudsat_matchups(cloudsat_files, cloudsat_files_lwp, cloudproducts, SET
     cl_matchup = match_cloudsat_imager(cloudsat, cloudproducts, SETTINGS)
     return cl_matchup
 
+def get_earthcare_matchups(earthcare_files, cloudproducts, SETTINGS):
+    """Read Earthcare data and match with the given PPS data."""
+    earthcare = reshape_earthcare(earthcare_files, cloudproducts, SETTINGS)
+    cl_matchup = match_earthcare_imager(earthcare, cloudproducts, SETTINGS)
+    return cl_matchup
 
 def get_iss_matchups(iss_files, cloudproducts, SETTINGS):
     """Read Iss data and match with the given PPS data."""
@@ -866,8 +874,13 @@ def add_modis_lvl2_clousat_(match_clsat, match_calipso):
     return match_clsat
 
 
-def add_elevation_corrected_imager_ctth(match_clsat, match_calipso, match_iss, SETTINGS):
+def add_elevation_corrected_imager_ctth(match_clsat, match_calipso, match_iss, match_earthcare, SETTINGS):
     # # Cloudsat # #
+    if match_earthcare is None or match_earthcare.imager.ctth_height is None:
+        pass
+    elif match_earthcare.imager.imager_ctth_m_above_seasurface is None:
+        match_earthcare.imager.imager_ctth_m_above_seasurface = match_earthcare.imager.ctth_height
+        
     if match_clsat is None or match_clsat.imager.ctth_height is None:
         pass
     elif match_clsat.imager.imager_ctth_m_above_seasurface is None:
@@ -924,7 +937,7 @@ def add_elevation_corrected_imager_ctth(match_clsat, match_calipso, match_iss, S
             got_height = imager_ctth_m_above_seasurface >= 0
             imager_ctth_m_above_seasurface[got_height] += iss_elevation[got_height]*1.0
         match_iss.imager.imager_ctth_m_above_seasurface = imager_ctth_m_above_seasurface
-    return match_clsat, match_calipso, match_iss
+    return match_clsat, match_calipso, match_iss, match_earthcare
 
 
 def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
@@ -952,7 +965,7 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
 
     # Step 2 get truth satellite files
     truth_files = {}
-    for truth in ['cloudsat', 'amsr', 'iss', 'synop', 'mora', 'cloudsat_lwp', 'calipso', 'dardar']:
+    for truth in ['cloudsat', 'amsr', 'iss', 'synop', 'mora', 'cloudsat_lwp', 'calipso', 'dardar', 'earthcare']:
         truth_files[truth] = None
         if (SETTINGS[truth.replace("_lwp", "").upper()+'_MATCHING'] and truth + '_file' in AM_PATHS.keys()):
             truth_files[truth] = find_truth_files(date_time, AM_PATHS, SETTINGS, values, truth=truth)
@@ -967,7 +980,7 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
         calipso5km, calipso1km, calipso5km_aerosol = extra_files
     if (all(truth_files_i is None for truth_files_i in truth_files.values())):
         raise MatchupError(
-            "Couldn't find any matching CALIPSO/CLoudSat/ISS data")
+            "Couldn't find any matching CALIPSO/CLoudSat/ISS/XXX data")
 
     # STEP 3 Read imager data:
     if (SETTINGS['PPS_VALIDATION']):
@@ -1005,6 +1018,14 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
             truth_files['iss'] is not None):
         logger.info("Read ISS data")
         iss_matchup = get_iss_matchups(truth_files['iss'],
+                                       cloudproducts, SETTINGS)
+
+    # EARTHCARE:
+    earthcare_matchup = None
+    if (SETTINGS['PPS_VALIDATION'] and SETTINGS['EARTHCARE_MATCHING'] and
+            truth_files['earthcare'] is not None):
+        logger.info("Read EARTHCARE data")
+        earthcare_matchup = get_earthcare_matchups(truth_files['earthcare'],
                                        cloudproducts, SETTINGS)
     # AMSR
     amsr_matchup = None
@@ -1049,6 +1070,8 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
         raise MatchupError("No matches with CLOUSDAT.")
     elif iss_matchup is None and SETTINGS['ISS_REQUIRED']:
         raise MatchupError("No matches with ISS.")
+    elif earthcare_matchup is None and SETTINGS['EARTHCARE_REQUIRED']:
+        raise MatchupError("No matches with EARTHCARE.")
     elif amsr_matchup is None and SETTINGS['AMSR_REQUIRED']:
         raise MatchupError("No matches with AMSR.")
     elif synop_matchup is None and SETTINGS['SYNOP_REQUIRED']:
@@ -1057,7 +1080,8 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
         raise MatchupError("No matches with MORA.")
     elif dardar_matchup is None and SETTINGS['DARDAR_REQUIRED']:
         raise MatchupError("No matches with DARDAR.")
-    elif (calipso_matchup is None and cloudsat_matchup is None and iss_matchup is None
+    elif (calipso_matchup is None and cloudsat_matchup is None and earthcare_matchup is None
+          and iss_matchup is None
           and amsr_matchup is None and synop_matchup is None
           and mora_matchup is None and dardar_matchup is None):
         raise MatchupError("No matches with any truth.")
@@ -1088,9 +1112,9 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
         os.makedirs(os.path.dirname(rematched_path))
 
     for matchup, name in zip([cloudsat_matchup, iss_matchup, amsr_matchup,
-                              synop_matchup, mora_matchup, calipso_matchup],
+                              synop_matchup, mora_matchup, calipso_matchup, earthcare_matchup],
                              ['CloudSat', 'ISS', 'AMSR-E',
-                              'SYNOP', 'MORA', 'CALIPSO']):
+                              'SYNOP', 'MORA', 'CALIPSO', 'EarthCare']):
         if matchup is None:
             continue
         # add modis lvl2
@@ -1160,8 +1184,8 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
 
     # add additional vars to cloudsat and calipso objects and print them to file:
     cloudsat_matchup, calipso_matchup = add_additional_clousat_calipso_index_vars(cloudsat_matchup, calipso_matchup)
-    cloudsat_matchup, calipso_matchup, iss_matchup = add_elevation_corrected_imager_ctth(
-        cloudsat_matchup, calipso_matchup, iss_matchup, SETTINGS)
+    cloudsat_matchup, calipso_matchup, iss_matchup, earthcare_matchup = add_elevation_corrected_imager_ctth(
+        cloudsat_matchup, calipso_matchup, iss_matchup, earthcare_matchup, SETTINGS)
 
     # imager_name
     imager_obj_name = 'pps'
@@ -1177,9 +1201,9 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
     # write matchups
     for matchup, name in zip([cloudsat_matchup, iss_matchup, amsr_matchup,
                               synop_matchup, mora_matchup, calipso_matchup,
-                              dardar_matchup],
+                              dardar_matchup, earthcare_matchup],
                              ['CloudSat', 'ISS', 'AMSR-E',
-                              'SYNOP', 'MORA', 'CALIPSO', 'DARDAR']):
+                              'SYNOP', 'MORA', 'CALIPSO', 'DARDAR', "EarthCare"]):
         if matchup is None:
             logger.debug("No {:s} Match File created".format(name))
         else:
@@ -1192,6 +1216,7 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
 
     # no longer return the matchup data?
     return {'cloudsat': cloudsat_matchup,
+            'earthcare': earthcare_matchup,
             'calipso': calipso_matchup,
             'iss': iss_matchup,
             'amsr': amsr_matchup,
@@ -1206,7 +1231,7 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
 def check_if_got_all_match_files(cross, AM_PATHS, SETTINGS):
     values = {}
     values["satellite"] = cross.satellite1.lower()
-    for truth in ['cloudsat', 'amsr', 'iss', 'synop', 'mora', 'calipso', 'dardar']:
+    for truth in ['cloudsat', 'amsr', 'iss', 'synop', 'mora', 'calipso', 'dardar', 'earthcare']:
         if not SETTINGS[truth.upper() + '_MATCHING']:
             logger.info(
                 "{truth} matching turned off {truth}_MATCHING]=False.".format(
@@ -1231,5 +1256,7 @@ def run(cross, AM_PATHS, SETTINGS, reprocess=False):
     logger.info("Case: %s", str(cross))
     # sensor = INSTRUMENT.get(cross.satellite1.lower(), 'imager')
     # Match the data that we need:
-    if reprocess or not check_if_got_all_match_files(cross, AM_PATHS, SETTINGS):
+    if reprocess:
         matchup_results = get_matchups_from_data(cross, AM_PATHS, SETTINGS)
+    elif not check_if_got_all_match_files(cross, AM_PATHS, SETTINGS):
+        matchup_results = get_matchups_from_data(cross, AM_PATHS, SETTINGS) 
