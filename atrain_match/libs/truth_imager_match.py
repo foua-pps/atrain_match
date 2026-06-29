@@ -277,7 +277,7 @@ def find_oca_cloud_file(cross, AM_PATHS):
 def find_extra_product_files(cross, AM_PATHS, SETTINGS):
     """Find main cloudproduct file with lat/lon OCA."""
     extra_product_files = {}
-    if SETTINGS['OCA_VALIDATION']:
+    if SETTINGS['OCA_VALIDATION'] and SETTINGS['OCA_CMA_SEPARATE']:
         extra_product_files["oca_cma"], tobj = find_main_cloudproduct_file(cross,
                                                                               AM_PATHS['oca_dir_cma'],
                                                                               AM_PATHS['oca_file_cma'])
@@ -291,6 +291,21 @@ def find_extra_product_files(cross, AM_PATHS, SETTINGS):
         extra_product_files["cpp_claas3"], tobj = find_main_cloudproduct_file(cross,
                                                                               AM_PATHS['claas3_dir_cpp'],
                                                                               AM_PATHS['claas3_cpp'])
+        
+    if SETTINGS['CLAAS4_VALIDATION']:
+        extra_product_files["cma_claas4"], _ = find_main_cloudproduct_file(cross,
+                                                                           AM_PATHS["claas4_cma_dir"],
+                                                                           AM_PATHS["claas4_cma"])
+        extra_product_files["cto_claas4"], _ = find_main_cloudproduct_file(cross,
+                                                                           AM_PATHS["claas4_cto_dir"],
+                                                                           AM_PATHS["claas4_cto"])
+        extra_product_files["cpp_claas4"], _ = find_main_cloudproduct_file(cross,
+                                                                           AM_PATHS["claas4_cpp_dir"],
+                                                                           AM_PATHS["claas4_cpp"])
+        extra_product_files["ct_claas4"], _ = find_main_cloudproduct_file(cross,
+                                                                           AM_PATHS["claas4_ct_dir"],
+                                                                           AM_PATHS["claas4_ct"])
+
     return extra_product_files
 
 def find_maia_cloud_file(cross, AM_PATHS):

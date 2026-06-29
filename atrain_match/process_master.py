@@ -35,6 +35,7 @@ from atrain_match.utils.runutils import parse_scene
 from atrain_match.utils.runutils import parse_scenesfile_maia
 from atrain_match.utils.runutils import parse_scenesfile_patmos
 from atrain_match.utils.runutils import parse_scenesfile_reshaped
+from atrain_match.utils.runutils import parse_scenesfiles_oca
 from atrain_match.utils.common import Cross
 from atrain_match.libs import truth_imager_make_statistics
 import atrain_match.config as config
@@ -138,6 +139,9 @@ def main():
     group.add_argument('--maia_product_file', '-mf',
                        help="Interpret arguments as inputfile with "
                        "list of maia files")
+    group.add_argument('--oca_product_file', '-of',
+                       help="Interpret arguments as inputfile with "
+                       "list of OCA files")
     group.add_argument('--patmos_product_file', '-patf',
                        help="Interpret arguments as inputfile with "
                        "list of patmos files")
@@ -174,7 +178,7 @@ def main():
                 pass
             else:
                 satname, time = parse_scene(scene)
-                matchups.append(Cross(satname, time))                
+                matchups.append(Cross(satname, time))           
         scene = options.pps_okay_scene
         satname, time, orbit = parse_scene(scene)
         matchups.append(Cross(satname, time))     
@@ -196,6 +200,15 @@ def main():
             else:
                 satname, time = parse_scenesfile_cci(line)
                 matchups.append(Cross(satname, time))
+    elif options.oca_product_file is not None:
+        oca_output_file = options.oca_product_file
+        read_from_file = open(oca_output_file, 'r')
+        for line in read_from_file:
+            if line.rstrip() in "":
+                pass
+            else:
+                satname, time = parse_scenesfiles_oca(line)
+                matchups.append(Cross(satname,time))
     elif options.maia_product_file is not None:
         maia_output_file = options.maia_product_file
         read_from_file = open(maia_output_file, 'r')
