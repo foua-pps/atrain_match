@@ -41,10 +41,13 @@ def get_earthcare_classification(simplified_uppermost_cloud_classification):
     # 5 – thin over thin cloud
     # 6 – no cloud, but probably cloud influenced
     #import pdb;pdb.set_trace()
-    cloud_fraction = np.where(simplified_uppermost_cloud_classification.data == 0, 0, 1)
-    cloud_fraction[simplified_uppermost_cloud_classification.data == 6] = 0.1
+    cloud_fraction = np.where(simplified_uppermost_cloud_classification.data == 0, 0.0, 1.0)
+    cloud_fraction[simplified_uppermost_cloud_classification.data == 6] = 0.7
     cloud_fraction[simplified_uppermost_cloud_classification.data == 2] = 1.0
     cloud_fraction[simplified_uppermost_cloud_classification.data == 5] = 1.0
+    cloud_fraction[simplified_uppermost_cloud_classification.data == 3] = 1.0
+    cloud_fraction[simplified_uppermost_cloud_classification.data == 4] = 1.0
+    cloud_fraction[simplified_uppermost_cloud_classification.data == 1] = 1.0
     cloud_fraction[simplified_uppermost_cloud_classification.mask] = -9
     return cloud_fraction
 
@@ -54,7 +57,10 @@ def read_earthcare(filename):
     retv.latitude = ncf["ScienceData"]["latitude"][:]
     retv.longitude = ncf["ScienceData"]["longitude"][:]
     validation_height = ncf["ScienceData"]["ATLID_cloud_top_height"][:]
-    validation_height[validation_height > 99999] = -9 
+    retv.thick_height = ncf["ScienceData"]["ATLID_thick_cloud_top_height"][:]
+    
+    validation_height[validation_height > 99999] = -9
+    retv.quality_status =  ncf["ScienceData"]["quality_status"][:]
     retv.cloud_fraction = get_earthcare_classification(ncf["ScienceData"]["simplified_uppermost_cloud_classification"][:])
     retv.validation_height = validation_height
     #retv.thick_validation_height = ncf["ScienceData"]["ATLID_thick_cloud_top_height"][:]

@@ -20,6 +20,7 @@
 from atrain_match.utils.stat_util import my_iqr
 from atrain_match.utils.get_flag_info import (
     get_calipso_low_medium_high_classification,
+    get_earthcare_low_medium_high_classification,
     get_cloudsat_low_medium_high_classification,
     get_day_night_twilight_info_pps2014,
     get_day_night_twilight_info_pps2012,
@@ -338,7 +339,10 @@ def find_truth_clear_cloudy(match_obj, val_subset, SETTINGS):
             np.greater_equal(match_obj_truth_sat.cloud_fraction, SETTINGS["SYNOP_CLOUDY_MIN_CFC"]), val_subset)
     else:
         truth_clear = np.logical_and(
-            np.less_equal(match_obj_truth_sat.cloud_fraction, 0.5), val_subset)
+            np.logical_and(np.less_equal(match_obj_truth_sat.cloud_fraction, 0.5),
+                           np.greater_equal(match_obj_truth_sat.cloud_fraction, 0))
+                           , val_subset)
+        
         truth_cloudy = np.logical_and(
             np.greater(match_obj_truth_sat.cloud_fraction, 0.5), val_subset)
     return truth_clear, truth_cloudy
@@ -1122,12 +1126,13 @@ def calculate_statistics(mode, statfilename, match_calipso, match_clsat, match_i
         val_subset = get_subset_for_mode(match_earthcare, mode)
         if val_subset is not None:
             statfile = open(statfilename.replace('xxx', 'earthcare'), "w")
+            low_medium_high_class = get_earthcare_low_medium_high_classification(match_earthcare)
             val_subset = get_day_night_subset(match_earthcare, val_subset, SETTINGS)
             print_main_stats(match_earthcare, statfile)
             print_cmask_stats(match_earthcare, statfile, val_subset, SETTINGS)
             print_cmask_prob_stats(match_earthcare, statfile, val_subset, SETTINGS)
             # print_calipso_stats_ctype(match_earthcare, statfile, val_subset, cal_vert_feature)
-            print_stats_ctop(match_earthcare, statfile, val_subset, None, SETTINGS)
+            print_stats_ctop(match_earthcare, statfile, val_subset, low_medium_high_class, SETTINGS)
             statfile.close()
 
     if match_amsr is not None:

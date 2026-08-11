@@ -887,15 +887,17 @@ def add_modis_lvl2_clousat_(match_clsat, match_calipso):
         match_clsat.modis.all_arrays["longitude_5km"] = match_calipso.modis.all_arrays["longitude_5km"][
             match_clsat.cloudsat.calipso_index]
     return match_clsat
-
+ 
 
 def add_elevation_corrected_imager_ctth(match_clsat, match_calipso, match_iss, match_earthcare, SETTINGS):
     # # Cloudsat # #
     if match_earthcare is None or match_earthcare.imager.ctth_height is None:
         pass
+    elif match_earthcare.imager.imager_ctth_m_above_seasurface is None and hasattr(match_earthcare.imager, "elevation"):
+        match_earthcare.imager.imager_ctth_m_above_seasurface = match_earthcare.imager.ctth_height + match_earthcare.imager.elevation
     elif match_earthcare.imager.imager_ctth_m_above_seasurface is None:
-        match_earthcare.imager.imager_ctth_m_above_seasurface = match_earthcare.imager.ctth_height
-        
+        match_earthcare.imager.imager_ctth_m_above_seasurface = match_earthcare.imager.ctth_height 
+         
     if match_clsat is None or match_clsat.imager.ctth_height is None:
         pass
     elif match_clsat.imager.imager_ctth_m_above_seasurface is None:
