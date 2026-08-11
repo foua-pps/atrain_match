@@ -59,14 +59,21 @@ def plot_earthcare_imager(match_earthcare,
     #  Plot Earthcare
     earthcare_label_set = False
     got_height = earthcare_val_h >= 0
-    ax.plot(pixel_position[got_height], earthcare_val_h[got_height], 'g|',
-            label="EarthCare", rasterized=True)
-
+    #ax.plot(pixel_position[got_height], earthcare_val_h[got_height], 'g|',
+    #        label="EarthCare", rasterized=True)
+    ax.vlines(pixel_position, 0, match_earthcare.imager.elevation,
+                  color='k', alpha=1.0)
+    ax.vlines(pixel_position[got_height],
+              earthcare_val_h[got_height]-1000, earthcare_val_h[got_height], linewidth=1.0,
+              colors="g", linestyle='solid',
+              alpha=1.0, rasterized=True, label="EarthCare",)
     #  Plot Imager
     got_height = imager_ctth_m_above_seasurface >= 0
     ax.plot(pixel_position[got_height], imager_ctth_m_above_seasurface[got_height], 'b+',
-            label=instrument.upper(), rasterized=True)
+            label=instrument.upper(), alpha=0.5, rasterized=True)
+    
     ax.set_ylim(0, maxheight)
+    
     # plt.show()
     ax.set_title(title)
     ax.set_xlabel("Track Position")
