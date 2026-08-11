@@ -124,6 +124,7 @@ def add_claas3(cloudproducts, extra_files, aux_dict):
         aux_dict["claas3_cma"] = np.squeeze(claas3_nc['cma'][:, -1::-1, -1::-1])
         aux_dict["claas3_cma_prob"] = np.squeeze(claas3_nc['cma_prob'][:, -1::-1, -1::-1])
         aux_dict["claas3_conditions"] = np.squeeze(claas3_nc['conditions'][:, -1::-1, -1::-1])
+        aux_dict["claas3_quality"] = np.squeeze(claas3_nc['quality'][:, -1::-1, -1::-1])
         claas3_nc.close()
         claas3_nc = netCDF4.Dataset(extra_files["cth_claas3"], 'r', format='NETCDF4')
         aux_dict["claas3_cth"] = np.squeeze(claas3_nc['cth'][:, -1::-1, -1::-1])
@@ -143,7 +144,7 @@ def add_claas3(cloudproducts, extra_files, aux_dict):
         cloudproducts.imager_angles.sunz = np.where(night_flag, 100, 90)
         cloudproducts.imager_angles.sunz = np.where(day_flag, 10,  cloudproducts.imager_angles.sunz)
     for key in aux_dict:
-        if "claas3" in key and key != "claas3_conditions":
+        if "claas3" in key and key not in ["claas3_conditions", "claas3_quality"]:
             aux_dict[key][aux_dict[key].mask] = ATRAIN_MATCH_NODATA
     return aux_dict
 
@@ -156,6 +157,7 @@ def add_claas4(cloudproducts, extra_files, aux_dict):
         aux_dict["claas4_cma"] =        np.squeeze(claas4_cma_nc['cma'][:, -1::-1, -1::-1])
         aux_dict["claas4_cma_prob"] =   np.squeeze(claas4_cma_nc['cma_prob'][:, -1::-1, -1::-1])
         aux_dict["claas4_conditions"] = np.squeeze(claas4_cma_nc["conditions"][:, -1::-1, -1::-1])
+        aux_dict["claas4_quality"] =    np.squeeze(claas4_cma_nc['quality'][:, -1::-1, -1::-1])
         claas4_cma_nc.close()
 
         #read the cloud top height file
@@ -174,10 +176,13 @@ def add_claas4(cloudproducts, extra_files, aux_dict):
         aux_dict["claas4_cwp"] = np.squeeze(claas4_cpp_nc['cwp'][:, -1::-1, -1::-1])
         claas4_cpp_nc.close()
 
-        #read the cloudtype file
-        claas4_ct_nc = netCDF4.Dataset(extra_files["ct_claas4"], 'r', format='NETCDF4')
-        aux_dict["claas4_ct"] = np.squeeze(claas4_ct_nc['ct'][:, -1::-1, -1::-1])
-        claas4_ct_nc.close()
+        #try to read the cloudtype file, since it is not an official product, and might not be included
+        try:
+            claas4_ct_nc = netCDF4.Dataset(extra_files["ct_claas4"], 'r', format='NETCDF4')
+            aux_dict["claas4_ct"] = np.squeeze(claas4_ct_nc['ct'][:, -1::-1, -1::-1])
+            claas4_ct_nc.close()
+        except:
+            logger.warning("CLAAS-4 CT file missing, skipping")
 
         #extract flags from the conditions
         no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag = get_day_night_twilight_info_pps2014(aux_dict["claas4_conditions"])
@@ -186,7 +191,7 @@ def add_claas4(cloudproducts, extra_files, aux_dict):
     
     #Set the nodata flag instead of masks
     for key in aux_dict:
-        if "claas4" in key and key not in ["claas4_conditions", "claas4_ct"]:
+        if "claas4" in key and key not in ["claas4_conditions", "claas4_ct", "claas4_quality"]:
             aux_dict[key][aux_dict[key].mask] = ATRAIN_MATCH_NODATA
     return aux_dict
 
