@@ -185,16 +185,56 @@ def parse_scenesfile_v2014(filename):
     """
     from datetime import datetime
     import re
+
     filename = os.path.basename(filename)
     if not filename:
         raise ValueError("No file %r" % filename)
+    
     match = re.match(r"S_NWC_.+_([^_]+)_\d+_(\d+)T(\d\d\d\d\d\d).+", filename)
     if not match:
         raise ValueError("Couldn't parse pps file %r" % filename)
+    
     satname, date_s, time_s = match.groups()
     _datetime = datetime.strptime(date_s + time_s, '%Y%m%d%H%M%S')
 
     return satname, _datetime
+
+
+def parse_scenesfiles_oca(filename):
+    """
+    Parse OCA file: W_XX-EUMETSAT-Darmstadt,OCA+,MET09+SEVIRI_C_EUMG_20120101234500_1_OR_FES_E0000_0100.nc
+    """
+    from datetime import datetime
+    import re
+
+    #check that file exists
+    filename = os.path.basename(filename)
+    if not filename:
+        raise ValueError("No file %r" %filename)
+    
+    #use regex to extract the satellite name and time
+    match = re.match(r"W_XX-EUMETSAT-Darmstadt,OCA\+,([^+]+)\+SEVIRI_C_EUMG_(\d+)_+", filename)
+    if not match:
+        raise ValueError("Couldn't parse OCA file %r" %filename)
+    
+    satname, datetime_str = match.groups()
+    _datetime = datetime.strptime(datetime_str, '%Y%m%d%H%M%S')
+    #The satnames in the directory and filenames are different, hence this lovely thing
+    match satname:
+        case "MET08":
+            _satname = "MSG1"
+        case "MET09":
+            _satname = "MSG2"
+        case "MET10":
+            _satname = "MSG3"
+        case "MET10":
+            _satname = "MSG2"
+        case _:
+            #Just error for now, maybe just put _satname = satname if it doesn't match anything
+            raise ValueError("Invalid Satellite name in %r" %filename)
+    return _satname, _datetime
+    
+    
 
 
 def parse_scenesfile_cci(filename):
@@ -261,6 +301,23 @@ def parse_scenesfile_reshaped(filename):
         raise ValueError("Couldn't parse reshaped file %r" % filename)
     satname, date_s, time_s = match.groups()
     _datetime = datetime.strptime(date_s + time_s, '%Y%m%d%H%M')
+    return satname, _datetime
+
+def parse_scenesfile_patmos(filename):
+    """
+    Parse patmos file:  # patmosx_v06r00_METOP-A_asc_d20100202_c20210730.nc
+    """
+    from datetime import datetime
+    import re
+    filename = os.path.basename(filename)
+    if not filename:
+        raise ValueError("No file %r" % filename)
+    match = re.match(r"patmosx_v\d{2}r\d{2}_([^_]+)_asc_d(\d{8})_c\d{8}\.nc", filename)
+    if not match:
+        raise ValueError("Couldn't parse patmos file %r" % filename)
+    satname, date_s = match.groups()
+    _datetime = datetime.strptime(date_s, '%Y%m%d')
+
     return satname, _datetime
 
 

@@ -398,7 +398,6 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
                                         SETTINGS)
         for filter_name in filters_dict.keys():
             setattr(obt.imager, filter_name, filters_dict[filter_name])
-
     return obt
 
 def imager_track_from_matched_hrit(obt, SETTINGS, cloudproducts,

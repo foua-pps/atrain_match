@@ -85,12 +85,14 @@ def get_satid_datetime_orbit_from_fname_oca(imager_filename):
 
 
 def oca_read_all(filename, extra_files):
+    import re
     if 'MYD' in os.path.basename(filename):
         cloudproducts, aux_dict = oca_read_all_nc_modis(filename)
         logger.info("No timeinfo in OCA-MODIS file calculate from filename + 5min")
         seconds = 5*60
         cloudproducts.instrument = 'modis'
-    elif 'MET09+SEVIRI' in os.path.basename(filename):
+    #match all MET08+SEVIRI, MET09+SEVIRI, MET10+SEVIRI, MET11+SEVIRI,
+    elif re.match(r".+MET..\+SEVIRI", os.path.basename(filename)) is not None:
         cloudproducts, aux_dict = oca_read_all_nc_cdr(filename)
         logger.info("Calculate time from filename + 12min")
         seconds = 12*60
@@ -107,9 +109,10 @@ def oca_read_all(filename, extra_files):
         cloudproducts.sec1970_start = calendar.timegm(time_info["date_time"].timetuple())
         cloudproducts.sec1970_end = cloudproducts.sec1970_start + seconds
         cloudproducts = create_imager_time(cloudproducts, values={})
-        do_some_geo_obj_logging(cloudproducts, extra_files)
+        do_some_geo_obj_logging(cloudproducts)
 
     aux_dict = add_claas3(cloudproducts, extra_files, aux_dict)
+    aux_dict = add_claas4(cloudproducts, extra_files, aux_dict)
     cloudproducts.aux = AuxiliaryObj(aux_dict)
     return cloudproducts
 
@@ -121,6 +124,7 @@ def add_claas3(cloudproducts, extra_files, aux_dict):
         aux_dict["claas3_cma"] = np.squeeze(claas3_nc['cma'][:, -1::-1, -1::-1])
         aux_dict["claas3_cma_prob"] = np.squeeze(claas3_nc['cma_prob'][:, -1::-1, -1::-1])
         aux_dict["claas3_conditions"] = np.squeeze(claas3_nc['conditions'][:, -1::-1, -1::-1])
+        aux_dict["claas3_quality"] = np.squeeze(claas3_nc['quality'][:, -1::-1, -1::-1])
         claas3_nc.close()
         claas3_nc = netCDF4.Dataset(extra_files["cth_claas3"], 'r', format='NETCDF4')
         aux_dict["claas3_cth"] = np.squeeze(claas3_nc['cth'][:, -1::-1, -1::-1])
@@ -140,7 +144,54 @@ def add_claas3(cloudproducts, extra_files, aux_dict):
         cloudproducts.imager_angles.sunz = np.where(night_flag, 100, 90)
         cloudproducts.imager_angles.sunz = np.where(day_flag, 10,  cloudproducts.imager_angles.sunz)
     for key in aux_dict:
-        if "claas3" in key:
+        if "claas3" in key and key not in ["claas3_conditions", "claas3_quality"]:
+            aux_dict[key][aux_dict[key].mask] = ATRAIN_MATCH_NODATA
+    return aux_dict
+
+def add_claas4(cloudproducts, extra_files, aux_dict):
+    """Add CLAAS-4 data to the dataset, along OCA"""
+    if "cma_claas4" in extra_files:
+        #read the cloud mask file
+        from atrain_match.utils.get_flag_info import get_day_night_twilight_info_pps2014
+        claas4_cma_nc = netCDF4.Dataset(extra_files["cma_claas4"], 'r', format='NETCDF4')
+        aux_dict["claas4_cma"] =        np.squeeze(claas4_cma_nc['cma'][:, -1::-1, -1::-1])
+        aux_dict["claas4_cma_prob"] =   np.squeeze(claas4_cma_nc['cma_prob'][:, -1::-1, -1::-1])
+        aux_dict["claas4_conditions"] = np.squeeze(claas4_cma_nc["conditions"][:, -1::-1, -1::-1])
+        aux_dict["claas4_quality"] =    np.squeeze(claas4_cma_nc['quality'][:, -1::-1, -1::-1])
+        claas4_cma_nc.close()
+
+        #read the cloud top height file
+        claas4_cto_nc = netCDF4.Dataset(extra_files["cto_claas4"], 'r', format='NETCDF4')
+        aux_dict["claas4_cth"] = np.squeeze(claas4_cto_nc['cth'][:, -1::-1, -1::-1])
+        aux_dict["claas4_ctp"] = np.squeeze(claas4_cto_nc['ctp'][:, -1::-1, -1::-1])
+        aux_dict["claas4_ctt"] = np.squeeze(claas4_cto_nc['ctt'][:, -1::-1, -1::-1])
+        aux_dict["claas4_cth_unc"] = np.squeeze(claas4_cto_nc['cth_unc'][:, -1::-1, -1::-1])
+        aux_dict["claas4_ctp_unc"] = np.squeeze(claas4_cto_nc['ctp_unc'][:, -1::-1, -1::-1])
+        aux_dict["claas4_ctt_unc"] = np.squeeze(claas4_cto_nc['ctt_unc'][:, -1::-1, -1::-1])
+        claas4_cto_nc.close()
+
+        #read the cloud physical properties file
+        claas4_cpp_nc = netCDF4.Dataset(extra_files["cpp_claas4"], 'r', format='NETCDF4')
+        aux_dict["claas4_cph"] = np.squeeze(claas4_cpp_nc['cph'][:, -1::-1, -1::-1])
+        aux_dict["claas4_cwp"] = np.squeeze(claas4_cpp_nc['cwp'][:, -1::-1, -1::-1])
+        claas4_cpp_nc.close()
+
+        #try to read the cloudtype file, since it is not an official product, and might not be included
+        try:
+            claas4_ct_nc = netCDF4.Dataset(extra_files["ct_claas4"], 'r', format='NETCDF4')
+            aux_dict["claas4_ct"] = np.squeeze(claas4_ct_nc['ct'][:, -1::-1, -1::-1])
+            claas4_ct_nc.close()
+        except:
+            logger.warning("CLAAS-4 CT file missing, skipping")
+
+        #extract flags from the conditions
+        no_qflag, night_flag, twilight_flag, day_flag, all_dnt_flag = get_day_night_twilight_info_pps2014(aux_dict["claas4_conditions"])
+        cloudproducts.imager_angles.sunz = np.where(night_flag, 100, 90)
+        cloudproducts.imager_angles.sunz = np.where(day_flag, 10,  cloudproducts.imager_angles.sunz)
+    
+    #Set the nodata flag instead of masks
+    for key in aux_dict:
+        if "claas4" in key and key not in ["claas4_conditions", "claas4_ct", "claas4_quality"]:
             aux_dict[key][aux_dict[key].mask] = ATRAIN_MATCH_NODATA
     return aux_dict
 
@@ -153,7 +204,7 @@ def oca_read_all_nc_cdr(filename):
     cloudproducts = read_oca_geoobj_modis(oca_nc, filename)
     cloudproducts.imager_angles = ImagerAngObj()
     cloudproducts.imager_angles.sunz = np.where(cloudproducts.longitude > -999999, 0, 100)
-    #cloudproducts.imager_angles.satz = np.where(cloudproducts.longitude > -999999, 0, 100)
+    cloudproducts.imager_angles.satz = np.where(cloudproducts.longitude > -999999, 0, 100)
 
     logger.info("Reading angles ...")
     # No angles!
@@ -208,7 +259,7 @@ def scale_oca_var(oca_var):
     # out = likely_unscaled.astype(np.float)*gain + intercept
     out = likely_unscaled
     out[likely_unscaled == nodata] = ATRAIN_MATCH_NODATA
-    return out.astype(np.float), nodata
+    return out.astype(float), nodata
 
 
 def read_oca_ctype_cmask_ctth(oca_nc):
@@ -355,7 +406,7 @@ def scale_oca_var_modis(oca_var):
     nodata = -999.0
     out = likely_unscaled
     out[likely_unscaled == nodata] = ATRAIN_MATCH_NODATA
-    return out.astype(np.float), nodata
+    return out.astype(float), nodata
 
 
 def read_oca_ctype_cmask_ctth_modis(oca_nc):

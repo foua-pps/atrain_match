@@ -26,6 +26,7 @@ from atrain_match.utils.runutils import parse_scenesfile_cci
 from atrain_match.utils.runutils import parse_scene
 from atrain_match.utils.runutils import parse_scenesfile_maia
 from atrain_match.utils.runutils import parse_scenesfile_reshaped
+from atrain_match.utils.runutils import parse_scenesfiles_oca
 from atrain_match.utils.common import Cross
 from atrain_match.libs import truth_imager_match
 import atrain_match.config as config
@@ -108,6 +109,9 @@ def main():
     group.add_argument('--pps_product_file', '-pf',
                        help="Interpret arguments as inputfile with "
                        "list of pps files")
+    group.add_argument('--oca_product_file', '-of',
+                       help="Interpret arguments as inputfile with "
+                       "list of OCA files")
     group.add_argument('--cci_product_file', '-cf',
                        help="Interpret arguments as inputfile with "
                        "list of cci files")
@@ -150,6 +154,15 @@ def main():
             else:
                 satname, time = parse_scenesfile_cci(line)
                 matchups.append(Cross(satname, time))
+    elif options.oca_product_file is not None:
+        oca_output_file = options.oca_product_file
+        read_from_file = open(oca_output_file, 'r')
+        for line in read_from_file:
+            if line.rstrip() in "":
+                pass
+            else:
+                satname, time = parse_scenesfiles_oca(line)
+                matchups.append(Cross(satname,time))
     elif options.maia_product_file is not None:
         maia_output_file = options.maia_product_file
         read_from_file = open(maia_output_file, 'r')

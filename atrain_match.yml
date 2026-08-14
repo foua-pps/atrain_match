@@ -1,0 +1,24 @@
+name: atrain_match
+channels:
+  - conda-forge
+dependencies:
+  - python>=3.7
+  - numpy
+  - h5py
+  - netcdf4
+  - pandas
+  - setuptools_scm
+  - setuptools_scm_git_archive
+  - scipy
+  - pyresample
+  - pyhdf
+  - pytz
+  - matplotlib
+  - cartopy
+  - satpy
+  - xarray
+  - h5netcdf
+  - pyorbital
+  - pip
+  - pip:
+    - -e .

@@ -106,7 +106,7 @@ class DataObject(object):
         # to replace calipso_track_from_matched
 
         for key, value in self.all_arrays.items():
-            if key in ["TAI_start"]:
+            if key in ["TAI_start", "lidar_data_altitudes"]:
                 continue
             if value is None:
                 self.all_arrays[key] = None
