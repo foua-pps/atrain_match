@@ -23,8 +23,7 @@
 #   Adam.Dybbroe,
 #   N.Hakansson
 
-"""Read Calipso/VIIRS/IMAGER matchup data object from hdf5 file
-"""
+"""Read Calipso/VIIRS/IMAGER matchup data object from hdf5 file"""
 
 import numpy as np
 import h5py
@@ -41,11 +40,12 @@ class DataObject(object):
         try:
             return self.all_arrays[name]
         except KeyError:
-            raise AttributeError("%s instance has no attribute '%s'" % (
-                self.__class__.__name__, name))
+            raise AttributeError(
+                "%s instance has no attribute '%s'" % (self.__class__.__name__, name)
+            )
 
     def __setattr__(self, name, value):
-        if name == 'all_arrays':
+        if name == "all_arrays":
             object.__setattr__(self, name, value)
         else:
             self.all_arrays[name] = value
@@ -71,8 +71,9 @@ class DataObject(object):
         for key in self.all_arrays:
             try:
                 if self.all_arrays[key].ndim != self.all_arrays[key].ndim:
-                    raise ValueError("Can't concatenate arrays " +
-                                     "of different dimensions!")
+                    raise ValueError(
+                        "Can't concatenate arrays " + "of different dimensions!"
+                    )
             except AttributeError:
                 # print "Don't concatenate member " + key + "... " + str(e)
                 self.all_arrays[key] = other.all_arrays[key]
@@ -80,19 +81,21 @@ class DataObject(object):
             try:
                 if self.all_arrays[key].ndim == 1:
                     self.all_arrays[key] = np.concatenate(
-                        [self.all_arrays[key],
-                         other.all_arrays[key]])
-                elif key in ['segment_nwp_geoheight',
-                             'segment_nwp_moist',
-                             'segment_nwp_pressure',
-                             'segment_nwp_temp']:
+                        [self.all_arrays[key], other.all_arrays[key]]
+                    )
+                elif key in [
+                    "segment_nwp_geoheight",
+                    "segment_nwp_moist",
+                    "segment_nwp_pressure",
+                    "segment_nwp_temp",
+                ]:
                     self.all_arrays[key] = np.concatenate(
-                        [self.all_arrays[key],
-                         other.all_arrays[key]], 0)
+                        [self.all_arrays[key], other.all_arrays[key]], 0
+                    )
                 elif self.all_arrays[key].ndim == 2:
                     self.all_arrays[key] = np.concatenate(
-                        [self.all_arrays[key],
-                         other.all_arrays[key]], 0)
+                        [self.all_arrays[key], other.all_arrays[key]], 0
+                    )
             except ValueError:
                 # print "Don't concatenate member " + key + "... " + str(e)
                 self.all_arrays[key] = other.all_arrays[key]
@@ -120,13 +123,13 @@ class DataObject(object):
 
     def mask_nodata(self, nodata):
         for key in self.all_arrays:
-            if key in ['latitude']:
+            if key in ["latitude"]:
                 pass
             else:
                 try:
                     self.all_arrays[key] = np.ma.array(
-                        self.all_arrays[key],
-                        mask=self.all_arrays[key] <= nodata)
+                        self.all_arrays[key], mask=self.all_arrays[key] <= nodata
+                    )
                 except:
                     print("cloud not mask %s" % (key))
 
@@ -135,39 +138,39 @@ class ExtractedImagerObject(DataObject):
     def __init__(self):
         DataObject.__init__(self)
         self.all_arrays = {
-            'imager_ctth_m_above_seasurface': None,
-            'longitude': None,
-            'latitude': None,
-            'sec_1970': None,
-            'ctth_height': None,
-            'ctth_pressure': None,
-            'ctth_temperature': None,
-            'cloudtype': None,
-            'cloudmask': None,
-            'cfc_mean': None,
-            'cma_prob': None,
-            'cma_prob_mean': None,
-            'cpp_iwp': None,
-            'cpp_lwp': None,
-            'cpp_phase': None,
-            'cpp_cer': None,
+            "imager_ctth_m_above_seasurface": None,
+            "longitude": None,
+            "latitude": None,
+            "sec_1970": None,
+            "ctth_height": None,
+            "ctth_pressure": None,
+            "ctth_temperature": None,
+            "cloudtype": None,
+            "cloudmask": None,
+            "cfc_mean": None,
+            "cma_prob": None,
+            "cma_prob_mean": None,
+            "cpp_iwp": None,
+            "cpp_lwp": None,
+            "cpp_phase": None,
+            "cpp_cer": None,
             # Quality flags
-            'cloudtype_qflag': None,
-            'cloudtype_phaseflag': None,
-            'cloudtype_quality': None,
-            'cloudtype_conditions': None,
-            'cloudtype_status': None,
-            'ctth_status': None,
+            "cloudtype_qflag": None,
+            "cloudtype_phaseflag": None,
+            "cloudtype_quality": None,
+            "cloudtype_conditions": None,
+            "cloudtype_status": None,
+            "ctth_status": None,
             # Angles
-            'satz': None,
-            'sunz': None,
-            #Uncertainties
-            'cma_unc': None,
-            'cph_unc': None,
-            'cth_unc': None,
-            'ctp_unc': None,
-            'ctt_unc': None,
-            'cwp_unc': None
+            "satz": None,
+            "sunz": None,
+            # Uncertainties
+            "cma_unc": None,
+            "cph_unc": None,
+            "cth_unc": None,
+            "ctp_unc": None,
+            "ctt_unc": None,
+            "cwp_unc": None,
         }
 
 
@@ -175,19 +178,19 @@ class ModisObject(DataObject):
     def __init__(self):
         DataObject.__init__(self)
         self.all_arrays = {
-            'height': None,
-            'temperature': None,
-            'pressure': None,
-            'cloud_emissivity': None,
-            'cloud_phase': None,
-            'lwp': None}
+            "height": None,
+            "temperature": None,
+            "pressure": None,
+            "cloud_emissivity": None,
+            "cloud_phase": None,
+            "lwp": None,
+        }
 
 
 class ExtraObject(DataObject):
     def __init__(self):
         DataObject.__init__(self)
-        self.all_arrays = {
-            'name': None}
+        self.all_arrays = {"name": None}
 
 
 class CalipsoObject(DataObject):
@@ -195,35 +198,34 @@ class CalipsoObject(DataObject):
         DataObject.__init__(self)
         self.all_arrays = {
             # Normal name = calipso.name.lower()
-
             # Imager matching needed for all truths:
-            'longitude': None,
-            'latitude': None,
-            'imager_linnum': None,
-            'imager_pixnum': None,
-            'elevation': None,  # DEM_elevation => elevation in (m)"
-            'cloud_fraction': None,
-            'validation_height': None,
-            'sec_1970': None,
-            'minimum_laser_energy_532': None,
-            'layer_top_altitude': None,
-            'layer_top_temperature': None,
-            'layer_top_pressure': None,
-            'midlayer_temperature': None,
-            'layer_base_altitude': None,
-            'layer_base_pressure': None,
-            'number_layers_found': None,
-            'igbp_surface_type': None,
-            'nsidc_surface_type': None,  # V4 renamed from 'snow_ice_surface_type'
-            'snow_ice_surface_type': None,
+            "longitude": None,
+            "latitude": None,
+            "imager_linnum": None,
+            "imager_pixnum": None,
+            "elevation": None,  # DEM_elevation => elevation in (m)"
+            "cloud_fraction": None,
+            "validation_height": None,
+            "sec_1970": None,
+            "minimum_laser_energy_532": None,
+            "layer_top_altitude": None,
+            "layer_top_temperature": None,
+            "layer_top_pressure": None,
+            "midlayer_temperature": None,
+            "layer_base_altitude": None,
+            "layer_base_pressure": None,
+            "number_layers_found": None,
+            "igbp_surface_type": None,
+            "nsidc_surface_type": None,  # V4 renamed from 'snow_ice_surface_type'
+            "snow_ice_surface_type": None,
             # 'nsidc_surface_type_texture': None,
-            'profile_time_tai': None,  # renamed from "Profile_Time"
-            'feature_classification_flags': None,
-            'day_night_flag': None,
-            'feature_optical_depth_532': None,
-            'tropopause_height': None,
-            'profile_id': None,
-            'cad_score': None,
+            "profile_time_tai": None,  # renamed from "Profile_Time"
+            "feature_classification_flags": None,
+            "day_night_flag": None,
+            "feature_optical_depth_532": None,
+            "tropopause_height": None,
+            "profile_id": None,
+            "cad_score": None,
             # If a combination of 5 and 1km data are used for RESOLUTION=1
             # "column_optical_depth_tropospheric_aerosols_1064_5km": None,
             # "column_optical_depth_tropospheric_aerosols_1064": None,
@@ -241,31 +243,27 @@ class CalipsoObject(DataObject):
             "number_layers_found_5km": None,
             # Variables derived for 5km data
             # Also included if a combination of 5 and 1km data are used for RESOLUTION=1
-            'detection_height_5km': None,
-            'total_optical_depth_5km': None,
+            "detection_height_5km": None,
+            "total_optical_depth_5km": None,
             "feature_optical_depth_532_top_layer_5km": None,
-            
             "single_shot_data": None,
             # Variables derived from 5km file to 1kmresolution_
-            
-            'cfc_single_shots': None,
+            "cfc_single_shots": None,
             "average_cloud_top_pressure_single_shots": None,
             "average_cloud_top_temperature_single_shots": None,
-            "average_cloud_top_single_shots": None,            
+            "average_cloud_top_single_shots": None,
             "average_cloud_base_single_shots": None,
             "average_cloud_base_pressure_single_shots": None,
             "median_cloud_top_pressure_single_shots": None,
             "median_cloud_top_temperature_single_shots": None,
-            "median_cloud_top_single_shots": None,            
+            "median_cloud_top_single_shots": None,
             "median_cloud_base_single_shots": None,
-            "median_cloud_base_pressure_single_shots": None,            
-
+            "median_cloud_base_pressure_single_shots": None,
             # From cloudsat:
-            'cal_modis_cflag': None,
-            'cloudsat_index': None,
-            'tropopause_temperature': None,
-            'tropopause_height': None,
-            
+            "cal_modis_cflag": None,
+            "cloudsat_index": None,
+            "tropopause_temperature": None,
+            "tropopause_height": None,
         }
 
 
@@ -273,91 +271,93 @@ class CloudsatObject(DataObject):
     def __init__(self):
         DataObject.__init__(self)
         self.all_arrays = {
-            'clsat_max_height': None,
-            'longitude': None,
-            'latitude': None,
-            'imager_linnum': None,
-            'imager_pixnum': None,
-            'cloud_fraction': None,
-            'validation_height': None,
-            'validation_height_base': None,
-            'elevation': None,
-            'sec_1970': None,
-            'CPR_Cloud_mask': None,
-            'MODIS_Cloud_Fraction': None,
-            'MODIS_cloud_flag': None,
-            'Height': None,
-            'LO_RVOD_liquid_water_path': None,
-            'IO_RVOD_ice_water_path': None,
-            'LO_RO_liquid_water_path': None,
-            'IO_RO_ice_water_path': None,
+            "clsat_max_height": None,
+            "longitude": None,
+            "latitude": None,
+            "imager_linnum": None,
+            "imager_pixnum": None,
+            "cloud_fraction": None,
+            "validation_height": None,
+            "validation_height_base": None,
+            "elevation": None,
+            "sec_1970": None,
+            "CPR_Cloud_mask": None,
+            "MODIS_Cloud_Fraction": None,
+            "MODIS_cloud_flag": None,
+            "Height": None,
+            "LO_RVOD_liquid_water_path": None,
+            "IO_RVOD_ice_water_path": None,
+            "LO_RO_liquid_water_path": None,
+            "IO_RO_ice_water_path": None,
             #'liq_water_path': None,  # kg!/m2 R05
             #'ice_water_path': None,  # kg!/m2 R05
-            'RVOD_liq_water_path': None,  # g/m2 R04
-            'RVOD_ice_water_path': None,  # g/m2 R04
-            'RO_liq_water_path': None,  # g/m2 R05
-            'RO_ice_water_path': None,  # g/m2 R05
-            'precip_liq_water_path_gm2': None,  # g/m2
-            'cloud_liq_water_path_gm2': None,  # g/m2 aa
-            'precip_ice_water_path_gm2': None,  # g/m2 
-            'cloud_ice_water_path_gm2': None,  # g/m2
-            'liq_water_path_gm2': None,  # g/m2
-            'ice_water_path_gm2': None,  # g/m2
-            'precip_liq_water_path': None,  # kg/m2 R05
-            'cloud_liq_water_path': None,  # kg/m2 R05
-            'precip_ice_water_path': None,  # kg/m2 R05
-            'cloud_ice_water_path': None,  # kg/m2 R05
-            'liq_water_path': None,  # kg/m2 R05
-            'ice_water_path': None,  # kg/m2 R05
+            "RVOD_liq_water_path": None,  # g/m2 R04
+            "RVOD_ice_water_path": None,  # g/m2 R04
+            "RO_liq_water_path": None,  # g/m2 R05
+            "RO_ice_water_path": None,  # g/m2 R05
+            "precip_liq_water_path_gm2": None,  # g/m2
+            "cloud_liq_water_path_gm2": None,  # g/m2 aa
+            "precip_ice_water_path_gm2": None,  # g/m2
+            "cloud_ice_water_path_gm2": None,  # g/m2
+            "liq_water_path_gm2": None,  # g/m2
+            "ice_water_path_gm2": None,  # g/m2
+            "precip_liq_water_path": None,  # kg/m2 R05
+            "cloud_liq_water_path": None,  # kg/m2 R05
+            "precip_ice_water_path": None,  # kg/m2 R05
+            "cloud_ice_water_path": None,  # kg/m2 R05
+            "liq_water_path": None,  # kg/m2 R05
+            "ice_water_path": None,  # kg/m2 R05
             #'ice_water_content': None,
             #'liq_water_content': None,
             "RVOD_CWC_status": None,
             "RO_CWC_status": None,
-            'Phase': None,
-            'Profile_time': None,
-            'TAI_start': None,
+            "Phase": None,
+            "Profile_time": None,
+            "TAI_start": None,
             # From calipso
-            'calipso_layer_base_altitude': None,
-            'calipso_layer_top_altitude': None,
-            'calipso_feature_classification_flags': None
+            "calipso_layer_base_altitude": None,
+            "calipso_layer_top_altitude": None,
+            "calipso_feature_classification_flags": None,
         }
+
 
 class EarthCareObject(DataObject):
     def __init__(self):
         DataObject.__init__(self)
         self.all_arrays = {
-            'sec_1970': None,
-            'latitude': None,
-            'longitude': None,
-            'imager_linnum': None,
-            'imager_pixnum': None,
-            'validation_height': None,
-            'cloud_fraction': None,
+            "sec_1970": None,
+            "latitude": None,
+            "longitude": None,
+            "imager_linnum": None,
+            "imager_pixnum": None,
+            "validation_height": None,
+            "cloud_fraction": None,
         }
+
 
 class DardarObject(DataObject):
     def __init__(self):
         DataObject.__init__(self)
         self.all_arrays = {
-            'sec_1970': None,
-            'latitude': None,
-            'longitude': None,
-            'imager_linnum': None,
-            'imager_pixnum': None,
+            "sec_1970": None,
+            "latitude": None,
+            "longitude": None,
+            "imager_linnum": None,
+            "imager_pixnum": None,
             #'height': None,
             #'Z': None,
-            'bscat': None,
-            'bscat_perp': None,
-            'instrument_flag': None,
-            'iwc': None,
-            'Target_Lidar_Mask': None,
-            'effective_radius': None,
-            'N0star': None,
-            'temperature': None,
-            'day_night_flag': None,
-            'land_water_mask': None,
-            'tropopause_height': None,
-            'DARMASK_Simplified_Categorization': None
+            "bscat": None,
+            "bscat_perp": None,
+            "instrument_flag": None,
+            "iwc": None,
+            "Target_Lidar_Mask": None,
+            "effective_radius": None,
+            "N0star": None,
+            "temperature": None,
+            "day_night_flag": None,
+            "land_water_mask": None,
+            "tropopause_height": None,
+            "DARMASK_Simplified_Categorization": None,
         }
 
 
@@ -366,22 +366,22 @@ class IssObject(DataObject):
         DataObject.__init__(self)
         self.all_arrays = {
             # Name: Iss name .lower()
-            'longitude': None,
-            'latitude': None,
+            "longitude": None,
+            "latitude": None,
             # Derived:
-            'imager_linnum': None,
-            'imager_pixnum': None,
-            'sec_1970': None,
-            'elevation': None,
-            'cloud_fraction': None,
-            'validation_height': None,
-            'total_optical_depth_5km': None,
+            "imager_linnum": None,
+            "imager_pixnum": None,
+            "sec_1970": None,
+            "elevation": None,
+            "cloud_fraction": None,
+            "validation_height": None,
+            "total_optical_depth_5km": None,
             # Used
-            'cloud_phase_fore_fov': None,
-            'feature_type_fore_fov': None,
-            'extinction_qc_flag_1064_fore_fov': None,
-            'layer_top_altitude_fore_fov': None,
-            'sky_condition_fore_fov': None,
+            "cloud_phase_fore_fov": None,
+            "feature_type_fore_fov": None,
+            "extinction_qc_flag_1064_fore_fov": None,
+            "layer_top_altitude_fore_fov": None,
+            "sky_condition_fore_fov": None,
         }
 
 
@@ -389,110 +389,148 @@ class AmsrObject(DataObject):
     def __init__(self):
         DataObject.__init__(self)
         self.all_arrays = {
-            'longitude': None,
-            'latitude': None,
-            'imager_linnum': None,
-            'imager_pixnum': None,
-            'imager_linnum_nneigh': None,
-            'imager_pixnum_nneigh': None,
-            'sec_1970': None,
-            'lwp': None,
-            'pixel_status': None,
-            'quality': None,
-            'surface_type': None}
+            "longitude": None,
+            "latitude": None,
+            "imager_linnum": None,
+            "imager_pixnum": None,
+            "imager_linnum_nneigh": None,
+            "imager_pixnum_nneigh": None,
+            "sec_1970": None,
+            "lwp": None,
+            "pixel_status": None,
+            "quality": None,
+            "surface_type": None,
+        }
 
 
 class MoraObject(DataObject):
     def __init__(self):
         DataObject.__init__(self)
         self.all_arrays = {
-            'longitude': None,
-            'latitude': None,
-            'imager_linnum': None,
-            'imager_pixnum': None,
-            'cloud_base_height': None,
-            'sec_1970': None}
+            "longitude": None,
+            "latitude": None,
+            "imager_linnum": None,
+            "imager_pixnum": None,
+            "cloud_base_height": None,
+            "mora_cloud_base_temperature": None,
+            "mora_cloud_base_pressure": None,
+            "sec_1970": None,
+        }
 
 
 class SynopObject(DataObject):
     def __init__(self):
         DataObject.__init__(self)
         self.all_arrays = {
-            'longitude': None,
-            'latitude': None,
-            'imager_linnum': None,
-            'imager_pixnum': None,
-            'imager_linnum_nneigh': None,
-            'imager_pixnum_nneigh': None,
-            'total_cloud_cover': None,
-            'cloud_fraction': None,
-            'nh': None,
-            'cl': None,
-            'cm': None,
-            'ch': None,
-            'vvv': None,
-            'ww': None,
-            'temp': None,
-            'dtemp': None,
-            'sec_1970': None,
-            'pressure': None}
+            "longitude": None,
+            "latitude": None,
+            "imager_linnum": None,
+            "imager_pixnum": None,
+            "imager_linnum_nneigh": None,
+            "imager_pixnum_nneigh": None,
+            "total_cloud_cover": None,
+            "cloud_fraction": None,
+            "nh": None,
+            "cl": None,
+            "cm": None,
+            "ch": None,
+            "vvv": None,
+            "ww": None,
+            "temp": None,
+            "dtemp": None,
+            "sec_1970": None,
+            "pressure": None,
+        }
 
 
 class TruthImagerTrackObject:
-    def __init__(self, truth='calipso'):
+    def __init__(self, truth="calipso"):
         self.imager = ExtractedImagerObject()
         self.modis_lvl2 = ModisObject()
-        if truth in 'calipso':
+        if truth in "calipso":
             self.calipso = CalipsoObject()
             self.calipso_aerosol = CalipsoObject()
-        elif truth in 'cloudsat':
+        elif truth in "cloudsat":
             self.cloudsat = CloudsatObject()
-        elif truth in 'amsr':
+        elif truth in "amsr":
             self.amsr = AmsrObject()
-        elif truth in 'synop':
+        elif truth in "synop":
             self.synop = SynopObject()
-        elif truth in 'mora':
+        elif truth in "mora":
             self.mora = MoraObject()
-        elif truth in 'iss':
+        elif truth in "iss":
             self.iss = IssObject()
-        elif truth in 'dardar':
+        elif truth in "dardar":
             self.dardar = DardarObject()
-        elif truth in 'earthcare':
+        elif truth in "earthcare":
             self.earthcare = EarthCareObject()
         self.extra = ExtraObject()
         self.diff_sec_1970 = None
         self.truth_sat = truth
-        self.imager_instrument = 'imager'
+        self.imager_instrument = "imager"
 
     def make_nsidc_surface_type_texture(self, kernel_sz=51):
         """Derive the stdv of the ice dataset"""
 
-        if self.calipso.all_arrays['nsidc_surface_type'] is not None:
-            self.calipso.all_arrays['nsidc_surface_type_texture'] = sliding_std(
-                self.calipso.all_arrays['nsidc_surface_type'], kernel_sz)
+        if self.calipso.all_arrays["nsidc_surface_type"] is not None:
+            self.calipso.all_arrays["nsidc_surface_type_texture"] = sliding_std(
+                self.calipso.all_arrays["nsidc_surface_type"], kernel_sz
+            )
 
     def __add__(self, other):
         """Concatenating two objects together"""
-        for object_name in ['imager', 'calipso', 'calipso_aerosol', 'amsr', 'dardar', 'earthcare',
-                            'cloudsat', 'iss', 'mora', 'synop', 'modis_lvl2', 'modis', 'extra']:
+        for object_name in [
+            "imager",
+            "calipso",
+            "calipso_aerosol",
+            "amsr",
+            "dardar",
+            "earthcare",
+            "cloudsat",
+            "iss",
+            "mora",
+            "synop",
+            "modis_lvl2",
+            "modis",
+            "extra",
+        ]:
             if hasattr(self, object_name):
-                setattr(self, object_name,
-                        getattr(self, object_name) +
-                        getattr(other, object_name))
+                setattr(
+                    self,
+                    object_name,
+                    getattr(self, object_name) + getattr(other, object_name),
+                )
         try:
-            self.diff_sec_1970 = np.concatenate([self.diff_sec_1970,
-                                                 other.diff_sec_1970])
+            self.diff_sec_1970 = np.concatenate(
+                [self.diff_sec_1970, other.diff_sec_1970]
+            )
         except ValueError:
             # print "Don't concatenate member diff_sec_1970... " + str(e)
             self.diff_sec_1970 = other.diff_sec_1970
         return self
 
     def extract_elements(self, idx=None, starti=None, endi=None):
-        for object_name in ['imager', 'calipso', 'calipso_aerosol', 'amsr', 'dardar', 'earthcare',
-                            'cloudsat', 'iss', 'mora', 'synop', 'modis', 'extra']:
+        for object_name in [
+            "imager",
+            "calipso",
+            "calipso_aerosol",
+            "amsr",
+            "dardar",
+            "earthcare",
+            "cloudsat",
+            "iss",
+            "mora",
+            "synop",
+            "modis",
+            "extra",
+        ]:
             if hasattr(self, object_name):
                 obj = getattr(self, object_name)
-                setattr(self, object_name, obj.extract_elements(idx=idx, starti=starti, endi=endi))
+                setattr(
+                    self,
+                    object_name,
+                    obj.extract_elements(idx=idx, starti=starti, endi=endi),
+                )
         try:
             if idx is not None:
                 self.diff_sec_1970 = self.diff_sec_1970[idx]
@@ -507,107 +545,134 @@ class TruthImagerTrackObject:
 def get_stuff_to_read_from_a_reshaped_file(h5file, retv):
     h5_groups = []
     data_objects = []
-    if 'calipso' in h5file.keys():
-        h5_groups.append(h5file['/calipso'])
+    if "calipso" in h5file.keys():
+        h5_groups.append(h5file["/calipso"])
         data_objects.append(retv.calipso)
-    if 'calipso_aerosol' in h5file.keys():
-        h5_groups.append(h5file['/calipso_aerosol'])
+    if "calipso_aerosol" in h5file.keys():
+        h5_groups.append(h5file["/calipso_aerosol"])
         data_objects.append(retv.calipso_aerosol)
-    if 'pps' in h5file.keys():
-        h5_groups.append(h5file['/pps'])
+    if "pps" in h5file.keys():
+        h5_groups.append(h5file["/pps"])
         data_objects.append(retv.imager)
-    if 'cci' in h5file.keys():
-        h5_groups.append(h5file['/cci'])
+    if "cci" in h5file.keys():
+        h5_groups.append(h5file["/cci"])
         data_objects.append(retv.imager)
-    if 'seviri_hrit' in h5file.keys():
-        h5_groups.append(h5file['/seviri_hrit'])
+    if "seviri_hrit" in h5file.keys():
+        h5_groups.append(h5file["/seviri_hrit"])
         data_objects.append(retv.imager)
-    if 'maia' in h5file.keys():
-        h5_groups.append(h5file['/maia'])
-    if 'oca' in h5file.keys():
-        h5_groups.append(h5file['/oca'])
+    if "maia" in h5file.keys():
+        h5_groups.append(h5file["/maia"])
+    if "oca" in h5file.keys():
+        h5_groups.append(h5file["/oca"])
         data_objects.append(retv.imager)
-    if 'patmosx' in h5file.keys():
-        h5_groups.append(h5file['/patmosx'])
+    if "patmosx" in h5file.keys():
+        h5_groups.append(h5file["/patmosx"])
         data_objects.append(retv.imager)
-    if 'modis_lvl2' in h5file.keys():
-        h5_groups.append(h5file['/modis_lvl2'])
+    if "modis_lvl2" in h5file.keys():
+        h5_groups.append(h5file["/modis_lvl2"])
         data_objects.append(retv.modis_lvl2)
-    if 'cloudsat' in h5file.keys():
-        h5_groups.append(h5file['/cloudsat'])
+    if "cloudsat" in h5file.keys():
+        h5_groups.append(h5file["/cloudsat"])
         data_objects.append(retv.cloudsat)
-    if 'dardar' in h5file.keys():
-        h5_groups.append(h5file['/dardar'])
+    if "dardar" in h5file.keys():
+        h5_groups.append(h5file["/dardar"])
         data_objects.append(retv.dardar)
-    if 'earthcare' in h5file.keys():
-        h5_groups.append(h5file['/earthcare'])
+    if "earthcare" in h5file.keys():
+        h5_groups.append(h5file["/earthcare"])
         data_objects.append(retv.earthcare)
-    if 'iss' in h5file.keys():
-        h5_groups.append(h5file['/iss'])
+    if "iss" in h5file.keys():
+        h5_groups.append(h5file["/iss"])
         data_objects.append(retv.iss)
-    if 'amsr' in h5file.keys():
-        h5_groups.append(h5file['/amsr'])
+    if "amsr" in h5file.keys():
+        h5_groups.append(h5file["/amsr"])
         data_objects.append(retv.amsr)
-    if 'mora' in h5file.keys():
-        h5_groups.append(h5file['/mora'])
+    if "mora" in h5file.keys():
+        h5_groups.append(h5file["/mora"])
         data_objects.append(retv.mora)
-    if 'synop' in h5file.keys():
-        h5_groups.append(h5file['/synop'])
+    if "synop" in h5file.keys():
+        h5_groups.append(h5file["/synop"])
         data_objects.append(retv.synop)
-    if 'cmaprob_cots' in h5file:
-        h5_groups.append(h5file['/cmaprob_cots'])
+    if "cmaprob_cots" in h5file:
+        h5_groups.append(h5file["/cmaprob_cots"])
         data_objects.append(retv.extra)
-    if 'extra' in h5file:
-        h5_groups.append(h5file['/extra'])
+    if "extra" in h5file:
+        h5_groups.append(h5file["/extra"])
         data_objects.append(retv.extra)
     return (h5_groups, data_objects)
 
 
-def read_truth_imager_match_obj(filename, truth='calipso',
-                                read_all=True,
-                                read_var=[],
-                                skip_var=[]):
+def read_truth_imager_match_obj(
+    filename, truth="calipso", read_all=True, read_var=[], skip_var=[]
+):
     retv = TruthImagerTrackObject(truth=truth)
-    h5file = h5py.File(filename, 'r')
+    h5file = h5py.File(filename, "r")
     (h5_groups, data_objects) = get_stuff_to_read_from_a_reshaped_file(h5file, retv)
     for group, data_obj in zip(h5_groups, data_objects):
         imager_instrument = group.attrs.get("imager_instrument", None)
         if imager_instrument is not None:
-            retv.imager_instrument = imager_instrument            
+            retv.imager_instrument = imager_instrument
         for dataset in group.keys():
             if dataset in skip_var:
                 continue
-            if (read_all or dataset in read_var or
-                    (len(read_var) == 0 and dataset.data_obj.all_arrays.keys())):
+            if (
+                read_all
+                or dataset in read_var
+                or (len(read_var) == 0 and dataset.data_obj.all_arrays.keys())
+            ):
                 atrain_match_name = dataset
                 if atrain_match_name in ["snow_ice_surface_type"]:
                     atrain_match_name = "nsidc_surface_type"
                 setattr(data_obj, atrain_match_name, group[dataset][...])
-    retv.diff_sec_1970 = h5file['diff_sec_1970'][...]
+    retv.diff_sec_1970 = h5file["diff_sec_1970"][...]
     h5file.close()
     return retv
 
 
-def read_files(files, truth='calipso', read_all=True, read_var=[], skip_var=[]):
+def read_files(files, truth="calipso", read_all=True, read_var=[], skip_var=[]):
     my_files = files.copy()
-    tObj = read_truth_imager_match_obj(my_files.pop(), truth=truth, read_all=read_all, read_var=read_var, skip_var=skip_var)
+    tObj = read_truth_imager_match_obj(
+        my_files.pop(),
+        truth=truth,
+        read_all=read_all,
+        read_var=read_var,
+        skip_var=skip_var,
+    )
     if len(my_files) > 0:
         for filename in my_files:
-            tObj += read_truth_imager_match_obj(filename, truth=truth, read_all=read_all, read_var=read_var, skip_var=skip_var)
+            tObj += read_truth_imager_match_obj(
+                filename,
+                truth=truth,
+                read_all=read_all,
+                read_var=read_var,
+                skip_var=skip_var,
+            )
     return tObj
 
 
 # write matchup files
 
 
-def write_truth_imager_match_obj(filename, match_obj, SETTINGS=None, imager_obj_name='pps'):
+def write_truth_imager_match_obj(
+    filename, match_obj, SETTINGS=None, imager_obj_name="pps"
+):
     """Write *match_obj* to *filename*."""
-    datasets = {'diff_sec_1970': match_obj.diff_sec_1970}
+    datasets = {"diff_sec_1970": match_obj.diff_sec_1970}
     groups = {imager_obj_name: match_obj.imager.all_arrays}
-    imager_attrs = {'imager_instrument': match_obj.imager_instrument}
+    imager_attrs = {"imager_instrument": match_obj.imager_instrument}
     groups_attrs = {imager_obj_name: imager_attrs}
-    for name in ['calipso', 'calipso_aerosol', 'iss', 'modis_lvl2', 'dardar', 'earthcare',
-                 'amsr', 'synop', 'mora', 'cloudsat', 'extra']:
+    for name in [
+        "calipso",
+        "calipso_aerosol",
+        "iss",
+        "modis_lvl2",
+        "dardar",
+        "earthcare",
+        "amsr",
+        "synop",
+        "mora",
+        "cloudsat",
+        "extra",
+    ]:
         if hasattr(match_obj, name):
             groups[name] = getattr(match_obj, name).all_arrays
     write_match_objects(filename, datasets, groups, groups_attrs, SETTINGS=SETTINGS)
@@ -617,86 +682,88 @@ def write_truth_imager_match_obj(filename, match_obj, SETTINGS=None, imager_obj_
 def sliding_std(x, size=5):
     """derive a sliding standard deviation of a data array"""
     from scipy.ndimage.filters import uniform_filter
-    c1 = uniform_filter(x.astype('float'), size=size)
-    c2 = uniform_filter(x.astype('float')*x.astype('float'), size=size)
-    return abs(c2 - c1 * c1)**.5
+
+    c1 = uniform_filter(x.astype("float"), size=size)
+    c2 = uniform_filter(x.astype("float") * x.astype("float"), size=size)
+    return abs(c2 - c1 * c1) ** 0.5
 
 
 the_used_variables = [
-    'longitude',
-    'latitude',
-    'sec_1970',
-    'imager_linnum',
-    'imager_pixnum',
-    'imager_linnum_nneigh',
-    'imager_pixnum_nneigh',
-    'sec_1970',
-    'elevation',
+    "longitude",
+    "latitude",
+    "sec_1970",
+    "imager_linnum",
+    "imager_pixnum",
+    "imager_linnum_nneigh",
+    "imager_pixnum_nneigh",
+    "sec_1970",
+    "elevation",
     # MODIS LVL2
-    'height',
-    'temperature',
-    'pressure',
-    'cloud_emissivity',
-    'cloud_phase',
-    'lwp',
+    "height",
+    "temperature",
+    "pressure",
+    "cloud_emissivity",
+    "cloud_phase",
+    "lwp",
     # AMSR
-    'lwp',
-    'imager_amsr_dist',
-    'pixel_status',
-    'quality',
-    'surface_type',
+    "lwp",
+    "imager_amsr_dist",
+    "pixel_status",
+    "quality",
+    "surface_type",
     # MORA
-    'cloud_base_height',
+    "cloud_base_height",
+    "mora_cloud_base_temperature",
+    "mora_cloud_base_pressure",
     # Cloudsat
-    'cloud_fraction',
-    'validation_height',
-    'LO_RVOD_liquid_water_path',
-    'IO_RVOD_ice_water_path',
-    'LO_RO_liquid_water_path',
-    'IO_RO_ice_water_path',
-    'RVOD_liq_water_path',  # g/m2 R04
-    'RVOD_ice_water_path',  # g/m2 R04
-    'RO_liq_water_path',  # g/m2 R05
-    'RO_ice_water_path',  # g/m2 R05
-    'precip_liq_water_path_gm2',  # g/m2
-    'cloud_liq_water_path_gm2',  # g/m2 
-    'precip_ice_water_path_gm2',  # g/m2 
-    'cloud_ice_water_path_gm2',  # g/m2
-    'liq_water_path_gm2',  # g/m2
-    'ice_water_path_gm2',  # g/m2
-    'precip_liq_water_path',  # kg/m2 R05
-    'cloud_liq_water_path',  # kg/m2 R05
-    'precip_ice_water_path',  # kg/m2 R05
-    'cloud_ice_water_path',  # kg/m2 R05
-    'liq_water_path',  # kg/m2 R05
-    'ice_water_path',  # kg/m2 R05
+    "cloud_fraction",
+    "validation_height",
+    "LO_RVOD_liquid_water_path",
+    "IO_RVOD_ice_water_path",
+    "LO_RO_liquid_water_path",
+    "IO_RO_ice_water_path",
+    "RVOD_liq_water_path",  # g/m2 R04
+    "RVOD_ice_water_path",  # g/m2 R04
+    "RO_liq_water_path",  # g/m2 R05
+    "RO_ice_water_path",  # g/m2 R05
+    "precip_liq_water_path_gm2",  # g/m2
+    "cloud_liq_water_path_gm2",  # g/m2
+    "precip_ice_water_path_gm2",  # g/m2
+    "cloud_ice_water_path_gm2",  # g/m2
+    "liq_water_path_gm2",  # g/m2
+    "ice_water_path_gm2",  # g/m2
+    "precip_liq_water_path",  # kg/m2 R05
+    "cloud_liq_water_path",  # kg/m2 R05
+    "precip_ice_water_path",  # kg/m2 R05
+    "cloud_ice_water_path",  # kg/m2 R05
+    "liq_water_path",  # kg/m2 R05
+    "ice_water_path",  # kg/m2 R05
     #'ice_water_content',
     #'liq_water_content',
     "RVOD_CWC_status",
     # CALIPSO write do not combine
-    'cal_modis_cflag',
-    'cloudsat_index',
-    'tropopause_height',
-    'tropopause_temperature',
+    "cal_modis_cflag",
+    "cloudsat_index",
+    "tropopause_height",
+    "tropopause_temperature",
     # DARDAR
     #'height',
     #'Z',
-    'bscat',
-    'bscat_perp',
-    'instrument_flag',
-    'iwc',
-    'Target_Lidar_Mask',
-    'effective_radius',
-    'N0star',
-    'temperature',
-    'day_night_flag',
-    'land_water_mask',
-    'tropopause_height',
-    'DARMASK_Simplified_Categorization',
-
+    "bscat",
+    "bscat_perp",
+    "instrument_flag",
+    "iwc",
+    "Target_Lidar_Mask",
+    "effective_radius",
+    "N0star",
+    "temperature",
+    "day_night_flag",
+    "land_water_mask",
+    "tropopause_height",
+    "DARMASK_Simplified_Categorization",
     # CALIPSO only (ISS?)
-    'minimum_laser_energy_532',
-    'cad_score',
+    "minimum_laser_energy_532",
+    "cad_score",
     "average_cloud_top_pressure_single_shots",
     "average_cloud_top_altitude_single_shots",
     "average_cloud_top_temperature_single_shots",
@@ -709,65 +776,70 @@ the_used_variables = [
     "median_cloud_base_pressure_single_shots",
     "median_cloud_base_temperature_single_shots",
     "median_cloud_base_altitude_single_shots",
-      
-  
-    'profile_id',
-    'layer_top_altitude',
-    'layer_top_altitude_fore_fov',
-    'layer_top_temperature',
-    'layer_top_pressure',
-    'layer_base_altitude',
-    'layer_base_pressure',
-    'layer_base_temperature',
-    'midlayer_temperature',
-    'number_layers_found',
-    'igbp_surface_type',
-    'nsidc_surface_type',
-    'snow_ice_surface_type',
-    'surface_type_fore_fov',
-    'feature_classification_flags',
-    'feature_optical_depth_532',
-    'single_shot_data',
-    'cfc_single_shots_1km_from_5km_file',
-    'feature_optical_depth_532_top_layer_5km',
-    'feature_optical_depth_532_5km',
-    'total_optical_depth_5km',
-    'detection_height_5km',
-    'column_optical_depth_cloud_532',
-    'column_optical_depth_cloud_uncertainty_532',
-    'column_optical_depth_tropospheric_aerosols_532_5km',
-    'column_optical_depth_tropospheric_aerosols_532',
-    'column_optical_depth_aerosols_532_5km',
-    'column_optical_depth_aerosols_532',
+    "profile_id",
+    "layer_top_altitude",
+    "layer_top_altitude_fore_fov",
+    "layer_top_temperature",
+    "layer_top_pressure",
+    "layer_base_altitude",
+    "layer_base_pressure",
+    "layer_base_temperature",
+    "midlayer_temperature",
+    "number_layers_found",
+    "igbp_surface_type",
+    "nsidc_surface_type",
+    "snow_ice_surface_type",
+    "surface_type_fore_fov",
+    "feature_classification_flags",
+    "feature_optical_depth_532",
+    "single_shot_data",
+    "cfc_single_shots_1km_from_5km_file",
+    "feature_optical_depth_532_top_layer_5km",
+    "feature_optical_depth_532_5km",
+    "total_optical_depth_5km",
+    "detection_height_5km",
+    "column_optical_depth_cloud_532",
+    "column_optical_depth_cloud_uncertainty_532",
+    "column_optical_depth_tropospheric_aerosols_532_5km",
+    "column_optical_depth_tropospheric_aerosols_532",
+    "column_optical_depth_aerosols_532_5km",
+    "column_optical_depth_aerosols_532",
     "layer_top_altitude_5km",
     "layer_top_pressure_5km",
-    'number_cloudy_single_shots',
+    "number_cloudy_single_shots",
     "average_cloud_base_single_shots_5km",
     "average_cloud_top_pressure_single_shots_5km",
     "average_cloud_top_single_shots_5km",
     # CLOUDSAT only
-    'clsat_max_height',
-    'validation_height_base',
-    'MODIS_Cloud_Fraction',
-    'MODIS_cloud_flag',
-    'calipso_layer_base_altitude',
-    'calipso_layer_top_altitude',
-    'calipso_layer_base_temperature',
-    'calipso_layer_top_temperature',
-    'calipso_layer_base_pressure',
-    'calipso_layer_top_pressure',
-    'cloudsat_cloud_base_pressure',
-    'calipso_feature_classification_flags']
+    "clsat_max_height",
+    "validation_height_base",
+    "MODIS_Cloud_Fraction",
+    "MODIS_cloud_flag",
+    "calipso_layer_base_altitude",
+    "calipso_layer_top_altitude",
+    "calipso_layer_base_temperature",
+    "calipso_layer_top_temperature",
+    "calipso_layer_base_pressure",
+    "calipso_layer_top_pressure",
+    "cloudsat_cloud_base_pressure",
+    "cloudsat_cloud_base_temperature",
+    "calipso_feature_classification_flags",
+]
 # ----------------------------------------
 if __name__ == "__main__":
 
     import os.path
-    TESTDIR = ("/local_disk/laptop/NowcastingSaf/FA/cloud_week_2013may" +
-               "/atrain_matchdata/2012/10/arctic_europe_1km")
-    TESTFILE = os.path.join(TESTDIR,
-                            "1km_npp_20121012_1246_04968_caliop_viirs_match.h5")
-    TESTFILE2 = os.path.join(TESTDIR,
-                             "1km_npp_20121004_0700_04851_caliop_viirs_match.h5")
+
+    TESTDIR = (
+        "/local_disk/laptop/NowcastingSaf/FA/cloud_week_2013may"
+        + "/atrain_matchdata/2012/10/arctic_europe_1km"
+    )
+    TESTFILE = os.path.join(
+        TESTDIR, "1km_npp_20121012_1246_04968_caliop_viirs_match.h5"
+    )
+    TESTFILE2 = os.path.join(
+        TESTDIR, "1km_npp_20121004_0700_04851_caliop_viirs_match.h5"
+    )
     match_calipso = read_truth_imager_match_obj(TESTFILE)
     match_calipso2 = read_truth_imager_match_obj(TESTFILE2)
 
