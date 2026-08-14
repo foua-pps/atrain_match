@@ -20,12 +20,12 @@ from atrain_match.libs.extract_imager_along_track import imager_track_from_match
 from atrain_match.utils.common import elements_within_range
 import atrain_match.config as config
 from atrain_match.utils.runutils import do_some_logging
-from atrain_match.matchobject_io import (TruthImagerTrackObject,
-                                         MoraObject)
+from atrain_match.matchobject_io import TruthImagerTrackObject, MoraObject
 import numpy as np
 import pandas as pd
 import calendar
 from datetime import datetime, timedelta
+
 TAI93 = datetime(1993, 1, 1)
 logger = logging.getLogger(__name__)
 
@@ -34,31 +34,25 @@ TEST_FILE = "/DATA_MISC/atrain_match_testcases/mora/cb_2010.dat"
 
 def get_mora_data(filename):
 
-    def convert_datefunc(x): return datetime.strptime(x.decode("utf-8"), '%Y%m%dT%H%M%S')
-    # convert_datefunc = lambda x: x.decode("utf-8")
+    def convert_datefunc(x):
+        return datetime.strptime(x, "%Y-%m-%dT%H:%M")
 
-    dtype = [('station', '|S5'),
-             ('lat', 'f8'),
-             ('lon', 'f8'),
-             ('x', 'f8'),
-             ('date', object),
-             ('cloud_base_height', 'i4')]
+    dtype = [
+        ("station", "|S5"),
+        ("lat", "f8"),
+        ("lon", "f8"),
+        ("date", object),
+        ("cloud_base_height", "i4"),
+    ]
 
-    data = np.genfromtxt(filename,
-                         skip_header=0,
-                         skip_footer=0,
-                         usecols=(
-                             0, 1, 2, 3, 4, 5),
-                         dtype=dtype,
-                         unpack=True,
-                         converters={
-                             # 2: lambda x: float(x) / 100.,
-                             # 3: lambda x: float(x) / 100.,
-                             4: convert_datefunc,
-                             # 6: lambda x: float(x) / 10.,
-                             # 7: lambda x: float(x) / 10.,
-                             # 8: lambda x: float(x) / 10.,
-                         })
+    data = np.genfromtxt(
+        filename,
+        skip_header=0,
+        skip_footer=0,
+        usecols=(0, 1, 2, 3, 4),
+        dtype=dtype,
+        converters={3: convert_datefunc},
+    )
 
     return pd.DataFrame(data)
 
@@ -72,55 +66,72 @@ def reshape_mora(morafiles, imager, SETTINGS):
     # import pdb
     # pdb.set_trace()
     dt_ = timedelta(seconds=SETTINGS["sec_timeThr_synop"])
-    newmoras = panda_moras[panda_moras['date'] < end_t + dt_]
-    panda_moras = newmoras[newmoras['date'] > start_t - dt_]
+    newmoras = panda_moras[panda_moras["date"] < end_t + dt_]
+    panda_moras = newmoras[newmoras["date"] > start_t - dt_]
     retv = MoraObject()
-    retv.longitude = np.array(panda_moras['lon'])
-    retv.latitude = np.array(panda_moras['lat'])
-    retv.cloud_base_height = np.array(panda_moras['cloud_base_height'])
-    retv.sec_1970 = np.array([calendar.timegm(tobj.timetuple()) for tobj in panda_moras['date']])
+    # Longitudes should be in format -180 to 180, cloudnet data was from 0-360.
+    retv.longitude = ((np.array(panda_moras["lon"]) + 180) % 360) - 180
+    retv.latitude = np.array(panda_moras["lat"])
+    retv.cloud_base_height = np.array(panda_moras["cloud_base_height"])
+    retv.sec_1970 = np.array(
+        [calendar.timegm(tobj.timetuple()) for tobj in panda_moras["date"]]
+    )
     return retv
 
 
 def match_mora_imager(mora, cloudproducts, SETTINGS):
-    retv = TruthImagerTrackObject('mora')
+    retv = TruthImagerTrackObject("mora")
     retv.imager_instrument = cloudproducts.instrument.lower()
     retv.mora = mora
 
     from atrain_match.utils.common import map_imager
 
-    """
-    import matplotlib.pyplot as plt
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-    from atrain_match.plotting.histogram_plotting import distribution_map
-    plt.plot(cloudproducts.longitude.ravel(),
-              cloudproducts.latitude.ravel(), 'r.')
-    plt.plot(mora.longitude.ravel(), mora.latitude.ravel(), 'b.')
-    plt.show()
-    """
-    cal, cap = map_imager(cloudproducts,
-                          mora.longitude.ravel(),
-                          mora.latitude.ravel(),
-                          radius_of_influence=config.RESOLUTION*0.7*1000.0)
+    # import matplotlib.pyplot as plt
+
+    # fig = plt.figure()
+    # ax = fig.add_subplot(111)
+    # from atrain_match.plotting.histogram_plotting import distribution_map
+
+    # plt.plot(cloudproducts.longitude.ravel(), cloudproducts.latitude.ravel(), "r.")
+    # plt.plot(mora.longitude.ravel(), mora.latitude.ravel(), "b.")
+    # plt.savefig("test.png")
+
+    cal, cap = map_imager(
+        cloudproducts,
+        mora.longitude.ravel(),
+        mora.latitude.ravel(),
+        radius_of_influence=config.RESOLUTION * 0.7 * 1000.0,
+    )
     calnan = np.where(cal == config.NODATA, np.nan, cal)
+
     if (~np.isnan(calnan)).sum() == 0:
         logger.warning("No matches within region.")
         return None
     # check if it is within time limits:
     if len(cloudproducts.time.shape) > 1:
-        imager_time_vector = [cloudproducts.time[line, pixel] for line, pixel in zip(cal, cap)]
-        imager_lines_sec_1970 = np.where(cal != config.NODATA, imager_time_vector, np.nan)
+        imager_time_vector = [
+            cloudproducts.time[line, pixel] for line, pixel in zip(cal, cap)
+        ]
+        imager_lines_sec_1970 = np.where(
+            cal != config.NODATA, imager_time_vector, np.nan
+        )
     else:
-        imager_lines_sec_1970 = np.where(cal != config.NODATA, cloudproducts.time[cal], np.nan)
-    idx_match = elements_within_range(mora.sec_1970, imager_lines_sec_1970, SETTINGS["sec_timeThr_synop"])
+        imager_lines_sec_1970 = np.where(
+            cal != config.NODATA, cloudproducts.time[cal], np.nan
+        )
+    idx_match = elements_within_range(
+        mora.sec_1970, imager_lines_sec_1970, SETTINGS["sec_timeThr_synop"]
+    )
     if idx_match.sum() == 0:
-        logger.warning("No matches in region within time threshold %d s.", SETTINGS["sec_timeThr_synop"])
+        logger.warning(
+            "No matches in region within time threshold %d s.",
+            SETTINGS["sec_timeThr_synop"],
+        )
         return None
     retv.mora = retv.mora.extract_elements(idx=idx_match)
     # Mora line, pixel inside IMAGER swath (one nearest neighbour):
-    retv.mora.imager_linnum = np.repeat(cal, idx_match).astype('i')
-    retv.mora.imager_pixnum = np.repeat(cap, idx_match).astype('i')
+    retv.mora.imager_linnum = np.repeat(cal, idx_match).astype("i")
+    retv.mora.imager_pixnum = np.repeat(cap, idx_match).astype("i")
     # Imager time
     retv.imager.sec_1970 = np.repeat(imager_lines_sec_1970, idx_match)
     retv.diff_sec_1970 = retv.mora.sec_1970 - retv.imager.sec_1970
@@ -128,10 +139,7 @@ def match_mora_imager(mora, cloudproducts, SETTINGS):
     do_some_logging(retv, mora)
     logger.debug("Extract imager along track!")
 
-    retv = imager_track_from_matched(retv,
-                                     SETTINGS,
-                                     cloudproducts,
-                                     extract_nwp_segments=False)
+    retv = imager_track_from_matched(retv, SETTINGS, cloudproducts)
     return retv
 
 
