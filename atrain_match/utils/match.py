@@ -21,6 +21,7 @@
 import numpy as np
 import logging
 from atrain_match.config import RESOLUTION, NODATA
+
 logger = logging.getLogger(__name__)
 
 
@@ -32,8 +33,7 @@ class MatchMapper(object):
 
     """
 
-    def __init__(self, rows, cols, pixel_mask, time_diff=None,
-                 time_threshold=None):
+    def __init__(self, rows, cols, pixel_mask, time_diff=None, time_threshold=None):
         self._rows = np.array(rows).astype(np.int64)
         self._cols = np.array(cols).astype(np.int64)
         self._pixel_mask = pixel_mask
@@ -47,15 +47,17 @@ class MatchMapper(object):
     @property
     def rows(self):
         # self._rows = np.array(self._rows, dtype=np.int64)
-        return np.ma.array(self._rows, mask=self.mask, fill_value=NODATA,
-                           hard_mask=True)
+        return np.ma.array(
+            self._rows, mask=self.mask, fill_value=NODATA, hard_mask=True
+        )
 
     @property
     def cols(self):
 
         # self._cols = np.array(self._cols, dtype=np.int64)
-        return np.ma.array(self._cols, mask=self.mask, fill_value=-NODATA,
-                           hard_mask=True)
+        return np.ma.array(
+            self._cols, mask=self.mask, fill_value=-NODATA, hard_mask=True
+        )
 
     @property
     def time_diff(self):
@@ -63,8 +65,9 @@ class MatchMapper(object):
         if self._time_diff is None:
             return None
         # Only use pixel mask
-        return np.ma.array(self._time_diff, mask=self._pixel_mask,
-                           fill_value=np.inf, hard_mask=True)
+        return np.ma.array(
+            self._time_diff, mask=self._pixel_mask, fill_value=np.inf, hard_mask=True
+        )
 
     @time_diff.setter
     def time_diff(self, value):
@@ -73,14 +76,13 @@ class MatchMapper(object):
     @property
     def mask(self):
         if None not in (self.time_diff, self.time_threshold):
-            return (self._pixel_mask +
-                    (abs(self.time_diff) > self.time_threshold))
+            return self._pixel_mask + (abs(self.time_diff) > self.time_threshold)
         return self._pixel_mask
 
 
-def match_lonlat(source, target,
-                 radius_of_influence=0.7*RESOLUTION*1000.0,
-                 n_neighbours=1):
+def match_lonlat(
+    source, target, radius_of_influence=0.7 * RESOLUTION * 1000.0, n_neighbours=1
+):
     """
     Produce a masked array of the same shape as the arrays in *target*, with
     indices of nearest neighbours in *source*. *source* and *target* should be
@@ -99,6 +101,7 @@ def match_lonlat(source, target,
     from pyresample.kd_tree import get_sample_from_neighbour_info
 
     lon, lat = source
+    lon = ((lon + 180) % 360) - 180
     mask_out_lat = np.logical_or(lat < -90, lat > 90)
     mask_out_lon = np.logical_or(lon > 180, lon < -180)
     mask_out = np.logical_or(mask_out_lat, mask_out_lon)
@@ -110,26 +113,25 @@ def match_lonlat(source, target,
     target_def = SwathDefinition(*target)
     logger.debug("Matching %d nearest neighbours", n_neighbours)
     valid_in, valid_out, indices, distances = get_neighbour_info(
-        source_def, target_def, radius_of_influence, neighbours=n_neighbours)
+        source_def, target_def, radius_of_influence, neighbours=n_neighbours
+    )
     # import pdb; pdb.set_trace()
     # Use pyresampe code to find colmun and row numbers for each pixel
     # This is works also with no-data in imager lat/lon.
-    cols_matrix, rows_matrix = np.meshgrid(np.array(range(0, lat.shape[1])),
-                                           np.array(range(0, lat.shape[0])))
+    cols_matrix, rows_matrix = np.meshgrid(
+        np.array(range(0, lat.shape[1])), np.array(range(0, lat.shape[0]))
+    )
     if n_neighbours == 1:
         first_indices = indices
     else:
         first_indices = indices[:, 0]
 
-    cols = get_sample_from_neighbour_info('nn', target_def.shape,
-                                          cols_matrix,
-                                          valid_in,
-                                          valid_out,
-                                          first_indices)
-    rows = get_sample_from_neighbour_info('nn', target_def.shape,
-                                          rows_matrix,
-                                          valid_in, valid_out,
-                                          first_indices)
+    cols = get_sample_from_neighbour_info(
+        "nn", target_def.shape, cols_matrix, valid_in, valid_out, first_indices
+    )
+    rows = get_sample_from_neighbour_info(
+        "nn", target_def.shape, rows_matrix, valid_in, valid_out, first_indices
+    )
     if n_neighbours > 1:
         rows_0 = rows.copy()
         cols_0 = cols.copy()
@@ -138,18 +140,15 @@ def match_lonlat(source, target,
         rows[:, 0] = rows_0
         cols[:, 0] = cols_0
         for i in range(1, n_neighbours):
-            cols[:, i] = get_sample_from_neighbour_info('nn', target_def.shape,
-                                                        cols_matrix,
-                                                        valid_in, valid_out,
-                                                        indices[:, i])
-            rows[:, i] = get_sample_from_neighbour_info('nn', target_def.shape,
-                                                        rows_matrix,
-                                                        valid_in, valid_out,
-                                                        indices[:, i])
-            test = (distances[:, 0] - distances[:, i])
+            cols[:, i] = get_sample_from_neighbour_info(
+                "nn", target_def.shape, cols_matrix, valid_in, valid_out, indices[:, i]
+            )
+            rows[:, i] = get_sample_from_neighbour_info(
+                "nn", target_def.shape, rows_matrix, valid_in, valid_out, indices[:, i]
+            )
+            test = distances[:, 0] - distances[:, i]
             if sum(~np.isnan(test)) > 0 and np.max(test[~np.isnan(test)]) > 0:
-                raise ValueError(
-                    'We count on the first neighbour beeing the closest')
+                raise ValueError("We count on the first neighbour beeing the closest")
 
     rows = np.array(rows)
     cols = np.array(cols)
@@ -165,8 +164,8 @@ def match_lonlat(source, target,
     # import pdb; pdb.set_trace()
     rows[rows >= source_def.shape[0]] = NODATA
     cols[cols >= source_def.shape[1]] = NODATA
-    mask = np.logical_or(distances > radius_of_influence,
-                         indices >= len(valid_in))
+    print(distances.shape, source_def.shape)
+    mask = np.logical_or(distances > radius_of_influence, indices >= len(valid_in))
     distances[distances > radius_of_influence] = -9
     # import pdb; ipdb.set_trace()
     rows[mask] = NODATA

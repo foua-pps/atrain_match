@@ -15,9 +15,11 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
-from atrain_match.libs.extract_imager_along_track import get_channel_data_from_object
-import atrain_match.config as config
+import netCDF4
 import numpy as np
+from scipy.ndimage import uniform_filter
+
+import atrain_match.config as config
 import logging
 logger = logging.getLogger(__name__)
 
@@ -28,14 +30,77 @@ def get_t11t12_texture_data_from_object(imager_obj, aux_obj, ch11, ch12, text_na
     t11 = get_channel_data_from_objectfull_resolution(imager_obj, ch11, nodata=-9)
     t12 = get_channel_data_from_objectfull_resolution(imager_obj, ch12, nodata=-9)
     t11t12 = 1.0 * np.array(t11 - t12)
-    K = np.median(t11t12)  # K is trick to get better accurracy maybe not needed as differences are often small
+    K = np.median(t11t12)  # K is trick to get better accuracy maybe not needed as differences are often small
     t11t12 = (t11t12 - K)
-    from scipy.ndimage import uniform_filter
     mean = uniform_filter(t11t12, size=(5, 5), mode='mirror')
     mean_of_squared = uniform_filter(t11t12**2, size=(5, 5), mode='mirror')
     t11t12_texture = mean_of_squared - mean**2
     setattr(aux_obj, text_name, t11t12_texture)
     return aux_obj
+
+def get_texture_inner_no_nans(array, ks):
+    # https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
+    N = ks * ks * 1.0
+    # K is trick to get better accurracy maybe not needed for differences
+    # as they are often small like for temperature differences
+    array = np.copy(array).astype(np.float64)
+    K = np.median(array)
+    array = array - K
+    mean = uniform_filter(array, size=(ks, ks), mode="reflect")
+    mean_of_squared = uniform_filter(array**2, size=(ks, ks), mode="reflect")
+    array_texture = np.sqrt((N / (N - 1)) * np.abs(mean_of_squared - mean**2))
+    return array_texture
+
+
+def get_texture_inner(array_in, ks):
+    N = ks * ks * 1.0
+    if np.ma.is_masked(array_in):
+        not_ok = np.copy(array_in.mask)
+        array = np.copy(array_in.data).astype(np.float64)
+        true_N = N - N * uniform_filter(
+            not_ok.astype(np.float64), size=(ks, ks), mode="reflect"
+        )
+        # set true_N of pixels that will be set to nan
+        # to something that will not make np divide complain
+        true_N[true_N < ks] = ks - 1.0
+        array[not_ok] = 0.0
+        K = np.median(array) 
+        array = array - K
+        array[not_ok] = 0.0
+        mean = (N / true_N) * uniform_filter(
+            array, size=(ks, ks), mode="reflect"
+        )
+        mean_of_squared = (N / true_N) * uniform_filter(
+            array**2, size=(ks, ks), mode="reflect"
+        )
+        squared = mean_of_squared - mean**2
+        # adjust N for pixels with nans in neighbourhood
+        array_texture = np.sqrt(true_N / (true_N - 1) * np.abs(squared))
+        array_texture[true_N < ks] = np.nan
+        return array_texture
+
+    return get_texture_inner_no_nans(array_in, ks=ks)
+
+
+def get_extra_textures(imager_obj, aux_obj, resolution):
+    """Calculate the textures for channels not present in the intermediate file."""
+
+    if resolution == 5:
+        kernel_size = 3
+    elif resolution == 1:
+        kernel_size = 5
+    else:
+        raise ValueError(f"Resolution {resolution} km not supported! Should be 1km or 5km.")    
+
+
+
+    for texture_type in ("text_t67", "text_t85"):
+        channel = texture_type.replace("text_t", "ch_tb")
+        tb = get_channel_data_from_objectfull_resolution(imager_obj, channel, nodata=-9)
+        texture = get_texture_inner(tb, kernel_size)
+        setattr(aux_obj, texture_type, texture)
+        logger.debug(f"Calculated textures for channel {channel}")
+    return aux_obj    
 
 
 class NeighbourObj(object):

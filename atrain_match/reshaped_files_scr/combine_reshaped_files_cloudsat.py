@@ -35,7 +35,7 @@ import time
 import pdb
 
 
-truth = "calipso" #"mora"
+truth = "cloudsat"
 version = "v2018"
 
 SATELLITES = [
@@ -47,9 +47,9 @@ SATELLITES = [
     "metopa",
     "metopb",
 ]
-SATELLITES = ["noaa19"]#["eos2"]
-YEAR_LIST = ["2012","2013"]
-BASE_DIR = "/nobackup/accmls1/proj/safnwc/work/20260311_rematch/global_gac_avhrr_noaa19_20260323/Reshaped_Files/"
+SATELLITES = ["eos2"]
+YEAR_LIST = ["2010"]
+BASE_DIR = "/nobackup/accmls1/proj/safnwc/work/20260311_rematch/global_eos2_modis_20260325/Reshaped_Files/"
 MAKE_EXTRA_CHECK = False
 
 SETTINGS = {"WRITE_ONLY_THE_MOST_IMPORTANT_STUFF_TO_FILE": False}
@@ -111,7 +111,7 @@ if __name__ == "__main__":
     match_calipso_merged = None
     corrupt_files = []
     for satellite in SATELLITES:
-        ROOT_DIR = BASE_DIR + "/{satellite}/5km/*/*/*%s%s%s*_*{truth}*.h5".format(
+        ROOT_DIR = BASE_DIR + "/{satellite}/1km/*/*/*%s%s%s*_*{truth}*.h5".format(
             satellite=satellite, truth=truth
         )
         print(ROOT_DIR)
@@ -121,7 +121,7 @@ if __name__ == "__main__":
 
         for year in YEAR_LIST:
             for month in [
-                "01",
+                #"01",
                 "02",
                 "03",
                 "04",
@@ -134,8 +134,7 @@ if __name__ == "__main__":
                 "11",
                 "12",
             ]:
-                #for day in ["01", "14"]:
-                for day in [f"{day:02d}" for day in range(32)]:
+                for day in ["01", "14"]:
                     num_n = 0
                     files_all_doubles_month = []
                     files = sorted(glob(ROOT_DIR % (year, month, day)))
@@ -150,6 +149,7 @@ if __name__ == "__main__":
                             print("File is corrupt. Do not use")
                             continue
                         print(os.path.basename(filename))
+                        # match_calipso_new=read_truth_imager_match_obj(filename, truth=truth)
                         try:
                             match_calipso_new = read_truth_imager_match_obj(
                                 filename, truth=truth
@@ -170,10 +170,10 @@ if __name__ == "__main__":
                             #match_calipso_new = remove_doubles(
                             #     match_calipso_new, match_calipso_merged
                             # )
-                            if match_calipso_new == -1:
-                                 files_all_doubles.append(filename)
-                                 files_all_doubles_month.append(filename)
-                                 continue
+                            #if match_calipso_new == -1:
+                            #     files_all_doubles.append(filename)
+                            #     files_all_doubles_month.append(filename)
+                            #     continue
                             try:
                                 match_calipso_merged = (
                                     match_calipso_merged + match_calipso_new

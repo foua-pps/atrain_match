@@ -17,8 +17,6 @@
 # along with atrain_match.  If not, see <http://www.gnu.org/licenses/>.
 """Reader for PPS cloudproducts and intermediate files."""
 
-from atrain_match.utils.runutils import do_some_geo_obj_logging
-import atrain_match.config as config
 import numpy as np
 import os
 import netCDF4
@@ -27,6 +25,10 @@ import logging
 import time
 import calendar
 from datetime import datetime, timedelta
+
+from atrain_match.utils.runutils import do_some_geo_obj_logging
+import atrain_match.config as config
+from atrain_match.utils.pps_prototyping_util import get_extra_textures
 logger = logging.getLogger(__name__)
 ATRAIN_MATCH_NODATA = config.NODATA
 # logger.debug('Just so you know: this module has a logger...')
@@ -136,6 +138,8 @@ class AuxiliaryObj(object):
         self.text_t37t12 = None
         self.text_t11t12 = None
         self.text_t37 = None
+        self.text_t85 = None
+        self.text_t67 = None
         self.thr_t11ts_inv = None
         self.thr_t11t37_inv = None
         self.thr_t37t12_inv = None
@@ -1171,6 +1175,11 @@ def pps_read_all(pps_files, imager_file, SETTINGS):
 
     logger.info("Read PPS full resolution intermediate files")
     cloudproducts.aux = read_all_intermediate_files(pps_files, SETTINGS)
+
+    logger.debug("Calculate the textures missing in intermediate files")
+    pps_nc= netCDF4.Dataset(imager_file, 'r', format='NETCDF4')
+    imager_obj = read_imager_data_nc(pps_nc)
+    cloudproducts.aux = get_extra_textures(imager_obj, cloudproducts.aux, config.RESOLUTION)
 
     logger.info("Read PPS NWP segment resolution data")
     cloudproducts.nwp_segments = read_segment_data(getattr(pps_files, 'nwp_segments'))
