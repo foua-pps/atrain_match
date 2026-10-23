@@ -217,6 +217,7 @@ class CloudTopStats(OrrbStats):
             lines.append("Part of error above 1000m medium-level cases: %.0f" % self.pe1000_cal_medium[tc])
             lines.append("Part of error above 1000m high-level cases: %.0f" % self.pe1000_cal_high[tc])
             lines.append("")
+
         for tc in self.cal_all_samples.keys():
             if tc in self.cal_low_samples.keys():
                 # already go these results printed

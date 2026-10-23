@@ -572,7 +572,6 @@ def print_cmask_stats(match_obj, statfile, val_subset, SETTINGS):
         bias = mean_pps-mean_caliop
     else:
         bias = -9.0*0.01
-
     statfile.write("CLOUD MASK %s-IMAGER TABLE: %s %s %s %s \n" %
                    (match_obj.truth_sat.upper(), n_clear_clear, n_clear_cloudy, n_cloudy_clear, n_cloudy_cloudy))
     statfile.write("CLOUD MASK %s-IMAGER POD-CLOUDY: %3.2f \n" % (match_obj.truth_sat.upper(), pod_cloudy*100))
@@ -925,11 +924,11 @@ def print_stats_ctop(match_obj, statfile, val_subset, low_medium_high_class, SET
                                      truth_sat_validation_height,
                                      imager_is_cloudy)
 
-    if match_obj.truth_sat.upper() not in ["CALIPSO"]:
-        if match_obj.truth_sat.upper() in ["ISS"]:
-            logger.warning("WARNING WARNING WARNING only printing over all statistics "
-                           "for cloudtop for ISS")
-        return
+    #if match_obj.truth_sat.upper() not in ["CALIPSO"]:
+    #    if match_obj.truth_sat.upper() in ["ISS"]:
+    #        logger.warning("WARNING WARNING WARNING only printing over all statistics "
+    #                       "for cloudtop for ISS")
+    #    return
     if (SETTINGS["COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC"] and
             match_obj.imager.cloudtype is not None):
         statfile.write("CLOUD HEIGHT GEO-STYLE\n")
@@ -957,28 +956,35 @@ def print_stats_ctop(match_obj, statfile, val_subset, low_medium_high_class, SET
             val_geo = np.logical_and(
                 val_geo,
                 var_height < 3000)  # Height variation less than 3km
+        if hasattr(match_obj, 'earthcare'):
+            var_height = (ndimage.filters.maximum_filter1d(truth_sat_validation_height, size=9) -
+                          ndimage.filters.minimum_filter1d(truth_sat_validation_height, size=9))
+            val_geo = np.logical_and(
+                val_geo,
+                var_height < 3000)  # Height variation less than 3km
         average_height_truth = ndimage.filters.uniform_filter1d(truth_sat_validation_height*1.0, size=9)
         average_height_truth[truth_sat_validation_height < 0] = -9
         average_height_imager = ndimage.filters.uniform_filter1d(imager_ctth_m_above_seasurface*1.0, size=9)
         average_height_imager[imager_ctth_m_above_seasurface < 0] = -9
-        print_height_all_low_medium_high("CALIOP-GEO-STYLE",
+        print_height_all_low_medium_high("EARTHCARE-GEO-STYLE",
                                          val_geo,
                                          statfile, low_medium_high_class,
                                          average_height_imager,
                                          average_height_truth,
                                          imager_is_cloudy)
-        val_geo = np.logical_and(
-            val_geo,
-            np.greater_equal(match_obj.calipso.feature_optical_depth_532_top_layer_5km, 0.2))
-        statfile.write("CLOUD HEIGHT GEO-STYLE-EXCLUDE-THIN-PIXELS\n")
-        print_height_all_low_medium_high("CALIOP-GEO-STYLE-EXCLUDE-THIN-PIXELS",
-                                         val_geo,
-                                         statfile, low_medium_high_class,
-                                         average_height_imager,
-                                         average_height_truth,
-                                         imager_is_cloudy)
+        if hasattr(match_obj, 'calipso'):
+            val_geo = np.logical_and(
+                val_geo,
+                np.greater_equal(match_obj.calipso.feature_optical_depth_532_top_layer_5km, 0.2))
+            statfile.write("CLOUD HEIGHT GEO-STYLE-EXCLUDE-THIN-PIXELS\n")
+            print_height_all_low_medium_high("CALIOP-GEO-STYLE-EXCLUDE-THIN-PIXELS",
+                                             val_geo,
+                                             statfile, low_medium_high_class,
+                                             average_height_imager,
+                                             average_height_truth,
+                                             imager_is_cloudy)
 
-    if SETTINGS["COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC"]:
+    if SETTINGS["COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC"] and hasattr(match_obj, 'calipso'):
         statfile.write("CLOUD HEIGHT SINGLE-LAYER\n")
         val_subset_single = np.logical_and(
             val_subset,
@@ -990,8 +996,9 @@ def print_stats_ctop(match_obj, statfile, val_subset, low_medium_high_class, SET
                                          truth_sat_validation_height,
                                          imager_is_cloudy)
 
-    if (SETTINGS["COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC"] and
+    if hasattr(match_obj, 'calipso') and (SETTINGS["COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC"] and
             (SETTINGS["ALSO_USE_5KM_FILES"] or config.RESOLUTION == 5)):
+            
         statfile.write("CLOUD HEIGHT SINGLE-LAYER, NOT THIN\n")
         lim = 2*SETTINGS["OPTICAL_DETECTION_LIMIT"]
         val_subset_single_not_thinnest = np.logical_and(

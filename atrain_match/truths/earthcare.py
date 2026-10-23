@@ -58,11 +58,18 @@ def read_earthcare(filename):
     retv.longitude = ncf["ScienceData"]["longitude"][:]
     validation_height = ncf["ScienceData"]["ATLID_cloud_top_height"][:]
     retv.thick_height = ncf["ScienceData"]["ATLID_thick_cloud_top_height"][:]
+    retv.thick_height[retv.thick_height>99999] = -9
     
     validation_height[validation_height > 99999] = -9
+    
     retv.quality_status =  ncf["ScienceData"]["quality_status"][:]
     retv.cloud_fraction = get_earthcare_classification(ncf["ScienceData"]["simplified_uppermost_cloud_classification"][:])
     retv.validation_height = validation_height
+    retv.validation_height[retv.quality_status==3] = -9
+    retv.validation_height[retv.quality_status==2] = -9
+    retv.validation_height[retv.quality_status==4] = -9
+    update = np.logical_and(retv.validation_height==-9, retv.thick_height>0)
+    #retv.validation_height[update] = retv.thick_height[update]
     #retv.thick_validation_height = ncf["ScienceData"]["ATLID_thick_cloud_top_height"][:]
     #retv.thick_validation_height[ retv.thick_validation_height >9999 ] = -9
     import datetime
@@ -70,11 +77,16 @@ def read_earthcare(filename):
     ep2 = datetime.datetime(2000,1,1,0,0,0)
     delta_seconds = ep2 - ep
     retv.sec_1970 = ncf["ScienceData"]["time"][:] + delta_seconds.total_seconds()
+    ncf.close()
     return retv
     
 def get_earthcare(filename):
     # Read EARTHCARE Radar data and add some variables
-    earthcare = read_earthcare(filename)
+    try:
+        earthcare = read_earthcare(filename)
+    except:
+        return None
+    
     return earthcare
 
 def match_earthcare_imager(earthcare, cloudproducts, SETTINGS):

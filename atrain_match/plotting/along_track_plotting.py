@@ -61,8 +61,11 @@ def plot_earthcare_imager(match_earthcare,
     got_height = earthcare_val_h >= 0
     #ax.plot(pixel_position[got_height], earthcare_val_h[got_height], 'g|',
     #        label="EarthCare", rasterized=True)
-    ax.vlines(pixel_position, 0, match_earthcare.imager.elevation,
+    try:
+        ax.vlines(pixel_position, 0, match_earthcare.imager.elevation,
                   color='k', alpha=1.0)
+    except:
+        pass
     ax.vlines(pixel_position[got_height],
               earthcare_val_h[got_height]-1000, earthcare_val_h[got_height], linewidth=1.0,
               colors="g", linestyle='solid',

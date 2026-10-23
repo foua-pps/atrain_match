@@ -152,12 +152,12 @@ def parse_scene(filename):
     filename = os.path.basename(filename)
     if not filename:
         raise ValueError("No file %r" % filename)
-    match = re.match(r'(\w+)_([0-9]{8})_([0-9]{4})_([0-9]+)', filename)
+    match = re.match(r'(\w+)_([0-9]{8})_([0-9]{6})_([0-9]+)', filename)
     if not match:
         raise ValueError("Couldn't parse \"okay\" file %r" % filename)
 
     satname, date_s, time_s, orbit_s = match.groups()
-    _datetime = datetime.strptime(date_s + time_s, '%Y%m%d%H%M')
+    _datetime = datetime.strptime(date_s + time_s, '%Y%m%d%H%M%S')
     orbit = int(orbit_s)
 
     return satname, _datetime, orbit
@@ -300,7 +300,7 @@ def parse_scenesfile_reshaped(filename):
     if not match:
         raise ValueError("Couldn't parse reshaped file %r" % filename)
     satname, date_s, time_s = match.groups()
-    _datetime = datetime.strptime(date_s + time_s, '%Y%m%d%H%M')
+    _datetime = datetime.strptime(date_s + time_s, '%Y%m%d%H%M%S')
     return satname, _datetime
 
 def parse_scenesfile_patmos(filename):
