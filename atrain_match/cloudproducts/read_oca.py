@@ -75,7 +75,7 @@ def get_satid_datetime_orbit_from_fname_oca(imager_filename):
               "date": date_time.strftime("%Y%m%d"),
               "year": date_time.year,
               "month": "%02d" % (date_time.month),
-              "time": date_time.strftime("%H%M"),
+              "time": date_time.strftime("%H%M%S"),
               "extrai": "",  # asc_or_des
               # "basename":sat_id + "_" + date_time.strftime("%Y%m%d_%H%M_99999"), # "20080613002200-ESACCI",
               "imagerfilename": imager_filename}
@@ -96,6 +96,7 @@ def oca_read_all(filename, extra_files):
         cloudproducts, aux_dict = oca_read_all_nc_cdr(filename)
         logger.info("Calculate time from filename + 12min")
         seconds = 12*60
+        cloudproducts.instrument = 'SEVIRI-OCA'
     elif "OCA_SEV_MET" in  os.path.basename(filename):
         cloudproducts, aux_dict = oca_read_all_nc_modis(filename)
         logger.info("No timeinfo in OCA-SEVIRI file calculate from filename +15min")
@@ -103,6 +104,7 @@ def oca_read_all(filename, extra_files):
         cloudproducts.instrument = 'SEVIRI-OCA'
     else:
         cloudproducts, aux_dict = oca_read_all_nc(filename, extra_files)
+        cloudproducts.instrument = 'METimage-OCA'
 
     if  cloudproducts.sec1970_start is None:   
         time_info = get_satid_datetime_orbit_from_fname_oca(filename)
@@ -227,21 +229,26 @@ def oca_read_all_nc_cdr(filename):
 
 def oca_read_all_nc(filename, extra_files):
     """Read geolocation, angles info, ctth, and cma."""
+    aux_dict={}
     oca_nc = netCDF4.Dataset(filename, 'r', format='NETCDF4')
     logger.info("Opening file %s", filename)
     logger.info("Reading longitude, latitude and time normal nc...")
     cloudproducts = read_oca_geoobj(oca_nc, filename)
     logger.info("Reading angles ...")
     cloudproducts.imager_angles = read_oca_angobj(oca_nc)
-    logger.info("Reading cloud pressure ...")
-    # , angle_obj)
-    ctype, cma, ctth = read_oca_ctype_cmask_ctth(oca_nc)
+
+    if "OCA" in filename:    
+        logger.info("Reading cloud pressure ...")
+        ctype, cma, ctth, aux_dict1 = read_oca_ctype_cmask_ctth(oca_nc)
+        cloudproducts.cma = cma
+        cloudproducts.ctth = ctth
+        cloudproducts.ctype = ctype
+        
+        aux_dict = read_oca_secondlayer_info(oca_nc)
+        aux_dict["err_cth"] = aux_dict1["err_cth"]
     if "oca_cma" in extra_files:
         cma = read_oca_cmask_epssg(extra_files["oca_cma"])
-    cloudproducts.cma = cma
-    cloudproducts.ctth = ctth
-    cloudproducts.ctype = ctype
-    aux_dict = read_oca_secondlayer_info(oca_nc)
+        cloudproducts.cma = cma
     logger.info("Not reading cloud microphysical properties")
     # cloudproducts.cpp = read_oca_cpp(oca_nc)
     logger.info("Not reading surface temperature")
@@ -267,17 +274,20 @@ def read_oca_ctype_cmask_ctth(oca_nc):
     ctth = CtthObj()
     ctype = CtypeObj()
     cma = CmaObj()
+    aux_dict = {}
     ctth.pressure, ctth.p_nodata = scale_oca_var(
         oca_nc['data']['measurement_data']['ctp'])
     ctth.temperature, ctth.t_nodata = scale_oca_var(
         oca_nc['data']['measurement_data']['ctt'])
     ctth.height, ctth.h_nodata = scale_oca_var(
         oca_nc['data']['measurement_data']['cth'])
+    aux_dict["err_cth"], dummpy = scale_oca_var(
+        oca_nc['data']['measurement_data']['err_cth'])    
     ctth.height = ctth.height * 1000  # km =>m
     cma.cma_ext = np.where(ctth.pressure > 0, 1, 0)
     ctype.phaseflag = None
     ctype.ct_conditions = None
-    return ctype, cma, ctth
+    return ctype, cma, ctth, aux_dict
 
 
 def read_oca_cpp(oca_nc):
@@ -343,7 +353,6 @@ def read_oca_geoobj(oca_nc, filename):
             xr.DataArray(cloudproducts.longitude), xr.DataArray(cloudproducts.latitude),  4, 8)
         cloudproducts.longitude = np.array(lon_interp)
         cloudproducts.latitude = np.array(lat_interp)
-        
     cloudproducts.num_of_lines = cloudproducts.longitude.shape[0]
     cloudproducts.nodata = -999
     # sensing_start_time_utc and sensing_end_time_utc,
@@ -458,9 +467,8 @@ def read_oca_cmask_epssg(filename):
         cma.cma_bin = np.int64(0*cma.cma_ext.copy())
         cma.cma_bin[cm_flag == 3] = 1.0
         cma.cma_bin[cm_flag == 4] = 1.0
-        
+        cma.cma_bin[cma.cma_ext==-9] = -9
     except:
-        import pdb;pdb.set_trace()
         cma.cma_ext = np.where(oca_nc['moca_model_final'][:] >= 1, 1, 0)
         cma.cma_bin = np.int64(0*cma.cma_ext.copy())
     oca_nc.close()    
@@ -475,7 +483,6 @@ def read_oca_cmask_modis(oca_nc):
         cma.cma_bin[oca_nc['flag_cm'][:] == 3] = 1.0
         cma.cma_bin[oca_nc['flag_cm'][:] == 4] = 1.0
     else:
-        import pdb;pdb.set_trace()
         cma.cma_ext = np.where(oca_nc['moca_model_final'][:] >= 1, 1, 0)
         cma.cma_bin = np.int64(0*cma.cma_ext.copy())
     return cma

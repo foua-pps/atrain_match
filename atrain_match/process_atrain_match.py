@@ -182,7 +182,7 @@ def main():
                 satname, time = parse_scenesfile_reshaped(line)
                 # print time
                 matchups.append(Cross(satname, time))
-
+    
     process_matchups(matchups, reprocess, options.debug)
 
     return 0

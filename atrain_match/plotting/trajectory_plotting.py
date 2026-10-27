@@ -38,7 +38,7 @@ def plot_satellite_trajectory(longitude,
     import pyresample as pr
     swath_def = pr.geometry.SwathDefinition(longitude, latitude)
 
-    area_def = pr.utils.load_area(area_config_file, area_id)
+    area_def = pr.load_area(area_config_file, area_id)
 
     result = pr.kd_tree.resample_nearest(swath_def, track, area_def,
                                          radius_of_influence=50 * 1000, fill_value=None)

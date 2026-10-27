@@ -1106,6 +1106,7 @@ def read_all_intermediate_files(pps_files, SETTINGS):
 def pps_read_all(pps_files, imager_file, SETTINGS):
     """Read all PPS data and return cloudproducts object."""
     logger.info("Read Imager geolocation data")
+    print(imager_file)
     if '.nc' in imager_file:
         pps_nc = netCDF4.Dataset(imager_file, 'r', format='NETCDF4')
         cloudproducts = read_pps_geoobj_nc(pps_nc)
@@ -1129,7 +1130,7 @@ def pps_read_all(pps_files, imager_file, SETTINGS):
         pps_nc.close()
     else:
         cloudproducts.imager_channeldata = read_imager_data_h5(imager_file)
-    for imager in ["avhrr", "viirs", "modis", "seviri"]:
+    for imager in ["avhrr", "viirs", "modis", "seviri", "metimage", "mersi", "fci"]:
         if imager in os.path.basename(imager_file):
             cloudproducts.instrument = imager
     logger.debug("%s, %s, %s", pps_files.cloudtype, pps_files.ctth, pps_files.cma)

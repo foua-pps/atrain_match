@@ -159,9 +159,13 @@ def plot_some_figures(match_clsat, match_calipso, match_earthcare, values, basen
         os.makedirs(plotpath)
 
     # TRAJECTORY
-    if match_calipso is not None and 1 == 2:
-        imlon = match_calipso.imager.longitude.copy()
-        imlat = match_calipso.imager.latitude.copy()
+    if match_earthcare is not None or match_calipso is not None:
+        if match_earthcare is not None:
+            imlon = match_earthcare.imager.longitude.copy()
+            imlat = match_earthcare.imager.latitude.copy()
+        else:
+            imlon = match_calipso.imager.longitude.copy()
+            imlat = match_calipso.imager.latitude.copy()
         trajectorypath = os.path.join(plotpath, "trajectory_plot")
         if not os.path.exists(trajectorypath):
             os.makedirs(trajectorypath)

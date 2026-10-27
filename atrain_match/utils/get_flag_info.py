@@ -381,7 +381,18 @@ def get_calipso_medium_and_high_clouds_tp(match_calipso):
         get_calipso_clouds_of_type_i(match_calipso, calipso_cloudtype=6))
     return calipso_transp
 
+def get_earthcare_low_medium_high_classification(match_earthcare):
+    """Get EARTHCARE clouds that are transparent/opaque and/or low/medium/high."""
+    mlh_class = {}
+    mlh_class['low_clouds'] = match_earthcare.earthcare.validation_height < 3000
+    mlh_class['medium_clouds'] = np.logical_and(match_earthcare.earthcare.validation_height >= 3000, match_earthcare.earthcare.validation_height <= 6000) 
+    mlh_class['high_clouds'] = match_earthcare.earthcare.validation_height > 6000
+    return mlh_class
 
+#def get_ex_cth_qual
+#0: good
+#1: valid low conf
+#2: warning large diff
 def get_calipso_low_medium_high_classification(match_calipso):
     """Get CALIPSO clouds that are transparent/opaque and/or low/medium/high."""
     mlh_class = {}

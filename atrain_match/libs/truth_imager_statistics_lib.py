@@ -20,6 +20,7 @@
 from atrain_match.utils.stat_util import my_iqr
 from atrain_match.utils.get_flag_info import (
     get_calipso_low_medium_high_classification,
+    get_earthcare_low_medium_high_classification,
     get_cloudsat_low_medium_high_classification,
     get_day_night_twilight_info_pps2014,
     get_day_night_twilight_info_pps2012,
@@ -338,7 +339,10 @@ def find_truth_clear_cloudy(match_obj, val_subset, SETTINGS):
             np.greater_equal(match_obj_truth_sat.cloud_fraction, SETTINGS["SYNOP_CLOUDY_MIN_CFC"]), val_subset)
     else:
         truth_clear = np.logical_and(
-            np.less_equal(match_obj_truth_sat.cloud_fraction, 0.5), val_subset)
+            np.logical_and(np.less_equal(match_obj_truth_sat.cloud_fraction, 0.5),
+                           np.greater_equal(match_obj_truth_sat.cloud_fraction, 0))
+                           , val_subset)
+        
         truth_cloudy = np.logical_and(
             np.greater(match_obj_truth_sat.cloud_fraction, 0.5), val_subset)
     return truth_clear, truth_cloudy
@@ -568,7 +572,6 @@ def print_cmask_stats(match_obj, statfile, val_subset, SETTINGS):
         bias = mean_pps-mean_caliop
     else:
         bias = -9.0*0.01
-
     statfile.write("CLOUD MASK %s-IMAGER TABLE: %s %s %s %s \n" %
                    (match_obj.truth_sat.upper(), n_clear_clear, n_clear_cloudy, n_cloudy_clear, n_cloudy_cloudy))
     statfile.write("CLOUD MASK %s-IMAGER POD-CLOUDY: %3.2f \n" % (match_obj.truth_sat.upper(), pod_cloudy*100))
@@ -921,11 +924,11 @@ def print_stats_ctop(match_obj, statfile, val_subset, low_medium_high_class, SET
                                      truth_sat_validation_height,
                                      imager_is_cloudy)
 
-    if match_obj.truth_sat.upper() not in ["CALIPSO"]:
-        if match_obj.truth_sat.upper() in ["ISS"]:
-            logger.warning("WARNING WARNING WARNING only printing over all statistics "
-                           "for cloudtop for ISS")
-        return
+    #if match_obj.truth_sat.upper() not in ["CALIPSO"]:
+    #    if match_obj.truth_sat.upper() in ["ISS"]:
+    #        logger.warning("WARNING WARNING WARNING only printing over all statistics "
+    #                       "for cloudtop for ISS")
+    #    return
     if (SETTINGS["COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC"] and
             match_obj.imager.cloudtype is not None):
         statfile.write("CLOUD HEIGHT GEO-STYLE\n")
@@ -953,28 +956,35 @@ def print_stats_ctop(match_obj, statfile, val_subset, low_medium_high_class, SET
             val_geo = np.logical_and(
                 val_geo,
                 var_height < 3000)  # Height variation less than 3km
+        if hasattr(match_obj, 'earthcare'):
+            var_height = (ndimage.filters.maximum_filter1d(truth_sat_validation_height, size=9) -
+                          ndimage.filters.minimum_filter1d(truth_sat_validation_height, size=9))
+            val_geo = np.logical_and(
+                val_geo,
+                var_height < 3000)  # Height variation less than 3km
         average_height_truth = ndimage.filters.uniform_filter1d(truth_sat_validation_height*1.0, size=9)
         average_height_truth[truth_sat_validation_height < 0] = -9
         average_height_imager = ndimage.filters.uniform_filter1d(imager_ctth_m_above_seasurface*1.0, size=9)
         average_height_imager[imager_ctth_m_above_seasurface < 0] = -9
-        print_height_all_low_medium_high("CALIOP-GEO-STYLE",
+        print_height_all_low_medium_high("EARTHCARE-GEO-STYLE",
                                          val_geo,
                                          statfile, low_medium_high_class,
                                          average_height_imager,
                                          average_height_truth,
                                          imager_is_cloudy)
-        val_geo = np.logical_and(
-            val_geo,
-            np.greater_equal(match_obj.calipso.feature_optical_depth_532_top_layer_5km, 0.2))
-        statfile.write("CLOUD HEIGHT GEO-STYLE-EXCLUDE-THIN-PIXELS\n")
-        print_height_all_low_medium_high("CALIOP-GEO-STYLE-EXCLUDE-THIN-PIXELS",
-                                         val_geo,
-                                         statfile, low_medium_high_class,
-                                         average_height_imager,
-                                         average_height_truth,
-                                         imager_is_cloudy)
+        if hasattr(match_obj, 'calipso'):
+            val_geo = np.logical_and(
+                val_geo,
+                np.greater_equal(match_obj.calipso.feature_optical_depth_532_top_layer_5km, 0.2))
+            statfile.write("CLOUD HEIGHT GEO-STYLE-EXCLUDE-THIN-PIXELS\n")
+            print_height_all_low_medium_high("CALIOP-GEO-STYLE-EXCLUDE-THIN-PIXELS",
+                                             val_geo,
+                                             statfile, low_medium_high_class,
+                                             average_height_imager,
+                                             average_height_truth,
+                                             imager_is_cloudy)
 
-    if SETTINGS["COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC"]:
+    if SETTINGS["COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC"] and hasattr(match_obj, 'calipso'):
         statfile.write("CLOUD HEIGHT SINGLE-LAYER\n")
         val_subset_single = np.logical_and(
             val_subset,
@@ -986,8 +996,9 @@ def print_stats_ctop(match_obj, statfile, val_subset, low_medium_high_class, SET
                                          truth_sat_validation_height,
                                          imager_is_cloudy)
 
-    if (SETTINGS["COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC"] and
+    if hasattr(match_obj, 'calipso') and (SETTINGS["COMPILE_RESULTS_SEPARATELY_FOR_SINGLE_LAYERS_ETC"] and
             (SETTINGS["ALSO_USE_5KM_FILES"] or config.RESOLUTION == 5)):
+            
         statfile.write("CLOUD HEIGHT SINGLE-LAYER, NOT THIN\n")
         lim = 2*SETTINGS["OPTICAL_DETECTION_LIMIT"]
         val_subset_single_not_thinnest = np.logical_and(
@@ -1122,12 +1133,13 @@ def calculate_statistics(mode, statfilename, match_calipso, match_clsat, match_i
         val_subset = get_subset_for_mode(match_earthcare, mode)
         if val_subset is not None:
             statfile = open(statfilename.replace('xxx', 'earthcare'), "w")
+            low_medium_high_class = get_earthcare_low_medium_high_classification(match_earthcare)
             val_subset = get_day_night_subset(match_earthcare, val_subset, SETTINGS)
             print_main_stats(match_earthcare, statfile)
             print_cmask_stats(match_earthcare, statfile, val_subset, SETTINGS)
             print_cmask_prob_stats(match_earthcare, statfile, val_subset, SETTINGS)
             # print_calipso_stats_ctype(match_earthcare, statfile, val_subset, cal_vert_feature)
-            print_stats_ctop(match_earthcare, statfile, val_subset, None, SETTINGS)
+            print_stats_ctop(match_earthcare, statfile, val_subset, low_medium_high_class, SETTINGS)
             statfile.close()
 
     if match_amsr is not None:
