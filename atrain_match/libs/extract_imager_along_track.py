@@ -348,7 +348,7 @@ def imager_track_from_matched(obt, SETTINGS, cloudproducts,
         logger.debug("Extracting ctth along track ")
         if hasattr(ctth, 'ctth_statusflag') and SETTINGS["PPS_VALIDATION"]:
             obt.imager.ctth_status = get_data_from_array(ctth.ctth_statusflag, row_col)
-        for ctth_product in ['height', 'temperature', 'pressure', 'height_corr']:
+        for ctth_product in ['height', 'temperature', 'pressure', 'height_corr', 'surface_alti']:
             data = getattr(ctth, ctth_product)
             if data is None:
                 continue

@@ -256,7 +256,7 @@ class CtthObj:
         self.temperature = None
         self.pressure = None
         self.ctth_statusflag = None
-
+        self.surface_alti = None
 
 class CppObj:
     """Class to hold imager data for CPP."""
@@ -283,6 +283,7 @@ def read_ctth_h5(filename):
     ctth.height = h5file['ctth_alti'].value.astype(float)
     ctth.temperature = h5file['ctth_tempe'].value.astype(float)
     ctth.pressure = h5file['ctth_pres'].value.astype(float)
+    ctth.surface_alti = h5file['surface_alti'].value.astype(float)
     ctth.ctth_statusflag = h5file['ctth_status_flag'].value
     ctth.h_gain = h5file['ctth_alti'].attrs['scale_factor']
     ctth.h_intercept = h5file['ctth_alti'].attrs['add_offset']
@@ -317,6 +318,7 @@ def read_ctth_nc(filename):
     ctth.temperature = pps_nc.variables['ctth_tempe'][0, :, :].astype(float)
     ctth.pressure = pps_nc.variables['ctth_pres'][0, :, :].astype(float)
     ctth.ctth_statusflag = pps_nc.variables['ctth_status_flag'][0, :, :]
+    ctth.surface_alti = pps_nc.variables['surface_alti'][0,:,:].astype(float)
     # Currently unpacked arrays later in calipso.py
     ctth.h_gain = 1.0
     ctth.h_intercept = 0.0
@@ -1042,6 +1044,7 @@ def read_all_intermediate_files(pps_files, SETTINGS):
         aux_dict['v10m'] = read_etc_nc(pps_nc_nwp, "v10m")
         aux_dict['snowa'] = read_etc_nc(pps_nc_nwp, "snowa")
         aux_dict['snowd'] = read_etc_nc(pps_nc_nwp, "snowd")
+        aux_dict['zsur'] = read_etc_nc(pps_nc_nwp, "zsur")
     else:
         aux_dict['surftemp'] = read_nwp_h5(pps_files.nwp_tsur, "tsur")
         aux_dict['t500'] = read_nwp_h5(pps_files.nwp_t500, "t500")
