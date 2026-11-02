@@ -1107,6 +1107,9 @@ def add_elevation_corrected_imager_ctth(
     # # Cloudsat # #
     if match_earthcare is None or match_earthcare.imager.ctth_height is None:
         pass
+    elif match_earthcare.imager.imager_ctth_m_above_seasurface is None and hasattr(match_earthcare.imager, "ctth_surface_alti"):
+        match_earthcare.imager.imager_ctth_m_above_seasurface = match_earthcare.imager.ctth_height + match_earthcare.imager.ctth_surface_alti
+        match_earthcare.imager.imager_ctth_m_above_seasurface[match_earthcare.imager.ctth_height<0] = -9
     elif match_earthcare.imager.imager_ctth_m_above_seasurface is None and hasattr(match_earthcare.imager, "elevation"):
         match_earthcare.imager.imager_ctth_m_above_seasurface = match_earthcare.imager.ctth_height + match_earthcare.imager.elevation
         match_earthcare.imager.imager_ctth_m_above_seasurface[match_earthcare.imager.ctth_height<0] = -9
