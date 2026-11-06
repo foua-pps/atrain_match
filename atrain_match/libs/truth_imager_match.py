@@ -1099,7 +1099,7 @@ def add_modis_lvl2_clousat_(match_clsat, match_calipso):
             "longitude_5km"
         ][match_clsat.cloudsat.calipso_index]
     return match_clsat
- 
+
 
 def add_elevation_corrected_imager_ctth(
     match_clsat, match_calipso, match_iss, match_earthcare, SETTINGS
@@ -1107,12 +1107,25 @@ def add_elevation_corrected_imager_ctth(
     # # Cloudsat # #
     if match_earthcare is None or match_earthcare.imager.ctth_height is None:
         pass
-    elif match_earthcare.imager.imager_ctth_m_above_seasurface is None and hasattr(match_earthcare.imager, "ctth_surface_alti"):
-        match_earthcare.imager.imager_ctth_m_above_seasurface = match_earthcare.imager.ctth_height + match_earthcare.imager.ctth_surface_alti
-        match_earthcare.imager.imager_ctth_m_above_seasurface[match_earthcare.imager.ctth_height<0] = -9
-    elif match_earthcare.imager.imager_ctth_m_above_seasurface is None and hasattr(match_earthcare.imager, "elevation"):
-        match_earthcare.imager.imager_ctth_m_above_seasurface = match_earthcare.imager.ctth_height + match_earthcare.imager.elevation
-        match_earthcare.imager.imager_ctth_m_above_seasurface[match_earthcare.imager.ctth_height<0] = -9
+    elif match_earthcare.imager.imager_ctth_m_above_seasurface is None and hasattr(
+        match_earthcare.imager, "ctth_surface_alti"
+    ):
+        match_earthcare.imager.imager_ctth_m_above_seasurface = (
+            match_earthcare.imager.ctth_height
+            + match_earthcare.imager.ctth_surface_alti
+        )
+        match_earthcare.imager.imager_ctth_m_above_seasurface[
+            match_earthcare.imager.ctth_height < 0
+        ] = -9
+    elif match_earthcare.imager.imager_ctth_m_above_seasurface is None and hasattr(
+        match_earthcare.imager, "elevation"
+    ):
+        match_earthcare.imager.imager_ctth_m_above_seasurface = (
+            match_earthcare.imager.ctth_height + match_earthcare.imager.elevation
+        )
+        match_earthcare.imager.imager_ctth_m_above_seasurface[
+            match_earthcare.imager.ctth_height < 0
+        ] = -9
     elif match_earthcare.imager.imager_ctth_m_above_seasurface is None:
         match_earthcare.imager.imager_ctth_m_above_seasurface = (
             match_earthcare.imager.ctth_height
@@ -1302,8 +1315,11 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
 
     # EARTHCARE:
     earthcare_matchup = None
-    if ((SETTINGS['PPS_VALIDATION'] or SETTINGS['OCA_VALIDATION']  ) and SETTINGS['EARTHCARE_MATCHING'] and
-            truth_files['earthcare'] is not None):
+    if (
+        (SETTINGS["PPS_VALIDATION"] or SETTINGS["OCA_VALIDATION"])
+        and SETTINGS["EARTHCARE_MATCHING"]
+        and truth_files["earthcare"] is not None
+    ):
         logger.info("Read EARTHCARE data")
         earthcare_matchup = get_earthcare_matchups(
             truth_files["earthcare"], cloudproducts, SETTINGS
