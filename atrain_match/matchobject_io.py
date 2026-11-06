@@ -827,7 +827,6 @@ the_used_variables = [
 ]
 # ----------------------------------------
 if __name__ == "__main__":
-
     import os.path
 
     TESTDIR = (
