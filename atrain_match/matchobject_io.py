@@ -331,6 +331,7 @@ class EarthCareObject(DataObject):
             "imager_linnum": None,
             "imager_pixnum": None,
             "validation_height": None,
+            "validation_height_base": None,
             "cloud_fraction": None,
         }
 

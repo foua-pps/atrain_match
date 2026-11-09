@@ -142,9 +142,11 @@ def find_closest_nwp_file(cloudproducts, AM_PATHS, values, SETTINGS):
 
 def find_truth_files_inner(date_time, time_window, AM_PATHS, values, truth="calipso"):
     """Find the matching truth files, inner functions."""
-    tlist = get_time_list(date_time, time_window, 600)
+    print(date_time, time_window)
+    tlist = get_time_list(date_time, time_window, 60)
     flist = []
-    for tobj in tlist:
+    print(tlist)
+    for tobj in sorted(tlist):
         calipso_dir = insert_info_in_filename_or_path(
             AM_PATHS[truth + "_dir"], values, datetime_obj=tobj
         )
@@ -152,7 +154,9 @@ def find_truth_files_inner(date_time, time_window, AM_PATHS, values, truth="cali
             AM_PATHS[truth + "_file"], values, datetime_obj=tobj
         )
         tmplist = glob(os.path.join(calipso_dir, calipso_file_pattern))
-        logger.debug("globbing" + os.path.join(calipso_dir, calipso_file_pattern))
+        logger.debug(
+            f"globbing {tobj}" + os.path.join(calipso_dir, calipso_file_pattern)
+        )
         flist.extend([s for s in tmplist if s not in flist])
     return flist
 
@@ -711,8 +715,17 @@ def get_cloudsat_matchups(cloudsat_files, cloudsat_files_lwp, cloudproducts, SET
 
 def get_earthcare_matchups(earthcare_files, cloudproducts, SETTINGS):
     """Read Earthcare data and match with the given PPS data."""
-    earthcare = reshape_earthcare(earthcare_files, cloudproducts, SETTINGS)
+    if earthcare_files is not None:
+        input_files = earthcare_files
+    # elif earthcare_cpr_files is not None:
+    #     input_files = earthcare_cpr_files
+    else:
+        raise ValueError(
+            "Either 'earthcare_files' or 'earthcare_cpr_files' must be provided."
+        )
+    earthcare = reshape_earthcare(input_files, cloudproducts, SETTINGS)
     cl_matchup = match_earthcare_imager(earthcare, cloudproducts, SETTINGS)
+
     return cl_matchup
 
 
