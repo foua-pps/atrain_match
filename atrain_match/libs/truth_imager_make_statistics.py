@@ -58,6 +58,19 @@ from atrain_match.matchobject_io import read_truth_imager_match_obj, CalipsoObje
 
 logger = logging.getLogger(__name__)
 
+TRUTHS = {
+    "cloudsat": "CLOUDSAT",
+    "amsr": "AMSR",
+    "iss": "ISS",
+    "synop": "SYNOP",
+    "mora": "MORA",
+    "calipso": "CALIPSO",
+    "dardar": "DARDAR",
+    "earthcare_cth": "EARTHCARE",
+    "earthcare_cbh": "EARTHCARE",
+    "earthcare_cmic": "EARTHCARE",
+}
+
 
 def add_validation_ctth(match_clsat, match_calipso):
     """Add CPR (CloudSat) validation height if not in file already."""
@@ -82,16 +95,7 @@ def get_matchups(cross, AM_PATHS, SETTINGS, reprocess):
     values = {}
     Obj_dict = {}
     out_dict = {}
-    for truth in [
-        "cloudsat",
-        "amsr",
-        "iss",
-        "synop",
-        "mora",
-        "calipso",
-        "dardar",
-        "earthcare",
-    ]:
+    for truth in TRUTHS:
         Obj_dict[truth] = None
     try:
         values["satellite"] = cross.satellite1.lower()
@@ -99,21 +103,10 @@ def get_matchups(cross, AM_PATHS, SETTINGS, reprocess):
         raise ValueError("Need satellite1 and time (cross: %s)" % cross)
 
     if reprocess is False or SETTINGS["USE_EXISTING_RESHAPED_FILES"]:
-        for truth in [
-            "cloudsat",
-            "amsr",
-            "iss",
-            "synop",
-            "mora",
-            "calipso",
-            "dardar",
-            "earthcare",
-        ]:
+        for truth, source in TRUTHS.items():
             if not SETTINGS[truth.upper() + "_MATCHING"]:
                 logger.info(
-                    "{truth} matching turned off {truth}_MATCHING]=False.".format(
-                        truth=truth.upper()
-                    )
+                    f"{truth} matching turned off {truth.upper()}_MATCHING]=False."
                 )
             else:
                 values["atrain_sat"] = truth
@@ -126,7 +119,7 @@ def get_matchups(cross, AM_PATHS, SETTINGS, reprocess):
                 )
                 if match_file is None:
                     logger.info(
-                        "No processed {:s} match files found. ".format(truth)
+                        f"No processed {truth} match files found. "
                         + "Generating from source data if required."
                     )
                     date_time = cross.time
@@ -146,67 +139,31 @@ def get_matchups(cross, AM_PATHS, SETTINGS, reprocess):
         out_dict = {"basename": basename, "values": values}
 
     # Redo matching if missing (we might want to remove this in future.)
-    # And require that matchups are alredy done.
+    # And require that matchups are already done.
     # ================================================================
     if SETTINGS["USE_EXISTING_RESHAPED_FILES"]:
-        for truth in [
-            "cloudsat",
-            "amsr",
-            "iss",
-            "synop",
-            "mora",
-            "calipso",
-            "dardar",
-            "earthcare",
-        ]:
-            if Obj_dict[truth] is None and SETTINGS[truth.upper() + "_REQUIRED"]:
+        for truth, source in TRUTHS.items():
+            if Obj_dict[truth] is None and SETTINGS[source + "_REQUIRED"]:
                 raise MatchupError(
-                    "Couldn't find calipso already processed matchup file, "
+                    f"Couldn't find {truth} already processed matchup file, "
                     "USE_EXISTING_RESHAPED_FILES = True!"
                 )
-    redo_matching = False
-    for truth in [
-        "cloudsat",
-        "amsr",
-        "iss",
-        "synop",
-        "mora",
-        "calipso",
-        "dardar",
-        "earthcare",
-    ]:
-        out_dict[truth] = Obj_dict[truth]
-    if all(obj_i is None for obj_i in Obj_dict.values()):
+    # check if any matchings are missing
+    all_none = all(v is None for v in Obj_dict.values())
+    missing_required = any(
+        Obj_dict.get(source.lower()) is None
+        and SETTINGS.get(source + "_REQUIRED", False)
+        for truth, source in TRUTHS.items()
+    )
+    # run matching
+    if all_none or missing_required:
         out_dict = get_matchups_from_data(cross, AM_PATHS, SETTINGS)
-    for truth in [
-        "cloudsat",
-        "amsr",
-        "iss",
-        "synop",
-        "mora",
-        "calipso",
-        "dardar",
-        "earthcare",
-    ]:
-        if Obj_dict[truth] is None and SETTINGS[truth.upper() + "_REQUIRED"]:
-            redo_matching = True
-    if redo_matching:
-        out_dict = get_matchups_from_data(cross, AM_PATHS, SETTINGS)
-    for truth in [
-        "cloudsat",
-        "amsr",
-        "iss",
-        "synop",
-        "mora",
-        "calipso",
-        "dardar",
-        "earthcare",
-    ]:
-        if out_dict[truth] is None and SETTINGS[truth.upper() + "_REQUIRED"]:
+
+    # final check!
+    for truth, source in TRUTHS.items():
+        if out_dict[source.lower()] is None and SETTINGS[source + "_REQUIRED"]:
             raise MatchupError(
-                "Couldn't find {truth} matchup and {truth}_REQUIRED is True!".format(
-                    truth=truth
-                )
+                f"Couldn't find {truth} matchup and {source}_REQUIRED is True!"
             )
     # ================================================================
     return out_dict
@@ -443,7 +400,7 @@ def run(cross, run_modes, AM_PATHS, SETTINGS, reprocess=False):
         )
     logger.info("Adding validation height missing in old reshaped files")
     match_clsat, match_calipso = add_validation_ctth(match_clsat, match_calipso)
-    # Calculate hight from sea surface
+    # Calculate height from sea surface
     match_clsat, match_calipso, match_iss, match_earthcare = (
         add_elevation_corrected_imager_ctth(
             match_clsat, match_calipso, match_iss, match_earthcare, SETTINGS
