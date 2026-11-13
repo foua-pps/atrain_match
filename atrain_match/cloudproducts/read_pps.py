@@ -114,9 +114,11 @@ class AllImagerData(object):
         self.imager_angles = None
         self.imager_channeldata = None
         self.type = None
+        self.adcot = None
         self.cma = None
         self.ctype = None
         self.ctth = None
+        self.cbh = None
         self.unc = None
         self.aux = AuxiliaryObj({"surftemp": None})
         self.cpp = None
@@ -269,6 +271,36 @@ class CtthObj:
         self.surface_alti = None
 
 
+class CbhObj:
+    """Class to hold imager data for CBH."""
+
+    def __init__(self):
+        """Init all datasets to None."""
+        self.height = None
+        self.temperature = None
+        self.pressure = None
+        self.cbh_statusflag = None
+        self.surface_alti = None
+        self.h_nodata = None
+        self.t_nodata = None
+        self.p_nodata = None
+        self.h_gain = 1.0
+        self.h_intercept = 0.0
+        self.p_gain = 1.0
+        self.p_intercept = 0.0
+        self.t_gain = 1
+        self.t_intercept = 0.0
+
+
+class AdcotObj:
+    """Class to hold imager data for ADCOT."""
+
+    def __init__(self):
+        """Init all datasets to None."""
+        self.adcot = None
+        self.cma_prob_nn = None
+
+
 class CppObj:
     """Class to hold imager data for CPP."""
 
@@ -364,6 +396,39 @@ def read_ctth_nc(filename):
     return ctth
 
 
+def read_cbh_nc(filename):
+    """Read for PPS CBH from netcdf file."""
+    pps_nc = netCDF4.Dataset(filename, "r", format="NETCDF4")
+    cbh = CbhObj()
+    cbh.height = pps_nc.variables["cbh_alti"][0, :, :].astype(float)
+    cbh.temperature = pps_nc.variables["cbh_tempe"][0, :, :].astype(float)
+    cbh.pressure = pps_nc.variables["cbh_pres"][0, :, :].astype(float)
+    cbh.cbh_statusflag = pps_nc.variables["cbh_status_flag"][0, :, :]
+    cbh.surface_alti = pps_nc.variables["surface_alti"][0, :, :].astype(float)
+
+    cbh.h_nodata = pps_nc.variables["cbh_alti"]._FillValue
+    cbh.t_nodata = pps_nc.variables["cbh_tempe"]._FillValue
+    cbh.p_nodata = pps_nc.variables["cbh_pres"]._FillValue
+    logger.debug(
+        "min-h: %d, max-h: %d, h_nodata: %d",
+        np.min(cbh.height),
+        np.max(cbh.height.data),
+        cbh.h_nodata,
+    )
+    # already scaled
+    if np.ma.is_masked(cbh.height):
+        cbh.height.data[cbh.height.mask] = ATRAIN_MATCH_NODATA
+        cbh.height = cbh.height.data
+    if np.ma.is_masked(cbh.pressure):
+        cbh.pressure.data[cbh.pressure.mask] = ATRAIN_MATCH_NODATA
+        cbh.pressure = cbh.pressure.data
+    if np.ma.is_masked(cbh.temperature):
+        cbh.temperature.data[cbh.temperature.mask] = ATRAIN_MATCH_NODATA
+        cbh.temperature = cbh.temperature.data
+    pps_nc.close()
+    return cbh
+
+
 def read_cloudtype_h5(filename):
     h5file = h5py.File(filename, "r")
     ctype = CtypeObj()
@@ -441,6 +506,29 @@ def read_cmaprob_nc(filename, cma):
         cma.cma_prob[mask] = ATRAIN_MATCH_NODATA
     pps_nc.close()
     return cma
+
+
+def fill_masked_with_custom_nodata(var):
+    """If inpur array is masked, it fills the masked values with ATRAIN_MATCH nodata field."""
+    if np.ma.is_masked(var):
+        mask = var.mask
+        data = var.data
+        data[mask] = ATRAIN_MATCH_NODATA
+        return data
+    return var
+
+
+def read_adcot_nc(filename):
+    """Read for PPS ADCOT product from netcdf file."""
+
+    pps_nc = netCDF4.Dataset(filename, "r", format="NETCDF4")
+    adcot = AdcotObj()
+
+    adcot.cma_prob_nn = fill_masked_with_custom_nodata(
+        pps_nc.variables["cmaprob"][0, :, :]
+    )
+    adcot.adcot = fill_masked_with_custom_nodata(pps_nc.variables["adcot"][0, :, :])
+    return adcot
 
 
 def read_cma_nc(filename):
@@ -1229,7 +1317,7 @@ def read_all_intermediate_files(pps_files, SETTINGS):
 def pps_read_all(pps_files, imager_file, SETTINGS):
     """Read all PPS data and return cloudproducts object."""
     logger.info("Read Imager geolocation data")
-    print(imager_file)
+
     if ".nc" in imager_file:
         pps_nc = netCDF4.Dataset(imager_file, "r", format="NETCDF4")
         cloudproducts = read_pps_geoobj_nc(pps_nc)
@@ -1296,6 +1384,14 @@ def pps_read_all(pps_files, imager_file, SETTINGS):
             cloudproducts.ctth = read_ctth_nc(pps_files.ctth[CTTH_TYPES[0]])
         else:
             cloudproducts.ctth = read_ctth_h5(pps_files.ctth[CTTH_TYPES[0]])
+
+    if pps_files.cbh is not None:
+        logger.info("Read PPS CBH")
+        cloudproducts.cbh = read_cbh_nc(pps_files.cbh)
+
+    if pps_files.adcot is not None:
+        logger.info("Read PPS Adcot")
+        cloudproducts.adcot = read_adcot_nc(pps_files.adcot)
 
     logger.info("Read PPS full resolution intermediate files")
     cloudproducts.aux = read_all_intermediate_files(pps_files, SETTINGS)
