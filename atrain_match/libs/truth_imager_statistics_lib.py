@@ -1464,7 +1464,7 @@ def calculate_statistics(
             statfile.close()
 
     if match_calipso is not None:
-        logger.info("Calipo Statistics")
+        logger.info("Calipso Statistics")
         val_subset = get_subset_for_mode(match_calipso, mode)
         if val_subset is not None:
             statfile = open(statfilename.replace("xxx", "calipso"), "w")
@@ -1504,7 +1504,7 @@ def calculate_statistics(
             print_stats_ctop(match_iss, statfile, val_subset, None, SETTINGS)
             statfile.close()
 
-    if match_earthcare is not None:
+    if match_earthcare is not None and SETTINGS["EARTHCARE_CMIC_MATCHING"] is False:
         val_subset = get_subset_for_mode(match_earthcare, mode)
         if val_subset is not None:
             statfile = open(statfilename.replace("xxx", "earthcare"), "w")
@@ -1517,7 +1517,11 @@ def calculate_statistics(
             print_cmask_prob_stats(match_earthcare, statfile, val_subset, SETTINGS)
             # print_calipso_stats_ctype(match_earthcare, statfile, val_subset, cal_vert_feature)
             print_stats_ctop(
-                match_earthcare, statfile, val_subset, low_medium_high_class, SETTINGS
+                match_earthcare,
+                statfile,
+                val_subset,
+                low_medium_high_class,
+                SETTINGS,
             )
             statfile.close()
 
