@@ -142,14 +142,19 @@ class ExtractedImagerObject(DataObject):
             "longitude": None,
             "latitude": None,
             "sec_1970": None,
+            "adcot": None,
             "ctth_height": None,
             "ctth_pressure": None,
             "ctth_temperature": None,
+            "cbh_height": None,
+            "cbh_pressure": None,
+            "cbh_temperature": None,
             "cloudtype": None,
             "cloudmask": None,
             "cfc_mean": None,
             "cma_prob": None,
             "cma_prob_mean": None,
+            "cma_prob_nn": None,
             "cpp_iwp": None,
             "cpp_lwp": None,
             "cpp_phase": None,
@@ -330,9 +335,16 @@ class EarthCareObject(DataObject):
             "longitude": None,
             "imager_linnum": None,
             "imager_pixnum": None,
-            "validation_height": None,
-            "validation_height_base": None,
-            "cloud_fraction": None,
+            "validation_height": None,  # can be CPR or ATLID based, but not synergestic
+            "validation_height_base": None,  # CPR only
+            "layer_top_pressure": None,  # CPR only
+            "layer_base_pressure": None,  # CPR only
+            "layer_top_temperature": None,  # CPR only
+            "layer_base_temperature": None,  # CPR only
+            "cloud_fraction": None,  # simple classification
+            "ice_water_path_1km": None,  # CPR + ATLID
+            "liquid_water_path_1km": None,  # CPR + ATLID
+            "optical_thickness_1km": None,  # CPR + ATLID
         }
 
 
