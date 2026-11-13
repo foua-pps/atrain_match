@@ -223,8 +223,10 @@ def imager_track_from_matched(
     SETTINGS,
     cloudproducts,
     extract_radiances=True,
+    extract_adcot=True,
     extract_cma=True,
     extract_ctth=True,
+    extract_cbh=True,
     extract_ctype=True,
     extract_cpp=True,
     extract_aux_segments=True,
@@ -271,7 +273,9 @@ def imager_track_from_matched(
 
     imager_obj = cloudproducts.imager_channeldata
     angle_obj = cloudproducts.imager_angles
+    adcot = cloudproducts.adcot
     ctth = cloudproducts.ctth
+    cbh = cloudproducts.cbh
     cma = cloudproducts.cma
     ctype = cloudproducts.ctype
     cpp = cloudproducts.cpp
@@ -457,6 +461,35 @@ def imager_track_from_matched(
         if SETTINGS["PPS_VALIDATION"] and hasattr(ctth, "processingflag"):
             is_opaque = np.bitwise_and(np.right_shift(ctth.processingflag, 2), 1)
             obt.imager.ctth_opaque = get_data_from_array(is_opaque, row_col)
+
+    if cbh is None:
+        logger.info("Not extracting cbh")
+    elif extract_cbh:
+        logger.debug("Extracting cbh along track ")
+        if hasattr(cbh, "cbh_statusflag") and SETTINGS["PPS_VALIDATION"]:
+            obt.imager.cbh_status = get_data_from_array(cbh.cbh_statusflag, row_col)
+        for cbh_product in [
+            "height",
+            "temperature",
+            "pressure",
+            "surface_alti",
+        ]:
+            data = getattr(cbh, cbh_product)
+            if data is None:
+                continue
+            setattr(
+                obt.imager, "cbh_" + cbh_product, get_data_from_array(data, row_col)
+            )
+
+    if adcot is None:
+        logger.info("Not extracting adcot")
+    elif extract_adcot and SETTINGS["PPS_VALIDATION"]:
+        logger.debug("Extracting adcot along track ")
+        for adcot_product in ["adcot", "cma_prob_nn"]:
+            data = getattr(adcot, adcot_product)
+            if data is None:
+                continue
+            setattr(obt.imager, adcot_product, get_data_from_array(data, row_col))
 
     if cpp is None or not extract_cpp:
         logger.debug("Not extracting cpp")
