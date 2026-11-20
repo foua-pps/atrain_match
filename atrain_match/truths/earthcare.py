@@ -102,6 +102,16 @@ class AcClpReader:
 
         return self.dataset["ScienceData/Data/liquid_water_path_10km"][:]
 
+    def read(self, retv: EarthCareObject) -> EarthCareObject:
+        """Populates the target in place with AC_CLP 1 km microphysics variables."""
+
+        retv.ice_water_path_1km = self.ice_water_path_1km
+        retv.liquid_water_path_1km = self.liquid_water_path_1km
+        retv.optical_thickness_1km = self.optical_thickness_1km
+        # similar can be added for 10km, if required!
+
+        return retv
+
 
 @dataclass
 class CprTcReader:
@@ -109,20 +119,7 @@ class CprTcReader:
 
     dataset: netCDF4.Dataset
 
-    @property
-    def cloud_top(self):
-        """Returns the maximum cloud top height profile-wise along the track."""
-
-        return self.get_cloud_height("top")
-
-    @property
-    def cloud_base(self):
-        """Returns the minimum cloud base height profile-wise along the track."""
-
-        return self.get_cloud_height("base")
-
-    @property
-    def cloud_fraction(self):
+    def get_cloud_fraction(self):
         """
         Extract a simple binary cloud fraction (0/1) from target classifictaion.
         Hydrometeor Classification, where:
@@ -180,6 +177,7 @@ class CprTcReader:
         # above sea level = geodetic_altitude - geoid_offset
         geoid_offset = self.dataset["ScienceData"]["geoid_offset"][:]
         height_asl = height_wgs84 - geoid_offset
+        height_asl[height_asl > 99999] = -9
         height_asl.set_fill_value(-9)
 
         return height_asl
@@ -190,13 +188,7 @@ class CprTcReader:
         track_heights = self.dataset["ScienceData"]["height"][:]
         track_values = self.dataset["ScienceData"][var_name][:]
         n_track = track_heights.shape[0]
-        if mode == "base":
-            target_heights = self.cloud_base
-        elif mode == "top":
-            target_heights = self.cloud_top
-        else:
-            raise ValueError("mode must be either 'base' or 'top'")
-
+        target_heights = self.get_cloud_height("base")
         var_interpolated = np.full(n_track, -9, dtype=float)
 
         for i in range(n_track):
@@ -208,6 +200,26 @@ class CprTcReader:
                 )
 
         return var_interpolated
+
+    def read(self, retv: EarthCareObject) -> EarthCareObject:
+        """Reads the variables into the EarthCareObject."""
+
+        retv.validation_height_base = self.get_cloud_height("base")
+        retv.validation_height = self.get_cloud_height("top")
+        retv.cloud_fraction = self.get_cloud_fraction()
+        retv.layer_base_pressure = self.get_cloud_pressure_or_temperature(
+            "pressure", "base"
+        )
+        retv.layer_base_temperature = self.get_cloud_pressure_or_temperature(
+            "temperature", "base"
+        )
+        retv.layer_top_pressure = self.get_cloud_pressure_or_temperature(
+            "pressure", "top"
+        )
+        retv.layer_top_temperature = self.get_cloud_pressure_or_temperature(
+            "temperature", "top"
+        )
+        return retv
 
 
 def _interpolate_single_profile(heights, values, target_height):
@@ -225,27 +237,34 @@ class AtlCthReader:
     dataset: netCDF4.Dataset
 
     @property
-    def cloud_top(self):
-        """Returns quality controlled cloud top height from ATLID."""
+    def quality_status(self):
+        """Returns quality flag."""
 
-        return self.get_cloud_top_height()
+        return self.dataset["ScienceData"]["quality_status"][:]
 
-    @property
-    def thick_height(self):
+    def get_cloud_top(self):
+        """Returns the cloud top height with quality control."""
+
+        height_wgs84 = self.dataset["ScienceData"]["ATLID_cloud_top_height"][:]
+        geoid_offset = self.dataset["ScienceData"]["geoid_offset"][:]
+
+        height_asl = height_wgs84 - geoid_offset
+        height_asl[height_asl > 99999] = -9
+
+        height_asl[self.quality_status == 3] = -9
+        height_asl[self.quality_status == 2] = -9
+        height_asl[self.quality_status == 4] = -9
+
+        return height_asl
+
+    def get_thick_height(self):
         """Returns height of thick clouds from ATLID."""
 
         thick_height = self.dataset["ScienceData"]["ATLID_thick_cloud_top_height"][:]
         thick_height[thick_height > 99999] = -9
         return thick_height
 
-    @property
-    def quality_status(self):
-        """Returns quality flag."""
-
-        return self.dataset["ScienceData"]["quality_status"][:]
-
-    @property
-    def cloud_fraction(self):
+    def get_cloud_fraction(self):
         """Returns simplified cloud fraction from ATLID.
         # 0 – no cloud,
         # 1 – thick cloud,
@@ -274,25 +293,13 @@ class AtlCthReader:
 
         return cloud_fraction
 
-    def get_cloud_top_height(self):
-        """Extract the cloud top height with quality control."""
+    def read(self, retv: EarthCareObject) -> EarthCareObject:
+        retv.validation_height = self.get_cloud_top()
+        retv.thick_height = self.get_thick_height()
+        retv.cloud_fraction = self.get_cloud_fraction()
+        retv.quality_status = self.quality_status
 
-        height_wgs84 = self.dataset["ScienceData"]["ATLID_cloud_top_height"][:]
-        geoid_offset = self.dataset["ScienceData"]["geoid_offset"][:]
-
-        validation_height = height_wgs84 - geoid_offset
-        validation_height[validation_height > 99999] = -9
-
-        validation_height[self.quality_status == 3] = -9
-        validation_height[self.quality_status == 2] = -9
-        validation_height[self.quality_status == 4] = -9
-
-        # update = np.logical_and(validation_height == -9, self.thick_height > 0)
-        # validation_height[update] = thick_height[update]
-        # thick_validation_height = self.dataset["ScienceData"]["ATLID_thick_cloud_top_height"][:]
-        # thick_validation_height[thick_validation_height >9999 ] = -9
-
-        return validation_height
+        return retv
 
 
 def read_earthcare(filename):
@@ -323,43 +330,19 @@ def read_earthcare(filename):
         # Cloud height only from ATLID
         logger.debug("Reading Earthcare product ATL_CTH.")
         atl_cth = AtlCthReader(ncf)
-
-        retv.validation_height = atl_cth.cloud_top
-        retv.thick_height = atl_cth.thick_height
-        retv.quality_status = atl_cth.quality_status
-        retv.cloud_fraction = atl_cth.cloud_fraction
+        retv = atl_cth.read(retv)
 
     elif product_type.value == "CPR_TC":
         # cloud top and base height from CPR
         logger.debug("Reading Earthcare product CPR_TC.")
         cpr_tc = CprTcReader(ncf)
-
-        retv.validation_height_base = cpr_tc.cloud_base
-        retv.validation_height = cpr_tc.cloud_top
-        retv.cloud_fraction = cpr_tc.cloud_fraction
-        retv.layer_base_pressure = cpr_tc.get_cloud_pressure_or_temperature(
-            "pressure", "base"
-        )
-        retv.layer_base_temperature = cpr_tc.get_cloud_pressure_or_temperature(
-            "temperature", "base"
-        )
-        retv.layer_top_pressure = cpr_tc.get_cloud_pressure_or_temperature(
-            "pressure", "top"
-        )
-        retv.layer_top_temperature = cpr_tc.get_cloud_pressure_or_temperature(
-            "temperature", "top"
-        )
+        retv = cpr_tc.read(retv)
 
     elif product_type.value == "AC_CLP":
         # LWP, IWP, Cloud mask from CPR + ATLID
         logger.debug("Reading Earthcare product AC_CLP.")
         ac_clp = AcClpReader(ncf)
-
-        retv.ice_water_path_1km = ac_clp.ice_water_path_1km
-        retv.liquid_water_path_1km = ac_clp.liquid_water_path_1km
-        retv.optical_thickness_1km = ac_clp.optical_thickness_1km
-
-        # similar can be added for 10km, if required!
+        retv = ac_clp.read(retv)
 
     else:
         logger.warning(
