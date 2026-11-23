@@ -142,9 +142,11 @@ def find_closest_nwp_file(cloudproducts, AM_PATHS, values, SETTINGS):
 
 def find_truth_files_inner(date_time, time_window, AM_PATHS, values, truth="calipso"):
     """Find the matching truth files, inner functions."""
-    tlist = get_time_list(date_time, time_window, 600)
+
+    tlist = get_time_list(date_time, time_window, 60)
     flist = []
-    for tobj in tlist:
+
+    for tobj in sorted(tlist):
         calipso_dir = insert_info_in_filename_or_path(
             AM_PATHS[truth + "_dir"], values, datetime_obj=tobj
         )
@@ -152,7 +154,9 @@ def find_truth_files_inner(date_time, time_window, AM_PATHS, values, truth="cali
             AM_PATHS[truth + "_file"], values, datetime_obj=tobj
         )
         tmplist = glob(os.path.join(calipso_dir, calipso_file_pattern))
-        logger.debug("globbing" + os.path.join(calipso_dir, calipso_file_pattern))
+        logger.debug(
+            f"globbing {tobj}" + os.path.join(calipso_dir, calipso_file_pattern)
+        )
         flist.extend([s for s in tmplist if s not in flist])
     return flist
 
@@ -512,6 +516,14 @@ def find_pps_files_from_imager_file(imager_file, AM_PATHS, SETTINGS, as_oldstyle
         imager_file, SETTINGS, cross=None, as_oldstyle=as_oldstyle
     )
     file_name_dict = {}
+    file_name_dict["adcot"] = get_one_pps_file(
+        imager_file,
+        AM_PATHS,
+        values,
+        "adcot_file",
+        "adcot_dir",
+        FailIfRequestedAndMissing=True,
+    )
     file_name_dict["cma"] = get_one_pps_file(
         imager_file,
         AM_PATHS,
@@ -554,6 +566,14 @@ def find_pps_files_from_imager_file(imager_file, AM_PATHS, SETTINGS, as_oldstyle
             )
         file_name_dict.update({"ctth": ctth_files})
 
+    file_name_dict["cbh"] = get_one_pps_file(
+        imager_file,
+        AM_PATHS,
+        values,
+        "cbh_file",
+        "cbh_dir",
+        FailIfRequestedAndMissing=True,
+    )
     file_name_dict["cpp"] = get_one_pps_file(
         imager_file,
         AM_PATHS,
@@ -711,8 +731,17 @@ def get_cloudsat_matchups(cloudsat_files, cloudsat_files_lwp, cloudproducts, SET
 
 def get_earthcare_matchups(earthcare_files, cloudproducts, SETTINGS):
     """Read Earthcare data and match with the given PPS data."""
-    earthcare = reshape_earthcare(earthcare_files, cloudproducts, SETTINGS)
+    if earthcare_files is not None:
+        input_files = earthcare_files
+    # elif earthcare_cpr_files is not None:
+    #     input_files = earthcare_cpr_files
+    else:
+        raise ValueError(
+            "Either 'earthcare_files' or 'earthcare_cpr_files' must be provided."
+        )
+    earthcare = reshape_earthcare(input_files, cloudproducts, SETTINGS)
     cl_matchup = match_earthcare_imager(earthcare, cloudproducts, SETTINGS)
+
     return cl_matchup
 
 
@@ -1099,7 +1128,7 @@ def add_modis_lvl2_clousat_(match_clsat, match_calipso):
             "longitude_5km"
         ][match_clsat.cloudsat.calipso_index]
     return match_clsat
- 
+
 
 def add_elevation_corrected_imager_ctth(
     match_clsat, match_calipso, match_iss, match_earthcare, SETTINGS
@@ -1107,12 +1136,25 @@ def add_elevation_corrected_imager_ctth(
     # # Cloudsat # #
     if match_earthcare is None or match_earthcare.imager.ctth_height is None:
         pass
-    elif match_earthcare.imager.imager_ctth_m_above_seasurface is None and hasattr(match_earthcare.imager, "ctth_surface_alti"):
-        match_earthcare.imager.imager_ctth_m_above_seasurface = match_earthcare.imager.ctth_height + match_earthcare.imager.ctth_surface_alti
-        match_earthcare.imager.imager_ctth_m_above_seasurface[match_earthcare.imager.ctth_height<0] = -9
-    elif match_earthcare.imager.imager_ctth_m_above_seasurface is None and hasattr(match_earthcare.imager, "elevation"):
-        match_earthcare.imager.imager_ctth_m_above_seasurface = match_earthcare.imager.ctth_height + match_earthcare.imager.elevation
-        match_earthcare.imager.imager_ctth_m_above_seasurface[match_earthcare.imager.ctth_height<0] = -9
+    elif match_earthcare.imager.imager_ctth_m_above_seasurface is None and hasattr(
+        match_earthcare.imager, "ctth_surface_alti"
+    ):
+        match_earthcare.imager.imager_ctth_m_above_seasurface = (
+            match_earthcare.imager.ctth_height
+            + match_earthcare.imager.ctth_surface_alti
+        )
+        match_earthcare.imager.imager_ctth_m_above_seasurface[
+            match_earthcare.imager.ctth_height < 0
+        ] = -9
+    elif match_earthcare.imager.imager_ctth_m_above_seasurface is None and hasattr(
+        match_earthcare.imager, "elevation"
+    ):
+        match_earthcare.imager.imager_ctth_m_above_seasurface = (
+            match_earthcare.imager.ctth_height + match_earthcare.imager.elevation
+        )
+        match_earthcare.imager.imager_ctth_m_above_seasurface[
+            match_earthcare.imager.ctth_height < 0
+        ] = -9
     elif match_earthcare.imager.imager_ctth_m_above_seasurface is None:
         match_earthcare.imager.imager_ctth_m_above_seasurface = (
             match_earthcare.imager.ctth_height
@@ -1191,6 +1233,57 @@ def add_elevation_corrected_imager_ctth(
     return match_clsat, match_calipso, match_iss, match_earthcare
 
 
+def validate_earthcare_settings(SETTINGS):
+    """Ensure that EarthCARE matching flags are mutually exclusive (only one can be True)."""
+
+    cbh = SETTINGS["EARTHCARE_CBH_MATCHING"]
+    cth = SETTINGS["EARTHCARE_CTH_MATCHING"]
+    cmic = SETTINGS["EARTHCARE_CMIC_MATCHING"]
+
+    # Count how many of these flags are set to True
+    if sum([cbh, cth, cmic]) > 1:
+        raise ValueError(
+            "Configuration error: Only one of EARTHCARE_CBH_MATCHING, "
+            "EARTHCARE_CTH_MATCHING, and EARTHCARE_CMIC_MATCHING can be True at a time."
+        )
+
+
+def get_requested_earthcare_matchup(truth_files, cloudproducts, SETTINGS):
+    """Loads the appropriate EarthCARE matchup based on validation and matching settings."""
+
+    # CTTH ATLID
+    if (
+        (SETTINGS["PPS_VALIDATION"] or SETTINGS["OCA_VALIDATION"])
+        and SETTINGS["EARTHCARE_CTH_MATCHING"]
+        and truth_files["earthcare_cth"] is not None
+    ):
+        logger.info("Getting EARTHCARE matchups from ATLID for cloud top.")
+        return get_earthcare_matchups(
+            truth_files["earthcare_cth"], cloudproducts, SETTINGS
+        )
+    # CBH + CTTH CPR
+    if (
+        (SETTINGS["PPS_VALIDATION"])
+        and SETTINGS["EARTHCARE_CBH_MATCHING"]
+        and truth_files["earthcare_cbh"] is not None
+    ):
+        logger.info("Getting EARTHCARE matchups from CPR for cloud base.")
+        return get_earthcare_matchups(
+            truth_files["earthcare_cbh"], cloudproducts, SETTINGS
+        )
+    # LWP, IWP, CPT+ATLID
+    if (
+        (SETTINGS["PPS_VALIDATION"])
+        and SETTINGS["EARTHCARE_CMIC_MATCHING"]
+        and truth_files["earthcare_cmic"] is not None
+    ):
+        logger.info("Getting EARTHCARE matchups from CPR+ATLID for LWP, IWP.")
+        return get_earthcare_matchups(
+            truth_files["earthcare_cmic"], cloudproducts, SETTINGS
+        )
+    return None
+
+
 def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
     """Find files and retrieve matchup from data."""
 
@@ -1225,7 +1318,9 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
         "cloudsat_lwp",
         "calipso",
         "dardar",
-        "earthcare",
+        "earthcare_cbh",
+        "earthcare_cth",
+        "earthcare_cmic",
     ]:
         truth_files[truth] = None
         if (
@@ -1301,13 +1396,11 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
         iss_matchup = get_iss_matchups(truth_files["iss"], cloudproducts, SETTINGS)
 
     # EARTHCARE:
-    earthcare_matchup = None
-    if ((SETTINGS['PPS_VALIDATION'] or SETTINGS['OCA_VALIDATION']  ) and SETTINGS['EARTHCARE_MATCHING'] and
-            truth_files['earthcare'] is not None):
-        logger.info("Read EARTHCARE data")
-        earthcare_matchup = get_earthcare_matchups(
-            truth_files["earthcare"], cloudproducts, SETTINGS
-        )
+    validate_earthcare_settings(SETTINGS)
+    earthcare_matchup = get_requested_earthcare_matchup(
+        truth_files, cloudproducts, SETTINGS
+    )
+
     # AMSR
     amsr_matchup = None
     if (
@@ -1384,6 +1477,8 @@ def get_matchups_from_data(cross, AM_PATHS, SETTINGS):
         raise MatchupError("No matches with MORA.")
     elif dardar_matchup is None and SETTINGS["DARDAR_REQUIRED"]:
         raise MatchupError("No matches with DARDAR.")
+    elif earthcare_matchup is None and SETTINGS["EARTHCARE_REQUIRED"]:
+        raise MatchupError("No matches with EARTHCARE.")
     elif (
         calipso_matchup is None
         and cloudsat_matchup is None

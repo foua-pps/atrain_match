@@ -21,6 +21,7 @@ from scipy.ndimage import uniform_filter
 
 import atrain_match.config as config
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -30,13 +31,16 @@ def get_t11t12_texture_data_from_object(imager_obj, aux_obj, ch11, ch12, text_na
     t11 = get_channel_data_from_objectfull_resolution(imager_obj, ch11, nodata=-9)
     t12 = get_channel_data_from_objectfull_resolution(imager_obj, ch12, nodata=-9)
     t11t12 = 1.0 * np.array(t11 - t12)
-    K = np.median(t11t12)  # K is trick to get better accuracy maybe not needed as differences are often small
-    t11t12 = (t11t12 - K)
-    mean = uniform_filter(t11t12, size=(5, 5), mode='mirror')
-    mean_of_squared = uniform_filter(t11t12**2, size=(5, 5), mode='mirror')
+    K = np.median(
+        t11t12
+    )  # K is trick to get better accuracy maybe not needed as differences are often small
+    t11t12 = t11t12 - K
+    mean = uniform_filter(t11t12, size=(5, 5), mode="mirror")
+    mean_of_squared = uniform_filter(t11t12**2, size=(5, 5), mode="mirror")
     t11t12_texture = mean_of_squared - mean**2
     setattr(aux_obj, text_name, t11t12_texture)
     return aux_obj
+
 
 def get_texture_inner_no_nans(array, ks):
     # https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
@@ -64,12 +68,10 @@ def get_texture_inner(array_in, ks):
         # to something that will not make np divide complain
         true_N[true_N < ks] = ks - 1.0
         array[not_ok] = 0.0
-        K = np.median(array) 
+        K = np.median(array)
         array = array - K
         array[not_ok] = 0.0
-        mean = (N / true_N) * uniform_filter(
-            array, size=(ks, ks), mode="reflect"
-        )
+        mean = (N / true_N) * uniform_filter(array, size=(ks, ks), mode="reflect")
         mean_of_squared = (N / true_N) * uniform_filter(
             array**2, size=(ks, ks), mode="reflect"
         )
@@ -90,17 +92,17 @@ def get_extra_textures(imager_obj, aux_obj, resolution):
     elif resolution == 1:
         kernel_size = 5
     else:
-        raise ValueError(f"Resolution {resolution} km not supported! Should be 1km or 5km.")    
+        raise ValueError(
+            f"Resolution {resolution} km not supported! Should be 1km or 5km."
+        )
 
-
-
-    for texture_type in ("text_t67", "text_t85"):
-        channel = texture_type.replace("text_t", "ch_tb")
-        tb = get_channel_data_from_objectfull_resolution(imager_obj, channel, nodata=-9)
-        texture = get_texture_inner(tb, kernel_size)
-        setattr(aux_obj, texture_type, texture)
-        logger.debug(f"Calculated textures for channel {channel}")
-    return aux_obj    
+    # for texture_type in ("text_t67", "text_t85"):
+    #     channel = texture_type.replace("text_t", "ch_tb")
+    #     tb = get_channel_data_from_objectfull_resolution(imager_obj, channel, nodata=-9)
+    #     texture = get_texture_inner(tb, kernel_size)
+    #     setattr(aux_obj, texture_type, texture)
+    #     logger.debug(f"Calculated textures for channel {channel}")
+    return aux_obj
 
 
 class NeighbourObj(object):
@@ -128,17 +130,21 @@ class NeighbourObj(object):
 
 def get_data_from_array_fill_outside(array, matched, Fill=0):
     """Extract data from array for index in matched."""
-    row_index = matched['row'].copy()
-    col_index = matched['col'].copy()
+    row_index = matched["row"].copy()
+    col_index = matched["col"].copy()
     row_lim, col_lim = array.shape
-    outside = np.logical_or(np.logical_or(row_index < 0,
-                                          row_index >= row_lim),
-                            np.logical_or(col_index < 0,
-                                          col_index >= col_lim))
+    outside = np.logical_or(
+        np.logical_or(row_index < 0, row_index >= row_lim),
+        np.logical_or(col_index < 0, col_index >= col_lim),
+    )
     row_index[outside] = 0
     col_index[outside] = 0
-    temp = np.array([array[row_index[idx], col_index[idx]]
-                     for idx in range(matched['row'].shape[0])])
+    temp = np.array(
+        [
+            array[row_index[idx], col_index[idx]]
+            for idx in range(matched["row"].shape[0])
+        ]
+    )
     return np.where(outside, Fill, temp)
 
 
@@ -149,31 +155,36 @@ def get_warmest_or_coldest_index(t11, matched, warmest=True):
         FILL = -99
 
     steps = [(i, j) for i in [-2, -1, 0, 1, 2] for j in [-2, -1, 0, 1, 2]]
-    t11_neighbour_i = np.zeros((25, matched['row'].shape[0]))
+    t11_neighbour_i = np.zeros((25, matched["row"].shape[0]))
     for i, (step_r, step_c) in enumerate(steps):
-        new_row_col = {'row': matched['row'] + step_r,
-                       'col': matched['col'] + step_c}
-        t11_neighbour_i[i, :] = get_data_from_array_fill_outside(t11,
-                                                                 new_row_col,
-                                                                 Fill=FILL)
+        new_row_col = {"row": matched["row"] + step_r, "col": matched["col"] + step_c}
+        t11_neighbour_i[i, :] = get_data_from_array_fill_outside(
+            t11, new_row_col, Fill=FILL
+        )
     if warmest:
         neigbour_index = np.argmax(t11_neighbour_i, axis=0)
     else:  # coldest
         neigbour_index = np.argmin(t11_neighbour_i, axis=0)
     new_row_matched = np.array(
-        [matched['row'][idx] + steps[neigbour_index[idx]][0]
-         for idx in range(matched['row'].shape[0])])
+        [
+            matched["row"][idx] + steps[neigbour_index[idx]][0]
+            for idx in range(matched["row"].shape[0])
+        ]
+    )
     new_col_matched = np.array(
-        [matched['col'][idx] + steps[neigbour_index[idx]][1]
-         for idx in range(matched['row'].shape[0])])
-    new_row_col = {'row': new_row_matched, 'col': new_col_matched}
+        [
+            matched["col"][idx] + steps[neigbour_index[idx]][1]
+            for idx in range(matched["row"].shape[0])
+        ]
+    )
+    new_row_col = {"row": new_row_matched, "col": new_col_matched}
     return new_row_col
 
 
 def get_warmest_values(imager_obj, matched):
     """Get channel values for neighbour that is warmest (channel 11)."""
     nobj = NeighbourObj()
-    t11 = get_channel_data_from_objectfull_resolution(imager_obj, 'ch_tb11', nodata=-9)
+    t11 = get_channel_data_from_objectfull_resolution(imager_obj, "ch_tb11", nodata=-9)
     new_row_col = get_warmest_or_coldest_index(t11, matched)
     return new_row_col
 
@@ -181,16 +192,16 @@ def get_warmest_values(imager_obj, matched):
 def get_coldest_values(imager_obj, matched):
     """Get channel values for neighbour that is coldest (channel 11)."""
     nobj = NeighbourObj()
-    t11 = get_channel_data_from_objectfull_resolution(imager_obj, 'ch_tb11', nodata=-9)
+    t11 = get_channel_data_from_objectfull_resolution(imager_obj, "ch_tb11", nodata=-9)
     new_row_col = get_warmest_or_coldest_index(t11, matched, warmest=False)
-    return new_row_col 
+    return new_row_col
 
 
 def get_darkest_values(imager_obj, matched):
     """Get channel values for neighbour that is darkest (channel 0.6 or 0.9)."""
     nobj = NeighbourObj()
-    r09 = get_channel_data_from_objectfull_resolution(imager_obj, 'ch_r09', nodata=-9)
-    r06 = get_channel_data_from_objectfull_resolution(imager_obj, 'ch_r06', nodata=-9)
+    r09 = get_channel_data_from_objectfull_resolution(imager_obj, "ch_r09", nodata=-9)
+    r06 = get_channel_data_from_objectfull_resolution(imager_obj, "ch_r06", nodata=-9)
     darkest = np.where(r09 > r06, r06, r09)
     new_row_col = get_warmest_or_coldest_index(darkest, matched, warmest=False)
     return new_row_col
@@ -199,32 +210,37 @@ def get_darkest_values(imager_obj, matched):
 def add_cnn_features_full(imager_obj, imagerGeoObj, SETTINGS):
     from cloud_collocations.cloud_net import CloudNetBase
     from cloud_collocations.cloud_net import FeatureModel
-    print(SETTINGS['CNN_PCKL_PATH'])
-    cnn = CloudNetBase.load(SETTINGS['CNN_PCKL_PATH'])
+
+    print(SETTINGS["CNN_PCKL_PATH"])
+    cnn = CloudNetBase.load(SETTINGS["CNN_PCKL_PATH"])
     m = FeatureModel(cnn)
-    im11 = get_channel_data_from_objectfull_resolution(imager_obj, 'ch_tb11', nodata=-9)
-    im12 = get_channel_data_from_objectfull_resolution(imager_obj, 'ch_tb12', nodata=-9)
+    im11 = get_channel_data_from_objectfull_resolution(imager_obj, "ch_tb11", nodata=-9)
+    im12 = get_channel_data_from_objectfull_resolution(imager_obj, "ch_tb12", nodata=-9)
     filter_response = m.apply(np.array([im11, im12]))
     lats_f = m.resample_coordinates(imagerGeoObj.latitude)
     lons_f = m.resample_coordinates(imagerGeoObj.longitude)
-    return {'filter_response': filter_response, 'lats_f': lats_f, 'lons_f': lons_f}
+    return {"filter_response": filter_response, "lats_f": lats_f, "lons_f": lons_f}
 
 
 def add_cnn_features(cnn_dict, matched, lats_matched, lons_matched, SETTINGS):
     from atrain_match.utils.match import match_lonlat
+
     # filter_response.shape
     # (1, 32, 43, 43)
     # pytroll resample lats_matched/lons_matched to lats_f/lons_f
     # extract along track feature 1:32
     the_filters_dict = {}
-    filter_response = cnn_dict['filter_response']
-    lats_f = cnn_dict['lats_f']
-    lons_f = cnn_dict['lons_f']
-    target = (lons_matched.astype(np.float64).reshape(-1, 1),
-              lats_matched.astype(np.float64).reshape(-1, 1))
-    source = (lons_f.astype(np.float64),
-              lats_f.astype(np.float64))
-    mapper, dummy = match_lonlat(source, target, radius_of_influence=10000, n_neighbours=1)
+    filter_response = cnn_dict["filter_response"]
+    lats_f = cnn_dict["lats_f"]
+    lons_f = cnn_dict["lons_f"]
+    target = (
+        lons_matched.astype(np.float64).reshape(-1, 1),
+        lats_matched.astype(np.float64).reshape(-1, 1),
+    )
+    source = (lons_f.astype(np.float64), lats_f.astype(np.float64))
+    mapper, dummy = match_lonlat(
+        source, target, radius_of_influence=10000, n_neighbours=1
+    )
     cnn_feature_index_R = mapper.rows.filled(config.NODATA).ravel()  # i.e rows, cols!
     cnn_feature_index_C = mapper.cols.filled(config.NODATA).ravel()  # i.e rows, cols!
     for feature_index in range(32):
@@ -232,7 +248,8 @@ def add_cnn_features(cnn_dict, matched, lats_matched, lons_matched, SETTINGS):
         the_filters_dict["cnn_feature_{:d}".format(feature_index)] = np.where(
             cnn_feature_index_R >= 0,
             feature_i[cnn_feature_index_R, cnn_feature_index_C],
-            - 9)
+            -9,
+        )
     return the_filters_dict
 
 
@@ -240,6 +257,10 @@ def get_channel_data_from_objectfull_resolution(imager_obj, chn_des, nodata=-9):
     """Get the IMAGER/VIIRS channel data on full resolution for chosen channel."""
 
     chdata = imager_obj.channel[chn_des].data
-    chdata[np.logical_or(np.equal(chdata, imager_obj.nodata),
-                         np.equal(chdata, imager_obj.missing_data))] = nodata
+    chdata[
+        np.logical_or(
+            np.equal(chdata, imager_obj.nodata),
+            np.equal(chdata, imager_obj.missing_data),
+        )
+    ] = nodata
     return imager_obj.channel[chn_des].data
